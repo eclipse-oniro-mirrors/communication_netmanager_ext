@@ -1,0 +1,41 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+SUBSYSTEM_DIR = "//foundation/communication"
+NETMANAGER_EXT_ROOT = "$SUBSYSTEM_DIR/netmanager_ext"
+FRAMEWORKS_SRC = "$NETMANAGER_EXT_ROOT/frameworks/native/externalvpnclient/src"
+INTERFACES_INCLUDE = "$NETMANAGER_EXT_ROOT/interfaces/innerkits/externalvpnclient/include"
+INTERFACES_DIR = "$NETMANAGER_EXT_ROOT/interfaces/innerkits/externalvpnclient"
+SERVICES_EXTERNALVPNMANAGER = "$NETMANAGER_EXT_ROOT/services/externalvpnmanager"
+EXT_INNERKITS_ROOT = "$NETMANAGER_EXT_ROOT/interfaces/innerkits"
+NETTETHERMANAGER_INNERKITS_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/frameworks/native/nettetherclient"
+NETTETHERMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/nettethermanager"
+EXT_INNERKITS_ROOT = "$NETMANAGER_EXT_ROOT/interfaces/innerkits"
+ETHERNETMANAGER_INNERKITS_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/frameworks/native/ethernetclient"
+ETHERNETMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/ethernetmanager"
+
+NETMANAGER_BASE_ROOT = "$SUBSYSTEM_DIR/netmanager_base"
+NETCONNMANAGER_COMMON_DIR = "$NETMANAGER_BASE_ROOT/services/common"
+NETDCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netdcontroller"
+NETCONNMANAGER_SOURCE_DIR = "$NETMANAGER_BASE_ROOT/services/netconnmanager"
+BASE_INNERKITS_ROOT = "$NETMANAGER_BASE_ROOT/interfaces/innerkits"
+NETMANAGERNATIVE_ROOT = "$NETMANAGER_BASE_ROOT/services/netmanagernative"
+NETCONNMANAGER_INNERKITS_SOURCE_DIR = "$NETMANAGER_BASE_ROOT/frameworks/native/netconnclient"
+NETMANAGER_PREBUILTS_DIR = "$NETMANAGER_BASE_ROOT/prebuilts"
+NETDCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netdcontroller"
+NETCONNMANAGER_COMMON_DIR = "$NETMANAGER_BASE_ROOT/services/common"
+
+use_js_debug = false
+declare_args() {
+  enable_netmgr_ext_debug = true
+}
