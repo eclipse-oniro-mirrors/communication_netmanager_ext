@@ -1,0 +1,59 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
+SUBSYSTEM_DIR = "//foundation/communication"
+NETMANAGER_NAPI_ROOT = "$SUBSYSTEM_DIR/netmanager_base/frameworks/js/napi/"
+NETMANAGER_EXT_NAPI_ROOT = "$SUBSYSTEM_DIR/netmanager_ext/frameworks/js/napi/"
+
+ohos_shared_library("ethernet") {
+  include_dirs = [
+    "//third_party/node/src",
+    "$NETMANAGER_EXT_NAPI_ROOT/ethernet/include",
+    "$NETMANAGER_NAPI_ROOT/common",
+    "$NETMANAGER_BASE_ROOT/utils/log/include",
+    "$ETHERNETMANAGER_SOURCE_DIR/include",
+    "$ETHERNETMANAGER_SOURCE_DIR/include/ipc",
+    "$BASE_INNERKITS_ROOT/ethernetclient/include",
+  ]
+
+  sources = [
+    "$NETMANAGER_NAPI_ROOT/common/napi_common.cpp",
+    "$NETMANAGER_EXT_NAPI_ROOT/ethernet/src/napi_ethernet.cpp",
+  ]
+
+  defines = [ "NETMGR_DEBUG" ]
+
+  deps = [
+    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
+    "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
+    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+    "$NETMANAGER_PREBUILTS_DIR/librarys/netd:libnet_manager_native",
+    "//foundation/aafwk/standard/frameworks/kits/ability/native:abilitykit_native",
+    "//foundation/ace/napi/:ace_napi",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+
+  relative_install_dir = "module/net"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}

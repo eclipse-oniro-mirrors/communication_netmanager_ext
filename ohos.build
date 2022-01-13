@@ -1,0 +1,22 @@
+{
+  "subsystem": "communication",
+  "parts": {
+    "netmanager_ext": {
+      "variants": [
+         "phone",
+         "wearable",
+         "ivi"
+      ],
+      "module_list": [
+        "//foundation/communication/netmanager_ext/utils:net_manager_ext_common",
+        "//foundation/communication/netmanager_ext/services/ethernetmanager:ethernet_manager",
+        "//foundation/communication/netmanager_ext/interfaces/innerkits/ethernetclient:ethernet_manager_if",
+        "//foundation/communication/netmanager_ext/frameworks/js/napi/ethernet:ethernet"
+      ],
+      "inner_kits": [],
+      "test_list": [
+        "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest"
+      ]
+    }
+  }
+}
