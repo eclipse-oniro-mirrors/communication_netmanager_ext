@@ -16,6 +16,14 @@
 #include "netLink_rtnl.h"
 
 #include <thread>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <net/if_arp.h>
+#include <linux/route.h>
+#include <linux/rtnetlink.h>
 
 #include "securec.h"
 #include "netmgr_ext_log_wrapper.h"

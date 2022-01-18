@@ -18,9 +18,6 @@
 
 #include <map>
 #include <mutex>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
 
 #include "netd_controller_callback.h"
 #include "iservice_registry.h"
