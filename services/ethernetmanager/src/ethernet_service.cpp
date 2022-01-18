@@ -17,6 +17,7 @@
 
 #include <sys/time.h>
 #include <unistd.h>
+#include <cinttypes>
 
 #include "netmgr_ext_log_wrapper.h"
 #include "ethernet_constants.h"

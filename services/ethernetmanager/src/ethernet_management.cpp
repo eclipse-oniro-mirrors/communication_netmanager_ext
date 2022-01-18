@@ -15,8 +15,14 @@
 
 #include "ethernet_management.h"
 
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <arpa/inet.h>
+
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
 #include "securec.h"

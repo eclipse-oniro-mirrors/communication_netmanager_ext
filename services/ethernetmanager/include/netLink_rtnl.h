@@ -19,14 +19,8 @@
 #include <list>
 #include <vector>
 
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <net/if_arp.h>
-#include <linux/route.h>
-#include <linux/rtnetlink.h>
+#include <sys/time.h>
+#include <linux/netlink.h>
 
 #include "nlk_event_handle.h"
 
