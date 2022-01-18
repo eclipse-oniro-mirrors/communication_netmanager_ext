@@ -139,7 +139,7 @@ int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sp
     std::unique_lock<std::mutex> lock(mutex_);
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
-        NETMGR_EXT_LOG_D("The iface[%{public}s] device or device information does not exist", iface.c_str());
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
         return ETHERNET_ERROR;
     }
     if (!fit->second->GetLinkUp()) {
@@ -174,12 +174,12 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(NetdControllerCallback::D
     NETMGR_EXT_LOG_D("EthernetManagement::UpdateDevInterfaceLinkInfo");
     auto fit = devs_.find(dhcpResult.iface_);
     if (fit == devs_.end() || fit->second == nullptr) {
-        NETMGR_EXT_LOG_D("The iface[%{public}s] device or device information does not exist",
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist",
             dhcpResult.iface_.c_str());
         return ETHERNET_ERROR;
     }
     if (!fit->second->GetLinkUp()) {
-        NETMGR_EXT_LOG_D("The iface[%{public}s] The device is not turned on", dhcpResult.iface_.c_str());
+        NETMGR_EXT_LOG_E("The iface[%{public}s] The device is not turned on", dhcpResult.iface_.c_str());
         return ETHERNET_ERROR;
     }
 
@@ -226,7 +226,7 @@ sptr<InterfaceConfiguration> EthernetManagement::GetDevInterfaceCfg(const std::s
     std::unique_lock<std::mutex> lock(mutex_);
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
-        NETMGR_EXT_LOG_D("The iface[%{public}s] device does not exist", iface.c_str());
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
         return nullptr;
     }
     return fit->second->GetIfcfg();
@@ -237,7 +237,7 @@ int32_t EthernetManagement::IsIfaceActive(const std::string &iface)
     std::unique_lock<std::mutex> lock(mutex_);
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
-        NETMGR_EXT_LOG_D("The iface[%{public}s] device does not exist", iface.c_str());
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
         return ETHERNET_ERROR;
     }
     return static_cast<int32_t>(fit->second->GetLinkUp());
@@ -330,7 +330,7 @@ bool EthernetManagement::IsDirExist(const std::string &dirPath)
     DIR *dp = nullptr;
     NETMGR_EXT_LOG_D("EthernetManagement::IsDirExist start");
     if ((dp = opendir(dirPath.c_str())) == nullptr) {
-        NETMGR_EXT_LOG_D("EthernetManagement::IsDirExist open failed");
+        NETMGR_EXT_LOG_E("EthernetManagement::IsDirExist open failed");
         return false;
     }
     NETMGR_EXT_LOG_D("EthernetManagement::IsDirExist open suc");

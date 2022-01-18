@@ -30,8 +30,8 @@ ohos_shared_library("ethernet") {
   ]
 
   sources = [
-    "$NETMANAGER_EXT_NAPI_ROOT/ethernet/src/napi_ethernet.cpp",
     "$NETMANAGER_NAPI_ROOT/common/napi_common.cpp",
+    "$NETMANAGER_EXT_NAPI_ROOT/ethernet/src/napi_ethernet.cpp",
   ]
 
   defines = [ "NETMGR_DEBUG" ]

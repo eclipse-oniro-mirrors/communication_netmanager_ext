@@ -96,7 +96,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
 
 /**
  * @tc.name: EthernetManager002
- * @tc.desc: Test EthernetManager SetIfaceConfig.
+ * @tc.desc: Test EthernetManager GetIfaceConfig.
  * @tc.type: FUNC
  */
 HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
@@ -109,7 +109,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
 
 /**
  * @tc.name: EthernetManager003
- * @tc.desc: Test EthernetManager Whether2Activate.
+ * @tc.desc: Test EthernetManager IsIfaceActive.
  * @tc.type: FUNC
  */
 HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
