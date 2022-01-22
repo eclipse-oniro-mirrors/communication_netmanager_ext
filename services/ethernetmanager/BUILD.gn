@@ -45,7 +45,6 @@ ohos_shared_library("ethernet_manager") {
     "$NETDCONTROLLER_ROOT_DIR:netd_controller",
     "$NETMANAGER_BASE_ROOT/services/netconnmanager:net_conn_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
@@ -54,6 +53,7 @@ ohos_shared_library("ethernet_manager") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
+    "utils_base:utils",
   ]
 
   defines = [

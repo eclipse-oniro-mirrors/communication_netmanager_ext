@@ -1,0 +1,59 @@
+{
+    "name": "@ohos/netmanager_ext",
+    "version": "3.1.0",
+    "description": "net manager extensive service",
+    "publishAs": "code-segment",
+    "homePage": "https://gitee.com/openharmony",
+    "repository": "https://gitee.com/openharmony/communication_netmanager_ext",
+    "license": "Apache License 2.0",
+    "language": "",
+    "private": false,
+    "scripts": {},
+    "envs": [],
+    "dirs": [],
+    "author": {},
+    "contributors": [],
+    "segment": {
+        "destPath": "//foundation/communication/netmanager_ext"
+    },
+    "component": {
+        "name": "netmanager_ext",
+        "subsystem": "communication",
+        "syscap": [
+            "SystemCapability.Communication.NetManagerExt"
+        ],
+        "features": [],
+        "adapted_system_type": [
+            "standard"
+        ],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [
+                "ability_runtime",
+                "appexecfwk_standard",
+                "hiviewdfx_hilog_native",
+                "ipc",
+                "napi",
+                "safwk",
+                "samgr_standard",
+                "utils_base"
+            ],
+            "third_party": [
+                "node"
+            ]
+        },
+        "build": {
+            "sub_component": [
+                "//foundation/communication/netmanager_ext/utils:net_manager_ext_common",
+                "//foundation/communication/netmanager_ext/services/ethernetmanager:ethernet_manager",
+                "//foundation/communication/netmanager_ext/interfaces/innerkits/ethernetclient:ethernet_manager_if",
+                "//foundation/communication/netmanager_ext/frameworks/js/napi/ethernet:ethernet"
+            ],
+            "inner_kits": [],
+            "test": [
+                "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest"
+            ]
+        }
+    }
+}
