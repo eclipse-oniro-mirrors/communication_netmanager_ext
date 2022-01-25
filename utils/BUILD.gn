@@ -51,7 +51,7 @@ ohos_shared_library("net_manager_ext_common") {
   }
 
   external_deps += [
-    "appexecfwk_standard:libeventhandler",
+    "eventhandler:libeventhandler",
     "native_appdatamgr:native_preferences",
   ]
 
