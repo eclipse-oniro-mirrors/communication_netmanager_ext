@@ -156,8 +156,8 @@ int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sp
             }
         }
         cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.gate_.family_ = GetAddrFamily(cfg->ipStatic_.gate_.address_);
-        cfg->ipStatic_.gate_.prefixlen_ = prefixlen;
+        cfg->ipStatic_.gateway_.family_ = GetAddrFamily(cfg->ipStatic_.gateway_.address_);
+        cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
         cfg->ipStatic_.route_.family_ = GetAddrFamily(cfg->ipStatic_.route_.address_);
         cfg->ipStatic_.route_.prefixlen_ = prefixlen;
     }
@@ -466,10 +466,10 @@ void EthernetManagement::ParserFileConfig(const std::string &fileContent, std::s
             cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
         }
         cfg->ipStatic_.netMask_.address_ = netMask;
-        cfg->ipStatic_.gate_.address_ = gatway;
-        cfg->ipStatic_.gate_.family_ = GetAddrFamily(gatway);
-        if (cfg->ipStatic_.gate_.family_ == AF_INET) {
-            cfg->ipStatic_.gate_.prefixlen_ = prefixlen;
+        cfg->ipStatic_.gateway_.address_ = gatway;
+        cfg->ipStatic_.gateway_.family_ = GetAddrFamily(gatway);
+        if (cfg->ipStatic_.gateway_.family_ == AF_INET) {
+            cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
         }
         cfg->ipStatic_.route_.address_ = route;
         cfg->ipStatic_.route_.family_ = GetAddrFamily(route);
@@ -494,7 +494,7 @@ void EthernetManagement::GenCfgContent(const std::string &iface, sptr<InterfaceC
         } else {
             fileContent = fileContent + "NETMASK=" + cfg->ipStatic_.netMask_.address_ + "\n";
         }
-        fileContent = fileContent + "GATEWAY=" + cfg->ipStatic_.gate_.address_ + "\n";
+        fileContent = fileContent + "GATEWAY=" + cfg->ipStatic_.gateway_.address_ + "\n";
         fileContent = fileContent + "ROUTE=" + cfg->ipStatic_.route_.address_ + "\n";
     } else {
         fileContent = fileContent + "BOOTPROTO=DHCP\n";

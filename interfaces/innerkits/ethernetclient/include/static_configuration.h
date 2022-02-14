@@ -27,7 +27,7 @@ namespace NetManagerStandard {
 struct StaticConfiguration : public Parcelable {
     INetAddr ipAddr_;
     INetAddr route_;
-    INetAddr gate_;
+    INetAddr gateway_;
     INetAddr netMask_;
     std::vector<INetAddr> dnsServers_;
     std::string domain_;

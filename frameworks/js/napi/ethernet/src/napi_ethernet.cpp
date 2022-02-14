@@ -34,23 +34,22 @@ void NapiEthernet::ExecSetIfaceConfig(napi_env env, void *data)
         NETMGR_EXT_LOG_E("context == nullptr");
         return;
     }
-    INetAddr addr0, addr1;
+    INetAddr addr0;
     sptr<InterfaceConfiguration> config = std::make_unique<InterfaceConfiguration>().release();
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("config == nullptr");
         return;
     }
-    addr0.address_ = context->dns0AddrInfo;
-    addr1.address_ = context->dns1AddrInfo;
+    addr0.address_ = context->dnsServers;
     config->mode_ = static_cast<IPSetMode>(context->ipMode);
-    config->ipStatic_.ipAddr_.address_ = context->ipAddrInfo;
-    config->ipStatic_.route_.address_ = context->routeAddrInfo;
-    config->ipStatic_.gate_.address_ = context->gateAddrInfo;
-    config->ipStatic_.netMask_.address_ = context->maskAddrInfo;
+    config->ipStatic_.ipAddr_.address_ = context->ipAddr;
+    config->ipStatic_.route_.address_ = context->route;
+    config->ipStatic_.gateway_.address_ = context->gateway;
+    config->ipStatic_.netMask_.address_ = context->netMask;
     config->ipStatic_.dnsServers_.push_back(addr0);
-    config->ipStatic_.dnsServers_.push_back(addr1);
+    config->ipStatic_.domain_ = context->domain;
     context->result = DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(
-        context->ethernetName, config);
+        context->iface, config);
     NETMGR_EXT_LOG_D("ExecSetIfaceConfig result =[%{public}d]", context->result);
 }
 
@@ -105,27 +104,27 @@ void NapiEthernet::ExecGetIfaceConfig(napi_env env, void *data)
         return;
     }
     sptr<InterfaceConfiguration> config =
-        DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(context->ethernetName);
+        DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(context->iface);
     if (config != nullptr) {
         context->result = 1;
         std::string tap;
         context->ipMode = config->mode_;
         NETMGR_EXT_LOG_I("config->mode_ = [%{public}d]", config->mode_);
-        context->ipAddrInfo = config->ipStatic_.ipAddr_.address_;
+        context->ipAddr = config->ipStatic_.ipAddr_.address_;
         NETMGR_EXT_LOG_I("config->ipAddr_ = [%{public}s]", config->ipStatic_.ipAddr_.address_.c_str());
-        context->routeAddrInfo = config->ipStatic_.route_.address_;
+        context->route = config->ipStatic_.route_.address_;
         NETMGR_EXT_LOG_I("config->route_ = [%{public}s]", config->ipStatic_.route_.address_.c_str());
-        context->gateAddrInfo = config->ipStatic_.gate_.address_;
-        NETMGR_EXT_LOG_I("config->gate_ = [%{public}s]", config->ipStatic_.gate_.address_.c_str());
-        context->maskAddrInfo = config->ipStatic_.netMask_.address_;
+        context->gateway = config->ipStatic_.gateway_.address_;
+        NETMGR_EXT_LOG_I("config->gateway_ = [%{public}s]", config->ipStatic_.gateway_.address_.c_str());
+        context->netMask = config->ipStatic_.netMask_.address_;
         NETMGR_EXT_LOG_I("config->netMask_ = [%{public}s]", config->ipStatic_.netMask_.address_.c_str());
+        context->domain = config->ipStatic_.domain_;
+        NETMGR_EXT_LOG_I("config->domain = [%{public}s]", config->ipStatic_.domain_.c_str());
         for (auto it = config->ipStatic_.dnsServers_.begin(); it != config->ipStatic_.dnsServers_.end(); ++it) {
-            if (context->dns0AddrInfo.empty()) {
-                context->dns0AddrInfo = it->address_;
-            } else if (context->dns1AddrInfo.empty()) {
-                context->dns1AddrInfo = it->address_;
+            if (context->dnsServers.empty()) {
+                context->dnsServers = it->address_;
+                NETMGR_EXT_LOG_I("config->dnsServers_ = [%{public}s]", it->ToString(tap).c_str());
             }
-            NETMGR_EXT_LOG_I("config->dnsServers_ = [%{public}s]", it->ToString(tap).c_str());
         }
     } else {
         context->result = -1;
@@ -145,12 +144,12 @@ void NapiEthernet::CompleteGetIfaceConfig(napi_env env, napi_status status, void
     napi_create_object(env, &info);
     napi_create_int32(env, context->result, &infoFail);
     NapiCommon::SetPropertyInt32(env, info, "mode", context->ipMode);
-    NapiCommon::SetPropertyString(env, info, "ipAddr", context->ipAddrInfo);
-    NapiCommon::SetPropertyString(env, info, "routeAddr", context->routeAddrInfo);
-    NapiCommon::SetPropertyString(env, info, "gateAddr", context->gateAddrInfo);
-    NapiCommon::SetPropertyString(env, info, "maskAddr", context->maskAddrInfo);
-    NapiCommon::SetPropertyString(env, info, "dns0Addr", context->dns0AddrInfo);
-    NapiCommon::SetPropertyString(env, info, "dns1Addr", context->dns1AddrInfo);
+    NapiCommon::SetPropertyString(env, info, "ipAddr", context->ipAddr);
+    NapiCommon::SetPropertyString(env, info, "route", context->route);
+    NapiCommon::SetPropertyString(env, info, "gateway", context->gateway);
+    NapiCommon::SetPropertyString(env, info, "netMask", context->netMask);
+    NapiCommon::SetPropertyString(env, info, "dnsServers", context->dnsServers);
+    NapiCommon::SetPropertyString(env, info, "domain", context->domain);
     if (context->callbackRef == nullptr) {
         if (context->result == -1) {
             NAPI_CALL_RETURN_VOID(env, napi_reject_deferred(env, context->deferred, infoFail));
@@ -185,7 +184,7 @@ void NapiEthernet::ExecIsIfaceActive(napi_env env, void *data)
         NETMGR_EXT_LOG_E("context == nullptr");
         return;
     }
-    context->ifActivate = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(context->ethernetName);
+    context->ifActivate = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(context->iface);
     NETMGR_EXT_LOG_I("ifActivate == [%{public}d]", context->ifActivate);
 }
 
@@ -269,34 +268,34 @@ void NapiEthernet::CompleteGetAllActiveIfaces(napi_env env, napi_status status, 
 napi_value NapiEthernet::SetIfaceConfig(napi_env env, napi_callback_info info)
 {
     NETMGR_EXT_LOG_I("SetIfaceConfig");
-    size_t argc = ARGV_NUM_4;
-    napi_value argv[] = {nullptr, nullptr, nullptr, nullptr} ;
+    size_t argc = ARGV_NUM_3;
+    napi_value argv[] = {nullptr, nullptr, nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     NETMGR_EXT_LOG_I("SetIfaceConfig agvc = [%{public}zu]", argc);
     EthernetAsyncContext* context = std::make_unique<EthernetAsyncContext>().release();
     // Parse Js argv
     NAPI_CALL(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0],
-        context->ethernetName, ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)));
-    NETMGR_EXT_LOG_I("SetIfaceConfig ethernetName = [%{public}s]", context->ethernetName);
+        context->iface, ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)));
+    NETMGR_EXT_LOG_I("SetIfaceConfig iface=[%{public}s]", context->iface);
     // Parse Js object [ip]
-    NapiCommon::GetPropertyInt32(env, argv[ARGV_INDEX_2], "mode", context->ipMode);
+    NapiCommon::GetPropertyInt32(env, argv[ARGV_INDEX_1], "mode", context->ipMode);
     if (context->ipMode == IPSetMode::STATIC) {
-        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_2], "ipAddr", context->ipAddrInfo);
-        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_2], "routeAddr", context->routeAddrInfo);
-        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_2], "gateAddr", context->gateAddrInfo);
-        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_2], "maskAddr", context->maskAddrInfo);
-        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_2], "dnsAddr0", context->dns0AddrInfo);
-        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_2], "dnsAddr1", context->dns1AddrInfo);
+        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_1], "ipAddr", context->ipAddr);
+        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_1], "route", context->route);
+        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_1], "gateway", context->gateway);
+        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_1], "netMask", context->netMask);
+        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_1], "dnsServers", context->dnsServers);
+        NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_1], "domain", context->domain);
     }
     napi_value result = nullptr;
-    if ((argc == ARGV_NUM_2) || (argc == ARGV_NUM_3 && context->ipMode == IPSetMode::STATIC)) {
+    if (argc == ARGV_NUM_2) {
         if (context->callbackRef == nullptr) {
             NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
         } else {
             NAPI_CALL(env, napi_get_undefined(env, &result));
         }
-    } else if ((argc == ARGV_NUM_4) || (argc == ARGV_NUM_3 && context->ipMode == IPSetMode::DHCP)) {
-        NAPI_CALL(env, napi_create_reference(env, argv[argc - 1], CALLBACK_REF_CNT, &context->callbackRef));
+    } else if (argc == ARGV_NUM_3) {
+        NAPI_CALL(env, napi_create_reference(env, argv[ARGV_INDEX_2], CALLBACK_REF_CNT, &context->callbackRef));
     } else {
         NETMGR_EXT_LOG_E("SetIfaceConfig  exception");
     }
@@ -324,8 +323,8 @@ napi_value NapiEthernet::GetIfaceConfig(napi_env env, napi_callback_info info)
     EthernetAsyncContext* context = std::make_unique<EthernetAsyncContext>().release();
     // Parse Js argv
     NAPI_CALL(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0],
-        context->ethernetName, ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)));
-    NETMGR_EXT_LOG_I("GetIfaceConfig [%{public}s]", context->ethernetName);
+        context->iface, ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)));
+    NETMGR_EXT_LOG_I("GetIfaceConfig [%{public}s]", context->iface);
     napi_value result = nullptr;
     if (argc == ARGV_NUM_1) {
         if (context->callbackRef == nullptr) {
@@ -362,8 +361,8 @@ napi_value NapiEthernet::IsIfaceActive(napi_env env, napi_callback_info info)
     EthernetAsyncContext* context = std::make_unique<EthernetAsyncContext>().release();
     // Parse Js argv
     NAPI_CALL(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0],
-        context->ethernetName, ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)));
-    NETMGR_EXT_LOG_I("IsIfaceActive [%{public}s]", context->ethernetName);
+        context->iface, ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)));
+    NETMGR_EXT_LOG_I("IsIfaceActive [%{public}s]", context->iface);
     napi_value result = nullptr;
     if (argc == ARGV_NUM_1) {
         if (context->callbackRef == nullptr) {
@@ -407,7 +406,7 @@ napi_value NapiEthernet::GetAllActiveIfaces(napi_env env, napi_callback_info inf
     } else if (argc == ARGV_NUM_1) {
         NAPI_CALL(env, napi_create_reference(env, argv[ARGV_INDEX_0], CALLBACK_REF_CNT, &context->callbackRef));
     } else {
-        NETMGR_EXT_LOG_E("GetAllActiveIfaces  exception");
+        NETMGR_EXT_LOG_E("GetAllActiveIfaces  exception.");
     }
     // creat async work
     napi_value resource = nullptr;
@@ -459,7 +458,7 @@ static napi_module _ethernetModule = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = NapiEthernet::RegisterEthernetInterface,
-    .nm_modname = "netmanager.ethernet",
+    .nm_modname = "net.ethernet",
     .nm_priv = ((void *)0),
     .reserved = {0},
 };

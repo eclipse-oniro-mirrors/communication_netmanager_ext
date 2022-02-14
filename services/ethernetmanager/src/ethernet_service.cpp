@@ -40,8 +40,7 @@ void EthernetService::OnStart()
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    NETMGR_EXT_LOG_D("EthernetService::OnStart begin timestamp [%{public}" PRId64 ".%{public}" PRId64 "]",
-        tv.tv_sec, tv.tv_usec);
+    NETMGR_EXT_LOG_D("EthernetService::OnStart begin");
     if (state_ == STATE_RUNNING) {
         NETMGR_EXT_LOG_D("EthernetService the state is already running");
         return;
@@ -57,8 +56,7 @@ void EthernetService::OnStart()
     }
     state_ = STATE_RUNNING;
     gettimeofday(&tv, NULL);
-    NETMGR_EXT_LOG_D("EthernetService::OnStart end timestamp [%{public}" PRId64 ".%{public}" PRId64 "]",
-        tv.tv_sec, tv.tv_usec);
+    NETMGR_EXT_LOG_D("EthernetService::OnStart end");
 }
 
 void EthernetService::OnStop()

@@ -37,7 +37,7 @@ struct EthernetAsyncContext {
     napi_deferred deferred = nullptr;
     napi_ref callbackRef = nullptr;
     // Data context
-    char ethernetName[ETHERNET_NAME_MAX_BYTE] = {0};
+    char iface[ETHERNET_NAME_MAX_BYTE] = {0};
     size_t ethernetNameRealBytes = 0;
     int32_t ifActivate = 0;
     // get all ethernetName
@@ -45,17 +45,17 @@ struct EthernetAsyncContext {
     // [0] static, [1] dhcp
     int32_t ipMode = 0;
     // ip address info
-    std::string ipAddrInfo;
+    std::string ipAddr;
     // route address info
-    std::string routeAddrInfo;
+    std::string route;
     // gate address info
-    std::string gateAddrInfo;
+    std::string gateway;
     // mask address info
-    std::string maskAddrInfo;
+    std::string netMask;
     // dns0 address info
-    std::string dns0AddrInfo;
+    std::string dnsServers;
     // dns1 address info
-    std::string dns1AddrInfo;
+    std::string domain;
     int32_t result = 0;
 };
 
