@@ -199,7 +199,7 @@ void DevInterfaceState::UpdateLinkInfo()
     struct Route route;
     route.iface_ = devName_;
     route.destination_ = ifcfg_->ipStatic_.route_;
-    route.gateway_ = ifcfg_->ipStatic_.gate_;
+    route.gateway_ = ifcfg_->ipStatic_.gateway_;
     linkInfo_->routeList_.push_back(route);
     for (auto it = ifcfg_->ipStatic_.dnsServers_.begin(); it != ifcfg_->ipStatic_.dnsServers_.end(); ++it) {
         linkInfo_->dnsList_.push_back(*it);

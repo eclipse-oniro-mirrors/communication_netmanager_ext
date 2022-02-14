@@ -28,8 +28,8 @@ bool StaticConfiguration::Marshalling(Parcel &parcel) const
         NETMGR_EXT_LOG_E("write route_ to parcel failed");
         return false;
     }
-    if (!gate_.Marshalling(parcel)) {
-        NETMGR_EXT_LOG_E("write gate_ to parcel failed");
+    if (!gateway_.Marshalling(parcel)) {
+        NETMGR_EXT_LOG_E("write gateway_ to parcel failed");
         return false;
     }
     if (!netMask_.Marshalling(parcel)) {
@@ -71,12 +71,12 @@ sptr<StaticConfiguration> StaticConfiguration::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     ptr->route_ = *route;
-    sptr<INetAddr> gate = INetAddr::Unmarshalling(parcel);
-    if (gate == nullptr) {
-        NETMGR_EXT_LOG_E("gate_ is null");
+    sptr<INetAddr> gateway = INetAddr::Unmarshalling(parcel);
+    if (gateway == nullptr) {
+        NETMGR_EXT_LOG_E("gateway_ is null");
         return nullptr;
     }
-    ptr->gate_ = *gate;
+    ptr->gateway_ = *gateway;
     sptr<INetAddr> netMask = INetAddr::Unmarshalling(parcel);
     if (netMask == nullptr) {
         NETMGR_EXT_LOG_E("netMask_ is null");

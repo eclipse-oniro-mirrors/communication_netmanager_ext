@@ -26,8 +26,8 @@
         "adapted_system_type": [
             "standard"
         ],
-        "rom": "",
-        "ram": "",
+        "rom": "250KB",
+        "ram": "500KB",
         "deps": {
             "components": [
                 "ability_runtime",

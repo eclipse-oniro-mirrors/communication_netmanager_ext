@@ -60,7 +60,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel NET_MGR_LABEL = {LOG_CORE, LOG_DOMA
 #ifdef NETMGR_EXT_DEBUG
 #define PRINT_LOG(op, fmt, ...)                                                                               \
     (void)OHOS::HiviewDFX::HiLog::op(NET_MGR_LABEL, "[%{public}s-(%{public}s:%{public}d)]" fmt, __FUNCTION__, \
-        __FILE_NAME__, __LINE__, ##__VA_ARGS__)
+        __FILE__, __LINE__, ##__VA_ARGS__)
 #else
 #define PRINT_LOG(op, fmt, ...)
 #endif
