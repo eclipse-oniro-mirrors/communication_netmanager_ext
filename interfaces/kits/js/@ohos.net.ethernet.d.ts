@@ -19,8 +19,7 @@ import {AsyncCallback, Callback} from "./basic";
  * Provides interfaces to manage ethernet.
  *
  * @since 8
- * @sysCap SystemCapability.Communication.NetManager
- * @devices phone, tablet, tv, wearable, car
+ * @sysCap SystemCapability.Communication.NetManager.Extension
  */
 declare namespace ethernet {
   /**
