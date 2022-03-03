@@ -39,15 +39,9 @@ ohos_shared_library("ethernet") {
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
+    "$NETMANAGERNATIVE_ROOT:netsys_native_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
-
-  if (enable_libnet_manager_native_prebuilt) {
-    deps += [ "$NETMANAGER_PREBUILTS_DIR/librarys/netd:libnet_manager_native" ]
-  } else {
-    deps +=
-        [ "//foundation/communication/netmanager_native:net_manager_native" ]
-  }
 
   external_deps = [
     "ability_runtime:abilitykit_native",
