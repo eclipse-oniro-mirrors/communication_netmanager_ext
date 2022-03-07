@@ -26,7 +26,7 @@
 #include <sstream>
 
 #include "securec.h"
-#include "netd_controller.h"
+#include "netsys_controller.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "ethernet_constants.h"
 
@@ -83,7 +83,7 @@ int32_t EthernetManagement::NotifyCallback::OnRouteChanged(bool, const std::stri
     return 0;
 }
 
-int32_t EthernetManagement::NotifyCallback::OnDhcpSuccess(NetdControllerCallback::DhcpResult &dhcpResult)
+int32_t EthernetManagement::NotifyCallback::OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult)
 {
     NETMGR_EXT_LOG_D("EthernetManagement::NativeNotifyCallback::OnDhcpSuccess");
     ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
@@ -93,7 +93,7 @@ int32_t EthernetManagement::NotifyCallback::OnDhcpSuccess(NetdControllerCallback
 EthernetManagement::EthernetManagement()
 {
     notifyCallback_ = std::make_unique<NotifyCallback>(*this).release();
-    NetdController::GetInstance().RegisterCallback(notifyCallback_);
+    NetsysController::GetInstance().RegisterCallback(notifyCallback_);
     if (!IsDirExist(configDir_)) {
         NETMGR_EXT_LOG_D("CreateDir start");
         bool ret = CreateDir(configDir_);
@@ -169,7 +169,7 @@ int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sp
     return ETHERNET_SUCCESS;
 }
 
-int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(NetdControllerCallback::DhcpResult &dhcpResult)
+int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(NetsysControllerCallback::DhcpResult &dhcpResult)
 {
     NETMGR_EXT_LOG_D("EthernetManagement::UpdateDevInterfaceLinkInfo");
     auto fit = devs_.find(dhcpResult.iface_);
@@ -297,7 +297,7 @@ void EthernetManagement::Init()
         if (devName.empty()) {
             continue;
         }
-        NetdController::GetInstance().SetInterfaceUp(devName);
+        NetsysController::GetInstance().SetInterfaceUp(devName);
         sptr<DevInterfaceState> devState = std::make_unique<DevInterfaceState>().release();
         devs_.insert(std::make_pair(devName, devState));
         std::vector<uint8_t> hwAddr = NetLinkRtnl::GetHWaddr(devName);
@@ -580,14 +580,14 @@ int32_t EthernetManagement::Ipv4PrefixLen(const std::string &ip)
 void EthernetManagement::StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartDhcpClient[%{public}s]", dev.c_str());
-    NetdController::GetInstance().StartDhcpClient(dev, false);
+    NetsysController::GetInstance().StartDhcpClient(dev, false);
     devState->SetDhcpReqState(true);
 }
 
 void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StopDhcpClient[%{public}s]", dev.c_str());
-    NetdController::GetInstance().StopDhcpClient(dev, false);
+    NetsysController::GetInstance().StopDhcpClient(dev, false);
     devState->SetDhcpReqState(false);
 }
 
