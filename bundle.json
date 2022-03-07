@@ -20,7 +20,7 @@
         "name": "netmanager_ext",
         "subsystem": "communication",
         "syscap": [
-            "SystemCapability.Communication.NetManagerExt"
+            "SystemCapability.Communication.NetManager.Extension"
         ],
         "features": [],
         "adapted_system_type": [
