@@ -319,15 +319,12 @@ getAllActiveIfaces\(\): Promise<Array\<string\>\>
   });
   ```
 
-## 
-
 ## 相关仓
 
-netmanager_base
+[网络管理子系统](https://gitee.com/openharmony/docs/blob/master/zh-cn/readme/%E7%BD%91%E7%BB%9C%E7%AE%A1%E7%90%86%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
 
-netmanager_ext
+**communication_netmanager_ext**
 
-[电话服务子系统](https://gitee.com/openharmony/docs/blob/master/zh-cn/readme/%E7%94%B5%E8%AF%9D%E6%9C%8D%E5%8A%A1%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+[communication_netmanager_base](https://gitee.com/openharmony/communication_netmanager_base)
 
-[ telephony_cellular_data](https://gitee.com/openharmony/telephony_cellular_data/blob/master/README.md)
-
+[communication_netstack](https://gitee.com/openharmony/communication_netstack)
