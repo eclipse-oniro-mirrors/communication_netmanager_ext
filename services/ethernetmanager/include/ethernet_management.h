@@ -19,7 +19,7 @@
 #include <map>
 #include <mutex>
 
-#include "netd_controller_callback.h"
+#include "netsys_controller_callback.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -30,7 +30,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 class EthernetManagement : public NlkEventHandle {
-    class NotifyCallback : public NetdControllerCallback {
+    class NotifyCallback : public NetsysControllerCallback {
     public:
         NotifyCallback(EthernetManagement &ethernetManagement);
         ~NotifyCallback() override;
@@ -41,7 +41,7 @@ class EthernetManagement : public NlkEventHandle {
         int32_t OnInterfaceChanged(const std::string &, bool) override;
         int32_t OnInterfaceLinkStateChanged(const std::string &, bool) override;
         int32_t OnRouteChanged(bool, const std::string &, const std::string &, const std::string &) override;
-        int32_t OnDhcpSuccess(NetdControllerCallback::DhcpResult &dhcpResult) override;
+        int32_t OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult) override;
     private:
         EthernetManagement &ethernetManagement_;
     };
@@ -51,7 +51,7 @@ public:
     void Init();
     void UpdateInterfaceState(const std::string &dev, bool up, bool lowerUp);
     int32_t UpdateDevInterfaceState(const std::string &iface, sptr<InterfaceConfiguration> cfg);
-    int32_t UpdateDevInterfaceLinkInfo(NetdControllerCallback::DhcpResult &dhcpResult);
+    int32_t UpdateDevInterfaceLinkInfo(NetsysControllerCallback::DhcpResult &dhcpResult);
     sptr<InterfaceConfiguration> GetDevInterfaceCfg(const std::string &iface);
     int32_t IsIfaceActive(const std::string &iface);
     std::vector<std::string> GetAllActiveIfaces();

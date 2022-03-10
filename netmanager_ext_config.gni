@@ -29,23 +29,17 @@ ETHERNETMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/ethernetmanager"
 
 NETMANAGER_BASE_ROOT = "$SUBSYSTEM_DIR/netmanager_base"
 NETCONNMANAGER_COMMON_DIR = "$NETMANAGER_BASE_ROOT/services/common"
-NETDCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netdcontroller"
+NETSYSCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netsyscontroller"
 NETCONNMANAGER_SOURCE_DIR = "$NETMANAGER_BASE_ROOT/services/netconnmanager"
 BASE_INNERKITS_ROOT = "$NETMANAGER_BASE_ROOT/interfaces/innerkits"
 NETMANAGERNATIVE_ROOT = "$NETMANAGER_BASE_ROOT/services/netmanagernative"
 NETCONNMANAGER_INNERKITS_SOURCE_DIR =
     "$NETMANAGER_BASE_ROOT/frameworks/native/netconnclient"
 NETMANAGER_PREBUILTS_DIR = "$NETMANAGER_BASE_ROOT/prebuilts"
-NETDCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netdcontroller"
+NETSYSCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netsyscontroller"
 NETCONNMANAGER_COMMON_DIR = "$NETMANAGER_BASE_ROOT/services/common"
 
 use_js_debug = false
-
-netmanager_native_path =
-    rebase_path("//foundation/communication/netmanager_native")
-cmd = "if [ -f ${netmanager_native_path}/bundle.json ]; then echo false; else echo true; fi"
-enable_libnet_manager_native_prebuilt =
-    exec_script("//build/lite/run_shell_cmd.py", [ cmd ], "value")
 
 declare_args() {
   enable_netmgr_ext_debug = true
