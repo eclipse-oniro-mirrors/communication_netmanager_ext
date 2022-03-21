@@ -185,7 +185,7 @@ void DevInterfaceState::RemoteUpdateNetSupplierInfo()
 
 void DevInterfaceState::UpdateLinkInfo()
 {
-    if (!ifcfg_ && ifcfg_->mode_ != STATIC) {
+    if (ifcfg_ == nullptr || ifcfg_->mode_ != STATIC) {
         return;
     }
     if (linkInfo_ == nullptr) {
