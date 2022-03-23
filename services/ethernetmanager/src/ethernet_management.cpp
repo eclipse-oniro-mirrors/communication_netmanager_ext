@@ -24,6 +24,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #include "securec.h"
 #include "netsys_controller.h"
@@ -137,6 +138,11 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up, b
 int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sptr<InterfaceConfiguration> cfg)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (!IsDirExist(configDir_)) {
+        NETMGR_EXT_LOG_D("CreateDir start.");
+        bool ret = CreateDir(configDir_);
+        NETMGR_EXT_LOG_D("CreateDir end. ret[%{public}d].", ret);
+    }
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
@@ -297,32 +303,38 @@ void EthernetManagement::Init()
         if (devName.empty()) {
             continue;
         }
-        NetsysController::GetInstance().SetInterfaceUp(devName);
         sptr<DevInterfaceState> devState = std::make_unique<DevInterfaceState>().release();
         devs_.insert(std::make_pair(devName, devState));
         std::vector<uint8_t> hwAddr = NetLinkRtnl::GetHWaddr(devName);
-        bool up = it->ifiFlags_ & IFF_UP;
-        bool lowerUp = it->ifiFlags_ & IFF_LOWER_UP;
-        SetDevState(devState, devName, hwAddr, up, lowerUp);
+        SetDevState(devState, devName, hwAddr, false, false);
         devState->RemoteRegisterNetSupplier();
-        if (up && lowerUp) {
-            devState->RemoteUpdateNetSupplierInfo();
-        }
         fit = devCfgs.find(devName);
         if (fit != devCfgs.end()) {
             devState->SetIfcfg(fit->second);
-            if (fit->second->mode_ == DHCP) {
-                StartDhcpClient(devName, devState);
-            } else {
-                devState->RemoteUpdateNetLinkInfo();
-            }
         } else {
             sptr<InterfaceConfiguration> ifCfg = std::make_unique<InterfaceConfiguration>().release();
             ifCfg->mode_ = STATIC;
             devState->SetIfcfg(ifCfg);
         }
     }
+    std::thread t(&EthernetManagement::StartSetDevUpThd, this);
+    t.detach();
     NETMGR_EXT_LOG_D("EthernetManagement devs_ size[%{public}zd", devs_.size());
+}
+
+void EthernetManagement::StartSetDevUpThd()
+{
+    NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
+    for (auto it = devs_.begin(); it != devs_.end(); it++) {
+        std::string devName = it->first;
+        while (true) {
+            if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
+                sleep(2);
+                continue;
+            }
+            break;
+        }
+    }
 }
 
 bool EthernetManagement::IsDirExist(const std::string &dirPath)
