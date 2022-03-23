@@ -111,19 +111,19 @@ void NapiEthernet::ExecGetIfaceConfig(napi_env env, void *data)
         context->ipMode = config->mode_;
         NETMGR_EXT_LOG_I("config->mode_ = [%{public}d]", config->mode_);
         context->ipAddr = config->ipStatic_.ipAddr_.address_;
-        NETMGR_EXT_LOG_I("config->ipAddr_ = [%{public}s]", config->ipStatic_.ipAddr_.address_.c_str());
+        NETMGR_EXT_LOG_I("config->ipAddr_ = ");
         context->route = config->ipStatic_.route_.address_;
-        NETMGR_EXT_LOG_I("config->route_ = [%{public}s]", config->ipStatic_.route_.address_.c_str());
+        NETMGR_EXT_LOG_I("config->route_ = ");
         context->gateway = config->ipStatic_.gateway_.address_;
-        NETMGR_EXT_LOG_I("config->gateway_ = [%{public}s]", config->ipStatic_.gateway_.address_.c_str());
+        NETMGR_EXT_LOG_I("config->gateway_ = ");
         context->netMask = config->ipStatic_.netMask_.address_;
-        NETMGR_EXT_LOG_I("config->netMask_ = [%{public}s]", config->ipStatic_.netMask_.address_.c_str());
+        NETMGR_EXT_LOG_I("config->netMask_ = ");
         context->domain = config->ipStatic_.domain_;
-        NETMGR_EXT_LOG_I("config->domain = [%{public}s]", config->ipStatic_.domain_.c_str());
+        NETMGR_EXT_LOG_I("config->domain = ");
         for (auto it = config->ipStatic_.dnsServers_.begin(); it != config->ipStatic_.dnsServers_.end(); ++it) {
             if (context->dnsServers.empty()) {
                 context->dnsServers = it->address_;
-                NETMGR_EXT_LOG_I("config->dnsServers_ = [%{public}s]", it->ToString(tap).c_str());
+                NETMGR_EXT_LOG_I("config->dnsServers_ = ");
             }
         }
     } else {
