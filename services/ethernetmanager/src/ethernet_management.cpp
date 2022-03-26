@@ -470,23 +470,26 @@ void EthernetManagement::ParserFileConfig(const std::string &fileContent, std::s
         std::string gatway = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
         pos = fileContent.find("ROUTE=") + strlen("ROUTE=");
         std::string route = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+        pos = fileContent.find("ROUTE_NETMASK=") + strlen("ROUTE_NETMASK=");
+        std::string routeNetmask = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
         cfg->ipStatic_.ipAddr_.address_ = ipAddr;
         cfg->ipStatic_.ipAddr_.netMask_ = netMask;
         cfg->ipStatic_.ipAddr_.family_ = GetAddrFamily(ipAddr);
-        int32_t prefixlen = Ipv4PrefixLen(netMask);
+        int32_t prefixLen = Ipv4PrefixLen(netMask);
         if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
-            cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
+            cfg->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
         }
         cfg->ipStatic_.netMask_.address_ = netMask;
         cfg->ipStatic_.gateway_.address_ = gatway;
         cfg->ipStatic_.gateway_.family_ = GetAddrFamily(gatway);
         if (cfg->ipStatic_.gateway_.family_ == AF_INET) {
-            cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
+            cfg->ipStatic_.gateway_.prefixlen_ = prefixLen;
         }
         cfg->ipStatic_.route_.address_ = route;
+        int32_t routePrefixLen = Ipv4PrefixLen(routeNetmask);
         cfg->ipStatic_.route_.family_ = GetAddrFamily(route);
         if (cfg->ipStatic_.route_.family_ == AF_INET) {
-            cfg->ipStatic_.route_.prefixlen_ = prefixlen;
+            cfg->ipStatic_.route_.prefixlen_ = routePrefixLen;
         }
     } else if (bootProto == "DHCP") {
         cfg->mode_ = DHCP;
