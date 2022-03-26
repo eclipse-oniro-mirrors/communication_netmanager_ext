@@ -113,7 +113,7 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up, b
     if (fit == devs_.end()) {
         return;
     }
-    sptr<DevInterfaceState> devState= fit->second;
+    sptr<DevInterfaceState> devState = fit->second;
     devState->SetLinkUp(up);
     devState->SetLowerUp(lowerUp);
     IPSetMode mode = devState->GetIPSetMode();
