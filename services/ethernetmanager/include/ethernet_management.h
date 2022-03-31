@@ -77,6 +77,7 @@ private:
     void StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void SetDevState(sptr<DevInterfaceState> &devState, const std::string &devName,
         const std::vector<uint8_t> &hwAddr, bool up, bool lowerUp);
+    void StartSetDevUpThd();
 
 private:
     sptr<NotifyCallback> notifyCallback_ = nullptr;
