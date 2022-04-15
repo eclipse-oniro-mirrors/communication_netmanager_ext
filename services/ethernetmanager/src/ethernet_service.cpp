@@ -51,8 +51,8 @@ void EthernetService::OnStart()
     }
     nlkRtnl_.Init();
     if (ethManagement_ != nullptr) {
-        ethManagement_->Init();
         ethManagement_->RegisterNlk(nlkRtnl_);
+        ethManagement_->Init();
     }
     state_ = STATE_RUNNING;
     gettimeofday(&tv, NULL);
