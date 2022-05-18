@@ -39,62 +39,24 @@ constexpr int32_t BIT16 = 16;
 constexpr int32_t BIT8 = 8;
 constexpr int32_t INET_PTION_SUC = 1;
 constexpr int32_t MKDIR_ERR = -1;
-EthernetManagement::NotifyCallback::NotifyCallback(EthernetManagement &ethernetManagement)
+EthernetManagement::EhternetDhcpNotifyCallback::EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement)
     : ethernetManagement_(ethernetManagement)
 {
 }
 
-EthernetManagement::NotifyCallback::~NotifyCallback() {}
-
-int32_t EthernetManagement::NotifyCallback::OnInterfaceAddressUpdated(const std::string &, const std::string &,
-    int, int)
+int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
-    return 0;
-}
-
-int32_t EthernetManagement::NotifyCallback::OnInterfaceAddressRemoved(const std::string &, const std::string &,
-    int, int)
-{
-    return 0;
-}
-
-int32_t EthernetManagement::NotifyCallback::OnInterfaceAdded(const std::string &)
-{
-    return 0;
-}
-
-int32_t EthernetManagement::NotifyCallback::OnInterfaceRemoved(const std::string &)
-{
-    return 0;
-}
-
-int32_t EthernetManagement::NotifyCallback::OnInterfaceChanged(const std::string &, bool)
-{
-    return 0;
-}
-
-int32_t EthernetManagement::NotifyCallback::OnInterfaceLinkStateChanged(const std::string &, bool)
-{
-    return 0;
-}
-
-int32_t EthernetManagement::NotifyCallback::OnRouteChanged(bool, const std::string &, const std::string &,
-    const std::string &)
-{
-    return 0;
-}
-
-int32_t EthernetManagement::NotifyCallback::OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult)
-{
-    NETMGR_EXT_LOG_D("EthernetManagement::NativeNotifyCallback::OnDhcpSuccess");
+    NETMGR_EXT_LOG_D("EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess");
     ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
     return 0;
 }
 
 EthernetManagement::EthernetManagement()
 {
-    notifyCallback_ = std::make_unique<NotifyCallback>(*this).release();
-    NetsysController::GetInstance().RegisterCallback(notifyCallback_);
+    ethDhcpNotifyCallback_  = std::make_unique<EhternetDhcpNotifyCallback>(*this).release();
+    ethDhcpController_ = std::make_unique<EthernetDhcpController>();
+    ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
+
     if (!IsDirExist(configDir_)) {
         NETMGR_EXT_LOG_D("CreateDir start");
         bool ret = CreateDir(configDir_);
@@ -175,53 +137,56 @@ int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sp
     return ETHERNET_SUCCESS;
 }
 
-int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(NetsysControllerCallback::DhcpResult &dhcpResult)
+int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     NETMGR_EXT_LOG_D("EthernetManagement::UpdateDevInterfaceLinkInfo");
-    auto fit = devs_.find(dhcpResult.iface_);
+    auto fit = devs_.find(dhcpResult.iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist",
-            dhcpResult.iface_.c_str());
+            dhcpResult.iface.c_str());
         return ETHERNET_ERROR;
     }
     if (!fit->second->GetLinkUp()) {
-        NETMGR_EXT_LOG_E("The iface[%{public}s] The device is not turned on", dhcpResult.iface_.c_str());
+        NETMGR_EXT_LOG_E("The iface[%{public}s] The device is not turned on", dhcpResult.iface.c_str());
         return ETHERNET_ERROR;
     }
 
     int32_t prefixlen = 0;
     INetAddr addr;
-    addr.address_ = dhcpResult.ipAddr_;
-    addr.family_ = GetAddrFamily(dhcpResult.ipAddr_);
+    addr.address_ = dhcpResult.ipAddr;
+    addr.family_ = GetAddrFamily(dhcpResult.ipAddr);
     if (addr.family_ == AF_INET) {
-        addr.prefixlen_ = Ipv4PrefixLen(dhcpResult.subNet_);
+        addr.prefixlen_ = Ipv4PrefixLen(dhcpResult.subNet);
     }
     prefixlen = addr.prefixlen_;
     INetAddr gate;
-    gate.address_ = dhcpResult.gateWay_;
-    gate.family_ = GetAddrFamily(dhcpResult.gateWay_);
+    gate.address_ = dhcpResult.gateWay;
+    gate.family_ = GetAddrFamily(dhcpResult.gateWay);
     gate.prefixlen_ = prefixlen;
     INetAddr route;
-    if (dhcpResult.gateWay_ != dhcpResult.route1_) {
-        if (dhcpResult.route1_ == "*") {
+    if (dhcpResult.gateWay != dhcpResult.route1) {
+        if (dhcpResult.route1 == "*") {
             route.address_ = "0.0.0.0";
+            route.prefixlen_ = 0;
         } else {
-            route.address_ = dhcpResult.route1_;
+            route.address_ = dhcpResult.route1;
+            route.prefixlen_ = prefixlen;
         }
     }
-    if (dhcpResult.gateWay_ != dhcpResult.route2_) {
-        if (dhcpResult.route2_ == "*") {
+    if (dhcpResult.gateWay != dhcpResult.route2) {
+        if (dhcpResult.route2 == "*") {
             route.address_ = "0.0.0.0";
+            route.prefixlen_ = 0;
         } else {
-            route.address_ = dhcpResult.route2_;
+            route.address_ = dhcpResult.route2;
+            route.prefixlen_ = prefixlen;
         }
     }
     route.family_ = GetAddrFamily(route.address_);
-    route.prefixlen_ = prefixlen;
     INetAddr dnsNet1;
-    dnsNet1.address_ = dhcpResult.dns1_;
+    dnsNet1.address_ = dhcpResult.dns1;
     INetAddr dnsNet2;
-    dnsNet2.address_ = dhcpResult.dns2_;
+    dnsNet2.address_ = dhcpResult.dns2;
     fit->second->UpdateLinkInfo(addr, gate, route, dnsNet1, dnsNet2);
     fit->second->RemoteUpdateNetLinkInfo();
     return ETHERNET_SUCCESS;
@@ -313,7 +278,7 @@ void EthernetManagement::Init()
             devState->SetIfcfg(fit->second);
         } else {
             sptr<InterfaceConfiguration> ifCfg = std::make_unique<InterfaceConfiguration>().release();
-            ifCfg->mode_ = STATIC;
+            ifCfg->mode_ = DHCP;
             devState->SetIfcfg(ifCfg);
         }
     }
@@ -595,14 +560,14 @@ int32_t EthernetManagement::Ipv4PrefixLen(const std::string &ip)
 void EthernetManagement::StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartDhcpClient[%{public}s]", dev.c_str());
-    NetsysController::GetInstance().StartDhcpClient(dev, false);
+    ethDhcpController_->StartDhcpClient(dev, false);
     devState->SetDhcpReqState(true);
 }
 
 void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StopDhcpClient[%{public}s]", dev.c_str());
-    NetsysController::GetInstance().StopDhcpClient(dev, false);
+    ethDhcpController_->StopDhcpClient(dev, false);
     devState->SetDhcpReqState(false);
 }
 
