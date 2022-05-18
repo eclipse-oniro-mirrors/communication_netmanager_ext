@@ -79,9 +79,9 @@ void EthernetService::OnAddSystemAbility(int32_t systemAbilityId, const std::str
             NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
             break;
     }
-	if (dependentServiceState_ == DEPENDENT_SERVICE_All) {
+    if (dependentServiceState_ == DEPENDENT_SERVICE_All) {
         InitManagement();
-	}
+    }
 }
 
 void EthernetService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
