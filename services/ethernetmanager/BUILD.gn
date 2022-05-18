@@ -37,8 +37,8 @@ ohos_shared_library("ethernet_manager") {
     "$BASE_INNERKITS_ROOT/ethernetclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "//foundation/communication/wifi/dhcp/services/mgr_service/include",
-    "//foundation/communication/wifi/dhcp/interfaces/innerkits/native_cpp/include",
-    "//foundation/communication/wifi/dhcp/interfaces/innerkits/native_cpp/interfaces",
+    "//foundation/communication/wifi/dhcp/interfaces/inner_api/include",
+    "//foundation/communication/wifi/dhcp/interfaces/inner_api/interfaces",
   ]
 
   deps = [
