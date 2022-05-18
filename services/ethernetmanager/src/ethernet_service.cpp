@@ -68,11 +68,11 @@ void EthernetService::OnAddSystemAbility(int32_t systemAbilityId, const std::str
     switch (systemAbilityId) {
         case COMM_NET_CONN_MANAGER_SYS_ABILITY_ID:
             NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility Conn");
-            dependentServiceState_ &= DEPENDENT_SERVICE_NET_CONN_MANAGER;
+            dependentServiceState_ |= DEPENDENT_SERVICE_NET_CONN_MANAGER;
             break;
         case COMMON_EVENT_SERVICE_ID:
             NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility CES");
-            dependentServiceState_ &= DEPENDENT_SERVICE_COMMON_EVENT;
+            dependentServiceState_ |= DEPENDENT_SERVICE_COMMON_EVENT;
             break;
         default:
             NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
