@@ -25,13 +25,15 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+#define DEPENDENT_SERVICE_NET_CONN_MANAGER 0x0001
+#define DEPENDENT_SERVICE_COMMON_EVENT 0x0002
+#define DEPENDENT_SERVICE_All 0x0003
 const bool REGISTER_LOCAL_RESULT_ETH = SystemAbility::MakeAndRegisterAbility(
     DelayedSingleton<EthernetService>::GetInstance().get());
 
 EthernetService::EthernetService()
     : SystemAbility(COMM_ETHERNET_MANAGER_SYS_ABILITY_ID, true)
 {
-    ethManagement_ = std::make_unique<EthernetManagement>();
 }
 
 EthernetService::~EthernetService() {}
@@ -49,11 +51,6 @@ void EthernetService::OnStart()
         NETMGR_EXT_LOG_E("EthernetService init failed");
         return;
     }
-    nlkRtnl_.Init();
-    if (ethManagement_ != nullptr) {
-        ethManagement_->RegisterNlk(nlkRtnl_);
-        ethManagement_->Init();
-    }
     state_ = STATE_RUNNING;
     gettimeofday(&tv, NULL);
     NETMGR_EXT_LOG_D("EthernetService::OnStart end");
@@ -63,6 +60,33 @@ void EthernetService::OnStop()
 {
     state_ = STATE_STOPPED;
     registerToService_ = false;
+}
+
+void EthernetService::OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
+{
+    NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility systemAbilityId:%{public}d", systemAbilityId);
+    switch (systemAbilityId) {
+        case COMM_NET_CONN_MANAGER_SYS_ABILITY_ID:
+            NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility Conn");
+			dependentServiceState_ &= DEPENDENT_SERVICE_NET_CONN_MANAGER;
+            break;
+        case COMMON_EVENT_SERVICE_ID:
+            NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility CES");
+			dependentServiceState_ &= DEPENDENT_SERVICE_COMMON_EVENT;
+            
+            break;
+        default:
+            NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
+            break;
+    }
+	if (dependentServiceState_ == DEPENDENT_SERVICE_All) {
+        InitManagement();
+	}
+}
+
+void EthernetService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
+{
+    NETMGR_EXT_LOG_D("EthernetService::OnRemoveSystemAbility systemAbilityId:%{public}d removed", systemAbilityId);
 }
 
 bool EthernetService::Init()
@@ -78,10 +102,22 @@ bool EthernetService::Init()
         }
         registerToService_ = true;
     }
+    AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
+    AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
     serviceComm_ = (std::make_unique<EthernetServiceCommon>()).release();
     NetManagerCenter::GetInstance().RegisterEthernetService(serviceComm_);
     NETMGR_EXT_LOG_D("GetEthernetServer suc");
     return true;
+}
+
+void EthernetService::InitManagement()
+{
+    NETMGR_EXT_LOG_D("EthernetService::InitManagement Enter");
+    ethManagement_ = std::make_unique<EthernetManagement>();
+    nlkRtnl_.Init();
+    ethManagement_->RegisterNlk(nlkRtnl_);
+    ethManagement_->Init();
+    NETMGR_EXT_LOG_D("EthernetService::InitManagement End");
 }
 
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
