@@ -31,9 +31,9 @@ void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnSuccess(int s
     OHOS::Wifi::DhcpResult &result)
 {
     NETMGR_EXT_LOG_D("Enter EthernetDhcpController::EthernetDhcpControllerResultNotify::OnSuccess "
-        "ifname=[%{public}s], iptype=[%{public}d], strYourCli=[%{public}s], "
-        "strServer=[%{public}s], strSubnet=[%{public}s], strDns1=[%{public}s], "
-        "strDns2=[%{public}s] strRouter1=[%{public}s] strRouter2=[%{public}s]",
+        "ifname=[%{private}s], iptype=[%{private}d], strYourCli=[%{private}s], "
+        "strServer=[%{private}s], strSubnet=[%{private}s], strDns1=[%{private}s], "
+        "strDns2=[%{private}s] strRouter1=[%{private}s] strRouter2=[%{private}s]",
         ifname.c_str(), result.iptype, result.strYourCli.c_str(), result.strServer.c_str(),
         result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
         result.strRouter2.c_str());
@@ -44,13 +44,11 @@ void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnFailed(int st
     const std::string &reason)
 {
     NETMGR_EXT_LOG_D("Enter EthernetDhcpController::EthernetDhcpControllerResultNotify::OnFailed");
-    return;
 }
 
 void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnSerExitNotify(const std::string& ifname)
 {
     NETMGR_EXT_LOG_D("EthernetDhcpController::EthernetDhcpControllerResultNotify::OnSerExitNotify");
-    return;
 }
 
 EthernetDhcpController::EthernetDhcpController()
@@ -104,7 +102,7 @@ void EthernetDhcpController::OnDhcpSuccess(const std::string &iface, OHOS::Wifi:
 
 void EthernetDhcpController::OnDhcpFailed(int status, const std::string &ifname, const std::string &reason)
 {
-    NETMGR_EXT_LOG_D("EthernetDhcpController OnDhcpSuccess");
+    NETMGR_EXT_LOG_D("EthernetDhcpController OnDhcpFailed");
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
