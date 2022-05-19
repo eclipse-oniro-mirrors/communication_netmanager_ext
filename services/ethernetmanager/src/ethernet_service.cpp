@@ -25,9 +25,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-#define DEPENDENT_SERVICE_NET_CONN_MANAGER 0x0001
-#define DEPENDENT_SERVICE_COMMON_EVENT 0x0002
-#define DEPENDENT_SERVICE_All 0x0003
+const uint16_t DEPENDENT_SERVICE_NET_CONN_MANAGER = 0x0001;
+const uint16_t DEPENDENT_SERVICE_COMMON_EVENT = 0x0002;
+const uint16_t DEPENDENT_SERVICE_All = 0x0003;
 const bool REGISTER_LOCAL_RESULT_ETH = SystemAbility::MakeAndRegisterAbility(
     DelayedSingleton<EthernetService>::GetInstance().get());
 
@@ -68,12 +68,11 @@ void EthernetService::OnAddSystemAbility(int32_t systemAbilityId, const std::str
     switch (systemAbilityId) {
         case COMM_NET_CONN_MANAGER_SYS_ABILITY_ID:
             NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility Conn");
-			dependentServiceState_ &= DEPENDENT_SERVICE_NET_CONN_MANAGER;
+            dependentServiceState_ |= DEPENDENT_SERVICE_NET_CONN_MANAGER;
             break;
         case COMMON_EVENT_SERVICE_ID:
             NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility CES");
-			dependentServiceState_ &= DEPENDENT_SERVICE_COMMON_EVENT;
-            
+            dependentServiceState_ |= DEPENDENT_SERVICE_COMMON_EVENT;
             break;
         default:
             NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
