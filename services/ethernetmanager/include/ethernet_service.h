@@ -45,12 +45,18 @@ public:
     std::vector<std::string> GetAllActiveIfaces() override;
     int32_t ResetFactory() override;
 
+protected:
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+    void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+
 private:
     bool Init();
+    void InitManagement();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;
+    uint16_t dependentServiceState_ = 0;
     std::unique_ptr<EthernetManagement> ethManagement_;
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
     NetLinkRtnl nlkRtnl_;

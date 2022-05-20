@@ -17,6 +17,7 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ohos_shared_library("ethernet_manager") {
   sources = [
     "$ETHERNETMANAGER_SOURCE_DIR/src/dev_interface_state.cpp",
+    "$ETHERNETMANAGER_SOURCE_DIR/src/ethernet_dhcp_controller.cpp",
     "$ETHERNETMANAGER_SOURCE_DIR/src/ethernet_management.cpp",
     "$ETHERNETMANAGER_SOURCE_DIR/src/ethernet_service.cpp",
     "$ETHERNETMANAGER_SOURCE_DIR/src/ethernet_service_common.cpp",
@@ -35,6 +36,8 @@ ohos_shared_library("ethernet_manager") {
     "$BASE_INNERKITS_ROOT/dnsresolverclient/include",
     "$BASE_INNERKITS_ROOT/ethernetclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
+    "//foundation/communication/wifi/services/wifi_standard/wifi_framework/dhcp_manage/mgr_service/include",
+    "//foundation/communication/wifi/services/wifi_standard/wifi_framework/dhcp_manage/mgr_service/interfaces",
   ]
 
   deps = [
@@ -45,6 +48,7 @@ ohos_shared_library("ethernet_manager") {
     "$NETMANAGER_BASE_ROOT/services/netconnmanager:net_conn_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
+    "//foundation/communication/wifi/services/wifi_standard/wifi_framework/dhcp_manage/mgr_service:dhcp_manager_service",
   ]
 
   external_deps = [

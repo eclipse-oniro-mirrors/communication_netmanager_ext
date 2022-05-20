@@ -232,7 +232,7 @@ void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &g
 void DevInterfaceState::SetIpAddr()
 {
     if (!(ifcfg_->ipStatic_.ipAddr_.address_.empty())) {
-        NETMGR_EXT_LOG_D("DevInterfaceState SetIpAddr devName[%{public}s] address_[%{public}s] prefixlen_[%{public}d]",
+        NETMGR_EXT_LOG_D("DevInterfaceState SetIpAddr devName[%{private}s] address[%{private}s] prefixlen[%{private}d]",
             devName_.c_str(), ifcfg_->ipStatic_.ipAddr_.address_.c_str(), ifcfg_->ipStatic_.ipAddr_.prefixlen_);
         NetsysController::GetInstance().InterfaceAddAddress(devName_, ifcfg_->ipStatic_.ipAddr_.address_,
             ifcfg_->ipStatic_.ipAddr_.prefixlen_);

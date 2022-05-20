@@ -27,21 +27,15 @@
 #include "nlk_event_handle.h"
 #include "netLink_rtnl.h"
 
+#include "ethernet_dhcp_controller.h"
+#include "ethernet_dhcp_callback.h"
 namespace OHOS {
 namespace NetManagerStandard {
 class EthernetManagement : public NlkEventHandle {
-    class NotifyCallback : public NetsysControllerCallback {
+    class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
     public:
-        NotifyCallback(EthernetManagement &ethernetManagement);
-        ~NotifyCallback() override;
-        int32_t OnInterfaceAddressUpdated(const std::string &, const std::string &, int, int) override;
-        int32_t OnInterfaceAddressRemoved(const std::string &, const std::string &, int, int) override;
-        int32_t OnInterfaceAdded(const std::string &) override;
-        int32_t OnInterfaceRemoved(const std::string &) override;
-        int32_t OnInterfaceChanged(const std::string &, bool) override;
-        int32_t OnInterfaceLinkStateChanged(const std::string &, bool) override;
-        int32_t OnRouteChanged(bool, const std::string &, const std::string &, const std::string &) override;
-        int32_t OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult) override;
+        EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement);
+        int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override;
     private:
         EthernetManagement &ethernetManagement_;
     };
@@ -51,7 +45,7 @@ public:
     void Init();
     void UpdateInterfaceState(const std::string &dev, bool up, bool lowerUp);
     int32_t UpdateDevInterfaceState(const std::string &iface, sptr<InterfaceConfiguration> cfg);
-    int32_t UpdateDevInterfaceLinkInfo(NetsysControllerCallback::DhcpResult &dhcpResult);
+    int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
     sptr<InterfaceConfiguration> GetDevInterfaceCfg(const std::string &iface);
     int32_t IsIfaceActive(const std::string &iface);
     std::vector<std::string> GetAllActiveIfaces();
@@ -80,10 +74,11 @@ private:
     void StartSetDevUpThd();
 
 private:
-    sptr<NotifyCallback> notifyCallback_ = nullptr;
     std::map<std::string, sptr<DevInterfaceState>> devs_;
     std::string configDir_ = "/data/ethernet/";
     std::mutex mutex_;
+    std::unique_ptr<EthernetDhcpController> ethDhcpController_ = nullptr;
+    sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
