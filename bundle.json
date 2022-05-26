@@ -53,7 +53,8 @@
             ],
             "inner_kits": [],
             "test": [
-                "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest"
+                "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest",
+                "//foundation/communication/netmanager_ext/test/ethernetmanager:fuzztest"
             ]
         }
     }
