@@ -55,6 +55,7 @@ public:
     std::set<NetCap> GetNetCaps();
     bool GetLinkUp() const;
     bool GetLowerUp() const;
+    bool IsStateUp() const;
     sptr<NetLinkInfo> GetLinkInfo() const;
     sptr<InterfaceConfiguration> GetIfcfg() const;
     IPSetMode GetIPSetMode() const;

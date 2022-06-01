@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,30 +15,16 @@
 
 #include "ethernet_management.h"
 
-#include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <arpa/inet.h>
-
-#include <fstream>
-#include <sstream>
 #include <thread>
+#include <unistd.h>
 
-#include "securec.h"
 #include "netsys_controller.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "ethernet_constants.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t BIT32 = 32;
-constexpr int32_t BIT24 = 24;
-constexpr int32_t BIT16 = 16;
-constexpr int32_t BIT8 = 8;
-constexpr int32_t INET_PTION_SUC = 1;
-constexpr int32_t MKDIR_ERR = -1;
 EthernetManagement::EhternetDhcpNotifyCallback::EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement)
     : ethernetManagement_(ethernetManagement)
 {
@@ -57,11 +43,8 @@ EthernetManagement::EthernetManagement()
     ethDhcpController_ = std::make_unique<EthernetDhcpController>();
     ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
 
-    if (!IsDirExist(configDir_)) {
-        NETMGR_EXT_LOG_D("CreateDir start");
-        bool ret = CreateDir(configDir_);
-        NETMGR_EXT_LOG_D("CreateDir end ret[%{public}d]", ret);
-    }
+    ethConfiguration_ = std::make_unique<EthernetConfiguration>();
+    ethConfiguration_->ReadSysteamConfiguration(devCaps_, devCfgs_);
 }
 
 EthernetManagement::~EthernetManagement() {}
@@ -100,11 +83,6 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up, b
 int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sptr<InterfaceConfiguration> cfg)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (!IsDirExist(configDir_)) {
-        NETMGR_EXT_LOG_D("CreateDir start.");
-        bool ret = CreateDir(configDir_);
-        NETMGR_EXT_LOG_D("CreateDir end. ret[%{public}d].", ret);
-    }
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
@@ -113,26 +91,10 @@ int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sp
     if (!fit->second->GetLinkUp()) {
         return ETHERNET_ERROR;
     }
-    if (cfg->mode_ == STATIC) {
-        uint32_t prefixlen = 0;
-        cfg->ipStatic_.ipAddr_.family_ = GetAddrFamily(cfg->ipStatic_.ipAddr_.address_);
-        if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
-            if (cfg->ipStatic_.netMask_.address_.empty()) {
-                prefixlen = Ipv4PrefixLen(cfg->ipStatic_.ipAddr_.netMask_);
-            } else {
-                prefixlen = Ipv4PrefixLen(cfg->ipStatic_.netMask_.address_);
-            }
-        }
-        cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.gateway_.family_ = GetAddrFamily(cfg->ipStatic_.gateway_.address_);
-        cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.route_.family_ = GetAddrFamily(cfg->ipStatic_.route_.address_);
-        cfg->ipStatic_.route_.prefixlen_ = prefixlen;
+    if (!ethConfiguration_->WriteUserConfiguration(iface, cfg)) {
+        NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
+        return ETHERNET_ERROR;
     }
-    std::string fileContent;
-    std::string filePath = configDir_ + "/" + iface;
-    GenCfgContent(iface, cfg, fileContent);
-    WriteFile(filePath, fileContent);
     fit->second->SetIfcfg(cfg);
     return ETHERNET_SUCCESS;
 }
@@ -150,44 +112,13 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         NETMGR_EXT_LOG_E("The iface[%{public}s] The device is not turned on", dhcpResult.iface.c_str());
         return ETHERNET_ERROR;
     }
-
-    int32_t prefixlen = 0;
-    INetAddr addr;
-    addr.address_ = dhcpResult.ipAddr;
-    addr.family_ = GetAddrFamily(dhcpResult.ipAddr);
-    if (addr.family_ == AF_INET) {
-        addr.prefixlen_ = Ipv4PrefixLen(dhcpResult.subNet);
+    sptr<StaticConfiguration> config = std::make_unique<StaticConfiguration>().release();
+    if (!ethConfiguration_->ConvertToConfiguration(dhcpResult, config)) {
+        NETMGR_EXT_LOG_E("EthernetManagement dhcp convert to configurations error!");
+        return ETHERNET_ERROR;
     }
-    prefixlen = addr.prefixlen_;
-    INetAddr gate;
-    gate.address_ = dhcpResult.gateWay;
-    gate.family_ = GetAddrFamily(dhcpResult.gateWay);
-    gate.prefixlen_ = prefixlen;
-    INetAddr route;
-    if (dhcpResult.gateWay != dhcpResult.route1) {
-        if (dhcpResult.route1 == "*") {
-            route.address_ = "0.0.0.0";
-            route.prefixlen_ = 0;
-        } else {
-            route.address_ = dhcpResult.route1;
-            route.prefixlen_ = prefixlen;
-        }
-    }
-    if (dhcpResult.gateWay != dhcpResult.route2) {
-        if (dhcpResult.route2 == "*") {
-            route.address_ = "0.0.0.0";
-            route.prefixlen_ = 0;
-        } else {
-            route.address_ = dhcpResult.route2;
-            route.prefixlen_ = prefixlen;
-        }
-    }
-    route.family_ = GetAddrFamily(route.address_);
-    INetAddr dnsNet1;
-    dnsNet1.address_ = dhcpResult.dns1;
-    INetAddr dnsNet2;
-    dnsNet2.address_ = dhcpResult.dns2;
-    fit->second->UpdateLinkInfo(addr, gate, route, dnsNet1, dnsNet2);
+    fit->second->UpdateLinkInfo(config->ipAddr_, config->gateway_, config->route_,
+        config->dnsServers_.front(), config->dnsServers_.back());
     fit->second->RemoteUpdateNetLinkInfo();
     return ETHERNET_SUCCESS;
 }
@@ -211,26 +142,28 @@ int32_t EthernetManagement::IsIfaceActive(const std::string &iface)
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
         return ETHERNET_ERROR;
     }
-    return static_cast<int32_t>(fit->second->GetLinkUp());
+    return static_cast<int32_t>(fit->second->IsStateUp());
 }
 
 std::vector<std::string> EthernetManagement::GetAllActiveIfaces()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    std::vector<std::string> a;
+    std::vector<std::string> ifaces;
     for (auto it = devs_.begin(); it != devs_.end(); ++it) {
-        a.push_back(it->first);
+        if (it->second->IsStateUp()) {
+            ifaces.push_back(it->first);
+        }
     }
-    return a;
+    return ifaces;
 }
 
 int32_t EthernetManagement::ResetFactory()
 {
-    if (!DelDir(configDir_)) {
-        NETMGR_EXT_LOG_E("Failed to Delete a dir[%{public}s]", configDir_.c_str());
+    if (!ethConfiguration_->ClearAllUserConfiguration()) {
+        NETMGR_EXT_LOG_E("Failed to ResetFactory!");
         return ETHERNET_ERROR;
     } else {
-        NETMGR_EXT_LOG_I("Success deleting a dir[%{public}s]", configDir_.c_str());
+        NETMGR_EXT_LOG_I("Success to ResetFactory!");
         return ETHERNET_SUCCESS;
     }
 }
@@ -258,10 +191,10 @@ void EthernetManagement::Init()
         return;
     }
     NETMGR_EXT_LOG_D("EthernetManagement devs size[%{public}zd]", linkInfos.size());
-    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
-    ReadFileList(configDir_, devCfgs);
-    std::map<std::string, sptr<InterfaceConfiguration>>::iterator fit;
-    NETMGR_EXT_LOG_D("EthernetManagement ReadFileList size[%{public}zd]", devCfgs.size());
+    if (!ethConfiguration_->ReadUserConfiguration(devCfgs_)) {
+        NETMGR_EXT_LOG_E("EthernetManagement read user configurations error! ");
+        return;
+    }
     for (auto it = linkInfos.begin(); it != linkInfos.end(); it++) {
         std::string devName = it->iface_;
         NETMGR_EXT_LOG_D("EthernetManagement devName[%{public}s]", devName.c_str());
@@ -273,13 +206,17 @@ void EthernetManagement::Init()
         std::vector<uint8_t> hwAddr = NetLinkRtnl::GetHWaddr(devName);
         SetDevState(devState, devName, hwAddr, false, false);
         devState->RemoteRegisterNetSupplier();
-        fit = devCfgs.find(devName);
-        if (fit != devCfgs.end()) {
-            devState->SetIfcfg(fit->second);
+        auto fitCfg = devCfgs_.find(devName);
+        if (fitCfg != devCfgs_.end()) {
+            devState->SetIfcfg(fitCfg->second);
         } else {
             sptr<InterfaceConfiguration> ifCfg = std::make_unique<InterfaceConfiguration>().release();
             ifCfg->mode_ = DHCP;
             devState->SetIfcfg(ifCfg);
+        }
+        auto fitCap = devCaps_.find(devName);
+        if (fitCap != devCaps_.end()) {
+            devState->SetNetCaps(fitCap->second);
         }
     }
     std::thread t(&EthernetManagement::StartSetDevUpThd, this);
@@ -300,261 +237,6 @@ void EthernetManagement::StartSetDevUpThd()
             break;
         }
     }
-}
-
-bool EthernetManagement::IsDirExist(const std::string &dirPath)
-{
-    DIR *dp = nullptr;
-    NETMGR_EXT_LOG_D("EthernetManagement::IsDirExist start");
-    if ((dp = opendir(dirPath.c_str())) == nullptr) {
-        NETMGR_EXT_LOG_E("EthernetManagement::IsDirExist open failed");
-        return false;
-    }
-    NETMGR_EXT_LOG_D("EthernetManagement::IsDirExist open suc");
-    closedir(dp);
-    return true;
-}
-
-bool EthernetManagement::CreateDir(const std::string &dirPath)
-{
-    if (mkdir(dirPath.c_str(), 0755) == MKDIR_ERR) {
-        return false;
-    }
-    return true;
-}
-
-bool EthernetManagement::DelDir(const std::string &dirPath)
-{
-    DIR *dir = nullptr;
-    struct dirent *entry = nullptr;
-    struct stat statbuf;
-    if ((dir = opendir(dirPath.c_str())) == nullptr) {
-        return false;
-    }
-    while ((entry = readdir(dir)) != nullptr) {
-        std::string filePath = dirPath + entry->d_name;
-        lstat(filePath.c_str(), &statbuf);
-        if (S_ISREG(statbuf.st_mode)) {
-            remove(filePath.c_str());
-        }
-    }
-    closedir(dir);
-    if (rmdir(dirPath.c_str()) < 0) {
-        return false;
-    }
-    return true;
-}
-
-bool EthernetManagement::IsFileExist(const std::string& filePath)
-{
-    return !access(filePath.c_str(), F_OK);
-}
-
-bool EthernetManagement::ReadFile(const std::string &filePath, std::string &fileContent)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (filePath.empty()) {
-        NETMGR_EXT_LOG_E("filePath empty.");
-        return false;
-    }
-    if (!IsFileExist(filePath)) {
-        NETMGR_EXT_LOG_E("[%{public}s] not exist.", filePath.c_str());
-        return false;
-    }
-    std::fstream file(filePath.c_str(), std::fstream::in);
-    if (file.is_open() == false) {
-        NETMGR_EXT_LOG_E("fstream failed.");
-        return false;
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    fileContent = buffer.str();
-    file.close();
-    return true;
-}
-
-bool EthernetManagement::WriteFile(const std::string &filePath, const std::string &fileContent)
-{
-    std::fstream file(filePath.c_str(), std::fstream::out | std::fstream::trunc);
-    if (file.is_open() == false) {
-        NETMGR_EXT_LOG_E("fstream failed.");
-        return false;
-    }
-    file << fileContent.c_str();
-    file.close();
-    return true;
-}
-
-void EthernetManagement::ReadFileList(const std::string &dirPath, std::map<std::string,
-    sptr<InterfaceConfiguration>> &devCfgs)
-{
-    DIR *dir = nullptr;
-    struct dirent *ptr = nullptr;
-    if ((dir = opendir(dirPath.c_str())) == nullptr) {
-        return;
-    }
-    std::string iface;
-    sptr<InterfaceConfiguration> cfg = nullptr;
-    while ((ptr = readdir(dir)) != nullptr) {
-        if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0) {
-            continue;
-        } else if (ptr->d_type == DT_REG) {
-            std::string filePath = dirPath + "/" + ptr->d_name;
-            std::string fileContent;
-            if (!ReadFile(filePath, fileContent)) {
-                continue;
-            }
-            std::string().swap(iface);
-            cfg = std::make_unique<InterfaceConfiguration>().release();
-            ParserFileConfig(fileContent, iface, cfg);
-            if (!iface.empty()) {
-                NETMGR_EXT_LOG_E("ReadFileList devname[%{public}s]", iface.c_str());
-                devCfgs.insert(std::make_pair(iface, cfg));
-            }
-        }
-    }
-    closedir(dir);
-    return;
-}
-
-void EthernetManagement::ParserFileConfig(const std::string &fileContent, std::string &iface,
-    sptr<InterfaceConfiguration> cfg)
-{
-    std::string::size_type pos = fileContent.find("DEVICE=") + strlen("DEVICE=");
-    std::string device = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
-    pos = fileContent.find("BOOTPROTO=") + strlen("BOOTPROTO=");
-    std::string bootProto = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
-    iface = device;
-    if (bootProto == "STATIC") {
-        cfg->mode_ = STATIC;
-        pos = fileContent.find("IPADDR=") + strlen("IPADDR=");
-        std::string ipAddr = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
-        pos = fileContent.find("NETMASK=") + strlen("NETMASK=");
-        std::string netMask = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
-        pos = fileContent.find("GATEWAY=") + strlen("GATEWAY=");
-        std::string gatway = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
-        pos = fileContent.find("ROUTE=") + strlen("ROUTE=");
-        std::string route = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
-        pos = fileContent.find("ROUTE_NETMASK=") + strlen("ROUTE_NETMASK=");
-        std::string routeNetmask = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
-        cfg->ipStatic_.ipAddr_.address_ = ipAddr;
-        cfg->ipStatic_.ipAddr_.netMask_ = netMask;
-        cfg->ipStatic_.ipAddr_.family_ = GetAddrFamily(ipAddr);
-        int32_t prefixLen = Ipv4PrefixLen(netMask);
-        if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
-            cfg->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
-        }
-        cfg->ipStatic_.netMask_.address_ = netMask;
-        cfg->ipStatic_.gateway_.address_ = gatway;
-        cfg->ipStatic_.gateway_.family_ = GetAddrFamily(gatway);
-        if (cfg->ipStatic_.gateway_.family_ == AF_INET) {
-            cfg->ipStatic_.gateway_.prefixlen_ = prefixLen;
-        }
-        cfg->ipStatic_.route_.address_ = route;
-        int32_t routePrefixLen = Ipv4PrefixLen(routeNetmask);
-        cfg->ipStatic_.route_.family_ = GetAddrFamily(route);
-        if (cfg->ipStatic_.route_.family_ == AF_INET) {
-            cfg->ipStatic_.route_.prefixlen_ = routePrefixLen;
-        }
-    } else if (bootProto == "DHCP") {
-        cfg->mode_ = DHCP;
-    }
-}
-
-void EthernetManagement::GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg,
-    std::string &fileContent)
-{
-    std::string().swap(fileContent);
-    fileContent = fileContent + "DEVICE=" + iface + "\n";
-    if (cfg->mode_ == STATIC) {
-        fileContent = fileContent + "BOOTPROTO=STATIC\n";
-        fileContent = fileContent + "IPADDR=" + cfg->ipStatic_.ipAddr_.address_ + "\n";
-        if (cfg->ipStatic_.netMask_.address_.empty()) {
-            fileContent = fileContent + "NETMASK=" + cfg->ipStatic_.ipAddr_.netMask_ + "\n";
-        } else {
-            fileContent = fileContent + "NETMASK=" + cfg->ipStatic_.netMask_.address_ + "\n";
-        }
-        fileContent = fileContent + "GATEWAY=" + cfg->ipStatic_.gateway_.address_ + "\n";
-        fileContent = fileContent + "ROUTE=" + cfg->ipStatic_.route_.address_ + "\n";
-    } else {
-        fileContent = fileContent + "BOOTPROTO=DHCP\n";
-    }
-}
-
-bool EthernetManagement::IsValidIPV4(const std::string &ip)
-{
-    if (ip.empty()) {
-        return false;
-    }
-    struct in_addr s;
-    int32_t result = inet_pton(AF_INET, ip.c_str(), reinterpret_cast<void*>(&s));
-    if (result == INET_PTION_SUC) {
-        return true;
-    }
-    return false;
-}
-
-bool EthernetManagement::IsValidIPV6(const std::string &ip)
-{
-    if (ip.empty()) {
-        return false;
-    }
-    struct in6_addr s;
-    int32_t result = inet_pton(AF_INET6, ip.c_str(), reinterpret_cast<void*>(&s));
-    if (result == INET_PTION_SUC) {
-        return true;
-    }
-    return false;
-}
-
-int8_t EthernetManagement::GetAddrFamily(const std::string &ip)
-{
-    if (IsValidIPV4(ip)) {
-        return AF_INET;
-    }
-    if (IsValidIPV6(ip)) {
-        return AF_INET6;
-    }
-    return 0;
-}
-
-int32_t EthernetManagement::Ipv4PrefixLen(const std::string &ip)
-{
-    if (ip.empty()) {
-        return 0;
-    }
-    int32_t ret = 0;
-    uint32_t ipNum = 0;
-    uint8_t c1 = 0;
-    uint8_t c2 = 0;
-    uint8_t c3 = 0;
-    uint8_t c4 = 0;
-    int32_t cnt = 0;
-    ret = sscanf_s(ip.c_str(), "%hhu.%hhu.%hhu.%hhu", &c1, &c2, &c3, &c4);
-    if (ret != sizeof(int32_t)) {
-        return 0;
-    }
-    ipNum = (c1 << BIT24) | (c2 << BIT16) | (c3 << BIT8) | c4;
-    if (ipNum == 0xFFFFFFFF) {
-        return BIT32;
-    }
-    if (ipNum == 0xFFFFFF00) {
-        return BIT24;
-    }
-    if (ipNum == 0xFFFF0000) {
-        return BIT16;
-    }
-    if (ipNum == 0xFF000000) {
-        return BIT8;
-    }
-    for (int32_t i = 0; i < BIT32; i++) {
-        if ((ipNum << i) & 0x80000000) {
-            cnt++;
-        } else {
-            break;
-        }
-    }
-    return cnt;
 }
 
 void EthernetManagement::StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)

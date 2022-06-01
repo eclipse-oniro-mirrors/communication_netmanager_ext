@@ -57,6 +57,7 @@ struct EthernetAsyncContext {
     // dns1 address info
     std::string domain;
     int32_t result = 0;
+    bool isIface = false;
 };
 
 class NapiEthernet {
