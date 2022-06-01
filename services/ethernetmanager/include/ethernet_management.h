@@ -19,7 +19,6 @@
 #include <map>
 #include <mutex>
 
-#include "netsys_controller_callback.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -27,8 +26,8 @@
 #include "nlk_event_handle.h"
 #include "netLink_rtnl.h"
 
+#include "ethernet_configuration.h"
 #include "ethernet_dhcp_controller.h"
-#include "ethernet_dhcp_callback.h"
 namespace OHOS {
 namespace NetManagerStandard {
 class EthernetManagement : public NlkEventHandle {
@@ -54,19 +53,6 @@ public:
     void Handle(const struct NlkEventInfo &info) override;
 
 private:
-    bool IsDirExist(const std::string &dirPath);
-    bool CreateDir(const std::string &dirPath);
-    bool DelDir(const std::string &dirPath);
-    bool IsFileExist(const std::string &filePath);
-    bool ReadFile(const std::string &filePath, std::string &fileContent);
-    bool WriteFile(const std::string &filePath, const std::string &fileContent);
-    void ReadFileList(const std::string &dirPath, std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
-    void ParserFileConfig(const std::string &fileContent, std::string &iface, sptr<InterfaceConfiguration> cfg);
-    void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
-    bool IsValidIPV4(const std::string &ip);
-    bool IsValidIPV6(const std::string &ip);
-    int8_t GetAddrFamily(const std::string &ip);
-    int32_t Ipv4PrefixLen(const std::string &ip);
     void StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void SetDevState(sptr<DevInterfaceState> &devState, const std::string &devName,
@@ -74,11 +60,13 @@ private:
     void StartSetDevUpThd();
 
 private:
+    std::map<std::string, std::set<NetCap>> devCaps_;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs_;
     std::map<std::string, sptr<DevInterfaceState>> devs_;
-    std::string configDir_ = "/data/ethernet/";
-    std::mutex mutex_;
+    std::unique_ptr<EthernetConfiguration> ethConfiguration_ = nullptr;
     std::unique_ptr<EthernetDhcpController> ethDhcpController_ = nullptr;
     sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_;
+    std::mutex mutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

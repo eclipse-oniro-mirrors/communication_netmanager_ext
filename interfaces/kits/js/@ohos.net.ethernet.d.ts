@@ -50,8 +50,8 @@ declare namespace ethernet {
    * @permission ohos.permission.GET_NETWORK_INFO
    * @systemapi Hide this for inner system use.
    */
-  function isIfaceActive(iface: string, callback: AsyncCallback<number>): void;
-  function isIfaceActive(iface: string): Promise<number>;
+  function isIfaceActive(iface?: string, callback: AsyncCallback<number>): void;
+  function isIfaceActive(iface?: string): Promise<number>;
 
   /**
    * Gets the names of all active network interfaces.

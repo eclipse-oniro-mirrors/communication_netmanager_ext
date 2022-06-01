@@ -15,6 +15,7 @@
 
 #include "napi_ethernet.h"
 #include <memory>
+#include <vector>
 #include "system_ability_definition.h"
 #include "iservice_registry.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -184,7 +185,11 @@ void NapiEthernet::ExecIsIfaceActive(napi_env env, void *data)
         NETMGR_EXT_LOG_E("context == nullptr");
         return;
     }
-    context->ifActivate = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(context->iface);
+    if (context->isIface) {
+        context->ifActivate = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(context->iface);
+    } else {
+        context->ifActivate = DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces().size() > 0;
+    }
     NETMGR_EXT_LOG_I("ifActivate == [%{public}d]", context->ifActivate);
 }
 
@@ -360,15 +365,25 @@ napi_value NapiEthernet::IsIfaceActive(napi_env env, napi_callback_info info)
     NETMGR_EXT_LOG_I("IsIfaceActive agvc = [%{public}zu]", argc);
     EthernetAsyncContext* context = std::make_unique<EthernetAsyncContext>().release();
     // Parse Js argv
-    NAPI_CALL(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0],
+    if (argc != ARGV_NUM_0 && NapiCommon::MatchValueType(env, argv[ARGV_INDEX_0], napi_string)) {
+        NAPI_CALL(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0],
         context->iface, ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)));
-    NETMGR_EXT_LOG_I("IsIfaceActive [%{public}s]", context->iface);
+        NETMGR_EXT_LOG_I("IsIfaceActive [%{public}s]", context->iface);
+    }
     napi_value result = nullptr;
-    if (argc == ARGV_NUM_1) {
-        if (context->callbackRef == nullptr) {
-            NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    if (argc == ARGV_NUM_0) {
+        NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    } else if (argc == ARGV_NUM_1) {
+        if (NapiCommon::MatchValueType(env, argv[ARGV_INDEX_0], napi_function)) {
+            context->isIface = false;
+            NAPI_CALL(env, napi_create_reference(env, argv[ARGV_INDEX_0], CALLBACK_REF_CNT, &context->callbackRef));
         } else {
-            NAPI_CALL(env, napi_get_undefined(env, &result));
+            context->isIface = true;
+            if (context->callbackRef == nullptr) {
+                NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+            } else {
+                NAPI_CALL(env, napi_get_undefined(env, &result));
+            }
         }
     } else if (argc == ARGV_NUM_2) {
         NAPI_CALL(env, napi_create_reference(env, argv[ARGV_INDEX_1], CALLBACK_REF_CNT, &context->callbackRef));

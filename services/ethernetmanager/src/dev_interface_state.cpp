@@ -108,6 +108,11 @@ bool DevInterfaceState::GetLowerUp() const
     return lowerUp_;
 }
 
+bool DevInterfaceState::IsStateUp() const
+{
+    return linkUp_ & lowerUp_;
+}
+
 sptr<NetLinkInfo> DevInterfaceState::GetLinkInfo() const
 {
     return linkInfo_;
@@ -134,7 +139,9 @@ bool DevInterfaceState::GetDhcpReqState() const
 void DevInterfaceState::RemoteRegisterNetSupplier()
 {
     if (connLinkState_ == UNREGISTERED) {
-        netCaps_.insert(NET_CAPABILITY_INTERNET);
+        if (netCaps_.empty()) {
+            netCaps_.insert(NET_CAPABILITY_INTERNET);
+        }
         int32_t result = NetManagerCenter::GetInstance().RegisterNetSupplier(bearerType_,
             devName_, netCaps_, netSupplier_);
         if (result == 0) {

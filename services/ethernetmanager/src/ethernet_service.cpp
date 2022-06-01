@@ -25,9 +25,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-const uint16_t DEPENDENT_SERVICE_NET_CONN_MANAGER = 0x0001;
-const uint16_t DEPENDENT_SERVICE_COMMON_EVENT = 0x0002;
-const uint16_t DEPENDENT_SERVICE_All = 0x0003;
+constexpr uint16_t DEPENDENT_SERVICE_NET_CONN_MANAGER = 0x0001;
+constexpr uint16_t DEPENDENT_SERVICE_COMMON_EVENT = 0x0002;
+constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
 const bool REGISTER_LOCAL_RESULT_ETH = SystemAbility::MakeAndRegisterAbility(
     DelayedSingleton<EthernetService>::GetInstance().get());
 
