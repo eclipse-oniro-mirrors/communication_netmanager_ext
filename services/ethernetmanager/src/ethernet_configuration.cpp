@@ -69,6 +69,9 @@ bool EthernetConfiguration::ReadSysteamConfiguration(std::map<std::string, std::
     for (const auto &item : arrIface) {
         const auto& iface = item[CONFIG_KEY_ETH_IFACE];
         const auto& caps = item.at(CONFIG_KEY_ETH_CAPS).get<std::set<NetCap>>();
+        if (!caps.empty()) {
+            devCaps[iface] = caps;
+        }
         const auto& fit = devCfgs.find(iface);
         if (fit != devCfgs.end()) {
             NETMGR_EXT_LOG_E("The iface=%{public}s device have set!", fit->first.c_str());
@@ -77,9 +80,6 @@ bool EthernetConfiguration::ReadSysteamConfiguration(std::map<std::string, std::
         sptr<InterfaceConfiguration> config = ConvertJsonToConfiguration(item);
         if (!item[CONFIG_KEY_ETH_IP].empty()) {
             devCfgs[iface] = config;
-        }
-        if (!caps.empty()) {
-            devCaps[iface] = caps;
         }
     }
     return true;
@@ -92,7 +92,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     config->ipStatic_.ipAddr_.address_ = jsonData[CONFIG_KEY_ETH_IP];
     config->ipStatic_.ipAddr_.netMask_ = jsonData[CONFIG_KEY_ETH_NETMASK];
     config->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_IP]);
-    int32_t prefixLen = CommonUtils::Ipv4PrefixLen(jsonData[CONFIG_KEY_ETH_NETMASK]);
+    unsigned int prefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_NETMASK]);
     if (config->ipStatic_.ipAddr_.family_ == AF_INET) {
         config->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
     }
@@ -103,9 +103,9 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
         config->ipStatic_.gateway_.prefixlen_ = prefixLen;
     }
     config->ipStatic_.route_.address_ = jsonData[CONFIG_KEY_ETH_ROUTE];
-    int32_t routePrefixLen = 0;
+    unsigned int routePrefixLen = 0;
     if (!jsonData[CONFIG_KEY_ETH_ROUTE_MASK].empty()) {
-        routePrefixLen = CommonUtils::Ipv4PrefixLen(jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
+        routePrefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
     }
     config->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]);
     if (config->ipStatic_.route_.family_ == AF_INET) {
@@ -159,22 +159,22 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
     bool ret = CreateDir(USER_CONFIG_DIR);
     NETMGR_EXT_LOG_D("CreateDir ret[%{public}d]", ret);
     if (cfg->mode_ == STATIC) {
-        uint32_t prefixlen = 0;
+        unsigned int prefixlen = 0;
         cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.ipAddr_.address_);
         if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
             if (cfg->ipStatic_.netMask_.address_.empty()) {
-                prefixlen = CommonUtils::Ipv4PrefixLen(cfg->ipStatic_.ipAddr_.netMask_);
+                prefixlen = CommonUtils::GetMaskLength(cfg->ipStatic_.ipAddr_.netMask_);
             } else {
-                prefixlen = CommonUtils::Ipv4PrefixLen(cfg->ipStatic_.netMask_.address_);
+                prefixlen = CommonUtils::GetMaskLength(cfg->ipStatic_.netMask_.address_);
             }
         }
         cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
         cfg->ipStatic_.gateway_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.gateway_.address_);
         cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
         cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_);
-        int32_t routePrefixLen = 0;
+        unsigned int routePrefixLen = 0;
         if (!cfg->ipStatic_.route_.netMask_.empty()) {
-            routePrefixLen = CommonUtils::Ipv4PrefixLen(cfg->ipStatic_.route_.netMask_);
+            routePrefixLen = CommonUtils::GetMaskLength(cfg->ipStatic_.route_.netMask_);
         }
         cfg->ipStatic_.route_.prefixlen_ = routePrefixLen;
     }
@@ -201,11 +201,11 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     const auto& emSymbol = "*";
     const auto& emAddr = "0.0.0.0";
     const auto& emPrefixlen = 0;
-    int32_t prefixlen = 0;
+    unsigned int prefixlen = 0;
     config->ipAddr_.address_ = dhcpResult.ipAddr;
     config->ipAddr_.family_ = CommonUtils::GetAddrFamily(dhcpResult.ipAddr);
     if (config->ipAddr_.family_ == AF_INET) {
-        config->ipAddr_.prefixlen_ = CommonUtils::Ipv4PrefixLen(dhcpResult.subNet);
+        config->ipAddr_.prefixlen_ = CommonUtils::GetMaskLength(dhcpResult.subNet);
     }
     prefixlen = config->ipAddr_.prefixlen_;
     config->gateway_.address_ = dhcpResult.gateWay;
@@ -362,7 +362,7 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
         cfg->ipStatic_.ipAddr_.address_ = ipAddr;
         cfg->ipStatic_.ipAddr_.netMask_ = netMask;
         cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(ipAddr);
-        int32_t prefixLen = CommonUtils::Ipv4PrefixLen(netMask);
+        unsigned int prefixLen = CommonUtils::GetMaskLength(netMask);
         if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
             cfg->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
         }
@@ -373,9 +373,9 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
             cfg->ipStatic_.gateway_.prefixlen_ = prefixLen;
         }
         cfg->ipStatic_.route_.address_ = route;
-        int32_t routePrefixLen = 0;
+        unsigned int routePrefixLen = 0;
         if (!routeNetmask.empty()) {
-            routePrefixLen = CommonUtils::Ipv4PrefixLen(routeNetmask);
+            routePrefixLen = CommonUtils::GetMaskLength(routeNetmask);
         }
         cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(route);
         if (cfg->ipStatic_.route_.family_ == AF_INET) {

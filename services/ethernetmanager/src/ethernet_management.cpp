@@ -15,7 +15,7 @@
 
 #include "ethernet_management.h"
 
-#include <thread>
+#include <regex>
 #include <unistd.h>
 
 #include "netsys_controller.h"
@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+const std::string IFACE_MATCH = "eth\\d";
 EthernetManagement::EhternetDhcpNotifyCallback::EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement)
     : ethernetManagement_(ethernetManagement)
 {
@@ -184,21 +185,20 @@ void EthernetManagement::Handle(const struct NlkEventInfo &info)
 
 void EthernetManagement::Init()
 {
-    std::vector<NlkEventInfo> linkInfos;
-    NetLinkRtnl::GetLinkInfo(linkInfos);
-    if (linkInfos.size() == 0) {
+    std::regex re(IFACE_MATCH);
+    std::vector<std::string> ifaces = NetsysController::GetInstance().InterfaceGetList();
+    if (ifaces.empty()) {
         NETMGR_EXT_LOG_E("EthernetManagement link list is empty");
         return;
     }
-    NETMGR_EXT_LOG_D("EthernetManagement devs size[%{public}zd]", linkInfos.size());
+    NETMGR_EXT_LOG_D("EthernetManagement devs size[%{public}zd]", ifaces.size());
     if (!ethConfiguration_->ReadUserConfiguration(devCfgs_)) {
         NETMGR_EXT_LOG_E("EthernetManagement read user configurations error! ");
         return;
     }
-    for (auto it = linkInfos.begin(); it != linkInfos.end(); it++) {
-        std::string devName = it->iface_;
+    for (const auto &devName : ifaces) {
         NETMGR_EXT_LOG_D("EthernetManagement devName[%{public}s]", devName.c_str());
-        if (devName.empty()) {
+        if (!std::regex_search(devName, re)) {
             continue;
         }
         sptr<DevInterfaceState> devState = std::make_unique<DevInterfaceState>().release();
@@ -227,8 +227,8 @@ void EthernetManagement::Init()
 void EthernetManagement::StartSetDevUpThd()
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
-    for (auto it = devs_.begin(); it != devs_.end(); it++) {
-        std::string devName = it->first;
+    for (auto & dev : devs_) {
+        std::string devName = dev.first;
         while (true) {
             if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
                 sleep(2);
