@@ -39,7 +39,7 @@
                 "ipc",
                 "napi",
                 "safwk",
-                "samgr_standard",
+                "samgr",
                 "utils_base"
             ],
             "third_party": [
