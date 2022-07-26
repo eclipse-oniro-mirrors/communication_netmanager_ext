@@ -14,8 +14,15 @@
  */
 
 #include "ethernet_service_stub.h"
+
+#include "i_ethernet_service.h"
+#include "interface_configuration.h"
+#include "ipc_object_stub.h"
+#include "message_parcel.h"
+#include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "ethernet_constants.h"
+
+namespace OHOS { class MessageOption; }
 
 namespace OHOS {
 namespace NetManagerStandard {

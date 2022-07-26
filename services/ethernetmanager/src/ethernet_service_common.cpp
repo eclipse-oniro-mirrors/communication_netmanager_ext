@@ -14,6 +14,9 @@
  */
 
 #include "ethernet_service_common.h"
+
+#include "singleton.h"
+
 #include "ethernet_service.h"
 
 namespace OHOS {

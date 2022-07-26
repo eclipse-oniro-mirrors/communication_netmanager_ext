@@ -15,8 +15,16 @@
 
 #include <gtest/gtest.h>
 
+#include "gtest/gtest-message.h"
+#include "gtest/gtest-test-part.h"
+#include "gtest/hwext/gtest-ext.h"
+#include "gtest/hwext/gtest-tag.h"
 #include "ethernet_client.h"
-#include "netmgr_ext_log_wrapper.h"
+#include "inet_addr.h"
+#include "interface_configuration.h"
+#include "refbase.h"
+#include "singleton.h"
+#include "static_configuration.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

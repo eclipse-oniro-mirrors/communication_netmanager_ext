@@ -14,9 +14,17 @@
  */
 
 #include "ethernet_service_proxy.h"
+
+#include "i_ethernet_service.h"
+#include "interface_configuration.h"
 #include "ipc_types.h"
+#include "iremote_object.h"
+#include "iremote_proxy.h"
+#include "message_option.h"
+#include "message_parcel.h"
+#include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "ethernet_constants.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

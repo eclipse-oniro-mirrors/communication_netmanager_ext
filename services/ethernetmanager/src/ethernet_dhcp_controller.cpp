@@ -14,6 +14,12 @@
  */
 
 #include "ethernet_dhcp_controller.h"
+
+#include <string>
+
+#include "dhcp_define.h"
+#include "dhcp_service.h"
+#include "ethernet_dhcp_callback.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {

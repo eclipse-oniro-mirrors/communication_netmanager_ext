@@ -15,10 +15,17 @@
 
 #include "ethernet_client.h"
 
+#include "i_ethernet_service.h"
+#include "if_system_ability_manager.h"
+#include "interface_configuration.h"
+#include "ipc_types.h"
+#include "iremote_broker.h"
+#include "iremote_object.h"
 #include "iservice_registry.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "refbase.h"
 #include "system_ability_definition.h"
 
-#include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

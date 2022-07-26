@@ -16,9 +16,15 @@
 #ifndef ETHERNET_DHCP_CONTROLLER_H
 #define ETHERNET_DHCP_CONTROLLER_H
 
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+
 #include "dhcp_service.h"
 #include "ethernet_dhcp_callback.h"
 #include "i_dhcp_result_notify.h"
+#include "i_dhcp_service.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
