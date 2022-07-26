@@ -15,12 +15,12 @@
 
 #include "dev_interface_state.h"
 
-#include "netsys_controller.h"
+#include "inet_addr.h"
 #include "net_manager_center.h"
 #include "netmgr_ext_log_wrapper.h"
-
-#include "netLink_rtnl.h"
-#include "ethernet_constants.h"
+#include "netsys_controller.h"
+#include "route.h"
+#include "static_configuration.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

@@ -16,9 +16,13 @@
 #ifndef ETHERNET_SERVICE_STUB_H
 #define ETHERNET_SERVICE_STUB_H
 
+#include <cstdint>
 #include <map>
+#include "__functional_base"
+
 #include "iremote_stub.h"
 #include "i_ethernet_service.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

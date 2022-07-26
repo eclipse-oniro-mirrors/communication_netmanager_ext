@@ -14,7 +14,11 @@
  */
 
 #include "static_configuration.h"
+
+#include "inet_addr.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "parcel.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

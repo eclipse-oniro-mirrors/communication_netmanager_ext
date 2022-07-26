@@ -16,6 +16,16 @@
 #ifndef ETHERNET_SERVICE_H
 #define ETHERNET_SERVICE_H
 
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "ethernet_service_common.h"
+#include "ethernet_service_stub.h"
+#include "netLink_rtnl.h"
+#include "refbase.h"
 #include "singleton.h"
 #include "system_ability.h"
 
