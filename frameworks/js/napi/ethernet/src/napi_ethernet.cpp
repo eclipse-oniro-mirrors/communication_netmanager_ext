@@ -372,6 +372,7 @@ napi_value NapiEthernet::IsIfaceActive(napi_env env, napi_callback_info info)
     }
     napi_value result = nullptr;
     if (argc == ARGV_NUM_0) {
+        context->isIface = false;
         NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
     } else if (argc == ARGV_NUM_1) {
         if (NapiCommon::MatchValueType(env, argv[ARGV_INDEX_0], napi_function)) {
@@ -386,6 +387,7 @@ napi_value NapiEthernet::IsIfaceActive(napi_env env, napi_callback_info info)
             }
         }
     } else if (argc == ARGV_NUM_2) {
+        context->isIface = true;
         NAPI_CALL(env, napi_create_reference(env, argv[ARGV_INDEX_1], CALLBACK_REF_CNT, &context->callbackRef));
     } else {
         NETMGR_EXT_LOG_E("IsIfaceActive  exception");
