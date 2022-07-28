@@ -14,7 +14,18 @@
  */
 
 #include "ethernet_client_fuzzer.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <new>
+#include <string>
+
 #include "ethernet_client.h"
+#include "interface_configuration.h"
+#include "refbase.h"
+#include "singleton.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

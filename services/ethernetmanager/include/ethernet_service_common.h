@@ -15,6 +15,8 @@
 #ifndef NET_ETHERNET_SERVICE_COMMON_H
 #define NET_ETHERNET_SERVICE_COMMON_H
 
+#include <cstdint>
+
 #include "net_ethernet_base_service.h"
 
 namespace OHOS {

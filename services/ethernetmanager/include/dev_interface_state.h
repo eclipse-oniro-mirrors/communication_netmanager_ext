@@ -16,15 +16,19 @@
 #ifndef DEV_INTERFACE_CFG_H
 #define DEV_INTERFACE_CFG_H
 
+#include <iosfwd>
+#include <set>
+#include <cstdint>
 #include <string>
 #include <vector>
-
-#include "refbase.h"
-#include "net_specifier.h"
-#include "net_link_info.h"
-#include "net_supplier_info.h"
+#include "__functional_base"
 
 #include "interface_configuration.h"
+#include "net_all_capabilities.h"
+#include "net_link_info.h"
+#include "net_specifier.h"
+#include "net_supplier_info.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

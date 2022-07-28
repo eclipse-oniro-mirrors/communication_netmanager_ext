@@ -45,12 +45,12 @@ ohos_shared_library("ethernet") {
 
   external_deps = [
     "ability_runtime:abilitykit_native",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "utils_base:utils",
   ]
 
   relative_install_dir = "module/net"
