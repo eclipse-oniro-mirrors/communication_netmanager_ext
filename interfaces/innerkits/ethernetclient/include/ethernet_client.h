@@ -57,7 +57,30 @@ public:
      * @return Return to device List
      */
     std::vector<std::string> GetAllActiveIfaces();
+    /**
+     * @brief Reset all configuration information
+     *
+     * @return Return results
+     */
     int32_t ResetFactory();
+    /**
+     * @brief Set the specified network port up
+     *
+     * @return Return results
+     */
+    int32_t SetInterfaceUp(const std::string &iface);
+    /**
+     * @brief Set the specified network port down
+     *
+     * @return Return results
+     */
+    int32_t SetInterfaceDown(const std::string &iface);
+    /**
+     * @brief Set the specified network port configuration
+     *
+     * @return Return ture or false
+     */
+    bool GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
 
 private:
     class EthernetDeathRecipient : public IRemoteObject::DeathRecipient {

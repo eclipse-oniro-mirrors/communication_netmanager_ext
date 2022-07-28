@@ -13,18 +13,20 @@
  * limitations under the License.
  */
 
+#include "ethernet_service.h"
+
 #include <sys/time.h>
 #include <new>
 
-#include "interface_configuration.h"
-#include "iremote_object.h"
-#include "net_ethernet_base_service.h"
-#include "net_manager_center.h"
-#include "netmgr_ext_log_wrapper.h"
-#include "system_ability_definition.h"
 #include "ethernet_constants.h"
 #include "ethernet_management.h"
-#include "ethernet_service.h"
+#include "interface_configuration.h"
+#include "iremote_object.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
+#include "net_ethernet_base_service.h"
+#include "net_manager_center.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -170,6 +172,29 @@ int32_t EthernetService::ResetFactory()
     } else {
         return ETHERNET_ERROR;
     }
+}
+
+int32_t EthernetService::SetInterfaceUp(const std::string &iface)
+{
+    NETMGR_EXT_LOG_D("EthernetService SetInterfaceUp processing");
+    return NetsysController::GetInstance().SetInterfaceUp(iface);
+}
+
+int32_t EthernetService::SetInterfaceDown(const std::string &iface)
+{
+    NETMGR_EXT_LOG_D("EthernetService SetInterfaceDown processing");
+    return NetsysController::GetInstance().SetInterfaceDown(iface);
+}
+
+bool EthernetService::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &config)
+{
+    NETMGR_EXT_LOG_D("EthernetService GetInterfaceConfig processing");
+    config.ifName = iface;
+    int32_t ret = NetsysController::GetInstance().InterfaceGetConfig(config);
+    if (ret != NO_ERROR) {
+        return false;
+    }
+    return true;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

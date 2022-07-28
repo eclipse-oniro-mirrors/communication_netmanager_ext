@@ -175,5 +175,92 @@ int32_t EthernetServiceProxy::ResetFactory()
     }
     return reply.ReadInt32();
 }
+
+int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(iface)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(CMD_SET_INTERFACE_UP, data, reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(iface)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(CMD_SET_INTERFACE_DOWN, data, reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
+}
+
+bool EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
+{
+    NETMGR_EXT_LOG_I("Begin to GetInterfaceConfig iface:[%{public}s]", iface.c_str());
+    MessageParcel data;
+    int32_t vSize;
+    if (!WriteInterfaceToken(data)) {
+        return false;
+    }
+    if (!data.WriteString(iface)) {
+        return false;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(CMD_GET_INTERFACE_CONFIG, data, reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return false;
+    }
+    reply.ReadString(cfg.ifName);
+    reply.ReadString(cfg.hwAddr);
+    reply.ReadString(cfg.ipv4Addr);
+    reply.ReadInt32(cfg.prefixLength);
+    vSize = reply.ReadInt32();
+    std::vector<std::string> vecString;
+    for (int i = 0; i < vSize; i++) {
+        vecString.push_back(reply.ReadString());
+    }
+    if (vSize > 0) {
+        cfg.flags.assign(vecString.begin(), vecString.end());
+    }
+    NETMGR_EXT_LOG_I("End to GetInterfaceConfig");
+    return true;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
