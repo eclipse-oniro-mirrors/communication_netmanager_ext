@@ -134,5 +134,35 @@ void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     local->RemoveDeathRecipient(deathRecipient_);
     ethernetService_ = nullptr;
 }
+
+int32_t EthernetClient::SetInterfaceUp(const std::string &iface)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->SetInterfaceUp(iface);
+}
+
+int32_t EthernetClient::SetInterfaceDown(const std::string &iface)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->SetInterfaceDown(iface);
+}
+
+bool EthernetClient::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return false;
+    }
+    return proxy->GetInterfaceConfig(iface, cfg);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

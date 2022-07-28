@@ -21,8 +21,8 @@
 #include "message_parcel.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-
-namespace OHOS { class MessageOption; }
+#include "ethernet_constants.h"
+#include "interface_type.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -33,6 +33,9 @@ EthernetServiceStub::EthernetServiceStub()
     memberFuncMap_[CMD_IS_ACTIVATE] = &EthernetServiceStub::OnIsIfaceActive;
     memberFuncMap_[CMD_GET_ACTIVATE_INTERFACE] = &EthernetServiceStub::OnGetAllActiveIfaces;
     memberFuncMap_[CMD_RESET_FACTORY] = &EthernetServiceStub::OnResetFactory;
+    memberFuncMap_[CMD_SET_INTERFACE_UP] = &EthernetServiceStub::OnSetInterfaceUp;
+    memberFuncMap_[CMD_SET_INTERFACE_DOWN] = &EthernetServiceStub::OnSetInterfaceDown;
+    memberFuncMap_[CMD_GET_INTERFACE_CONFIG] = &EthernetServiceStub::OnGetInterfaceConfig;
 }
 
 EthernetServiceStub::~EthernetServiceStub() {}
@@ -132,6 +135,57 @@ int32_t EthernetServiceStub::OnResetFactory(MessageParcel &data, MessageParcel &
     int32_t ret = ResetFactory();
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetServiceStub::OnSetInterfaceUp(MessageParcel &data, MessageParcel &reply)
+{
+    std::string iface;
+    if (!data.ReadString(iface)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t ret = SetInterfaceUp(iface);
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetServiceStub::OnSetInterfaceDown(MessageParcel &data, MessageParcel &reply)
+{
+    std::string iface;
+    if (!data.ReadString(iface)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t ret = SetInterfaceDown(iface);
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessageParcel &reply)
+{
+    std::string iface;
+    if (!data.ReadString(iface)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    bool result = GetInterfaceConfig(iface, cfg);
+    if (!result) {
+        NETMGR_EXT_LOG_E("GetInterfaceConfig is error");
+        return NETMANAGER_EXT_ERROR;
+    }
+    reply.WriteString(cfg.ifName);
+    reply.WriteString(cfg.hwAddr);
+    reply.WriteString(cfg.ipv4Addr);
+    reply.WriteInt32(cfg.prefixLength);
+    int32_t vsize = static_cast<int32_t>(cfg.flags.size());
+    reply.WriteInt32(vsize);
+    std::vector<std::string>::iterator iter;
+    for (iter = cfg.flags.begin(); iter != cfg.flags.end(); ++iter) {
+        reply.WriteString(*iter);
     }
     return NETMANAGER_EXT_SUCCESS;
 }

@@ -23,6 +23,7 @@
 #include "iremote_object.h"
 
 #include "interface_configuration.h"
+#include "interface_type.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -36,6 +37,9 @@ public:
         CMD_IS_ACTIVATE,
         CMD_GET_ACTIVATE_INTERFACE,
         CMD_RESET_FACTORY,
+        CMD_SET_INTERFACE_UP,
+        CMD_SET_INTERFACE_DOWN,
+        CMD_GET_INTERFACE_CONFIG,
     };
 
 public:
@@ -44,6 +48,9 @@ public:
     virtual int32_t IsIfaceActive(const std::string &iface) = 0;
     virtual std::vector<std::string> GetAllActiveIfaces() = 0;
     virtual int32_t ResetFactory() = 0;
+    virtual int32_t SetInterfaceUp(const std::string &iface) = 0;
+    virtual int32_t SetInterfaceDown(const std::string &iface) = 0;
+    virtual bool GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

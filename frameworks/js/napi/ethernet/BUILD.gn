@@ -27,6 +27,7 @@ ohos_shared_library("ethernet") {
     "$ETHERNETMANAGER_SOURCE_DIR/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include/ipc",
     "$BASE_INNERKITS_ROOT/ethernetclient/include",
+    "$BASE_INNERKITS_ROOT/netmanagernative/include",
   ]
 
   sources = [

@@ -19,6 +19,7 @@ config("net_conn_manager_if_config") {
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
     "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/include",
+    "$BASE_INNERKITS_ROOT/netmanagernative/include",
   ]
 
   cflags = []

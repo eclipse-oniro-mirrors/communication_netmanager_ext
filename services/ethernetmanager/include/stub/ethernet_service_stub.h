@@ -41,6 +41,9 @@ private:
     int32_t OnIsIfaceActive(MessageParcel &data, MessageParcel &reply);
     int32_t OnGetAllActiveIfaces(MessageParcel &data, MessageParcel &reply);
     int32_t OnResetFactory(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSetInterfaceUp(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSetInterfaceDown(MessageParcel &data, MessageParcel &reply);
+    int32_t OnGetInterfaceConfig(MessageParcel &data, MessageParcel &reply);
 
 private:
     std::map<uint32_t, EthernetServiceFunc> memberFuncMap_;

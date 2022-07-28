@@ -25,6 +25,8 @@
 #include "refbase.h"
 #include "singleton.h"
 #include "static_configuration.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "interface_type.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -149,6 +151,40 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
 HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
 {
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
+    ASSERT_TRUE(result == 0);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
+{
+    std::string iface = "eth0";
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(iface, cfg));
+    ASSERT_FALSE(cfg.ifName.empty());
+    ASSERT_FALSE(cfg.hwAddr.empty());
+    ASSERT_FALSE(cfg.ipv4Addr.empty());
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
+{
+    std::string iface = "eth0";
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(iface, cfg));
+    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), "down");
+    ASSERT_EQ(cfg.ifName, iface);
+    ASSERT_TRUE(*fit == "down");
+    ASSERT_TRUE(result == 0);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
+{
+    std::string iface = "eth0";
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(iface);
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(iface, cfg));
+    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), "up");
+    ASSERT_EQ(cfg.ifName, iface);
+    ASSERT_TRUE(*fit == "up");
     ASSERT_TRUE(result == 0);
 }
 } // namespace NetManagerStandard
