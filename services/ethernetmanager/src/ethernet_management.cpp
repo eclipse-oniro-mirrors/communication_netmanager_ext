@@ -17,6 +17,7 @@
 
 #include <regex>
 #include <unistd.h>
+#include <thread>
 
 #include "netsys_controller.h"
 #include "netmgr_ext_log_wrapper.h"
