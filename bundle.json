@@ -47,10 +47,16 @@
             ]
         },
         "build": {
-            "sub_component": [
-                "//foundation/communication/netmanager_ext:common_ext_packages",
-                "//foundation/communication/netmanager_ext:ethernet_packages"
-            ],
+            "group_type": {
+                "base_group": [
+                    "//foundation/communication/netmanager_ext:common_ext_packages"
+                ],
+                "fwk_group": [
+                ],
+                "service_group": [
+                    "//foundation/communication/netmanager_ext:ethernet_packages"
+                ]
+            },
             "inner_kits": [],
             "test": [
                 "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest",
