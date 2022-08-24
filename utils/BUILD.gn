@@ -14,11 +14,17 @@
 import("//build/ohos.gni")
 
 group("common_target") {
-  deps = [ ":net_manager_ext_common" ]
+  deps = [
+    ":net_event_report",
+    ":net_manager_ext_common",
+  ]
 }
 
 config("netmgr_ext_common_config") {
-  include_dirs = [ "log/include" ]
+  include_dirs = [
+    "log/include",
+    "event_report/include",
+  ]
 }
 
 ohos_shared_library("net_manager_ext_common") {
@@ -60,6 +66,17 @@ ohos_shared_library("net_manager_ext_common") {
     "eventhandler:libeventhandler",
     "preferences:native_preferences",
   ]
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+ohos_shared_library("net_event_report") {
+  sources = [ "event_report/src/net_event_report.cpp" ]
+
+  public_configs = [ ":netmgr_ext_common_config" ]
+
+  external_deps = [ "hisysevent_native:libhisysevent" ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
