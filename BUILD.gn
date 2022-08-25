@@ -16,7 +16,10 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 group("common_ext_packages") {
   deps = []
   if (netmanager_ext_feature_ethernet) {
-    deps += [ "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common" ]
+    deps += [
+      "$NETMANAGER_EXT_ROOT/utils:net_event_report",
+      "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+    ]
   }
 }
 
@@ -28,6 +31,7 @@ group("ethernet_packages") {
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/ethernetclient:ethernet_manager_if",
       "$NETMANAGER_EXT_ROOT/services/ethernetmanager:ethernet_interfaces",
       "$NETMANAGER_EXT_ROOT/services/ethernetmanager:ethernet_manager",
+      "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     ]
   }
 }
