@@ -161,7 +161,6 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(iface, cfg));
     ASSERT_FALSE(cfg.ifName.empty());
     ASSERT_FALSE(cfg.hwAddr.empty());
-    ASSERT_FALSE(cfg.ipv4Addr.empty());
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
