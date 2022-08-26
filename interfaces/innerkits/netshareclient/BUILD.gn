@@ -67,7 +67,14 @@ ohos_source_set("networkshare_parcel") {
 }
 
 ohos_shared_library("net_tether_manager_if") {
-  sources = []
+  sources = [
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/networkshare_client.cpp",
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/netshare_result_callback_proxy.cpp",
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/netshare_result_callback_stub.cpp",
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/networkshare_service_proxy.cpp",
+  ]
 
   public_configs = [ ":net_conn_manager_if_config" ]
 
