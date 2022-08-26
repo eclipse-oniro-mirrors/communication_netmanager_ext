@@ -15,7 +15,15 @@ import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 ohos_shared_library("net_tether_manager") {
-  sources = []
+  sources = [
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
+  ]
 
   include_dirs = [
     "$UTILS_ROOT/native/base/include",
@@ -51,12 +59,8 @@ ohos_shared_library("net_tether_manager") {
     "$BLUETOOTH_ROOT/frameworks/inner:btframework",
     "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
-    "$EXT_INNERKITS_ROOT/netshareclient:networkshare_parcel",
-    "$NETCONNMANAGER_COMMON_DIR:net_service_common",
-    "$NETMANAGER_BASE_ROOT/services/netconnmanager:net_conn_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
-    "$THIRD_PARTY_ROOT/openssl:libcrypto_static",
   ]
 
   external_deps = [
