@@ -447,7 +447,7 @@ bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &net
     }
     std::string ipHead = ipAddr.substr(0, pos);
     std::string ipEnd = ipAddr.substr(pos + 1);
-    std::string startIp = std::to_string(atoi(ipEnd.c_str() + 1);
+    std::string startIp = std::to_string(atoi(ipEnd.c_str()) + 1);
 
     OHOS::Wifi::DhcpRange range;
     range.iptype = IP_V4;
