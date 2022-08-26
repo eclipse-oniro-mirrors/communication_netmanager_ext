@@ -19,13 +19,14 @@ INTERFACES_INCLUDE =
 INTERFACES_DIR = "$NETMANAGER_EXT_ROOT/interfaces/innerkits/externalvpnclient"
 SERVICES_EXTERNALVPNMANAGER = "$NETMANAGER_EXT_ROOT/services/externalvpnmanager"
 EXT_INNERKITS_ROOT = "$NETMANAGER_EXT_ROOT/interfaces/innerkits"
-NETTETHERMANAGER_INNERKITS_SOURCE_DIR =
-    "$NETMANAGER_EXT_ROOT/frameworks/native/nettetherclient"
-NETTETHERMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/nettethermanager"
-EXT_INNERKITS_ROOT = "$NETMANAGER_EXT_ROOT/interfaces/innerkits"
 ETHERNETMANAGER_INNERKITS_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/frameworks/native/ethernetclient"
 ETHERNETMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/ethernetmanager"
+
+NETWORKSHAREMANAGER_SOURCE_DIR =
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager"
+NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR =
+    "$NETMANAGER_EXT_ROOT/frameworks/native/netshareclient"
 
 NETMANAGER_BASE_ROOT = "$SUBSYSTEM_DIR/netmanager_base"
 NETCONNMANAGER_COMMON_DIR = "$NETMANAGER_BASE_ROOT/services/common"
@@ -38,9 +39,21 @@ NETCONNMANAGER_INNERKITS_SOURCE_DIR =
 NETMANAGER_PREBUILTS_DIR = "$NETMANAGER_BASE_ROOT/prebuilts"
 NETSYSCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netsyscontroller"
 NETCONNMANAGER_UTILS_DIR = "$NETMANAGER_BASE_ROOT/utils"
+
+NETCONNMANAGER_COMMON_DIR = "$NETMANAGER_BASE_ROOT/services/common"
+DHCP_MANAGER_ROOT = "//foundation/communication/wifi/dhcp"
+WIFI_MANAGER_ROOT = "//foundation/communication/wifi/wifi"
+WIFI_MANAGER_INNERKITS_DIR = "$WIFI_MANAGER_ROOT/interfaces/kits/c"
+WIFI_FRAMEWORK_NATIVE_INCLUDE = "$WIFI_MANAGER_ROOT/frameworks/native/include"
+BLUETOOTH_ROOT = "//foundation/communication/bluetooth"
+
+UTILS_ROOT = "//utils"
+THIRD_PARTY_ROOT = "//third_party"
+
 use_js_debug = false
 
 declare_args() {
   enable_netmgr_ext_debug = true
   netmanager_ext_feature_ethernet = true
+  netmanager_ext_feature_share = true
 }

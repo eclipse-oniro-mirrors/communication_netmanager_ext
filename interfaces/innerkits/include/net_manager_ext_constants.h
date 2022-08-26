@@ -55,6 +55,18 @@ enum {
 constexpr ErrCode ETHERNET_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, NETMANAGER_ETHERNET_MANAGER);
 // Error code for netmanager external vpn
 constexpr ErrCode EXTERNALVPN_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, EXTERNALVPN_MANAGER);
+
+// for network sharing
+enum class SharingIfaceType {
+    SHARING_WIFI = 0,
+    SHARING_USB,
+    SHARING_BLUETOOTH,
+};
+enum class SharingIfaceState {
+    SHARING_NIC_SERVING = 1,
+    SHARING_NIC_CAN_SERVER,
+    SHARING_NIC_ERROR,
+};
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // NETMANAGER_EXT_CONSTANTS_H
