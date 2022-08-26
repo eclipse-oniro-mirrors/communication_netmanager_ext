@@ -35,3 +35,13 @@ group("ethernet_packages") {
     ]
   }
 }
+group("share_packages") {
+  deps = []
+  if (netmanager_ext_feature_share) {
+    deps += [
+      "//foundation/communication/netmanager_ext/interfaces/innerkits/netshareclient:net_tether_manager_if",
+      "//foundation/communication/netmanager_ext/services/networksharemanager:net_tether_manager",
+      "//foundation/communication/netmanager_ext/services/networksharemanager:network_share_config",
+    ]
+  }
+}
