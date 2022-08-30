@@ -17,6 +17,7 @@
 
 #include "inet_addr.h"
 #include "net_manager_center.h"
+#include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "route.h"
@@ -36,11 +37,6 @@ void DevInterfaceState::SetDevName(const std::string &devName)
     devName_ = devName;
 }
 
-void DevInterfaceState::SetDevHWaddr(const std::vector<uint8_t> &hwAddr)
-{
-    devHWaddr_ = hwAddr;
-}
-
 void DevInterfaceState::SetNetCaps(const std::set<NetCap> &netCaps)
 {
     netCaps_ = netCaps;
@@ -49,11 +45,6 @@ void DevInterfaceState::SetNetCaps(const std::set<NetCap> &netCaps)
 void DevInterfaceState::SetLinkUp(bool up)
 {
     linkUp_ = up;
-}
-
-void DevInterfaceState::SetLowerUp(bool lowerUp)
-{
-    lowerUp_ = lowerUp;
 }
 
 void DevInterfaceState::SetlinkInfo(sptr<NetLinkInfo> &linkInfo)
@@ -66,7 +57,6 @@ void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifcfg)
     ifcfg_ = ifcfg;
     if (ifcfg_->mode_ == STATIC) {
         UpdateLinkInfo();
-        SetIpAddr();
         if (connLinkState_ == LINK_AVAILABLE) {
             RemoteUpdateNetLinkInfo();
         }
@@ -83,12 +73,7 @@ std::string DevInterfaceState::GetDevName() const
     return devName_;
 }
 
-std::vector<uint8_t> DevInterfaceState::GetHWaddr() const
-{
-    return devHWaddr_;
-}
-
-const std::set<NetCap> & DevInterfaceState::GetNetCaps() const
+const std::set<NetCap> &DevInterfaceState::GetNetCaps() const
 {
     return netCaps_;
 }
@@ -101,16 +86,6 @@ std::set<NetCap> DevInterfaceState::GetNetCaps()
 bool DevInterfaceState::GetLinkUp() const
 {
     return linkUp_;
-}
-
-bool DevInterfaceState::GetLowerUp() const
-{
-    return lowerUp_;
-}
-
-bool DevInterfaceState::IsStateUp() const
-{
-    return linkUp_ & lowerUp_;
 }
 
 sptr<NetLinkInfo> DevInterfaceState::GetLinkInfo() const
@@ -142,8 +117,8 @@ void DevInterfaceState::RemoteRegisterNetSupplier()
         if (netCaps_.empty()) {
             netCaps_.insert(NET_CAPABILITY_INTERNET);
         }
-        int32_t result = NetManagerCenter::GetInstance().RegisterNetSupplier(bearerType_,
-            devName_, netCaps_, netSupplier_);
+        int32_t result =
+            NetManagerCenter::GetInstance().RegisterNetSupplier(bearerType_, devName_, netCaps_, netSupplier_);
         if (result == 0) {
             connLinkState_ = REGISTERED;
         }
@@ -208,13 +183,15 @@ void DevInterfaceState::UpdateLinkInfo()
     route.destination_ = ifcfg_->ipStatic_.route_;
     route.gateway_ = ifcfg_->ipStatic_.gateway_;
     linkInfo_->routeList_.push_back(route);
+    const auto &routeLocal =
+        CreateLocalRoute(devName_, ifcfg_->ipStatic_.ipAddr_.address_, ifcfg_->ipStatic_.netMask_.address_);
+    linkInfo_->routeList_.push_back(routeLocal);
     for (auto it = ifcfg_->ipStatic_.dnsServers_.begin(); it != ifcfg_->ipStatic_.dnsServers_.end(); ++it) {
         linkInfo_->dnsList_.push_back(*it);
     }
 }
-
-void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &gateWay,
-    const INetAddr &route, const INetAddr &dns1, const INetAddr &dns2)
+void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &netMask, const INetAddr &gateWay,
+                                       const INetAddr &route, const INetAddr &dns1, const INetAddr &dns2)
 {
     NETMGR_EXT_LOG_D("DevInterfaceCfg::UpdateLinkInfo");
     if (linkInfo_ == nullptr) {
@@ -232,28 +209,34 @@ void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &g
     routeStc.destination_ = route;
     routeStc.gateway_ = gateWay;
     linkInfo_->routeList_.push_back(routeStc);
+    struct Route routeLocal = CreateLocalRoute(devName_, ipAddr.address_, netMask.address_);
+    linkInfo_->routeList_.push_back(routeLocal);
     linkInfo_->dnsList_.push_back(dns1);
     linkInfo_->dnsList_.push_back(dns2);
 }
 
-void DevInterfaceState::SetIpAddr()
+void DevInterfaceState::UpdateSupplierAvailable()
 {
-    if (!(ifcfg_->ipStatic_.ipAddr_.address_.empty())) {
-        NETMGR_EXT_LOG_D("DevInterfaceState SetIpAddr ");
-        NetsysController::GetInstance().InterfaceAddAddress(devName_, ifcfg_->ipStatic_.ipAddr_.address_,
-            ifcfg_->ipStatic_.ipAddr_.prefixlen_);
-    }
+    netSupplierInfo_->isAvailable_ = linkUp_;
+    connLinkState_ = linkUp_ ? LINK_AVAILABLE : LINK_UNAVAILABLE;
 }
 
-void  DevInterfaceState::UpdateSupplierAvailable()
+Route DevInterfaceState::CreateLocalRoute(
+    const std::string &iface, const std::string &ipAddr, const std::string &maskAddr)
 {
-    bool isAvailable = linkUp_ & lowerUp_;
-    netSupplierInfo_->isAvailable_ = isAvailable;
-    if (isAvailable) {
-        connLinkState_ = LINK_AVAILABLE;
-    } else {
-        connLinkState_ = LINK_UNAVAILABLE;
-    }
+    NETMGR_EXT_LOG_I("create local route ipAddr=%{public}s maskAddr=%{public}s.",
+                     CommonUtils::ToAnonymousIp(ipAddr).c_str(), maskAddr.c_str());
+    struct Route localRoute;
+    unsigned int prefixLength = CommonUtils::GetMaskLength(maskAddr);
+    unsigned int ipInt = CommonUtils::ConvertIpv4Address(ipAddr);
+    unsigned int maskInt = CommonUtils::ConvertIpv4Address(maskAddr);
+    std::string strLocalRoute = CommonUtils::ConvertIpv4Address(ipInt & maskInt);
+    localRoute.iface_ = iface;
+    localRoute.destination_.type_ = INetAddr::IPV4;
+    localRoute.destination_.address_ = strLocalRoute;
+    localRoute.destination_.prefixlen_ = prefixLength;
+    localRoute.gateway_.address_ = "0.0.0.0";
+    return localRoute;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

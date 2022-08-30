@@ -22,16 +22,12 @@
 #include <string>
 #include <vector>
 
+#include "ethernet_management.h"
 #include "ethernet_service_common.h"
 #include "ethernet_service_stub.h"
-#include "netLink_rtnl.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "system_ability.h"
-
-#include "ethernet_service_stub.h"
-#include "ethernet_management.h"
-#include "ethernet_service_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -72,7 +68,6 @@ private:
     uint16_t dependentServiceState_ = 0;
     std::unique_ptr<EthernetManagement> ethManagement_;
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
-    NetLinkRtnl nlkRtnl_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

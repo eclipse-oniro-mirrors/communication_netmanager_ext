@@ -22,7 +22,6 @@ ohos_shared_library("ethernet_manager") {
     "$ETHERNETMANAGER_SOURCE_DIR/src/ethernet_management.cpp",
     "$ETHERNETMANAGER_SOURCE_DIR/src/ethernet_service.cpp",
     "$ETHERNETMANAGER_SOURCE_DIR/src/ethernet_service_common.cpp",
-    "$ETHERNETMANAGER_SOURCE_DIR/src/netLink_rtnl.cpp",
     "$ETHERNETMANAGER_SOURCE_DIR/src/stub/ethernet_service_stub.cpp",
   ]
 
