@@ -44,22 +44,17 @@ public:
     DevInterfaceState();
     ~DevInterfaceState();
     void SetDevName(const std::string &devName);
-    void SetDevHWaddr(const std::vector<uint8_t> &hwAddr);
     void SetNetCaps(const std::set<NetCap> &netCaps);
     void SetLinkUp(bool up);
-    void SetLowerUp(bool lowerUp);
     void SetlinkInfo(sptr<NetLinkInfo> &linkInfo);
     void SetIfcfg(sptr<InterfaceConfiguration> &ifcfg);
     void SetDhcpReqState(bool dhcpReqState);
-    void UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &gateWay, const INetAddr &route, const INetAddr &dns1,
-        const INetAddr &dns2);
+    void UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &netMask, const INetAddr &gateWay, const INetAddr &route,
+        const INetAddr &dns1, const INetAddr &dns2);
     std::string GetDevName() const;
-    std::vector<uint8_t> GetHWaddr() const;
-    const std::set<NetCap> & GetNetCaps() const;
+    const std::set<NetCap> &GetNetCaps() const;
     std::set<NetCap> GetNetCaps();
     bool GetLinkUp() const;
-    bool GetLowerUp() const;
-    bool IsStateUp() const;
     sptr<NetLinkInfo> GetLinkInfo() const;
     sptr<InterfaceConfiguration> GetIfcfg() const;
     IPSetMode GetIPSetMode() const;
@@ -73,15 +68,13 @@ public:
 private:
     void UpdateLinkInfo();
     void UpdateSupplierAvailable();
-    void SetIpAddr();
+    Route CreateLocalRoute(const std::string &iface, const std::string &ipAddr, const std::string &maskAddr);
 
 private:
     ConnLinkState connLinkState_ = UNREGISTERED;
     uint32_t netSupplier_ = 0;
     std::string devName_;
-    std::vector<uint8_t> devHWaddr_;
     bool linkUp_ = false;
-    bool lowerUp_ = false;
     bool dhcpReqState_ = false;
     sptr<NetLinkInfo> linkInfo_ = nullptr;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;

@@ -203,6 +203,7 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     const auto& emPrefixlen = 0;
     unsigned int prefixlen = 0;
     config->ipAddr_.address_ = dhcpResult.ipAddr;
+    config->netMask_.address_ = dhcpResult.subNet;
     config->ipAddr_.family_ = CommonUtils::GetAddrFamily(dhcpResult.ipAddr);
     if (config->ipAddr_.family_ == AF_INET) {
         config->ipAddr_.prefixlen_ = CommonUtils::GetMaskLength(dhcpResult.subNet);
@@ -401,6 +402,7 @@ void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<Interfa
         }
         fileContent = fileContent + "GATEWAY=" + cfg->ipStatic_.gateway_.address_ + "\n";
         fileContent = fileContent + "ROUTE=" + cfg->ipStatic_.route_.address_ + "\n";
+        fileContent = fileContent + "ROUTE_NETMASK=" + cfg->ipStatic_.route_.netMask_ + "\n";
     } else {
         fileContent = fileContent + "BOOTPROTO=DHCP\n";
     }

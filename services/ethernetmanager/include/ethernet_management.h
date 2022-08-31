@@ -23,40 +23,54 @@
 #include "system_ability_definition.h"
 
 #include "dev_interface_state.h"
-#include "nlk_event_handle.h"
-#include "netLink_rtnl.h"
-
 #include "ethernet_configuration.h"
 #include "ethernet_dhcp_controller.h"
+#include "netsys_controller_callback.h"
 namespace OHOS {
 namespace NetManagerStandard {
-class EthernetManagement : public NlkEventHandle {
+class EthernetManagement {
     class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
     public:
         EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement);
         int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override;
+
     private:
         EthernetManagement &ethernetManagement_;
     };
+    class DevInterfaceStateCallback : public NetsysControllerCallback {
+    public:
+        DevInterfaceStateCallback(EthernetManagement &ethernetManagement);
+        DevInterfaceStateCallback() = delete;
+        ~DevInterfaceStateCallback() override;
+        int32_t OnInterfaceAddressUpdated(const std::string &, const std::string &, int, int) override;
+        int32_t OnInterfaceAddressRemoved(const std::string &, const std::string &, int, int) override;
+        int32_t OnInterfaceAdded(const std::string &iface) override;
+        int32_t OnInterfaceRemoved(const std::string &iface) override;
+        int32_t OnInterfaceChanged(const std::string &, bool) override;
+        int32_t OnInterfaceLinkStateChanged(const std::string &ifName, bool up) override;
+        int32_t OnRouteChanged(bool, const std::string &, const std::string &, const std::string &) override;
+        int32_t OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult) override;
+        int32_t OnBandwidthReachedLimit(const std::string &limitName, const std::string &iface) override;
+
+    private:
+        EthernetManagement &ethernetManagement_;
+    };
+
 public:
     EthernetManagement();
     ~EthernetManagement();
     void Init();
-    void UpdateInterfaceState(const std::string &dev, bool up, bool lowerUp);
-    int32_t UpdateDevInterfaceState(const std::string &iface, sptr<InterfaceConfiguration> cfg);
     int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
+    void UpdateInterfaceState(const std::string &dev, bool up);
+    int32_t UpdateDevInterfaceState(const std::string &iface, sptr<InterfaceConfiguration> cfg);
     sptr<InterfaceConfiguration> GetDevInterfaceCfg(const std::string &iface);
     int32_t IsIfaceActive(const std::string &iface);
     std::vector<std::string> GetAllActiveIfaces();
     int32_t ResetFactory();
-    void RegisterNlk(NetLinkRtnl &nlk);
-    void Handle(const struct NlkEventInfo &info) override;
 
 private:
     void StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
-    void SetDevState(sptr<DevInterfaceState> &devState, const std::string &devName,
-        const std::vector<uint8_t> &hwAddr, bool up, bool lowerUp);
     void StartSetDevUpThd();
 
 private:
@@ -66,6 +80,7 @@ private:
     std::unique_ptr<EthernetConfiguration> ethConfiguration_ = nullptr;
     std::unique_ptr<EthernetDhcpController> ethDhcpController_ = nullptr;
     sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_;
+    sptr<DevInterfaceStateCallback> ethDevInterfaceStateCallback_;
     std::mutex mutex_;
 };
 } // namespace NetManagerStandard

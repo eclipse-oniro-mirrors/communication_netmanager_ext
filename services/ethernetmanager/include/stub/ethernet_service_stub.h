@@ -51,4 +51,3 @@ private:
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // ETHERNET_SERVICE_STUB_H
-

@@ -118,10 +118,7 @@ void EthernetService::InitManagement()
 {
     NETMGR_EXT_LOG_D("EthernetService::InitManagement Enter");
     ethManagement_ = std::make_unique<EthernetManagement>();
-    nlkRtnl_.Init();
-    ethManagement_->RegisterNlk(nlkRtnl_);
     ethManagement_->Init();
-    NETMGR_EXT_LOG_D("EthernetService::InitManagement End");
 }
 
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)

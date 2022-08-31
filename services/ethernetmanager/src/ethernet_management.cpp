@@ -39,22 +39,85 @@ int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDh
     return 0;
 }
 
+EthernetManagement::DevInterfaceStateCallback::DevInterfaceStateCallback(EthernetManagement &ethernetManagement)
+    : ethernetManagement_(ethernetManagement)
+{
+}
+
+EthernetManagement::DevInterfaceStateCallback::~DevInterfaceStateCallback() = default;
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAddressUpdated(
+    const std::string &, const std::string &, int, int)
+{
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAddressRemoved(
+    const std::string &, const std::string &, int, int)
+{
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
+{
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
+{
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceChanged(const std::string &, bool)
+{
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
+{
+    NETMGR_EXT_LOG_I("DevInterfaceStateCallback::OnInterfaceLinkStateChanged iface[%{public}s] up[%{public}d]",
+        ifName.c_str(), up);
+    ethernetManagement_.UpdateInterfaceState(ifName, up);
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnRouteChanged(
+    bool, const std::string &, const std::string &, const std::string &)
+{
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult)
+{
+    return 0;
+}
+
+int32_t EthernetManagement::DevInterfaceStateCallback::OnBandwidthReachedLimit(
+    const std::string &limitName, const std::string &iface)
+{
+    return 0;
+}
+
 EthernetManagement::EthernetManagement()
 {
-    ethDhcpNotifyCallback_  = std::make_unique<EhternetDhcpNotifyCallback>(*this).release();
+    ethDhcpNotifyCallback_ = std::make_unique<EhternetDhcpNotifyCallback>(*this).release();
     ethDhcpController_ = std::make_unique<EthernetDhcpController>();
     ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
+
+    ethDevInterfaceStateCallback_ = new (std::nothrow) DevInterfaceStateCallback(*this);
+    if (ethDevInterfaceStateCallback_ != nullptr) {
+        NetsysController::GetInstance().RegisterCallback(ethDevInterfaceStateCallback_);
+    }
 
     ethConfiguration_ = std::make_unique<EthernetConfiguration>();
     ethConfiguration_->ReadSysteamConfiguration(devCaps_, devCfgs_);
 }
 
-EthernetManagement::~EthernetManagement() {}
+EthernetManagement::~EthernetManagement() = default;
 
-void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up, bool lowerUp)
+void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
 {
-    NETMGR_EXT_LOG_D("EthernetManagement UpdateInterfaceState dev[%{public}s] up[%{public}d] lowerUp[%{public}d]",
-        dev.c_str(), up, lowerUp);
+    NETMGR_EXT_LOG_D("EthernetManagement UpdateInterfaceState dev[%{public}s] up[%{public}d]", dev.c_str(), up);
     std::unique_lock<std::mutex> lock(mutex_);
     auto fit = devs_.find(dev);
     if (fit == devs_.end()) {
@@ -62,12 +125,11 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up, b
     }
     sptr<DevInterfaceState> devState = fit->second;
     devState->SetLinkUp(up);
-    devState->SetLowerUp(lowerUp);
     IPSetMode mode = devState->GetIPSetMode();
     bool dhcpReqState = devState->GetDhcpReqState();
     NETMGR_EXT_LOG_D("EthernetManagement UpdateInterfaceState mode[%{public}d] dhcpReqState[%{public}d]",
         static_cast<int32_t>(mode), dhcpReqState);
-    if (lowerUp) {
+    if (up) {
         devState->RemoteUpdateNetSupplierInfo();
         if (mode == DHCP && !dhcpReqState) {
             StartDhcpClient(dev, devState);
@@ -97,6 +159,13 @@ int32_t EthernetManagement::UpdateDevInterfaceState(const std::string &iface, sp
         NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
         return ETHERNET_ERROR;
     }
+    if (fit->second->GetIfcfg()->mode_ != cfg->mode_) {
+        if (cfg->mode_ == DHCP) {
+            StartDhcpClient(iface, fit->second);
+        } else {
+            StopDhcpClient(iface, fit->second);
+        }
+    }
     fit->second->SetIfcfg(cfg);
     return ETHERNET_SUCCESS;
 }
@@ -106,8 +175,7 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
     NETMGR_EXT_LOG_D("EthernetManagement::UpdateDevInterfaceLinkInfo");
     auto fit = devs_.find(dhcpResult.iface);
     if (fit == devs_.end() || fit->second == nullptr) {
-        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist",
-            dhcpResult.iface.c_str());
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", dhcpResult.iface.c_str());
         return ETHERNET_ERROR;
     }
     if (!fit->second->GetLinkUp()) {
@@ -119,7 +187,7 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         NETMGR_EXT_LOG_E("EthernetManagement dhcp convert to configurations error!");
         return ETHERNET_ERROR;
     }
-    fit->second->UpdateLinkInfo(config->ipAddr_, config->gateway_, config->route_,
+    fit->second->UpdateLinkInfo(config->ipAddr_, config->netMask_, config->gateway_, config->route_,
         config->dnsServers_.front(), config->dnsServers_.back());
     fit->second->RemoteUpdateNetLinkInfo();
     return ETHERNET_SUCCESS;
@@ -144,7 +212,7 @@ int32_t EthernetManagement::IsIfaceActive(const std::string &iface)
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
         return ETHERNET_ERROR;
     }
-    return static_cast<int32_t>(fit->second->IsStateUp());
+    return static_cast<int32_t>(fit->second->GetLinkUp());
 }
 
 std::vector<std::string> EthernetManagement::GetAllActiveIfaces()
@@ -152,7 +220,7 @@ std::vector<std::string> EthernetManagement::GetAllActiveIfaces()
     std::unique_lock<std::mutex> lock(mutex_);
     std::vector<std::string> ifaces;
     for (auto it = devs_.begin(); it != devs_.end(); ++it) {
-        if (it->second->IsStateUp()) {
+        if (it->second->GetLinkUp()) {
             ifaces.push_back(it->first);
         }
     }
@@ -168,20 +236,6 @@ int32_t EthernetManagement::ResetFactory()
         NETMGR_EXT_LOG_I("Success to ResetFactory!");
         return ETHERNET_SUCCESS;
     }
-}
-
-void EthernetManagement::RegisterNlk(NetLinkRtnl &nlk)
-{
-    nlk.RegisterHandle(this);
-}
-
-void EthernetManagement::Handle(const struct NlkEventInfo &info)
-{
-    bool up = static_cast<bool>(info.ifiFlags_ & IFF_UP);
-    bool lowerUp = static_cast<bool>(info.ifiFlags_ & IFF_LOWER_UP);
-    NETMGR_EXT_LOG_D("EthernetManagement Handle info dev[%{public}s] up[%{public}d] lowerUp[%{public}d]",
-        info.iface_.c_str(), up, lowerUp);
-    UpdateInterfaceState(info.iface_, up, lowerUp);
 }
 
 void EthernetManagement::Init()
@@ -204,8 +258,7 @@ void EthernetManagement::Init()
         }
         sptr<DevInterfaceState> devState = std::make_unique<DevInterfaceState>().release();
         devs_.insert(std::make_pair(devName, devState));
-        std::vector<uint8_t> hwAddr = NetLinkRtnl::GetHWaddr(devName);
-        SetDevState(devState, devName, hwAddr, false, false);
+        devState->SetDevName(devName);
         devState->RemoteRegisterNetSupplier();
         auto fitCfg = devCfgs_.find(devName);
         if (fitCfg != devCfgs_.end()) {
@@ -228,7 +281,7 @@ void EthernetManagement::Init()
 void EthernetManagement::StartSetDevUpThd()
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
-    for (auto & dev : devs_) {
+    for (auto &dev : devs_) {
         std::string devName = dev.first;
         while (true) {
             if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
@@ -252,15 +305,6 @@ void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfac
     NETMGR_EXT_LOG_D("EthernetManagement StopDhcpClient[%{public}s]", dev.c_str());
     ethDhcpController_->StopDhcpClient(dev, false);
     devState->SetDhcpReqState(false);
-}
-
-void EthernetManagement::SetDevState(sptr<DevInterfaceState> &devState, const std::string &devName,
-    const std::vector<uint8_t> &hwAddr, bool up, bool lowerUp)
-{
-    devState->SetDevName(devName);
-    devState->SetDevHWaddr(hwAddr);
-    devState->SetLinkUp(up);
-    devState->SetLowerUp(lowerUp);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
