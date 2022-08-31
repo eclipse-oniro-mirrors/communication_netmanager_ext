@@ -34,15 +34,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class NetworkShareSubStateMachine;
-struct SubSmStateTable {
-    int event_;
-    int curState_;
-    int (NetworkShareSubStateMachine::*pEventActFun_)(const std::any &messageObj);
-    int nextState_;
-};
-
 class NetworkShareSubStateMachine : public std::enable_shared_from_this<NetworkShareSubStateMachine> {
+    using HandleFunc = int (NetworkShareSubStateMachine::*)(const std::any &messageObj);
+
 public:
     NetworkShareSubStateMachine(const std::string &ifaceName, const SharingIfaceType &interfaceType,
                                 const std::shared_ptr<NetworkShareConfiguration> &configuration);
@@ -110,6 +104,12 @@ private:
     bool CheckConfig(std::string &endIp, std::string &mask);
 
 private:
+    struct SubSmStateTable {
+        int event_;
+        int curState_;
+        int nextState_;
+        HandleFunc func_;
+    };
     std::recursive_mutex mutex_;
     std::string ifaceName_;
     SharingIfaceType netShareType_;

@@ -32,43 +32,43 @@ NetworkShareMainStateMachine::NetworkShareMainStateMachine(std::shared_ptr<Netwo
     MainSmStateTable temp;
     temp.event_ = EVENT_IFACE_SM_STATE_ACTIVE;
     temp.curState_ = MAINSTATE_INIT;
-    temp.pEventActFun_ = &NetworkShareMainStateMachine::HandleInitInterfaceStateActive;
+    temp.func_ = &NetworkShareMainStateMachine::HandleInitInterfaceStateActive;
     temp.nextState_ = MAINSTATE_ALIVE;
     stateTable_.push_back(temp);
 
     temp.event_ = EVENT_IFACE_SM_STATE_INACTIVE;
     temp.curState_ = MAINSTATE_INIT;
-    temp.pEventActFun_ = &NetworkShareMainStateMachine::HandleInitInterfaceStateInactive;
+    temp.func_ = &NetworkShareMainStateMachine::HandleInitInterfaceStateInactive;
     temp.nextState_ = NO_NEXT_STATE;
     stateTable_.push_back(temp);
 
     temp.event_ = EVENT_IFACE_SM_STATE_ACTIVE;
     temp.curState_ = MAINSTATE_ALIVE;
-    temp.pEventActFun_ = &NetworkShareMainStateMachine::HandleAliveInterfaceStateActive;
+    temp.func_ = &NetworkShareMainStateMachine::HandleAliveInterfaceStateActive;
     temp.nextState_ = NO_NEXT_STATE;
     stateTable_.push_back(temp);
 
     temp.event_ = EVENT_IFACE_SM_STATE_INACTIVE;
     temp.curState_ = MAINSTATE_ALIVE;
-    temp.pEventActFun_ = &NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive;
+    temp.func_ = &NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive;
     temp.nextState_ = NO_NEXT_STATE;
     stateTable_.push_back(temp);
 
     temp.event_ = EVENT_UPSTREAM_CALLBACK;
     temp.curState_ = MAINSTATE_ALIVE;
-    temp.pEventActFun_ = &NetworkShareMainStateMachine::HandleAliveUpstreamMonitorCallback;
+    temp.func_ = &NetworkShareMainStateMachine::HandleAliveUpstreamMonitorCallback;
     temp.nextState_ = NO_NEXT_STATE;
     stateTable_.push_back(temp);
 
     temp.event_ = EVENT_IFACE_SM_STATE_INACTIVE;
     temp.curState_ = MAINSTATE_ERROR;
-    temp.pEventActFun_ = &NetworkShareMainStateMachine::HandleErrorInterfaceStateInactive;
+    temp.func_ = &NetworkShareMainStateMachine::HandleErrorInterfaceStateInactive;
     temp.nextState_ = NO_NEXT_STATE;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_CLEAR_ERROR;
     temp.curState_ = MAINSTATE_ERROR;
-    temp.pEventActFun_ = &NetworkShareMainStateMachine::HandleErrorClear;
+    temp.func_ = &NetworkShareMainStateMachine::HandleErrorClear;
     temp.nextState_ = MAINSTATE_INIT;
     stateTable_.push_back(temp);
 }
@@ -107,7 +107,7 @@ void NetworkShareMainStateMachine::MainSmEventHandle(int eventId, const std::any
     int (NetworkShareMainStateMachine::*eventActionFun)(const std::any &messageObj) = nullptr;
     for (auto &iter : stateTable_) {
         if ((eventId == iter.event_) && (curState_ == iter.curState_)) {
-            eventActionFun = iter.pEventActFun_;
+            eventActionFun = iter.func_;
             nextState = iter.nextState_;
             break;
         }

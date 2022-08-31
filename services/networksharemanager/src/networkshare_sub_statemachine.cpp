@@ -43,13 +43,13 @@ void NetworkShareSubStateMachine::CreateInitStateTable()
     SubSmStateTable temp;
     temp.event_ = CMD_NETSHARE_REQUESTED;
     temp.curState_ = SUBSTATE_INIT;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleInitSharingRequest;
+    temp.func_ = &NetworkShareSubStateMachine::HandleInitSharingRequest;
     temp.nextState_ = SUBSTATE_SHARED;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_INTERFACE_DOWN;
     temp.curState_ = SUBSTATE_INIT;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleInitInterfaceDown;
+    temp.func_ = &NetworkShareSubStateMachine::HandleInitInterfaceDown;
     temp.nextState_ = SUBSTATE_UNAVAILABLE;
     stateTable_.push_back(temp);
 }
@@ -59,49 +59,49 @@ void NetworkShareSubStateMachine::CreateSharedStateTable()
     SubSmStateTable temp;
     temp.event_ = CMD_NETSHARE_UNREQUESTED;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedUnrequest;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedUnrequest;
     temp.nextState_ = SUBSTATE_INIT;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_INTERFACE_DOWN;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedInterfaceDown;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedInterfaceDown;
     temp.nextState_ = SUBSTATE_UNAVAILABLE;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_NETSHARE_CONNECTION_CHANGED;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedConnectionChange;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedConnectionChange;
     temp.nextState_ = NO_NEXT_STATE;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_IP_FORWARDING_ENABLE_ERROR;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedErrors;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedErrors;
     temp.nextState_ = SUBSTATE_INIT;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_IP_FORWARDING_DISABLE_ERROR;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedErrors;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedErrors;
     temp.nextState_ = SUBSTATE_INIT;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_START_SHARING_ERROR;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedErrors;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedErrors;
     temp.nextState_ = SUBSTATE_INIT;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_STOP_SHARING_ERROR;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedErrors;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedErrors;
     temp.nextState_ = SUBSTATE_INIT;
     stateTable_.push_back(temp);
 
     temp.event_ = CMD_SET_DNS_FORWARDERS_ERROR;
     temp.curState_ = SUBSTATE_SHARED;
-    temp.pEventActFun_ = &NetworkShareSubStateMachine::HandleSharedErrors;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedErrors;
     temp.nextState_ = SUBSTATE_INIT;
     stateTable_.push_back(temp);
 }
@@ -140,7 +140,7 @@ void NetworkShareSubStateMachine::SubSmEventHandle(int eventId, const std::any &
     int (NetworkShareSubStateMachine::*eventActionFun)(const std::any &messageObj) = nullptr;
     for (auto &iter : stateTable_) {
         if ((eventId == iter.event_) && (curState_ == iter.curState_)) {
-            eventActionFun = iter.pEventActFun_;
+            eventActionFun = iter.func_;
             nextState = iter.nextState_;
             break;
         }
