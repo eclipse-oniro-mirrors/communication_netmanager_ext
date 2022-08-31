@@ -24,14 +24,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class NetworkShareMainStateMachine;
-struct MainSmStateTable {
-    int event_;
-    int curState_;
-    int (NetworkShareMainStateMachine::*pEventActFun_)(const std::any &messageObj);
-    int nextState_;
-};
-
 struct MessageIfaceActive {
     int value_;
     std::shared_ptr<NetworkShareSubStateMachine> subsm_;
@@ -43,6 +35,8 @@ struct MessageUpstreamInfo {
 };
 
 class NetworkShareMainStateMachine {
+    using HandleFunc = int (NetworkShareMainStateMachine::*)(const std::any &messageObj);
+
 public:
     explicit NetworkShareMainStateMachine(std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor);
     ~NetworkShareMainStateMachine() = default;
@@ -81,6 +75,13 @@ private:
     void ChooseUpstreamType();
 
 private:
+    struct MainSmStateTable {
+        int event_;
+        int curState_;
+        int nextState_;
+        HandleFunc func_;
+    };
+
     std::recursive_mutex mutex_;
     std::string netshare_requester_;
     int32_t errorType_;
