@@ -22,6 +22,7 @@
 #include "ethernet_management.h"
 #include "interface_configuration.h"
 #include "iremote_object.h"
+#include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "net_ethernet_base_service.h"
@@ -124,6 +125,11 @@ void EthernetService::InitManagement()
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
 {
     NETMGR_EXT_LOG_D("EthernetService SetIfaceConfig processing");
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        NETMGR_EXT_LOG_E("EthernetService SetIfaceConfig no js permission");
+        return ETHERNET_ERROR;
+    }
+
     if (ethManagement_ != nullptr) {
         return ethManagement_->UpdateDevInterfaceState(iface, ic);
     } else {
@@ -134,6 +140,11 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<Interface
 sptr<InterfaceConfiguration> EthernetService::GetIfaceConfig(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("EthernetService GetIfaceConfig processing");
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("EthernetService GetIfaceConfig no js permission");
+        return nullptr;
+    }
+
     if (ethManagement_ != nullptr) {
         return ethManagement_->GetDevInterfaceCfg(iface);
     } else {
@@ -144,6 +155,11 @@ sptr<InterfaceConfiguration> EthernetService::GetIfaceConfig(const std::string &
 int32_t EthernetService::IsIfaceActive(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("EthernetService IsIfaceActive processing");
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("EthernetService IsIfaceActive no js permission");
+        return ETHERNET_ERROR;
+    }
+
     if (ethManagement_ != nullptr) {
         return ethManagement_->IsIfaceActive(iface);
     } else {
@@ -154,6 +170,11 @@ int32_t EthernetService::IsIfaceActive(const std::string &iface)
 std::vector<std::string> EthernetService::GetAllActiveIfaces()
 {
     NETMGR_EXT_LOG_D("EthernetService GetAllActiveIfaces processing");
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("EthernetService GetAllActiveIfaces no js permission");
+        return {};
+    }
+
     if (ethManagement_ != nullptr) {
         return ethManagement_->GetAllActiveIfaces();
     } else {
