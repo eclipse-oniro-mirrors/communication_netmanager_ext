@@ -21,7 +21,7 @@ namespace {
 // event name
 constexpr const char *NET_SHARING_SETUP_FAULT = "NET_SHARING_SETUP_FAULT";
 constexpr const char *NET_SHARING_CANCLE_FAULT = "NET_SHARING_CANCLE_FAULT";
-constexpr const char *NET_SHARING_TIME_STAT = "NET_CONN_MONITOR_FAULT";
+constexpr const char *NET_SHARING_TIME_STAT = "NET_SHARING_TIME_STAT";
 // event params
 constexpr const char *EVENT_KEY_SHARING_TYPE = "SHARING_TYPE";
 constexpr const char *EVENT_KEY_OPERATION_TYPE = "OPERATION_TYPE";
@@ -61,7 +61,7 @@ void NetEventReport::SendTimeBehaviorEvent(const EventInfo &eventInfo)
         NET_SHARING_TIME_STAT,
         HiSysEvent::EventType::BEHAVIOR,
         EVENT_KEY_SHARING_COUNT, eventInfo.sharingCount,
-        EVENT_KEY_SHARING_TYPE, eventInfo.operatorType);
+        EVENT_KEY_SHARING_TYPE, eventInfo.sharingType);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
