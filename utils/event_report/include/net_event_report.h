@@ -34,6 +34,36 @@ struct EventInfo {
     std::string errorMsg;
 };
 
+enum class NetworkShareEventOperator {
+    OPERATION_START_SA = 0,
+    OPERATION_ENABLE_IFACE,
+    OPERATION_TURNON_IP_FORWARD,
+    OPERATION_GET_UPSTREAM,
+    OPERATION_CONFIG_FORWARD,
+    OPERATION_CHECK_SA = 10,
+    OPERATION_DISABLE_IFACE,
+    OPERATION_TURNOFF_IP_FORWARD,
+    OPERATION_CANCEL_FORWARD,
+};
+
+enum class NetworkShareEventErrorType {
+    ERROR_START_SA = -100,
+    ERROR_CHECK_SA = -101,
+    ERROR_ENABLE_IFACE = -110,
+    ERROR_DISABLE_IFACE = -111,
+    ERROR_TURNON_IP_FORWARD = -120,
+    ERROR_TURNOFF_IP_FORWARD = -121,
+    ERROR_CONFIG_FORWARD = -130,
+    ERROR_CANCEL_FORWARD = -131,
+    ERROR_GET_UPSTREAM = -140,
+};
+
+enum class NetworkShareEventType {
+    SETUP_EVENT = 0,
+    CANCEL_EVENT = 1,
+    BEHAVIOR_EVENT = 2,
+};
+
 class NetEventReport {
 public:
     static void SendSetupFaultEvent(const EventInfo &eventInfo);
