@@ -22,11 +22,13 @@
 #include "networkshare_constants.h"
 #include "net_manager_constants.h"
 #include "networkshare_state_common.h"
+#include "network_sharing.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
+static constexpr const int32_t BYTE_TRANSFORM_KB = 1024;
 
 NetworkShareTracker::NetsysCallback::NetsysCallback(NetworkShareTracker &netShareTracker)
     : netShareTracker_(netShareTracker)
@@ -511,6 +513,87 @@ int32_t NetworkShareTracker::UnregisterSharingEvent(sptr<ISharingEventCallback> 
 {
     sharingEventCallback_ = nullptr;
     return NETWORKSHARE_SUCCESS;
+}
+
+int32_t NetworkShareTracker::GetStatsRxBytes()
+{
+    int64_t totalBytes = 0;
+    for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
+        [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
+        std::string downIface;
+        std::string upIface;
+        nmd::NetworkSharingTraffic traffic;
+        subSM->GetDownIfaceName(downIface);
+        subSM->GetUpIfaceName(upIface);
+        NETMGR_EXT_LOG_I("DownIface[%{public}s], upIface[%{public}s].", downIface.c_str(), upIface.c_str());
+        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
+        if (ret == NETMANAGER_SUCCESS) {
+            totalBytes += traffic.receive;
+        }
+        if (ret != NETMANAGER_SUCCESS) {
+            NETMGR_EXT_LOG_E("GetStatsRxBytes error, downIface[%{public}s], ret[%{public}d].", downIface.c_str(), ret);
+        }
+    });
+    if (totalBytes/BYTE_TRANSFORM_KB > std::numeric_limits<int32_t>::max()) {
+        NETMGR_EXT_LOG_I("GetStatsRxBytes the size is above max.");
+        return std::numeric_limits<int32_t>::max();
+    } else {
+        return totalBytes/BYTE_TRANSFORM_KB;
+    }
+}
+
+int32_t NetworkShareTracker::GetStatsTxBytes()
+{
+    int64_t totalBytes = 0;
+    for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
+        [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
+        std::string downIface;
+        std::string upIface;
+        nmd::NetworkSharingTraffic traffic;
+        subSM->GetDownIfaceName(downIface);
+        subSM->GetUpIfaceName(upIface);
+        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
+        if (ret == NETMANAGER_SUCCESS) {
+            totalBytes += traffic.send;
+        }
+        if (ret != NETMANAGER_SUCCESS) {
+            NETMGR_EXT_LOG_E("GetStatsTxBytes error, downIface[%{public}s], ret[%{public}d].", downIface.c_str(), ret);
+        }
+    });
+
+    if (totalBytes/BYTE_TRANSFORM_KB > std::numeric_limits<int32_t>::max()) {
+        NETMGR_EXT_LOG_I("GetStatsTxBytes the size is above max.");
+        return std::numeric_limits<int32_t>::max();
+    } else {
+        return totalBytes/BYTE_TRANSFORM_KB;
+    }
+}
+
+int32_t NetworkShareTracker::GetStatsTotalBytes()
+{
+    int64_t totalBytes = 0;
+    for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
+        [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
+        std::string downIface;
+        std::string upIface;
+        nmd::NetworkSharingTraffic traffic;
+        subSM->GetDownIfaceName(downIface);
+        subSM->GetUpIfaceName(upIface);
+        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
+        if (ret == NETMANAGER_SUCCESS) {
+            totalBytes += traffic.all;
+        }
+        if (ret != NETMANAGER_SUCCESS) {
+            NETMGR_EXT_LOG_E("GetStatsTotalBytes err, downIface[%{public}s], ret[%{public}d].", downIface.c_str(), ret);
+        }
+    });
+
+    if (totalBytes/BYTE_TRANSFORM_KB > std::numeric_limits<int32_t>::max()) {
+        NETMGR_EXT_LOG_I("GetStatsTotalBytes the size is above max.");
+        return std::numeric_limits<int32_t>::max();
+    } else {
+        return totalBytes/BYTE_TRANSFORM_KB;
+    }
 }
 
 int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &type, bool enable)

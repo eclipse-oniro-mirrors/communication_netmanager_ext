@@ -42,6 +42,9 @@ public:
         CMD_REGISTER_EVENT_CALLBACK,
         CMD_UNREGISTER_EVENT_CALLBACK,
         CMD_GET_ACTIVATE_INTERFACE,
+        CMD_GET_RX_BYTES,
+        CMD_GET_TX_BYTES,
+        CMD_GET_TOTAL_BYTES,
     };
 
 public:
@@ -54,6 +57,9 @@ public:
     virtual std::vector<std::string> GetNetSharingIfaces(const SharingIfaceState &state) = 0;
     virtual int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback) = 0;
     virtual int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback) = 0;
+    virtual int32_t GetStatsRxBytes() = 0;
+    virtual int32_t GetStatsTxBytes() = 0;
+    virtual int32_t GetStatsTotalBytes() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkShareService");
 };

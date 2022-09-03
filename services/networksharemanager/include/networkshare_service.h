@@ -91,6 +91,21 @@ public:
      */
     int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback) override;
 
+    /**
+     * get downlink data bytes
+     */
+    int32_t GetStatsRxBytes() override;
+
+    /**
+     * get uplink data bytes
+     */
+    int32_t GetStatsTxBytes() override;
+
+    /**
+     * get total data bytes
+     */
+    int32_t GetStatsTotalBytes() override;
+
 private:
     bool Init();
 

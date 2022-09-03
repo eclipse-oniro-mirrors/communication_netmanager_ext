@@ -157,6 +157,16 @@ void NetworkShareSubStateMachine::SubSmEventHandle(int eventId, const std::any &
     NETMGR_EXT_LOG_I("Sub SM eventId[%{public}d] handle successfull.", eventId);
 }
 
+void NetworkShareSubStateMachine::GetDownIfaceName(std::string &downIface)
+{
+    downIface = ifaceName_;
+}
+
+void NetworkShareSubStateMachine::GetUpIfaceName(std::string &upIface)
+{
+    upIface = upstreamIfaceName_;
+}
+
 void NetworkShareSubStateMachine::InitStateEnter()
 {
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Init State.", ifaceName_.c_str());

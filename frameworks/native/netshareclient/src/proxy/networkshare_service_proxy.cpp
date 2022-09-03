@@ -236,5 +236,50 @@ int32_t NetworkShareServiceProxy::UnregisterSharingEvent(sptr<ISharingEventCallb
     }
     return reply.ReadInt32();
 }
+
+int32_t NetworkShareServiceProxy::GetStatsRxBytes()
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    MessageParcel reply;
+    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_RX_BYTES, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("GetStatsRxBytes proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t NetworkShareServiceProxy::GetStatsTxBytes()
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    MessageParcel reply;
+    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_TX_BYTES, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("GetStatsTxBytes proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t NetworkShareServiceProxy::GetStatsTotalBytes()
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    MessageParcel reply;
+    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_TOTAL_BYTES, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("GetStatsTotalBytes proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

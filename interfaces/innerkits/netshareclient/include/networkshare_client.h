@@ -104,6 +104,27 @@ public:
      */
     std::vector<std::string> GetSharingIfaces(const SharingIfaceState &state);
 
+    /**
+     * Obtains the number of downlink data bytes of the sharing network interfaces.
+     *
+     * @return network traffic data unit is KB
+     */
+    int32_t GetStatsRxBytes();
+
+    /**
+     * Obtains the number of uplink data bytes of the sharing network interfaces.
+     *
+     * @return network traffic data unit is KB
+     */
+    int32_t GetStatsTxBytes();
+
+    /**
+     * Obtains the number of total data bytes of the sharing network interfaces.
+     *
+     * @return network traffic data unit is KB
+     */
+    int32_t GetStatsTotalBytes();
+
 private:
     class NetshareDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

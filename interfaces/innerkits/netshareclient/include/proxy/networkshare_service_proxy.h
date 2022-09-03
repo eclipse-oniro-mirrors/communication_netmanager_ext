@@ -38,6 +38,9 @@ public:
     std::vector<std::string> GetNetSharingIfaces(const SharingIfaceState &state) override;
     int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback) override;
     int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback) override;
+    int32_t GetStatsRxBytes() override;
+    int32_t GetStatsTxBytes() override;
+    int32_t GetStatsTotalBytes() override;
 
 private:
     int32_t SendRequest(INetworkShareService::MessageCode code, MessageParcel &data, MessageParcel &reply);
