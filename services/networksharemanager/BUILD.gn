@@ -52,6 +52,7 @@ ohos_shared_library("net_tether_manager") {
     "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
     "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
     "$BLUETOOTH_ROOT/interfaces/inner_api/include",
+    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
   ]
 
   deps = [
@@ -59,6 +60,7 @@ ohos_shared_library("net_tether_manager") {
     "$BLUETOOTH_ROOT/frameworks/inner:btframework",
     "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
+    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]

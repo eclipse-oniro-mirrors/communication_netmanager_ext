@@ -19,6 +19,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
 #include "net_manager_center.h"
+#include "netmanager_base_permission.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -69,47 +70,98 @@ bool NetworkShareService::Init()
 
 int32_t NetworkShareService::IsNetworkSharingSupported()
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
     return NetworkShareTracker::GetInstance().IsNetworkSharingSupported();
 }
 
 int32_t NetworkShareService::IsSharing()
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
     return NetworkShareTracker::GetInstance().IsSharing();
 }
 
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
     return NetworkShareTracker::GetInstance().StartNetworkSharing(type);
 }
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
     return NetworkShareTracker::GetInstance().StopNetworkSharing(type);
 }
 
 int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
     return NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
 }
 
 int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
     return NetworkShareTracker::GetInstance().UnregisterSharingEvent(callback);
 }
 
 std::vector<std::string> NetworkShareService::GetSharableRegexs(SharingIfaceType type)
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return {};
+    }
     return NetworkShareTracker::GetInstance().GetSharableRegexs(type);
 }
 
 int32_t NetworkShareService::GetSharingState(SharingIfaceType type, SharingIfaceState &state)
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
     return NetworkShareTracker::GetInstance().GetSharingState(type, state);
 }
 
 std::vector<std::string> NetworkShareService::GetNetSharingIfaces(const SharingIfaceState &state)
 {
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return {};
+    }
     return NetworkShareTracker::GetInstance().GetNetSharingIfaces(state);
+}
+
+int32_t NetworkShareService::GetStatsRxBytes()
+{
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
+    return NetworkShareTracker::GetInstance().GetStatsRxBytes();
+}
+
+int32_t NetworkShareService::GetStatsTxBytes()
+{
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
+    return NetworkShareTracker::GetInstance().GetStatsTxBytes();
+}
+
+int32_t NetworkShareService::GetStatsTotalBytes()
+{
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+    }
+    return NetworkShareTracker::GetInstance().GetStatsTotalBytes();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

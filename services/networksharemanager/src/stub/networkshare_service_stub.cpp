@@ -39,6 +39,12 @@ NetworkShareServiceStub::NetworkShareServiceStub()
         &NetworkShareServiceStub::ReplyRegisterSharingEvent;
     memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK)] =
         &NetworkShareServiceStub::ReplyUnregisterSharingEvent;
+    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_RX_BYTES)] =
+        &NetworkShareServiceStub::ReplyGetStatsRxBytes;
+    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_TX_BYTES)] =
+        &NetworkShareServiceStub::ReplyGetStatsTxBytes;
+    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_TOTAL_BYTES)] =
+        &NetworkShareServiceStub::ReplyGetStatsTotalBytes;
 }
 
 int32_t NetworkShareServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
@@ -192,6 +198,33 @@ int32_t NetworkShareServiceStub::ReplyUnregisterSharingEvent(MessageParcel &data
     }
 
     int32_t ret = UnregisterSharingEvent(callback);
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkShareServiceStub::ReplyGetStatsRxBytes(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = GetStatsRxBytes();
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkShareServiceStub::ReplyGetStatsTxBytes(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = GetStatsTxBytes();
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkShareServiceStub::ReplyGetStatsTotalBytes(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = GetStatsTotalBytes();
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }

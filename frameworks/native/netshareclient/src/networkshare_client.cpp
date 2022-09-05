@@ -115,6 +115,36 @@ std::vector<std::string> NetworkShareClient::GetSharingIfaces(const SharingIface
     return proxy->GetNetSharingIfaces(state);
 }
 
+int32_t NetworkShareClient::GetStatsRxBytes()
+{
+    sptr<INetworkShareService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetStatsRxBytes proxy is nullptr");
+        return {};
+    }
+    return proxy->GetStatsRxBytes();
+}
+
+int32_t NetworkShareClient::GetStatsTxBytes()
+{
+    sptr<INetworkShareService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetStatsTxBytes proxy is nullptr");
+        return {};
+    }
+    return proxy->GetStatsTxBytes();
+}
+
+int32_t NetworkShareClient::GetStatsTotalBytes()
+{
+    sptr<INetworkShareService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetStatsTotalBytes proxy is nullptr");
+        return {};
+    }
+    return proxy->GetStatsTotalBytes();
+}
+
 sptr<INetworkShareService> NetworkShareClient::GetProxy()
 {
     std::lock_guard lock(mutex_);

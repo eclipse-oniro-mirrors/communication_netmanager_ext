@@ -41,6 +41,9 @@ private:
     int32_t ReplyGetNetSharingIfaces(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyRegisterSharingEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyUnregisterSharingEvent(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetStatsRxBytes(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetStatsTxBytes(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetStatsTotalBytes(MessageParcel &data, MessageParcel &reply);
 
 private:
     std::map<uint32_t, NetworkShareServiceFunc> memberFuncMap_;

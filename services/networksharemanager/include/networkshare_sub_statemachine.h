@@ -73,6 +73,16 @@ public:
      */
     void SubSmEventHandle(int eventId, const std::any &messageObj);
 
+    /**
+     * get down interface name
+     */
+    void GetDownIfaceName(std::string &downIface);
+
+    /**
+     * get up interface name
+     */
+    void GetUpIfaceName(std::string &upIface);
+
 private:
     void CreateInitStateTable();
     void CreateSharedStateTable();
