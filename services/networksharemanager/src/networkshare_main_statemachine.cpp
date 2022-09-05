@@ -23,6 +23,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+static constexpr const char *ERROR_MSG_TRUNON = "Turn on Ip Forward failed";
+static constexpr const char *ERROR_MSG_TRUNOFF = "Turn off Ip Forward failed";
+
 NetworkShareMainStateMachine::NetworkShareMainStateMachine(std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor)
     : netshare_requester_("netsharing_requester"), networkMonitor_(networkmonitor)
 {
@@ -176,8 +179,8 @@ int NetworkShareMainStateMachine::HandleInitInterfaceStateActive(const std::any 
         NETMGR_EXT_LOG_I("add new subSm.");
         subMachineList_.push_back(temp.subsm_);
     }
-    const bool isShared = temp.value_ == SUB_SM_STATE_SHARED;
-    NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(isShared, temp.subsm_);
+
+    NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(true, temp.subsm_);
     return NETWORKSHARE_SUCCESS;
 }
 
@@ -207,12 +210,7 @@ int NetworkShareMainStateMachine::HandleAliveInterfaceStateActive(const std::any
         subMachineList_.push_back(temp.subsm_);
     }
 
-    if (temp.value_ == SUB_SM_STATE_SHARED) {
-        NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(true, temp.subsm_);
-    } else {
-        NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(false, temp.subsm_);
-    }
-
+    NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(true, temp.subsm_);
     if (temp.subsm_ != nullptr) {
         std::shared_ptr<UpstreamNetworkInfo> upstreamInfo = nullptr;
         NetworkShareTracker::GetInstance().GetUpstreamInfo(upstreamInfo);
@@ -236,7 +234,6 @@ int NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive(const std::a
         subMachineList_.end());
 
     NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(false, temp.subsm_);
-
     if (subMachineList_.size() == 0) {
         TurnOffMainShareSettings();
     }
@@ -315,6 +312,9 @@ bool NetworkShareMainStateMachine::TurnOnMainShareSettings()
     }
     int32_t result = NetsysController::GetInstance().IpEnableForwarding(netshare_requester_);
     if (result != NETMANAGER_EXT_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNON_IP_FORWARD,
+                                                             NetworkShareEventErrorType::ERROR_TURNON_IP_FORWARD,
+                                                             ERROR_MSG_TRUNON, NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("ipfwdEnableForwarding is error, switch error State.");
         errorType_ = CMD_IP_FORWARDING_ENABLE_ERROR;
         MainSmStateSwitch(MAINSTATE_ERROR);
@@ -329,6 +329,9 @@ bool NetworkShareMainStateMachine::TurnOffMainShareSettings()
 {
     int32_t result = NetsysController::GetInstance().IpDisableForwarding(netshare_requester_);
     if (result != NETMANAGER_EXT_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNOFF_IP_FORWARD,
+                                                             NetworkShareEventErrorType::ERROR_TURNOFF_IP_FORWARD,
+                                                             ERROR_MSG_TRUNOFF, NetworkShareEventType::CANCEL_EVENT);
         NETMGR_EXT_LOG_E("IpfwdDisableForwarding is error, switch to error State.");
         errorType_ = CMD_IP_FORWARDING_DISABLE_ERROR;
         MainSmStateSwitch(MAINSTATE_ERROR);

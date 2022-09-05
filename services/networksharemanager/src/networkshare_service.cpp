@@ -20,6 +20,7 @@
 #include "networkshare_constants.h"
 #include "net_manager_center.h"
 #include "netmanager_base_permission.h"
+#include "net_event_report.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -38,6 +39,11 @@ void NetworkShareService::OnStart()
     }
     if (!Init()) {
         NETMGR_EXT_LOG_E("OnStart init failed");
+        EventInfo eventInfo;
+        eventInfo.operatorType = static_cast<int32_t>(NetworkShareEventOperator::OPERATION_START_SA);
+        eventInfo.errorType = static_cast<int32_t>(NetworkShareEventErrorType::ERROR_START_SA);
+        eventInfo.errorMsg = "Start Network Share Service failed";
+        NetEventReport::SendSetupFaultEvent(eventInfo);
         return;
     }
     state_ = STATE_RUNNING;
@@ -50,6 +56,17 @@ void NetworkShareService::OnStop()
     state_ = STATE_STOPPED;
     registerToService_ = false;
     NETMGR_EXT_LOG_I("OnStop successful");
+}
+
+int32_t NetworkShareService::Dump(int32_t fd, const std::vector<std::u16string> &args)
+{
+    NETMGR_EXT_LOG_I("Start Dump, fd: %{public}d", fd);
+    std::string result;
+    GetDumpMessage(result);
+    NETMGR_EXT_LOG_I("Dump content: %{public}s", result.c_str());
+    int32_t ret = dprintf(fd, "%s\n", result.c_str());
+    return ret < 0 ? static_cast<int32_t>(NetStatsResultCode::ERR_INTERNAL_ERROR)
+                   : static_cast<int32_t>(NetStatsResultCode::ERR_NONE);
 }
 
 bool NetworkShareService::Init()
@@ -66,6 +83,55 @@ bool NetworkShareService::Init()
         registerToService_ = true;
     }
     return NetworkShareTracker::GetInstance().Init();
+}
+
+void NetworkShareService::GetDumpMessage(std::string &message)
+{
+    message.append("Net Sharing Info:\n");
+    std::string surpportContent =
+        NetworkShareTracker::GetInstance().IsNetworkSharingSupported() == NETWORKSHARE_IS_SUPPORTED ? "surpported"
+                                                                                                    : "not surpported";
+    message.append("\tIs Sharing Supported: " + surpportContent + "\n");
+    std::string sharingState =
+        NetworkShareTracker::GetInstance().IsSharing() == NETWORKSHARE_IS_SHARING ? "is sharing" : "not sharing";
+    message.append("\tSharing State: " + sharingState + "\n");
+
+    if (sharingState.compare("is sharing") == 0) {
+        std::string sharingType;
+        GetSharingType(SharingIfaceType::SHARING_WIFI, "wifi;", sharingType);
+        GetSharingType(SharingIfaceType::SHARING_USB, "usb;", sharingType);
+        GetSharingType(SharingIfaceType::SHARING_BLUETOOTH, "bluetooth;", sharingType);
+        message.append("\tSharing Types: " + sharingType + "\n");
+    }
+
+    std::string wifiShareRegexs;
+    GetShareRegexsContent(SharingIfaceType::SHARING_WIFI, wifiShareRegexs);
+    message.append("\tUsb Regexs: " + wifiShareRegexs + "\n");
+    std::string usbShareRegexs;
+    GetShareRegexsContent(SharingIfaceType::SHARING_USB, usbShareRegexs);
+    message.append("\tWifi Regexs: " + usbShareRegexs + "\n");
+    std::string btpanShareRegexs;
+    GetShareRegexsContent(SharingIfaceType::SHARING_BLUETOOTH, btpanShareRegexs);
+    message.append("\tBluetooth Regexs: " + btpanShareRegexs + "\n");
+}
+
+void NetworkShareService::GetSharingType(const SharingIfaceType type, const std::string typeContent,
+                                         std::string &sharingType)
+{
+    SharingIfaceState state;
+    NetworkShareTracker::GetInstance().GetSharingState(type, state);
+    if (state == SharingIfaceState::SHARING_NIC_SERVING) {
+        sharingType += typeContent;
+    }
+}
+
+void NetworkShareService::GetShareRegexsContent(const SharingIfaceType type, std::string &shareRegexsContent)
+{
+    std::vector<std::string> regexs = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
+    for_each(regexs.begin(), regexs.end(), [&shareRegexsContent](std::string &regex) {
+        std::string tempContent = regex + ";";
+        shareRegexsContent += tempContent;
+    });
 }
 
 int32_t NetworkShareService::IsNetworkSharingSupported()

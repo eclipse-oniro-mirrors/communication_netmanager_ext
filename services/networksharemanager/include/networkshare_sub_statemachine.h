@@ -27,9 +27,10 @@
 #include <stdarg.h>
 #include <functional>
 
+#include "dhcp_service.h"
+#include "networkshare_hisysevent.h"
 #include "net_manager_ext_constants.h"
 #include "networkshare_state_common.h"
-#include "dhcp_service.h"
 #include "networkshare_configuration.h"
 
 namespace OHOS {
@@ -117,8 +118,8 @@ private:
     struct SubSmStateTable {
         int event_;
         int curState_;
-        int nextState_;
         HandleFunc func_;
+        int nextState_;
     };
     std::recursive_mutex mutex_;
     std::string ifaceName_;

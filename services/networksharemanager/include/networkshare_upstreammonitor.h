@@ -19,6 +19,7 @@
 #include <any>
 
 #include "event_handler.h"
+#include "networkshare_hisysevent.h"
 #include "networkshare_state_common.h"
 #include "net_conn_client.h"
 #include "net_conn_callback_stub.h"

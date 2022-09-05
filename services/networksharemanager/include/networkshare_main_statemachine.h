@@ -19,6 +19,7 @@
 #include <map>
 #include <any>
 
+#include "networkshare_hisysevent.h"
 #include "networkshare_sub_statemachine.h"
 #include "networkshare_upstreammonitor.h"
 
@@ -78,8 +79,8 @@ private:
     struct MainSmStateTable {
         int event_;
         int curState_;
-        int nextState_;
         HandleFunc func_;
+        int nextState_;
     };
 
     std::recursive_mutex mutex_;
