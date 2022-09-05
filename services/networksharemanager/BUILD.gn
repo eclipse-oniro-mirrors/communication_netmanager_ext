@@ -17,6 +17,7 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ohos_shared_library("net_tether_manager") {
   sources = [
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
@@ -38,6 +39,7 @@ ohos_shared_library("net_tether_manager") {
     "$NETCONNMANAGER_COMMON_DIR/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
+    "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
     "$BASE_INNERKITS_ROOT/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
@@ -61,6 +63,7 @@ ohos_shared_library("net_tether_manager") {
     "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
+    "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
@@ -68,6 +71,7 @@ ohos_shared_library("net_tether_manager") {
   external_deps = [
     "ability_base:want",
     "eventhandler:libeventhandler",
+    "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

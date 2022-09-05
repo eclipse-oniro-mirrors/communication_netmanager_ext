@@ -28,6 +28,7 @@
 #include "networkshare_sub_statemachine.h"
 #include "networkshare_configuration.h"
 #include "networkshare_upstreammonitor.h"
+#include "networkshare_hisysevent.h"
 #include "wifi_hotspot.h"
 #include "wifi_ap_msg.h"
 #include "i_wifi_hotspot_callback.h"
@@ -271,6 +272,8 @@ private:
     bool mWifiNetShareRequested_;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
+    int32_t wifiShareCount_ = 0;
+    int32_t bluetoothShareCount_ = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

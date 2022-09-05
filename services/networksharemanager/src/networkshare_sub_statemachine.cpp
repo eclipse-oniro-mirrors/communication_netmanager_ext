@@ -25,6 +25,11 @@ namespace OHOS {
 namespace NetManagerStandard {
 static constexpr const char *NEXT_HOT = "0.0.0.0";
 static constexpr int32_t IP_V4 = 0;
+static constexpr const char *ERROR_MSG_ENABLE_FORWARD = "Enable Forward failed";
+static constexpr const char *ERROR_MSG_CONFIG_FORWARD = "Config Forward failed";
+static constexpr const char *ERROR_MSG_ADD_ROUTE_STRATEGY = "Add Route Strategy failed";
+static constexpr const char *ERROR_MSG_ADD_ROUTE_RULE = "Add Route Rule failed";
+static constexpr const char *ERROR_MSG_REMOVE_ROUTE_RULE = "Remove Route Rule failed";
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
     const std::string &ifaceName, const SharingIfaceType &interfaceType,
@@ -272,6 +277,10 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
 
     int32_t result = NetsysController::GetInstance().EnableNat(ifaceName_, upstreamIfaceName_);
     if (result != NETMANAGER_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
+            NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ENABLE_FORWARD,
+            NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] enable NAT newIface[%{public}s] error[%{public}d].",
                          ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
         lastError_ = NETWORKSHARE_ERROR_ENABLE_FORWARDING_ERROR;
@@ -281,6 +290,10 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
 
     result = NetsysController::GetInstance().IpfwdAddInterfaceForward(ifaceName_, upstreamIfaceName_);
     if (result != NETMANAGER_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
+            NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_CONFIG_FORWARD,
+            NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E(
             "Sub StateMachine[%{public}s] IpfwdAddInterfaceForward newIface[%{public}s] error[%{public}d].",
             ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
@@ -292,6 +305,10 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
 
     result = NetsysController::GetInstance().NetworkAddInterface(LOCAL_NET_ID, ifaceName_);
     if (result != NETMANAGER_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
+            NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ADD_ROUTE_STRATEGY,
+            NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E(
             "Sub StateMachine[%{public}s] SharedState NetworkAddInterface newIface[%{public}s] error[%{public}d].",
             ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
@@ -332,6 +349,10 @@ void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
     int32_t result =
         NetsysController::GetInstance().NetworkRemoveRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
     if (result != NETMANAGER_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            netShareType_, NetworkShareEventOperator::OPERATION_CANCEL_FORWARD,
+            NetworkShareEventErrorType::ERROR_CANCEL_FORWARD, ERROR_MSG_REMOVE_ROUTE_RULE,
+            NetworkShareEventType::CANCEL_EVENT);
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Remove Route error[%{public}d].", ifaceName_.c_str(), result);
     }
 }
@@ -362,6 +383,10 @@ void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
 
     int32_t result = NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
     if (result != NETMANAGER_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
+            NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ADD_ROUTE_RULE,
+            NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route error[%{public}d].", ifaceName_.c_str(), result);
     }
 }

@@ -20,6 +20,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+static constexpr const char *ERROR_MSG_HAS_NOT_UPSTREAM = "Has not Upstream Network";
+static constexpr const char *ERROR_MSG_UPSTREAM_ERROR = "Get Upstream Network is Error";
+
 NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionCallback(
     const std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor, int32_t callbackType)
     : NetworkMonitor_(networkmonitor)
@@ -122,6 +125,9 @@ void NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
     bool hasDefaultNet = true;
     int32_t result = netManager->HasDefaultNet(hasDefaultNet);
     if (result != ERR_NONE || !hasDefaultNet) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
+            ERROR_MSG_HAS_NOT_UPSTREAM, NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("NetConn hasDefaultNet error[%{public}d].", result);
         return;
     }
@@ -129,6 +135,9 @@ void NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
     netManager->GetDefaultNet(*(upstreamNetInfo->netHandle_));
     NETMGR_EXT_LOG_I("NetConn get defaultNet id[%{public}d].", upstreamNetInfo->netHandle_->GetNetId());
     if (upstreamNetInfo->netHandle_->GetNetId() < 0) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
+            ERROR_MSG_UPSTREAM_ERROR, NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("NetConn get defaultNet id is error.");
         return;
     }

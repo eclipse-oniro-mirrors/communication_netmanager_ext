@@ -28,6 +28,10 @@ namespace OHOS {
 namespace NetManagerStandard {
 static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
+static constexpr const char *ERROR_MSG_ENABLE_WIFI = "Enable Wifi Iface failed";
+static constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed";
+static constexpr const char *ERROR_MSG_ENABLE_BTPAN = "Enable BlueTooth Iface failed";
+static constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed";
 static constexpr const int32_t BYTE_TRANSFORM_KB = 1024;
 
 NetworkShareTracker::NetsysCallback::NetsysCallback(NetworkShareTracker &netShareTracker)
@@ -638,16 +642,29 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
         if (ret != Wifi::ErrCode::WIFI_OPT_SUCCESS) {
             NETMGR_EXT_LOG_E("EnableHotspot error[%{public}d].", ret);
             result = NETWORKSHARE_ERROR;
+            NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+                SharingIfaceType::SHARING_WIFI, NetworkShareEventOperator::OPERATION_ENABLE_IFACE,
+                NetworkShareEventErrorType::ERROR_ENABLE_IFACE, ERROR_MSG_ENABLE_WIFI,
+                NetworkShareEventType::SETUP_EVENT);
         } else {
             NETMGR_EXT_LOG_I("EnableHotspot successfull.");
+            wifiShareCount_++;
+            NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(wifiShareCount_, SharingIfaceType::SHARING_WIFI);
         }
     } else {
         int32_t ret = wifiHotspotPtr_->DisableHotspot();
         if (ret != Wifi::ErrCode::WIFI_OPT_SUCCESS) {
+            NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+                SharingIfaceType::SHARING_WIFI, NetworkShareEventOperator::OPERATION_DISABLE_IFACE,
+                NetworkShareEventErrorType::ERROR_DISABLE_IFACE, ERROR_MSG_DISABLE_WIFI,
+                NetworkShareEventType::CANCEL_EVENT);
             NETMGR_EXT_LOG_E("DisableHotspot error[%{public}d].", ret);
             result = NETWORKSHARE_ERROR;
         } else {
             NETMGR_EXT_LOG_I("DisableHotspot successful.");
+            wifiShareCount_--;
+            wifiShareCount_ = wifiShareCount_ < 0 ? 0 : wifiShareCount_;
+            NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(wifiShareCount_, SharingIfaceType::SHARING_WIFI);
         }
     }
 
@@ -674,10 +691,29 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
     bool ret = profile_->SetTethering(enable);
     if (ret) {
         NETMGR_EXT_LOG_I("SetBluetoothNetworkSharing(%{public}s) is success.", enable ? "true" : "false");
+        if (enable) {
+            bluetoothShareCount_++;
+        } else {
+            bluetoothShareCount_--;
+            bluetoothShareCount_ = bluetoothShareCount_ < 0 ? 0 : bluetoothShareCount_;
+        }
+        NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(bluetoothShareCount_,
+                                                                SharingIfaceType::SHARING_BLUETOOTH);
         profile_ = nullptr;
         return NETWORKSHARE_SUCCESS;
     }
     profile_ = nullptr;
+    if (enable) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            SharingIfaceType::SHARING_BLUETOOTH, NetworkShareEventOperator::OPERATION_ENABLE_IFACE,
+            NetworkShareEventErrorType::ERROR_ENABLE_IFACE, ERROR_MSG_ENABLE_BTPAN, NetworkShareEventType::SETUP_EVENT);
+    } else {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            SharingIfaceType::SHARING_BLUETOOTH, NetworkShareEventOperator::OPERATION_DISABLE_IFACE,
+            NetworkShareEventErrorType::ERROR_DISABLE_IFACE, ERROR_MSG_DISABLE_BTPAN,
+            NetworkShareEventType::CANCEL_EVENT);
+    }
+
     NETMGR_EXT_LOG_E("SetBluetoothNetworkSharing(%{public}s) is error.", enable ? "true" : "false");
     return NETWORKSHARE_ERROR;
 }
