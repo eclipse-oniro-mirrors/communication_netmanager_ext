@@ -67,7 +67,7 @@ ohos_shared_library("ethernet_manager") {
   defines = [
     "NETMGR_LOG_TAG = \"EthernetManager\"",
     "LOG_DOMAIN = 0xD0015B0",
-    "USER_CONFIG_DIR = \"/data/ethernet/\"",
+    "USER_CONFIG_DIR = \"/data/service/el1/public/netmanager/ethernet\"",
     "NETWORK_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/ethernet_interfaces.json\"",
   ]
 
