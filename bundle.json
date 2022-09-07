@@ -41,7 +41,7 @@
                 "napi",
                 "safwk",
                 "samgr",
-                "utils_base"
+                "c_utils"
             ],
             "third_party": [
                 "node"
