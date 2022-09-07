@@ -60,30 +60,30 @@ foundation/communication/netmanager_ext/
 | ohos.net.ethernet | function getAllActiveIfaces\(\): Promise<Array\<string\>\>; |获取活动的网络接口，返回Promise |
 | ohos.net.sharing | function isSharingSupported(callback: AsyncCallback\<boolean>): void; | 获取当前系统是否支持网络共享，调用callback |
 | ohos.net.sharing | function isSharingSupported(): Promise\<boolean>; | 获取当前系统是否支持网络共享，返回promise |
-| ohos.net.sharing | function isSharing(callback: AsyncCallback<boolean>): void; | 获取当前共享状态，调用callback |
-| ohos.net.sharing | function isSharing(): Promise<boolean>; | 获取当前共享状态，返回promise |
-| ohos.net.sharing | function startSharing(type: SharingIfaceType, callback: AsyncCallback<void>): void; | 开启共享，type为共享类型，目前支持Wifi热点、蓝牙、USB，调用callback |
-| ohos.net.sharing | function startSharing(type: SharingIfaceType): Promise<void>; | 开启共享，type为共享类型，目前支持Wifi热点、蓝牙、USB，返回promise |
-| ohos.net.sharing | function stopSharing(type: SharingIfaceType, callback: AsyncCallback<void>): void; | 停止指定类型共享，type为共享类型，包括Wifi热点、蓝牙、USB，调用callback |
-| ohos.net.sharing | function stopSharing(type: SharingIfaceType): Promise<void>; | 停止指定类型共享，type为共享类型，包括Wifi热点、蓝牙、USB，返回promise |
-| ohos.net.sharing | function getStatsRxBytes(callback: AsyncCallback<number>): void; | 获取共享接收数据量，单位KB，调用callback |
-| ohos.net.sharing | function getStatsRxBytes(): Promise<number>; | 获取共享接收数据量，单位KB，返回promise |
-| ohos.net.sharing | function getStatsTxBytes(callback: AsyncCallback<number>): void; | 获取共享发送数据量，单位KB，调用callback |
-| ohos.net.sharing | function getStatsTxBytes(): Promise<number>; | 获取共享发送数据量，单位KB，返回promise |
-| ohos.net.sharing | function getStatsTotalBytes(callback: AsyncCallback<number>): void; | 获取共享总数据流量，单位KB，调用callback |
-| ohos.net.sharing | function getStatsTotalBytes(): Promise<number>; | 获取共享总数据流量，单位KB，返回promise |
-| ohos.net.sharing | function getSharingIfaces(state: SharingIfaceState, callback: AsyncCallback<Array<string>>): void; | 获取指定状态的网卡名称，state为状态，包括正在共享、可共享、共享错误，调用callback |
-| ohos.net.sharing | function getSharingIfaces(state: SharingIfaceState): Promise<Array<string>>; | 获取指定状态的网卡名称，state为状态，包括正在共享、可共享、共享错误，返回promise |
-| ohos.net.sharing | function getSharingState(type: SharingIfaceType, callback: AsyncCallback<SharingIfaceState>): void; | 获取指定类型共享状态，type为类型，目前支持Wifi热点、蓝牙、USB，调用callback |
-| ohos.net.sharing | function getSharingState(type: SharingIfaceType): Promise<SharingIfaceState>; | 获取指定类型共享状态，type为类型，目前支持Wifi热点、蓝牙、USB，返回promise |
-| ohos.net.sharing | function getSharableRegexes(type: SharingIfaceType, callback: AsyncCallback<Array<string>>): void; | 获取与指定类型匹配的网卡正则表达式列表，type为类型，目前支持Wifi热点、蓝牙、USB，调用callback |
-| ohos.net.sharing | function getSharableRegexes(type: SharingIfaceType): Promise<Array<string>>; | 获取与指定类型匹配的网卡正则表达式列表，type为类型，目前支持Wifi热点、蓝牙、USB，返回promise |
-| ohos.net.sharing | function on(type: 'sharingStateChange', callback: Callback<boolean>): void; | 注册共享状态改变监听 |
-| ohos.net.sharing | function off(type: 'sharingStateChange', callback?: Callback<boolean>): void; | 注销共享状态改变监听 |
-| ohos.net.sharing | unction on(type: 'interfaceSharingStateChange', callback: Callback<{ type: SharingIfaceType, iface: string, state: SharingIfaceState }>): void; | 注册指定网卡共享状态改变监听 |
-| ohos.net.sharing | function off(type: 'interfaceSharingStateChange', callback?: Callback<{ type: SharingIfaceType, iface: string, state: SharingIfaceState }>): void; | 注销指定网卡共享状态改变监听 |
-| ohos.net.sharing | function on(type: 'sharingUpstreamChange', callback: Callback<NetHandle>): void; | 注册上行网卡改变监听 |
-| ohos.net.sharing | function off(type: 'sharingUpstreamChange', callback?: Callback<NetHandle>): void; | 注销上行网卡改变监听 |
+| ohos.net.sharing | function isSharing(callback: AsyncCallback\<boolean>): void; | 获取当前共享状态，调用callback |
+| ohos.net.sharing | function isSharing(): Promise\<boolean>; | 获取当前共享状态，返回promise |
+| ohos.net.sharing | function startSharing(type: SharingIfaceType, callback: AsyncCallback\<void>): void; | 开启共享，type为共享类型，目前支持Wifi热点、蓝牙、USB，调用callback |
+| ohos.net.sharing | function startSharing(type: SharingIfaceType): Promise\<void>; | 开启共享，type为共享类型，目前支持Wifi热点、蓝牙、USB，返回promise |
+| ohos.net.sharing | function stopSharing(type: SharingIfaceType, callback: AsyncCallback\<void>): void; | 停止指定类型共享，type为共享类型，包括Wifi热点、蓝牙、USB，调用callback |
+| ohos.net.sharing | function stopSharing(type: SharingIfaceType): Promise\<void>; | 停止指定类型共享，type为共享类型，包括Wifi热点、蓝牙、USB，返回promise |
+| ohos.net.sharing | function getStatsRxBytes(callback: AsyncCallback\<number>): void; | 获取共享接收数据量，单位KB，调用callback |
+| ohos.net.sharing | function getStatsRxBytes(): Promise\<number>; | 获取共享接收数据量，单位KB，返回promise |
+| ohos.net.sharing | function getStatsTxBytes(callback: AsyncCallback\<number>): void; | 获取共享发送数据量，单位KB，调用callback |
+| ohos.net.sharing | function getStatsTxBytes(): Promise\<number>; | 获取共享发送数据量，单位KB，返回promise |
+| ohos.net.sharing | function getStatsTotalBytes(callback: AsyncCallback\<number>): void; | 获取共享总数据流量，单位KB，调用callback |
+| ohos.net.sharing | function getStatsTotalBytes(): Promise\<number>; | 获取共享总数据流量，单位KB，返回promise |
+| ohos.net.sharing | function getSharingIfaces(state: SharingIfaceState, callback: AsyncCallback\<Array\<string>>): void; | 获取指定状态的网卡名称，state为状态，包括正在共享、可共享、共享错误，调用callback |
+| ohos.net.sharing | function getSharingIfaces(state: SharingIfaceState): Promise\<Array\<string>>; | 获取指定状态的网卡名称，state为状态，包括正在共享、可共享、共享错误，返回promise |
+| ohos.net.sharing | function getSharingState(type: SharingIfaceType, callback: AsyncCallback\<SharingIfaceState>): void; | 获取指定类型共享状态，type为类型，目前支持Wifi热点、蓝牙、USB，调用callback |
+| ohos.net.sharing | function getSharingState(type: SharingIfaceType): Promise\<SharingIfaceState>; | 获取指定类型共享状态，type为类型，目前支持Wifi热点、蓝牙、USB，返回promise |
+| ohos.net.sharing | function getSharableRegexes(type: SharingIfaceType, callback: AsyncCallback\<Array\<string>>): void; | 获取与指定类型匹配的网卡正则表达式列表，type为类型，目前支持Wifi热点、蓝牙、USB，调用callback |
+| ohos.net.sharing | function getSharableRegexes(type: SharingIfaceType): Promise\<Array\<string>>; | 获取与指定类型匹配的网卡正则表达式列表，type为类型，目前支持Wifi热点、蓝牙、USB，返回promise |
+| ohos.net.sharing | function on(type: 'sharingStateChange', callback: Callback\<boolean>): void; | 注册共享状态改变监听 |
+| ohos.net.sharing | function off(type: 'sharingStateChange', callback?: Callback\<boolean>): void; | 注销共享状态改变监听 |
+| ohos.net.sharing | unction on(type: 'interfaceSharingStateChange', callback: Callback\<{ type: SharingIfaceType, iface: string, state: SharingIfaceState }>): void; | 注册指定网卡共享状态改变监听 |
+| ohos.net.sharing | function off(type: 'interfaceSharingStateChange', callback?: Callback\<{ type: SharingIfaceType, iface: string, state: SharingIfaceState }>): void; | 注销指定网卡共享状态改变监听 |
+| ohos.net.sharing | function on(type: 'sharingUpstreamChange', callback: Callback\<NetHandle>): void; | 注册上行网卡改变监听 |
+| ohos.net.sharing | function off(type: 'sharingUpstreamChange', callback?: Callback\<NetHandle>): void; | 注销上行网卡改变监听 |
 
 ## 接口使用说明
 
