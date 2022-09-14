@@ -509,13 +509,18 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
         NETMGR_EXT_LOG_E("callback is null.");
         return NETWORKSHARE_ERROR;
     }
-    sharingEventCallback_ = callback;
+    sharingEventCallback_.push_back(callback);
     return NETWORKSHARE_SUCCESS;
 }
 
 int32_t NetworkShareTracker::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
-    sharingEventCallback_ = nullptr;
+    for (auto iter = sharingEventCallback_.begin(); iter != sharingEventCallback_.end(); ++iter) {
+        if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
+            sharingEventCallback_.erase(iter);
+            break;
+        }
+    }
     return NETWORKSHARE_SUCCESS;
 }
 
@@ -976,11 +981,14 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
 
 void NetworkShareTracker::StopSubStateMachine(const std::string iface)
 {
-    std::lock_guard lock(mutex_);
-    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter = subStateMachineMap_.find(iface);
-    if (iter == subStateMachineMap_.end()) {
-        NETMGR_EXT_LOG_W("not find iface[%{public}s]", iface.c_str());
-        return;
+    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter;
+    {
+        std::lock_guard lock(mutex_);
+        iter = subStateMachineMap_.find(iface);
+        if (iter == subStateMachineMap_.end()) {
+            NETMGR_EXT_LOG_W("not find iface[%{public}s]", iface.c_str());
+            return;
+        }
     }
     SharingIfaceType type;
     if (InterfaceNameToType(iface, type)) {
@@ -991,8 +999,10 @@ void NetworkShareTracker::StopSubStateMachine(const std::string iface)
         }
     }
     NETMGR_EXT_LOG_I("removing iface[%{public}s] sub SM.", iface.c_str());
-    std::shared_ptr<NetSharingSubSmState> shareState = iter->second;
-    subStateMachineMap_.erase(iter);
+    {
+        std::lock_guard lock(mutex_);
+        subStateMachineMap_.erase(iter);
+    }
 }
 
 bool NetworkShareTracker::InterfaceNameToType(const std::string &iface, SharingIfaceType &type)
@@ -1062,8 +1072,8 @@ void NetworkShareTracker::InterfaceRemoved(const std::string &iface)
 
 void NetworkShareTracker::SendGlobalSharingStateChange()
 {
-    if (sharingEventCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("sharingEventCallback_ is null.");
+    if (sharingEventCallback_.size() == 0) {
+        NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
     bool isSharing = false;
@@ -1083,27 +1093,36 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
     }
     if (isNetworkSharing_ != isSharing) {
         isNetworkSharing_ = isSharing;
-        sharingEventCallback_->OnSharingStateChanged(isNetworkSharing_);
+        for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
+            [isSharing](sptr<ISharingEventCallback>& callback) {
+                callback->OnSharingStateChanged(isSharing);
+        });
     }
 }
 
 void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType type, const std::string iface,
                                                       const SharingIfaceState state)
 {
-    if (sharingEventCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("sharingEventCallback_ is null.");
+    if (sharingEventCallback_.size() == 0) {
+        NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
-    sharingEventCallback_->OnInterfaceSharingStateChanged(type, iface, state);
+    for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
+        [type, iface, state](sptr<ISharingEventCallback>& callback) {
+            callback->OnInterfaceSharingStateChanged(type, iface, state);
+    });
 }
 
 void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> netHandle)
 {
-    if (sharingEventCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("sharingEventCallback_ is null.");
+    if (sharingEventCallback_.size() == 0) {
+        NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
-    sharingEventCallback_->OnSharingUpstreamChanged(netHandle);
+    for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
+        [netHandle](sptr<ISharingEventCallback>& callback) {
+            callback->OnSharingUpstreamChanged(netHandle);
+    });
 }
 
 SharingIfaceState NetworkShareTracker::SubSmStateToExportState(const int32_t state)

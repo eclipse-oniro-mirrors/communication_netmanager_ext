@@ -263,7 +263,7 @@ private:
     std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor_ = nullptr;
     std::shared_ptr<NetworkShareMainStateMachine> mainStateMachine_ = nullptr;
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
-    sptr<ISharingEventCallback> sharingEventCallback_ = nullptr;
+    std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;
     std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;
     std::unique_ptr<Wifi::WifiHotspot> wifiHotspotPtr_ = nullptr;
     bool isNetworkSharing_ = false;
