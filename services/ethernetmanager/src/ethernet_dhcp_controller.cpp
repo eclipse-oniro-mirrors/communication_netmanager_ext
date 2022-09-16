@@ -99,7 +99,7 @@ void EthernetDhcpController::OnDhcpSuccess(const std::string &iface, OHOS::Wifi:
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.iface = iface;
     dhcpResult.ipAddr = result.strYourCli;
-    dhcpResult.gateWay = result.strServer;
+    dhcpResult.gateWay = result.strRouter1;
     dhcpResult.subNet = result.strSubnet;
     dhcpResult.route1 = result.strRouter1;
     dhcpResult.route2 = result.strRouter2;
