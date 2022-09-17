@@ -68,6 +68,18 @@ void EthernetService::OnStop()
     registerToService_ = false;
 }
 
+int32_t EthernetService::Dump(int32_t fd, const std::vector<std::u16string> &args)
+{
+    NETMGR_EXT_LOG_D("Start Dump, fd: %{public}d", fd);
+    std::string result;
+    if (ethManagement_ == nullptr) {
+        return ETHERNET_ERROR;
+    }
+    ethManagement_->GetDumpInfo(result);
+    int32_t ret = dprintf(fd, "%s\n", result.c_str());
+    return ret < 0 ? ETHERNET_ERROR : ETHERNET_SUCCESS;
+}
+
 void EthernetService::OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
 {
     NETMGR_EXT_LOG_D("EthernetService::OnAddSystemAbility systemAbilityId:%{public}d", systemAbilityId);

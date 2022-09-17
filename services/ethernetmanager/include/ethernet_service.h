@@ -44,6 +44,7 @@ class EthernetService : public SystemAbility, public EthernetServiceStub,
 public:
     void OnStart() override;
     void OnStop() override;
+    int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
     int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) override;
     sptr<InterfaceConfiguration> GetIfaceConfig(const std::string &iface) override;
