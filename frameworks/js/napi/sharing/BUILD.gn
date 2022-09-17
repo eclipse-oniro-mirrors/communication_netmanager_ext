@@ -20,6 +20,8 @@ config("sharing_config") {
 }
 
 ohos_shared_library("sharing") {
+  include_dirs = [ "$NETMANAGER_BASE_ROOT/utils/log/include" ]
+
   sources = [
     "src/netshare_async_work.cpp",
     "src/netshare_callback_observer.cpp",

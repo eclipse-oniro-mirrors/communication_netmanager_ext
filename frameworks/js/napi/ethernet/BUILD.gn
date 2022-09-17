@@ -20,14 +20,16 @@ NETMANAGER_EXT_NAPI_ROOT = "$SUBSYSTEM_DIR/netmanager_ext/frameworks/js/napi/"
 
 ohos_shared_library("ethernet") {
   include_dirs = [
-    "//third_party/node/src",
+    "$THIRD_PARTY_ROOT/node/src",
     "$NETMANAGER_EXT_NAPI_ROOT/ethernet/include",
     "$NETMANAGER_NAPI_ROOT/common",
     "$NETMANAGER_BASE_ROOT/utils/log/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include/ipc",
+    "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$BASE_INNERKITS_ROOT/ethernetclient/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
+    "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
   ]
 
   sources = [
@@ -40,18 +42,13 @@ ohos_shared_library("ethernet") {
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
-    "$NETMANAGERNATIVE_ROOT:netsys_native_manager",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
-    "ability_runtime:abilitykit_native",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 
   relative_install_dir = "module/net"

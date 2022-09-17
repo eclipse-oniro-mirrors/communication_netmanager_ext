@@ -48,12 +48,10 @@ ohos_source_set("networkshare_parcel") {
     "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
+    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  deps = [
-    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-  ]
+  deps = [ "$NETMANAGER_BASE_ROOT/utils:net_manager_common" ]
 
   external_deps = [ "c_utils:utils" ]
   if (is_standard_system) {
@@ -67,6 +65,8 @@ ohos_source_set("networkshare_parcel") {
 }
 
 ohos_shared_library("net_tether_manager_if") {
+  include_dirs = [ "$NETMANAGER_EXT_ROOT/utils/log/include" ]
+
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/networkshare_client.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/netshare_result_callback_proxy.cpp",
@@ -78,14 +78,10 @@ ohos_shared_library("net_tether_manager_if") {
 
   public_configs = [ ":net_conn_manager_if_config" ]
 
-  deps = [
-    ":networkshare_parcel",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-  ]
+  deps = [ ":networkshare_parcel" ]
 
   external_deps = [
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 

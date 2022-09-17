@@ -18,7 +18,8 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("EthernetClientFuzzTest") {
   module_out_path = "communication/netmanager_ext"
-  fuzz_config_file = "//foundation/communication/netmanager_ext/test/ethernetmanager/fuzztest/ethernetclient_fuzzer"
+  fuzz_config_file =
+      "$NETMANAGER_EXT_ROOT/test/ethernetmanager/fuzztest/ethernetclient_fuzzer"
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
