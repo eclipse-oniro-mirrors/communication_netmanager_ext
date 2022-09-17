@@ -287,7 +287,7 @@ bool EthernetConfiguration::DelDir(const std::string &dirPath)
         return false;
     }
     while ((entry = readdir(dir)) != nullptr) {
-        std::string filePath = dirPath + entry->d_name;
+        std::string filePath = dirPath + "/" + entry->d_name;
         lstat(filePath.c_str(), &statbuf);
         if (S_ISREG(statbuf.st_mode)) {
             remove(filePath.c_str());
