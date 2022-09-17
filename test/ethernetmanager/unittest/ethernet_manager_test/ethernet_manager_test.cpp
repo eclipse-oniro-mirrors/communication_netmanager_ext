@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "accesstoken_kit.h"
 #include "gtest/gtest-message.h"
 #include "gtest/gtest-test-part.h"
 #include "gtest/hwext/gtest-ext.h"
@@ -22,15 +23,119 @@
 #include "ethernet_client.h"
 #include "inet_addr.h"
 #include "interface_configuration.h"
+#include "interface_type.h"
+#include "nativetoken_kit.h"
+#include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "static_configuration.h"
-#include "netmgr_ext_log_wrapper.h"
-#include "interface_type.h"
+#include "token_setproc.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
 using namespace testing::ext;
+using namespace Security::AccessToken;
+using Security::AccessToken::AccessTokenID;
+
+HapInfoParams testInfoParms = {
+    .bundleName = "ethernet_manager_test",
+    .userID = 1,
+    .instIndex = 0,
+    .appIDDesc = "test"
+};
+
+PermissionDef testPermDef = {
+    .permissionName = "ohos.permission.GET_NETWORK_INFO",
+    .bundleName = "ethernet_manager_test",
+    .grantMode = 1,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test net connect maneger",
+    .descriptionId = 1,
+    .availableLevel = APL_SYSTEM_BASIC
+};
+
+PermissionStateFull testState = {
+    .grantFlags = {2},
+    .grantStatus = {PermissionState::PERMISSION_GRANTED},
+    .isGeneral = true,
+    .permissionName = "ohos.permission.GET_NETWORK_INFO",
+    .resDeviceID = {"local"}
+};
+
+HapPolicyParams testPolicyPrams = {
+    .apl = APL_SYSTEM_BASIC,
+    .domain = "test.domain",
+    .permList = {testPermDef},
+    .permStateList = {testState}
+};
+
+PermissionDef testPermDef1 = {
+    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+    .bundleName = "ethernet_manager_test",
+    .grantMode = 1,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test net connect maneger",
+    .descriptionId = 1,
+    .availableLevel = APL_SYSTEM_BASIC
+};
+
+PermissionStateFull testState1 = {
+    .grantFlags = {2},
+    .grantStatus = {PermissionState::PERMISSION_GRANTED},
+    .isGeneral = true,
+    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+    .resDeviceID = {"local"}
+};
+
+HapPolicyParams testPolicyPrams1 = {
+    .apl = APL_SYSTEM_BASIC,
+    .domain = "test.domain",
+    .permList = {testPermDef1},
+    .permStateList = {testState1}
+};
+} // namespace
+
+class AccessToken {
+public:
+    AccessToken()
+    {
+        currentID_ = GetSelfTokenID();
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
+        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
+        SetSelfTokenID(accessID_);
+    }
+    ~AccessToken()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+private:
+    AccessTokenID currentID_ = 0;
+    AccessTokenID accessID_ = 0;
+};
+
+class AccessToken1 {
+public:
+    AccessToken1()
+    {
+        currentID_ = GetSelfTokenID();
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams1);
+        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
+        SetSelfTokenID(accessID_);
+    }
+    ~AccessToken1()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+private:
+    AccessTokenID currentID_ = 0;
+    AccessTokenID accessID_ = 0;
+};
+
 class EthernetManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -99,6 +204,7 @@ sptr<InterfaceConfiguration> EthernetManagerTest::GetIfaceConfig()
 HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
 {
     std::string iface = "eth0";
+    AccessToken1 token1;
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(iface, ic);
     (void)result;
@@ -113,6 +219,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
 HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
 {
     std::string iface = "eth0";
+    AccessToken token;
     sptr<InterfaceConfiguration> ic =
         DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(iface);
     ASSERT_TRUE(ic != nullptr);
@@ -126,6 +233,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
 HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
 {
     std::string iface = "eth0";
+    AccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface);
     ASSERT_TRUE(result != -1);
 }
@@ -137,6 +245,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
 {
+    AccessToken token;
     std::vector<std::string> result = DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces();
     for (std::string& s : result) {
         std::cout << s << ","<< std::endl;
@@ -150,6 +259,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
 {
+    AccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
     ASSERT_TRUE(result == 0);
 }
@@ -158,6 +268,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 {
     std::string iface = "eth0";
     OHOS::nmd::InterfaceConfigurationParcel cfg;
+    AccessToken token;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(iface, cfg));
     ASSERT_FALSE(cfg.ifName.empty());
     ASSERT_FALSE(cfg.hwAddr.empty());
@@ -166,6 +277,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 {
     std::string iface = "eth0";
+    AccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(iface, cfg));
@@ -178,6 +290,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
 {
     std::string iface = "eth0";
+    AccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(iface);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(iface, cfg));
