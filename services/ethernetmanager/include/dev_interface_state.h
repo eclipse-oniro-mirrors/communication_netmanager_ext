@@ -65,6 +65,8 @@ public:
     void RemoteUpdateNetLinkInfo();
     void RemoteUpdateNetSupplierInfo();
 
+    void GetDumpInfo(std::string &info);
+
 private:
     void UpdateLinkInfo();
     void UpdateSupplierAvailable();

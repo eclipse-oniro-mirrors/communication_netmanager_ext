@@ -238,5 +238,46 @@ Route DevInterfaceState::CreateLocalRoute(
     localRoute.gateway_.address_ = "0.0.0.0";
     return localRoute;
 }
+
+void DevInterfaceState::GetDumpInfo(std::string &info)
+{
+    const std::string TAB = "  ";
+    std::list<std::string> dumpInfo = {
+        "DevName: " + devName_,
+        "ConnLinkState: " + std::to_string(connLinkState_),
+        "LinkUp: " + std::to_string(linkUp_),
+        "DHCPReqState: " + std::to_string(dhcpReqState_),
+    };
+    std::string data = "DevInterfaceState: ";
+    std::for_each(dumpInfo.begin(), dumpInfo.end(),
+                  [&data, &TAB](const auto &msg) { data.append(TAB + TAB + msg + "\n"); });
+    if (linkInfo_ != nullptr) {
+        data.append(linkInfo_->ToString(TAB));
+    }
+    if (netSupplierInfo_ != nullptr) {
+        data.append(netSupplierInfo_->ToString(TAB));
+    }
+    if (ifcfg_ != nullptr) {
+        data.append(TAB + TAB + "InterfaceConfig: \n" + TAB + TAB + TAB + "Mode: " + std::to_string(ifcfg_->mode_) +
+                    "\n");
+        data.append("\nConfig: \n");
+        data.append(
+            TAB + TAB + "IpAddr:" + ifcfg_->ipStatic_.ipAddr_.ToString(TAB) + "\n" +
+            TAB + TAB + "Route: " + ifcfg_->ipStatic_.route_.ToString(TAB) + "\n" +
+            TAB + TAB + "GateWay: " + ifcfg_->ipStatic_.gateway_.ToString(TAB) + "\n" +
+            TAB + TAB + "NetMask: " + ifcfg_->ipStatic_.netMask_.ToString(TAB) + "\n" +
+            TAB + TAB + "DNSServers: \n"
+        );
+        std::for_each(ifcfg_->ipStatic_.dnsServers_.begin(), ifcfg_->ipStatic_.dnsServers_.end(),
+                      [&data, &TAB](const auto &server) { data.append(TAB + TAB + server.ToString(TAB)); });
+        data.append(TAB + TAB + "Domain: " + ifcfg_->ipStatic_.domain_ + "\n" + TAB + TAB + "NetCaps: {");
+        std::for_each(netCaps_.begin(), netCaps_.end(), [&data, &TAB](const auto &cap) {
+            data.append(std::to_string(cap) + ", ");
+        });
+        data.append("}\n");
+    }
+    data.append(TAB + TAB + "BearerType :" + std::to_string(bearerType_) + "\n");
+    info.append(data);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

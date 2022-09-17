@@ -306,5 +306,12 @@ void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfac
     ethDhcpController_->StopDhcpClient(dev, false);
     devState->SetDhcpReqState(false);
 }
+
+void EthernetManagement::GetDumpInfo(std::string &info)
+{
+    std::for_each(devs_.begin(), devs_.end(), [&info](const auto &dev){
+        dev.second->GetDumpInfo(info);
+    });
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
