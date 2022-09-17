@@ -45,6 +45,9 @@ constexpr const char *FUNCTION_STOP_SHARING = "stopSharing";
 constexpr const char *FUNCTION_GET_SHARING_IFACES = "getSharingIfaces";
 constexpr const char *FUNCTION_GET_SHARING_STATE = "getSharingState";
 constexpr const char *FUNCTION_GET_SHARABLE_REGEXES = "getSharableRegexes";
+constexpr const char *FUNCTION_GET_STATS_RX_BYTES = "getStatsRxBytes";
+constexpr const char *FUNCTION_GET_STATS_TX_BYTES = "getStatsTxBytes";
+constexpr const char *FUNCTION_GET_STATS_TOTAL_BYTES = "getStatsTotalBytes";
 constexpr const char *FUNCTION_ON = "on";
 constexpr const char *FUNCTION_OFF = "off";
 
@@ -110,6 +113,27 @@ napi_value GetSharableRegexes(napi_env env, napi_callback_info info)
                                                                 NetShareAsyncWork::GetSharableRegexesCallback);
 }
 
+napi_value GetStatsRxBytes(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetStatsRxBytesContext>(env, info, FUNCTION_GET_STATS_RX_BYTES, nullptr,
+                                                                NetShareAsyncWork::ExecGetStatsRxBytes,
+                                                                NetShareAsyncWork::GetStatsRxBytesCallback);
+}
+
+napi_value GetStatsTxBytes(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetStatsTxBytesContext>(env, info, FUNCTION_GET_STATS_TX_BYTES, nullptr,
+                                                                NetShareAsyncWork::ExecGetStatsTxBytes,
+                                                                NetShareAsyncWork::GetStatsTxBytesCallback);
+}
+
+napi_value GetStatsTotalBytes(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetStatsTotalBytesContext>(env, info, FUNCTION_GET_STATS_TOTAL_BYTES, nullptr,
+                                                                NetShareAsyncWork::ExecGetStatsTotalBytes,
+                                                                NetShareAsyncWork::GetStatsTotalBytesCallback);
+}
+
 napi_value On(napi_env env, napi_callback_info info)
 {
     std::initializer_list<std::string_view> events = {EVENT_SHARE_STATE_CHANGE, EVENT_IFACE_SHARE_STATE_CHANGE,
@@ -167,6 +191,9 @@ napi_value InitNetShareModule(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_IFACES, GetSharingIfaces),
         DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_STATE, GetSharingState),
         DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARABLE_REGEXES, GetSharableRegexes),
+        DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_RX_BYTES, GetStatsRxBytes),
+        DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TX_BYTES, GetStatsTxBytes),
+        DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TOTAL_BYTES, GetStatsTotalBytes),
         DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
         DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
     };

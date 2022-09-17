@@ -35,14 +35,17 @@ public:
     explicit NetShareIsSharingContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
+    void SetBytes64(int64_t bytes64);
     void SetSharingSupported(int32_t isSharingSupported);
     void SetSharing(int32_t isSharing);
+    int32_t GetBytes64();
     int32_t GetSharingSupported();
     int32_t GetSharing();
 
 private:
     int32_t isSharingSupported_ = NETWORKSHARE_IS_SUPPORTED;
     int32_t isSharing_ = NETWORKSHARE_IS_SHARING;
+    int32_t bytes64_ = 0;
 
 private:
     bool CheckParamsType(napi_value *params, size_t paramsCount);
@@ -50,6 +53,8 @@ private:
 
 using IsSharingSupportedContext = NetShareIsSharingContext;
 using GetStatsTotalBytesContext = NetShareIsSharingContext;
+using GetStatsRxBytesContext = NetShareIsSharingContext;
+using GetStatsTxBytesContext = NetShareIsSharingContext;
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif /* NETMANAGER_EXT_SAHRE_JUSTCALLBACK_CONTEXT_H */
