@@ -38,7 +38,12 @@ ohos_shared_library("net_tether_manager") {
     "$BASE_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
     "$BASE_INNERKITS_ROOT/ethernetclient/include/proxy",
     "$BASE_INNERKITS_ROOT/netstatsclient/include",
+    "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/netshareclient/include",
+    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
+    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
     "$NETCONNMANAGER_COMMON_DIR/include",
+    "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
@@ -57,27 +62,24 @@ ohos_shared_library("net_tether_manager") {
     "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
     "$BLUETOOTH_ROOT/interfaces/inner_api/include",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
+    "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
   ]
 
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$BLUETOOTH_ROOT/frameworks/inner:btframework",
     "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
-    "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
 
   external_deps = [
-    "ability_base:want",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
     "wifi:wifi_sdk",
   ]
 
