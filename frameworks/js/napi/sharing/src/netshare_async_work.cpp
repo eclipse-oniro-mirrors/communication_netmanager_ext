@@ -55,6 +55,21 @@ void NetShareAsyncWork::ExecGetSharableRegexes(napi_env env, void *data)
     BaseAsyncWork::ExecAsyncWork<GetSharableRegexesContext, NetShareExec::ExecGetSharableRegexes>(env, data);
 }
 
+void NetShareAsyncWork::ExecGetStatsRxBytes(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetStatsRxBytesContext, NetShareExec::ExecGetStatsRxBytes>(env, data);
+}
+
+void NetShareAsyncWork::ExecGetStatsTxBytes(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetStatsTxBytesContext, NetShareExec::ExecGetStatsTxBytes>(env, data);
+}
+
+void NetShareAsyncWork::ExecGetStatsTotalBytes(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetStatsTotalBytesContext, NetShareExec::ExecGetStatsTotalBytes>(env, data);
+}
+
 void NetShareAsyncWork::IsSharingSupportedCallback(napi_env env, napi_status status, void *data)
 {
     BaseAsyncWork::AsyncWorkCallback<IsSharingSupportedContext, NetShareExec::IsSharingSupportedCallback>(env, status,
@@ -90,6 +105,22 @@ void NetShareAsyncWork::GetSharingStateCallback(napi_env env, napi_status status
 void NetShareAsyncWork::GetSharableRegexesCallback(napi_env env, napi_status status, void *data)
 {
     BaseAsyncWork::AsyncWorkCallback<GetSharableRegexesContext, NetShareExec::GetSharableRegexesCallback>(env, status,
+                                                                                                          data);
+}
+
+void NetShareAsyncWork::GetStatsRxBytesCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetStatsRxBytesContext, NetShareExec::GetStatsRxBytesCallback>(env, status, data);
+}
+
+void NetShareAsyncWork::GetStatsTxBytesCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetStatsTxBytesContext, NetShareExec::GetStatsTxBytesCallback>(env, status, data);
+}
+
+void NetShareAsyncWork::GetStatsTotalBytesCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetStatsTotalBytesContext, NetShareExec::GetStatsTotalBytesCallback>(env, status,
                                                                                                           data);
 }
 } // namespace NetManagerStandard

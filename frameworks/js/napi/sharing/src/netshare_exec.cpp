@@ -102,7 +102,7 @@ bool NetShareExec::ExecGetSharingState(GetSharingStateContext *context)
     SharingIfaceState ifaceState;
 
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingState(ifaceType, ifaceState);
-    if (!result) {
+    if (result != NETMANAGER_EXT_SUCCESS) {
         NETMANAGER_EXT_LOGE("ExecGetSharingState error, errorCode: %{public}d", result);
         return false;
     }
@@ -131,6 +131,39 @@ napi_value NetShareExec::GetSharableRegexesCallback(GetSharableRegexesContext *c
         NapiUtils::SetArrayElement(context->GetEnv(), ifacesArray, index++, item);
     }
     return ifacesArray;
+}
+
+bool NetShareExec::ExecGetStatsRxBytes(GetStatsRxBytesContext *context)
+{
+    context->SetBytes64(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes());
+    return true;
+}
+
+napi_value NetShareExec::GetStatsRxBytesCallback(GetStatsRxBytesContext *context)
+{
+    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes64());
+}
+
+bool NetShareExec::ExecGetStatsTxBytes(GetStatsTxBytesContext *context)
+{
+    context->SetBytes64(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes());
+    return true;
+}
+
+napi_value NetShareExec::GetStatsTxBytesCallback(GetStatsTxBytesContext *context)
+{
+    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes64());
+}
+
+bool NetShareExec::ExecGetStatsTotalBytes(GetStatsTotalBytesContext *context)
+{
+    context->SetBytes64(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes());
+    return true;
+}
+
+napi_value NetShareExec::GetStatsTotalBytesCallback(GetStatsTotalBytesContext *context)
+{
+    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes64());
 }
 } // namespace NetManagerStandard
 } // namespace OHOS::NetManagerStandard

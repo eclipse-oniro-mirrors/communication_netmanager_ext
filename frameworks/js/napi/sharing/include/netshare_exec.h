@@ -46,6 +46,12 @@ public:
     static napi_value GetSharingStateCallback(GetSharingStateContext *context);
     static bool ExecGetSharableRegexes(GetSharableRegexesContext *context);
     static napi_value GetSharableRegexesCallback(GetSharableRegexesContext *context);
+    static bool ExecGetStatsRxBytes(GetStatsRxBytesContext *context);
+    static napi_value GetStatsRxBytesCallback(GetStatsRxBytesContext *context);
+    static bool ExecGetStatsTxBytes(GetStatsTxBytesContext *context);
+    static napi_value GetStatsTxBytesCallback(GetStatsTxBytesContext *context);
+    static bool ExecGetStatsTotalBytes(GetStatsTotalBytesContext *context);
+    static napi_value GetStatsTotalBytesCallback(GetStatsTotalBytesContext *context);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
