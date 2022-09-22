@@ -204,6 +204,7 @@ void NetworkShareSubStateMachine::SharedStateEnter()
     }
     if (lastError_ != NETWORKSHARE_ERROR_NO_ERROR) {
         SubSmStateSwitch(SUBSTATE_INIT);
+	return;
     }
     std::shared_ptr<NetworkShareSubStateMachine> subStateMachine = shared_from_this();
     trackerCallback_->OnUpdateInterfaceState(subStateMachine, SUB_SM_STATE_SHARED, lastError_);
