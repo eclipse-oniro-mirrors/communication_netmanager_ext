@@ -337,6 +337,7 @@ bool EthernetConfiguration::WriteFile(const std::string &filePath, const std::st
     }
     file << fileContent.c_str();
     file.close();
+    sync();
     return true;
 }
 
