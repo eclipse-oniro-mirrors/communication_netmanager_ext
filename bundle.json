@@ -14,7 +14,7 @@
     "author": {},
     "contributors": [],
     "segment": {
-        "destPath": "//foundation/communication/netmanager_ext"
+        "destPath": "foundation/communication/netmanager_ext"
     },
     "component": {
         "name": "netmanager_ext",
