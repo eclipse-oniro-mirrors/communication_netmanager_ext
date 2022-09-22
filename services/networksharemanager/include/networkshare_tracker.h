@@ -43,7 +43,7 @@ class NetworkShareMainStateMachine;
 class NetworkShareTracker {
     class NetsysCallback : public NetsysControllerCallback {
     public:
-        NetsysCallback(NetworkShareTracker &netShareTracker);
+        NetsysCallback() = default;
         ~NetsysCallback() = default;
 
         int32_t OnInterfaceAddressUpdated(const std::string &, const std::string &, int, int) override;
@@ -55,9 +55,6 @@ class NetworkShareTracker {
         int32_t OnRouteChanged(bool, const std::string &, const std::string &, const std::string &) override;
         int32_t OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult) override;
         int32_t OnBandwidthReachedLimit(const std::string &limitName, const std::string &iface) override;
-
-    private:
-        NetworkShareTracker &netShareTracker_;
     };
 
     class ManagerEventHandler : public AppExecFwk::EventHandler {
@@ -257,10 +254,7 @@ private:
     std::shared_ptr<NetworkShareConfiguration> configuration_ = nullptr;
     sptr<NetsysCallback> netsysCallback_ = nullptr;
     std::shared_ptr<NetworkShareTracker::ManagerEventHandler> eventHandler_ = nullptr;
-    std::shared_ptr<AppExecFwk::EventRunner> eventRunner_ = nullptr;
     std::weak_ptr<NetworkShareUpstreamMonitor::MonitorEventHandler> monitorHandler_;
-    std::shared_ptr<AppExecFwk::EventRunner> monitorRunner_ = nullptr;
-    std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor_ = nullptr;
     std::shared_ptr<NetworkShareMainStateMachine> mainStateMachine_ = nullptr;
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
     std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;

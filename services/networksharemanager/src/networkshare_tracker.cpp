@@ -34,11 +34,6 @@ static constexpr const char *ERROR_MSG_ENABLE_BTPAN = "Enable BlueTooth Iface fa
 static constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed";
 static constexpr const int32_t BYTE_TRANSFORM_KB = 1024;
 
-NetworkShareTracker::NetsysCallback::NetsysCallback(NetworkShareTracker &netShareTracker)
-    : netShareTracker_(netShareTracker)
-{
-}
-
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAddressUpdated(const std::string &, const std::string &, int,
                                                                        int)
 {
@@ -53,25 +48,25 @@ int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAddressRemoved(const std
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAdded(const std::string &iface)
 {
-    netShareTracker_.InterfaceAdded(iface);
+    NetworkShareTracker::GetInstance().InterfaceAdded(iface);
     return 0;
 }
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceRemoved(const std::string &iface)
 {
-    netShareTracker_.InterfaceRemoved(iface);
+    NetworkShareTracker::GetInstance().InterfaceRemoved(iface);
     return 0;
 }
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceChanged(const std::string &iface, bool up)
 {
-    netShareTracker_.InterfaceStatusChanged(iface, up);
+    NetworkShareTracker::GetInstance().InterfaceStatusChanged(iface, up);
     return 0;
 }
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceLinkStateChanged(const std::string &iface, bool up)
 {
-    netShareTracker_.InterfaceStatusChanged(iface, up);
+    NetworkShareTracker::GetInstance().InterfaceStatusChanged(iface, up);
     return 0;
 }
 
@@ -211,55 +206,25 @@ NetworkShareTracker &NetworkShareTracker::GetInstance()
 bool NetworkShareTracker::Init()
 {
     configuration_ = std::make_shared<NetworkShareConfiguration>();
+    std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create("network_share_tracker");
+    eventHandler_ = std::make_shared<NetworkShareTracker::ManagerEventHandler>(eventRunner);
 
-    upstreamNetworkMonitor_ = DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
-    monitorRunner_ = AppExecFwk::EventRunner::Create("network_share_monitor");
-    if (monitorRunner_ == nullptr) {
-        NETMGR_EXT_LOG_E("Init create monitorRunner error");
-        return false;
-    }
+    std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor =
+        DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+    std::shared_ptr<AppExecFwk::EventRunner> monitorRunner = AppExecFwk::EventRunner::Create("network_share_monitor");
     monitorHandler_ =
-        std::make_shared<NetworkShareUpstreamMonitor::MonitorEventHandler>(upstreamNetworkMonitor_, monitorRunner_);
-    upstreamNetworkMonitor_->SetOptionData(EVENT_UPSTREAM_CALLBACK, monitorHandler_);
-    upstreamNetworkMonitor_->ListenDefaultNetwork();
+        std::make_shared<NetworkShareUpstreamMonitor::MonitorEventHandler>(upstreamNetworkMonitor, monitorRunner);
+    upstreamNetworkMonitor->SetOptionData(EVENT_UPSTREAM_CALLBACK, monitorHandler_);
+    upstreamNetworkMonitor->ListenDefaultNetwork();
     std::shared_ptr<MainSmUpstreamCallback> upstreamCallback = std::make_shared<MainSmUpstreamCallback>();
-    if (upstreamCallback == nullptr) {
-        NETMGR_EXT_LOG_E("Init create upstreamMonitor error");
-        return false;
-    }
-    upstreamNetworkMonitor_->RegisterUpstreamChangedCallback(upstreamCallback);
+    upstreamNetworkMonitor->RegisterUpstreamChangedCallback(upstreamCallback);
+    mainStateMachine_ = std::make_shared<NetworkShareMainStateMachine>(upstreamNetworkMonitor);
 
-    mainStateMachine_ = std::make_shared<NetworkShareMainStateMachine>(upstreamNetworkMonitor_);
-    if (mainStateMachine_ == nullptr) {
-        NETMGR_EXT_LOG_E("Init create mainStateMachine error");
-        return false;
-    }
-
-    wifiHotspotPtr_ = Wifi::WifiHotspot::GetInstance(WIFI_HOTSPOT_ABILITY_ID);
-    if (wifiHotspotPtr_ == nullptr) {
-        NETMGR_EXT_LOG_E("Init create wifiHotspot error");
-        return false;
-    }
-    netsysCallback_ = new (std::nothrow) NetsysCallback(*this);
-    if (netsysCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("Init create netsysCallback error");
-        return false;
-    }
+    netsysCallback_ = new (std::nothrow) NetsysCallback();
     NetsysController::GetInstance().RegisterCallback(netsysCallback_);
 
     RegisterWifiApCallback();
     RegisterBtPanCallback();
-
-    eventRunner_ = AppExecFwk::EventRunner::Create("network_share_tracker");
-    if (eventRunner_ == nullptr) {
-        NETMGR_EXT_LOG_E("create eventRunner error");
-        return false;
-    }
-    eventHandler_ = std::make_shared<NetworkShareTracker::ManagerEventHandler>(eventRunner_);
-    if (eventHandler_ == nullptr) {
-        NETMGR_EXT_LOG_E("create eventHandler error");
-        return false;
-    }
 
     isNetworkSharing_ = false;
     NETMGR_EXT_LOG_I("Tracker Init sucessful.");
@@ -270,6 +235,7 @@ void NetworkShareTracker::RegisterWifiApCallback()
 {
     sptr<WifiShareHotspotEventCallback> wifiHotspotCallback =
         sptr<WifiShareHotspotEventCallback>(new (std::nothrow) WifiShareHotspotEventCallback());
+    wifiHotspotPtr_ = Wifi::WifiHotspot::GetInstance(WIFI_HOTSPOT_ABILITY_ID);
     if (wifiHotspotPtr_ != nullptr) {
         int32_t ret = wifiHotspotPtr_->RegisterCallBack(wifiHotspotCallback);
         if (ret != Wifi::ErrCode::WIFI_OPT_SUCCESS) {
@@ -687,7 +653,7 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
 {
     Bluetooth::Pan *profile_ = Bluetooth::Pan::GetProfile();
     if (profile_ == nullptr) {
-        NETMGR_EXT_LOG_E("SetBluetoothNetworkSharing(%{public}s) profile_ is null].", enable ? "true" : "false");
+        NETMGR_EXT_LOG_E("SetBluetoothNetworkSharing(%{public}s) profile is null].", enable ? "true" : "false");
         return NETWORKSHARE_ERROR;
     }
     if (enable && panObserver_ == nullptr) {
