@@ -33,15 +33,20 @@
         "ram": "500KB",
         "deps": {
             "components": [
-                "ability_base",
-                "ability_runtime",
-                "appexecfwk_standard",
-                "hiviewdfx_hilog_native",
                 "ipc",
-                "napi",
                 "safwk",
+                "napi",
+                "dhcp",
+                "hiviewdfx_hilog_native",
+                "netmanager_base",
+                "libuv",
+                "eventhandler",
+                "ability_base",
+                "bluetooth",
+                "hisysevent_native",
+                "c_utils",
                 "samgr",
-                "c_utils"
+                "wifi"
             ],
             "third_party": [
                 "node"
