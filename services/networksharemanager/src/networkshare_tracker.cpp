@@ -143,6 +143,7 @@ void NetworkShareTracker::WifiShareHotspotEventCallback::OnHotspotStateChanged(i
 {
     NETMGR_EXT_LOG_I("Receive Hotspot state changed event, state[%{public}d]", state);
     Wifi::ApState curState = static_cast<Wifi::ApState>(state);
+    NetworkShareTracker::GetInstance().SetWifiState(curState);
     switch (curState) {
         case Wifi::ApState::AP_STATE_STARTING:
             break;
@@ -152,11 +153,13 @@ void NetworkShareTracker::WifiShareHotspotEventCallback::OnHotspotStateChanged(i
         }
         case Wifi::ApState::AP_STATE_CLOSING:
             break;
-        case Wifi::ApState::AP_STATE_CLOSED:
-        default: {
-            NetworkShareTracker::GetInstance().DisableWifiSubStateMachine();
+        case Wifi::ApState::AP_STATE_CLOSED: {
+            NetworkShareTracker::GetInstance().StopSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME,
+                                                                   SharingIfaceType::SHARING_WIFI);
             break;
         }
+        default:
+            break;
     }
 }
 
@@ -180,6 +183,7 @@ void NetworkShareTracker::SharingPanObserver::OnConnectionStateChanged(const Blu
 {
     NETMGR_EXT_LOG_I("Recieve bt-pan state changed event, state[%{public}d].", state);
     Bluetooth::BTConnectState curState = static_cast<Bluetooth::BTConnectState>(state);
+    NetworkShareTracker::GetInstance().SetBluetoothState(curState);
     switch (curState) {
         case Bluetooth::BTConnectState::CONNECTING:
             break;
@@ -189,11 +193,13 @@ void NetworkShareTracker::SharingPanObserver::OnConnectionStateChanged(const Blu
         }
         case Bluetooth::BTConnectState::DISCONNECTING:
             break;
-        case Bluetooth::BTConnectState::DISCONNECTED:
-        default: {
-            NetworkShareTracker::GetInstance().DisableBluetoothSubStateMachine();
+        case Bluetooth::BTConnectState::DISCONNECTED: {
+            NetworkShareTracker::GetInstance().StopSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME,
+                                                                   SharingIfaceType::SHARING_BLUETOOTH);
             break;
         }
+        default:
+            break;
     }
 }
 
@@ -271,6 +277,16 @@ std::shared_ptr<NetworkShareMainStateMachine> &NetworkShareTracker::GetMainState
     return mainStateMachine_;
 }
 
+void NetworkShareTracker::SetWifiState(const Wifi::ApState &state)
+{
+    curWifiState_ = state;
+}
+
+void NetworkShareTracker::SetBluetoothState(const Bluetooth::BTConnectState &state)
+{
+    curBluetoothState_ = state;
+}
+
 void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<NetworkShareSubStateMachine> &who,
                                                           int32_t state, int32_t lastError)
 {
@@ -278,10 +294,16 @@ void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<
         NETMGR_EXT_LOG_E("subsm is null.");
         return;
     }
-    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter =
-        subStateMachineMap_.find(who->GetInterfaceName());
-    if (iter != subStateMachineMap_.end()) {
-        std::shared_ptr<NetSharingSubSmState> shareState = iter->second;
+    std::shared_ptr<NetSharingSubSmState> shareState = nullptr;
+    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter;
+    {
+        std::lock_guard lock(mutex_);
+        iter = subStateMachineMap_.find(who->GetInterfaceName());
+        if (iter != subStateMachineMap_.end()) {
+            shareState = iter->second;
+        }
+    }
+    if (shareState != nullptr) {
         if (shareState->lastState_ != state) {
             NETMGR_EXT_LOG_I("iface=%{public}s state is change from[%{public}d] to[%{public}d].", (iter->first).c_str(),
                              shareState->lastState_, state);
@@ -691,12 +713,16 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
 
 int32_t NetworkShareTracker::Sharing(std::string iface, int32_t reqState)
 {
-    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter = subStateMachineMap_.find(iface);
-    if (iter == subStateMachineMap_.end()) {
-        NETMGR_EXT_LOG_E("Try to share an unknown iface:%{public}s, ignore.", iface.c_str());
-        return NETWORKSHARE_ERROR_UNKNOWN_IFACE;
+    std::shared_ptr<NetSharingSubSmState> subSMState = nullptr;
+    {
+        std::lock_guard lock(mutex_);
+        std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter = subStateMachineMap_.find(iface);
+        if (iter == subStateMachineMap_.end()) {
+            NETMGR_EXT_LOG_E("Try to share an unknown iface:%{public}s, ignore.", iface.c_str());
+            return NETWORKSHARE_ERROR_UNKNOWN_IFACE;
+        }
+        subSMState = iter->second;
     }
-    std::shared_ptr<NetSharingSubSmState> subSMState = iter->second;
     if (subSMState == nullptr) {
         NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
         return NETWORKSHARE_ERROR;
@@ -717,6 +743,48 @@ int32_t NetworkShareTracker::Sharing(std::string iface, int32_t reqState)
     return NETWORKSHARE_ERROR;
 }
 
+bool NetworkShareTracker::FindSubStateMachine(const std::string &iface,
+                                              const SharingIfaceType &interfaceType,
+                                              std::shared_ptr<NetworkShareSubStateMachine> &subSM,
+                                              std::string &findKey)
+{
+    std::lock_guard lock(mutex_);
+    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter =
+        subStateMachineMap_.find(iface.c_str());
+    if (iter != subStateMachineMap_.end()) {
+        if (iter->second == nullptr) {
+            NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
+            return false;
+        }
+        if (iter->second->subStateMachine_ == nullptr) {
+            NETMGR_EXT_LOG_E("NetSharingSubSm is null.");
+            return false;
+        }
+        subSM = iter->second->subStateMachine_;
+        findKey = iter->first;
+        NETMGR_EXT_LOG_I("find subSM by iface[%{public}s].", iface.c_str());
+        return true;
+    }
+
+    for (auto &it : subStateMachineMap_) {
+        if (it.second == nullptr) {
+            NETMGR_EXT_LOG_W("NetSharingSubSmState is null.");
+            continue;
+        }
+        if (it.second->subStateMachine_ == nullptr) {
+            NETMGR_EXT_LOG_E("NetSharingSubSm is null.");
+            continue;
+        }
+        if (it.second->subStateMachine_->GetNetShareType() == interfaceType) {
+            subSM = it.second->subStateMachine_;
+            findKey = it.first;
+            NETMGR_EXT_LOG_I("find subsm by type[%{public}d].", interfaceType);
+            return true;
+        }
+    }
+    return false;
+}
+
 void NetworkShareTracker::EnableWifiSubStateMachine()
 {
     int32_t ret = CreateSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, false);
@@ -730,47 +798,6 @@ void NetworkShareTracker::EnableWifiSubStateMachine()
         NETMGR_EXT_LOG_E("start wifi sharing failed, error[%{public}d].", ret);
         return;
     }
-    mWifiNetShareRequested_ = true;
-}
-
-void NetworkShareTracker::DisableWifiSubStateMachine()
-{
-    mWifiNetShareRequested_ = false;
-    NETMGR_EXT_LOG_I("find subsm by iface[%{public}s].", WIFI_AP_DEFAULT_IFACE_NAME);
-    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter =
-        subStateMachineMap_.find(WIFI_AP_DEFAULT_IFACE_NAME);
-    if (iter != subStateMachineMap_.end()) {
-        if (iter->second == nullptr) {
-            NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
-            return;
-        }
-        if (iter->second->subStateMachine_ == nullptr) {
-            NETMGR_EXT_LOG_E("subStateMachine_ is null.");
-            return;
-        }
-        NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_UNREQUESTED.",
-                         iter->second->subStateMachine_->GetInterfaceName().c_str());
-        iter->second->subStateMachine_->SubSmEventHandle(CMD_NETSHARE_UNREQUESTED, 0);
-        return;
-    }
-    NETMGR_EXT_LOG_I("find subsm by type[%{public}d].", SharingIfaceType::SHARING_WIFI);
-    for (auto &it : subStateMachineMap_) {
-        if (it.second == nullptr) {
-            NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
-            continue;
-        }
-        if (it.second->subStateMachine_ == nullptr) {
-            NETMGR_EXT_LOG_E("subStateMachine_ is null.");
-            continue;
-        }
-        if (it.second->subStateMachine_->GetNetShareType() == SharingIfaceType::SHARING_WIFI) {
-            NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_UNREQUESTED.",
-                             iter->second->subStateMachine_->GetInterfaceName().c_str());
-            iter->second->subStateMachine_->SubSmEventHandle(CMD_NETSHARE_UNREQUESTED, 0);
-            return;
-        }
-    }
-    NETMGR_EXT_LOG_W("not find the sub SM.");
 }
 
 void NetworkShareTracker::EnableBluetoothSubStateMachine()
@@ -786,48 +813,9 @@ void NetworkShareTracker::EnableBluetoothSubStateMachine()
     }
 }
 
-void NetworkShareTracker::DisableBluetoothSubStateMachine()
-{
-    NETMGR_EXT_LOG_I("find subsm by iface[%{public}s].", BLUETOOTH_DEFAULT_IFACE_NAME);
-    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter =
-        subStateMachineMap_.find(BLUETOOTH_DEFAULT_IFACE_NAME);
-    if (iter != subStateMachineMap_.end()) {
-        if (iter->second == nullptr) {
-            NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
-            return;
-        }
-        if (iter->second->subStateMachine_ == nullptr) {
-            NETMGR_EXT_LOG_E("subStateMachine_ is null.");
-            return;
-        }
-        iter->second->subStateMachine_->SubSmEventHandle(CMD_NETSHARE_UNREQUESTED, 0);
-        return;
-    }
-    NETMGR_EXT_LOG_I("find subsm by type[%{public}d].", SharingIfaceType::SHARING_BLUETOOTH);
-    for (auto &it : subStateMachineMap_) {
-        if (it.second == nullptr) {
-            NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
-            continue;
-        }
-        if (it.second->subStateMachine_ == nullptr) {
-            NETMGR_EXT_LOG_E("subStateMachine_ is null.");
-            continue;
-        }
-        if (it.second->subStateMachine_->GetNetShareType() == SharingIfaceType::SHARING_BLUETOOTH) {
-            NETMGR_EXT_LOG_I("find same bluetooth type subsm.");
-            iter->second->subStateMachine_->SubSmEventHandle(CMD_NETSHARE_UNREQUESTED, 0);
-            return;
-        }
-    }
-    NETMGR_EXT_LOG_E("not find the subsm.");
-}
-
 bool NetworkShareTracker::UpstreamWanted()
 {
-    if (sharedSubSM_.size() != 0) {
-        return true;
-    }
-    return mWifiNetShareRequested_;
+    return sharedSubSM_.size() != 0;
 }
 
 void NetworkShareTracker::ModifySharedSubStateMachineList(bool isAdd,
@@ -920,13 +908,14 @@ void NetworkShareTracker::GetUpstreamInfo(std::shared_ptr<UpstreamNetworkInfo> &
 int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType,
                                                    bool isNcm)
 {
-    if (subStateMachineMap_.count(iface) != 0) {
-        NETMGR_EXT_LOG_W("iface[%{public}s] has added, ignoring", iface.c_str());
-        return NETWORKSHARE_SUCCESS;
+    {
+        std::lock_guard lock(mutex_);
+        if (subStateMachineMap_.count(iface) != 0) {
+            NETMGR_EXT_LOG_W("iface[%{public}s] has added, ignoring", iface.c_str());
+            return NETWORKSHARE_SUCCESS;
+        }
     }
 
-    NETMGR_EXT_LOG_I("adding sub statemachine[%{public}s], type[%{public}d], isNcm[%{public}d]", iface.c_str(),
-                     static_cast<SharingIfaceType>(interfaceType), isNcm);
     std::shared_ptr<NetworkShareSubStateMachine> subSm =
         std::make_shared<NetworkShareSubStateMachine>(iface, interfaceType, configuration_);
     if (!subSm) {
@@ -942,32 +931,30 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
         std::shared_ptr<NetSharingSubSmState> netShareState = std::make_shared<NetSharingSubSmState>(subSm, isNcm);
         subStateMachineMap_.insert(std::make_pair(iface, netShareState));
     }
+    NETMGR_EXT_LOG_I("adding subSM[%{public}s], type[%{public}d], current subSM count[%{public}ud]", iface.c_str(),
+                     static_cast<SharingIfaceType>(interfaceType), subStateMachineMap_.size());
     return NETWORKSHARE_SUCCESS;
 }
 
-void NetworkShareTracker::StopSubStateMachine(const std::string iface)
+void NetworkShareTracker::StopSubStateMachine(const std::string iface, const SharingIfaceType &interfaceType)
 {
-    std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter;
+    std::shared_ptr<NetworkShareSubStateMachine> subSM = nullptr;
+    std::string findKey;
+    if(!FindSubStateMachine(iface, interfaceType, subSM, findKey)) {
+        NETMGR_EXT_LOG_W("not find the subSM.");
+        return;
+    }
+    NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_UNREQUESTED.",
+                     subSM->GetInterfaceName().c_str());
+    subSM->SubSmEventHandle(CMD_NETSHARE_UNREQUESTED, 0);
+
     {
         std::lock_guard lock(mutex_);
-        iter = subStateMachineMap_.find(iface);
-        if (iter == subStateMachineMap_.end()) {
-            NETMGR_EXT_LOG_W("not find iface[%{public}s]", iface.c_str());
-            return;
+        if (subStateMachineMap_.count(findKey) > 0) {
+            subStateMachineMap_.erase(findKey);
+            NETMGR_EXT_LOG_I("removed iface[%{public}s] subSM, current subSM count[%{public}ud].", iface.c_str(),
+                             subStateMachineMap_.size());
         }
-    }
-    SharingIfaceType type;
-    if (InterfaceNameToType(iface, type)) {
-        if (type == SharingIfaceType::SHARING_WIFI) {
-            DisableWifiSubStateMachine();
-        } else if (type == SharingIfaceType::SHARING_BLUETOOTH) {
-            DisableBluetoothSubStateMachine();
-        }
-    }
-    NETMGR_EXT_LOG_I("removing iface[%{public}s] sub SM.", iface.c_str());
-    {
-        std::lock_guard lock(mutex_);
-        subStateMachineMap_.erase(iter);
     }
 }
 
@@ -988,11 +975,24 @@ bool NetworkShareTracker::InterfaceNameToType(const std::string &iface, SharingI
     return false;
 }
 
+bool NetworkShareTracker::IsHandleNetlinkEvent(const SharingIfaceType &type, bool up)
+{
+    if (type == SharingIfaceType::SHARING_WIFI) {
+        return up ? curWifiState_ == Wifi::ApState::AP_STATE_STARTING :
+            curWifiState_ == Wifi::ApState::AP_STATE_CLOSING;
+    }
+    if (type == SharingIfaceType::SHARING_BLUETOOTH) {
+        return up ? curBluetoothState_ == Bluetooth::BTConnectState::CONNECTING :
+            curBluetoothState_ == Bluetooth::BTConnectState::DISCONNECTING;
+    }
+    return false;
+}
+
 void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool up)
 {
     SharingIfaceType type;
-    if (!InterfaceNameToType(iface, type)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] is bad data.", iface.c_str());
+    if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, up)) {
+        NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
         return;
     }
     NETMGR_EXT_LOG_I("interface[%{public}s] for [%{public}s]", iface.c_str(), up ? "up" : "down");
@@ -1004,7 +1004,7 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
     } else {
         std::string taskName = "InterfaceRemoved_task";
         std::function<void()> stopSubStateMachineFunc =
-            std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface);
+            std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface, type);
         eventHandler_->PostTask(stopSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
     }
 }
@@ -1012,11 +1012,11 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
 void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 {
     SharingIfaceType type;
-    if (InterfaceNameToType(iface, type)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] is bad data.", iface.c_str());
+    if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, true)) {
+        NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
         return;
     }
-    NETMGR_EXT_LOG_I("iface[%{public}s], type==%{public}d.", iface.c_str(), static_cast<int32_t>(type));
+    NETMGR_EXT_LOG_I("iface[%{public}s], type[%{public}d].", iface.c_str(), static_cast<int32_t>(type));
     std::string taskName = "InterfaceAdded_task";
     std::function<void()> createSubStateMachineFunc =
         std::bind(&NetworkShareTracker::CreateSubStateMachine, this, iface, type, false);
@@ -1026,13 +1026,14 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 void NetworkShareTracker::InterfaceRemoved(const std::string &iface)
 {
     SharingIfaceType type;
-    if (InterfaceNameToType(iface, type)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] is bad data.", iface.c_str());
+    if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, false)) {
+        NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
         return;
     }
-    NETMGR_EXT_LOG_I("iface[%{public}s], type==%{public}d.", iface.c_str(), static_cast<int32_t>(type));
+    NETMGR_EXT_LOG_I("iface[%{public}s], type[%{public}d].", iface.c_str(), static_cast<int32_t>(type));
     std::string taskName = "InterfaceRemoved_task";
-    std::function<void()> stopSubStateMachineFunc = std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface);
+    std::function<void()> stopSubStateMachineFunc =
+        std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface, type);
     eventHandler_->PostTask(stopSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
 }
 
