@@ -45,10 +45,10 @@ static constexpr OHOS::HiviewDFX::HiLogLabel NETMANAGER_EXT_LOG_LABEL = {LOG_COR
 
 static constexpr uint32_t NETMANAGER_EXT_MAX_BUFFER_SIZE = 4096;
 
-static void NetManagerStandardStripFormatString(const std::string &prefix, std::string &str)
+static void NetManagerStandardStripFormatString(const std::string &prefix, std::string &strFmt)
 {
-    for (auto pos = str.find(prefix, 0); pos != std::string::npos; pos = str.find(prefix, pos)) {
-        str.erase(pos, prefix.size());
+    for (auto pos = strFmt.find(prefix, 0); pos != std::string::npos; pos = strFmt.find(prefix, pos)) {
+        strFmt.erase(pos, prefix.size());
     }
 }
 

@@ -51,14 +51,14 @@ int32_t NetworkShareServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &d
                                                  MessageOption &option)
 {
     std::u16string myDescripter = NetworkShareServiceStub::GetDescriptor();
-    std::u16string remoteDescripter = data.ReadInterfaceToken();
-    if (myDescripter != remoteDescripter) {
-        NETMGR_EXT_LOG_E("descriptor checked fail");
+    std::u16string remoteDesc = data.ReadInterfaceToken();
+    if (myDescripter != remoteDesc) {
+        NETMGR_EXT_LOG_E("descriptor checked failed");
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-    auto itFunc = memberFuncMap_.find(code);
-    if (itFunc != memberFuncMap_.end()) {
-        auto requestFunc = itFunc->second;
+    auto itFunction = memberFuncMap_.find(code);
+    if (itFunction != memberFuncMap_.end()) {
+        auto requestFunc = itFunction->second;
         if (requestFunc != nullptr) {
             return (this->*requestFunc)(data, reply);
         }
@@ -161,12 +161,12 @@ int32_t NetworkShareServiceStub::ReplyGetNetSharingIfaces(MessageParcel &data, M
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     SharingIfaceState shareState = static_cast<SharingIfaceState>(state);
-    std::vector<std::string> ifaces = GetNetSharingIfaces(shareState);
+    const auto &ifaceNames = GetNetSharingIfaces(shareState);
 
-    if (!reply.WriteInt32(ifaces.size())) {
+    if (!reply.WriteInt32(ifaceNames.size())) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
-    for (auto it = ifaces.begin(); it != ifaces.end(); ++it) {
+    for (auto it = ifaceNames.begin(); it != ifaceNames.end(); ++it) {
         if (!reply.WriteString(*it)) {
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }

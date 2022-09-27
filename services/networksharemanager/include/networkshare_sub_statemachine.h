@@ -105,6 +105,7 @@ private:
     bool StartDhcp(const std::shared_ptr<INetAddr> &netAddr);
     bool StopDhcp();
     void HandleConnectionChanged(const std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo);
+    void HandleConnection();
     void RemoveRoutesToLocalNetwork();
     void AddRoutesToLocalNetwork();
     void CleanupUpstreamInterface();
