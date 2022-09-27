@@ -94,7 +94,7 @@ private:
     void RemoveNetHandleAndNotify(sptr<NetHandle> &netHandle);
 
 private:
-    int eventId_;
+    int eventId_ = 0;
     sptr<NetConnectionCallback> defaultNetworkCallback_ = nullptr;
     std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>> networkAndInfoMap_;
     int32_t defaultNetHandleNetId_;
