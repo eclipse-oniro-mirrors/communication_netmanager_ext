@@ -931,8 +931,9 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
         std::shared_ptr<NetSharingSubSmState> netShareState = std::make_shared<NetSharingSubSmState>(subSm, isNcm);
         subStateMachineMap_.insert(std::make_pair(iface, netShareState));
     }
-    NETMGR_EXT_LOG_I("adding subSM[%{public}s], type[%{public}d], current subSM count[%{public}ud]", iface.c_str(),
-                     static_cast<SharingIfaceType>(interfaceType), subStateMachineMap_.size());
+    NETMGR_EXT_LOG_I("adding subSM[%{public}s], type[%{public}d], current subSM count[%{public}s]", iface.c_str(),
+                     static_cast<SharingIfaceType>(interfaceType),
+                     std::to_string(subStateMachineMap_.size()).c_str());
     return NETWORKSHARE_SUCCESS;
 }
 
@@ -952,8 +953,8 @@ void NetworkShareTracker::StopSubStateMachine(const std::string iface, const Sha
         std::lock_guard lock(mutex_);
         if (subStateMachineMap_.count(findKey) > 0) {
             subStateMachineMap_.erase(findKey);
-            NETMGR_EXT_LOG_I("removed iface[%{public}s] subSM, current subSM count[%{public}ud].", iface.c_str(),
-                             subStateMachineMap_.size());
+            NETMGR_EXT_LOG_I("removed iface[%{public}s] subSM, current subSM count[%{public}s].", iface.c_str(),
+                             std::to_string(subStateMachineMap_.size()).c_str());
         }
     }
 }
