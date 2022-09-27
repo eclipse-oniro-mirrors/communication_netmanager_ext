@@ -18,6 +18,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
+#include <limits>
+#include <stdlib.h>
 
 #include <fstream>
 #include <sstream>
@@ -92,7 +94,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     config->ipStatic_.ipAddr_.address_ = jsonData[CONFIG_KEY_ETH_IP];
     config->ipStatic_.ipAddr_.netMask_ = jsonData[CONFIG_KEY_ETH_NETMASK];
     config->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_IP]);
-    unsigned int prefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_NETMASK]);
+    int prefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_NETMASK]);
     if (config->ipStatic_.ipAddr_.family_ == AF_INET) {
         config->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
     }
@@ -103,7 +105,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
         config->ipStatic_.gateway_.prefixlen_ = prefixLen;
     }
     config->ipStatic_.route_.address_ = jsonData[CONFIG_KEY_ETH_ROUTE];
-    unsigned int routePrefixLen = 0;
+    int routePrefixLen = 0;
     if (!jsonData[CONFIG_KEY_ETH_ROUTE_MASK].empty()) {
         routePrefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
     }
@@ -159,7 +161,7 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
     bool ret = CreateDir(USER_CONFIG_DIR);
     NETMGR_EXT_LOG_D("CreateDir ret[%{public}d]", ret);
     if (cfg->mode_ == STATIC) {
-        unsigned int prefixlen = 0;
+        int prefixlen = 0;
         cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.ipAddr_.address_);
         if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
             if (cfg->ipStatic_.netMask_.address_.empty()) {
@@ -172,7 +174,7 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
         cfg->ipStatic_.gateway_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.gateway_.address_);
         cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
         cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_);
-        unsigned int routePrefixLen = 0;
+        int routePrefixLen = 0;
         if (!cfg->ipStatic_.route_.netMask_.empty()) {
             routePrefixLen = CommonUtils::GetMaskLength(cfg->ipStatic_.route_.netMask_);
         }
@@ -363,7 +365,7 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
         cfg->ipStatic_.ipAddr_.address_ = ipAddr;
         cfg->ipStatic_.ipAddr_.netMask_ = netMask;
         cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(ipAddr);
-        unsigned int prefixLen = CommonUtils::GetMaskLength(netMask);
+        int prefixLen = CommonUtils::GetMaskLength(netMask);
         if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
             cfg->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
         }
@@ -374,7 +376,7 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
             cfg->ipStatic_.gateway_.prefixlen_ = prefixLen;
         }
         cfg->ipStatic_.route_.address_ = route;
-        unsigned int routePrefixLen = 0;
+        int routePrefixLen = 0;
         if (!routeNetmask.empty()) {
             routePrefixLen = CommonUtils::GetMaskLength(routeNetmask);
         }
