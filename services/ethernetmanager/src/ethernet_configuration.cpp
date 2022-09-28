@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include <limits>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <fstream>
 #include <sstream>
