@@ -106,31 +106,6 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
 }
 
 /**
- * @tc.name: EthernetManager002
- * @tc.desc: Test EthernetManager GetIfaceConfig.
- * @tc.type: FUNC
- */
-HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
-{
-    std::string iface = "eth0";
-    sptr<InterfaceConfiguration> ic =
-        DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(iface);
-    ASSERT_TRUE(ic != nullptr);
-}
-
-/**
- * @tc.name: EthernetManager003
- * @tc.desc: Test EthernetManager IsIfaceActive.
- * @tc.type: FUNC
- */
-HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
-{
-    std::string iface = "eth0";
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface);
-    ASSERT_TRUE(result != -1);
-}
-
-/**
  * @tc.name: EthernetManager004
  * @tc.desc: Test EthernetManager GetAllActiveIfaces.
  * @tc.type: FUNC
@@ -141,17 +116,6 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
     for (std::string& s : result) {
         std::cout << s << ","<< std::endl;
     }
-}
-
-/**
- * @tc.name: EthernetManager005
- * @tc.desc: Test EthernetManager ResetFactory.
- * @tc.type: FUNC
- */
-HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
-{
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
-    ASSERT_TRUE(result == 0);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
