@@ -213,8 +213,7 @@ int NetworkShareMainStateMachine::HandleAliveInterfaceStateActive(const std::any
 int NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive(const std::any &messageObj)
 {
     int ret = EraseSharedSubSM(messageObj);
-    if (ret != NETWORKSHARE_SUCCESS)
-    {
+    if (ret != NETWORKSHARE_SUCCESS) {
         return ret;
     }
     if (subMachineList_.size() == 0) {
