@@ -227,7 +227,7 @@ Route DevInterfaceState::CreateLocalRoute(
     NETMGR_EXT_LOG_I("create local route ipAddr=%{public}s maskAddr=%{public}s.",
                      CommonUtils::ToAnonymousIp(ipAddr).c_str(), maskAddr.c_str());
     struct Route localRoute;
-    unsigned int prefixLength = CommonUtils::GetMaskLength(maskAddr);
+    int prefixLength = CommonUtils::GetMaskLength(maskAddr);
     unsigned int ipInt = CommonUtils::ConvertIpv4Address(ipAddr);
     unsigned int maskInt = CommonUtils::ConvertIpv4Address(maskAddr);
     std::string strLocalRoute = CommonUtils::ConvertIpv4Address(ipInt & maskInt);

@@ -186,18 +186,7 @@ int NetworkShareMainStateMachine::HandleInitInterfaceStateActive(const std::any 
 
 int NetworkShareMainStateMachine::HandleInitInterfaceStateInactive(const std::any &messageObj)
 {
-    const MessageIfaceActive &temp = std::any_cast<const MessageIfaceActive &>(messageObj);
-    if (temp.subsm_ == nullptr) {
-        NETMGR_EXT_LOG_E("subsm[%{public}d] is null.", temp.value_);
-        return NETWORKSHARE_ERROR;
-    }
-    subMachineList_.erase(
-        remove_if(subMachineList_.begin(), subMachineList_.end(),
-                  [temp](std::shared_ptr<NetworkShareSubStateMachine> sm) { return sm == temp.subsm_; }),
-        subMachineList_.end());
-
-    NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(false, temp.subsm_);
-    return NETWORKSHARE_SUCCESS;
+    return EraseSharedSubSM(messageObj);
 }
 
 int NetworkShareMainStateMachine::HandleAliveInterfaceStateActive(const std::any &messageObj)
@@ -223,6 +212,18 @@ int NetworkShareMainStateMachine::HandleAliveInterfaceStateActive(const std::any
 
 int NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive(const std::any &messageObj)
 {
+    int ret = EraseSharedSubSM(messageObj);
+    if (ret != NETWORKSHARE_SUCCESS) {
+        return ret;
+    }
+    if (subMachineList_.size() == 0) {
+        TurnOffMainShareSettings();
+    }
+    return NETWORKSHARE_SUCCESS;
+}
+
+int NetworkShareMainStateMachine::EraseSharedSubSM(const std::any &messageObj)
+{
     const MessageIfaceActive &temp = std::any_cast<const MessageIfaceActive &>(messageObj);
     if (temp.subsm_ == nullptr) {
         NETMGR_EXT_LOG_E("subsm[%{public}d] is null.", temp.value_);
@@ -234,9 +235,6 @@ int NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive(const std::a
         subMachineList_.end());
 
     NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(false, temp.subsm_);
-    if (subMachineList_.size() == 0) {
-        TurnOffMainShareSettings();
-    }
     return NETWORKSHARE_SUCCESS;
 }
 

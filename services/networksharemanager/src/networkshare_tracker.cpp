@@ -521,56 +521,63 @@ int32_t NetworkShareTracker::UnregisterSharingEvent(sptr<ISharingEventCallback> 
 
 int32_t NetworkShareTracker::GetStatsRxBytes()
 {
-    int64_t totalBytes = 0;
+    int64_t rxBytes = 0;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
-        [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
-        std::string downIface;
-        std::string upIface;
+        [this, &rxBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
+        if (subSM == nullptr) {
+            return;
+        }
+        std::string rxDownIface;
+        std::string rxUpIface;
         nmd::NetworkSharingTraffic traffic;
-        subSM->GetDownIfaceName(downIface);
-        subSM->GetUpIfaceName(upIface);
-        NETMGR_EXT_LOG_I("DownIface[%{public}s], upIface[%{public}s].", downIface.c_str(), upIface.c_str());
-        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
-        if (ret == NETMANAGER_SUCCESS) {
-            totalBytes += traffic.receive;
-        }
+        subSM->GetDownIfaceName(rxDownIface);
+        subSM->GetUpIfaceName(rxUpIface);
+        NETMGR_EXT_LOG_I("GetStatsRxBytes DownIface[%{public}s], upIface[%{public}s].",
+            rxDownIface.c_str(), rxUpIface.c_str());
+        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(rxDownIface, rxUpIface, traffic);
         if (ret != NETMANAGER_SUCCESS) {
-            NETMGR_EXT_LOG_E("GetStatsRxBytes error, downIface[%{public}s], ret[%{public}d].", downIface.c_str(), ret);
+            NETMGR_EXT_LOG_E("GetStatsRxBytes error, ret[%{public}d].", ret);
+            return;
         }
+        rxBytes += traffic.receive;
     });
-    if (totalBytes/BYTE_TRANSFORM_KB > std::numeric_limits<int32_t>::max()) {
+    int32_t rxKBByte = rxBytes/BYTE_TRANSFORM_KB;
+    if (rxKBByte > std::numeric_limits<int32_t>::max()) {
         NETMGR_EXT_LOG_I("GetStatsRxBytes the size is above max.");
         return std::numeric_limits<int32_t>::max();
-    } else {
-        return totalBytes/BYTE_TRANSFORM_KB;
     }
+    return rxKBByte;
 }
 
 int32_t NetworkShareTracker::GetStatsTxBytes()
 {
-    int64_t totalBytes = 0;
+    int64_t txBytes = 0;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
-        [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
-        std::string downIface;
-        std::string upIface;
+        [this, &txBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
+        if (subSM == nullptr) {
+            return;
+        }
+        std::string txDownIface;
+        std::string txUpIface;
         nmd::NetworkSharingTraffic traffic;
-        subSM->GetDownIfaceName(downIface);
-        subSM->GetUpIfaceName(upIface);
-        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
-        if (ret == NETMANAGER_SUCCESS) {
-            totalBytes += traffic.send;
-        }
+        subSM->GetDownIfaceName(txDownIface);
+        subSM->GetUpIfaceName(txUpIface);
+        NETMGR_EXT_LOG_I("GetStatsTxBytes DownIface[%{public}s], upIface[%{public}s].",
+            txDownIface.c_str(), txUpIface.c_str());
+        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(txDownIface, txUpIface, traffic);
         if (ret != NETMANAGER_SUCCESS) {
-            NETMGR_EXT_LOG_E("GetStatsTxBytes error, downIface[%{public}s], ret[%{public}d].", downIface.c_str(), ret);
+            NETMGR_EXT_LOG_E("GetStatsTxBytes error, ret[%{public}d].", ret);
+            return;
         }
+        txBytes += traffic.send;
     });
 
-    if (totalBytes/BYTE_TRANSFORM_KB > std::numeric_limits<int32_t>::max()) {
+    int32_t txKBByte = txBytes/BYTE_TRANSFORM_KB;
+    if (txKBByte > std::numeric_limits<int32_t>::max()) {
         NETMGR_EXT_LOG_I("GetStatsTxBytes the size is above max.");
         return std::numeric_limits<int32_t>::max();
-    } else {
-        return totalBytes/BYTE_TRANSFORM_KB;
     }
+    return txKBByte;
 }
 
 int32_t NetworkShareTracker::GetStatsTotalBytes()
@@ -578,26 +585,30 @@ int32_t NetworkShareTracker::GetStatsTotalBytes()
     int64_t totalBytes = 0;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
         [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
+        if (subSM == nullptr) {
+            return;
+        }
         std::string downIface;
         std::string upIface;
         nmd::NetworkSharingTraffic traffic;
         subSM->GetDownIfaceName(downIface);
         subSM->GetUpIfaceName(upIface);
+        NETMGR_EXT_LOG_I("GetStatsTotalBytes DownIface[%{public}s], upIface[%{public}s].",
+            downIface.c_str(), upIface.c_str());
         int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
-        if (ret == NETMANAGER_SUCCESS) {
-            totalBytes += traffic.all;
-        }
         if (ret != NETMANAGER_SUCCESS) {
-            NETMGR_EXT_LOG_E("GetStatsTotalBytes err, downIface[%{public}s], ret[%{public}d].", downIface.c_str(), ret);
+            NETMGR_EXT_LOG_E("GetStatsTotalBytes err, ret[%{public}d].", ret);
+            return;
         }
+        totalBytes += traffic.all;
     });
 
-    if (totalBytes/BYTE_TRANSFORM_KB > std::numeric_limits<int32_t>::max()) {
+    int32_t totalKBByte = totalBytes/BYTE_TRANSFORM_KB;
+    if (totalKBByte > std::numeric_limits<int32_t>::max()) {
         NETMGR_EXT_LOG_I("GetStatsTotalBytes the size is above max.");
         return std::numeric_limits<int32_t>::max();
-    } else {
-        return totalBytes/BYTE_TRANSFORM_KB;
     }
+    return totalKBByte;
 }
 
 int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &type, bool enable)

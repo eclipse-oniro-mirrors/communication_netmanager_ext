@@ -68,7 +68,8 @@ void NetShareAsyncWork::IsSharingCallback(napi_env env, napi_status status, void
 
 void NetShareAsyncWork::StartSharingCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<NetShareStartSharingContext, NetShareExec::StartSharingCallback>(env, status, data);
+    BaseAsyncWork::AsyncWorkCallback<NetShareStartSharingContext, NetShareExec::StartSharingCallback>(env, status,
+                                                                                                      data);
 }
 
 void NetShareAsyncWork::StopSharingCallback(napi_env env, napi_status status, void *data)
