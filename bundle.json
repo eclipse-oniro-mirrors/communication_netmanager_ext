@@ -24,7 +24,7 @@
         ],
         "features": [
             "netmanager_ext_feature_ethernet",
-	    "netmanager_ext_feature_share"
+            "netmanager_ext_feature_share"
         ],
         "adapted_system_type": [
             "standard"
@@ -57,14 +57,26 @@
                 "base_group": [
                     "//foundation/communication/netmanager_ext:common_ext_packages"
                 ],
-                "fwk_group": [
-                ],
+                "fwk_group": [],
                 "service_group": [
                     "//foundation/communication/netmanager_ext:ethernet_packages",
-		    "//foundation/communication/netmanager_ext:share_packages"
+                    "//foundation/communication/netmanager_ext:share_packages"
                 ]
             },
-            "inner_kits": [],
+            "inner_kits": [
+                {
+                    "type": "so",
+                    "name": "//foundation/communication/netmanager_ext/interfaces/innerkits/netshareclient:net_tether_manager_if",
+                    "header": {
+                        "header_files": [
+                            "netshareclient/include/networkshare_client.h",
+                            "netshareclient/include/networkshare_constants.h",
+                            "netshareclient/include/proxy/ipccallback/sharing_event_callback_stub.h"
+                        ],
+                        "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
+                    }
+                }
+            ],
             "test": [
                 "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest",
                 "//foundation/communication/netmanager_ext/test/ethernetmanager:fuzztest"
