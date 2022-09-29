@@ -961,7 +961,7 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
         subStateMachineMap_.insert(std::make_pair(iface, netShareState));
     }
     NETMGR_EXT_LOG_I("adding subSM[%{public}s], type[%{public}d], current subSM count[%{public}s]", iface.c_str(),
-                     static_cast<SharingIfaceType>(interfaceType), std::to_string(subStateMachineMap_.size()));
+                     static_cast<SharingIfaceType>(interfaceType), std::to_string(subStateMachineMap_.size().c_str()));
     return NETWORKSHARE_SUCCESS;
 }
 
