@@ -74,6 +74,7 @@ private:
     void AliveStateExit();
     void ErrorStateExit();
     void ChooseUpstreamType();
+    int EraseSharedSubSM(const std::any &messageObj);
 
 private:
     struct MainSmStateTable {

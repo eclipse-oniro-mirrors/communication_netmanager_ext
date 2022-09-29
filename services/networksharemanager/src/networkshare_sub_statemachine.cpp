@@ -142,24 +142,24 @@ void NetworkShareSubStateMachine::SubSmEventHandle(int eventId, const std::any &
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     int nextState = NO_NEXT_STATE;
-    int (NetworkShareSubStateMachine::*eventActionFun)(const std::any &messageObj) = nullptr;
-    for (auto &iter : stateTable_) {
-        if ((eventId == iter.event_) && (curState_ == iter.curState_)) {
-            eventActionFun = iter.func_;
-            nextState = iter.nextState_;
+    int (NetworkShareSubStateMachine::*eventFunc)(const std::any &messageObj) = nullptr;
+    for (auto &iterState : stateTable_) {
+        if ((eventId == iterState.event_) && (curState_ == iterState.curState_)) {
+            eventFunc = iterState.func_;
+            nextState = iterState.nextState_;
             break;
         }
     }
-    if (eventActionFun == nullptr) {
-        NETMGR_EXT_LOG_W("currentstate[%{public}d] eventId[%{public}d] is not matched.", curState_, eventId);
+    if (eventFunc == nullptr) {
+        NETMGR_EXT_LOG_W("SubSM currentstate[%{public}d] eventId[%{public}d] is not matched.", curState_, eventId);
         return;
     }
-    (this->*eventActionFun)(messageObj);
+    (this->*eventFunc)(messageObj);
     if (nextState >= SUBSTATE_INIT && nextState < SUBSTATE_MAX) {
         SubSmStateSwitch(nextState);
     }
 
-    NETMGR_EXT_LOG_I("Sub SM eventId[%{public}d] handle successfull.", eventId);
+    NETMGR_EXT_LOG_I("SubSM eventId[%{public}d] handle successfull.", eventId);
 }
 
 void NetworkShareSubStateMachine::GetDownIfaceName(std::string &downIface)
@@ -276,6 +276,12 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
     CleanupUpstreamInterface();
     upstreamIfaceName_ = upstreamNetInfo->netLinkPro_->ifaceName_;
 
+    HandleConnection();
+    AddRoutesToLocalNetwork();
+}
+
+void NetworkShareSubStateMachine::HandleConnection()
+{
     int32_t result = NetsysController::GetInstance().EnableNat(ifaceName_, upstreamIfaceName_);
     if (result != NETMANAGER_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
@@ -319,8 +325,6 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
         SubSmStateSwitch(SUBSTATE_INIT);
         return;
     }
-
-    AddRoutesToLocalNetwork();
 }
 
 void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
@@ -453,10 +457,6 @@ bool NetworkShareSubStateMachine::GetWifiApDestinationAddr(std::string &addrStr)
 
 bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &netAddr)
 {
-    if (netShareType_ == SharingIfaceType::SHARING_WIFI && !GetWifiHotspotDhcpFlag()) {
-        NETMGR_EXT_LOG_W("StartDhcp wifi hotspot not need start.");
-        return true;
-    }
     if (dhcpService_ == nullptr) {
         dhcpService_ = std::make_unique<OHOS::Wifi::DhcpService>();
         if (dhcpService_ == nullptr) {
@@ -557,6 +557,10 @@ bool NetworkShareSubStateMachine::ConfigureShareDhcp(bool enabled)
     }
 
     if (enabled) {
+        if (netShareType_ == SharingIfaceType::SHARING_WIFI && !GetWifiHotspotDhcpFlag()) {
+            NETMGR_EXT_LOG_W("StartDhcp wifi hotspot not need start.");
+            return true;
+        }
         return StartDhcp(ipv4Address);
     }
     return StopDhcp();

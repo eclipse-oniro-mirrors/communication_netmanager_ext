@@ -21,7 +21,8 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-NetShareStartSharingContext::NetShareStartSharingContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+NetShareStartSharingContext::NetShareStartSharingContext(napi_env env, EventManager *manager)
+    : BaseContext(env, manager) {}
 
 void NetShareStartSharingContext::ParseParams(napi_value *params, size_t paramsCount)
 {

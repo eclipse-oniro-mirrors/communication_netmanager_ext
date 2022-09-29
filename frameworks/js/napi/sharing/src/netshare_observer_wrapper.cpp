@@ -38,7 +38,7 @@ NetShareObserverWrapper::~NetShareObserverWrapper()
 }
 
 napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
-                                    const std::initializer_list<std::string_view> &events, bool asyncCallback)
+                                      const std::initializer_list<std::string_view> &events, bool asyncCallback)
 {
     size_t paramsCount = MAX_PARAM_NUM;
     napi_value params[MAX_PARAM_NUM] = {nullptr};
@@ -65,7 +65,7 @@ napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
 }
 
 napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
-                                     const std::initializer_list<std::string_view> &events, bool asyncCallback)
+                                       const std::initializer_list<std::string_view> &events, bool asyncCallback)
 {
     napi_value thisVal = nullptr;
     size_t paramsCount = MAX_PARAM_NUM;
