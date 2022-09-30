@@ -970,7 +970,7 @@ void NetworkShareTracker::StopSubStateMachine(const std::string iface, const Sha
 {
     std::shared_ptr<NetworkShareSubStateMachine> subSM = nullptr;
     std::string findKey;
-    if(!FindSubStateMachine(iface, interfaceType, subSM, findKey)) {
+    if (!FindSubStateMachine(iface, interfaceType, subSM, findKey)) {
         NETMGR_EXT_LOG_W("not find the subSM.");
         return;
     }
