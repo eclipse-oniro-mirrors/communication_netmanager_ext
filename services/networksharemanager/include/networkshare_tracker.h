@@ -231,18 +231,19 @@ private:
     int32_t SetUsbNetworkSharing(bool enable);
     int32_t SetBluetoothNetworkSharing(bool enable);
     void EnableWifiSubStateMachine();
-    void DisableWifiSubStateMachine();
     void EnableBluetoothSubStateMachine();
-    void DisableBluetoothSubStateMachine();
     int32_t Sharing(std::string iface, int32_t reqState);
     void SendGlobalSharingStateChange();
     void SendIfaceSharingStateChange(const SharingIfaceType type, const std::string iface,
                                      const SharingIfaceState state);
     void SendSharingUpstreamChange(const sptr<NetHandle> netHandle);
     int32_t CreateSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType, bool isNcm);
-    void StopSubStateMachine(const std::string iface);
+    void StopSubStateMachine(const std::string iface, const SharingIfaceType &interfaceType);
     bool IsInterfaceMatchType(const std::string &iface, const SharingIfaceType &type);
     bool InterfaceNameToType(const std::string &iface, SharingIfaceType &type);
+    bool IsHandleNetlinkEvent(const SharingIfaceType &type, bool up);
+    bool FindSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType,
+                             std::shared_ptr<NetworkShareSubStateMachine> &subSM, std::string &findKey);
     void InterfaceAdded(const std::string &iface);
     void InterfaceRemoved(const std::string &iface);
     void InterfaceStatusChanged(const std::string &iface, bool up);
@@ -251,11 +252,13 @@ private:
     SharingIfaceState SubSmStateToExportState(const int32_t state);
     void RegisterWifiApCallback();
     void RegisterBtPanCallback();
+    void SetWifiState(const Wifi::ApState &state);
+    void SetBluetoothState(const Bluetooth::BTConnectState &state);
 
 private:
     std::mutex mutex_;
     std::shared_ptr<NetworkShareConfiguration> configuration_ = nullptr;
-    sptr<NetsysCallback> netsysCallback_ = nullptr;
+    sptr<NetsysControllerCallback> netsysCallback_ = nullptr;
     std::shared_ptr<NetworkShareTracker::ManagerEventHandler> eventHandler_ = nullptr;
     std::shared_ptr<AppExecFwk::EventRunner> eventRunner_ = nullptr;
     std::weak_ptr<NetworkShareUpstreamMonitor::MonitorEventHandler> monitorHandler_;
@@ -269,11 +272,12 @@ private:
     bool isNetworkSharing_ = false;
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
     std::vector<SharingIfaceType> clientRequestsVector_;
-    bool mWifiNetShareRequested_;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
     int32_t wifiShareCount_ = 0;
     int32_t bluetoothShareCount_ = 0;
+    Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
+    Bluetooth::BTConnectState curBluetoothState_ = Bluetooth::BTConnectState::DISCONNECTED;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
