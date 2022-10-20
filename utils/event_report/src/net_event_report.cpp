@@ -32,7 +32,7 @@ constexpr const char *EVENT_KEY_ERROR_MSG = "ERROR_MSG";
 
 void NetEventReport::SendSetupFaultEvent(const EventInfo &eventInfo)
 {
-    HiSysEvent::Write(
+    HiSysEventWrite(
         HiSysEvent::Domain::NETMANAGER_STANDARD,
         NET_SHARING_SETUP_FAULT,
         HiSysEvent::EventType::FAULT,
@@ -44,7 +44,7 @@ void NetEventReport::SendSetupFaultEvent(const EventInfo &eventInfo)
 
 void NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
 {
-    HiSysEvent::Write(
+    HiSysEventWrite(
         HiSysEvent::Domain::NETMANAGER_STANDARD,
         NET_SHARING_CANCLE_FAULT,
         HiSysEvent::EventType::FAULT,
@@ -56,7 +56,7 @@ void NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
 
 void NetEventReport::SendTimeBehaviorEvent(const EventInfo &eventInfo)
 {
-    HiSysEvent::Write(
+    HiSysEventWrite(
         HiSysEvent::Domain::NETMANAGER_STANDARD,
         NET_SHARING_TIME_STAT,
         HiSysEvent::EventType::BEHAVIOR,
