@@ -22,10 +22,16 @@
 namespace OHOS {
 namespace NetManagerStandard {
 NetShareStartSharingContext::NetShareStartSharingContext(napi_env env, EventManager *manager)
-    : BaseContext(env, manager) {}
+    : BaseContext(env, manager)
+{
+}
 
 void NetShareStartSharingContext::ParseParams(napi_value *params, size_t paramsCount)
 {
+    if (params == nullptr) {
+        NETMANAGER_EXT_LOGE("params is nullptr");
+        return;
+    }
     if (!CheckParamsType(params, paramsCount)) {
         NETMANAGER_EXT_LOGE("CheckParamsType failed");
         return;
@@ -44,6 +50,10 @@ bool NetShareStartSharingContext::CheckParamsType(napi_value *params, size_t par
         return true;
     }
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
+        if (params == nullptr) {
+            NETMANAGER_EXT_LOGE("params is nullptr");
+            return false;
+        }
         return NapiUtils::GetValueType(GetEnv(), params[ARG_INDEX_1]) == napi_function;
     }
     return false;

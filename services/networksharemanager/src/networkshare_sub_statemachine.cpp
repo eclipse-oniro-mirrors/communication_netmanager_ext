@@ -174,6 +174,10 @@ void NetworkShareSubStateMachine::GetUpIfaceName(std::string &upIface)
 
 void NetworkShareSubStateMachine::InitStateEnter()
 {
+    if (trackerCallback_ == nullptr) {
+        NETMGR_EXT_LOG_E("Enter Sub StateMachine Init State error, trackerCallback_ is null.");
+        return;
+    }
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Init State.", ifaceName_.c_str());
     std::shared_ptr<NetworkShareSubStateMachine> subStateMachine = shared_from_this();
     trackerCallback_->OnUpdateInterfaceState(subStateMachine, SUB_SM_STATE_AVAILABLE, lastError_);
@@ -204,7 +208,11 @@ void NetworkShareSubStateMachine::SharedStateEnter()
     }
     if (lastError_ != NETWORKSHARE_ERROR_NO_ERROR) {
         SubSmStateSwitch(SUBSTATE_INIT);
-	return;
+        return;
+    }
+    if (trackerCallback_ == nullptr) {
+        NETMGR_EXT_LOG_E("Enter Sub StateMachine Shared State error, trackerCallback_ is null.");
+        return;
     }
     std::shared_ptr<NetworkShareSubStateMachine> subStateMachine = shared_from_this();
     trackerCallback_->OnUpdateInterfaceState(subStateMachine, SUB_SM_STATE_SHARED, lastError_);
@@ -251,6 +259,10 @@ void NetworkShareSubStateMachine::UnavailableStateEnter()
 {
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Unavailable State.", ifaceName_.c_str());
     lastError_ = NETWORKSHARE_ERROR_NO_ERROR;
+    if (trackerCallback_ == nullptr) {
+        NETMGR_EXT_LOG_E("Enter Sub StateMachine Unavailable State error, trackerCallback_ is null.");
+        return;
+    }
     std::shared_ptr<NetworkShareSubStateMachine> subStateMachine = shared_from_this();
     trackerCallback_->OnUpdateInterfaceState(subStateMachine, SUB_SM_STATE_UNAVAILABLE, NETWORKSHARE_ERROR_NO_ERROR);
 }

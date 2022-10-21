@@ -39,7 +39,14 @@ private:
     template <napi_value (*MakeJsValue)(napi_env, void *)> static void CallbackTemplate(uv_work_t *work, int status)
     {
         (void)status;
+        if (work == nullptr || MakeJsValue == nullptr) {
+            return;
+        }
         auto workWrapper = static_cast<UvWorkWrapper *>(work->data);
+        if (workWrapper == nullptr) {
+            delete work;
+            return;
+        }
         napi_env env = workWrapper->env;
         auto closeScope = [env](napi_handle_scope scope) { NapiUtils::CloseScope(env, scope); };
         std::unique_ptr<napi_handle_scope__, decltype(closeScope)> scope(NapiUtils::OpenScope(env), closeScope);

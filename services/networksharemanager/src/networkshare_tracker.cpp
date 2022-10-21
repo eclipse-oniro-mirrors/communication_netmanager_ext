@@ -17,12 +17,12 @@
 
 #include <system_ability_definition.h>
 
-#include "netsys_controller.h"
-#include "netmgr_ext_log_wrapper.h"
-#include "networkshare_constants.h"
 #include "net_manager_constants.h"
-#include "networkshare_state_common.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
 #include "network_sharing.h"
+#include "networkshare_constants.h"
+#include "networkshare_state_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -33,6 +33,7 @@ static constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed
 static constexpr const char *ERROR_MSG_ENABLE_BTPAN = "Enable BlueTooth Iface failed";
 static constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed";
 static constexpr const int32_t BYTE_TRANSFORM_KB = 1024;
+static constexpr const int32_t MAX_CALLBACK_COUNT = 100;
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAddressUpdated(const std::string &, const std::string &, int,
                                                                        int)
@@ -497,6 +498,10 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
         NETMGR_EXT_LOG_E("callback is null.");
         return NETWORKSHARE_ERROR;
     }
+    if (sharingEventCallback_.size() >= MAX_CALLBACK_COUNT) {
+        NETMGR_EXT_LOG_E("callback above max count, current size=%{public}d.", sharingEventCallback_.size());
+        return NETWORKSHARE_ERROR;
+    }
     sharingEventCallback_.push_back(callback);
     return NETWORKSHARE_SUCCESS;
 }
@@ -516,25 +521,26 @@ int32_t NetworkShareTracker::GetStatsRxBytes()
 {
     int64_t rxBytes = 0;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
-        [this, &rxBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
-        if (subSM == nullptr) {
-            return;
-        }
-        std::string rxDownIface;
-        std::string rxUpIface;
-        nmd::NetworkSharingTraffic traffic;
-        subSM->GetDownIfaceName(rxDownIface);
-        subSM->GetUpIfaceName(rxUpIface);
-        NETMGR_EXT_LOG_I("GetStatsRxBytes DownIface[%{public}s], upIface[%{public}s].",
-            rxDownIface.c_str(), rxUpIface.c_str());
-        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(rxDownIface, rxUpIface, traffic);
-        if (ret != NETMANAGER_SUCCESS) {
-            NETMGR_EXT_LOG_E("GetStatsRxBytes error, ret[%{public}d].", ret);
-            return;
-        }
-        rxBytes += traffic.receive;
-    });
-    int32_t rxKBByte = rxBytes/BYTE_TRANSFORM_KB;
+             [this, &rxBytes](std::shared_ptr<NetworkShareSubStateMachine> &subSM) {
+                 if (subSM == nullptr) {
+                     return;
+                 }
+                 std::string rxDownIface;
+                 std::string rxUpIface;
+                 nmd::NetworkSharingTraffic traffic;
+                 subSM->GetDownIfaceName(rxDownIface);
+                 subSM->GetUpIfaceName(rxUpIface);
+                 NETMGR_EXT_LOG_I("GetStatsRxBytes DownIface[%{public}s], upIface[%{public}s].", rxDownIface.c_str(),
+                                  rxUpIface.c_str());
+                 int32_t ret =
+                     NetsysController::GetInstance().GetNetworkSharingTraffic(rxDownIface, rxUpIface, traffic);
+                 if (ret != NETMANAGER_SUCCESS) {
+                     NETMGR_EXT_LOG_E("GetStatsRxBytes error, ret[%{public}d].", ret);
+                     return;
+                 }
+                 rxBytes += traffic.receive;
+             });
+    int32_t rxKBByte = rxBytes / BYTE_TRANSFORM_KB;
     if (rxKBByte > std::numeric_limits<int32_t>::max()) {
         NETMGR_EXT_LOG_I("GetStatsRxBytes the size is above max.");
         return std::numeric_limits<int32_t>::max();
@@ -546,26 +552,27 @@ int32_t NetworkShareTracker::GetStatsTxBytes()
 {
     int64_t txBytes = 0;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
-        [this, &txBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
-        if (subSM == nullptr) {
-            return;
-        }
-        std::string txDownIface;
-        std::string txUpIface;
-        nmd::NetworkSharingTraffic traffic;
-        subSM->GetDownIfaceName(txDownIface);
-        subSM->GetUpIfaceName(txUpIface);
-        NETMGR_EXT_LOG_I("GetStatsTxBytes DownIface[%{public}s], upIface[%{public}s].",
-            txDownIface.c_str(), txUpIface.c_str());
-        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(txDownIface, txUpIface, traffic);
-        if (ret != NETMANAGER_SUCCESS) {
-            NETMGR_EXT_LOG_E("GetStatsTxBytes error, ret[%{public}d].", ret);
-            return;
-        }
-        txBytes += traffic.send;
-    });
+             [this, &txBytes](std::shared_ptr<NetworkShareSubStateMachine> &subSM) {
+                 if (subSM == nullptr) {
+                     return;
+                 }
+                 std::string txDownIface;
+                 std::string txUpIface;
+                 nmd::NetworkSharingTraffic traffic;
+                 subSM->GetDownIfaceName(txDownIface);
+                 subSM->GetUpIfaceName(txUpIface);
+                 NETMGR_EXT_LOG_I("GetStatsTxBytes DownIface[%{public}s], upIface[%{public}s].", txDownIface.c_str(),
+                                  txUpIface.c_str());
+                 int32_t ret =
+                     NetsysController::GetInstance().GetNetworkSharingTraffic(txDownIface, txUpIface, traffic);
+                 if (ret != NETMANAGER_SUCCESS) {
+                     NETMGR_EXT_LOG_E("GetStatsTxBytes error, ret[%{public}d].", ret);
+                     return;
+                 }
+                 txBytes += traffic.send;
+             });
 
-    int32_t txKBByte = txBytes/BYTE_TRANSFORM_KB;
+    int32_t txKBByte = txBytes / BYTE_TRANSFORM_KB;
     if (txKBByte > std::numeric_limits<int32_t>::max()) {
         NETMGR_EXT_LOG_I("GetStatsTxBytes the size is above max.");
         return std::numeric_limits<int32_t>::max();
@@ -577,26 +584,26 @@ int32_t NetworkShareTracker::GetStatsTotalBytes()
 {
     int64_t totalBytes = 0;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(),
-        [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine>& subSM) {
-        if (subSM == nullptr) {
-            return;
-        }
-        std::string downIface;
-        std::string upIface;
-        nmd::NetworkSharingTraffic traffic;
-        subSM->GetDownIfaceName(downIface);
-        subSM->GetUpIfaceName(upIface);
-        NETMGR_EXT_LOG_I("GetStatsTotalBytes DownIface[%{public}s], upIface[%{public}s].",
-            downIface.c_str(), upIface.c_str());
-        int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
-        if (ret != NETMANAGER_SUCCESS) {
-            NETMGR_EXT_LOG_E("GetStatsTotalBytes err, ret[%{public}d].", ret);
-            return;
-        }
-        totalBytes += traffic.all;
-    });
+             [this, &totalBytes](std::shared_ptr<NetworkShareSubStateMachine> &subSM) {
+                 if (subSM == nullptr) {
+                     return;
+                 }
+                 std::string downIface;
+                 std::string upIface;
+                 nmd::NetworkSharingTraffic traffic;
+                 subSM->GetDownIfaceName(downIface);
+                 subSM->GetUpIfaceName(upIface);
+                 NETMGR_EXT_LOG_I("GetStatsTotalBytes DownIface[%{public}s], upIface[%{public}s].", downIface.c_str(),
+                                  upIface.c_str());
+                 int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(downIface, upIface, traffic);
+                 if (ret != NETMANAGER_SUCCESS) {
+                     NETMGR_EXT_LOG_E("GetStatsTotalBytes err, ret[%{public}d].", ret);
+                     return;
+                 }
+                 totalBytes += traffic.all;
+             });
 
-    int32_t totalKBByte = totalBytes/BYTE_TRANSFORM_KB;
+    int32_t totalKBByte = totalBytes / BYTE_TRANSFORM_KB;
     if (totalKBByte > std::numeric_limits<int32_t>::max()) {
         NETMGR_EXT_LOG_I("GetStatsTotalBytes the size is above max.");
         return std::numeric_limits<int32_t>::max();
@@ -754,10 +761,8 @@ int32_t NetworkShareTracker::Sharing(std::string iface, int32_t reqState)
     return NETWORKSHARE_ERROR;
 }
 
-bool NetworkShareTracker::FindSubStateMachine(const std::string &iface,
-                                              const SharingIfaceType &interfaceType,
-                                              std::shared_ptr<NetworkShareSubStateMachine> &subSM,
-                                              std::string &findKey)
+bool NetworkShareTracker::FindSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType,
+                                              std::shared_ptr<NetworkShareSubStateMachine> &subSM, std::string &findKey)
 {
     std::lock_guard lock(mutex_);
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter =
@@ -905,9 +910,11 @@ void NetworkShareTracker::NotifyDownstreamsHasNewUpstreamIface(const std::shared
 {
     upstreamInfo_ = netinfo;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(), [netinfo](std::shared_ptr<NetworkShareSubStateMachine> subsm) {
-        NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_CONNECTION_CHANGED.",
-                         subsm->GetInterfaceName().c_str());
-        subsm->SubSmEventHandle(CMD_NETSHARE_CONNECTION_CHANGED, netinfo);
+        if (subsm != nullptr) {
+            NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_CONNECTION_CHANGED.",
+                             subsm->GetInterfaceName().c_str());
+            subsm->SubSmEventHandle(CMD_NETSHARE_CONNECTION_CHANGED, netinfo);
+        }
     });
 }
 
@@ -943,8 +950,7 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
         subStateMachineMap_.insert(std::make_pair(iface, netShareState));
     }
     NETMGR_EXT_LOG_I("adding subSM[%{public}s], type[%{public}d], current subSM count[%{public}s]", iface.c_str(),
-                     static_cast<SharingIfaceType>(interfaceType),
-                     std::to_string(subStateMachineMap_.size()).c_str());
+                     static_cast<SharingIfaceType>(interfaceType), std::to_string(subStateMachineMap_.size()).c_str());
     return NETWORKSHARE_SUCCESS;
 }
 
@@ -952,12 +958,11 @@ void NetworkShareTracker::StopSubStateMachine(const std::string iface, const Sha
 {
     std::shared_ptr<NetworkShareSubStateMachine> subSM = nullptr;
     std::string findKey;
-    if(!FindSubStateMachine(iface, interfaceType, subSM, findKey)) {
+    if (!FindSubStateMachine(iface, interfaceType, subSM, findKey)) {
         NETMGR_EXT_LOG_W("not find the subSM.");
         return;
     }
-    NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_UNREQUESTED.",
-                     subSM->GetInterfaceName().c_str());
+    NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_UNREQUESTED.", subSM->GetInterfaceName().c_str());
     subSM->SubSmEventHandle(CMD_NETSHARE_UNREQUESTED, 0);
 
     {
@@ -972,6 +977,10 @@ void NetworkShareTracker::StopSubStateMachine(const std::string iface, const Sha
 
 bool NetworkShareTracker::InterfaceNameToType(const std::string &iface, SharingIfaceType &type)
 {
+    if (configuration_ == nullptr) {
+        NETMGR_EXT_LOG_E("configuration_ is null.");
+        return false;
+    }
     if (configuration_->IsWifiIface(iface)) {
         type = SharingIfaceType::SHARING_WIFI;
         return true;
@@ -990,18 +999,22 @@ bool NetworkShareTracker::InterfaceNameToType(const std::string &iface, SharingI
 bool NetworkShareTracker::IsHandleNetlinkEvent(const SharingIfaceType &type, bool up)
 {
     if (type == SharingIfaceType::SHARING_WIFI) {
-        return up ? curWifiState_ == Wifi::ApState::AP_STATE_STARTING :
-            curWifiState_ == Wifi::ApState::AP_STATE_CLOSING;
+        return up ? curWifiState_ == Wifi::ApState::AP_STATE_STARTING
+                  : curWifiState_ == Wifi::ApState::AP_STATE_CLOSING;
     }
     if (type == SharingIfaceType::SHARING_BLUETOOTH) {
-        return up ? curBluetoothState_ == Bluetooth::BTConnectState::CONNECTING :
-            curBluetoothState_ == Bluetooth::BTConnectState::DISCONNECTING;
+        return up ? curBluetoothState_ == Bluetooth::BTConnectState::CONNECTING
+                  : curBluetoothState_ == Bluetooth::BTConnectState::DISCONNECTING;
     }
     return false;
 }
 
 void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool up)
 {
+    if (eventHandler_ == nullptr) {
+        NETMGR_EXT_LOG_E("eventHandler_ is null.");
+        return;
+    }
     SharingIfaceType type;
     if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, up)) {
         NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
@@ -1023,6 +1036,10 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
 
 void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 {
+    if (eventHandler_ == nullptr) {
+        NETMGR_EXT_LOG_E("eventHandler_ is null.");
+        return;
+    }
     SharingIfaceType type;
     if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, true)) {
         NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
@@ -1037,6 +1054,10 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 
 void NetworkShareTracker::InterfaceRemoved(const std::string &iface)
 {
+    if (eventHandler_ == nullptr) {
+        NETMGR_EXT_LOG_E("eventHandler_ is null.");
+        return;
+    }
     SharingIfaceType type;
     if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, false)) {
         NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
@@ -1073,9 +1094,7 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
     if (isNetworkSharing_ != isSharing) {
         isNetworkSharing_ = isSharing;
         for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
-            [isSharing](sptr<ISharingEventCallback>& callback) {
-                callback->OnSharingStateChanged(isSharing);
-        });
+                 [isSharing](sptr<ISharingEventCallback> &callback) { callback->OnSharingStateChanged(isSharing); });
     }
 }
 
@@ -1087,9 +1106,9 @@ void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType typ
         return;
     }
     for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
-        [type, iface, state](sptr<ISharingEventCallback>& callback) {
-            callback->OnInterfaceSharingStateChanged(type, iface, state);
-    });
+             [type, iface, state](sptr<ISharingEventCallback> &callback) {
+                 callback->OnInterfaceSharingStateChanged(type, iface, state);
+             });
 }
 
 void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> netHandle)
@@ -1099,9 +1118,7 @@ void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> netHan
         return;
     }
     for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
-        [netHandle](sptr<ISharingEventCallback>& callback) {
-            callback->OnSharingUpstreamChanged(netHandle);
-    });
+             [netHandle](sptr<ISharingEventCallback> &callback) { callback->OnSharingUpstreamChanged(netHandle); });
 }
 
 SharingIfaceState NetworkShareTracker::SubSmStateToExportState(const int32_t state)

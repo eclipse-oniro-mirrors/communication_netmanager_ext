@@ -53,33 +53,37 @@ EthernetConfiguration::EthernetConfiguration()
 EthernetConfiguration::~EthernetConfiguration() {}
 
 bool EthernetConfiguration::ReadSysteamConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
-    std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs)
+                                                     std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs)
 {
     NETMGR_EXT_LOG_D("EthernetConfiguration::ReadSysteamConfiguration Enter");
-    const auto& jsonStr = ReadJsonFile(NETWORK_CONFIG_PATH);
+    const auto &jsonStr = ReadJsonFile(NETWORK_CONFIG_PATH);
     if (jsonStr.length() == 0) {
         NETMGR_EXT_LOG_E("ReadConfigData config file is return empty!");
         return false;
     }
-    const auto& jsonCfg = nlohmann::json::parse(jsonStr);
+    const auto &jsonCfg = nlohmann::json::parse(jsonStr);
     if (jsonCfg.find(CONFIG_KEY_ETH_COMPONENT_FLAG) == jsonCfg.end()) {
         NETMGR_EXT_LOG_E("ReadConfigData not find network_ethernet_component!");
         return false;
     }
-    const auto& arrIface = jsonCfg.at(CONFIG_KEY_ETH_COMPONENT_FLAG);
+    const auto &arrIface = jsonCfg.at(CONFIG_KEY_ETH_COMPONENT_FLAG);
     NETMGR_EXT_LOG_D("read ConfigData ethValue:%{public}s", arrIface.dump().c_str());
     for (const auto &item : arrIface) {
-        const auto& iface = item[CONFIG_KEY_ETH_IFACE];
-        const auto& caps = item.at(CONFIG_KEY_ETH_CAPS).get<std::set<NetCap>>();
+        const auto &iface = item[CONFIG_KEY_ETH_IFACE];
+        const auto &caps = item.at(CONFIG_KEY_ETH_CAPS).get<std::set<NetCap>>();
         if (!caps.empty()) {
             devCaps[iface] = caps;
         }
-        const auto& fit = devCfgs.find(iface);
+        const auto &fit = devCfgs.find(iface);
         if (fit != devCfgs.end()) {
             NETMGR_EXT_LOG_E("The iface=%{public}s device have set!", fit->first.c_str());
             continue;
         }
         sptr<InterfaceConfiguration> config = ConvertJsonToConfiguration(item);
+        if (config == nullptr) {
+            NETMGR_EXT_LOG_E("config is nullptr");
+            return false;
+        }
         if (!item[CONFIG_KEY_ETH_IP].empty()) {
             devCfgs[iface] = config;
         }
@@ -114,7 +118,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
         config->ipStatic_.route_.prefixlen_ = routePrefixLen;
     }
     std::vector<std::string> servers = CommonUtils::Split(jsonData[CONFIG_KEY_ETH_DNS], ",");
-    for (const auto &dns: servers) {
+    for (const auto &dns : servers) {
         INetAddr addr;
         addr.address_ = dns;
         config->ipStatic_.dnsServers_.push_back(addr);
@@ -193,16 +197,16 @@ bool EthernetConfiguration::ClearAllUserConfiguration()
 }
 
 bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult,
-    sptr<StaticConfiguration> &config)
+                                                   sptr<StaticConfiguration> &config)
 {
     NETMGR_EXT_LOG_D("EthernetConfiguration::ConvertToConfiguration Enter");
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("Error ConvertToIpConfiguration config is null!");
         return false;
     }
-    const auto& emSymbol = "*";
-    const auto& emAddr = "0.0.0.0";
-    const auto& emPrefixlen = 0;
+    const auto &emSymbol = "*";
+    const auto &emAddr = "0.0.0.0";
+    const auto &emPrefixlen = 0;
     unsigned int prefixlen = 0;
     config->ipAddr_.address_ = dhcpResult.ipAddr;
     config->netMask_.address_ = dhcpResult.subNet;
@@ -302,7 +306,7 @@ bool EthernetConfiguration::DelDir(const std::string &dirPath)
     return true;
 }
 
-bool EthernetConfiguration::IsFileExist(const std::string& filePath)
+bool EthernetConfiguration::IsFileExist(const std::string &filePath)
 {
     return !access(filePath.c_str(), F_OK);
 }
@@ -344,25 +348,25 @@ bool EthernetConfiguration::WriteFile(const std::string &filePath, const std::st
 }
 
 void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std::string &iface,
-    sptr<InterfaceConfiguration> cfg)
+                                             sptr<InterfaceConfiguration> cfg)
 {
     std::string::size_type pos = fileContent.find("DEVICE=") + strlen("DEVICE=");
-    const auto& device = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+    const auto &device = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
     pos = fileContent.find("BOOTPROTO=") + strlen("BOOTPROTO=");
-    const auto& bootProto = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+    const auto &bootProto = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
     iface = device;
     if (bootProto == "STATIC") {
         cfg->mode_ = STATIC;
         pos = fileContent.find("IPADDR=") + strlen("IPADDR=");
-        const auto& ipAddr = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+        const auto &ipAddr = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
         pos = fileContent.find("NETMASK=") + strlen("NETMASK=");
-        const auto& netMask = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+        const auto &netMask = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
         pos = fileContent.find("GATEWAY=") + strlen("GATEWAY=");
-        const auto& gatway = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+        const auto &gatway = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
         pos = fileContent.find("ROUTE=") + strlen("ROUTE=");
-        const auto& route = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+        const auto &route = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
         pos = fileContent.find("ROUTE_NETMASK=") + strlen("ROUTE_NETMASK=");
-        const auto& routeNetmask = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
+        const auto &routeNetmask = fileContent.substr(pos, fileContent.find("\n", pos) - pos);
         cfg->ipStatic_.ipAddr_.address_ = ipAddr;
         cfg->ipStatic_.ipAddr_.netMask_ = netMask;
         cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(ipAddr);
@@ -391,8 +395,12 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
 }
 
 void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg,
-    std::string &fileContent)
+                                          std::string &fileContent)
 {
+    if (cfg == nullptr) {
+        NETMGR_EXT_LOG_E("cfg is nullptr");
+        return;
+    }
     std::string().swap(fileContent);
     fileContent = fileContent + "DEVICE=" + iface + "\n";
     if (cfg->mode_ == STATIC) {

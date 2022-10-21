@@ -16,9 +16,9 @@
 #include "networkshare_main_statemachine.h"
 
 #include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
 #include "networkshare_constants.h"
 #include "networkshare_sub_statemachine.h"
-#include "netsys_controller.h"
 #include "networkshare_tracker.h"
 
 namespace OHOS {
@@ -158,11 +158,14 @@ void NetworkShareMainStateMachine::AliveStateExit()
 void NetworkShareMainStateMachine::ErrorStateEnter()
 {
     NETMGR_EXT_LOG_I("Enter Error state, error[%{public}d].", errorType_);
-    for_each(subMachineList_.begin(), subMachineList_.end(), [&](std::shared_ptr<NetworkShareSubStateMachine> subsm) {
-        NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] EVENT[%{public}d].", subsm->GetInterfaceName().c_str(),
-                         this->errorType_);
-        subsm->SubSmEventHandle(this->errorType_, 0);
-    });
+    for_each(subMachineList_.begin(), subMachineList_.end(),
+             [this](std::shared_ptr<NetworkShareSubStateMachine> subsm) {
+                 if (subsm != nullptr) {
+                     NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] EVENT[%{public}d].",
+                                      subsm->GetInterfaceName().c_str(), errorType_);
+                     subsm->SubSmEventHandle(errorType_, 0);
+                 }
+             });
 }
 
 void NetworkShareMainStateMachine::ErrorStateExit()

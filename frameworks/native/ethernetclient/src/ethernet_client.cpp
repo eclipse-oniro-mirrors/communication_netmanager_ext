@@ -26,7 +26,6 @@
 #include "refbase.h"
 #include "system_ability_definition.h"
 
-
 namespace OHOS {
 namespace NetManagerStandard {
 EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nullptr) {}
@@ -127,6 +126,10 @@ void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         return;
     }
     sptr<IRemoteObject> local = ethernetService_->AsObject();
+    if (local == nullptr) {
+        NETMGR_EXT_LOG_E("local is nullptr");
+        return;
+    }
     if (local != remote.promote()) {
         NETMGR_EXT_LOG_E("proxy and stub is not same remote object");
         return;

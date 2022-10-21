@@ -82,6 +82,9 @@ napi_value NetShareCallbackObserver::CreateSharingStateChangedParam(napi_env env
 
 napi_value NetShareCallbackObserver::CreateInterfaceSharingStateChangedParam(napi_env env, void *data)
 {
+    if (data == nullptr) {
+        return nullptr;
+    }
     SharingState sharingState = *static_cast<SharingState *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
     NapiUtils::SetInt32Property(env, obj, "type", static_cast<int32_t>(sharingState.type));
