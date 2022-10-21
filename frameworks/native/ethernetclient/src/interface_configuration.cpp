@@ -36,10 +36,7 @@ bool InterfaceConfiguration::Marshalling(Parcel &parcel) const
 
 sptr<InterfaceConfiguration> InterfaceConfiguration::Unmarshalling(Parcel &parcel)
 {
-    sptr<InterfaceConfiguration> ptr = (std::make_unique<InterfaceConfiguration>()).release();
-    if (ptr == nullptr) {
-        return nullptr;
-    }
+    sptr<InterfaceConfiguration> ptr = new (std::nothrow) InterfaceConfiguration();
     int32_t mode = 0;
     if (!parcel.ReadInt32(mode)) {
         return nullptr;

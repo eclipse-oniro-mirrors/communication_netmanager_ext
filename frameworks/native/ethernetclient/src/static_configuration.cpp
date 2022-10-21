@@ -60,9 +60,6 @@ bool StaticConfiguration::Marshalling(Parcel &parcel) const
 sptr<StaticConfiguration> StaticConfiguration::Unmarshalling(Parcel &parcel)
 {
     sptr<StaticConfiguration> ptr = (std::make_unique<StaticConfiguration>()).release();
-    if (ptr == nullptr) {
-        return nullptr;
-    }
     sptr<INetAddr> ipAddr = INetAddr::Unmarshalling(parcel);
     if (ipAddr == nullptr) {
         NETMGR_EXT_LOG_E("ipAddr_ is null");

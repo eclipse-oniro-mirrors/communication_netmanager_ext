@@ -118,8 +118,8 @@ void NetworkShareUpstreamMonitor::RegisterUpstreamChangedCallback(
 void NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo)
 {
     auto netManager = DelayedSingleton<NetConnClient>::GetInstance();
-    if (netManager == nullptr) {
-        NETMGR_EXT_LOG_E("NetConnClient is null.");
+    if (upstreamNetInfo == nullptr || netManager == nullptr) {
+        NETMGR_EXT_LOG_E("NetConnClient or upstreamNetInfo is null.");
         return;
     }
     bool hasDefaultNet = true;
@@ -133,6 +133,10 @@ void NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
     }
 
     netManager->GetDefaultNet(*(upstreamNetInfo->netHandle_));
+    if (upstreamNetInfo->netHandle_ == nullptr) {
+        NETMGR_EXT_LOG_E("netHandle_ is null.");
+        return;
+    }
     NETMGR_EXT_LOG_I("NetConn get defaultNet id[%{public}d].", upstreamNetInfo->netHandle_->GetNetId());
     if (upstreamNetInfo->netHandle_->GetNetId() < 0) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
@@ -152,6 +156,10 @@ void NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
         defaultNetHandleNetId_ = upstreamNetInfo->netHandle_->GetNetId();
         netManager->GetNetCapabilities(*(upstreamNetInfo->netHandle_), *(upstreamNetInfo->netAllCap_));
         netManager->GetConnectionProperties(*(upstreamNetInfo->netHandle_), *(upstreamNetInfo->netLinkPro_));
+        if (upstreamNetInfo->netLinkPro_ == nullptr || upstreamNetInfo->netAllCap_ == nullptr) {
+            NETMGR_EXT_LOG_E("netLinkPro_ or netAllCap_ is null.");
+            return;
+        }
         NETMGR_EXT_LOG_W("CapsIsValid[%{public}d], ifaceName[%{public}s].", upstreamNetInfo->netAllCap_->CapsIsValid(),
                          upstreamNetInfo->netLinkPro_->ifaceName_.c_str());
         networkAndInfoMap_.insert(std::make_pair(upstreamNetInfo->netHandle_->GetNetId(), upstreamNetInfo));
@@ -178,6 +186,9 @@ void NetworkShareUpstreamMonitor::NotifyMainStateMachine(int which)
 
 void NetworkShareUpstreamMonitor::StoreAvailableNetHandle(sptr<NetHandle> &netHandle)
 {
+    if (netHandle == nullptr) {
+        return;
+    }
     std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>>::iterator iter =
         networkAndInfoMap_.find(netHandle->GetNetId());
     if (iter == networkAndInfoMap_.end()) {
