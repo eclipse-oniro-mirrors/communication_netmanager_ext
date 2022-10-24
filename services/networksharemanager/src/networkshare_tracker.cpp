@@ -532,8 +532,8 @@ int32_t NetworkShareTracker::GetStatsRxBytes()
                  subSM->GetUpIfaceName(rxUpIface);
                  NETMGR_EXT_LOG_I("GetStatsRxBytes DownIface[%{public}s], upIface[%{public}s].", rxDownIface.c_str(),
                                   rxUpIface.c_str());
-                 int32_t ret =
-                     NetsysController::GetInstance().GetNetworkSharingTraffic(rxDownIface, rxUpIface, traffic);
+                 int32_t ret = NetsysController::GetInstance().GetNetworkSharingTraffic(rxDownIface,
+                                                                                        rxUpIface, traffic);
                  if (ret != NETMANAGER_SUCCESS) {
                      NETMGR_EXT_LOG_E("GetStatsRxBytes error, ret[%{public}d].", ret);
                      return;

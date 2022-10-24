@@ -152,7 +152,7 @@ std::vector<std::string> EthernetServiceProxy::GetAllActiveIfaces()
     for (int i = 0; i < size; i++) {
         ifaces.push_back(reply.ReadString());
     }
-    return  ifaces;
+    return ifaces;
 }
 
 int32_t EthernetServiceProxy::ResetFactory()
