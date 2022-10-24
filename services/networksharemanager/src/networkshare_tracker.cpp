@@ -499,7 +499,7 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
         return NETWORKSHARE_ERROR;
     }
     if (sharingEventCallback_.size() >= MAX_CALLBACK_COUNT) {
-        NETMGR_EXT_LOG_E("callback above max count, current size=%{public}d.", sharingEventCallback_.size());
+        NETMGR_EXT_LOG_E("callback above max count, return error.");
         return NETWORKSHARE_ERROR;
     }
     sharingEventCallback_.push_back(callback);
