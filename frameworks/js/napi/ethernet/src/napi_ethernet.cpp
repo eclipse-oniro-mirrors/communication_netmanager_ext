@@ -15,10 +15,9 @@
 
 #include "napi_ethernet.h"
 
-#include <memory>
-#include <vector>
+#include <array>
+#include <new>
 
-#include <napi/native_api.h>
 #include <napi/native_common.h>
 
 #include "ethernet_client.h"
