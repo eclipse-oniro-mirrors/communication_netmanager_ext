@@ -26,6 +26,8 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+static constexpr const int32_t MAX_SIZE = 64;
+
 EthernetServiceStub::EthernetServiceStub()
 {
     memberFuncMap_[CMD_SET_IF_CFG] = &EthernetServiceStub::OnSetIfaceConfig;
@@ -40,8 +42,8 @@ EthernetServiceStub::EthernetServiceStub()
 
 EthernetServiceStub::~EthernetServiceStub() {}
 
-int32_t EthernetServiceStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t EthernetServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+                                             MessageOption &option)
 {
     NETMGR_EXT_LOG_D("stub call start, code = [%{public}d]", code);
 
@@ -182,9 +184,14 @@ int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessagePa
     reply.WriteString(cfg.ipv4Addr);
     reply.WriteInt32(cfg.prefixLength);
     int32_t vsize = static_cast<int32_t>(cfg.flags.size());
+    vsize = vsize > MAX_SIZE ? MAX_SIZE : vsize;
     reply.WriteInt32(vsize);
     std::vector<std::string>::iterator iter;
+    int32_t index = 0;
     for (iter = cfg.flags.begin(); iter != cfg.flags.end(); ++iter) {
+        if (++index > MAX_SIZE) {
+            break;
+        }
         reply.WriteString(*iter);
     }
     return NETMANAGER_EXT_SUCCESS;
