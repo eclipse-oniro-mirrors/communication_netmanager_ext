@@ -73,7 +73,8 @@ private:
     void InitStateExit();
     void AliveStateExit();
     void ErrorStateExit();
-    void ChooseUpstreamType();
+    void ChooseUpstreamNetwork();
+    void DisableForward();
     int EraseSharedSubSM(const std::any &messageObj);
 
 private:
@@ -92,6 +93,7 @@ private:
     std::shared_ptr<NetworkShareUpstreamMonitor> networkMonitor_ = nullptr;
     int curState_;
     std::vector<MainSmStateTable> stateTable_;
+    std::string upstreamIfaceName_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

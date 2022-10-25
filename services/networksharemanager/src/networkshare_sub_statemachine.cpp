@@ -25,11 +25,11 @@ namespace OHOS {
 namespace NetManagerStandard {
 static constexpr const char *NEXT_HOT = "0.0.0.0";
 static constexpr int32_t IP_V4 = 0;
-static constexpr const char *ERROR_MSG_ENABLE_FORWARD = "Enable Forward failed";
 static constexpr const char *ERROR_MSG_CONFIG_FORWARD = "Config Forward failed";
 static constexpr const char *ERROR_MSG_ADD_ROUTE_STRATEGY = "Add Route Strategy failed";
 static constexpr const char *ERROR_MSG_ADD_ROUTE_RULE = "Add Route Rule failed";
 static constexpr const char *ERROR_MSG_REMOVE_ROUTE_RULE = "Remove Route Rule failed";
+static constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
     const std::string &ifaceName, const SharingIfaceType &interfaceType,
@@ -242,6 +242,7 @@ int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &me
     if (upstreamNetInfo == nullptr) {
         NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] upstreamNetInfo is null, need clean.", ifaceName_.c_str());
         CleanupUpstreamInterface();
+        upstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
         return true;
     }
     HandleConnectionChanged(upstreamNetInfo);
@@ -294,20 +295,7 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
 
 void NetworkShareSubStateMachine::HandleConnection()
 {
-    int32_t result = NetsysController::GetInstance().EnableNat(ifaceName_, upstreamIfaceName_);
-    if (result != NETMANAGER_SUCCESS) {
-        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
-            netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
-            NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ENABLE_FORWARD,
-            NetworkShareEventType::SETUP_EVENT);
-        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] enable NAT newIface[%{public}s] error[%{public}d].",
-                         ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
-        lastError_ = NETWORKSHARE_ERROR_ENABLE_FORWARDING_ERROR;
-        SubSmStateSwitch(SUBSTATE_INIT);
-        return;
-    }
-
-    result = NetsysController::GetInstance().IpfwdAddInterfaceForward(ifaceName_, upstreamIfaceName_);
+    int32_t result = NetsysController::GetInstance().IpfwdAddInterfaceForward(ifaceName_, upstreamIfaceName_);
     if (result != NETMANAGER_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
@@ -316,7 +304,6 @@ void NetworkShareSubStateMachine::HandleConnection()
         NETMGR_EXT_LOG_E(
             "Sub StateMachine[%{public}s] IpfwdAddInterfaceForward newIface[%{public}s] error[%{public}d].",
             ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
-        NetsysController::GetInstance().DisableNat(ifaceName_, upstreamIfaceName_);
         lastError_ = NETWORKSHARE_ERROR_ENABLE_FORWARDING_ERROR;
         SubSmStateSwitch(SUBSTATE_INIT);
         return;
@@ -332,7 +319,6 @@ void NetworkShareSubStateMachine::HandleConnection()
             "Sub StateMachine[%{public}s] SharedState NetworkAddInterface newIface[%{public}s] error[%{public}d].",
             ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
         NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
-        NetsysController::GetInstance().DisableNat(ifaceName_, upstreamIfaceName_);
         lastError_ = NETWORKSHARE_ERROR_ENABLE_FORWARDING_ERROR;
         SubSmStateSwitch(SUBSTATE_INIT);
         return;
@@ -635,7 +621,6 @@ void NetworkShareSubStateMachine::CleanupUpstreamInterface()
     RemoveRoutesToLocalNetwork();
     NetsysController::GetInstance().NetworkRemoveInterface(LOCAL_NET_ID, ifaceName_);
     NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
-    NetsysController::GetInstance().DisableNat(ifaceName_, upstreamIfaceName_);
 }
 
 bool NetworkShareSubStateMachine::HasChangeUpstreamIfaceSet(const std::string &newUpstreamIface)

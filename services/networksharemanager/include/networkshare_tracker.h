@@ -174,21 +174,6 @@ public:
     int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback);
 
     /**
-     * get downlink data bytes
-     */
-    int32_t GetStatsRxBytes();
-
-    /**
-     * get uplink data bytes
-     */
-    int32_t GetStatsTxBytes();
-
-    /**
-     * get total data bytes
-     */
-    int32_t GetStatsTotalBytes();
-
-    /**
      * is need update upstream network
      */
     bool UpstreamWanted();
@@ -217,6 +202,8 @@ public:
      * notify shared sub state machine to update upstream interface
      */
     void NotifyDownstreamsHasNewUpstreamIface(const std::shared_ptr<UpstreamNetworkInfo> &netinfo);
+
+    int32_t GetSharedSubSMTraffic(const TrafficType &type);
 
 private:
     NetworkShareTracker() = default;

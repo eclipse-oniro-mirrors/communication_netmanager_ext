@@ -82,6 +82,8 @@ enum { MAINSTATE_INIT = 1, MAINSTATE_ALIVE, MAINSTATE_ERROR, MAINSTATE_MAX } Mai
 
 enum { SUBSTATE_INIT = 11, SUBSTATE_SHARED, SUBSTATE_RESTART, SUBSTATE_UNAVAILABLE, SUBSTATE_MAX } SubState;
 
+enum class TrafficType { TRAFFIC_RX = 1, TRAFFIC_TX = 2, TRAFFIC_ALL = 3 };
+
 struct UpstreamNetworkInfo {
     sptr<NetHandle> netHandle_;
     sptr<NetAllCapabilities> netAllCap_;
