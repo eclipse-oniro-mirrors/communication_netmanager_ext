@@ -29,7 +29,7 @@ const bool REGISTER_LOCAL_RESULT_NETSHARE =
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
 
-NetworkShareService::~NetworkShareService() {};
+NetworkShareService::~NetworkShareService(){};
 
 void NetworkShareService::OnStart()
 {
@@ -211,7 +211,7 @@ int32_t NetworkShareService::GetStatsRxBytes()
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
     }
-    return NetworkShareTracker::GetInstance().GetStatsRxBytes();
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_RX);
 }
 
 int32_t NetworkShareService::GetStatsTxBytes()
@@ -219,7 +219,7 @@ int32_t NetworkShareService::GetStatsTxBytes()
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
     }
-    return NetworkShareTracker::GetInstance().GetStatsTxBytes();
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_TX);
 }
 
 int32_t NetworkShareService::GetStatsTotalBytes()
@@ -227,7 +227,7 @@ int32_t NetworkShareService::GetStatsTotalBytes()
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
     }
-    return NetworkShareTracker::GetInstance().GetStatsTotalBytes();
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_ALL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
