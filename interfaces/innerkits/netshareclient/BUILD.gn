@@ -10,13 +10,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
 config("net_conn_manager_if_config") {
   include_dirs = [
-    "$EXT_INNERKITS_ROOT/netshareclient/include",
-    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
-    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
+    "include",
+    "include/proxy",
+    "include/proxy/ipccallback",
     "$BASE_INNERKITS_ROOT/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$EXT_INNERKITS_ROOT/include",
@@ -25,7 +27,7 @@ config("net_conn_manager_if_config") {
 
   cflags = []
   if (is_double_framework) {
-    cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
+    cflags += [ "-DCONFIG_DUAL_FRAMEWORK" ]
   }
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]

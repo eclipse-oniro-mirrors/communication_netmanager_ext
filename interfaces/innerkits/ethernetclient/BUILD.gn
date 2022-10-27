@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,13 +10,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
 config("net_conn_manager_if_config") {
   # header file path
   include_dirs = [
-    "$EXT_INNERKITS_ROOT/ethernetclient/include",
-    "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
+    "include",
+    "include/proxy",
     "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
@@ -24,7 +26,7 @@ config("net_conn_manager_if_config") {
 
   cflags = []
   if (is_double_framework) {
-    cflags = [ "-DCONFIG_DUAL_FRAMEWORK" ]
+    cflags += [ "-DCONFIG_DUAL_FRAMEWORK" ]
   }
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
