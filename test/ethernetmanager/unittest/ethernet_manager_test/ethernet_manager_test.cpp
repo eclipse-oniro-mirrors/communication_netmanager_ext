@@ -260,6 +260,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
 {
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
     AccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
     ASSERT_TRUE(result == 0);
