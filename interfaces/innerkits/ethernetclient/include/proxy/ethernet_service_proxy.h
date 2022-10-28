@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,15 +18,15 @@
 
 #include <string>
 
-#include "iremote_proxy.h"
 #include "i_ethernet_service.h"
+#include "iremote_proxy.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class EthernetServiceProxy : public IRemoteProxy<IEthernetService> {
 public:
-    explicit EthernetServiceProxy(const sptr<IRemoteObject> &impl);
-    virtual ~EthernetServiceProxy();
+    explicit EthernetServiceProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IEthernetService>(impl) {}
+    virtual ~EthernetServiceProxy() = default;
     bool WriteInterfaceToken(MessageParcel &data);
 
     int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) override;

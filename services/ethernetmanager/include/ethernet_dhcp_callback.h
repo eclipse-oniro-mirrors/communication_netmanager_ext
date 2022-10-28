@@ -32,8 +32,9 @@ public:
         std::string dns1;
         std::string dns2;
     };
+
 public:
-    virtual ~EthernetDhcpCallback() {};
+    virtual ~EthernetDhcpCallback() = default;
     virtual int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) = 0;
 };
 } // namespace NetManagerStandard

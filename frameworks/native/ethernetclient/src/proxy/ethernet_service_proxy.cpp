@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,12 +28,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-EthernetServiceProxy::EthernetServiceProxy(const sptr<IRemoteObject> &impl)
-    :IRemoteProxy<IEthernetService>(impl)
-{
+namespace {
+constexpr int32_t MAX_SIZE = 16;
 }
-
-EthernetServiceProxy::~EthernetServiceProxy() {}
 
 bool EthernetServiceProxy::WriteInterfaceToken(MessageParcel &data)
 {
@@ -149,6 +146,10 @@ std::vector<std::string> EthernetServiceProxy::GetAllActiveIfaces()
     }
 
     int32_t size = reply.ReadInt32();
+    if (size > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("size=[%{public}d] is too large", size);
+        return ifaces;
+    }
     for (int i = 0; i < size; i++) {
         ifaces.push_back(reply.ReadString());
     }
@@ -226,9 +227,7 @@ int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
 
 bool EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
 {
-    NETMGR_EXT_LOG_I("Begin to GetInterfaceConfig iface:[%{public}s]", iface.c_str());
     MessageParcel data;
-    int32_t vSize;
     if (!WriteInterfaceToken(data)) {
         return false;
     }
@@ -251,7 +250,11 @@ bool EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nm
     reply.ReadString(cfg.hwAddr);
     reply.ReadString(cfg.ipv4Addr);
     reply.ReadInt32(cfg.prefixLength);
-    vSize = reply.ReadInt32();
+    int32_t vSize = reply.ReadInt32();
+    if (vSize > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("vSize=[%{public}d] is too large", vSize);
+        return false;
+    }
     std::vector<std::string> vecString;
     for (int i = 0; i < vSize; i++) {
         vecString.push_back(reply.ReadString());
@@ -259,7 +262,6 @@ bool EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nm
     if (vSize > 0) {
         cfg.flags.assign(vecString.begin(), vecString.end());
     }
-    NETMGR_EXT_LOG_I("End to GetInterfaceConfig");
     return true;
 }
 } // namespace NetManagerStandard

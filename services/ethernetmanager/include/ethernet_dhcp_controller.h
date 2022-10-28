@@ -32,29 +32,40 @@ class EthernetDhcpController {
 public:
     class EthernetDhcpControllerResultNotify : public OHOS::Wifi::IDhcpResultNotify {
     public:
-        explicit EthernetDhcpControllerResultNotify(EthernetDhcpController &dhcpController);
-        ~EthernetDhcpControllerResultNotify() override;
+        explicit EthernetDhcpControllerResultNotify(EthernetDhcpController &dhcpController)
+            : ethDhcpController_(dhcpController)
+        {
+        }
+
+        ~EthernetDhcpControllerResultNotify() = default;
         void OnSuccess(int status, const std::string &ifname, OHOS::Wifi::DhcpResult &result) override;
         void OnFailed(int status, const std::string &ifname, const std::string &reason) override;
-        void OnSerExitNotify(const std::string& ifname) override;
+        void OnSerExitNotify(const std::string &ifname) override;
 
     private:
         EthernetDhcpController &ethDhcpController_;
     };
-public:
-    EthernetDhcpController();
-    ~EthernetDhcpController();
 
-    int32_t RegisterDhcpCallback(sptr<EthernetDhcpCallback> callback);
+public:
+    EthernetDhcpController()
+        : dhcpService_(std::make_unique<OHOS::Wifi::DhcpService>()),
+          dhcpResultNotify_(std::make_unique<EthernetDhcpControllerResultNotify>(*this))
+    {
+    }
+    ~EthernetDhcpController() = default;
+
+    void RegisterDhcpCallback(sptr<EthernetDhcpCallback> callback);
     void StartDhcpClient(const std::string &iface, bool bIpv6);
     void StopDhcpClient(const std::string &iface, bool bIpv6);
+
 private:
     void OnDhcpSuccess(const std::string &iface, OHOS::Wifi::DhcpResult &result);
     void OnDhcpFailed(int status, const std::string &ifname, const std::string &reason);
+
 private:
     std::unique_ptr<OHOS::Wifi::IDhcpService> dhcpService_ = nullptr;
     std::unique_ptr<EthernetDhcpControllerResultNotify> dhcpResultNotify_ = nullptr;
-    sptr<EthernetDhcpCallback> cbObject;
+    sptr<EthernetDhcpCallback> cbObject_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
