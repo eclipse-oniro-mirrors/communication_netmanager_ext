@@ -23,7 +23,6 @@
 
 #include "base_context.h"
 #include "networkshare_constants.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -38,9 +37,9 @@ public:
     void SetBytes64(int64_t bytes64);
     void SetSharingSupported(int32_t isSharingSupported);
     void SetSharing(int32_t isSharing);
-    int32_t GetBytes64();
-    int32_t GetSharingSupported();
-    int32_t GetSharing();
+    int32_t GetBytes64() const;
+    int32_t GetSharingSupported() const;
+    int32_t GetSharing() const;
 
 private:
     int32_t isSharingSupported_ = NETWORKSHARE_IS_SUPPORTED;

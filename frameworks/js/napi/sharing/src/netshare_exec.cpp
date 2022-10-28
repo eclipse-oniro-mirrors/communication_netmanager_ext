@@ -87,7 +87,7 @@ bool NetShareExec::ExecGetSharingIfaces(GetSharingIfacesContext *context)
 
 napi_value NetShareExec::GetSharingIfacesCallback(GetSharingIfacesContext *context)
 {
-    napi_value ifacesArray = NapiUtils::CreateArray(context->GetEnv(), 0);
+    napi_value ifacesArray = NapiUtils::CreateArray(context->GetEnv(), context->GetIfaces().size());
     int index = 0;
     for (auto iface : context->GetIfaces()) {
         napi_value item = NapiUtils::CreateStringUtf8(context->GetEnv(), iface);
@@ -124,7 +124,7 @@ bool NetShareExec::ExecGetSharableRegexes(GetSharableRegexesContext *context)
 
 napi_value NetShareExec::GetSharableRegexesCallback(GetSharableRegexesContext *context)
 {
-    napi_value ifacesArray = NapiUtils::CreateArray(context->GetEnv(), 0);
+    napi_value ifacesArray = NapiUtils::CreateArray(context->GetEnv(), context->GetIfaces().size());
     int index = 0;
     for (auto iface : context->GetIfaces()) {
         napi_value item = NapiUtils::CreateStringUtf8(context->GetEnv(), iface);

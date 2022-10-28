@@ -40,8 +40,9 @@ void NetShareCallbackObserver::OnSharingStateChanged(const bool &isRunning)
         return;
     }
 
+    bool *running = new bool(isRunning);
     DelayedSingleton<NetShareObserverWrapper>::GetInstance()->GetEventManager()->EmitByUv(
-        static_cast<std::string>(EVENT_SHARE_STATE_CHANGE), reinterpret_cast<void *>(isRunning),
+        static_cast<std::string>(EVENT_SHARE_STATE_CHANGE), reinterpret_cast<void *>(running),
         SharingStateChangedCallback);
 }
 
@@ -54,13 +55,12 @@ void NetShareCallbackObserver::OnInterfaceSharingStateChanged(const SharingIface
         return;
     }
 
-    SharingState data = {
-        .type = type,
-        .iface = iface,
-        .state = state,
-    };
+    SharingState *data = new SharingState();
+    data->type = type;
+    data->iface = iface;
+    data->state = state;
     DelayedSingleton<NetShareObserverWrapper>::GetInstance()->GetEventManager()->EmitByUv(
-        static_cast<std::string>(EVENT_IFACE_SHARE_STATE_CHANGE), reinterpret_cast<void *>(&data),
+        static_cast<std::string>(EVENT_IFACE_SHARE_STATE_CHANGE), reinterpret_cast<void *>(data),
         InterfaceSharingStateChangedCallback);
 }
 
@@ -77,7 +77,13 @@ void NetShareCallbackObserver::OnSharingUpstreamChanged(const sptr<NetHandle> ne
 
 napi_value NetShareCallbackObserver::CreateSharingStateChangedParam(napi_env env, void *data)
 {
-    return NapiUtils::GetBoolean(env, *static_cast<bool *>(data));
+    if (data == nullptr) {
+        return nullptr;
+    }
+    auto inputBoolean = static_cast<bool *>(data);
+    napi_value boolean = NapiUtils::GetBoolean(env, *inputBoolean);
+    delete inputBoolean;
+    return boolean;
 }
 
 napi_value NetShareCallbackObserver::CreateInterfaceSharingStateChangedParam(napi_env env, void *data)
@@ -85,16 +91,18 @@ napi_value NetShareCallbackObserver::CreateInterfaceSharingStateChangedParam(nap
     if (data == nullptr) {
         return nullptr;
     }
-    SharingState sharingState = *static_cast<SharingState *>(data);
+    auto sharingState = static_cast<SharingState *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
-    NapiUtils::SetInt32Property(env, obj, "type", static_cast<int32_t>(sharingState.type));
-    NapiUtils::SetStringPropertyUtf8(env, obj, "iface", sharingState.iface);
-    NapiUtils::SetInt32Property(env, obj, "state", static_cast<int32_t>(sharingState.state));
+    NapiUtils::SetInt32Property(env, obj, "type", static_cast<int32_t>(sharingState->type));
+    NapiUtils::SetStringPropertyUtf8(env, obj, "iface", sharingState->iface);
+    NapiUtils::SetInt32Property(env, obj, "state", static_cast<int32_t>(sharingState->state));
+    delete sharingState;
     return obj;
 }
 
 napi_value NetShareCallbackObserver::CreateSharingUpstreamChangedParam(napi_env env, void *data)
 {
+    (void)data;
     return NapiUtils::GetUndefined(env);
 }
 

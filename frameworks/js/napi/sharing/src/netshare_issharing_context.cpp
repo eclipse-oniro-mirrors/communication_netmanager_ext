@@ -25,11 +25,6 @@ NetShareIsSharingContext::NetShareIsSharingContext(napi_env env, EventManager *m
 
 void NetShareIsSharingContext::ParseParams(napi_value *params, size_t paramsCount)
 {
-    if (params == nullptr) {
-        NETMANAGER_EXT_LOGE("params is nullptr");
-        return;
-    }
-
     if (!CheckParamsType(params, paramsCount)) {
         NETMANAGER_EXT_LOGE("CheckParamsType failed");
         return;
@@ -43,11 +38,6 @@ void NetShareIsSharingContext::ParseParams(napi_value *params, size_t paramsCoun
 
 bool NetShareIsSharingContext::CheckParamsType(napi_value *params, size_t paramsCount)
 {
-    if (params == nullptr) {
-        NETMANAGER_EXT_LOGE("params is nullptr");
-        return false;
-    }
-
     if (paramsCount == PARAM_NONE) {
         return true;
     }
@@ -72,17 +62,17 @@ void NetShareIsSharingContext::SetSharing(int32_t isSharing)
     isSharing_ = isSharing;
 }
 
-int32_t NetShareIsSharingContext::GetSharingSupported()
+int32_t NetShareIsSharingContext::GetSharingSupported() const
 {
     return isSharingSupported_;
 }
 
-int32_t NetShareIsSharingContext::GetSharing()
+int32_t NetShareIsSharingContext::GetSharing() const
 {
     return isSharing_;
 }
 
-int32_t NetShareIsSharingContext::GetBytes64()
+int32_t NetShareIsSharingContext::GetBytes64() const
 {
     return bytes64_;
 }
