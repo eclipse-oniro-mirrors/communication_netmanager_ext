@@ -28,10 +28,6 @@ NetShareStartSharingContext::NetShareStartSharingContext(napi_env env, EventMana
 
 void NetShareStartSharingContext::ParseParams(napi_value *params, size_t paramsCount)
 {
-    if (params == nullptr) {
-        NETMANAGER_EXT_LOGE("params is nullptr");
-        return;
-    }
     if (!CheckParamsType(params, paramsCount)) {
         NETMANAGER_EXT_LOGE("CheckParamsType failed");
         return;
@@ -50,26 +46,22 @@ bool NetShareStartSharingContext::CheckParamsType(napi_value *params, size_t par
         return true;
     }
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        if (params == nullptr) {
-            NETMANAGER_EXT_LOGE("params is nullptr");
-            return false;
-        }
         return NapiUtils::GetValueType(GetEnv(), params[ARG_INDEX_1]) == napi_function;
     }
     return false;
 }
 
-int32_t NetShareStartSharingContext::GetParam()
+int32_t NetShareStartSharingContext::GetParam() const
 {
     return param_;
 }
 
-int32_t NetShareStartSharingContext::GetBytes64()
+int32_t NetShareStartSharingContext::GetBytes64() const
 {
     return bytes64_;
 }
 
-std::vector<std::string> NetShareStartSharingContext::GetIfaces()
+std::vector<std::string> NetShareStartSharingContext::GetIfaces() const
 {
     return ifaces_;
 }

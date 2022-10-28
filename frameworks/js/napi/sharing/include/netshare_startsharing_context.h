@@ -24,7 +24,6 @@
 #include <napi/native_api.h>
 
 #include "base_context.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -36,9 +35,9 @@ public:
     explicit NetShareStartSharingContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
-    int32_t GetParam();
-    int32_t GetBytes64();
-    std::vector<std::string> GetIfaces();
+    int32_t GetParam() const;
+    int32_t GetBytes64() const;
+    std::vector<std::string> GetIfaces() const;
     void SetParam(int32_t param);
     void SetIface(std::vector<std::string> ifaces);
     void SetBytes64(int64_t bytes64);

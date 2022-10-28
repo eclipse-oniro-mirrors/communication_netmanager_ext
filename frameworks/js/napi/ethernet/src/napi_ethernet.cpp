@@ -45,11 +45,8 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-NapiEthernet::NapiEthernet() {}
-
 void NapiEthernet::ExecSetIfaceConfig(napi_env env, void *data)
 {
-    NETMGR_EXT_LOG_D("ExecSetIfaceConfig");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -79,7 +76,6 @@ void NapiEthernet::ExecSetIfaceConfig(napi_env env, void *data)
 
 void NapiEthernet::CompleteSetIfaceConfig(napi_env env, napi_status status, void *data)
 {
-    NETMGR_EXT_LOG_D("CompleteSetIfaceConfig");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -96,14 +92,12 @@ void NapiEthernet::CompleteSetIfaceConfig(napi_env env, napi_status status, void
         info = NapiCommon::CreateUndefined(env);
     }
     if (context->callbackRef == nullptr) {
-        // promiss return
         if (context->result != ERR_NONE) {
             NAPI_CALL_RETURN_VOID_ENHANCE(env, napi_reject_deferred(env, context->deferred, info), context);
         } else {
             NAPI_CALL_RETURN_VOID_ENHANCE(env, napi_resolve_deferred(env, context->deferred, info), context);
         }
     } else {
-        // call back return
         napi_value callbackValues[CALLBACK_ARGV_CNT] = {nullptr, nullptr};
         napi_value recv = nullptr;
         napi_value result = nullptr;
@@ -125,7 +119,6 @@ void NapiEthernet::CompleteSetIfaceConfig(napi_env env, napi_status status, void
 
 void NapiEthernet::ExecGetIfaceConfig(napi_env env, void *data)
 {
-    NETMGR_EXT_LOG_D("ExecGetIfaceConfig");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -139,7 +132,6 @@ void NapiEthernet::ExecGetIfaceConfig(napi_env env, void *data)
         DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(context->iface);
     if (config != nullptr) {
         context->result = 1;
-        std::string tap;
         context->ipMode = config->mode_;
         context->ipAddr = config->ipStatic_.ipAddr_.address_;
         context->route = config->ipStatic_.route_.address_;
@@ -158,7 +150,6 @@ void NapiEthernet::ExecGetIfaceConfig(napi_env env, void *data)
 
 void NapiEthernet::CompleteGetIfaceConfig(napi_env env, napi_status status, void *data)
 {
-    NETMGR_EXT_LOG_D("CompleteGetIfaceConfig");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -207,7 +198,6 @@ void NapiEthernet::CompleteGetIfaceConfig(napi_env env, napi_status status, void
 
 void NapiEthernet::ExecIsIfaceActive(napi_env env, void *data)
 {
-    NETMGR_EXT_LOG_D("ExecIsIfaceActive");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -227,7 +217,6 @@ void NapiEthernet::ExecIsIfaceActive(napi_env env, void *data)
 
 void NapiEthernet::CompleteIsIfaceActive(napi_env env, napi_status status, void *data)
 {
-    NETMGR_EXT_LOG_D("CompleteIsIfaceActive");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -259,7 +248,6 @@ void NapiEthernet::CompleteIsIfaceActive(napi_env env, napi_status status, void 
 
 void NapiEthernet::ExecGetAllActiveIfaces(napi_env env, void *data)
 {
-    NETMGR_EXT_LOG_D("ExecGetAllActiveIfaces");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -274,7 +262,6 @@ void NapiEthernet::ExecGetAllActiveIfaces(napi_env env, void *data)
 
 void NapiEthernet::CompleteGetAllActiveIfaces(napi_env env, napi_status status, void *data)
 {
-    NETMGR_EXT_LOG_D("CompleteGetAllActiveIfaces");
     if (data == nullptr) {
         NETMGR_EXT_LOG_E("data is nullptr");
         return;
@@ -284,6 +271,7 @@ void NapiEthernet::CompleteGetAllActiveIfaces(napi_env env, napi_status status, 
         NETMGR_EXT_LOG_E("context is nullptr");
         return;
     }
+
     // creat function return
     napi_value infoAttay = nullptr;
     napi_value info = nullptr;
@@ -316,17 +304,15 @@ void NapiEthernet::CompleteGetAllActiveIfaces(napi_env env, napi_status status, 
 
 napi_value NapiEthernet::SetIfaceConfig(napi_env env, napi_callback_info info)
 {
-    NETMGR_EXT_LOG_D("SetIfaceConfig");
     size_t argc = ARGV_NUM_3;
     napi_value argv[] = {nullptr, nullptr, nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    NETMGR_EXT_LOG_D("SetIfaceConfig agvc = [%{public}zu]", argc);
+
     EthernetAsyncContext *context = new EthernetAsyncContext();
-    // Parse Js argv
+
     NAPI_CALL_ENHANCE(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], context->iface, ETHERNET_NAME_MAX_BYTE,
                                               &(context->ethernetNameRealBytes)), context);
-    NETMGR_EXT_LOG_D("SetIfaceConfig iface=[%{public}s]", context->iface);
-    // Parse Js object [ip]
+
     NapiCommon::GetPropertyInt32(env, argv[ARGV_INDEX_1], "mode", context->ipMode);
     if (context->ipMode == IPSetMode::STATIC) {
         NapiCommon::GetPropertyString(env, argv[ARGV_INDEX_1], "ipAddr", context->ipAddr);
@@ -349,6 +335,7 @@ napi_value NapiEthernet::SetIfaceConfig(napi_env env, napi_callback_info info)
     } else {
         NETMGR_EXT_LOG_E("SetIfaceConfig  exception");
     }
+
     // creat async work
     napi_value resource = nullptr;
     napi_value resourceName = nullptr;
@@ -362,16 +349,15 @@ napi_value NapiEthernet::SetIfaceConfig(napi_env env, napi_callback_info info)
 
 napi_value NapiEthernet::GetIfaceConfig(napi_env env, napi_callback_info info)
 {
-    NETMGR_EXT_LOG_D("GetIfaceConfig");
     size_t argc = ARGV_NUM_2;
     napi_value argv[] = {nullptr, nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    NETMGR_EXT_LOG_D("GetIfaceConfig agvc = [%{public}zu]", argc);
+
     EthernetAsyncContext *context = new EthernetAsyncContext();
-    // Parse Js argv
+
     NAPI_CALL_ENHANCE(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], context->iface, ETHERNET_NAME_MAX_BYTE,
                                               &(context->ethernetNameRealBytes)), context);
-    NETMGR_EXT_LOG_D("GetIfaceConfig [%{public}s]", context->iface);
+
     napi_value result = nullptr;
     if (argc == ARGV_NUM_1) {
         if (context->callbackRef == nullptr) {
@@ -385,6 +371,7 @@ napi_value NapiEthernet::GetIfaceConfig(napi_env env, napi_callback_info info)
     } else {
         NETMGR_EXT_LOG_E("GetIfaceConfig  exception");
     }
+
     // creat async work
     napi_value resource = nullptr;
     napi_value resourceName = nullptr;
@@ -398,13 +385,12 @@ napi_value NapiEthernet::GetIfaceConfig(napi_env env, napi_callback_info info)
 
 napi_value NapiEthernet::IsIfaceActive(napi_env env, napi_callback_info info)
 {
-    NETMGR_EXT_LOG_D("IsIfaceActive");
     size_t argc = ARGV_NUM_2;
     napi_value argv[] = {nullptr, nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    NETMGR_EXT_LOG_D("IsIfaceActive agvc = [%{public}zu]", argc);
+
     EthernetAsyncContext *context = new EthernetAsyncContext();
-    // Parse Js argv
+
     if (argc != ARGV_NUM_0 && NapiCommon::MatchValueType(env, argv[ARGV_INDEX_0], napi_string)) {
         NAPI_CALL_ENHANCE(env, napi_get_value_string_utf8(env, argv[ARGV_INDEX_0], context->iface,
             ETHERNET_NAME_MAX_BYTE, &(context->ethernetNameRealBytes)), context);
@@ -434,6 +420,7 @@ napi_value NapiEthernet::IsIfaceActive(napi_env env, napi_callback_info info)
     } else {
         NETMGR_EXT_LOG_E("IsIfaceActive  exception");
     }
+
     // creat async work
     napi_value resource = nullptr;
     napi_value resourceName = nullptr;
@@ -450,7 +437,7 @@ napi_value NapiEthernet::GetAllActiveIfaces(napi_env env, napi_callback_info inf
     size_t argc = ARGV_NUM_1;
     napi_value argv[] = {nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    NETMGR_EXT_LOG_D("GetAllActiveIfaces agvc = [%{public}zu]", argc);
+
     EthernetAsyncContext *context = new EthernetAsyncContext();
     napi_value result = nullptr;
     if (argc == ARGV_NUM_0) {
@@ -465,6 +452,7 @@ napi_value NapiEthernet::GetAllActiveIfaces(napi_env env, napi_callback_info inf
     } else {
         NETMGR_EXT_LOG_E("GetAllActiveIfaces  exception.");
     }
+
     // creat async work
     napi_value resource = nullptr;
     napi_value resourceName = nullptr;
