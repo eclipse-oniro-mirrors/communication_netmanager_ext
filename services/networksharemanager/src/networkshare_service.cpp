@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +16,12 @@
 
 #include "networkshare_service.h"
 
-#include <system_ability_definition.h>
-#include "netmgr_ext_log_wrapper.h"
-#include "networkshare_constants.h"
+#include "net_event_report.h"
 #include "net_manager_center.h"
 #include "netmanager_base_permission.h"
-#include "net_event_report.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "networkshare_constants.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -92,11 +93,10 @@ void NetworkShareService::GetDumpMessage(std::string &message)
         NetworkShareTracker::GetInstance().IsNetworkSharingSupported() == NETWORKSHARE_IS_SUPPORTED ? "surpported"
                                                                                                     : "not surpported";
     message.append("\tIs Sharing Supported: " + surpportContent + "\n");
-    std::string sharingState =
-        NetworkShareTracker::GetInstance().IsSharing() == NETWORKSHARE_IS_SHARING ? "is sharing" : "not sharing";
+    bool isSharing = NetworkShareTracker::GetInstance().IsSharing() == NETWORKSHARE_IS_SHARING;
+    std::string sharingState = isSharing ? "is sharing" : "not sharing";
     message.append("\tSharing State: " + sharingState + "\n");
-
-    if (sharingState.compare("is sharing") == 0) {
+    if (isSharing) {
         std::string sharingType;
         GetSharingType(SharingIfaceType::SHARING_WIFI, "wifi;", sharingType);
         GetSharingType(SharingIfaceType::SHARING_USB, "usb;", sharingType);
@@ -128,10 +128,8 @@ void NetworkShareService::GetSharingType(const SharingIfaceType type, const std:
 void NetworkShareService::GetShareRegexsContent(const SharingIfaceType type, std::string &shareRegexsContent)
 {
     std::vector<std::string> regexs = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
-    for_each(regexs.begin(), regexs.end(), [&shareRegexsContent](std::string &regex) {
-        std::string tempContent = regex + ";";
-        shareRegexsContent += tempContent;
-    });
+    for_each(regexs.begin(), regexs.end(),
+             [&shareRegexsContent](std::string &regex) { shareRegexsContent += regex + ";"; });
 }
 
 int32_t NetworkShareService::IsNetworkSharingSupported()

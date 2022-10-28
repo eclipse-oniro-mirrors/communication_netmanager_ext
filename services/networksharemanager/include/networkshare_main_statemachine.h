@@ -16,8 +16,8 @@
 #ifndef NETWORKSHARE_MAIN_STATEMACHINE_H
 #define NETWORKSHARE_MAIN_STATEMACHINE_H
 
-#include <map>
 #include <any>
+#include <map>
 
 #include "networkshare_hisysevent.h"
 #include "networkshare_sub_statemachine.h"
@@ -39,13 +39,14 @@ class NetworkShareMainStateMachine {
     using HandleFunc = int (NetworkShareMainStateMachine::*)(const std::any &messageObj);
 
 public:
+    NetworkShareMainStateMachine() = delete;
     explicit NetworkShareMainStateMachine(std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor);
     ~NetworkShareMainStateMachine() = default;
 
     /**
      * switch to error state when error occur
      */
-    void SwitcheToErrorState(const int &errType);
+    void SwitcheToErrorState(const int32_t errType);
 
     /**
      * execute state switch
@@ -86,12 +87,12 @@ private:
     };
 
     std::recursive_mutex mutex_;
-    std::string netshare_requester_;
-    int32_t errorType_;
+    std::string netshareRequester_;
+    int32_t errorType_ = NETWORKSHARING_SHARING_NO_ERROR;
     bool hasSetForward_ = false;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> subMachineList_;
     std::shared_ptr<NetworkShareUpstreamMonitor> networkMonitor_ = nullptr;
-    int curState_;
+    int curState_ = MAINSTATE_INIT;
     std::vector<MainSmStateTable> stateTable_;
     std::string upstreamIfaceName_;
 };

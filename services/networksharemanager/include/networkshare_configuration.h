@@ -16,9 +16,9 @@
 #ifndef NETWORKSHARE_CONFIGURATION_H
 #define NETWORKSHARE_CONFIGURATION_H
 
-#include <vector>
 #include <fstream>
 #include <map>
+#include <vector>
 
 #include "networkshare_configuration.h"
 
@@ -127,8 +127,8 @@ private:
         CONFIG_VALUE_WIFI_SET_DHCP,
     };
 
-    bool isWifiHotspotSetDhcp_;
-    bool isSharingSupported_;
+    bool isWifiHotspotSetDhcp_ = false;
+    bool isSharingSupported_ = false;
     std::vector<std::string> usbRegexs_;
     std::vector<std::string> wifiRegexs_;
     std::vector<std::string> blueToothRegexs_;
