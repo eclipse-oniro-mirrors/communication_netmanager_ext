@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef DEV_INTERFACE_CFG_H
-#define DEV_INTERFACE_CFG_H
+#ifndef DEV_INTERFACE_STATE_H
+#define DEV_INTERFACE_STATE_H
 
+#include <cstdint>
 #include <iosfwd>
 #include <set>
-#include <cstdint>
 #include <string>
 #include <vector>
-#include "__functional_base"
 
+#include "__functional_base"
 #include "interface_configuration.h"
 #include "net_all_capabilities.h"
 #include "net_link_info.h"
@@ -33,24 +33,19 @@
 namespace OHOS {
 namespace NetManagerStandard {
 class DevInterfaceState : public virtual RefBase {
-    typedef enum {
-        REGISTERED,
-        UNREGISTERED,
-        LINK_AVAILABLE,
-        LINK_UNAVAILABLE
-    } ConnLinkState;
+    enum ConnLinkState { REGISTERED, UNREGISTERED, LINK_AVAILABLE, LINK_UNAVAILABLE };
 
 public:
     DevInterfaceState();
-    ~DevInterfaceState();
+    ~DevInterfaceState() = default;
     void SetDevName(const std::string &devName);
     void SetNetCaps(const std::set<NetCap> &netCaps);
     void SetLinkUp(bool up);
     void SetlinkInfo(sptr<NetLinkInfo> &linkInfo);
-    void SetIfcfg(sptr<InterfaceConfiguration> &ifcfg);
+    void SetIfcfg(sptr<InterfaceConfiguration> &ifCfg);
     void SetDhcpReqState(bool dhcpReqState);
     void UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &netMask, const INetAddr &gateWay, const INetAddr &route,
-        const INetAddr &dns1, const INetAddr &dns2);
+                        const INetAddr &dns1, const INetAddr &dns2);
     std::string GetDevName() const;
     const std::set<NetCap> &GetNetCaps() const;
     std::set<NetCap> GetNetCaps();
@@ -80,10 +75,10 @@ private:
     bool dhcpReqState_ = false;
     sptr<NetLinkInfo> linkInfo_ = nullptr;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;
-    sptr<InterfaceConfiguration> ifcfg_ = nullptr;
+    sptr<InterfaceConfiguration> ifCfg_ = nullptr;
     std::set<NetCap> netCaps_;
     NetBearType bearerType_ = BEARER_ETHERNET;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // DEV_INTERFACE_CFG_H
+#endif // DEV_INTERFACE_STATE_H
