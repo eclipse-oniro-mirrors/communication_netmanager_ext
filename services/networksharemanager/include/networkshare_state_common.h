@@ -16,9 +16,9 @@
 #ifndef NETWORKSHARE_STATE_COMMMON_H
 #define NETWORKSHARE_STATE_COMMMON_H
 
+#include "net_all_capabilities.h"
 #include "net_handle.h"
 #include "net_link_info.h"
-#include "net_all_capabilities.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

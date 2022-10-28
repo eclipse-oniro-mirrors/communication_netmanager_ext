@@ -31,11 +31,8 @@ static constexpr const char *FAKE_DOWNSTREAM_IFACENAME = "";
 static constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 
 NetworkShareMainStateMachine::NetworkShareMainStateMachine(std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor)
-    : netshare_requester_("netsharing_requester"), networkMonitor_(networkmonitor)
+    : netshareRequester_("netsharing_requester"), networkMonitor_(networkmonitor)
 {
-    curState_ = MAINSTATE_INIT;
-    errorType_ = NETWORKSHARING_SHARING_NO_ERROR;
-
     MainSmStateTable temp;
     temp.event_ = EVENT_IFACE_SM_STATE_ACTIVE;
     temp.curState_ = MAINSTATE_INIT;
@@ -248,9 +245,9 @@ int NetworkShareMainStateMachine::EraseSharedSubSM(const std::any &messageObj)
 
 void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
 {
-    sptr<NetHandle> pNetHandle = new NetHandle();
-    sptr<NetAllCapabilities> pNetCapabilities = new NetAllCapabilities();
-    sptr<NetLinkInfo> pNetLinkInfo = new NetLinkInfo();
+    sptr<NetHandle> pNetHandle = new (std::nothrow) NetHandle();
+    sptr<NetAllCapabilities> pNetCapabilities = new (std::nothrow) NetAllCapabilities();
+    sptr<NetLinkInfo> pNetLinkInfo = new (std::nothrow) NetLinkInfo();
     std::shared_ptr<UpstreamNetworkInfo> netInfoPtr =
         std::make_shared<UpstreamNetworkInfo>(pNetHandle, pNetCapabilities, pNetLinkInfo);
     if (networkMonitor_ != nullptr && networkMonitor_->GetCurrentGoodUpstream(netInfoPtr)) {
@@ -312,11 +309,12 @@ int NetworkShareMainStateMachine::HandleErrorInterfaceStateInactive(const std::a
 
 int NetworkShareMainStateMachine::HandleErrorClear(const std::any &messageObj)
 {
+    (void)messageObj;
     errorType_ = NETWORKSHARING_SHARING_NO_ERROR;
     return NETWORKSHARE_SUCCESS;
 }
 
-void NetworkShareMainStateMachine::SwitcheToErrorState(const int &errType)
+void NetworkShareMainStateMachine::SwitcheToErrorState(const int32_t errType)
 {
     NETMGR_EXT_LOG_W("SwitcheToErrorState errType[%{public}d].", errType);
     errorType_ = errType;
@@ -328,7 +326,7 @@ bool NetworkShareMainStateMachine::TurnOnMainShareSettings()
     if (hasSetForward_) {
         return true;
     }
-    int32_t result = NetsysController::GetInstance().IpEnableForwarding(netshare_requester_);
+    int32_t result = NetsysController::GetInstance().IpEnableForwarding(netshareRequester_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNON_IP_FORWARD,
                                                              NetworkShareEventErrorType::ERROR_TURNON_IP_FORWARD,
@@ -345,7 +343,7 @@ bool NetworkShareMainStateMachine::TurnOnMainShareSettings()
 
 bool NetworkShareMainStateMachine::TurnOffMainShareSettings()
 {
-    int32_t result = NetsysController::GetInstance().IpDisableForwarding(netshare_requester_);
+    int32_t result = NetsysController::GetInstance().IpDisableForwarding(netshareRequester_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNOFF_IP_FORWARD,
                                                              NetworkShareEventErrorType::ERROR_TURNOFF_IP_FORWARD,

@@ -28,7 +28,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t GET_CFG_SUC = 1;
 class INetworkShareService : public IRemoteBroker {
 public:
     enum class MessageCode {

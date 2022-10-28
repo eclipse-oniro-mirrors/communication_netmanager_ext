@@ -15,30 +15,26 @@
 
 #include "networkshare_sub_statemachine.h"
 
-#include "netmgr_ext_log_wrapper.h"
-#include "networkshare_constants.h"
-#include "netsys_controller.h"
 #include "net_manager_constants.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
 #include "route_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 static constexpr const char *NEXT_HOT = "0.0.0.0";
-static constexpr int32_t IP_V4 = 0;
 static constexpr const char *ERROR_MSG_CONFIG_FORWARD = "Config Forward failed";
 static constexpr const char *ERROR_MSG_ADD_ROUTE_STRATEGY = "Add Route Strategy failed";
 static constexpr const char *ERROR_MSG_ADD_ROUTE_RULE = "Add Route Rule failed";
 static constexpr const char *ERROR_MSG_REMOVE_ROUTE_RULE = "Remove Route Rule failed";
 static constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
+static constexpr int32_t IP_V4 = 0;
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
     const std::string &ifaceName, const SharingIfaceType &interfaceType,
     const std::shared_ptr<NetworkShareConfiguration> &configuration)
     : ifaceName_(ifaceName), netShareType_(interfaceType), configuration_(configuration)
 {
-    lastError_ = NETWORKSHARE_ERROR_NO_ERROR;
-    curState_ = SUBSTATE_INIT;
-
     CreateInitStateTable();
     CreateSharedStateTable();
 }
@@ -179,8 +175,7 @@ void NetworkShareSubStateMachine::InitStateEnter()
         return;
     }
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Init State.", ifaceName_.c_str());
-    std::shared_ptr<NetworkShareSubStateMachine> subStateMachine = shared_from_this();
-    trackerCallback_->OnUpdateInterfaceState(subStateMachine, SUB_SM_STATE_AVAILABLE, lastError_);
+    trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_AVAILABLE, lastError_);
 }
 
 void NetworkShareSubStateMachine::InitStateExit()
@@ -190,12 +185,14 @@ void NetworkShareSubStateMachine::InitStateExit()
 
 int NetworkShareSubStateMachine::HandleInitSharingRequest(const std::any &messageObj)
 {
+    (void)messageObj;
     lastError_ = NETWORKSHARE_ERROR_NO_ERROR;
     return NETWORKSHARE_SUCCESS;
 }
 
 int NetworkShareSubStateMachine::HandleInitInterfaceDown(const std::any &messageObj)
 {
+    (void)messageObj;
     return NETWORKSHARE_SUCCESS;
 }
 
@@ -214,8 +211,7 @@ void NetworkShareSubStateMachine::SharedStateEnter()
         NETMGR_EXT_LOG_E("Enter Sub StateMachine Shared State error, trackerCallback_ is null.");
         return;
     }
-    std::shared_ptr<NetworkShareSubStateMachine> subStateMachine = shared_from_this();
-    trackerCallback_->OnUpdateInterfaceState(subStateMachine, SUB_SM_STATE_SHARED, lastError_);
+    trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_SHARED, lastError_);
 }
 
 void NetworkShareSubStateMachine::SharedStateExit()
@@ -227,11 +223,13 @@ void NetworkShareSubStateMachine::SharedStateExit()
 
 int NetworkShareSubStateMachine::HandleSharedUnrequest(const std::any &messageObj)
 {
+    (void)messageObj;
     return NETWORKSHARE_SUCCESS;
 }
 
 int NetworkShareSubStateMachine::HandleSharedInterfaceDown(const std::any &messageObj)
 {
+    (void)messageObj;
     return NETWORKSHARE_SUCCESS;
 }
 
@@ -243,7 +241,7 @@ int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &me
         NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] upstreamNetInfo is null, need clean.", ifaceName_.c_str());
         CleanupUpstreamInterface();
         upstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
-        return true;
+        return NETWORKSHARE_SUCCESS;
     }
     HandleConnectionChanged(upstreamNetInfo);
     return NETWORKSHARE_SUCCESS;
@@ -251,6 +249,7 @@ int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &me
 
 int NetworkShareSubStateMachine::HandleSharedErrors(const std::any &messageObj)
 {
+    (void)messageObj;
     NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] SharedState has ERROR.", ifaceName_.c_str());
     lastError_ = NETWORKSHARE_ERROR_INTERNAL_ERROR;
     return NETWORKSHARE_SUCCESS;
@@ -264,8 +263,7 @@ void NetworkShareSubStateMachine::UnavailableStateEnter()
         NETMGR_EXT_LOG_E("Enter Sub StateMachine Unavailable State error, trackerCallback_ is null.");
         return;
     }
-    std::shared_ptr<NetworkShareSubStateMachine> subStateMachine = shared_from_this();
-    trackerCallback_->OnUpdateInterfaceState(subStateMachine, SUB_SM_STATE_UNAVAILABLE, NETWORKSHARE_ERROR_NO_ERROR);
+    trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_UNAVAILABLE, NETWORKSHARE_ERROR_NO_ERROR);
 }
 
 void NetworkShareSubStateMachine::UnavailableStateExit()
@@ -275,6 +273,9 @@ void NetworkShareSubStateMachine::UnavailableStateExit()
 
 void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo)
 {
+    if (upstreamNetInfo == nullptr) {
+        return;
+    }
     if (upstreamNetInfo->netLinkPro_ == nullptr) {
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] HandleConnectionChanged netLinkPro_ is null.",
                          ifaceName_.c_str());
@@ -332,23 +333,10 @@ void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
         return;
     }
     std::string destination;
-    if (netShareType_ == SharingIfaceType::SHARING_BLUETOOTH) {
-        if (!GetBtDestinationAddr(destination)) {
-            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Remove Route Get btpan Destination Addr failed.",
-                             ifaceName_.c_str());
-            return;
-        }
-    } else if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
-        if (!GetWifiApDestinationAddr(destination)) {
-            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Remove Route Get wifi Destination Addr failed.",
-                             ifaceName_.c_str());
-            return;
-        }
-    } else {
-        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Remove Route sharetype is unknow.", ifaceName_.c_str());
+    if (!FindDestinationAddr(destination)) {
+        NETMGR_EXT_LOG_E("Get Destination fail");
         return;
     }
-
     int32_t result =
         NetsysController::GetInstance().NetworkRemoveRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
     if (result != NETMANAGER_SUCCESS) {
@@ -363,27 +351,14 @@ void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
 void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
 {
     if (netShareType_ == SharingIfaceType::SHARING_USB) {
-        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Remove Route USB is not support.", ifaceName_.c_str());
+        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route USB is not support.", ifaceName_.c_str());
         return;
     }
     std::string destination;
-    if (netShareType_ == SharingIfaceType::SHARING_BLUETOOTH) {
-        if (GetBtDestinationAddr(destination) == false) {
-            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get btpan Destination Addr failed.",
-                             ifaceName_.c_str());
-            return;
-        }
-    } else if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
-        if (GetWifiApDestinationAddr(destination) == false) {
-            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get wifi Destination Addr failed.",
-                             ifaceName_.c_str());
-            return;
-        }
-    } else {
-        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route sharetype is unknow.", ifaceName_.c_str());
+    if (!FindDestinationAddr(destination)) {
+        NETMGR_EXT_LOG_E("Get Destination fail");
         return;
     }
-
     int32_t result = NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
     if (result != NETMANAGER_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
@@ -391,6 +366,28 @@ void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
             NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ADD_ROUTE_RULE,
             NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route error[%{public}d].", ifaceName_.c_str(), result);
+    }
+}
+
+bool NetworkShareSubStateMachine::FindDestinationAddr(std::string &destination)
+{
+    if (netShareType_ == SharingIfaceType::SHARING_BLUETOOTH) {
+        if (GetBtDestinationAddr(destination) == false) {
+            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get btpan Destination Addr failed.",
+                             ifaceName_.c_str());
+            return false;
+        }
+        return true;
+    } else if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
+        if (GetWifiApDestinationAddr(destination) == false) {
+            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get wifi Destination Addr failed.",
+                             ifaceName_.c_str());
+            return false;
+        }
+        return true;
+    } else {
+        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route sharetype is unknow.", ifaceName_.c_str());
+        return false;
     }
 }
 
@@ -535,7 +532,7 @@ bool NetworkShareSubStateMachine::StopDhcp()
         return false;
     }
     int ret = dhcpService_->StopDhcpServer(ifaceName_);
-    if (ret == Wifi::DHCP_OPT_SUCCESS) {
+    if (ret != Wifi::DHCP_OPT_SUCCESS) {
         NETMGR_EXT_LOG_E("StopDhcpServer failed, error[%{public}d].", ret);
         return false;
     }
@@ -552,9 +549,6 @@ bool NetworkShareSubStateMachine::ConfigureShareDhcp(bool enabled)
             NETMGR_EXT_LOG_E("ConfigureShareDhcp no available ipv4 address.");
             return false;
         }
-    }
-
-    if (enabled) {
         if (netShareType_ == SharingIfaceType::SHARING_WIFI && !GetWifiHotspotDhcpFlag()) {
             NETMGR_EXT_LOG_W("StartDhcp wifi hotspot not need start.");
             return true;
