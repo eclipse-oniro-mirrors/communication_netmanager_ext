@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
 constexpr const char *CONFIG_KEY_SHARE_SUPPORT = "share_support";
 constexpr const char *CONFIG_KEY_USB_REGEXS = "usb_regexs";
 constexpr const char *CONFIG_KEY_WIFI_REGEXS = "wifi_regexs";
@@ -37,6 +38,7 @@ constexpr const char *CONFIG_KEY_WIFI_SET_DHCP = "wifi_hotspot_set_dhcp";
 constexpr const char *SPLIT_SYMBOL_1 = ":";
 constexpr const char *SPLIT_SYMBOL_2 = ",";
 constexpr const char *VALUE_SUPPORT_TRUE = "true";
+} // namespace
 
 NetworkShareConfiguration::NetworkShareConfiguration()
 {

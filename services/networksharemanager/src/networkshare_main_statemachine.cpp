@@ -16,22 +16,23 @@
 #include "networkshare_main_statemachine.h"
 
 #include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
 #include "networkshare_constants.h"
 #include "networkshare_sub_statemachine.h"
-#include "netsys_controller.h"
 #include "networkshare_tracker.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 static constexpr const char *ERROR_MSG_TRUNON = "Turn on Ip Forward failed";
 static constexpr const char *ERROR_MSG_TRUNOFF = "Turn off Ip Forward failed";
+static constexpr const char *ERROR_MSG_ENABLE_FORWARD = "Enable Forward failed";
+static constexpr const char *ERROR_MSG_DISABLE_FORWARD = "Disable Forward failed";
+static constexpr const char *FAKE_DOWNSTREAM_IFACENAME = "";
+static constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 
 NetworkShareMainStateMachine::NetworkShareMainStateMachine(std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor)
-    : netshare_requester_("netsharing_requester"), networkMonitor_(networkmonitor)
+    : netshareRequester_("netsharing_requester"), networkMonitor_(networkmonitor)
 {
-    curState_ = MAINSTATE_INIT;
-    errorType_ = NETWORKSHARING_SHARING_NO_ERROR;
-
     MainSmStateTable temp;
     temp.event_ = EVENT_IFACE_SM_STATE_ACTIVE;
     temp.curState_ = MAINSTATE_INIT;
@@ -145,7 +146,7 @@ void NetworkShareMainStateMachine::AliveStateEnter()
         return;
     }
     if (NetworkShareTracker::GetInstance().UpstreamWanted()) {
-        ChooseUpstreamType();
+        ChooseUpstreamNetwork();
     }
 }
 
@@ -158,11 +159,14 @@ void NetworkShareMainStateMachine::AliveStateExit()
 void NetworkShareMainStateMachine::ErrorStateEnter()
 {
     NETMGR_EXT_LOG_I("Enter Error state, error[%{public}d].", errorType_);
-    for_each(subMachineList_.begin(), subMachineList_.end(), [&](std::shared_ptr<NetworkShareSubStateMachine> subsm) {
-        NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] EVENT[%{public}d].", subsm->GetInterfaceName().c_str(),
-                         this->errorType_);
-        subsm->SubSmEventHandle(this->errorType_, 0);
-    });
+    for_each(subMachineList_.begin(), subMachineList_.end(),
+             [this](std::shared_ptr<NetworkShareSubStateMachine> subsm) {
+                 if (subsm != nullptr) {
+                     NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] EVENT[%{public}d].",
+                                      subsm->GetInterfaceName().c_str(), errorType_);
+                     subsm->SubSmEventHandle(errorType_, 0);
+                 }
+             });
 }
 
 void NetworkShareMainStateMachine::ErrorStateExit()
@@ -217,6 +221,7 @@ int NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive(const std::a
         return ret;
     }
     if (subMachineList_.size() == 0) {
+        DisableForward();
         TurnOffMainShareSettings();
     }
     return NETWORKSHARE_SUCCESS;
@@ -238,15 +243,25 @@ int NetworkShareMainStateMachine::EraseSharedSubSM(const std::any &messageObj)
     return NETWORKSHARE_SUCCESS;
 }
 
-void NetworkShareMainStateMachine::ChooseUpstreamType()
+void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
 {
-    sptr<NetHandle> pNetHandle = new NetHandle();
-    sptr<NetAllCapabilities> pNetCapabilities = new NetAllCapabilities();
-    sptr<NetLinkInfo> pNetLinkInfo = new NetLinkInfo();
+    sptr<NetHandle> pNetHandle = new (std::nothrow) NetHandle();
+    sptr<NetAllCapabilities> pNetCapabilities = new (std::nothrow) NetAllCapabilities();
+    sptr<NetLinkInfo> pNetLinkInfo = new (std::nothrow) NetLinkInfo();
     std::shared_ptr<UpstreamNetworkInfo> netInfoPtr =
         std::make_shared<UpstreamNetworkInfo>(pNetHandle, pNetCapabilities, pNetLinkInfo);
-    networkMonitor_->GetCurrentGoodUpstream(netInfoPtr);
-    NetworkShareTracker::GetInstance().SetUpstreamNetHandle(netInfoPtr);
+    if (networkMonitor_ != nullptr && networkMonitor_->GetCurrentGoodUpstream(netInfoPtr)) {
+        upstreamIfaceName_ = netInfoPtr->netLinkPro_->ifaceName_;
+        int32_t result = NetsysController::GetInstance().EnableNat(FAKE_DOWNSTREAM_IFACENAME, upstreamIfaceName_);
+        if (result != NETMANAGER_EXT_SUCCESS) {
+            NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+                NetworkShareEventOperator::OPERATION_CONFIG_FORWARD, NetworkShareEventErrorType::ERROR_CONFIG_FORWARD,
+                ERROR_MSG_ENABLE_FORWARD, NetworkShareEventType::SETUP_EVENT);
+            NETMGR_EXT_LOG_E("Main StateMachine enable NAT newIface[%{public}s] error[%{public}d].",
+                             upstreamIfaceName_.c_str(), result);
+        }
+        NetworkShareTracker::GetInstance().SetUpstreamNetHandle(netInfoPtr);
+    }
 }
 
 int NetworkShareMainStateMachine::HandleAliveUpstreamMonitorCallback(const std::any &messageObj)
@@ -258,17 +273,19 @@ int NetworkShareMainStateMachine::HandleAliveUpstreamMonitorCallback(const std::
     const MessageUpstreamInfo &temp = std::any_cast<const MessageUpstreamInfo &>(messageObj);
     switch (temp.cmd_) {
         case EVENT_UPSTREAM_CALLBACK_ON_LINKPROPERTIES: {
-            ChooseUpstreamType();
+            ChooseUpstreamNetwork();
             break;
         }
         case EVENT_UPSTREAM_CALLBACK_ON_LOST: {
+            DisableForward();
             break;
         }
         case EVENT_UPSTREAM_CALLBACK_ON_CAPABILITIES: {
             break;
         }
         case EVENT_UPSTREAM_CALLBACK_DEFAULT_SWITCHED: {
-            NetworkShareTracker::GetInstance().SetUpstreamNetHandle(temp.upstreamInfo_);
+            DisableForward();
+            ChooseUpstreamNetwork();
             break;
         }
         default:
@@ -292,11 +309,12 @@ int NetworkShareMainStateMachine::HandleErrorInterfaceStateInactive(const std::a
 
 int NetworkShareMainStateMachine::HandleErrorClear(const std::any &messageObj)
 {
+    (void)messageObj;
     errorType_ = NETWORKSHARING_SHARING_NO_ERROR;
     return NETWORKSHARE_SUCCESS;
 }
 
-void NetworkShareMainStateMachine::SwitcheToErrorState(const int &errType)
+void NetworkShareMainStateMachine::SwitcheToErrorState(const int32_t errType)
 {
     NETMGR_EXT_LOG_W("SwitcheToErrorState errType[%{public}d].", errType);
     errorType_ = errType;
@@ -308,7 +326,7 @@ bool NetworkShareMainStateMachine::TurnOnMainShareSettings()
     if (hasSetForward_) {
         return true;
     }
-    int32_t result = NetsysController::GetInstance().IpEnableForwarding(netshare_requester_);
+    int32_t result = NetsysController::GetInstance().IpEnableForwarding(netshareRequester_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNON_IP_FORWARD,
                                                              NetworkShareEventErrorType::ERROR_TURNON_IP_FORWARD,
@@ -325,7 +343,7 @@ bool NetworkShareMainStateMachine::TurnOnMainShareSettings()
 
 bool NetworkShareMainStateMachine::TurnOffMainShareSettings()
 {
-    int32_t result = NetsysController::GetInstance().IpDisableForwarding(netshare_requester_);
+    int32_t result = NetsysController::GetInstance().IpDisableForwarding(netshareRequester_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNOFF_IP_FORWARD,
                                                              NetworkShareEventErrorType::ERROR_TURNOFF_IP_FORWARD,
@@ -339,6 +357,20 @@ bool NetworkShareMainStateMachine::TurnOffMainShareSettings()
     MainSmStateSwitch(MAINSTATE_INIT);
     hasSetForward_ = false;
     return true;
+}
+
+void NetworkShareMainStateMachine::DisableForward()
+{
+    NetworkShareTracker::GetInstance().SetUpstreamNetHandle(nullptr);
+    int32_t result = NetsysController::GetInstance().DisableNat(FAKE_DOWNSTREAM_IFACENAME, upstreamIfaceName_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            NetworkShareEventOperator::OPERATION_CONFIG_FORWARD, NetworkShareEventErrorType::ERROR_CONFIG_FORWARD,
+            ERROR_MSG_DISABLE_FORWARD, NetworkShareEventType::SETUP_EVENT);
+        NETMGR_EXT_LOG_E("MainSM disable NAT newIface[%{public}s] in Lost Network error[%{public}d].",
+                         upstreamIfaceName_.c_str(), result);
+    }
+    upstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

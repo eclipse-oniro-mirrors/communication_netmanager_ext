@@ -16,24 +16,24 @@
 #ifndef NETWORKSHARE_TRACKER_H
 #define NETWORKSHARE_TRACKER_H
 
-#include <map>
 #include <any>
+#include <map>
 
-#include "event_handler.h"
-#include "net_manager_ext_constants.h"
-#include "i_netshare_result_callback.h"
-#include "i_sharing_event_callback.h"
-#include "netsys_controller_callback.h"
-#include "networkshare_main_statemachine.h"
-#include "networkshare_sub_statemachine.h"
-#include "networkshare_configuration.h"
-#include "networkshare_upstreammonitor.h"
-#include "networkshare_hisysevent.h"
-#include "wifi_hotspot.h"
-#include "wifi_ap_msg.h"
-#include "i_wifi_hotspot_callback.h"
 #include "bluetooth_pan.h"
 #include "bluetooth_remote_device.h"
+#include "event_handler.h"
+#include "i_netshare_result_callback.h"
+#include "i_sharing_event_callback.h"
+#include "i_wifi_hotspot_callback.h"
+#include "net_manager_ext_constants.h"
+#include "netsys_controller_callback.h"
+#include "networkshare_configuration.h"
+#include "networkshare_hisysevent.h"
+#include "networkshare_main_statemachine.h"
+#include "networkshare_sub_statemachine.h"
+#include "networkshare_upstreammonitor.h"
+#include "wifi_hotspot.h"
+#include "wifi_ap_msg.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -70,8 +70,9 @@ class NetworkShareTracker {
         MainSmUpstreamCallback() = default;
         virtual ~MainSmUpstreamCallback() = default;
 
-        void OnUpstreamStateChanged(int msgName, int param1);
-        void OnUpstreamStateChanged(int msgName, int param1, int param2, const std::any &messageObj);
+        void OnUpstreamStateChanged(int32_t msgName, int32_t param1) override;
+        void OnUpstreamStateChanged(int32_t msgName, int32_t param1, int32_t param2,
+                                    const std::any &messageObj) override;
     };
 
     class SubSmUpstreamCallback : public NetworkShareSubStateMachine::SubStateMachineCallback {
@@ -80,7 +81,7 @@ class NetworkShareTracker {
         virtual ~SubSmUpstreamCallback() = default;
 
         void OnUpdateInterfaceState(const std::shared_ptr<NetworkShareSubStateMachine> &paraSubStateMachine, int state,
-                                    int lastError);
+                                    int lastError) override;
     };
 
     class WifiShareHotspotEventCallback : public Wifi::IWifiHotspotCallback {
@@ -99,7 +100,7 @@ class NetworkShareTracker {
         SharingPanObserver() = default;
         virtual ~SharingPanObserver() = default;
 
-        void OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device, int state);
+        void OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device, int state) override;
     };
 
     class NetSharingSubSmState {
@@ -109,8 +110,8 @@ class NetworkShareTracker {
 
     public:
         std::shared_ptr<NetworkShareSubStateMachine> subStateMachine_;
-        int lastState_;
-        int lastError_;
+        int32_t lastState_;
+        int32_t lastError_;
         bool isNcm_;
     };
 
@@ -156,7 +157,7 @@ public:
     /**
      * get sharing type
      */
-    int32_t GetSharingState(SharingIfaceType type, SharingIfaceState &state);
+    int32_t GetSharingState(const SharingIfaceType type, SharingIfaceState &state);
 
     /**
      * get sharing ifaces name
@@ -172,21 +173,6 @@ public:
      * unregister callback
      */
     int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback);
-
-    /**
-     * get downlink data bytes
-     */
-    int32_t GetStatsRxBytes();
-
-    /**
-     * get uplink data bytes
-     */
-    int32_t GetStatsTxBytes();
-
-    /**
-     * get total data bytes
-     */
-    int32_t GetStatsTotalBytes();
 
     /**
      * is need update upstream network
@@ -218,6 +204,8 @@ public:
      */
     void NotifyDownstreamsHasNewUpstreamIface(const std::shared_ptr<UpstreamNetworkInfo> &netinfo);
 
+    int32_t GetSharedSubSMTraffic(const TrafficType &type);
+
 private:
     NetworkShareTracker() = default;
 
@@ -229,7 +217,7 @@ private:
     int32_t SetBluetoothNetworkSharing(bool enable);
     void EnableWifiSubStateMachine();
     void EnableBluetoothSubStateMachine();
-    int32_t Sharing(std::string iface, int32_t reqState);
+    int32_t Sharing(const std::string &iface, int32_t reqState);
     void SendGlobalSharingStateChange();
     void SendIfaceSharingStateChange(const SharingIfaceType type, const std::string iface,
                                      const SharingIfaceState state);
@@ -251,6 +239,8 @@ private:
     void RegisterBtPanCallback();
     void SetWifiState(const Wifi::ApState &state);
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
+    void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, const int32_t event,
+                         const int32_t state);
 
 private:
     std::mutex mutex_;
@@ -262,7 +252,6 @@ private:
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
     std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;
     std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;
-    std::unique_ptr<Wifi::WifiHotspot> wifiHotspotPtr_ = nullptr;
     bool isNetworkSharing_ = false;
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
     std::vector<SharingIfaceType> clientRequestsVector_;

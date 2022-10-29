@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,19 +19,19 @@
 #include <map>
 #include <mutex>
 
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
-
 #include "dev_interface_state.h"
 #include "ethernet_configuration.h"
 #include "ethernet_dhcp_controller.h"
+#include "iservice_registry.h"
 #include "netsys_controller_callback.h"
+#include "system_ability_definition.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
 class EthernetManagement {
     class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
     public:
-        EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement);
+        EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement) : ethernetManagement_(ethernetManagement) {}
         int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override;
 
     private:
@@ -39,9 +39,8 @@ class EthernetManagement {
     };
     class DevInterfaceStateCallback : public NetsysControllerCallback {
     public:
-        DevInterfaceStateCallback(EthernetManagement &ethernetManagement);
-        DevInterfaceStateCallback() = delete;
-        ~DevInterfaceStateCallback() override;
+        DevInterfaceStateCallback(EthernetManagement &ethernetManagement) : ethernetManagement_(ethernetManagement) {}
+        ~DevInterfaceStateCallback() = default;
         int32_t OnInterfaceAddressUpdated(const std::string &, const std::string &, int, int) override;
         int32_t OnInterfaceAddressRemoved(const std::string &, const std::string &, int, int) override;
         int32_t OnInterfaceAdded(const std::string &iface) override;
@@ -62,7 +61,7 @@ public:
     void Init();
     int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
     void UpdateInterfaceState(const std::string &dev, bool up);
-    int32_t UpdateDevInterfaceState(const std::string &iface, sptr<InterfaceConfiguration> cfg);
+    int32_t UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg);
     sptr<InterfaceConfiguration> GetDevInterfaceCfg(const std::string &iface);
     int32_t IsIfaceActive(const std::string &iface);
     std::vector<std::string> GetAllActiveIfaces();

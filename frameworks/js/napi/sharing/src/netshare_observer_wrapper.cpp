@@ -38,7 +38,7 @@ NetShareObserverWrapper::~NetShareObserverWrapper()
 }
 
 napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
-                                      const std::initializer_list<std::string_view> &events, bool asyncCallback)
+                                       const std::initializer_list<std::string_view> &events, bool asyncCallback)
 {
     size_t paramsCount = MAX_PARAM_NUM;
     napi_value params[MAX_PARAM_NUM] = {nullptr};
@@ -50,22 +50,16 @@ napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
     }
 
     const std::string event = NapiUtils::GetStringFromValueUtf8(env, params[ARG_INDEX_0]);
-    auto event_iterator = std::find(events.begin(), events.end(), event);
-    if (event_iterator != events.end()) {
-        NETMANAGER_EXT_LOGI("on find event: %{public}s", event.c_str());
-    }
 
     if (Register()) {
         manager_->AddListener(env, event, params[ARG_INDEX_1], false, asyncCallback);
-    } else {
-        NETMANAGER_EXT_LOGE("unregister callback or manager is nullptr");
     }
 
     return NapiUtils::GetUndefined(env);
 }
 
 napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
-                                       const std::initializer_list<std::string_view> &events, bool asyncCallback)
+                                        const std::initializer_list<std::string_view> &events, bool asyncCallback)
 {
     napi_value thisVal = nullptr;
     size_t paramsCount = MAX_PARAM_NUM;
@@ -87,7 +81,6 @@ napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
     const std::string event = NapiUtils::GetStringFromValueUtf8(env, params[ARG_INDEX_0]);
     auto event_iterator = std::find(events.begin(), events.end(), event);
     if (event_iterator == events.end()) {
-        NETMANAGER_EXT_LOGI("off not find event: %{public}s", event.c_str());
         return NapiUtils::GetUndefined(env);
     }
 
@@ -98,11 +91,12 @@ napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
     }
 
     if (manager_->IsListenerListEmpty()) {
-        registed_ = false;
         int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(observer_);
         if (result == NETWORKSHARE_ERROR) {
             NETMANAGER_EXT_LOGE("unregister result = %{public}d", result);
+            return NapiUtils::GetUndefined(env);
         }
+        registed_ = false;
     }
 
     return NapiUtils::GetUndefined(env);

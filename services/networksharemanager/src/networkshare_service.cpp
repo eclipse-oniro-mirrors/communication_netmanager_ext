@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +16,12 @@
 
 #include "networkshare_service.h"
 
-#include <system_ability_definition.h>
-#include "netmgr_ext_log_wrapper.h"
-#include "networkshare_constants.h"
+#include "net_event_report.h"
 #include "net_manager_center.h"
 #include "netmanager_base_permission.h"
-#include "net_event_report.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "networkshare_constants.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -29,7 +30,7 @@ const bool REGISTER_LOCAL_RESULT_NETSHARE =
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
 
-NetworkShareService::~NetworkShareService() {};
+NetworkShareService::~NetworkShareService(){};
 
 void NetworkShareService::OnStart()
 {
@@ -92,11 +93,10 @@ void NetworkShareService::GetDumpMessage(std::string &message)
         NetworkShareTracker::GetInstance().IsNetworkSharingSupported() == NETWORKSHARE_IS_SUPPORTED ? "surpported"
                                                                                                     : "not surpported";
     message.append("\tIs Sharing Supported: " + surpportContent + "\n");
-    std::string sharingState =
-        NetworkShareTracker::GetInstance().IsSharing() == NETWORKSHARE_IS_SHARING ? "is sharing" : "not sharing";
+    bool isSharing = NetworkShareTracker::GetInstance().IsSharing() == NETWORKSHARE_IS_SHARING;
+    std::string sharingState = isSharing ? "is sharing" : "not sharing";
     message.append("\tSharing State: " + sharingState + "\n");
-
-    if (sharingState.compare("is sharing") == 0) {
+    if (isSharing) {
         std::string sharingType;
         GetSharingType(SharingIfaceType::SHARING_WIFI, "wifi;", sharingType);
         GetSharingType(SharingIfaceType::SHARING_USB, "usb;", sharingType);
@@ -128,10 +128,8 @@ void NetworkShareService::GetSharingType(const SharingIfaceType type, const std:
 void NetworkShareService::GetShareRegexsContent(const SharingIfaceType type, std::string &shareRegexsContent)
 {
     std::vector<std::string> regexs = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
-    for_each(regexs.begin(), regexs.end(), [&shareRegexsContent](std::string &regex) {
-        std::string tempContent = regex + ";";
-        shareRegexsContent += tempContent;
-    });
+    for_each(regexs.begin(), regexs.end(),
+             [&shareRegexsContent](std::string &regex) { shareRegexsContent += regex + ";"; });
 }
 
 int32_t NetworkShareService::IsNetworkSharingSupported()
@@ -211,7 +209,7 @@ int32_t NetworkShareService::GetStatsRxBytes()
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
     }
-    return NetworkShareTracker::GetInstance().GetStatsRxBytes();
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_RX);
 }
 
 int32_t NetworkShareService::GetStatsTxBytes()
@@ -219,7 +217,7 @@ int32_t NetworkShareService::GetStatsTxBytes()
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
     }
-    return NetworkShareTracker::GetInstance().GetStatsTxBytes();
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_TX);
 }
 
 int32_t NetworkShareService::GetStatsTotalBytes()
@@ -227,7 +225,7 @@ int32_t NetworkShareService::GetStatsTotalBytes()
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
     }
-    return NetworkShareTracker::GetInstance().GetStatsTotalBytes();
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_ALL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

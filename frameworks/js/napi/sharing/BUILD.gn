@@ -16,12 +16,13 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("sharing_config") {
   visibility = [ ":netshare" ]
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "$NETMANAGER_BASE_ROOT/utils/log/include",
+  ]
 }
 
 ohos_shared_library("sharing") {
-  include_dirs = [ "$NETMANAGER_BASE_ROOT/utils/log/include" ]
-
   sources = [
     "src/netshare_async_work.cpp",
     "src/netshare_callback_observer.cpp",
@@ -36,7 +37,7 @@ ohos_shared_library("sharing") {
     "$NETMANAGER_BASE_ROOT/utils/napi_utils:napi_utils",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netshareclient:net_tether_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "//third_party/libuv:uv_static",
+    "$THIRD_PARTY_ROOT/libuv:uv",
   ]
 
   external_deps = [

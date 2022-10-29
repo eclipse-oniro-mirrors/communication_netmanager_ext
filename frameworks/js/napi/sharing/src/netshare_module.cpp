@@ -20,9 +20,9 @@
 #include <napi/native_common.h>
 
 #include "constant.h"
+#include "module_template.h"
 #include "netshare_startsharing_context.h"
 #include "netshare_issharing_context.h"
-#include "module_template.h"
 #include "napi_utils.h"
 #include "netmanager_ext_log.h"
 #include "netshare_async_work.h"
@@ -183,21 +183,21 @@ napi_value InitNetShareModule(napi_env env, napi_value exports)
 {
     InitProperties(env, exports);
 
-    std::initializer_list<napi_property_descriptor> properties = {
-        DECLARE_NAPI_FUNCTION(FUNCTION_IS_SHARING_SUPPORTED, IsSharingSupported),
-        DECLARE_NAPI_FUNCTION(FUNCTION_IS_SHARING, IsSharing),
-        DECLARE_NAPI_FUNCTION(FUNCTION_START_SHARING, StartSharing),
-        DECLARE_NAPI_FUNCTION(FUNCTION_STOP_SHARING, StopSharing),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_IFACES, GetSharingIfaces),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_STATE, GetSharingState),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARABLE_REGEXES, GetSharableRegexes),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_RX_BYTES, GetStatsRxBytes),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TX_BYTES, GetStatsTxBytes),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TOTAL_BYTES, GetStatsTotalBytes),
-        DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
-        DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
-    };
-    NapiUtils::DefineProperties(env, exports, properties);
+    NapiUtils::DefineProperties(env, exports,
+                                {
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_IS_SHARING_SUPPORTED, IsSharingSupported),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_IS_SHARING, IsSharing),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_START_SHARING, StartSharing),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_STOP_SHARING, StopSharing),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_IFACES, GetSharingIfaces),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_STATE, GetSharingState),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARABLE_REGEXES, GetSharableRegexes),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_RX_BYTES, GetStatsRxBytes),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TX_BYTES, GetStatsTxBytes),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TOTAL_BYTES, GetStatsTotalBytes),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
+                                });
 
     return exports;
 }

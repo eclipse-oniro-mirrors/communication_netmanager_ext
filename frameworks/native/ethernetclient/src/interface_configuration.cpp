@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,8 +36,9 @@ bool InterfaceConfiguration::Marshalling(Parcel &parcel) const
 
 sptr<InterfaceConfiguration> InterfaceConfiguration::Unmarshalling(Parcel &parcel)
 {
-    sptr<InterfaceConfiguration> ptr = (std::make_unique<InterfaceConfiguration>()).release();
+    sptr<InterfaceConfiguration> ptr = new (std::nothrow) InterfaceConfiguration();
     if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;
     }
     int32_t mode = 0;

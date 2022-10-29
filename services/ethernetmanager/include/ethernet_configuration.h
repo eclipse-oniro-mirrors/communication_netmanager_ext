@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef ETHERNET_CONFIG_H
-#define ETHERNET_CONFIG_H
+#ifndef ETHERNET_CONFIGURATION_H
+#define ETHERNET_CONFIGURATION_H
 
 #include <map>
+#include <mutex>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
-#include <mutex>
 
 #include "ethernet_dhcp_callback.h"
 #include "interface_configuration.h"
@@ -32,15 +32,15 @@ namespace NetManagerStandard {
 class EthernetConfiguration {
 public:
     EthernetConfiguration();
-    ~EthernetConfiguration();
+    ~EthernetConfiguration() = default;
 
     bool ReadSysteamConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
-        std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
+                                  std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
     bool ReadUserConfiguration(std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
     bool WriteUserConfiguration(const std::string &iface, sptr<InterfaceConfiguration> &cfg);
     bool ClearAllUserConfiguration();
-    bool ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult,
-        sptr<StaticConfiguration> &config);
+    bool ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult, sptr<StaticConfiguration> &config);
+
 private:
     std::string ReadJsonFile(const std::string &filePath);
     sptr<InterfaceConfiguration> ConvertJsonToConfiguration(const nlohmann::json &jsonData);
@@ -52,9 +52,10 @@ private:
     bool WriteFile(const std::string &filePath, const std::string &fileContent);
     void ParserFileConfig(const std::string &fileContent, std::string &iface, sptr<InterfaceConfiguration> cfg);
     void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
+
 private:
     std::mutex mutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // ETHERNET_CONFIG_H
+#endif // ETHERNET_CONFIGURATION_H

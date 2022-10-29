@@ -21,7 +21,6 @@
 
 #include "netshare_issharing_context.h"
 #include "netshare_startsharing_context.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
