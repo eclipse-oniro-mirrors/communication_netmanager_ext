@@ -120,7 +120,7 @@ int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessagePa
 {
     std::vector<std::string> ifaces = GetAllActiveIfaces();
     if (ifaces.size() > MAX_SIZE) {
-        NETMGR_EXT_LOG_E("ifaces size=[%{public}d] is too large", ifaces.size());
+        NETMGR_EXT_LOG_E("ifaces size is too large");
         return NETMANAGER_EXT_ERROR;
     }
     if (!reply.WriteInt32(ifaces.size())) {
@@ -186,7 +186,7 @@ int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessagePa
     reply.WriteString(cfg.ipv4Addr);
     reply.WriteInt32(cfg.prefixLength);
     if (cfg.flags.size() > MAX_SIZE) {
-        NETMGR_EXT_LOG_E("cfg flags size=[%{public}d] is too large", cfg.flags.size());
+        NETMGR_EXT_LOG_E("cfg flags size is too large");
         return NETMANAGER_EXT_ERROR;
     }
     reply.WriteInt32(static_cast<int32_t>(cfg.flags.size()));
