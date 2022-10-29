@@ -15,18 +15,19 @@
 
 #ifndef NETWORKSHARE_NETWORK_MONITOR_H
 #define NETWORKSHARE_NETWORK_MONITOR_H
-#include <map>
+
 #include <any>
+#include <map>
 
 #include "event_handler.h"
+#include "net_conn_callback_stub.h"
+#include "net_conn_client.h"
 #include "networkshare_hisysevent.h"
 #include "networkshare_state_common.h"
-#include "net_conn_client.h"
-#include "net_conn_callback_stub.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-enum class EMonitorEventType { EVENT_MSG_RETRY_GET_DEFAULT_NET = 1 };
+static constexpr int32_t INVALID_NETID = -1;
 
 class NetworkShareUpstreamMonitor : public std::enable_shared_from_this<NetworkShareUpstreamMonitor> {
     DECLARE_DELAYED_SINGLETON(NetworkShareUpstreamMonitor)
@@ -50,8 +51,9 @@ class NetworkShareUpstreamMonitor : public std::enable_shared_from_this<NetworkS
 public:
     class NotifyUpstreamCallback {
     public:
-        virtual void OnUpstreamStateChanged(int msgName, int param1) = 0;
-        virtual void OnUpstreamStateChanged(int msgName, int param1, int param2, const std::any &messageObj) = 0;
+        virtual void OnUpstreamStateChanged(int32_t msgName, int32_t param1) = 0;
+        virtual void OnUpstreamStateChanged(int32_t msgName, int32_t param1, int32_t param2,
+                                            const std::any &messageObj) = 0;
     };
 
     class MonitorEventHandler : public AppExecFwk::EventHandler {
@@ -77,7 +79,7 @@ public:
     /**
      * get current upstream networ (default network now)
      */
-    void GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo);
+    bool GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo);
 
     /**
      * register main state machine callback
@@ -85,21 +87,21 @@ public:
     void RegisterUpstreamChangedCallback(const std::shared_ptr<NotifyUpstreamCallback> &callback);
 
 private:
-    void NotifyMainStateMachine(int which, const std::shared_ptr<UpstreamNetworkInfo> &obj);
-    void NotifyMainStateMachine(int which);
-    void StoreAvailableNetHandle(sptr<NetHandle> &netHandle);
-    void StoreNetCapAndNotify(sptr<NetHandle> &netHandle, const sptr<NetAllCapabilities> &newNetAllCap);
-    void StoreLinkInfoAndNotify(sptr<NetHandle> &netHandle, const sptr<NetLinkInfo> &newNetLinkInfo);
-    void StoreLinkInfo(sptr<NetHandle> &netHandle, const sptr<NetLinkInfo> &newNetLinkInfo);
-    void RemoveNetHandleAndNotify(sptr<NetHandle> &netHandle);
+    void NotifyMainStateMachine(int32_t which, const std::shared_ptr<UpstreamNetworkInfo> &obj);
+    void NotifyMainStateMachine(int32_t which);
+    void HandleNetAvailable(sptr<NetHandle> &netHandle);
+    void HandleNetCapabilitiesChange(sptr<NetHandle> &netHandle, const sptr<NetAllCapabilities> &newNetAllCap);
+    void HandleConnectionPropertiesChange(sptr<NetHandle> &netHandle, const sptr<NetLinkInfo> &newNetLinkInfo);
+    void HandleNetLost(sptr<NetHandle> &netHandle);
 
 private:
-    int eventId_ = 0;
+    int32_t eventId_ = 0;
     sptr<NetConnectionCallback> defaultNetworkCallback_ = nullptr;
-    std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>> networkAndInfoMap_;
-    int32_t defaultNetHandleNetId_;
+    std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>> networkMaps_;
+    std::mutex networkMapMutex_;
+    int32_t defaultNetworkId_ = INVALID_NETID;
     std::weak_ptr<MonitorEventHandler> eventHandler_;
-    std::shared_ptr<NotifyUpstreamCallback> notifyUpstreamCallback_;
+    std::shared_ptr<NotifyUpstreamCallback> notifyUpstreamCallback_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

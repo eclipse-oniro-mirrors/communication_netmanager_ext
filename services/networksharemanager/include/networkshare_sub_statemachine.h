@@ -16,22 +16,19 @@
 #ifndef NETWORKSHARE_SUB_STATEMACHINE_H
 #define NETWORKSHARE_SUB_STATEMACHINE_H
 
+#include <any>
 #include <cstring>
 #include <map>
-#include <any>
-#include <set>
 #include <mutex>
+#include <set>
 #include <sstream>
-#include <openssl/sha.h>
-#include <securec.h>
-#include <stdarg.h>
-#include <functional>
 
 #include "dhcp_service.h"
-#include "networkshare_hisysevent.h"
 #include "net_manager_ext_constants.h"
-#include "networkshare_state_common.h"
 #include "networkshare_configuration.h"
+#include "networkshare_constants.h"
+#include "networkshare_hisysevent.h"
+#include "networkshare_state_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -39,6 +36,7 @@ class NetworkShareSubStateMachine : public std::enable_shared_from_this<NetworkS
     using HandleFunc = int (NetworkShareSubStateMachine::*)(const std::any &messageObj);
 
 public:
+    NetworkShareSubStateMachine() = delete;
     NetworkShareSubStateMachine(const std::string &ifaceName, const SharingIfaceType &interfaceType,
                                 const std::shared_ptr<NetworkShareConfiguration> &configuration);
     ~NetworkShareSubStateMachine() = default;
@@ -114,23 +112,24 @@ private:
     bool GetBtDestinationAddr(std::string &addrStr);
     bool GetWifiApDestinationAddr(std::string &addrStr);
     bool CheckConfig(std::string &endIp, std::string &mask);
+    bool FindDestinationAddr(std::string &destination);
 
 private:
     struct SubSmStateTable {
-        int event_;
-        int curState_;
+        int32_t event_;
+        int32_t curState_;
         HandleFunc func_;
-        int nextState_;
+        int32_t nextState_;
     };
     std::recursive_mutex mutex_;
     std::string ifaceName_;
     SharingIfaceType netShareType_;
-    int32_t lastError_;
+    int32_t lastError_ = NETWORKSHARE_ERROR_NO_ERROR;
     std::string upstreamIfaceName_;
     std::shared_ptr<SubStateMachineCallback> trackerCallback_ = nullptr;
     std::unique_ptr<OHOS::Wifi::IDhcpService> dhcpService_ = nullptr;
     std::shared_ptr<NetworkShareConfiguration> configuration_ = nullptr;
-    int curState_;
+    int32_t curState_ = SUBSTATE_INIT;
     std::vector<SubSmStateTable> stateTable_;
 };
 } // namespace NetManagerStandard

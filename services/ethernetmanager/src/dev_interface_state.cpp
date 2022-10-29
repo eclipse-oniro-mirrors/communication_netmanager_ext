@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,12 +25,17 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-DevInterfaceState::DevInterfaceState()
-{
-    netSupplierInfo_ = std::make_unique<NetSupplierInfo>().release();
+namespace {
+constexpr const char *DEFAULT_ROUTE_ADDR = "0.0.0.0";
 }
 
-DevInterfaceState::~DevInterfaceState() {}
+DevInterfaceState::DevInterfaceState()
+{
+    netSupplierInfo_ = new (std::nothrow) NetSupplierInfo();
+    if (netSupplierInfo_ == nullptr) {
+        NETMGR_EXT_LOG_E("NetSupplierInfo new failed");
+    }
+}
 
 void DevInterfaceState::SetDevName(const std::string &devName)
 {
@@ -52,10 +57,10 @@ void DevInterfaceState::SetlinkInfo(sptr<NetLinkInfo> &linkInfo)
     linkInfo_ = linkInfo;
 }
 
-void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifcfg)
+void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifCfg)
 {
-    ifcfg_ = ifcfg;
-    if (ifcfg_->mode_ == STATIC) {
+    ifCfg_ = ifCfg;
+    if (ifCfg_->mode_ == STATIC) {
         UpdateLinkInfo();
         if (connLinkState_ == LINK_AVAILABLE) {
             RemoteUpdateNetLinkInfo();
@@ -95,15 +100,15 @@ sptr<NetLinkInfo> DevInterfaceState::GetLinkInfo() const
 
 sptr<InterfaceConfiguration> DevInterfaceState::GetIfcfg() const
 {
-    return ifcfg_;
+    return ifCfg_;
 }
 
 IPSetMode DevInterfaceState::GetIPSetMode() const
 {
-    if (ifcfg_ == nullptr) {
+    if (ifCfg_ == nullptr) {
         return IPSetMode::STATIC;
     }
-    return ifcfg_->mode_;
+    return ifCfg_->mode_;
 }
 
 bool DevInterfaceState::GetDhcpReqState() const
@@ -167,49 +172,55 @@ void DevInterfaceState::RemoteUpdateNetSupplierInfo()
 
 void DevInterfaceState::UpdateLinkInfo()
 {
-    if (ifcfg_ == nullptr || ifcfg_->mode_ != STATIC) {
+    if (ifCfg_ == nullptr || ifCfg_->mode_ != STATIC) {
         return;
     }
     if (linkInfo_ == nullptr) {
-        linkInfo_ = std::make_unique<NetLinkInfo>().release();
+        linkInfo_ = new (std::nothrow) NetLinkInfo();
+        if (linkInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("linkInfo_ is nullptr");
+            return;
+        }
     }
     std::list<INetAddr>().swap(linkInfo_->netAddrList_);
     std::list<Route>().swap(linkInfo_->routeList_);
     std::list<INetAddr>().swap(linkInfo_->dnsList_);
     linkInfo_->ifaceName_ = devName_;
-    linkInfo_->netAddrList_.push_back(ifcfg_->ipStatic_.ipAddr_);
-    struct Route route;
+    linkInfo_->netAddrList_.push_back(ifCfg_->ipStatic_.ipAddr_);
+    Route route;
     route.iface_ = devName_;
-    route.destination_ = ifcfg_->ipStatic_.route_;
-    route.gateway_ = ifcfg_->ipStatic_.gateway_;
+    route.destination_ = ifCfg_->ipStatic_.route_;
+    route.gateway_ = ifCfg_->ipStatic_.gateway_;
     linkInfo_->routeList_.push_back(route);
     const auto &routeLocal =
-        CreateLocalRoute(devName_, ifcfg_->ipStatic_.ipAddr_.address_, ifcfg_->ipStatic_.netMask_.address_);
+        CreateLocalRoute(devName_, ifCfg_->ipStatic_.ipAddr_.address_, ifCfg_->ipStatic_.netMask_.address_);
     linkInfo_->routeList_.push_back(routeLocal);
-    for (auto it = ifcfg_->ipStatic_.dnsServers_.begin(); it != ifcfg_->ipStatic_.dnsServers_.end(); ++it) {
-        linkInfo_->dnsList_.push_back(*it);
+    for (auto dnsServer : ifCfg_->ipStatic_.dnsServers_) {
+        linkInfo_->dnsList_.push_back(dnsServer);
     }
 }
 void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &netMask, const INetAddr &gateWay,
                                        const INetAddr &route, const INetAddr &dns1, const INetAddr &dns2)
 {
-    NETMGR_EXT_LOG_D("DevInterfaceCfg::UpdateLinkInfo");
     if (linkInfo_ == nullptr) {
-        linkInfo_ = std::make_unique<NetLinkInfo>().release();
+        linkInfo_ = new (std::nothrow) NetLinkInfo();
+        if (linkInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("NetLinkInfo new failed");
+        }
     }
     std::list<INetAddr>().swap(linkInfo_->netAddrList_);
     std::list<Route>().swap(linkInfo_->routeList_);
     std::list<INetAddr>().swap(linkInfo_->dnsList_);
     linkInfo_->ifaceName_ = devName_;
     linkInfo_->netAddrList_.push_back(ipAddr);
-    struct Route routeStc;
+    Route routeStc;
     INetAddr gate;
     INetAddr destination;
     routeStc.iface_ = devName_;
     routeStc.destination_ = route;
     routeStc.gateway_ = gateWay;
     linkInfo_->routeList_.push_back(routeStc);
-    struct Route routeLocal = CreateLocalRoute(devName_, ipAddr.address_, netMask.address_);
+    Route routeLocal = CreateLocalRoute(devName_, ipAddr.address_, netMask.address_);
     linkInfo_->routeList_.push_back(routeLocal);
     linkInfo_->dnsList_.push_back(dns1);
     linkInfo_->dnsList_.push_back(dns2);
@@ -221,21 +232,21 @@ void DevInterfaceState::UpdateSupplierAvailable()
     connLinkState_ = linkUp_ ? LINK_AVAILABLE : LINK_UNAVAILABLE;
 }
 
-Route DevInterfaceState::CreateLocalRoute(
-    const std::string &iface, const std::string &ipAddr, const std::string &maskAddr)
+Route DevInterfaceState::CreateLocalRoute(const std::string &iface, const std::string &ipAddr,
+                                          const std::string &maskAddr)
 {
-    NETMGR_EXT_LOG_I("create local route ipAddr=%{public}s maskAddr=%{public}s.",
+    NETMGR_EXT_LOG_D("create local route ipAddr=%{public}s maskAddr=%{public}s.",
                      CommonUtils::ToAnonymousIp(ipAddr).c_str(), maskAddr.c_str());
-    struct Route localRoute;
+    Route localRoute;
     int prefixLength = CommonUtils::GetMaskLength(maskAddr);
-    unsigned int ipInt = CommonUtils::ConvertIpv4Address(ipAddr);
-    unsigned int maskInt = CommonUtils::ConvertIpv4Address(maskAddr);
+    int32_t ipInt = CommonUtils::ConvertIpv4Address(ipAddr);
+    int32_t maskInt = CommonUtils::ConvertIpv4Address(maskAddr);
     std::string strLocalRoute = CommonUtils::ConvertIpv4Address(ipInt & maskInt);
     localRoute.iface_ = iface;
     localRoute.destination_.type_ = INetAddr::IPV4;
     localRoute.destination_.address_ = strLocalRoute;
     localRoute.destination_.prefixlen_ = prefixLength;
-    localRoute.gateway_.address_ = "0.0.0.0";
+    localRoute.gateway_.address_ = DEFAULT_ROUTE_ADDR;
     return localRoute;
 }
 
@@ -257,23 +268,19 @@ void DevInterfaceState::GetDumpInfo(std::string &info)
     if (netSupplierInfo_ != nullptr) {
         data.append(netSupplierInfo_->ToString(TAB));
     }
-    if (ifcfg_ != nullptr) {
-        data.append(TAB + TAB + "InterfaceConfig: \n" + TAB + TAB + TAB + "Mode: " + std::to_string(ifcfg_->mode_) +
+    if (ifCfg_ != nullptr) {
+        data.append(TAB + TAB + "InterfaceConfig: \n" + TAB + TAB + TAB + "Mode: " + std::to_string(ifCfg_->mode_) +
                     "\n");
         data.append("\nConfig: \n");
-        data.append(
-            TAB + TAB + "IpAddr:" + ifcfg_->ipStatic_.ipAddr_.ToString(TAB) + "\n" +
-            TAB + TAB + "Route: " + ifcfg_->ipStatic_.route_.ToString(TAB) + "\n" +
-            TAB + TAB + "GateWay: " + ifcfg_->ipStatic_.gateway_.ToString(TAB) + "\n" +
-            TAB + TAB + "NetMask: " + ifcfg_->ipStatic_.netMask_.ToString(TAB) + "\n" +
-            TAB + TAB + "DNSServers: \n"
-        );
-        std::for_each(ifcfg_->ipStatic_.dnsServers_.begin(), ifcfg_->ipStatic_.dnsServers_.end(),
+        data.append(TAB + TAB + "IpAddr:" + ifCfg_->ipStatic_.ipAddr_.ToString(TAB) + "\n" + TAB + TAB +
+                    "Route: " + ifCfg_->ipStatic_.route_.ToString(TAB) + "\n" + TAB + TAB +
+                    "GateWay: " + ifCfg_->ipStatic_.gateway_.ToString(TAB) + "\n" + TAB + TAB +
+                    "NetMask: " + ifCfg_->ipStatic_.netMask_.ToString(TAB) + "\n" + TAB + TAB + "DNSServers: \n");
+        std::for_each(ifCfg_->ipStatic_.dnsServers_.begin(), ifCfg_->ipStatic_.dnsServers_.end(),
                       [&data, &TAB](const auto &server) { data.append(TAB + TAB + server.ToString(TAB)); });
-        data.append(TAB + TAB + "Domain: " + ifcfg_->ipStatic_.domain_ + "\n" + TAB + TAB + "NetCaps: {");
-        std::for_each(netCaps_.begin(), netCaps_.end(), [&data, &TAB](const auto &cap) {
-            data.append(std::to_string(cap) + ", ");
-        });
+        data.append(TAB + TAB + "Domain: " + ifCfg_->ipStatic_.domain_ + "\n" + TAB + TAB + "NetCaps: {");
+        std::for_each(netCaps_.begin(), netCaps_.end(),
+                      [&data, &TAB](const auto &cap) { data.append(std::to_string(cap) + ", "); });
         data.append("}\n");
     }
     data.append(TAB + TAB + "BearerType :" + std::to_string(bearerType_) + "\n");

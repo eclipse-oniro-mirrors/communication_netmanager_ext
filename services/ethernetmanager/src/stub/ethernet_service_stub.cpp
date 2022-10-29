@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,21 @@
 
 #include "ethernet_service_stub.h"
 
+#include "ethernet_constants.h"
 #include "i_ethernet_service.h"
 #include "interface_configuration.h"
+#include "interface_type.h"
 #include "ipc_object_stub.h"
 #include "message_parcel.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "ethernet_constants.h"
-#include "interface_type.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+constexpr uint32_t MAX_SIZE = 16;
+}
+
 EthernetServiceStub::EthernetServiceStub()
 {
     memberFuncMap_[CMD_SET_IF_CFG] = &EthernetServiceStub::OnSetIfaceConfig;
@@ -38,10 +42,8 @@ EthernetServiceStub::EthernetServiceStub()
     memberFuncMap_[CMD_GET_INTERFACE_CONFIG] = &EthernetServiceStub::OnGetInterfaceConfig;
 }
 
-EthernetServiceStub::~EthernetServiceStub() {}
-
-int32_t EthernetServiceStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t EthernetServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+                                             MessageOption &option)
 {
     NETMGR_EXT_LOG_D("stub call start, code = [%{public}d]", code);
 
@@ -58,8 +60,6 @@ int32_t EthernetServiceStub::OnRemoteRequest(
             return (this->*requestFunc)(data, reply);
         }
     }
-
-    NETMGR_EXT_LOG_D("stub default case, need check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
@@ -119,11 +119,15 @@ int32_t EthernetServiceStub::OnIsIfaceActive(MessageParcel &data, MessageParcel 
 int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessageParcel &reply)
 {
     std::vector<std::string> ifaces = GetAllActiveIfaces();
+    if (ifaces.size() > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("ifaces size is too large");
+        return NETMANAGER_EXT_ERROR;
+    }
     if (!reply.WriteInt32(ifaces.size())) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
-    for (auto it = ifaces.begin(); it != ifaces.end(); ++it) {
-        if (!reply.WriteString(*it)) {
+    for (auto iface : ifaces) {
+        if (!reply.WriteString(iface)) {
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
@@ -181,11 +185,13 @@ int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessagePa
     reply.WriteString(cfg.hwAddr);
     reply.WriteString(cfg.ipv4Addr);
     reply.WriteInt32(cfg.prefixLength);
-    int32_t vsize = static_cast<int32_t>(cfg.flags.size());
-    reply.WriteInt32(vsize);
-    std::vector<std::string>::iterator iter;
-    for (iter = cfg.flags.begin(); iter != cfg.flags.end(); ++iter) {
-        reply.WriteString(*iter);
+    if (cfg.flags.size() > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("cfg flags size is too large");
+        return NETMANAGER_EXT_ERROR;
+    }
+    reply.WriteInt32(static_cast<int32_t>(cfg.flags.size()));
+    for (auto flag : cfg.flags) {
+        reply.WriteString(flag);
     }
     return NETMANAGER_EXT_SUCCESS;
 }

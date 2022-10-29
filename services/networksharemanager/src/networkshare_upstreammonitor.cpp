@@ -32,7 +32,7 @@ NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionCallback(
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetAvailable(sptr<NetHandle> &netHandle)
 {
     if (NetworkMonitor_) {
-        NetworkMonitor_->StoreAvailableNetHandle(netHandle);
+        NetworkMonitor_->HandleNetAvailable(netHandle);
     }
     return NETWORKSHARE_SUCCESS;
 }
@@ -41,7 +41,7 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetCapabilitiesChang
     const sptr<NetAllCapabilities> &netAllCap)
 {
     if (NetworkMonitor_) {
-        NetworkMonitor_->StoreNetCapAndNotify(netHandle, netAllCap);
+        NetworkMonitor_->HandleNetCapabilitiesChange(netHandle, netAllCap);
     }
     return NETWORKSHARE_SUCCESS;
 }
@@ -50,7 +50,7 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionPropert
                                                                                           const sptr<NetLinkInfo> &info)
 {
     if (NetworkMonitor_) {
-        NetworkMonitor_->StoreLinkInfoAndNotify(netHandle, info);
+        NetworkMonitor_->HandleConnectionPropertiesChange(netHandle, info);
     }
     return NETWORKSHARE_SUCCESS;
 }
@@ -58,7 +58,7 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionPropert
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetLost(sptr<NetHandle> &netHandle)
 {
     if (NetworkMonitor_) {
-        NetworkMonitor_->RemoveNetHandleAndNotify(netHandle);
+        NetworkMonitor_->HandleNetLost(netHandle);
     }
     return NETWORKSHARE_SUCCESS;
 }
@@ -74,18 +74,21 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetBlockStatusChange
     return NETWORKSHARE_SUCCESS;
 }
 
-NetworkShareUpstreamMonitor::NetworkShareUpstreamMonitor() : defaultNetHandleNetId_(-1) {}
+NetworkShareUpstreamMonitor::NetworkShareUpstreamMonitor() : defaultNetworkId_(INVALID_NETID) {}
 
 NetworkShareUpstreamMonitor::~NetworkShareUpstreamMonitor()
 {
-    networkAndInfoMap_.clear();
+    {
+        std::lock_guard lock(networkMapMutex_);
+        networkMaps_.clear();
+    }
     auto netManager = DelayedSingleton<NetConnClient>::GetInstance();
     if (netManager != nullptr) {
         netManager->UnregisterNetConnCallback(defaultNetworkCallback_);
     }
 }
 
-void NetworkShareUpstreamMonitor::SetOptionData(int what, std::weak_ptr<MonitorEventHandler> &handler)
+void NetworkShareUpstreamMonitor::SetOptionData(int32_t what, std::weak_ptr<MonitorEventHandler> &handler)
 {
     eventId_ = what;
     eventHandler_ = handler;
@@ -98,9 +101,8 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
         NETMGR_EXT_LOG_E("NetConnClient is null.");
         return;
     }
-    std::shared_ptr<NetworkShareUpstreamMonitor> networkmonitor = shared_from_this();
     defaultNetworkCallback_ =
-        std::make_unique<NetConnectionCallback>(networkmonitor, CALLBACK_DEFAULT_INTERNET_NETWORK).release();
+        new (std::nothrow) NetConnectionCallback(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
     int32_t result = netManager->RegisterNetConnCallback(defaultNetworkCallback_);
     if (result == NETWORKSHARE_SUCCESS) {
         NETMGR_EXT_LOG_I("Register defaultNetworkCallback_ successful");
@@ -115,12 +117,12 @@ void NetworkShareUpstreamMonitor::RegisterUpstreamChangedCallback(
     notifyUpstreamCallback_ = callback;
 }
 
-void NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo)
+bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetwork)
 {
     auto netManager = DelayedSingleton<NetConnClient>::GetInstance();
-    if (netManager == nullptr) {
-        NETMGR_EXT_LOG_E("NetConnClient is null.");
-        return;
+    if (upstreamNetwork == nullptr || upstreamNetwork->netHandle_ == nullptr || netManager == nullptr) {
+        NETMGR_EXT_LOG_E("NetConnClient or upstreamNetInfo is null.");
+        return false;
     }
     bool hasDefaultNet = true;
     int32_t result = netManager->HasDefaultNet(hasDefaultNet);
@@ -129,33 +131,30 @@ void NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
             NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
             ERROR_MSG_HAS_NOT_UPSTREAM, NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("NetConn hasDefaultNet error[%{public}d].", result);
-        return;
+        return false;
     }
 
-    netManager->GetDefaultNet(*(upstreamNetInfo->netHandle_));
-    NETMGR_EXT_LOG_I("NetConn get defaultNet id[%{public}d].", upstreamNetInfo->netHandle_->GetNetId());
-    if (upstreamNetInfo->netHandle_->GetNetId() < 0) {
+    netManager->GetDefaultNet(*(upstreamNetwork->netHandle_));
+    int32_t currentNetId = upstreamNetwork->netHandle_->GetNetId();
+    NETMGR_EXT_LOG_I("NetConn get defaultNet id[%{public}d].", currentNetId);
+    if (currentNetId <= INVALID_NETID) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
             ERROR_MSG_UPSTREAM_ERROR, NetworkShareEventType::SETUP_EVENT);
-        NETMGR_EXT_LOG_E("NetConn get defaultNet id is error.");
-        return;
+        NETMGR_EXT_LOG_E("NetConn get defaultNet id[%{public}d] is error.", currentNetId);
+        return false;
     }
-    if (defaultNetHandleNetId_ == upstreamNetInfo->netHandle_->GetNetId()) {
-        std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>>::iterator iter =
-            networkAndInfoMap_.find(defaultNetHandleNetId_);
-        if (iter != networkAndInfoMap_.end()) {
-            upstreamNetInfo = iter->second;
+
+    {
+        std::lock_guard lock(networkMapMutex_);
+        auto iter = networkMaps_.find(currentNetId);
+        if (iter == networkMaps_.end()) {
+            return false;
         }
-    } else {
-        NETMGR_EXT_LOG_W("defaultNetHandleNetId_[%{public}u] != current default netid.", defaultNetHandleNetId_);
-        defaultNetHandleNetId_ = upstreamNetInfo->netHandle_->GetNetId();
-        netManager->GetNetCapabilities(*(upstreamNetInfo->netHandle_), *(upstreamNetInfo->netAllCap_));
-        netManager->GetConnectionProperties(*(upstreamNetInfo->netHandle_), *(upstreamNetInfo->netLinkPro_));
-        NETMGR_EXT_LOG_W("CapsIsValid[%{public}d], ifaceName[%{public}s].", upstreamNetInfo->netAllCap_->CapsIsValid(),
-                         upstreamNetInfo->netLinkPro_->ifaceName_.c_str());
-        networkAndInfoMap_.insert(std::make_pair(upstreamNetInfo->netHandle_->GetNetId(), upstreamNetInfo));
+        upstreamNetwork = iter->second;
     }
+    defaultNetworkId_ = currentNetId;
+    return true;
 }
 
 void NetworkShareUpstreamMonitor::NotifyMainStateMachine(int which, const std::shared_ptr<UpstreamNetworkInfo> &obj)
@@ -176,75 +175,93 @@ void NetworkShareUpstreamMonitor::NotifyMainStateMachine(int which)
     }
 }
 
-void NetworkShareUpstreamMonitor::StoreAvailableNetHandle(sptr<NetHandle> &netHandle)
+void NetworkShareUpstreamMonitor::HandleNetAvailable(sptr<NetHandle> &netHandle)
 {
-    std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>>::iterator iter =
-        networkAndInfoMap_.find(netHandle->GetNetId());
-    if (iter == networkAndInfoMap_.end()) {
+    if (netHandle == nullptr) {
+        NETMGR_EXT_LOG_E("netHandle is null.");
+        return;
+    }
+    std::lock_guard lock(networkMapMutex_);
+    auto iter = networkMaps_.find(netHandle->GetNetId());
+    if (iter == networkMaps_.end()) {
         NETMGR_EXT_LOG_I("netHandle[%{public}d] is new.", netHandle->GetNetId());
-        sptr<NetAllCapabilities> netCap = new NetAllCapabilities();
-        sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
-        std::shared_ptr<UpstreamNetworkInfo> networkInfo =
+        sptr<NetAllCapabilities> netCap = new (std::nothrow) NetAllCapabilities();
+        sptr<NetLinkInfo> linkInfo = new (std::nothrow) NetLinkInfo();
+        std::shared_ptr<UpstreamNetworkInfo> network =
             std::make_shared<UpstreamNetworkInfo>(netHandle, netCap, linkInfo);
-        networkAndInfoMap_.insert(std::make_pair(netHandle->GetNetId(), networkInfo));
+        networkMaps_.insert(std::make_pair(netHandle->GetNetId(), network));
     }
 }
 
-void NetworkShareUpstreamMonitor::StoreNetCapAndNotify(sptr<NetHandle> &netHandle,
-                                                       const sptr<NetAllCapabilities> &newNetAllCap)
+void NetworkShareUpstreamMonitor::HandleNetCapabilitiesChange(sptr<NetHandle> &netHandle,
+                                                              const sptr<NetAllCapabilities> &newNetAllCap)
 {
-    std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>>::iterator iter =
-        networkAndInfoMap_.find(netHandle->GetNetId());
-    if (iter != networkAndInfoMap_.end()) {
-        if ((iter->second)->netAllCap_ != newNetAllCap) {
-            NETMGR_EXT_LOG_I("netHandle[%{public}d] store new Capabilities, old net[%{public}d].",
-                             netHandle->GetNetId(), defaultNetHandleNetId_);
+    if (netHandle == nullptr || newNetAllCap == nullptr) {
+        NETMGR_EXT_LOG_E("netHandle or netCap is null.");
+        return;
+    }
+    std::lock_guard lock(networkMapMutex_);
+    auto iter = networkMaps_.find(netHandle->GetNetId());
+    if (iter != networkMaps_.end()) {
+        if (iter->second != nullptr && (iter->second)->netAllCap_ != newNetAllCap) {
+            NETMGR_EXT_LOG_I("netHandle[%{public}d] Capabilities Changed.", netHandle->GetNetId());
             *((iter->second)->netAllCap_) = *(newNetAllCap);
-            if (defaultNetHandleNetId_ != netHandle->GetNetId()) {
-                NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_ON_LINKPROPERTIES, iter->second);
+        }
+    }
+}
+
+void NetworkShareUpstreamMonitor::HandleConnectionPropertiesChange(sptr<NetHandle> &netHandle,
+                                                                   const sptr<NetLinkInfo> &newNetLinkInfo)
+{
+    if (netHandle == nullptr || newNetLinkInfo == nullptr) {
+        NETMGR_EXT_LOG_E("netHandle or netLinkInfo is null.");
+        return;
+    }
+    std::shared_ptr<UpstreamNetworkInfo> currentNetwork = nullptr;
+    {
+        std::lock_guard lock(networkMapMutex_);
+        auto iter = networkMaps_.find(netHandle->GetNetId());
+        if (iter != networkMaps_.end()) {
+            if (iter->second != nullptr && (iter->second)->netLinkPro_ != newNetLinkInfo) {
+                currentNetwork = (iter->second);
+                NETMGR_EXT_LOG_I("netHandle[%{public}d] ConnectionProperties Changed.", netHandle->GetNetId());
+                currentNetwork->netLinkPro_->ifaceName_ = newNetLinkInfo->ifaceName_;
             }
         }
     }
-}
 
-void NetworkShareUpstreamMonitor::StoreLinkInfoAndNotify(sptr<NetHandle> &netHandle,
-                                                         const sptr<NetLinkInfo> &newNetLinkInfo)
-{
-    std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>>::iterator iter =
-        networkAndInfoMap_.find(netHandle->GetNetId());
-    if (iter != networkAndInfoMap_.end()) {
-        if ((iter->second)->netLinkPro_ != newNetLinkInfo) {
-            NETMGR_EXT_LOG_I("netHandle[%{public}d] store new LinkNotify, old net[%{public}d].", netHandle->GetNetId(),
-                             defaultNetHandleNetId_);
-            (iter->second)->netLinkPro_->ifaceName_ = newNetLinkInfo->ifaceName_;
-            if (defaultNetHandleNetId_ != netHandle->GetNetId()) {
-                NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_ON_LINKPROPERTIES, iter->second);
-            }
+    if (currentNetwork != nullptr && defaultNetworkId_ != netHandle->GetNetId()) {
+        if (defaultNetworkId_ == INVALID_NETID) {
+            NETMGR_EXT_LOG_I("Send MainSM ON_LINKPROPERTY event with netHandle[%{public}d].", netHandle->GetNetId());
+            NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_ON_LINKPROPERTIES, currentNetwork);
+        } else {
+            NETMGR_EXT_LOG_I("Send MainSM ON_SWITCH event with netHandle[%{public}d].", netHandle->GetNetId());
+            NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_DEFAULT_SWITCHED, currentNetwork);
         }
+        defaultNetworkId_ = netHandle->GetNetId();
     }
 }
 
-void NetworkShareUpstreamMonitor::StoreLinkInfo(sptr<NetHandle> &netHandle, const sptr<NetLinkInfo> &newNetLinkInfo)
+void NetworkShareUpstreamMonitor::HandleNetLost(sptr<NetHandle> &netHandle)
 {
-    std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>>::iterator iter =
-        networkAndInfoMap_.find(netHandle->GetNetId());
-    if (iter != networkAndInfoMap_.end()) {
-        if ((iter->second)->netLinkPro_ != newNetLinkInfo) {
-            NETMGR_EXT_LOG_I("netHandle[%{public}d] store new LinkInfo, old net[%{public}d].", netHandle->GetNetId(),
-                             defaultNetHandleNetId_);
-            (iter->second)->netLinkPro_->ifaceName_ = newNetLinkInfo->ifaceName_;
+    if (netHandle == nullptr) {
+        return;
+    }
+    std::shared_ptr<UpstreamNetworkInfo> currentNetInfo = nullptr;
+    {
+        std::lock_guard lock(networkMapMutex_);
+        auto iter = networkMaps_.find(netHandle->GetNetId());
+        if (iter != networkMaps_.end()) {
+            NETMGR_EXT_LOG_I("netHandle[%{public}d] is lost, defaultNetId[%{public}d].", netHandle->GetNetId(),
+                             defaultNetworkId_);
+            currentNetInfo = iter->second;
         }
     }
-}
 
-void NetworkShareUpstreamMonitor::RemoveNetHandleAndNotify(sptr<NetHandle> &netHandle)
-{
-    std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>>::iterator iter =
-        networkAndInfoMap_.find(netHandle->GetNetId());
-    if (iter != networkAndInfoMap_.end()) {
-        std::shared_ptr<UpstreamNetworkInfo> tmpNetInfo = iter->second;
-        NETMGR_EXT_LOG_I("netHandle[%{public}d] is lost, defaultNetId=[%{public}d].", netHandle->GetNetId(),
-                         defaultNetHandleNetId_);
+    if (currentNetInfo != nullptr && defaultNetworkId_ == netHandle->GetNetId()) {
+        NETMGR_EXT_LOG_I("Send MainSM ON_LOST event with netHandle[%{public}d].", defaultNetworkId_);
+        NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_ON_LOST, currentNetInfo);
+        defaultNetworkId_ = INVALID_NETID;
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+constexpr uint32_t MAX_SIZE = 50;
+}
+
 bool StaticConfiguration::Marshalling(Parcel &parcel) const
 {
     if (!ipAddr_.Marshalling(parcel)) {
@@ -44,8 +48,8 @@ bool StaticConfiguration::Marshalling(Parcel &parcel) const
         NETMGR_EXT_LOG_E("write dnsServers_ size to parcel failed");
         return false;
     }
-    for (auto it = dnsServers_.begin(); it != dnsServers_.end(); ++it) {
-        if (!it->Marshalling(parcel)) {
+    for (auto dnsServer : dnsServers_) {
+        if (!dnsServer.Marshalling(parcel)) {
             NETMGR_EXT_LOG_E("write dnsServers_ to parcel failed");
             return false;
         }
@@ -59,36 +63,41 @@ bool StaticConfiguration::Marshalling(Parcel &parcel) const
 
 sptr<StaticConfiguration> StaticConfiguration::Unmarshalling(Parcel &parcel)
 {
-    sptr<StaticConfiguration> ptr = (std::make_unique<StaticConfiguration>()).release();
+    sptr<StaticConfiguration> ptr = new (std::nothrow) StaticConfiguration();
     if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("ptr new failed");
         return nullptr;
     }
     sptr<INetAddr> ipAddr = INetAddr::Unmarshalling(parcel);
     if (ipAddr == nullptr) {
-        NETMGR_EXT_LOG_E("ipAddr_ is null");
+        NETMGR_EXT_LOG_E("ipAddr is null");
         return nullptr;
     }
     ptr->ipAddr_ = *ipAddr;
     sptr<INetAddr> route = INetAddr::Unmarshalling(parcel);
     if (route == nullptr) {
-        NETMGR_EXT_LOG_E("route_ is null");
+        NETMGR_EXT_LOG_E("route is null");
         return nullptr;
     }
     ptr->route_ = *route;
     sptr<INetAddr> gateway = INetAddr::Unmarshalling(parcel);
     if (gateway == nullptr) {
-        NETMGR_EXT_LOG_E("gateway_ is null");
+        NETMGR_EXT_LOG_E("gateway is null");
         return nullptr;
     }
     ptr->gateway_ = *gateway;
     sptr<INetAddr> netMask = INetAddr::Unmarshalling(parcel);
     if (netMask == nullptr) {
-        NETMGR_EXT_LOG_E("netMask_ is null");
+        NETMGR_EXT_LOG_E("netMask is null");
         return nullptr;
     }
     ptr->netMask_ = *netMask;
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
+        return nullptr;
+    }
+    if (size > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("size=[%{public}d] is too large", size);
         return nullptr;
     }
     for (uint32_t i = 0; i < size; i++) {

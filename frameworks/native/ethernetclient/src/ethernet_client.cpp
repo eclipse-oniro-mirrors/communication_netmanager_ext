@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,12 +26,11 @@
 #include "refbase.h"
 #include "system_ability_definition.h"
 
-
 namespace OHOS {
 namespace NetManagerStandard {
 EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nullptr) {}
 
-EthernetClient::~EthernetClient() {}
+EthernetClient::~EthernetClient() = default;
 
 int32_t EthernetClient::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
 {
@@ -90,7 +89,6 @@ sptr<IEthernetService> EthernetClient::GetProxy()
         NETMGR_EXT_LOG_D("get proxy is ok");
         return ethernetService_;
     }
-    NETMGR_EXT_LOG_D("execute GetSystemAbilityManager");
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (sam == nullptr) {
         NETMGR_EXT_LOG_E("GetProxy, get SystemAbilityManager failed");
@@ -101,7 +99,10 @@ sptr<IEthernetService> EthernetClient::GetProxy()
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
     }
-    deathRecipient_ = (std::make_unique<EthernetDeathRecipient>(*this)).release();
+    deathRecipient_ = new (std::nothrow) EthernetDeathRecipient(*this);
+    if (deathRecipient_ == nullptr) {
+        NETMGR_EXT_LOG_E("Recipient new failed!");
+    }
     if ((remote->IsProxyObject()) && (!remote->AddDeathRecipient(deathRecipient_))) {
         NETMGR_EXT_LOG_E("add death recipient failed");
         return nullptr;
@@ -116,7 +117,6 @@ sptr<IEthernetService> EthernetClient::GetProxy()
 
 void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    NETMGR_EXT_LOG_D("on remote died");
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("remote object is nullptr");
         return;
@@ -127,6 +127,10 @@ void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         return;
     }
     sptr<IRemoteObject> local = ethernetService_->AsObject();
+    if (local == nullptr) {
+        NETMGR_EXT_LOG_E("local is nullptr");
+        return;
+    }
     if (local != remote.promote()) {
         NETMGR_EXT_LOG_E("proxy and stub is not same remote object");
         return;

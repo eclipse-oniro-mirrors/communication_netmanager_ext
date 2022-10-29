@@ -22,7 +22,9 @@
 namespace OHOS {
 namespace NetManagerStandard {
 NetShareStartSharingContext::NetShareStartSharingContext(napi_env env, EventManager *manager)
-    : BaseContext(env, manager) {}
+    : BaseContext(env, manager)
+{
+}
 
 void NetShareStartSharingContext::ParseParams(napi_value *params, size_t paramsCount)
 {
@@ -49,17 +51,17 @@ bool NetShareStartSharingContext::CheckParamsType(napi_value *params, size_t par
     return false;
 }
 
-int32_t NetShareStartSharingContext::GetParam()
+int32_t NetShareStartSharingContext::GetParam() const
 {
     return param_;
 }
 
-int32_t NetShareStartSharingContext::GetBytes64()
+int32_t NetShareStartSharingContext::GetBytes64() const
 {
     return bytes64_;
 }
 
-std::vector<std::string> NetShareStartSharingContext::GetIfaces()
+std::vector<std::string> NetShareStartSharingContext::GetIfaces() const
 {
     return ifaces_;
 }

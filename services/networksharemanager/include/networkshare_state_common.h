@@ -16,9 +16,9 @@
 #ifndef NETWORKSHARE_STATE_COMMMON_H
 #define NETWORKSHARE_STATE_COMMMON_H
 
+#include "net_all_capabilities.h"
 #include "net_handle.h"
 #include "net_link_info.h"
-#include "net_all_capabilities.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -81,6 +81,8 @@ constexpr int NO_NEXT_STATE = -1;
 enum { MAINSTATE_INIT = 1, MAINSTATE_ALIVE, MAINSTATE_ERROR, MAINSTATE_MAX } MainState;
 
 enum { SUBSTATE_INIT = 11, SUBSTATE_SHARED, SUBSTATE_RESTART, SUBSTATE_UNAVAILABLE, SUBSTATE_MAX } SubState;
+
+enum class TrafficType { TRAFFIC_RX = 1, TRAFFIC_TX = 2, TRAFFIC_ALL = 3 };
 
 struct UpstreamNetworkInfo {
     sptr<NetHandle> netHandle_;
