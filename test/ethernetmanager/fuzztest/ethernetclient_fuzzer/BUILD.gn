@@ -25,6 +25,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
+    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   cflags = [
@@ -41,7 +42,16 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
+    "ipc:ipc_core",
+  ]
+  if (is_standard_system) {
+    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+  } else {
+    external_deps += [ "hilog:libhilog" ]
+  }
 
   defines = [
     "NETMGR_LOG_TAG = \"EthernetManager\"",
