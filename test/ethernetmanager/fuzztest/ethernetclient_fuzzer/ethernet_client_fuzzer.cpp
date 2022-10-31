@@ -20,21 +20,160 @@
 #include <iosfwd>
 #include <memory>
 #include <new>
+#include <securec.h>
 #include <string>
+
+#include "accesstoken_kit.h"
+#include "refbase.h"
+#include "singleton.h"
+#include "token_setproc.h"
 
 #include "ethernet_client.h"
 #include "interface_configuration.h"
-#include "refbase.h"
-#include "singleton.h"
+#include "netmgr_ext_log_wrapper.h"
+
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+const uint8_t *g_baseFuzzData = nullptr;
+size_t g_baseFuzzSize = 0;
+size_t g_baseFuzzPos;
+constexpr size_t STR_LEN = 10;
+
+using namespace Security::AccessToken;
+using Security::AccessToken::AccessTokenID;
+HapInfoParams testInfoParms = {
+    .userID = 1,
+    .bundleName = "ethernet_client_fuzzer",
+    .instIndex = 0,
+    .appIDDesc = "test"
+};
+
+PermissionDef testPermDef = {
+    .permissionName = "ohos.permission.GET_NETWORK_INFO",
+    .bundleName = "ethernet_client_fuzzer",
+    .grantMode = 1,
+    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test ethernet maneger network info",
+    .descriptionId = 1
+};
+
+PermissionDef testInternetPermDef = {
+    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+    .bundleName = "net_conn_client_fuzzer",
+    .grantMode = 1,
+    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test ethernet connectivity internet",
+    .descriptionId = 1
+};
+
+PermissionStateFull testState = {
+    .permissionName = "ohos.permission.GET_NETWORK_INFO",
+    .isGeneral = true,
+    .resDeviceID = {"local"},
+    .grantStatus = {PermissionState::PERMISSION_GRANTED},
+    .grantFlags = {2}
+};
+
+PermissionStateFull testInternetState = {
+    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+    .isGeneral = true,
+    .resDeviceID = {"local"},
+    .grantStatus = {PermissionState::PERMISSION_GRANTED},
+    .grantFlags = {2}
+};
+
+HapPolicyParams testPolicyPrams = {
+    .apl = APL_SYSTEM_BASIC,
+    .domain = "test.domain",
+    .permList = {testPermDef},
+    .permStateList = {testState}
+};
+
+HapPolicyParams testInternetPolicyPrams = {
+    .apl = APL_SYSTEM_BASIC,
+    .domain = "test.domain",
+    .permList = {testPermDef, testInternetPermDef},
+    .permStateList = {testState, testInternetState}
+};
+}
+
+template<class T>
+T GetData()
+{
+    T object {};
+    size_t objectSize = sizeof(object);
+    if (g_baseFuzzData == nullptr || objectSize > g_baseFuzzSize - g_baseFuzzPos) {
+        return object;
+    }
+    errno_t ret = memcpy_s(&object, objectSize, g_baseFuzzData + g_baseFuzzPos, objectSize);
+    if (ret != EOK) {
+        return {};
+    }
+    g_baseFuzzPos += objectSize;
+    return object;
+}
+class AccessToken {
+public:
+    AccessToken()
+    {
+        currentID_ = GetSelfTokenID();
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
+        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
+        SetSelfTokenID(accessID_);
+    }
+    ~AccessToken()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+private:
+    AccessTokenID currentID_ = 0;
+    AccessTokenID accessID_ = 0;
+};
+
+class AccessTokenInternetInfo {
+public:
+    AccessTokenInternetInfo()
+    {
+        currentID_ = GetSelfTokenID();
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testInternetPolicyPrams);
+        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
+        SetSelfTokenID(accessID_);
+    }
+    ~AccessTokenInternetInfo()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+private:
+    AccessTokenID currentID_ = 0;
+    AccessTokenID accessID_ = 0;
+};
+
+std::string GetStringFromData(int strlen)
+{
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        cstr[i] = GetData<char>();
+    }
+    std::string str(cstr);
+    return str;
+}
+
 void SetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
-
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
     std::string iface(reinterpret_cast<const char*>(data), size);
     sptr<InterfaceConfiguration> ic = (std::make_unique<InterfaceConfiguration>()).release();
 
@@ -46,7 +185,8 @@ void GetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
-
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
     std::string iface(reinterpret_cast<const char*>(data), size);
 
     DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(iface);
@@ -57,7 +197,8 @@ void IsIfaceActiveFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
-
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
     std::string iface(reinterpret_cast<const char*>(data), size);
 
     DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface);
@@ -68,7 +209,8 @@ void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
-
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
     std::string iface(reinterpret_cast<const char*>(data), size);
 
     DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces();
@@ -84,6 +226,49 @@ void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
 
     DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
 }
+
+void SetInterfaceUpFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size <= 0)) {
+        return;
+    }
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    std::string iface = GetStringFromData(STR_LEN);
+    DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(iface);
+}
+
+void SetInterfaceDownFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size <= 0)) {
+        return;
+    }
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    std::string iface = GetStringFromData(STR_LEN);
+    DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
+}
+
+void GetInterfaceConfigFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size <= 0)) {
+        return;
+    }
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    std::string str = GetStringFromData(STR_LEN);
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(str, cfg);
+}
 } // NetManagerStandard
 } // OHOS
 
@@ -96,6 +281,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::NetManagerStandard::IsIfaceActiveFuzzTest(data, size);
     OHOS::NetManagerStandard::GetAllActiveIfacesFuzzTest(data, size);
     OHOS::NetManagerStandard::ResetFactoryFuzzTest(data, size);
+    OHOS::NetManagerStandard::SetInterfaceUpFuzzTest(data, size);
+    OHOS::NetManagerStandard::SetInterfaceDownFuzzTest(data, size);
+    OHOS::NetManagerStandard::GetInterfaceConfigFuzzTest(data, size);
 
     return 0;
 }
