@@ -79,8 +79,8 @@ private:
     std::map<std::string, sptr<DevInterfaceState>> devs_;
     std::unique_ptr<EthernetConfiguration> ethConfiguration_ = nullptr;
     std::unique_ptr<EthernetDhcpController> ethDhcpController_ = nullptr;
-    sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_;
-    sptr<DevInterfaceStateCallback> ethDevInterfaceStateCallback_;
+    sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_ = nullptr;
+    sptr<NetsysControllerCallback> ethDevInterfaceStateCallback_ = nullptr;
     std::mutex mutex_;
 };
 } // namespace NetManagerStandard
