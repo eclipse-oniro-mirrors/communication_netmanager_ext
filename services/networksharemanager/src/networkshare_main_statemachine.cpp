@@ -109,7 +109,7 @@ void NetworkShareMainStateMachine::MainSmEventHandle(int eventId, const std::any
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     int nextState = NO_NEXT_STATE;
     int (NetworkShareMainStateMachine::*eventActionFun)(const std::any &messageObj) = nullptr;
-    for (auto &iter : stateTable_) {
+    for (const auto &iter : stateTable_) {
         if ((eventId == iter.event_) && (curState_ == iter.curState_)) {
             eventActionFun = iter.func_;
             nextState = iter.nextState_;
