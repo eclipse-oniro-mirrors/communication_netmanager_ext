@@ -31,8 +31,8 @@
 #define NAPI_CALL_BASE_ENHANCE(env, theCall, retVal, context) \
     do {                                                      \
         if ((theCall) != napi_ok) {                           \
-            delete context;                                   \
-            context = nullptr;                                \
+            delete (context);                                   \
+            (context) = nullptr;                                \
             GET_AND_THROW_LAST_ERROR((env));                  \
             return retVal;                                    \
         }                                                     \
@@ -342,7 +342,7 @@ napi_value NapiEthernet::SetIfaceConfig(napi_env env, napi_callback_info info)
     NAPI_CALL_ENHANCE(env, napi_get_undefined(env, &resource), context);
     NAPI_CALL_ENHANCE(env, napi_create_string_utf8(env, "SetIfaceConfig", NAPI_AUTO_LENGTH, &resourceName), context);
     NAPI_CALL_ENHANCE(env, napi_create_async_work(env, resource, resourceName, ExecSetIfaceConfig,
-        CompleteSetIfaceConfig, (void *)context, &context->work), context);
+        CompleteSetIfaceConfig, context, &context->work), context);
     NAPI_CALL_ENHANCE(env, napi_queue_async_work(env, context->work), context);
     return result;
 }
@@ -378,7 +378,7 @@ napi_value NapiEthernet::GetIfaceConfig(napi_env env, napi_callback_info info)
     NAPI_CALL_ENHANCE(env, napi_get_undefined(env, &resource), context);
     NAPI_CALL_ENHANCE(env, napi_create_string_utf8(env, "GetIfaceConfig", NAPI_AUTO_LENGTH, &resourceName), context);
     NAPI_CALL_ENHANCE(env, napi_create_async_work(env, resource, resourceName, ExecGetIfaceConfig,
-        CompleteGetIfaceConfig, (void *)context, &context->work), context);
+        CompleteGetIfaceConfig, context, &context->work), context);
     NAPI_CALL_ENHANCE(env, napi_queue_async_work(env, context->work), context);
     return result;
 }
@@ -427,7 +427,7 @@ napi_value NapiEthernet::IsIfaceActive(napi_env env, napi_callback_info info)
     NAPI_CALL_ENHANCE(env, napi_get_undefined(env, &resource), context);
     NAPI_CALL_ENHANCE(env, napi_create_string_utf8(env, "IsIfaceActive", NAPI_AUTO_LENGTH, &resourceName), context);
     NAPI_CALL_ENHANCE(env, napi_create_async_work(env, resource, resourceName, ExecIsIfaceActive, CompleteIsIfaceActive,
-                                          (void *)context, &context->work), context);
+                                                  context, &context->work), context);
     NAPI_CALL_ENHANCE(env, napi_queue_async_work(env, context->work), context);
     return result;
 }
@@ -460,7 +460,7 @@ napi_value NapiEthernet::GetAllActiveIfaces(napi_env env, napi_callback_info inf
     NAPI_CALL_ENHANCE(env, napi_create_string_utf8(env, "GetAllActiveIfaces", NAPI_AUTO_LENGTH, &resourceName),
         context);
     NAPI_CALL_ENHANCE(env, napi_create_async_work(env, resource, resourceName, ExecGetAllActiveIfaces,
-                                          CompleteGetAllActiveIfaces, (void *)context, &context->work), context);
+                                          CompleteGetAllActiveIfaces, context, &context->work), context);
     NAPI_CALL_ENHANCE(env, napi_queue_async_work(env, context->work), context);
     return result;
 }
@@ -501,7 +501,7 @@ static napi_module _ethernetModule = {
     .nm_filename = nullptr,
     .nm_register_func = NapiEthernet::RegisterEthernetInterface,
     .nm_modname = "net.ethernet",
-    .nm_priv = ((void *)0),
+    .nm_priv = (0),
     .reserved = {0},
 };
 

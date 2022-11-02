@@ -139,7 +139,7 @@ void NetworkShareSubStateMachine::SubSmEventHandle(int eventId, const std::any &
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     int nextState = NO_NEXT_STATE;
     int (NetworkShareSubStateMachine::*eventFunc)(const std::any &messageObj) = nullptr;
-    for (auto &iterState : stateTable_) {
+    for (const auto &iterState : stateTable_) {
         if ((eventId == iterState.event_) && (curState_ == iterState.curState_)) {
             eventFunc = iterState.func_;
             nextState = iterState.nextState_;
@@ -566,11 +566,6 @@ bool NetworkShareSubStateMachine::RequestIpv4Address(std::shared_ptr<INetAddr> &
     }
 
     netAddr = std::make_shared<INetAddr>();
-    if (netAddr == nullptr) {
-        NETMGR_EXT_LOG_E("RequestIpv4Address create net address failed.");
-        return false;
-    }
-
     netAddr->type_ = INetAddr::IPV4;
     netAddr->prefixlen_ = PREFIX_LENGTH_24;
     netAddr->netMask_ = configuration_->GetDefaultMask();

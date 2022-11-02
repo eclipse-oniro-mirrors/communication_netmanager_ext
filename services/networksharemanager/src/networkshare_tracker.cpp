@@ -745,7 +745,7 @@ bool NetworkShareTracker::FindSubStateMachine(const std::string &iface, const Sh
         return true;
     }
 
-    for (auto &it : subStateMachineMap_) {
+    for (const auto &it : subStateMachineMap_) {
         if (it.second == nullptr) {
             NETMGR_EXT_LOG_W("NetSharingSubSmState is null.");
             continue;

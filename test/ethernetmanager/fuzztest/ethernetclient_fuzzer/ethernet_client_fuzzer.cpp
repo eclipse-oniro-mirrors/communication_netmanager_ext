@@ -211,8 +211,6 @@ void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
     }
     AccessToken token;
     AccessTokenInternetInfo tokenInfo;
-    std::string iface(reinterpret_cast<const char*>(data), size);
-
     DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces();
 }
 
@@ -221,9 +219,6 @@ void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
-
-    std::string iface(reinterpret_cast<const char*>(data), size);
-
     DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
 }
 
@@ -269,8 +264,8 @@ void GetInterfaceConfigFuzzTest(const uint8_t* data, size_t size)
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(str, cfg);
 }
-} // NetManagerStandard
-} // OHOS
+} // namespace NetManagerStandard
+} // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)

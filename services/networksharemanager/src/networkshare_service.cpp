@@ -129,7 +129,7 @@ void NetworkShareService::GetShareRegexsContent(const SharingIfaceType type, std
 {
     std::vector<std::string> regexs = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
     for_each(regexs.begin(), regexs.end(),
-             [&shareRegexsContent](std::string &regex) { shareRegexsContent += regex + ";"; });
+             [&shareRegexsContent](const std::string &regex) { shareRegexsContent += regex + ";"; });
 }
 
 int32_t NetworkShareService::IsNetworkSharingSupported()
