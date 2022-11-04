@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,95 +37,13 @@ namespace {
 using namespace testing::ext;
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
-const std::string DEV_NAME = "eth0";
-const std::string DEV_UP = "up";
-const std::string DEV_DOWN = "down";
-
-HapInfoParams testInfoParms = {.bundleName = "ethernet_manager_test",
-                               .userID = 1,
-                               .instIndex = 0,
-                               .appIDDesc = "test"};
-
-PermissionDef testPermDef = {.permissionName = "ohos.permission.GET_NETWORK_INFO",
-                             .bundleName = "ethernet_manager_test",
-                             .grantMode = 1,
-                             .label = "label",
-                             .labelId = 1,
-                             .description = "Test net connect maneger",
-                             .descriptionId = 1,
-                             .availableLevel = APL_SYSTEM_BASIC};
-
-PermissionStateFull testState = {.grantFlags = {2},
-                                 .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                 .isGeneral = true,
-                                 .permissionName = "ohos.permission.GET_NETWORK_INFO",
-                                 .resDeviceID = {"local"}};
-
-HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
-                                   .domain = "test.domain",
-                                   .permList = {testPermDef},
-                                   .permStateList = {testState}};
-
-PermissionDef testPermDef1 = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                              .bundleName = "ethernet_manager_test",
-                              .grantMode = 1,
-                              .label = "label",
-                              .labelId = 1,
-                              .description = "Test net connect maneger",
-                              .descriptionId = 1,
-                              .availableLevel = APL_SYSTEM_BASIC};
-
-PermissionStateFull testState1 = {.grantFlags = {2},
-                                  .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                  .isGeneral = true,
-                                  .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                  .resDeviceID = {"local"}};
-
-HapPolicyParams testPolicyPrams1 = {.apl = APL_SYSTEM_BASIC,
-                                    .domain = "test.domain",
-                                    .permList = {testPermDef1},
-                                    .permStateList = {testState1}};
+constexpr const char *CONNECTIVITY_INTERNAL = "ohos.permission.CONNECTIVITY_INTERNAL";
+constexpr const char *GET_NETWORK_INFO = "ohos.permission.GET_NETWORK_INFO";
+constexpr const char *BUNDLENAME = "ethernet_manager_test";
+constexpr const char *DEV_NAME = "eth0";
+constexpr const char *DEV_UP = "up";
+constexpr const char *DEV_DOWN = "down";
 } // namespace
-
-class AccessToken {
-public:
-    AccessToken()
-    {
-        currentID_ = GetSelfTokenID();
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
-    }
-    ~AccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_ = 0;
-    AccessTokenID accessID_ = 0;
-};
-
-class AccessToken1 {
-public:
-    AccessToken1()
-    {
-        currentID_ = GetSelfTokenID();
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams1);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
-    }
-    ~AccessToken1()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_ = 0;
-    AccessTokenID accessID_ = 0;
-};
 
 class EthernetManagerTest : public testing::Test {
 public:
@@ -188,9 +106,52 @@ sptr<InterfaceConfiguration> EthernetManagerTest::GetIfaceConfig()
     return ic;
 }
 
+void GrantPermission(const std::string &appId, std::string permissionName)
+{
+    HapInfoParams hapInfoParams = {
+        .userID = 1, .bundleName = appId, .instIndex = 0, .appIDDesc = "app need sync permission"};
+    PermissionDef permissionDef = {.permissionName = permissionName,
+                                   .bundleName = appId,
+                                   .grantMode = 1,
+                                   .availableLevel = ATokenAplEnum::APL_SYSTEM_BASIC,
+                                   .label = "label",
+                                   .labelId = 1,
+                                   .description = "permission define",
+                                   .descriptionId = 1};
+    PermissionStateFull permissionStateFull = {.permissionName = permissionName,
+                                               .isGeneral = true,
+                                               .resDeviceID = {"local"},
+                                               .grantStatus = {PermissionState::PERMISSION_GRANTED},
+                                               .grantFlags = {1}};
+    HapPolicyParams hapPolicyParams = {.apl = ATokenAplEnum::APL_SYSTEM_BASIC,
+                                       .domain = "test.domain",
+                                       .permList = {permissionDef},
+                                       .permStateList = {permissionStateFull}};
+    AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(hapInfoParams, hapPolicyParams);
+    if (tokenIdEx.tokenIdExStruct.tokenID == 0) {
+        unsigned int tokenIdOld = 0;
+        tokenIdOld =
+            AccessTokenKit::GetHapTokenID(hapInfoParams.userID, hapInfoParams.bundleName, hapInfoParams.instIndex);
+        if (tokenIdOld == 0) {
+            return;
+        }
+        int32_t ret = AccessTokenKit::DeleteToken(tokenIdOld);
+        if (ret != 0) {
+            return;
+        }
+        tokenIdEx = AccessTokenKit::AllocHapToken(hapInfoParams, hapPolicyParams);
+        if (tokenIdEx.tokenIdExStruct.tokenID == 0) {
+            return;
+        }
+    }
+    SetSelfTokenID(tokenIdEx.tokenIdExStruct.tokenID);
+    AccessTokenKit::GrantPermission(tokenIdEx.tokenIdExStruct.tokenID, permissionName, PERMISSION_USER_FIXED);
+}
+
 bool EthernetManagerTest::CheckIfaceUp(const std::string &iface)
 {
-    return DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface) == 0;
+    GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
+    return DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface) == 1;
 }
 
 /**
@@ -203,7 +164,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken1 token1;
+    GrantPermission(BUNDLENAME, CONNECTIVITY_INTERNAL);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME, ic), 0);
 }
@@ -218,7 +179,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken token;
+    GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
     sptr<InterfaceConfiguration> ic = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME);
     ASSERT_TRUE(ic != nullptr);
 }
@@ -233,8 +194,8 @@ HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken token;
-    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME), 0);
+    GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
+    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME), 1);
 }
 
 /**
@@ -247,7 +208,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken token;
+    GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
     std::vector<std::string> result = DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces();
     std::vector<std::string>::iterator it = std::find(result.begin(), result.end(), DEV_NAME);
     ASSERT_TRUE(it != result.end());
@@ -263,15 +224,12 @@ HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken token;
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
-    ASSERT_TRUE(result == 0);
+    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory(), 0);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 {
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    AccessToken token;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
     ASSERT_FALSE(cfg.ifName.empty());
     ASSERT_FALSE(cfg.hwAddr.empty());
@@ -279,7 +237,6 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 {
-    AccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
@@ -291,7 +248,6 @@ HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
 {
-    AccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
