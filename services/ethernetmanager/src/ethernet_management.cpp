@@ -47,11 +47,25 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAddressRemoved
 
 int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
 {
+    std::regex re(IFACE_MATCH);
+    if (std::regex_search(iface, re)) {
+        ethernetManagement_.DevInterfaceAdd(iface);
+        if (NetsysController::GetInstance().SetInterfaceUp(iface) != ERR_NONE) {
+            NETMGR_EXT_LOG_E("Iface[%{public}s] added set up fail!", iface.c_str());
+        }
+    }
     return 0;
 }
 
 int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
 {
+    std::regex re(IFACE_MATCH);
+    if (std::regex_search(iface, re)) {
+        ethernetManagement_.DevInterfaceRemove(iface);
+        if (NetsysController::GetInstance().SetInterfaceDown(iface) != ERR_NONE) {
+            NETMGR_EXT_LOG_E("Iface[%{public}s] added set down fail!", iface.c_str());
+        }
+    }
     return 0;
 }
 
@@ -64,7 +78,10 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceLinkStateChang
 {
     NETMGR_EXT_LOG_I("DevInterfaceStateCallback::OnInterfaceLinkStateChanged iface[%{public}s] up[%{public}d]",
                      ifName.c_str(), up);
-    ethernetManagement_.UpdateInterfaceState(ifName, up);
+    std::regex re(IFACE_MATCH);
+    if (std::regex_search(ifName, re)) {
+        ethernetManagement_.UpdateInterfaceState(ifName, up);
+    }
     return 0;
 }
 
@@ -259,30 +276,7 @@ void EthernetManagement::Init()
         if (!std::regex_search(devName, re)) {
             continue;
         }
-        sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
-        if (devState == nullptr) {
-            NETMGR_EXT_LOG_E("devState is nullptr");
-            return;
-        }
-        devs_.insert(std::make_pair(devName, devState));
-        devState->SetDevName(devName);
-        devState->RemoteRegisterNetSupplier();
-        auto fitCfg = devCfgs_.find(devName);
-        if (fitCfg != devCfgs_.end()) {
-            devState->SetIfcfg(fitCfg->second);
-        } else {
-            sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
-            if (ifCfg == nullptr) {
-                NETMGR_EXT_LOG_E("ifCfg is nullptr");
-                return;
-            }
-            ifCfg->mode_ = DHCP;
-            devState->SetIfcfg(ifCfg);
-        }
-        auto fitCap = devCaps_.find(devName);
-        if (fitCap != devCaps_.end()) {
-            devState->SetNetCaps(fitCap->second);
-        }
+        DevInterfaceAdd(devName);
     }
     std::thread t(&EthernetManagement::StartSetDevUpThd, this);
     t.detach();
@@ -316,6 +310,51 @@ void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfac
     NETMGR_EXT_LOG_D("EthernetManagement StopDhcpClient[%{public}s]", dev.c_str());
     ethDhcpController_->StopDhcpClient(dev, false);
     devState->SetDhcpReqState(false);
+}
+
+void EthernetManagement::DevInterfaceAdd(const std::string &devName)
+{
+    NETMGR_EXT_LOG_D("Interface name:[%{public}s] add.", devName.c_str());
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto fitDev = devs_.find(devName);
+    if (fitDev != devs_.end()) {
+        NETMGR_EXT_LOG_D("Interface name:[%{public}s] has added.", devName.c_str());
+        return;
+    }
+    sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
+    if (devState == nullptr) {
+        NETMGR_EXT_LOG_E("devState is nullptr");
+        return;
+    }
+    devs_.insert(std::make_pair(devName, devState));
+    devState->SetDevName(devName);
+    devState->RemoteRegisterNetSupplier();
+    auto fitCfg = devCfgs_.find(devName);
+    if (fitCfg != devCfgs_.end()) {
+        devState->SetIfcfg(fitCfg->second);
+    } else {
+        sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+        if (ifCfg == nullptr) {
+            NETMGR_EXT_LOG_E("ifCfg is nullptr");
+            return;
+        }
+        ifCfg->mode_ = DHCP;
+        devState->SetIfcfg(ifCfg);
+    }
+    auto fitCap = devCaps_.find(devName);
+    if (fitCap != devCaps_.end()) {
+        devState->SetNetCaps(fitCap->second);
+    }
+}
+
+void EthernetManagement::DevInterfaceRemove(const std::string &devName)
+{
+    NETMGR_EXT_LOG_D("Interface name:[%{public}s] remove.", devName.c_str());
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto fitDev = devs_.find(devName);
+    if (fitDev != devs_.end()) {
+        devs_.erase(fitDev);
+    }
 }
 
 void EthernetManagement::GetDumpInfo(std::string &info)
