@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NETMANAGER_EXT_SAHRE_JUSTCALLBACK_CONTEXT_H
-#define NETMANAGER_EXT_SAHRE_JUSTCALLBACK_CONTEXT_H
+#ifndef NETMANAGER_EXT_SHARE_JUSTCALLBACK_CONTEXT_H
+#define NETMANAGER_EXT_SHARE_JUSTCALLBACK_CONTEXT_H
 
 #include <cstddef>
 #include <cstdint>
@@ -56,4 +56,4 @@ using GetStatsRxBytesContext = NetShareIsSharingContext;
 using GetStatsTxBytesContext = NetShareIsSharingContext;
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif /* NETMANAGER_EXT_SAHRE_JUSTCALLBACK_CONTEXT_H */
+#endif /* NETMANAGER_EXT_SHARE_JUSTCALLBACK_CONTEXT_H */
