@@ -67,6 +67,8 @@ public:
     std::vector<std::string> GetAllActiveIfaces();
     int32_t ResetFactory();
     void GetDumpInfo(std::string &info);
+    void DevInterfaceAdd(const std::string &devName);
+    void DevInterfaceRemove(const std::string &devName);
 
 private:
     void StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
