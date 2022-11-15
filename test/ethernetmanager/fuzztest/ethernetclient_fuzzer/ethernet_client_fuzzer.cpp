@@ -27,10 +27,10 @@
 #include "refbase.h"
 #include "singleton.h"
 #include "token_setproc.h"
-
+#define private public
 #include "ethernet_client.h"
 #include "interface_configuration.h"
-#include "netmgr_ext_log_wrapper.h"
+#include "ethernet_service.h"
 
 
 namespace OHOS {
@@ -39,7 +39,7 @@ namespace {
 const uint8_t *g_baseFuzzData = nullptr;
 size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
-constexpr size_t STR_LEN = 10;
+constexpr size_t IFACE_LEN = 5;
 
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
@@ -167,17 +167,58 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
+static bool g_isInited = false;
+
+void Init()
+{
+    if (!g_isInited) {
+        DelayedSingleton<EthernetService>::GetInstance()->Init();
+        g_isInited = true;
+    }
+}
+
+bool WriteInterfaceToken(MessageParcel &data)
+{
+    if (!data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor())) {
+        return false;
+    }
+    return true;
+}
+
+int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
+{
+    if (!g_isInited) {
+        Init();
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    return DelayedSingleton<EthernetService>::GetInstance()->OnRemoteRequest(code, data, reply, option);
+}
+
+
 void SetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
     AccessToken token;
     AccessTokenInternetInfo tokenInfo;
-    std::string iface(reinterpret_cast<const char*>(data), size);
-    sptr<InterfaceConfiguration> ic = (std::make_unique<InterfaceConfiguration>()).release();
 
-    DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(iface, ic);
+    MessageParcel parcel;
+    WriteInterfaceToken(parcel);
+    std::string iface = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteString(iface)) {
+        return;
+    }
+    auto ic = std::make_unique<InterfaceConfiguration>();
+    if (!ic->Marshalling(parcel)) {
+        return;
+    }
+    OnRemoteRequest(EthernetService::CMD_SET_IF_CFG, parcel);
 }
 
 void GetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
@@ -185,11 +226,18 @@ void GetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
     AccessToken token;
     AccessTokenInternetInfo tokenInfo;
-    std::string iface(reinterpret_cast<const char*>(data), size);
-
-    DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(iface);
+    MessageParcel parcel;
+    std::string iface = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(iface)) {
+        return;
+    }
+    OnRemoteRequest(EthernetService::CMD_GET_IF_CFG, parcel);
 }
 
 void IsIfaceActiveFuzzTest(const uint8_t* data, size_t size)
@@ -197,11 +245,18 @@ void IsIfaceActiveFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
     AccessToken token;
     AccessTokenInternetInfo tokenInfo;
-    std::string iface(reinterpret_cast<const char*>(data), size);
-
-    DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface);
+    MessageParcel parcel;
+    std::string iface = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(iface)) {
+        return;
+    }
+    OnRemoteRequest(EthernetService::CMD_IS_ACTIVATE, parcel);
 }
 
 void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
@@ -211,7 +266,9 @@ void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
     }
     AccessToken token;
     AccessTokenInternetInfo tokenInfo;
-    DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces();
+    MessageParcel parcel;
+    WriteInterfaceToken(parcel);
+    OnRemoteRequest(EthernetService::CMD_GET_ACTIVATE_INTERFACE, parcel);
 }
 
 void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
@@ -219,7 +276,9 @@ void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= 0)) {
         return;
     }
-    DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
+    MessageParcel parcel;
+    WriteInterfaceToken(parcel);
+    OnRemoteRequest(EthernetService::CMD_RESET_FACTORY, parcel);
 }
 
 void SetInterfaceUpFuzzTest(const uint8_t* data, size_t size)
@@ -232,8 +291,13 @@ void SetInterfaceUpFuzzTest(const uint8_t* data, size_t size)
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
-    std::string iface = GetStringFromData(STR_LEN);
-    DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(iface);
+    MessageParcel parcel;
+    std::string iface = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(iface)) {
+        return;
+    }
+    OnRemoteRequest(EthernetService::CMD_SET_INTERFACE_UP, parcel);
 }
 
 void SetInterfaceDownFuzzTest(const uint8_t* data, size_t size)
@@ -246,8 +310,13 @@ void SetInterfaceDownFuzzTest(const uint8_t* data, size_t size)
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
-    std::string iface = GetStringFromData(STR_LEN);
-    DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
+    MessageParcel parcel;
+    std::string iface = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(iface)) {
+        return;
+    }
+    OnRemoteRequest(EthernetService::CMD_SET_INTERFACE_DOWN, parcel);
 }
 
 void GetInterfaceConfigFuzzTest(const uint8_t* data, size_t size)
@@ -260,9 +329,13 @@ void GetInterfaceConfigFuzzTest(const uint8_t* data, size_t size)
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
-    std::string str = GetStringFromData(STR_LEN);
-    OHOS::nmd::InterfaceConfigurationParcel cfg;
-    DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(str, cfg);
+    MessageParcel parcel;
+    std::string iface = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(iface)) {
+        return;
+    }
+    OnRemoteRequest(EthernetService::CMD_GET_INTERFACE_CONFIG, parcel);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
@@ -279,6 +352,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::NetManagerStandard::SetInterfaceUpFuzzTest(data, size);
     OHOS::NetManagerStandard::SetInterfaceDownFuzzTest(data, size);
     OHOS::NetManagerStandard::GetInterfaceConfigFuzzTest(data, size);
-
     return 0;
 }
