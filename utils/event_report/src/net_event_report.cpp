@@ -20,7 +20,7 @@ namespace NetManagerStandard {
 namespace {
 // event name
 constexpr const char *NET_SHARING_SETUP_FAULT = "NET_SHARING_SETUP_FAULT";
-constexpr const char *NET_SHARING_CANCLE_FAULT = "NET_SHARING_CANCLE_FAULT";
+constexpr const char *NET_SHARING_CANCEL_FAULT = "NET_SHARING_CANCEL_FAULT";
 constexpr const char *NET_SHARING_TIME_STAT = "NET_SHARING_TIME_STAT";
 // event params
 constexpr const char *EVENT_KEY_SHARING_TYPE = "SHARING_TYPE";
@@ -46,7 +46,7 @@ void NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
 {
     HiSysEventWrite(
         HiSysEvent::Domain::NETMANAGER_STANDARD,
-        NET_SHARING_CANCLE_FAULT,
+        NET_SHARING_CANCEL_FAULT,
         HiSysEvent::EventType::FAULT,
         EVENT_KEY_SHARING_TYPE, eventInfo.sharingType,
         EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,

@@ -66,8 +66,7 @@ int32_t NetworkShareService::Dump(int32_t fd, const std::vector<std::u16string> 
     GetDumpMessage(result);
     NETMGR_EXT_LOG_I("Dump content: %{public}s", result.c_str());
     int32_t ret = dprintf(fd, "%s\n", result.c_str());
-    return ret < 0 ? static_cast<int32_t>(NetStatsResultCode::ERR_INTERNAL_ERROR)
-                   : static_cast<int32_t>(NetStatsResultCode::ERR_NONE);
+    return ret < 0 ? NETWORKSHARE_ERROR_INTERNAL_ERROR : NETWORKSHARE_SUCCESS;
 }
 
 bool NetworkShareService::Init()
