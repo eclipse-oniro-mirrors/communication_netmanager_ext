@@ -67,7 +67,6 @@ ohos_shared_library("net_tether_manager") {
 
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
-    "$BLUETOOTH_ROOT/frameworks/inner:btframework",
     "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
@@ -82,6 +81,13 @@ ohos_shared_library("net_tether_manager") {
     "safwk:system_ability_fwk",
     "wifi:wifi_sdk",
   ]
+
+  if (!defined(global_parts_info) ||
+      defined(global_parts_info.communication_bluetooth)) {
+    external_deps += [ "bluetooth:btframework" ]
+  } else {
+    deps += [ "$BLUETOOTH_ROOT/frameworks/inner:btframework" ]
+  }
 
   defines = [
     "NETMGR_LOG_TAG = \"NetworkShareManager\"",
