@@ -83,10 +83,10 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   if (!defined(global_parts_info) || 
-      defined(global_parts_info.communication_bluetooth)) {
-      external_deps += ["bluetooth:btframework"]
+    defined(global_parts_info.communication_bluetooth)) {
+    external_deps += ["bluetooth:btframework"]
   } else {
-      deps += ["$BLUETOOTH_ROOT/frameworks/inner:btframework"]
+    deps += ["$BLUETOOTH_ROOT/frameworks/inner:btframework"]
   }
 
   defines = [
