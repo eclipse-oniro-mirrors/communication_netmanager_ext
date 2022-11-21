@@ -88,7 +88,7 @@ bool NetShareExec::ExecGetSharingIfaces(GetSharingIfacesContext *context)
 napi_value NetShareExec::GetSharingIfacesCallback(GetSharingIfacesContext *context)
 {
     napi_value ifacesArray = NapiUtils::CreateArray(context->GetEnv(), context->GetIfaces().size());
-    int index = 0;
+    uint32_t index = 0;
     for (auto iface : context->GetIfaces()) {
         napi_value item = NapiUtils::CreateStringUtf8(context->GetEnv(), iface);
         NapiUtils::SetArrayElement(context->GetEnv(), ifacesArray, index++, item);
@@ -125,7 +125,7 @@ bool NetShareExec::ExecGetSharableRegexes(GetSharableRegexesContext *context)
 napi_value NetShareExec::GetSharableRegexesCallback(GetSharableRegexesContext *context)
 {
     napi_value ifacesArray = NapiUtils::CreateArray(context->GetEnv(), context->GetIfaces().size());
-    int index = 0;
+    uint32_t index = 0;
     for (auto iface : context->GetIfaces()) {
         napi_value item = NapiUtils::CreateStringUtf8(context->GetEnv(), iface);
         NapiUtils::SetArrayElement(context->GetEnv(), ifacesArray, index++, item);
@@ -135,35 +135,35 @@ napi_value NetShareExec::GetSharableRegexesCallback(GetSharableRegexesContext *c
 
 bool NetShareExec::ExecGetStatsRxBytes(GetStatsRxBytesContext *context)
 {
-    context->SetBytes64(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes());
+    context->SetBytes32(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes());
     return true;
 }
 
 napi_value NetShareExec::GetStatsRxBytesCallback(GetStatsRxBytesContext *context)
 {
-    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes64());
+    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes32());
 }
 
 bool NetShareExec::ExecGetStatsTxBytes(GetStatsTxBytesContext *context)
 {
-    context->SetBytes64(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes());
+    context->SetBytes32(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes());
     return true;
 }
 
 napi_value NetShareExec::GetStatsTxBytesCallback(GetStatsTxBytesContext *context)
 {
-    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes64());
+    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes32());
 }
 
 bool NetShareExec::ExecGetStatsTotalBytes(GetStatsTotalBytesContext *context)
 {
-    context->SetBytes64(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes());
+    context->SetBytes32(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes());
     return true;
 }
 
 napi_value NetShareExec::GetStatsTotalBytesCallback(GetStatsTotalBytesContext *context)
 {
-    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes64());
+    return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes32());
 }
 } // namespace NetManagerStandard
 } // namespace OHOS::NetManagerStandard

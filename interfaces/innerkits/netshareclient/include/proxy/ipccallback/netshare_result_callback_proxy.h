@@ -27,7 +27,7 @@ class NetShareResultCallbackProxy : public IRemoteProxy<INetShareResultCallback>
 public:
     explicit NetShareResultCallbackProxy(const sptr<IRemoteObject> &object);
     virtual ~NetShareResultCallbackProxy() = default;
-    virtual void OnResult(const int32_t &status) override;
+    virtual void OnResult(const int32_t &result) override;
 
 private:
     static inline BrokerDelegator<NetShareResultCallbackProxy> delegator_;

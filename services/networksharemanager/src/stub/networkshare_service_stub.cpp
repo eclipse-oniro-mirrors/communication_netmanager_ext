@@ -123,7 +123,7 @@ int32_t NetworkShareServiceStub::ReplyGetSharableRegexs(MessageParcel &data, Mes
     SharingIfaceType shareType = static_cast<SharingIfaceType>(type);
     std::vector<std::string> ifaceRegexs = GetSharableRegexs(shareType);
 
-    if (!reply.WriteInt32(ifaceRegexs.size())) {
+    if (!reply.WriteUint32(ifaceRegexs.size())) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     for (auto it = ifaceRegexs.begin(); it != ifaceRegexs.end(); ++it) {
@@ -163,7 +163,7 @@ int32_t NetworkShareServiceStub::ReplyGetNetSharingIfaces(MessageParcel &data, M
     SharingIfaceState shareState = static_cast<SharingIfaceState>(state);
     const auto &ifaceNames = GetNetSharingIfaces(shareState);
 
-    if (!reply.WriteInt32(ifaceNames.size())) {
+    if (!reply.WriteUint32(ifaceNames.size())) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     for (auto it = ifaceNames.begin(); it != ifaceNames.end(); ++it) {
