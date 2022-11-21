@@ -219,11 +219,11 @@ private:
     void EnableBluetoothSubStateMachine();
     int32_t Sharing(const std::string &iface, int32_t reqState);
     void SendGlobalSharingStateChange();
-    void SendIfaceSharingStateChange(const SharingIfaceType type, const std::string iface,
-                                     const SharingIfaceState state);
-    void SendSharingUpstreamChange(const sptr<NetHandle> netHandle);
+    void SendIfaceSharingStateChange(const SharingIfaceType &type, const std::string &iface,
+                                     const SharingIfaceState &state);
+    void SendSharingUpstreamChange(const sptr<NetHandle> &netHandle);
     int32_t CreateSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType, bool isNcm);
-    void StopSubStateMachine(const std::string iface, const SharingIfaceType &interfaceType);
+    void StopSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType);
     bool IsInterfaceMatchType(const std::string &iface, const SharingIfaceType &type);
     bool InterfaceNameToType(const std::string &iface, SharingIfaceType &type);
     bool IsHandleNetlinkEvent(const SharingIfaceType &type, bool up);
@@ -234,13 +234,12 @@ private:
     void InterfaceStatusChanged(const std::string &iface, bool up);
     void SetDnsForwarders(const NetHandle &netHandle);
     void StopDnsProxy();
-    SharingIfaceState SubSmStateToExportState(const int32_t state);
+    SharingIfaceState SubSmStateToExportState(int32_t state);
     void RegisterWifiApCallback();
     void RegisterBtPanCallback();
     void SetWifiState(const Wifi::ApState &state);
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
-    void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, const int32_t event,
-                         const int32_t state);
+    void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event, int32_t state);
 
 private:
     std::mutex mutex_;

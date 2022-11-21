@@ -47,9 +47,9 @@ bool NetShareIsSharingContext::CheckParamsType(napi_value *params, size_t params
     return false;
 }
 
-void NetShareIsSharingContext::SetBytes64(int64_t bytes64)
+void NetShareIsSharingContext::SetBytes32(int32_t bytes32)
 {
-    bytes64_ = bytes64;
+    bytes32_ = bytes32;
 }
 
 void NetShareIsSharingContext::SetSharingSupported(int32_t isSharingSupported)
@@ -72,9 +72,9 @@ int32_t NetShareIsSharingContext::GetSharing() const
     return isSharing_;
 }
 
-int32_t NetShareIsSharingContext::GetBytes64() const
+int32_t NetShareIsSharingContext::GetBytes32() const
 {
-    return bytes64_;
+    return bytes32_;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

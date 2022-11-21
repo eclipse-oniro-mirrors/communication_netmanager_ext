@@ -239,8 +239,8 @@ Route DevInterfaceState::CreateLocalRoute(const std::string &iface, const std::s
                      CommonUtils::ToAnonymousIp(ipAddr).c_str(), maskAddr.c_str());
     Route localRoute;
     int prefixLength = CommonUtils::GetMaskLength(maskAddr);
-    int32_t ipInt = CommonUtils::ConvertIpv4Address(ipAddr);
-    int32_t maskInt = CommonUtils::ConvertIpv4Address(maskAddr);
+    uint32_t ipInt = CommonUtils::ConvertIpv4Address(ipAddr);
+    uint32_t maskInt = CommonUtils::ConvertIpv4Address(maskAddr);
     std::string strLocalRoute = CommonUtils::ConvertIpv4Address(ipInt & maskInt);
     localRoute.iface_ = iface;
     localRoute.destination_.type_ = INetAddr::IPV4;

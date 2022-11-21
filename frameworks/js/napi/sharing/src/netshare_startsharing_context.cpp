@@ -56,9 +56,9 @@ int32_t NetShareStartSharingContext::GetParam() const
     return param_;
 }
 
-int32_t NetShareStartSharingContext::GetBytes64() const
+int32_t NetShareStartSharingContext::GetBytes32() const
 {
-    return bytes64_;
+    return bytes32_;
 }
 
 std::vector<std::string> NetShareStartSharingContext::GetIfaces() const
@@ -76,9 +76,9 @@ void NetShareStartSharingContext::SetIface(std::vector<std::string> ifaces)
     ifaces_ = ifaces;
 }
 
-void NetShareStartSharingContext::SetBytes64(int64_t bytes64)
+void NetShareStartSharingContext::SetBytes32(int32_t bytes32)
 {
-    bytes64_ = bytes64;
+    bytes32_ = bytes32;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

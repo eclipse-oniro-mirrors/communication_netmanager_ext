@@ -32,7 +32,7 @@ public:
     /**
      * is surpport share network
      */
-    bool IsNetworkSharingSupported();
+    bool IsNetworkSharingSupported() const;
 
     /**
      * is usb iface by regex
@@ -67,7 +67,7 @@ public:
     /**
      * get wifi hotspot set dhcp flag
      */
-    bool GetWifiHotspotSetDhcpFlag();
+    bool GetWifiHotspotSetDhcpFlag() const;
 
     /**
      * get btpan default ipv4 address

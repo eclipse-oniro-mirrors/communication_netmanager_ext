@@ -109,14 +109,14 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     config->mode_ = STATIC;
     config->ipStatic_.ipAddr_.address_ = jsonData[CONFIG_KEY_ETH_IP];
     config->ipStatic_.ipAddr_.netMask_ = jsonData[CONFIG_KEY_ETH_NETMASK];
-    config->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_IP]);
+    config->ipStatic_.ipAddr_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_IP]));
     int prefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_NETMASK]);
     if (config->ipStatic_.ipAddr_.family_ == AF_INET) {
         config->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
     }
     config->ipStatic_.netMask_.address_ = jsonData[CONFIG_KEY_ETH_NETMASK];
     config->ipStatic_.gateway_.address_ = jsonData[CONFIG_KEY_ETH_GATEWAY];
-    config->ipStatic_.gateway_.family_ = CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_GATEWAY]);
+    config->ipStatic_.gateway_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_GATEWAY]));
     if (config->ipStatic_.gateway_.family_ == AF_INET) {
         config->ipStatic_.gateway_.prefixlen_ = prefixLen;
     }
@@ -125,7 +125,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     if (!jsonData[CONFIG_KEY_ETH_ROUTE_MASK].empty()) {
         routePrefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
     }
-    config->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]);
+    config->ipStatic_.route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]));
     if (config->ipStatic_.route_.family_ == AF_INET) {
         config->ipStatic_.route_.prefixlen_ = routePrefixLen;
     }
@@ -150,7 +150,8 @@ bool EthernetConfiguration::ReadUserConfiguration(std::map<std::string, sptr<Int
     while ((ptr = readdir(dir)) != nullptr) {
         if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0) {
             continue;
-        } else if (ptr->d_type == DT_REG) {
+        }
+        if (ptr->d_type == DT_REG) {
             std::string filePath = std::string(USER_CONFIG_DIR) + FILE_OBLIQUE_LINE + ptr->d_name;
             std::string fileContent;
             if (!ReadFile(filePath, fileContent)) {
@@ -185,7 +186,7 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
     }
     if (cfg->mode_ == STATIC) {
         int prefixlen = 0;
-        cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.ipAddr_.address_);
+        cfg->ipStatic_.ipAddr_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.ipAddr_.address_));
         if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
             if (cfg->ipStatic_.netMask_.address_.empty()) {
                 prefixlen = CommonUtils::GetMaskLength(cfg->ipStatic_.ipAddr_.netMask_);
@@ -194,9 +195,9 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
             }
         }
         cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.gateway_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.gateway_.address_);
+        cfg->ipStatic_.gateway_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.gateway_.address_));
         cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_);
+        cfg->ipStatic_.route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_));
         int routePrefixLen = 0;
         if (!cfg->ipStatic_.route_.netMask_.empty()) {
             routePrefixLen = CommonUtils::GetMaskLength(cfg->ipStatic_.route_.netMask_);
@@ -227,13 +228,13 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     unsigned int prefixlen = 0;
     config->ipAddr_.address_ = dhcpResult.ipAddr;
     config->netMask_.address_ = dhcpResult.subNet;
-    config->ipAddr_.family_ = CommonUtils::GetAddrFamily(dhcpResult.ipAddr);
+    config->ipAddr_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.ipAddr));
     if (config->ipAddr_.family_ == AF_INET) {
-        config->ipAddr_.prefixlen_ = CommonUtils::GetMaskLength(dhcpResult.subNet);
+        config->ipAddr_.prefixlen_ = static_cast<uint8_t>(CommonUtils::GetMaskLength(dhcpResult.subNet));
     }
     prefixlen = config->ipAddr_.prefixlen_;
     config->gateway_.address_ = dhcpResult.gateWay;
-    config->gateway_.family_ = CommonUtils::GetAddrFamily(dhcpResult.gateWay);
+    config->gateway_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.gateWay));
     config->gateway_.prefixlen_ = prefixlen;
     if (dhcpResult.gateWay != dhcpResult.route1) {
         if (dhcpResult.route1 == emSymbol) {
@@ -253,7 +254,7 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
             config->route_.prefixlen_ = prefixlen;
         }
     }
-    config->route_.family_ = CommonUtils::GetAddrFamily(config->route_.address_);
+    config->route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(config->route_.address_));
     INetAddr dnsNet1;
     dnsNet1.address_ = dhcpResult.dns1;
     INetAddr dnsNet2;
@@ -267,7 +268,7 @@ std::string EthernetConfiguration::ReadJsonFile(const std::string &filePath)
 {
     std::ifstream infile;
     std::string strLine;
-    std::string strAll = "";
+    std::string strAll;
     infile.open(filePath);
     if (!infile.is_open()) {
         NETMGR_EXT_LOG_E("ReadJsonFile filePath failed");
@@ -318,10 +319,7 @@ bool EthernetConfiguration::DelDir(const std::string &dirPath)
         }
     }
     closedir(dir);
-    if (rmdir(dirPath.c_str()) < 0) {
-        return false;
-    }
-    return true;
+    return rmdir(dirPath.c_str()) >= 0;
 }
 
 bool EthernetConfiguration::IsFileExist(const std::string &filePath)
@@ -341,7 +339,7 @@ bool EthernetConfiguration::ReadFile(const std::string &filePath, std::string &f
         return false;
     }
     std::fstream file(filePath.c_str(), std::fstream::in);
-    if (file.is_open() == false) {
+    if (!file.is_open()) {
         NETMGR_EXT_LOG_E("EthernetConfiguration read file failed.err %{public}d %{public}s", errno, strerror(errno));
         return false;
     }
@@ -355,7 +353,7 @@ bool EthernetConfiguration::ReadFile(const std::string &filePath, std::string &f
 bool EthernetConfiguration::WriteFile(const std::string &filePath, const std::string &fileContent)
 {
     std::fstream file(filePath.c_str(), std::fstream::out | std::fstream::trunc);
-    if (file.is_open() == false) {
+    if (!file.is_open()) {
         NETMGR_EXT_LOG_E("EthernetConfiguration write file=%{public}s fstream failed. err %{public}d %{public}s",
                          filePath.c_str(), errno, strerror(errno));
         return false;

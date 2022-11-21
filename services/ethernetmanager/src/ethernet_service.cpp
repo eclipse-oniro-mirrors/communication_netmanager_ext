@@ -142,9 +142,8 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<Interface
 
     if (ethManagement_ != nullptr) {
         return ethManagement_->UpdateDevInterfaceCfg(iface, ic);
-    } else {
-        return ETHERNET_ERROR;
     }
+    return ETHERNET_ERROR;
 }
 
 sptr<InterfaceConfiguration> EthernetService::GetIfaceConfig(const std::string &iface)
@@ -157,9 +156,8 @@ sptr<InterfaceConfiguration> EthernetService::GetIfaceConfig(const std::string &
 
     if (ethManagement_ != nullptr) {
         return ethManagement_->GetDevInterfaceCfg(iface);
-    } else {
-        return nullptr;
     }
+    return nullptr;
 }
 
 int32_t EthernetService::IsIfaceActive(const std::string &iface)
@@ -172,9 +170,8 @@ int32_t EthernetService::IsIfaceActive(const std::string &iface)
 
     if (ethManagement_ != nullptr) {
         return ethManagement_->IsIfaceActive(iface);
-    } else {
-        return ETHERNET_ERROR;
     }
+    return ETHERNET_ERROR;
 }
 
 std::vector<std::string> EthernetService::GetAllActiveIfaces()
@@ -186,18 +183,16 @@ std::vector<std::string> EthernetService::GetAllActiveIfaces()
 
     if (ethManagement_ != nullptr) {
         return ethManagement_->GetAllActiveIfaces();
-    } else {
-        return {};
     }
+    return {};
 }
 
 int32_t EthernetService::ResetFactory()
 {
     if (ethManagement_ != nullptr) {
         return ethManagement_->ResetFactory();
-    } else {
-        return ETHERNET_ERROR;
     }
+    return ETHERNET_ERROR;
 }
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)
@@ -217,10 +212,7 @@ bool EthernetService::GetInterfaceConfig(const std::string &iface, OHOS::nmd::In
     NETMGR_EXT_LOG_D("Get interface: %{public}s config", iface.c_str());
     config.ifName = iface;
     int32_t ret = NetsysController::GetInstance().InterfaceGetConfig(config);
-    if (ret != NO_ERROR) {
-        return false;
-    }
-    return true;
+    return ret == NO_ERROR;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
