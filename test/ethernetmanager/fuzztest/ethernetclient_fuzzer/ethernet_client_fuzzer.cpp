@@ -199,7 +199,7 @@ int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
 
 void SetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -223,7 +223,7 @@ void SetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
 
 void GetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -242,7 +242,7 @@ void GetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
 
 void IsIfaceActiveFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -261,7 +261,7 @@ void IsIfaceActiveFuzzTest(const uint8_t* data, size_t size)
 
 void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     AccessToken token;
@@ -273,7 +273,7 @@ void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
 
 void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     MessageParcel parcel;
@@ -283,7 +283,7 @@ void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
 
 void SetInterfaceUpFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     AccessToken token;
@@ -302,7 +302,7 @@ void SetInterfaceUpFuzzTest(const uint8_t* data, size_t size)
 
 void SetInterfaceDownFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     AccessToken token;
@@ -321,7 +321,7 @@ void SetInterfaceDownFuzzTest(const uint8_t* data, size_t size)
 
 void GetInterfaceConfigFuzzTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     AccessToken token;
