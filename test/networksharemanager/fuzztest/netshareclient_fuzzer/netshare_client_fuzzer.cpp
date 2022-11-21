@@ -128,9 +128,8 @@ private:
 
 class AccessTokenInternetInfo {
 public:
-    AccessTokenInternetInfo()
+    AccessTokenInternetInfo() : currentID_(GetSelfTokenID())
     {
-        currentID_ = GetSelfTokenID();
         AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testInternetPolicyPrams);
         accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
         SetSelfTokenID(accessID_);
@@ -142,7 +141,7 @@ public:
     }
 
 private:
-    AccessTokenID currentID_ = 0;
+    AccessTokenID currentID_;
     AccessTokenID accessID_ = 0;
 };
 
@@ -206,7 +205,7 @@ bool WriteInterfaceToken(MessageParcel &data)
 
 void IsNetworkSharingSupportedFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
 
@@ -226,7 +225,7 @@ void IsNetworkSharingSupportedFuzzTest(const uint8_t *data, size_t size)
 
 void IsSharingFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -245,7 +244,7 @@ void IsSharingFuzzTest(const uint8_t *data, size_t size)
 
 void StartNetworkSharingFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -265,7 +264,7 @@ void StartNetworkSharingFuzzTest(const uint8_t *data, size_t size)
 
 void StopNetworkSharingFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -285,7 +284,7 @@ void StopNetworkSharingFuzzTest(const uint8_t *data, size_t size)
 
 void GetSharableRegexsFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -305,7 +304,7 @@ void GetSharableRegexsFuzzTest(const uint8_t *data, size_t size)
 
 void GetSharingStateFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -325,7 +324,7 @@ void GetSharingStateFuzzTest(const uint8_t *data, size_t size)
 
 void GetNetSharingIfacesFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -345,7 +344,7 @@ void GetNetSharingIfacesFuzzTest(const uint8_t *data, size_t size)
 
 void RegisterSharingEventFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -365,7 +364,7 @@ void RegisterSharingEventFuzzTest(const uint8_t *data, size_t size)
 
 void UnregisterSharingEventFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -385,7 +384,7 @@ void UnregisterSharingEventFuzzTest(const uint8_t *data, size_t size)
 
 void GetStatsRxBytesFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -403,7 +402,7 @@ void GetStatsRxBytesFuzzTest(const uint8_t *data, size_t size)
 
 void GetStatsTxBytesFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
@@ -421,7 +420,7 @@ void GetStatsTxBytesFuzzTest(const uint8_t *data, size_t size)
 
 void GetStatsTotalBytesFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return;
     }
     g_baseFuzzData = data;
