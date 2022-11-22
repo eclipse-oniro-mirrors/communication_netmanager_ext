@@ -224,11 +224,14 @@ HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory(), 0);
+    ASSERT_FALSE(DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory() > 0);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 {
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
     ASSERT_FALSE(cfg.ifName.empty());
@@ -237,6 +240,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 {
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
@@ -248,6 +254,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
 {
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
