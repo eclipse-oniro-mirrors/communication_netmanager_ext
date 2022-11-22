@@ -57,7 +57,7 @@ NetworkShareConfiguration::NetworkShareConfiguration()
     LoadConfigData();
 }
 
-bool NetworkShareConfiguration::IsNetworkSharingSupported()
+bool NetworkShareConfiguration::IsNetworkSharingSupported() const
 {
     return isSharingSupported_;
 }
@@ -127,7 +127,7 @@ std::string &NetworkShareConfiguration::GetDhcpEndIP()
     return dhcpEndIP_;
 }
 
-bool NetworkShareConfiguration::GetWifiHotspotSetDhcpFlag()
+bool NetworkShareConfiguration::GetWifiHotspotSetDhcpFlag() const
 {
     return isWifiHotspotSetDhcp_;
 }
@@ -181,7 +181,7 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
 {
     switch (configMap_[strKey]) {
         case Config_Value::CONFIG_VALUE_SHARE_SUPPORT:
-            if (!strVal.compare(VALUE_SUPPORT_TRUE)) {
+            if (strVal == VALUE_SUPPORT_TRUE) {
                 isSharingSupported_ = true;
             }
             break;
@@ -216,7 +216,7 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
             defaultMask_ = strVal;
             break;
         case Config_Value::CONFIG_VALUE_WIFI_SET_DHCP:
-            if (!strVal.compare(VALUE_SUPPORT_TRUE)) {
+            if (strVal == VALUE_SUPPORT_TRUE) {
                 isWifiHotspotSetDhcp_ = true;
             }
             break;

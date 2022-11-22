@@ -117,10 +117,10 @@ void NetworkShareUpstreamMonitor::RegisterUpstreamChangedCallback(
     notifyUpstreamCallback_ = callback;
 }
 
-bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetwork)
+bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo)
 {
     auto netManager = DelayedSingleton<NetConnClient>::GetInstance();
-    if (upstreamNetwork == nullptr || upstreamNetwork->netHandle_ == nullptr || netManager == nullptr) {
+    if (upstreamNetInfo == nullptr || upstreamNetInfo->netHandle_ == nullptr || netManager == nullptr) {
         NETMGR_EXT_LOG_E("NetConnClient or upstreamNetInfo is null.");
         return false;
     }
@@ -134,8 +134,8 @@ bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
         return false;
     }
 
-    netManager->GetDefaultNet(*(upstreamNetwork->netHandle_));
-    int32_t currentNetId = upstreamNetwork->netHandle_->GetNetId();
+    netManager->GetDefaultNet(*(upstreamNetInfo->netHandle_));
+    int32_t currentNetId = upstreamNetInfo->netHandle_->GetNetId();
     NETMGR_EXT_LOG_I("NetConn get defaultNet id[%{public}d].", currentNetId);
     if (currentNetId <= INVALID_NETID) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
@@ -151,7 +151,7 @@ bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
         if (iter == networkMaps_.end()) {
             return false;
         }
-        upstreamNetwork = iter->second;
+        upstreamNetInfo = iter->second;
     }
     defaultNetworkId_ = currentNetId;
     return true;

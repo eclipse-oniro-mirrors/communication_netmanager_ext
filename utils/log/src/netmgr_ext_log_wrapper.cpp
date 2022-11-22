@@ -23,10 +23,7 @@ NetMgrExtLogLevel NetMgrExtLogWrapper::level_ = NetMgrExtLogLevel::DEBUG;
 bool NetMgrExtLogWrapper::JudgeLevel(const NetMgrExtLogLevel &level)
 {
     const NetMgrExtLogLevel &curLevel = NetMgrExtLogWrapper::GetLogLevel();
-    if (level < curLevel) {
-        return false;
-    }
-    return true;
+    return level >= curLevel;
 }
 
 std::string NetMgrExtLogWrapper::GetBriefFileName(const std::string &file)

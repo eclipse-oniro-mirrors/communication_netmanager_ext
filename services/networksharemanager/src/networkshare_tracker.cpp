@@ -343,8 +343,8 @@ void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<
     SendGlobalSharingStateChange();
 }
 
-void NetworkShareTracker::SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM,
-                                          const int32_t event, const int32_t state)
+void NetworkShareTracker::SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event,
+                                          int32_t state)
 {
     if (mainStateMachine_ == nullptr) {
         NETMGR_EXT_LOG_I("MainSM is null");
@@ -494,14 +494,9 @@ std::vector<std::string> NetworkShareTracker::GetNetSharingIfaces(const SharingI
             return;
         }
         NETMGR_EXT_LOG_I("iface=%{public}s, state=%{public}d", (iter.first).c_str(), subsmState->lastState_);
-        if ((state == SharingIfaceState::SHARING_NIC_ERROR) &&
-            (subsmState->lastState_ == SUB_SM_STATE_UNAVAILABLE)) {
-            ifaces.push_back(iter.first);
-        } else if ((state == SharingIfaceState::SHARING_NIC_CAN_SERVER) &&
-                   (subsmState->lastState_ == SUB_SM_STATE_AVAILABLE)) {
-            ifaces.push_back(iter.first);
-        } else if ((state == SharingIfaceState::SHARING_NIC_SERVING) &&
-                   (subsmState->lastState_ == SUB_SM_STATE_SHARED)) {
+        if ((state == SharingIfaceState::SHARING_NIC_ERROR && subsmState->lastState_ == SUB_SM_STATE_UNAVAILABLE) ||
+            (state == SharingIfaceState::SHARING_NIC_CAN_SERVER && subsmState->lastState_ == SUB_SM_STATE_AVAILABLE) ||
+            (state == SharingIfaceState::SHARING_NIC_SERVING && subsmState->lastState_ == SUB_SM_STATE_SHARED)) {
             ifaces.push_back(iter.first);
         }
     });
@@ -567,7 +562,7 @@ int32_t NetworkShareTracker::GetSharedSubSMTraffic(const TrafficType &type)
         }
     }
 
-    int32_t kbByte = bytes / BYTE_TRANSFORM_KB;
+    int32_t kbByte = static_cast<int32_t>(bytes / BYTE_TRANSFORM_KB);
     if (kbByte > std::numeric_limits<int32_t>::max()) {
         NETMGR_EXT_LOG_I("GetBytes [%{public}s] is above max.", std::to_string(kbByte).c_str());
         return std::numeric_limits<int32_t>::max();
@@ -729,7 +724,7 @@ bool NetworkShareTracker::FindSubStateMachine(const std::string &iface, const Sh
 {
     std::lock_guard lock(mutex_);
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter =
-        subStateMachineMap_.find(iface.c_str());
+        subStateMachineMap_.find(iface);
     if (iter != subStateMachineMap_.end()) {
         if (iter->second == nullptr) {
             NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
@@ -843,7 +838,7 @@ void NetworkShareTracker::SetDnsForwarders(const NetHandle &netHandle)
         NETMGR_EXT_LOG_I("StartDnsProxy successful.");
         isStartDnsProxy_ = true;
     }
-    uint32_t netId = netHandle.GetNetId();
+    int32_t netId = netHandle.GetNetId();
     if (netId < 0) {
         NETMGR_EXT_LOG_E("netId less than 0.");
         mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
@@ -914,7 +909,7 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
     return NETWORKSHARE_SUCCESS;
 }
 
-void NetworkShareTracker::StopSubStateMachine(const std::string iface, const SharingIfaceType &interfaceType)
+void NetworkShareTracker::StopSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType)
 {
     std::shared_ptr<NetworkShareSubStateMachine> subSM = nullptr;
     std::string findKey;
@@ -1062,8 +1057,8 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
     }
 }
 
-void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType type, const std::string iface,
-                                                      const SharingIfaceState state)
+void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType &type, const std::string &iface,
+                                                      const SharingIfaceState &state)
 {
     if (sharingEventCallback_.size() == 0) {
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
@@ -1077,7 +1072,7 @@ void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType typ
              });
 }
 
-void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> netHandle)
+void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> &netHandle)
 {
     if (sharingEventCallback_.size() == 0) {
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
@@ -1091,7 +1086,7 @@ void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> netHan
              });
 }
 
-SharingIfaceState NetworkShareTracker::SubSmStateToExportState(const int32_t state)
+SharingIfaceState NetworkShareTracker::SubSmStateToExportState(int32_t state)
 {
     SharingIfaceState newState = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     if (state == SUB_SM_STATE_AVAILABLE) {

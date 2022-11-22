@@ -34,17 +34,17 @@ public:
     explicit NetShareIsSharingContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
-    void SetBytes64(int64_t bytes64);
+    void SetBytes32(int32_t bytes32);
     void SetSharingSupported(int32_t isSharingSupported);
     void SetSharing(int32_t isSharing);
-    int32_t GetBytes64() const;
+    int32_t GetBytes32() const;
     int32_t GetSharingSupported() const;
     int32_t GetSharing() const;
 
 private:
     int32_t isSharingSupported_ = NETWORKSHARE_IS_SUPPORTED;
     int32_t isSharing_ = NETWORKSHARE_IS_SHARING;
-    int32_t bytes64_ = 0;
+    int32_t bytes32_ = 0;
 
 private:
     bool CheckParamsType(napi_value *params, size_t paramsCount);

@@ -33,7 +33,7 @@ public:
     void SendFaultEvent(const SharingIfaceType &sharingType, const NetworkShareEventOperator &operatorType,
                         const NetworkShareEventErrorType &errorCode, const std::string &errorMsg,
                         const NetworkShareEventType &eventType);
-    void SendBehaviorEvent(const int32_t sharingCount, const SharingIfaceType &sharingType);
+    void SendBehaviorEvent(int32_t sharingCount, const SharingIfaceType &sharingType);
 
 private:
     NetworkShareHisysEvent() = default;
