@@ -114,7 +114,7 @@ void NetworkShareService::GetDumpMessage(std::string &message)
     message.append("\tBluetooth Regexs: " + btpanShareRegexs + "\n");
 }
 
-void NetworkShareService::GetSharingType(const SharingIfaceType type, const std::string typeContent,
+void NetworkShareService::GetSharingType(const SharingIfaceType &type, const std::string &typeContent,
                                          std::string &sharingType)
 {
     SharingIfaceState state;
@@ -124,7 +124,7 @@ void NetworkShareService::GetSharingType(const SharingIfaceType type, const std:
     }
 }
 
-void NetworkShareService::GetShareRegexsContent(const SharingIfaceType type, std::string &shareRegexsContent)
+void NetworkShareService::GetShareRegexsContent(const SharingIfaceType &type, std::string &shareRegexsContent)
 {
     std::vector<std::string> regexs = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
     for_each(regexs.begin(), regexs.end(),

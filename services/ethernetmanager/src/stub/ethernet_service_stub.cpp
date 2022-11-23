@@ -123,7 +123,7 @@ int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessagePa
         NETMGR_EXT_LOG_E("ifaces size is too large");
         return NETMANAGER_EXT_ERROR;
     }
-    if (!reply.WriteInt32(ifaces.size())) {
+    if (!reply.WriteUint32(ifaces.size())) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     for (auto iface : ifaces) {

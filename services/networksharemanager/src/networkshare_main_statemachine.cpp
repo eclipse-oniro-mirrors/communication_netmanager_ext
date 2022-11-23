@@ -169,7 +169,7 @@ void NetworkShareMainStateMachine::ErrorStateEnter()
              });
 }
 
-void NetworkShareMainStateMachine::ErrorStateExit()
+void NetworkShareMainStateMachine::ErrorStateExit() const
 {
     NETMGR_EXT_LOG_I("Exit Error state, error[%{public}d].", errorType_);
 }
@@ -266,7 +266,7 @@ void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
 
 int NetworkShareMainStateMachine::HandleAliveUpstreamMonitorCallback(const std::any &messageObj)
 {
-    if (NetworkShareTracker::GetInstance().UpstreamWanted() == false) {
+    if (!NetworkShareTracker::GetInstance().UpstreamWanted()) {
         NETMGR_EXT_LOG_W("don't need handle upstream callback.");
         return NETWORKSHARE_SUCCESS;
     }
@@ -314,7 +314,7 @@ int NetworkShareMainStateMachine::HandleErrorClear(const std::any &messageObj)
     return NETWORKSHARE_SUCCESS;
 }
 
-void NetworkShareMainStateMachine::SwitcheToErrorState(const int32_t errType)
+void NetworkShareMainStateMachine::SwitcheToErrorState(int32_t errType)
 {
     NETMGR_EXT_LOG_W("SwitcheToErrorState errType[%{public}d].", errType);
     errorType_ = errType;

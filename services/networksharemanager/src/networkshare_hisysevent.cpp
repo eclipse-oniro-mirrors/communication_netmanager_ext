@@ -59,7 +59,7 @@ void NetworkShareHisysEvent::SendFaultEvent(const SharingIfaceType &sharingType,
     }
 }
 
-void NetworkShareHisysEvent::SendBehaviorEvent(const int32_t sharingCount, const SharingIfaceType &sharingType)
+void NetworkShareHisysEvent::SendBehaviorEvent(int32_t sharingCount, const SharingIfaceType &sharingType)
 {
     EventInfo eventInfo;
     eventInfo.sharingCount = sharingCount;

@@ -372,23 +372,23 @@ void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
 bool NetworkShareSubStateMachine::FindDestinationAddr(std::string &destination)
 {
     if (netShareType_ == SharingIfaceType::SHARING_BLUETOOTH) {
-        if (GetBtDestinationAddr(destination) == false) {
+        if (!GetBtDestinationAddr(destination)) {
             NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get btpan Destination Addr failed.",
                              ifaceName_.c_str());
             return false;
         }
         return true;
-    } else if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
-        if (GetWifiApDestinationAddr(destination) == false) {
+    }
+    if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
+        if (!GetWifiApDestinationAddr(destination)) {
             NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get wifi Destination Addr failed.",
                              ifaceName_.c_str());
             return false;
         }
         return true;
-    } else {
-        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route sharetype is unknow.", ifaceName_.c_str());
-        return false;
     }
+    NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route sharetype is unknown.", ifaceName_.c_str());
+    return false;
 }
 
 bool NetworkShareSubStateMachine::GetWifiHotspotDhcpFlag()
@@ -618,7 +618,7 @@ bool NetworkShareSubStateMachine::HasChangeUpstreamIfaceSet(const std::string &n
         return false;
     }
     if ((!upstreamIfaceName_.empty()) && (!newUpstreamIface.empty())) {
-        return upstreamIfaceName_ == newUpstreamIface ? false : true;
+        return upstreamIfaceName_ != newUpstreamIface;
     }
     return true;
 }

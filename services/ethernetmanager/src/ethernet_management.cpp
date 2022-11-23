@@ -252,10 +252,9 @@ int32_t EthernetManagement::ResetFactory()
     if (!ethConfiguration_->ClearAllUserConfiguration()) {
         NETMGR_EXT_LOG_E("Failed to ResetFactory!");
         return ETHERNET_ERROR;
-    } else {
-        NETMGR_EXT_LOG_I("Success to ResetFactory!");
-        return ETHERNET_SUCCESS;
     }
+    NETMGR_EXT_LOG_I("Success to ResetFactory!");
+    return ETHERNET_SUCCESS;
 }
 
 void EthernetManagement::Init()

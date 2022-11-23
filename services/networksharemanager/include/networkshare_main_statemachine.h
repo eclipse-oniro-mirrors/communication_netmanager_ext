@@ -46,7 +46,7 @@ public:
     /**
      * switch to error state when error occur
      */
-    void SwitcheToErrorState(const int32_t errType);
+    void SwitcheToErrorState(int32_t errType);
 
     /**
      * execute state switch
@@ -73,7 +73,7 @@ private:
     void ErrorStateEnter();
     void InitStateExit();
     void AliveStateExit();
-    void ErrorStateExit();
+    void ErrorStateExit() const;
     void ChooseUpstreamNetwork();
     void DisableForward();
     int EraseSharedSubSM(const std::any &messageObj);

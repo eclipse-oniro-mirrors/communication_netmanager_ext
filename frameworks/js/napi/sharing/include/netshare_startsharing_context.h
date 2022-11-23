@@ -36,16 +36,16 @@ public:
 
     void ParseParams(napi_value *params, size_t paramsCount);
     int32_t GetParam() const;
-    int32_t GetBytes64() const;
+    int32_t GetBytes32() const;
     std::vector<std::string> GetIfaces() const;
     void SetParam(int32_t param);
     void SetIface(std::vector<std::string> ifaces);
-    void SetBytes64(int64_t bytes64);
+    void SetBytes32(int32_t bytes32);
 
 private:
     int32_t param_ = 0;
     std::vector<std::string> ifaces_;
-    int64_t bytes64_ = 0;
+    int32_t bytes32_ = 0;
 
 private:
     bool CheckParamsType(napi_value *params, size_t paramsCount);
