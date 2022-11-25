@@ -80,7 +80,8 @@
             "test": [
                 "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest",
                 "//foundation/communication/netmanager_ext/test/ethernetmanager:fuzztest",
-                "//foundation/communication/netmanager_ext/test/networksharemanager:fuzztest"
+                "//foundation/communication/netmanager_ext/test/networksharemanager:fuzztest",
+                "//foundation/communication/netmanager_ext/test/networksharemanager:unittest"
             ]
         }
     }
