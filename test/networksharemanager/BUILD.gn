@@ -13,6 +13,11 @@
 
 import("//build/test.gni")
 
+group("unittest") {
+  testonly = true
+  deps = [ "unittest/networkshare_manager_test:unittest" ]
+}
+
 group("fuzztest") {
   testonly = true
   deps = [ "fuzztest/netshareclient_fuzzer:fuzztest" ]
