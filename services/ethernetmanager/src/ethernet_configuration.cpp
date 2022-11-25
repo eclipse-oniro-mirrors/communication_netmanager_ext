@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "ethernet_configuration.h"
+
 #include <arpa/inet.h>
 #include <cerrno>
 #include <cstdlib>
@@ -24,10 +26,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "ethernet_configuration.h"
 #include "ethernet_constants.h"
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "route.h"
 #include "securec.h"
 
 namespace OHOS {
@@ -54,6 +56,8 @@ constexpr const char *KEY_GATEWAY = "GATEWAY=";
 constexpr const char *KEY_ROUTE = "ROUTE=";
 constexpr const char *KEY_ROUTE_NETMASK = "ROUTE_NETMASK=";
 constexpr const char *WRAP = "\n";
+constexpr const char *DEFAULT_NET_ADDR = "0.0.0.0";
+constexpr const char *EMPTY_NET_ADDR = "*";
 } // namespace
 
 EthernetConfiguration::EthernetConfiguration()
@@ -222,8 +226,6 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
         NETMGR_EXT_LOG_E("Error ConvertToIpConfiguration config is null");
         return false;
     }
-    const auto &emSymbol = "*";
-    const auto &emAddr = "0.0.0.0";
     const auto &emPrefixlen = 0;
     unsigned int prefixlen = 0;
     config->ipAddr_.address_ = dhcpResult.ipAddr;
@@ -237,8 +239,8 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     config->gateway_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.gateWay));
     config->gateway_.prefixlen_ = prefixlen;
     if (dhcpResult.gateWay != dhcpResult.route1) {
-        if (dhcpResult.route1 == emSymbol) {
-            config->route_.address_ = emAddr;
+        if (dhcpResult.route1 == EMPTY_NET_ADDR) {
+            config->route_.address_ = DEFAULT_NET_ADDR;
             config->route_.prefixlen_ = emPrefixlen;
         } else {
             config->route_.address_ = dhcpResult.route1;
@@ -246,8 +248,8 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
         }
     }
     if (dhcpResult.gateWay != dhcpResult.route2) {
-        if (dhcpResult.route2 == emSymbol) {
-            config->route_.address_ = emAddr;
+        if (dhcpResult.route2 == EMPTY_NET_ADDR) {
+            config->route_.address_ = DEFAULT_NET_ADDR;
             config->route_.prefixlen_ = emPrefixlen;
         } else {
             config->route_.address_ = dhcpResult.route2;
@@ -262,6 +264,34 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     config->dnsServers_.push_back(dnsNet1);
     config->dnsServers_.push_back(dnsNet2);
     return true;
+}
+
+sptr<InterfaceConfiguration>
+    EthernetConfiguration::MakeInterfaceConfiguration(const sptr<InterfaceConfiguration> &devCfg,
+                                                      const sptr<NetLinkInfo> &devLinkInfo)
+{
+    if (devCfg == nullptr || devLinkInfo == nullptr) {
+        NETMGR_EXT_LOG_E("param is nullptr");
+        return nullptr;
+    }
+    sptr<InterfaceConfiguration> cfg = new (std::nothrow) InterfaceConfiguration();
+    if (cfg == nullptr) {
+        NETMGR_EXT_LOG_E("cfg new failed");
+        return nullptr;
+    }
+    cfg->mode_ = devCfg->mode_;
+    INetAddr addrNet = devLinkInfo->netAddrList_.back();
+    Route route = devLinkInfo->routeList_.front();
+    Route routeLocal = devLinkInfo->routeList_.back();
+    cfg->ipStatic_.ipAddr_.address_ = addrNet.address_;
+    cfg->ipStatic_.route_.address_ = route.destination_.address_;
+    cfg->ipStatic_.gateway_.address_ = route.gateway_.address_;
+    cfg->ipStatic_.netMask_.address_ = CommonUtils::GetMaskByLength(routeLocal.destination_.prefixlen_);
+    cfg->ipStatic_.domain_ = devLinkInfo->domain_;
+    for (const auto addr : devLinkInfo->dnsList_) {
+        cfg->ipStatic_.dnsServers_.push_back(addr);
+    }
+    return cfg;
 }
 
 std::string EthernetConfiguration::ReadJsonFile(const std::string &filePath)
@@ -397,12 +427,12 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
         if (cfg->ipStatic_.gateway_.family_ == AF_INET) {
             cfg->ipStatic_.gateway_.prefixlen_ = prefixLen;
         }
-        cfg->ipStatic_.route_.address_ = route;
+        cfg->ipStatic_.route_.address_ = !route.empty() ? route : DEFAULT_NET_ADDR;
         int routePrefixLen = 0;
         if (!routeNetmask.empty()) {
             routePrefixLen = CommonUtils::GetMaskLength(routeNetmask);
         }
-        cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(route);
+        cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_);
         if (cfg->ipStatic_.route_.family_ == AF_INET) {
             cfg->ipStatic_.route_.prefixlen_ = routePrefixLen;
         }

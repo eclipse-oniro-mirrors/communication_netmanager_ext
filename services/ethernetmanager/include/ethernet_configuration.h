@@ -25,6 +25,7 @@
 #include "ethernet_dhcp_callback.h"
 #include "interface_configuration.h"
 #include "net_all_capabilities.h"
+#include "net_link_info.h"
 #include "nlohmann/json.hpp"
 
 namespace OHOS {
@@ -40,6 +41,8 @@ public:
     bool WriteUserConfiguration(const std::string &iface, sptr<InterfaceConfiguration> &cfg);
     bool ClearAllUserConfiguration();
     bool ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult, sptr<StaticConfiguration> &config);
+    sptr<InterfaceConfiguration> MakeInterfaceConfiguration(const sptr<InterfaceConfiguration> &devCfg,
+                                                            const sptr<NetLinkInfo> &devLinkInfo);
 
 private:
     std::string ReadJsonFile(const std::string &filePath);

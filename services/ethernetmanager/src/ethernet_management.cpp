@@ -221,7 +221,10 @@ sptr<InterfaceConfiguration> EthernetManagement::GetDevInterfaceCfg(const std::s
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
         return nullptr;
     }
-    return fit->second->GetIfcfg();
+    if (!fit->second->GetLinkUp()) {
+        return fit->second->GetIfcfg();
+    }
+    return ethConfiguration_->MakeInterfaceConfiguration(fit->second->GetIfcfg(), fit->second->GetLinkInfo());
 }
 
 int32_t EthernetManagement::IsIfaceActive(const std::string &iface)
