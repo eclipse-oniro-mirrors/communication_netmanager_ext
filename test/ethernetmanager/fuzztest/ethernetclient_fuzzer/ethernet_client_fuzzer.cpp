@@ -27,86 +27,73 @@
 #include "refbase.h"
 #include "singleton.h"
 #include "token_setproc.h"
+
+#include "dev_interface_state.h"
 #define private public
 #include "ethernet_client.h"
-#include "interface_configuration.h"
 #include "ethernet_service.h"
-
+#include "interface_configuration.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 const uint8_t *g_baseFuzzData = nullptr;
+static constexpr uint32_t CREATE_BOOL_TYPE_VALUE = 2;
 size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
 constexpr size_t IFACE_LEN = 5;
 
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
-HapInfoParams testInfoParms = {
-    .userID = 1,
-    .bundleName = "ethernet_client_fuzzer",
-    .instIndex = 0,
-    .appIDDesc = "test"
-};
+HapInfoParams testInfoParms = {.userID = 1,
+                               .bundleName = "ethernet_client_fuzzer",
+                               .instIndex = 0,
+                               .appIDDesc = "test"};
 
-PermissionDef testPermDef = {
-    .permissionName = "ohos.permission.GET_NETWORK_INFO",
-    .bundleName = "ethernet_client_fuzzer",
-    .grantMode = 1,
-    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test ethernet maneger network info",
-    .descriptionId = 1
-};
+PermissionDef testPermDef = {.permissionName = "ohos.permission.GET_NETWORK_INFO",
+                             .bundleName = "ethernet_client_fuzzer",
+                             .grantMode = 1,
+                             .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+                             .label = "label",
+                             .labelId = 1,
+                             .description = "Test ethernet maneger network info",
+                             .descriptionId = 1};
 
-PermissionDef testInternetPermDef = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .bundleName = "net_conn_client_fuzzer",
-    .grantMode = 1,
-    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test ethernet connectivity internet",
-    .descriptionId = 1
-};
+PermissionDef testInternetPermDef = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+                                     .bundleName = "net_conn_client_fuzzer",
+                                     .grantMode = 1,
+                                     .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+                                     .label = "label",
+                                     .labelId = 1,
+                                     .description = "Test ethernet connectivity internet",
+                                     .descriptionId = 1};
 
-PermissionStateFull testState = {
-    .permissionName = "ohos.permission.GET_NETWORK_INFO",
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2}
-};
+PermissionStateFull testState = {.permissionName = "ohos.permission.GET_NETWORK_INFO",
+                                 .isGeneral = true,
+                                 .resDeviceID = {"local"},
+                                 .grantStatus = {PermissionState::PERMISSION_GRANTED},
+                                 .grantFlags = {2}};
 
-PermissionStateFull testInternetState = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2}
-};
+PermissionStateFull testInternetState = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+                                         .isGeneral = true,
+                                         .resDeviceID = {"local"},
+                                         .grantStatus = {PermissionState::PERMISSION_GRANTED},
+                                         .grantFlags = {2}};
 
-HapPolicyParams testPolicyPrams = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef},
-    .permStateList = {testState}
-};
+HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
+                                   .domain = "test.domain",
+                                   .permList = {testPermDef},
+                                   .permStateList = {testState}};
 
-HapPolicyParams testInternetPolicyPrams = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef, testInternetPermDef},
-    .permStateList = {testState, testInternetState}
-};
-}
+HapPolicyParams testInternetPolicyPrams = {.apl = APL_SYSTEM_BASIC,
+                                           .domain = "test.domain",
+                                           .permList = {testPermDef, testInternetPermDef},
+                                           .permStateList = {testState, testInternetState}};
+} // namespace
 
-template<class T>
-T GetData()
+template <class T> T GetData()
 {
-    T object {};
+    T object{};
     size_t objectSize = sizeof(object);
     if (g_baseFuzzData == nullptr || objectSize > g_baseFuzzSize - g_baseFuzzPos) {
         return object;
@@ -132,6 +119,7 @@ public:
         AccessTokenKit::DeleteToken(accessID_);
         SetSelfTokenID(currentID_);
     }
+
 private:
     AccessTokenID currentID_ = 0;
     AccessTokenID accessID_ = 0;
@@ -151,6 +139,7 @@ public:
         AccessTokenKit::DeleteToken(accessID_);
         SetSelfTokenID(currentID_);
     }
+
 private:
     AccessTokenID currentID_ = 0;
     AccessTokenID accessID_ = 0;
@@ -196,8 +185,7 @@ int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
     return DelayedSingleton<EthernetService>::GetInstance()->OnRemoteRequest(code, data, reply, option);
 }
 
-
-void SetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
+void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -221,7 +209,7 @@ void SetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
     OnRemoteRequest(EthernetService::CMD_SET_IF_CFG, parcel);
 }
 
-void GetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
+void GetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -240,7 +228,7 @@ void GetIfaceConfigFuzzTest(const uint8_t* data, size_t size)
     OnRemoteRequest(EthernetService::CMD_GET_IF_CFG, parcel);
 }
 
-void IsIfaceActiveFuzzTest(const uint8_t* data, size_t size)
+void IsIfaceActiveFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -259,7 +247,7 @@ void IsIfaceActiveFuzzTest(const uint8_t* data, size_t size)
     OnRemoteRequest(EthernetService::CMD_IS_ACTIVATE, parcel);
 }
 
-void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
+void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -271,7 +259,7 @@ void GetAllActiveIfacesFuzzTest(const uint8_t* data, size_t size)
     OnRemoteRequest(EthernetService::CMD_GET_ACTIVATE_INTERFACE, parcel);
 }
 
-void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
+void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -281,7 +269,7 @@ void ResetFactoryFuzzTest(const uint8_t* data, size_t size)
     OnRemoteRequest(EthernetService::CMD_RESET_FACTORY, parcel);
 }
 
-void SetInterfaceUpFuzzTest(const uint8_t* data, size_t size)
+void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -300,7 +288,7 @@ void SetInterfaceUpFuzzTest(const uint8_t* data, size_t size)
     OnRemoteRequest(EthernetService::CMD_SET_INTERFACE_UP, parcel);
 }
 
-void SetInterfaceDownFuzzTest(const uint8_t* data, size_t size)
+void SetInterfaceDownFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -319,7 +307,7 @@ void SetInterfaceDownFuzzTest(const uint8_t* data, size_t size)
     OnRemoteRequest(EthernetService::CMD_SET_INTERFACE_DOWN, parcel);
 }
 
-void GetInterfaceConfigFuzzTest(const uint8_t* data, size_t size)
+void GetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return;
@@ -337,11 +325,79 @@ void GetInterfaceConfigFuzzTest(const uint8_t* data, size_t size)
     }
     OnRemoteRequest(EthernetService::CMD_GET_INTERFACE_CONFIG, parcel);
 }
+
+void EthernetServiceCommonFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+
+    auto ethernetServiceCommon = std::make_unique<EthernetServiceCommon>();
+
+    ethernetServiceCommon->ResetEthernetFactory();
+}
+
+void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+
+    auto ethernetManagement = std::make_unique<EthernetManagement>();
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    ethernetManagement->UpdateDevInterfaceLinkInfo(dhcpResult);
+
+    std::string dev = GetStringFromData(IFACE_LEN);
+    bool up = GetData<uint32_t>() % CREATE_BOOL_TYPE_VALUE == 0;
+    ethernetManagement->UpdateInterfaceState(dev, up);
+
+    std::string iface = GetStringFromData(IFACE_LEN);
+    sptr<InterfaceConfiguration> cfg;
+    ethernetManagement->UpdateDevInterfaceCfg(iface, cfg);
+
+    ethernetManagement->GetDevInterfaceCfg(iface);
+
+    ethernetManagement->IsIfaceActive(iface);
+
+    ethernetManagement->GetAllActiveIfaces();
+
+    ethernetManagement->ResetFactory();
+    std::string devName = GetStringFromData(IFACE_LEN);
+    ethernetManagement->DevInterfaceAdd(devName);
+    ethernetManagement->DevInterfaceRemove(devName);
+}
+
+void EthernetDhcpControllerFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+
+    auto ethernetDhcpController = std::make_unique<EthernetDhcpController>();
+
+    sptr<EthernetDhcpCallback> callback;
+    ethernetDhcpController->RegisterDhcpCallback(callback);
+
+    std::string iface = GetStringFromData(IFACE_LEN);
+    bool bIpv6 = GetData<uint32_t>() % CREATE_BOOL_TYPE_VALUE == 0;
+    ethernetDhcpController->StartDhcpClient(iface, bIpv6);
+
+    ethernetDhcpController->StopDhcpClient(iface, bIpv6);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::NetManagerStandard::SetIfaceConfigFuzzTest(data, size);
@@ -352,5 +408,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::NetManagerStandard::SetInterfaceUpFuzzTest(data, size);
     OHOS::NetManagerStandard::SetInterfaceDownFuzzTest(data, size);
     OHOS::NetManagerStandard::GetInterfaceConfigFuzzTest(data, size);
+    OHOS::NetManagerStandard::EthernetServiceCommonFuzzTest(data, size);
+    OHOS::NetManagerStandard::EthernetManagementFuzzTest(data, size);
+    OHOS::NetManagerStandard::EthernetDhcpControllerFuzzTest(data, size);
     return 0;
 }
