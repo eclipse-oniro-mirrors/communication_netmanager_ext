@@ -116,9 +116,8 @@ template <class T> T GetData()
 }
 class AccessToken {
 public:
-    AccessToken()
+    AccessToken() : currentID_(GetSelfTokenID())
     {
-        currentID_ = GetSelfTokenID();
         AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
         accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
         SetSelfTokenID(accessID_);
@@ -130,7 +129,7 @@ public:
     }
 
 private:
-    AccessTokenID currentID_ = 0;
+    AccessTokenID currentID_;
     AccessTokenID accessID_ = 0;
 };
 
