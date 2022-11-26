@@ -115,8 +115,8 @@ template <class T> T GetData() {
 }
 class AccessToken {
 public:
-  AccessToken() {
-    currentID_ = GetSelfTokenID();
+  AccessToken() : currentID_(GetSelfTokenID())
+  {
     AccessTokenIDEx tokenIdEx =
         AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
     accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
@@ -128,14 +128,14 @@ public:
   }
 
 private:
-  AccessTokenID currentID_ = 0;
+  AccessTokenID currentID_;
   AccessTokenID accessID_ = 0;
 };
 
 class AccessTokenInternetInfo {
 public:
-  AccessTokenInternetInfo() {
-    currentID_ = GetSelfTokenID();
+  AccessTokenInternetInfo() : currentID_(GetSelfTokenID())
+  {
     AccessTokenIDEx tokenIdEx =
         AccessTokenKit::AllocHapToken(testInfoParms, testInternetPolicyPrams);
     accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
@@ -147,7 +147,7 @@ public:
   }
 
 private:
-  AccessTokenID currentID_ = 0;
+  AccessTokenID currentID_;
   AccessTokenID accessID_ = 0;
 };
 
