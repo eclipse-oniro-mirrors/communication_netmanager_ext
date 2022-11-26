@@ -120,7 +120,8 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     }
     config->ipStatic_.netMask_.address_ = jsonData[CONFIG_KEY_ETH_NETMASK];
     config->ipStatic_.gateway_.address_ = jsonData[CONFIG_KEY_ETH_GATEWAY];
-    config->ipStatic_.gateway_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_GATEWAY]));
+    config->ipStatic_.gateway_.family_ =
+        static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_GATEWAY]));
     if (config->ipStatic_.gateway_.family_ == AF_INET) {
         config->ipStatic_.gateway_.prefixlen_ = prefixLen;
     }
@@ -129,7 +130,8 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     if (!jsonData[CONFIG_KEY_ETH_ROUTE_MASK].empty()) {
         routePrefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
     }
-    config->ipStatic_.route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]));
+    config->ipStatic_.route_.family_ =
+        static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]));
     if (config->ipStatic_.route_.family_ == AF_INET) {
         config->ipStatic_.route_.prefixlen_ = routePrefixLen;
     }
@@ -190,7 +192,8 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
     }
     if (cfg->mode_ == STATIC) {
         int prefixlen = 0;
-        cfg->ipStatic_.ipAddr_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.ipAddr_.address_));
+        cfg->ipStatic_.ipAddr_.family_ =
+            static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.ipAddr_.address_));
         if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
             if (cfg->ipStatic_.netMask_.address_.empty()) {
                 prefixlen = CommonUtils::GetMaskLength(cfg->ipStatic_.ipAddr_.netMask_);
@@ -199,9 +202,11 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
             }
         }
         cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.gateway_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.gateway_.address_));
+        cfg->ipStatic_.gateway_.family_ =
+            static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.gateway_.address_));
         cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_));
+        cfg->ipStatic_.route_.family_ =
+            static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_));
         int routePrefixLen = 0;
         if (!cfg->ipStatic_.route_.netMask_.empty()) {
             routePrefixLen = CommonUtils::GetMaskLength(cfg->ipStatic_.route_.netMask_);
