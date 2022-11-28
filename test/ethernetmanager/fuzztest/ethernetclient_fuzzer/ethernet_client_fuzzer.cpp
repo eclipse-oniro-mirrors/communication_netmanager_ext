@@ -127,8 +127,9 @@ private:
 
 class AccessTokenInternetInfo {
 public:
-    AccessTokenInternetInfo() : currentID_(GetSelfTokenID())
+    AccessTokenInternetInfo()
     {
+        currentID_ = GetSelfTokenID();
         AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testInternetPolicyPrams);
         accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
         SetSelfTokenID(accessID_);
