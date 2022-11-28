@@ -17,9 +17,18 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ohos_unittest("networkshare_manager_test") {
   module_out_path = "netmanager_ext/networkshare_manager_test"
 
-  sources = [ "networkshare_manager_test.cpp" ]
+  sources = [
+    "interface_configuration_test.cpp",
+    "networkshare_hisysevent_test.cpp",
+    "networkshare_manager_test.cpp",
+    "networkshare_request_parcel_test.cpp",
+    "networkshare_sub_statemachine_test.cpp",
+    "static_configuration_test.cpp",
+  ]
 
   include_dirs = [
+    "$EXT_INNERKITS_ROOT/ethernetclient/include",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
@@ -29,6 +38,9 @@ ohos_unittest("networkshare_manager_test") {
     "$WIFI_MANAGER_ROOT/frameworks/native/c_adapter/inc",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include",
     "$THIRD_PARTY_ROOT/openssl/include",
+    "$DHCP_MANAGER_ROOT/interfaces/inner_api/include/",
+    "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
+    "$DHCP_MANAGER_ROOT/services/dhcp_server/include",
     "$DHCP_MANAGER_ROOT/services/mgr_service/include",
     "$DHCP_MANAGER_ROOT/dhcp/interfaces/inner_api/interfaces",
     "$DHCP_MANAGER_ROOT/dhcp/interfaces/inner_api/include",
@@ -38,7 +50,9 @@ ohos_unittest("networkshare_manager_test") {
   ]
 
   deps = [
+    "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel",
     "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$THIRD_PARTY_ROOT/googletest:gmock_main",
   ]
@@ -49,6 +63,7 @@ ohos_unittest("networkshare_manager_test") {
     "access_token:libtoken_setproc",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
+    "wifi:wifi_sdk",
   ]
 
   defines = [
