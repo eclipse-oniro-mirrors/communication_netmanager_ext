@@ -121,7 +121,7 @@ public:
     }
 
 private:
-    AccessTokenID currentID_;
+    AccessTokenID currentID_ = 0;
     AccessTokenID accessID_ = 0;
 };
 
@@ -140,7 +140,7 @@ public:
     }
 
 private:
-    AccessTokenID currentID_;
+    AccessTokenID currentID_ = 0;
     AccessTokenID accessID_ = 0;
 };
 
