@@ -50,7 +50,7 @@ private:
     bool IsDirExist(const std::string &dirPath);
     bool CreateDir(const std::string &dirPath);
     bool DelDir(const std::string &dirPath);
-    bool IsFileExist(const std::string &filePath);
+    bool IsFileExist(const std::string &filePath, std::string &realPath);
     bool ReadFile(const std::string &filePath, std::string &fileContent);
     bool WriteFile(const std::string &filePath, const std::string &fileContent);
     void ParserFileConfig(const std::string &fileContent, std::string &iface, sptr<InterfaceConfiguration> cfg);
