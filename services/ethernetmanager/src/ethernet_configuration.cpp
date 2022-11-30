@@ -45,6 +45,7 @@ const std::string CONFIG_KEY_ETH_NETMASK = "netmask";
 const std::string CONFIG_KEY_ETH_ROUTE = "route";
 const std::string CONFIG_KEY_ETH_ROUTE_MASK = "routemask";
 constexpr int32_t MKDIR_ERR = -1;
+constexpr int32_t USER_PATH_LEN = 25;
 constexpr const char *FILE_OBLIQUE_LINE = "/";
 constexpr const char *KEY_DEVICE = "DEVICE=";
 constexpr const char *KEY_BOOTPROTO = "BOOTPROTO=";
@@ -357,9 +358,19 @@ bool EthernetConfiguration::DelDir(const std::string &dirPath)
     return rmdir(dirPath.c_str()) >= 0;
 }
 
-bool EthernetConfiguration::IsFileExist(const std::string &filePath)
+bool EthernetConfiguration::IsFileExist(const std::string &filePath, std::string &realPath)
 {
-    return !access(filePath.c_str(), F_OK);
+    char tmpPath[PATH_MAX] = {0};
+    if (!realpath(filePath.c_str(), tmpPath)) {
+        NETMGR_EXT_LOG_E("file name is error");
+        return false;
+    }
+    if (strncmp(tmpPath, USER_CONFIG_DIR, USER_PATH_LEN) != 0) {
+        NETMGR_EXT_LOG_E("file path is error");
+        return false;
+    }
+    realPath = tmpPath;
+    return true;
 }
 
 bool EthernetConfiguration::ReadFile(const std::string &filePath, std::string &fileContent)
@@ -369,11 +380,12 @@ bool EthernetConfiguration::ReadFile(const std::string &filePath, std::string &f
         NETMGR_EXT_LOG_E("filePath empty.");
         return false;
     }
-    if (!IsFileExist(filePath)) {
+    std::string realPath;
+    if (!IsFileExist(filePath, realPath)) {
         NETMGR_EXT_LOG_E("[%{public}s] not exist.", filePath.c_str());
         return false;
     }
-    std::fstream file(filePath.c_str(), std::fstream::in);
+    std::fstream file(realPath.c_str(), std::fstream::in);
     if (!file.is_open()) {
         NETMGR_EXT_LOG_E("EthernetConfiguration read file failed.err %{public}d %{public}s", errno, strerror(errno));
         return false;
