@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 const std::string IFACE_MATCH = "eth\\d";
+constexpr int SLEEP_TIME_S = 2;
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
@@ -289,7 +290,7 @@ void EthernetManagement::StartSetDevUpThd()
         std::string devName = dev.first;
         while (true) {
             if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
-                sleep(2);
+                sleep(SLEEP_TIME_S);
                 continue;
             }
             break;
