@@ -20,7 +20,7 @@ import {NetHandle} from "./@ohos.net.connection";
  * Provides network sharing related interfaces.
  *
  * @since 9
- * @syscap SystemCapability.Communication.NetManager.Extension
+ * @syscap SystemCapability.Communication.NetManager.NetSharing
  */
 declare namespace sharing {
   /**
