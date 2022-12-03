@@ -20,7 +20,10 @@
         "name": "netmanager_ext",
         "subsystem": "communication",
         "syscap": [
-            "SystemCapability.Communication.NetManager.Extension"
+            "SystemCapability.Communication.NetManager.Ethernet",
+            "SystemCapability.Communication.NetManager.NetSharing",
+            "SystemCapability.Communication.NetManager.MDNS",
+            "SystemCapability.Communication.NetManager.Vpn"
         ],
         "features": [
             "netmanager_ext_feature_ethernet",
