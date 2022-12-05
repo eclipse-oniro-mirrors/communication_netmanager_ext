@@ -98,7 +98,7 @@ declare namespace sharing {
   /**
    * Obtains the names of interfaces in each sharing state.
    *
-   * @param state Is the network sharing state, include serving, can server and servering error states.
+   * @param state Is the network sharing state.
    * @param callback Returns an array of interface names that meet this status.
    * @permission ohos.permission.CONNECTIVITY_INTERNAL
    * @systemapi Hide this for inner system use.
