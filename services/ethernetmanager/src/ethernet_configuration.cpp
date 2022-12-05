@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <regex>
 
 #include "ethernet_constants.h"
 #include "netmanager_base_common_utils.h"
@@ -35,6 +36,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+const std::string IFACE_MATCH = "eth\\d";
 const std::string CONFIG_KEY_ETH_COMPONENT_FLAG = "config_ethernet_interfaces";
 const std::string CONFIG_KEY_ETH_IFACE = "iface";
 const std::string CONFIG_KEY_ETH_CAPS = "caps";
@@ -82,7 +84,7 @@ bool EthernetConfiguration::ReadSysteamConfiguration(std::map<std::string, std::
     const auto &arrIface = jsonCfg.at(CONFIG_KEY_ETH_COMPONENT_FLAG);
     NETMGR_EXT_LOG_D("read ConfigData ethValue:%{public}s", arrIface.dump().c_str());
     for (const auto &item : arrIface) {
-        const auto &iface = item[CONFIG_KEY_ETH_IFACE];
+        const auto &iface = item[CONFIG_KEY_ETH_IFACE].get<std::string>();
         const auto &caps = item.at(CONFIG_KEY_ETH_CAPS).get<std::set<NetCap>>();
         if (!caps.empty()) {
             devCaps[iface] = caps;
@@ -97,7 +99,8 @@ bool EthernetConfiguration::ReadSysteamConfiguration(std::map<std::string, std::
             NETMGR_EXT_LOG_E("config is nullptr");
             return false;
         }
-        if (!item[CONFIG_KEY_ETH_IP].empty()) {
+        std::regex re(IFACE_MATCH);
+        if (!item[CONFIG_KEY_ETH_IP].empty() && std::regex_search(iface, re)) {
             devCfgs[iface] = config;
         }
     }
@@ -171,7 +174,8 @@ bool EthernetConfiguration::ReadUserConfiguration(std::map<std::string, sptr<Int
                 continue;
             }
             ParserFileConfig(fileContent, iface, cfg);
-            if (!iface.empty()) {
+            std::regex re(IFACE_MATCH);
+            if (!iface.empty() && std::regex_search(iface, re)) {
                 NETMGR_EXT_LOG_D("ReadFileList devname[%{public}s]", iface.c_str());
                 devCfgs[iface] = cfg;
             }
@@ -355,6 +359,7 @@ bool EthernetConfiguration::DelDir(const std::string &dirPath)
         }
     }
     closedir(dir);
+    sync();
     return rmdir(dirPath.c_str()) >= 0;
 }
 

@@ -157,11 +157,16 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
 
 int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     if (cfg == nullptr) {
         NETMGR_EXT_LOG_E("cfg is nullptr");
         return ETHERNET_ERROR;
     }
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::regex re(IFACE_MATCH);
+    if (!std::regex_search(iface, re)) {
+        NETMGR_EXT_LOG_E("iface[%{public}s] not an eth* name!", iface.c_str());
+        return ETHERNET_ERROR;
+    }
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
@@ -217,6 +222,11 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
 sptr<InterfaceConfiguration> EthernetManagement::GetDevInterfaceCfg(const std::string &iface)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    std::regex re(IFACE_MATCH);
+    if (!std::regex_search(iface, re)) {
+        NETMGR_EXT_LOG_E("iface[%{public}s] not an eth* name!", iface.c_str());
+        return nullptr;
+    }
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
@@ -231,6 +241,11 @@ sptr<InterfaceConfiguration> EthernetManagement::GetDevInterfaceCfg(const std::s
 int32_t EthernetManagement::IsIfaceActive(const std::string &iface)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    std::regex re(IFACE_MATCH);
+    if (!std::regex_search(iface, re)) {
+        NETMGR_EXT_LOG_E("iface[%{public}s] not an eth* name!", iface.c_str());
+        return ETHERNET_ERROR;
+    }
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
