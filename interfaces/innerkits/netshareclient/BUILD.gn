@@ -41,10 +41,7 @@ config("net_conn_manager_if_config") {
 }
 
 ohos_source_set("networkshare_parcel") {
-  sources = [
-    "$NETCONNMANAGER_INNERKITS_SOURCE_DIR/src/inet_addr.cpp",
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/network_share_request_parcel.cpp",
-  ]
+  sources = [ "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/network_share_request_parcel.cpp" ]
 
   include_dirs = [
     "$BASE_INNERKITS_ROOT/include",
@@ -53,7 +50,10 @@ ohos_source_set("networkshare_parcel") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  deps = [ "$NETMANAGER_BASE_ROOT/utils:net_manager_common" ]
+  deps = [
+    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
+    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
+  ]
 
   external_deps = [ "c_utils:utils" ]
   if (is_standard_system) {
