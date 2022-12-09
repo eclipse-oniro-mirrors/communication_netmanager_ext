@@ -214,8 +214,6 @@ void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &n
     linkInfo_->ifaceName_ = devName_;
     linkInfo_->netAddrList_.push_back(ipAddr);
     Route routeStc;
-    INetAddr gate;
-    INetAddr destination;
     routeStc.iface_ = devName_;
     routeStc.destination_ = route;
     routeStc.gateway_ = gateWay;
