@@ -58,9 +58,11 @@ constexpr const char *KEY_NETMASK = "NETMASK=";
 constexpr const char *KEY_GATEWAY = "GATEWAY=";
 constexpr const char *KEY_ROUTE = "ROUTE=";
 constexpr const char *KEY_ROUTE_NETMASK = "ROUTE_NETMASK=";
+constexpr const char *KEY_DNS = "DNS=";
 constexpr const char *WRAP = "\n";
 constexpr const char *DEFAULT_NET_ADDR = "0.0.0.0";
 constexpr const char *EMPTY_NET_ADDR = "*";
+constexpr const char *DNS_SEPARATOR = ",";
 } // namespace
 
 EthernetConfiguration::EthernetConfiguration()
@@ -139,7 +141,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     if (config->ipStatic_.route_.family_ == AF_INET) {
         config->ipStatic_.route_.prefixlen_ = routePrefixLen;
     }
-    std::vector<std::string> servers = CommonUtils::Split(jsonData[CONFIG_KEY_ETH_DNS], ",");
+    std::vector<std::string> servers = CommonUtils::Split(jsonData[CONFIG_KEY_ETH_DNS], DNS_SEPARATOR);
     for (const auto &dns : servers) {
         INetAddr addr;
         addr.address_ = dns;
@@ -436,6 +438,8 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
         const auto &route = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
         pos = fileContent.find(KEY_ROUTE_NETMASK) + strlen(KEY_ROUTE_NETMASK);
         const auto &routeNetmask = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
+        pos = fileContent.find(KEY_DNS) + strlen(KEY_DNS);
+        const auto &dnsServers = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
         cfg->ipStatic_.ipAddr_.address_ = ipAddr;
         cfg->ipStatic_.ipAddr_.netMask_ = netMask;
         cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(ipAddr);
@@ -457,6 +461,11 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
         cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_);
         if (cfg->ipStatic_.route_.family_ == AF_INET) {
             cfg->ipStatic_.route_.prefixlen_ = routePrefixLen;
+        }
+        for (const auto &dns : CommonUtils::Split(dnsServers, DNS_SEPARATOR)) {
+            INetAddr addr;
+            addr.address_ = dns;
+            cfg->ipStatic_.dnsServers_.push_back(addr);
         }
     } else if (bootProto == KEY_DHCP) {
         cfg->mode_ = DHCP;
@@ -483,6 +492,14 @@ void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<Interfa
         fileContent = fileContent + KEY_GATEWAY + cfg->ipStatic_.gateway_.address_ + WRAP;
         fileContent = fileContent + KEY_ROUTE + cfg->ipStatic_.route_.address_ + WRAP;
         fileContent = fileContent + KEY_ROUTE_NETMASK + cfg->ipStatic_.route_.netMask_ + WRAP;
+        fileContent = fileContent + KEY_DNS;
+        for (int i = 0; i < cfg->ipStatic_.dnsServers_.size(); i++) {
+            fileContent = fileContent + cfg->ipStatic_.dnsServers_[i].address_;
+            if (cfg->ipStatic_.dnsServers_.size() - i > 1) {
+                fileContent = fileContent + DNS_SEPARATOR;
+            }
+        }
+        fileContent = fileContent + WRAP;
     } else {
         fileContent = fileContent + KEY_BOOTPROTO + KEY_DHCP + WRAP;
     }
