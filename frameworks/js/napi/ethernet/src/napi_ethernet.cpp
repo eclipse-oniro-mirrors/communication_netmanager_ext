@@ -26,6 +26,7 @@
 #include "napi_common.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
+#include "netmanager_base_common_utils.h"
 
 // underside macro can delete context, if napi_status is not napi_ok.
 #define NAPI_CALL_BASE_ENHANCE(env, theCall, retVal, context) \
@@ -45,6 +46,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+constexpr const char *DNS_SEPARATOR = ",";
+constexpr int32_t DNS_MAX_SIZE = 10;
+}
 void NapiEthernet::ExecSetIfaceConfig(napi_env env, void *data)
 {
     if (data == nullptr) {
@@ -66,13 +71,19 @@ void NapiEthernet::ExecSetIfaceConfig(napi_env env, void *data)
         NETMGR_EXT_LOG_E("config is nullptr");
         return;
     }
-    addr0.address_ = context->dnsServers;
     config->mode_ = static_cast<IPSetMode>(context->ipMode);
     config->ipStatic_.ipAddr_.address_ = context->ipAddr;
     config->ipStatic_.route_.address_ = context->route;
     config->ipStatic_.gateway_.address_ = context->gateway;
     config->ipStatic_.netMask_.address_ = context->netMask;
-    config->ipStatic_.dnsServers_.push_back(addr0);
+    for (const auto &dns : CommonUtils::Split(context->dnsServers, DNS_SEPARATOR)) {
+        INetAddr addr;
+        addr.address_ = dns;
+        config->ipStatic_.dnsServers_.push_back(addr);
+        if (config->ipStatic_.dnsServers_.size() == DNS_MAX_SIZE) {
+            break;
+        }
+    }
     config->ipStatic_.domain_ = context->domain;
     context->result = DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(context->iface, config);
     NETMGR_EXT_LOG_D("ExecSetIfaceConfig result =[%{public}d]", context->result);
@@ -142,9 +153,10 @@ void NapiEthernet::ExecGetIfaceConfig(napi_env env, void *data)
         context->gateway = config->ipStatic_.gateway_.address_;
         context->netMask = config->ipStatic_.netMask_.address_;
         context->domain = config->ipStatic_.domain_;
-        for (auto it = config->ipStatic_.dnsServers_.begin(); it != config->ipStatic_.dnsServers_.end(); ++it) {
-            if (context->dnsServers.empty()) {
-                context->dnsServers = it->address_;
+        for (int i = 0; i < config->ipStatic_.dnsServers_.size(); i++) {
+            context->dnsServers = context->dnsServers + config->ipStatic_.dnsServers_[i].address_;
+            if (config->ipStatic_.dnsServers_.size() - i > 1) {
+                context->dnsServers = context->dnsServers + DNS_SEPARATOR;
             }
         }
     } else {
