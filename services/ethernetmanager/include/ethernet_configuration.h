@@ -55,6 +55,7 @@ private:
     bool WriteFile(const std::string &filePath, const std::string &fileContent);
     void ParserFileConfig(const std::string &fileContent, std::string &iface, sptr<InterfaceConfiguration> cfg);
     void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
+    void MakeConfig(sptr<InterfaceConfiguration> cfg, const std::string &fileContent);
 
 private:
     std::mutex mutex_;
