@@ -15,6 +15,7 @@
 
 #include "networkshare_upstreammonitor.h"
 
+#include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
 
@@ -34,7 +35,7 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetAvailable(sptr<Ne
     if (NetworkMonitor_) {
         NetworkMonitor_->HandleNetAvailable(netHandle);
     }
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetCapabilitiesChange(sptr<NetHandle> &netHandle,
@@ -43,7 +44,7 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetCapabilitiesChang
     if (NetworkMonitor_) {
         NetworkMonitor_->HandleNetCapabilitiesChange(netHandle, netAllCap);
     }
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionPropertiesChange(sptr<NetHandle> &netHandle,
@@ -52,7 +53,7 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionPropert
     if (NetworkMonitor_) {
         NetworkMonitor_->HandleConnectionPropertiesChange(netHandle, info);
     }
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetLost(sptr<NetHandle> &netHandle)
@@ -60,18 +61,18 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetLost(sptr<NetHand
     if (NetworkMonitor_) {
         NetworkMonitor_->HandleNetLost(netHandle);
     }
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetUnavailable()
 {
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetBlockStatusChange(sptr<NetHandle> &netHandle,
                                                                                  bool blocked)
 {
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 NetworkShareUpstreamMonitor::NetworkShareUpstreamMonitor() : defaultNetworkId_(INVALID_NETID) {}
@@ -104,7 +105,7 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
     defaultNetworkCallback_ =
         new (std::nothrow) NetConnectionCallback(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
     int32_t result = netManager->RegisterNetConnCallback(defaultNetworkCallback_);
-    if (result == NETWORKSHARE_SUCCESS) {
+    if (result == NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_I("Register defaultNetworkCallback_ successful");
     } else {
         NETMGR_EXT_LOG_E("Register defaultNetworkCallback_ failed");
@@ -126,7 +127,7 @@ bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<Upstrea
     }
     bool hasDefaultNet = true;
     int32_t result = netManager->HasDefaultNet(hasDefaultNet);
-    if (result != ERR_NONE || !hasDefaultNet) {
+    if (result != NETMANAGER_SUCCESS || !hasDefaultNet) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
             ERROR_MSG_HAS_NOT_UPSTREAM, NetworkShareEventType::SETUP_EVENT);

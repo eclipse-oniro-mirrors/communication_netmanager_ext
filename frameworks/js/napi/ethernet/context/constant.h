@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef COMMUNICATIONNETMANAGEREXT_STATS_CONSTANT_H
-#define COMMUNICATIONNETMANAGEREXT_STATS_CONSTANT_H
+#ifndef NET_EXT_NAPI_ETHERNET_CONSTANT_H
+#define NET_EXT_NAPI_ETHERNET_CONSTANT_H
 
-#include <string_view>
+#include <cstdint>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -30,13 +30,6 @@ constexpr int32_t PARAM_OPTIONS_AND_CALLBACK = 2;
 constexpr int32_t PARAM_DOUBLE_OPTIONS_AND_CALLBACK = 3;
 constexpr int32_t PARAM_TRIPLE_OPTIONS_AND_CALLBACK = 4;
 constexpr int32_t PARAM_FOUR_OPTIONS_AND_CALLBACK = 5;
-
-// state change of register
-constexpr std::string_view EVENT_SHARE_STATE_CHANGE = "sharingStateChange";
-constexpr std::string_view EVENT_IFACE_SHARE_STATE_CHANGE = "interfaceSharingStateChange";
-constexpr std::string_view EVENT_SHARE_UPSTREAM_CHANGE = "sharingUpstreamChange";
-
-constexpr int KEY_UID_ARG = -1;
 
 enum {
     ARG_NUM_0 = 0,
@@ -53,4 +46,4 @@ enum {
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // COMMUNICATIONNETMANAGEREXT_STATS_CONSTANT_H
+#endif // NET_EXT_NAPI_ETHERNET_CONSTANT_H

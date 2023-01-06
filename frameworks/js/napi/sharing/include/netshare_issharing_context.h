@@ -35,15 +35,15 @@ public:
 
     void ParseParams(napi_value *params, size_t paramsCount);
     void SetBytes32(int32_t bytes32);
-    void SetSharingSupported(int32_t isSharingSupported);
-    void SetSharing(int32_t isSharing);
+    void SetSharingSupported(int32_t supported);
+    void SetSharing(int32_t sharingStatus);
     int32_t GetBytes32() const;
     int32_t GetSharingSupported() const;
     int32_t GetSharing() const;
 
 private:
-    int32_t isSharingSupported_ = NETWORKSHARE_IS_SUPPORTED;
-    int32_t isSharing_ = NETWORKSHARE_IS_SHARING;
+    int32_t supported_ = NETWORKSHARE_IS_SUPPORTED;
+    int32_t sharingStatus_ = NETWORKSHARE_IS_SHARING;
     int32_t bytes32_ = 0;
 
 private:

@@ -17,6 +17,7 @@
 
 #include "net_event_report.h"
 #include "net_manager_center.h"
+#include "net_manager_constants.h"
 #include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
@@ -65,7 +66,7 @@ int32_t NetworkShareService::Dump(int32_t fd, const std::vector<std::u16string> 
     GetDumpMessage(result);
     NETMGR_EXT_LOG_I("Dump content: %{public}s", result.c_str());
     int32_t ret = dprintf(fd, "%s\n", result.c_str());
-    return ret < 0 ? NETWORKSHARE_ERROR_INTERNAL_ERROR : NETWORKSHARE_SUCCESS;
+    return ret < 0 ? NETWORKSHARE_ERROR_INTERNAL_ERROR : NETMANAGER_EXT_SUCCESS;
 }
 
 bool NetworkShareService::Init()
@@ -87,14 +88,15 @@ bool NetworkShareService::Init()
 void NetworkShareService::GetDumpMessage(std::string &message)
 {
     message.append("Net Sharing Info:\n");
-    std::string surpportContent =
-        NetworkShareTracker::GetInstance().IsNetworkSharingSupported() == NETWORKSHARE_IS_SUPPORTED ? "surpported"
-                                                                                                    : "not surpported";
+    int32_t supported = NETWORKSHARE_IS_UNSUPPORTED;
+    NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
+    std::string surpportContent = supported == NETWORKSHARE_IS_SUPPORTED ? "surpported" : "not surpported";
     message.append("\tIs Sharing Supported: " + surpportContent + "\n");
-    bool isSharing = NetworkShareTracker::GetInstance().IsSharing() == NETWORKSHARE_IS_SHARING;
-    std::string sharingState = isSharing ? "is sharing" : "not sharing";
+    int32_t sharingStatus = NETWORKSHARE_IS_UNSHARING;
+    NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
+    std::string sharingState = sharingStatus ? "is sharing" : "not sharing";
     message.append("\tSharing State: " + sharingState + "\n");
-    if (isSharing) {
+    if (sharingStatus) {
         std::string sharingType;
         GetSharingType(SharingIfaceType::SHARING_WIFI, "wifi;", sharingType);
         GetSharingType(SharingIfaceType::SHARING_USB, "usb;", sharingType);
@@ -125,31 +127,32 @@ void NetworkShareService::GetSharingType(const SharingIfaceType &type, const std
 
 void NetworkShareService::GetShareRegexsContent(const SharingIfaceType &type, std::string &shareRegexsContent)
 {
-    std::vector<std::string> regexs = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
+    std::vector<std::string> regexs;
+    NetworkShareTracker::GetInstance().GetSharableRegexs(type, regexs);
     for_each(regexs.begin(), regexs.end(),
              [&shareRegexsContent](const std::string &regex) { shareRegexsContent += regex + ";"; });
 }
 
-int32_t NetworkShareService::IsNetworkSharingSupported()
+int32_t NetworkShareService::IsNetworkSharingSupported(int32_t &supported)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().IsNetworkSharingSupported();
+    return NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
 }
 
-int32_t NetworkShareService::IsSharing()
+int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().IsSharing();
+    return NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
 }
 
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return NetworkShareTracker::GetInstance().StartNetworkSharing(type);
 }
@@ -157,7 +160,7 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return NetworkShareTracker::GetInstance().StopNetworkSharing(type);
 }
@@ -165,7 +168,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
 }
@@ -173,57 +176,57 @@ int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> ca
 int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return NetworkShareTracker::GetInstance().UnregisterSharingEvent(callback);
 }
 
-std::vector<std::string> NetworkShareService::GetSharableRegexs(SharingIfaceType type)
+int32_t NetworkShareService::GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return {};
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().GetSharableRegexs(type);
+    return NetworkShareTracker::GetInstance().GetSharableRegexs(type, ifaceRegexs);
 }
 
 int32_t NetworkShareService::GetSharingState(SharingIfaceType type, SharingIfaceState &state)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return NetworkShareTracker::GetInstance().GetSharingState(type, state);
 }
 
-std::vector<std::string> NetworkShareService::GetNetSharingIfaces(const SharingIfaceState &state)
+int32_t NetworkShareService::GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return {};
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().GetNetSharingIfaces(state);
+    return NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
 }
 
-int32_t NetworkShareService::GetStatsRxBytes()
+int32_t NetworkShareService::GetStatsRxBytes(int32_t &bytes)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_RX);
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_RX, bytes);
 }
 
-int32_t NetworkShareService::GetStatsTxBytes()
+int32_t NetworkShareService::GetStatsTxBytes(int32_t &bytes)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_TX);
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_TX, bytes);
 }
 
-int32_t NetworkShareService::GetStatsTotalBytes()
+int32_t NetworkShareService::GetStatsTotalBytes(int32_t &bytes)
 {
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_ALL);
+    return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_ALL, bytes);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

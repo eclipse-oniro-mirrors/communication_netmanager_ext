@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,15 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef ETHERNET_CONSTANTS_H
-#define ETHERNET_CONSTANTS_H
+#ifndef NET_EXT_NAPI_IS_IFACE_CONTEXT_H
+#define NET_EXT_NAPI_IS_IFACE_CONTEXT_H
 
-#include "net_manager_ext_constants.h"
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
+#include <napi/native_api.h>
+
+#include "base_context.h"
+#include "event_manager.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int ETHERNET_ERROR = -1;
-constexpr int ETHERNET_SUCCESS = 0;
+class IsIfaceActiveContext : public BaseContext {
+public:
+    IsIfaceActiveContext() = delete;
+    explicit IsIfaceActiveContext(napi_env env, EventManager *manager);
+
+    void ParseParams(napi_value *params, size_t paramsCount);
+
+public:
+    std::string iface_;
+    int32_t ifActivate_ = 0;
+};
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // ETHERNET_CONSTANTS_H
+#endif // NET_EXT_NAPI_IS_IFACE_CONTEXT_H

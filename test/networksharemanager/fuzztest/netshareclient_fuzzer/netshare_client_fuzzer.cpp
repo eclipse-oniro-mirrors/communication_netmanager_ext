@@ -615,15 +615,20 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     SharingIfaceType ifaceType = SharingIfaceType(SharingIfaceType(num % ENUM_TYPE_VALUE3));
     SharingIfaceState ifaceState = SharingIfaceState((num % ENUM_TYPE_VALUE3) + ENUM_TYPE_BEGIN);
     TrafficType trafficTYpe = TrafficType((num % ENUM_TYPE_VALUE3) + ENUM_TYPE_BEGIN);
+    int32_t supported = 0;
+    int32_t sharingStatus = 0;
+    std::vector<std::string> ifaceRegexs;
+    std::vector<std::string> ifaces;
+    int32_t kbByte = 0;
     NetworkShareTracker::GetInstance().Init();
     NetworkShareTracker::GetInstance().Uninit();
-    NetworkShareTracker::GetInstance().IsNetworkSharingSupported();
-    NetworkShareTracker::GetInstance().IsSharing();
+    NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
+    NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
     NetworkShareTracker::GetInstance().StartNetworkSharing(ifaceType);
     NetworkShareTracker::GetInstance().StopNetworkSharing(ifaceType);
-    NetworkShareTracker::GetInstance().GetSharableRegexs(ifaceType);
+    NetworkShareTracker::GetInstance().GetSharableRegexs(ifaceType, ifaceRegexs);
     NetworkShareTracker::GetInstance().GetSharingState(ifaceType, ifaceState);
-    NetworkShareTracker::GetInstance().GetNetSharingIfaces(ifaceState);
+    NetworkShareTracker::GetInstance().GetNetSharingIfaces(ifaceState, ifaces);
     sptr<INetShareCallbackTest> callback = new (std::nothrow) INetShareCallbackTest();
     NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
     NetworkShareTracker::GetInstance().UnregisterSharingEvent(callback);
@@ -637,7 +642,7 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     NetworkShareTracker::GetInstance().SetUpstreamNetHandle(upstreamNetInfo);
     NetworkShareTracker::GetInstance().GetUpstreamInfo(upstreamNetInfo);
     NetworkShareTracker::GetInstance().NotifyDownstreamsHasNewUpstreamIface(upstreamNetInfo);
-    NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(trafficTYpe);
+    NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(trafficTYpe, kbByte);
 }
 
 void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)

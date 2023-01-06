@@ -13,28 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef NETWORKSHARE_CONSTANTS_H
-#define NETWORKSHARE_CONSTANTS_H
+#ifndef NET_EXT_NAPI_GET_IFACE_CONFIG_CONTEXT_H
+#define NET_EXT_NAPI_GET_IFACE_CONFIG_CONTEXT_H
 
-#include "net_manager_ext_constants.h"
+#include <cstddef>
+#include <string>
+
+#include <napi/native_api.h>
+
+#include "base_context.h"
+#include "event_manager.h"
+#include "interface_configuration.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-// Share Return
-constexpr int NETWORKSHARE_IS_SUPPORTED = 1;
-constexpr int NETWORKSHARE_IS_UNSUPPORTED = 0;
-constexpr int NETWORKSHARE_IS_SHARING = 1;
-constexpr int NETWORKSHARE_IS_UNSHARING = 0;
+class GetIfaceConfigContext : public BaseContext {
+public:
+    GetIfaceConfigContext() = delete;
+    explicit GetIfaceConfigContext(napi_env env, EventManager *manager);
 
-// Share Type
-constexpr int NETWORKSHARING_INVALID = -1;
-constexpr int NETWORKSHARING_WIFI = 0;
-constexpr int NETWORKSHARING_USB = 1;
-constexpr int NETWORKSHARING_BLUETOOTH = 2;
-constexpr int NETWORKSHARING_WIFI_P2P = 3;
-constexpr int NETWORKSHARING_NCM = 4;
-constexpr int NETWORKSHARING_ETHERNET = 5;
-constexpr int NETWORKSHARING_WIGIG = 6;
+    void ParseParams(napi_value *params, size_t paramsCount);
+
+public:
+    std::string iface_;
+    sptr<InterfaceConfiguration> config_ = nullptr;
+};
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NETWORKSHARE_CONSTANTS_H
+#endif // NET_EXT_NAPI_GET_IFACE_CONFIG_CONTEXT_H

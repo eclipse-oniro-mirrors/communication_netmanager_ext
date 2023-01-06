@@ -17,16 +17,24 @@
 
 #include "constant.h"
 #include "napi_utils.h"
-#include "netmanager_ext_log.h"
-#include "networkshare_constants.h"
-#include "networkshare_client.h"
+#include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
+#include "netmanager_ext_log.h"
+#include "networkshare_client.h"
+#include "networkshare_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 bool NetShareExec::ExecIsSharingSupported(IsSharingSupportedContext *context)
 {
-    context->SetSharingSupported(DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported());
+    int32_t supported = NETWORKSHARE_IS_UNSUPPORTED;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supported);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecIsSharingSupported error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetSharingSupported(supported);
     return true;
 }
 
@@ -37,7 +45,14 @@ napi_value NetShareExec::IsSharingSupportedCallback(IsSharingSupportedContext *c
 
 bool NetShareExec::ExecIsSharing(NetShareIsSharingContext *context)
 {
-    context->SetSharing(DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharing());
+    int32_t sharingStatus = NETWORKSHARE_IS_UNSHARING;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharing(sharingStatus);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecIsSharing error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetSharing(sharingStatus);
     return true;
 }
 
@@ -51,6 +66,7 @@ bool NetShareExec::ExecStartSharing(NetShareStartSharingContext *context)
     SharingIfaceType ifaceType = static_cast<SharingIfaceType>(context->GetParam());
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StartSharing(ifaceType);
     if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
         NETMANAGER_EXT_LOGE("ExecStartSharing error, errorCode: %{public}d", result);
         return false;
     }
@@ -67,6 +83,7 @@ bool NetShareExec::ExecStopSharing(StopSharingContext *context)
     SharingIfaceType ifaceType = static_cast<SharingIfaceType>(context->GetParam());
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StopSharing(ifaceType);
     if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
         NETMANAGER_EXT_LOGE("ExecStopSharing error, errorCode: %{public}d", result);
         return false;
     }
@@ -81,7 +98,14 @@ napi_value NetShareExec::StopSharingCallback(StopSharingContext *context)
 bool NetShareExec::ExecGetSharingIfaces(GetSharingIfacesContext *context)
 {
     SharingIfaceState ifaceState = static_cast<SharingIfaceState>(context->GetParam());
-    context->SetIface(DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingIfaces(ifaceState));
+    std::vector<std::string> ifaces;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingIfaces(ifaceState, ifaces);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecGetSharingIfaces error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetIface(ifaces);
     return true;
 }
 
@@ -103,6 +127,7 @@ bool NetShareExec::ExecGetSharingState(GetSharingStateContext *context)
 
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingState(ifaceType, ifaceState);
     if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
         NETMANAGER_EXT_LOGE("ExecGetSharingState error, errorCode: %{public}d", result);
         return false;
     }
@@ -118,7 +143,14 @@ napi_value NetShareExec::GetSharingStateCallback(GetSharingStateContext *context
 bool NetShareExec::ExecGetSharableRegexes(GetSharableRegexesContext *context)
 {
     SharingIfaceType ifaceType = static_cast<SharingIfaceType>(context->GetParam());
-    context->SetIface(DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(ifaceType));
+    std::vector<std::string> ifaceRegexs;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(ifaceType, ifaceRegexs);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecGetSharableRegexes error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetIface(ifaceRegexs);
     return true;
 }
 
@@ -135,7 +167,14 @@ napi_value NetShareExec::GetSharableRegexesCallback(GetSharableRegexesContext *c
 
 bool NetShareExec::ExecGetStatsRxBytes(GetStatsRxBytesContext *context)
 {
-    context->SetBytes32(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes());
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes(bytes);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecGetStatsRxBytes error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetBytes32(bytes);
     return true;
 }
 
@@ -146,7 +185,14 @@ napi_value NetShareExec::GetStatsRxBytesCallback(GetStatsRxBytesContext *context
 
 bool NetShareExec::ExecGetStatsTxBytes(GetStatsTxBytesContext *context)
 {
-    context->SetBytes32(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes());
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes(bytes);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecGetStatsTxBytes error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetBytes32(bytes);
     return true;
 }
 
@@ -157,7 +203,14 @@ napi_value NetShareExec::GetStatsTxBytesCallback(GetStatsTxBytesContext *context
 
 bool NetShareExec::ExecGetStatsTotalBytes(GetStatsTotalBytesContext *context)
 {
-    context->SetBytes32(DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes());
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes(bytes);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecGetStatsTotalBytes error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetBytes32(bytes);
     return true;
 }
 
@@ -166,4 +219,4 @@ napi_value NetShareExec::GetStatsTotalBytesCallback(GetStatsTotalBytesContext *c
     return NapiUtils::CreateInt32(context->GetEnv(), context->GetBytes32());
 }
 } // namespace NetManagerStandard
-} // namespace OHOS::NetManagerStandard
+} // namespace OHOS

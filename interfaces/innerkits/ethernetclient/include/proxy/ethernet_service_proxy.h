@@ -30,13 +30,13 @@ public:
     bool WriteInterfaceToken(MessageParcel &data);
 
     int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) override;
-    sptr<InterfaceConfiguration> GetIfaceConfig(const std::string &iface) override;
-    int32_t IsIfaceActive(const std::string &iface) override;
-    std::vector<std::string> GetAllActiveIfaces() override;
+    int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig) override;
+    int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) override;
+    int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces) override;
     int32_t ResetFactory() override;
     int32_t SetInterfaceUp(const std::string &iface) override;
     int32_t SetInterfaceDown(const std::string &iface) override;
-    bool GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) override;
+    int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) override;
 
 private:
     static inline BrokerDelegator<EthernetServiceProxy> delegator_;

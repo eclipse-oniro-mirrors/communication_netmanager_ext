@@ -84,8 +84,9 @@ HWTEST_F(NetworkShareTrackerTest, Init01, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, IsNetworkSharingSupported01, TestSize.Level1)
 {
     NetworkShareTracker::GetInstance().Init();
-    int32_t ret = NetworkShareTracker::GetInstance().IsNetworkSharingSupported();
-    EXPECT_EQ(ret, NETWORKSHARE_IS_SUPPORTED);
+    int32_t supported;
+    NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
+    EXPECT_EQ(supported, NETWORKSHARE_IS_SUPPORTED);
 }
 
 /**
@@ -95,8 +96,9 @@ HWTEST_F(NetworkShareTrackerTest, IsNetworkSharingSupported01, TestSize.Level1)
  */
 HWTEST_F(NetworkShareTrackerTest, IsSharing01, TestSize.Level1)
 {
-    int32_t ret = NetworkShareTracker::GetInstance().IsSharing();
-    EXPECT_EQ(ret, NETWORKSHARE_IS_UNSUPPORTED);
+    int32_t sharingStatus;
+    NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
+    EXPECT_EQ(sharingStatus, NETWORKSHARE_IS_UNSHARING);
 }
 
 /**
@@ -108,8 +110,9 @@ HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing01, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
     NetworkShareTracker::GetInstance().StartNetworkSharing(type);
-    int32_t ret = NetworkShareTracker::GetInstance().IsSharing();
-    EXPECT_GE(ret, NETWORKSHARE_SUCCESS);
+    int32_t sharingStatus;
+    int32_t ret = NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -121,7 +124,7 @@ HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing01, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
-    EXPECT_GE(ret, NETWORKSHARE_ERROR);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -133,7 +136,7 @@ HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing02, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_USB;
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
-    EXPECT_GE(ret, NETWORKSHARE_SUCCESS);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -145,7 +148,7 @@ HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing02, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_USB;
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
-    EXPECT_GE(ret, NETWORKSHARE_ERROR);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -157,7 +160,7 @@ HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing03, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_BLUETOOTH;
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
-    EXPECT_GE(ret, NETWORKSHARE_ERROR);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -169,7 +172,7 @@ HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing03, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_BLUETOOTH;
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
-    EXPECT_GE(ret, NETWORKSHARE_ERROR);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -180,7 +183,8 @@ HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing03, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetSharableRegexs01, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_BLUETOOTH;
-    auto ret = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
+    std::vector<std::string> ret;
+    NetworkShareTracker::GetInstance().GetSharableRegexs(type, ret);
     EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
 }
 
@@ -192,7 +196,8 @@ HWTEST_F(NetworkShareTrackerTest, GetSharableRegexs01, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetSharableRegexs02, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_USB;
-    auto ret = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
+    std::vector<std::string> ret;
+    NetworkShareTracker::GetInstance().GetSharableRegexs(type, ret);
     EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
 }
 
@@ -204,7 +209,8 @@ HWTEST_F(NetworkShareTrackerTest, GetSharableRegexs02, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetSharableRegexs03, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
-    auto ret = NetworkShareTracker::GetInstance().GetSharableRegexs(type);
+    std::vector<std::string> ret;
+    NetworkShareTracker::GetInstance().GetSharableRegexs(type, ret);
     EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
 }
 
@@ -218,7 +224,7 @@ HWTEST_F(NetworkShareTrackerTest, GetSharingState01, TestSize.Level1)
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
     int32_t ret = NetworkShareTracker::GetInstance().GetSharingState(type, state);
-    EXPECT_EQ(ret, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -231,7 +237,7 @@ HWTEST_F(NetworkShareTrackerTest, GetSharingState02, TestSize.Level1)
     SharingIfaceType type = SharingIfaceType::SHARING_BLUETOOTH;
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
     int32_t ret = NetworkShareTracker::GetInstance().GetSharingState(type, state);
-    EXPECT_EQ(ret, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -244,7 +250,7 @@ HWTEST_F(NetworkShareTrackerTest, GetSharingState03, TestSize.Level1)
     SharingIfaceType type = SharingIfaceType::SHARING_BLUETOOTH;
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
     int32_t ret = NetworkShareTracker::GetInstance().GetSharingState(type, state);
-    EXPECT_EQ(ret, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -255,8 +261,9 @@ HWTEST_F(NetworkShareTrackerTest, GetSharingState03, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces01, TestSize.Level1)
 {
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_ERROR;
-    auto ret = NetworkShareTracker::GetInstance().GetNetSharingIfaces(state);
-    EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
+    std::vector<std::string> ifaces;
+    NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
+    EXPECT_GE(ifaces.size(), static_cast<uint32_t>(0));
 }
 
 /**
@@ -267,8 +274,9 @@ HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces01, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces02, TestSize.Level1)
 {
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
-    auto ret = NetworkShareTracker::GetInstance().GetNetSharingIfaces(state);
-    EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
+    std::vector<std::string> ifaces;
+    NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
+    EXPECT_GE(ifaces.size(), static_cast<uint32_t>(0));
 }
 
 /**
@@ -279,8 +287,9 @@ HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces02, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces03, TestSize.Level1)
 {
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
-    auto ret = NetworkShareTracker::GetInstance().GetNetSharingIfaces(state);
-    EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
+    std::vector<std::string> ifaces;
+    NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
+    EXPECT_GE(ifaces.size(), static_cast<uint32_t>(0));
 }
 
 /**
@@ -292,7 +301,7 @@ HWTEST_F(NetworkShareTrackerTest, RegisterSharingEvent01, TestSize.Level1)
 {
     sptr<ISharingEventCallback> callback = nullptr;
     int32_t ret = NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
-    EXPECT_EQ(ret, NETWORKSHARE_ERROR);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 }
 
 /**
@@ -310,7 +319,7 @@ HWTEST_F(NetworkShareTrackerTest, RegisterSharingEvent02, TestSize.Level1)
                   [this](const auto &pair) { NetworkShareTracker::GetInstance().RegisterSharingEvent(pair.second); });
     sptr<ISharingEventCallback> callback = new (std::nothrow) SharingEventTestCallback();
     int32_t ret = NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
-    EXPECT_EQ(ret, NETWORKSHARE_ERROR);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_ISSHARING_CALLBACK_ERROR);
     std::for_each(g_callbackMap.begin(), g_callbackMap.end(),
                   [this](const auto &pair) { NetworkShareTracker::GetInstance().UnregisterSharingEvent(pair.second); });
     NetworkShareTracker::GetInstance().UnregisterSharingEvent(callback);
@@ -325,7 +334,7 @@ HWTEST_F(NetworkShareTrackerTest, RegisterSharingEvent03, TestSize.Level1)
 {
     sptr<ISharingEventCallback> callback = new (std::nothrow) SharingEventTestCallback();
     int32_t ret = NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
-    EXPECT_EQ(ret, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -464,8 +473,9 @@ HWTEST_F(NetworkShareTrackerTest, NotifyDownstreamsHasNewUpstreamIface01, TestSi
 HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic01, TestSize.Level1)
 {
     TrafficType type = TrafficType::TRAFFIC_ALL;
-    int32_t ret = NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(type);
-    EXPECT_GE(ret, 0);
+    int32_t kbByte;
+    NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(type, kbByte);
+    EXPECT_GE(kbByte, 0);
 }
 
 /**
@@ -476,8 +486,9 @@ HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic01, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic02, TestSize.Level1)
 {
     TrafficType type = TrafficType::TRAFFIC_RX;
-    int32_t ret = NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(type);
-    EXPECT_GE(ret, 0);
+    int32_t kbByte;
+    NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(type, kbByte);
+    EXPECT_GE(kbByte, 0);
 }
 
 /**
@@ -488,8 +499,9 @@ HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic02, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic03, TestSize.Level1)
 {
     TrafficType type = TrafficType::TRAFFIC_TX;
-    int32_t ret = NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(type);
-    EXPECT_GE(ret, 0);
+    int32_t kbByte;
+    NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(type, kbByte);
+    EXPECT_GE(kbByte, 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

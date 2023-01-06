@@ -16,6 +16,7 @@
 #include "netshare_result_callback_stub.h"
 
 #include "string_ex.h"
+#include "net_manager_constants.h"
 #include "networkshare_constants.h"
 
 namespace OHOS {

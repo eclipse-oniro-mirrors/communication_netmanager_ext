@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <regex>
 
-#include "ethernet_constants.h"
+#include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "route.h"
