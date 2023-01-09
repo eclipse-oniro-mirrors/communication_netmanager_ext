@@ -153,7 +153,7 @@ void NapiEthernet::ExecGetIfaceConfig(napi_env env, void *data)
         context->gateway = config->ipStatic_.gateway_.address_;
         context->netMask = config->ipStatic_.netMask_.address_;
         context->domain = config->ipStatic_.domain_;
-        for (int i = 0; i < config->ipStatic_.dnsServers_.size(); i++) {
+        for (uint32_t i = 0; i < config->ipStatic_.dnsServers_.size(); i++) {
             context->dnsServers = context->dnsServers + config->ipStatic_.dnsServers_[i].address_;
             if (config->ipStatic_.dnsServers_.size() - i > 1) {
                 context->dnsServers = context->dnsServers + DNS_SEPARATOR;
