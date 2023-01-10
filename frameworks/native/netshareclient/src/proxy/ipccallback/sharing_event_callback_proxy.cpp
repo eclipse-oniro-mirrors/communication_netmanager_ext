@@ -17,6 +17,8 @@
 
 #include "ipc_types.h"
 #include "parcel.h"
+
+#include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
 
@@ -46,7 +48,7 @@ void SharingEventCallbackProxy::OnSharingStateChanged(const bool &isRunning)
     }
     int32_t ret = remote->SendRequest(
         static_cast<int32_t>(ISharingEventCallback::Message::GLOBAL_SHARING_STATE_CHANGED), data, reply, option);
-    if (ret != ERR_NONE) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("OnSharingStateChanged SendRequest error=[%{public}d].", ret);
     }
 }
@@ -80,7 +82,7 @@ void SharingEventCallbackProxy::OnInterfaceSharingStateChanged(const SharingIfac
 
     int32_t ret = remote->SendRequest(
         static_cast<int32_t>(ISharingEventCallback::Message::INTERFACE_SHARING_STATE_CHANGED), data, reply, option);
-    if (ret != ERR_NONE) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("OnInterfaceSharingStateChanged SendRequest error=[%{public}d].", ret);
     }
 }
@@ -105,7 +107,7 @@ void SharingEventCallbackProxy::OnSharingUpstreamChanged(const sptr<NetHandle> n
 
     int32_t ret = remote->SendRequest(static_cast<int32_t>(ISharingEventCallback::Message::SHARING_UPSTREAM_CHANGED),
                                       data, reply, option);
-    if (ret != ERR_NONE) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("OnSharingUpstreamChanged SendRequest error=[%{public}d].", ret);
     }
 }

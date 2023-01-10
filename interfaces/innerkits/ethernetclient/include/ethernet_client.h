@@ -44,7 +44,7 @@ public:
      * @param Network interface name
      * @return Parameter is returned on success, null on failure
      */
-    sptr<InterfaceConfiguration> GetIfaceConfig(const std::string &iface);
+    int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig);
 
     /**
      *  Gets the network interface configuration parameters
@@ -52,14 +52,14 @@ public:
      * @param Network interface name
      * @return Returns 1 for device open (active), 0 for device closed (inactive), and -1 for failure
      */
-    int32_t IsIfaceActive(const std::string &iface);
+    int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus);
 
     /**
      *  Gets the list of active devices
      *
      * @return Return to device List
      */
-    std::vector<std::string> GetAllActiveIfaces();
+    int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces);
 
     /**
      *  Reset all configuration information
@@ -87,7 +87,7 @@ public:
      *
      * @return Returns 'true' as success, 'false' values as failure
      */
-    bool GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
+    int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
 
 private:
     class EthernetDeathRecipient : public IRemoteObject::DeathRecipient {

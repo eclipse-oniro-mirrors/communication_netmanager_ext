@@ -32,8 +32,8 @@
 #include "networkshare_main_statemachine.h"
 #include "networkshare_sub_statemachine.h"
 #include "networkshare_upstreammonitor.h"
-#include "wifi_hotspot.h"
 #include "wifi_ap_msg.h"
+#include "wifi_hotspot.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -132,12 +132,12 @@ public:
     /**
      * is surpport share network
      */
-    int32_t IsNetworkSharingSupported();
+    int32_t IsNetworkSharingSupported(int32_t &supported);
 
     /**
      * has sharing network
      */
-    int32_t IsSharing();
+    int32_t IsSharing(int32_t &sharingStatus);
 
     /**
      * start share network by type
@@ -152,7 +152,7 @@ public:
     /**
      * get sharable regexs
      */
-    std::vector<std::string> GetSharableRegexs(SharingIfaceType type);
+    int32_t GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs);
 
     /**
      * get sharing type
@@ -162,7 +162,7 @@ public:
     /**
      * get sharing ifaces name
      */
-    std::vector<std::string> GetNetSharingIfaces(const SharingIfaceState &state);
+    int32_t GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces);
 
     /**
      * register callback
@@ -204,7 +204,7 @@ public:
      */
     void NotifyDownstreamsHasNewUpstreamIface(const std::shared_ptr<UpstreamNetworkInfo> &netinfo);
 
-    int32_t GetSharedSubSMTraffic(const TrafficType &type);
+    int32_t GetSharedSubSMTraffic(const TrafficType &type, int32_t &kbByte);
 
 private:
     NetworkShareTracker() = default;

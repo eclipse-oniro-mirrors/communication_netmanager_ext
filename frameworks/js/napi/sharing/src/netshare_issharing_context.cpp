@@ -52,24 +52,24 @@ void NetShareIsSharingContext::SetBytes32(int32_t bytes32)
     bytes32_ = bytes32;
 }
 
-void NetShareIsSharingContext::SetSharingSupported(int32_t isSharingSupported)
+void NetShareIsSharingContext::SetSharingSupported(int32_t supported)
 {
-    isSharingSupported_ = isSharingSupported;
+    supported_ = supported;
 }
 
-void NetShareIsSharingContext::SetSharing(int32_t isSharing)
+void NetShareIsSharingContext::SetSharing(int32_t sharingStatus)
 {
-    isSharing_ = isSharing;
+    sharingStatus_ = sharingStatus;
 }
 
 int32_t NetShareIsSharingContext::GetSharingSupported() const
 {
-    return isSharingSupported_;
+    return supported_;
 }
 
 int32_t NetShareIsSharingContext::GetSharing() const
 {
-    return isSharing_;
+    return sharingStatus_;
 }
 
 int32_t NetShareIsSharingContext::GetBytes32() const

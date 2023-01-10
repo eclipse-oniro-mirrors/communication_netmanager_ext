@@ -185,7 +185,7 @@ int NetworkShareMainStateMachine::HandleInitInterfaceStateActive(const std::any 
     }
 
     NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(true, temp.subsm_);
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareMainStateMachine::HandleInitInterfaceStateInactive(const std::any &messageObj)
@@ -211,20 +211,20 @@ int NetworkShareMainStateMachine::HandleAliveInterfaceStateActive(const std::any
                          temp.subsm_->GetInterfaceName().c_str());
         temp.subsm_->SubSmEventHandle(CMD_NETSHARE_CONNECTION_CHANGED, upstreamInfo);
     }
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareMainStateMachine::HandleAliveInterfaceStateInactive(const std::any &messageObj)
 {
     int ret = EraseSharedSubSM(messageObj);
-    if (ret != NETWORKSHARE_SUCCESS) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         return ret;
     }
     if (subMachineList_.size() == 0) {
         DisableForward();
         TurnOffMainShareSettings();
     }
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareMainStateMachine::EraseSharedSubSM(const std::any &messageObj)
@@ -232,7 +232,7 @@ int NetworkShareMainStateMachine::EraseSharedSubSM(const std::any &messageObj)
     const MessageIfaceActive &temp = std::any_cast<const MessageIfaceActive &>(messageObj);
     if (temp.subsm_ == nullptr) {
         NETMGR_EXT_LOG_E("subsm[%{public}d] is null.", temp.value_);
-        return NETWORKSHARE_ERROR;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     subMachineList_.erase(
         remove_if(subMachineList_.begin(), subMachineList_.end(),
@@ -240,7 +240,7 @@ int NetworkShareMainStateMachine::EraseSharedSubSM(const std::any &messageObj)
         subMachineList_.end());
 
     NetworkShareTracker::GetInstance().ModifySharedSubStateMachineList(false, temp.subsm_);
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
@@ -253,7 +253,7 @@ void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
     if (networkMonitor_ != nullptr && networkMonitor_->GetCurrentGoodUpstream(netInfoPtr)) {
         upstreamIfaceName_ = netInfoPtr->netLinkPro_->ifaceName_;
         int32_t result = NetsysController::GetInstance().EnableNat(FAKE_DOWNSTREAM_IFACENAME, upstreamIfaceName_);
-        if (result != NETMANAGER_EXT_SUCCESS) {
+        if (result != NETSYS_SUCCESS) {
             NetworkShareHisysEvent::GetInstance().SendFaultEvent(
                 NetworkShareEventOperator::OPERATION_CONFIG_FORWARD, NetworkShareEventErrorType::ERROR_CONFIG_FORWARD,
                 ERROR_MSG_ENABLE_FORWARD, NetworkShareEventType::SETUP_EVENT);
@@ -268,7 +268,7 @@ int NetworkShareMainStateMachine::HandleAliveUpstreamMonitorCallback(const std::
 {
     if (!NetworkShareTracker::GetInstance().UpstreamWanted()) {
         NETMGR_EXT_LOG_W("don't need handle upstream callback.");
-        return NETWORKSHARE_SUCCESS;
+        return NETMANAGER_EXT_SUCCESS;
     }
     const MessageUpstreamInfo &temp = std::any_cast<const MessageUpstreamInfo &>(messageObj);
     switch (temp.cmd_) {
@@ -291,7 +291,7 @@ int NetworkShareMainStateMachine::HandleAliveUpstreamMonitorCallback(const std::
         default:
             break;
     }
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareMainStateMachine::HandleErrorInterfaceStateInactive(const std::any &messageObj)
@@ -299,19 +299,19 @@ int NetworkShareMainStateMachine::HandleErrorInterfaceStateInactive(const std::a
     const MessageIfaceActive &temp = std::any_cast<const MessageIfaceActive &>(messageObj);
     if (temp.subsm_ == nullptr) {
         NETMGR_EXT_LOG_E("mode[%{public}d] subsm is null.", temp.value_);
-        return NETWORKSHARE_ERROR;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] EVENT[%{public}d].", temp.subsm_->GetInterfaceName().c_str(),
                      errorType_);
     temp.subsm_->SubSmEventHandle(errorType_, 0);
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareMainStateMachine::HandleErrorClear(const std::any &messageObj)
 {
     (void)messageObj;
     errorType_ = NETWORKSHARING_SHARING_NO_ERROR;
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void NetworkShareMainStateMachine::SwitcheToErrorState(int32_t errType)
@@ -327,7 +327,7 @@ bool NetworkShareMainStateMachine::TurnOnMainShareSettings()
         return true;
     }
     int32_t result = NetsysController::GetInstance().IpEnableForwarding(netshareRequester_);
-    if (result != NETMANAGER_EXT_SUCCESS) {
+    if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNON_IP_FORWARD,
                                                              NetworkShareEventErrorType::ERROR_TURNON_IP_FORWARD,
                                                              ERROR_MSG_TRUNON, NetworkShareEventType::SETUP_EVENT);
@@ -344,7 +344,7 @@ bool NetworkShareMainStateMachine::TurnOnMainShareSettings()
 bool NetworkShareMainStateMachine::TurnOffMainShareSettings()
 {
     int32_t result = NetsysController::GetInstance().IpDisableForwarding(netshareRequester_);
-    if (result != NETMANAGER_EXT_SUCCESS) {
+    if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(NetworkShareEventOperator::OPERATION_TURNOFF_IP_FORWARD,
                                                              NetworkShareEventErrorType::ERROR_TURNOFF_IP_FORWARD,
                                                              ERROR_MSG_TRUNOFF, NetworkShareEventType::CANCEL_EVENT);
@@ -363,7 +363,7 @@ void NetworkShareMainStateMachine::DisableForward()
 {
     NetworkShareTracker::GetInstance().SetUpstreamNetHandle(nullptr);
     int32_t result = NetsysController::GetInstance().DisableNat(FAKE_DOWNSTREAM_IFACENAME, upstreamIfaceName_);
-    if (result != NETMANAGER_EXT_SUCCESS) {
+    if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             NetworkShareEventOperator::OPERATION_CONFIG_FORWARD, NetworkShareEventErrorType::ERROR_CONFIG_FORWARD,
             ERROR_MSG_DISABLE_FORWARD, NetworkShareEventType::SETUP_EVENT);

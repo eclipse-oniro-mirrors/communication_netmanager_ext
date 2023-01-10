@@ -17,19 +17,20 @@
 
 #include "accesstoken_kit.h"
 #include "ethernet_client.h"
+#include "gtest/gtest-message.h"
+#include "gtest/gtest-test-part.h"
+#include "gtest/hwext/gtest-ext.h"
+#include "gtest/hwext/gtest-tag.h"
 #include "inet_addr.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
 #include "nativetoken_kit.h"
+#include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "static_configuration.h"
 #include "token_setproc.h"
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-#include "gtest/hwext/gtest-ext.h"
-#include "gtest/hwext/gtest-tag.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -151,7 +152,9 @@ void GrantPermission(const std::string &appId, std::string permissionName)
 bool EthernetManagerTest::CheckIfaceUp(const std::string &iface)
 {
     GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
-    return DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface) == 1;
+    int32_t activeStatus = 0;
+    (void)DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface, activeStatus);
+    return activeStatus == 1;
 }
 
 /**
@@ -166,7 +169,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
     }
     GrantPermission(BUNDLENAME, CONNECTIVITY_INTERNAL);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME, ic), 0);
+    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME, ic), NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -180,8 +183,10 @@ HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
         return;
     }
     GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
-    sptr<InterfaceConfiguration> ic = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME);
+    sptr<InterfaceConfiguration> ic;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME, ic);
     ASSERT_TRUE(ic != nullptr);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -195,7 +200,10 @@ HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
         return;
     }
     GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
-    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME), 1);
+    int32_t activeStatus = -1;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
+    ASSERT_EQ(activeStatus, 1);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -209,8 +217,10 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
         return;
     }
     GrantPermission(BUNDLENAME, GET_NETWORK_INFO);
-    std::vector<std::string> result = DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces();
+    std::vector<std::string> result;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces(result);
     std::vector<std::string>::iterator it = std::find(result.begin(), result.end(), DEV_NAME);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     ASSERT_TRUE(it != result.end());
 }
 
@@ -233,7 +243,8 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
         return;
     }
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     ASSERT_FALSE(cfg.ifName.empty());
     ASSERT_FALSE(cfg.hwAddr.empty());
 }
@@ -245,7 +256,8 @@ HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
     }
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_DOWN);
     ASSERT_EQ(cfg.ifName, DEV_NAME);
     ASSERT_TRUE(*fit == DEV_DOWN);
@@ -259,7 +271,8 @@ HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
     }
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    ASSERT_TRUE(DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg));
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_UP);
     ASSERT_EQ(cfg.ifName, DEV_NAME);
     ASSERT_TRUE(*fit == DEV_UP);

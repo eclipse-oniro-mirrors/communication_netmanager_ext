@@ -18,12 +18,12 @@
 #include <new>
 #include <sys/time.h>
 
-#include "ethernet_constants.h"
 #include "ethernet_management.h"
 #include "interface_configuration.h"
 #include "iremote_object.h"
 #include "net_ethernet_base_service.h"
 #include "net_manager_center.h"
+#include "net_manager_constants.h"
 #include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
@@ -72,11 +72,11 @@ int32_t EthernetService::Dump(int32_t fd, const std::vector<std::u16string> &arg
     NETMGR_EXT_LOG_D("Start Dump, fd: %{public}d", fd);
     std::string result;
     if (ethManagement_ == nullptr) {
-        return ETHERNET_ERROR;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     ethManagement_->GetDumpInfo(result);
     int32_t ret = dprintf(fd, "%s\n", result.c_str());
-    return ret < 0 ? ETHERNET_ERROR : ETHERNET_SUCCESS;
+    return ret < 0 ? NETMANAGER_EXT_ERR_LOCAL_PTR_NULL : NETMANAGER_EXT_SUCCESS;
 }
 
 void EthernetService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
@@ -137,62 +137,63 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<Interface
     NETMGR_EXT_LOG_D("Set iface: %{public}s config", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService SetIfaceConfig no js permission");
-        return ETHERNET_ERROR;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    if (ethManagement_ != nullptr) {
-        return ethManagement_->UpdateDevInterfaceCfg(iface, ic);
+    if (ethManagement_ == nullptr) {
+        NETMGR_EXT_LOG_E("ethManagement is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    return ETHERNET_ERROR;
+    return ethManagement_->UpdateDevInterfaceCfg(iface, ic);
 }
 
-sptr<InterfaceConfiguration> EthernetService::GetIfaceConfig(const std::string &iface)
+int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
     NETMGR_EXT_LOG_D("Get iface: %{public}s config", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService GetIfaceConfig no js permission");
-        return nullptr;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    if (ethManagement_ != nullptr) {
-        return ethManagement_->GetDevInterfaceCfg(iface);
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    return nullptr;
+    return ethManagement_->GetDevInterfaceCfg(iface, ifaceConfig);
 }
 
-int32_t EthernetService::IsIfaceActive(const std::string &iface)
+int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
     NETMGR_EXT_LOG_D("Get iface: %{public}s is active", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService IsIfaceActive no js permission");
-        return ETHERNET_ERROR;
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    if (ethManagement_ != nullptr) {
-        return ethManagement_->IsIfaceActive(iface);
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    return ETHERNET_ERROR;
+    return ethManagement_->IsIfaceActive(iface, activeStatus);
 }
 
-std::vector<std::string> EthernetService::GetAllActiveIfaces()
+int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
 {
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService GetAllActiveIfaces no js permission");
-        return {};
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    if (ethManagement_ != nullptr) {
-        return ethManagement_->GetAllActiveIfaces();
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    return {};
+    return ethManagement_->GetAllActiveIfaces(activeIfaces);
 }
 
 int32_t EthernetService::ResetFactory()
 {
-    if (ethManagement_ != nullptr) {
-        return ethManagement_->ResetFactory();
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    return ETHERNET_ERROR;
+    return ethManagement_->ResetFactory();
 }
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)
@@ -207,12 +208,11 @@ int32_t EthernetService::SetInterfaceDown(const std::string &iface)
     return NetsysController::GetInstance().SetInterfaceDown(iface);
 }
 
-bool EthernetService::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &config)
+int32_t EthernetService::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &config)
 {
     NETMGR_EXT_LOG_D("Get interface: %{public}s config", iface.c_str());
     config.ifName = iface;
-    int32_t ret = NetsysController::GetInstance().InterfaceGetConfig(config);
-    return ret == NO_ERROR;
+    return NetsysController::GetInstance().InterfaceGetConfig(config);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

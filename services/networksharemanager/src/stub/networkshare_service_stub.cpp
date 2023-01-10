@@ -15,6 +15,7 @@
 
 #include "networkshare_service_stub.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "net_manager_constants.h"
 #include "networkshare_constants.h"
 
 namespace OHOS {
@@ -70,7 +71,11 @@ int32_t NetworkShareServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &d
 
 int32_t NetworkShareServiceStub::ReplyIsNetworkSharingSupported(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = IsNetworkSharingSupported();
+    int32_t supported = NETWORKSHARE_IS_UNSUPPORTED;
+    int32_t ret = IsNetworkSharingSupported(supported);
+    if (!reply.WriteInt32(supported)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
@@ -79,7 +84,11 @@ int32_t NetworkShareServiceStub::ReplyIsNetworkSharingSupported(MessageParcel &d
 
 int32_t NetworkShareServiceStub::ReplyIsSharing(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = IsSharing();
+    int32_t sharingStatus = NETWORKSHARE_IS_UNSHARING;
+    int32_t ret = IsSharing(sharingStatus);
+    if (!reply.WriteInt32(sharingStatus)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
@@ -121,7 +130,8 @@ int32_t NetworkShareServiceStub::ReplyGetSharableRegexs(MessageParcel &data, Mes
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     SharingIfaceType shareType = static_cast<SharingIfaceType>(type);
-    std::vector<std::string> ifaceRegexs = GetSharableRegexs(shareType);
+    std::vector<std::string> ifaceRegexs;
+    int32_t ret = GetSharableRegexs(shareType, ifaceRegexs);
 
     if (!reply.WriteUint32(ifaceRegexs.size())) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
@@ -130,6 +140,9 @@ int32_t NetworkShareServiceStub::ReplyGetSharableRegexs(MessageParcel &data, Mes
         if (!reply.WriteString(*it)) {
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
+    }
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -143,12 +156,11 @@ int32_t NetworkShareServiceStub::ReplyGetSharingState(MessageParcel &data, Messa
     SharingIfaceType shareType = static_cast<SharingIfaceType>(type);
     SharingIfaceState shareState = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     int32_t ret = GetSharingState(shareType, shareState);
-    if (ret != 0) {
-        NETMGR_EXT_LOG_E("ReplyGetSharingState execute failed.");
-        return NETMANAGER_EXT_ERROR;
-    }
 
     if (!reply.WriteInt32(static_cast<int32_t>(shareState))) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -161,15 +173,19 @@ int32_t NetworkShareServiceStub::ReplyGetNetSharingIfaces(MessageParcel &data, M
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     SharingIfaceState shareState = static_cast<SharingIfaceState>(state);
-    const auto &ifaceNames = GetNetSharingIfaces(shareState);
+    std::vector<std::string> ifaces;
+    int32_t ret = GetNetSharingIfaces(shareState, ifaces);
 
-    if (!reply.WriteUint32(ifaceNames.size())) {
+    if (!reply.WriteUint32(ifaces.size())) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
-    for (auto it = ifaceNames.begin(); it != ifaceNames.end(); ++it) {
+    for (auto it = ifaces.begin(); it != ifaces.end(); ++it) {
         if (!reply.WriteString(*it)) {
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
+    }
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -206,7 +222,11 @@ int32_t NetworkShareServiceStub::ReplyUnregisterSharingEvent(MessageParcel &data
 
 int32_t NetworkShareServiceStub::ReplyGetStatsRxBytes(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = GetStatsRxBytes();
+    int32_t bytes = 0;
+    int32_t ret = GetStatsRxBytes(bytes);
+    if (!reply.WriteInt32(bytes)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
@@ -215,7 +235,11 @@ int32_t NetworkShareServiceStub::ReplyGetStatsRxBytes(MessageParcel &data, Messa
 
 int32_t NetworkShareServiceStub::ReplyGetStatsTxBytes(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = GetStatsTxBytes();
+    int32_t bytes = 0;
+    int32_t ret = GetStatsTxBytes(bytes);
+    if (!reply.WriteInt32(bytes)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
@@ -224,7 +248,11 @@ int32_t NetworkShareServiceStub::ReplyGetStatsTxBytes(MessageParcel &data, Messa
 
 int32_t NetworkShareServiceStub::ReplyGetStatsTotalBytes(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = GetStatsTotalBytes();
+    int32_t bytes = 0;
+    int32_t ret = GetStatsTotalBytes(bytes);
+    if (!reply.WriteInt32(bytes)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }

@@ -19,6 +19,7 @@
 #include "singleton.h"
 #include "system_ability.h"
 
+#include "errorcode_convertor.h"
 #include "networkshare_service_stub.h"
 #include "networkshare_tracker.h"
 
@@ -49,12 +50,12 @@ public:
     /**
      * is surpport share network
      */
-    int32_t IsNetworkSharingSupported() override;
+    int32_t IsNetworkSharingSupported(int32_t &supported) override;
 
     /**
      * has shared network
      */
-    int32_t IsSharing() override;
+    int32_t IsSharing(int32_t &sharingStatus) override;
 
     /**
      * start network by type
@@ -69,7 +70,7 @@ public:
     /**
      * get sharable regex
      */
-    std::vector<std::string> GetSharableRegexs(SharingIfaceType type) override;
+    int32_t GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs) override;
 
     /**
      * get sharing type
@@ -79,7 +80,7 @@ public:
     /**
      * get sharing ifaces
      */
-    std::vector<std::string> GetNetSharingIfaces(const SharingIfaceState &state) override;
+    int32_t GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces) override;
 
     /**
      * register callback
@@ -94,17 +95,17 @@ public:
     /**
      * get downlink data bytes
      */
-    int32_t GetStatsRxBytes() override;
+    int32_t GetStatsRxBytes(int32_t &bytes) override;
 
     /**
      * get uplink data bytes
      */
-    int32_t GetStatsTxBytes() override;
+    int32_t GetStatsTxBytes(int32_t &bytes) override;
 
     /**
      * get total data bytes
      */
-    int32_t GetStatsTotalBytes() override;
+    int32_t GetStatsTotalBytes(int32_t &bytes) override;
 
     /**
      * dump function

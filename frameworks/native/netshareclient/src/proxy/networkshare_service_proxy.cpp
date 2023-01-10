@@ -16,9 +16,10 @@
 #include "networkshare_service_proxy.h"
 
 #include "ipc_types.h"
+#include "net_manager_constants.h"
+#include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
-#include "net_manager_ext_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -47,7 +48,7 @@ int32_t NetworkShareServiceProxy::SendRequest(INetworkShareService::MessageCode 
     return remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
 }
 
-int32_t NetworkShareServiceProxy::IsNetworkSharingSupported()
+int32_t NetworkShareServiceProxy::IsNetworkSharingSupported(int32_t &supported)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -60,10 +61,11 @@ int32_t NetworkShareServiceProxy::IsNetworkSharingSupported()
         NETMGR_EXT_LOG_E("IsNetworkSharingSupported proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
+    supported = reply.ReadInt32();
     return reply.ReadInt32();
 }
 
-int32_t NetworkShareServiceProxy::IsSharing()
+int32_t NetworkShareServiceProxy::IsSharing(int32_t &sharingStatus)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -76,6 +78,7 @@ int32_t NetworkShareServiceProxy::IsSharing()
         NETMGR_EXT_LOG_E("IsSharing proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
+    sharingStatus = reply.ReadInt32();
     return reply.ReadInt32();
 }
 
@@ -118,29 +121,28 @@ int32_t NetworkShareServiceProxy::StopNetworkSharing(const SharingIfaceType &typ
     return reply.ReadInt32();
 }
 
-std::vector<std::string> NetworkShareServiceProxy::GetSharableRegexs(SharingIfaceType type)
+int32_t NetworkShareServiceProxy::GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs)
 {
     MessageParcel data;
-    std::vector<std::string> ifaceRegexs;
     if (!WriteInterfaceToken(data)) {
-        return ifaceRegexs;
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!data.WriteInt32(static_cast<int32_t>(type))) {
-        return ifaceRegexs;
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
 
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_SHARABLE_REGEXS, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy GetSharableRegexs SendRequest failed, error code: [%{public}d]", ret);
-        return ifaceRegexs;
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
 
     int32_t size = reply.ReadInt32();
     for (int i = 0; i < size; i++) {
         ifaceRegexs.push_back(reply.ReadString());
     }
-    return ifaceRegexs;
+    return reply.ReadInt32();
 }
 
 int32_t NetworkShareServiceProxy::GetSharingState(SharingIfaceType type, SharingIfaceState &state)
@@ -161,39 +163,38 @@ int32_t NetworkShareServiceProxy::GetSharingState(SharingIfaceType type, Sharing
     }
 
     state = static_cast<SharingIfaceState>(reply.ReadInt32());
-    return NETMANAGER_EXT_SUCCESS;
+    return reply.ReadInt32();
 }
 
-std::vector<std::string> NetworkShareServiceProxy::GetNetSharingIfaces(const SharingIfaceState &state)
+int32_t NetworkShareServiceProxy::GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
 {
     MessageParcel data;
-    std::vector<std::string> ifaces;
     if (!WriteInterfaceToken(data)) {
-        return ifaces;
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!data.WriteInt32(static_cast<int32_t>(state))) {
-        return ifaces;
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
 
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_SHARING_IFACES, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy GetNetSharingIfaces SendRequest failed, error code: [%{public}d]", ret);
-        return ifaces;
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
 
     int32_t size = reply.ReadInt32();
     for (int i = 0; i < size; i++) {
         ifaces.push_back(reply.ReadString());
     }
-    return ifaces;
+    return reply.ReadInt32();
 }
 
 int32_t NetworkShareServiceProxy::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("RegisterSharingEvent callback is null.");
-        return NETWORKSHARE_ERROR;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -217,7 +218,7 @@ int32_t NetworkShareServiceProxy::UnregisterSharingEvent(sptr<ISharingEventCallb
 {
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("UnregisterSharingEvent callback is null.");
-        return NETWORKSHARE_ERROR;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -237,7 +238,7 @@ int32_t NetworkShareServiceProxy::UnregisterSharingEvent(sptr<ISharingEventCallb
     return reply.ReadInt32();
 }
 
-int32_t NetworkShareServiceProxy::GetStatsRxBytes()
+int32_t NetworkShareServiceProxy::GetStatsRxBytes(int32_t &bytes)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -249,10 +250,11 @@ int32_t NetworkShareServiceProxy::GetStatsRxBytes()
         NETMGR_EXT_LOG_E("GetStatsRxBytes proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
+    bytes = reply.ReadInt32();
     return reply.ReadInt32();
 }
 
-int32_t NetworkShareServiceProxy::GetStatsTxBytes()
+int32_t NetworkShareServiceProxy::GetStatsTxBytes(int32_t &bytes)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -264,10 +266,11 @@ int32_t NetworkShareServiceProxy::GetStatsTxBytes()
         NETMGR_EXT_LOG_E("GetStatsTxBytes proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
+    bytes = reply.ReadInt32();
     return reply.ReadInt32();
 }
 
-int32_t NetworkShareServiceProxy::GetStatsTotalBytes()
+int32_t NetworkShareServiceProxy::GetStatsTotalBytes(int32_t &bytes)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -279,6 +282,7 @@ int32_t NetworkShareServiceProxy::GetStatsTotalBytes()
         NETMGR_EXT_LOG_E("GetStatsTotalBytes proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
+    bytes = reply.ReadInt32();
     return reply.ReadInt32();
 }
 } // namespace NetManagerStandard
