@@ -278,9 +278,8 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     return true;
 }
 
-sptr<InterfaceConfiguration>
-    EthernetConfiguration::MakeInterfaceConfiguration(const sptr<InterfaceConfiguration> &devCfg,
-                                                      const sptr<NetLinkInfo> &devLinkInfo)
+sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
+    const sptr<InterfaceConfiguration> &devCfg, const sptr<NetLinkInfo> &devLinkInfo)
 {
     if (devCfg == nullptr || devLinkInfo == nullptr) {
         NETMGR_EXT_LOG_E("param is nullptr");
@@ -523,7 +522,7 @@ void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<Interfa
         fileContent = fileContent + KEY_ROUTE + cfg->ipStatic_.route_.address_ + WRAP;
         fileContent = fileContent + KEY_ROUTE_NETMASK + cfg->ipStatic_.route_.netMask_ + WRAP;
         fileContent = fileContent + KEY_DNS;
-        for (int i = 0; i < cfg->ipStatic_.dnsServers_.size(); i++) {
+        for (uint32_t i = 0; i < cfg->ipStatic_.dnsServers_.size(); i++) {
             fileContent = fileContent + cfg->ipStatic_.dnsServers_[i].address_;
             if (cfg->ipStatic_.dnsServers_.size() - i > 1) {
                 fileContent = fileContent + DNS_SEPARATOR;
