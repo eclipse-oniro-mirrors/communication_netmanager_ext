@@ -61,8 +61,8 @@ void NapiEthernet::ExecSetIfaceConfig(napi_env env, void *data)
         NETMGR_EXT_LOG_E("context is nullptr");
         return;
     }
-    if (context->ipMode == 0 && (context->ipAddr.empty() || context->gateway.empty() || context->netMask.empty())) {
-        NETMGR_EXT_LOG_E("static ip or gatway or mask have empty");
+    if (context->ipMode == 0 && (context->ipAddr.empty() || context->netMask.empty())) {
+        NETMGR_EXT_LOG_E("static ip or mask have empty");
         return;
     }
     INetAddr addr0;
