@@ -434,7 +434,6 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
     if (bootProto == KEY_STATIC) {
         cfg->mode_ = STATIC;
         MakeConfig(cfg, fileContent);
-
     } else if (bootProto == KEY_DHCP) {
         cfg->mode_ = DHCP;
     }
