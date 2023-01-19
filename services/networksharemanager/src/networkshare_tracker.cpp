@@ -645,7 +645,6 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
 int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
 {
     int32_t result = NETWORKSHARE_SUCCESS;
-    // call usbmanager function
     return result;
 }
 
