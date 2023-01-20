@@ -372,7 +372,9 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
     std::unique_lock<std::mutex> lock(mutex_);
     auto fitDev = devs_.find(devName);
     if (fitDev != devs_.end()) {
-        fitDev->second->RemoteUnregisterNetSupplier();
+        if (fitDev->second != nullptr) {
+            fitDev->second->RemoteUnregisterNetSupplier();
+        }
         devs_.erase(fitDev);
     }
 }
