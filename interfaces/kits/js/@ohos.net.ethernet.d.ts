@@ -73,8 +73,8 @@ declare namespace ethernet {
    * @throws {BusinessError} 2200207 NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL
    * @throws {BusinessError} 2201005 ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST
    */
-  function isIfaceActive(iface?: string, callback: AsyncCallback<number>): void;
-  function isIfaceActive(iface?: string): Promise<number>;
+  function isIfaceActive(iface: string, callback: AsyncCallback<number>): void;
+  function isIfaceActive(iface: string): Promise<number>;
 
   /**
    * Gets the names of all active network interfaces.
@@ -95,14 +95,44 @@ declare namespace ethernet {
    * @systemapi Hide this for inner system use.
    */
   export interface InterfaceConfiguration {
-    /*See {@link IPSetMode}*/
+    /**
+     * See {@link IPSetMode}
+     */
     mode: IPSetMode;
+    /**
+     * Ethernet connection static configuration IP information.
+     * The address value range is 0-255.0-255.0-255.0-255.0-255
+     * (DHCP mode does not need to be configured)
+     */
     ipAddr: string;
+
+    /**
+     * Ethernet connection static configuration route information.
+     * The address value range is 0-255.0-255.0-255.0-255.0-255
+     * (DHCP mode does not need to be configured)
+     */
     route: string;
+
+    /**
+     * Ethernet connection static configuration gateway information.
+     * The address value range is 0-255.0-255.0-255.0-255.0-255
+     * (DHCP mode does not need to be configured)
+     */
     gateway: string;
+
+    /**
+     * Ethernet connection static configuration netMask information.
+     * The address value range is 0-255.0-255.0-255.0-255.0-255
+     * (DHCP mode does not need to be configured)
+     */
     netMask: string;
+
+    /**
+     * The Ethernet connection is configured with the dns service address.
+     * The address value range is 0-255.0-255.0-255.0-255.0-255
+     * (DHCP mode does not need to be configured, Multiple addresses are separated by ",")
+     */
     dnsServers: string;
-    domain: string;
   }
 
   /**
