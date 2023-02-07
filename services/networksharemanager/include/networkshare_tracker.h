@@ -17,6 +17,7 @@
 #define NETWORKSHARE_TRACKER_H
 
 #include <any>
+#include <atomic>
 #include <map>
 
 #include "bluetooth_pan.h"
@@ -250,6 +251,7 @@ private:
     std::shared_ptr<NetworkShareMainStateMachine> mainStateMachine_ = nullptr;
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
     std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;
+    std::mutex callbackMutex_;
     std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;
     bool isNetworkSharing_ = false;
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
@@ -260,6 +262,7 @@ private:
     int32_t bluetoothShareCount_ = 0;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
     Bluetooth::BTConnectState curBluetoothState_ = Bluetooth::BTConnectState::DISCONNECTED;
+    std::atomic_bool isInit = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
