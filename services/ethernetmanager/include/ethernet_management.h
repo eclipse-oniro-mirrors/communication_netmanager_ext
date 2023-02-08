@@ -37,6 +37,8 @@ class EthernetManagement {
     private:
         EthernetManagement &ethernetManagement_;
     };
+
+private:
     class DevInterfaceStateCallback : public NetsysControllerCallback {
     public:
         DevInterfaceStateCallback(EthernetManagement &ethernetManagement) : ethernetManagement_(ethernetManagement) {}
