@@ -32,6 +32,13 @@
 #include "static_configuration.h"
 #include "token_setproc.h"
 
+#define private public
+#define protected public
+#include "ethernet_client.h"
+#include "ethernet_dhcp_controller.h"
+#include "ethernet_service.h"
+#include "ethernet_management.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
@@ -44,6 +51,12 @@ constexpr const char *BUNDLENAME = "ethernet_manager_test";
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *DEV_UP = "up";
 constexpr const char *DEV_DOWN = "down";
+std::string INFO = "info";
+constexpr const char *IFACE = "iface0";
+const int32_t FD = 5;
+const int32_t SYSTEM_ABILITY_INVALID = 666;
+constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
+const int32_t RET_ZERO = 0;
 } // namespace
 
 class EthernetManagerTest : public testing::Test {
@@ -277,6 +290,79 @@ HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
     ASSERT_EQ(cfg.ifName, DEV_NAME);
     ASSERT_TRUE(*fit == DEV_UP);
     ASSERT_TRUE(result == 0);
+
+    EthernetDhcpController ethernetDhcpController;
+    bool bIpv6 = true;
+    ethernetDhcpController.StartDhcpClient(IFACE, bIpv6);
+    ethernetDhcpController.StopDhcpClient(IFACE, bIpv6);
+    OHOS::Wifi::DhcpResult dhcpResult;
+    ethernetDhcpController.OnDhcpSuccess(IFACE, dhcpResult);
+    ethernetDhcpController.cbObject_ = nullptr;
+    ethernetDhcpController.OnDhcpSuccess(IFACE, dhcpResult);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager009, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetService ethernetService;
+
+    ethernetService.state_ = EthernetService::ServiceRunningState::STATE_RUNNING;
+    ethernetService.OnStart();
+    ethernetService.state_ = EthernetService::ServiceRunningState::STATE_STOPPED;
+    ethernetService.OnStart();
+    ethernetService.registerToService_ = false;
+    bool initResult = ethernetService.Init();
+    EXPECT_TRUE(initResult);
+    ethernetService.OnStart();
+    ethernetService.serviceComm_ = nullptr;
+    initResult = ethernetService.Init();
+    EXPECT_FALSE(initResult);
+    ethernetService.OnStop();
+    std::vector<std::u16string> args;
+    std::u16string strU16 = u"ahaha";
+    args.push_back(strU16);
+    int32_t dumpRes = ethernetService.Dump(FD, args);
+    EXPECT_NE(dumpRes, NETMANAGER_EXT_SUCCESS);
+    ethernetService.ethManagement_ = nullptr;
+    dumpRes = ethernetService.Dump(FD, args);
+    EXPECT_NE(dumpRes, NETMANAGER_EXT_SUCCESS);
+    ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, DEV_NAME);
+    ethernetService.OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, DEV_NAME);
+    ethernetService.OnAddSystemAbility(SYSTEM_ABILITY_INVALID, DEV_NAME);
+    ethernetService.dependentServiceState_ = DEPENDENT_SERVICE_All;
+    ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, DEV_NAME);
+    ethernetService.InitManagement();
+    ethernetService.ethManagement_ = nullptr;
+    ethernetService.InitManagement();
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    int32_t ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    sptr<InterfaceConfiguration> ic;
+    ethernetManagement.GetDevInterfaceCfg(IFACE, ic);
+    ethernetManagement.Init();
+    ethernetManagement.StartSetDevUpThd();
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.DevInterfaceRemove(DEV_NAME);
+    ethernetManagement.GetDumpInfo(INFO);
+    EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
+    ret = devCallback.OnInterfaceAdded(IFACE);
+    EXPECT_EQ(ret, RET_ZERO);
+    ret = devCallback.OnInterfaceRemoved(IFACE);
+    EXPECT_EQ(ret, RET_ZERO);
+    ret = devCallback.OnInterfaceLinkStateChanged(IFACE, true);
+    EXPECT_EQ(ret, RET_ZERO);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

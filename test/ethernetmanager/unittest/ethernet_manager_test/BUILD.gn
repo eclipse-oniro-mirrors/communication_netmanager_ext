@@ -19,6 +19,7 @@ ohos_unittest("ethernet_manager_test") {
 
   sources = [
     "dev_interface_state_test.cpp",
+    "ethernet_configuration_test.cpp",
     "ethernet_manager_test.cpp",
   ]
 
@@ -28,13 +29,23 @@ ohos_unittest("ethernet_manager_test") {
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
+    "$ETHERNETMANAGER_SOURCE_DIR/include/stub",
+    "$BASE_INNERKITS_ROOT/netconnclient/include",
+    "$DHCP_MANAGER_ROOT/services/mgr_service/include",
+    "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
+    "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
+    "$NETSYSCONTROLLER_ROOT_DIR/include",
+    "$NETCONNMANAGER_COMMON_DIR/include",
   ]
 
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
+    "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
+    "$NETCONNMANAGER_COMMON_DIR:net_service_common",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
 
   external_deps = [

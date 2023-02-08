@@ -37,11 +37,6 @@ class EthernetService : public SystemAbility,
     DECLARE_DELAYED_SINGLETON(EthernetService)
     DECLARE_SYSTEM_ABILITY(EthernetService)
 
-    enum ServiceRunningState {
-        STATE_STOPPED = 0,
-        STATE_RUNNING,
-    };
-
 public:
     void OnStart() override;
     void OnStop() override;
@@ -60,6 +55,10 @@ protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
 private:
+    enum ServiceRunningState {
+        STATE_STOPPED = 0,
+        STATE_RUNNING,
+    };
     bool Init();
     void InitManagement();
 
