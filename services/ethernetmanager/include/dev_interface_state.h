@@ -33,8 +33,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 class DevInterfaceState : public virtual RefBase {
-    enum ConnLinkState { REGISTERED, UNREGISTERED, LINK_AVAILABLE, LINK_UNAVAILABLE };
-
 public:
     DevInterfaceState();
     ~DevInterfaceState() = default;
@@ -63,6 +61,7 @@ public:
     void GetDumpInfo(std::string &info);
 
 private:
+    enum ConnLinkState { REGISTERED, UNREGISTERED, LINK_AVAILABLE, LINK_UNAVAILABLE };
     void UpdateLinkInfo();
     void UpdateSupplierAvailable();
     Route CreateLocalRoute(const std::string &iface, const std::string &ipAddr, const std::string &maskAddr);

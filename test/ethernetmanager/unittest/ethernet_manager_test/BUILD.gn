@@ -17,15 +17,22 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ohos_unittest("ethernet_manager_test") {
   module_out_path = "netmanager_ext/ethernet_manager_test"
 
-  sources = [ "ethernet_manager_test.cpp" ]
+  sources = [
+    "dev_interface_state_test.cpp",
+    "ethernet_manager_test.cpp",
+  ]
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
+    "$ETHERNETMANAGER_SOURCE_DIR/include",
+    "$BASE_INNERKITS_ROOT/netconnclient/include",
   ]
 
   deps = [
+    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
+    "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
