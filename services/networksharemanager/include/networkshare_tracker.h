@@ -260,8 +260,10 @@ private:
     bool isStartDnsProxy_ = false;
     int32_t wifiShareCount_ = 0;
     int32_t bluetoothShareCount_ = 0;
+    int32_t usbShareCount_ = 0;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
     Bluetooth::BTConnectState curBluetoothState_ = Bluetooth::BTConnectState::DISCONNECTED;
+    UsbShareState curUsbState_ = UsbShareState::USB_NONE;
     std::atomic_bool isInit = false;
 };
 } // namespace NetManagerStandard
