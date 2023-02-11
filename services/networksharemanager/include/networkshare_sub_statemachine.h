@@ -112,6 +112,7 @@ private:
     bool GetWifiHotspotDhcpFlag();
     bool GetBtDestinationAddr(std::string &addrStr);
     bool GetWifiApDestinationAddr(std::string &addrStr);
+    bool GetUsbDestinationAddr(std::string &addrStr);
     bool CheckConfig(std::string &endIp, std::string &mask);
     bool FindDestinationAddr(std::string &destination);
 

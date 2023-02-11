@@ -52,6 +52,9 @@ ohos_unittest("networkshare_manager_test") {
     "$WIFI_MANAGER_ROOT/frameworks/native/c_adapter/inc",
     "$WIFI_MANAGER_ROOT/frameworks/native/include",
     "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
+    "$USB_MANAGER_ROOT/utils/native/include",
+    "$USB_MANAGER_ROOT/services/zidl/include",
+    "//third_party/jsoncpp/include/json",
   ]
 
   deps = [
@@ -60,12 +63,14 @@ ohos_unittest("networkshare_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$THIRD_PARTY_ROOT/googletest:gmock_main",
+    "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "wifi:wifi_sdk",
@@ -90,7 +95,52 @@ ohos_unittest("networkshare_manager_test") {
   subsystem_name = "communication"
 }
 
-group("unittest") {
-  testonly = true
-  deps = [ ":networkshare_manager_test" ]
+ohos_unittest("networkshare_manager_usb_test") {
+  module_out_path = "netmanager_ext/networkshare_manager_test"
+
+  sources = [ "networkshare_manager_usb_test.cpp" ]
+
+  include_dirs = [
+    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
+    "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/netshareclient/include",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager/include",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/stub",
+    "$USB_MANAGER_ROOT/utils/native/include",
+    "$USB_MANAGER_ROOT/services/zidl/include",
+    "//third_party/jsoncpp/include/json",
+  ]
+
+  deps = [
+    "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel",
+    "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager",
+    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+    "$THIRD_PARTY_ROOT/googletest:gmock_main",
+    "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "drivers_interface_usb:usb_idl_headers",
+  ]
+  defines = [
+    "NETMGR_LOG_TAG = \"NetworkShareManager\"",
+    "LOG_DOMAIN = 0xD0015B0",
+  ]
+
+  if (enable_netmgr_ext_debug) {
+    defines += [ "NETMGR_DEBUG" ]
+  }
+
+  if (is_standard_system) {
+    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+  } else {
+    external_deps += [ "hilog:libhilog" ]
+  }
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
 }
