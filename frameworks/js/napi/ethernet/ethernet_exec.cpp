@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <new>
+#include <numeric>
 #include <string>
 
 #include "ethernet_client.h"
@@ -58,10 +59,11 @@ napi_value GetIfaceConfigCallback(GetIfaceConfigContext *context)
                                      context->config_->ipStatic_.gateway_.address_);
     NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, NET_MASK,
                                      context->config_->ipStatic_.netMask_.address_);
-    std::string dnsServers;
-    for (const auto &dnsServer : context->config_->ipStatic_.dnsServers_) {
-        dnsServers = dnsServers + dnsServer.address_ + ",";
-    }
+    std::string dnsServers = std::accumulate(context->config_->ipStatic_.dnsServers_.begin(),
+                                             context->config_->ipStatic_.dnsServers_.end(), std::string(),
+                                             [](std::string str_append, INetAddr const &iter)
+                                             { return str_append + iter.address_ + ","; });
+
     NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DNS_SERVERS, dnsServers);
     return interfaceConfiguration;
 }
