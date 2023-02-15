@@ -80,7 +80,6 @@ public:
     int32_t StopResolve(const std::string &key);
     int32_t Stop(const std::string &key);
 
-    // TODO: move check in upper layer
     bool IsNameValid(const std::string &name);
     bool IsTypeValid(const std::string &type);
     bool IsPortValid(int port);

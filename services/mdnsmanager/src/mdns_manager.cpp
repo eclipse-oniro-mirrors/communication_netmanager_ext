@@ -75,7 +75,6 @@ int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
         if (found) {
             name = iter->second;
         }
-        // TODO: erase callback
     }
     int32_t err = 0;
     if (found) {
