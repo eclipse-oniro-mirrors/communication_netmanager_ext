@@ -27,7 +27,8 @@
         ],
         "features": [
             "netmanager_ext_feature_ethernet",
-            "netmanager_ext_feature_share"
+            "netmanager_ext_feature_share",
+            "netmanager_ext_feature_mdns"
         ],
         "adapted_system_type": [
             "standard"
@@ -63,7 +64,10 @@
                 "fwk_group": [],
                 "service_group": [
                     "//foundation/communication/netmanager_ext:ethernet_packages",
-                    "//foundation/communication/netmanager_ext:share_packages"
+                    "//foundation/communication/netmanager_ext:share_packages",
+                    "//foundation/communication/netmanager_ext:mdns_packages",
+                    "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager.rc",
+                    "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile"
                 ]
             },
             "inner_kits": [
@@ -84,7 +88,9 @@
                 "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest",
                 "//foundation/communication/netmanager_ext/test/ethernetmanager:fuzztest",
                 "//foundation/communication/netmanager_ext/test/networksharemanager:fuzztest",
-                "//foundation/communication/netmanager_ext/test/networksharemanager:unittest"
+                "//foundation/communication/netmanager_ext/test/networksharemanager:unittest",
+                "//foundation/communication/netmanager_ext/test/mdnsmanager:fuzztest",
+                "//foundation/communication/netmanager_ext/test/mdnsmanager:unittest"
             ]
         }
     }

@@ -27,12 +27,14 @@ INTERFACES_INCLUDE =
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/externalvpnclient/include"
 INTERFACES_DIR = "$NETMANAGER_EXT_ROOT/interfaces/innerkits/externalvpnclient"
 EXT_INNERKITS_ROOT = "$NETMANAGER_EXT_ROOT/interfaces/innerkits"
+MDNSINTERFACE_INCLUDE = "$NETMANAGER_EXT_ROOT/interfaces/innerkits/mdnsclient"
 
 # args of services
 SERVICES_EXTERNALVPNMANAGER = "$NETMANAGER_EXT_ROOT/services/externalvpnmanager"
 ETHERNETMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/ethernetmanager"
 NETWORKSHAREMANAGER_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/services/networksharemanager"
+MDNSMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/mdnsmanager"
 
 # args of uitls
 NETWORKSHAREMANAGER_UTILS_DIR = "$NETMANAGER_EXT_ROOT/utils"
@@ -76,4 +78,5 @@ declare_args() {
   enable_netmgr_ext_debug = true
   netmanager_ext_feature_ethernet = true
   netmanager_ext_feature_share = true
+  netmanager_ext_feature_mdns = true
 }
