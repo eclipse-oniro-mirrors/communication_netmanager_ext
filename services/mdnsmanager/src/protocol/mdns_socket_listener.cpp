@@ -47,6 +47,8 @@ constexpr const char *CONTROL_TAG_REFRESH = "R";
 
 constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
+constexpr int WAIT_THREAD_MS = 5;
+constexpr size_t MDNS_MAX_SOCKET = 16;
 
 inline bool IfaceIsSupported(ifaddrs *ifa)
 {
@@ -207,6 +209,7 @@ void MDnsSocketListener::Start()
     if (!runningFlag_) {
         runningFlag_ = true;
         thread_ = std::thread([this]() { Run(); });
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_THREAD_MS));
     }
 }
 

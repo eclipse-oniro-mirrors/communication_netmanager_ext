@@ -109,15 +109,14 @@ bool MDnsExec::ExecStopSearchingMDNS(MDnsStopSearchingContext *context)
 
 napi_value CreateAttributeObj(napi_env env, MDnsServiceInfo serviceInfo)
 {
-    napi_value attrObj = NapiUtils::CreateObject(env);
     TxtRecord attrMap = serviceInfo.GetAttrMap();
     auto attrArrSize = attrMap.size();
     size_t index = 0;
     auto iter = attrMap.begin();
+    napi_value attrArr = NapiUtils::CreateArray(env, attrArrSize);
     for (; iter != attrMap.end(); iter++, index++) {
-        napi_value attrArr = NapiUtils::CreateArray(env, attrArrSize);
-        NapiUtils::SetStringPropertyUtf8(env, attrArr, SERVICEINFO_ATTR_KEY, iter->first);
-
+        napi_value attrItem = NapiUtils::CreateObject(env);
+        NapiUtils::SetStringPropertyUtf8(env, attrItem, SERVICEINFO_ATTR_KEY, iter->first);
         auto valArrSize = iter->second.size();
         napi_value valArr = NapiUtils::CreateArray(env, valArrSize);
         auto setIter = iter->second.begin();
@@ -125,10 +124,10 @@ napi_value CreateAttributeObj(napi_env env, MDnsServiceInfo serviceInfo)
         for (; setIter != iter->second.end(); setIter++, setIndex++) {
             NapiUtils::SetArrayElement(env, valArr, setIndex, NapiUtils::CreateUint32(env, *setIter));
         }
-        NapiUtils::SetNamedProperty(env, attrArr, SERVICEINFO_ATTR_VALUE, valArr);
-        NapiUtils::SetArrayElement(env, attrObj, index, attrArr);
+        NapiUtils::SetNamedProperty(env, attrItem, SERVICEINFO_ATTR_VALUE, valArr);
+        NapiUtils::SetArrayElement(env, attrArr, index, attrItem);
     }
-    return attrObj;
+    return attrArr;
 }
 
 template <class T> napi_value CreateCallbackParam(T *context)

@@ -155,7 +155,7 @@ int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
         resolveMap_.emplace_back(cb, instance);
     }
     std::thread([this, cb, instance]() {
-        usleep(DEFAULT_RESOLVE_TIMEOUT);
+        std::this_thread::sleep_for(std::chrono::milliseconds(DEFAULT_RESOLVE_TIMEOUT));
         std::lock_guard<std::mutex> guard(mutex_);
         auto iter = std::find_if(resolveMap_.begin(), resolveMap_.end(), [&](const auto &x) { return x.first == cb; });
         if (iter != resolveMap_.end()) {

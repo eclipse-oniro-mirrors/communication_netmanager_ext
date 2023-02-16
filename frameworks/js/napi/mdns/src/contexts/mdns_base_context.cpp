@@ -14,10 +14,11 @@
  */
 
 #include "napi_utils.h"
-#include "netmgr_ext_log_wrapper.h"
+#include "netmanager_ext_log.h"
 
 #include "constant.h"
 #include "mdns_base_context.h"
+#include "mdns_common.h"
 
 namespace OHOS::NetManagerStandard {
 MDnsBaseContext::MDnsBaseContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
@@ -42,7 +43,7 @@ void MDnsBaseContext::ParseAddressObj(napi_env env, napi_value obj)
             serviceInfo_.family = MDnsServiceInfo::IPV4;
         }
     } else {
-        NETMGR_EXT_LOG_E("host is not napi_object");
+        NETMANAGER_EXT_LOGE("host is not napi_object");
     }
 }
 
@@ -58,7 +59,8 @@ bool MDnsBaseContext::GetAttributeObj(napi_env env, napi_value obj, uint32_t &le
 void MDnsBaseContext::ParseAttributeObj(napi_env env, napi_value obj, TxtRecord &attrMap)
 {
     uint32_t arrLen = 0;
-    if (GetAttributeObj(env, obj, arrLen)) {
+    if (!GetAttributeObj(env, obj, arrLen)) {
+        NETMANAGER_EXT_LOGE("GetAttributeObj failed");
         return;
     }
 
@@ -66,23 +68,27 @@ void MDnsBaseContext::ParseAttributeObj(napi_env env, napi_value obj, TxtRecord 
         napi_value svrAttr = NapiUtils::GetArrayElement(env, obj, i);
         std::string key;
         if (NapiUtils::GetValueType(env, svrAttr) != napi_object) {
+            NETMANAGER_EXT_LOGE("svrAttr is not napi_object");
             continue;
         }
         if (NapiUtils::HasNamedProperty(env, svrAttr, SERVICEINFO_ATTR_KEY)) {
-            key = NapiUtils::GetStringPropertyUtf8(env, obj, SERVICEINFO_TYPE);
+            key = NapiUtils::GetStringPropertyUtf8(env, svrAttr, SERVICEINFO_ATTR_KEY);
         }
         if (!NapiUtils::HasNamedProperty(env, svrAttr, SERVICEINFO_ATTR_VALUE)) {
+            NETMANAGER_EXT_LOGE("SERVICEINFO_ATTR_VALUE is not exist");
             continue;
         }
-        napi_value valueObj = NapiUtils::GetNamedProperty(env, svrAttr, SERVICEINFO_ATTR);
+        napi_value valueObj = NapiUtils::GetNamedProperty(env, svrAttr, SERVICEINFO_ATTR_VALUE);
         uint32_t valArrLen = 0;
-        if (GetAttributeObj(env, valueObj, valArrLen)) {
+        if (!GetAttributeObj(env, valueObj, valArrLen)) {
+            NETMANAGER_EXT_LOGE("GetAttributeObj failed");
             continue;
         }
         std::vector<uint8_t> typeArray;
         for (size_t j = 0; j < valArrLen; j++) {
-            napi_value valAttr = NapiUtils::GetArrayElement(env, svrAttr, j);
+            napi_value valAttr = NapiUtils::GetArrayElement(env, valueObj, j);
             if (NapiUtils::GetValueType(env, valAttr) != napi_number) {
+                NETMANAGER_EXT_LOGE("valAttr is not napi_number");
                 continue;
             }
             typeArray.push_back(static_cast<uint8_t>(NapiUtils::GetInt32FromValue(env, valAttr)));
@@ -104,21 +110,15 @@ void MDnsBaseContext::ParseServiceInfo(napi_env env, napi_value value)
     if (NapiUtils::HasNamedProperty(env, value, SERVICEINFO_PORT)) {
         serviceInfo_.port = NapiUtils::GetInt32Property(env, value, SERVICEINFO_PORT);
     }
-
-    if (!NapiUtils::HasNamedProperty(env, value, SERVICEINFO_HOST)) {
-        NETMGR_EXT_LOG_E("host infomation does not exit");
-        return;
+    if (NapiUtils::HasNamedProperty(env, value, SERVICEINFO_HOST)) {
+        napi_value hostObj = NapiUtils::GetNamedProperty(env, value, SERVICEINFO_HOST);
+        ParseAddressObj(env, hostObj);
     }
-    napi_value hostObj = NapiUtils::GetNamedProperty(env, value, SERVICEINFO_HOST);
-    ParseAddressObj(env, hostObj);
-
-    if (!NapiUtils::HasNamedProperty(env, value, SERVICEINFO_ATTR)) {
-        NETMGR_EXT_LOG_E("serviceAttribute infomation does not exit");
-        return;
+    if (NapiUtils::HasNamedProperty(env, value, SERVICEINFO_ATTR)) {
+        napi_value attrObj = NapiUtils::GetNamedProperty(env, value, SERVICEINFO_ATTR);
+        TxtRecord attrMap;
+        ParseAttributeObj(env, attrObj, attrMap);
+        serviceInfo_.SetAttrMap(attrMap);
     }
-    napi_value attrObj = NapiUtils::GetNamedProperty(env, value, SERVICEINFO_ATTR);
-    TxtRecord attrMap;
-    ParseAttributeObj(env, attrObj, attrMap);
-    serviceInfo_.SetAttrMap(attrMap);
 }
 } // namespace OHOS::NetManagerStandard

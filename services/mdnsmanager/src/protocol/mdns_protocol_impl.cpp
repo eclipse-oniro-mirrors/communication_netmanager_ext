@@ -187,8 +187,8 @@ int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType)
     });
     msg.header.qdcount = msg.questions.size();
 
-    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     listener_.Start();
+    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
     return size == -1 ? NET_MDNS_ERR_SEND : NETMANAGER_EXT_SUCCESS;
 }
@@ -218,8 +218,8 @@ int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
     });
     msg.header.qdcount = msg.questions.size();
 
-    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     listener_.Start();
+    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
     return size == -1 ? NET_MDNS_ERR_SEND : NETMANAGER_EXT_SUCCESS;
 }
@@ -249,8 +249,8 @@ int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
     });
     msg.header.qdcount = msg.questions.size();
 
-    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     listener_.Start();
+    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
     return size == -1 ? NET_MDNS_ERR_SEND : NETMANAGER_EXT_SUCCESS;
 }

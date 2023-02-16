@@ -31,7 +31,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-static constexpr size_t MDNS_MAX_SOCKET = 16;
 
 // This class create and manage udp socket for mDNS transmission
 // In multi-interface device, we should create socket for each iface for multicast

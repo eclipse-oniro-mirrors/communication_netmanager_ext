@@ -59,7 +59,6 @@ int32_t MDnsServiceStub::OnRegisterService(MessageParcel &data, MessageParcel &r
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    // 敏感
     NETMGR_EXT_LOG_D("MDnsServiceProxy [%{public}s][%{public}s][%{public}d]",
                      serviceInfo->name.c_str(), serviceInfo->type.c_str(), serviceInfo->port);
 
