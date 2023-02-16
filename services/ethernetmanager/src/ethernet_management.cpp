@@ -159,7 +159,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
 {
     if (cfg == nullptr) {
         NETMGR_EXT_LOG_E("cfg is nullptr");
-        return ETHERNET_ERR_DEVICE_CONFIGURATION_INVALID;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     std::unique_lock<std::mutex> lock(mutex_);
     auto fit = devs_.find(iface);
