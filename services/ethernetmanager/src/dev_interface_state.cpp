@@ -17,6 +17,7 @@
 
 #include "inet_addr.h"
 #include "net_manager_center.h"
+#include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
@@ -124,7 +125,7 @@ void DevInterfaceState::RemoteRegisterNetSupplier()
         }
         int32_t result =
             NetManagerCenter::GetInstance().RegisterNetSupplier(bearerType_, devName_, netCaps_, netSupplier_);
-        if (result == 0) {
+        if (result == NETMANAGER_SUCCESS) {
             connLinkState_ = REGISTERED;
         }
         NETMGR_EXT_LOG_D("DevInterfaceCfg RemoteRegisterNetSupplier netSupplier_[%{public}d]", netSupplier_);
@@ -137,7 +138,7 @@ void DevInterfaceState::RemoteUnregisterNetSupplier()
         return;
     }
     int ret = NetManagerCenter::GetInstance().UnregisterNetSupplier(netSupplier_);
-    if (!ret) {
+    if (ret == NETMANAGER_SUCCESS) {
         connLinkState_ = UNREGISTERED;
         netSupplier_ = 0;
     }

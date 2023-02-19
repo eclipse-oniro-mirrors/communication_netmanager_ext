@@ -21,15 +21,15 @@
 
 #include "constant.h"
 #include "module_template.h"
-#include "netshare_startsharing_context.h"
-#include "netshare_issharing_context.h"
 #include "napi_utils.h"
+#include "net_manager_ext_constants.h"
 #include "netmanager_ext_log.h"
 #include "netshare_async_work.h"
 #include "netshare_exec.h"
-#include "networkshare_constants.h"
-#include "net_manager_ext_constants.h"
+#include "netshare_issharing_context.h"
 #include "netshare_observer_wrapper.h"
+#include "netshare_startsharing_context.h"
+#include "networkshare_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -74,15 +74,15 @@ napi_value IsSharingSupported(napi_env env, napi_callback_info info)
 napi_value IsSharing(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<NetShareIsSharingContext>(env, info, FUNCTION_IS_SHARING, nullptr,
-                                                       NetShareAsyncWork::ExecIsSharing,
-                                                       NetShareAsyncWork::IsSharingCallback);
+                                                               NetShareAsyncWork::ExecIsSharing,
+                                                               NetShareAsyncWork::IsSharingCallback);
 }
 
 napi_value StartSharing(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<NetShareStartSharingContext>(env, info, FUNCTION_START_SHARING, nullptr,
-                                                          NetShareAsyncWork::ExecStartSharing,
-                                                          NetShareAsyncWork::StartSharingCallback);
+                                                                  NetShareAsyncWork::ExecStartSharing,
+                                                                  NetShareAsyncWork::StartSharingCallback);
 }
 
 napi_value StopSharing(napi_env env, napi_callback_info info)
@@ -116,15 +116,15 @@ napi_value GetSharableRegexes(napi_env env, napi_callback_info info)
 napi_value GetStatsRxBytes(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<GetStatsRxBytesContext>(env, info, FUNCTION_GET_STATS_RX_BYTES, nullptr,
-                                                                NetShareAsyncWork::ExecGetStatsRxBytes,
-                                                                NetShareAsyncWork::GetStatsRxBytesCallback);
+                                                             NetShareAsyncWork::ExecGetStatsRxBytes,
+                                                             NetShareAsyncWork::GetStatsRxBytesCallback);
 }
 
 napi_value GetStatsTxBytes(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<GetStatsTxBytesContext>(env, info, FUNCTION_GET_STATS_TX_BYTES, nullptr,
-                                                                NetShareAsyncWork::ExecGetStatsTxBytes,
-                                                                NetShareAsyncWork::GetStatsTxBytesCallback);
+                                                             NetShareAsyncWork::ExecGetStatsTxBytes,
+                                                             NetShareAsyncWork::GetStatsTxBytesCallback);
 }
 
 napi_value GetStatsTotalBytes(napi_env env, napi_callback_info info)

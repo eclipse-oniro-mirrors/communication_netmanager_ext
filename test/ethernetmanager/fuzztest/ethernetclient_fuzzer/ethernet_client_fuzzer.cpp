@@ -361,11 +361,14 @@ void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
     sptr<InterfaceConfiguration> cfg;
     ethernetManagement->UpdateDevInterfaceCfg(iface, cfg);
 
-    ethernetManagement->GetDevInterfaceCfg(iface);
+    sptr<InterfaceConfiguration> ifaceConfig;
+    ethernetManagement->GetDevInterfaceCfg(iface, ifaceConfig);
 
-    ethernetManagement->IsIfaceActive(iface);
+    int32_t activeStatus = 0;
+    ethernetManagement->IsIfaceActive(iface, activeStatus);
 
-    ethernetManagement->GetAllActiveIfaces();
+    std::vector<std::string> result;
+    ethernetManagement->GetAllActiveIfaces(result);
 
     ethernetManagement->ResetFactory();
     std::string devName = GetStringFromData(IFACE_LEN);

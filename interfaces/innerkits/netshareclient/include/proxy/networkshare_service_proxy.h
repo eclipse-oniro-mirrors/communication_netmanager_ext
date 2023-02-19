@@ -29,18 +29,18 @@ public:
     virtual ~NetworkShareServiceProxy() = default;
 
     bool WriteInterfaceToken(MessageParcel &data);
-    int32_t IsNetworkSharingSupported() override;
-    int32_t IsSharing() override;
+    int32_t IsNetworkSharingSupported(int32_t &supported) override;
+    int32_t IsSharing(int32_t &sharingStatus) override;
     int32_t StartNetworkSharing(const SharingIfaceType &type) override;
     int32_t StopNetworkSharing(const SharingIfaceType &type) override;
-    std::vector<std::string> GetSharableRegexs(SharingIfaceType type) override;
+    int32_t GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs) override;
     int32_t GetSharingState(SharingIfaceType type, SharingIfaceState &state) override;
-    std::vector<std::string> GetNetSharingIfaces(const SharingIfaceState &state) override;
+    int32_t GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces) override;
     int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback) override;
     int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback) override;
-    int32_t GetStatsRxBytes() override;
-    int32_t GetStatsTxBytes() override;
-    int32_t GetStatsTotalBytes() override;
+    int32_t GetStatsRxBytes(int32_t &bytes) override;
+    int32_t GetStatsTxBytes(int32_t &bytes) override;
+    int32_t GetStatsTotalBytes(int32_t &bytes) override;
 
 private:
     int32_t SendRequest(INetworkShareService::MessageCode code, MessageParcel &data, MessageParcel &reply);

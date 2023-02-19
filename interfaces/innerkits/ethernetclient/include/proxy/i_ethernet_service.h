@@ -43,13 +43,13 @@ public:
 
 public:
     virtual int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) = 0;
-    virtual sptr<InterfaceConfiguration> GetIfaceConfig(const std::string &iface) = 0;
-    virtual int32_t IsIfaceActive(const std::string &iface) = 0;
-    virtual std::vector<std::string> GetAllActiveIfaces() = 0;
+    virtual int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig) = 0;
+    virtual int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) = 0;
+    virtual int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces) = 0;
     virtual int32_t ResetFactory() = 0;
     virtual int32_t SetInterfaceUp(const std::string &iface) = 0;
     virtual int32_t SetInterfaceDown(const std::string &iface) = 0;
-    virtual bool GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) = 0;
+    virtual int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

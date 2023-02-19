@@ -18,6 +18,7 @@
 #include <regex>
 
 #include "netmgr_ext_log_wrapper.h"
+#include "net_manager_constants.h"
 #include "networkshare_constants.h"
 
 namespace OHOS {
@@ -59,7 +60,7 @@ NetworkShareConfiguration::NetworkShareConfiguration()
 
 bool NetworkShareConfiguration::IsNetworkSharingSupported() const
 {
-    return isSharingSupported_;
+    return supported_;
 }
 
 bool NetworkShareConfiguration::IsUsbIface(const std::string &iface)
@@ -182,7 +183,7 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
     switch (configMap_[strKey]) {
         case Config_Value::CONFIG_VALUE_SHARE_SUPPORT:
             if (strVal == VALUE_SUPPORT_TRUE) {
-                isSharingSupported_ = true;
+                supported_ = true;
             }
             break;
         case Config_Value::CONFIG_VALUE_USB_REGEXS:
@@ -229,14 +230,14 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
 int32_t NetworkShareConfiguration::LoadConfigData()
 {
     isWifiHotspotSetDhcp_ = false;
-    isSharingSupported_ = false;
+    supported_ = false;
     usbRegexs_.clear();
     wifiRegexs_.clear();
     blueToothRegexs_.clear();
 
     std::vector<std::string> strVec = ReadConfigFile();
     if (strVec.size() == 0) {
-        return NETWORKSHARE_ERROR;
+        return NETWORKSHARE_ERROR_IFACE_CFG_ERROR;
     }
 
     for_each(strVec.begin(), strVec.end(), [this](std::string &line) {
@@ -248,7 +249,7 @@ int32_t NetworkShareConfiguration::LoadConfigData()
             this->ParseLineData(strKey, strValue);
         }
     });
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -15,6 +15,7 @@
 
 #include "ethernet_service_proxy.h"
 
+#include "net_manager_constants.h"
 #include "i_ethernet_service.h"
 #include "interface_configuration.h"
 #include "ipc_types.h"
@@ -22,6 +23,7 @@
 #include "iremote_proxy.h"
 #include "message_option.h"
 #include "message_parcel.h"
+#include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
@@ -62,45 +64,49 @@ int32_t EthernetServiceProxy::SetIfaceConfig(const std::string &iface, sptr<Inte
     MessageParcel reply;
     MessageOption option;
     int32_t ret = remote->SendRequest(CMD_SET_IF_CFG, data, reply, option);
-    if (ret != ERR_NONE) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    return reply.ReadInt32();
+    return ret;
 }
 
-sptr<InterfaceConfiguration> EthernetServiceProxy::GetIfaceConfig(const std::string &iface)
+int32_t EthernetServiceProxy::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        return nullptr;
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!data.WriteString(iface)) {
-        return nullptr;
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("Remote is null");
-        return nullptr;
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     MessageParcel reply;
     MessageOption option;
     int32_t ret = remote->SendRequest(CMD_GET_IF_CFG, data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
-        return nullptr;
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     int32_t res = 0;
     if (!reply.ReadInt32(res)) {
-        return nullptr;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     if (res != GET_CFG_SUC) {
-        return nullptr;
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    return InterfaceConfiguration::Unmarshalling(reply);
+    ifaceConfig = InterfaceConfiguration::Unmarshalling(reply);
+    if (ifaceConfig == nullptr) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t EthernetServiceProxy::IsIfaceActive(const std::string &iface)
+int32_t EthernetServiceProxy::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
@@ -122,38 +128,38 @@ int32_t EthernetServiceProxy::IsIfaceActive(const std::string &iface)
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
 
-    return reply.ReadInt32();
+    activeStatus = reply.ReadInt32();
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-std::vector<std::string> EthernetServiceProxy::GetAllActiveIfaces()
+int32_t EthernetServiceProxy::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
 {
     MessageParcel data;
-    std::vector<std::string> ifaces;
     if (!WriteInterfaceToken(data)) {
-        return ifaces;
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("Remote is null");
-        return ifaces;
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     MessageParcel reply;
     MessageOption option;
     int32_t ret = remote->SendRequest(CMD_GET_ACTIVATE_INTERFACE, data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
-        return ifaces;
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
 
     int32_t size = reply.ReadInt32();
     if (size > MAX_SIZE) {
         NETMGR_EXT_LOG_E("size=[%{public}d] is too large", size);
-        return ifaces;
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     for (int i = 0; i < size; i++) {
-        ifaces.push_back(reply.ReadString());
+        activeIfaces.push_back(reply.ReadString());
     }
-    return ifaces;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetServiceProxy::ResetFactory()
@@ -174,7 +180,7 @@ int32_t EthernetServiceProxy::ResetFactory()
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    return reply.ReadInt32();
+    return ret;
 }
 
 int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
@@ -198,7 +204,7 @@ int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    return reply.ReadInt32();
+    return ret;
 }
 
 int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
@@ -222,17 +228,17 @@ int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    return reply.ReadInt32();
+    return ret;
 }
 
-bool EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
+int32_t EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
-        return false;
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!data.WriteString(iface)) {
-        return false;
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -253,7 +259,7 @@ bool EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nm
     int32_t vSize = reply.ReadInt32();
     if (vSize > MAX_SIZE) {
         NETMGR_EXT_LOG_E("vSize=[%{public}d] is too large", vSize);
-        return false;
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     std::vector<std::string> vecString;
     for (int i = 0; i < vSize; i++) {
@@ -262,7 +268,7 @@ bool EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nm
     if (vSize > 0) {
         cfg.flags.assign(vecString.begin(), vecString.end());
     }
-    return true;
+    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

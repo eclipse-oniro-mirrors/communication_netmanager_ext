@@ -17,6 +17,7 @@
 
 #include "ipc_types.h"
 #include "parcel.h"
+#include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
 
@@ -46,7 +47,7 @@ void NetShareResultCallbackProxy::OnResult(const int32_t &result)
     }
     int32_t ret =
         remote->SendRequest(static_cast<int32_t>(INetShareResultCallback::Message::RESULT), data, reply, option);
-    if (ret != ERR_NONE) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("NetShareResultCallbackProxy SendRequest error=[%{public}d].", ret);
     }
 }

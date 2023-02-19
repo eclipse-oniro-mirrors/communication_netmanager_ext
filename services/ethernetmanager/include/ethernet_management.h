@@ -62,9 +62,9 @@ public:
     int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
     void UpdateInterfaceState(const std::string &dev, bool up);
     int32_t UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg);
-    sptr<InterfaceConfiguration> GetDevInterfaceCfg(const std::string &iface);
-    int32_t IsIfaceActive(const std::string &iface);
-    std::vector<std::string> GetAllActiveIfaces();
+    int32_t GetDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig);
+    int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus);
+    int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces);
     int32_t ResetFactory();
     void GetDumpInfo(std::string &info);
     void DevInterfaceAdd(const std::string &devName);
