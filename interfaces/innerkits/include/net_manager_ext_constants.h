@@ -27,6 +27,7 @@ enum {
     NETMANAGER_EXT_COMMON = 0x00,
     EXTERNALVPN_MANAGER = 0x01,
     NETMANAGER_ETHERNET_MANAGER = 0x02,
+    NETMANAGER_MDNS_MANAGER = 0x03,
 };
 
 // Error code for common
@@ -55,6 +56,9 @@ enum {
 constexpr ErrCode ETHERNET_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, NETMANAGER_ETHERNET_MANAGER);
 // Error code for netmanager external vpn
 constexpr ErrCode EXTERNALVPN_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, EXTERNALVPN_MANAGER);
+
+// Error code for netmanager mdns
+constexpr ErrCode MDNS_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, NETMANAGER_MDNS_MANAGER);
 
 // for network sharing
 enum class SharingIfaceType {
