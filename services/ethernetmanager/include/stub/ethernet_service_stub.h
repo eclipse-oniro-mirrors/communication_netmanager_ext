@@ -43,6 +43,7 @@ private:
     int32_t OnSetInterfaceUp(MessageParcel &data, MessageParcel &reply);
     int32_t OnSetInterfaceDown(MessageParcel &data, MessageParcel &reply);
     int32_t OnGetInterfaceConfig(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSetInterfaceConfig(MessageParcel &data, MessageParcel &reply);
 
 private:
     std::map<uint32_t, EthernetServiceFunc> memberFuncMap_;

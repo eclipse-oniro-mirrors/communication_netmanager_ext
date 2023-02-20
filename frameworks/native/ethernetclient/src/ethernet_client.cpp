@@ -168,5 +168,15 @@ int32_t EthernetClient::GetInterfaceConfig(const std::string &iface, OHOS::nmd::
     }
     return proxy->GetInterfaceConfig(iface, cfg);
 }
+
+int32_t EthernetClient::SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->SetInterfaceConfig(iface, cfg);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

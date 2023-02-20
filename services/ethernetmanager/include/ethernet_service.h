@@ -50,6 +50,7 @@ public:
     int32_t SetInterfaceUp(const std::string &iface) override;
     int32_t SetInterfaceDown(const std::string &iface) override;
     int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &config) override;
+    int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) override;
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;

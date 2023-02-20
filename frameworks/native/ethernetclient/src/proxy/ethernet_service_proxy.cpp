@@ -176,7 +176,7 @@ int32_t EthernetServiceProxy::ResetFactory()
     MessageParcel reply;
     MessageOption option;
     int32_t ret = remote->SendRequest(CMD_RESET_FACTORY, data, reply, option);
-    if (ret != ERR_NONE) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
@@ -269,6 +269,52 @@ int32_t EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS:
         cfg.flags.assign(vecString.begin(), vecString.end());
     }
     return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetServiceProxy::SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
+{
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(iface)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteString(cfg.ifName)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteString(cfg.hwAddr)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteString(cfg.ipv4Addr)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteInt32(cfg.prefixLength)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    int32_t vecSize = static_cast<int32_t>(cfg.flags.size());
+    if (!data.WriteInt32(vecSize)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    for (auto str : cfg.flags) {
+        if (!data.WriteString(str)) {
+            return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+        }
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(CMD_SET_INTERFACE_CONFIG, data, reply, option);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return ret;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

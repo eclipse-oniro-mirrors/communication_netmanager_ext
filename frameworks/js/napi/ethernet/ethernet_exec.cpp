@@ -35,6 +35,7 @@ constexpr const char *ROUTE = "route";
 constexpr const char *NET_MASK = "netMask";
 constexpr const char *GATEWAY = "gateway";
 constexpr const char *DNS_SERVERS = "dnsServers";
+constexpr const char *DOMAIN = "domain";
 } // namespace
 bool ExecGetIfaceConfig(GetIfaceConfigContext *context)
 {
@@ -65,6 +66,8 @@ napi_value GetIfaceConfigCallback(GetIfaceConfigContext *context)
                                              { return str_append + iter.address_ + ","; });
 
     NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DNS_SERVERS, dnsServers);
+    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DOMAIN,
+                                     context->config_->ipStatic_.domain_);
     return interfaceConfiguration;
 }
 

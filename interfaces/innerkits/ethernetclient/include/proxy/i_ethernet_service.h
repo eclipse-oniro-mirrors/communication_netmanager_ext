@@ -39,6 +39,7 @@ public:
         CMD_SET_INTERFACE_UP,
         CMD_SET_INTERFACE_DOWN,
         CMD_GET_INTERFACE_CONFIG,
+        CMD_SET_INTERFACE_CONFIG,
     };
 
 public:
@@ -50,6 +51,7 @@ public:
     virtual int32_t SetInterfaceUp(const std::string &iface) = 0;
     virtual int32_t SetInterfaceDown(const std::string &iface) = 0;
     virtual int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) = 0;
+    virtual int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

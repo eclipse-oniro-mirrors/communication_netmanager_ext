@@ -83,11 +83,18 @@ public:
     int32_t SetInterfaceDown(const std::string &iface);
 
     /**
-     *  Set the specified network port configuration
+     *  Get the specified network port configuration
      *
      * @return Returns 'true' as success, 'false' values as failure
      */
     int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
+
+    /**
+     *  Set the specified network port configuration
+     *
+     * @return Returns 0 as success, other values as failure
+     */
+    int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
 
 private:
     class EthernetDeathRecipient : public IRemoteObject::DeathRecipient {
