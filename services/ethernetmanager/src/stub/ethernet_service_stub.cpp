@@ -29,6 +29,10 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr uint32_t MAX_SIZE = 16;
+constexpr uint32_t MAX_IFACE_NAME_LEN = 13;
+constexpr uint32_t MAX_MAC_ADDR_LEN = 17;
+constexpr uint32_t MAX_IPV4_ADDR_LEN = 15;
+constexpr uint32_t MAX_PRE_LEN = 128;
 }
 
 EthernetServiceStub::EthernetServiceStub()
@@ -41,6 +45,7 @@ EthernetServiceStub::EthernetServiceStub()
     memberFuncMap_[CMD_SET_INTERFACE_UP] = &EthernetServiceStub::OnSetInterfaceUp;
     memberFuncMap_[CMD_SET_INTERFACE_DOWN] = &EthernetServiceStub::OnSetInterfaceDown;
     memberFuncMap_[CMD_GET_INTERFACE_CONFIG] = &EthernetServiceStub::OnGetInterfaceConfig;
+    memberFuncMap_[CMD_SET_INTERFACE_CONFIG] = &EthernetServiceStub::OnSetInterfaceConfig;
 }
 
 int32_t EthernetServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
@@ -167,7 +172,7 @@ int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessagePa
     }
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     int32_t result = GetInterfaceConfig(iface, cfg);
-    if (!result) {
+    if (result != ERR_NONE) {
         NETMGR_EXT_LOG_E("GetInterfaceConfig is error");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
@@ -184,6 +189,49 @@ int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessagePa
         reply.WriteString(flag);
     }
     reply.WriteInt32(result);
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetServiceStub::OnSetInterfaceConfig(MessageParcel &data, MessageParcel &reply)
+{
+    std::string iface = data.ReadString();
+
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    cfg.ifName = data.ReadString();
+    if (cfg.ifName.size() > MAX_IFACE_NAME_LEN || cfg.ifName.size() == 0) {
+        NETMGR_EXT_LOG_E("ifName=[%{public}s] is too long", cfg.ifName.c_str());
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    cfg.hwAddr = data.ReadString();
+    if (cfg.hwAddr.size() > MAX_MAC_ADDR_LEN) {
+        NETMGR_EXT_LOG_E("hwAddr=[%{public}s] is too long", cfg.hwAddr.c_str());
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    cfg.ipv4Addr = data.ReadString();
+    if (cfg.ipv4Addr.size() > MAX_IPV4_ADDR_LEN) {
+        NETMGR_EXT_LOG_E("ipv4Addr=[%{public}s] is too long", cfg.ipv4Addr.c_str());
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    cfg.prefixLength = data.ReadInt32();
+    if (cfg.prefixLength > MAX_PRE_LEN) {
+        NETMGR_EXT_LOG_E("prefixLength=[%{public}d] is too large", cfg.prefixLength);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+
+    int32_t vecSize = data.ReadInt32();
+    if (vecSize <= 0 || vecSize > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("flags size=[%{public}d] is 0 or too large", vecSize);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    for (int32_t idx = 0; idx < vecSize; idx++) {
+        cfg.flags.push_back(data.ReadString());
+    }
+
+    int32_t result = SetInterfaceConfig(iface, cfg);
+    if (result != ERR_NONE) {
+        NETMGR_EXT_LOG_E("Set interface config failed");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard

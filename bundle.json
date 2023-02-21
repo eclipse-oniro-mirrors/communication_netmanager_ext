@@ -82,6 +82,16 @@
                         ],
                         "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
                     }
+                },
+                {
+                    "type": "so",
+                    "name": "//foundation/communication/netmanager_ext/interfaces/innerkits/ethernetclient:ethernet_manager_if",
+                    "header": {
+                        "header_files": [
+                            "ethernetclient/include/ethernet_client.h"
+                        ],
+                        "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
+                    }
                 }
             ],
             "test": [

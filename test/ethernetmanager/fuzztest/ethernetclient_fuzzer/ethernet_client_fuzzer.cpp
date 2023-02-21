@@ -326,6 +326,43 @@ void GetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
     OnRemoteRequest(EthernetService::CMD_GET_INTERFACE_CONFIG, parcel);
 }
 
+void SetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    std::string randStr = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(randStr)) {
+        return;
+    }
+    if (!parcel.WriteString(randStr)) {
+        return;
+    }
+    if (!parcel.WriteString(randStr)) {
+        return;
+    }
+    if (!parcel.WriteString(randStr)) {
+        return;
+    }
+    if (!parcel.WriteInt32(GetData<int32_t>())) {
+        return;
+    }
+    if (!parcel.WriteInt32(1)) {
+        return;
+    }
+    if (!parcel.WriteString(randStr)) {
+        return;
+    }
+    OnRemoteRequest(EthernetService::CMD_SET_INTERFACE_CONFIG, parcel);
+}
+
 void EthernetServiceCommonFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -411,6 +448,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::SetInterfaceUpFuzzTest(data, size);
     OHOS::NetManagerStandard::SetInterfaceDownFuzzTest(data, size);
     OHOS::NetManagerStandard::GetInterfaceConfigFuzzTest(data, size);
+    OHOS::NetManagerStandard::SetInterfaceConfigFuzzTest(data, size);
     OHOS::NetManagerStandard::EthernetServiceCommonFuzzTest(data, size);
     OHOS::NetManagerStandard::EthernetManagementFuzzTest(data, size);
     OHOS::NetManagerStandard::EthernetDhcpControllerFuzzTest(data, size);

@@ -247,7 +247,8 @@ HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    ASSERT_FALSE(DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory() > 0);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
@@ -255,6 +256,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
+    GrantPermission(BUNDLENAME, CONNECTIVITY_INTERNAL);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -262,12 +264,49 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
     ASSERT_FALSE(cfg.hwAddr.empty());
 }
 
+HWTEST_F(EthernetManagerTest, SetInterfaceConfig001, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    GrantPermission(BUNDLENAME, CONNECTIVITY_INTERNAL);
+    OHOS::nmd::InterfaceConfigurationParcel config;
+    config.ifName = "eth0";
+    config.hwAddr = "";
+    config.ipv4Addr = "172.17.5.234";
+    config.prefixLength = 24;
+    config.flags.push_back("up");
+    config.flags.push_back("broadcast");
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceConfig(DEV_NAME, config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, SetInterfaceConfig002, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    GrantPermission(BUNDLENAME, CONNECTIVITY_INTERNAL);
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(DEV_NAME);
+    OHOS::nmd::InterfaceConfigurationParcel config;
+    config.ifName = "eth0";
+    config.hwAddr = "";
+    config.ipv4Addr = "172.17.5.234";
+    config.prefixLength = 24;
+    config.flags.push_back("up");
+    config.flags.push_back("broadcast");
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceConfig(DEV_NAME, config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ASSERT_TRUE(result == 0);
+}
+
 HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 {
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(DEV_NAME);
+    GrantPermission(BUNDLENAME, CONNECTIVITY_INTERNAL);
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
