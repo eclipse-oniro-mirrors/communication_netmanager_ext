@@ -29,8 +29,11 @@ constexpr const char *CONFIG_KEY_WIFI_REGEXS = "wifi_regexs";
 constexpr const char *CONFIG_KEY_BLUETOOTH_REGEXS = "bluetooth_regexs";
 constexpr const char *CONFIG_KEY_BT_PAN_ADDR = "bt_pan_ipv4_addr";
 constexpr const char *CONFIG_KEY_WIFI_HOTSPOT_ADDR = "wifi_hotspot_ipv4_addr";
+constexpr const char *CONFIG_KEY_USB_RNDIS_ADDR = "usb_rndis_ipv4_addr";
 constexpr const char *CONFIG_KEY_BT_PAN_DHCP_NAME = "bt_pan_dhcp_server_name";
 constexpr const char *CONFIG_KEY_WIFI_DHCP_NAME = "wifi_hotspot_dhcp_server_name";
+constexpr const char *CONFIG_KEY_USB_DHCP_NAME = "usb_rndis_dhcp_server_name";
+constexpr const char *CONFIG_KEY_USB_IFACE_NAME = "usb_iface_name";
 constexpr const char *CONFIG_KEY_ROUTE_SUFFIX = "route_suffix";
 constexpr const char *CONFIG_KEY_DHCP_ENDIP = "dhcp_endip";
 constexpr const char *CONFIG_KEY_DEFAULT_MASK = "default_mask";
@@ -48,8 +51,11 @@ NetworkShareConfiguration::NetworkShareConfiguration()
     configMap_[CONFIG_KEY_BLUETOOTH_REGEXS] = Config_Value::CONFIG_VALUE_BLUETOOTH_REGEXS;
     configMap_[CONFIG_KEY_BT_PAN_ADDR] = Config_Value::CONFIG_VALUE_BT_PAN_ADDR;
     configMap_[CONFIG_KEY_WIFI_HOTSPOT_ADDR] = Config_Value::CONFIG_VALUE_WIFI_HOTSPOT_ADDR;
+    configMap_[CONFIG_KEY_USB_RNDIS_ADDR] = Config_Value::CONFIG_VALUE_USB_RNDIS_ADDR;
     configMap_[CONFIG_KEY_BT_PAN_DHCP_NAME] = Config_Value::CONFIG_VALUE_BT_PAN_DHCP_NAME;
     configMap_[CONFIG_KEY_WIFI_DHCP_NAME] = Config_Value::CONFIG_VALUE_WIFI_DHCP_NAME;
+    configMap_[CONFIG_KEY_USB_DHCP_NAME] = Config_Value::CONFIG_VALUE_USB_DHCP_NAME;
+    configMap_[CONFIG_KEY_USB_IFACE_NAME] = Config_Value::CONFIG_VALUE_USB_IFACE_NAME;
     configMap_[CONFIG_KEY_ROUTE_SUFFIX] = Config_Value::CONFIG_VALUE_ROUTE_SUFFIX;
     configMap_[CONFIG_KEY_DHCP_ENDIP] = Config_Value::CONFIG_VALUE_DHCP_ENDIP;
     configMap_[CONFIG_KEY_DEFAULT_MASK] = Config_Value::CONFIG_VALUE_DEFAULT_MASK;
@@ -102,6 +108,11 @@ std::string &NetworkShareConfiguration::GetWifiHotspotIpv4Addr()
     return wifiIpv4Str_;
 }
 
+std::string &NetworkShareConfiguration::GetUsbRndisIpv4Addr()
+{
+    return usbIpv4Str_;
+}
+
 std::string &NetworkShareConfiguration::GetRouteSuffix()
 {
     return routeSuffix_;
@@ -115,6 +126,16 @@ std::string &NetworkShareConfiguration::GetBtpanDhcpServerName()
 std::string &NetworkShareConfiguration::GetWifiHotspotDhcpServerName()
 {
     return wifiDhcpServerName_;
+}
+
+std::string &NetworkShareConfiguration::GetUsbRndisDhcpServerName()
+{
+    return usbDhcpServerName_;
+}
+
+std::string &NetworkShareConfiguration::GetUsbRndisIfaceName()
+{
+    return usbIfaceName_;
 }
 
 std::string &NetworkShareConfiguration::GetDefaultMask()
@@ -200,11 +221,20 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
         case Config_Value::CONFIG_VALUE_WIFI_HOTSPOT_ADDR:
             wifiIpv4Str_ = strVal;
             break;
+        case Config_Value::CONFIG_VALUE_USB_RNDIS_ADDR:
+            usbIpv4Str_ = strVal;
+            break;
         case Config_Value::CONFIG_VALUE_BT_PAN_DHCP_NAME:
             btPanDhcpServerName_ = strVal;
             break;
         case Config_Value::CONFIG_VALUE_WIFI_DHCP_NAME:
             wifiDhcpServerName_ = strVal;
+            break;
+        case Config_Value::CONFIG_VALUE_USB_DHCP_NAME:
+            usbDhcpServerName_ = strVal;
+            break;
+        case Config_Value::CONFIG_VALUE_USB_IFACE_NAME:
+            usbIfaceName_ = strVal;
             break;
         case Config_Value::CONFIG_VALUE_ROUTE_SUFFIX:
             routeSuffix_ = strVal;

@@ -328,10 +328,6 @@ void NetworkShareSubStateMachine::HandleConnection()
 
 void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
 {
-    if (netShareType_ == SharingIfaceType::SHARING_USB) {
-        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Remove Route USB is not support.", ifaceName_.c_str());
-        return;
-    }
     std::string destination;
     if (!FindDestinationAddr(destination)) {
         NETMGR_EXT_LOG_E("Get Destination fail");
@@ -350,10 +346,6 @@ void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
 
 void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
 {
-    if (netShareType_ == SharingIfaceType::SHARING_USB) {
-        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route USB is not support.", ifaceName_.c_str());
-        return;
-    }
     std::string destination;
     if (!FindDestinationAddr(destination)) {
         NETMGR_EXT_LOG_E("Get Destination fail");
@@ -382,6 +374,14 @@ bool NetworkShareSubStateMachine::FindDestinationAddr(std::string &destination)
     if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
         if (!GetWifiApDestinationAddr(destination)) {
             NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get wifi Destination Addr failed.",
+                             ifaceName_.c_str());
+            return false;
+        }
+        return true;
+    }
+    if (netShareType_ == SharingIfaceType::SHARING_USB) {
+        if (!GetUsbDestinationAddr(destination)) {
+            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route Get usb Destination Addr failed.",
                              ifaceName_.c_str());
             return false;
         }
@@ -447,6 +447,31 @@ bool NetworkShareSubStateMachine::GetWifiApDestinationAddr(std::string &addrStr)
         return false;
     }
     addrStr = wifiIpv4Addr.substr(0, dotPos) + routeSuffix;
+    return true;
+}
+
+bool NetworkShareSubStateMachine::GetUsbDestinationAddr(std::string &addrStr)
+{
+    if (configuration_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetUsbDestinationAddr configuration is null.");
+        return false;
+    }
+    std::string usbIpv4Addr = configuration_->GetUsbRndisIpv4Addr();
+    if (usbIpv4Addr.empty()) {
+        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] get usb ipv4 addr failed.", ifaceName_.c_str());
+        return false;
+    }
+    std::string::size_type dotPos = usbIpv4Addr.rfind(".");
+    if (dotPos == std::string::npos) {
+        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] usb ipv4 addr error.", ifaceName_.c_str());
+        return false;
+    }
+    std::string routeSuffix = configuration_->GetRouteSuffix();
+    if (routeSuffix.empty()) {
+        NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] get route suffix failed.", ifaceName_.c_str());
+        return false;
+    }
+    addrStr = usbIpv4Addr.substr(0, dotPos) + routeSuffix;
     return true;
 }
 
@@ -578,34 +603,32 @@ bool NetworkShareSubStateMachine::RequestIpv4Address(std::shared_ptr<INetAddr> &
         NETMGR_EXT_LOG_E("RequestIpv4Address get default mask failed.");
         return false;
     }
+    switch (netShareType_) {
+        case SharingIfaceType::SHARING_BLUETOOTH: {
+            netAddr->address_ = configuration_->GetBtpanIpv4Addr();
+            netAddr->hostName_ = configuration_->GetBtpanDhcpServerName();
+            break;
+        }
+        case SharingIfaceType::SHARING_WIFI: {
+            netAddr->address_ = configuration_->GetWifiHotspotIpv4Addr();
+            netAddr->hostName_ = configuration_->GetWifiHotspotDhcpServerName();
+            break;
+        }
+        case SharingIfaceType::SHARING_USB: {
+            netAddr->address_ = configuration_->GetUsbRndisIpv4Addr();
+            netAddr->hostName_ = configuration_->GetUsbRndisDhcpServerName();
+            break;
+        }
+        default:
+            NETMGR_EXT_LOG_E("Unknown share type");
+            return false;
+    }
 
-    if (netShareType_ == SharingIfaceType::SHARING_BLUETOOTH) {
-        netAddr->address_ = configuration_->GetBtpanIpv4Addr();
-        if (netAddr->address_.empty()) {
-            NETMGR_EXT_LOG_E("RequestIpv4Address get btpan ipv4 address failed.");
-            return false;
-        }
-        netAddr->hostName_ = configuration_->GetBtpanDhcpServerName();
-        if (netAddr->hostName_.empty()) {
-            NETMGR_EXT_LOG_E("RequestIpv4Address get btpan dhcp server name failed.");
-            return false;
-        }
-        return true;
+    if (netAddr->address_.empty() || netAddr->hostName_.empty()) {
+        NETMGR_EXT_LOG_E("Failed to get ipv4 Address or dhcp server name.");
+        return false;
     }
-    if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
-        netAddr->address_ = configuration_->GetWifiHotspotIpv4Addr();
-        if (netAddr->address_.empty()) {
-            NETMGR_EXT_LOG_E("RequestIpv4Address get wifi hotspot ipv4 address failed.");
-            return false;
-        }
-        netAddr->hostName_ = configuration_->GetWifiHotspotDhcpServerName();
-        if (netAddr->hostName_.empty()) {
-            NETMGR_EXT_LOG_E("RequestIpv4Address get wifi hotspot dhcp server name failed.");
-            return false;
-        }
-        return true;
-    }
-    return false;
+    return true;
 }
 
 void NetworkShareSubStateMachine::CleanupUpstreamInterface()

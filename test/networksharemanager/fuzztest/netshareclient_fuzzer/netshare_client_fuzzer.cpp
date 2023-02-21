@@ -569,6 +569,7 @@ void NetworkShareSubStateMachinePrivateFuzzTest(const uint8_t *data, size_t size
     networkShareSubStateMachine->GetWifiHotspotDhcpFlag();
     networkShareSubStateMachine->GetBtDestinationAddr(str);
     networkShareSubStateMachine->GetWifiApDestinationAddr(str);
+    networkShareSubStateMachine->GetUsbDestinationAddr(str);
     networkShareSubStateMachine->CheckConfig(str, str);
     networkShareSubStateMachine->FindDestinationAddr(str);
 }
@@ -729,9 +730,11 @@ void NetworkShareConfigurationFuzzTest(const uint8_t *data, size_t size)
     config.GetWifiHotspotSetDhcpFlag();
     config.GetBtpanIpv4Addr();
     config.GetWifiHotspotIpv4Addr();
+    config.GetUsbRndisIpv4Addr();
     config.GetRouteSuffix();
     config.GetBtpanDhcpServerName();
     config.GetWifiHotspotDhcpServerName();
+    config.GetUsbRndisDhcpServerName();
     config.GetDefaultMask();
     config.GetDhcpEndIP();
 

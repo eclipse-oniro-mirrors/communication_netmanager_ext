@@ -55,6 +55,13 @@ constexpr int NETWORKSHARING_WIFI_P2P = 3;
 constexpr int NETWORKSHARING_NCM = 4;
 constexpr int NETWORKSHARING_ETHERNET = 5;
 constexpr int NETWORKSHARING_WIGIG = 6;
+
+// Usb Share State
+enum class UsbShareState {
+    USB_NONE = 0,
+    USB_SHARING,
+    USB_CLOSING,
+};
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // NETWORKSHARE_CONSTANTS_H

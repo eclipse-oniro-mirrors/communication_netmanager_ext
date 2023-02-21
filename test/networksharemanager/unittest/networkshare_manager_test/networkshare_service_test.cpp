@@ -150,6 +150,19 @@ HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest002, TestSize.Level1)
     EXPECT_EQ(ret, NETWORKSHARE_ERROR);
 }
 
++HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest003, TestSize.Level1)
+{
+    auto ret = instance_->StartNetworkSharing(SharingIfaceType::SHARING_USB);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest004, TestSize.Level1)
+{
+    AccessToken token;
+    auto ret = instance_->StartNetworkSharing(SharingIfaceType::SHARING_USB);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_USB_SHARING);
+}
+
 HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest001, TestSize.Level1)
 {
     auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
@@ -161,6 +174,19 @@ HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest002, TestSize.Level1)
     AccessToken token;
     auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
     EXPECT_EQ(ret, NETWORKSHARE_ERROR);
+}
+
+HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest003, TestSize.Level1)
+{
+    auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_USB);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest004, TestSize.Level1)
+{
+    AccessToken token;
+    auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_USB);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_USB_SHARING);
 }
 
 HWTEST_F(NetworkShareServiceTest, RegisterSharingEventTest001, TestSize.Level1)
@@ -227,5 +253,6 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest001, TestSize.Level1)
     auto ret = instance_->GetStatsTotalBytes();
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_PERMISSION_CHECK_FAIL);
 }
+
 } // namespace NetManagerStandard
 } // namespace OHOS
