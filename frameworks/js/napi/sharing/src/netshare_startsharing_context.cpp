@@ -17,6 +17,7 @@
 
 #include "constant.h"
 #include "napi_utils.h"
+#include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 
 namespace OHOS {
@@ -30,6 +31,8 @@ void NetShareStartSharingContext::ParseParams(napi_value *params, size_t paramsC
 {
     if (!CheckParamsType(params, paramsCount)) {
         NETMANAGER_EXT_LOGE("CheckParamsType failed");
+        SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+        SetNeedThrowException(true);
         return;
     }
     SetParam(NapiUtils::GetInt32FromValue(GetEnv(), params[ARG_INDEX_0]));
@@ -42,11 +45,10 @@ void NetShareStartSharingContext::ParseParams(napi_value *params, size_t paramsC
 
 bool NetShareStartSharingContext::CheckParamsType(napi_value *params, size_t paramsCount)
 {
-    if (paramsCount == PARAM_JUST_OPTIONS) {
-        return true;
-    }
-    if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        return NapiUtils::GetValueType(GetEnv(), params[ARG_INDEX_1]) == napi_function;
+    if (paramsCount == PARAM_JUST_OPTIONS || paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
+        if (NapiUtils::GetValueType(GetEnv(), params[0]) == napi_number) {
+            return true;
+        }
     }
     return false;
 }

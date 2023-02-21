@@ -42,34 +42,34 @@ int32_t EthernetClient::SetIfaceConfig(const std::string &iface, sptr<InterfaceC
     return proxy->SetIfaceConfig(iface, ic);
 }
 
-sptr<InterfaceConfiguration> EthernetClient::GetIfaceConfig(const std::string &iface)
-{
-    sptr<IEthernetService> proxy = GetProxy();
-    if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("proxy is nullptr");
-        return nullptr;
-    }
-    return proxy->GetIfaceConfig(iface);
-}
-
-int32_t EthernetClient::IsIfaceActive(const std::string &iface)
+int32_t EthernetClient::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return IPC_PROXY_ERR;
     }
-    return proxy->IsIfaceActive(iface);
+    return proxy->GetIfaceConfig(iface, ifaceConfig);
 }
 
-std::vector<std::string> EthernetClient::GetAllActiveIfaces()
+int32_t EthernetClient::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
-        return {};
+        return IPC_PROXY_ERR;
     }
-    return proxy->GetAllActiveIfaces();
+    return proxy->IsIfaceActive(iface, activeStatus);
+}
+
+int32_t EthernetClient::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->GetAllActiveIfaces(activeIfaces);
 }
 
 int32_t EthernetClient::ResetFactory()
@@ -159,12 +159,12 @@ int32_t EthernetClient::SetInterfaceDown(const std::string &iface)
     return proxy->SetInterfaceDown(iface);
 }
 
-bool EthernetClient::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
+int32_t EthernetClient::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
 {
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
-        return false;
+        return IPC_PROXY_ERR;
     }
     return proxy->GetInterfaceConfig(iface, cfg);
 }

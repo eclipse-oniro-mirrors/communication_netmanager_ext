@@ -17,6 +17,7 @@
 
 #include "constant.h"
 #include "module_template.h"
+#include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 #include "networkshare_client.h"
 #include "networkshare_constants.h"
@@ -46,6 +47,7 @@ napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
     if (paramsCount != PARAM_OPTIONS_AND_CALLBACK || NapiUtils::GetValueType(env, params[ARG_INDEX_0]) != napi_string ||
         NapiUtils::GetValueType(env, params[ARG_INDEX_1]) != napi_function) {
         NETMANAGER_EXT_LOGE("on off once interface para: [string, function]");
+        napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parameter error");
         return NapiUtils::GetUndefined(env);
     }
 
@@ -69,6 +71,7 @@ napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
     if ((paramsCount != PARAM_JUST_OPTIONS && paramsCount != PARAM_OPTIONS_AND_CALLBACK) ||
         NapiUtils::GetValueType(env, params[ARG_INDEX_0]) != napi_string) {
         NETMANAGER_EXT_LOGE("on off once interface para: [string, function?]");
+        napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parameter error");
         return NapiUtils::GetUndefined(env);
     }
 
@@ -92,7 +95,7 @@ napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
 
     if (manager_->IsListenerListEmpty()) {
         int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(observer_);
-        if (result == NETWORKSHARE_ERROR) {
+        if (result != NETMANAGER_EXT_SUCCESS) {
             NETMANAGER_EXT_LOGE("unregister result = %{public}d", result);
             return NapiUtils::GetUndefined(env);
         }
@@ -114,7 +117,7 @@ bool NetShareObserverWrapper::Register()
     }
 
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(observer_);
-    if (result == NETWORKSHARE_ERROR) {
+    if (result != NETMANAGER_EXT_SUCCESS) {
         NETMANAGER_EXT_LOGE("RegisterSharingEvent error = %{public}d", result);
         return false;
     }

@@ -15,12 +15,13 @@
 
 #include "ethernet_service_stub.h"
 
-#include "ethernet_constants.h"
+#include "net_manager_constants.h"
 #include "i_ethernet_service.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
 #include "ipc_object_stub.h"
 #include "message_parcel.h"
+#include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 
@@ -73,11 +74,7 @@ int32_t EthernetServiceStub::OnSetIfaceConfig(MessageParcel &data, MessageParcel
     if (ic == nullptr) {
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    int32_t ret = SetIfaceConfig(iface, ic);
-    if (!reply.WriteInt32(ret)) {
-        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
-    }
-    return NETMANAGER_EXT_SUCCESS;
+    return SetIfaceConfig(iface, ic);
 }
 
 int32_t EthernetServiceStub::OnGetIfaceConfig(MessageParcel &data, MessageParcel &reply)
@@ -86,17 +83,15 @@ int32_t EthernetServiceStub::OnGetIfaceConfig(MessageParcel &data, MessageParcel
     if (!data.ReadString(iface)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    sptr<InterfaceConfiguration> ic = GetIfaceConfig(iface);
-    if (ic != nullptr) {
+    sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
+    int32_t ret = GetIfaceConfig(iface, ifaceConfig);
+    if (ret == NETMANAGER_EXT_SUCCESS && ifaceConfig != nullptr) {
         if (!reply.WriteInt32(GET_CFG_SUC)) {
+            NETMGR_EXT_LOG_E("write failed");
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
-        if (!ic->Marshalling(reply)) {
+        if (!ifaceConfig->Marshalling(reply)) {
             NETMGR_EXT_LOG_E("proxy Marshalling failed");
-            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
-        }
-    } else {
-        if (!reply.WriteInt32(0)) {
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
@@ -109,25 +104,32 @@ int32_t EthernetServiceStub::OnIsIfaceActive(MessageParcel &data, MessageParcel 
     if (!data.ReadString(iface)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    int32_t ret = IsIfaceActive(iface);
-    if (!reply.WriteInt32(ret)) {
-        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    int32_t activeStatus = 0;
+    int32_t ret = IsIfaceActive(iface, activeStatus);
+    if (ret == NETMANAGER_EXT_SUCCESS && activeStatus) {
+        if (!reply.WriteUint32(activeStatus)) {
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
     }
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessageParcel &reply)
 {
-    std::vector<std::string> ifaces = GetAllActiveIfaces();
+    std::vector<std::string> ifaces;
+    int32_t ret = GetAllActiveIfaces(ifaces);
+    NETMGR_EXT_LOG_E("ret %{public}d", ret);
     if (ifaces.size() > MAX_SIZE) {
         NETMGR_EXT_LOG_E("ifaces size is too large");
-        return NETMANAGER_EXT_ERROR;
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     if (!reply.WriteUint32(ifaces.size())) {
+        NETMGR_EXT_LOG_E("iface size write failed");
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     for (auto iface : ifaces) {
         if (!reply.WriteString(iface)) {
+            NETMGR_EXT_LOG_E("iface write failed");
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
@@ -136,11 +138,7 @@ int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessagePa
 
 int32_t EthernetServiceStub::OnResetFactory(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = ResetFactory();
-    if (!reply.WriteInt32(ret)) {
-        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
-    }
-    return NETMANAGER_EXT_SUCCESS;
+    return ResetFactory();
 }
 
 int32_t EthernetServiceStub::OnSetInterfaceUp(MessageParcel &data, MessageParcel &reply)
@@ -149,11 +147,7 @@ int32_t EthernetServiceStub::OnSetInterfaceUp(MessageParcel &data, MessageParcel
     if (!data.ReadString(iface)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    int32_t ret = SetInterfaceUp(iface);
-    if (!reply.WriteInt32(ret)) {
-        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
-    }
-    return NETMANAGER_EXT_SUCCESS;
+    return SetInterfaceUp(iface);
 }
 
 int32_t EthernetServiceStub::OnSetInterfaceDown(MessageParcel &data, MessageParcel &reply)
@@ -162,11 +156,7 @@ int32_t EthernetServiceStub::OnSetInterfaceDown(MessageParcel &data, MessageParc
     if (!data.ReadString(iface)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    int32_t ret = SetInterfaceDown(iface);
-    if (!reply.WriteInt32(ret)) {
-        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
-    }
-    return NETMANAGER_EXT_SUCCESS;
+    return SetInterfaceDown(iface);
 }
 
 int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessageParcel &reply)
@@ -176,10 +166,10 @@ int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessagePa
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    bool result = GetInterfaceConfig(iface, cfg);
+    int32_t result = GetInterfaceConfig(iface, cfg);
     if (!result) {
         NETMGR_EXT_LOG_E("GetInterfaceConfig is error");
-        return NETMANAGER_EXT_ERROR;
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     reply.WriteString(cfg.ifName);
     reply.WriteString(cfg.hwAddr);
@@ -187,12 +177,13 @@ int32_t EthernetServiceStub::OnGetInterfaceConfig(MessageParcel &data, MessagePa
     reply.WriteInt32(cfg.prefixLength);
     if (cfg.flags.size() > MAX_SIZE) {
         NETMGR_EXT_LOG_E("cfg flags size is too large");
-        return NETMANAGER_EXT_ERROR;
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     reply.WriteInt32(static_cast<int32_t>(cfg.flags.size()));
     for (auto flag : cfg.flags) {
         reply.WriteString(flag);
     }
+    reply.WriteInt32(result);
     return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard

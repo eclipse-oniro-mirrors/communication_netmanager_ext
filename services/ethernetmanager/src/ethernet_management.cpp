@@ -19,7 +19,7 @@
 #include <thread>
 #include <unistd.h>
 
-#include "ethernet_constants.h"
+#include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "securec.h"
@@ -157,28 +157,23 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
 
 int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
     if (cfg == nullptr) {
         NETMGR_EXT_LOG_E("cfg is nullptr");
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_DEVICE_CONFIGURATION_INVALID;
     }
-    std::regex re(IFACE_MATCH);
-    if (!std::regex_search(iface, re)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] not an eth* name!", iface.c_str());
-        return ETHERNET_ERROR;
-    }
+    std::unique_lock<std::mutex> lock(mutex_);
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
     if (!fit->second->GetLinkUp()) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is unlink", iface.c_str());
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
     if (!ethConfiguration_->WriteUserConfiguration(iface, cfg)) {
         NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL;
     }
     if (fit->second->GetIfcfg()->mode_ != cfg->mode_) {
         if (cfg->mode_ == DHCP) {
@@ -188,8 +183,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         }
     }
     fit->second->SetIfcfg(cfg);
-    devCfgs_[iface] = cfg;
-    return ETHERNET_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult)
@@ -198,83 +192,76 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
     auto fit = devs_.find(dhcpResult.iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", dhcpResult.iface.c_str());
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
     if (!fit->second->GetLinkUp()) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] The device is not turned on", dhcpResult.iface.c_str());
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
     sptr<StaticConfiguration> config = new (std::nothrow) StaticConfiguration();
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("config is nullptr");
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_EMPTY_CONFIGURATION;
     }
 
     if (!ethConfiguration_->ConvertToConfiguration(dhcpResult, config)) {
         NETMGR_EXT_LOG_E("EthernetManagement dhcp convert to configurations error!");
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
     }
     fit->second->UpdateLinkInfo(config->ipAddr_, config->netMask_, config->gateway_, config->route_,
                                 config->dnsServers_.front(), config->dnsServers_.back());
     fit->second->RemoteUpdateNetLinkInfo();
-    return ETHERNET_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-sptr<InterfaceConfiguration> EthernetManagement::GetDevInterfaceCfg(const std::string &iface)
+int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    std::regex re(IFACE_MATCH);
-    if (!std::regex_search(iface, re)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] not an eth* name!", iface.c_str());
-        return nullptr;
-    }
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
-        return nullptr;
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
     if (!fit->second->GetLinkUp()) {
-        return fit->second->GetIfcfg();
+        ifaceConfig = fit->second->GetIfcfg();
+        return NETMANAGER_EXT_SUCCESS;
     }
-    return ethConfiguration_->MakeInterfaceConfiguration(fit->second->GetIfcfg(), fit->second->GetLinkInfo());
+    auto temp = ethConfiguration_->MakeInterfaceConfiguration(fit->second->GetIfcfg(), fit->second->GetLinkInfo());
+    *ifaceConfig = *temp;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t EthernetManagement::IsIfaceActive(const std::string &iface)
+int32_t EthernetManagement::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    std::regex re(IFACE_MATCH);
-    if (!std::regex_search(iface, re)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] not an eth* name!", iface.c_str());
-        return ETHERNET_ERROR;
-    }
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
-    return static_cast<int32_t>(fit->second->GetLinkUp());
+    activeStatus = static_cast<int32_t>(fit->second->GetLinkUp());
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-std::vector<std::string> EthernetManagement::GetAllActiveIfaces()
+int32_t EthernetManagement::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    std::vector<std::string> ifaces;
     for (auto it = devs_.begin(); it != devs_.end(); ++it) {
         if (it->second->GetLinkUp()) {
-            ifaces.push_back(it->first);
+            activeIfaces.push_back(it->first);
         }
     }
-    return ifaces;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetManagement::ResetFactory()
 {
     if (!ethConfiguration_->ClearAllUserConfiguration()) {
         NETMGR_EXT_LOG_E("Failed to ResetFactory!");
-        return ETHERNET_ERROR;
+        return ETHERNET_ERR_USER_CONIFGURATION_CLEAR_FAIL;
     }
     NETMGR_EXT_LOG_I("Success to ResetFactory!");
-    return ETHERNET_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void EthernetManagement::Init()
@@ -372,9 +359,6 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
     std::unique_lock<std::mutex> lock(mutex_);
     auto fitDev = devs_.find(devName);
     if (fitDev != devs_.end()) {
-        if (fitDev->second != nullptr) {
-            fitDev->second->RemoteUnregisterNetSupplier();
-        }
         devs_.erase(fitDev);
     }
 }

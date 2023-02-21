@@ -24,6 +24,7 @@
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 
+#include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netshare_result_callback_stub.h"
 #include "networkshare_client.h"
@@ -140,15 +141,16 @@ void TestSharingEventCallback::OnSharingUpstreamChanged(const sptr<NetHandle> ne
 HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
 {
     AccessToken token;
-    int32_t supportedFlag = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported();
+    int32_t supportedFlag;
+    DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
     EXPECT_EQ(supportedFlag, NETWORKSHARE_IS_SUPPORTED);
 }
 
 HWTEST_F(NetworkShareManagerTest, GetWifiSharableRegexs, TestSize.Level1)
 {
     AccessToken token;
-    std::vector<std::string> wifiRegexs =
-        DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_WIFI);
+    std::vector<std::string> wifiRegexs;
+    DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_WIFI, wifiRegexs);
     EXPECT_NE(wifiRegexs.size(), static_cast<uint32_t>(0));
     for (auto regex : wifiRegexs) {
         std::cout << "Wifi Sharable Regex: " << regex << std::endl;
@@ -158,8 +160,8 @@ HWTEST_F(NetworkShareManagerTest, GetWifiSharableRegexs, TestSize.Level1)
 HWTEST_F(NetworkShareManagerTest, GetUSBSharableRegexs, TestSize.Level1)
 {
     AccessToken token;
-    std::vector<std::string> usbRegexs =
-        DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_USB);
+    std::vector<std::string> usbRegexs;
+    DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_USB, usbRegexs);
     EXPECT_NE(usbRegexs.size(), static_cast<uint32_t>(0));
     for (auto regex : usbRegexs) {
         std::cout << "USB Sharable Regex: " << regex << std::endl;
@@ -169,8 +171,9 @@ HWTEST_F(NetworkShareManagerTest, GetUSBSharableRegexs, TestSize.Level1)
 HWTEST_F(NetworkShareManagerTest, GetBluetoothSharableRegexs, TestSize.Level1)
 {
     AccessToken token;
-    std::vector<std::string> blueRegexs =
-        DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_BLUETOOTH);
+    std::vector<std::string> blueRegexs;
+    DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_BLUETOOTH,
+                                                                           blueRegexs);
     EXPECT_NE(blueRegexs.size(), static_cast<uint32_t>(0));
     for (auto regex : blueRegexs) {
         std::cout << "Bluetooth Sharable Regex: " << regex << std::endl;
@@ -181,7 +184,7 @@ HWTEST_F(NetworkShareManagerTest, StartWifiSharing, TestSize.Level1)
 {
     AccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StartSharing(SharingIfaceType::SHARING_WIFI);
-    EXPECT_EQ(result, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     sleep(EIGHT_SECONDS);
     SharingIfaceState state;
     DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingState(SharingIfaceType::SHARING_WIFI, state);
@@ -192,7 +195,7 @@ HWTEST_F(NetworkShareManagerTest, StopWifiSharing, TestSize.Level1)
 {
     AccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StopSharing(SharingIfaceType::SHARING_WIFI);
-    EXPECT_EQ(result, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     sleep(TWO_SECONDS);
     SharingIfaceState state;
     DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingState(SharingIfaceType::SHARING_WIFI, state);
@@ -203,14 +206,14 @@ HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent, TestSize.Level1)
 {
     AccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(g_sharingEventCb);
-    EXPECT_EQ(result, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent, TestSize.Level1)
 {
     AccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(g_sharingEventCb);
-    EXPECT_EQ(result, NETWORKSHARE_SUCCESS);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

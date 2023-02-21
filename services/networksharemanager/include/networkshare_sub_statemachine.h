@@ -24,6 +24,7 @@
 #include <sstream>
 
 #include "dhcp_service.h"
+#include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "networkshare_configuration.h"
 #include "networkshare_constants.h"
@@ -124,7 +125,7 @@ private:
     std::recursive_mutex mutex_;
     std::string ifaceName_;
     SharingIfaceType netShareType_;
-    int32_t lastError_ = NETWORKSHARE_ERROR_NO_ERROR;
+    int32_t lastError_ = NETMANAGER_EXT_SUCCESS;
     std::string upstreamIfaceName_;
     std::shared_ptr<SubStateMachineCallback> trackerCallback_ = nullptr;
     std::unique_ptr<OHOS::Wifi::IDhcpService> dhcpService_ = nullptr;

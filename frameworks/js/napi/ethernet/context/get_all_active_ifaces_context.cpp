@@ -13,28 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef NETWORKSHARE_CONSTANTS_H
-#define NETWORKSHARE_CONSTANTS_H
+#include "get_all_active_ifaces_context.h"
 
-#include "net_manager_ext_constants.h"
+#include "constant.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-// Share Return
-constexpr int NETWORKSHARE_IS_SUPPORTED = 1;
-constexpr int NETWORKSHARE_IS_UNSUPPORTED = 0;
-constexpr int NETWORKSHARE_IS_SHARING = 1;
-constexpr int NETWORKSHARE_IS_UNSHARING = 0;
+GetAllActiveIfacesContext::GetAllActiveIfacesContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
 
-// Share Type
-constexpr int NETWORKSHARING_INVALID = -1;
-constexpr int NETWORKSHARING_WIFI = 0;
-constexpr int NETWORKSHARING_USB = 1;
-constexpr int NETWORKSHARING_BLUETOOTH = 2;
-constexpr int NETWORKSHARING_WIFI_P2P = 3;
-constexpr int NETWORKSHARING_NCM = 4;
-constexpr int NETWORKSHARING_ETHERNET = 5;
-constexpr int NETWORKSHARING_WIGIG = 6;
+void GetAllActiveIfacesContext::ParseParams(napi_value *params, size_t paramsCount)
+{
+    if (paramsCount == PARAM_JUST_CALLBACK) {
+        SetParseOK(SetCallback(params[0]) == napi_ok);
+        return;
+    }
+    SetParseOK(true);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NETWORKSHARE_CONSTANTS_H
