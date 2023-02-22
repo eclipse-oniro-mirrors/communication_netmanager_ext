@@ -60,21 +60,20 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, UpstreamMonitorTest, TestSize.Level1)
         new (std::nothrow) NetworkShareUpstreamMonitor::NetConnectionCallback(nullptr, netId);
     ASSERT_TRUE(monitor->defaultNetworkCallback_ != nullptr);
     int32_t result = monitor->defaultNetworkCallback_->NetAvailable(netHandle);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     result = monitor->defaultNetworkCallback_->NetCapabilitiesChange(netHandle, netAllCap);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     result = monitor->defaultNetworkCallback_->NetConnectionPropertiesChange(netHandle, info);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     result = monitor->defaultNetworkCallback_->NetLost(netHandle);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     result = monitor->defaultNetworkCallback_->NetUnavailable();
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     result = monitor->defaultNetworkCallback_->NetBlockStatusChange(netHandle, true);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     int32_t eventId = 0;
-    monitorHandler_ =
-    std::make_shared<NetworkShareUpstreamMonitor::MonitorEventHandler>(monitor, nullptr);
+    monitorHandler_ = std::make_shared<NetworkShareUpstreamMonitor::MonitorEventHandler>(monitor, nullptr);
     monitor->SetOptionData(eventId, monitorHandler_);
     monitor->RegisterUpstreamChangedCallback(nullptr);
 }
@@ -92,9 +91,8 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetAvailableTest, TestSize.Level
     netHandle = std::make_unique<NetHandle>(netId).release();
     result = monitor->defaultNetworkCallback_->NetAvailable(netHandle);
     result = monitor->defaultNetworkCallback_->NetAvailable(netHandle);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
-
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetCapabilitiesChangeTest, TestSize.Level1)
 {
@@ -107,23 +105,23 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetCapabilitiesChangeTest, TestS
     sptr<NetHandle> netHandle = nullptr;
     sptr<NetAllCapabilities> netAllCap = nullptr;
     int32_t result = monitor->defaultNetworkCallback_->NetCapabilitiesChange(netHandle, netAllCap);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     netHandle = std::make_unique<NetHandle>(netId).release();
     result = monitor->defaultNetworkCallback_->NetCapabilitiesChange(netHandle, netAllCap);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     netAllCap = std::make_unique<NetAllCapabilities>().release();
     result = monitor->defaultNetworkCallback_->NetCapabilitiesChange(netHandle, netAllCap);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     netAllCap->linkUpBandwidthKbps_ = 10;
     result = monitor->defaultNetworkCallback_->NetCapabilitiesChange(netHandle, netAllCap);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     monitor->networkMaps_.clear();
     result = monitor->defaultNetworkCallback_->NetCapabilitiesChange(netHandle, netAllCap);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, HandleConnectionPropertiesChangeTest, TestSize.Level1)
@@ -137,15 +135,15 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleConnectionPropertiesChangeTest, 
     sptr<NetHandle> netHandle = nullptr;
     sptr<NetLinkInfo> info = nullptr;
     int32_t result = monitor->defaultNetworkCallback_->NetConnectionPropertiesChange(netHandle, info);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     netHandle = std::make_unique<NetHandle>(netId).release();
     result = monitor->defaultNetworkCallback_->NetConnectionPropertiesChange(netHandle, info);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     info = std::make_unique<NetLinkInfo>().release();
     result = monitor->defaultNetworkCallback_->NetConnectionPropertiesChange(netHandle, info);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     result = monitor->defaultNetworkCallback_->NetAvailable(netHandle);
     result = monitor->defaultNetworkCallback_->NetConnectionPropertiesChange(netHandle, info);
@@ -155,7 +153,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleConnectionPropertiesChangeTest, 
     result = monitor->defaultNetworkCallback_->NetConnectionPropertiesChange(netHandle, info);
     monitor->networkMaps_.clear();
     result = monitor->defaultNetworkCallback_->NetConnectionPropertiesChange(netHandle, info);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLostTest, TestSize.Level1)
@@ -168,11 +166,11 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLostTest, TestSize.Level1)
     int32_t netId = 0;
     sptr<NetHandle> netHandle = nullptr;
     int32_t result = monitor->defaultNetworkCallback_->NetLost(netHandle);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     netHandle = std::make_unique<NetHandle>(netId).release();
     result = monitor->defaultNetworkCallback_->NetLost(netHandle);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     result = monitor->defaultNetworkCallback_->NetAvailable(netHandle);
     EXPECT_EQ(monitor->networkMaps_.size(), 1);
@@ -186,7 +184,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLostTest, TestSize.Level1)
 
     monitor->networkMaps_.clear();
     result = monitor->defaultNetworkCallback_->NetLost(netHandle);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, GetCurrentGoodUpstreamTest, TestSize.Level1)

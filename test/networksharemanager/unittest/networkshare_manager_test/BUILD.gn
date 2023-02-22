@@ -32,6 +32,7 @@ ohos_unittest("networkshare_manager_test") {
 
   include_dirs = [
     "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
+    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
     "$BLUETOOTH_ROOT/interfaces/inner_api/include",
     "$DHCP_MANAGER_ROOT/dhcp/interfaces/inner_api/include",
     "$DHCP_MANAGER_ROOT/dhcp/interfaces/inner_api/interfaces",

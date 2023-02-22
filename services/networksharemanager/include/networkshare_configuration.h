@@ -146,7 +146,7 @@ private:
     };
 
     bool isWifiHotspotSetDhcp_ = false;
-    bool isSharingSupported_ = false;
+    bool supported_ = false;
     std::vector<std::string> usbRegexs_;
     std::vector<std::string> wifiRegexs_;
     std::vector<std::string> blueToothRegexs_;

@@ -47,18 +47,18 @@ public:
     };
 
 public:
-    virtual int32_t IsNetworkSharingSupported() = 0;
-    virtual int32_t IsSharing() = 0;
+    virtual int32_t IsNetworkSharingSupported(int32_t &supported) = 0;
+    virtual int32_t IsSharing(int32_t &sharingStatus) = 0;
     virtual int32_t StartNetworkSharing(const SharingIfaceType &type) = 0;
     virtual int32_t StopNetworkSharing(const SharingIfaceType &type) = 0;
-    virtual std::vector<std::string> GetSharableRegexs(SharingIfaceType type) = 0;
+    virtual int32_t GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs) = 0;
     virtual int32_t GetSharingState(SharingIfaceType type, SharingIfaceState &state) = 0;
-    virtual std::vector<std::string> GetNetSharingIfaces(const SharingIfaceState &state) = 0;
+    virtual int32_t GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces) = 0;
     virtual int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback) = 0;
     virtual int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback) = 0;
-    virtual int32_t GetStatsRxBytes() = 0;
-    virtual int32_t GetStatsTxBytes() = 0;
-    virtual int32_t GetStatsTotalBytes() = 0;
+    virtual int32_t GetStatsRxBytes(int32_t &bytes) = 0;
+    virtual int32_t GetStatsTxBytes(int32_t &bytes) = 0;
+    virtual int32_t GetStatsTotalBytes(int32_t &bytes) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkShareService");
 };

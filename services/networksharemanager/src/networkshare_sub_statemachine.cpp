@@ -16,6 +16,7 @@
 #include "networkshare_sub_statemachine.h"
 
 #include "net_manager_constants.h"
+#include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "route_utils.h"
@@ -186,14 +187,14 @@ void NetworkShareSubStateMachine::InitStateExit()
 int NetworkShareSubStateMachine::HandleInitSharingRequest(const std::any &messageObj)
 {
     (void)messageObj;
-    lastError_ = NETWORKSHARE_ERROR_NO_ERROR;
-    return NETWORKSHARE_SUCCESS;
+    lastError_ = NETMANAGER_EXT_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareSubStateMachine::HandleInitInterfaceDown(const std::any &messageObj)
 {
     (void)messageObj;
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void NetworkShareSubStateMachine::SharedStateEnter()
@@ -203,7 +204,7 @@ void NetworkShareSubStateMachine::SharedStateEnter()
         lastError_ = NETWORKSHARE_ERROR_IFACE_CFG_ERROR;
         NETMGR_EXT_LOG_E("Enter sub StateMachine[%{public}s] Shared State configIpv4 error.", ifaceName_.c_str());
     }
-    if (lastError_ != NETWORKSHARE_ERROR_NO_ERROR) {
+    if (lastError_ != NETMANAGER_EXT_SUCCESS) {
         SubSmStateSwitch(SUBSTATE_INIT);
         return;
     }
@@ -224,13 +225,13 @@ void NetworkShareSubStateMachine::SharedStateExit()
 int NetworkShareSubStateMachine::HandleSharedUnrequest(const std::any &messageObj)
 {
     (void)messageObj;
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareSubStateMachine::HandleSharedInterfaceDown(const std::any &messageObj)
 {
     (void)messageObj;
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &messageObj)
@@ -241,10 +242,10 @@ int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &me
         NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] upstreamNetInfo is null, need clean.", ifaceName_.c_str());
         CleanupUpstreamInterface();
         upstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
-        return NETWORKSHARE_SUCCESS;
+        return NETMANAGER_EXT_SUCCESS;
     }
     HandleConnectionChanged(upstreamNetInfo);
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int NetworkShareSubStateMachine::HandleSharedErrors(const std::any &messageObj)
@@ -252,18 +253,18 @@ int NetworkShareSubStateMachine::HandleSharedErrors(const std::any &messageObj)
     (void)messageObj;
     NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] SharedState has ERROR.", ifaceName_.c_str());
     lastError_ = NETWORKSHARE_ERROR_INTERNAL_ERROR;
-    return NETWORKSHARE_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void NetworkShareSubStateMachine::UnavailableStateEnter()
 {
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Unavailable State.", ifaceName_.c_str());
-    lastError_ = NETWORKSHARE_ERROR_NO_ERROR;
+    lastError_ = NETMANAGER_EXT_SUCCESS;
     if (trackerCallback_ == nullptr) {
         NETMGR_EXT_LOG_E("Enter Sub StateMachine Unavailable State error, trackerCallback_ is null.");
         return;
     }
-    trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_UNAVAILABLE, NETWORKSHARE_ERROR_NO_ERROR);
+    trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_UNAVAILABLE, NETMANAGER_EXT_SUCCESS);
 }
 
 void NetworkShareSubStateMachine::UnavailableStateExit()
@@ -297,7 +298,7 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
 void NetworkShareSubStateMachine::HandleConnection()
 {
     int32_t result = NetsysController::GetInstance().IpfwdAddInterfaceForward(ifaceName_, upstreamIfaceName_);
-    if (result != NETMANAGER_SUCCESS) {
+    if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
             NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_CONFIG_FORWARD,
@@ -335,7 +336,7 @@ void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
     }
     int32_t result =
         NetsysController::GetInstance().NetworkRemoveRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
-    if (result != NETMANAGER_SUCCESS) {
+    if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             netShareType_, NetworkShareEventOperator::OPERATION_CANCEL_FORWARD,
             NetworkShareEventErrorType::ERROR_CANCEL_FORWARD, ERROR_MSG_REMOVE_ROUTE_RULE,
@@ -352,7 +353,7 @@ void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
         return;
     }
     int32_t result = NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
-    if (result != NETMANAGER_SUCCESS) {
+    if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
             NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ADD_ROUTE_RULE,
