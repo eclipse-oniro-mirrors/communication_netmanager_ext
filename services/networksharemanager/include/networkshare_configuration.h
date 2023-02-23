@@ -80,6 +80,11 @@ public:
     std::string &GetWifiHotspotIpv4Addr();
 
     /**
+     * get usb rndis default ipv4 address
+     */
+    std::string &GetUsbRndisIpv4Addr();
+
+    /**
      * get the default route suffix
      */
     std::string &GetRouteSuffix();
@@ -93,6 +98,16 @@ public:
      * get the wifi hotspot dhcp server name
      */
     std::string &GetWifiHotspotDhcpServerName();
+
+    /**
+     * get the usb rndis dhcp server name
+     */
+    std::string &GetUsbRndisDhcpServerName();
+
+    /**
+     * get the usb rndis iface name
+     */
+    std::string &GetUsbRndisIfaceName();
 
     /**
      * get default net mask
@@ -119,8 +134,11 @@ private:
         CONFIG_VALUE_BLUETOOTH_REGEXS,
         CONFIG_VALUE_BT_PAN_ADDR,
         CONFIG_VALUE_WIFI_HOTSPOT_ADDR,
+        CONFIG_VALUE_USB_RNDIS_ADDR,
         CONFIG_VALUE_BT_PAN_DHCP_NAME,
         CONFIG_VALUE_WIFI_DHCP_NAME,
+        CONFIG_VALUE_USB_DHCP_NAME,
+        CONFIG_VALUE_USB_IFACE_NAME,
         CONFIG_VALUE_ROUTE_SUFFIX,
         CONFIG_VALUE_DHCP_ENDIP,
         CONFIG_VALUE_DEFAULT_MASK,
@@ -134,9 +152,12 @@ private:
     std::vector<std::string> blueToothRegexs_;
     std::string btPanIpv4Str_;
     std::string wifiIpv4Str_;
+    std::string usbIpv4Str_;
     std::string routeSuffix_;
     std::string btPanDhcpServerName_;
     std::string wifiDhcpServerName_;
+    std::string usbDhcpServerName_;
+    std::string usbIfaceName_;
     std::string defaultMask_;
     std::string dhcpEndIP_;
     std::map<std::string, Config_Value> configMap_;

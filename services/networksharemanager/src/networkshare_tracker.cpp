@@ -15,6 +15,12 @@
 
 #include "networkshare_tracker.h"
 
+#include <net/if.h>
+#include <netinet/in.h>
+#include <securec.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -22,6 +28,9 @@
 #include "network_sharing.h"
 #include "networkshare_constants.h"
 #include "networkshare_state_common.h"
+#include "usb_srv_client.h"
+#include "usb_srv_support.h"
+#include "usb_errors.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -634,7 +643,9 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
                 NetworkShareEventType::SETUP_EVENT);
         } else {
             NETMGR_EXT_LOG_I("EnableHotspot successfull.");
-            wifiShareCount_++;
+            if (wifiShareCount_ < INT32_MAX) {
+                wifiShareCount_++;
+            }
             NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(wifiShareCount_, SharingIfaceType::SHARING_WIFI);
         }
     } else {
@@ -648,9 +659,6 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
             result = NETWORKSHARE_ERROR_WIFI_SHARING;
         } else {
             NETMGR_EXT_LOG_I("DisableHotspot successful.");
-            wifiShareCount_--;
-            wifiShareCount_ = wifiShareCount_ < 0 ? 0 : wifiShareCount_;
-            NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(wifiShareCount_, SharingIfaceType::SHARING_WIFI);
         }
     }
 
@@ -659,8 +667,48 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
 
 int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
 {
-    int32_t result = NETMANAGER_EXT_SUCCESS;
-    return result;
+    auto &usbSrvClient = USB::UsbSrvClient::GetInstance();
+    if (enable) {
+        curUsbState_ = UsbShareState::USB_SHARING;
+        int32_t funcs = 0;
+        int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
+        if (ret != USB::UEC_OK) {
+            NETMGR_EXT_LOG_E("GetCurrentFunctions error[%{public}d].", ret);
+            return NETWORKSHARE_ERROR_USB_SHARING;
+        }
+        ret = usbSrvClient.SetCurrentFunctions(USB::UsbSrvSupport::FUNCTION_RNDIS | funcs);
+        if (ret != USB::UEC_OK) {
+            NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
+            return NETWORKSHARE_ERROR_USB_SHARING;
+        }
+        if (NetsysController::GetInstance().InterfaceSetIpAddress(configuration_->GetUsbRndisIfaceName(),
+                                                                  configuration_->GetUsbRndisIpv4Addr()) != 0) {
+            NETMGR_EXT_LOG_E("Failed setting usb ip address");
+            return NETWORKSHARE_ERROR_USB_SHARING;
+        }
+        if (NetsysController::GetInstance().InterfaceSetIffUp(configuration_->GetUsbRndisIfaceName()) != 0) {
+            NETMGR_EXT_LOG_E("Failed setting usb iface up");
+            return NETWORKSHARE_ERROR_USB_SHARING;
+        }
+        if (usbShareCount_ < INT32_MAX) {
+            usbShareCount_++;
+        }
+        NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_, SharingIfaceType::SHARING_USB);
+    } else {
+        curUsbState_ = UsbShareState::USB_CLOSING;
+        int32_t funcs = 0;
+        int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
+        if (ret != USB::UEC_OK) {
+            NETMGR_EXT_LOG_E("usb GetCurrentFunctions error[%{public}d].", ret);
+            return NETWORKSHARE_ERROR_USB_SHARING;
+        }
+        ret = usbSrvClient.SetCurrentFunctions(funcs & (~USB::UsbSrvSupport::FUNCTION_RNDIS));
+        if (ret != USB::UEC_OK) {
+            NETMGR_EXT_LOG_E("usb SetCurrentFunctions error[%{public}d].", ret);
+            return NETWORKSHARE_ERROR_USB_SHARING;
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
@@ -676,11 +724,8 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
     bool ret = profile->SetTethering(enable);
     if (ret) {
         NETMGR_EXT_LOG_I("SetBluetoothNetworkSharing(%{public}s) is success.", enable ? "true" : "false");
-        if (enable) {
+        if (enable && bluetoothShareCount_ < INT32_MAX) {
             bluetoothShareCount_++;
-        } else {
-            bluetoothShareCount_--;
-            bluetoothShareCount_ = bluetoothShareCount_ < 0 ? 0 : bluetoothShareCount_;
         }
         NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(bluetoothShareCount_,
                                                                 SharingIfaceType::SHARING_BLUETOOTH);
@@ -974,6 +1019,10 @@ bool NetworkShareTracker::IsHandleNetlinkEvent(const SharingIfaceType &type, boo
         return up ? curBluetoothState_ == Bluetooth::BTConnectState::CONNECTING
                   : curBluetoothState_ == Bluetooth::BTConnectState::DISCONNECTING;
     }
+    if (type == SharingIfaceType::SHARING_USB) {
+        return up ? curUsbState_ == UsbShareState::USB_SHARING
+                  : curUsbState_ == UsbShareState::USB_CLOSING;
+    }
     return false;
 }
 
@@ -991,9 +1040,15 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
     NETMGR_EXT_LOG_I("interface[%{public}s] for [%{public}s]", iface.c_str(), up ? "up" : "down");
     if (up) {
         std::string taskName = "InterfaceAdded_task";
-        std::function<void()> createSubStateMachineFunc =
-            std::bind(&NetworkShareTracker::CreateSubStateMachine, this, iface, type, false);
-        eventHandler_->PostTask(createSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        if (iface == configuration_->GetUsbRndisIfaceName()) {
+            std::function<void()> sharingUsbFunc =
+                std::bind(&NetworkShareTracker::Sharing, this, iface, SUB_SM_STATE_SHARED);
+            eventHandler_->PostTask(sharingUsbFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        } else {
+            std::function<void()> createSubStateMachineFunc =
+                std::bind(&NetworkShareTracker::CreateSubStateMachine, this, iface, type, false);
+            eventHandler_->PostTask(createSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        }
     } else {
         std::string taskName = "InterfaceRemoved_task";
         std::function<void()> stopSubStateMachineFunc =

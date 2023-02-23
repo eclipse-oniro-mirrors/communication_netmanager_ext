@@ -61,6 +61,10 @@ ohos_shared_library("net_tether_manager") {
     "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
     "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
     "$BLUETOOTH_ROOT/interfaces/inner_api/include",
+    "$USB_MANAGER_ROOT/interfaces/innerkits/native/include",
+    "$USB_MANAGER_ROOT/utils/native/include",
+    "$USB_MANAGER_ROOT/services/zidl/include",
+    "//third_party/jsoncpp/include/json",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
   ]
@@ -72,10 +76,12 @@ ohos_shared_library("net_tether_manager") {
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
+    "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
