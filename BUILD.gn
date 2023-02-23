@@ -47,3 +47,14 @@ group("share_packages") {
     ]
   }
 }
+
+group("mdns_packages") {
+  deps = []
+  if (netmanager_ext_feature_mdns) {
+    deps += [
+      "$NETMANAGER_EXT_ROOT/frameworks/js/napi/mdns:mdns",
+      "$NETMANAGER_EXT_ROOT/interfaces/innerkits/mdnsclient:mdns_manager_if",
+      "$NETMANAGER_EXT_ROOT/services/mdnsmanager:mdns_manager",
+    ]
+  }
+}
