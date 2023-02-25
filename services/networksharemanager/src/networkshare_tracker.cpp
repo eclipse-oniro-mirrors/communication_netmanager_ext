@@ -682,7 +682,8 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("GetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        ret = usbSrvClient.SetCurrentFunctions(USB::UsbSrvSupport::FUNCTION_RNDIS | funcs);
+        uint32_t tmpData = USB::UsbSrvSupport::FUNCTION_RNDIS | static_cast<uint32_t>(funcs);
+        ret = usbSrvClient.SetCurrentFunctions(tmpData);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
@@ -708,7 +709,8 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("usb GetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        ret = usbSrvClient.SetCurrentFunctions(funcs & (~USB::UsbSrvSupport::FUNCTION_RNDIS));
+        uint32_t tmpData = static_cast<uint32_t>(funcs) & (~USB::UsbSrvSupport::FUNCTION_RNDIS);
+        ret = usbSrvClient.SetCurrentFunctions(tmpData);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("usb SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
