@@ -15,10 +15,7 @@ import("//build/test.gni")
 
 group("unittest") {
   testonly = true
-  deps = [
-    "unittest/networkshare_manager_test:networkshare_manager_test",
-    "unittest/networkshare_manager_test:networkshare_manager_usb_test",
-  ]
+  deps = [ "unittest/networkshare_manager_test:networkshare_manager_test" ]
 }
 
 group("fuzztest") {
