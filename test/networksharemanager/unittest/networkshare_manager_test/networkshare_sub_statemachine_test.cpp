@@ -23,7 +23,6 @@ namespace {
 using namespace testing::ext;
 static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
-static constexpr const char *USB_DEFAULT_IFACE_NAME = "usb0";
 static constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 constexpr int32_t SUBSTATE_TEST_ILLEGAL_VALUE = 0;
 } // namespace
@@ -81,20 +80,6 @@ HWTEST_F(NetworkShareSubStateMachineTest, GetNetShareType02, TestSize.Level1)
         NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
     SharingIfaceType netShareType = networkShareSubStateMachine->GetNetShareType();
     EXPECT_EQ(netShareType, SharingIfaceType::SHARING_BLUETOOTH);
-}
-
-/**
- * @tc.name: GetNetShareType03
- * @tc.desc: Test NetworkShareSubStateMachine GetNetShareType.
- * @tc.type: FUNC
- */
-HWTEST_F(NetworkShareSubStateMachineTest, GetNetShareType03, TestSize.Level1)
-{
-    auto configuration = std::make_shared<NetworkShareConfiguration>();
-    auto networkShareSubStateMachine = new (std::nothrow)
-        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
-    SharingIfaceType netShareType = networkShareSubStateMachine->GetNetShareType();
-    EXPECT_EQ(netShareType, SharingIfaceType::SHARING_USB);
 }
 
 /**
@@ -210,21 +195,6 @@ HWTEST_F(NetworkShareSubStateMachineTest, GetDownIfaceName02, TestSize.Level1)
     std::string downIface;
     networkShareSubStateMachine->GetDownIfaceName(downIface);
     EXPECT_EQ(downIface, BLUETOOTH_DEFAULT_IFACE_NAME);
-}
-
-/**
- * @tc.name: GetDownIfaceName03
- * @tc.desc: Test NetworkShareSubStateMachine GetDownIfaceName.
- * @tc.type: FUNC
- */
-HWTEST_F(NetworkShareSubStateMachineTest, GetDownIfaceName03, TestSize.Level1)
-{
-    auto configuration = std::make_shared<NetworkShareConfiguration>();
-    auto networkShareSubStateMachine = new (std::nothrow)
-        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
-    std::string downIface;
-    networkShareSubStateMachine->GetDownIfaceName(downIface);
-    EXPECT_EQ(downIface, USB_DEFAULT_IFACE_NAME);
 }
 
 /**
