@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "__functional_base"
+#include <functional>
 #include "interface_configuration.h"
 #include "net_all_capabilities.h"
 #include "net_link_info.h"

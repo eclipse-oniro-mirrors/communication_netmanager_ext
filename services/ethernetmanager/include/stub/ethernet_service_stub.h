@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <map>
 
-#include "__functional_base"
+#include <functional>
 #include "i_ethernet_service.h"
 #include "iremote_stub.h"
 #include "refbase.h"
