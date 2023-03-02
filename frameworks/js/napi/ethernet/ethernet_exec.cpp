@@ -62,7 +62,7 @@ napi_value GetIfaceConfigCallback(GetIfaceConfigContext *context)
                                      context->config_->ipStatic_.netMask_.address_);
     std::string dnsServers = std::accumulate(context->config_->ipStatic_.dnsServers_.begin(),
                                              context->config_->ipStatic_.dnsServers_.end(), std::string(),
-                                             [](std::string str_append, INetAddr const &iter)
+                                             [](std::string &str_append, INetAddr const &iter)
                                              { return str_append + iter.address_ + ","; });
 
     NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DNS_SERVERS, dnsServers);
