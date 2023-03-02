@@ -242,7 +242,10 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support)
             continue;
         }
 
-        if (ifa->ifa_addr != nullptr && ifa->ifa_addr->sa_family == AF_INET) {
+        if (ifa->ifa_addr == nullptr) {
+            continue;
+        }
+        if (ifa->ifa_addr->sa_family == AF_INET) {
             OpenSocketV4(ifa);
         } else if (ipv6Support && ifa->ifa_addr->sa_family == AF_INET6) {
             OpenSocketV6(ifa);

@@ -32,7 +32,7 @@ public:
     GetAllActiveIfacesContext() = delete;
     explicit GetAllActiveIfacesContext(napi_env env, EventManager *manager);
 
-    void ParseParams(napi_value *params, size_t paramscount);
+    void ParseParams(napi_value *params, size_t paramsCount);
 
 public:
     std::vector<std::string> ethernetNameList_;
