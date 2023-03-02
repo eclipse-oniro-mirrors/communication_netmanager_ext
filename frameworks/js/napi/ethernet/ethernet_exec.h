@@ -30,7 +30,7 @@ bool ExecGetIfaceConfig(GetIfaceConfigContext *context);
 napi_value GetIfaceConfigCallback(GetIfaceConfigContext *context);
 
 bool ExecSetIfaceConfig(SetIfaceConfigContext *context);
-napi_value SetIfaceConfigCallback(SetIfaceConfigContext *cotnext);
+napi_value SetIfaceConfigCallback(SetIfaceConfigContext *context);
 
 bool ExecIsIfaceActive(IsIfaceActiveContext *context);
 napi_value IsIfaceActiveCallback(IsIfaceActiveContext *context);
