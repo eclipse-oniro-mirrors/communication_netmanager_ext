@@ -234,7 +234,7 @@ HWTEST_F(NetworkShareTrackerTest, GetSharingState01, TestSize.Level1)
  */
 HWTEST_F(NetworkShareTrackerTest, GetSharingState02, TestSize.Level1)
 {
-    SharingIfaceType type = SharingIfaceType::SHARING_BLUETOOTH;
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
     int32_t ret = NetworkShareTracker::GetInstance().GetSharingState(type, state);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);

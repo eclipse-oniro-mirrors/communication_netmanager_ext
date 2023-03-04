@@ -470,6 +470,11 @@ bool NetworkShareTracker::IsInterfaceMatchType(const std::string &iface, const S
 
 int32_t NetworkShareTracker::GetSharingState(const SharingIfaceType type, SharingIfaceState &state)
 {
+    if (type != SharingIfaceType::SHARING_WIFI &&
+        type != SharingIfaceType::SHARING_USB &&
+        type != SharingIfaceType::SHARING_BLUETOOTH) {
+        return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
+    }
     bool isFindType = false;
     state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     std::lock_guard lock(mutex_);
@@ -502,7 +507,6 @@ int32_t NetworkShareTracker::GetSharingState(const SharingIfaceType type, Sharin
     }
     if (!isFindType) {
         NETMGR_EXT_LOG_E("type=%{public}d is not find, used default value.", type);
-        return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
