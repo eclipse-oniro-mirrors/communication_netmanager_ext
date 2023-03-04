@@ -44,6 +44,7 @@ HapInfoParams testInfoParms = {
     .bundleName = "networkshare_manager_test",
     .instIndex = 0,
     .appIDDesc = "test",
+    .isSystemApp = true
 };
 
 PermissionDef testPermDef = {
@@ -91,7 +92,7 @@ public:
     {
         AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
         accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
+        SetSelfTokenID(tokenIdEx.tokenIDEx);
     }
     ~AccessToken()
     {

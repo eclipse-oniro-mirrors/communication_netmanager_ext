@@ -57,7 +57,8 @@ using Security::AccessToken::AccessTokenID;
 HapInfoParams testInfoParms = {.userID = 1,
                                .bundleName = "netshare_client_fuzzer",
                                .instIndex = 0,
-                               .appIDDesc = "test"};
+                               .appIDDesc = "test",
+                               .isSystemApp = true};
 
 PermissionDef testPermDef = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
                              .bundleName = "netshare_client_fuzzer",
@@ -120,7 +121,7 @@ public:
     {
         AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
         accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
+        SetSelfTokenID(tokenIdEx.tokenIDEx);
     }
     ~AccessToken()
     {
