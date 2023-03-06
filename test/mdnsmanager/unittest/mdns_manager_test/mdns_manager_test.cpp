@@ -179,31 +179,31 @@ HWTEST_F(MDnsClientTest, ClientTest001, TestSize.Level1)
     client->RegisterService(info, registration);
     client->RegisterService(info1, registration1);
 
-    if(!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_register == 2; })) {
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_register == 2; })) {
         FAIL();
     }
 
     client->StartDiscoverService(info.type, discovery);
     client->StartDiscoverService(info.type, discovery1);
 
-    if(!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_found >= 4; })) {
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_found >= 4; })) {
         FAIL();
     }
 
     client->ResolveService(info, resolve);
-    if(!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 1; })) {
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 1; })) {
         FAIL();
     }
 
     client->ResolveService(info1, resolve1);
-    if(!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 2; })) {
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 2; })) {
         FAIL();
     }
 
     client->UnRegisterService(registration);
     client->UnRegisterService(registration1);
 
-    if(!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_lost >= 4; })) {
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_lost >= 4; })) {
         FAIL();
     }
 

@@ -352,11 +352,10 @@ void MDnsSocketListener::Run()
         if (res <= 0) {
             continue;
         }
-        for (size_t i = 0; i < socks_.size() && i < MDNS_MAX_SOCKET; ++i) {
-            if (FD_ISSET(ctrlPair_[0], &rfds)) {
-                if (CanRefresh() && refresh_) {
-                    refresh_(ctrlPair_[0]);
-                }
+        for (size_t i = 0; i < socks_.size() && i < MDNS_MA  X_SOCKET; ++i) {
+            bool isFreshNeed = FD_ISSET(ctrlPair_[0], &rfds) && CanRefresh() && refresh_;
+            if (isFreshNeed) {
+                refresh_(ctrlPair_[0]);
             }
             if (FD_ISSET(socks_[i], &rfds)) {
                 ReceiveInSock(socks_[i]);

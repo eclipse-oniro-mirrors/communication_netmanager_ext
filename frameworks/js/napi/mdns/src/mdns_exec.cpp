@@ -53,7 +53,6 @@ bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
 {
     auto ret =
         DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(context->GetServiceInfo(), context->GetObserver());
-
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
         NETMANAGER_EXT_LOGE("UnRegisterService error, errorCode: %{public}d", ret);
