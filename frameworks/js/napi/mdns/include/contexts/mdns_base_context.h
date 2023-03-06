@@ -31,8 +31,8 @@ public:
 
 private:
     void ParseAddressObj(napi_env env, napi_value obj);
-    void ParseAttributeObj(napi_env env, napi_value obj, TxtRecord &attrMap);
-    bool GetAttributeObj(napi_env env, napi_value obj, uint32_t &len);
+    void ParseAttributeArray(napi_env env, napi_value obj, TxtRecord &attrMap);
+    bool GetArrayLength(napi_env env, napi_value obj, uint32_t &len);
 
 protected:
     void ParseServiceInfo(napi_env env, napi_value value);

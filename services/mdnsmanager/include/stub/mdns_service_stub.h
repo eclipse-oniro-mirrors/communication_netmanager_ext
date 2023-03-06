@@ -41,8 +41,6 @@ private:
     int32_t OnResolveService(MessageParcel &data, MessageParcel &reply);
 
     std::map<uint32_t, MDnsServiceFunc> memberFuncMap_;
-    std::map<sptr<IRemoteObject>, sptr<IRegistrationCallback>> registerMap_;
-    std::map<sptr<IRemoteObject>, sptr<IDiscoveryCallback>> discoveryMap_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

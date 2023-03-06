@@ -32,20 +32,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class SyncVariable {
-public:
-    void Clear()
-    {
-        retCode_ = -1;
-        bResState_ = false;
-    };
-
-    std::mutex mutex_;
-    std::condition_variable cv_;
-    MDnsServiceInfo serviceInfo_;
-    int32_t retCode_ = -1;
-    bool bResState_ = false;
-};
 
 class MDnsRegistrationObserver : public RegistrationCallbackStub {
 public:
@@ -64,6 +50,9 @@ public:
     void HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
     void HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
     void HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+
+    void EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode);
+    void EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode);
 
 private:
     template <napi_value (*MakeJsValue)(napi_env, void *)> static void CallbackTemplate(uv_work_t *work, int32_t status)
@@ -105,7 +94,11 @@ public:
     ~MDnsResolveObserver() = default;
     void HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 
-    static SyncVariable resloverSync_;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    bool resolved_ = false;
+    MDnsServiceInfo serviceInfo_;
+    int32_t retCode_ = NET_MDNS_ERR_UNKNOWN;
 };
 
 } // namespace NetManagerStandard

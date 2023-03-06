@@ -24,22 +24,16 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-template <class T> bool WaitTimeout(const int &ret, const SyncVariable &sv, T *context)
-{
-    bool bRet = false;
-    if (sv.retCode_ == NETMANAGER_EXT_SUCCESS) {
-        context->SetServiceInfo(sv.serviceInfo_);
-        bRet = true;
-    }
-    context->SetErrorCode(ret);
-    return bRet;
-}
 
 bool MDnsExec::ExecAddLocalService(MDnsAddLocalServiceContext *context)
 {
-    auto ret = DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(context->GetServiceInfo(),
-                                                                            context->GetObserver());
-    context->SetErrorCode(ret);
+    auto ret =
+        DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(context->GetServiceInfo(), context->GetObserver());
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(ret);
+        NETMANAGER_EXT_LOGE("RegisterService error, errorCode: %{public}d", ret);
+        return false;
+    }
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
@@ -47,29 +41,46 @@ bool MDnsExec::ExecRemoveLocalService(MDnsRemoveLocalServiceContext *context)
 {
     sptr<IRegistrationCallback> callback = context->GetObserver();
     auto ret = DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(callback);
-    context->SetErrorCode(ret);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(ret);
+        NETMANAGER_EXT_LOGE("UnRegisterService error, errorCode: %{public}d", ret);
+        return false;
+    }
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
 bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
 {
-    auto ret = DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(context->GetServiceInfo(),
-                                                                           context->GetObserver());
-    if (!MDnsResolveObserver::resloverSync_.bResState_) {
-        std::unique_lock<std::mutex> lk(MDnsResolveObserver::resloverSync_.mutex_);
-        if (MDnsResolveObserver::resloverSync_.cv_.wait_for(lk, std::chrono::seconds(SYNC_TIMEOUT)) ==
-            std::cv_status::timeout) {
-            return false;
-        }
+    auto ret =
+        DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(context->GetServiceInfo(), context->GetObserver());
+
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(ret);
+        NETMANAGER_EXT_LOGE("UnRegisterService error, errorCode: %{public}d", ret);
+        return false;
     }
 
-    if (MDnsResolveObserver::resloverSync_.retCode_ == NETMANAGER_EXT_SUCCESS) {
-        context->SetServiceInfo(MDnsResolveObserver::resloverSync_.serviceInfo_);
+    sptr<IResolveCallback> callback = context->GetObserver();
+    MDnsResolveObserver *observer = static_cast<MDnsResolveObserver *>(callback.GetRefPtr());
+
+    if (observer == nullptr) {
+        context->SetErrorCode(NET_MDNS_ERR_UNKNOWN);
+        return false;
     }
-    ret = MDnsResolveObserver::resloverSync_.retCode_;
-    MDnsResolveObserver::resloverSync_.Clear();
-    context->SetErrorCode(ret);
-    return ret == NETMANAGER_EXT_SUCCESS;
+
+    std::unique_lock<std::mutex> lk(observer->mutex_);
+    if (!observer->cv_.wait_for(lk, std::chrono::seconds(SYNC_TIMEOUT), [=]() { return observer->resolved_; })) {
+        context->SetErrorCode(NET_MDNS_ERR_TIMEOUT);
+        return false;
+    }
+
+    context->SetServiceInfo(observer->serviceInfo_);
+    if (observer->retCode_ != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(observer->retCode_);
+        NETMANAGER_EXT_LOGE("HandleResolveResult error, errorCode: %{public}d", ret);
+        return false;
+    }
+    return observer->retCode_ == NETMANAGER_EXT_SUCCESS;
 }
 
 bool MDnsExec::ExecStartSearchingMDNS(MDnsStartSearchingContext *context)
@@ -84,9 +95,16 @@ bool MDnsExec::ExecStartSearchingMDNS(MDnsStartSearchingContext *context)
         NETMGR_EXT_LOG_E("discover is nullptr");
         return false;
     }
-    auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(discover->serviceType_,
-                                                                                 discover->observer_);
-    context->SetErrorCode(ret);
+    auto ret =
+        DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(discover->serviceType_, discover->observer_);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(ret);
+        NETMANAGER_EXT_LOGE("StartDiscoverService error, errorCode: %{public}d", ret);
+        return false;
+    }
+    MDnsServiceInfo info;
+    info.type = discover->serviceType_;
+    discover->GetObserver()->EmitStartDiscover(info, ret);
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
@@ -103,7 +121,14 @@ bool MDnsExec::ExecStopSearchingMDNS(MDnsStopSearchingContext *context)
         return false;
     }
     auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(discover->observer_);
-    context->SetErrorCode(ret);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(ret);
+        NETMANAGER_EXT_LOGE("StopDiscoverService error, errorCode: %{public}d", ret);
+        return false;
+    }
+    MDnsServiceInfo info;
+    info.type = discover->serviceType_;
+    discover->GetObserver()->EmitStopDiscover(info, ret);
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
@@ -134,9 +159,8 @@ template <class T> napi_value CreateCallbackParam(T *context)
 {
     napi_env env = context->GetEnv();
     MDnsServiceInfo serviceInfo = context->GetServiceInfo();
-    NETMANAGER_EXT_LOGI("CreateCallbackParam [%{public}s][%{public}s][%{public}s][%{public}d][%{public}d]",
-                        serviceInfo.name.c_str(), serviceInfo.addr.c_str(), serviceInfo.type.c_str(),
-                        serviceInfo.port, serviceInfo.family);
+    NETMANAGER_EXT_LOGI("CreateCallbackParam [%{public}s][%{public}s][%{public}d]", serviceInfo.name.c_str(),
+                        serviceInfo.type.c_str(), serviceInfo.port);
 
     napi_value object = NapiUtils::CreateObject(env);
     NapiUtils::SetStringPropertyUtf8(env, object, SERVICEINFO_TYPE, serviceInfo.type);

@@ -33,10 +33,25 @@ using TxtRecordEncoded = std::vector<uint8_t>;
 static constexpr int32_t LOAD_SA_TIMEOUT = 5;
 static constexpr int32_t SYNC_TIMEOUT = 5;
 static constexpr size_t MDNS_MAX_DOMAIN_LABEL = 63;
+static constexpr size_t MDNS_MAX_DOMAIN = 254;
 static constexpr const char *MDNS_TOP_DOMAIN_DEFAULT = ".local";
 static constexpr const char *MDNS_DOMAIN_SPLITER_STR = ".";
 static constexpr const char *MDNS_HOSTPORT_SPLITER_STR = ":";
 static constexpr char MDNS_DOMAIN_SPLITER = '.';
+
+bool EndsWith(const std::string_view &str, const std::string_view &pat);
+bool StartsWith(const std::string_view &str, const std::string_view &pat);
+std::vector<std::string_view> Split(const std::string_view &s, char seperator);
+
+bool IsNameValid(const std::string &name);
+bool IsTypeValid(const std::string &type);
+bool IsPortValid(int port);
+bool IsInstanceValid(const std::string &instance);
+
+// Size limits (https://www.rfc-editor.org/rfc/rfc1035#section-2.3.4)
+// Read https://devblogs.microsoft.com/oldnewthing/20120412-00/?p=7873
+bool IsDomainValid(const std::string &domain);
+void ExtractNameAndType(const std::string &instance, std::string &name, std::string& type);
 
 } // namespace NetManagerStandard
 } // namespace OHOS
