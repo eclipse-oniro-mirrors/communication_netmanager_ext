@@ -49,7 +49,6 @@ void MDnsRemoveLocalServiceContext::ParseParams(napi_value *params, size_t param
         SetParseOK(SetCallback(params[ARG_NUM_2]) == napi_ok);
         return;
     }
-    NETMGR_EXT_LOG_I("RemoveLocalService get service info is ok");
     SetParseOK(true);
 }
 

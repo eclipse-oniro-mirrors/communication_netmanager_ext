@@ -86,12 +86,12 @@ bool MDnsExec::ExecStartSearchingMDNS(MDnsStartSearchingContext *context)
 {
     EventManager *manager = context->GetManager();
     if (manager == nullptr) {
-        NETMGR_EXT_LOG_E("manager is nullptr");
+        NETMANAGER_EXT_LOGE("manager is nullptr");
         return false;
     }
     auto discover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
     if (discover == nullptr) {
-        NETMGR_EXT_LOG_E("discover is nullptr");
+        NETMANAGER_EXT_LOGE("discover is nullptr");
         return false;
     }
     auto ret =
@@ -111,12 +111,12 @@ bool MDnsExec::ExecStopSearchingMDNS(MDnsStopSearchingContext *context)
 {
     EventManager *manager = context->GetManager();
     if (manager == nullptr) {
-        NETMGR_EXT_LOG_E("manager is nullptr");
+        NETMANAGER_EXT_LOGE("manager is nullptr");
         return false;
     }
     auto discover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
     if (discover == nullptr) {
-        NETMGR_EXT_LOG_E("discover is nullptr");
+        NETMANAGER_EXT_LOGE("discover is nullptr");
         return false;
     }
     auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(discover->observer_);
