@@ -48,7 +48,8 @@ using Security::AccessToken::AccessTokenID;
 HapInfoParams testInfoParms = {.userID = 1,
                                .bundleName = "ethernet_client_fuzzer",
                                .instIndex = 0,
-                               .appIDDesc = "test"};
+                               .appIDDesc = "test",
+                               .isSystemApp = true};
 
 PermissionDef testPermDef = {.permissionName = "ohos.permission.GET_NETWORK_INFO",
                              .bundleName = "ethernet_client_fuzzer",
@@ -112,7 +113,7 @@ public:
         currentID_ = GetSelfTokenID();
         AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
         accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
+        SetSelfTokenID(tokenIdEx.tokenIDEx);
     }
     ~AccessToken()
     {

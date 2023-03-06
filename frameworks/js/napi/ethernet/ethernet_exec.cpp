@@ -94,6 +94,7 @@ bool ExecIsIfaceActive(IsIfaceActiveContext *context)
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
         NETMANAGER_EXT_LOGE("ExecIsIfaceActive error, errorCode: %{public}d", result);
+        return false;
     }
     return true;
 }
@@ -109,6 +110,7 @@ bool ExecGetAllActiveIfaces(GetAllActiveIfacesContext *context)
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
         NETMANAGER_EXT_LOGE("ExecIsIfaceActive error, errorCode: %{public}d", result);
+        return false;
     }
     return true;
 }

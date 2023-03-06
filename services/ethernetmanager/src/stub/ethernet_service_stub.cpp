@@ -100,7 +100,7 @@ int32_t EthernetServiceStub::OnGetIfaceConfig(MessageParcel &data, MessageParcel
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
-    return NETMANAGER_EXT_SUCCESS;
+    return ret;
 }
 
 int32_t EthernetServiceStub::OnIsIfaceActive(MessageParcel &data, MessageParcel &reply)
@@ -111,12 +111,12 @@ int32_t EthernetServiceStub::OnIsIfaceActive(MessageParcel &data, MessageParcel 
     }
     int32_t activeStatus = 0;
     int32_t ret = IsIfaceActive(iface, activeStatus);
-    if (ret == NETMANAGER_EXT_SUCCESS && activeStatus) {
+    if (ret == NETMANAGER_EXT_SUCCESS) {
         if (!reply.WriteUint32(activeStatus)) {
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
-    return NETMANAGER_EXT_SUCCESS;
+    return ret;
 }
 
 int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessageParcel &reply)
@@ -124,6 +124,10 @@ int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessagePa
     std::vector<std::string> ifaces;
     int32_t ret = GetAllActiveIfaces(ifaces);
     NETMGR_EXT_LOG_E("ret %{public}d", ret);
+    if (ret != NETMANAGER_EXT_SUCCESS || ifaces.size() == 0) {
+        NETMGR_EXT_LOG_E("get all active ifaces failed");
+        return ret;
+    }
     if (ifaces.size() > MAX_SIZE) {
         NETMGR_EXT_LOG_E("ifaces size is too large");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;

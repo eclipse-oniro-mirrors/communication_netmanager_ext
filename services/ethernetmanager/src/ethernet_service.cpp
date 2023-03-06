@@ -135,6 +135,10 @@ void EthernetService::InitManagement()
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
 {
     NETMGR_EXT_LOG_D("Set iface: %{public}s config", iface.c_str());
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService SetIfaceConfig no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -150,6 +154,10 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<Interface
 int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
     NETMGR_EXT_LOG_D("Get iface: %{public}s config", iface.c_str());
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService GetIfaceConfig no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -164,6 +172,10 @@ int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<Interface
 int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
     NETMGR_EXT_LOG_D("Get iface: %{public}s is active", iface.c_str());
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService IsIfaceActive no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -177,6 +189,10 @@ int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &active
 
 int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService GetAllActiveIfaces no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;

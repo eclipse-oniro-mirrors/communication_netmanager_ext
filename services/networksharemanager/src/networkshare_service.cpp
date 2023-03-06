@@ -135,6 +135,9 @@ void NetworkShareService::GetShareRegexsContent(const SharingIfaceType &type, st
 
 int32_t NetworkShareService::IsNetworkSharingSupported(int32_t &supported)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -143,6 +146,9 @@ int32_t NetworkShareService::IsNetworkSharingSupported(int32_t &supported)
 
 int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -151,6 +157,9 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -159,6 +168,9 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -167,6 +179,9 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -175,6 +190,9 @@ int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> ca
 
 int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -183,6 +201,9 @@ int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> 
 
 int32_t NetworkShareService::GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -191,6 +212,9 @@ int32_t NetworkShareService::GetSharableRegexs(SharingIfaceType type, std::vecto
 
 int32_t NetworkShareService::GetSharingState(SharingIfaceType type, SharingIfaceState &state)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -199,6 +223,9 @@ int32_t NetworkShareService::GetSharingState(SharingIfaceType type, SharingIface
 
 int32_t NetworkShareService::GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -207,6 +234,9 @@ int32_t NetworkShareService::GetNetSharingIfaces(const SharingIfaceState &state,
 
 int32_t NetworkShareService::GetStatsRxBytes(int32_t &bytes)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -215,6 +245,9 @@ int32_t NetworkShareService::GetStatsRxBytes(int32_t &bytes)
 
 int32_t NetworkShareService::GetStatsTxBytes(int32_t &bytes)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -223,6 +256,9 @@ int32_t NetworkShareService::GetStatsTxBytes(int32_t &bytes)
 
 int32_t NetworkShareService::GetStatsTotalBytes(int32_t &bytes)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
