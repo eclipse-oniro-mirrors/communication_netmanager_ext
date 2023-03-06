@@ -315,7 +315,7 @@ void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
 void MDnsProtocolImpl::OnRefresh(int sock)
 {
     std::lock_guard<std::mutex> guard(mutex_);
-    NETMGR_EXT_LOG_W("taskQueue_ size: %d", taskQueue_.size());
+    NETMGR_EXT_LOG_W("taskQueue_ size: %u", static_cast<uint32_t>(taskQueue_.size()));
     while (taskQueue_.size() > 0) {
         taskQueue_.front()();
         taskQueue_.pop();
