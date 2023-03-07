@@ -39,7 +39,10 @@ config("net_mdns_manager_if_config") {
 }
 
 ohos_source_set("mdns_parcel") {
-  sources = [ "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_service_info.cpp" ]
+  sources = [
+    "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_common.cpp",
+    "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_service_info.cpp",
+  ]
 
   include_dirs = [ "$EXT_INNERKITS_ROOT/mdnsclient/include" ]
 

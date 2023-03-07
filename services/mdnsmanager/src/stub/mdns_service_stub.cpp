@@ -59,8 +59,8 @@ int32_t MDnsServiceStub::OnRegisterService(MessageParcel &data, MessageParcel &r
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    NETMGR_EXT_LOG_D("MDnsServiceProxy [%{public}s][%{public}s][%{public}d]",
-                     serviceInfo->name.c_str(), serviceInfo->type.c_str(), serviceInfo->port);
+    NETMGR_EXT_LOG_D("MDnsServiceProxy [%{public}s][%{public}s][%{public}d]", serviceInfo->name.c_str(),
+                     serviceInfo->type.c_str(), serviceInfo->port);
 
     sptr<IRemoteObject> remote = data.ReadRemoteObject();
     if (remote == nullptr) {
@@ -70,10 +70,9 @@ int32_t MDnsServiceStub::OnRegisterService(MessageParcel &data, MessageParcel &r
 
     sptr<IRegistrationCallback> callback = iface_cast<IRegistrationCallback>(remote);
     if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Callback is nullptr.");
+        NETMGR_EXT_LOG_E("iface_cast callback is nullptr.");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    registerMap_[remote] = callback;
 
     int32_t err = RegisterService(*serviceInfo, callback);
     NETMGR_EXT_LOG_D("MDnsService::RegisterService return:[%{public}d]", err);
@@ -91,9 +90,9 @@ int32_t MDnsServiceStub::OnUnRegisterService(MessageParcel &data, MessageParcel 
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    sptr<IRegistrationCallback> callback = registerMap_[remote];
+    sptr<IRegistrationCallback> callback = iface_cast<IRegistrationCallback>(remote);
     if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        NETMGR_EXT_LOG_E("iface_cast callback is nullptr.");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
 
@@ -120,10 +119,9 @@ int32_t MDnsServiceStub::OnStartDiscoverService(MessageParcel &data, MessageParc
 
     sptr<IDiscoveryCallback> callback = iface_cast<IDiscoveryCallback>(remote);
     if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        NETMGR_EXT_LOG_E("iface_cast callback is nullptr.");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    discoveryMap_[remote] = callback;
 
     int32_t err = StartDiscoverService(type, callback);
     NETMGR_EXT_LOG_D("MDnsService::StartDiscoverService :[%{public}d]", err);
@@ -141,9 +139,9 @@ int32_t MDnsServiceStub::OnStopDiscoverService(MessageParcel &data, MessageParce
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    sptr<IDiscoveryCallback> callback = discoveryMap_[remote];
+    sptr<IDiscoveryCallback> callback = iface_cast<IDiscoveryCallback>(remote);
     if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        NETMGR_EXT_LOG_E("iface_cast callback is nullptr.");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
 
@@ -172,7 +170,7 @@ int32_t MDnsServiceStub::OnResolveService(MessageParcel &data, MessageParcel &re
 
     sptr<IResolveCallback> callback = iface_cast<IResolveCallback>(remote);
     if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        NETMGR_EXT_LOG_E("iface_cast callback is nullptr.");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
 

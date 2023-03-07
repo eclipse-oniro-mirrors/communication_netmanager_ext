@@ -31,34 +31,36 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-
 // This class create and manage udp socket for mDNS transmission
 // In multi-interface device, we should create socket for each iface for multicast
 class MDnsSocketListener {
 public:
     using ReceiveHandler = std::function<void(int, const MDnsPayload &)>;
+    using SendHandler = std::function<void(int)>;
 
     MDnsSocketListener();
     ~MDnsSocketListener();
 
-    void OpenSocketForEachIface(bool ipv6Support);
+    void OpenSocketForEachIface(bool ipv6Support, bool lo);
     void OpenSocketForDefault(bool ipv6Support);
     void CloseAllSocket();
     void Start();
     void Stop();
     ssize_t MulticastAll(const MDnsPayload &payload);
-    void SetReciver(const ReceiveHandler &callback);
+    void SetReceiveHandler(const ReceiveHandler &callback);
+    void SetRefreshHandler(const SendHandler &callback);
     ssize_t Multicast(int sock, const MDnsPayload &);
     ssize_t Unicast(int sock, sockaddr *saddr, const MDnsPayload &);
     const std::vector<int> &GetSockets() const;
     std::string_view GetIface(int sock) const;
     const sockaddr *GetSockAddr(int sock) const;
+    void TriggerRefresh();
 
 private:
     void Run();
-    void TriggerRefresh();
     bool CanRefresh();
     void ReceiveInSock(int sock);
+    void HandleSend(int sock);
     void OpenSocketV4(ifaddrs *ifa);
     void OpenSocketV6(ifaddrs *ifa);
 
@@ -69,7 +71,8 @@ private:
     int ctrlPair_[2] = {-1, -1};
     std::thread thread_;
     std::mutex mutex_;
-    ReceiveHandler receiver_;
+    ReceiveHandler recv_;
+    SendHandler refresh_;
 };
 
 } // namespace NetManagerStandard

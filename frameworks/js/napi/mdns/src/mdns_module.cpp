@@ -20,7 +20,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi_utils.h"
-#include "netmgr_ext_log_wrapper.h"
+#include "netmanager_ext_log.h"
 
 #include "constant.h"
 #include "mdns_addlocalservice_context.h"
@@ -46,6 +46,7 @@ static void *ParseMDnsDiscoveryParams(napi_env env, size_t argc, napi_value *arg
         mdnsDiscover->serviceType_ = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_1]);
         return mdnsDiscover.release();
     }
+    NETMANAGER_EXT_LOGE("constructor params invalid, should be context + serviceType");
     return nullptr;
 }
 

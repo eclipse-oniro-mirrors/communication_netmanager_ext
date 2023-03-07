@@ -17,6 +17,7 @@
 
 #include "mdns_instances.h"
 #include "net_manager_constants.h"
+#include "netmanager_ext_log.h"
 
 namespace OHOS::NetManagerStandard {
 std::map<MDnsDiscoveryObserver *, MDnsDiscoveryInstance *> MDnsDiscoveryInstance::discoverInstanceMap_;
@@ -32,7 +33,7 @@ MDnsDiscoveryInstance *MDnsDiscoveryInstance::MakeMDnsDiscovery(EventManager *ev
     std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
     auto mdnsDiscovery = new MDnsDiscoveryInstance(eventManager);
     if (mdnsDiscovery->observer_ == nullptr) {
-        NETMGR_EXT_LOG_E("mdnsDiscovery->observer_ is nullptr");
+        NETMANAGER_EXT_LOGE("mdnsDiscovery->observer_ is nullptr");
         return nullptr;
     }
     discoverInstanceMap_[mdnsDiscovery->observer_.GetRefPtr()] = mdnsDiscovery;
@@ -43,7 +44,7 @@ void MDnsDiscoveryInstance::DeleteMDnsDiscovery(MDnsDiscoveryInstance *mdnsDisco
 {
     std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
     if (mdnsDiscovery->observer_ == nullptr) {
-        NETMGR_EXT_LOG_E("mdnsDiscovery->observer_ is nullptr");
+        NETMANAGER_EXT_LOGE("mdnsDiscovery->observer_ is nullptr");
         return;
     }
     discoverInstanceMap_.erase(mdnsDiscovery->observer_.GetRefPtr());
