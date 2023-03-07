@@ -37,66 +37,70 @@ void MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &serviceInf
 
 void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *discover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (discover == nullptr) {
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    if (mdnsDisdicover == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }
 
-    if (!discover->GetEventManager()->HasEventListener(EVENT_SERVICESTART)) {
+    if (!mdnsDisdicover->GetEventManager()->HasEventListener(EVENT_SERVICESTART)) {
+        NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICESTART);
         return;
     }
 
     auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    discover->GetEventManager()->EmitByUv(EVENT_SERVICESTART, pair, StartDiscoveryServiceCallback);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTART, pair, StartDiscoveryServiceCallback);
 }
 
 void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *discover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (discover == nullptr) {
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    if (mdnsDisdicover == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }
 
-    if (!discover->GetEventManager()->HasEventListener(EVENT_SERVICESTOP)) {
+    if (!mdnsDisdicover->GetEventManager()->HasEventListener(EVENT_SERVICESTOP)) {
+        NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICESTOP);
         return;
     }
 
     auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    discover->GetEventManager()->EmitByUv(EVENT_SERVICESTOP, pair, StopDiscoveryServiceCallback);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTOP, pair, StopDiscoveryServiceCallback);
 }
 
 void MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *discover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (discover == nullptr) {
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    if (mdnsDisdicover == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }
 
-    if (!discover->GetEventManager()->HasEventListener(EVENT_SERVICEFOUND)) {
+    if (!mdnsDisdicover->GetEventManager()->HasEventListener(EVENT_SERVICEFOUND)) {
+        NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICEFOUND);
         return;
     }
 
     auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    discover->GetEventManager()->EmitByUv(EVENT_SERVICEFOUND, pair, ServiceFoundCallback);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICEFOUND, pair, ServiceFoundCallback);
 }
 
 void MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *discover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (discover == nullptr) {
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    if (mdnsDisdicover == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }
 
-    if (!discover->GetEventManager()->HasEventListener(EVENT_SERVICELOST)) {
+    if (!mdnsDisdicover->GetEventManager()->HasEventListener(EVENT_SERVICELOST)) {
+        NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICELOST);
         return;
     }
 
     auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    discover->GetEventManager()->EmitByUv(EVENT_SERVICELOST, pair, ServiceLostCallback);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICELOST, pair, ServiceLostCallback);
 }
 
 napi_value CreateCallbackParam(const MDnsServiceInfo &serviceInfo, napi_env env)

@@ -47,7 +47,7 @@ void MDnsBaseContext::ParseAddressObj(napi_env env, napi_value obj)
     }
 }
 
-bool MDnsBaseContext::GetArrayLength(napi_env env, napi_value obj, uint32_t &len)
+bool MDnsBaseContext::GetAttributeObj(napi_env env, napi_value obj, uint32_t &len)
 {
     if (!NapiUtils::IsArray(env, obj)) {
         return false;
@@ -56,11 +56,11 @@ bool MDnsBaseContext::GetArrayLength(napi_env env, napi_value obj, uint32_t &len
     return true;
 }
 
-void MDnsBaseContext::ParseAttributeArray(napi_env env, napi_value obj, TxtRecord &attrMap)
+void MDnsBaseContext::ParseAttributeObj(napi_env env, napi_value obj, TxtRecord &attrMap)
 {
     uint32_t arrLen = 0;
-    if (!GetArrayLength(env, obj, arrLen)) {
-        NETMANAGER_EXT_LOGE("GetArrayLength failed");
+    if (!GetAttributeObj(env, obj, arrLen)) {
+        NETMANAGER_EXT_LOGE("GetAttributeObj failed");
         return;
     }
 
@@ -80,8 +80,8 @@ void MDnsBaseContext::ParseAttributeArray(napi_env env, napi_value obj, TxtRecor
         }
         napi_value valueObj = NapiUtils::GetNamedProperty(env, svrAttr, SERVICEINFO_ATTR_VALUE);
         uint32_t valArrLen = 0;
-        if (!GetArrayLength(env, valueObj, valArrLen)) {
-            NETMANAGER_EXT_LOGE("GetArrayLength failed");
+        if (!GetAttributeObj(env, valueObj, valArrLen)) {
+            NETMANAGER_EXT_LOGE("GetAttributeObj failed");
             continue;
         }
         std::vector<uint8_t> typeArray;
@@ -117,7 +117,7 @@ void MDnsBaseContext::ParseServiceInfo(napi_env env, napi_value value)
     if (NapiUtils::HasNamedProperty(env, value, SERVICEINFO_ATTR)) {
         napi_value attrObj = NapiUtils::GetNamedProperty(env, value, SERVICEINFO_ATTR);
         TxtRecord attrMap;
-        ParseAttributeArray(env, attrObj, attrMap);
+        ParseAttributeObj(env, attrObj, attrMap);
         serviceInfo_.SetAttrMap(attrMap);
     }
 }
