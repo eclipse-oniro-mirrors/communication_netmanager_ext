@@ -65,6 +65,7 @@ private:
         MDnsClient &client_;
     };
 
+    sptr<IRemoteObject> LoadSaOnDemand();
     sptr<IMDnsService> GetProxy();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
 

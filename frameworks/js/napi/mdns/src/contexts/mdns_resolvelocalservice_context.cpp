@@ -14,7 +14,7 @@
  */
 
 #include "napi_utils.h"
-#include "netmgr_ext_log_wrapper.h"
+#include "netmanager_ext_log.h"
 
 #include "constant.h"
 #include "mdns_resolvelocalservice_context.h"
@@ -24,7 +24,7 @@ std::map<std::string, sptr<IResolveCallback>> MDnsResolveLocalServiceContext::re
 std::mutex g_mDNSResolveMutex;
 
 MDnsResolveLocalServiceContext::MDnsResolveLocalServiceContext(napi_env env, EventManager *manager)
-    : MDnsBaseContext(env, manager)
+    : MDnsBaseContext(env, manager), resolveObserver_(new (std::nothrow) MDnsResolveObserver())
 {
 }
 
@@ -41,24 +41,10 @@ void MDnsResolveLocalServiceContext::ParseParams(napi_value *params, size_t para
     ParseServiceInfo(GetEnv(), params[ARG_NUM_1]);
     std::string key = bundleName + serviceInfo_.name + serviceInfo_.type;
 
-    std::lock_guard<std::mutex> lock(g_mDNSResolveMutex);
-    auto observer = resolveCallbackMap_[key];
-    if (observer == nullptr) {
-        resolveObserver_ = new (std::nothrow) MDnsResolveObserver();
-        if (resolveObserver_ == nullptr) {
-            NETMGR_EXT_LOG_E("new MDnsResolveLocalServiceContext failed");
-            return;
-        }
-        resolveCallbackMap_[key] = resolveObserver_;
-    } else {
-        resolveObserver_ = observer;
-    }
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
         SetParseOK(SetCallback(params[ARG_NUM_2]) == napi_ok);
         return;
     }
-
-    NETMGR_EXT_LOG_I("AddLocalService get service info is ok");
     SetParseOK(true);
 }
 

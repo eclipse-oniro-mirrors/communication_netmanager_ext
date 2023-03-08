@@ -32,29 +32,9 @@ namespace {
 constexpr uint32_t DEFAULT_TTL = 120;
 constexpr uint16_t MDNS_FLUSH_CACHE_BIT = 0x8000;
 
-constexpr const char *MDNS_TYPE_TCP = "_tcp";
-constexpr const char *MDNS_TYPE_UDP = "_udp";
-constexpr const char *MDNS_TYPE_PREFIX = "_";
-constexpr size_t MDNS_TYPE_SEGMENT = 2;
-constexpr size_t MDNS_INSTANCE_SEGMENT = 3;
-constexpr size_t MDNS_FULL_SEGMENT = 4;
-constexpr size_t MDNS_NAME_IDX = 0;
-constexpr size_t MDNS_TYPE1_IDX = 1;
-constexpr size_t MDNS_TYPE2_IDX = 2;
-
 constexpr int PHASE_PTR = 1;
 constexpr int PHASE_SRV = 2;
 constexpr int PHASE_DOMAIN = 3;
-
-bool EndsWith(const std::string_view &str, const std::string_view &pat)
-{
-    return std::mismatch(pat.rbegin(), pat.rend(), str.rbegin()).first == pat.rend();
-}
-
-bool StartsWith(const std::string_view &str, const std::string_view &pat)
-{
-    return std::mismatch(pat.begin(), pat.end(), str.begin()).first == pat.end();
-}
 
 std::string AddrToString(const std::any &addr)
 {
@@ -73,23 +53,6 @@ std::string AddrToString(const std::any &addr)
     return std::string(buf);
 }
 
-std::vector<std::string_view> Split(const std::string_view &s, char seperator)
-{
-    std::vector<std::string_view> output;
-    std::string::size_type prev = 0;
-    std::string::size_type pos = 0;
-    while ((pos = s.find(seperator, pos)) != std::string::npos) {
-        if (pos - prev > 0) {
-            output.push_back(s.substr(prev, pos - prev));
-        }
-        prev = ++pos;
-    }
-    if (prev < s.size()) {
-        output.push_back(s.substr(prev));
-    }
-    return output;
-}
-
 } // namespace
 
 MDnsProtocolImpl::MDnsProtocolImpl()
@@ -101,11 +64,13 @@ void MDnsProtocolImpl::Init()
 {
     listener_.CloseAllSocket();
     if (config_.configAllIface) {
-        listener_.OpenSocketForEachIface(config_.ipv6Support);
+        listener_.OpenSocketForEachIface(config_.ipv6Support, config_.configLo);
     } else {
         listener_.OpenSocketForDefault(config_.ipv6Support);
     }
-    listener_.SetReciver([this](int sock, const MDnsPayload &payload) { return this->ReceivePacket(sock, payload); });
+    listener_.SetReceiveHandler(
+        [this](int sock, const MDnsPayload &payload) { return this->ReceivePacket(sock, payload); });
+    listener_.SetRefreshHandler([this](int sock) { return this->OnRefresh(sock); });
 }
 
 void MDnsProtocolImpl::SetConfig(const MDnsConfig &config)
@@ -128,11 +93,6 @@ std::string MDnsProtocolImpl::Decorated(const std::string &name) const
     return name + config_.topDomain + MDNS_DOMAIN_SPLITER_STR;
 }
 
-std::string MDnsProtocolImpl::UnDecorated(const std::string &name) const
-{
-    return name.substr(0, name.size() - (config_.topDomain.size() + 1)); // Not check suffix, carefully
-}
-
 std::string MDnsProtocolImpl::Dotted(const std::string &name) const
 {
     return EndsWith(name, MDNS_DOMAIN_SPLITER_STR) ? name : name + MDNS_DOMAIN_SPLITER_STR;
@@ -153,8 +113,10 @@ int32_t MDnsProtocolImpl::Register(const Result &info)
     if (!(IsNameValid(info.serviceName) && IsTypeValid(info.serviceType) && IsPortValid(info.port))) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-
     std::string name = ExtractInstance(info);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
     {
         std::lock_guard<std::mutex> guard(mutex_);
         if (srvMap_.find(name) != srvMap_.end()) {
@@ -173,6 +135,9 @@ int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     std::string name = Decorated(serviceType);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
     {
         std::lock_guard<std::mutex> guard(mutex_);
         ++reqMap_[name];
@@ -190,7 +155,7 @@ int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType)
     listener_.Start();
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
-    return size == -1 ? NET_MDNS_ERR_SEND : NETMANAGER_EXT_SUCCESS;
+    return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
@@ -199,6 +164,9 @@ int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     std::string name = Decorated(instance);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
     {
         std::lock_guard<std::mutex> guard(mutex_);
         ++reqMap_[name];
@@ -221,7 +189,7 @@ int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
     listener_.Start();
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
-    return size == -1 ? NET_MDNS_ERR_SEND : NETMANAGER_EXT_SUCCESS;
+    return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
@@ -230,6 +198,9 @@ int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     std::string name = Dotted(domain);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
     {
         std::lock_guard<std::mutex> guard(mutex_);
         ++reqMap_[name];
@@ -252,7 +223,7 @@ int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
     listener_.Start();
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
-    return size == -1 ? NET_MDNS_ERR_SEND : NETMANAGER_EXT_SUCCESS;
+    return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 int32_t MDnsProtocolImpl::UnRegister(const std::string &key)
@@ -319,7 +290,7 @@ int32_t MDnsProtocolImpl::Announce(const Result &info, bool off)
                                                            .rdata = info.txt});
     MDnsPayloadParser parser;
     ssize_t size = listener_.MulticastAll(parser.ToBytes(response));
-    return size == -1 ? NET_MDNS_ERR_SEND : NETMANAGER_EXT_SUCCESS;
+    return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
@@ -338,6 +309,16 @@ void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
         ProcessQuestion(sock, msg);
     } else {
         ProcessAnswer(sock, msg);
+    }
+}
+
+void MDnsProtocolImpl::OnRefresh(int sock)
+{
+    std::lock_guard<std::mutex> guard(mutex_);
+    NETMGR_EXT_LOG_W("taskQueue_ size: %u", static_cast<uint32_t>(taskQueue_.size()));
+    while (taskQueue_.size() > 0) {
+        taskQueue_.front()();
+        taskQueue_.pop();
     }
 }
 
@@ -484,7 +465,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
         }
         Result result;
         result.type = (rr.ttl == 0) ? SERVICE_LOST : SERVICE_FOUND;
-        ExtractNameAndType(*data, result);
+        ExtractNameAndType(*data, result.serviceName, result.serviceType);
         if (std::find_if(matches.begin(), matches.end(), [&](const auto &elem) {
                 return elem.serviceName == result.serviceName && elem.serviceType == result.serviceType;
             }) == matches.end()) {
@@ -497,7 +478,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
         }
         Result &result = results[name];
         result.type = INSTANCE_RESOLVED;
-        ExtractNameAndType(name, result);
+        ExtractNameAndType(name, result.serviceName, result.serviceType);
         result.domain = UnDotted(srv->name);
         result.port = srv->port;
         needMore[srv->name] = name;
@@ -522,26 +503,6 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
     }
 }
 
-void MDnsProtocolImpl::ExtractNameAndType(const std::string &instance, Result &result)
-{
-    auto views = Split(instance, MDNS_DOMAIN_SPLITER);
-    if (views.size() != MDNS_FULL_SEGMENT) {
-        return;
-    }
-    result.serviceName = std::string(views[MDNS_NAME_IDX].begin(), views[MDNS_NAME_IDX].end());
-    result.serviceType = std::string(views[MDNS_TYPE1_IDX].begin(), views[MDNS_TYPE2_IDX].end());
-}
-
-void MDnsProtocolImpl::ExtractNameAndType(const std::string &instance, std::string &name, std::string type)
-{
-    auto views = Split(instance, MDNS_DOMAIN_SPLITER);
-    if (views.size() != MDNS_INSTANCE_SEGMENT) {
-        return;
-    }
-    name = std::string(views[MDNS_NAME_IDX].begin(), views[MDNS_NAME_IDX].end());
-    type = std::string(views[MDNS_TYPE1_IDX].begin(), views[MDNS_TYPE2_IDX].end());
-}
-
 std::string MDnsProtocolImpl::GetHostDomain()
 {
     if (config_.hostname.empty()) {
@@ -558,36 +519,10 @@ std::string MDnsProtocolImpl::GetHostDomain()
     return Decorated(config_.hostname);
 }
 
-bool MDnsProtocolImpl::IsNameValid(const std::string &name)
+void MDnsProtocolImpl::RunTaskLater(const Task &task)
 {
-    return 0 < name.size() && name.size() <= MDNS_MAX_DOMAIN_LABEL &&
-           name.find(MDNS_DOMAIN_SPLITER) == std::string::npos;
-}
-
-bool MDnsProtocolImpl::IsTypeValid(const std::string &type)
-{
-    auto views = Split(type, MDNS_DOMAIN_SPLITER);
-    return views.size() == MDNS_TYPE_SEGMENT && views[0].size() <= MDNS_MAX_DOMAIN_LABEL &&
-           StartsWith(views[0], MDNS_TYPE_PREFIX) && (views[1] == MDNS_TYPE_UDP || views[1] == MDNS_TYPE_TCP);
-}
-
-bool MDnsProtocolImpl::IsPortValid(int port)
-{
-    return 0 <= port && port <= UINT16_MAX;
-}
-
-bool MDnsProtocolImpl::IsInstanceValid(const std::string &instance)
-{
-    auto views = Split(instance, MDNS_DOMAIN_SPLITER);
-    return views.size() == MDNS_INSTANCE_SEGMENT && views[MDNS_NAME_IDX].size() <= MDNS_MAX_DOMAIN_LABEL &&
-           views[MDNS_TYPE1_IDX].size() <= MDNS_MAX_DOMAIN_LABEL &&
-           StartsWith(views[MDNS_TYPE1_IDX], MDNS_TYPE_PREFIX) &&
-           (views[MDNS_TYPE2_IDX] == MDNS_TYPE_UDP || views[MDNS_TYPE2_IDX] == MDNS_TYPE_TCP);
-}
-
-bool MDnsProtocolImpl::IsDomainValid(const std::string &domain)
-{
-    return true;
+    taskQueue_.push(task);
+    listener_.TriggerRefresh();
 }
 
 } // namespace NetManagerStandard

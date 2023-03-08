@@ -14,7 +14,7 @@
  */
 
 #include "napi_utils.h"
-#include "netmgr_ext_log_wrapper.h"
+#include "netmanager_ext_log.h"
 
 #include "constant.h"
 #include "mdns_addlocalservice_context.h"
@@ -45,7 +45,7 @@ void MDnsAddLocalServiceContext::ParseParams(napi_value *params, size_t paramsCo
     if (observer == nullptr) {
         regObserver_ = new (std::nothrow) MDnsRegistrationObserver();
         if (regObserver_ == nullptr) {
-            NETMGR_EXT_LOG_E("new MDnsRegistrationObserver failed");
+            NETMANAGER_EXT_LOGE("new MDnsRegistrationObserver failed");
             SetParseOK(false);
         }
         registerCallbackMap_[key] = regObserver_;
