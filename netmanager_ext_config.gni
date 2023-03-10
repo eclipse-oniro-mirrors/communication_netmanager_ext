@@ -62,7 +62,7 @@ NETCONNMANAGER_UTILS_DIR = "$NETMANAGER_BASE_ROOT/utils"
 # NETMANAGER_PREBUILTS_DIR = "$NETMANAGER_BASE_ROOT/prebuilts"
 
 # args of other module
-DHCP_MANAGER_ROOT = "//foundation/communication/wifi/dhcp"
+DHCP_MANAGER_ROOT = "//foundation/communication/dhcp"
 WIFI_MANAGER_ROOT = "//foundation/communication/wifi/wifi"
 WIFI_MANAGER_INNERKITS_DIR = "$WIFI_MANAGER_ROOT/interfaces/kits/c"
 WIFI_FRAMEWORK_NATIVE_INCLUDE = "$WIFI_MANAGER_ROOT/frameworks/native/include"
