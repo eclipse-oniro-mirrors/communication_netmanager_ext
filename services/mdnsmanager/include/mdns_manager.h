@@ -17,15 +17,15 @@
 #define MDNS_MANDGER_H
 
 #include <cstdint>
-#include <string>
 #include <map>
+#include <string>
 
 #include "parcel.h"
 
+#include "i_mdns_event.h"
 #include "mdns_common.h"
 #include "mdns_protocol_impl.h"
 #include "mdns_service_info.h"
-#include "i_mdns_event.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -53,10 +53,17 @@ private:
     void ReceiveInstanceResolve(const MDnsProtocolImpl::Result &result, int32_t error);
     void ReceiveResolve(const MDnsProtocolImpl::Result &result, int32_t error);
 
+    struct CompareSmartPointer {
+        template <class T> bool operator()(const T &lhs, const T &rhs) const
+        {
+            return lhs.GetRefPtr() < rhs.GetRefPtr();
+        }
+    };
+
     MDnsProtocolImpl impl;
-    std::list<std::pair<sptr<IRegistrationCallback>, std::string>> registerMap_;
-    std::list<std::pair<sptr<IDiscoveryCallback>, std::string>> discoveryMap_;
-    std::list<std::pair<sptr<IResolveCallback>, std::string>> resolveMap_;
+    std::vector<std::pair<sptr<IRegistrationCallback>, std::string>> registerMap_;
+    std::vector<std::pair<sptr<IDiscoveryCallback>, std::string>> discoveryMap_;
+    std::vector<std::pair<sptr<IResolveCallback>, std::string>> resolveMap_;
     std::list<MDnsProtocolImpl::Result> resolvResults_;
     std::mutex mutex_;
 };

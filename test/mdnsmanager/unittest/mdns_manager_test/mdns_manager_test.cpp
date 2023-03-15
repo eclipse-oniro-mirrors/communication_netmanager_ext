@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <thread>
 
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
@@ -26,8 +27,8 @@ namespace OHOS {
 namespace NetManagerStandard {
 using namespace testing::ext;
 
-constexpr int FOUND_LIMIT = 2;
 constexpr int DEMO_PORT = 12345;
+constexpr int DEMO_PORT1 = 23456;
 constexpr const char *DEMO_NAME = "ala";
 constexpr const char *DEMO_NAME1 = "ala1";
 constexpr const char *DEMO_TYPE = "_hellomdns._tcp";
@@ -44,8 +45,10 @@ enum class EventType {
 
 std::mutex g_mtx;
 std::condition_variable g_cv;
+int g_register = 0;
 int g_found = 0;
-EventType g_type = EventType::UNKNOWN;
+int g_lost = 0;
+int g_resolve = 0;
 
 class MDnsTestRegistrationCallback : public RegistrationCallbackStub {
 public:
@@ -61,7 +64,7 @@ public:
         EXPECT_EQ(expected_.name, info.name);
         EXPECT_EQ(expected_.type, info.type);
         EXPECT_EQ(expected_.port, info.port);
-        g_type = EventType::REGISTER;
+        g_register++;
         g_mtx.unlock();
         g_cv.notify_one();
     }
@@ -76,9 +79,6 @@ public:
     void HandleStopDiscover(const MDnsServiceInfo &info, int32_t retCode) override {}
     void HandleServiceFound(const MDnsServiceInfo &info, int32_t retCode) override
     {
-        if (++g_found > FOUND_LIMIT) {
-            return;
-        }
         g_mtx.lock();
         EXPECT_EQ(retCode, NETMANAGER_EXT_SUCCESS);
         std::cerr << "found instance " << info.name + MDNS_DOMAIN_SPLITER_STR + info.type << "\n";
@@ -86,7 +86,7 @@ public:
                                  [&](auto const &x) { return x.name == info.name; }) != expected_.end());
         EXPECT_TRUE(std::find_if(expected_.begin(), expected_.end(),
                                  [&](auto const &x) { return x.type == info.type; }) != expected_.end());
-        g_type = EventType::FOUND;
+        g_found++;
         g_mtx.unlock();
         g_cv.notify_one();
     }
@@ -100,7 +100,7 @@ public:
                                  [&](auto const &x) { return x.name == info.name; }) != expected_.end());
         EXPECT_TRUE(std::find_if(expected_.begin(), expected_.end(),
                                  [&](auto const &x) { return x.type == info.type; }) != expected_.end());
-        g_type = EventType::LOST;
+        g_lost++;
         g_mtx.unlock();
         g_cv.notify_one();
     }
@@ -120,7 +120,7 @@ public:
         EXPECT_EQ(expected_.type, info.type);
         EXPECT_EQ(expected_.port, info.port);
         EXPECT_EQ(expected_.txtRecord, info.txtRecord);
-        g_type = EventType::RESOLVE;
+        g_resolve++;
         g_mtx.unlock();
         g_cv.notify_one();
     }
@@ -158,52 +158,59 @@ HWTEST_F(MDnsClientTest, ClientTest001, TestSize.Level1)
     info.SetAttrMap(g_txt);
     info1 = info;
     info1.name = DEMO_NAME1;
+    info1.port = DEMO_PORT1;
 
     auto client = DelayedSingleton<MDnsClient>::GetInstance();
     sptr<MDnsTestRegistrationCallback> registration(new (std::nothrow) MDnsTestRegistrationCallback(info));
     sptr<MDnsTestRegistrationCallback> registration1(new (std::nothrow) MDnsTestRegistrationCallback(info1));
     sptr<MDnsTestDiscoveryCallback> discovery(new (std::nothrow) MDnsTestDiscoveryCallback({info, info1}));
+    sptr<MDnsTestDiscoveryCallback> discovery1(new (std::nothrow) MDnsTestDiscoveryCallback({info, info1}));
     sptr<MDnsTestResolveCallback> resolve(new (std::nothrow) MDnsTestResolveCallback(info));
     sptr<MDnsTestResolveCallback> resolve1(new (std::nothrow) MDnsTestResolveCallback(info1));
     ASSERT_NE(registration, nullptr);
     ASSERT_NE(registration1, nullptr);
     ASSERT_NE(discovery, nullptr);
+    ASSERT_NE(discovery1, nullptr);
     ASSERT_NE(resolve, nullptr);
     ASSERT_NE(resolve1, nullptr);
 
     std::unique_lock<std::mutex> lock(g_mtx);
 
     client->RegisterService(info, registration);
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::REGISTER; });
-
     client->RegisterService(info1, registration1);
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::REGISTER; });
+
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_register == 2; })) {
+        FAIL();
+    }
 
     client->StartDiscoverService(info.type, discovery);
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::FOUND; });
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::FOUND; });
+    client->StartDiscoverService(info.type, discovery1);
+
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_found >= 4; })) {
+        FAIL();
+    }
 
     client->ResolveService(info, resolve);
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::RESOLVE; });
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 1; })) {
+        FAIL();
+    }
 
     client->ResolveService(info1, resolve1);
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::RESOLVE; });
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 2; })) {
+        FAIL();
+    }
 
     client->UnRegisterService(registration);
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::LOST; });
-
     client->UnRegisterService(registration1);
-    g_type = EventType::UNKNOWN;
-    g_cv.wait(lock, []() { return g_type == EventType::LOST; });
+
+    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_lost >= 4; })) {
+        FAIL();
+    }
 
     client->StopDiscoverService(discovery);
+    client->StopDiscoverService(discovery1);
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 } // namespace NetManagerStandard

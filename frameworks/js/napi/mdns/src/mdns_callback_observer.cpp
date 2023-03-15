@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-SyncVariable MDnsResolveObserver::resloverSync_;
 
 void MDnsRegistrationObserver::HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
 
@@ -32,7 +31,11 @@ void MDnsRegistrationObserver::HandleUnRegister(const MDnsServiceInfo &serviceIn
 
 void MDnsRegistrationObserver::HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
 
-void MDnsDiscoveryObserver::HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+void MDnsDiscoveryObserver::HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
+
+void MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
+
+void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
     if (mdnsDisdicover == nullptr) {
@@ -49,7 +52,7 @@ void MDnsDiscoveryObserver::HandleStartDiscover(const MDnsServiceInfo &serviceIn
     mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTART, pair, StartDiscoveryServiceCallback);
 }
 
-void MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
     if (mdnsDisdicover == nullptr) {
@@ -183,13 +186,14 @@ void MDnsDiscoveryObserver::ServiceLostCallback(uv_work_t *work, int32_t status)
 
 void MDnsResolveObserver::HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsResolveObserver::resloverSync_.retCode_ = retCode;
-    MDnsResolveObserver::resloverSync_.serviceInfo_ = serviceInfo;
-    NETMANAGER_EXT_LOGI("HandleResolveResult [%{public}s][%{public}s][%{public}s][%{public}d][%{public}d]",
-                        serviceInfo.name.c_str(), serviceInfo.addr.c_str(), serviceInfo.type.c_str(), serviceInfo.port,
-                        serviceInfo.family);
-    MDnsResolveObserver::resloverSync_.cv_.notify_one();
-    MDnsResolveObserver::resloverSync_.bResState_ = true;
+    NETMANAGER_EXT_LOGI("HandleResolveResult [%{public}s][%{public}s][%{public}d]", serviceInfo.name.c_str(),
+                        serviceInfo.type.c_str(), serviceInfo.port);
+    mutex_.lock();
+    retCode_ = retCode;
+    serviceInfo_ = serviceInfo;
+    resolved_ = true;
+    mutex_.unlock();
+    cv_.notify_one();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -29,24 +29,21 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-namespace {
-constexpr int IPPORT_MIN = 0;
-constexpr int IPPORT_MAX = 65535;
-} // namespace
-
 std::mutex g_loadMutex;
 std::condition_variable g_cv;
 
 void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
-    remoteObject_ = remoteObject;
     NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
+    g_loadMutex.lock();
+    remoteObject_ = remoteObject;
+    g_loadMutex.unlock();
     g_cv.notify_one();
 }
 
 void OnDemandLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
 {
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail : [%{public}d]", systemAbilityId);
+    NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
     g_cv.notify_one();
 }
 
@@ -55,21 +52,14 @@ const sptr<IRemoteObject> &OnDemandLoadCallback::GetRemoteObject() const
     return remoteObject_;
 }
 
-MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr)
-{
-    loadCallback_ = new (std::nothrow) OnDemandLoadCallback();
-}
+MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr) {}
 
 MDnsClient::~MDnsClient() = default;
 
 int32_t MDnsClient::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
-    if (serviceInfo.name.empty()) {
-        NETMGR_EXT_LOG_E("serviceName is empty");
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    if (!(IPPORT_MIN < serviceInfo.port && serviceInfo.port < IPPORT_MAX)) {
-        NETMGR_EXT_LOG_E("servicePort is empty");
+    if (!(IsNameValid(serviceInfo.name) && IsTypeValid(serviceInfo.type) && IsPortValid(serviceInfo.port))) {
+        NETMGR_EXT_LOG_E("RegisterService arguments are not valid");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     if (cb == nullptr) {
@@ -110,11 +100,10 @@ int32_t MDnsClient::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 
 int32_t MDnsClient::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
-    if (serviceType.empty()) {
-        NETMGR_EXT_LOG_E("MDnsClient::StartSearchingMDNS serviceType is empty");
+    if (!IsTypeValid(serviceType)) {
+        NETMGR_EXT_LOG_E("arguments are not valid");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-
     if (cb == nullptr) {
         NETMGR_EXT_LOG_E("callback is null");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
@@ -138,6 +127,7 @@ int32_t MDnsClient::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
         NETMGR_EXT_LOG_E("callback is null");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
+
     sptr<IMDnsService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("MDnsClient::StopSearchingMDNS proxy is nullptr");
@@ -152,18 +142,12 @@ int32_t MDnsClient::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 
 int32_t MDnsClient::ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb)
 {
-    if (serviceInfo.name.empty()) {
-        NETMGR_EXT_LOG_E("MDnsClient::ResolveService serviceName is empty");
+    if (!(IsNameValid(serviceInfo.name) && IsTypeValid(serviceInfo.type))) {
+        NETMGR_EXT_LOG_E("arguments are not valid");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-
-    if (serviceInfo.type.empty()) {
-        NETMGR_EXT_LOG_E("MDnsClient::ResolveService serviceType is empty");
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-
     if (cb == nullptr) {
-        NETMGR_EXT_LOG_E("MDnsClient::ResolveService callback is null");
+        NETMGR_EXT_LOG_E("callback is null");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
@@ -180,19 +164,9 @@ int32_t MDnsClient::ResolveService(const MDnsServiceInfo &serviceInfo, const spt
     return ret;
 }
 
-sptr<IMDnsService> MDnsClient::GetProxy()
+sptr<IRemoteObject> MDnsClient::LoadSaOnDemand()
 {
-    std::lock_guard lock(mutex_);
-    if (mdnsService_ != nullptr) {
-        NETMGR_EXT_LOG_D("get proxy is ok");
-        return mdnsService_;
-    }
-    if (loadCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("loadCallback_ is nullptr");
-        return nullptr;
-    }
-    sptr<IRemoteObject> remote = loadCallback_->GetRemoteObject();
-    if (remote == nullptr) {
+    if (loadCallback_->GetRemoteObject() == nullptr) {
         sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (sam == nullptr) {
             NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
@@ -204,14 +178,30 @@ sptr<IMDnsService> MDnsClient::GetProxy()
             return nullptr;
         }
         std::unique_lock<std::mutex> lk(g_loadMutex);
-        if (g_cv.wait_for(lk, std::chrono::seconds(LOAD_SA_TIMEOUT)) == std::cv_status::timeout) {
+        if (!g_cv.wait_for(lk, std::chrono::seconds(LOAD_SA_TIMEOUT),
+                           [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
             NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
             lk.unlock();
             return nullptr;
         }
         lk.unlock();
     }
-    remote = loadCallback_->GetRemoteObject();
+    return loadCallback_->GetRemoteObject();
+}
+
+sptr<IMDnsService> MDnsClient::GetProxy()
+{
+    std::lock_guard lock(mutex_);
+    if (mdnsService_ != nullptr) {
+        NETMGR_EXT_LOG_D("get proxy is ok");
+        return mdnsService_;
+    }
+    loadCallback_ = new (std::nothrow) OnDemandLoadCallback();
+    if (loadCallback_ == nullptr) {
+        NETMGR_EXT_LOG_E("loadCallback_ is nullptr");
+        return nullptr;
+    }
+    sptr<IRemoteObject> remote = LoadSaOnDemand();
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;

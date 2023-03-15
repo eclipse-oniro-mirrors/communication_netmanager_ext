@@ -19,6 +19,7 @@
 #include <any>
 #include <list>
 #include <string>
+#include <queue>
 
 #include "mdns_common.h"
 #include "mdns_packet_parser.h"
@@ -28,8 +29,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 struct MDnsConfig {
-    bool ipv6Support = true;
+    bool ipv6Support = false;
     int configAllIface = true;
+    int configLo = true;
     std::string topDomain = MDNS_TOP_DOMAIN_DEFAULT;
     std::string hostname;
 };
@@ -50,6 +52,7 @@ public:
     };
 
     using TxtRecord = std::map<std::string, std::vector<uint8_t>>;
+    using Task = std::function<void()>;
 
     struct Result {
         ResultType type;
@@ -80,30 +83,24 @@ public:
     int32_t StopResolve(const std::string &key);
     int32_t Stop(const std::string &key);
 
-    bool IsNameValid(const std::string &name);
-    bool IsTypeValid(const std::string &type);
-    bool IsPortValid(int port);
-    bool IsInstanceValid(const std::string &instance);
-    bool IsDomainValid(const std::string &domain);
-    void ExtractNameAndType(const std::string &instance, std::string &name, std::string type);
+    void RunTaskLater(const Task& task);
 
 private:
     void Init();
     int32_t Announce(const Result &info, bool off);
     void ReceivePacket(int sock, const MDnsPayload &payload);
+    void OnRefresh(int sock);
     void ProcessQuestion(int sock, const MDnsMessage &msg);
     void ProcessQuestionRecord(const std::any &anyAddr, const DNSProto::RRType &anyAddrType,
                                const DNSProto::Question &qu, int &phase, MDnsMessage &response);
     void ProcessAnswer(int sock, const MDnsMessage &msg);
     void ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> &matches,
                              std::map<std::string, Result> &results, std::map<std::string, std::string> &needMore);
-    void ExtractNameAndType(const std::string &instance, Result &result);
     void AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlist, DNSProto::RRType type, const std::string &name,
                       const std::any &rdata);
 
     std::string ExtractInstance(const Result &info) const;
     std::string Decorated(const std::string &name) const;
-    std::string UnDecorated(const std::string &name) const;
     std::string Dotted(const std::string &name) const;
     std::string UnDotted(const std::string &name) const;
     std::string GetHostDomain();
@@ -115,6 +112,7 @@ private:
     std::map<std::string, int> reqMap_;
     std::atomic_int reqCount_ = 0;
     std::mutex mutex_;
+    std::queue<Task> taskQueue_;
 };
 
 } // namespace NetManagerStandard
