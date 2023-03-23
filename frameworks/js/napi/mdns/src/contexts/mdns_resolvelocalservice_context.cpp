@@ -39,7 +39,6 @@ void MDnsResolveLocalServiceContext::ParseParams(napi_value *params, size_t para
     std::string bundleName = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[ARG_NUM_0]);
 
     ParseServiceInfo(GetEnv(), params[ARG_NUM_1]);
-    std::string key = bundleName + serviceInfo_.name + serviceInfo_.type;
 
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
         SetParseOK(SetCallback(params[ARG_NUM_2]) == napi_ok);
