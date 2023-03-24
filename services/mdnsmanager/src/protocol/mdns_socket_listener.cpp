@@ -49,6 +49,7 @@ constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
 constexpr int WAIT_THREAD_MS = 5;
 constexpr size_t MDNS_MAX_SOCKET = 16;
+static constexpr size_t REFRESH_BUFFER_LEN = 2;
 
 inline bool IfaceIsSupported(ifaddrs *ifa)
 {
@@ -72,7 +73,7 @@ int InitFdFlags(int sock)
     if (flags == -1) {
         return -1;
     }
-    if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
+    if (fcntl(sock, F_SETFL, static_cast<uint32_t>(flags) | O_NONBLOCK) == -1) {
         return -1;
     }
     return 0;
@@ -421,9 +422,9 @@ void MDnsSocketListener::TriggerRefresh()
 
 bool MDnsSocketListener::CanRefresh()
 {
-    char buf[2] = {};
+    char buf[REFRESH_BUFFER_LEN] = {};
     read(ctrlPair_[0], buf, 1);
-    return (std::string_view(buf) == CONTROL_TAG_REFRESH);
+    return (std::string_view(buf, REFRESH_BUFFER_LEN) == CONTROL_TAG_REFRESH);
 }
 
 ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
