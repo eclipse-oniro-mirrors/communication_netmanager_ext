@@ -31,8 +31,6 @@ public:
 
     void ParseParams(napi_value *params, size_t paramsCount);
     sptr<IRegistrationCallback> GetObserver();
-    MDnsServiceInfo &GetServiceInfo();
-    void SetServiceInfo(const MDnsServiceInfo &info);
 
 private:
     bool CheckParamsType(napi_value *params, size_t paramsCount);

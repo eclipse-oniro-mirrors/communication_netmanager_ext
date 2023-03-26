@@ -33,8 +33,6 @@ public:
     explicit MDnsResolveLocalServiceContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
-    MDnsServiceInfo &GetServiceInfo();
-    void SetServiceInfo(const MDnsServiceInfo &info);
     sptr<IResolveCallback> GetObserver();
 
     static std::map<std::string, sptr<IResolveCallback>> resolveCallbackMap_;
