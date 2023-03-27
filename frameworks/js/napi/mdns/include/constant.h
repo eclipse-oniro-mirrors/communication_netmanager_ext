@@ -45,10 +45,20 @@ static constexpr const char *SERVICEINFO_ATTR_VALUE = "value";
 static constexpr const char *CONTEXT_ATTR_APPINFO = "applicationInfo";
 static constexpr const char *APPINFO_ATTR_NAME = "name";
 
+static constexpr const char *MDNS_ERR = "MDNS_ERR";
+static constexpr const char *INTERNAL_ERROR_NAME = "INTERNAL_ERROR";
+static constexpr const char *ALREADY_ACTIVE_NAME = "ALREADY_ACTIVE";
+static constexpr const char *MAX_LIMIT_NAME = "MAX_LIMIT";
+
 enum {
     ARG_NUM_0,
     ARG_NUM_1,
     ARG_NUM_2,
 };
 
+enum MDnsErr{
+    INTERNAL_ERROR,
+    ALREADY_ACTIVE,
+    MAX_LIMIT,
+};
 #endif /* COMMUNICATIONNETMANAGEREXT_MDNS_CONSTANT_H */
