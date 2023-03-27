@@ -56,7 +56,7 @@ enum {
     ARG_NUM_2,
 };
 
-enum MDnsErr{
+enum MDnsErr {
     INTERNAL_ERROR,
     ALREADY_ACTIVE,
     MAX_LIMIT,
