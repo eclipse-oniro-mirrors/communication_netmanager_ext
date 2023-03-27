@@ -36,7 +36,7 @@ bool MDnsStartSearchingContext::CheckParamsType(napi_value *params, size_t param
     }
 
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        return NapiUtils::GetValueType(GetEnv(), params[0]) == napi_string &&
+        return NapiUtils::GetValueType(GetEnv(), params[0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[1]) == napi_function;
     }
     return false;

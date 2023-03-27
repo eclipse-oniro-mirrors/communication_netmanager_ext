@@ -42,6 +42,8 @@ static constexpr const char *SERVICEINFO_FAMILY = "family";
 
 static constexpr const char *SERVICEINFO_ATTR_KEY = "key";
 static constexpr const char *SERVICEINFO_ATTR_VALUE = "value";
+static constexpr const char *CONTEXT_ATTR_APPINFO = "applicationInfo";
+static constexpr const char *APPINFO_ATTR_NAME = "name";
 
 enum {
     ARG_NUM_0,

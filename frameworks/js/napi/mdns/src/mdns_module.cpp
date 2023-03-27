@@ -36,13 +36,24 @@ namespace NetManagerStandard {
 
 constexpr const char *MDNS_MODULE_NAME = "net.mdns";
 
+static std::string GetContextIdString(napi_env env, napi_value obj)
+{
+    if (NapiUtils::HasNamedProperty(env, obj, CONTEXT_ATTR_APPINFO)) {
+        napi_value info = NapiUtils::GetNamedProperty(env, obj, CONTEXT_ATTR_APPINFO);
+        if (NapiUtils::HasNamedProperty(env, info, APPINFO_ATTR_NAME)) {
+            return NapiUtils::GetStringPropertyUtf8(env, info, APPINFO_ATTR_NAME);
+        }
+    }
+    return std::string();
+}
+
 static void *ParseMDnsDiscoveryParams(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
 {
     std::unique_ptr<MDnsDiscoveryInstance, decltype(&MDnsDiscoveryInstance::DeleteMDnsDiscovery)> mdnsDiscover(
         MDnsDiscoveryInstance::MakeMDnsDiscovery(manager), MDnsDiscoveryInstance::DeleteMDnsDiscovery);
-    if (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) == napi_string &&
+    if (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) == napi_object &&
         NapiUtils::GetValueType(env, argv[ARG_NUM_1]) == napi_string) {
-        mdnsDiscover->context_ = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_0]);
+        mdnsDiscover->context_ = GetContextIdString(env, argv[ARG_NUM_0]);
         mdnsDiscover->serviceType_ = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_1]);
         return mdnsDiscover.release();
     }
