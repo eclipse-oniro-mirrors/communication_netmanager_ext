@@ -60,7 +60,7 @@ bool MDnsRemoveLocalServiceContext::CheckParamsType(napi_value *params, size_t p
         bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object;
     } else if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_string &&
+        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_2]) == napi_function;
     }
