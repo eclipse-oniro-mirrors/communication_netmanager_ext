@@ -134,6 +134,18 @@ napi_value MDnsModule::InitMDnsModule(napi_env env, napi_value exports)
                               DiscoveryServiceInterface::StopSearchingMDNS),
     };
     ModuleTemplate::DefineClass(env, exports, MDnsDiscoveryFunctions, FUNCTION_DISCOVERY_SERVICE);
+
+    std::initializer_list<napi_property_descriptor> mdnsError = {
+            DECLARE_NAPI_STATIC_PROPERTY(INTERNAL_ERROR_NAME,
+                                         NapiUtils::CreateUint32(env, static_cast<uint32_t>(MDnsErr::INTERNAL_ERROR))),
+            DECLARE_NAPI_STATIC_PROPERTY(ALREADY_ACTIVE_NAME,
+                                         NapiUtils::CreateUint32(env, static_cast<uint32_t>(MDnsErr::ALREADY_ACTIVE))),
+            DECLARE_NAPI_STATIC_PROPERTY(MAX_LIMIT_NAME,
+                                         NapiUtils::CreateUint32(env, static_cast<uint32_t>(MDnsErr::MAX_LIMIT))),
+    };
+    napi_value mdnsErrorValue = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, mdnsErrorValue, mdnsError);
+    NapiUtils::SetNamedProperty(env, exports, MDNS_ERR, mdnsErrorValue);
     return exports;
 }
 
