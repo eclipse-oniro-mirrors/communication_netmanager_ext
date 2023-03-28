@@ -239,6 +239,9 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
     }
 
     for (ifaddrs *ifa = ifaddr; ifa != nullptr && socks_.size() < MDNS_MAX_SOCKET; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == nullptr) {
+            continue;
+        }
         if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
             loaddr = ifa;
         }
