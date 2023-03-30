@@ -46,6 +46,7 @@ ohos_shared_library("ethernet_manager") {
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
+    "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
   ]
 
   deps = [
