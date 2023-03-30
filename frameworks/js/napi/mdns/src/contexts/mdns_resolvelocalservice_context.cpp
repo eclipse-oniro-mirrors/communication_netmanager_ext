@@ -36,8 +36,6 @@ void MDnsResolveLocalServiceContext::ParseParams(napi_value *params, size_t para
         return;
     }
 
-    std::string bundleName = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[ARG_NUM_0]);
-
     ParseServiceInfo(GetEnv(), params[ARG_NUM_1]);
 
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
@@ -45,16 +43,6 @@ void MDnsResolveLocalServiceContext::ParseParams(napi_value *params, size_t para
         return;
     }
     SetParseOK(true);
-}
-
-MDnsServiceInfo &MDnsResolveLocalServiceContext::GetServiceInfo()
-{
-    return serviceInfo_;
-}
-
-void MDnsResolveLocalServiceContext::SetServiceInfo(const MDnsServiceInfo &info)
-{
-    serviceInfo_ = info;
 }
 
 sptr<IResolveCallback> MDnsResolveLocalServiceContext::GetObserver()
@@ -66,10 +54,10 @@ bool MDnsResolveLocalServiceContext::CheckParamsType(napi_value *params, size_t 
 {
     bool bRet = false;
     if (paramsCount == PARAM_JUST_OPTIONS) {
-        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_string &&
+        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object;
     } else if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_string &&
+        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_2]) == napi_function;
     }

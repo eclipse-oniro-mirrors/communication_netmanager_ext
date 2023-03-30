@@ -99,6 +99,17 @@ void MDnsBaseContext::ParseAttributeObj(napi_env env, napi_value obj, TxtRecord 
     }
 }
 
+std::string MDnsBaseContext::GetContextIdString(napi_env env, napi_value obj)
+{
+    if (NapiUtils::HasNamedProperty(env, obj, CONTEXT_ATTR_APPINFO)) {
+        napi_value info = NapiUtils::GetNamedProperty(env, obj, CONTEXT_ATTR_APPINFO);
+        if (NapiUtils::HasNamedProperty(env, info, APPINFO_ATTR_NAME)) {
+            return NapiUtils::GetStringPropertyUtf8(env, info, APPINFO_ATTR_NAME);
+        }
+    }
+    return std::string();
+}
+
 void MDnsBaseContext::ParseServiceInfo(napi_env env, napi_value value)
 {
     if (NapiUtils::HasNamedProperty(env, value, SERVICEINFO_TYPE)) {
@@ -120,5 +131,15 @@ void MDnsBaseContext::ParseServiceInfo(napi_env env, napi_value value)
         ParseAttributeObj(env, attrObj, attrMap);
         serviceInfo_.SetAttrMap(attrMap);
     }
+}
+
+MDnsServiceInfo &MDnsBaseContext::GetServiceInfo()
+{
+    return serviceInfo_;
+}
+
+void MDnsBaseContext::SetServiceInfo(const MDnsServiceInfo &info)
+{
+    serviceInfo_ = info;
 }
 } // namespace OHOS::NetManagerStandard

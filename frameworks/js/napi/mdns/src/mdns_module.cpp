@@ -36,13 +36,24 @@ namespace NetManagerStandard {
 
 constexpr const char *MDNS_MODULE_NAME = "net.mdns";
 
+static std::string GetContextIdString(napi_env env, napi_value obj)
+{
+    if (NapiUtils::HasNamedProperty(env, obj, CONTEXT_ATTR_APPINFO)) {
+        napi_value info = NapiUtils::GetNamedProperty(env, obj, CONTEXT_ATTR_APPINFO);
+        if (NapiUtils::HasNamedProperty(env, info, APPINFO_ATTR_NAME)) {
+            return NapiUtils::GetStringPropertyUtf8(env, info, APPINFO_ATTR_NAME);
+        }
+    }
+    return std::string();
+}
+
 static void *ParseMDnsDiscoveryParams(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
 {
     std::unique_ptr<MDnsDiscoveryInstance, decltype(&MDnsDiscoveryInstance::DeleteMDnsDiscovery)> mdnsDiscover(
         MDnsDiscoveryInstance::MakeMDnsDiscovery(manager), MDnsDiscoveryInstance::DeleteMDnsDiscovery);
-    if (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) == napi_string &&
+    if (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) == napi_object &&
         NapiUtils::GetValueType(env, argv[ARG_NUM_1]) == napi_string) {
-        mdnsDiscover->context_ = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_0]);
+        mdnsDiscover->context_ = GetContextIdString(env, argv[ARG_NUM_0]);
         mdnsDiscover->serviceType_ = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_1]);
         return mdnsDiscover.release();
     }
@@ -123,6 +134,18 @@ napi_value MDnsModule::InitMDnsModule(napi_env env, napi_value exports)
                               DiscoveryServiceInterface::StopSearchingMDNS),
     };
     ModuleTemplate::DefineClass(env, exports, MDnsDiscoveryFunctions, FUNCTION_DISCOVERY_SERVICE);
+
+    std::initializer_list<napi_property_descriptor> mdnsError = {
+            DECLARE_NAPI_STATIC_PROPERTY(INTERNAL_ERROR_NAME,
+                                         NapiUtils::CreateUint32(env, static_cast<uint32_t>(MDnsErr::INTERNAL_ERROR))),
+            DECLARE_NAPI_STATIC_PROPERTY(ALREADY_ACTIVE_NAME,
+                                         NapiUtils::CreateUint32(env, static_cast<uint32_t>(MDnsErr::ALREADY_ACTIVE))),
+            DECLARE_NAPI_STATIC_PROPERTY(MAX_LIMIT_NAME,
+                                         NapiUtils::CreateUint32(env, static_cast<uint32_t>(MDnsErr::MAX_LIMIT))),
+    };
+    napi_value mdnsErrorValue = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, mdnsErrorValue, mdnsError);
+    NapiUtils::SetNamedProperty(env, exports, MDNS_ERR, mdnsErrorValue);
     return exports;
 }
 

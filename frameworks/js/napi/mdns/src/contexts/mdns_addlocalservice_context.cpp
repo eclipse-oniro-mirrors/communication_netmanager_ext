@@ -18,6 +18,7 @@
 
 #include "constant.h"
 #include "mdns_addlocalservice_context.h"
+#include "mdns_common.h"
 
 namespace OHOS::NetManagerStandard {
 std::map<std::string, sptr<IRegistrationCallback>> MDnsAddLocalServiceContext::registerCallbackMap_;
@@ -36,9 +37,10 @@ void MDnsAddLocalServiceContext::ParseParams(napi_value *params, size_t paramsCo
         return;
     }
 
-    std::string bundleName = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[ARG_NUM_0]);
+    std::string bundleName = GetContextIdString(GetEnv(), params[ARG_NUM_0]);
     ParseServiceInfo(GetEnv(), params[ARG_NUM_1]);
-    std::string key = bundleName + serviceInfo_.name + serviceInfo_.type;
+    std::string key = bundleName + MDNS_HOSTPORT_SPLITER_STR + GetServiceInfo().name + MDNS_DOMAIN_SPLITER_STR +
+                      GetServiceInfo().type;
 
     std::lock_guard<std::mutex> lock(g_mDNSRegisterMutex);
     auto observer = registerCallbackMap_[key];
@@ -61,16 +63,6 @@ void MDnsAddLocalServiceContext::ParseParams(napi_value *params, size_t paramsCo
     SetParseOK(true);
 }
 
-const MDnsServiceInfo &MDnsAddLocalServiceContext::GetServiceInfo() const
-{
-    return serviceInfo_;
-}
-
-void MDnsAddLocalServiceContext::SetServiceInfo(const MDnsServiceInfo &info)
-{
-    serviceInfo_ = info;
-}
-
 sptr<IRegistrationCallback> MDnsAddLocalServiceContext::GetObserver() const
 {
     return regObserver_;
@@ -80,10 +72,10 @@ bool MDnsAddLocalServiceContext::CheckParamsType(napi_value *params, size_t para
 {
     bool bRet = false;
     if (paramsCount == PARAM_JUST_OPTIONS) {
-        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_string &&
+        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object;
     } else if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_string &&
+        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_2]) == napi_function;
     }

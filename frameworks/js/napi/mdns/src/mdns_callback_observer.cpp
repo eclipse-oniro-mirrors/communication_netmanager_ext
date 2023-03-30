@@ -82,8 +82,8 @@ void MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInf
         return;
     }
 
-    auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICEFOUND, pair, ServiceFoundCallback);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICEFOUND, new MDnsServiceInfo(serviceInfo),
+                                                ServiceFoundCallback);
 }
 
 void MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
@@ -99,8 +99,8 @@ void MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo
         return;
     }
 
-    auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICELOST, pair, ServiceLostCallback);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICELOST, new MDnsServiceInfo(serviceInfo),
+                                                ServiceFoundCallback);
 }
 
 napi_value CreateCallbackParam(const MDnsServiceInfo &serviceInfo, napi_env env)
@@ -154,12 +154,11 @@ void MDnsDiscoveryObserver::StopDiscoveryServiceCallback(uv_work_t *work, int32_
 
 napi_value MDnsDiscoveryObserver::CreateServiceFound(napi_env env, void *data)
 {
-    auto pair = static_cast<std::pair<int32_t, MDnsServiceInfo> *>(data);
+    auto serviceInfo = static_cast<MDnsServiceInfo *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
-    NapiUtils::SetUint32Property(env, obj, ERRCODE, pair->first);
-    napi_value infoObj = CreateCallbackParam(pair->second, env);
+    napi_value infoObj = CreateCallbackParam(*serviceInfo, env);
     NapiUtils::SetNamedProperty(env, obj, SERVICEINFO, infoObj);
-    delete pair;
+    delete serviceInfo;
     return obj;
 }
 
@@ -170,12 +169,11 @@ void MDnsDiscoveryObserver::ServiceFoundCallback(uv_work_t *work, int32_t status
 
 napi_value MDnsDiscoveryObserver::CreateServiceLost(napi_env env, void *data)
 {
-    auto pair = static_cast<std::pair<int32_t, MDnsServiceInfo> *>(data);
+    auto serviceInfo = static_cast<MDnsServiceInfo *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
-    NapiUtils::SetUint32Property(env, obj, ERRCODE, pair->first);
-    napi_value infoObj = CreateCallbackParam(pair->second, env);
+    napi_value infoObj = CreateCallbackParam(*serviceInfo, env);
     NapiUtils::SetNamedProperty(env, obj, SERVICEINFO, infoObj);
-    delete pair;
+    delete serviceInfo;
     return obj;
 }
 

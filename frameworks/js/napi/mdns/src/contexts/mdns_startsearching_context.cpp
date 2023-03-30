@@ -18,6 +18,7 @@
 #include "constant.h"
 #include "mdns_startsearching_context.h"
 #include "netmanager_ext_log.h"
+#include "mdns_common.h"
 
 namespace OHOS::NetManagerStandard {
 MDnsStartSearchingContext::MDnsStartSearchingContext(napi_env env, EventManager *manager) : BaseContext(env, manager)
@@ -26,6 +27,11 @@ MDnsStartSearchingContext::MDnsStartSearchingContext(napi_env env, EventManager 
 
 void MDnsStartSearchingContext::ParseParams(napi_value *params, size_t paramsCount)
 {
+    if (paramsCount > PARAM_NONE) {
+        SetNeedThrowException(true);
+        SetErrorCode(NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+        return;
+    }
     SetParseOK(true);
 }
 
@@ -36,7 +42,7 @@ bool MDnsStartSearchingContext::CheckParamsType(napi_value *params, size_t param
     }
 
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        return NapiUtils::GetValueType(GetEnv(), params[0]) == napi_string &&
+        return NapiUtils::GetValueType(GetEnv(), params[0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[1]) == napi_function;
     }
     return false;
