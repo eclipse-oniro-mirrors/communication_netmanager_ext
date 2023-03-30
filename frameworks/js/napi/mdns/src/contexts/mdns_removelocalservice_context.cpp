@@ -34,10 +34,11 @@ void MDnsRemoveLocalServiceContext::ParseParams(napi_value *params, size_t param
         SetErrorCode(NET_MDNS_ERR_ILLEGAL_ARGUMENT);
         return;
     }
-    std::string bundleName = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[ARG_NUM_0]);
 
+    std::string bundleName = GetContextIdString(GetEnv(), params[ARG_NUM_0]);
     ParseServiceInfo(GetEnv(), params[ARG_NUM_1]);
-    std::string key = bundleName + serviceInfo_.name + serviceInfo_.type;
+    std::string key = bundleName + MDNS_HOSTPORT_SPLITER_STR + GetServiceInfo().name + MDNS_DOMAIN_SPLITER_STR +
+                      GetServiceInfo().type;
 
     {
         std::lock_guard<std::mutex> lock(g_mDNSUnregisterMutex);
@@ -56,10 +57,10 @@ bool MDnsRemoveLocalServiceContext::CheckParamsType(napi_value *params, size_t p
 {
     bool bRet = false;
     if (paramsCount == PARAM_JUST_OPTIONS) {
-        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_string &&
+        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object;
     } else if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_string &&
+        bRet = NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_0]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_1]) == napi_object &&
                NapiUtils::GetValueType(GetEnv(), params[ARG_NUM_2]) == napi_function;
     }
@@ -69,15 +70,5 @@ bool MDnsRemoveLocalServiceContext::CheckParamsType(napi_value *params, size_t p
 sptr<IRegistrationCallback> MDnsRemoveLocalServiceContext::GetObserver()
 {
     return regObserver_;
-}
-
-MDnsServiceInfo &MDnsRemoveLocalServiceContext::GetServiceInfo()
-{
-    return serviceInfo_;
-}
-
-void MDnsRemoveLocalServiceContext::SetServiceInfo(const MDnsServiceInfo &info)
-{
-    serviceInfo_ = info;
 }
 } // namespace OHOS::NetManagerStandard

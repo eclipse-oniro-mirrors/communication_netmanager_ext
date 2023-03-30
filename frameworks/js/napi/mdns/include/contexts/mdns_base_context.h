@@ -29,13 +29,15 @@ public:
     MDnsBaseContext() = delete;
     explicit MDnsBaseContext(napi_env env, EventManager *manager);
 
-private:
+    MDnsServiceInfo &GetServiceInfo();
+    void SetServiceInfo(const MDnsServiceInfo &info);
+    void ParseServiceInfo(napi_env env, napi_value value);
     void ParseAddressObj(napi_env env, napi_value obj);
     void ParseAttributeObj(napi_env env, napi_value obj, TxtRecord &attrMap);
     bool GetAttributeObj(napi_env env, napi_value obj, uint32_t &len);
+    std::string GetContextIdString(napi_env env, napi_value obj);
 
-protected:
-    void ParseServiceInfo(napi_env env, napi_value value);
+private:
     MDnsServiceInfo serviceInfo_;
 };
 } // namespace NetManagerStandard

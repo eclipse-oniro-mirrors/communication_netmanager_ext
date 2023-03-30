@@ -34,6 +34,7 @@ constexpr const char *IS_IFACE = "isIfaceActive";
 constexpr const char *GET_ALL_IFACES = "getAllActiveIfaces";
 constexpr const char *STATIC_NAME = "STATIC";
 constexpr const char *DHCP_NAME = "DHCP";
+constexpr const char *IP_SET_MODE = "IPSetMode";
 
 napi_value GetIfaceConfig(napi_env env, napi_callback_info info)
 {
@@ -84,6 +85,15 @@ napi_value RegisterEthernetInterface(napi_env env, napi_value exports)
 {
     DeclareEthernetInterface(env, exports);
     DeclareEthernetData(env, exports);
+
+    std::initializer_list<napi_property_descriptor> ipSetMode = {
+        DECLARE_NAPI_STATIC_PROPERTY(STATIC_NAME,
+                                     NapiUtils::CreateUint32(env, static_cast<uint32_t>(IPSetMode::STATIC))),
+        DECLARE_NAPI_STATIC_PROPERTY(DHCP_NAME, NapiUtils::CreateUint32(env, static_cast<uint32_t>(IPSetMode::DHCP))),
+    };
+    napi_value ipSetMOdes = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, ipSetMOdes, ipSetMode);
+    NapiUtils::SetNamedProperty(env, exports, IP_SET_MODE, ipSetMOdes);
     return exports;
 }
 
