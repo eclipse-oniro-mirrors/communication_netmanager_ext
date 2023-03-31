@@ -65,6 +65,7 @@ ohos_shared_library("net_tether_manager") {
     "$USB_MANAGER_ROOT/utils/native/include",
     "$USB_MANAGER_ROOT/services/zidl/include",
     "//third_party/jsoncpp/include/json",
+    "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
   ]
