@@ -504,6 +504,27 @@ void MDnsProtocolImpl::ProcessAnswer(int sock, const MDnsMessage &msg)
     }
 }
 
+void MDnsProtocolImpl::ProcessPtrRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches)
+{
+    const std::string *data = std::any_cast<std::string>(&rr.rdata);
+    if (data == nullptr) {
+        return;
+    }
+    Result result;
+    ExtractNameAndType(*data, result.serviceName, result.serviceType);
+    if (std::find_if(matches->begin(), matches->end(), [&](const auto &elem) {
+            return elem.serviceName == result.serviceName && elem.serviceType == result.serviceType;
+        }) == matches->end()) {
+        result.type = (rr.ttl == 0) ? SERVICE_LOST : SERVICE_FOUND;
+        matches->emplace_back(std::move(result));
+        if (rr.ttl == 0) {
+            cacheMap_.erase(*data);
+        } else {
+            cacheMap_[*data];
+        }
+    }
+}
+
 void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches,
                                            std::set<std::string> &changed)
 {
@@ -514,23 +535,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
         return;
     }
     if (rr.rtype == DNSProto::RRTYPE_PTR && matches) {
-        const std::string *data = std::any_cast<std::string>(&rr.rdata);
-        if (data == nullptr) {
-            return;
-        }
-        Result result;
-        ExtractNameAndType(*data, result.serviceName, result.serviceType);
-        if (std::find_if(matches->begin(), matches->end(), [&](const auto &elem) {
-                return elem.serviceName == result.serviceName && elem.serviceType == result.serviceType;
-            }) == matches->end()) {
-            result.type = (rr.ttl == 0) ? SERVICE_LOST : SERVICE_FOUND;
-            matches->emplace_back(std::move(result));
-            if (rr.ttl == 0) {
-                cacheMap_.erase(*data);
-            } else {
-                cacheMap_[*data];
-            }
-        }
+        ProcessPtrRecord(v6, rr, matches);
     } else if (rr.rtype == DNSProto::RRTYPE_SRV) {
         const DNSProto::RDataSrv *srv = std::any_cast<DNSProto::RDataSrv>(&rr.rdata);
         if (rr.ttl == 0) {

@@ -97,6 +97,7 @@ private:
     void ProcessAnswer(int sock, const MDnsMessage &msg);
     void ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches,
                              std::set<std::string> &changed);
+    void ProcessPtrRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches);
     void AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlist, DNSProto::RRType type, const std::string &name,
                       const std::any &rdata);
     void HandleResolveInstanceLater(const Result& result);

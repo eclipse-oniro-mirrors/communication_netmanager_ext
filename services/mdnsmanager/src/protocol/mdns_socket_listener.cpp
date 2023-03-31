@@ -72,7 +72,7 @@ int InitFdFlags(int sock)
     if (flags == -1) {
         return -1;
     }
-    if (fcntl(sock, F_SETFL, (unsigned int)flags | O_NONBLOCK) == -1) {
+    if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
         return -1;
     }
     return 0;
