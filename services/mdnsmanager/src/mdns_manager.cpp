@@ -30,7 +30,7 @@ MDnsManager::MDnsManager()
 
 int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
-    if (cb == nullptr) {
+    if (cb == nullptr || cb->AsObject() == nullptr) {
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -45,7 +45,10 @@ int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const s
                                     .port = serviceInfo.port,
                                     .txt = serviceInfo.txtRecord};
     int32_t err = impl.Register(result);
-    impl.RunTaskLater([this, cb, serviceInfo, err]() { cb->HandleRegisterResult(serviceInfo, err); });
+    impl.RunTaskLater([this, cb, serviceInfo, err]() {
+        cb->HandleRegisterResult(serviceInfo, err);
+        return true;
+    });
     if (err == NETMANAGER_EXT_SUCCESS) {
         registerMap_.emplace_back(cb, serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type);
     }
@@ -54,7 +57,7 @@ int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const s
 
 int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 {
-    if (cb == nullptr) {
+    if (cb == nullptr || cb->AsObject() == nullptr) {
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -74,7 +77,7 @@ int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 
 int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
-    if (cb == nullptr) {
+    if (cb == nullptr || cb->AsObject() == nullptr) {
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -93,7 +96,7 @@ int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const 
 
 int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 {
-    if (cb == nullptr) {
+    if (cb == nullptr || cb->AsObject() == nullptr) {
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -113,7 +116,7 @@ int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 
 int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb)
 {
-    if (cb == nullptr) {
+    if (cb == nullptr || cb->AsObject() == nullptr) {
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -141,6 +144,7 @@ void MDnsManager::InitHandler()
 
 void MDnsManager::ReceiveResult(const MDnsProtocolImpl::Result &result, int32_t error)
 {
+    NETMGR_EXT_LOG_D("ReceiveResult: %{public}d, error: %{public}d", result.type, error);
     switch (result.type) {
         case MDnsProtocolImpl::SERVICE_STARTED:
             [[fallthrough]];
@@ -153,7 +157,7 @@ void MDnsManager::ReceiveResult(const MDnsProtocolImpl::Result &result, int32_t 
         case MDnsProtocolImpl::INSTANCE_RESOLVED:
             return ReceiveInstanceResolve(result, error);
         case MDnsProtocolImpl::DOMAIN_RESOLVED:
-            return ReceiveResolve(result, error);
+            [[fallthrough]];
         case MDnsProtocolImpl::UNKNOWN:
             [[fallthrough]];
         default:
@@ -165,8 +169,8 @@ void MDnsManager::ReceiveRegister(const MDnsProtocolImpl::Result &result, int32_
 
 void MDnsManager::ReceiveDiscover(const MDnsProtocolImpl::Result &result, int32_t error)
 {
-    std::lock_guard<std::mutex> guard(mutex_);
     NETMGR_EXT_LOG_D("discoveryMap_ size: [%{public}zu]", discoveryMap_.size());
+    std::lock_guard<std::mutex> guard(mutex_);
     for (auto iter = discoveryMap_.begin(); iter != discoveryMap_.end(); ++iter) {
         if (iter->second != result.serviceType) {
             continue;
@@ -186,50 +190,24 @@ void MDnsManager::ReceiveDiscover(const MDnsProtocolImpl::Result &result, int32_
 
 void MDnsManager::ReceiveInstanceResolve(const MDnsProtocolImpl::Result &result, int32_t error)
 {
+    NETMGR_EXT_LOG_D("resolveMap_ size: [%{public}zu]", resolveMap_.size());
     std::lock_guard<std::mutex> guard(mutex_);
-    if (result.addr.empty() && !result.domain.empty()) {
-        resolvResults_.emplace_back(result);
-        impl.Resolve(resolvResults_.back().domain);
-        return;
-    }
-
     for (auto iter = resolveMap_.begin(); iter != resolveMap_.end();) {
         if (iter->second != result.serviceName + MDNS_DOMAIN_SPLITER_STR + result.serviceType) {
             ++iter;
             continue;
         }
+
+        if (result.addr.empty()|| result.domain.empty()) {
+            ++iter;
+            continue;
+        }
+
         auto cb = iter->first;
         impl.StopResolveInstance(result.serviceName + MDNS_DOMAIN_SPLITER_STR + result.serviceType);
         cb->HandleResolveResult(ConvertResultToInfo(result), error);
         iter = resolveMap_.erase(iter);
     }
-}
-
-void MDnsManager::ReceiveResolve(const MDnsProtocolImpl::Result &result, int32_t error)
-{
-    std::lock_guard<std::mutex> guard(mutex_);
-    auto res = resolvResults_.end();
-    res = std::find_if(resolvResults_.begin(), resolvResults_.end(),
-                       [&](const auto &x) { return x.domain == result.domain; });
-    if (res == resolvResults_.end()) {
-        return;
-    }
-    res->ipv6 = result.ipv6;
-    res->addr = result.addr;
-
-    for (auto iter = resolveMap_.begin(); iter != resolveMap_.end();) {
-        if (iter->second != res->serviceName + MDNS_DOMAIN_SPLITER_STR + res->serviceType) {
-            ++iter;
-            continue;
-        }
-        auto cb = iter->first;
-        cb->HandleResolveResult(ConvertResultToInfo(*res), error);
-        iter = resolveMap_.erase(iter);
-    }
-
-    impl.StopResolve(res->domain);
-    impl.StopResolveInstance(result.serviceName + MDNS_DOMAIN_SPLITER_STR + result.serviceType);
-    resolvResults_.erase(res);
 }
 
 MDnsServiceInfo MDnsManager::ConvertResultToInfo(const MDnsProtocolImpl::Result &result)

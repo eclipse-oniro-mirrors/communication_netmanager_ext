@@ -18,6 +18,7 @@
 
 #include <any>
 #include <list>
+#include <set>
 #include <string>
 #include <queue>
 
@@ -52,7 +53,7 @@ public:
     };
 
     using TxtRecord = std::map<std::string, std::vector<uint8_t>>;
-    using Task = std::function<void()>;
+    using Task = std::function<bool()>;
 
     struct Result {
         ResultType type;
@@ -83,7 +84,7 @@ public:
     int32_t StopResolve(const std::string &key);
     int32_t Stop(const std::string &key);
 
-    void RunTaskLater(const Task& task);
+    void RunTaskLater(const Task& task, bool atonce = true);
 
 private:
     void Init();
@@ -94,10 +95,15 @@ private:
     void ProcessQuestionRecord(const std::any &anyAddr, const DNSProto::RRType &anyAddrType,
                                const DNSProto::Question &qu, int &phase, MDnsMessage &response);
     void ProcessAnswer(int sock, const MDnsMessage &msg);
-    void ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> &matches,
-                             std::map<std::string, Result> &results, std::map<std::string, std::string> &needMore);
+    void ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches,
+                             std::set<std::string> &changed);
     void AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlist, DNSProto::RRType type, const std::string &name,
                       const std::any &rdata);
+    void HandleResolveInstanceLater(const Result& result);
+    bool ResolveInstanceFromCache(const std::string& name);
+    bool ResolveInstanceFromNet(const std::string &name);
+    bool ResolveFromCache(const std::string &domain);
+    bool ResolveFromNet(const std::string &domain);
 
     std::string ExtractInstance(const Result &info) const;
     std::string Decorated(const std::string &name) const;
@@ -110,8 +116,8 @@ private:
     Handler handler_;
     std::map<std::string, Result> srvMap_;
     std::map<std::string, int> reqMap_;
-    std::atomic_int reqCount_ = 0;
-    std::mutex mutex_;
+    std::map<std::string, Result> cacheMap_;
+    std::recursive_mutex mutex_;
     std::queue<Task> taskQueue_;
 };
 
