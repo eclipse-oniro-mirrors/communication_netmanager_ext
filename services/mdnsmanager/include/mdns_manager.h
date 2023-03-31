@@ -51,12 +51,11 @@ private:
     void ReceiveRegister(const MDnsProtocolImpl::Result &result, int32_t error);
     void ReceiveDiscover(const MDnsProtocolImpl::Result &result, int32_t error);
     void ReceiveInstanceResolve(const MDnsProtocolImpl::Result &result, int32_t error);
-    void ReceiveResolve(const MDnsProtocolImpl::Result &result, int32_t error);
 
     struct CompareSmartPointer {
-        template <class T> bool operator()(const T &lhs, const T &rhs) const
+        bool operator()(const sptr<IRemoteBroker> &lhs, const sptr<IRemoteBroker> &rhs) const
         {
-            return lhs.GetRefPtr() < rhs.GetRefPtr();
+            return lhs->AsObject().GetRefPtr() < rhs->AsObject().GetRefPtr();
         }
     };
 
@@ -64,7 +63,6 @@ private:
     std::vector<std::pair<sptr<IRegistrationCallback>, std::string>> registerMap_;
     std::vector<std::pair<sptr<IDiscoveryCallback>, std::string>> discoveryMap_;
     std::vector<std::pair<sptr<IResolveCallback>, std::string>> resolveMap_;
-    std::list<MDnsProtocolImpl::Result> resolvResults_;
     std::mutex mutex_;
 };
 

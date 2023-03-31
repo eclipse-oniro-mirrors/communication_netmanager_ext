@@ -407,13 +407,14 @@ void MDnsSocketListener::ReceiveInSock(int sock)
         }
     }
 
-    char ifName[IFNAMSIZ];
+    char ifName[IFNAMSIZ] = {0};
     if (if_indextoname(static_cast<unsigned>(ifIndex), ifName) == nullptr) {
         NETMGR_EXT_LOG_E("if_indextoname failed, errno:[%{public}d]", errno);
     }
     if (ifName == iface_[sock] && recvLen > 0 && recv_) {
         payload.resize(static_cast<size_t>(recvLen));
         recv_(sock, payload);
+        refresh_(sock);
     }
 }
 

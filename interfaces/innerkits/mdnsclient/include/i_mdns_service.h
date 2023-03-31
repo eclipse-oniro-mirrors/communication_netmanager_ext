@@ -32,10 +32,10 @@ class IMDnsService : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.IMDnsService");
     enum {
-        CMD_DISCOVER,
-        CMD_STOP_DISCOVER,
         CMD_REGISTER,
         CMD_STOP_REGISTER,
+        CMD_DISCOVER,
+        CMD_STOP_DISCOVER,
         CMD_RESOLVE
     };
 

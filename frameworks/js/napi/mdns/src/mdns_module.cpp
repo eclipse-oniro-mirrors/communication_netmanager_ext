@@ -159,7 +159,7 @@ static napi_module g_mdnsModule = {
     .reserved = {nullptr},
 };
 
-extern "C" __attribute__((constructor)) void RegisterNetShareModule(void)
+extern "C" __attribute__((constructor)) void RegisterMDnsModule(void)
 {
     napi_module_register(&g_mdnsModule);
 }
