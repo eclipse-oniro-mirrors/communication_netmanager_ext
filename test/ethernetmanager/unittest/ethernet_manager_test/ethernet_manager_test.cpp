@@ -38,6 +38,7 @@
 #include "ethernet_dhcp_controller.h"
 #include "ethernet_service.h"
 #include "ethernet_management.h"
+#include "ethernet_service_proxy.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -432,5 +433,27 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
     ret = devCallback.OnInterfaceLinkStateChanged(IFACE, true);
     EXPECT_EQ(ret, RET_ZERO);
 }
+
+HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
+{
+    EthernetDhcpController dhcpController;
+    sptr<EthernetDhcpCallback> callback = nullptr;
+    dhcpController.RegisterDhcpCallback(callback);
+    const std::string iface = "eth0";
+    dhcpController.StartDhcpClient(iface, true);
+    dhcpController.StopDhcpClient(iface, true);
+
+    OHOS::Wifi::DhcpResult result;
+    dhcpController.OnDhcpSuccess(iface, result);
+
+    EthernetDhcpController::EthernetDhcpControllerResultNotify ethernetDhcpControllerResultNotify(dhcpController);
+    int status = 1;
+    std::string ifname;
+    std::string reason;
+    ethernetDhcpControllerResultNotify.OnSuccess(status, ifname, result);
+    ethernetDhcpControllerResultNotify.OnFailed(status, ifname, reason);
+    ethernetDhcpControllerResultNotify.OnSerExitNotify(ifname); 
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
