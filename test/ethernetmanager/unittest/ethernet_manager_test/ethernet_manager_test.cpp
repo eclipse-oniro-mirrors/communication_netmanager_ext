@@ -452,7 +452,7 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
     std::string reason;
     ethernetDhcpControllerResultNotify.OnSuccess(status, ifname, result);
     ethernetDhcpControllerResultNotify.OnFailed(status, ifname, reason);
-    ethernetDhcpControllerResultNotify.OnSerExitNotify(ifname); 
+    ethernetDhcpControllerResultNotify.OnSerExitNotify(ifname);
 }
 
 } // namespace NetManagerStandard

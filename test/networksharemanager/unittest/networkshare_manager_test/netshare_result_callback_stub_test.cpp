@@ -24,7 +24,8 @@ constexpr int32_t RESULT_ZERO = 0;
 // constexpr const char *ERROR_MSG = "Test";
 class NetShareResultTestCallback : public NetShareResultCallbackStub {
 public:
-    inline void OnResult(const int32_t &status){
+    inline void OnResult(const int32_t &status)
+    {
         return;
     }
 };

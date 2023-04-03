@@ -23,14 +23,17 @@ using namespace testing::ext;
 constexpr int32_t RESULT_ZERO = 0;
 class SharingEventTestCallback : public SharingEventCallbackStub {
 public:
-    inline void OnSharingStateChanged(const bool &isRunning) override {
+    inline void OnSharingStateChanged(const bool &isRunning) override
+    {
         return;
     }
     inline void OnInterfaceSharingStateChanged(const SharingIfaceType &type, const std::string &iface,
-                                               const SharingIfaceState &state) override {
+                                               const SharingIfaceState &state) override
+    {
         return;
     }
-    inline void OnSharingUpstreamChanged(const sptr<NetHandle> netHandle) override {
+    inline void OnSharingUpstreamChanged(const sptr<NetHandle> netHandle) override
+    {
         return;
     }
 };
