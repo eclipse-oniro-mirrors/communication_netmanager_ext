@@ -55,7 +55,7 @@ bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
         DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(context->GetServiceInfo(), context->GetObserver());
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
-        NETMANAGER_EXT_LOGE("UnRegisterService error, errorCode: %{public}d", ret);
+        NETMANAGER_EXT_LOGE("ResolveService error, errorCode: %{public}d", ret);
         return false;
     }
 

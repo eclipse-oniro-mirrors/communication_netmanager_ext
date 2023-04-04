@@ -63,6 +63,11 @@ const uint8_t *ReadNUint32(const uint8_t *raw, uint32_t &data)
     return tmp;
 }
 
+std::string UnDotted(const std::string &name)
+{
+    return EndsWith(name, MDNS_DOMAIN_SPLITER_STR) ? name.substr(0, name.size() - 1) : name;
+}
+
 } // namespace
 
 MDnsMessage MDnsPayloadParser::FromBytes(const MDnsPayload &payload)
@@ -140,6 +145,7 @@ const uint8_t *MDnsPayloadParser::ParseQuestion(const uint8_t *begin, const MDns
 {
     questions.emplace_back();
     begin = ParseDnsString(begin, payload, questions.back().name);
+    questions.back().name = UnDotted(questions.back().name);
     if ((errorFlags_ & PARSE_ERROR) != PARSE_OK) {
         questions.pop_back();
         return begin;
@@ -162,6 +168,7 @@ const uint8_t *MDnsPayloadParser::ParseRR(const uint8_t *begin, const MDnsPayloa
 {
     answers.emplace_back();
     begin = ParseDnsString(begin, payload, answers.back().name);
+    answers.back().name = UnDotted(answers.back().name);
     if ((errorFlags_ & PARSE_ERROR) != PARSE_OK) {
         answers.pop_back();
         return begin;
@@ -211,6 +218,7 @@ const uint8_t *MDnsPayloadParser::ParseRData(const uint8_t *begin, const MDnsPay
         case DNSProto::RRTYPE_PTR: {
             std::string str;
             begin = ParseDnsString(begin, payload, str);
+            str = UnDotted(str);
             if ((errorFlags_ & PARSE_ERROR) != PARSE_OK) {
                 return begin;
             }
@@ -244,6 +252,7 @@ const uint8_t *MDnsPayloadParser::ParseSrv(const uint8_t *begin, const MDnsPaylo
     begin = ReadNUint16(begin, srv.weight);
     begin = ReadNUint16(begin, srv.port);
     begin = ParseDnsString(begin, payload, srv.name);
+    srv.name = UnDotted(srv.name);
     if ((errorFlags_ & PARSE_ERROR) != PARSE_OK) {
         return begin;
     }
