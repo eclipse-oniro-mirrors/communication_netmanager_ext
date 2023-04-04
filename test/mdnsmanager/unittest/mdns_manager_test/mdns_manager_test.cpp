@@ -143,6 +143,22 @@ void MDnsClientTest::SetUp() {}
 
 void MDnsClientTest::TearDown() {}
 
+class MDnsServerTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void MDnsServerTest::SetUpTestCase() {}
+
+void MDnsServerTest::TearDownTestCase() {}
+
+void MDnsServerTest::SetUp() {}
+
+void MDnsServerTest::TearDown() {}
+
 /**
  * @tc.name: ServiceTest001
  * @tc.desc: Test mDNS register and found.
@@ -211,6 +227,27 @@ HWTEST_F(MDnsClientTest, ClientTest001, TestSize.Level1)
     client->StopDiscoverService(discovery1);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+HWTEST_F(MDnsServerTest, ServerTest, TestSize.Level1)
+{
+    MDnsServiceInfo info;
+    info.name = DEMO_NAME;
+    info.type = DEMO_TYPE;
+    info.port = DEMO_PORT;
+    TxtRecord txt{};
+    info.SetAttrMap(txt);
+    info.SetAttrMap(g_txt);
+    auto retMap = info.GetAttrMap();
+    EXPECT_NE(retMap.size(), 0);
+
+    MessageParcel parcel;
+    auto retMar = info.Marshalling(parcel);
+    EXPECT_EQ(retMar, true);
+
+    auto serviceInfo = info.Unmarshalling(parcel);
+    retMar = info.Marshalling(parcel, serviceInfo);
+    EXPECT_EQ(retMar, true);
 }
 
 } // namespace NetManagerStandard

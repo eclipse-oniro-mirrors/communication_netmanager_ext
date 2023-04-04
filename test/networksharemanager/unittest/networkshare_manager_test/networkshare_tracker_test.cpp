@@ -128,6 +128,30 @@ HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StartNetworkSharing02
+ * @tc.desc: Test NetworkShareTracker StartNetworkSharing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing02, TestSize.Level1)
+{
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
+    int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: StopNetworkSharing02
+ * @tc.desc: Test NetworkShareTracker StopNetworkSharing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing02, TestSize.Level1)
+{
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
+    int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
  * @tc.name: StartNetworkSharing03
  * @tc.desc: Test NetworkShareTracker StartNetworkSharing.
  * @tc.type: FUNC
@@ -159,6 +183,19 @@ HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing03, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, GetSharableRegexs01, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_BLUETOOTH;
+    std::vector<std::string> ret;
+    NetworkShareTracker::GetInstance().GetSharableRegexs(type, ret);
+    EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
+}
+
+/**
+ * @tc.name: GetSharableRegexs02
+ * @tc.desc: Test NetworkShareTracker GetSharableRegexs.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, GetSharableRegexs02, TestSize.Level1)
+{
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
     std::vector<std::string> ret;
     NetworkShareTracker::GetInstance().GetSharableRegexs(type, ret);
     EXPECT_GE(ret.size(), static_cast<uint32_t>(0));
