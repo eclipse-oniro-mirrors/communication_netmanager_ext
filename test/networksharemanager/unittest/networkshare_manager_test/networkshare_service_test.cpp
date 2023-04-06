@@ -21,7 +21,9 @@
 
 #include "net_manager_constants.h"
 #include "networkshare_constants.h"
+#define private public
 #include "networkshare_service.h"
+#undef private
 #include "sharing_event_callback_stub.h"
 
 namespace OHOS {
@@ -213,6 +215,14 @@ HWTEST_F(NetworkShareServiceTest, GetSharingStateTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(NetworkShareServiceTest, GetSharingStateTest002, TestSize.Level1)
+{
+    AccessToken token;
+    SharingIfaceState state;
+    auto ret = instance_->GetSharingState(SharingIfaceType::SHARING_WIFI, state);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkShareServiceTest, GetNetSharingIfacesTest001, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
@@ -249,6 +259,22 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest001, TestSize.Level1)
     int32_t bytes;
     auto ret = instance_->GetStatsTotalBytes(bytes);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareServiceTest, GetDumpMessage001, TestSize.Level1)
+{
+    AccessToken token;
+    std::string message = "";
+    instance_->GetDumpMessage(message);
+    EXPECT_TRUE(!message.empty());
+}
+
+HWTEST_F(NetworkShareServiceTest, GetShareRegexsContent001, TestSize.Level1)
+{
+    std::string shareRegexsContent = "";
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    instance_->GetShareRegexsContent(type, shareRegexsContent);
+    EXPECT_TRUE(shareRegexsContent.empty());
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

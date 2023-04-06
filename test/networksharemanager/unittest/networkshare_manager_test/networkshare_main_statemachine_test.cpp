@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "networkshare_main_statemachine.h"
+#undef private
 #include "networkshare_state_common.h"
 
 namespace OHOS {
@@ -98,6 +100,30 @@ HWTEST_F(NetworkShareMainStateMachineTest, MainSmEventHandleTest002, TestSize.Le
     MessageIfaceActive active;
     instance_->MainSmEventHandle(eventId, active);
     nullParamInstance_->MainSmEventHandle(eventId, active);
+}
+
+HWTEST_F(NetworkShareMainStateMachineTest, HandleInitInterfaceStateInactiveTest001, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    MessageIfaceActive message;
+    auto ret = instance_->HandleInitInterfaceStateInactive(message);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+}
+
+HWTEST_F(NetworkShareMainStateMachineTest, HandleAliveInterfaceStateActiveTest001, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    MessageIfaceActive message;
+    auto ret = instance_->HandleAliveInterfaceStateActive(message);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareMainStateMachineTest, HandleAliveUpstreamMonitorCallbackTest001, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    MessageUpstreamInfo message;
+    auto ret = instance_->HandleAliveUpstreamMonitorCallback(message);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

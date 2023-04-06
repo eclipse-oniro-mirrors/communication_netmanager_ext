@@ -21,6 +21,8 @@ ohos_unittest("ethernet_manager_test") {
     "dev_interface_state_test.cpp",
     "ethernet_configuration_test.cpp",
     "ethernet_manager_test.cpp",
+    "ethernet_service_proxy_test.cpp",
+    "ethernet_service_test.cpp",
   ]
 
   include_dirs = [

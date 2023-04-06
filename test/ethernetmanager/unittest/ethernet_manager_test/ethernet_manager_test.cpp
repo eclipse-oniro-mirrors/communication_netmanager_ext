@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <gtest/gtest.h>
 
 #include "accesstoken_kit.h"
@@ -50,13 +50,11 @@ constexpr const char *DEV_NAME = "eth0";
 constexpr const char *DEV_UP = "up";
 constexpr const char *DEV_DOWN = "down";
 
-HapInfoParams testInfoParms = {
-    .userID = 1,
-    .bundleName = "ethernet_manager_test",
-    .instIndex = 0,
-    .appIDDesc = "test",
-    .isSystemApp = true
-};
+HapInfoParams testInfoParms = {.userID = 1,
+                               .bundleName = "ethernet_manager_test",
+                               .instIndex = 0,
+                               .appIDDesc = "test",
+                               .isSystemApp = true};
 PermissionDef testPermDef = {
     .permissionName = "ohos.permission.GET_NETWORK_INFO",
     .bundleName = "ethernet_manager_test",

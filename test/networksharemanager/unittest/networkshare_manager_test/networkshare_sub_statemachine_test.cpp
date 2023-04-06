@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "networkshare_sub_statemachine.h"
+#undef private
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -23,6 +25,7 @@ namespace {
 using namespace testing::ext;
 static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
+static constexpr const char *USB_DEFAULT_IFACE_NAME = "usb0";
 static constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 constexpr int32_t SUBSTATE_TEST_ILLEGAL_VALUE = 0;
 } // namespace
@@ -195,6 +198,82 @@ HWTEST_F(NetworkShareSubStateMachineTest, GetDownIfaceName02, TestSize.Level1)
     std::string downIface;
     networkShareSubStateMachine->GetDownIfaceName(downIface);
     EXPECT_EQ(downIface, BLUETOOTH_DEFAULT_IFACE_NAME);
+}
+
+/**
+ * @tc.name: HandleSharedUnrequest01
+ * @tc.desc: Test NetworkShareSubStateMachine HandleSharedUnrequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, HandleSharedUnrequest01, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::any messageObj = "";
+    int ret = networkShareSubStateMachine->HandleSharedUnrequest(messageObj);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: HandleSharedInterfaceDown01
+ * @tc.desc: Test NetworkShareSubStateMachine HandleSharedInterfaceDown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, HandleSharedInterfaceDown01, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::any messageObj = "";
+    int ret = networkShareSubStateMachine->HandleSharedInterfaceDown(messageObj);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: GetBtDestinationAddr01
+ * @tc.desc: Test NetworkShareSubStateMachine GetBtDestinationAddr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, GetBtDestinationAddr01, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    std::string addrStr;
+    int ret = networkShareSubStateMachine->GetBtDestinationAddr(addrStr);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: GetUsbDestinationAddr01
+ * @tc.desc: Test NetworkShareSubStateMachine GetUsbDestinationAddr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, GetUsbDestinationAddr01, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
+    std::string addrStr;
+    int ret = networkShareSubStateMachine->GetUsbDestinationAddr(addrStr);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: StartDhcp01
+ * @tc.desc: Test NetworkShareSubStateMachine StartDhcp.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, StartDhcp01, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    std::shared_ptr<INetAddr> ipv4Address = nullptr;
+    bool ret = networkShareSubStateMachine->RequestIpv4Address(ipv4Address);
+    ret = networkShareSubStateMachine->StartDhcp(ipv4Address);
+    EXPECT_EQ(ret, false);
 }
 
 /**
