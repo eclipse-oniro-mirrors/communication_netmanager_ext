@@ -183,7 +183,6 @@ HWTEST_F(EtherNetServiceProxyTest, SetIfaceConfigTest001, TestSize.Level1)
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ethernetServiceProxy.SetIfaceConfig(DEV_NAME, ic);
-    // ASSERT_EQ(ret, 2200207);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, GetIfaceConfigTest001, TestSize.Level1)
@@ -192,7 +191,6 @@ HWTEST_F(EtherNetServiceProxyTest, GetIfaceConfigTest001, TestSize.Level1)
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
     ethernetServiceProxy.GetIfaceConfig(DEV_NAME, ifaceConfig);
-    // EXPECT_EQ(ret, 2200207);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, IsIfaceActiveTest001, TestSize.Level1)
@@ -203,7 +201,6 @@ HWTEST_F(EtherNetServiceProxyTest, IsIfaceActiveTest001, TestSize.Level1)
     std::string ifcaeName = "eth0";
     int32_t activeStatus = -1;
     ethernetServiceProxy.IsIfaceActive(ifcaeName, activeStatus);
-    // EXPECT_EQ(ret, 2200207);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, GetAllActiveIfacesTest001, TestSize.Level1)
