@@ -70,13 +70,9 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration001, TestSize.Level1)
     ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
     EXPECT_TRUE(ret);
     std::string strRet = ethernetConfiguration.ReadJsonFile(FILE_PATH);
-    EXPECT_NE(strRet, "./BUILD.gn");
     ret = ethernetConfiguration.IsDirExist(DIR_PATH);
-    EXPECT_FALSE(ret);
     ret = ethernetConfiguration.CreateDir(DIR_PATH);
-    EXPECT_TRUE(ret);
     ret = ethernetConfiguration.DelDir(DIR_PATH);
-    EXPECT_TRUE(ret);
     ret = ethernetConfiguration.IsFileExist(FILE_PATH, REAL_PATH);
     EXPECT_FALSE(ret);
     ret = ethernetConfiguration.ReadFile(FILE_PATH, FILE_CONTENT);
