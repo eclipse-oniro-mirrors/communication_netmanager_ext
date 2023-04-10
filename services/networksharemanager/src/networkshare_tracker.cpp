@@ -28,10 +28,10 @@
 #include "network_sharing.h"
 #include "networkshare_constants.h"
 #include "networkshare_state_common.h"
+#include "system_ability_definition.h"
+#include "usb_errors.h"
 #include "usb_srv_client.h"
 #include "usb_srv_support.h"
-#include "usb_errors.h"
-#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -39,8 +39,10 @@ static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
 static constexpr const char *ERROR_MSG_ENABLE_WIFI = "Enable Wifi Iface failed";
 static constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed";
+#ifdef BLUETOOTH_MODOULE
 static constexpr const char *ERROR_MSG_ENABLE_BTPAN = "Enable BlueTooth Iface failed";
 static constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed";
+#endif
 static constexpr int32_t BYTE_TRANSFORM_KB = 1024;
 static constexpr int32_t MAX_CALLBACK_COUNT = 100;
 
@@ -195,7 +197,7 @@ OHOS::sptr<OHOS::IRemoteObject> NetworkShareTracker::WifiShareHotspotEventCallba
 {
     return nullptr;
 }
-
+#ifdef BLUETOOTH_MODOULE
 void NetworkShareTracker::SharingPanObserver::OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device,
                                                                        int state)
 {
@@ -220,7 +222,7 @@ void NetworkShareTracker::SharingPanObserver::OnConnectionStateChanged(const Blu
             break;
     }
 }
-
+#endif
 NetworkShareTracker &NetworkShareTracker::GetInstance()
 {
     static NetworkShareTracker instance;
@@ -269,6 +271,7 @@ void NetworkShareTracker::RegisterWifiApCallback()
 
 void NetworkShareTracker::RegisterBtPanCallback()
 {
+#ifdef BLUETOOTH_MODOULE
     Bluetooth::Pan *profile = Bluetooth::Pan::GetProfile();
     if (profile == nullptr) {
         return;
@@ -277,17 +280,20 @@ void NetworkShareTracker::RegisterBtPanCallback()
     if (panObserver_ != nullptr) {
         profile->RegisterObserver(panObserver_.get());
     }
+#endif
 }
 
 void NetworkShareTracker::Uninit()
 {
     isInit = false;
+#ifdef BLUETOOTH_MODOULE
     Bluetooth::Pan *profile = Bluetooth::Pan::GetProfile();
     if (profile == nullptr || panObserver_ == nullptr) {
         NETMGR_EXT_LOG_E("bt-pan profile or observer is null.");
         return;
     }
     profile->DeregisterObserver(panObserver_.get());
+#endif
     NETMGR_EXT_LOG_I("Uninit successful.");
 }
 
@@ -300,12 +306,12 @@ void NetworkShareTracker::SetWifiState(const Wifi::ApState &state)
 {
     curWifiState_ = state;
 }
-
+#ifdef BLUETOOTH_MODOULE
 void NetworkShareTracker::SetBluetoothState(const Bluetooth::BTConnectState &state)
 {
     curBluetoothState_ = state;
 }
-
+#endif
 void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<NetworkShareSubStateMachine> &who,
                                                           int32_t state, int32_t lastError)
 {
@@ -725,6 +731,7 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
 
 int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
 {
+#ifdef BLUETOOTH_MODOULE
     Bluetooth::Pan *profile = Bluetooth::Pan::GetProfile();
     if (profile == nullptr) {
         NETMGR_EXT_LOG_E("SetBluetoothNetworkSharing(%{public}s) profile is null].", enable ? "true" : "false");
@@ -755,6 +762,7 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
     }
 
     NETMGR_EXT_LOG_E("SetBluetoothNetworkSharing(%{public}s) is error.", enable ? "true" : "false");
+#endif
     return NETWORKSHARE_ERROR_BT_SHARING;
 }
 
@@ -1027,10 +1035,12 @@ bool NetworkShareTracker::IsHandleNetlinkEvent(const SharingIfaceType &type, boo
         return up ? curWifiState_ == Wifi::ApState::AP_STATE_STARTING
                   : curWifiState_ == Wifi::ApState::AP_STATE_CLOSING;
     }
+#ifdef BLUETOOTH_MODOULE
     if (type == SharingIfaceType::SHARING_BLUETOOTH) {
         return up ? curBluetoothState_ == Bluetooth::BTConnectState::CONNECTING
                   : curBluetoothState_ == Bluetooth::BTConnectState::DISCONNECTING;
     }
+#endif
     if (type == SharingIfaceType::SHARING_USB) {
         return up ? curUsbState_ == UsbShareState::USB_SHARING
                   : curUsbState_ == UsbShareState::USB_CLOSING;

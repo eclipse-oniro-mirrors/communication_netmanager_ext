@@ -91,12 +91,13 @@ ohos_shared_library("net_tether_manager") {
 
   if (!defined(global_parts_info) ||
       defined(global_parts_info.communication_bluetooth)) {
+    defines = [ "BLUETOOTH_MODOULE=1" ]
     external_deps += [ "bluetooth:btframework" ]
   } else {
-    deps += [ "$BLUETOOTH_ROOT/frameworks/inner:btframework" ]
+    defines = []
   }
 
-  defines = [
+  defines += [
     "NETMGR_LOG_TAG = \"NetworkShareManager\"",
     "LOG_DOMAIN = 0xD0015B0",
     "NETWORK_SHARING_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/network_share_config.cfg\"",

@@ -689,7 +689,9 @@ void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
     tra.RegisterWifiApCallback();
     tra.RegisterBtPanCallback();
     tra.SetWifiState(Wifi::ApState(num % ENUM_TYPE_VALUE6));
+#ifdef BLUETOOTH_MODOULE
     tra.SetBluetoothState(Bluetooth::BTConnectState(num % ENUM_TYPE_VALUE4));
+#endif
     tra.SendMainSMEvent(subSm, num, num);
 }
 
