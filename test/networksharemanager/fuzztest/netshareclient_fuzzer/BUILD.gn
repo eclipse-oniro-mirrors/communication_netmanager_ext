@@ -77,6 +77,11 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "NETMGR_LOG_TAG = \"NetShareManager\"",
     "LOG_DOMAIN = 0xD0015B0",
   ]
+  if (!defined(global_parts_info) ||
+      defined(global_parts_info.communication_bluetooth)) {
+    defines += [ "BLUETOOTH_MODOULE=1" ]
+    external_deps += [ "bluetooth:btframework" ]
+  }
 }
 
 ###############################################################################

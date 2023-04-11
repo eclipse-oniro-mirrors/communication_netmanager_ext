@@ -20,8 +20,10 @@
 #include <atomic>
 #include <map>
 
+#ifdef BLUETOOTH_MODOULE
 #include "bluetooth_pan.h"
 #include "bluetooth_remote_device.h"
+#endif
 #include "event_handler.h"
 #include "i_netshare_result_callback.h"
 #include "i_sharing_event_callback.h"
@@ -96,6 +98,7 @@ class NetworkShareTracker {
         OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
     };
 
+#ifdef BLUETOOTH_MODOULE
     class SharingPanObserver : public Bluetooth::PanObserver {
     public:
         SharingPanObserver() = default;
@@ -103,7 +106,7 @@ class NetworkShareTracker {
 
         void OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device, int state) override;
     };
-
+#endif
     class NetSharingSubSmState {
     public:
         NetSharingSubSmState(const std::shared_ptr<NetworkShareSubStateMachine> &subStateMachine, bool isNcm);
@@ -239,7 +242,9 @@ private:
     void RegisterWifiApCallback();
     void RegisterBtPanCallback();
     void SetWifiState(const Wifi::ApState &state);
+#ifdef BLUETOOTH_MODOULE
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
+#endif
     void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event, int32_t state);
 
 private:
@@ -252,17 +257,19 @@ private:
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
     std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;
     std::mutex callbackMutex_;
-    std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;
     bool isNetworkSharing_ = false;
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
     std::vector<SharingIfaceType> clientRequestsVector_;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
     int32_t wifiShareCount_ = 0;
-    int32_t bluetoothShareCount_ = 0;
     int32_t usbShareCount_ = 0;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
+#ifdef BLUETOOTH_MODOULE
+    std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;
+    int32_t bluetoothShareCount_ = 0;
     Bluetooth::BTConnectState curBluetoothState_ = Bluetooth::BTConnectState::DISCONNECTED;
+#endif
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
     std::atomic_bool isInit = false;
 };
