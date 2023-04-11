@@ -22,6 +22,32 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr size_t WAIT_REMOTE_TIME_SEC = 15;
+std::condition_variable g_cv;
+void NetworkShareLoadCallback::OnLoadSystemAbilitySuccess(
+    int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
+{
+    NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
+    remoteObject_ = remoteObject;
+    g_cv.notify_one();
+}
+
+void NetworkShareLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
+{
+    NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
+    loadSAFailed_ = true;
+}
+
+bool NetworkShareLoadCallback::IsFailed()
+{
+    return loadSAFailed_;
+}
+
+const sptr<IRemoteObject> &NetworkShareLoadCallback::GetRemoteObject() const
+{
+    return remoteObject_;
+}
+
 NetworkShareClient::NetworkShareClient() : networkShareService_(nullptr), deathRecipient_(nullptr) {}
 
 NetworkShareClient::~NetworkShareClient() {}
@@ -157,12 +183,26 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         NETMGR_EXT_LOG_E("get SystemAbilityManager failed");
         return nullptr;
     }
-    sptr<IRemoteObject> remote = sam->CheckSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID);
-    if (remote == nullptr) {
+    sptr<NetworkShareLoadCallback> callback = new (std::nothrow) NetworkShareLoadCallback;
+    if (sam->LoadSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, callback) != 0) {
+        return nullptr;
+    }
+    std::mutex mutex;
+    std::unique_lock tempLock(mutex);
+    g_cv.wait_for(tempLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
+        [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
+
+    auto remote = callback->GetRemoteObject();
+    if (remote == nullptr || !remote->IsProxyObject()) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
     }
+
     deathRecipient_ = new NetshareDeathRecipient(*this);
+    if (deathRecipient_ == nullptr) {
+        NETMGR_EXT_LOG_E("deathRecipient_ is nullptr");
+        return nullptr;
+    }
     if ((remote->IsProxyObject()) && (!remote->AddDeathRecipient(deathRecipient_))) {
         NETMGR_EXT_LOG_E("add death recipient failed");
         return nullptr;

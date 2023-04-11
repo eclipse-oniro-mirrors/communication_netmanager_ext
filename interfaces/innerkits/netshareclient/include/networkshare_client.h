@@ -18,15 +18,26 @@
 
 #include <string>
 
+#include "i_netshare_result_callback.h"
+#include "i_networkshare_service.h"
+#include "i_sharing_event_callback.h"
 #include "parcel.h"
 #include "singleton.h"
-
-#include "i_networkshare_service.h"
-#include "i_netshare_result_callback.h"
-#include "i_sharing_event_callback.h"
+#include "system_ability_load_callback_stub.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+class NetworkShareLoadCallback : public SystemAbilityLoadCallbackStub {
+public:
+    void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject) override;
+    void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
+    bool IsFailed();
+    const sptr<IRemoteObject> &GetRemoteObject() const;
+
+private:
+    bool loadSAFailed_ = false;
+    sptr<IRemoteObject> remoteObject_ = nullptr;
+};
 class NetworkShareClient {
     DECLARE_DELAYED_SINGLETON(NetworkShareClient)
 
