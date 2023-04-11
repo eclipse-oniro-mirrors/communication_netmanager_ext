@@ -90,17 +90,7 @@ void MDnsProtocolImpl::SetHandler(const Handler &handler)
 
 std::string MDnsProtocolImpl::Decorated(const std::string &name) const
 {
-    return name + config_.topDomain + MDNS_DOMAIN_SPLITER_STR;
-}
-
-std::string MDnsProtocolImpl::Dotted(const std::string &name) const
-{
-    return EndsWith(name, MDNS_DOMAIN_SPLITER_STR) ? name : name + MDNS_DOMAIN_SPLITER_STR;
-}
-
-std::string MDnsProtocolImpl::UnDotted(const std::string &name) const
-{
-    return EndsWith(name, MDNS_DOMAIN_SPLITER_STR) ? name.substr(0, name.size() - 1) : name;
+    return name + config_.topDomain;
 }
 
 std::string MDnsProtocolImpl::ExtractInstance(const Result &info) const
@@ -118,7 +108,7 @@ int32_t MDnsProtocolImpl::Register(const Result &info)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
         if (srvMap_.find(name) != srvMap_.end()) {
             return NET_MDNS_ERR_SERVICE_INSTANCE_DUPLICATE;
         }
@@ -139,9 +129,8 @@ int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
         ++reqMap_[name];
-        ++reqCount_;
     }
     MDnsPayloadParser parser;
     MDnsMessage msg{};
@@ -158,20 +147,47 @@ int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType)
     return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
-int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
+void MDnsProtocolImpl::HandleResolveInstanceLater(const Result &result)
 {
-    if (!IsInstanceValid(instance)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    cacheMap_[result.domain];
+    ResolveFromNet(result.domain);
+    RunTaskLater(
+        [r = result, this]() mutable {
+            if (cacheMap_.find(r.domain) == cacheMap_.end() || cacheMap_[r.domain].addr.empty()) {
+                NETMGR_EXT_LOG_D("instance %{public}s, domain: %{public}s not found", r.serviceName.c_str(),
+                                 r.domain.c_str());
+                return false;
+            }
+            r.ipv6 = cacheMap_[r.domain].ipv6;
+            r.addr = cacheMap_[r.domain].addr;
+            handler_(r, NETMANAGER_EXT_SUCCESS);
+            return true;
+        },
+        false);
+}
+
+bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name)
+{
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    if (cacheMap_.find(name) != cacheMap_.end() && !cacheMap_[name].domain.empty()) {
+        Result r = cacheMap_[name];
+        if (cacheMap_.find(r.domain) != cacheMap_.end() && !cacheMap_[r.domain].addr.empty()) {
+            r.ipv6 = cacheMap_[r.domain].ipv6;
+            r.addr = cacheMap_[r.domain].addr;
+            RunTaskLater([r, this]() {
+                handler_(r, NETMANAGER_EXT_SUCCESS);
+                return true;
+            });
+        } else {
+            HandleResolveInstanceLater(r);
+        }
+        return true;
     }
-    std::string name = Decorated(instance);
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    {
-        std::lock_guard<std::mutex> guard(mutex_);
-        ++reqMap_[name];
-        ++reqCount_;
-    }
+    return false;
+}
+
+bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name)
+{
     MDnsPayloadParser parser;
     MDnsMessage msg{};
     msg.questions.emplace_back(DNSProto::Question{
@@ -189,32 +205,32 @@ int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
     listener_.Start();
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
-    return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
+    return size > 0;
 }
 
-int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
+bool MDnsProtocolImpl::ResolveFromCache(const std::string &domain)
 {
-    if (!IsDomainValid(domain)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    if (cacheMap_.find(domain) != cacheMap_.end() && !cacheMap_[domain].addr.empty()) {
+        RunTaskLater([r = cacheMap_[domain], this]() {
+            handler_(r, NETMANAGER_EXT_SUCCESS);
+            return true;
+        });
+        return true;
     }
-    std::string name = Dotted(domain);
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    {
-        std::lock_guard<std::mutex> guard(mutex_);
-        ++reqMap_[name];
-        ++reqCount_;
-    }
+    return false;
+}
+
+bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain)
+{
     MDnsPayloadParser parser;
     MDnsMessage msg{};
     msg.questions.emplace_back(DNSProto::Question{
-        .name = name,
+        .name = domain,
         .qtype = DNSProto::RRTYPE_A,
         .qclass = DNSProto::RRCLASS_IN,
     });
     msg.questions.emplace_back(DNSProto::Question{
-        .name = name,
+        .name = domain,
         .qtype = DNSProto::RRTYPE_AAAA,
         .qclass = DNSProto::RRCLASS_IN,
     });
@@ -223,13 +239,47 @@ int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
     listener_.Start();
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
 
-    return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
+    return size > 0;
+}
+
+int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
+{
+    if (!IsInstanceValid(instance)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::string name = Decorated(instance);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    if (ResolveInstanceFromCache(name)) {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    ++reqMap_[name];
+    return ResolveInstanceFromNet(name) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
+}
+
+int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
+{
+    if (!IsDomainValid(domain)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::string name = domain;
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    if (ResolveFromCache(name)) {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    ++reqMap_[name];
+    return ResolveFromNet(name) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 int32_t MDnsProtocolImpl::UnRegister(const std::string &key)
 {
     std::string name = Decorated(key);
-    std::lock_guard<std::mutex> guard(mutex_);
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
     if (srvMap_.find(name) != srvMap_.end()) {
         Announce(srvMap_[name], true);
         srvMap_.erase(name);
@@ -250,15 +300,14 @@ int32_t MDnsProtocolImpl::StopResolveInstance(const std::string &key)
 
 int32_t MDnsProtocolImpl::StopResolve(const std::string &key)
 {
-    return Stop(Dotted(key));
+    return Stop(key);
 }
 
 int32_t MDnsProtocolImpl::Stop(const std::string &key)
 {
-    std::lock_guard<std::mutex> guard(mutex_);
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
     if (reqMap_.find(key) != reqMap_.end() && reqMap_[key] > 0) {
         --reqMap_[key];
-        --reqCount_;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -314,12 +363,16 @@ void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
 
 void MDnsProtocolImpl::OnRefresh(int sock)
 {
-    std::lock_guard<std::mutex> guard(mutex_);
-    NETMGR_EXT_LOG_W("taskQueue_ size: %u", static_cast<uint32_t>(taskQueue_.size()));
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    std::queue<Task> tmp;
     while (taskQueue_.size() > 0) {
-        taskQueue_.front()();
+        auto func = taskQueue_.front();
         taskQueue_.pop();
+        if (!func()) {
+            tmp.push(func);
+        }
     }
+    tmp.swap(taskQueue_);
 }
 
 void MDnsProtocolImpl::AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlist, DNSProto::RRType type,
@@ -353,7 +406,7 @@ void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
     for (size_t i = 0; i < msg.header.qdcount; ++i) {
         ProcessQuestionRecord(anyAddr, anyAddrType, msg.questions[i], phase, response);
     }
-    if (phase == PHASE_SRV) {
+    if (phase < PHASE_DOMAIN) {
         AppendRecord(response.additional, anyAddrType, GetHostDomain(), anyAddr);
     }
     if (phase != 0 && response.answers.size() > 0) {
@@ -364,18 +417,25 @@ void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
 void MDnsProtocolImpl::ProcessQuestionRecord(const std::any &anyAddr, const DNSProto::RRType &anyAddrType,
                                              const DNSProto::Question &qu, int &phase, MDnsMessage &response)
 {
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
     std::string name = qu.name;
     if (qu.qtype == DNSProto::RRTYPE_ANY || qu.qtype == DNSProto::RRTYPE_PTR) {
-        std::lock_guard<std::mutex> guard(mutex_);
         std::for_each(srvMap_.begin(), srvMap_.end(), [&](const auto &elem) -> void {
             if (EndsWith(elem.first, name)) {
                 AppendRecord(response.answers, DNSProto::RRTYPE_PTR, name, elem.first);
+                AppendRecord(response.additional, DNSProto::RRTYPE_SRV, elem.first,
+                             DNSProto::RDataSrv{
+                                 .priority = 0,
+                                 .weight = 0,
+                                 .port = static_cast<uint16_t>(elem.second.port),
+                                 .name = GetHostDomain(),
+                             });
+                AppendRecord(response.additional, DNSProto::RRTYPE_TXT, elem.first, elem.second.txt);
             }
         });
         phase = std::max(phase, PHASE_PTR);
     }
     if (qu.qtype == DNSProto::RRTYPE_ANY || qu.qtype == DNSProto::RRTYPE_SRV) {
-        std::lock_guard<std::mutex> guard(mutex_);
         auto iter = srvMap_.find(name);
         if (iter == srvMap_.end()) {
             return;
@@ -390,7 +450,6 @@ void MDnsProtocolImpl::ProcessQuestionRecord(const std::any &anyAddr, const DNSP
         phase = std::max(phase, PHASE_SRV);
     }
     if (qu.qtype == DNSProto::RRTYPE_ANY || qu.qtype == DNSProto::RRTYPE_TXT) {
-        std::lock_guard<std::mutex> guard(mutex_);
         auto iter = srvMap_.find(name);
         if (iter == srvMap_.end()) {
             return;
@@ -416,88 +475,106 @@ void MDnsProtocolImpl::ProcessAnswer(int sock, const MDnsMessage &msg)
     bool v6 = (saddrIf->sa_family == AF_INET6);
 
     std::vector<Result> matches;
-    std::map<std::string, Result> results;
-    std::map<std::string, std::string> needMore;
+    std::set<std::string> changed;
     for (size_t i = 0; i < msg.answers.size(); ++i) {
-        ProcessAnswerRecord(v6, msg.answers[i], matches, results, needMore);
+        ProcessAnswerRecord(v6, msg.answers[i], &matches, changed);
     }
 
-    for (size_t i = 0; i < msg.additional.size() && !needMore.empty(); ++i) {
-        std::string name = msg.additional[i].name;
-        if (needMore.find(name) == needMore.end()) {
-            continue;
-        }
-        if (msg.additional[i].rtype == DNSProto::RRTYPE_A || msg.additional[i].rtype == DNSProto::RRTYPE_AAAA) {
-            if (v6 != (msg.additional[i].rtype == DNSProto::RRTYPE_AAAA)) {
-                continue;
-            }
-            Result &result = results[needMore[name]];
-            result.domain = UnDotted(name);
-            result.ipv6 = (msg.additional[i].rtype == DNSProto::RRTYPE_AAAA);
-            result.addr = AddrToString(msg.additional[i].rdata);
-        }
+    for (size_t i = 0; i < msg.additional.size(); ++i) {
+        ProcessAnswerRecord(v6, msg.additional[i], nullptr, changed);
+    }
+
+    for (size_t i = 0; i < msg.additional.size(); ++i) {
+        ProcessAnswerRecord(v6, msg.additional[i], nullptr, changed);
     }
 
     for (auto i = matches.begin(); i != matches.end() && handler_ != nullptr; ++i) {
         handler_(*i, NETMANAGER_EXT_SUCCESS);
     }
-    for (auto i = results.begin(); i != results.end() && handler_ != nullptr; ++i) {
-        i->second.iface = listener_.GetIface(sock);
-        i->second.ipv6 = v6;
-        handler_(i->second, NETMANAGER_EXT_SUCCESS);
+
+    for (auto i = changed.begin(); i != changed.end() && handler_ != nullptr; ++i) {
+        if (cacheMap_.find(*i) == cacheMap_.end()) {
+            continue;
+        }
+        cacheMap_[*i].iface = listener_.GetIface(sock);
+        if (cacheMap_[*i].type == INSTANCE_RESOLVED && ResolveInstanceFromCache(*i)) {
+            continue;
+        }
+        handler_(cacheMap_[*i], NETMANAGER_EXT_SUCCESS);
     }
 }
 
-void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> &matches,
-                                           std::map<std::string, Result> &results,
-                                           std::map<std::string, std::string> &needMore)
+void MDnsProtocolImpl::ProcessPtrRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches)
 {
-    std::string name = rr.name;
-    mutex_.lock();
-    if (reqMap_[name] <= 0) {
-        return mutex_.unlock();
+    const std::string *data = std::any_cast<std::string>(&rr.rdata);
+    if (data == nullptr) {
+        return;
     }
-    mutex_.unlock();
-    if (rr.rtype == DNSProto::RRTYPE_PTR) {
-        const std::string *data = std::any_cast<std::string>(&rr.rdata);
-        if (data == nullptr) {
-            return;
-        }
-        Result result;
+    Result result;
+    ExtractNameAndType(*data, result.serviceName, result.serviceType);
+    if (std::find_if(matches->begin(), matches->end(), [&](const auto &elem) {
+            return elem.serviceName == result.serviceName && elem.serviceType == result.serviceType;
+        }) == matches->end()) {
         result.type = (rr.ttl == 0) ? SERVICE_LOST : SERVICE_FOUND;
-        ExtractNameAndType(*data, result.serviceName, result.serviceType);
-        if (std::find_if(matches.begin(), matches.end(), [&](const auto &elem) {
-                return elem.serviceName == result.serviceName && elem.serviceType == result.serviceType;
-            }) == matches.end()) {
-            matches.emplace_back(std::move(result));
+        matches->emplace_back(std::move(result));
+        if (rr.ttl == 0) {
+            cacheMap_.erase(*data);
+        } else {
+            cacheMap_[*data];
         }
+    }
+}
+
+void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches,
+                                           std::set<std::string> &changed)
+{
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    std::string name = rr.name;
+    bool isReq = reqMap_.find(name) != reqMap_.end() && reqMap_[name] > 0;
+    if (!isReq && cacheMap_.find(name) == cacheMap_.end()) {
+        return;
+    }
+    if (rr.rtype == DNSProto::RRTYPE_PTR && matches) {
+        ProcessPtrRecord(v6, rr, matches);
     } else if (rr.rtype == DNSProto::RRTYPE_SRV) {
         const DNSProto::RDataSrv *srv = std::any_cast<DNSProto::RDataSrv>(&rr.rdata);
-        if (rr.ttl == 0 || srv == nullptr) {
+        if (rr.ttl == 0) {
+            return cacheMap_[name].domain.clear();
+        }
+        if (srv == nullptr) {
             return;
         }
-        Result &result = results[name];
+        Result &result = cacheMap_[name];
         result.type = INSTANCE_RESOLVED;
         ExtractNameAndType(name, result.serviceName, result.serviceType);
-        result.domain = UnDotted(srv->name);
+        result.domain = srv->name;
         result.port = srv->port;
-        needMore[srv->name] = name;
+        cacheMap_[srv->name];
+        if (isReq) {
+            changed.emplace(name);
+        }
     } else if (rr.rtype == DNSProto::RRTYPE_TXT) {
         const TxtRecordEncoded *txt = std::any_cast<TxtRecordEncoded>(&rr.rdata);
         if (rr.ttl == 0 || txt == nullptr) {
             return;
         }
-        Result &result = results[name];
+        Result &result = cacheMap_[name];
         result.txt = *txt;
     } else if (rr.rtype == DNSProto::RRTYPE_A || rr.rtype == DNSProto::RRTYPE_AAAA) {
-        if (rr.ttl == 0 || v6 != (rr.rtype == DNSProto::RRTYPE_AAAA)) {
+        if (v6 != (rr.rtype == DNSProto::RRTYPE_AAAA)) {
             return;
         }
-        Result &result = results[name];
+        if (rr.ttl == 0) {
+            return cacheMap_[name].domain.clear();
+        }
+        Result &result = cacheMap_[name];
         result.type = DOMAIN_RESOLVED;
-        result.domain = UnDotted(name);
+        result.domain = name;
         result.ipv6 = (rr.rtype == DNSProto::RRTYPE_AAAA);
         result.addr = AddrToString(rr.rdata);
+        if (isReq) {
+            changed.emplace(name);
+        }
     } else {
         NETMGR_EXT_LOG_D("Unknown packet received, type=[%{public}d]", rr.rtype);
     }
@@ -519,10 +596,15 @@ std::string MDnsProtocolImpl::GetHostDomain()
     return Decorated(config_.hostname);
 }
 
-void MDnsProtocolImpl::RunTaskLater(const Task &task)
+void MDnsProtocolImpl::RunTaskLater(const Task &task, bool atonce)
 {
-    taskQueue_.push(task);
-    listener_.TriggerRefresh();
+    {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        taskQueue_.push(task);
+    }
+    if (atonce) {
+        listener_.TriggerRefresh();
+    }
 }
 
 } // namespace NetManagerStandard
