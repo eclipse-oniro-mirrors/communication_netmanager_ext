@@ -132,6 +132,58 @@ void EthernetService::InitManagement()
     }
 }
 
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &addr,
+                                                                                 const std::string &ifName, int flags,
+                                                                                 int scope)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressRemoved(const std::string &addr,
+                                                                                 const std::string &ifName, int flags,
+                                                                                 int scope)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceChanged(const std::string &iface, bool up)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnRouteChanged(bool updated, const std::string &route,
+                                                                      const std::string &gateway,
+                                                                      const std::string &ifName)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnBandwidthReachedLimit(const std::string &limitName,
+                                                                               const std::string &iface)
+{
+    return 0;
+}
+
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
 {
     NETMGR_EXT_LOG_D("Set iface: %{public}s config", iface.c_str());
@@ -210,6 +262,16 @@ int32_t EthernetService::ResetFactory()
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     return ethManagement_->ResetFactory();
+}
+
+int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)

@@ -34,6 +34,8 @@ public:
     int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) override;
     int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces) override;
     int32_t ResetFactory() override;
+    int32_t RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) override;
+    int32_t UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) override;
     int32_t SetInterfaceUp(const std::string &iface) override;
     int32_t SetInterfaceDown(const std::string &iface) override;
     int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) override;
