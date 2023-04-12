@@ -20,6 +20,7 @@
 #include "get_all_active_ifaces_context.h"
 #include "get_iface_config_context.h"
 #include "interface_configuration.h"
+#include "interface_state_observer_wrapper.h"
 #include "is_iface_active_context.h"
 #include "set_iface_config_context.h"
 #include "module_template.h"
@@ -35,6 +36,8 @@ constexpr const char *GET_ALL_IFACES = "getAllActiveIfaces";
 constexpr const char *STATIC_NAME = "STATIC";
 constexpr const char *DHCP_NAME = "DHCP";
 constexpr const char *IP_SET_MODE = "IPSetMode";
+constexpr const char *FUNCTION_ON = "on";
+constexpr const char *FUNCTION_OFF = "off";
 
 napi_value GetIfaceConfig(napi_env env, napi_callback_info info)
 {
@@ -70,6 +73,16 @@ static napi_value DeclareEthernetData(napi_env env, napi_value exports)
     return exports;
 }
 
+napi_value On(napi_env env, napi_callback_info info)
+{
+    return NapiUtils::GetUndefined(env);
+}
+
+napi_value Off(napi_env env, napi_callback_info info)
+{
+    return NapiUtils::GetUndefined(env);
+}
+
 static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
 {
     NapiUtils::DefineProperties(env, exports, {
@@ -77,6 +90,8 @@ static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION(SET_IFACE, SetIfaceConfig),
         DECLARE_NAPI_FUNCTION(IS_IFACE, IsIfaceActive),
         DECLARE_NAPI_FUNCTION(GET_ALL_IFACES, GetAllActiveIfaces),
+        DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
+        DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
     });
     return exports;
 }
