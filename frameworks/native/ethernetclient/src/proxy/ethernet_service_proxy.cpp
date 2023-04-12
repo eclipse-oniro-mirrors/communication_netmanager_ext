@@ -15,18 +15,18 @@
 
 #include "ethernet_service_proxy.h"
 
-#include "net_manager_constants.h"
-#include "i_ethernet_service.h"
-#include "interface_configuration.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
 #include "message_option.h"
 #include "message_parcel.h"
+#include "refbase.h"
+
+#include "i_ethernet_service.h"
+#include "interface_configuration.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -183,12 +183,61 @@ int32_t EthernetServiceProxy::ResetFactory()
 
 int32_t EthernetServiceProxy::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
 {
-    return NETMANAGER_EXT_SUCCESS;
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("proxy callback is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        NETMGR_EXT_LOG_E("proxy write token error");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        NETMGR_EXT_LOG_E("proxy write callback failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(CMD_REGISTER_INTERFACE_CB, data, reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
 }
 
 int32_t EthernetServiceProxy::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
 {
-    return NETMANAGER_EXT_SUCCESS;
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("proxy callback is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        NETMGR_EXT_LOG_E("proxy write callback failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(CMD_UNREGISTER_INTERFACE_CB, data, reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
 }
 
 int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)

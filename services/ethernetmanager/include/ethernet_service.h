@@ -56,7 +56,7 @@ class EthernetService : public SystemAbility,
         int32_t OnBandwidthReachedLimit(const std::string &limitName, const std::string &iface) override;
 
     private:
-        [[maybe_unused]] EthernetService &ethernetService_;
+        EthernetService &ethernetService_;
     };
 
 public:

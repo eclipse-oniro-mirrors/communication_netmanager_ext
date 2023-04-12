@@ -42,6 +42,8 @@ EthernetServiceStub::EthernetServiceStub()
     memberFuncMap_[CMD_IS_ACTIVATE] = &EthernetServiceStub::OnIsIfaceActive;
     memberFuncMap_[CMD_GET_ACTIVATE_INTERFACE] = &EthernetServiceStub::OnGetAllActiveIfaces;
     memberFuncMap_[CMD_RESET_FACTORY] = &EthernetServiceStub::OnResetFactory;
+    memberFuncMap_[CMD_REGISTER_INTERFACE_CB] = &EthernetServiceStub::OnRegisterIfacesStateChanged;
+    memberFuncMap_[CMD_UNREGISTER_INTERFACE_CB] = &EthernetServiceStub::OnUnregisterIfacesStateChanged;
     memberFuncMap_[CMD_SET_INTERFACE_UP] = &EthernetServiceStub::OnSetInterfaceUp;
     memberFuncMap_[CMD_SET_INTERFACE_DOWN] = &EthernetServiceStub::OnSetInterfaceDown;
     memberFuncMap_[CMD_GET_INTERFACE_CONFIG] = &EthernetServiceStub::OnGetInterfaceConfig;
@@ -148,6 +150,36 @@ int32_t EthernetServiceStub::OnGetAllActiveIfaces(MessageParcel &data, MessagePa
 int32_t EthernetServiceStub::OnResetFactory(MessageParcel &data, MessageParcel &reply)
 {
     return ResetFactory();
+}
+
+int32_t EthernetServiceStub::OnRegisterIfacesStateChanged(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<InterfaceStateCallback> callback = iface_cast<InterfaceStateCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("callback is null.");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+
+    int32_t ret = RegisterIfacesStateChanged(callback);
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetServiceStub::OnUnregisterIfacesStateChanged(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<InterfaceStateCallback> callback = iface_cast<InterfaceStateCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("callback is null.");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+
+    int32_t ret = UnregisterIfacesStateChanged(callback);
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetServiceStub::OnSetInterfaceUp(MessageParcel &data, MessageParcel &reply)
