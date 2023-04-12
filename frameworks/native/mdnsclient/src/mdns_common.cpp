@@ -86,7 +86,7 @@ bool IsInstanceValid(const std::string &instance)
 
 bool IsDomainValid(const std::string &domain)
 {
-    return domain.size() + static_cast<int>(!EndsWith(domain, MDNS_DOMAIN_SPLITER_STR)) <= MDNS_MAX_DOMAIN;
+    return domain.size() + static_cast<size_t>(!EndsWith(domain, MDNS_DOMAIN_SPLITER_STR)) <= MDNS_MAX_DOMAIN;
 }
 
 void ExtractNameAndType(const std::string &instance, std::string &name, std::string &type)
