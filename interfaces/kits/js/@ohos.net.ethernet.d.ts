@@ -92,6 +92,34 @@ declare namespace ethernet {
   function getAllActiveIfaces(): Promise<Array<string>>;
 
   /**
+   * Register a callback for the ethernet interface active state change.
+   *
+   * @param type interfaceStateChange.
+   * @param callback including iface Indicates the ethernet interface, and active Indicates whether the interface is active.
+   * @permission ohos.permission.GET_NETWORK_INFO
+   * @throws {BusinessError} 201 Permission denied.
+   * @throws {BusinessError} 202 Applicable only to system applications.
+   * @throws {BusinessError} 401 Parameter error.
+   * @systemapi Hide this for inner system use.
+   * @since 10
+   */
+  function on(type: 'interfaceStateChange', callback: Callback<{ iface: string, active: boolean }>): void;
+
+  /**
+   * Unregister a callback from the ethernet interface avtive state change.
+   *
+   * @param type interfaceStateChange.
+   * @param callback including iface Indicates the ethernet interface, and active Indicates whether the interface is active.
+   * @permission ohos.permission.GET_NETWORK_INFO
+   * @throws {BusinessError} 201 Permission denied.
+   * @throws {BusinessError} 202 Applicable only to system applications.
+   * @throws {BusinessError} 401 Parameter error.
+   * @systemapi Hide this for inner system use.
+   * @since 10
+   */
+  function off(type: 'interfaceStateChange', callback?: Callback<{ iface: string, active: boolean }>): void;
+
+  /**
    * @systemapi Hide this for inner system use.
    */
   export interface InterfaceConfiguration {
