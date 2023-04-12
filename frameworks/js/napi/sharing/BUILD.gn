@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("sharing_config") {
-  visibility = [ ":netshare" ]
+  visibility = [ ":*" ]
   include_dirs = [
     "include",
     "$NETMANAGER_BASE_ROOT/utils/log/include",
