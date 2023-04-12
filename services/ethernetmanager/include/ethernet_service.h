@@ -25,6 +25,7 @@
 #include "ethernet_management.h"
 #include "ethernet_service_common.h"
 #include "ethernet_service_stub.h"
+#include "netsys_controller_callback.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "system_ability.h"
@@ -37,6 +38,27 @@ class EthernetService : public SystemAbility,
     DECLARE_DELAYED_SINGLETON(EthernetService)
     DECLARE_SYSTEM_ABILITY(EthernetService)
 
+    class GlobalInterfaceStateCallback : public NetsysControllerCallback {
+    public:
+        explicit GlobalInterfaceStateCallback(EthernetService &ethService) : ethernetService_(ethService) {}
+        ~GlobalInterfaceStateCallback() = default;
+        int32_t OnInterfaceAddressUpdated(const std::string &addr, const std::string &ifName, int flags,
+                                          int scope) override;
+        int32_t OnInterfaceAddressRemoved(const std::string &addr, const std::string &ifName, int flags,
+                                          int scope) override;
+        int32_t OnInterfaceAdded(const std::string &iface) override;
+        int32_t OnInterfaceRemoved(const std::string &iface) override;
+        int32_t OnInterfaceChanged(const std::string &iface, bool up) override;
+        int32_t OnInterfaceLinkStateChanged(const std::string &ifName, bool up) override;
+        int32_t OnRouteChanged(bool updated, const std::string &route, const std::string &gateway,
+                               const std::string &ifName) override;
+        int32_t OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult) override;
+        int32_t OnBandwidthReachedLimit(const std::string &limitName, const std::string &iface) override;
+
+    private:
+        EthernetService &ethernetService_;
+    };
+
 public:
     void OnStart() override;
     void OnStop() override;
@@ -47,6 +69,8 @@ public:
     int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) override;
     int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces) override;
     int32_t ResetFactory() override;
+    int32_t RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) override;
+    int32_t UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) override;
     int32_t SetInterfaceUp(const std::string &iface) override;
     int32_t SetInterfaceDown(const std::string &iface) override;
     int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &config) override;
@@ -69,6 +93,8 @@ private:
     uint16_t dependentServiceState_ = 0;
     std::unique_ptr<EthernetManagement> ethManagement_;
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
+    sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
+    std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

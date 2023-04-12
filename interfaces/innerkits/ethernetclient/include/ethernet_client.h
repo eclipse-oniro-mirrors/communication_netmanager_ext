@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef ETHERNET_MANAGER_H
-#define ETHERNET_MANAGER_H
+#ifndef ETHERNET_CLIENT_H
+#define ETHERNET_CLIENT_H
 
 #include <string>
 
 #include "i_ethernet_service.h"
+#include "interface_state_callback.h"
 #include "parcel.h"
 #include "singleton.h"
 
@@ -67,6 +68,22 @@ public:
      * @return Returns 0 as success, other values as failure
      */
     int32_t ResetFactory();
+
+    /**
+     *  Register the callback to monitor interface add/remove state
+     *
+     * @param callback use to receive interface add/remove event.
+     * @return Returns NETMANAGER_EXT_SUCCESS as success, other values as failure
+     */
+    int32_t RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback);
+
+    /**
+     *  Cancel register the callback to monitor interface add/remove state
+     *
+     * @param callback use to receive interface add/remove event.
+     * @return Returns NETMANAGER_EXT_SUCCESS as success, other values as failure
+     */
+    int32_t UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback);
 
     /**
      *  Set the specified network port up
@@ -121,4 +138,4 @@ private:
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // ETHERNET_MANAGER_H
+#endif // ETHERNET_CLIENT_H

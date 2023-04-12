@@ -22,6 +22,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iservice_registry.h"
+#include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "system_ability_definition.h"
@@ -137,6 +138,26 @@ void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
     local->RemoveDeathRecipient(deathRecipient_);
     ethernetService_ = nullptr;
+}
+
+int32_t EthernetClient::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->RegisterIfacesStateChanged(callback);
+}
+
+int32_t EthernetClient::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->UnregisterIfacesStateChanged(callback);
 }
 
 int32_t EthernetClient::SetInterfaceUp(const std::string &iface)

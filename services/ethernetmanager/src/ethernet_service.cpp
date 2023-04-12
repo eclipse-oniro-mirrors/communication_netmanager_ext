@@ -114,6 +114,12 @@ bool EthernetService::Init()
     }
     AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
     AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
+    interfaceStateCallback_ = new (std::nothrow) GlobalInterfaceStateCallback(*this);
+    if (interfaceStateCallback_ == nullptr) {
+        NETMGR_EXT_LOG_E("allInterfaceStateCallback_ is nullptr");
+        return false;
+    }
+    NetsysController::GetInstance().RegisterCallback(interfaceStateCallback_);
     serviceComm_ = new (std::nothrow) EthernetServiceCommon();
     if (serviceComm_ == nullptr) {
         NETMGR_EXT_LOG_E("serviceComm_ is nullptr");
@@ -130,6 +136,67 @@ void EthernetService::InitManagement()
         ethManagement_ = std::make_unique<EthernetManagement>();
         ethManagement_->Init();
     }
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &addr,
+                                                                                 const std::string &ifName, int flags,
+                                                                                 int scope)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressRemoved(const std::string &addr,
+                                                                                 const std::string &ifName, int flags,
+                                                                                 int scope)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
+{
+    NETMGR_EXT_LOG_D("iface: %{public}s, added", iface.c_str());
+    std::for_each(ethernetService_.monitorIfaceCallbacks_.begin(), ethernetService_.monitorIfaceCallbacks_.end(),
+                  [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceAdded(iface); });
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
+{
+    NETMGR_EXT_LOG_D("iface: %{public}s, removed", iface.c_str());
+    std::for_each(ethernetService_.monitorIfaceCallbacks_.begin(), ethernetService_.monitorIfaceCallbacks_.end(),
+                  [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceRemoved(iface); });
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceChanged(const std::string &iface, bool up)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
+{
+    NETMGR_EXT_LOG_D("iface: %{public}s, up: %{public}d", ifName.c_str(), up);
+    std::for_each(ethernetService_.monitorIfaceCallbacks_.begin(), ethernetService_.monitorIfaceCallbacks_.end(),
+                  [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceChanged(ifName, up); });
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnRouteChanged(bool updated, const std::string &route,
+                                                                      const std::string &gateway,
+                                                                      const std::string &ifName)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult)
+{
+    return 0;
+}
+
+int32_t EthernetService::GlobalInterfaceStateCallback::OnBandwidthReachedLimit(const std::string &limitName,
+                                                                               const std::string &iface)
+{
+    return 0;
 }
 
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
@@ -210,6 +277,47 @@ int32_t EthernetService::ResetFactory()
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     return ethManagement_->ResetFactory();
+}
+
+int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Register interface callback failed");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
+    monitorIfaceCallbacks_.push_back(callback);
+    NETMGR_EXT_LOG_D("Register interface callback success");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Unregister interface callback failed");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+            monitorIfaceCallbacks_.erase(iterCb);
+            NETMGR_EXT_LOG_D("Unregister interface callback success.");
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
+    NETMGR_EXT_LOG_E("Unregister interface callback is doesnot exist.");
+    return NETMANAGER_EXT_ERR_OPERATION_FAILED;
 }
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)
