@@ -285,6 +285,10 @@ int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCal
         NETMGR_EXT_LOG_E("Register interface callback failed");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -304,6 +308,10 @@ int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateC
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("Unregister interface callback failed");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
