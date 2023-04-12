@@ -181,6 +181,16 @@ int32_t EthernetServiceProxy::ResetFactory()
     return ret;
 }
 
+int32_t EthernetServiceProxy::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetServiceProxy::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
 {
     MessageParcel data;

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "interface_configuration.h"
+#include "interface_state_callback.h"
 #include "interface_type.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -36,6 +37,8 @@ public:
         CMD_IS_ACTIVATE,
         CMD_GET_ACTIVATE_INTERFACE,
         CMD_RESET_FACTORY,
+        CMD_REGISTER_INTERFACE_CB,
+        CMD_UNREGISTER_INTERFACE_CB,
         CMD_SET_INTERFACE_UP,
         CMD_SET_INTERFACE_DOWN,
         CMD_GET_INTERFACE_CONFIG,
@@ -48,6 +51,8 @@ public:
     virtual int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) = 0;
     virtual int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces) = 0;
     virtual int32_t ResetFactory() = 0;
+    virtual int32_t RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) = 0;
+    virtual int32_t UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) = 0;
     virtual int32_t SetInterfaceUp(const std::string &iface) = 0;
     virtual int32_t SetInterfaceDown(const std::string &iface) = 0;
     virtual int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) = 0;
