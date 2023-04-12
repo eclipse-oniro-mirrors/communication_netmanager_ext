@@ -16,6 +16,8 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 ohos_shared_library("ethernet_manager") {
   sources = [
+    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_proxy.cpp",
+    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_stub.cpp",
     "src/dev_interface_state.cpp",
     "src/ethernet_configuration.cpp",
     "src/ethernet_dhcp_controller.cpp",

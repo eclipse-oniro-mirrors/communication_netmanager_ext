@@ -17,12 +17,9 @@
 
 #include "accesstoken_kit.h"
 #include "ethernet_client.h"
-#include "gtest/gtest-message.h"
-#include "gtest/gtest-test-part.h"
-#include "gtest/hwext/gtest-ext.h"
-#include "gtest/hwext/gtest-tag.h"
 #include "inet_addr.h"
 #include "interface_configuration.h"
+#include "interface_state_callback_stub.h"
 #include "interface_type.h"
 #include "nativetoken_kit.h"
 #include "net_manager_constants.h"
@@ -31,13 +28,17 @@
 #include "singleton.h"
 #include "static_configuration.h"
 #include "token_setproc.h"
+#include "gtest/gtest-message.h"
+#include "gtest/gtest-test-part.h"
+#include "gtest/hwext/gtest-ext.h"
+#include "gtest/hwext/gtest-tag.h"
 
 #define private public
 #define protected public
 #include "ethernet_client.h"
 #include "ethernet_dhcp_controller.h"
-#include "ethernet_service.h"
 #include "ethernet_management.h"
+#include "ethernet_service.h"
 #include "ethernet_service_proxy.h"
 
 namespace OHOS {
@@ -46,9 +47,31 @@ namespace {
 using namespace testing::ext;
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
+
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *DEV_UP = "up";
 constexpr const char *DEV_DOWN = "down";
+
+class MonitorInterfaceStateCallback : public InterfaceStateCallbackStub {
+public:
+    int32_t OnInterfaceAdded(const std::string &ifName) override
+    {
+        std::cout << "OnInterfaceAdded ifName: " << ifName << std::endl;
+        return 0;
+    }
+
+    int32_t OnInterfaceRemoved(const std::string &ifName) override
+    {
+        std::cout << "OnInterfaceRemoved ifName: " << ifName << std::endl;
+        return 0;
+    }
+
+    int32_t OnInterfaceChanged(const std::string &ifName, bool up) override
+    {
+        std::cout << "OnInterfaceChange ifName: " << ifName << ", state: " << up << std::endl;
+        return 0;
+    }
+};
 
 HapInfoParams testInfoParms = {.userID = 1,
                                .bundleName = "ethernet_manager_test",
@@ -430,6 +453,43 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
     EXPECT_EQ(ret, RET_ZERO);
     ret = devCallback.OnInterfaceLinkStateChanged(IFACE, true);
     EXPECT_EQ(ret, RET_ZERO);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager011, TestSize.Level1)
+{
+    AccessToken accessToken(testPolicyPrams1);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(nullptr);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager012, TestSize.Level1)
+{
+    AccessToken accessToken(testPolicyPrams1);
+    sptr<InterfaceStateCallback> interfaceCallback = new (std::nothrow) MonitorInterfaceStateCallback();
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(interfaceCallback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(interfaceCallback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager013, TestSize.Level1)
+{
+    AccessToken accessToken(testPolicyPrams1);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(nullptr);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager014, TestSize.Level1)
+{
+    AccessToken accessToken(testPolicyPrams1);
+    sptr<InterfaceStateCallback> interfaceCallback = new (std::nothrow) MonitorInterfaceStateCallback();
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(interfaceCallback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    sptr<InterfaceStateCallback> tmpCallback = new (std::nothrow) MonitorInterfaceStateCallback();
+    ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(tmpCallback);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(interfaceCallback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)

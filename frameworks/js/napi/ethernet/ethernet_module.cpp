@@ -26,6 +26,8 @@
 #include "module_template.h"
 #include "napi_utils.h"
 
+static constexpr const char *EVENT_STATS_CHANGE = "interfaceStateChange";
+
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
@@ -75,12 +77,12 @@ static napi_value DeclareEthernetData(napi_env env, napi_value exports)
 
 napi_value On(napi_env env, napi_callback_info info)
 {
-    return NapiUtils::GetUndefined(env);
+    return InterfaceStateObserverWrapper::GetInstance().On(env, info, {EVENT_STATS_CHANGE}, false);
 }
 
 napi_value Off(napi_env env, napi_callback_info info)
 {
-    return NapiUtils::GetUndefined(env);
+    return InterfaceStateObserverWrapper::GetInstance().Off(env, info, {EVENT_STATS_CHANGE}, false);
 }
 
 static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
