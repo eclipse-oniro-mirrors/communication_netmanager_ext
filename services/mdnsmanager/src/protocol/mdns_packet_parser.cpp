@@ -152,7 +152,7 @@ const uint8_t *MDnsPayloadParser::ParseQuestion(const uint8_t *begin, const MDns
     }
 
     const uint8_t *end = payload.data() + payload.size();
-    if (static_cast<size_t>(end - begin) < static_cast<size_t>(sizeof(uint16_t) + sizeof(uint16_t))) {
+    if (static_cast<ssize_t>(end - begin) < static_cast<ssize_t>(sizeof(uint16_t) + sizeof(uint16_t))) {
         errorFlags_ |= PARSE_ERROR_BAD_SIZE;
         questions.pop_back();
         return begin;
@@ -175,8 +175,8 @@ const uint8_t *MDnsPayloadParser::ParseRR(const uint8_t *begin, const MDnsPayloa
     }
 
     const uint8_t *end = payload.data() + payload.size();
-    if (static_cast<size_t>(end - begin) <
-        static_cast<size_t>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint16_t))) {
+    if (static_cast<ssize_t>(end - begin) <
+        static_cast<ssize_t>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint16_t))) {
         errorFlags_ |= PARSE_ERROR_BAD_SIZE;
         answers.pop_back();
         return begin;
@@ -205,8 +205,8 @@ const uint8_t *MDnsPayloadParser::ParseRData(const uint8_t *begin, const MDnsPay
         }
         case DNSProto::RRTYPE_AAAA: {
             const uint8_t *end = payload.data() + payload.size();
-            if (static_cast<size_t>(end - begin) <
-                static_cast<size_t>(sizeof(in6_addr) || length != sizeof(in6_addr))) {
+            if (static_cast<ssize_t>(end - begin) <
+                static_cast<ssize_t>(sizeof(in6_addr) || length != sizeof(in6_addr))) {
                 errorFlags_ |= PARSE_ERROR_BAD_SIZE;
                 return begin;
             }
@@ -241,8 +241,8 @@ const uint8_t *MDnsPayloadParser::ParseRData(const uint8_t *begin, const MDnsPay
 const uint8_t *MDnsPayloadParser::ParseSrv(const uint8_t *begin, const MDnsPayload &payload, std::any &data)
 {
     const uint8_t *end = payload.data() + payload.size();
-    if (static_cast<size_t>(end - begin) <
-        static_cast<size_t>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t))) {
+    if (static_cast<ssize_t>(end - begin) <
+        static_cast<ssize_t>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t))) {
         errorFlags_ |= PARSE_ERROR_BAD_SIZE;
         return begin;
     }
