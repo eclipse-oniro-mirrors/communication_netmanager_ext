@@ -34,6 +34,8 @@ ohos_shared_library("ethernet") {
     "ethernet_async_work.cpp",
     "ethernet_exec.cpp",
     "ethernet_module.cpp",
+    "interface_state_observer.cpp",
+    "interface_state_observer_wrapper.cpp",
   ]
 
   defines = [ "NETMGR_DEBUG" ]

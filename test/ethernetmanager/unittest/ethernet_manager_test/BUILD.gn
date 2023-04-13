@@ -55,7 +55,6 @@ ohos_unittest("ethernet_manager_test") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
   ]
 
   defines = [

@@ -33,6 +33,7 @@
 #include "ethernet_client.h"
 #include "ethernet_service.h"
 #include "interface_configuration.h"
+#include "interface_state_callback_stub.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -144,6 +145,24 @@ public:
 private:
     AccessTokenID currentID_ = 0;
     AccessTokenID accessID_ = 0;
+};
+
+class MonitorInterfaceStateCallback : public InterfaceStateCallbackStub {
+public:
+    int32_t OnInterfaceAdded(const std::string &ifName) override
+    {
+        return 0;
+    }
+
+    int32_t OnInterfaceRemoved(const std::string &ifName) override
+    {
+        return 0;
+    }
+
+    int32_t OnInterfaceChanged(const std::string &ifName, bool up) override
+    {
+        return 0;
+    }
 };
 
 std::string GetStringFromData(int strlen)
@@ -268,6 +287,21 @@ void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
     MessageParcel parcel;
     WriteInterfaceToken(parcel);
     OnRemoteRequest(EthernetService::CMD_RESET_FACTORY, parcel);
+}
+
+void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    sptr<InterfaceStateCallback> interfaceCallback = new (std::nothrow) MonitorInterfaceStateCallback();
+    DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(interfaceCallback);
+    DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(interfaceCallback);
 }
 
 void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
@@ -446,6 +480,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::IsIfaceActiveFuzzTest(data, size);
     OHOS::NetManagerStandard::GetAllActiveIfacesFuzzTest(data, size);
     OHOS::NetManagerStandard::ResetFactoryFuzzTest(data, size);
+    OHOS::NetManagerStandard::UnregisterIfacesStateChangedFuzzTest(data, size);
     OHOS::NetManagerStandard::SetInterfaceUpFuzzTest(data, size);
     OHOS::NetManagerStandard::SetInterfaceDownFuzzTest(data, size);
     OHOS::NetManagerStandard::GetInterfaceConfigFuzzTest(data, size);
