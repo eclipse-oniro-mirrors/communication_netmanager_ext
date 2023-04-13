@@ -428,7 +428,7 @@ bool MDnsSocketListener::CanRefresh()
 {
     char buf[REFRESH_BUFFER_LEN] = {};
     read(ctrlPair_[0], buf, 1);
-    return (std::string_view(buf, REFRESH_BUFFER_LEN) == CONTROL_TAG_REFRESH);
+    return (std::string_view(buf) == CONTROL_TAG_REFRESH);
 }
 
 ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
