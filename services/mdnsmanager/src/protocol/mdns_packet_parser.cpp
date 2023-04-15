@@ -287,13 +287,21 @@ const uint8_t *MDnsPayloadParser::ParseDnsString(const uint8_t *begin, const MDn
             p += (*p + 1);
         } else if ((*p & DNS_STR_PTR_U8_MASK) == DNS_STR_PTR_U8_MASK) {
             uint16_t offset;
+
+            if (end - p < static_cast<int>(sizeof(uint16_t))) {
+                errorFlags_ |= PARSE_ERROR_BAD_SIZE;
+                return begin;
+            }
+
             const uint8_t *tmp = ReadNUint16(p, offset);
             offset = offset & ~DNS_STR_PTR_U16_MASK;
-            if (offset >= payload.size()) {
+            const uint8_t *next = payload.data() + (offset & ~DNS_STR_PTR_U16_MASK);
+
+            if (next >= end || next == begin) {
                 errorFlags_ |= PARSE_ERROR_BAD_STRPTR;
                 return begin;
             }
-            ParseDnsString(payload.data() + (offset & ~DNS_STR_PTR_U16_MASK), payload, str);
+            ParseDnsString(next, payload, str);
             if ((errorFlags_ & PARSE_ERROR) != PARSE_OK) {
                 return begin;
             }
