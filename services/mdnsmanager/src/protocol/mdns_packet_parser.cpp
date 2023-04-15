@@ -277,7 +277,7 @@ const uint8_t *MDnsPayloadParser::ParseDnsString(const uint8_t *begin, const MDn
     const uint8_t *end = payload.data() + payload.size();
     const uint8_t *p = begin;
     str.reserve(MDNS_STR_INITIAL_SIZE);
-    while (p < end) {
+    while (p && p < end) {
         if (*p == 0) {
             return p + 1;
         }
@@ -286,18 +286,17 @@ const uint8_t *MDnsPayloadParser::ParseDnsString(const uint8_t *begin, const MDn
             str.push_back(MDNS_DOMAIN_SPLITER);
             p += (*p + 1);
         } else if ((*p & DNS_STR_PTR_U8_MASK) == DNS_STR_PTR_U8_MASK) {
-            uint16_t offset;
-
             if (end - p < static_cast<int>(sizeof(uint16_t))) {
                 errorFlags_ |= PARSE_ERROR_BAD_SIZE;
                 return begin;
             }
 
+            uint16_t offset;
             const uint8_t *tmp = ReadNUint16(p, offset);
             offset = offset & ~DNS_STR_PTR_U16_MASK;
             const uint8_t *next = payload.data() + (offset & ~DNS_STR_PTR_U16_MASK);
 
-            if (next >= end || next == begin) {
+            if (next >= end || next >= begin) {
                 errorFlags_ |= PARSE_ERROR_BAD_STRPTR;
                 return begin;
             }
