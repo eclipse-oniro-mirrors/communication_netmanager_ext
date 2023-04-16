@@ -125,6 +125,28 @@ HapPolicyParams testPolicyPrams2 = {
     .permList = {testPermDef2},
     .permStateList = {testState2},
 };
+
+PermissionDef testPermDef3 = {
+        .bundleName = "ethernet_manager_test",
+        .grantMode = 1,
+        .availableLevel = APL_SYSTEM_BASIC,
+        .label = "label",
+        .labelId = 1,
+        .description = "Test network share manager",
+        .descriptionId = 1,
+};
+PermissionStateFull testState3 = {
+        .isGeneral = true,
+        .resDeviceID = {"local"},
+        .grantStatus = {PermissionState::PERMISSION_GRANTED},
+        .grantFlags = {2},
+};
+HapPolicyParams testPolicyPrams3 = {
+        .apl = APL_SYSTEM_BASIC,
+        .domain = "test.domain",
+        .permList = {testPermDef3},
+        .permStateList = {testState3},
+};
 std::string INFO = "info";
 constexpr const char *IFACE = "iface0";
 const int32_t FD = 5;
@@ -426,6 +448,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager009, TestSize.Level1)
     ethernetService.InitManagement();
     ethernetService.ethManagement_ = nullptr;
     ethernetService.InitManagement();
+    EXPECT_NE(ethernetService.ethManagement_, nullptr);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
@@ -492,6 +515,43 @@ HWTEST_F(EthernetManagerTest, EthernetManager014, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(EthernetManagerTest, EthernetManager015, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    std::string dev = "eth0";
+    ethernetManagement.UpdateInterfaceState(dev, true);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager016, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    std::vector<std::string> activeIfaces;
+    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager017, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    int32_t ret = ethernetManagement.ResetFactory();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager018, TestSize.Level1)
+{
+    int32_t activeStatus = -1;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager019, TestSize.Level1)
+{
+    AccessToken accessToken(testPolicyPrams3);
+    int32_t activeStatus = -1;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
 HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
 {
     EthernetDhcpController dhcpController;
@@ -513,5 +573,26 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
     ethernetDhcpControllerResultNotify.OnSerExitNotify(ifname);
 }
 
+HWTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    AccessToken accessToken(testPolicyPrams1);
+    std::string iface = "eth1";
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(iface);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, SetInterfaceDownTest001, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    AccessToken accessToken(testPolicyPrams1);
+    std::string iface = "eth1";
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

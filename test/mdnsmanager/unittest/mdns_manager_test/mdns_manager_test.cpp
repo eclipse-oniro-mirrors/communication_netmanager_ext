@@ -250,5 +250,89 @@ HWTEST_F(MDnsServerTest, ServerTest, TestSize.Level1)
     EXPECT_EQ(retMar, true);
 }
 
+/**
+ * @tc.name: MDnsCommonTest001
+ * @tc.desc: Test MDnsServerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsServerTest, MDnsCommonTest001, TestSize.Level1)
+{
+    std::string testStr = "abbcccddddcccbba";
+    for (size_t i = 0; i < testStr.size(); ++i) {
+    EXPECT_TRUE(EndsWith(testStr, testStr.substr(i)));
+    }
+
+    for (size_t i = 0; i < testStr.size(); ++i) {
+    EXPECT_TRUE(StartsWith(testStr, testStr.substr(0, testStr.size() - i)));
+    }
+
+    auto lhs = Split(testStr, 'c');
+    auto rhs = std::vector<std::string_view>{
+            "abb",
+            "dddd",
+            "bba",
+    };
+    EXPECT_EQ(lhs, rhs);
+}
+
+/**
+ * @tc.name: MDnsCommonTest002
+ * @tc.desc: Test MDnsServerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsServerTest, MDnsCommonTest002, TestSize.Level1)
+{
+    static constexpr size_t IS_NAME = 1;
+    static constexpr size_t IS_TYPE = 2;
+    static constexpr size_t IS_INSTANCE = 3;
+    static constexpr size_t IS_DOMAIN = 4;
+    std::vector<std::tuple<std::string, bool, bool, bool, bool>> test = {
+            {"abbcccddddcccbba", true,  false, false, true },
+            {"",                 false, false, false, true },
+            {"a.b",              false, false, false, true },
+            {"_xxx.tcp",         false, false, false, true },
+            {"xxx._tcp",         false, false, false, true },
+            {"xxx.yyy",          false, false, false, true },
+            {"xxx.yyy",          false, false, false, true },
+            {"_xxx._yyy",        false, false, false, true },
+            {"hello._ipp._tcp",  false, false, true,  true },
+            {"_x._y._tcp",       false, false, true,  true },
+            {"_ipp._tcp",        false, true,  false, true },
+            {"_http._tcp",       false, true,  false, true },
+    };
+
+    for (auto line : test) {
+    EXPECT_EQ(IsNameValid(std::get<0>(line)), std::get<IS_NAME>(line));
+    EXPECT_EQ(IsTypeValid(std::get<0>(line)), std::get<IS_TYPE>(line));
+    EXPECT_EQ(IsInstanceValid(std::get<0>(line)), std::get<IS_INSTANCE>(line));
+    EXPECT_EQ(IsDomainValid(std::get<0>(line)), std::get<IS_DOMAIN>(line));
+    }
+
+    EXPECT_TRUE(IsPortValid(22));
+    EXPECT_TRUE(IsPortValid(65535));
+    EXPECT_TRUE(IsPortValid(0));
+    EXPECT_FALSE(IsPortValid(-1));
+    EXPECT_FALSE(IsPortValid(65536));
+}
+
+/**
+ * @tc.name: MDnsCommonTest003
+ * @tc.desc: Test MDnsServerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsServerTest, MDnsCommonTest003, TestSize.Level1)
+{
+    std::string instance = "hello._ipp._tcp";
+    std::string instance1 = "_x._y._tcp";
+    std::string name;
+    std::string type;
+    ExtractNameAndType(instance, name, type);
+    EXPECT_EQ(name, "hello");
+    EXPECT_EQ(type, "_ipp._tcp");
+
+    ExtractNameAndType(instance1, name, type);
+    EXPECT_EQ(name, "_x");
+    EXPECT_EQ(type, "_y._tcp");
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

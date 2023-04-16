@@ -106,5 +106,19 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateTest002, TestSize.Level1)
     devInterfaceState.netSupplierInfo_ = netSupplierInfo;
     devInterfaceState.RemoteUpdateNetSupplierInfo();
 }
+
+HWTEST_F(DevInterfaceStateTest, SetIfcfgTest002, TestSize.Level1)
+{
+    DevInterfaceState devInterfaceState;
+    devInterfaceState.ifCfg_ = nullptr;
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->mode_ = STATIC;
+    devInterfaceState.SetIfcfg(ifCfg);
+    EXPECT_NE(devInterfaceState.GetIfcfg(), nullptr);
+    ifCfg->mode_ = DHCP;
+    devInterfaceState.SetIfcfg(ifCfg);
+    devInterfaceState.UpdateLinkInfo();
+    EXPECT_EQ(devInterfaceState.GetIfcfg()->mode_, DHCP);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
