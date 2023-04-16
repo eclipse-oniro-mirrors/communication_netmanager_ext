@@ -127,25 +127,25 @@ HapPolicyParams testPolicyPrams2 = {
 };
 
 PermissionDef testPermDef3 = {
-        .bundleName = "ethernet_manager_test",
-        .grantMode = 1,
-        .availableLevel = APL_SYSTEM_BASIC,
-        .label = "label",
-        .labelId = 1,
-        .description = "Test network share manager",
-        .descriptionId = 1,
+    .bundleName = "ethernet_manager_test",
+    .grantMode = 1,
+    .availableLevel = APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test network share manager",
+    .descriptionId = 1,
 };
 PermissionStateFull testState3 = {
-        .isGeneral = true,
-        .resDeviceID = {"local"},
-        .grantStatus = {PermissionState::PERMISSION_GRANTED},
-        .grantFlags = {2},
+    .isGeneral = true,
+    .resDeviceID = {"local"},
+    .grantStatus = {PermissionState::PERMISSION_GRANTED},
+    .grantFlags = {2},
 };
 HapPolicyParams testPolicyPrams3 = {
-        .apl = APL_SYSTEM_BASIC,
-        .domain = "test.domain",
-        .permList = {testPermDef3},
-        .permStateList = {testState3},
+    .apl = APL_SYSTEM_BASIC,
+    .domain = "test.domain",
+    .permList = {testPermDef3},
+    .permStateList = {testState3},
 };
 std::string INFO = "info";
 constexpr const char *IFACE = "iface0";

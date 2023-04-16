@@ -268,9 +268,9 @@ HWTEST_F(MDnsServerTest, MDnsCommonTest001, TestSize.Level1)
 
     auto lhs = Split(testStr, 'c');
     auto rhs = std::vector<std::string_view>{
-            "abb",
-            "dddd",
-            "bba",
+        "abb",
+        "dddd",
+        "bba",
     };
     EXPECT_EQ(lhs, rhs);
 }
@@ -282,30 +282,30 @@ HWTEST_F(MDnsServerTest, MDnsCommonTest001, TestSize.Level1)
  */
 HWTEST_F(MDnsServerTest, MDnsCommonTest002, TestSize.Level1)
 {
-    static constexpr size_t IS_NAME = 1;
-    static constexpr size_t IS_TYPE = 2;
-    static constexpr size_t IS_INSTANCE = 3;
-    static constexpr size_t IS_DOMAIN = 4;
+    constexpr size_t isNameIndex = 1;
+    constexpr size_t isTypeIndex = 2;
+    constexpr size_t isInstanceIndex = 3;
+    constexpr size_t isDomainIndex = 4;
     std::vector<std::tuple<std::string, bool, bool, bool, bool>> test = {
-            {"abbcccddddcccbba", true,  false, false, true },
-            {"",                 false, false, false, true },
-            {"a.b",              false, false, false, true },
-            {"_xxx.tcp",         false, false, false, true },
-            {"xxx._tcp",         false, false, false, true },
-            {"xxx.yyy",          false, false, false, true },
-            {"xxx.yyy",          false, false, false, true },
-            {"_xxx._yyy",        false, false, false, true },
-            {"hello._ipp._tcp",  false, false, true,  true },
-            {"_x._y._tcp",       false, false, true,  true },
-            {"_ipp._tcp",        false, true,  false, true },
-            {"_http._tcp",       false, true,  false, true },
+        {"abbcccddddcccbba", true,  false, false, true },
+        {"",                 false, false, false, true },
+        {"a.b",              false, false, false, true },
+        {"_xxx.tcp",         false, false, false, true },
+        {"xxx._tcp",         false, false, false, true },
+        {"xxx.yyy",          false, false, false, true },
+        {"xxx.yyy",          false, false, false, true },
+        {"_xxx._yyy",        false, false, false, true },
+        {"hello._ipp._tcp",  false, false, true,  true },
+        {"_x._y._tcp",       false, false, true,  true },
+        {"_ipp._tcp",        false, true,  false, true },
+        {"_http._tcp",       false, true,  false, true },
     };
 
     for (auto line : test) {
-    EXPECT_EQ(IsNameValid(std::get<0>(line)), std::get<IS_NAME>(line));
-    EXPECT_EQ(IsTypeValid(std::get<0>(line)), std::get<IS_TYPE>(line));
-    EXPECT_EQ(IsInstanceValid(std::get<0>(line)), std::get<IS_INSTANCE>(line));
-    EXPECT_EQ(IsDomainValid(std::get<0>(line)), std::get<IS_DOMAIN>(line));
+        EXPECT_EQ(IsNameValid(std::get<0>(line)), std::get<isNameIndex>(line));
+        EXPECT_EQ(IsTypeValid(std::get<0>(line)), std::get<isTypeIndex>(line));
+        EXPECT_EQ(IsInstanceValid(std::get<0>(line)), std::get<isInstanceIndex>(line));
+        EXPECT_EQ(IsDomainValid(std::get<0>(line)), std::get<isDomainIndex>(line));
     }
 
     EXPECT_TRUE(IsPortValid(22));
