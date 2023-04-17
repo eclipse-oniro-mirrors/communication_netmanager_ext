@@ -159,44 +159,6 @@ NetworkShareTracker::NetSharingSubSmState::NetSharingSubSmState(
 {
 }
 
-void NetworkShareTracker::WifiShareHotspotEventCallback::OnHotspotStateChanged(int state)
-{
-    NETMGR_EXT_LOG_I("Receive Hotspot state changed event, state[%{public}d]", state);
-    Wifi::ApState curState = static_cast<Wifi::ApState>(state);
-    NetworkShareTracker::GetInstance().SetWifiState(curState);
-    switch (curState) {
-        case Wifi::ApState::AP_STATE_STARTING:
-            break;
-        case Wifi::ApState::AP_STATE_STARTED: {
-            NetworkShareTracker::GetInstance().EnableWifiSubStateMachine();
-            break;
-        }
-        case Wifi::ApState::AP_STATE_CLOSING:
-            break;
-        case Wifi::ApState::AP_STATE_CLOSED: {
-            NetworkShareTracker::GetInstance().StopSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME,
-                                                                   SharingIfaceType::SHARING_WIFI);
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-void NetworkShareTracker::WifiShareHotspotEventCallback::OnHotspotStaJoin(const Wifi::StationInfo &info)
-{
-    NETMGR_EXT_LOG_I("Receive Hotspot join event.");
-}
-
-void NetworkShareTracker::WifiShareHotspotEventCallback::OnHotspotStaLeave(const Wifi::StationInfo &info)
-{
-    NETMGR_EXT_LOG_I("Receive Hotspot leave event.");
-}
-
-OHOS::sptr<OHOS::IRemoteObject> NetworkShareTracker::WifiShareHotspotEventCallback::AsObject()
-{
-    return nullptr;
-}
 #ifdef BLUETOOTH_MODOULE
 void NetworkShareTracker::SharingPanObserver::OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device,
                                                                        int state)
@@ -257,16 +219,38 @@ bool NetworkShareTracker::Init()
     return true;
 }
 
+void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
+{
+    NETMGR_EXT_LOG_I("Receive Hotspot state changed event, state[%{public}d]", state);
+    Wifi::ApState curState = static_cast<Wifi::ApState>(state);
+    NetworkShareTracker::GetInstance().SetWifiState(curState);
+    switch (curState) {
+        case Wifi::ApState::AP_STATE_STARTING:
+            break;
+        case Wifi::ApState::AP_STATE_STARTED: {
+            NetworkShareTracker::GetInstance().EnableWifiSubStateMachine();
+            break;
+        }
+        case Wifi::ApState::AP_STATE_CLOSING:
+            break;
+        case Wifi::ApState::AP_STATE_CLOSED: {
+            NetworkShareTracker::GetInstance().StopSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME,
+                                                                   SharingIfaceType::SHARING_WIFI);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void NetworkShareTracker::RegisterWifiApCallback()
 {
-    sptr<WifiShareHotspotEventCallback> wifiHotspotCallback = new (std::nothrow) WifiShareHotspotEventCallback();
-    std::unique_ptr<Wifi::WifiHotspot> wifiHotspot = Wifi::WifiHotspot::GetInstance(WIFI_HOTSPOT_ABILITY_ID);
-    if (wifiHotspot != nullptr) {
-        int32_t ret = wifiHotspot->RegisterCallBack(wifiHotspotCallback);
-        if (ret != Wifi::ErrCode::WIFI_OPT_SUCCESS) {
-            NETMGR_EXT_LOG_E("Register wifi hotspot callback error[%{public}d].", ret);
-        }
+    g_wifiEvent.OnHotspotStateChanged = NetworkShareTracker::OnWifiHotspotStateChanged;
+    int32_t ret = RegisterWifiEvent(&g_wifiEvent);
+    if (ret != WIFI_SUCCESS) {
+        NETMGR_EXT_LOG_E("Register wifi hotspot callback error[%{public}d].", ret);
     }
+    return;
 }
 
 void NetworkShareTracker::RegisterBtPanCallback()
@@ -643,14 +627,9 @@ int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &ty
 int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
 {
     int32_t result = NETMANAGER_EXT_SUCCESS;
-    std::unique_ptr<Wifi::WifiHotspot> wifiHotspot = Wifi::WifiHotspot::GetInstance(WIFI_HOTSPOT_ABILITY_ID);
-    if (wifiHotspot == nullptr) {
-        NETMGR_EXT_LOG_E("wifiHotspotPtr is null.");
-        return NETWORKSHARE_ERROR_WIFI_SHARING;
-    }
     if (enable) {
-        int32_t ret = wifiHotspot->EnableHotspot(Wifi::ServiceType::DEFAULT);
-        if (ret != Wifi::ErrCode::WIFI_OPT_SUCCESS) {
+        int32_t ret = EnableHotspot();
+        if (ret != WIFI_SUCCESS) {
             NETMGR_EXT_LOG_E("EnableHotspot error[%{public}d].", ret);
             result = NETWORKSHARE_ERROR_WIFI_SHARING;
             NetworkShareHisysEvent::GetInstance().SendFaultEvent(
@@ -665,8 +644,8 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
             NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(wifiShareCount_, SharingIfaceType::SHARING_WIFI);
         }
     } else {
-        int32_t ret = wifiHotspot->DisableHotspot();
-        if (ret != Wifi::ErrCode::WIFI_OPT_SUCCESS) {
+        int32_t ret = DisableHotspot();
+        if (ret != WIFI_SUCCESS) {
             NetworkShareHisysEvent::GetInstance().SendFaultEvent(
                 SharingIfaceType::SHARING_WIFI, NetworkShareEventOperator::OPERATION_DISABLE_IFACE,
                 NetworkShareEventErrorType::ERROR_DISABLE_IFACE, ERROR_MSG_DISABLE_WIFI,

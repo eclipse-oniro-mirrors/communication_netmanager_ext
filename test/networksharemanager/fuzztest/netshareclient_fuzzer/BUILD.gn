@@ -37,7 +37,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$WIFI_MANAGER_ROOT/frameworks/native/include",
+    "$WIFI_MANAGER_ROOT/interfaces/kits/c",
     "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
   ]
 

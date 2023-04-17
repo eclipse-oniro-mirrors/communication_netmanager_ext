@@ -87,17 +87,6 @@ class NetworkShareTracker {
                                     int lastError) override;
     };
 
-    class WifiShareHotspotEventCallback : public Wifi::IWifiHotspotCallback {
-    public:
-        WifiShareHotspotEventCallback() = default;
-        virtual ~WifiShareHotspotEventCallback() = default;
-
-        void OnHotspotStateChanged(int state) override;
-        void OnHotspotStaJoin(const Wifi::StationInfo &info) override;
-        void OnHotspotStaLeave(const Wifi::StationInfo &info) override;
-        OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
-    };
-
 #ifdef BLUETOOTH_MODOULE
     class SharingPanObserver : public Bluetooth::PanObserver {
     public:
@@ -239,6 +228,7 @@ private:
     void SetDnsForwarders(const NetHandle &netHandle);
     void StopDnsProxy();
     SharingIfaceState SubSmStateToExportState(int32_t state);
+    static void OnWifiHotspotStateChanged(int state);
     void RegisterWifiApCallback();
     void RegisterBtPanCallback();
     void SetWifiState(const Wifi::ApState &state);
@@ -272,6 +262,7 @@ private:
 #endif
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
     std::atomic_bool isInit = false;
+    WifiEvent g_wifiEvent = {0};
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
