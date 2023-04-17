@@ -72,7 +72,6 @@ ohos_shared_library("net_tether_manager") {
 
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
-    "$BLUETOOTH_ROOT/frameworks/inner:btframework",
     "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
@@ -104,6 +103,12 @@ ohos_shared_library("net_tether_manager") {
     external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
   } else {
     external_deps += [ "hilog:libhilog" ]
+  }
+
+  if (!defined(global_parts_info) ||
+      defined(global_parts_info.communication_bluetooth)) {
+    defines += [ "BLUETOOTH_MODOULE=1" ]
+    external_deps += [ "bluetooth:btframework" ]
   }
 
   part_name = "netmanager_ext"
