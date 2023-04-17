@@ -166,56 +166,71 @@ HWTEST_F(EtherNetServiceTest, SetIfaceConfigTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ethernetService.SetIfaceConfig(DEV_NAME, ic);
+    int ret = ethernetService.SetIfaceConfig(DEV_NAME, ic);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(EtherNetServiceTest, GetIfaceConfigTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
+    std::string iface;
+    sptr<InterfaceConfiguration> ifaceConfig = GetIfaceConfig();
+    int ret = ethernetService.GetIfaceConfig(iface, ifaceConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(EtherNetServiceTest, IsIfaceActiveTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ethernetService.SetIfaceConfig(DEV_NAME, ic);
+    int32_t ret = ethernetService.SetIfaceConfig(DEV_NAME, ic);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, GetAllActiveIfacesTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
     std::vector<std::string> result;
-    ethernetService.GetAllActiveIfaces(result);
+    int32_t ret = ethernetService.GetAllActiveIfaces(result);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, ResetFactoryTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
-    ethernetService.ResetFactory();
+    int32_t ret = ethernetService.ResetFactory();
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, SetInterfaceUpTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
-    ethernetService.SetInterfaceUp(DEV_NAME);
+    int32_t ret = ethernetService.SetInterfaceUp(DEV_NAME);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, SetInterfaceDownTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
-    ethernetService.SetInterfaceDown(DEV_NAME);
+    int32_t ret = ethernetService.SetInterfaceDown(DEV_NAME);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, GetInterfaceConfigTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    ethernetService.GetInterfaceConfig(DEV_NAME, cfg);
+    int32_t ret = ethernetService.GetInterfaceConfig(DEV_NAME, cfg);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, SetInterfaceConfigTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
+    std::string deviceId;
+    int32_t systemAbilityId = 0;
+    ethernetService.OnAddSystemAbility(systemAbilityId, deviceId);
+
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = "eth0";
     config.hwAddr = "";
@@ -223,7 +238,8 @@ HWTEST_F(EtherNetServiceTest, SetInterfaceConfigTest001, TestSize.Level1)
     config.prefixLength = 24;
     config.flags.push_back("up");
     config.flags.push_back("broadcast");
-    ethernetService.SetInterfaceConfig(DEV_NAME, config);
+    int32_t ret = ethernetService.SetInterfaceConfig(DEV_NAME, config);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

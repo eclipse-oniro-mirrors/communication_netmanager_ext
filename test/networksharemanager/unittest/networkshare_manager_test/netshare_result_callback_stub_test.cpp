@@ -48,7 +48,6 @@ void NetShareResultCallbackStubTest::SetUp() {}
 
 void NetShareResultCallbackStubTest::TearDown() {}
 
-
 HWTEST_F(NetShareResultCallbackStubTest, OnRemoteRequest, TestSize.Level1)
 {
     MessageParcel data;

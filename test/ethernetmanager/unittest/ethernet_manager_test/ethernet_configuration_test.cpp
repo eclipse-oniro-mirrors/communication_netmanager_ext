@@ -81,6 +81,9 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration001, TestSize.Level1)
     EXPECT_TRUE(ret);
     ethernetConfiguration.ParserFileConfig(FILE_CONTENT, IFACE_NAME, cfg);
     ethernetConfiguration.GenCfgContent(IFACE, cfg, FILE_CONTENT);
+    sptr<InterfaceConfiguration> cfg2 = nullptr;
+    ret = ethernetConfiguration.WriteUserConfiguration(IFACE, cfg2);
+    EXPECT_FALSE(ret);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
