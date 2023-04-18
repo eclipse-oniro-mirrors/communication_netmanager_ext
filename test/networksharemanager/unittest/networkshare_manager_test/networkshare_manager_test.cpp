@@ -27,7 +27,9 @@
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netshare_result_callback_stub.h"
+#define private public
 #include "networkshare_client.h"
+#undef private
 #include "networkshare_constants.h"
 #include "sharing_event_callback_stub.h"
 
@@ -147,6 +149,13 @@ HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
     EXPECT_EQ(supportedFlag, NETWORKSHARE_IS_SUPPORTED);
 }
 
+HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)
+{
+    int32_t sharingStatus;
+    int32_t ret = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharing(sharingStatus);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
 HWTEST_F(NetworkShareManagerTest, GetWifiSharableRegexs, TestSize.Level1)
 {
     AccessToken token;
@@ -203,18 +212,105 @@ HWTEST_F(NetworkShareManagerTest, StopWifiSharing, TestSize.Level1)
     EXPECT_NE(state, SharingIfaceState::SHARING_NIC_SERVING);
 }
 
-HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent, TestSize.Level1)
+HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent001, TestSize.Level1)
 {
     AccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(g_sharingEventCb);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent, TestSize.Level1)
+HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent002, TestSize.Level1)
 {
     AccessToken token;
+    sptr<ISharingEventCallback> callback = nullptr;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+}
+
+HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent001, TestSize.Level1)
+{
+    AccessToken token;
+    sptr<ISharingEventCallback> callback = nullptr;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(g_sharingEventCb);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent002, TestSize.Level1)
+{
+    AccessToken token;
+    sptr<ISharingEventCallback> callback = nullptr;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetSharingIfaces01, TestSize.Level1)
+{
+    SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
+    std::vector<std::string> ifaces;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingIfaces(state, ifaces);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetSharingIfaces02, TestSize.Level1)
+{
+    AccessToken token;
+    SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
+    std::vector<std::string> ifaces;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingIfaces(state, ifaces);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetStatsRxBytes01, TestSize.Level1)
+{
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes(bytes);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetStatsRxBytes02, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes(bytes);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetStatsTxBytes01, TestSize.Level1)
+{
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes(bytes);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetStatsTxBytes02, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes(bytes);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetStatsTotalBytes01, TestSize.Level1)
+{
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes(bytes);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetStatsTotalBytes02, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t bytes = 0;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes(bytes);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, OnRemoteDied, TestSize.Level1)
+{
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StartSharing(SharingIfaceType::SHARING_WIFI);
+    wptr<IRemoteObject> remote = nullptr;
+    DelayedSingleton<NetworkShareClient>::GetInstance()->OnRemoteDied(remote);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
