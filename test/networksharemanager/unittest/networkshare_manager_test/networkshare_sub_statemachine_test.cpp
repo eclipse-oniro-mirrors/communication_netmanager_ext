@@ -277,6 +277,51 @@ HWTEST_F(NetworkShareSubStateMachineTest, StartDhcp01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StartDhcp02
+ * @tc.desc: Test NetworkShareSubStateMachine StartDhcp.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, StartDhcp02, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    std::shared_ptr<INetAddr> ipv4Address = nullptr;
+    bool ret = networkShareSubStateMachine->StartDhcp(ipv4Address);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: StartDhcp03
+ * @tc.desc: Test NetworkShareSubStateMachine StartDhcp.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, StartDhcp03, TestSize.Level1)
+{
+    std::shared_ptr<NetworkShareConfiguration> configuration = nullptr;
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    std::shared_ptr<INetAddr> ipv4Address = nullptr;
+    bool ret = networkShareSubStateMachine->StartDhcp(ipv4Address);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: RequestIpv4Address01
+ * @tc.desc: Test NetworkShareSubStateMachine RequestIpv4Address.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, RequestIpv4Address01, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
+    std::shared_ptr<INetAddr> ipv4Address = nullptr;
+    bool ret = networkShareSubStateMachine->RequestIpv4Address(ipv4Address);
+    EXPECT_EQ(ret, true);
+}
+
+/**
  * @tc.name: GetUpIfaceName01
  * @tc.desc: Test NetworkShareSubStateMachine GetUpIfaceName.
  * @tc.type: FUNC
@@ -289,6 +334,131 @@ HWTEST_F(NetworkShareSubStateMachineTest, GetUpIfaceName01, TestSize.Level1)
     std::string upIface;
     networkShareSubStateMachine->GetUpIfaceName(upIface);
     EXPECT_EQ(upIface, EMPTY_UPSTREAM_IFACENAME);
+}
+
+/**
+ * @tc.name: HasChangeUpstreamIfaceSet01
+ * @tc.desc: Test NetworkShareSubStateMachine HasChangeUpstreamIfaceSet.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, HasChangeUpstreamIfaceSet01, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    networkShareSubStateMachine->upstreamIfaceName_ = "";
+    std::string newUpstreamIface = "";
+    bool ret = networkShareSubStateMachine->HasChangeUpstreamIfaceSet(newUpstreamIface);
+    EXPECT_EQ(ret, false);
+    newUpstreamIface = "Usb0";
+    networkShareSubStateMachine->upstreamIfaceName_ = "Usb0";
+    ret = networkShareSubStateMachine->HasChangeUpstreamIfaceSet(newUpstreamIface);
+    EXPECT_EQ(ret, false);
+    networkShareSubStateMachine->upstreamIfaceName_ = "Wlan0";
+    ret = networkShareSubStateMachine->HasChangeUpstreamIfaceSet(newUpstreamIface);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: HandleConnectionChanged001
+ * @tc.desc: Test NetworkShareSubStateMachine HandleConnectionChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, HandleConnectionChanged001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    ASSERT_NE(configuration, nullptr);
+    ASSERT_NE(networkShareSubStateMachine, nullptr);
+    sptr<NetHandle> netHandle = nullptr;
+    sptr<NetAllCapabilities> netcap = nullptr;
+    sptr<NetLinkInfo> netlinkinfo = nullptr;
+    std::shared_ptr<UpstreamNetworkInfo> netinfo =
+        std::make_shared<UpstreamNetworkInfo>(netHandle, netcap, netlinkinfo);
+    networkShareSubStateMachine->HandleConnectionChanged(netinfo);
+}
+
+/**
+ * @tc.name: HandleConnectionChanged002
+ * @tc.desc: Test NetworkShareSubStateMachine HandleConnectionChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, HandleConnectionChanged002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    ASSERT_NE(configuration, nullptr);
+    ASSERT_NE(networkShareSubStateMachine, nullptr);
+    sptr<NetHandle> handle = nullptr;
+    sptr<NetAllCapabilities> netcap = new (std::nothrow) NetManagerStandard::NetAllCapabilities();
+    sptr<NetLinkInfo> link = new (std::nothrow) NetManagerStandard::NetLinkInfo();
+    std::shared_ptr<UpstreamNetworkInfo> upstreamNetInfo = std::make_shared<UpstreamNetworkInfo>(handle, netcap, link);
+    upstreamNetInfo->netLinkPro_->ifaceName_ = "";
+    networkShareSubStateMachine->HandleConnectionChanged(upstreamNetInfo);
+}
+
+/**
+ * @tc.name: HandleConnectionChanged003
+ * @tc.desc: Test NetworkShareSubStateMachine HandleConnectionChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, HandleConnectionChanged003, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    ASSERT_NE(configuration, nullptr);
+    ASSERT_NE(networkShareSubStateMachine, nullptr);
+    std::shared_ptr<UpstreamNetworkInfo> upstreamNetInfo = nullptr;
+    networkShareSubStateMachine->HandleConnectionChanged(upstreamNetInfo);
+}
+
+/**
+ * @tc.name: AddRoutesToLocalNetwork001
+ * @tc.desc: Test NetworkShareSubStateMachine AddRoutesToLocalNetwork.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, AddRoutesToLocalNetwork001, TestSize.Level1)
+{
+    std::shared_ptr<NetworkShareConfiguration> configuration = nullptr;
+    auto networkShareWifiSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    ASSERT_NE(networkShareWifiSubStateMachine, nullptr);
+    networkShareWifiSubStateMachine->AddRoutesToLocalNetwork();
+    auto networkShareBtSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    ASSERT_NE(networkShareBtSubStateMachine, nullptr);
+    networkShareBtSubStateMachine->AddRoutesToLocalNetwork();
+    auto networkShareUsbSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
+    ASSERT_NE(networkShareUsbSubStateMachine, nullptr);
+    networkShareUsbSubStateMachine->AddRoutesToLocalNetwork();
+}
+
+/**
+ * @tc.name: AddRoutesToLocalNetwork002
+ * @tc.desc: Test NetworkShareSubStateMachine AddRoutesToLocalNetwork.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, AddRoutesToLocalNetwork002, TestSize.Level1)
+{
+    auto configurationWifi = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareWifiSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configurationWifi);
+    ASSERT_NE(networkShareWifiSubStateMachine, nullptr);
+    networkShareWifiSubStateMachine->AddRoutesToLocalNetwork();
+    auto configurationBt = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareBtSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configurationBt);
+    ASSERT_NE(networkShareBtSubStateMachine, nullptr);
+    networkShareBtSubStateMachine->AddRoutesToLocalNetwork();
+    auto configurationUsb = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareUsbSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configurationUsb);
+    ASSERT_NE(networkShareUsbSubStateMachine, nullptr);
+    networkShareUsbSubStateMachine->AddRoutesToLocalNetwork();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
