@@ -99,7 +99,6 @@ bool MDnsExec::ExecStartSearchingMDNS(MDnsStartSearchingContext *context)
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
         NETMANAGER_EXT_LOGE("StartDiscoverService error, errorCode: %{public}d", ret);
-        return false;
     }
     MDnsServiceInfo info;
     info.type = discover->serviceType_;
@@ -123,7 +122,6 @@ bool MDnsExec::ExecStopSearchingMDNS(MDnsStopSearchingContext *context)
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
         NETMANAGER_EXT_LOGE("StopDiscoverService error, errorCode: %{public}d", ret);
-        return false;
     }
     MDnsServiceInfo info;
     info.type = discover->serviceType_;

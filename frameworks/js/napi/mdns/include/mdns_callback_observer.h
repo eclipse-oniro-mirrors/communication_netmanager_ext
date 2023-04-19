@@ -75,17 +75,12 @@ private:
         delete workWrapper;
         delete work;
     }
-    static napi_value CreateStartDiscoveryService(napi_env env, void *data);
-    static void StartDiscoveryServiceCallback(uv_work_t *work, int32_t status);
 
-    static napi_value CreateStopDiscoveryService(napi_env env, void *data);
-    static void StopDiscoveryServiceCallback(uv_work_t *work, int32_t status);
+    static napi_value CreateService(napi_env env, void *data);
+    static void ServiceCallback(uv_work_t *work, int32_t status);
 
-    static napi_value CreateServiceFound(napi_env env, void *data);
-    static void ServiceFoundCallback(uv_work_t *work, int32_t status);
-
-    static napi_value CreateServiceLost(napi_env env, void *data);
-    static void ServiceLostCallback(uv_work_t *work, int32_t status);
+    static napi_value CreateServiceWithError(napi_env env, void *data);
+    static void ServiceCallbackWithError(uv_work_t *work, int32_t status);
 };
 
 class MDnsResolveObserver : public ResolveCallbackStub {
