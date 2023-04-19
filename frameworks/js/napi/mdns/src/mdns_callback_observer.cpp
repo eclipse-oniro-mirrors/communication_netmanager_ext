@@ -25,6 +25,19 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
+static int32_t ErrorCodeTrans(int32_t retCode)
+{
+    NETMANAGER_EXT_LOGE("ErrorCodeTrans init value %{public}d", retCode);
+    switch (retCode) {
+        case NET_MDNS_ERR_CALLBACK_DUPLICATED:
+            [[fallthrough]];
+        case NET_MDNS_ERR_CALLBACK_NOT_FOUND:
+            return static_cast<int32_t>(MDnsErr::ALREADY_ACTIVE);
+        default:
+            return static_cast<int32_t>(MDnsErr::INTERNAL_ERROR);
+    }
+}
+
 void MDnsRegistrationObserver::HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
 
 void MDnsRegistrationObserver::HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
@@ -47,9 +60,14 @@ void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo
         NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICESTART);
         return;
     }
+    if (retCode == 0) {
+        mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTART, new MDnsServiceInfo(serviceInfo),
+                                                    ServiceCallback);
+        return;
+    }
 
-    auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTART, pair, StartDiscoveryServiceCallback);
+    auto pair = new std::pair<int32_t, MDnsServiceInfo>(ErrorCodeTrans(retCode), serviceInfo);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTART, pair, ServiceCallbackWithError);
 }
 
 void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
@@ -64,9 +82,13 @@ void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo,
         NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICESTOP);
         return;
     }
-
-    auto pair = new std::pair<int32_t, MDnsServiceInfo>(retCode, serviceInfo);
-    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTOP, pair, StopDiscoveryServiceCallback);
+    if (retCode == 0) {
+        mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTOP, new MDnsServiceInfo(serviceInfo),
+                                                    ServiceCallback);
+        return;
+    }
+    auto pair = new std::pair<int32_t, MDnsServiceInfo>(ErrorCodeTrans(retCode), serviceInfo);
+    mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTOP, pair, ServiceCallbackWithError);
 }
 
 void MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode)
@@ -83,7 +105,7 @@ void MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInf
     }
 
     mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICEFOUND, new MDnsServiceInfo(serviceInfo),
-                                                ServiceFoundCallback);
+                                                ServiceCallback);
 }
 
 void MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
@@ -100,7 +122,7 @@ void MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo
     }
 
     mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICELOST, new MDnsServiceInfo(serviceInfo),
-                                                ServiceFoundCallback);
+                                                ServiceCallback);
 }
 
 napi_value CreateCallbackParam(const MDnsServiceInfo &serviceInfo, napi_env env)
@@ -120,7 +142,7 @@ napi_value CreateCallbackParam(const MDnsServiceInfo &serviceInfo, napi_env env)
     return object;
 }
 
-napi_value MDnsDiscoveryObserver::CreateStartDiscoveryService(napi_env env, void *data)
+napi_value MDnsDiscoveryObserver::CreateServiceWithError(napi_env env, void *data)
 {
     auto pair = static_cast<std::pair<int32_t, MDnsServiceInfo> *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
@@ -131,28 +153,12 @@ napi_value MDnsDiscoveryObserver::CreateStartDiscoveryService(napi_env env, void
     return obj;
 }
 
-void MDnsDiscoveryObserver::StartDiscoveryServiceCallback(uv_work_t *work, int32_t status)
+void MDnsDiscoveryObserver::ServiceCallbackWithError(uv_work_t *work, int32_t status)
 {
-    CallbackTemplate<CreateStartDiscoveryService>(work, status);
+    CallbackTemplate<CreateServiceWithError>(work, status);
 }
 
-napi_value MDnsDiscoveryObserver::CreateStopDiscoveryService(napi_env env, void *data)
-{
-    auto pair = static_cast<std::pair<int32_t, MDnsServiceInfo> *>(data);
-    napi_value obj = NapiUtils::CreateObject(env);
-    NapiUtils::SetUint32Property(env, obj, ERRCODE, pair->first);
-    napi_value infoObj = CreateCallbackParam(pair->second, env);
-    NapiUtils::SetNamedProperty(env, obj, SERVICEINFO, infoObj);
-    delete pair;
-    return obj;
-}
-
-void MDnsDiscoveryObserver::StopDiscoveryServiceCallback(uv_work_t *work, int32_t status)
-{
-    CallbackTemplate<CreateStopDiscoveryService>(work, status);
-}
-
-napi_value MDnsDiscoveryObserver::CreateServiceFound(napi_env env, void *data)
+napi_value MDnsDiscoveryObserver::CreateService(napi_env env, void *data)
 {
     auto serviceInfo = static_cast<MDnsServiceInfo *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
@@ -162,24 +168,9 @@ napi_value MDnsDiscoveryObserver::CreateServiceFound(napi_env env, void *data)
     return obj;
 }
 
-void MDnsDiscoveryObserver::ServiceFoundCallback(uv_work_t *work, int32_t status)
+void MDnsDiscoveryObserver::ServiceCallback(uv_work_t *work, int32_t status)
 {
-    CallbackTemplate<CreateServiceFound>(work, status);
-}
-
-napi_value MDnsDiscoveryObserver::CreateServiceLost(napi_env env, void *data)
-{
-    auto serviceInfo = static_cast<MDnsServiceInfo *>(data);
-    napi_value obj = NapiUtils::CreateObject(env);
-    napi_value infoObj = CreateCallbackParam(*serviceInfo, env);
-    NapiUtils::SetNamedProperty(env, obj, SERVICEINFO, infoObj);
-    delete serviceInfo;
-    return obj;
-}
-
-void MDnsDiscoveryObserver::ServiceLostCallback(uv_work_t *work, int32_t status)
-{
-    CallbackTemplate<CreateServiceLost>(work, status);
+    CallbackTemplate<CreateService>(work, status);
 }
 
 void MDnsResolveObserver::HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode)
