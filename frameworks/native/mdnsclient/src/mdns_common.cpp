@@ -32,11 +32,17 @@ constexpr size_t MDNS_TYPE2_IDX = 2;
 
 bool EndsWith(const std::string_view &str, const std::string_view &pat)
 {
+    if (str.length() < pat.length()) {
+        return false;
+    }
     return std::mismatch(pat.rbegin(), pat.rend(), str.rbegin()).first == pat.rend();
 }
 
 bool StartsWith(const std::string_view &str, const std::string_view &pat)
 {
+    if (str.length() < pat.length()) {
+        return false;
+    }
     return std::mismatch(pat.begin(), pat.end(), str.begin()).first == pat.end();
 }
 
