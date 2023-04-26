@@ -20,7 +20,6 @@ config("net_mdns_manager_if_config") {
     "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
-    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
   ]
 
   cflags = []
@@ -73,13 +72,11 @@ ohos_shared_library("mdns_manager_if") {
 
   deps = [
     ":mdns_parcel",
-    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 

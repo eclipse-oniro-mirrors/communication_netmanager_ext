@@ -79,10 +79,8 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
-    "c_utils:utils",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "wifi:wifi_sdk",

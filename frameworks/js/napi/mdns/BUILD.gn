@@ -22,7 +22,6 @@ config("mdns_config") {
 
 ohos_shared_library("mdns") {
   include_dirs = [
-    "$NETMANAGER_BASE_ROOT/utils/log/include",
     "$NETMANAGER_EXT_NAPI_ROOT/mdns/include",
     "$NETMANAGER_EXT_NAPI_ROOT/mdns/include/contexts",
   ]
@@ -44,19 +43,13 @@ ohos_shared_library("mdns") {
 
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_manager_if",
-    "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_BASE_ROOT/utils/napi_utils:napi_utils",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
-    "ability_runtime:abilitykit_native",
-    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "napi:ace_napi",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 
   configs = [ ":mdns_config" ]
