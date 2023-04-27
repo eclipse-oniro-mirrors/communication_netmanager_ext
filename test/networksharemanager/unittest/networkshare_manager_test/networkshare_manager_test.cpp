@@ -145,12 +145,13 @@ HWTEST_F(NetworkShareManagerTest, OnLoadSystemAbilitySuccess, TestSize.Level1)
 {
     int32_t systemAbilityId = 0;
     sptr<IRemoteObject> remoteObject;
-    DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->OnLoadSystemAbilitySuccess(systemAbilityId, remoteObject);
+    DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->OnLoadSystemAbilitySuccess(systemAbilityId,
+                                                                                            remoteObject);
     auto ret = DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->GetRemoteObject();
     EXPECT_EQ(ret, nullptr);
 }
 
-HWTEST_F(NetworkShareManagerTest,OnLoadSystemAbilityFail, TestSize.Level1)
+HWTEST_F(NetworkShareManagerTest, OnLoadSystemAbilityFail, TestSize.Level1)
 {
     int32_t systemAbilityId = 0;
     DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->OnLoadSystemAbilityFail(systemAbilityId);
