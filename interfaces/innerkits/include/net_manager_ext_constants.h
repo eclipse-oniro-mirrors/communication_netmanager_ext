@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int NETMANAGER_EXT_ERROR = -1;
 
 enum {
     NETMANAGER_EXT_COMMON = 0x00,
@@ -28,16 +27,6 @@ enum {
     NETMANAGER_ETHERNET_MANAGER = 0x02,
     NETMANAGER_MDNS_MANAGER = 0x03,
 };
-
-// Error code for common
-constexpr ErrCode COMMON_EXT_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, NETMANAGER_EXT_COMMON);
-// Error code for netmanager ethernet
-constexpr ErrCode ETHERNET_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, NETMANAGER_ETHERNET_MANAGER);
-// Error code for netmanager external vpn
-constexpr ErrCode EXTERNALVPN_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, EXTERNALVPN_MANAGER);
-
-// Error code for netmanager mdns
-constexpr ErrCode MDNS_ERR_OFFSET = ErrCodeOffset(SUBSYS_COMMUNICATION, NETMANAGER_MDNS_MANAGER);
 
 // for network sharing
 enum class SharingIfaceType {

@@ -22,7 +22,6 @@ config("net_conn_manager_if_config") {
     "$BASE_INNERKITS_ROOT/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$EXT_INNERKITS_ROOT/include",
-    "$NETMANAGER_EXT_ROOT/utils/common/include",
   ]
 
   cflags = []
@@ -50,16 +49,12 @@ ohos_source_set("networkshare_parcel") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
-    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
-  ]
+  deps = [ "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel" ]
 
-  external_deps = [ "c_utils:utils" ]
   if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   } else {
-    external_deps += [ "hilog:libhilog" ]
+    external_deps = [ "hilog:libhilog" ]
   }
 
   part_name = "netmanager_ext"

@@ -37,7 +37,6 @@ ohos_shared_library("sharing") {
     "$NETMANAGER_BASE_ROOT/utils/napi_utils:napi_utils",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netshareclient:net_tether_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "$THIRD_PARTY_ROOT/libuv:uv",
   ]
 
   external_deps = [

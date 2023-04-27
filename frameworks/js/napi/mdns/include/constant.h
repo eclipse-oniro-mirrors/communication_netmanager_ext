@@ -18,7 +18,6 @@
 
 #include <cstdint>
 
-static constexpr int32_t SYSC_TIMEOUT = 5;
 
 static constexpr int32_t PARAM_NONE = 0;
 static constexpr int32_t PARAM_JUST_OPTIONS = 2;
@@ -30,7 +29,6 @@ static constexpr const char *EVENT_SERVICEFOUND = "serviceFound";
 static constexpr const char *EVENT_SERVICELOST = "serviceLost";
 
 static constexpr const char *ERRCODE = "errorCode";
-static constexpr const char *RETMSG = "retMsg";
 static constexpr const char *SERVICEINFO = "serviceInfo";
 static constexpr const char *SERVICEINFO_ATTR = "serviceAttribute";
 static constexpr const char *SERVICEINFO_ADDRESS = "address";

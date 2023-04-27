@@ -38,13 +38,10 @@ ohos_shared_library("mdns_manager") {
 
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
-    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
-    "ability_base:want",
-    "c_utils:utils",
     "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
