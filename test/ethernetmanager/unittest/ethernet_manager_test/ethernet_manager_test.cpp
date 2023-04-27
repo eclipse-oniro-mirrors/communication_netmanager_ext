@@ -71,6 +71,33 @@ public:
         std::cout << "OnInterfaceChange ifName: " << ifName << ", state: " << up << std::endl;
         return 0;
     }
+
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        std::u16string descriptor = data.ReadInterfaceToken();
+        if (descriptor != InterfaceStateCallback::GetDescriptor()) {
+            NETMGR_EXT_LOG_E("OnRemoteRequest get descriptor error.");
+            return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
+        }
+        InterfaceStateCallback::Message msgCode = static_cast<InterfaceStateCallback::Message>(code);
+        switch (msgCode) {
+            case InterfaceStateCallback::Message::INTERFACE_STATE_ADD: {
+                OnInterfaceAdded(data.ReadString());
+                break;
+            }
+            case InterfaceStateCallback::Message::INTERFACE_STATE_REMOVE: {
+                OnInterfaceRemoved(data.ReadString());
+                break;
+            }
+        case InterfaceStateCallback::Message::INTERFACE_STATE_CHANGE: {
+            OnInterfaceChanged(data.ReadString(), data.ReadBool());
+            break;
+        }
+        default:
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+    return NETMANAGER_EXT_SUCCESS;
+    }
 };
 
 HapInfoParams testInfoParms = {.userID = 1,
@@ -241,6 +268,22 @@ bool EthernetManagerTest::CheckIfaceUp(const std::string &iface)
     int32_t activeStatus = 0;
     (void)DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface, activeStatus);
     return activeStatus == 1;
+}
+
+/**
+ * @tc.name: OnRemoteRequest
+ * @tc.desc: Test EthernetManager OnRemoteRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, OnRemoteRequest, TestSize.Level1)
+{
+    uint32_t code = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = 0;
+    ret = DelayedSingleton<MonitorInterfaceStateCallback>::GetInstance()->OnRemoteRequest(code, data, reply, option);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -475,6 +518,8 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
     ret = devCallback.OnInterfaceRemoved(IFACE);
     EXPECT_EQ(ret, RET_ZERO);
     ret = devCallback.OnInterfaceLinkStateChanged(IFACE, true);
+    EXPECT_EQ(ret, RET_ZERO);
+    ret = devCallback.OnInterfaceChanged(IFACE, true);
     EXPECT_EQ(ret, RET_ZERO);
 }
 
