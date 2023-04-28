@@ -141,6 +141,24 @@ void TestSharingEventCallback::OnSharingUpstreamChanged(const sptr<NetHandle> ne
     std::cout << "TestSharingEventCallback::OnSharingUpstreamChanged netId = " << netHandle->GetNetId() << std::endl;
 }
 
+HWTEST_F(NetworkShareManagerTest, OnLoadSystemAbilitySuccess, TestSize.Level1)
+{
+    int32_t systemAbilityId = 0;
+    sptr<IRemoteObject> remoteObject;
+    DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->OnLoadSystemAbilitySuccess(systemAbilityId,
+                                                                                            remoteObject);
+    auto ret = DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->GetRemoteObject();
+    EXPECT_EQ(ret, nullptr);
+}
+
+HWTEST_F(NetworkShareManagerTest, OnLoadSystemAbilityFail, TestSize.Level1)
+{
+    int32_t systemAbilityId = 0;
+    DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->OnLoadSystemAbilityFail(systemAbilityId);
+    auto ret = DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->IsFailed();
+    EXPECT_EQ(ret, true);
+}
+
 HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
 {
     AccessToken token;

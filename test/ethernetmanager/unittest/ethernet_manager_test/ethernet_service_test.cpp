@@ -42,7 +42,6 @@ namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
 namespace {
-using namespace testing::ext;
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
 constexpr const char *DEV_NAME = "eth0";
@@ -162,6 +161,97 @@ void EtherNetServiceTest::SetUp() {}
 
 void EtherNetServiceTest::TearDown() {}
 
+HWTEST_F(EtherNetServiceTest, OnInterfaceAddressUpdatedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string addr;
+    std::string ifName;
+    int flags = 0;
+    int scope = 0;
+    int ret = devinterfacestatecallback.OnInterfaceAddressUpdated(addr, ifName, flags, scope);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnInterfaceAddressRemovedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string addr;
+    std::string ifName;
+    int flags = 0;
+    int scope = 0;
+    int ret = devinterfacestatecallback.OnInterfaceAddressRemoved(addr, ifName, flags, scope);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnInterfaceAddedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string iface;
+    int ret = devinterfacestatecallback.OnInterfaceAdded(iface);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnInterfaceRemovedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string iface;
+    int ret = devinterfacestatecallback.OnInterfaceRemoved(iface);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnInterfaceChangedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string iface;
+    int ret = devinterfacestatecallback.OnInterfaceChanged(iface, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnInterfaceLinkStateChangedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string ifName;
+    int ret = devinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnRouteChangedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    bool updated = true;
+    std::string route;
+    std::string gateway;
+    std::string ifName;
+    int ret = devinterfacestatecallback.OnRouteChanged(updated, route, gateway, ifName);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnDhcpSuccessTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    NetsysControllerCallback::DhcpResult dhcpResult;
+    int ret = devinterfacestatecallback.OnDhcpSuccess(dhcpResult);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, OnBandwidthReachedLimitTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string limitName;
+    std::string iface;
+    int ret = devinterfacestatecallback.OnBandwidthReachedLimit(limitName, iface);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(EtherNetServiceTest, SetIfaceConfigTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
@@ -199,6 +289,22 @@ HWTEST_F(EtherNetServiceTest, ResetFactoryTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
     int32_t ret = ethernetService.ResetFactory();
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, RegisterIfacesStateChangedTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    sptr<InterfaceStateCallback> callback;
+    int32_t ret = ethernetService.RegisterIfacesStateChanged(callback);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, UnregisterIfacesStateChangedTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    sptr<InterfaceStateCallback> callback;
+    int32_t ret = ethernetService.UnregisterIfacesStateChanged(callback);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 

@@ -71,6 +71,33 @@ public:
         std::cout << "OnInterfaceChange ifName: " << ifName << ", state: " << up << std::endl;
         return 0;
     }
+
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        std::u16string descriptor = data.ReadInterfaceToken();
+        if (descriptor != InterfaceStateCallback::GetDescriptor()) {
+            NETMGR_EXT_LOG_E("OnRemoteRequest get descriptor error.");
+            return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
+        }
+        InterfaceStateCallback::Message msgCode = static_cast<InterfaceStateCallback::Message>(code);
+        switch (msgCode) {
+            case InterfaceStateCallback::Message::INTERFACE_STATE_ADD: {
+                OnInterfaceAdded(data.ReadString());
+                break;
+            }
+            case InterfaceStateCallback::Message::INTERFACE_STATE_REMOVE: {
+                OnInterfaceRemoved(data.ReadString());
+                break;
+            }
+            case InterfaceStateCallback::Message::INTERFACE_STATE_CHANGE: {
+                OnInterfaceChanged(data.ReadString(), data.ReadBool());
+                break;
+            }
+            default:
+                return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+    return NETMANAGER_EXT_SUCCESS;
+    }
 };
 
 HapInfoParams testInfoParms = {.userID = 1,
@@ -244,6 +271,22 @@ bool EthernetManagerTest::CheckIfaceUp(const std::string &iface)
 }
 
 /**
+ * @tc.name: OnRemoteRequest
+ * @tc.desc: Test EthernetManager OnRemoteRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, OnRemoteRequest, TestSize.Level1)
+{
+    uint32_t code = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = 0;
+    ret = DelayedSingleton<MonitorInterfaceStateCallback>::GetInstance()->OnRemoteRequest(code, data, reply, option);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
  * @tc.name: EthernetManager001
  * @tc.desc: Test EthernetManager SetIfaceConfig.
  * @tc.type: FUNC
@@ -256,6 +299,23 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
     AccessToken accessToken(testPolicyPrams2);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME, ic), NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: EthernetManager0011
+ * @tc.desc: Test EthernetManager SetIfaceConfig.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, EthernetManager0011, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    AccessToken accessToken(testPolicyPrams2);
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    const char *DEV_NAME_1 = "eth3";
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME_1, ic);
+    ASSERT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 /**
@@ -276,6 +336,24 @@ HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: EthernetManager0021
+ * @tc.desc: Test EthernetManager GetIfaceConfig.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, EthernetManager0021, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    AccessToken accessToken(testPolicyPrams1);
+    sptr<InterfaceConfiguration> ic;
+    const char *DEV_NAME_1 = "eth3";
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME_1, ic);
+    ASSERT_FALSE(ic != nullptr);
+    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+}
+
+/**
  * @tc.name: EthernetManager003
  * @tc.desc: Test EthernetManager IsIfaceActive.
  * @tc.type: FUNC
@@ -290,6 +368,23 @@ HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
     ASSERT_EQ(activeStatus, 1);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: EthernetManager0031
+ * @tc.desc: Test EthernetManager IsIfaceActive.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, EthernetManager0031, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    AccessToken accessToken(testPolicyPrams1);
+    int32_t activeStatus = -1;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive("eth3", activeStatus);
+    ASSERT_NE(activeStatus, 1);
+    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 /**
@@ -475,6 +570,8 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
     ret = devCallback.OnInterfaceRemoved(IFACE);
     EXPECT_EQ(ret, RET_ZERO);
     ret = devCallback.OnInterfaceLinkStateChanged(IFACE, true);
+    EXPECT_EQ(ret, RET_ZERO);
+    ret = devCallback.OnInterfaceChanged(IFACE, true);
     EXPECT_EQ(ret, RET_ZERO);
 }
 
