@@ -94,7 +94,7 @@ public:
                 break;
             }
             default:
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+                return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     return NETMANAGER_EXT_SUCCESS;
     }
