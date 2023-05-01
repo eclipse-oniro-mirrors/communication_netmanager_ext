@@ -128,6 +128,7 @@ int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
     }
     std::string instance = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type;
     int32_t err = impl.ResolveInstance(instance);
+    cb->HandleResolveResult(serviceInfo, err);
     if (err == NETMANAGER_EXT_SUCCESS) {
         resolveMap_.emplace_back(cb, instance);
     }
