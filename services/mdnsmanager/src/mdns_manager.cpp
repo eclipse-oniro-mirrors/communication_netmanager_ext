@@ -131,6 +131,7 @@ int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
     if (err == NETMANAGER_EXT_SUCCESS) {
         resolveMap_.emplace_back(cb, instance);
     }
+    cb->HandleResolveResult(serviceInfo, err);
     return err;
 }
 
