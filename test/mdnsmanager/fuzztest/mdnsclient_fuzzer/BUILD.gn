@@ -40,7 +40,7 @@ ohos_fuzztest("MDnsClientFuzzTest") {
 
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_manager_if",
-    "$NETMANAGER_EXT_ROOT/services/mdnsmanager:mdns_manager_static",
+    "$NETMANAGER_EXT_ROOT/services/mdnsmanager:mdns_manager",
   ]
 
   external_deps = [

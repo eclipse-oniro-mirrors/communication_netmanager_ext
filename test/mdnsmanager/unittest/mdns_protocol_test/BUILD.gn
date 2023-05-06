@@ -33,7 +33,7 @@ ohos_unittest("mdns_protocol_test") {
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
-    "$NETMANAGER_EXT_ROOT/services/mdnsmanager:mdns_manager_static",
+    "$NETMANAGER_EXT_ROOT/services/mdnsmanager:mdns_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 

@@ -14,19 +14,6 @@
 import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
-config("mdns_manager_config") {
-  include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
-    "$EXT_INNERKITS_ROOT/mdnsclient/include",
-    "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
-    "$EXT_INNERKITS_ROOT/include",
-    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
-    "include",
-    "include/stub",
-    "include/protocol",
-  ]
-}
-
 ohos_shared_library("mdns_manager") {
   sources = [
     "src/mdns_manager.cpp",
@@ -38,68 +25,16 @@ ohos_shared_library("mdns_manager") {
     "src/stub/mdns_service_stub.cpp",
   ]
 
-  configs = [ ":mdns_manager_config" ]
-
-  deps = [
-    "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+  include_dirs = [
+    "$BASE_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/mdnsclient/include",
+    "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
+    "$EXT_INNERKITS_ROOT/include",
+    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
+    "include",
+    "include/stub",
+    "include/protocol",
   ]
-
-  cflags = [
-    "-fvisibility=hidden",
-    "-fdata-sections",
-    "-ffunction-sections",
-    "-Os",
-  ]
-
-  cflags_cc = [
-    "-fvisibility-inlines-hidden",
-    "-Os",
-  ]
-
-  ldflags = [
-    "-Wl,--exclude-libs=ALL",
-    "-Wl,--gc-sections",
-  ]
-
-  external_deps = [
-    "hisysevent_native:libhisysevent",
-    "ipc:ipc_core",
-    "safwk:system_ability_fwk",
-  ]
-
-  defines = [
-    "NETMGR_LOG_TAG = \"MDnsManager\"",
-    "LOG_DOMAIN = 0xD0015B0",
-  ]
-
-  if (enable_netmgr_ext_debug) {
-    defines += [ "NETMGR_DEBUG" ]
-  }
-
-  if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
-  } else {
-    external_deps += [ "hilog:libhilog" ]
-  }
-
-  part_name = "netmanager_ext"
-  subsystem_name = "communication"
-}
-
-ohos_static_library("mdns_manager_static") {
-  testonly = true
-  sources = [
-    "src/mdns_manager.cpp",
-    "src/mdns_service.cpp",
-    "src/protocol/mdns_packet_parser.cpp",
-    "src/protocol/mdns_protocol_impl.cpp",
-    "src/protocol/mdns_socket_listener.cpp",
-    "src/stub/mdns_event_proxy.cpp",
-    "src/stub/mdns_service_stub.cpp",
-  ]
-
-  configs = [ ":mdns_manager_config" ]
 
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",

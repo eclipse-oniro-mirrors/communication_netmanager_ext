@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -63,7 +63,7 @@ ohos_unittest("networkshare_manager_test") {
   deps = [
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel",
     "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
-    "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$THIRD_PARTY_ROOT/googletest:gmock_main",
     "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
