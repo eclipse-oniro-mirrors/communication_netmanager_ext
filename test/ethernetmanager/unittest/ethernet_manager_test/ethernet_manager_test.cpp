@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -638,7 +638,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager018, TestSize.Level1)
 {
     int32_t activeStatus = -1;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager019, TestSize.Level1)
@@ -646,7 +646,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager019, TestSize.Level1)
     AccessToken accessToken(testPolicyPrams3);
     int32_t activeStatus = -1;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
