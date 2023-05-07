@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -55,7 +55,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "$BLUETOOTH_ROOT/frameworks/inner:btframework",
     "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
-    "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
 
