@@ -432,6 +432,66 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
     ASSERT_FALSE(cfg.hwAddr.empty());
 }
 
+HWTEST_F(EthernetManagerTest, OnInterfaceAddressUpdatedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string addr;
+    std::string ifName;
+    int flags = 0;
+    int scope = 0;
+    int ret = devinterfacestatecallback.OnInterfaceAddressUpdated(addr, ifName, flags, scope);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, OnInterfaceAddressRemovedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string addr;
+    std::string ifName;
+    int flags = 0;
+    int scope = 0;
+    int ret = devinterfacestatecallback.OnInterfaceAddressRemoved(addr, ifName, flags, scope);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, OnInterfaceAddedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string iface;
+    int ret = devinterfacestatecallback.OnInterfaceAdded(iface);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, OnInterfaceRemovedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string iface;
+    int ret = devinterfacestatecallback.OnInterfaceRemoved(iface);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, OnInterfaceChangedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string iface;
+    int ret = devinterfacestatecallback.OnInterfaceChanged(iface, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, OnInterfaceLinkStateChangedTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    std::string ifName;
+    int ret = devinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(EthernetManagerTest, SetInterfaceConfig001, TestSize.Level1)
 {
     if (!CheckIfaceUp(DEV_NAME)) {

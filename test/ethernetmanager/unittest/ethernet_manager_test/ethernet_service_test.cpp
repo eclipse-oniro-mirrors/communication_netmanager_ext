@@ -163,92 +163,92 @@ void EtherNetServiceTest::TearDown() {}
 
 HWTEST_F(EtherNetServiceTest, OnInterfaceAddressUpdatedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     std::string addr;
     std::string ifName;
     int flags = 0;
     int scope = 0;
-    int ret = devinterfacestatecallback.OnInterfaceAddressUpdated(addr, ifName, flags, scope);
+    int ret = globalinterfacestatecallback.OnInterfaceAddressUpdated(addr, ifName, flags, scope);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnInterfaceAddressRemovedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     std::string addr;
     std::string ifName;
     int flags = 0;
     int scope = 0;
-    int ret = devinterfacestatecallback.OnInterfaceAddressRemoved(addr, ifName, flags, scope);
+    int ret = globalinterfacestatecallback.OnInterfaceAddressRemoved(addr, ifName, flags, scope);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnInterfaceAddedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     std::string iface;
-    int ret = devinterfacestatecallback.OnInterfaceAdded(iface);
+    int ret = globalinterfacestatecallback.OnInterfaceAdded(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnInterfaceRemovedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     std::string iface;
-    int ret = devinterfacestatecallback.OnInterfaceRemoved(iface);
+    int ret = globalinterfacestatecallback.OnInterfaceRemoved(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnInterfaceChangedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     std::string iface;
-    int ret = devinterfacestatecallback.OnInterfaceChanged(iface, true);
+    int ret = globalinterfacestatecallback.OnInterfaceChanged(iface, true);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnInterfaceLinkStateChangedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     std::string ifName;
-    int ret = devinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
+    int ret = globalinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnRouteChangedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     bool updated = true;
     std::string route;
     std::string gateway;
     std::string ifName;
-    int ret = devinterfacestatecallback.OnRouteChanged(updated, route, gateway, ifName);
+    int ret = globalinterfacestatecallback.OnRouteChanged(updated, route, gateway, ifName);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnDhcpSuccessTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     NetsysControllerCallback::DhcpResult dhcpResult;
-    int ret = devinterfacestatecallback.OnDhcpSuccess(dhcpResult);
+    int ret = globalinterfacestatecallback.OnDhcpSuccess(dhcpResult);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, OnBandwidthReachedLimitTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
     std::string limitName;
     std::string iface;
-    int ret = devinterfacestatecallback.OnBandwidthReachedLimit(limitName, iface);
+    int ret = globalinterfacestatecallback.OnBandwidthReachedLimit(limitName, iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -336,6 +336,8 @@ HWTEST_F(EtherNetServiceTest, SetInterfaceConfigTest001, TestSize.Level1)
     std::string deviceId;
     int32_t systemAbilityId = 0;
     ethernetService.OnAddSystemAbility(systemAbilityId, deviceId);
+    ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, deviceId);
+    ethernetService.OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, deviceId);
 
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = "eth0";
