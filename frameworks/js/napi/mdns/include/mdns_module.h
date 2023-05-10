@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef NETMANAGER_EXT_MDNS_MODULE_H_TEST
+#define NETMANAGER_EXT_MDNS_MODULE_H_TEST
+
 #include <cstdint>
 #include <string_view>
 
@@ -57,3 +60,4 @@ public:
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
+#endif /* NETMANAGER_EXT_MDNS_MODULE_H_TEST */
