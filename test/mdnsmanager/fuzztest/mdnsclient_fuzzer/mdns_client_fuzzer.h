@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef MDNS_CLIENT_FUZZER_H
+#define MDNS_CLIENT_FUZZER_H
+
 #include <cstdint>
 #include <unistd.h>
 #include <climits>
@@ -22,3 +25,4 @@
 
 #define FUZZ_PROJECT_NAME "mdnsclient_fuzzer"
 
+#endif /* MDNS_CLIENT_FUZZER_H */
