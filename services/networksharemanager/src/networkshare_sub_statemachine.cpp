@@ -479,7 +479,7 @@ bool NetworkShareSubStateMachine::GetUsbDestinationAddr(std::string &addrStr)
 bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &netAddr)
 {
     if (dhcpService_ == nullptr) {
-        dhcpService_ = std::make_unique<OHOS::Wifi::DhcpService>();
+        dhcpService_ = OHOS::Wifi::DhcpServiceApi::GetInstance();
         if (dhcpService_ == nullptr) {
             NETMGR_EXT_LOG_E("StartDhcp DhcpService create failed.");
             return false;

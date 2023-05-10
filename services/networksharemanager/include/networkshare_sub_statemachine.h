@@ -23,7 +23,7 @@
 #include <set>
 #include <sstream>
 
-#include "dhcp_service.h"
+#include "dhcp_service_api.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "networkshare_configuration.h"
