@@ -43,17 +43,14 @@
                 "dhcp",
                 "hiviewdfx_hilog_native",
                 "netmanager_base",
-                "libuv",
                 "eventhandler",
-                "ability_base",
                 "bluetooth",
                 "hisysevent_native",
                 "c_utils",
                 "samgr",
+                "usb_manager",
+                "drivers_interface_usb",
                 "wifi"
-            ],
-            "third_party": [
-                "node"
             ]
         },
         "build": {
