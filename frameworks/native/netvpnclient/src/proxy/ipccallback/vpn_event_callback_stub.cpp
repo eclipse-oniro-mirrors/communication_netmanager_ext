@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,38 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef NETMANAGER_EXT_CONSTANTS_H
-#define NETMANAGER_EXT_CONSTANTS_H
-
-#include <errors.h>
+#include "vpn_event_callback_stub.h"
+#include "net_manager_constants.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-
-enum {
-    NETMANAGER_EXT_COMMON = 0x00,
-    EXTERNALVPN_MANAGER = 0x01,
-    NETMANAGER_ETHERNET_MANAGER = 0x02,
-    NETMANAGER_MDNS_MANAGER = 0x03,
-};
-
-// for network sharing
-enum class SharingIfaceType {
-    SHARING_WIFI = 0,
-    SHARING_USB,
-    SHARING_BLUETOOTH,
-};
-enum class SharingIfaceState {
-    SHARING_NIC_SERVING = 1,
-    SHARING_NIC_CAN_SERVER,
-    SHARING_NIC_ERROR,
-};
-
-enum class VpnConnectState {
-    VPN_CONNECTED = 1,
-    VPN_DISCONNECTED,
-};
-
+int32_t VpnEventCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+                                              MessageOption &option)
+{
+    return 0;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NETMANAGER_EXT_CONSTANTS_H
