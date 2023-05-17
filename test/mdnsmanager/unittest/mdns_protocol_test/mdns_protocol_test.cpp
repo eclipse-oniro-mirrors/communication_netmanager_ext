@@ -130,10 +130,10 @@ HWTEST_F(MDnsProtocolTest, MDnsPayloadParserTest005, TestSize.Level1)
 
 HWTEST_F(MDnsProtocolTest, MDnsPayloadParserTest006, TestSize.Level1)
 {
-  MDnsPayloadParser parser;
-  MDnsPayload payload(std::begin(ATTACK_RESPONSE4), std::end(ATTACK_RESPONSE4) - 1);
-  auto msg = parser.FromBytes(payload);
-  EXPECT_NE(parser.GetError(), ERR_OK);
+    MDnsPayloadParser parser;
+    MDnsPayload payload(std::begin(ATTACK_RESPONSE4), std::end(ATTACK_RESPONSE4) - 1);
+    auto msg = parser.FromBytes(payload);
+    EXPECT_NE(parser.GetError(), ERR_OK);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
