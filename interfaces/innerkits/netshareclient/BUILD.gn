@@ -97,6 +97,7 @@ ohos_shared_library("net_tether_manager_if") {
     external_deps += [ "hilog:libhilog" ]
   }
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }
