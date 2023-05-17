@@ -57,6 +57,10 @@ static constexpr uint8_t RESPONSE[] =
 static constexpr uint8_t ATTACK_RESPONSE1[] = "\x0a\x0b\x1b\x20\x20\x20\x20\x0b\x0b\x0b\x0b\x0b\x0b";
 static constexpr uint8_t ATTACK_RESPONSE2[] = "\x0a\x20\x20\x20\x20\x20\x6f\x20\x20\x01\x20\x20\xfb";
 static constexpr uint8_t ATTACK_RESPONSE3[] = "\x00\x01\x00\x01\x00\x00\x00\x01\x00\x01\x00\x01\xC0\x0C";
+static constexpr uint8_t ATTACK_RESPONSE4[] =
+    "\x01\x00\x2b\x00\x00\x00\x00\x00\x01\x10\x00\x00\x00\x00\x0C\xff\xf6"
+    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1c\x00\xd4\x03\x00\x00\x2b\xfd\x02"
+    "\x00\x00\x00\xfd\xfd";
 
 class MDnsProtocolTest : public testing::Test {
 public:
@@ -122,6 +126,14 @@ HWTEST_F(MDnsProtocolTest, MDnsPayloadParserTest005, TestSize.Level1)
     MDnsPayload payload(std::begin(ATTACK_RESPONSE3), std::end(ATTACK_RESPONSE3) - 1);
     auto msg = parser.FromBytes(payload);
     EXPECT_NE(parser.GetError(), ERR_OK);
+}
+
+HWTEST_F(MDnsProtocolTest, MDnsPayloadParserTest006, TestSize.Level1)
+{
+  MDnsPayloadParser parser;
+  MDnsPayload payload(std::begin(ATTACK_RESPONSE4), std::end(ATTACK_RESPONSE4) - 1);
+  auto msg = parser.FromBytes(payload);
+  EXPECT_NE(parser.GetError(), ERR_OK);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
