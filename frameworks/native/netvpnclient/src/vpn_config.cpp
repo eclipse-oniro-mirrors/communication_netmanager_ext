@@ -26,14 +26,14 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
     bool allOK = parcel.WriteString(user_) &&
                  parcel.WriteString(sessionName_) &&
                  parcel.WriteInt32(mtu_) &&
-                 MarshallingAddrRoute(parcel) && 
+                 MarshallingAddrRoute(parcel) &&
                  MarshallingVectorString(parcel, dnsAddresses_) &&
                  MarshallingVectorString(parcel, searchDomains_) &&
                  MarshallingVectorString(parcel, acceptedApplications_) &&
-                 MarshallingVectorString(parcel, refusedApplications_) && 
+                 MarshallingVectorString(parcel, refusedApplications_) &&
                  parcel.WriteBool(isLegacy_) &&
-                 parcel.WriteBool(isMetered_) && 
-                 parcel.WriteBool(isAcceptIPv4_) && 
+                 parcel.WriteBool(isMetered_) &&
+                 parcel.WriteBool(isAcceptIPv4_) &&
                  parcel.WriteBool(isAcceptIPv6_);
     return allOK;
 }
@@ -86,13 +86,13 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
     bool allOK = parcel.ReadString(ptr->user_) &&
                  parcel.ReadString(ptr->sessionName_) &&
                  parcel.ReadInt32(ptr->mtu_) &&
-                 UnmarshallingAddrRoute(parcel, ptr) && 
+                 UnmarshallingAddrRoute(parcel, ptr) &&
                  UnmarshallingVectorString(parcel, ptr->dnsAddresses_) &&
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&
-                 UnmarshallingVectorString(parcel, ptr->refusedApplications_) && 
+                 UnmarshallingVectorString(parcel, ptr->refusedApplications_) &&
                  parcel.ReadBool(ptr->isLegacy_) &&
-                 parcel.ReadBool(ptr->isMetered_) && 
+                 parcel.ReadBool(ptr->isMetered_) &&
                  parcel.ReadBool(ptr->isAcceptIPv4_) &&
                  parcel.ReadBool(ptr->isAcceptIPv6_);
     return allOK ? ptr : nullptr;

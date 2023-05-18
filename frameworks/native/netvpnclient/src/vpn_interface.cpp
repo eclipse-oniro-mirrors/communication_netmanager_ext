@@ -16,19 +16,18 @@
 #include "vpn_interface.h"
 
 #include <arpa/inet.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <fcntl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <linux/ipv6_route.h>
 #include <linux/route.h>
 #include <netinet/in.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
