@@ -84,8 +84,15 @@ private:
         STATE_STOPPED = 0,
         STATE_RUNNING,
     };
+
+    using OnFunctionT = std::function<void(const sptr<InterfaceStateCallback> &callback)>;
+
     bool Init();
     void InitManagement();
+
+    int32_t AddMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback);
+    int32_t DelMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback);
+    void TraverseMonitorIfaceCallback(OnFunctionT onFunction);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -95,6 +102,7 @@ private:
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
     sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
     std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
+    std::mutex mutexMonitorIfaceCbVec_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

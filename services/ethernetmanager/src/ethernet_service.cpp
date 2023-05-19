@@ -155,16 +155,16 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressRemoved
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, added", iface.c_str());
-    std::for_each(ethernetService_.monitorIfaceCallbacks_.begin(), ethernetService_.monitorIfaceCallbacks_.end(),
-                  [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceAdded(iface); });
+    ethernetService_.TraverseMonitorIfaceCallback(
+        [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceAdded(iface); });
     return 0;
 }
 
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, removed", iface.c_str());
-    std::for_each(ethernetService_.monitorIfaceCallbacks_.begin(), ethernetService_.monitorIfaceCallbacks_.end(),
-                  [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceRemoved(iface); });
+    ethernetService_.TraverseMonitorIfaceCallback(
+        [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceRemoved(iface); });
     return 0;
 }
 
@@ -176,8 +176,8 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceChanged(const 
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, up: %{public}d", ifName.c_str(), up);
-    std::for_each(ethernetService_.monitorIfaceCallbacks_.begin(), ethernetService_.monitorIfaceCallbacks_.end(),
-                  [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceChanged(ifName, up); });
+    ethernetService_.TraverseMonitorIfaceCallback(
+        [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceChanged(ifName, up); });
     return 0;
 }
 
@@ -293,14 +293,7 @@ int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCal
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
-        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
-            return NETMANAGER_EXT_SUCCESS;
-        }
-    }
-    monitorIfaceCallbacks_.push_back(callback);
-    NETMGR_EXT_LOG_D("Register interface callback success");
-    return NETMANAGER_EXT_SUCCESS;
+    return AddMonitorIfaceCallback(callback);
 }
 
 int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
@@ -317,15 +310,7 @@ int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateC
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
-        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
-            monitorIfaceCallbacks_.erase(iterCb);
-            NETMGR_EXT_LOG_D("Unregister interface callback success.");
-            return NETMANAGER_EXT_SUCCESS;
-        }
-    }
-    NETMGR_EXT_LOG_E("Unregister interface callback is doesnot exist.");
-    return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    return DelMonitorIfaceCallback(callback);
 }
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)
@@ -368,6 +353,39 @@ int32_t EthernetService::SetInterfaceConfig(const std::string &iface, OHOS::nmd:
     }
     cfg.ifName = iface;
     return NetsysController::GetInstance().SetInterfaceConfig(cfg);
+}
+
+int32_t EthernetService::AddMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback)
+{
+    std::lock_guard<std::mutex> lock(mutexMonitorIfaceCbVec_);
+    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
+    monitorIfaceCallbacks_.push_back(callback);
+    NETMGR_EXT_LOG_D("Register interface callback success");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetService::DelMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback)
+{
+    std::lock_guard<std::mutex> lock(mutexMonitorIfaceCbVec_);
+    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+            monitorIfaceCallbacks_.erase(iterCb);
+            NETMGR_EXT_LOG_D("Unregister interface callback success.");
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
+    NETMGR_EXT_LOG_E("Unregister interface callback is doesnot exist.");
+    return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+}
+
+void EthernetService::TraverseMonitorIfaceCallback(OnFunctionT onFunction)
+{
+    std::lock_guard<std::mutex> lock(mutexMonitorIfaceCbVec_);
+    std::for_each(monitorIfaceCallbacks_.begin(), monitorIfaceCallbacks_.end(), onFunction);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
