@@ -205,8 +205,8 @@ const uint8_t *MDnsPayloadParser::ParseRData(const uint8_t *begin, const MDnsPay
         }
         case DNSProto::RRTYPE_AAAA: {
             const uint8_t *end = payload.data() + payload.size();
-            if (static_cast<ssize_t>(end - begin) <
-                static_cast<ssize_t>(sizeof(in6_addr) || length != sizeof(in6_addr))) {
+            if ((static_cast<ssize_t>(end - begin) <
+                static_cast<ssize_t>(sizeof(in6_addr))) || (length != sizeof(in6_addr))) {
                 errorFlags_ |= PARSE_ERROR_BAD_SIZE;
                 return begin;
             }
