@@ -35,6 +35,7 @@ namespace {
 constexpr uint16_t DEPENDENT_SERVICE_NET_CONN_MANAGER = 0x0001;
 constexpr uint16_t DEPENDENT_SERVICE_COMMON_EVENT = 0x0002;
 constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
+constexpr const char *NET_ACTIVATE_WORK_THREAD = "POLICY_CALLBACK_WORK_THREAD";
 const bool REGISTER_LOCAL_RESULT_ETH =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<EthernetService>::GetInstance().get());
 } // namespace
@@ -65,6 +66,10 @@ void EthernetService::OnStop()
 {
     state_ = STATE_STOPPED;
     registerToService_ = false;
+
+    if (policyCallRunner_) {
+        policyCallRunner_->Stop();
+    }
 }
 
 int32_t EthernetService::Dump(int32_t fd, const std::vector<std::u16string> &args)
@@ -126,6 +131,9 @@ bool EthernetService::Init()
         return false;
     }
     NetManagerCenter::GetInstance().RegisterEthernetService(serviceComm_);
+
+    policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
+    policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(policyCallRunner_);
     return true;
 }
 
@@ -155,7 +163,7 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressRemoved
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, added", iface.c_str());
-    ethernetService_.TraverseMonitorIfaceCallback(
+    ethernetService_.NotifyMonitorIfaceCallbackAsync(
         [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceAdded(iface); });
     return 0;
 }
@@ -163,7 +171,7 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAdded(const st
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, removed", iface.c_str());
-    ethernetService_.TraverseMonitorIfaceCallback(
+    ethernetService_.NotifyMonitorIfaceCallbackAsync(
         [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceRemoved(iface); });
     return 0;
 }
@@ -176,7 +184,7 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceChanged(const 
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, up: %{public}d", ifName.c_str(), up);
-    ethernetService_.TraverseMonitorIfaceCallback(
+    ethernetService_.NotifyMonitorIfaceCallbackAsync(
         [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceChanged(ifName, up); });
     return 0;
 }
@@ -293,7 +301,8 @@ int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCal
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return AddMonitorIfaceCallback(callback);
+    RegisterMonitorIfaceCallbackAsync(callback);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
@@ -310,7 +319,8 @@ int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateC
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return DelMonitorIfaceCallback(callback);
+    UnregisterMonitorIfaceCallbackAsync(callback);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)
@@ -355,37 +365,45 @@ int32_t EthernetService::SetInterfaceConfig(const std::string &iface, OHOS::nmd:
     return NetsysController::GetInstance().SetInterfaceConfig(cfg);
 }
 
-int32_t EthernetService::AddMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback)
+void EthernetService::RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback)
 {
-    std::lock_guard<std::mutex> lock(mutexMonitorIfaceCbVec_);
-    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
-        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
-            return NETMANAGER_EXT_SUCCESS;
-        }
+    if (policyCallHandler_) {
+        policyCallHandler_->PostSyncTask([this, &callback]() {
+            for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+                if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+                    NETMGR_EXT_LOG_D("Register interface callback failed, callback already exists");
+                    return;
+                }
+            }
+            monitorIfaceCallbacks_.push_back(callback);
+            NETMGR_EXT_LOG_D("Register interface callback success");
+        });
     }
-    monitorIfaceCallbacks_.push_back(callback);
-    NETMGR_EXT_LOG_D("Register interface callback success");
-    return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t EthernetService::DelMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback)
+void EthernetService::UnregisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback)
 {
-    std::lock_guard<std::mutex> lock(mutexMonitorIfaceCbVec_);
-    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
-        if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
-            monitorIfaceCallbacks_.erase(iterCb);
-            NETMGR_EXT_LOG_D("Unregister interface callback success.");
-            return NETMANAGER_EXT_SUCCESS;
-        }
+    if (policyCallHandler_) {
+        policyCallHandler_->PostSyncTask([this, &callback]() {
+            for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+                if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+                    monitorIfaceCallbacks_.erase(iterCb);
+                    NETMGR_EXT_LOG_D("Unregister interface callback success.");
+                    return;
+                }
+            }
+            NETMGR_EXT_LOG_E("Unregister interface callback is doesnot exist.");
+        });
     }
-    NETMGR_EXT_LOG_E("Unregister interface callback is doesnot exist.");
-    return NETMANAGER_EXT_ERR_OPERATION_FAILED;
 }
 
-void EthernetService::TraverseMonitorIfaceCallback(OnFunctionT onFunction)
+void EthernetService::NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction)
 {
-    std::lock_guard<std::mutex> lock(mutexMonitorIfaceCbVec_);
-    std::for_each(monitorIfaceCallbacks_.begin(), monitorIfaceCallbacks_.end(), onFunction);
+    if (policyCallHandler_) {
+        policyCallHandler_->PostSyncTask([this, &onFunction]() {
+            std::for_each(monitorIfaceCallbacks_.begin(), monitorIfaceCallbacks_.end(), onFunction);
+        });
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
