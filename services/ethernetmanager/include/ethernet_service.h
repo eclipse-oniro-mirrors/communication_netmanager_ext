@@ -91,8 +91,8 @@ private:
     bool Init();
     void InitManagement();
 
-    void RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
-    void UnregisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
+    int32_t RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
+    int32_t UnregisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
     void NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction);
 
 private:
