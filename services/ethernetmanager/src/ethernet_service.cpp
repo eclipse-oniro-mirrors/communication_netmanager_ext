@@ -132,8 +132,12 @@ bool EthernetService::Init()
     }
     NetManagerCenter::GetInstance().RegisterEthernetService(serviceComm_);
 
-    policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
-    policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(policyCallRunner_);
+    if (!policyCallRunner_) {
+        policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
+    }
+    if (!policyCallHandler_) {
+        policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(policyCallRunner_);
+    }
     return true;
 }
 
