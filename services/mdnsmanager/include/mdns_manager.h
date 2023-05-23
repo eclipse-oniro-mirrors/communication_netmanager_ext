@@ -32,8 +32,8 @@ namespace NetManagerStandard {
 
 class MDnsManager {
 public:
-    MDnsManager();
-    ~MDnsManager() = default;
+    static MDnsManager &GetInstance();
+
     int32_t RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb);
     int32_t UnRegisterService(const sptr<IRegistrationCallback> &cb);
 
@@ -43,14 +43,13 @@ public:
     int32_t ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb);
 
     void GetDumpMessage(std::string &message);
+    bool IsAvailableCallback(const sptr<IRegistrationCallback> &cb);
+    bool IsAvailableCallback(const sptr<IDiscoveryCallback> &cb);
+    bool IsAvailableCallback(const sptr<IResolveCallback> &cb);
 
 private:
-    void InitHandler();
-    void ReceiveResult(const MDnsProtocolImpl::Result &result, int32_t error);
-    MDnsServiceInfo ConvertResultToInfo(const MDnsProtocolImpl::Result &result);
-    void ReceiveRegister(const MDnsProtocolImpl::Result &result, int32_t error);
-    void ReceiveDiscover(const MDnsProtocolImpl::Result &result, int32_t error);
-    void ReceiveInstanceResolve(const MDnsProtocolImpl::Result &result, int32_t error);
+    MDnsManager();
+    ~MDnsManager() = default;
 
     struct CompareSmartPointer {
         bool operator()(const sptr<IRemoteBroker> &lhs, const sptr<IRemoteBroker> &rhs) const
@@ -60,10 +59,12 @@ private:
     };
 
     MDnsProtocolImpl impl;
-    std::vector<std::pair<sptr<IRegistrationCallback>, std::string>> registerMap_;
-    std::vector<std::pair<sptr<IDiscoveryCallback>, std::string>> discoveryMap_;
-    std::vector<std::pair<sptr<IResolveCallback>, std::string>> resolveMap_;
-    std::mutex mutex_;
+    std::map<sptr<IRegistrationCallback>, std::string, CompareSmartPointer> registerMap_;
+    std::map<sptr<IDiscoveryCallback>, std::string, CompareSmartPointer> discoveryMap_;
+    std::map<sptr<IResolveCallback>, std::string, CompareSmartPointer> resolveMap_;
+    std::recursive_mutex registerMutex_;
+    std::recursive_mutex discoveryMutex_;
+    std::recursive_mutex resolveMutex_;
 };
 
 } // namespace NetManagerStandard

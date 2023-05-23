@@ -80,7 +80,6 @@ struct Header {
     uint16_t arcount = 0x0;
 };
 
-
 // RR Type (https://www.rfc-editor.org/rfc/rfc1035#section-3.2.2)
 enum RRType {
     RRTYPE_IGNORE = 0,
@@ -217,6 +216,8 @@ private:
     const uint8_t *ParseRData(const uint8_t *begin, const MDnsPayload &payload, int type, int length, std::any &data);
     const uint8_t *ParseSrv(const uint8_t *begin, const MDnsPayload &payload, std::any &data);
     const uint8_t *ParseTxt(const uint8_t *begin, const MDnsPayload &payload, int length, std::any &data);
+
+    // Read https://www.rfc-editor.org/rfc/rfc1035#section-4.1.4
     const uint8_t *ParseDnsString(const uint8_t *begin, const MDnsPayload &payload, std::string &str);
 
     void Serialize(const MDnsMessage &msg, MDnsPayload &payload);

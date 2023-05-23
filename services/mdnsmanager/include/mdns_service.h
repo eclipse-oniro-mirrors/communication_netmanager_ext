@@ -62,7 +62,6 @@ private:
 
     bool isRegistered_;
     ServiceRunningState state_;
-    MDnsManager manager_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

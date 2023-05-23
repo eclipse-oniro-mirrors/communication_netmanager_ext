@@ -74,7 +74,6 @@ MDnsService::~MDnsService() = default;
 
 void MDnsService::OnStart()
 {
-    NETMGR_EXT_LOG_D("MDnsService::OnStart begin");
     if (state_ == STATE_RUNNING) {
         NETMGR_EXT_LOG_D("MDnsService the state is already running");
         return;
@@ -84,7 +83,6 @@ void MDnsService::OnStart()
         return;
     }
     state_ = STATE_RUNNING;
-    NETMGR_EXT_LOG_D("MDnsService::OnStart end");
 }
 
 void MDnsService::OnStop()
@@ -112,7 +110,7 @@ bool MDnsService::Init()
 
 int32_t MDnsService::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
-    int32_t err = manager_.RegisterService(serviceInfo, cb);
+    int32_t err = MDnsManager::GetInstance().RegisterService(serviceInfo, cb);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("manager call failed, error code: [%{public}d]", err);
     }
@@ -127,7 +125,7 @@ int32_t MDnsService::RegisterService(const MDnsServiceInfo &serviceInfo, const s
 
 int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 {
-    int32_t err = manager_.UnRegisterService(cb);
+    int32_t err = MDnsManager::GetInstance().UnRegisterService(cb);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("manager call failed, error code: [%{public}d]", err);
     }
@@ -141,7 +139,7 @@ int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 
 int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
-    int32_t err = manager_.StartDiscoverService(serviceType, cb);
+    int32_t err = MDnsManager::GetInstance().StartDiscoverService(serviceType, cb);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("manager call failed, error code: [%{public}d]", err);
     }
@@ -155,7 +153,7 @@ int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const 
 
 int32_t MDnsService::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 {
-    int32_t err = manager_.StopDiscoverService(cb);
+    int32_t err = MDnsManager::GetInstance().StopDiscoverService(cb);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("manager call failed, error code: [%{public}d]", err);
     }
@@ -169,7 +167,7 @@ int32_t MDnsService::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 
 int32_t MDnsService::ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb)
 {
-    int32_t err = manager_.ResolveService(serviceInfo, cb);
+    int32_t err = MDnsManager::GetInstance().ResolveService(serviceInfo, cb);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("manager call failed, error code: [%{public}d]", err);
     }
@@ -185,7 +183,7 @@ int32_t MDnsService::Dump(int32_t fd, const std::vector<std::u16string> &args)
 {
     NETMGR_EXT_LOG_D("Start Dump, fd: %{public}d", fd);
     std::string result;
-    manager_.GetDumpMessage(result);
+    MDnsManager::GetInstance().GetDumpMessage(result);
     int32_t ret = dprintf(fd, "%s\n", result.c_str());
     return ret < 0 ? NET_MDNS_ERR_WRITE_DUMP : NETMANAGER_EXT_SUCCESS;
 }

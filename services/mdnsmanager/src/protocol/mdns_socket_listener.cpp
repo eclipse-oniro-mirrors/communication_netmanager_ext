@@ -49,7 +49,7 @@ constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
 constexpr int WAIT_THREAD_MS = 5;
 constexpr size_t MDNS_MAX_SOCKET = 16;
-static constexpr size_t REFRESH_BUFFER_LEN = 2;
+constexpr size_t REFRESH_BUFFER_LEN = 2;
 
 inline bool IfaceIsSupported(ifaddrs *ifa)
 {
@@ -353,17 +353,19 @@ void MDnsSocketListener::Run()
         }
         timeval timeout{.tv_sec = 1, .tv_usec = 0};
         int res = select(nfds, &rfds, 0, 0, &timeout);
-        if (res <= 0) {
+        if (res < 0) {
             continue;
         }
+        if (FD_ISSET(ctrlPair_[0], &rfds)) {
+            CanRefresh();
+        }
         for (size_t i = 0; i < socks_.size() && i < MDNS_MAX_SOCKET; ++i) {
-            bool isFreshNeed = FD_ISSET(ctrlPair_[0], &rfds) && CanRefresh() && static_cast<bool>(refresh_);
-            if (isFreshNeed) {
-                refresh_(ctrlPair_[0]);
-            }
             if (FD_ISSET(socks_[i], &rfds)) {
                 ReceiveInSock(socks_[i]);
             }
+        }
+        if (static_cast<bool>(finished_)) {
+            finished_(ctrlPair_[0]);
         }
     }
     NETMGR_EXT_LOG_W("listener stopped");
@@ -415,7 +417,6 @@ void MDnsSocketListener::ReceiveInSock(int sock)
     if (ifName == iface_[sock] && recvLen > 0 && recv_) {
         payload.resize(static_cast<size_t>(recvLen));
         recv_(sock, payload);
-        refresh_(sock);
     }
 }
 
@@ -490,9 +491,9 @@ void MDnsSocketListener::SetReceiveHandler(const ReceiveHandler &callback)
     recv_ = callback;
 }
 
-void MDnsSocketListener::SetRefreshHandler(const SendHandler &callback)
+void MDnsSocketListener::SetFinishedHandler(const FinishedHandler &callback)
 {
-    refresh_ = callback;
+    finished_ = callback;
 }
 
 std::string_view MDnsSocketListener::GetIface(int sock) const
