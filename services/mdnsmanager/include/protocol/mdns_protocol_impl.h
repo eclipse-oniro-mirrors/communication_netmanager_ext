@@ -122,6 +122,11 @@ public:
     std::string UnDotted(const std::string &name) const;
     std::string GetHostDomain();
 
+private:
+    void handleOfflineService(const std::string &key, std::vector<Result> &res);
+    void KillBrowseCache(const std::string &key, std::vector<Result>::iterator &it);
+
+public:
     std::map<std::string, Result> srvMap_;
 
 private:

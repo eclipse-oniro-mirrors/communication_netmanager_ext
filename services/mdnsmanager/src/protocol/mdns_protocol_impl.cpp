@@ -100,21 +100,7 @@ bool MDnsProtocolImpl::Browse()
         if (!IsBrowserAvailable(key)) {
             continue;
         }
-        for (auto it = res.begin(); it != res.end();) {
-            if (lastRunTime - it->refrehTime > DEFAULT_LOST_MS && it->state == State::LIVE) {
-                it->state = State::DEAD;
-                Result rst = *it;
-                std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
-                nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
-                it = res.erase(it);
-                if (cacheMap_.find(fullName) != cacheMap_.end()) {
-                    cacheMap_.erase(fullName);
-                }
-            } else {
-                it++;
-            }
-        }
-
+        handleOfflineService(key, res);
         MDnsPayloadParser parser;
         MDnsMessage msg{};
         msg.questions.emplace_back(DNSProto::Question{
@@ -126,6 +112,25 @@ bool MDnsProtocolImpl::Browse()
     }
     return false;
 }
+
+void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<Result> &res)
+{
+    for (auto it = res.begin(); it != res.end();) {
+        if (lastRunTime - it->refrehTime > DEFAULT_LOST_MS && it->state == State::LIVE) {
+            it->state = State::DEAD;
+            Result rst = *it;
+            std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
+            nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+            it = res.erase(it);
+            if (cacheMap_.find(fullName) != cacheMap_.end()) {
+                cacheMap_.erase(fullName);
+            }
+        } else {
+            it++;
+        }
+    }
+}
+
 void MDnsProtocolImpl::SetConfig(const MDnsConfig &config)
 {
     config_ = config;
@@ -389,6 +394,7 @@ int32_t MDnsProtocolImpl::UnRegister(const std::string &key)
 
 int32_t MDnsProtocolImpl::Announce(const Result &info, bool off)
 {
+    NETMGR_EXT_LOG_I("MDNS_LOG Announce message");
     MDnsMessage response{};
     response.header.flags = DNSProto::MDNS_ANSWER_FLAGS;
     std::string name = Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
@@ -446,6 +452,7 @@ void MDnsProtocolImpl::AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlis
 
 void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
 {
+    NETMGR_EXT_LOG_I("MDNS_LOG ProcessQuestion message");
     const sockaddr *saddrIf = listener_.GetSockAddr(sock);
     if (saddrIf == nullptr) {
         return;
@@ -695,7 +702,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
     } else if (rr.rtype == DNSProto::RRTYPE_A || rr.rtype == DNSProto::RRTYPE_AAAA) {
         UpdateAddr(v6, rr, changed);
     } else {
-        NETMGR_EXT_LOG_E("mdns_imp Unknown packet received, type=[%{public}d]", rr.rtype);
+        NETMGR_EXT_LOG_E("MDNS_LOG Unknown packet received, type=[%{public}d]", rr.rtype);
     }
 }
 
@@ -783,23 +790,11 @@ void MDnsProtocolImpl::KillCache(const std::string &key)
 {
     if (IsBrowserAvailable(key)) {
         for (auto it = browserMap_[key].begin(); it != browserMap_[key].end();) {
-            if (it->state == State::REMOVE) {
-                it->state = State::DEAD;
-                nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
-                std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
-                if (cacheMap_.find(fullName) != cacheMap_.end()) {
-                    cacheMap_.erase(fullName);
-                }
-                it = browserMap_[key].erase(it); // erase error
-            } else if (it->state == State::ADD || it->state == State::REFRESH) {
-                it->state = State::LIVE;
-                it++;
-            } else {
-                it++;
-            }
+            KillBrowseCache(key, it);
         }
     }
     if (IsCacheAvailable(key)) {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
         auto &elem = cacheMap_[key];
         if (elem.state == State::REMOVE) {
             elem.state = State::DEAD;
@@ -807,6 +802,24 @@ void MDnsProtocolImpl::KillCache(const std::string &key)
         } else if (elem.state == State::ADD || elem.state == State::REFRESH) {
             elem.state = State::LIVE;
         }
+    }
+}
+
+void MDnsProtocolImpl::KillBrowseCache(const std::string &key, std::vector<Result>::iterator &it)
+{
+    if (it->state == State::REMOVE) {
+        it->state = State::DEAD;
+        nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+        std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
+        if (cacheMap_.find(fullName) != cacheMap_.end()) {
+            cacheMap_.erase(fullName);
+        }
+        it = browserMap_[key].erase(it); // erase error
+    } else if (it->state == State::ADD || it->state == State::REFRESH) {
+        it->state = State::LIVE;
+        it++;
+    } else {
+        it++;
     }
 }
 
