@@ -25,6 +25,7 @@
 #include "ethernet_management.h"
 #include "ethernet_service_common.h"
 #include "ethernet_service_stub.h"
+#include "event_handler.h"
 #include "netsys_controller_callback.h"
 #include "refbase.h"
 #include "singleton.h"
@@ -84,8 +85,15 @@ private:
         STATE_STOPPED = 0,
         STATE_RUNNING,
     };
+
+    using OnFunctionT = std::function<void(const sptr<InterfaceStateCallback> &callback)>;
+
     bool Init();
     void InitManagement();
+
+    int32_t RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
+    int32_t UnregisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
+    void NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -95,6 +103,8 @@ private:
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
     sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
     std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
+    std::shared_ptr<AppExecFwk::EventRunner> policyCallRunner_;
+    std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
