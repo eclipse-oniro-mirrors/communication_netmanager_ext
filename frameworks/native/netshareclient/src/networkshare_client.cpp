@@ -187,10 +187,12 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
     if (sam->LoadSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, callback) != 0) {
         return nullptr;
     }
-    std::mutex mutex;
-    std::unique_lock tempLock(mutex);
-    g_cv.wait_for(tempLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
-        [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
+    {
+        std::mutex mutex;
+        std::unique_lock tempLock(mutex);
+        g_cv.wait_for(tempLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
+            [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
+    }
 
     auto remote = callback->GetRemoteObject();
     if (remote == nullptr || !remote->IsProxyObject()) {
