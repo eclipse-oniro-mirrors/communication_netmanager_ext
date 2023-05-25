@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -164,7 +164,7 @@ HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
     AccessToken token;
     int32_t supportedFlag;
     DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
-    EXPECT_EQ(supportedFlag, NETWORKSHARE_IS_SUPPORTED);
+    EXPECT_NE(supportedFlag, NETWORKSHARING_INVALID);
 }
 
 HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)

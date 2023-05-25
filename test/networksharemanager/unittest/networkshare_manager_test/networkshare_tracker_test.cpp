@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,9 @@
 
 #include <gtest/gtest.h>
 
-#include "networkshare_tracker.h"
 #include "sharing_event_callback_stub.h"
+#define private public
+#include "networkshare_tracker.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -24,6 +25,7 @@ namespace {
 using namespace testing::ext;
 static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
+static constexpr const char *TEST_IFACE_NAME = "testIface";
 static constexpr int32_t MAX_CALLBACK_COUNT = 100;
 std::map<int32_t, sptr<ISharingEventCallback>> g_callbackMap;
 
@@ -52,13 +54,17 @@ public:
     void SetUp();
     void TearDown();
     static inline sptr<ISharingEventCallback> callback_ = nullptr;
+    static inline std::shared_ptr<NetworkShareTracker> instance_ = nullptr;
 };
 
 void NetworkShareTrackerTest::SetUpTestCase() {}
 
 void NetworkShareTrackerTest::TearDownTestCase() {}
 
-void NetworkShareTrackerTest::SetUp() {}
+void NetworkShareTrackerTest::SetUp()
+{
+    instance_ = DelayedSingleton<NetworkShareTracker>::GetInstance();
+}
 
 void NetworkShareTrackerTest::TearDown()
 {
@@ -254,6 +260,19 @@ HWTEST_F(NetworkShareTrackerTest, GetSharingState03, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetSharingState04
+ * @tc.desc: Test NetworkShareTracker GetSharingState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, GetSharingState04, TestSize.Level1)
+{
+    SharingIfaceType type = static_cast<SharingIfaceType>(3);
+    SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
+    int32_t ret = NetworkShareTracker::GetInstance().GetSharingState(type, state);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_UNKNOWN_TYPE);
+}
+
+/**
  * @tc.name: GetNetSharingIfaces01
  * @tc.desc: Test NetworkShareTracker GetNetSharingIfaces.
  * @tc.type: FUNC
@@ -290,6 +309,19 @@ HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces03, TestSize.Level1)
     std::vector<std::string> ifaces;
     NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
     EXPECT_GE(ifaces.size(), static_cast<uint32_t>(0));
+}
+
+/**
+ * @tc.name: GetNetSharingIfaces04
+ * @tc.desc: Test NetworkShareTracker GetNetSharingIfaces.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces04, TestSize.Level1)
+{
+    SharingIfaceState state = static_cast<SharingIfaceState>(4);
+    std::vector<std::string> ifaces;
+    int32_t ret = NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_UNKNOWN_TYPE);
 }
 
 /**
@@ -502,6 +534,372 @@ HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic03, TestSize.Level1)
     int32_t kbByte;
     NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(type, kbByte);
     EXPECT_GE(kbByte, 0);
+}
+
+/**
+ * @tc.name: OnWifiHotspotStateChanged01
+ * @tc.desc: Test NetworkShareTracker OnWifiHotspotStateChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged01, TestSize.Level1)
+{
+    int32_t state = 2;
+    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+}
+
+/**
+ * @tc.name: OnWifiHotspotStateChanged02
+ * @tc.desc: Test NetworkShareTracker OnWifiHotspotStateChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged02, TestSize.Level1)
+{
+    int32_t state = 3;
+    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+}
+
+/**
+ * @tc.name: OnWifiHotspotStateChanged03
+ * @tc.desc: Test NetworkShareTracker OnWifiHotspotStateChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged03, TestSize.Level1)
+{
+    int32_t state = 4;
+    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+}
+
+/**
+ * @tc.name: OnWifiHotspotStateChanged04
+ * @tc.desc: Test NetworkShareTracker OnWifiHotspotStateChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged04, TestSize.Level1)
+{
+    int32_t state = 5;
+    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+}
+
+/**
+ * @tc.name: OnWifiHotspotStateChanged05
+ * @tc.desc: Test NetworkShareTracker OnWifiHotspotStateChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged05, TestSize.Level1)
+{
+    int32_t state = 0;
+    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+}
+
+/**
+ * @tc.name: EnableNetSharingInternal01
+ * @tc.desc: Test NetworkShareTracker EnableNetSharingInternal.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, EnableNetSharingInternal01, TestSize.Level1)
+{
+    SharingIfaceType type = static_cast<SharingIfaceType>(3);
+    auto ret = NetworkShareTracker::GetInstance().EnableNetSharingInternal(type, false);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_UNKNOWN_TYPE);
+}
+
+/**
+ * @tc.name: SetWifiState01
+ * @tc.desc: Test NetworkShareTracker SetWifiState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, SetWifiState01, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().SetWifiState(Wifi::ApState::AP_STATE_NONE);
+}
+
+/**
+ * @tc.name: Sharing01
+ * @tc.desc: Test NetworkShareTracker Sharing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, Sharing01, TestSize.Level1)
+{
+    std::string iface = "testIface";
+    int32_t reqState = 0;
+    int32_t ret = NetworkShareTracker::GetInstance().Sharing(iface, reqState);
+    EXPECT_EQ(NETWORKSHARE_ERROR_UNKNOWN_IFACE, ret);
+}
+
+/**
+ * @tc.name: EnableWifiSubStateMachine01
+ * @tc.desc: Test NetworkShareTracker EnableWifiSubStateMachine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, EnableWifiSubStateMachine01, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().EnableWifiSubStateMachine();
+}
+
+/**
+ * @tc.name: EnableBluetoothSubStateMachine01
+ * @tc.desc: Test NetworkShareTracker EnableBluetoothSubStateMachine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, EnableBluetoothSubStateMachine01, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().EnableBluetoothSubStateMachine();
+}
+
+/**
+ * @tc.name: StopDnsProxy01
+ * @tc.desc: Test NetworkShareTracker StopDnsProxy.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, StopDnsProxy01, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().isStartDnsProxy_ = true;
+    NetworkShareTracker::GetInstance().StopDnsProxy();
+}
+
+/**
+ * @tc.name: StopDnsProxy02
+ * @tc.desc: Test NetworkShareTracker StopDnsProxy.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, StopDnsProxy02, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().isStartDnsProxy_ = false;
+    NetworkShareTracker::GetInstance().StopDnsProxy();
+}
+
+/**
+ * @tc.name: StopSubStateMachine01
+ * @tc.desc: Test NetworkShareTracker StopSubStateMachine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, StopSubStateMachine01, TestSize.Level1)
+{
+    std::string iface = TEST_IFACE_NAME;
+    SharingIfaceType interfaceType = static_cast<SharingIfaceType>(3);
+    NetworkShareTracker::GetInstance().StopSubStateMachine(iface, interfaceType);
+}
+
+/**
+ * @tc.name: InterfaceNameToType01
+ * @tc.desc: Test NetworkShareTracker InterfaceNameToType.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, InterfaceNameToType01, TestSize.Level1)
+{
+    std::string iface = TEST_IFACE_NAME;
+    SharingIfaceType interfaceType;
+    NetworkShareTracker::GetInstance().InterfaceNameToType(iface, interfaceType);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent01
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent01, TestSize.Level1)
+{
+    SharingIfaceType type = static_cast<SharingIfaceType>(3);
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent02
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent02, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_CLOSING;
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, true);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent03
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent03, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_STARTING;
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, true);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent04
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent04, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_STARTING;
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent05
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent05, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_CLOSING;
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_NONE;
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent06
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent06, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_SHARING;
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, true);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent07
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent07, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_CLOSING;
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, true);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent08
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent08, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_CLOSING;
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+}
+
+/**
+ * @tc.name: IsHandleNetlinkEvent09
+ * @tc.desc: Test NetworkShareTracker IsHandleNetlinkEvent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent09, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_SHARING;
+    SharingIfaceType type = SharingIfaceType::SHARING_USB;
+    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+    NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_NONE;
+}
+
+/**
+ * @tc.name: InterfaceStatusChanged01
+ * @tc.desc: Test NetworkShareTracker InterfaceStatusChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, InterfaceStatusChanged01, TestSize.Level1)
+{
+    std::string iface = TEST_IFACE_NAME;
+    NetworkShareTracker::GetInstance().InterfaceStatusChanged(TEST_IFACE_NAME, false);
+}
+
+/**
+ * @tc.name: InterfaceAdded01
+ * @tc.desc: Test NetworkShareTracker InterfaceAdded.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, InterfaceAdded01, TestSize.Level1)
+{
+    std::string iface = TEST_IFACE_NAME;
+    NetworkShareTracker::GetInstance().InterfaceAdded(TEST_IFACE_NAME);
+}
+
+/**
+ * @tc.name: InterfaceRemoved01
+ * @tc.desc: Test NetworkShareTracker InterfaceRemoved.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, InterfaceRemoved01, TestSize.Level1)
+{
+    std::string iface = TEST_IFACE_NAME;
+    NetworkShareTracker::GetInstance().InterfaceRemoved(TEST_IFACE_NAME);
+}
+
+/**
+ * @tc.name: InterfaceRemoved02
+ * @tc.desc: Test NetworkShareTracker InterfaceRemoved.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, InterfaceRemoved02, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().eventHandler_ = nullptr;
+    NetworkShareTracker::GetInstance().InterfaceStatusChanged(TEST_IFACE_NAME, false);
+    NetworkShareTracker::GetInstance().InterfaceAdded(TEST_IFACE_NAME);
+    NetworkShareTracker::GetInstance().InterfaceAdded(TEST_IFACE_NAME);
+}
+
+/**
+ * @tc.name: SendSharingUpstreamChange01
+ * @tc.desc: Test NetworkShareTracker SendSharingUpstreamChange.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, SendSharingUpstreamChange01, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().sharingEventCallback_.clear();
+    NetworkShareTracker::GetInstance().SendSharingUpstreamChange(nullptr);
+}
+
+/**
+ * @tc.name: SubSmStateToExportState01
+ * @tc.desc: Test NetworkShareTracker SubSmStateToExportState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, SubSmStateToExportState01, TestSize.Level1)
+{
+    int state = 0;
+    NetworkShareTracker::GetInstance().SubSmStateToExportState(state);
+}
+
+/**
+ * @tc.name: SubSmStateToExportState02
+ * @tc.desc: Test NetworkShareTracker SubSmStateToExportState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, SubSmStateToExportState02, TestSize.Level1)
+{
+    int state = 2;
+    NetworkShareTracker::GetInstance().SubSmStateToExportState(state);
+}
+
+/**
+ * @tc.name: SubSmStateToExportState03
+ * @tc.desc: Test NetworkShareTracker SubSmStateToExportState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, SubSmStateToExportState03, TestSize.Level1)
+{
+    int state = 1;
+    NetworkShareTracker::GetInstance().SubSmStateToExportState(state);
+}
+
+/**
+ * @tc.name: SubSmStateToExportState04
+ * @tc.desc: Test NetworkShareTracker SubSmStateToExportState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, SubSmStateToExportState04, TestSize.Level1)
+{
+    int state = 4;
+    NetworkShareTracker::GetInstance().SubSmStateToExportState(state);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

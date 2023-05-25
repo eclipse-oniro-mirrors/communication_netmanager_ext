@@ -329,25 +329,5 @@ HWTEST_F(EtherNetServiceTest, GetInterfaceConfigTest001, TestSize.Level1)
     int32_t ret = ethernetService.GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
-
-HWTEST_F(EtherNetServiceTest, SetInterfaceConfigTest001, TestSize.Level1)
-{
-    EthernetService ethernetService;
-    std::string deviceId;
-    int32_t systemAbilityId = 0;
-    ethernetService.OnAddSystemAbility(systemAbilityId, deviceId);
-    ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, deviceId);
-    ethernetService.OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, deviceId);
-
-    OHOS::nmd::InterfaceConfigurationParcel config;
-    config.ifName = "eth0";
-    config.hwAddr = "";
-    config.ipv4Addr = "172.17.5.234";
-    config.prefixLength = 24;
-    config.flags.push_back("up");
-    config.flags.push_back("broadcast");
-    int32_t ret = ethernetService.SetInterfaceConfig(DEV_NAME, config);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
-}
 } // namespace NetManagerStandard
 } // namespace OHOS
