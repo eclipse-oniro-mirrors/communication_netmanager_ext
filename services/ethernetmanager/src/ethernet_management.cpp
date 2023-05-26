@@ -294,6 +294,7 @@ void EthernetManagement::StartSetDevUpThd()
     NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
     for (auto &dev : devs_) {
         std::string devName = dev.first;
+        NetsysController::GetInstance().SetInterfaceDown(devName);
         while (true) {
             if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
                 sleep(SLEEP_TIME_S);

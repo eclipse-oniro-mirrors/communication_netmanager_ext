@@ -144,6 +144,9 @@ public:
     int32_t GetStatsTotalBytes(int32_t &bytes);
 
 private:
+    void RestartNetTetheringManagerSysAbility();
+
+private:
     class NetshareDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit NetshareDeathRecipient(NetworkShareClient &client) : client_(client) {}
