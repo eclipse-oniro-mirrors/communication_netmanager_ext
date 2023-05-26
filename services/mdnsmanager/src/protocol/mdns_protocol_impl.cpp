@@ -146,17 +146,13 @@ std::string MDnsProtocolImpl::Decorated(const std::string &name) const
     return name + config_.topDomain;
 }
 
-std::string MDnsProtocolImpl::ExtractInstance(const Result &info) const
-{
-    return Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
-}
-
-int32_t MDnsProtocolImpl::Register(const Result &info, const sptr<IRegistrationCallback> &cb)
+int32_t MDnsProtocolImpl::Register(const Result &info)
 {
     if (!(IsNameValid(info.serviceName) && IsTypeValid(info.serviceType) && IsPortValid(info.port))) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-    std::string name = ExtractInstance(info);
+
+    std::string name = Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
     if (!IsDomainValid(name)) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -168,6 +164,18 @@ int32_t MDnsProtocolImpl::Register(const Result &info, const sptr<IRegistrationC
         srvMap_.emplace(name, info);
     }
     return Announce(info, false);
+}
+
+int32_t MDnsProtocolImpl::UnRegister(const std::string &key)
+{
+    std::string name = Decorated(key);
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    if (srvMap_.find(name) != srvMap_.end()) {
+        Announce(srvMap_[name], true);
+        srvMap_.erase(name);
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    return NET_MDNS_ERR_SERVICE_INSTANCE_NOT_FOUND;
 }
 
 bool MDnsProtocolImpl::DiscoveryFromCache(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
@@ -378,18 +386,6 @@ int32_t MDnsProtocolImpl::Resolve(const std::string &domain, const sptr<IResolve
         return NETMANAGER_EXT_SUCCESS;
     }
     return ResolveFromNet(name, cb) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
-}
-
-int32_t MDnsProtocolImpl::UnRegister(const std::string &key)
-{
-    std::string name = Decorated(key);
-    std::lock_guard<std::recursive_mutex> guard(mutex_);
-    if (srvMap_.find(name) != srvMap_.end()) {
-        Announce(srvMap_[name], true);
-        srvMap_.erase(name);
-        return NETMANAGER_EXT_SUCCESS;
-    }
-    return NET_MDNS_ERR_SERVICE_INSTANCE_NOT_FOUND;
 }
 
 int32_t MDnsProtocolImpl::Announce(const Result &info, bool off)

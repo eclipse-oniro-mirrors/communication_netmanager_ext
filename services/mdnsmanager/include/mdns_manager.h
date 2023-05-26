@@ -43,7 +43,6 @@ public:
     int32_t ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb);
 
     void GetDumpMessage(std::string &message);
-    bool IsAvailableCallback(const sptr<IRegistrationCallback> &cb);
     bool IsAvailableCallback(const sptr<IDiscoveryCallback> &cb);
     bool IsAvailableCallback(const sptr<IResolveCallback> &cb);
 

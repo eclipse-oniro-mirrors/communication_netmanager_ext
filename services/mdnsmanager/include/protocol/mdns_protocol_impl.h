@@ -72,7 +72,7 @@ public:
     bool Browse();
     const MDnsConfig &GetConfig() const;
 
-    int32_t Register(const Result &info, const sptr<IRegistrationCallback> &cb);
+    int32_t Register(const Result &info);
     int32_t Discovery(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
     int32_t ResolveInstance(const std::string &instance, const sptr<IResolveCallback> &cb);
     int32_t Resolve(const std::string &domain, const sptr<IResolveCallback> &cb);
@@ -116,7 +116,6 @@ public:
 
     MDnsServiceInfo ConvertResultToInfo(const Result &result);
 
-    std::string ExtractInstance(const Result &info) const;
     std::string Decorated(const std::string &name) const;
     std::string Dotted(const std::string &name) const;
     std::string UnDotted(const std::string &name) const;

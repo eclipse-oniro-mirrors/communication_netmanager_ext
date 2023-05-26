@@ -14,7 +14,7 @@
  */
 
 #include "mdns_packet_parser.h"
-
+#include "netmgr_ext_log_wrapper.h"
 #include <cstring>
 
 namespace OHOS {
@@ -81,11 +81,9 @@ MDnsMessage MDnsPayloadParser::FromBytes(const MDnsPayload &payload)
 MDnsPayload MDnsPayloadParser::ToBytes(const MDnsMessage &msg)
 {
     MDnsPayload payload;
-    cachedPayload_ = &payload;
-    strCacheMap_.clear();
-    Serialize(msg, payload);
-    cachedPayload_ = nullptr;
-    strCacheMap_.clear();
+    MDnsPayload *cachedPayload = &payload;
+    std::map<std::string, uint16_t> strCacheMap;
+    Serialize(msg, payload, cachedPayload, strCacheMap);
     return payload;
 }
 
@@ -205,8 +203,8 @@ const uint8_t *MDnsPayloadParser::ParseRData(const uint8_t *begin, const MDnsPay
         }
         case DNSProto::RRTYPE_AAAA: {
             const uint8_t *end = payload.data() + payload.size();
-            if ((static_cast<ssize_t>(end - begin) <
-                static_cast<ssize_t>(sizeof(in6_addr))) || (length != sizeof(in6_addr))) {
+            if ((static_cast<ssize_t>(end - begin) < static_cast<ssize_t>(sizeof(in6_addr))) ||
+                (length != sizeof(in6_addr))) {
                 errorFlags_ |= PARSE_ERROR_BAD_SIZE;
                 return begin;
             }
@@ -313,9 +311,10 @@ const uint8_t *MDnsPayloadParser::ParseDnsString(const uint8_t *begin, const MDn
     return p;
 }
 
-void MDnsPayloadParser::Serialize(const MDnsMessage &msg, MDnsPayload &payload)
+void MDnsPayloadParser::Serialize(const MDnsMessage &msg, MDnsPayload &payload, MDnsPayload *cachedPayload,
+                                  std::map<std::string, uint16_t> &strCacheMap)
 {
-    payload.reserve(sizeof(DNSProto::Message));
+    payload.reserve(1024 /*sizeof(DNSProto::Message)*/);
     DNSProto::Header header = msg.header;
     header.qdcount = msg.questions.size();
     header.ancount = msg.answers.size();
@@ -323,16 +322,16 @@ void MDnsPayloadParser::Serialize(const MDnsMessage &msg, MDnsPayload &payload)
     header.arcount = msg.additional.size();
     SerializeHeader(header, msg, payload);
     for (uint16_t i = 0; i < header.qdcount; ++i) {
-        SerializeQuestion(msg.questions[i], msg, payload);
+        SerializeQuestion(msg.questions[i], payload, cachedPayload, strCacheMap);
     }
     for (uint16_t i = 0; i < header.ancount; ++i) {
-        SerializeRR(msg.answers[i], msg, payload);
+        SerializeRR(msg.answers[i], payload, cachedPayload, strCacheMap);
     }
     for (uint16_t i = 0; i < header.nscount; ++i) {
-        SerializeRR(msg.authorities[i], msg, payload);
+        SerializeRR(msg.authorities[i], payload, cachedPayload, strCacheMap);
     }
     for (uint16_t i = 0; i < header.arcount; ++i) {
-        SerializeRR(msg.additional[i], msg, payload);
+        SerializeRR(msg.additional[i], payload, cachedPayload, strCacheMap);
     }
 }
 
@@ -346,53 +345,56 @@ void MDnsPayloadParser::SerializeHeader(const DNSProto::Header &header, const MD
     WriteRawData(htons(header.arcount), payload);
 }
 
-void MDnsPayloadParser::SerializeQuestion(const DNSProto::Question &question, const MDnsMessage &msg,
-                                          MDnsPayload &payload)
+void MDnsPayloadParser::SerializeQuestion(const DNSProto::Question &question, MDnsPayload &payload,
+                                          MDnsPayload *cachedPayload, std::map<std::string, uint16_t> &strCacheMap)
 {
-    SerializeDnsString(question.name, msg, payload);
+    SerializeDnsString(question.name, payload, cachedPayload, strCacheMap);
     WriteRawData(htons(question.qtype), payload);
     WriteRawData(htons(question.qclass), payload);
 }
 
-void MDnsPayloadParser::SerializeRR(const DNSProto::ResourceRecord &rr, const MDnsMessage &msg, MDnsPayload &payload)
+void MDnsPayloadParser::SerializeRR(const DNSProto::ResourceRecord &rr, MDnsPayload &payload,
+                                    MDnsPayload *cachedPayload, std::map<std::string, uint16_t> &strCacheMap)
 {
-    SerializeDnsString(rr.name, msg, payload);
+    SerializeDnsString(rr.name, payload, cachedPayload, strCacheMap);
     WriteRawData(htons(rr.rtype), payload);
     WriteRawData(htons(rr.rclass), payload);
     WriteRawData(htonl(rr.ttl), payload);
     size_t lenStart = payload.size();
     WriteRawData(htons(rr.length), payload);
-    SerializeRData(rr.rdata, msg, payload);
+    SerializeRData(rr.rdata, payload, cachedPayload, strCacheMap);
     uint16_t len = payload.size() - lenStart - sizeof(uint16_t);
     WriteRawData(htons(len), payload.data() + lenStart);
 }
 
-void MDnsPayloadParser::SerializeRData(const std::any &rdata, const MDnsMessage &msg, MDnsPayload &payload)
+void MDnsPayloadParser::SerializeRData(const std::any &rdata, MDnsPayload &payload, MDnsPayload *cachedPayload,
+                                       std::map<std::string, uint16_t> &strCacheMap)
 {
     if (std::any_cast<const in_addr>(&rdata)) {
         WriteRawData(*std::any_cast<const in_addr>(&rdata), payload);
     } else if (std::any_cast<const in6_addr>(&rdata)) {
         WriteRawData(*std::any_cast<const in6_addr>(&rdata), payload);
     } else if (std::any_cast<const std::string>(&rdata)) {
-        SerializeDnsString(*std::any_cast<const std::string>(&rdata), msg, payload);
+        SerializeDnsString(*std::any_cast<const std::string>(&rdata), payload, cachedPayload, strCacheMap);
     } else if (std::any_cast<const DNSProto::RDataSrv>(&rdata)) {
         const DNSProto::RDataSrv *srv = std::any_cast<const DNSProto::RDataSrv>(&rdata);
         WriteRawData(htons(srv->priority), payload);
         WriteRawData(htons(srv->weight), payload);
         WriteRawData(htons(srv->port), payload);
-        SerializeDnsString(srv->name, msg, payload);
+        SerializeDnsString(srv->name, payload, cachedPayload, strCacheMap);
     } else if (std::any_cast<TxtRecordEncoded>(&rdata)) {
         const auto *txt = std::any_cast<TxtRecordEncoded>(&rdata);
         payload.insert(payload.end(), txt->begin(), txt->end());
     }
 }
 
-void MDnsPayloadParser::SerializeDnsString(const std::string &str, const MDnsMessage &msg, MDnsPayload &payload)
+void MDnsPayloadParser::SerializeDnsString(const std::string &str, MDnsPayload &payload, MDnsPayload *cachedPayload,
+                                           std::map<std::string, uint16_t> &strCacheMap)
 {
     size_t pos = 0;
     while (pos < str.size()) {
-        if (cachedPayload_ == &payload && strCacheMap_.find(str.substr(pos)) != strCacheMap_.end()) {
-            return WriteRawData(htons(strCacheMap_[str.substr(pos)]), payload);
+        if ((cachedPayload == &payload) && (strCacheMap.find(str.substr(pos)) != strCacheMap.end())) {
+            return WriteRawData(htons(strCacheMap[str.substr(pos)]), payload);
         }
 
         size_t nextDot = str.find(MDNS_DOMAIN_SPLITER, pos);
@@ -400,12 +402,13 @@ void MDnsPayloadParser::SerializeDnsString(const std::string &str, const MDnsMes
             nextDot = str.size();
         }
         uint8_t segLen = (nextDot - pos) & DNS_STR_PTR_LENGTH;
+
         uint16_t strptr = payload.size();
         WriteRawData(segLen, payload);
         for (int i = 0; i < segLen; ++i) {
             WriteRawData(str[pos + i], payload);
         }
-        strCacheMap_[str.substr(pos)] = strptr | DNS_STR_PTR_U16_MASK;
+        strCacheMap[str.substr(pos)] = strptr | DNS_STR_PTR_U16_MASK;
         pos = nextDot + 1;
     }
     WriteRawData(DNS_STR_EOL, payload);

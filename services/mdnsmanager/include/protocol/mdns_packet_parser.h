@@ -220,17 +220,15 @@ private:
     // Read https://www.rfc-editor.org/rfc/rfc1035#section-4.1.4
     const uint8_t *ParseDnsString(const uint8_t *begin, const MDnsPayload &payload, std::string &str);
 
-    void Serialize(const MDnsMessage &msg, MDnsPayload &payload);
+    void Serialize(const MDnsMessage &msg, MDnsPayload &payload, MDnsPayload *cachedPayload, std::map<std::string, uint16_t> &strCacheMap);
     void SerializeHeader(const DNSProto::Header &header, const MDnsMessage &msg, MDnsPayload &payload);
-    void SerializeQuestion(const DNSProto::Question &question, const MDnsMessage &msg, MDnsPayload &payload);
-    void SerializeRR(const DNSProto::ResourceRecord &rr, const MDnsMessage &msg, MDnsPayload &payload);
-    void SerializeRData(const std::any &rdata, const MDnsMessage &msg, MDnsPayload &payload);
-    void SerializeDnsString(const std::string &str, const MDnsMessage &msg, MDnsPayload &payload);
+    void SerializeQuestion(const DNSProto::Question &question, MDnsPayload &payload, MDnsPayload *cachedPayload, std::map<std::string, uint16_t> &strCacheMap);
+    void SerializeRR(const DNSProto::ResourceRecord &rr, MDnsPayload &payload, MDnsPayload *cachedPayload, std::map<std::string, uint16_t> &strCacheMap);
+    void SerializeRData(const std::any &rdata, MDnsPayload &payload, MDnsPayload *cachedPayload, std::map<std::string, uint16_t> &strCacheMap);
+    void SerializeDnsString(const std::string &str, MDnsPayload &payload, MDnsPayload *cachedPayload, std::map<std::string, uint16_t> &strCacheMap);
 
     uint32_t errorFlags_ = 0;
     const uint8_t *pos_ = nullptr;
-    MDnsPayload *cachedPayload_ = nullptr;
-    std::map<std::string, uint16_t> strCacheMap_;
 };
 
 } // namespace NetManagerStandard
