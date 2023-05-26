@@ -59,7 +59,7 @@ int32_t MDnsServiceStub::OnRegisterService(MessageParcel &data, MessageParcel &r
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    NETMGR_EXT_LOG_I("MDnsServiceProxy [%{public}s][%{public}s][%{public}d]", serviceInfo->name.c_str(),
+    NETMGR_EXT_LOG_D("MDnsServiceProxy [%{public}s][%{public}s][%{public}d]", serviceInfo->name.c_str(),
                      serviceInfo->type.c_str(), serviceInfo->port);
 
     sptr<IRemoteObject> remote = data.ReadRemoteObject();
@@ -75,7 +75,7 @@ int32_t MDnsServiceStub::OnRegisterService(MessageParcel &data, MessageParcel &r
     }
 
     int32_t err = RegisterService(*serviceInfo, callback);
-    NETMGR_EXT_LOG_I("MDnsService::RegisterService return:[%{public}d]", err);
+    NETMGR_EXT_LOG_D("MDnsService::RegisterService return:[%{public}d]", err);
     if (!reply.WriteInt32(err)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }

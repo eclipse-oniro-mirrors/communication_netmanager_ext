@@ -87,7 +87,6 @@ public:
     int32_t Announce(const Result &info, bool off);
     void ReceivePacket(int sock, const MDnsPayload &payload);
     void RunTaskQueue(std::list<Task> &queue);
-
     void ProcessQuestion(int sock, const MDnsMessage &msg);
     void ProcessQuestionRecord(const std::any &anyAddr, const DNSProto::RRType &anyAddrType,
                                const DNSProto::Question &qu, int &phase, MDnsMessage &response);
@@ -104,16 +103,13 @@ public:
     bool ResolveInstanceFromNet(const std::string &name, const sptr<IResolveCallback> &cb);
     bool ResolveFromCache(const std::string &domain, const sptr<IResolveCallback> &cb);
     bool ResolveFromNet(const std::string &domain, const sptr<IResolveCallback> &cb);
-
     bool DiscoveryFromCache(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
     bool DiscoveryFromNet(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
-
     bool IsCacheAvailable(const std::string &key);
     bool IsDomainCacheAvailable(const std::string &key);
     bool IsInstanceCacheAvailable(const std::string &key);
     bool IsBrowserAvailable(const std::string &key);
     void KillCache(const std::string &key);
-
     MDnsServiceInfo ConvertResultToInfo(const Result &result);
 
     std::string Decorated(const std::string &name) const;

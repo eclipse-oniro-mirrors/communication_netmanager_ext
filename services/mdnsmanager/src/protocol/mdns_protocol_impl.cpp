@@ -49,7 +49,7 @@ std::string AddrToString(const std::any &addr)
             return std::string{};
         }
     }
-    return buf;
+    return std::string(buf);
 }
 
 int64_t MilliSecondsSinceEpoch()
@@ -151,7 +151,6 @@ int32_t MDnsProtocolImpl::Register(const Result &info)
     if (!(IsNameValid(info.serviceName) && IsTypeValid(info.serviceType) && IsPortValid(info.port))) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-
     std::string name = Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
     if (!IsDomainValid(name)) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
@@ -305,7 +304,6 @@ bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name, const spt
         .qclass = DNSProto::RRCLASS_IN,
     });
     msg.header.qdcount = msg.questions.size();
-    // key is serviceName+serviceType
     AddEvent(name, [this, name, cb]() { return ResolveInstanceFromCache(name, cb); });
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     return size > 0;
@@ -528,13 +526,10 @@ void MDnsProtocolImpl::ProcessAnswer(int sock, const MDnsMessage &msg)
         return;
     }
     bool v6 = (saddrIf->sa_family == AF_INET6);
-
     std::set<std::string> changed;
-
     for (const auto &answer : msg.answers) {
         ProcessAnswerRecord(v6, answer, changed);
     }
-
     for (const auto &i : msg.additional) {
         ProcessAnswerRecord(v6, i, changed);
     }
@@ -691,7 +686,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
     } else if (rr.rtype == DNSProto::RRTYPE_A || rr.rtype == DNSProto::RRTYPE_AAAA) {
         UpdateAddr(v6, rr, changed);
     } else {
-        NETMGR_EXT_LOG_E("MDNS_LOG Unknown packet received, type=[%{public}d]", rr.rtype);
+        NETMGR_EXT_LOG_D("MDNS_LOG Unknown packet received, type=[%{public}d]", rr.rtype);
     }
 }
 
