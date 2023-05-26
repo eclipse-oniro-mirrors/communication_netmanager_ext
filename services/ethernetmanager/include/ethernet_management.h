@@ -76,6 +76,7 @@ private:
     void StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StartSetDevUpThd();
+    bool IsIfaceLinkUp(const std::string &iface);
 
 private:
     std::map<std::string, std::set<NetCap>> devCaps_;
