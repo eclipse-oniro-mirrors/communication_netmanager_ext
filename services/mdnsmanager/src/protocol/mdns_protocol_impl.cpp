@@ -809,7 +809,9 @@ void MDnsProtocolImpl::KillBrowseCache(const std::string &key, std::vector<Resul
 {
     if (it->state == State::REMOVE) {
         it->state = State::DEAD;
-        nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+        if (nameCbMap_.find(key) != nameCbMap_.end()) {
+            nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+        }
         std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
         if (cacheMap_.find(fullName) != cacheMap_.end()) {
             cacheMap_.erase(fullName);
