@@ -314,7 +314,7 @@ const uint8_t *MDnsPayloadParser::ParseDnsString(const uint8_t *begin, const MDn
 void MDnsPayloadParser::Serialize(const MDnsMessage &msg, MDnsPayload &payload, MDnsPayload *cachedPayload,
                                   std::map<std::string, uint16_t> &strCacheMap)
 {
-    payload.reserve(1024 /*sizeof(DNSProto::Message)*/);
+    payload.reserve(sizeof(DNSProto::Message));
     DNSProto::Header header = msg.header;
     header.qdcount = msg.questions.size();
     header.ancount = msg.answers.size();
