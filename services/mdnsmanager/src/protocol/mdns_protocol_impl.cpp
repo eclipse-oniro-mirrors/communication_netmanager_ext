@@ -686,7 +686,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
     } else if (rr.rtype == DNSProto::RRTYPE_A || rr.rtype == DNSProto::RRTYPE_AAAA) {
         UpdateAddr(v6, rr, changed);
     } else {
-        NETMGR_EXT_LOG_D("MDNS_LOG Unknown packet received, type=[%{public}d]", rr.rtype);
+        NETMGR_EXT_LOG_D("Unknown packet received, type=[%{public}d]", rr.rtype);
     }
 }
 

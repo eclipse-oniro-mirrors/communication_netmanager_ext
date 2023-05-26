@@ -193,7 +193,7 @@ int InitSocketV6(int sock, ifaddrs *ifa, int port)
 MDnsSocketListener::MDnsSocketListener()
 {
     if (socketpair(AF_LOCAL, SOCK_STREAM | SOCK_CLOEXEC, 0, ctrlPair_) != 0) {
-        NETMGR_EXT_LOG_E("bind failed, errno:[%{public}d]", errno);
+        NETMGR_EXT_LOG_F("bind failed, errno:[%{public}d]", errno);
     }
 }
 
