@@ -83,18 +83,23 @@ int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const 
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
+
+    if (!IsTypeValid(serviceType)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::string name = impl.Decorated(serviceType);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+
     {
         std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
         if (discoveryMap_.find(cb) != discoveryMap_.end()) {
             return NET_MDNS_ERR_CALLBACK_DUPLICATED;
         }
-    }
-    int32_t err = impl.Discovery(serviceType, cb);
-    if (err == NETMANAGER_EXT_SUCCESS) {
-        std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
         discoveryMap_.emplace(cb, serviceType);
     }
-    return err;
+    return impl.Discovery(serviceType, cb);
 }
 
 int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)

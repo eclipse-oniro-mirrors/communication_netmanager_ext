@@ -246,13 +246,6 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
 
 int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
-    if (!IsTypeValid(serviceType)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::string name = Decorated(serviceType);
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
     DiscoveryFromCache(serviceType, cb);
     DiscoveryFromNet(serviceType, cb);
     return NETMANAGER_EXT_SUCCESS;
