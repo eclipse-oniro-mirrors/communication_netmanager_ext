@@ -129,21 +129,6 @@ int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
     }
 
     std::string instance = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type;
-    if (!IsInstanceValid(instance)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::string name = impl.Decorated(instance);
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-
-    {
-        std::lock_guard<std::recursive_mutex> guard(resolveMutex_);
-        if (resolveMap_.find(cb) != resolveMap_.end()) {
-            return NET_MDNS_ERR_CALLBACK_DUPLICATED;
-        }
-        resolveMap_.emplace(cb, instance);
-    }
     return impl.ResolveInstance(instance, cb);
 }
 
@@ -157,7 +142,6 @@ void MDnsManager::GetDumpMessage(std::string &message)
     message.append("\tHostname: " + config.hostname + "\n");
     message.append("\tImpl Service Count: " + std::to_string(impl.srvMap_.size()) + "\n");
     message.append("\tDiscovery Count: " + std::to_string(discoveryMap_.size()) + "\n");
-    message.append("\tResolve Count: " + std::to_string(resolveMap_.size()) + "\n");
 }
 
 bool MDnsManager::IsAvailableCallback(const sptr<IDiscoveryCallback> &cb)
@@ -165,12 +149,5 @@ bool MDnsManager::IsAvailableCallback(const sptr<IDiscoveryCallback> &cb)
     std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
     return cb != nullptr && discoveryMap_.find(cb) != discoveryMap_.end();
 }
-
-bool MDnsManager::IsAvailableCallback(const sptr<IResolveCallback> &cb)
-{
-    std::lock_guard<std::recursive_mutex> guard(resolveMutex_);
-    return cb != nullptr && resolveMap_.find(cb) != resolveMap_.end();
-}
-
 } // namespace NetManagerStandard
 } // namespace OHOS

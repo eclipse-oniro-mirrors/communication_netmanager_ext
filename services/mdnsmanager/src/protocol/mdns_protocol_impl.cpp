@@ -78,7 +78,7 @@ void MDnsProtocolImpl::Init()
         RunTaskQueue(taskQueue_);
     });
     listener_.Start();
-    
+
     taskQueue_.clear();
     taskOnChange_.clear();
     AddTask([this]() { return Browse(); }, false);
@@ -260,7 +260,7 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
         r.ipv6 = cacheMap_[r.domain].ipv6;
         r.addr = cacheMap_[r.domain].addr;
         AddTask([cb, info = ConvertResultToInfo(r)]() {
-            if (MDnsManager::GetInstance().IsAvailableCallback(cb)) {
+            if (nullptr != cb) {
                 cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
             }
             return true;
@@ -272,9 +272,9 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
             if (!IsDomainCacheAvailable(r.domain)) {
                 return false;
             }
-            if (MDnsManager::GetInstance().IsAvailableCallback(cb)) {
-                r.ipv6 = cacheMap_[r.domain].ipv6;
-                r.addr = cacheMap_[r.domain].addr;
+            r.ipv6 = cacheMap_[r.domain].ipv6;
+            r.addr = cacheMap_[r.domain].addr;
+            if (nullptr != cb) {
                 cb->HandleResolveResult(ConvertResultToInfo(r), NETMANAGER_EXT_SUCCESS);
             }
             return true;
@@ -315,7 +315,7 @@ bool MDnsProtocolImpl::ResolveFromCache(const std::string &domain, const sptr<IR
         return false;
     }
     AddTask([this, cb, info = ConvertResultToInfo(cacheMap_[domain])]() {
-        if (MDnsManager::GetInstance().IsAvailableCallback(cb)) {
+        if (nullptr != cb) {
             cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
         }
         return true;
@@ -350,26 +350,17 @@ bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain, const sptr<IRes
 
 int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance, const sptr<IResolveCallback> &cb)
 {
+    if (!IsInstanceValid(instance)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
     std::string name = Decorated(instance);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
     if (ResolveInstanceFromCache(name, cb)) {
         return NETMANAGER_EXT_SUCCESS;
     }
     return ResolveInstanceFromNet(name, cb) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
-}
-
-int32_t MDnsProtocolImpl::Resolve(const std::string &domain, const sptr<IResolveCallback> &cb)
-{
-    if (!IsDomainValid(domain)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::string name = domain;
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    if (ResolveFromCache(name, cb)) {
-        return NETMANAGER_EXT_SUCCESS;
-    }
-    return ResolveFromNet(name, cb) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 int32_t MDnsProtocolImpl::Announce(const Result &info, bool off)

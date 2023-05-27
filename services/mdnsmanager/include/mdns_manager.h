@@ -60,10 +60,8 @@ private:
     MDnsProtocolImpl impl;
     std::map<sptr<IRegistrationCallback>, std::string, CompareSmartPointer> registerMap_;
     std::map<sptr<IDiscoveryCallback>, std::string, CompareSmartPointer> discoveryMap_;
-    std::map<sptr<IResolveCallback>, std::string, CompareSmartPointer> resolveMap_;
     std::recursive_mutex registerMutex_;
     std::recursive_mutex discoveryMutex_;
-    std::recursive_mutex resolveMutex_;
 };
 
 } // namespace NetManagerStandard
