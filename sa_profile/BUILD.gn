@@ -23,7 +23,7 @@ ohos_sa_profile("net_manager_ext_profile") {
 }
 
 ohos_sa_profile("mdns_manager_profile") {
-  sources = [ "1161.xml" ]
+  sources = [ "1161.json" ]
 
   part_name = "netmanager_ext"
 }
