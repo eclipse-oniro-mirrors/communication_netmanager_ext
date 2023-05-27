@@ -78,11 +78,10 @@ void MDnsProtocolImpl::Init()
         RunTaskQueue(taskQueue_);
     });
     listener_.Start();
-
-    runBrowse_ = [this]() { return Browse(); };
+    
     taskQueue_.clear();
     taskOnChange_.clear();
-    AddTask(runBrowse_, false);
+    AddTask([this]() { return Browse(); }, false);
 }
 
 bool MDnsProtocolImpl::Browse()
@@ -351,13 +350,7 @@ bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain, const sptr<IRes
 
 int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance, const sptr<IResolveCallback> &cb)
 {
-    if (!IsInstanceValid(instance)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
     std::string name = Decorated(instance);
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
     if (ResolveInstanceFromCache(name, cb)) {
         return NETMANAGER_EXT_SUCCESS;
     }

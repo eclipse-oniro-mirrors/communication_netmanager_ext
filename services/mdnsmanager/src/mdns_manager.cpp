@@ -127,18 +127,24 @@ int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-    if (resolveMap_.find(cb) != resolveMap_.end()) {
-        std::lock_guard<std::recursive_mutex> guard(resolveMutex_);
-        return NET_MDNS_ERR_CALLBACK_DUPLICATED;
-    }
+
     std::string instance = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type;
-    int32_t err = impl.ResolveInstance(instance, cb);
-    if (err == NETMANAGER_EXT_SUCCESS) {
+    if (!IsInstanceValid(instance)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::string name = impl.Decorated(instance);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+
+    {
         std::lock_guard<std::recursive_mutex> guard(resolveMutex_);
+        if (resolveMap_.find(cb) != resolveMap_.end()) {
+            return NET_MDNS_ERR_CALLBACK_DUPLICATED;
+        }
         resolveMap_.emplace(cb, instance);
     }
-    cb->HandleResolveResult(serviceInfo, err);
-    return err;
+    return impl.ResolveInstance(instance, cb);
 }
 
 void MDnsManager::GetDumpMessage(std::string &message)

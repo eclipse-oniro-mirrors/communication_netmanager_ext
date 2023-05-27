@@ -134,7 +134,6 @@ private:
     std::list<Task> taskQueue_;
     std::map<std::string, std::list<Task>> taskOnChange_;
     std::map<std::string, sptr<IDiscoveryCallback>> nameCbMap_;
-    Task runBrowse_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
