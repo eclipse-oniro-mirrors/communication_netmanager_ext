@@ -16,19 +16,20 @@
 #include "mdns_protocol_impl.h"
 
 #include <arpa/inet.h>
+#include <cstddef>
 #include <iostream>
-#include <numeric>
 #include <random>
 #include <unistd.h>
 
+#include "mdns_manager.h"
 #include "mdns_packet_parser.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 
-namespace {
-
+constexpr uint32_t DEFAULT_INTEVAL_MS = 2000;
+constexpr uint32_t DEFAULT_LOST_MS = 10000;
 constexpr uint32_t DEFAULT_TTL = 120;
 constexpr uint16_t MDNS_FLUSH_CACHE_BIT = 0x8000;
 
@@ -47,13 +48,15 @@ std::string AddrToString(const std::any &addr)
         if (inet_ntop(AF_INET6, std::any_cast<in6_addr>(&addr), buf, sizeof(buf)) == nullptr) {
             return std::string{};
         }
-    } else {
-        return std::string{};
     }
     return std::string(buf);
 }
 
-} // namespace
+int64_t MilliSecondsSinceEpoch()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+        .count();
+}
 
 MDnsProtocolImpl::MDnsProtocolImpl()
 {
@@ -70,7 +73,62 @@ void MDnsProtocolImpl::Init()
     }
     listener_.SetReceiveHandler(
         [this](int sock, const MDnsPayload &payload) { return this->ReceivePacket(sock, payload); });
-    listener_.SetRefreshHandler([this](int sock) { return this->OnRefresh(sock); });
+    listener_.SetFinishedHandler([this](int sock) {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        RunTaskQueue(taskQueue_);
+    });
+    listener_.Start();
+
+    runBrowse_ = [this]() { return Browse(); };
+    taskQueue_.clear();
+    taskOnChange_.clear();
+    AddTask(runBrowse_, false);
+}
+
+bool MDnsProtocolImpl::Browse()
+{
+    if (lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS) {
+        return false;
+    }
+    lastRunTime = MilliSecondsSinceEpoch();
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    for (auto &&[key, res] : browserMap_) {
+        if (nameCbMap_.find(key) != nameCbMap_.end() &&
+            !MDnsManager::GetInstance().IsAvailableCallback(nameCbMap_[key])) {
+            continue;
+        }
+        if (!IsBrowserAvailable(key)) {
+            continue;
+        }
+        handleOfflineService(key, res);
+        MDnsPayloadParser parser;
+        MDnsMessage msg{};
+        msg.questions.emplace_back(DNSProto::Question{
+            .name = key,
+            .qtype = DNSProto::RRTYPE_PTR,
+            .qclass = DNSProto::RRCLASS_IN,
+        });
+        listener_.MulticastAll(parser.ToBytes(msg));
+    }
+    return false;
+}
+
+void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<Result> &res)
+{
+    for (auto it = res.begin(); it != res.end();) {
+        if (lastRunTime - it->refrehTime > DEFAULT_LOST_MS && it->state == State::LIVE) {
+            it->state = State::DEAD;
+            Result rst = *it;
+            std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
+            nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+            it = res.erase(it);
+            if (cacheMap_.find(fullName) != cacheMap_.end()) {
+                cacheMap_.erase(fullName);
+            }
+        } else {
+            it++;
+        }
+    }
 }
 
 void MDnsProtocolImpl::SetConfig(const MDnsConfig &config)
@@ -83,19 +141,9 @@ const MDnsConfig &MDnsProtocolImpl::GetConfig() const
     return config_;
 }
 
-void MDnsProtocolImpl::SetHandler(const Handler &handler)
-{
-    handler_ = handler;
-}
-
 std::string MDnsProtocolImpl::Decorated(const std::string &name) const
 {
     return name + config_.topDomain;
-}
-
-std::string MDnsProtocolImpl::ExtractInstance(const Result &info) const
-{
-    return Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
 }
 
 int32_t MDnsProtocolImpl::Register(const Result &info)
@@ -103,7 +151,7 @@ int32_t MDnsProtocolImpl::Register(const Result &info)
     if (!(IsNameValid(info.serviceName) && IsTypeValid(info.serviceType) && IsPortValid(info.port))) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-    std::string name = ExtractInstance(info);
+    std::string name = Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
     if (!IsDomainValid(name)) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -114,166 +162,7 @@ int32_t MDnsProtocolImpl::Register(const Result &info)
         }
         srvMap_.emplace(name, info);
     }
-
-    listener_.Start();
     return Announce(info, false);
-}
-
-int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType)
-{
-    if (!IsTypeValid(serviceType)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::string name = Decorated(serviceType);
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    {
-        std::lock_guard<std::recursive_mutex> guard(mutex_);
-        ++reqMap_[name];
-    }
-    MDnsPayloadParser parser;
-    MDnsMessage msg{};
-    msg.questions.emplace_back(DNSProto::Question{
-        .name = name,
-        .qtype = DNSProto::RRTYPE_PTR,
-        .qclass = DNSProto::RRCLASS_IN,
-    });
-    msg.header.qdcount = msg.questions.size();
-
-    listener_.Start();
-    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
-
-    return size > 0 ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
-}
-
-void MDnsProtocolImpl::HandleResolveInstanceLater(const Result &result)
-{
-    cacheMap_[result.domain];
-    ResolveFromNet(result.domain);
-    RunTaskLater(
-        [r = result, this]() mutable {
-            if (cacheMap_.find(r.domain) == cacheMap_.end() || cacheMap_[r.domain].addr.empty()) {
-                NETMGR_EXT_LOG_D("instance %{public}s, domain: %{public}s not found", r.serviceName.c_str(),
-                                 r.domain.c_str());
-                return false;
-            }
-            r.ipv6 = cacheMap_[r.domain].ipv6;
-            r.addr = cacheMap_[r.domain].addr;
-            handler_(r, NETMANAGER_EXT_SUCCESS);
-            return true;
-        },
-        false);
-}
-
-bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name)
-{
-    std::lock_guard<std::recursive_mutex> guard(mutex_);
-    if (cacheMap_.find(name) != cacheMap_.end() && !cacheMap_[name].domain.empty()) {
-        Result r = cacheMap_[name];
-        if (cacheMap_.find(r.domain) != cacheMap_.end() && !cacheMap_[r.domain].addr.empty()) {
-            r.ipv6 = cacheMap_[r.domain].ipv6;
-            r.addr = cacheMap_[r.domain].addr;
-            RunTaskLater([r, this]() {
-                handler_(r, NETMANAGER_EXT_SUCCESS);
-                return true;
-            });
-        } else {
-            HandleResolveInstanceLater(r);
-        }
-        return true;
-    }
-    return false;
-}
-
-bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name)
-{
-    MDnsPayloadParser parser;
-    MDnsMessage msg{};
-    msg.questions.emplace_back(DNSProto::Question{
-        .name = name,
-        .qtype = DNSProto::RRTYPE_SRV,
-        .qclass = DNSProto::RRCLASS_IN,
-    });
-    msg.questions.emplace_back(DNSProto::Question{
-        .name = name,
-        .qtype = DNSProto::RRTYPE_TXT,
-        .qclass = DNSProto::RRCLASS_IN,
-    });
-    msg.header.qdcount = msg.questions.size();
-
-    listener_.Start();
-    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
-
-    return size > 0;
-}
-
-bool MDnsProtocolImpl::ResolveFromCache(const std::string &domain)
-{
-    if (cacheMap_.find(domain) != cacheMap_.end() && !cacheMap_[domain].addr.empty()) {
-        RunTaskLater([r = cacheMap_[domain], this]() {
-            handler_(r, NETMANAGER_EXT_SUCCESS);
-            return true;
-        });
-        return true;
-    }
-    return false;
-}
-
-bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain)
-{
-    MDnsPayloadParser parser;
-    MDnsMessage msg{};
-    msg.questions.emplace_back(DNSProto::Question{
-        .name = domain,
-        .qtype = DNSProto::RRTYPE_A,
-        .qclass = DNSProto::RRCLASS_IN,
-    });
-    msg.questions.emplace_back(DNSProto::Question{
-        .name = domain,
-        .qtype = DNSProto::RRTYPE_AAAA,
-        .qclass = DNSProto::RRCLASS_IN,
-    });
-    msg.header.qdcount = msg.questions.size();
-
-    listener_.Start();
-    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
-
-    return size > 0;
-}
-
-int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance)
-{
-    if (!IsInstanceValid(instance)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::string name = Decorated(instance);
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::lock_guard<std::recursive_mutex> guard(mutex_);
-    if (ResolveInstanceFromCache(name)) {
-        return NETMANAGER_EXT_SUCCESS;
-    }
-    ++reqMap_[name];
-    return ResolveInstanceFromNet(name) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
-}
-
-int32_t MDnsProtocolImpl::Resolve(const std::string &domain)
-{
-    if (!IsDomainValid(domain)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::string name = domain;
-    if (!IsDomainValid(name)) {
-        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
-    }
-    std::lock_guard<std::recursive_mutex> guard(mutex_);
-    if (ResolveFromCache(name)) {
-        return NETMANAGER_EXT_SUCCESS;
-    }
-    ++reqMap_[name];
-    return ResolveFromNet(name) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 int32_t MDnsProtocolImpl::UnRegister(const std::string &key)
@@ -288,32 +177,211 @@ int32_t MDnsProtocolImpl::UnRegister(const std::string &key)
     return NET_MDNS_ERR_SERVICE_INSTANCE_NOT_FOUND;
 }
 
-int32_t MDnsProtocolImpl::StopDiscovery(const std::string &key)
+bool MDnsProtocolImpl::DiscoveryFromCache(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
-    return Stop(Decorated(key));
+    std::string name = Decorated(serviceType);
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    if (!IsBrowserAvailable(name)) {
+        return false;
+    }
+
+    for (auto &res : browserMap_[name]) {
+        if (res.state == State::REMOVE || res.state == State::DEAD) {
+            continue;
+        }
+        AddTask([cb, info = ConvertResultToInfo(res)]() {
+            if (MDnsManager::GetInstance().IsAvailableCallback(cb)) {
+                cb->HandleServiceFound(info, NETMANAGER_EXT_SUCCESS);
+            }
+            return true;
+        });
+    }
+    return true;
 }
 
-int32_t MDnsProtocolImpl::StopResolveInstance(const std::string &key)
+bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
-    return Stop(Decorated(key));
+    std::string name = Decorated(serviceType);
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    // Init browserMap_ for name.
+    browserMap_[name];
+    nameCbMap_[name] = cb;
+
+    // key is serviceTYpe
+    AddEvent(name, [this, name, cb]() {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        if (!IsBrowserAvailable(name)) {
+            return false;
+        }
+        if (!MDnsManager::GetInstance().IsAvailableCallback(cb)) {
+            return true;
+        }
+        for (auto &res : browserMap_[name]) {
+            std::string fullName = Decorated(res.serviceName + MDNS_DOMAIN_SPLITER_STR + res.serviceType);
+            if (cacheMap_.find(fullName) == cacheMap_.end() || (res.state == State::ADD)) {
+                cb->HandleServiceFound(ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
+                res.state = State::LIVE;
+            }
+            if (res.state == State::REMOVE) {
+                res.state = State::DEAD;
+                cb->HandleServiceLost(ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
+                if (cacheMap_.find(fullName) != cacheMap_.end()) {
+                    cacheMap_.erase(fullName);
+                }
+            }
+        }
+        return false;
+    });
+    MDnsPayloadParser parser;
+    MDnsMessage msg{};
+    msg.questions.emplace_back(DNSProto::Question{
+        .name = name,
+        .qtype = DNSProto::RRTYPE_PTR,
+        .qclass = DNSProto::RRCLASS_IN,
+    });
+    listener_.MulticastAll(parser.ToBytes(msg));
+    return true;
 }
 
-int32_t MDnsProtocolImpl::StopResolve(const std::string &key)
+int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
-    return Stop(key);
+    DiscoveryFromCache(serviceType, cb);
+    DiscoveryFromNet(serviceType, cb);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t MDnsProtocolImpl::Stop(const std::string &key)
+bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const sptr<IResolveCallback> &cb)
 {
     std::lock_guard<std::recursive_mutex> guard(mutex_);
-    if (reqMap_.find(key) != reqMap_.end() && reqMap_[key] > 0) {
-        --reqMap_[key];
+    if (!IsInstanceCacheAvailable(name)) {
+        return false;
     }
-    return NETMANAGER_EXT_SUCCESS;
+    Result r = cacheMap_[name];
+    if (IsDomainCacheAvailable(r.domain)) {
+        r.ipv6 = cacheMap_[r.domain].ipv6;
+        r.addr = cacheMap_[r.domain].addr;
+        AddTask([cb, info = ConvertResultToInfo(r)]() {
+            if (MDnsManager::GetInstance().IsAvailableCallback(cb)) {
+                cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
+            }
+            return true;
+        });
+    } else {
+        ResolveFromNet(r.domain, nullptr);
+        // key is serviceName
+        AddEvent(r.domain, [this, cb, r]() mutable {
+            if (!IsDomainCacheAvailable(r.domain)) {
+                return false;
+            }
+            if (MDnsManager::GetInstance().IsAvailableCallback(cb)) {
+                r.ipv6 = cacheMap_[r.domain].ipv6;
+                r.addr = cacheMap_[r.domain].addr;
+                cb->HandleResolveResult(ConvertResultToInfo(r), NETMANAGER_EXT_SUCCESS);
+            }
+            return true;
+        });
+    }
+    return true;
+}
+
+bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name, const sptr<IResolveCallback> &cb)
+{
+    {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        cacheMap_[name];
+        ExtractNameAndType(name, cacheMap_[name].serviceName, cacheMap_[name].serviceType);
+    }
+    MDnsPayloadParser parser;
+    MDnsMessage msg{};
+    msg.questions.emplace_back(DNSProto::Question{
+        .name = name,
+        .qtype = DNSProto::RRTYPE_SRV,
+        .qclass = DNSProto::RRCLASS_IN,
+    });
+    msg.questions.emplace_back(DNSProto::Question{
+        .name = name,
+        .qtype = DNSProto::RRTYPE_TXT,
+        .qclass = DNSProto::RRCLASS_IN,
+    });
+    msg.header.qdcount = msg.questions.size();
+    AddEvent(name, [this, name, cb]() { return ResolveInstanceFromCache(name, cb); });
+    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
+    return size > 0;
+}
+
+bool MDnsProtocolImpl::ResolveFromCache(const std::string &domain, const sptr<IResolveCallback> &cb)
+{
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    if (!IsDomainCacheAvailable(domain)) {
+        return false;
+    }
+    AddTask([this, cb, info = ConvertResultToInfo(cacheMap_[domain])]() {
+        if (MDnsManager::GetInstance().IsAvailableCallback(cb)) {
+            cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
+        }
+        return true;
+    });
+    return true;
+}
+
+bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain, const sptr<IResolveCallback> &cb)
+{
+    {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        cacheMap_[domain];
+        cacheMap_[domain].domain = domain;
+    }
+    MDnsPayloadParser parser;
+    MDnsMessage msg{};
+    msg.questions.emplace_back(DNSProto::Question{
+        .name = domain,
+        .qtype = DNSProto::RRTYPE_A,
+        .qclass = DNSProto::RRCLASS_IN,
+    });
+    msg.questions.emplace_back(DNSProto::Question{
+        .name = domain,
+        .qtype = DNSProto::RRTYPE_AAAA,
+        .qclass = DNSProto::RRCLASS_IN,
+    });
+    // key is serviceName
+    AddEvent(domain, [this, cb, domain]() { return ResolveFromCache(domain, cb); });
+    ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
+    return size > 0;
+}
+
+int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance, const sptr<IResolveCallback> &cb)
+{
+    if (!IsInstanceValid(instance)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::string name = Decorated(instance);
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    if (ResolveInstanceFromCache(name, cb)) {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    return ResolveInstanceFromNet(name, cb) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
+}
+
+int32_t MDnsProtocolImpl::Resolve(const std::string &domain, const sptr<IResolveCallback> &cb)
+{
+    if (!IsDomainValid(domain)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    std::string name = domain;
+    if (!IsDomainValid(name)) {
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    if (ResolveFromCache(name, cb)) {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    return ResolveFromNet(name, cb) ? NETMANAGER_EXT_SUCCESS : NET_MDNS_ERR_SEND;
 }
 
 int32_t MDnsProtocolImpl::Announce(const Result &info, bool off)
 {
+    NETMGR_EXT_LOG_I("MDNS_LOG Announce message");
     MDnsMessage response{};
     response.header.flags = DNSProto::MDNS_ANSWER_FLAGS;
     std::string name = Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
@@ -345,13 +413,11 @@ int32_t MDnsProtocolImpl::Announce(const Result &info, bool off)
 void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
 {
     if (payload.size() == 0) {
-        NETMGR_EXT_LOG_W("empty payload received");
         return;
     }
     MDnsPayloadParser parser;
     MDnsMessage msg = parser.FromBytes(payload);
     if (parser.GetError() != 0) {
-        NETMGR_EXT_LOG_W("payload parse failed");
         return;
     }
     if ((msg.header.flags & DNSProto::HEADER_FLAGS_QR_MASK) == 0) {
@@ -359,20 +425,6 @@ void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
     } else {
         ProcessAnswer(sock, msg);
     }
-}
-
-void MDnsProtocolImpl::OnRefresh(int sock)
-{
-    std::lock_guard<std::recursive_mutex> guard(mutex_);
-    std::queue<Task> tmp;
-    while (taskQueue_.size() > 0) {
-        auto func = taskQueue_.front();
-        taskQueue_.pop();
-        if (!func()) {
-            tmp.push(func);
-        }
-    }
-    tmp.swap(taskQueue_);
 }
 
 void MDnsProtocolImpl::AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlist, DNSProto::RRType type,
@@ -387,6 +439,7 @@ void MDnsProtocolImpl::AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlis
 
 void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
 {
+    NETMGR_EXT_LOG_I("MDNS_LOG ProcessQuestion message");
     const sockaddr *saddrIf = listener_.GetSockAddr(sock);
     if (saddrIf == nullptr) {
         return;
@@ -473,108 +526,165 @@ void MDnsProtocolImpl::ProcessAnswer(int sock, const MDnsMessage &msg)
         return;
     }
     bool v6 = (saddrIf->sa_family == AF_INET6);
-
-    std::vector<Result> matches;
     std::set<std::string> changed;
-    for (size_t i = 0; i < msg.answers.size(); ++i) {
-        ProcessAnswerRecord(v6, msg.answers[i], &matches, changed);
+    for (const auto &answer : msg.answers) {
+        ProcessAnswerRecord(v6, answer, changed);
     }
-
-    for (size_t i = 0; i < msg.additional.size(); ++i) {
-        ProcessAnswerRecord(v6, msg.additional[i], nullptr, changed);
+    for (const auto &i : msg.additional) {
+        ProcessAnswerRecord(v6, i, changed);
     }
-
-    for (size_t i = 0; i < msg.additional.size(); ++i) {
-        ProcessAnswerRecord(v6, msg.additional[i], nullptr, changed);
-    }
-
-    for (auto i = matches.begin(); i != matches.end() && handler_ != nullptr; ++i) {
-        handler_(*i, NETMANAGER_EXT_SUCCESS);
-    }
-
-    for (auto i = changed.begin(); i != changed.end() && handler_ != nullptr; ++i) {
-        if (cacheMap_.find(*i) == cacheMap_.end()) {
-            continue;
-        }
-        cacheMap_[*i].iface = listener_.GetIface(sock);
-        if (cacheMap_[*i].type == INSTANCE_RESOLVED && ResolveInstanceFromCache(*i)) {
-            continue;
-        }
-        handler_(cacheMap_[*i], NETMANAGER_EXT_SUCCESS);
+    for (const auto &i : changed) {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        RunTaskQueue(taskOnChange_[i]);
+        KillCache(i);
     }
 }
 
-void MDnsProtocolImpl::ProcessPtrRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches)
+void MDnsProtocolImpl::UpdatePtr(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed)
 {
     const std::string *data = std::any_cast<std::string>(&rr.rdata);
     if (data == nullptr) {
         return;
     }
-    Result result;
-    ExtractNameAndType(*data, result.serviceName, result.serviceType);
-    if (std::find_if(matches->begin(), matches->end(), [&](const auto &elem) {
-            return elem.serviceName == result.serviceName && elem.serviceType == result.serviceType;
-        }) == matches->end()) {
-        result.type = (rr.ttl == 0) ? SERVICE_LOST : SERVICE_FOUND;
-        matches->emplace_back(std::move(result));
-        if (rr.ttl == 0) {
-            cacheMap_.erase(*data);
-        } else {
-            cacheMap_[*data];
-        }
+
+    std::string name = rr.name;
+    auto &results = browserMap_[name];
+    std::string srvName;
+    std::string srvType;
+    ExtractNameAndType(*data, srvName, srvType);
+    if (srvName.empty() || srvType.empty()) {
+        return;
     }
+    auto res =
+        std::find_if(results.begin(), results.end(), [&](const auto &elem) { return elem.serviceName == srvName; });
+    if (res == results.end()) {
+        results.emplace_back(Result{
+            .serviceName = srvName,
+            .serviceType = srvType,
+            .state = State::ADD,
+        });
+    }
+    res = std::find_if(results.begin(), results.end(), [&](const auto &elem) { return elem.serviceName == srvName; });
+    if (res->serviceName != srvName || res->state == State::DEAD) {
+        res->state = State::REFRESH;
+        res->serviceName = srvName;
+    }
+    if (rr.ttl == 0) {
+        res->state = State::REMOVE;
+    }
+    if (res->state != State::LIVE && res->state != State::DEAD) {
+        changed.emplace(name);
+    }
+    res->ttl = rr.ttl;
+    res->refrehTime = MilliSecondsSinceEpoch();
 }
 
-void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches,
-                                           std::set<std::string> &changed)
+void MDnsProtocolImpl::UpdateSrv(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed)
+{
+    const DNSProto::RDataSrv *srv = std::any_cast<DNSProto::RDataSrv>(&rr.rdata);
+    if (srv == nullptr) {
+        return;
+    }
+    std::string name = rr.name;
+    if (cacheMap_.find(name) == cacheMap_.end()) {
+        cacheMap_[name].state = State::ADD;
+        cacheMap_[name].domain = srv->name;
+        cacheMap_[name].port = srv->port;
+    }
+    Result &result = cacheMap_[name];
+    if (result.domain != srv->name || result.port != srv->port || result.state == State::DEAD) {
+        if (result.state != State::ADD) {
+            result.state = State::REFRESH;
+        }
+        result.domain = srv->name;
+        result.port = srv->port;
+    }
+    if (rr.ttl == 0) {
+        result.state = State::REMOVE;
+    }
+    if (result.state != State::LIVE && result.state != State::DEAD) {
+        changed.emplace(name);
+    }
+    result.ttl = rr.ttl;
+    result.refrehTime = MilliSecondsSinceEpoch();
+}
+
+void MDnsProtocolImpl::UpdateTxt(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed)
+{
+    const TxtRecordEncoded *txt = std::any_cast<TxtRecordEncoded>(&rr.rdata);
+    if (txt == nullptr) {
+        return;
+    }
+    std::string name = rr.name;
+    if (cacheMap_.find(name) == cacheMap_.end()) {
+        cacheMap_[name].state = State::ADD;
+        cacheMap_[name].txt = *txt;
+    }
+    Result &result = cacheMap_[name];
+    if (result.txt != *txt || result.state == State::DEAD) {
+        if (result.state != State::ADD) {
+            result.state = State::REFRESH;
+        }
+        result.txt = *txt;
+    }
+    if (rr.ttl == 0) {
+        result.state = State::REMOVE;
+    }
+    if (result.state != State::LIVE && result.state != State::DEAD) {
+        changed.emplace(name);
+    }
+    result.ttl = rr.ttl;
+    result.refrehTime = MilliSecondsSinceEpoch();
+}
+
+void MDnsProtocolImpl::UpdateAddr(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed)
+{
+    if (v6 != (rr.rtype == DNSProto::RRTYPE_AAAA)) {
+        return;
+    }
+    const std::string addr = AddrToString(rr.rdata);
+    bool v6rr = (rr.rtype == DNSProto::RRTYPE_AAAA);
+    if (addr.empty()) {
+        return;
+    }
+    std::string name = rr.name;
+    if (cacheMap_.find(name) == cacheMap_.end()) {
+        cacheMap_[name].state = State::ADD;
+        cacheMap_[name].ipv6 = v6rr;
+        cacheMap_[name].addr = addr;
+    }
+    Result &result = cacheMap_[name];
+    if (result.addr != addr || result.ipv6 != v6rr || result.state == State::DEAD) {
+        result.state = State::REFRESH;
+        result.addr = addr;
+        result.ipv6 = v6rr;
+    }
+    if (rr.ttl == 0) {
+        result.state = State::REMOVE;
+    }
+    if (result.state != State::LIVE && result.state != State::DEAD) {
+        changed.emplace(name);
+    }
+    result.ttl = rr.ttl;
+    result.refrehTime = MilliSecondsSinceEpoch();
+}
+
+void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed)
 {
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     std::string name = rr.name;
-    bool isReq = reqMap_.find(name) != reqMap_.end() && reqMap_[name] > 0;
-    if (!isReq && cacheMap_.find(name) == cacheMap_.end()) {
+    if (cacheMap_.find(name) == cacheMap_.end() && browserMap_.find(name) == browserMap_.end() &&
+        srvMap_.find(name) != srvMap_.end()) {
         return;
     }
-    if (rr.rtype == DNSProto::RRTYPE_PTR && matches) {
-        ProcessPtrRecord(v6, rr, matches);
+    if (rr.rtype == DNSProto::RRTYPE_PTR) {
+        UpdatePtr(v6, rr, changed);
     } else if (rr.rtype == DNSProto::RRTYPE_SRV) {
-        const DNSProto::RDataSrv *srv = std::any_cast<DNSProto::RDataSrv>(&rr.rdata);
-        if (rr.ttl == 0) {
-            return cacheMap_[name].domain.clear();
-        }
-        if (srv == nullptr) {
-            return;
-        }
-        Result &result = cacheMap_[name];
-        result.type = INSTANCE_RESOLVED;
-        ExtractNameAndType(name, result.serviceName, result.serviceType);
-        result.domain = srv->name;
-        result.port = srv->port;
-        cacheMap_[srv->name];
-        if (isReq) {
-            changed.emplace(name);
-        }
+        UpdateSrv(v6, rr, changed);
     } else if (rr.rtype == DNSProto::RRTYPE_TXT) {
-        const TxtRecordEncoded *txt = std::any_cast<TxtRecordEncoded>(&rr.rdata);
-        if (rr.ttl == 0 || txt == nullptr) {
-            return;
-        }
-        Result &result = cacheMap_[name];
-        result.txt = *txt;
+        UpdateTxt(v6, rr, changed);
     } else if (rr.rtype == DNSProto::RRTYPE_A || rr.rtype == DNSProto::RRTYPE_AAAA) {
-        if (v6 != (rr.rtype == DNSProto::RRTYPE_AAAA)) {
-            return;
-        }
-        if (rr.ttl == 0) {
-            return cacheMap_[name].domain.clear();
-        }
-        Result &result = cacheMap_[name];
-        result.type = DOMAIN_RESOLVED;
-        result.domain = name;
-        result.ipv6 = (rr.rtype == DNSProto::RRTYPE_AAAA);
-        result.addr = AddrToString(rr.rdata);
-        if (isReq) {
-            changed.emplace(name);
-        }
+        UpdateAddr(v6, rr, changed);
     } else {
         NETMGR_EXT_LOG_D("Unknown packet received, type=[%{public}d]", rr.rtype);
     }
@@ -596,16 +706,123 @@ std::string MDnsProtocolImpl::GetHostDomain()
     return Decorated(config_.hostname);
 }
 
-void MDnsProtocolImpl::RunTaskLater(const Task &task, bool atonce)
+void MDnsProtocolImpl::AddTask(const Task &task, bool atonce)
 {
     {
         std::lock_guard<std::recursive_mutex> guard(mutex_);
-        taskQueue_.push(task);
+        taskQueue_.emplace_back(task);
     }
     if (atonce) {
         listener_.TriggerRefresh();
     }
 }
 
+MDnsServiceInfo MDnsProtocolImpl::ConvertResultToInfo(const MDnsProtocolImpl::Result &result)
+{
+    MDnsServiceInfo info;
+    info.name = result.serviceName;
+    info.type = result.serviceType;
+    if (!result.addr.empty()) {
+        info.family = result.ipv6 ? MDnsServiceInfo::IPV6 : MDnsServiceInfo::IPV4;
+    }
+    info.addr = result.addr;
+    info.port = result.port;
+    info.txtRecord = result.txt;
+    return info;
+}
+
+bool MDnsProtocolImpl::IsCacheAvailable(const std::string &key)
+{
+    constexpr int64_t ms2S = 1000LL;
+    return cacheMap_.find(key) != cacheMap_.end() &&
+           (ms2S * cacheMap_[key].ttl) > (MilliSecondsSinceEpoch() - cacheMap_[key].refrehTime);
+}
+
+bool MDnsProtocolImpl::IsDomainCacheAvailable(const std::string &key)
+{
+    return IsCacheAvailable(key) && !cacheMap_[key].addr.empty();
+}
+
+bool MDnsProtocolImpl::IsInstanceCacheAvailable(const std::string &key)
+{
+    return IsCacheAvailable(key) && !cacheMap_[key].domain.empty();
+}
+
+bool MDnsProtocolImpl::IsBrowserAvailable(const std::string &key)
+{
+    return browserMap_.find(key) != browserMap_.end() && !browserMap_[key].empty();
+}
+
+void MDnsProtocolImpl::AddEvent(const std::string &key, const Task &task)
+{
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    taskOnChange_[key].emplace_back(task);
+}
+
+void MDnsProtocolImpl::RunTaskQueue(std::list<Task> &queue)
+{
+    std::list<Task> tmp;
+    for (auto &&func : queue) {
+        if (!func()) {
+            tmp.emplace_back(func);
+        }
+    }
+    tmp.swap(queue);
+}
+
+void MDnsProtocolImpl::KillCache(const std::string &key)
+{
+    if (IsBrowserAvailable(key)) {
+        for (auto it = browserMap_[key].begin(); it != browserMap_[key].end();) {
+            KillBrowseCache(key, it);
+        }
+    }
+    if (IsCacheAvailable(key)) {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        auto &elem = cacheMap_[key];
+        if (elem.state == State::REMOVE) {
+            elem.state = State::DEAD;
+            cacheMap_.erase(key);
+        } else if (elem.state == State::ADD || elem.state == State::REFRESH) {
+            elem.state = State::LIVE;
+        }
+    }
+}
+
+void MDnsProtocolImpl::KillBrowseCache(const std::string &key, std::vector<Result>::iterator &it)
+{
+    if (it->state == State::REMOVE) {
+        it->state = State::DEAD;
+        if (nameCbMap_.find(key) != nameCbMap_.end()) {
+            nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+        }
+        std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
+        if (cacheMap_.find(fullName) != cacheMap_.end()) {
+            cacheMap_.erase(fullName);
+        }
+        it = browserMap_[key].erase(it); // erase error
+    } else if (it->state == State::ADD || it->state == State::REFRESH) {
+        it->state = State::LIVE;
+        it++;
+    } else {
+        it++;
+    }
+}
+
+int32_t MDnsProtocolImpl::StopCbMap(const std::string &serviceType)
+{
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    std::string name = Decorated(serviceType);
+    if (nameCbMap_.find(name) != nameCbMap_.end()) {
+        nameCbMap_.erase(name);
+    }
+    if (taskOnChange_.find(name) != taskOnChange_.end()) {
+        taskOnChange_.erase(name);
+    }
+    if (browserMap_.find(name) != browserMap_.end()) {
+        browserMap_.erase(name);
+    }
+    return NETMANAGER_SUCCESS;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

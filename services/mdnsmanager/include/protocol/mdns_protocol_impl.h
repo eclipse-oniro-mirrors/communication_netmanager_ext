@@ -20,8 +20,8 @@
 #include <list>
 #include <set>
 #include <string>
-#include <queue>
 
+#include "i_mdns_event.h"
 #include "mdns_common.h"
 #include "mdns_packet_parser.h"
 #include "mdns_socket_listener.h"
@@ -42,21 +42,19 @@ public:
     MDnsProtocolImpl();
     ~MDnsProtocolImpl() = default;
 
-    enum ResultType {
-        UNKNOWN,
-        SERVICE_STARTED,
-        SERVICE_STOPED,
-        SERVICE_FOUND,
-        SERVICE_LOST,
-        INSTANCE_RESOLVED,
-        DOMAIN_RESOLVED
-    };
-
+    struct Result;
     using TxtRecord = std::map<std::string, std::vector<uint8_t>>;
     using Task = std::function<bool()>;
 
+    enum class State {
+        DEAD,
+        ADD,
+        LIVE,
+        REFRESH,
+        REMOVE,
+    };
+
     struct Result {
-        ResultType type;
         std::string serviceName;
         std::string serviceType;
         std::string domain;
@@ -64,64 +62,80 @@ public:
         bool ipv6 = false;
         std::string addr;
         TxtRecordEncoded txt;
-        std::string iface;
+        State state = State::DEAD;
+        uint32_t ttl = 0;
+        int64_t refrehTime = -1;
+        int32_t err = NETMANAGER_EXT_SUCCESS;
     };
 
-    using Handler = std::function<void(const Result &, int32_t)>;
-
     void SetConfig(const MDnsConfig &config);
+    bool Browse();
     const MDnsConfig &GetConfig() const;
 
-    void SetHandler(const Handler &handler);
     int32_t Register(const Result &info);
-    int32_t Discovery(const std::string &serviceType);
-    int32_t ResolveInstance(const std::string &instance);
-    int32_t Resolve(const std::string &domain);
+    int32_t Discovery(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
+    int32_t ResolveInstance(const std::string &instance, const sptr<IResolveCallback> &cb);
+    int32_t Resolve(const std::string &domain, const sptr<IResolveCallback> &cb);
 
     int32_t UnRegister(const std::string &key);
-    int32_t StopDiscovery(const std::string &key);
-    int32_t StopResolveInstance(const std::string &key);
-    int32_t StopResolve(const std::string &key);
-    int32_t Stop(const std::string &key);
+    int32_t StopCbMap(const std::string &key);
 
-    void RunTaskLater(const Task& task, bool atonce = true);
+    void AddTask(const Task &task, bool atonce = true);
+    void AddEvent(const std::string &key, const Task &task);
 
-private:
     void Init();
     int32_t Announce(const Result &info, bool off);
     void ReceivePacket(int sock, const MDnsPayload &payload);
-    void OnRefresh(int sock);
+    void RunTaskQueue(std::list<Task> &queue);
     void ProcessQuestion(int sock, const MDnsMessage &msg);
     void ProcessQuestionRecord(const std::any &anyAddr, const DNSProto::RRType &anyAddrType,
                                const DNSProto::Question &qu, int &phase, MDnsMessage &response);
     void ProcessAnswer(int sock, const MDnsMessage &msg);
-    void ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches,
-                             std::set<std::string> &changed);
-    void ProcessPtrRecord(bool v6, const DNSProto::ResourceRecord &rr, std::vector<Result> *matches);
+    void ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed);
+    void UpdatePtr(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed);
+    void UpdateSrv(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed);
+    void UpdateTxt(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed);
+    void UpdateAddr(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed);
     void AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlist, DNSProto::RRType type, const std::string &name,
                       const std::any &rdata);
-    void HandleResolveInstanceLater(const Result& result);
-    bool ResolveInstanceFromCache(const std::string& name);
-    bool ResolveInstanceFromNet(const std::string &name);
-    bool ResolveFromCache(const std::string &domain);
-    bool ResolveFromNet(const std::string &domain);
 
-    std::string ExtractInstance(const Result &info) const;
+    bool ResolveInstanceFromCache(const std::string &name, const sptr<IResolveCallback> &cb);
+    bool ResolveInstanceFromNet(const std::string &name, const sptr<IResolveCallback> &cb);
+    bool ResolveFromCache(const std::string &domain, const sptr<IResolveCallback> &cb);
+    bool ResolveFromNet(const std::string &domain, const sptr<IResolveCallback> &cb);
+    bool DiscoveryFromCache(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
+    bool DiscoveryFromNet(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
+    bool IsCacheAvailable(const std::string &key);
+    bool IsDomainCacheAvailable(const std::string &key);
+    bool IsInstanceCacheAvailable(const std::string &key);
+    bool IsBrowserAvailable(const std::string &key);
+    void KillCache(const std::string &key);
+    MDnsServiceInfo ConvertResultToInfo(const Result &result);
+
     std::string Decorated(const std::string &name) const;
     std::string Dotted(const std::string &name) const;
     std::string UnDotted(const std::string &name) const;
     std::string GetHostDomain();
 
+private:
+    void handleOfflineService(const std::string &key, std::vector<Result> &res);
+    void KillBrowseCache(const std::string &key, std::vector<Result>::iterator &it);
+
+public:
+    std::map<std::string, Result> srvMap_;
+
+private:
+    int64_t lastRunTime = {-1};
     MDnsConfig config_;
     MDnsSocketListener listener_;
-    Handler handler_;
-    std::map<std::string, Result> srvMap_;
-    std::map<std::string, int> reqMap_;
+    std::map<std::string, std::vector<Result>> browserMap_;
     std::map<std::string, Result> cacheMap_;
     std::recursive_mutex mutex_;
-    std::queue<Task> taskQueue_;
+    std::list<Task> taskQueue_;
+    std::map<std::string, std::list<Task>> taskOnChange_;
+    std::map<std::string, sptr<IDiscoveryCallback>> nameCbMap_;
+    Task runBrowse_;
 };
-
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif
