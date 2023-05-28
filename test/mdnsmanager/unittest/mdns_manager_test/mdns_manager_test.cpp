@@ -29,6 +29,10 @@ using namespace testing::ext;
 
 constexpr int DEMO_PORT = 12345;
 constexpr int DEMO_PORT1 = 23456;
+constexpr int TIME_ONE_MS = 1;
+constexpr int TIME_TWO_MS = 2;
+constexpr int TIME_FOUR_MS = 4;
+constexpr int TIME_FIVE_MS = 5;
 constexpr const char *DEMO_NAME = "ala";
 constexpr const char *DEMO_NAME1 = "ala1";
 constexpr const char *DEMO_TYPE = "_hellomdns._tcp";
@@ -159,6 +163,50 @@ void MDnsServerTest::SetUp() {}
 
 void MDnsServerTest::TearDown() {}
 
+
+struct MdnsClientTestParams {
+    MDnsServiceInfo info;
+    MDnsServiceInfo infoBack;
+    sptr<MDnsTestRegistrationCallback> registration;
+    sptr<MDnsTestRegistrationCallback> registrationBack;
+    sptr<MDnsTestDiscoveryCallback> discovery;
+    sptr<MDnsTestDiscoveryCallback> discoveryBack;
+    sptr<MDnsTestResolveCallback> resolve;
+    sptr<MDnsTestResolveCallback> resolveBack;
+};
+
+void DoTestForMdnsClient(MdnsClientTestParams param)
+{
+    std::unique_lock<std::mutex> lock(g_mtx);
+    DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(param.info, param.registration);
+    DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(param.infoBack, param.registrationBack);
+    if (!g_cv.wait_for(lock, std::chrono::seconds(TIME_FIVE_MS), []() { return g_register == TIME_TWO_MS; })) {
+        FAIL();
+    }
+    DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(param.info.type, param.discovery);
+    DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(param.info.type, param.discoveryBack);
+    if (!g_cv.wait_for(lock, std::chrono::seconds(TIME_FIVE_MS), []() { return g_found >= TIME_FOUR_MS; })) {
+        FAIL();
+    }
+    DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(param.info, param.resolve);
+    if (!g_cv.wait_for(lock, std::chrono::seconds(TIME_FIVE_MS), []() { return g_resolve >= TIME_ONE_MS; })) {
+        FAIL();
+    }
+    DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(param.infoBack, param.resolveBack);
+    if (!g_cv.wait_for(lock, std::chrono::seconds(TIME_FIVE_MS), []() { return g_resolve >= TIME_TWO_MS; })) {
+        FAIL();
+    }
+    DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(param.registration);
+    DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(param.registrationBack);
+    if (!g_cv.wait_for(lock, std::chrono::seconds(TIME_FIVE_MS), []() { return g_lost >= TIME_FOUR_MS; })) {
+        FAIL();
+    }
+    DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(param.discovery);
+    DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(param.discoveryBack);
+
+    std::this_thread::sleep_for(std::chrono::seconds(TIME_ONE_MS));
+}
+
 /**
  * @tc.name: ServiceTest001
  * @tc.desc: Test mDNS register and found.
@@ -167,66 +215,39 @@ void MDnsServerTest::TearDown() {}
 HWTEST_F(MDnsClientTest, ClientTest001, TestSize.Level1)
 {
     MDnsServiceInfo info;
-    MDnsServiceInfo info1;
+    MDnsServiceInfo infoBack;
     info.name = DEMO_NAME;
     info.type = DEMO_TYPE;
     info.port = DEMO_PORT;
     info.SetAttrMap(g_txt);
-    info1 = info;
-    info1.name = DEMO_NAME1;
-    info1.port = DEMO_PORT1;
+    infoBack = info;
+    infoBack.name = DEMO_NAME1;
+    infoBack.port = DEMO_PORT1;
 
     auto client = DelayedSingleton<MDnsClient>::GetInstance();
     sptr<MDnsTestRegistrationCallback> registration(new (std::nothrow) MDnsTestRegistrationCallback(info));
-    sptr<MDnsTestRegistrationCallback> registration1(new (std::nothrow) MDnsTestRegistrationCallback(info1));
-    sptr<MDnsTestDiscoveryCallback> discovery(new (std::nothrow) MDnsTestDiscoveryCallback({info, info1}));
-    sptr<MDnsTestDiscoveryCallback> discovery1(new (std::nothrow) MDnsTestDiscoveryCallback({info, info1}));
+    sptr<MDnsTestRegistrationCallback> registrationBack(new (std::nothrow) MDnsTestRegistrationCallback(infoBack));
+    sptr<MDnsTestDiscoveryCallback> discovery(new (std::nothrow) MDnsTestDiscoveryCallback({info, infoBack}));
+    sptr<MDnsTestDiscoveryCallback> discoveryBack(new (std::nothrow) MDnsTestDiscoveryCallback({info, infoBack}));
     sptr<MDnsTestResolveCallback> resolve(new (std::nothrow) MDnsTestResolveCallback(info));
-    sptr<MDnsTestResolveCallback> resolve1(new (std::nothrow) MDnsTestResolveCallback(info1));
+    sptr<MDnsTestResolveCallback> resolveBack(new (std::nothrow) MDnsTestResolveCallback(infoBack));
     ASSERT_NE(registration, nullptr);
-    ASSERT_NE(registration1, nullptr);
+    ASSERT_NE(registrationBack, nullptr);
     ASSERT_NE(discovery, nullptr);
-    ASSERT_NE(discovery1, nullptr);
+    ASSERT_NE(discoveryBack, nullptr);
     ASSERT_NE(resolve, nullptr);
-    ASSERT_NE(resolve1, nullptr);
+    ASSERT_NE(resolveBack, nullptr);
 
-    std::unique_lock<std::mutex> lock(g_mtx);
-
-    client->RegisterService(info, registration);
-    client->RegisterService(info1, registration1);
-
-    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_register == 2; })) {
-        FAIL();
-    }
-
-    client->StartDiscoverService(info.type, discovery);
-    client->StartDiscoverService(info.type, discovery1);
-
-    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_found >= 4; })) {
-        FAIL();
-    }
-
-    client->ResolveService(info, resolve);
-    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 1; })) {
-        FAIL();
-    }
-
-    client->ResolveService(info1, resolve1);
-    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_resolve >= 2; })) {
-        FAIL();
-    }
-
-    client->UnRegisterService(registration);
-    client->UnRegisterService(registration1);
-
-    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_lost >= 4; })) {
-        FAIL();
-    }
-
-    client->StopDiscoverService(discovery);
-    client->StopDiscoverService(discovery1);
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    MdnsClientTestParams mdnsClientTestParams;
+    mdnsClientTestParams.info = info;
+    mdnsClientTestParams.infoBack = infoBack;
+    mdnsClientTestParams.registration = registration;
+    mdnsClientTestParams.registrationBack = registrationBack;
+    mdnsClientTestParams.discovery = discovery;
+    mdnsClientTestParams.discoveryBack = discoveryBack;
+    mdnsClientTestParams.resolve = resolve;
+    mdnsClientTestParams.resolveBack = resolveBack;
+    DoTestForMdnsClient(mdnsClientTestParams);
 }
 
 HWTEST_F(MDnsServerTest, ServerTest, TestSize.Level1)

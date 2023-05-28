@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -522,27 +522,11 @@ void NetworkShareSubStateMachineFuzzTest(const uint8_t *data, size_t size)
     networkShareSubStateMachine->GetUpIfaceName(upIface);
 }
 
-void NetworkShareSubStateMachinePrivateFuzzTest(const uint8_t *data, size_t size)
+void DonetworkShareSubStateMachine(std::unique_ptr<NetworkShareSubStateMachine> &networkShareSubStateMachine,
+                                   std::shared_ptr<UpstreamNetworkInfo> upstreamNetInfo,
+                                   std::shared_ptr<INetAddr> addr,
+                                   std::string str)
 {
-    NETMGR_EXT_LOG_D("NetworkShareSubStateMachinePrivateFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-    std::shared_ptr<NetworkShareConfiguration> config;
-    std::string str = GetStringFromData(IFACE_LEN);
-    SharingIfaceType interfaceType = static_cast<SharingIfaceType>(GetData<uint32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE);
-    auto networkShareSubStateMachine = std::make_unique<NetworkShareSubStateMachine>(str, interfaceType, config);
-    sptr<NetHandle> handle = new (std::nothrow) NetHandle(GetData<int32_t>());
-    sptr<NetAllCapabilities> netcap = new (std::nothrow) NetManagerStandard::NetAllCapabilities();
-    sptr<NetLinkInfo> link = new (std::nothrow) NetManagerStandard::NetLinkInfo();
-    std::shared_ptr<UpstreamNetworkInfo> upstreamNetInfo = std::make_shared<UpstreamNetworkInfo>(handle, netcap, link);
-    std::shared_ptr<INetAddr> addr = std::make_shared<INetAddr>();
-    addr->family_ = GetData<int8_t>();
-    addr->prefixlen_ = GetData<int8_t>();
-    addr->address_ = str;
-    addr->netMask_ = str;
-    addr->hostName_ = str;
-    addr->port_ = GetData<int8_t>();
     networkShareSubStateMachine->CreateInitStateTable();
     networkShareSubStateMachine->CreateSharedStateTable();
     networkShareSubStateMachine->InitStateEnter();
@@ -573,6 +557,30 @@ void NetworkShareSubStateMachinePrivateFuzzTest(const uint8_t *data, size_t size
     networkShareSubStateMachine->GetUsbDestinationAddr(str);
     networkShareSubStateMachine->CheckConfig(str, str);
     networkShareSubStateMachine->FindDestinationAddr(str);
+}
+
+void NetworkShareSubStateMachinePrivateFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("NetworkShareSubStateMachinePrivateFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+    std::shared_ptr<NetworkShareConfiguration> config;
+    std::string str = GetStringFromData(IFACE_LEN);
+    SharingIfaceType interfaceType = static_cast<SharingIfaceType>(GetData<uint32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE);
+    auto networkShareSubStateMachine = std::make_unique<NetworkShareSubStateMachine>(str, interfaceType, config);
+    sptr<NetHandle> handle = new (std::nothrow) NetHandle(GetData<int32_t>());
+    sptr<NetAllCapabilities> netcap = new (std::nothrow) NetManagerStandard::NetAllCapabilities();
+    sptr<NetLinkInfo> link = new (std::nothrow) NetManagerStandard::NetLinkInfo();
+    std::shared_ptr<UpstreamNetworkInfo> upstreamNetInfo = std::make_shared<UpstreamNetworkInfo>(handle, netcap, link);
+    std::shared_ptr<INetAddr> addr = std::make_shared<INetAddr>();
+    addr->family_ = GetData<int8_t>();
+    addr->prefixlen_ = GetData<int8_t>();
+    addr->address_ = str;
+    addr->netMask_ = str;
+    addr->hostName_ = str;
+    addr->port_ = GetData<int8_t>();
+    DonetworkShareSubStateMachine(networkShareSubStateMachine, upstreamNetInfo, addr, str);
 }
 
 void UpstreammonitorFuzzTest(const uint8_t *data, size_t size)

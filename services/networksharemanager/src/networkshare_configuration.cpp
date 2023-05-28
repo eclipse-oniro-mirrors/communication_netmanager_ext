@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -199,6 +199,33 @@ void NetworkShareConfiguration::ParseRegexsData(std::vector<std::string> &regexs
     }
 }
 
+void NetworkShareConfiguration::ParseConfigData(Config_Value cfgValue, std::string &strVal)
+{
+    if (cfgValue == Config_Value::CONFIG_VALUE_BT_PAN_ADDR) {
+        btPanIpv4Str_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_WIFI_HOTSPOT_ADDR) {
+        wifiIpv4Str_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_USB_RNDIS_ADDR) {
+        usbIpv4Str_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_BT_PAN_DHCP_NAME) {
+        btPanDhcpServerName_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_WIFI_DHCP_NAME) {
+        wifiDhcpServerName_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_USB_DHCP_NAME) {
+        usbDhcpServerName_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_USB_IFACE_NAME) {
+        usbIfaceName_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_ROUTE_SUFFIX) {
+        routeSuffix_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_DHCP_ENDIP) {
+        dhcpEndIP_ = strVal;
+    } else if (cfgValue == Config_Value::CONFIG_VALUE_DEFAULT_MASK) {
+        defaultMask_ = strVal;
+    } else {
+        NETMGR_EXT_LOG_E("unknow Config_Value.");
+    }
+}
+
 void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &strVal)
 {
     switch (configMap_[strKey]) {
@@ -216,40 +243,22 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
         case Config_Value::CONFIG_VALUE_BLUETOOTH_REGEXS:
             ParseRegexsData(blueToothRegexs_, strVal);
             break;
-        case Config_Value::CONFIG_VALUE_BT_PAN_ADDR:
-            btPanIpv4Str_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_WIFI_HOTSPOT_ADDR:
-            wifiIpv4Str_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_USB_RNDIS_ADDR:
-            usbIpv4Str_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_BT_PAN_DHCP_NAME:
-            btPanDhcpServerName_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_WIFI_DHCP_NAME:
-            wifiDhcpServerName_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_USB_DHCP_NAME:
-            usbDhcpServerName_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_USB_IFACE_NAME:
-            usbIfaceName_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_ROUTE_SUFFIX:
-            routeSuffix_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_DHCP_ENDIP:
-            dhcpEndIP_ = strVal;
-            break;
-        case Config_Value::CONFIG_VALUE_DEFAULT_MASK:
-            defaultMask_ = strVal;
-            break;
         case Config_Value::CONFIG_VALUE_WIFI_SET_DHCP:
             if (strVal == VALUE_SUPPORT_TRUE) {
                 isWifiHotspotSetDhcp_ = true;
             }
+            break;
+        case Config_Value::CONFIG_VALUE_BT_PAN_ADDR:
+        case Config_Value::CONFIG_VALUE_WIFI_HOTSPOT_ADDR:
+        case Config_Value::CONFIG_VALUE_USB_RNDIS_ADDR:
+        case Config_Value::CONFIG_VALUE_BT_PAN_DHCP_NAME:
+        case Config_Value::CONFIG_VALUE_WIFI_DHCP_NAME:
+        case Config_Value::CONFIG_VALUE_USB_DHCP_NAME:
+        case Config_Value::CONFIG_VALUE_USB_IFACE_NAME:
+        case Config_Value::CONFIG_VALUE_ROUTE_SUFFIX:
+        case Config_Value::CONFIG_VALUE_DHCP_ENDIP:
+        case Config_Value::CONFIG_VALUE_DEFAULT_MASK:
+            ParseConfigData(configMap_[strKey], strVal);
             break;
         default:
             NETMGR_EXT_LOG_E("strKey:%{public}s is unknown data.", strKey.c_str());
