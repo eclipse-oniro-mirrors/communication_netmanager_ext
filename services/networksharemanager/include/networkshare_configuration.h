@@ -125,7 +125,7 @@ private:
     std::vector<std::string> ReadConfigFile();
     void ParseLineData(std::string &strKey, std::string &strVal);
     void ParseRegexsData(std::vector<std::string> &regexs, std::string &strVal);
-    
+
 private:
     enum class Config_Value {
         CONFIG_VALUE_SHARE_SUPPORT,
