@@ -78,7 +78,7 @@ ohos_shared_library("net_tether_manager_if") {
   deps = [ ":networkshare_parcel" ]
 
   external_deps = [
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 
@@ -97,6 +97,7 @@ ohos_shared_library("net_tether_manager_if") {
     external_deps += [ "hilog:libhilog" ]
   }
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }

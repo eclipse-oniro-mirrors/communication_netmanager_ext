@@ -23,12 +23,12 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-static constexpr const char *ERROR_MSG_TRUNON = "Turn on Ip Forward failed";
-static constexpr const char *ERROR_MSG_TRUNOFF = "Turn off Ip Forward failed";
-static constexpr const char *ERROR_MSG_ENABLE_FORWARD = "Enable Forward failed";
-static constexpr const char *ERROR_MSG_DISABLE_FORWARD = "Disable Forward failed";
-static constexpr const char *FAKE_DOWNSTREAM_IFACENAME = "";
-static constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
+constexpr const char *ERROR_MSG_TRUNON = "Turn on Ip Forward failed";
+constexpr const char *ERROR_MSG_TRUNOFF = "Turn off Ip Forward failed";
+constexpr const char *ERROR_MSG_ENABLE_FORWARD = "Enable Forward failed";
+constexpr const char *ERROR_MSG_DISABLE_FORWARD = "Disable Forward failed";
+constexpr const char *FAKE_DOWNSTREAM_IFACENAME = "";
+constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 
 NetworkShareMainStateMachine::NetworkShareMainStateMachine(std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor)
     : netshareRequester_("netsharing_requester"), networkMonitor_(networkmonitor)

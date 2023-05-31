@@ -35,16 +35,16 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
-static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
-static constexpr const char *ERROR_MSG_ENABLE_WIFI = "Enable Wifi Iface failed";
-static constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed";
+constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
+constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
+constexpr const char *ERROR_MSG_ENABLE_WIFI = "Enable Wifi Iface failed";
+constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed";
 #ifdef BLUETOOTH_MODOULE
-static constexpr const char *ERROR_MSG_ENABLE_BTPAN = "Enable BlueTooth Iface failed";
-static constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed";
+constexpr const char *ERROR_MSG_ENABLE_BTPAN = "Enable BlueTooth Iface failed";
+constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed";
 #endif
-static constexpr int32_t BYTE_TRANSFORM_KB = 1024;
-static constexpr int32_t MAX_CALLBACK_COUNT = 100;
+constexpr int32_t BYTE_TRANSFORM_KB = 1024;
+constexpr int32_t MAX_CALLBACK_COUNT = 100;
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAddressUpdated(const std::string &, const std::string &, int,
                                                                        int)
