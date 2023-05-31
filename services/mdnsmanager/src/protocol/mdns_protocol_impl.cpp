@@ -256,14 +256,13 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
         return false;
     }
 
-    NETMGR_EXT_LOG_D("name : [%{public}s]", name.c_str());
-
+    NETMGR_EXT_LOG_D("rr.name : [%{public}s]", name.c_str());
     Result r = cacheMap_[name];
     if (IsDomainCacheAvailable(r.domain)) {
         r.ipv6 = cacheMap_[r.domain].ipv6;
         r.addr = cacheMap_[r.domain].addr;
 
-        NETMGR_EXT_LOG_D("Add Task DomainCache Available : [%{public}s]", r.domain.c_str());
+        NETMGR_EXT_LOG_D("Add Task DomainCache Available, [%{public}s]", r.domain.c_str());
         AddTask([cb, info = ConvertResultToInfo(r)]() {
             if (nullptr != cb) {
                 cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
@@ -274,7 +273,7 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
         ResolveFromNet(r.domain, nullptr);
         // key is serviceName
 
-        NETMGR_EXT_LOG_D("Add Event DomainCache UnAvailable : [%{public}s]", r.domain.c_str());
+        NETMGR_EXT_LOG_D("Add Event DomainCache UnAvailable, [%{public}s]", r.domain.c_str());
         AddEvent(r.domain, [this, cb, r]() mutable {
             if (!IsDomainCacheAvailable(r.domain)) {
                 return false;
@@ -404,7 +403,6 @@ int32_t MDnsProtocolImpl::Announce(const Result &info, bool off)
 
 void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
 {
-//    NETMGR_EXT_LOG_D("receive packet size: [%{public}u]", payload.size());
     if (payload.size() == 0) {
         return;
     }
@@ -434,7 +432,6 @@ void MDnsProtocolImpl::AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlis
 
 void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
 {
-//    NETMGR_EXT_LOG_D("ProcessQuestion message");
     const sockaddr *saddrIf = listener_.GetSockAddr(sock);
     if (saddrIf == nullptr) {
         return;

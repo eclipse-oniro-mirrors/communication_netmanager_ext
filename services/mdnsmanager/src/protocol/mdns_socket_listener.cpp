@@ -21,18 +21,18 @@
 #include <cstring>
 #include <iostream>
 
+#include "securec.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <sys/ioctl.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#include "securec.h"
 
 #include "netmgr_ext_log_wrapper.h"
 
@@ -500,7 +500,6 @@ ssize_t MDnsSocketListener::MulticastAll(const MDnsPayload &payload)
     ssize_t total = 0;
     for (size_t i = 0; i < socks_.size() && i < MDNS_MAX_SOCKET; ++i) {
         ssize_t sendLen = Multicast(socks_[i], payload);
-    //    NETMGR_EXT_LOG_D("sendto return: [%{public}zd]", sendLen);
         if (sendLen == -1) {
             return sendLen;
         }
