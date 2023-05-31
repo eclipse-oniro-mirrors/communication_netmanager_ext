@@ -50,7 +50,7 @@ public:
      * @param serviceInfo.type Service instance type
      * @param serviceInfo.port Service instance port
      * @param cb callback object
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -60,7 +60,7 @@ public:
      * UnRegister mDNS service instance
      *
      * @param cb callback object used in RegisterService
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -71,7 +71,7 @@ public:
      *
      * @param serviceType Service instance type
      * @param cb callback object
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -81,7 +81,7 @@ public:
      * Stop browse mDNS service instance by service type
      *
      * @param cb callback object used in StartDiscoverService
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -94,7 +94,7 @@ public:
      * @param serviceInfo.type Service instance type
      * @param serviceInfo.port Service instance port
      * @param cb callback object
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */

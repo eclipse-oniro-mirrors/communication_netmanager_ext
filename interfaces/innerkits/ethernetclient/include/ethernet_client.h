@@ -34,7 +34,7 @@ public:
      *
      * @param iface interface name
      * @param ic interface configuration
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -45,7 +45,7 @@ public:
      *
      * @param iface interface name
      * @param ifaceConfig interface configuration
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -56,7 +56,7 @@ public:
      *
      * @param iface interface name
      * @param activeStatus active status
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -66,7 +66,7 @@ public:
      *  Gets the list of active devices
      *
      * @param activeIfaces list of active interface
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -75,7 +75,7 @@ public:
     /**
      *  Reset all configuration information
      *
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -105,7 +105,7 @@ public:
      *  Set the specified network port up
      *
      * @param iface interface name
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -115,7 +115,7 @@ public:
      *  Set the specified network port down
      *
      * @param iface interface name
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -126,7 +126,7 @@ public:
      *
      * @param iface interface name
      * @param cfg interface configuration
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
@@ -137,7 +137,7 @@ public:
      *
      * @param iface interface name
      * @param cfg interface configuration
-     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
