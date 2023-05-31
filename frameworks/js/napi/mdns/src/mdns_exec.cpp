@@ -51,6 +51,7 @@ bool MDnsExec::ExecRemoveLocalService(MDnsRemoveLocalServiceContext *context)
 
 bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
 {
+    NETMANAGER_EXT_LOGD("execute ResolveLocalService");
     auto ret =
         DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(context->GetServiceInfo(), context->GetObserver());
     if (ret != NETMANAGER_EXT_SUCCESS) {
@@ -61,7 +62,6 @@ bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
 
     sptr<IResolveCallback> callback = context->GetObserver();
     MDnsResolveObserver *observer = static_cast<MDnsResolveObserver *>(callback.GetRefPtr());
-
     if (observer == nullptr) {
         context->SetErrorCode(NET_MDNS_ERR_UNKNOWN);
         return false;

@@ -436,6 +436,7 @@ ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
 {
     const sockaddr *saddrIf = GetSockAddr(sock);
     if (saddrIf == nullptr) {
+        NETMGR_EXT_LOG_E("GetSockAddr failed");
         return -1;
     }
 
@@ -472,7 +473,7 @@ ssize_t MDnsSocketListener::MulticastAll(const MDnsPayload &payload)
     ssize_t total = 0;
     for (size_t i = 0; i < socks_.size() && i < MDNS_MAX_SOCKET; ++i) {
         ssize_t sendLen = Multicast(socks_[i], payload);
-        NETMGR_EXT_LOG_D("sendto return: [%{public}zd]", sendLen);
+    //    NETMGR_EXT_LOG_D("sendto return: [%{public}zd]", sendLen);
         if (sendLen == -1) {
             return sendLen;
         }

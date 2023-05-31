@@ -82,4 +82,6 @@ static void NetManagerStandardPrintLog(const char *fmt, ...)
 
 #define NETMANAGER_EXT_LOGI(fmt, ...) NETMANAGER_EXT_HILOG_PRINT(Info, fmt, ##__VA_ARGS__)
 
+#define NETMANAGER_EXT_LOGD(fmt, ...) NETMANAGER_EXT_HILOG_PRINT(Debug, fmt, ##__VA_ARGS__)
+
 #endif /* COMMUNICATIONNETMANAGER_EXT_NETMANAGER_EXT_LOG */
