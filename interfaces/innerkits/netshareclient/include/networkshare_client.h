@@ -47,6 +47,8 @@ public:
      *
      * @param supported NETWORKSHARE_IS_SUPPORTED(1) if supported, other is NETWORKSHARE_IS_UNSUPPORTED(0)
      * @return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t IsSharingSupported(int32_t &supported);
 
@@ -55,6 +57,8 @@ public:
      *
      * @param sharingStatus NETWORKSHARE_IS_SHARING(1) if sharing running, others is NETWORKSHARE_IS_UNSHARING(0)
      * @return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t IsSharing(int32_t &sharingStatus);
 
@@ -63,6 +67,8 @@ public:
      *
      * @param type network sharing type, including Wifi, Bluetooth, USB
      * @return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t StartSharing(const SharingIfaceType &type);
 
@@ -71,6 +77,8 @@ public:
      *
      * @param type network sharing type, including Wifi, Bluetooth, USB
      * @return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t StopSharing(const SharingIfaceType &type);
 
@@ -79,6 +87,8 @@ public:
      *
      * @param callback if this fuction return NETMANAGER_EXT_SUCCESS(2200000), this callback will be called by service
      * @return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback);
 
@@ -88,6 +98,8 @@ public:
      * @param callback if this fuction return NETMANAGER_EXT_SUCCESS(2200000), this callback will not be called by
      * service
      * @return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback);
 
@@ -96,7 +108,10 @@ public:
      * like these "usb\d" "wlan\d" "bt-pan"
      *
      * @param type the network sharing type, including Wifi, Bluetooth, USB
-     * @return regexs vector
+     * @param ifaceRegexs get list of interface sharable regex
+     * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetSharableRegexs(const SharingIfaceType &type, std::vector<std::string> &ifaceRegexs);
 
@@ -106,16 +121,19 @@ public:
      * @param type the network sharing type, including Wifi, Bluetooth, USB
      * @param state the network sharing state, includes services, can services, errors
      * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetSharingState(const SharingIfaceType &type, SharingIfaceState &state);
 
     /**
-     * get interface name by sharing state
-     * like these "usb0" "wlan0" "bt-pan"
+     * get interface name by sharing state, like these "usb0" "wlan0" "bt-pan"
      *
      * @param state the network sharing state, includes services, can services, errors
      * @param ifaces interface name vector
      * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces);
 
@@ -124,6 +142,8 @@ public:
      *
      * @param bytes network traffic data unit is KB
      * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetStatsRxBytes(int32_t &bytes);
 
@@ -132,6 +152,8 @@ public:
      *
      * @param bytes network traffic data unit is KB
      * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetStatsTxBytes(int32_t &bytes);
 
@@ -140,11 +162,10 @@ public:
      *
      * @param bytes network traffic data unit is KB
      * @return Return NETMANAGER_EXT_SUCCESS(2200000) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetStatsTotalBytes(int32_t &bytes);
-
-private:
-    void RestartNetTetheringManagerSysAbility();
 
 private:
     class NetshareDeathRecipient : public IRemoteObject::DeathRecipient {

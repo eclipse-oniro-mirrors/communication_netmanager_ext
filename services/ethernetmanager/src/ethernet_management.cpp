@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include <regex>
 #include <thread>
+#include <pthread.h>
 #include <unistd.h>
 
 #include "net_manager_constants.h"
@@ -27,8 +28,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 const std::string IFACE_MATCH = "eth\\d";
-constexpr const char *IFACE_LINK_UP = "up";
-constexpr const char *IFACE_RUNNING = "running";
 constexpr int SLEEP_TIME_S = 2;
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
@@ -293,12 +292,11 @@ void EthernetManagement::Init()
 
 void EthernetManagement::StartSetDevUpThd()
 {
+    std::string threadName = "StartSetDevUpThd";
+    pthread_setname_np(pthread_self(), threadName.c_str());
     NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
     for (auto &dev : devs_) {
         std::string devName = dev.first;
-        if (IsIfaceLinkUp(devName)) {
-            continue;
-        }
         while (true) {
             if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
                 sleep(SLEEP_TIME_S);
@@ -307,21 +305,6 @@ void EthernetManagement::StartSetDevUpThd()
             break;
         }
     }
-}
-
-bool EthernetManagement::IsIfaceLinkUp(const std::string &iface)
-{
-    OHOS::nmd::InterfaceConfigurationParcel config;
-    config.ifName = iface;
-    if (NetsysController::GetInstance().GetInterfaceConfig(config) != ERR_NONE) {
-        return false;
-    }
-    if (std::find(config.flags.begin(), config.flags.end(), IFACE_LINK_UP) == config.flags.end() ||
-        std::find(config.flags.begin(), config.flags.end(), IFACE_RUNNING) == config.flags.end()) {
-        return false;
-    }
-    UpdateInterfaceState(iface, true);
-    return true;
 }
 
 void EthernetManagement::StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)

@@ -45,6 +45,8 @@ public:
      * @param isRun if isExistVpn=true, check the vpn is running or not
      * @param pkg Indicates which application the current vpn belongs to
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t Prepare(bool &isExistVpn, bool &isRun, std::string &pkg);
 
@@ -54,6 +56,8 @@ public:
      *
      * @param socketFd extended vpn opened soecket fd
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t Protect(uint32_t socketFd);
 
@@ -63,6 +67,8 @@ public:
      * @param config VPN interface parameters
      * @param tunFd the virtual interface fd(out param)
      * @return the interface node's file descriptor(>0) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t SetUp(sptr<VpnConfig> config, int32_t &tunFd);
 
@@ -70,6 +76,8 @@ public:
      * stop the vpn connection, system will destroy the vpn network.
      *
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t DestroyVpn();
 
@@ -78,6 +86,8 @@ public:
      *
      * @param callback if this fuction return NETMANAGER_EXT_SUCCESS(0), this callback will be called by service
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t RegisterVpnEvent(sptr<IVpnEventCallback> callback);
 
@@ -86,6 +96,8 @@ public:
      *
      * @param callback if this fuction return NETMANAGER_EXT_SUCCESS(0), this callback will not be called by service
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t UnregisterVpnEvent(sptr<IVpnEventCallback> callback);
 
