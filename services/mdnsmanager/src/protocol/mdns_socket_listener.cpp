@@ -261,7 +261,7 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
             loaddr = ifa;
         }
         if (SetIfMulticast(ifa->ifa_name) && !IfaceIsSupported(ifa)) {
-            NETMGR_EXT_LOG_I("iface [%{public}s] flag is not supported", ifa->ifa_name);
+            NETMGR_EXT_LOG_I("iface [%{public}s] flag is mismatch", ifa->ifa_name);
             continue;
         }
         if (ifa->ifa_addr == nullptr) {

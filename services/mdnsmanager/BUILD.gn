@@ -110,6 +110,7 @@ ohos_static_library("mdns_manager_static") {
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
 
   external_deps = [
