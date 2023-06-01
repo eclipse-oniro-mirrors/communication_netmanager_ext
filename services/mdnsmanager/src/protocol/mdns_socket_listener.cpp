@@ -264,9 +264,6 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
             NETMGR_EXT_LOG_I("iface [%{public}s] flag is mismatch", ifa->ifa_name);
             continue;
         }
-        if (ifa->ifa_addr == nullptr) {
-            continue;
-        }
         if (ifa->ifa_addr->sa_family == AF_INET &&
             !InetAddrV4IsLoopback(&reinterpret_cast<sockaddr_in *>(ifa->ifa_addr)->sin_addr)) {
             OpenSocketV4(ifa);
