@@ -20,6 +20,11 @@ config("mdns_manager_config") {
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
+    "$BASE_INNERKITS_ROOT/include",
+    "$BASE_INNERKITS_ROOT/netmanagernative/include",
+    "$BASE_INNERKITS_ROOT/netstatsclient/include",
+    "$NETMANAGERNATIVE_ROOT/include/netsys",
+    "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
     "include",
     "include/stub",
@@ -43,6 +48,7 @@ ohos_shared_library("mdns_manager") {
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
 
   cflags = [

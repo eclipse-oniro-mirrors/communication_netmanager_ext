@@ -33,6 +33,7 @@
 #include <unistd.h>
 
 #include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -44,6 +45,7 @@ constexpr in6_addr MDNS_MULTICAST_IN6ADDR = {
     {{0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB}}};
 
 constexpr const char *CONTROL_TAG_REFRESH = "R";
+constexpr const char *WLAN_IF_NAME = "wlan";
 
 constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
@@ -97,9 +99,11 @@ int InitSocketV4(int sock, ifaddrs *ifa, int port)
     const int maxtll = 255;
 
     if (sock < 0) {
+        NETMGR_EXT_LOG_E("sock [%{public}d] error", sock);
         return -1;
     }
     if (port != 0 && InitReusedSocket(sock) < 0) {
+        NETMGR_EXT_LOG_E("InitReusedSocket error");
         return -1;
     }
 
@@ -109,6 +113,7 @@ int InitSocketV4(int sock, ifaddrs *ifa, int port)
         (setsockopt(sock, IPPROTO_IP, IP_TTL, reinterpret_cast<const char *>(&maxtll), sizeof(maxtll)) == 0) &&
         (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast<const char *>(&maxtll), sizeof(maxtll)) == 0);
     if (!allOK) {
+        NETMGR_EXT_LOG_E("setsockopt IP_MULTICAST_LOOP|IP_PKTINFO|IP_TTL|IP_MULTICAST_TTL error");
         return -1;
     }
 
@@ -122,6 +127,7 @@ int InitSocketV4(int sock, ifaddrs *ifa, int port)
         (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast<const char *>(&mreq.imr_interface),
                     sizeof(in_addr)) == 0);
     if (!allOK) {
+        NETMGR_EXT_LOG_E("setsockopt IP_ADD_MEMBERSHIP|IP_MULTICAST_IF error");
         return -1;
     }
 
@@ -228,6 +234,15 @@ void MDnsSocketListener::Stop()
     }
 }
 
+int32_t MDnsSocketListener::SetIfMulticast(const char *ifaceName)
+{
+    if (strncmp(ifaceName, WLAN_IF_NAME, strlen(WLAN_IF_NAME))) {
+        NETMGR_EXT_LOG_D("Configure only wlan network card, [%{public}s]", ifaceName);
+        return -1;
+    }
+    return NetsysController::GetInstance().InterfaceSetIffUp(ifaceName);
+}
+
 void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 {
     ifaddrs *ifaddr = nullptr;
@@ -245,8 +260,8 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
         if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
             loaddr = ifa;
         }
-        if (!IfaceIsSupported(ifa)) {
-            NETMGR_EXT_LOG_I("Set multicast only for wlan network card, %{public}s", ifaceName);
+        if (SetIfMulticast(ifa->ifa_name) && !IfaceIsSupported(ifa)) {
+            NETMGR_EXT_LOG_I("iface [%{public}s] flag is not supported", ifa->ifa_name);
             continue;
         }
         if (ifa->ifa_addr == nullptr) {
