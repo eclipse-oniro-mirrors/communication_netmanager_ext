@@ -415,7 +415,7 @@ void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
     if ((msg.header.flags & DNSProto::HEADER_FLAGS_QR_MASK) == 0) {
         ProcessQuestion(sock, msg);
     } else {
-        NETMGR_EXT_LOG_D("ProcessAnswer message, [%{public}u]", payload.size());
+        NETMGR_EXT_LOG_D("ProcessAnswer message, [%{public}zu]", payload.size());
         ProcessAnswer(sock, msg);
     }
 }

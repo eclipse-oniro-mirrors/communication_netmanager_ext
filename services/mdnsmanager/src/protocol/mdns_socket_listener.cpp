@@ -21,7 +21,6 @@
 #include <cstring>
 #include <iostream>
 
-#include "securec.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
@@ -230,30 +229,6 @@ void MDnsSocketListener::Stop()
     }
 }
 
-int MDnsSocketListener::SetIfMulticast(const char *ifaceName)
-{
-    struct ifreq ifr;
-    if (memset_s(&ifr, sizeof(ifr), 0, sizeof(ifr)) != EOK) {
-        NETMGR_EXT_LOG_E("memset_s is false");
-        return -1;
-    }
-
-    if (strncpy_s(ifr.ifr_name, IFNAMSIZ, ifaceName, strlen(ifaceName)) != EOK) {
-        NETMGR_EXT_LOG_E("strncpy_s is false");
-        return -1;
-    }
-
-    ifr.ifr_flags = IFF_MULTICAST;
-    int32_t inetSocket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (ioctl(inetSocket, SIOCSIFFLAGS, &ifr) < 0) {
-        NETMGR_EXT_LOG_E("set iface up ioctl SIOCSIFFLAGS error: %{public}s", strerror(errno));
-        close(inetSocket);
-        return -1;
-    }
-    close(inetSocket);
-    return 0;
-}
-
 void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 {
     ifaddrs *ifaddr = nullptr;
@@ -272,6 +247,7 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
             loaddr = ifa;
         }
         if (!IfaceIsSupported(ifa)) {
+            NETMGR_EXT_LOG_I("Set multicast only for wlan network card, %{public}s", ifaceName);
             continue;
         }
         if (ifa->ifa_addr == nullptr) {
@@ -280,7 +256,6 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
         if (ifa->ifa_addr->sa_family == AF_INET &&
             !InetAddrV4IsLoopback(&reinterpret_cast<sockaddr_in *>(ifa->ifa_addr)->sin_addr)) {
             OpenSocketV4(ifa);
-            SetIfMulticast(ifa->ifa_name);
         } else if (ipv6Support && ifa->ifa_addr->sa_family == AF_INET6 &&
                    !InetAddrV6IsLoopback(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) &&
                    !reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id) {

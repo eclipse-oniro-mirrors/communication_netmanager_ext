@@ -46,7 +46,6 @@ public:
     void CloseAllSocket();
     void Start();
     void Stop();
-    int SetIfMulticast(const char *ifaceName);
     ssize_t MulticastAll(const MDnsPayload &payload);
     void SetReceiveHandler(const ReceiveHandler &callback);
     void SetFinishedHandler(const FinishedHandler &callback);
