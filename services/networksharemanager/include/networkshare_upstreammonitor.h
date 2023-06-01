@@ -27,7 +27,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t INVALID_NETID = -1;
 
 class NetworkShareUpstreamMonitor : public std::enable_shared_from_this<NetworkShareUpstreamMonitor> {
     DECLARE_DELAYED_SINGLETON(NetworkShareUpstreamMonitor)
