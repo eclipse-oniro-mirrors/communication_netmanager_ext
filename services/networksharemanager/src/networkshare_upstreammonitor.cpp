@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t INVALID_NETID = -1;
 constexpr const char *ERROR_MSG_HAS_NOT_UPSTREAM = "Has not Upstream Network";
 constexpr const char *ERROR_MSG_UPSTREAM_ERROR = "Get Upstream Network is Error";
 
