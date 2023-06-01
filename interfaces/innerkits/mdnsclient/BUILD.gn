@@ -68,6 +68,8 @@ ohos_shared_library("mdns_manager_if") {
     "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/proxy/mdns_service_proxy.cpp",
   ]
 
+  version_script = "libmdns_kits.map"
+
   public_configs = [ ":net_mdns_manager_if_config" ]
 
   deps = [
