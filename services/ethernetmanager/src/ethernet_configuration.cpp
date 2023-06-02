@@ -478,20 +478,29 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
 
 void EthernetConfiguration::ParserFileHttpProxy(const std::string &fileContent, const sptr<InterfaceConfiguration> &cfg)
 {
-    std::string::size_type pos = fileContent.find(KEY_PROXY_HOST) + strlen(KEY_PROXY_HOST);
-    cfg->httpProxy_.SetHost(fileContent.substr(pos, fileContent.find(WRAP, pos) - pos));
-
-    pos = fileContent.find(KEY_PROXY_PORT) + strlen(KEY_PROXY_PORT);
-    uint32_t port = CommonUtils::StrToUint(fileContent.substr(pos, fileContent.find(WRAP, pos) - pos));
-    cfg->httpProxy_.SetPort(static_cast<uint16_t>(port));
-
-    pos = fileContent.find(KEY_PROXY_EXCLUSIONS) + strlen(KEY_PROXY_EXCLUSIONS);
-    auto exclusions = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    std::set<std::string> exclusionList;
-    for (const auto &exclusion : CommonUtils::Split(exclusions, EXCLUSIONS_DELIMITER)) {
-        exclusionList.insert(exclusion);
+    std::string::size_type pos = fileContent.find(KEY_PROXY_HOST);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_PROXY_HOST);
+        cfg->httpProxy_.SetHost(fileContent.substr(pos, fileContent.find(WRAP, pos) - pos));
     }
-    cfg->httpProxy_.SetExclusionList(exclusionList);
+
+    pos = fileContent.find(KEY_PROXY_PORT);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_PROXY_PORT);
+        uint32_t port = CommonUtils::StrToUint(fileContent.substr(pos, fileContent.find(WRAP, pos) - pos));
+        cfg->httpProxy_.SetPort(static_cast<uint16_t>(port));
+    }
+
+    pos = fileContent.find(KEY_PROXY_EXCLUSIONS);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_PROXY_EXCLUSIONS);
+        auto exclusions = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
+        std::set<std::string> exclusionList;
+        for (const auto &exclusion : CommonUtils::Split(exclusions, EXCLUSIONS_DELIMITER)) {
+            exclusionList.insert(exclusion);
+        }
+        cfg->httpProxy_.SetExclusionList(exclusionList);
+    }
 }
 
 void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg,
