@@ -32,8 +32,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "net_conn_client.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "netsys_controller.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -57,16 +57,6 @@ inline bool IfaceIsSupported(ifaddrs *ifa)
 {
     return ifa->ifa_addr && ((ifa->ifa_flags & IFF_UP) && (ifa->ifa_flags & IFF_MULTICAST)) &&
            (!(ifa->ifa_flags & IFF_LOOPBACK) && !(ifa->ifa_flags & IFF_POINTOPOINT));
-}
-
-inline bool InetAddrV4IsLoopback(const in_addr *addr)
-{
-    return addr->s_addr == htonl(INADDR_LOOPBACK);
-}
-
-inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
-{
-    return IN6_IS_ADDR_LOOPBACK(addr6);
 }
 
 int InitFdFlags(int sock)
@@ -240,7 +230,12 @@ int32_t MDnsSocketListener::SetIfMulticast(const char *ifaceName)
         NETMGR_EXT_LOG_D("Configure only wlan network card, [%{public}s]", ifaceName);
         return -1;
     }
-    return NetsysController::GetInstance().InterfaceSetIffUp(ifaceName);
+
+    int32_t ret = DelayedSingleton<NetConnClient>::GetInstance()->InterfaceSetIffUp(ifaceName);
+    if (ret) {
+        NETMGR_EXT_LOG_E("InterfaceSetIffUp failed [%{public}s],[%{public}d]", ifaceName, ret);
+    }
+    return ret;
 }
 
 void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
@@ -254,23 +249,23 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
     }
 
     for (ifaddrs *ifa = ifaddr; ifa != nullptr && socks_.size() < MDNS_MAX_SOCKET; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == nullptr) {
+        if (ifa->ifa_addr == nullptr || ifa->ifa_addr->sa_family == AF_PACKET) {
             continue;
         }
         if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
             loaddr = ifa;
-        }
-        if (SetIfMulticast(ifa->ifa_name) && !IfaceIsSupported(ifa)) {
-            NETMGR_EXT_LOG_I("iface [%{public}s] flag is mismatch", ifa->ifa_name);
             continue;
         }
-        if (ifa->ifa_addr->sa_family == AF_INET &&
-            !InetAddrV4IsLoopback(&reinterpret_cast<sockaddr_in *>(ifa->ifa_addr)->sin_addr)) {
+        if (SetIfMulticast(ifa->ifa_name) && !IfaceIsSupported(ifa)) {
+            NETMGR_EXT_LOG_I("iface [%{public}s] is mismatch", ifa->ifa_name);
+            continue;
+        }
+        if (ifa->ifa_addr->sa_family == AF_INET) {
             OpenSocketV4(ifa);
-        } else if (ipv6Support && ifa->ifa_addr->sa_family == AF_INET6 &&
-                   !InetAddrV6IsLoopback(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) &&
-                   !reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id) {
-            OpenSocketV6(ifa);
+        } else if (ifa->ifa_addr->sa_family == AF_INET6) {
+            OpenSocketV6(ifa, ipv6Support);
+        } else {
+            NETMGR_EXT_LOG_E("Network card [%{public}s] has not address", ifa->ifa_name);
         }
     }
 
@@ -305,8 +300,12 @@ void MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
     NETMGR_EXT_LOG_I("iface found, ifa_name=[%{public}s]", ifa->ifa_name);
 }
 
-void MDnsSocketListener::OpenSocketV6(ifaddrs *ifa)
+void MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
 {
+    if (!ipv6Support && reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id) {
+        NETMGR_EXT_LOG_D("ipv6 is not supported");
+        return;
+    }
     sockaddr_in6 *saddr = reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr);
     int sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {

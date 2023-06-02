@@ -61,9 +61,8 @@ private:
     void Run();
     bool CanRefresh();
     void ReceiveInSock(int sock);
-    void HandleSend(int sock);
     void OpenSocketV4(ifaddrs *ifa);
-    void OpenSocketV6(ifaddrs *ifa);
+    void OpenSocketV6(ifaddrs *ifa, bool ipv6Support);
 
     std::vector<int> socks_;
     std::map<int, std::string> iface_;
