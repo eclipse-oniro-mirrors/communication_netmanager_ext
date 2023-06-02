@@ -21,6 +21,7 @@
 #include "gtest/gtest-test-part.h"
 #include "gtest/hwext/gtest-ext.h"
 #include "gtest/hwext/gtest-tag.h"
+#include "http_proxy.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
 #include "nativetoken_kit.h"
@@ -44,6 +45,8 @@ using namespace testing::ext;
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
 constexpr const char *DEV_NAME = "eth0";
+constexpr const char *TEST_PROXY_HOST = "127.0.0.1";
+constexpr uint16_t TEST_PROXY_PORT = 8080;
 HapInfoParams testInfoParms = {.userID = 1,
                                .bundleName = "ethernet_manager_test",
                                .instIndex = 0,
@@ -154,6 +157,8 @@ sptr<InterfaceConfiguration> EtherNetServiceProxyTest::GetIfaceConfig()
     ic->ipStatic_.netMask_.family_ = 0x01;
     ic->ipStatic_.netMask_.netMask_ = "255.255.255.0";
     ic->ipStatic_.netMask_.hostName_ = "netAddr";
+    ic->httpProxy_.SetHost(TEST_PROXY_HOST);
+    ic->httpProxy_.SetPort(TEST_PROXY_PORT);
     INetAddr dns1;
     dns1.type_ = INetAddr::IPV4;
     dns1.family_ = 0x01;

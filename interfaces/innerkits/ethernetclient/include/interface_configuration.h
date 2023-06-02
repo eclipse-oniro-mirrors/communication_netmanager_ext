@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef INTERFACE_CONFIGURATION_H
 #define INTERFACE_CONFIGURATION_H
 
+#include "http_proxy.h"
 #include "static_configuration.h"
 
 namespace OHOS {
@@ -27,6 +28,7 @@ typedef enum {
 struct InterfaceConfiguration : public Parcelable {
     IPSetMode mode_;
     StaticConfiguration ipStatic_;
+    HttpProxy httpProxy_;
 
     virtual bool Marshalling(Parcel &parcel) const override;
     static sptr<InterfaceConfiguration> Unmarshalling(Parcel &parcel);

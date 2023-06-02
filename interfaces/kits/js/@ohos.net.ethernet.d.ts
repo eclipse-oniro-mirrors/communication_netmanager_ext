@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 
 import {AsyncCallback, Callback} from "./basic";
+import { connection } from './@ohos.net.connection';
 
 /**
  * Provides interfaces to manage ethernet.
@@ -22,6 +23,7 @@ import {AsyncCallback, Callback} from "./basic";
  * @syscap SystemCapability.Communication.NetManager.Ethernet
  */
 declare namespace ethernet {
+  type HttpProxy = connection.HttpProxy;
   /**
    * Get the specified network interface information.
    *
@@ -161,6 +163,14 @@ declare namespace ethernet {
      * (DHCP mode does not need to be configured, Multiple addresses are separated by ",")
      */
     dnsServers: string;
+
+    /**
+     * Indicates the HttpProxy settings, Default does not use HttpProxy.
+     * @type {?HttpProxy}
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @since 10
+     */
+    httpProxy?: HttpProxy;
   }
 
   /**

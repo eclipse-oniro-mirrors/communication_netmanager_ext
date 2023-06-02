@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,10 +59,14 @@ constexpr const char *KEY_GATEWAY = "GATEWAY=";
 constexpr const char *KEY_ROUTE = "ROUTE=";
 constexpr const char *KEY_ROUTE_NETMASK = "ROUTE_NETMASK=";
 constexpr const char *KEY_DNS = "DNS=";
+constexpr const char *KEY_PROXY_HOST = "PROXY_HOST=";
+constexpr const char *KEY_PROXY_PORT = "PROXY_PORT=";
+constexpr const char *KEY_PROXY_EXCLUSIONS = "PROXY_EXCLUSIONS=";
 constexpr const char *WRAP = "\n";
 constexpr const char *DEFAULT_NET_ADDR = "0.0.0.0";
 constexpr const char *EMPTY_NET_ADDR = "*";
 constexpr const char *DNS_SEPARATOR = ",";
+constexpr const char *EXCLUSIONS_DELIMITER = ",";
 } // namespace
 
 EthernetConfiguration::EthernetConfiguration()
@@ -136,8 +140,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     if (!jsonData[CONFIG_KEY_ETH_ROUTE_MASK].empty()) {
         routePrefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
     }
-    config->ipStatic_.route_.family_ =
-        static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]));
+    config->ipStatic_.route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]));
     if (config->ipStatic_.route_.family_ == AF_INET) {
         config->ipStatic_.route_.prefixlen_ = routePrefixLen;
     }
@@ -470,6 +473,25 @@ void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std
     } else if (bootProto == KEY_DHCP) {
         cfg->mode_ = DHCP;
     }
+    ParserFileHttpProxy(fileContent, cfg);
+}
+
+void EthernetConfiguration::ParserFileHttpProxy(const std::string &fileContent, const sptr<InterfaceConfiguration> &cfg)
+{
+    std::string::size_type pos = fileContent.find(KEY_PROXY_HOST) + strlen(KEY_PROXY_HOST);
+    cfg->httpProxy_.SetHost(fileContent.substr(pos, fileContent.find(WRAP, pos) - pos));
+
+    pos = fileContent.find(KEY_PROXY_PORT) + strlen(KEY_PROXY_PORT);
+    uint32_t port = CommonUtils::StrToUint(fileContent.substr(pos, fileContent.find(WRAP, pos) - pos));
+    cfg->httpProxy_.SetPort(static_cast<uint16_t>(port));
+
+    pos = fileContent.find(KEY_PROXY_EXCLUSIONS) + strlen(KEY_PROXY_EXCLUSIONS);
+    auto exclusions = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
+    std::set<std::string> exclusionList;
+    for (const auto &exclusion : CommonUtils::Split(exclusions, EXCLUSIONS_DELIMITER)) {
+        exclusionList.insert(exclusion);
+    }
+    cfg->httpProxy_.SetExclusionList(exclusionList);
 }
 
 void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg,
@@ -502,6 +524,29 @@ void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<Interfa
         fileContent = fileContent + WRAP;
     } else {
         fileContent = fileContent + KEY_BOOTPROTO + KEY_DHCP + WRAP;
+    }
+    GenHttpProxyContent(cfg, fileContent);
+}
+
+void EthernetConfiguration::GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent)
+{
+    std::string exclusions;
+    GetExclusionsAsString(cfg->httpProxy_.GetExclusionList(), exclusions);
+
+    fileContent = fileContent + KEY_PROXY_HOST + cfg->httpProxy_.GetHost() + WRAP;
+    fileContent = fileContent + KEY_PROXY_PORT + std::to_string(cfg->httpProxy_.GetPort()) + WRAP;
+    fileContent = fileContent + KEY_PROXY_EXCLUSIONS + exclusions + WRAP;
+}
+
+void EthernetConfiguration::GetExclusionsAsString(const std::set<std::string> &exclusionList, std::string &value) const
+{
+    int32_t index = 0;
+    for (auto exclusion : exclusionList) {
+        if (index > 0) {
+            value = value + EXCLUSIONS_DELIMITER;
+        }
+        value = value + exclusion;
+        index++;
     }
 }
 } // namespace NetManagerStandard

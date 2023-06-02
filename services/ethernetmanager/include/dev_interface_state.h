@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,13 @@
 #define DEV_INTERFACE_STATE_H
 
 #include <cstdint>
+#include <functional>
 #include <iosfwd>
 #include <set>
 #include <string>
 #include <vector>
 
-#include <functional>
+#include "http_proxy.h"
 #include "interface_configuration.h"
 #include "net_all_capabilities.h"
 #include "net_link_info.h"
@@ -42,6 +43,7 @@ public:
     void SetlinkInfo(sptr<NetLinkInfo> &linkInfo);
     void SetIfcfg(sptr<InterfaceConfiguration> &ifCfg);
     void SetDhcpReqState(bool dhcpReqState);
+    void UpdateNetHttpProxy(const HttpProxy &httpProxy);
     void UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &netMask, const INetAddr &gateWay, const INetAddr &route,
                         const INetAddr &dns1, const INetAddr &dns2);
     std::string GetDevName() const;

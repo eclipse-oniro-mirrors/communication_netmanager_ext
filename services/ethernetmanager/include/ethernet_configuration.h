@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "ethernet_dhcp_callback.h"
+#include "http_proxy.h"
 #include "interface_configuration.h"
 #include "net_all_capabilities.h"
 #include "net_link_info.h"
@@ -54,7 +55,10 @@ private:
     bool ReadFile(const std::string &filePath, std::string &fileContent);
     bool WriteFile(const std::string &filePath, const std::string &fileContent);
     void ParserFileConfig(const std::string &fileContent, std::string &iface, sptr<InterfaceConfiguration> cfg);
+    void ParserFileHttpProxy(const std::string &fileContent, const sptr<InterfaceConfiguration> &cfg);
     void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
+    void GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent);
+    void GetExclusionsAsString(const std::set<std::string> &exclusionList, std::string &value) const;
 
 private:
     std::mutex mutex_;

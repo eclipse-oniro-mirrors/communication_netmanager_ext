@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,10 @@ bool InterfaceConfiguration::Marshalling(Parcel &parcel) const
         NETMGR_EXT_LOG_E("write ipStatic_ to parcel failed");
         return false;
     }
+    if (!httpProxy_.Marshalling(parcel)) {
+        NETMGR_EXT_LOG_E("write httpProxy_ to parcel failed");
+        return false;
+    }
     return true;
 }
 
@@ -52,6 +56,10 @@ sptr<InterfaceConfiguration> InterfaceConfiguration::Unmarshalling(Parcel &parce
         return nullptr;
     }
     ptr->ipStatic_ = *sc;
+    if (!HttpProxy::Unmarshalling(parcel, ptr->httpProxy_)) {
+        NETMGR_EXT_LOG_E("Unmarshalling HttpProxy failed.");
+        return nullptr;
+    }
     return ptr;
 }
 } // namespace NetManagerStandard
