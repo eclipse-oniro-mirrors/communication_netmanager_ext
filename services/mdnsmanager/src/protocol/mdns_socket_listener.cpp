@@ -300,10 +300,16 @@ void MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
     NETMGR_EXT_LOG_I("iface found, ifa_name=[%{public}s]", ifa->ifa_name);
 }
 
+inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
+{
+    return IN6_IS_ADDR_LOOPBACK(addr6);
+}
+
 void MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
 {
-    if (!ipv6Support && reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id) {
-        NETMGR_EXT_LOG_D("ipv6 is not supported");
+    if (!ipv6Support || IN6_IS_ADDR_LOOPBACK(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) ||
+        reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id) {
+        NETMGR_EXT_LOG_D("ipv6 not supported");
         return;
     }
     sockaddr_in6 *saddr = reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr);
