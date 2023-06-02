@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
 constexpr const char *NEXT_HOT = "0.0.0.0";
 constexpr const char *ERROR_MSG_CONFIG_FORWARD = "Config Forward failed";
 constexpr const char *ERROR_MSG_ADD_ROUTE_STRATEGY = "Add Route Strategy failed";
@@ -30,6 +31,7 @@ constexpr const char *ERROR_MSG_ADD_ROUTE_RULE = "Add Route Rule failed";
 constexpr const char *ERROR_MSG_REMOVE_ROUTE_RULE = "Remove Route Rule failed";
 constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 constexpr int32_t IP_V4 = 0;
+}
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
     const std::string &ifaceName, const SharingIfaceType &interfaceType,

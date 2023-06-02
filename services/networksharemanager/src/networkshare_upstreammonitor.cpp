@@ -21,8 +21,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
 constexpr const char *ERROR_MSG_HAS_NOT_UPSTREAM = "Has not Upstream Network";
 constexpr const char *ERROR_MSG_UPSTREAM_ERROR = "Get Upstream Network is Error";
+}
 
 NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionCallback(
     const std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor, int32_t callbackType)
