@@ -44,9 +44,9 @@ ohos_shared_library("mdns_manager") {
   configs = [ ":mdns_manager_config" ]
 
   deps = [
+    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
   ]
 
   cflags = [
@@ -106,9 +106,9 @@ ohos_static_library("mdns_manager_static") {
   configs = [ ":mdns_manager_config" ]
 
   deps = [
+    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
   ]
 
   external_deps = [
