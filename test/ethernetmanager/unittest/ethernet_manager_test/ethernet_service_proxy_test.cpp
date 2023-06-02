@@ -182,7 +182,8 @@ HWTEST_F(EtherNetServiceProxyTest, SetIfaceConfigTest001, TestSize.Level1)
     AccessToken accessToken(testPolicyPrams2);
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ethernetServiceProxy.SetIfaceConfig(DEV_NAME, ic);
+    auto ret = ethernetServiceProxy.SetIfaceConfig(DEV_NAME, ic);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, GetIfaceConfigTest001, TestSize.Level1)
@@ -190,7 +191,8 @@ HWTEST_F(EtherNetServiceProxyTest, GetIfaceConfigTest001, TestSize.Level1)
     AccessToken accessToken(testPolicyPrams1);
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
-    ethernetServiceProxy.GetIfaceConfig(DEV_NAME, ifaceConfig);
+    int32_t ret = ethernetServiceProxy.GetIfaceConfig(DEV_NAME, ifaceConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, IsIfaceActiveTest001, TestSize.Level1)
@@ -200,7 +202,8 @@ HWTEST_F(EtherNetServiceProxyTest, IsIfaceActiveTest001, TestSize.Level1)
     sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
     std::string ifcaeName = "eth0";
     int32_t activeStatus = -1;
-    ethernetServiceProxy.IsIfaceActive(ifcaeName, activeStatus);
+    int32_t ret = ethernetServiceProxy.IsIfaceActive(ifcaeName, activeStatus);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, GetAllActiveIfacesTest001, TestSize.Level1)
@@ -209,28 +212,36 @@ HWTEST_F(EtherNetServiceProxyTest, GetAllActiveIfacesTest001, TestSize.Level1)
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     std::vector<std::string> result;
     ethernetServiceProxy.GetAllActiveIfaces(result);
+
+    sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
+    int32_t ret = ethernetServiceProxy.GetIfaceConfig(DEV_NAME, ifaceConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, ResetFactoryTest001, TestSize.Level1)
 {
     EthernetServiceProxy ethernetServiceProxy(nullptr);
-    ethernetServiceProxy.ResetFactory();
+    int32_t ret = ethernetServiceProxy.ResetFactory();
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, SetInterfaceUpTest001, TestSize.Level1)
 {
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     AccessToken accessToken(testPolicyPrams2);
-    ethernetServiceProxy.SetInterfaceUp(DEV_NAME);
+    int32_t ret = ethernetServiceProxy.SetInterfaceUp(DEV_NAME);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    ethernetServiceProxy.GetInterfaceConfig(DEV_NAME, cfg);
+    ret = ethernetServiceProxy.GetInterfaceConfig(DEV_NAME, cfg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, SetInterfaceDownTest001, TestSize.Level1)
 {
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     AccessToken accessToken(testPolicyPrams2);
-    ethernetServiceProxy.SetInterfaceDown(DEV_NAME);
+    int32_t ret = ethernetServiceProxy.SetInterfaceDown(DEV_NAME);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, SetInterfaceConfigTest001, TestSize.Level1)
@@ -244,7 +255,8 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceConfigTest001, TestSize.Level1)
     config.prefixLength = 24;
     config.flags.push_back("up");
     config.flags.push_back("broadcast");
-    ethernetServiceProxy.SetInterfaceConfig(DEV_NAME, config);
+    int32_t ret = ethernetServiceProxy.SetInterfaceConfig(DEV_NAME, config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
