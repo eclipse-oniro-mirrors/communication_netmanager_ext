@@ -211,6 +211,8 @@ void MDnsSocketListener::Start()
     if (!runningFlag_) {
         runningFlag_ = true;
         thread_ = std::thread([this]() { Run(); });
+        std::string threadName = "MDnsSocketListenerRun";
+        pthread_setname_np(thread_.native_handle(), threadName.c_str());
         std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_THREAD_MS));
     }
 }
@@ -343,8 +345,6 @@ void MDnsSocketListener::CloseAllSocket()
 
 void MDnsSocketListener::Run()
 {
-    std::string threadName = "MDnsSocketListenerRun";
-    pthread_setname_np(pthread_self(), threadName.c_str());
     while (runningFlag_) {
         fd_set rfds;
         FD_ZERO(&rfds);

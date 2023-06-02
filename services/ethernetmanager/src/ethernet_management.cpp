@@ -289,13 +289,13 @@ void EthernetManagement::Init()
     }
     std::thread t(&EthernetManagement::StartSetDevUpThd, this);
     t.detach();
+    std::string threadName = "StartSetDevUpThd";
+    pthread_setname_np(t.native_handle(), threadName.c_str());
     NETMGR_EXT_LOG_D("EthernetManagement devs_ size[%{public}zd", devs_.size());
 }
 
 void EthernetManagement::StartSetDevUpThd()
 {
-    std::string threadName = "StartSetDevUpThd";
-    pthread_setname_np(pthread_self(), threadName.c_str());
     NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
     for (auto &dev : devs_) {
         std::string devName = dev.first;
