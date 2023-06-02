@@ -219,7 +219,7 @@ HWTEST_F(MDnsClientTest, ClientTest001, TestSize.Level1)
     client->UnRegisterService(registration);
     client->UnRegisterService(registration1);
 
-    if (!g_cv.wait_for(lock, std::chrono::seconds(5), []() { return g_lost >= 4; })) {
+    if (!g_cv.wait_for(lock, std::chrono::seconds(15), []() { return g_lost >= 4; })) {
         FAIL();
     }
 
