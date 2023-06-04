@@ -46,7 +46,6 @@ public:
     void CloseAllSocket();
     void Start();
     void Stop();
-    int32_t SetIfMulticast(const char *ifaceName);
     ssize_t MulticastAll(const MDnsPayload &payload);
     void SetReceiveHandler(const ReceiveHandler &callback);
     void SetFinishedHandler(const FinishedHandler &callback);
@@ -63,6 +62,8 @@ private:
     void ReceiveInSock(int sock);
     void OpenSocketV4(ifaddrs *ifa);
     void OpenSocketV6(ifaddrs *ifa, bool ipv6Support);
+    int32_t SetIfMulticast(const char *ifaceName);
+    bool CheckIfMulticast(struct ifaddrs *ifa);
 
     std::vector<int> socks_;
     std::map<int, std::string> iface_;
