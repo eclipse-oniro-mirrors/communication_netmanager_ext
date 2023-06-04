@@ -288,9 +288,9 @@ void EthernetManagement::Init()
         DevInterfaceAdd(devName);
     }
     std::thread t(&EthernetManagement::StartSetDevUpThd, this);
-    t.detach();
-    std::string threadName = "StartSetDevUpThd";
+    std::string threadName = "SetDevUpThd";
     pthread_setname_np(t.native_handle(), threadName.c_str());
+    t.detach();
     NETMGR_EXT_LOG_D("EthernetManagement devs_ size[%{public}zd", devs_.size());
 }
 
