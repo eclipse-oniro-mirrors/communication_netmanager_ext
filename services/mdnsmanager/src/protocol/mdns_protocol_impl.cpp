@@ -255,10 +255,14 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
     if (!IsInstanceCacheAvailable(name)) {
         return false;
     }
+
+    NETMGR_EXT_LOG_D("rr.name : [%{public}s]", name.c_str());
     Result r = cacheMap_[name];
     if (IsDomainCacheAvailable(r.domain)) {
         r.ipv6 = cacheMap_[r.domain].ipv6;
         r.addr = cacheMap_[r.domain].addr;
+
+        NETMGR_EXT_LOG_D("Add Task DomainCache Available, [%{public}s]", r.domain.c_str());
         AddTask([cb, info = ConvertResultToInfo(r)]() {
             if (nullptr != cb) {
                 cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
@@ -268,6 +272,8 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
     } else {
         ResolveFromNet(r.domain, nullptr);
         // key is serviceName
+
+        NETMGR_EXT_LOG_D("Add Event DomainCache UnAvailable, [%{public}s]", r.domain.c_str());
         AddEvent(r.domain, [this, cb, r]() mutable {
             if (!IsDomainCacheAvailable(r.domain)) {
                 return false;
@@ -350,6 +356,7 @@ bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain, const sptr<IRes
 
 int32_t MDnsProtocolImpl::ResolveInstance(const std::string &instance, const sptr<IResolveCallback> &cb)
 {
+    NETMGR_EXT_LOG_D("execute ResolveInstance");
     if (!IsInstanceValid(instance)) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -402,11 +409,13 @@ void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
     MDnsPayloadParser parser;
     MDnsMessage msg = parser.FromBytes(payload);
     if (parser.GetError() != 0) {
+        NETMGR_EXT_LOG_E("parser payload failed");
         return;
     }
     if ((msg.header.flags & DNSProto::HEADER_FLAGS_QR_MASK) == 0) {
         ProcessQuestion(sock, msg);
     } else {
+        NETMGR_EXT_LOG_D("ProcessAnswer message, [%{public}zu]", payload.size());
         ProcessAnswer(sock, msg);
     }
 }
@@ -423,7 +432,6 @@ void MDnsProtocolImpl::AppendRecord(std::vector<DNSProto::ResourceRecord> &rrlis
 
 void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
 {
-    NETMGR_EXT_LOG_I("MDNS_LOG ProcessQuestion message");
     const sockaddr *saddrIf = listener_.GetSockAddr(sock);
     if (saddrIf == nullptr) {
         return;
@@ -446,8 +454,10 @@ void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
     if (phase < PHASE_DOMAIN) {
         AppendRecord(response.additional, anyAddrType, GetHostDomain(), anyAddr);
     }
+
     if (phase != 0 && response.answers.size() > 0) {
-        listener_.Multicast(sock, MDnsPayloadParser().ToBytes(response));
+        int32_t ret = listener_.Multicast(sock, MDnsPayloadParser().ToBytes(response));
+        NETMGR_EXT_LOG_D("send Multicast message size: [%{public}d]", ret);
     }
 }
 

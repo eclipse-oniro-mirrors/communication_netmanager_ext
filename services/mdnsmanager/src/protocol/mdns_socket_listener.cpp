@@ -33,39 +33,31 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "net_conn_client.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 
 namespace {
-
 constexpr uint32_t MDNS_MULTICAST_INADDR = (224U << 24) | 251U;
 constexpr in6_addr MDNS_MULTICAST_IN6ADDR = {
     {{0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB}}};
 
 constexpr const char *CONTROL_TAG_REFRESH = "R";
+constexpr const char *WLAN_IF_NAME = "wlan";
 
 constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
 constexpr int WAIT_THREAD_MS = 5;
 constexpr size_t MDNS_MAX_SOCKET = 16;
 constexpr size_t REFRESH_BUFFER_LEN = 2;
+constexpr uint32_t MAX_SET_MULTICAST = 32;
 
 inline bool IfaceIsSupported(ifaddrs *ifa)
 {
     return ifa->ifa_addr && ((ifa->ifa_flags & IFF_UP) && (ifa->ifa_flags & IFF_MULTICAST)) &&
            (!(ifa->ifa_flags & IFF_LOOPBACK) && !(ifa->ifa_flags & IFF_POINTOPOINT));
-}
-
-inline bool InetAddrV4IsLoopback(const in_addr *addr)
-{
-    return addr->s_addr == htonl(INADDR_LOOPBACK);
-}
-
-inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
-{
-    return IN6_IS_ADDR_LOOPBACK(addr6);
 }
 
 int InitFdFlags(int sock)
@@ -98,9 +90,11 @@ int InitSocketV4(int sock, ifaddrs *ifa, int port)
     const int maxtll = 255;
 
     if (sock < 0) {
+        NETMGR_EXT_LOG_E("sock [%{public}d] error", sock);
         return -1;
     }
     if (port != 0 && InitReusedSocket(sock) < 0) {
+        NETMGR_EXT_LOG_E("InitReusedSocket error");
         return -1;
     }
 
@@ -110,6 +104,7 @@ int InitSocketV4(int sock, ifaddrs *ifa, int port)
         (setsockopt(sock, IPPROTO_IP, IP_TTL, reinterpret_cast<const char *>(&maxtll), sizeof(maxtll)) == 0) &&
         (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast<const char *>(&maxtll), sizeof(maxtll)) == 0);
     if (!allOK) {
+        NETMGR_EXT_LOG_E("setsockopt IP_MULTICAST_LOOP|IP_PKTINFO|IP_TTL|IP_MULTICAST_TTL error");
         return -1;
     }
 
@@ -123,6 +118,7 @@ int InitSocketV4(int sock, ifaddrs *ifa, int port)
         (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast<const char *>(&mreq.imr_interface),
                     sizeof(in_addr)) == 0);
     if (!allOK) {
+        NETMGR_EXT_LOG_E("setsockopt IP_ADD_MEMBERSHIP|IP_MULTICAST_IF error");
         return -1;
     }
 
@@ -231,6 +227,41 @@ void MDnsSocketListener::Stop()
     }
 }
 
+int32_t MDnsSocketListener::SetIfMulticast(const char *ifaceName)
+{
+    int32_t ret = DelayedSingleton<NetConnClient>::GetInstance()->InterfaceSetIffUp(ifaceName);
+    if (ret) {
+        NETMGR_EXT_LOG_E("InterfaceSetIffUp failed [%{public}s],[%{public}d]", ifaceName, ret);
+    }
+    return ret;
+}
+
+bool MDnsSocketListener::CheckIfMulticast(struct ifaddrs *ifa)
+{
+    if (IfaceIsSupported(ifa)) {
+        return true;
+    }
+
+    if (strncmp(ifa->ifa_name, WLAN_IF_NAME, strlen(WLAN_IF_NAME))) {
+        NETMGR_EXT_LOG_I("Configure only wlan network card, [%{public}s]", ifa->ifa_name);
+        return false;
+    }
+
+    uint32_t count = 0;
+    while (count++ < MAX_SET_MULTICAST) {
+        if (SetIfMulticast(ifa->ifa_name) != 0) {
+            continue;
+        }
+        if (!IfaceIsSupported(ifa)) {
+            NETMGR_EXT_LOG_I("iface [%{public}s] is mismatch", ifa->ifa_name);
+            continue;
+        }
+        return true;
+    }
+    NETMGR_EXT_LOG_W("Failed to SetIfMulticast of network card [%{public}s]", ifa->ifa_name);
+    return false;
+}
+
 void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 {
     ifaddrs *ifaddr = nullptr;
@@ -242,25 +273,21 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
     }
 
     for (ifaddrs *ifa = ifaddr; ifa != nullptr && socks_.size() < MDNS_MAX_SOCKET; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == nullptr) {
+        if (ifa->ifa_addr == nullptr || (ifa->ifa_addr->sa_family != AF_INET && ifa->ifa_addr->sa_family != AF_INET6)) {
+            NETMGR_EXT_LOG_E("Network card [%{public}s] has not address", ifa->ifa_name);
             continue;
         }
         if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
             loaddr = ifa;
-        }
-        if (!IfaceIsSupported(ifa)) {
             continue;
         }
-        if (ifa->ifa_addr == nullptr) {
+        if (!CheckIfMulticast(ifa)) {
             continue;
         }
-        if (ifa->ifa_addr->sa_family == AF_INET &&
-            !InetAddrV4IsLoopback(&reinterpret_cast<sockaddr_in *>(ifa->ifa_addr)->sin_addr)) {
+        if (ifa->ifa_addr->sa_family == AF_INET) {
             OpenSocketV4(ifa);
-        } else if (ipv6Support && ifa->ifa_addr->sa_family == AF_INET6 &&
-                   !InetAddrV6IsLoopback(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) &&
-                   !reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id) {
-            OpenSocketV6(ifa);
+        } else if (ifa->ifa_addr->sa_family == AF_INET6) {
+            OpenSocketV6(ifa, ipv6Support);
         }
     }
 
@@ -295,8 +322,18 @@ void MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
     NETMGR_EXT_LOG_I("iface found, ifa_name=[%{public}s]", ifa->ifa_name);
 }
 
-void MDnsSocketListener::OpenSocketV6(ifaddrs *ifa)
+inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
 {
+    return IN6_IS_ADDR_LOOPBACK(addr6);
+}
+
+void MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
+{
+    if (!ipv6Support || IN6_IS_ADDR_LOOPBACK(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) ||
+        (reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id != 0)) {
+        NETMGR_EXT_LOG_D("ipv6 not supported");
+        return;
+    }
     sockaddr_in6 *saddr = reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr);
     int sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
@@ -439,6 +476,7 @@ ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
 {
     const sockaddr *saddrIf = GetSockAddr(sock);
     if (saddrIf == nullptr) {
+        NETMGR_EXT_LOG_E("GetSockAddr failed");
         return -1;
     }
 
@@ -475,7 +513,6 @@ ssize_t MDnsSocketListener::MulticastAll(const MDnsPayload &payload)
     ssize_t total = 0;
     for (size_t i = 0; i < socks_.size() && i < MDNS_MAX_SOCKET; ++i) {
         ssize_t sendLen = Multicast(socks_[i], payload);
-        NETMGR_EXT_LOG_D("sendto return: [%{public}zd]", sendLen);
         if (sendLen == -1) {
             return sendLen;
         }
