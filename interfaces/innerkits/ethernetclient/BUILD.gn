@@ -78,12 +78,14 @@ ohos_shared_library("ethernet_manager_if") {
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_stub.cpp",
   ]
 
+  version_script = "libethernet_kits.map"
+
   public_configs = [ ":net_conn_manager_if_config" ]
 
   deps = [ ":ethernet_parcel" ]
 
   external_deps = [
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 
@@ -102,6 +104,7 @@ ohos_shared_library("ethernet_manager_if") {
     external_deps += [ "hilog:libhilog" ]
   }
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }

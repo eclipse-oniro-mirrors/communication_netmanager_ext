@@ -17,6 +17,7 @@
 
 #include <regex>
 #include <thread>
+#include <pthread.h>
 #include <unistd.h>
 
 #include "net_manager_constants.h"
@@ -289,6 +290,8 @@ void EthernetManagement::Init()
         DevInterfaceAdd(devName);
     }
     std::thread t(&EthernetManagement::StartSetDevUpThd, this);
+    std::string threadName = "SetDevUpThd";
+    pthread_setname_np(t.native_handle(), threadName.c_str());
     t.detach();
     NETMGR_EXT_LOG_D("EthernetManagement devs_ size[%{public}zd", devs_.size());
 }

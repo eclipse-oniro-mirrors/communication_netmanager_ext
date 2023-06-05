@@ -101,6 +101,13 @@ napi_value MDnsModule::DiscoveryServiceInterface::On(napi_env env, napi_callback
     return ModuleTemplate::On(env, info, events, false);
 }
 
+napi_value MDnsModule::DiscoveryServiceInterface::Off(napi_env env, napi_callback_info info)
+{
+    std::initializer_list<std::string> events = {EVENT_SERVICESTART, EVENT_SERVICESTOP, EVENT_SERVICEFOUND,
+                                                 EVENT_SERVICELOST};
+    return ModuleTemplate::Off(env, info, events);
+}
+
 napi_value MDnsModule::DiscoveryServiceInterface::StartSearchingMDNS(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<MDnsStartSearchingContext>(
@@ -128,6 +135,7 @@ napi_value MDnsModule::InitMDnsModule(napi_env env, napi_value exports)
 
     std::initializer_list<napi_property_descriptor> MDnsDiscoveryFunctions = {
         DECLARE_NAPI_FUNCTION(DiscoveryServiceInterface::FUNCTION_ON, DiscoveryServiceInterface::On),
+        DECLARE_NAPI_FUNCTION(DiscoveryServiceInterface::FUNCTION_OFF, DiscoveryServiceInterface::Off),
         DECLARE_NAPI_FUNCTION(DiscoveryServiceInterface::FUNCTION_STARTSEARCHINGMDNS,
                               DiscoveryServiceInterface::StartSearchingMDNS),
         DECLARE_NAPI_FUNCTION(DiscoveryServiceInterface::FUNCTION_STOPSEARCHINGMDNS,

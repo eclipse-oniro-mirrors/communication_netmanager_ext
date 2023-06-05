@@ -43,12 +43,61 @@ class MDnsClient {
     DECLARE_DELAYED_SINGLETON(MDnsClient);
 
 public:
+/**
+     * Register mDNS service instance
+     *
+     * @param serviceInfo.name Service instance name
+     * @param serviceInfo.type Service instance type
+     * @param serviceInfo.port Service instance port
+     * @param cb callback object
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
     int32_t RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb);
+
+    /**
+     * UnRegister mDNS service instance
+     *
+     * @param cb callback object used in RegisterService
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
     int32_t UnRegisterService(const sptr<IRegistrationCallback> &cb);
 
+    /**
+     * Browse mDNS service instance by service type
+     *
+     * @param serviceType Service instance type
+     * @param cb callback object
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
     int32_t StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
+
+    /**
+     * Stop browse mDNS service instance by service type
+     *
+     * @param cb callback object used in StartDiscoverService
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
     int32_t StopDiscoverService(const sptr<IDiscoveryCallback> &cb);
 
+    /**
+     * Resolve browse mDNS service instance by service type and name
+     *
+     * @param serviceInfo.name Service instance name
+     * @param serviceInfo.type Service instance type
+     * @param serviceInfo.port Service instance port
+     * @param cb callback object
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
     int32_t ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb);
 
 private:
