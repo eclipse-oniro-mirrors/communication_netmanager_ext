@@ -64,11 +64,43 @@ enum class NetworkShareEventType {
     BEHAVIOR_EVENT = 2,
 };
 
+struct VpnEventInfo {
+    int32_t legacy = 0;
+    int32_t operatorType = 0;
+    int32_t errorType = 0;
+    std::string errorMsg;
+};
+
+enum class VpnEventType {
+    TYPE_UNKNOWN = 0,
+    TYPE_LEGACY,
+    TYPE_EXTENDED,
+};
+
+enum class VpnEventOperator {
+    OPERATION_START_SA = 0,
+    OPERATION_PROTOCOL_NEGOTIATE,
+    OPERATION_CONNECT_SETTING,
+    OPERATION_CONNECT_DESTROY,
+};
+
+enum class VpnEventErrorType {
+    ERROR_UNKNOWN_PROTOCOL_TYPE = -100,
+    ERROR_CREATE_INTERFACE_ERROR = -101,
+    ERROR_REG_NET_SUPPLIER_ERROR = -110,
+    ERROR_UNREG_NET_SUPPLIER_ERROR = -111,
+    ERROR_UPDATE_SUPPLIER_INFO_ERROR = -120,
+    ERROR_UPDATE_NETLINK_INFO_ERROR = -121,
+    ERROR_SET_APP_UID_RULE_ERROR = -130,
+    ERROR_INTERNAL_ERROR = -140,
+};
+
 class NetEventReport {
 public:
     static void SendSetupFaultEvent(const EventInfo &eventInfo);
     static void SendCancleFaultEvent(const EventInfo &eventInfo);
     static void SendTimeBehaviorEvent(const EventInfo &eventInfo);
+    static void SendVpnConnectEvent(const VpnEventInfo &eventInfo);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

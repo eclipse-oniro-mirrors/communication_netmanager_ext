@@ -29,43 +29,55 @@ class EthernetClient {
     DECLARE_DELAYED_SINGLETON(EthernetClient)
 
 public:
-
     /**
      *  Set the network interface configuration
      *
-     * @param Network interface name
-     * @param Network interface parameters
-     * @return Returns 0 as success, other values as failure
+     * @param iface interface name
+     * @param ic interface configuration
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic);
 
     /**
      *  Gets the network interface configuration parameters
      *
-     * @param Network interface name
-     * @return Parameter is returned on success, null on failure
+     * @param iface interface name
+     * @param ifaceConfig interface configuration
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig);
 
-    /**
-     *  Gets the network interface configuration parameters
+   /**
+     *  check the network interface is active or not
      *
-     * @param Network interface name
-     * @return Returns 1 for device open (active), 0 for device closed (inactive), and -1 for failure
+     * @param iface interface name
+     * @param activeStatus active status
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus);
 
     /**
      *  Gets the list of active devices
      *
-     * @return Return to device List
+     * @param activeIfaces list of active interface
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces);
 
     /**
      *  Reset all configuration information
      *
-     * @return Returns 0 as success, other values as failure
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t ResetFactory();
 
@@ -74,6 +86,8 @@ public:
      *
      * @param callback use to receive interface add/remove event.
      * @return Returns NETMANAGER_EXT_SUCCESS as success, other values as failure
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback);
 
@@ -82,34 +96,50 @@ public:
      *
      * @param callback use to receive interface add/remove event.
      * @return Returns NETMANAGER_EXT_SUCCESS as success, other values as failure
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback);
 
     /**
      *  Set the specified network port up
      *
-     * @return Returns 0 as success, other values as failure
+     * @param iface interface name
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t SetInterfaceUp(const std::string &iface);
 
     /**
      *  Set the specified network port down
      *
-     * @return Returns 0 as success, other values as failure
+     * @param iface interface name
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t SetInterfaceDown(const std::string &iface);
 
     /**
      *  Get the specified network port configuration
      *
-     * @return Returns 'true' as success, 'false' values as failure
+     * @param iface interface name
+     * @param cfg interface configuration
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
 
     /**
      *  Set the specified network port configuration
      *
-     * @return Returns 0 as success, other values as failure
+     * @param iface interface name
+     * @param cfg interface configuration
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
      */
     int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
 

@@ -36,7 +36,7 @@ namespace NetManagerStandard {
 class MDnsSocketListener {
 public:
     using ReceiveHandler = std::function<void(int, const MDnsPayload &)>;
-    using SendHandler = std::function<void(int)>;
+    using FinishedHandler = std::function<void(int)>;
 
     MDnsSocketListener();
     ~MDnsSocketListener();
@@ -48,7 +48,7 @@ public:
     void Stop();
     ssize_t MulticastAll(const MDnsPayload &payload);
     void SetReceiveHandler(const ReceiveHandler &callback);
-    void SetRefreshHandler(const SendHandler &callback);
+    void SetFinishedHandler(const FinishedHandler &callback);
     ssize_t Multicast(int sock, const MDnsPayload &);
     ssize_t Unicast(int sock, sockaddr *saddr, const MDnsPayload &);
     const std::vector<int> &GetSockets() const;
@@ -72,7 +72,7 @@ private:
     std::thread thread_;
     std::mutex mutex_;
     ReceiveHandler recv_;
-    SendHandler refresh_;
+    FinishedHandler finished_;
 };
 
 } // namespace NetManagerStandard

@@ -59,6 +59,7 @@ ohos_shared_library("ethernet_manager") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
   ]

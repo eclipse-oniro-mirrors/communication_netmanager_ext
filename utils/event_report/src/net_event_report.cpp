@@ -22,46 +22,43 @@ namespace {
 constexpr const char *NET_SHARING_SETUP_FAULT = "NET_SHARING_SETUP_FAULT";
 constexpr const char *NET_SHARING_CANCEL_FAULT = "NET_SHARING_CANCEL_FAULT";
 constexpr const char *NET_SHARING_TIME_STAT = "NET_SHARING_TIME_STAT";
+constexpr const char *NET_VPN_CONNECT_FAULT = "NET_VPN_CONNECT_FAULT";
 // event params
 constexpr const char *EVENT_KEY_SHARING_TYPE = "SHARING_TYPE";
 constexpr const char *EVENT_KEY_OPERATION_TYPE = "OPERATION_TYPE";
 constexpr const char *EVENT_KEY_SHARING_COUNT = "SHARING_COUNT";
 constexpr const char *EVENT_KEY_ERROR_TYPE = "ERROR_TYPE";
 constexpr const char *EVENT_KEY_ERROR_MSG = "ERROR_MSG";
+constexpr const char *EVENT_KEY_VPN_LEGACY = "VPN_LEGACY";
+constexpr const char *EVENT_KEY_VPN_ERROR_TYPE = "VPN_ERROR_TYPE";
+constexpr const char *EVENT_KEY_VPN_ERROR_MSG = "VPN_ERROR_MSG";
 } // namespace
 
 void NetEventReport::SendSetupFaultEvent(const EventInfo &eventInfo)
 {
-    HiSysEventWrite(
-        HiSysEvent::Domain::NETMANAGER_STANDARD,
-        NET_SHARING_SETUP_FAULT,
-        HiSysEvent::EventType::FAULT,
-        EVENT_KEY_SHARING_TYPE, eventInfo.sharingType,
-        EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
-        EVENT_KEY_ERROR_TYPE, eventInfo.errorType,
-        EVENT_KEY_ERROR_MSG, eventInfo.errorMsg);
+    HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_SHARING_SETUP_FAULT, HiSysEvent::EventType::FAULT,
+                    EVENT_KEY_SHARING_TYPE, eventInfo.sharingType, EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
+                    EVENT_KEY_ERROR_TYPE, eventInfo.errorType, EVENT_KEY_ERROR_MSG, eventInfo.errorMsg);
 }
 
 void NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
 {
-    HiSysEventWrite(
-        HiSysEvent::Domain::NETMANAGER_STANDARD,
-        NET_SHARING_CANCEL_FAULT,
-        HiSysEvent::EventType::FAULT,
-        EVENT_KEY_SHARING_TYPE, eventInfo.sharingType,
-        EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
-        EVENT_KEY_ERROR_TYPE, eventInfo.errorType,
-        EVENT_KEY_ERROR_MSG, eventInfo.errorMsg);
+    HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_SHARING_CANCEL_FAULT, HiSysEvent::EventType::FAULT,
+                    EVENT_KEY_SHARING_TYPE, eventInfo.sharingType, EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
+                    EVENT_KEY_ERROR_TYPE, eventInfo.errorType, EVENT_KEY_ERROR_MSG, eventInfo.errorMsg);
 }
 
 void NetEventReport::SendTimeBehaviorEvent(const EventInfo &eventInfo)
 {
-    HiSysEventWrite(
-        HiSysEvent::Domain::NETMANAGER_STANDARD,
-        NET_SHARING_TIME_STAT,
-        HiSysEvent::EventType::BEHAVIOR,
-        EVENT_KEY_SHARING_COUNT, eventInfo.sharingCount,
-        EVENT_KEY_SHARING_TYPE, eventInfo.sharingType);
+    HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_SHARING_TIME_STAT, HiSysEvent::EventType::BEHAVIOR,
+                    EVENT_KEY_SHARING_COUNT, eventInfo.sharingCount, EVENT_KEY_SHARING_TYPE, eventInfo.sharingType);
+}
+
+void NetEventReport::SendVpnConnectEvent(const VpnEventInfo &eventInfo)
+{
+    HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_VPN_CONNECT_FAULT, HiSysEvent::EventType::FAULT,
+                    EVENT_KEY_VPN_LEGACY, eventInfo.legacy, EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
+                    EVENT_KEY_VPN_ERROR_TYPE, eventInfo.errorType, EVENT_KEY_VPN_ERROR_MSG, eventInfo.errorMsg);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

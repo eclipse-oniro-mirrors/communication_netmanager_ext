@@ -39,6 +39,12 @@ enum class SharingIfaceState {
     SHARING_NIC_CAN_SERVER,
     SHARING_NIC_ERROR,
 };
+
+enum class VpnConnectState {
+    VPN_CONNECTED = 1,
+    VPN_DISCONNECTED,
+};
+
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // NETMANAGER_EXT_CONSTANTS_H

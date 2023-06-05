@@ -15,6 +15,8 @@
 
 #include "networkshare_client.h"
 
+#include <thread>
+
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "net_manager_constants.h"
@@ -22,8 +24,12 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
 constexpr size_t WAIT_REMOTE_TIME_SEC = 15;
+constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
+constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 std::condition_variable g_cv;
+} // namespace
 void NetworkShareLoadCallback::OnLoadSystemAbilitySuccess(
     int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
@@ -187,10 +193,12 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
     if (sam->LoadSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, callback) != 0) {
         return nullptr;
     }
-    std::mutex mutex;
-    std::unique_lock tempLock(mutex);
-    g_cv.wait_for(tempLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
-        [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
+    {
+        std::mutex mutex;
+        std::unique_lock tempLock(mutex);
+        g_cv.wait_for(tempLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
+            [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
+    }
 
     auto remote = callback->GetRemoteObject();
     if (remote == nullptr || !remote->IsProxyObject()) {
@@ -233,6 +241,21 @@ void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
     local->RemoveDeathRecipient(deathRecipient_);
     networkShareService_ = nullptr;
+
+    std::thread([this]() { this->RestartNetTetheringManagerSysAbility(); }).detach();
+}
+
+void NetworkShareClient::RestartNetTetheringManagerSysAbility()
+{
+    for (uint32_t i = 0; i < MAX_GET_SERVICE_COUNT; ++i) {
+        std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
+        sptr<INetworkShareService> proxy = GetProxy();
+        if (proxy) {
+            NETMGR_EXT_LOG_I("Restart NetTetheringManager success.");
+            return;
+        }
+    }
+    NETMGR_EXT_LOG_E("Restart NetTetheringManager failed.");
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

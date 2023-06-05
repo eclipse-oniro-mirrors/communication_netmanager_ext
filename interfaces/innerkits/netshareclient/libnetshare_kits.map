@@ -1,0 +1,46 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{
+  global:
+    extern "C++" {
+      "OHOS::NetManagerStandard::SharingEventCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::IsSharingSupported(int&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::NetworkShareClient()";
+      "OHOS::NetManagerStandard::NetworkShareClient::IsSharing(int&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::StartSharing(OHOS::NetManagerStandard::SharingIfaceType const&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::StopSharing(OHOS::NetManagerStandard::SharingIfaceType const&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::GetSharingIfaces(OHOS::NetManagerStandard::SharingIfaceState const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::GetSharingState(OHOS::NetManagerStandard::SharingIfaceType const&, OHOS::NetManagerStandard::SharingIfaceState&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::GetSharableRegexs(OHOS::NetManagerStandard::SharingIfaceType const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::GetStatsRxBytes(int&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::GetStatsTxBytes(int&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::GetStatsTotalBytes(int&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::~NetworkShareClient()";
+      "OHOS::NetManagerStandard::NetworkShareClient::RegisterSharingEvent(OHOS::sptr<OHOS::NetManagerStandard::ISharingEventCallback>)";
+      "OHOS::NetManagerStandard::NetworkShareClient::UnregisterSharingEvent(OHOS::sptr<OHOS::NetManagerStandard::ISharingEventCallback>)";
+      "OHOS::NetManagerStandard::NetShareResultCallbackProxy::NetShareResultCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
+      "OHOS::NetManagerStandard::NetShareResultCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+      "OHOS::NetManagerStandard::NetworkShareLoadCallback::GetRemoteObject() const";
+      VTT?for?OHOS::NetManagerStandard::NetworkShareLoadCallback;
+      vtable?for?OHOS::NetManagerStandard::NetworkShareLoadCallback;
+      "OHOS::NetManagerStandard::NetworkShareLoadCallback::IsFailed()";
+      "OHOS::NetManagerStandard::NetworkShareClient::OnRemoteDied(OHOS::wptr<OHOS::IRemoteObject> const&)";
+      "OHOS::NetManagerStandard::NetworkShareRequestParcel::Marshalling(OHOS::Parcel&) const";
+      "OHOS::NetManagerStandard::NetworkShareRequestParcel::Unmarshalling(OHOS::Parcel&)";
+      VTT?for?OHOS::NetManagerStandard::NetworkShareRequestParcel;
+      vtable?for?OHOS::NetManagerStandard::NetworkShareRequestParcel;
+    };
+  local:
+   *;
+};

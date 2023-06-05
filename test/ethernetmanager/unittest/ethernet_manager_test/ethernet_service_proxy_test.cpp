@@ -211,10 +211,7 @@ HWTEST_F(EtherNetServiceProxyTest, GetAllActiveIfacesTest001, TestSize.Level1)
     AccessToken accessToken(testPolicyPrams1);
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     std::vector<std::string> result;
-    ethernetServiceProxy.GetAllActiveIfaces(result);
-
-    sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
-    int32_t ret = ethernetServiceProxy.GetIfaceConfig(DEV_NAME, ifaceConfig);
+    int32_t ret = ethernetServiceProxy.GetAllActiveIfaces(result);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
