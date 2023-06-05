@@ -28,7 +28,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class EthernetManagement {
+class EthernetManagement : public std::enable_shared_from_this<EthernetManagement>{
     class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
     public:
         EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement) : ethernetManagement_(ethernetManagement) {}

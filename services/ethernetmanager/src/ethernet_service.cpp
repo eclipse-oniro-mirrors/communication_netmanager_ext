@@ -145,7 +145,7 @@ void EthernetService::InitManagement()
 {
     NETMGR_EXT_LOG_D("EthernetService::InitManagement Enter");
     if (ethManagement_ == nullptr) {
-        ethManagement_ = std::make_unique<EthernetManagement>();
+        ethManagement_ = std::make_shared<EthernetManagement>();
         ethManagement_->Init();
     }
 }
