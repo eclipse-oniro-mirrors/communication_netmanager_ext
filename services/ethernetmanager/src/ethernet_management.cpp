@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include <regex>
 #include <thread>
+#include <pthread.h>
 #include <unistd.h>
 
 #include "net_manager_constants.h"
@@ -287,6 +288,8 @@ void EthernetManagement::Init()
         DevInterfaceAdd(devName);
     }
     std::thread t(&EthernetManagement::StartSetDevUpThd, this);
+    std::string threadName = "SetDevUpThd";
+    pthread_setname_np(t.native_handle(), threadName.c_str());
     t.detach();
     NETMGR_EXT_LOG_D("EthernetManagement devs_ size[%{public}zd", devs_.size());
 }

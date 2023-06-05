@@ -1,0 +1,34 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{
+  global:
+    extern "C++" {
+      VTT?for?OHOS::NetManagerStandard::MDnsServiceInfo;
+      vtable?for?OHOS::NetManagerStandard::MDnsServiceInfo;
+      "OHOS::NetManagerStandard::MDnsServiceInfo::SetAttrMap(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>>>>> const&)";
+      "OHOS::NetManagerStandard::RegistrationCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+      "OHOS::NetManagerStandard::DiscoveryCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+      "OHOS::NetManagerStandard::ResolveCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+      "OHOS::NetManagerStandard::MDnsClient::RegisterService(OHOS::NetManagerStandard::MDnsServiceInfo const&, OHOS::sptr<OHOS::NetManagerStandard::IRegistrationCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClient::MDnsClient()";
+      "OHOS::NetManagerStandard::MDnsClient::UnRegisterService(OHOS::sptr<OHOS::NetManagerStandard::IRegistrationCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClient::ResolveService(OHOS::NetManagerStandard::MDnsServiceInfo const&, OHOS::sptr<OHOS::NetManagerStandard::IResolveCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClient::StartDiscoverService(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::IDiscoveryCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClient::StopDiscoverService(OHOS::sptr<OHOS::NetManagerStandard::IDiscoveryCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClient::~MDnsClient()";
+      "OHOS::NetManagerStandard::MDnsServiceInfo::GetAttrMap()";
+    };
+  local:
+   *;
+};

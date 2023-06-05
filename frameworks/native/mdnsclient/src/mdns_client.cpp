@@ -74,7 +74,7 @@ int32_t MDnsClient::RegisterService(const MDnsServiceInfo &serviceInfo, const sp
     }
     int32_t ret = proxy->RegisterService(serviceInfo, cb);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("RegisterService return code: [%{pubic}d]", ret);
+        NETMGR_EXT_LOG_E("RegisterService return code: [%{public}d]", ret);
     }
     return ret;
 }
@@ -93,7 +93,7 @@ int32_t MDnsClient::UnRegisterService(const sptr<IRegistrationCallback> &cb)
     }
     int32_t ret = proxy->UnRegisterService(cb);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("UnRegisterService return code: [%{pubic}d]", ret);
+        NETMGR_EXT_LOG_E("UnRegisterService return code: [%{public}d]", ret);
     }
     return ret;
 }
@@ -101,7 +101,7 @@ int32_t MDnsClient::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 int32_t MDnsClient::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
     if (!IsTypeValid(serviceType)) {
-        NETMGR_EXT_LOG_E("arguments are not valid");
+        NETMGR_EXT_LOG_E("arguments are not valid, [%{public}s]", serviceType.c_str());
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     if (cb == nullptr) {
@@ -116,7 +116,7 @@ int32_t MDnsClient::StartDiscoverService(const std::string &serviceType, const s
     }
     int32_t ret = proxy->StartDiscoverService(serviceType, cb);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("StartDiscoverService return code: [%{pubic}d]", ret);
+        NETMGR_EXT_LOG_E("StartDiscoverService return code: [%{public}d]", ret);
     }
     return ret;
 }
@@ -135,7 +135,7 @@ int32_t MDnsClient::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
     }
     int32_t ret = proxy->StopDiscoverService(cb);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("StopDiscoverService return code: [%{pubic}d]", ret);
+        NETMGR_EXT_LOG_E("StopDiscoverService return code: [%{public}d]", ret);
     }
     return ret;
 }
@@ -159,7 +159,7 @@ int32_t MDnsClient::ResolveService(const MDnsServiceInfo &serviceInfo, const spt
 
     int32_t ret = proxy->ResolveService(serviceInfo, cb);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("ResolveService return code: [%{pubic}d]", ret);
+        NETMGR_EXT_LOG_E("ResolveService return code: [%{public}d]", ret);
     }
     return ret;
 }

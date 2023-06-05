@@ -61,7 +61,6 @@ bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
 
     sptr<IResolveCallback> callback = context->GetObserver();
     MDnsResolveObserver *observer = static_cast<MDnsResolveObserver *>(callback.GetRefPtr());
-
     if (observer == nullptr) {
         context->SetErrorCode(NET_MDNS_ERR_UNKNOWN);
         return false;

@@ -73,12 +73,14 @@ ohos_shared_library("net_tether_manager_if") {
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/networkshare_service_proxy.cpp",
   ]
 
+  version_script = "libnetshare_kits.map"
+
   public_configs = [ ":net_conn_manager_if_config" ]
 
   deps = [ ":networkshare_parcel" ]
 
   external_deps = [
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 
@@ -97,6 +99,7 @@ ohos_shared_library("net_tether_manager_if") {
     external_deps += [ "hilog:libhilog" ]
   }
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }

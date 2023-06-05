@@ -75,7 +75,6 @@ public:
     int32_t Register(const Result &info);
     int32_t Discovery(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
     int32_t ResolveInstance(const std::string &instance, const sptr<IResolveCallback> &cb);
-    int32_t Resolve(const std::string &domain, const sptr<IResolveCallback> &cb);
 
     int32_t UnRegister(const std::string &key);
     int32_t StopCbMap(const std::string &key);
@@ -134,7 +133,6 @@ private:
     std::list<Task> taskQueue_;
     std::map<std::string, std::list<Task>> taskOnChange_;
     std::map<std::string, sptr<IDiscoveryCallback>> nameCbMap_;
-    Task runBrowse_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

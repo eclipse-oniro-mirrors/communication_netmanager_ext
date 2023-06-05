@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NETMANAGER_EXT_MDNS_MODULE_H_TEST
-#define NETMANAGER_EXT_MDNS_MODULE_H_TEST
+#ifndef NETMANAGER_EXT_MDNS_MODULE_H
+#define NETMANAGER_EXT_MDNS_MODULE_H
 
 #include <cstdint>
 #include <string_view>
@@ -44,10 +44,12 @@ public:
     class DiscoveryServiceInterface final {
     public:
         static constexpr const char *FUNCTION_ON = "on";
+        static constexpr const char *FUNCTION_OFF = "off";
         static constexpr const char *FUNCTION_STARTSEARCHINGMDNS = "startSearchingMDNS";
         static constexpr const char *FUNCTION_STOPSEARCHINGMDNS = "stopSearchingMDNS";
 
         static napi_value On(napi_env env, napi_callback_info info);
+        static napi_value Off(napi_env env, napi_callback_info info);
         static napi_value StartSearchingMDNS(napi_env env, napi_callback_info info);
         static napi_value StopSearchingMDNS(napi_env env, napi_callback_info info);
     };
@@ -60,4 +62,4 @@ public:
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif /* NETMANAGER_EXT_MDNS_MODULE_H_TEST */
+#endif /* NETMANAGER_EXT_MDNS_MODULE_H */
