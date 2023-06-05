@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <pthread.h>
 
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -210,6 +211,8 @@ void MDnsSocketListener::Start()
     if (!runningFlag_) {
         runningFlag_ = true;
         thread_ = std::thread([this]() { Run(); });
+        std::string threadName = "MDnsSockListen";
+        pthread_setname_np(thread_.native_handle(), threadName.c_str());
         std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_THREAD_MS));
     }
 }
