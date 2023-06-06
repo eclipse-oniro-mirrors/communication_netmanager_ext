@@ -257,7 +257,8 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceConfigTest001, TestSize.Level1)
     config.prefixLength = 24;
     config.flags.push_back("up");
     config.flags.push_back("broadcast");
-    ethernetServiceProxy.SetInterfaceConfig(DEV_NAME, config);
+    int32_t ret = ethernetServiceProxy.SetInterfaceConfig(DEV_NAME, config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

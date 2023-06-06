@@ -682,11 +682,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager015, TestSize.Level1)
     EthernetManagement ethernetManagement;
     std::string dev = "eth0";
     ethernetManagement.UpdateInterfaceState(dev, true);
-}
 
-HWTEST_F(EthernetManagerTest, EthernetManager016, TestSize.Level1)
-{
-    EthernetManagement ethernetManagement;
     std::vector<std::string> activeIfaces;
     int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);

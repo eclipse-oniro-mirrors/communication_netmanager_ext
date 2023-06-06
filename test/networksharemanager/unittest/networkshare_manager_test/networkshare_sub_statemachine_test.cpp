@@ -156,21 +156,6 @@ HWTEST_F(NetworkShareSubStateMachineTest, SubSmStateSwitch01, TestSize.Level1)
 }
 
 /**
- * @tc.name: SubSmEventHandle01
- * @tc.desc: Test NetworkShareSubStateMachine SubSmEventHandle.
- * @tc.type: FUNC
- */
-HWTEST_F(NetworkShareSubStateMachineTest, SubSmEventHandle01, TestSize.Level1)
-{
-    auto configuration = std::make_shared<NetworkShareConfiguration>();
-    auto networkShareSubStateMachine = new (std::nothrow)
-        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
-    int eventId = CMD_NETSHARE_REQUESTED;
-    std::any messageObj = "";
-    networkShareSubStateMachine->SubSmEventHandle(eventId, messageObj);
-}
-
-/**
  * @tc.name: GetDownIfaceName01
  * @tc.desc: Test NetworkShareSubStateMachine GetDownIfaceName.
  * @tc.type: FUNC
@@ -180,6 +165,10 @@ HWTEST_F(NetworkShareSubStateMachineTest, GetDownIfaceName01, TestSize.Level1)
     auto configuration = std::make_shared<NetworkShareConfiguration>();
     auto networkShareSubStateMachine = new (std::nothrow)
         NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    int eventId = CMD_NETSHARE_REQUESTED;
+    std::any messageObj = "";
+    networkShareSubStateMachine->SubSmEventHandle(eventId, messageObj);
+
     std::string downIface;
     networkShareSubStateMachine->GetDownIfaceName(downIface);
     EXPECT_EQ(downIface, WIFI_AP_DEFAULT_IFACE_NAME);
