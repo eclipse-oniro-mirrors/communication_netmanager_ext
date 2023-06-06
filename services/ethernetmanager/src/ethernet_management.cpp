@@ -184,6 +184,8 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         } else {
             StopDhcpClient(iface, fit->second);
         }
+    } else if (cfg->mode_ == DHCP) {
+        fit->second->UpdateNetHttpProxy(cfg->httpProxy_);
     }
     fit->second->SetIfcfg(cfg);
     return NETMANAGER_EXT_SUCCESS;

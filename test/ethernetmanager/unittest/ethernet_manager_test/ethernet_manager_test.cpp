@@ -17,6 +17,7 @@
 
 #include "accesstoken_kit.h"
 #include "ethernet_client.h"
+#include "http_proxy.h"
 #include "inet_addr.h"
 #include "interface_configuration.h"
 #include "interface_state_callback_stub.h"
@@ -51,6 +52,8 @@ using Security::AccessToken::AccessTokenID;
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *DEV_UP = "up";
 constexpr const char *DEV_DOWN = "down";
+constexpr const char *TEST_PROXY_HOST = "127.0.0.1";
+constexpr uint16_t TEST_PROXY_PORT = 8080;
 
 class MonitorInterfaceStateCallback : public InterfaceStateCallbackStub {
 public:
@@ -247,6 +250,8 @@ sptr<InterfaceConfiguration> EthernetManagerTest::GetIfaceConfig()
     ic->ipStatic_.netMask_.family_ = 0x01;
     ic->ipStatic_.netMask_.netMask_ = "255.255.255.0";
     ic->ipStatic_.netMask_.hostName_ = "netAddr";
+    ic->httpProxy_.SetHost(TEST_PROXY_HOST);
+    ic->httpProxy_.SetPort(TEST_PROXY_PORT);
     INetAddr dns1;
     dns1.type_ = INetAddr::IPV4;
     dns1.family_ = 0x01;

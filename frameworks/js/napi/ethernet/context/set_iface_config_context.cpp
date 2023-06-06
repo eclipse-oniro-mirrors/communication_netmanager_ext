@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,11 +21,16 @@
 #include "napi_utils.h"
 #include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
+#include "netmanager_base_log.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr int32_t DNS_MAX_SIZE = 10;
+constexpr const char *OBJECT_HTTP_RPPXY = "httpProxy";
+constexpr const char *HTTP_RPPXY_HOST = "host";
+constexpr const char *HTTP_RPPXY_PORT = "port";
+constexpr const char *HTTP_RPPXY_EXCLUSION_LIST = "exclusionList";
 bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {
     if (paramsCount == PARAM_DOUBLE_OPTIONS || paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) {
@@ -72,11 +77,43 @@ void SetIfaceConfigContext::ParseParams(napi_value *params, size_t paramsCount)
         }
     }
 
+    ParseHttpProxy(params);
+
     if (paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) {
         SetParseOK(SetCallback(params[2]) == napi_ok);
         return;
     }
     SetParseOK(true);
+}
+
+void SetIfaceConfigContext::ParseHttpProxy(napi_value *params)
+{
+    if (!NapiUtils::HasNamedProperty(GetEnv(), params[1], OBJECT_HTTP_RPPXY)) {
+        NETMANAGER_BASE_LOGE("Do not use HttpProxy.");
+        return;
+    }
+    napi_value value = NapiUtils::GetNamedProperty(GetEnv(), params[1], OBJECT_HTTP_RPPXY);
+    if (NapiUtils::GetValueType(GetEnv(), value) != napi_object) {
+        NETMANAGER_BASE_LOGE("httpProxy is not a object");
+        return;
+    }
+
+    std::string host = NapiUtils::GetStringPropertyUtf8(GetEnv(), value, HTTP_RPPXY_HOST);
+    uint16_t port =
+        host.empty() ? 0 : static_cast<uint16_t>(NapiUtils::GetUint32Property(GetEnv(), value, HTTP_RPPXY_PORT));
+    std::set<std::string> exclusionList;
+    if (!host.empty()) {
+        napi_value exclusionsValue = NapiUtils::GetNamedProperty(GetEnv(), value, HTTP_RPPXY_EXCLUSION_LIST);
+        uint32_t size = NapiUtils::GetArrayLength(GetEnv(), exclusionsValue);
+        for (uint32_t i = 0; i < size; ++i) {
+            napi_value element = NapiUtils::GetArrayElement(GetEnv(), exclusionsValue, i);
+            exclusionList.insert(NapiUtils::GetStringFromValueUtf8(GetEnv(), element));
+        }
+    }
+
+    config_->httpProxy_.SetHost(std::move(host));
+    config_->httpProxy_.SetPort(port);
+    config_->httpProxy_.SetExclusionList(exclusionList);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

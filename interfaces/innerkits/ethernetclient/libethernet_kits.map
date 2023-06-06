@@ -45,6 +45,7 @@
       "OHOS::NetManagerStandard::EthernetServiceProxy::SetInterfaceDown(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::SetInterfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::nmd::InterfaceConfigurationParcel&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::GetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration>&)";
+      "OHOS::NetManagerStandard::HttpProxy::HttpProxy()";
     };
   local:
    *;

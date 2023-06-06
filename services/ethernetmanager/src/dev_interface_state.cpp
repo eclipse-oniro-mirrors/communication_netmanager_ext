@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -171,6 +171,23 @@ void DevInterfaceState::RemoteUpdateNetSupplierInfo()
     NetManagerCenter::GetInstance().UpdateNetSupplierInfo(netSupplier_, netSupplierInfo_);
 }
 
+void DevInterfaceState::UpdateNetHttpProxy(const HttpProxy &httpProxy)
+{
+    if (httpProxy == ifCfg_->httpProxy_) {
+        NETMGR_EXT_LOG_E("The currently set http proxy is the same as the entered http proxy");
+        return;
+    }
+    ifCfg_->httpProxy_ = httpProxy;
+    if (connLinkState_ == LINK_AVAILABLE) {
+        if (linkInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("linkInfo_ is nullptr");
+            return;
+        }
+        linkInfo_->httpProxy_ = httpProxy;
+        RemoteUpdateNetLinkInfo();
+    }
+}
+
 void DevInterfaceState::UpdateLinkInfo()
 {
     if (ifCfg_ == nullptr || ifCfg_->mode_ != STATIC) {
@@ -199,7 +216,9 @@ void DevInterfaceState::UpdateLinkInfo()
     for (auto dnsServer : ifCfg_->ipStatic_.dnsServers_) {
         linkInfo_->dnsList_.push_back(dnsServer);
     }
+    linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
 }
+
 void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &netMask, const INetAddr &gateWay,
                                        const INetAddr &route, const INetAddr &dns1, const INetAddr &dns2)
 {
@@ -223,6 +242,9 @@ void DevInterfaceState::UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &n
     linkInfo_->routeList_.push_back(routeLocal);
     linkInfo_->dnsList_.push_back(dns1);
     linkInfo_->dnsList_.push_back(dns2);
+    if (ifCfg_) {
+        linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
+    }
 }
 
 void DevInterfaceState::UpdateSupplierAvailable()
