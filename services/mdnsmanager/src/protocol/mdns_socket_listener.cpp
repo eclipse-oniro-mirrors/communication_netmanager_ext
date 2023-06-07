@@ -44,14 +44,12 @@ constexpr in6_addr MDNS_MULTICAST_IN6ADDR = {
     {{0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB}}};
 
 constexpr const char *CONTROL_TAG_REFRESH = "R";
-constexpr const char *WLAN_IF_NAME = "wlan";
 
 constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
 constexpr int WAIT_THREAD_MS = 5;
 constexpr size_t MDNS_MAX_SOCKET = 16;
 constexpr size_t REFRESH_BUFFER_LEN = 2;
-constexpr uint32_t MAX_SET_MULTICAST = 32;
 
 inline bool IfaceIsSupported(ifaddrs *ifa)
 {
