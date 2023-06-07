@@ -20,8 +20,6 @@ config("mdns_manager_config") {
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
     "include",
     "include/stub",
@@ -43,7 +41,6 @@ ohos_shared_library("mdns_manager") {
   configs = [ ":mdns_manager_config" ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
@@ -105,7 +102,6 @@ ohos_static_library("mdns_manager_static") {
   configs = [ ":mdns_manager_config" ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
