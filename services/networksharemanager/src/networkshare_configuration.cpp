@@ -199,7 +199,7 @@ void NetworkShareConfiguration::ParseRegexsData(std::vector<std::string> &regexs
     }
 }
 
-void NetworkShareConfiguration::ParseConfigData(Config_Value cfgValue, std::string &strVal)
+void NetworkShareConfiguration::ParseConfigData(Config_Value cfgValue, std::string &strKey, std::string &strVal)
 {
     if (cfgValue == Config_Value::CONFIG_VALUE_BT_PAN_ADDR) {
         btPanIpv4Str_ = strVal;
@@ -249,7 +249,7 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
             }
             break;
         default:
-            ParseConfigData(configMap_[strKey], strVal);
+            ParseConfigData(configMap_[strKey], strKey, strVal);
             break;
     }
 }

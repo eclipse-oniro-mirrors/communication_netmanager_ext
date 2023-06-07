@@ -163,7 +163,7 @@ private:
     std::map<std::string, Config_Value> configMap_;
 
 private:
-    void ParseConfigData(Config_Value cfgValue, std::string &strVal);
+    void ParseConfigData(Config_Value cfgValue, std::string &strKey, std::string &strVal);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
