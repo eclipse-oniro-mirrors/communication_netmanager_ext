@@ -188,6 +188,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         fit->second->UpdateNetHttpProxy(cfg->httpProxy_);
     }
     fit->second->SetIfcfg(cfg);
+    devCfgs_[iface] = cfg;
     return NETMANAGER_EXT_SUCCESS;
 }
 
