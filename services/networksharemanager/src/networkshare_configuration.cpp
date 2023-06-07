@@ -222,7 +222,7 @@ void NetworkShareConfiguration::ParseConfigData(Config_Value cfgValue, std::stri
     } else if (cfgValue == Config_Value::CONFIG_VALUE_DEFAULT_MASK) {
         defaultMask_ = strVal;
     } else {
-        NETMGR_EXT_LOG_E("unknow Config_Value.");
+        NETMGR_EXT_LOG_E("strKey:%{public}s is unknown data.", strKey.c_str());
     }
 }
 
@@ -248,20 +248,8 @@ void NetworkShareConfiguration::ParseLineData(std::string &strKey, std::string &
                 isWifiHotspotSetDhcp_ = true;
             }
             break;
-        case Config_Value::CONFIG_VALUE_BT_PAN_ADDR:
-        case Config_Value::CONFIG_VALUE_WIFI_HOTSPOT_ADDR:
-        case Config_Value::CONFIG_VALUE_USB_RNDIS_ADDR:
-        case Config_Value::CONFIG_VALUE_BT_PAN_DHCP_NAME:
-        case Config_Value::CONFIG_VALUE_WIFI_DHCP_NAME:
-        case Config_Value::CONFIG_VALUE_USB_DHCP_NAME:
-        case Config_Value::CONFIG_VALUE_USB_IFACE_NAME:
-        case Config_Value::CONFIG_VALUE_ROUTE_SUFFIX:
-        case Config_Value::CONFIG_VALUE_DHCP_ENDIP:
-        case Config_Value::CONFIG_VALUE_DEFAULT_MASK:
-            ParseConfigData(configMap_[strKey], strVal);
-            break;
         default:
-            NETMGR_EXT_LOG_E("strKey:%{public}s is unknown data.", strKey.c_str());
+            ParseConfigData(configMap_[strKey], strVal);
             break;
     }
 }
