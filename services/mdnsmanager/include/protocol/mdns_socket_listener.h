@@ -62,8 +62,6 @@ private:
     void ReceiveInSock(int sock);
     void OpenSocketV4(ifaddrs *ifa);
     void OpenSocketV6(ifaddrs *ifa, bool ipv6Support);
-    int32_t SetIfMulticast(const char *ifaceName);
-    bool CheckIfMulticast(struct ifaddrs *ifa);
 
     std::vector<int> socks_;
     std::map<int, std::string> iface_;

@@ -33,7 +33,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "net_conn_client.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
@@ -45,14 +44,12 @@ constexpr in6_addr MDNS_MULTICAST_IN6ADDR = {
     {{0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB}}};
 
 constexpr const char *CONTROL_TAG_REFRESH = "R";
-constexpr const char *WLAN_IF_NAME = "wlan";
 
 constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
 constexpr int WAIT_THREAD_MS = 5;
 constexpr size_t MDNS_MAX_SOCKET = 16;
 constexpr size_t REFRESH_BUFFER_LEN = 2;
-constexpr uint32_t MAX_SET_MULTICAST = 32;
 
 inline bool IfaceIsSupported(ifaddrs *ifa)
 {
@@ -227,41 +224,6 @@ void MDnsSocketListener::Stop()
     }
 }
 
-int32_t MDnsSocketListener::SetIfMulticast(const char *ifaceName)
-{
-    int32_t ret = DelayedSingleton<NetConnClient>::GetInstance()->InterfaceSetIffUp(ifaceName);
-    if (ret) {
-        NETMGR_EXT_LOG_E("InterfaceSetIffUp failed [%{public}s],[%{public}d]", ifaceName, ret);
-    }
-    return ret;
-}
-
-bool MDnsSocketListener::CheckIfMulticast(struct ifaddrs *ifa)
-{
-    if (IfaceIsSupported(ifa)) {
-        return true;
-    }
-
-    if (strncmp(ifa->ifa_name, WLAN_IF_NAME, strlen(WLAN_IF_NAME))) {
-        NETMGR_EXT_LOG_I("Configure only wlan network card, [%{public}s]", ifa->ifa_name);
-        return false;
-    }
-
-    uint32_t count = 0;
-    while (count++ < MAX_SET_MULTICAST) {
-        if (SetIfMulticast(ifa->ifa_name) != 0) {
-            continue;
-        }
-        if (!IfaceIsSupported(ifa)) {
-            NETMGR_EXT_LOG_I("iface [%{public}s] is mismatch", ifa->ifa_name);
-            continue;
-        }
-        return true;
-    }
-    NETMGR_EXT_LOG_W("Failed to SetIfMulticast of network card [%{public}s]", ifa->ifa_name);
-    return false;
-}
-
 void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 {
     ifaddrs *ifaddr = nullptr;
@@ -281,7 +243,8 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
             loaddr = ifa;
             continue;
         }
-        if (!CheckIfMulticast(ifa)) {
+        if (!IfaceIsSupported(ifa)) {
+            NETMGR_EXT_LOG_I("iface [%{public}s] is mismatch", ifa->ifa_name);
             continue;
         }
         if (ifa->ifa_addr->sa_family == AF_INET) {
