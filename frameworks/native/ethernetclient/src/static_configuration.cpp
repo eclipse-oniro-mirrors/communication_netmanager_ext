@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -93,11 +93,8 @@ sptr<StaticConfiguration> StaticConfiguration::Unmarshalling(Parcel &parcel)
     }
     ptr->netMask_ = *netMask;
     uint32_t size = 0;
-    if (!parcel.ReadUint32(size)) {
-        return nullptr;
-    }
-    if (size > MAX_SIZE) {
-        NETMGR_EXT_LOG_E("size=[%{public}d] is too large", size);
+    if (!parcel.ReadUint32(size) || size > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("readUint32 failed or size=[%{public}d] is too large", size);
         return nullptr;
     }
     for (uint32_t i = 0; i < size; i++) {
