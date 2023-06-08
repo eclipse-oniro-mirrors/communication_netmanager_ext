@@ -14,16 +14,16 @@
  */
 
 #include <gtest/gtest.h>
-
+#ifdef GTEST_API_
+#define private public
+#define protected public
+#endif
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
-
 #include "net_manager_constants.h"
 #include "networkshare_constants.h"
-#define private public
 #include "networkshare_service.h"
-#undef private
 #include "sharing_event_callback_stub.h"
 
 namespace OHOS {
@@ -141,7 +141,8 @@ HWTEST_F(NetworkShareServiceTest, IsNetworkSharingSupportedTest002, TestSize.Lev
     AccessToken token;
     int32_t supported;
     auto ret = instance_->IsNetworkSharingSupported(supported);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(supported, NETWORKSHARE_IS_UNSUPPORTED);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_IFACE_CFG_ERROR);
 }
 
 HWTEST_F(NetworkShareServiceTest, IsSharingTest001, TestSize.Level1)
@@ -156,7 +157,8 @@ HWTEST_F(NetworkShareServiceTest, IsSharingTest002, TestSize.Level1)
     AccessToken token;
     int32_t sharingStatus;
     auto ret = instance_->IsSharing(sharingStatus);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_NE(sharingStatus, NETWORKSHARE_IS_SHARING);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest001, TestSize.Level1)

@@ -14,9 +14,11 @@
  */
 
 #include <gtest/gtest.h>
-
-#include "sharing_event_callback_stub.h"
+#ifdef GTEST_API_
 #define private public
+#define protected public
+#endif
+#include "sharing_event_callback_stub.h"
 #include "networkshare_tracker.h"
 
 namespace OHOS {
@@ -633,18 +635,14 @@ HWTEST_F(NetworkShareTrackerTest, InterfaceNameToType01, TestSize.Level1)
 
 HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent01, TestSize.Level1)
 {
-    SharingIfaceType type = static_cast<SharingIfaceType>(3);
-    auto ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
-    EXPECT_FALSE(ret);
-
-    type = SharingIfaceType::SHARING_WIFI;
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
     NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_CLOSING;
-    ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+    auto ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
     EXPECT_TRUE(ret);
 
     type = SharingIfaceType::SHARING_USB;
-    NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_SHARING;
-    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, true);
+    NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_CLOSING;
+    ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
     EXPECT_TRUE(ret);
 
     NetworkShareTracker::GetInstance().InterfaceStatusChanged(TEST_IFACE_NAME, false);
@@ -662,8 +660,13 @@ HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent01, TestSize.Level1)
 #ifdef BLUETOOTH_MODOULE
     type = SharingIfaceType::SHARING_BLUETOOTH;
     NetworkShareTracker::GetInstance().curBluetoothState_ = Bluetooth::BTConnectState::CONNECTING;
-    NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, true);
+    ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, true);
+    EXPECT_TRUE(ret);
 #endif
+
+    type = static_cast<SharingIfaceType>(3);
+    ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+    EXPECT_FALSE(ret);
 }
 
 HWTEST_F(NetworkShareTrackerTest, SendSharingUpstreamChange01, TestSize.Level1)

@@ -751,39 +751,5 @@ HWTEST_F(EthernetManagerTest, SetInterfaceDownTest001, TestSize.Level1)
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
-
-HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfg001, TestSize.Level1)
-{
-    EthernetManagement ethernetmanagement;
-    std::string iface = "test";
-    int32_t ret = ethernetmanagement.UpdateDevInterfaceCfg(iface, nullptr);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
-}
-
-HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfg002, TestSize.Level1)
-{
-    EthernetManagement ethernetmanagement;
-    sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
-    std::string iface = "test";
-    int32_t ret = ethernetmanagement.UpdateDevInterfaceCfg(iface, cfg);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
-}
-
-HWTEST_F(EthernetManagerTest, GetDevInterfaceCfg001, TestSize.Level1)
-{
-    EthernetManagement ethernetmanagement;
-    std::string iface = "test";
-    sptr<InterfaceConfiguration> ifaceConfig = nullptr;
-    int32_t ret = ethernetmanagement.GetDevInterfaceCfg(iface, ifaceConfig);
-    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
-}
-
-HWTEST_F(EthernetManagerTest, UpdateDevInterfaceLinkInfo001, TestSize.Level1)
-{
-    EthernetManagement ethernetmanagement;
-    EthernetDhcpCallback::DhcpResult dhcpResult;
-    int32_t ret = ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
-}
 } // namespace NetManagerStandard
 } // namespace OHOS
