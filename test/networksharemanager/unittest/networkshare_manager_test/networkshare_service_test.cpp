@@ -297,7 +297,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest002, TestSize.Level1)
     AccessToken token;
     int32_t bytes;
     auto ret = instance_->GetStatsTxBytes(bytes);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest001, TestSize.Level1)
@@ -312,7 +312,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest002, TestSize.Level1)
     AccessToken token;
     int32_t bytes;
     auto ret = instance_->GetStatsTotalBytes(bytes);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetDumpMessage001, TestSize.Level1)

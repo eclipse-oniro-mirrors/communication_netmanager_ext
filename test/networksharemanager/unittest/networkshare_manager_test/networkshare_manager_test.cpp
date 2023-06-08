@@ -164,7 +164,7 @@ HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
     AccessToken token;
     int32_t supportedFlag;
     DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
-    EXPECT_NE(supportedFlag, NETWORKSHARING_INVALID);
+    EXPECT_EQ(supportedFlag, NETWORKSHARE_IS_SUPPORTED);
 }
 
 HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)
