@@ -209,7 +209,7 @@ HWTEST_F(NetworkShareServiceTest, RegisterSharingEventTest002, TestSize.Level1)
 {
     AccessToken token;
     auto ret = instance_->RegisterSharingEvent(eventCallback_);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest001, TestSize.Level1)
@@ -222,7 +222,7 @@ HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest002, TestSize.Level1
 {
     AccessToken token;
     auto ret = instance_->UnregisterSharingEvent(eventCallback_);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetSharableRegexsTest001, TestSize.Level1)
@@ -284,7 +284,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsRxBytesTest002, TestSize.Level1)
     AccessToken token;
     int32_t bytes;
     auto ret = instance_->GetStatsRxBytes(bytes);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest001, TestSize.Level1)
