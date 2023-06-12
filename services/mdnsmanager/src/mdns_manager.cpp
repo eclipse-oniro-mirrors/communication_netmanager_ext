@@ -31,6 +31,13 @@ MDnsManager &MDnsManager::GetInstance()
 
 MDnsManager::MDnsManager() {}
 
+void MDnsManager::RestartMDnsProtocolImpl()
+{
+    NETMGR_EXT_LOG_D("MDNS_LOG Network switching");
+    impl.Init();
+    RestartDiscoverService();
+}
+
 int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
     if (cb == nullptr || cb->AsObject() == nullptr) {
@@ -119,6 +126,22 @@ int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
         discoveryMap_.erase(local);
     }
     return impl.StopCbMap(key);
+}
+
+void MDnsManager::RestartDiscoverService()
+{
+    NETMGR_EXT_LOG_I("MDNS_LOG RestartDiscoverService");
+    std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
+    for (auto &it : discoveryMap_) {
+        auto cb = it.first;
+        if (cb == nullptr || cb->AsObject() == nullptr) {
+            NETMGR_EXT_LOG_E("callback is nullptr");
+            continue;
+        }
+        auto serviceType = it.second;
+        impl.StopCbMap(serviceType);
+        impl.Discovery(serviceType, cb);
+    }
 }
 
 int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb)

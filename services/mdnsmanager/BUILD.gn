@@ -17,6 +17,8 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 config("mdns_manager_config") {
   include_dirs = [
     "$BASE_INNERKITS_ROOT/include",
+    "$BASE_INNERKITS_ROOT/netconnclient/include",
+    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
@@ -31,6 +33,7 @@ ohos_shared_library("mdns_manager") {
   sources = [
     "src/mdns_manager.cpp",
     "src/mdns_service.cpp",
+    "src/net_interface_callback.cpp",
     "src/protocol/mdns_packet_parser.cpp",
     "src/protocol/mdns_protocol_impl.cpp",
     "src/protocol/mdns_socket_listener.cpp",
@@ -65,6 +68,7 @@ ohos_shared_library("mdns_manager") {
   external_deps = [
     "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
   ]
 
@@ -92,6 +96,7 @@ ohos_static_library("mdns_manager_static") {
   sources = [
     "src/mdns_manager.cpp",
     "src/mdns_service.cpp",
+    "src/net_interface_callback.cpp",
     "src/protocol/mdns_packet_parser.cpp",
     "src/protocol/mdns_protocol_impl.cpp",
     "src/protocol/mdns_socket_listener.cpp",
@@ -109,6 +114,7 @@ ohos_static_library("mdns_manager_static") {
   external_deps = [
     "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
   ]
 

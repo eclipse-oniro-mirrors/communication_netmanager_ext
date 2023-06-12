@@ -34,6 +34,8 @@ class MDnsManager {
 public:
     static MDnsManager &GetInstance();
 
+    void RestartMDnsProtocolImpl();
+
     int32_t RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb);
     int32_t UnRegisterService(const sptr<IRegistrationCallback> &cb);
 
@@ -56,6 +58,7 @@ private:
             return lhs->AsObject().GetRefPtr() < rhs->AsObject().GetRefPtr();
         }
     };
+    void RestartDiscoverService();
 
     MDnsProtocolImpl impl;
     std::map<sptr<IRegistrationCallback>, std::string, CompareSmartPointer> registerMap_;

@@ -15,13 +15,6 @@
 
 #include "mdns_socket_listener.h"
 
-#include <cassert>
-#include <cerrno>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <pthread.h>
-
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
@@ -32,6 +25,12 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <pthread.h>
+#include <iostream>
 
 #include "netmgr_ext_log_wrapper.h"
 
@@ -236,7 +235,6 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 
     for (ifaddrs *ifa = ifaddr; ifa != nullptr && socks_.size() < MDNS_MAX_SOCKET; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr == nullptr || (ifa->ifa_addr->sa_family != AF_INET && ifa->ifa_addr->sa_family != AF_INET6)) {
-            NETMGR_EXT_LOG_E("Network card [%{public}s] has not address", ifa->ifa_name);
             continue;
         }
         if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
@@ -282,7 +280,7 @@ void MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
         reinterpret_cast<sockaddr_in *>(&saddr_[sock])->sin_family = AF_INET;
         reinterpret_cast<sockaddr_in *>(&saddr_[sock])->sin_addr = saddr->sin_addr;
     }
-    NETMGR_EXT_LOG_I("iface found, ifa_name=[%{public}s]", ifa->ifa_name);
+    NETMGR_EXT_LOG_I("mdns_log iface found, ifa_name=[%{public}s]", ifa->ifa_name);
 }
 
 inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
@@ -371,7 +369,7 @@ void MDnsSocketListener::Run()
             finished_(ctrlPair_[0]);
         }
     }
-    NETMGR_EXT_LOG_W("listener stopped");
+    NETMGR_EXT_LOG_W("mdns_log listener stopped");
 }
 
 void MDnsSocketListener::ReceiveInSock(int sock)

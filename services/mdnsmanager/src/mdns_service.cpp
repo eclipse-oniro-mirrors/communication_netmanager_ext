@@ -14,6 +14,7 @@
  */
 
 #include "mdns_service.h"
+#include "net_conn_client.h"
 
 #include <sys/time.h>
 
@@ -104,6 +105,13 @@ bool MDnsService::Init()
         }
         isRegistered_ = true;
     }
+    netStateCallback_ = new (std::nothrow) NetInterfaceStateCallback();
+    int32_t err = DelayedSingleton<NetConnClient>::GetInstance()->RegisterNetInterfaceCallback(netStateCallback_);
+    if (err != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Failed to register the NetInterfaceCallback, error code: [%{public}d]", err);
+        return err;
+    }
+
     NETMGR_EXT_LOG_D("Init mdns service OK");
     return true;
 }
