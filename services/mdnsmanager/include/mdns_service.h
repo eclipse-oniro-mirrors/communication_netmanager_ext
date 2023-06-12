@@ -29,6 +29,7 @@
 #include "i_mdns_event.h"
 #include "mdns_service_stub.h"
 #include "mdns_manager.h"
+#include "net_interface_callback.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -62,6 +63,7 @@ private:
 
     bool isRegistered_;
     ServiceRunningState state_;
+    sptr<INetInterfaceStateCallback> netStateCallback_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

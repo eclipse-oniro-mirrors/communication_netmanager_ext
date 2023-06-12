@@ -19,10 +19,12 @@
 #include <cstddef>
 #include <iostream>
 #include <random>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "mdns_manager.h"
 #include "mdns_packet_parser.h"
+#include "net_conn_client.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
@@ -65,7 +67,10 @@ MDnsProtocolImpl::MDnsProtocolImpl()
 
 void MDnsProtocolImpl::Init()
 {
+    NETMGR_EXT_LOG_D("MDNS_LOG MDnsProtocolImpl init");
+    listener_.Stop();
     listener_.CloseAllSocket();
+
     if (config_.configAllIface) {
         listener_.OpenSocketForEachIface(config_.ipv6Support, config_.configLo);
     } else {
@@ -119,7 +124,9 @@ void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<
             it->state = State::DEAD;
             Result rst = *it;
             std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
-            nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+            if (nameCbMap_[key] != nullptr) {
+                nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
+            }
             it = res.erase(it);
             if (cacheMap_.find(fullName) != cacheMap_.end()) {
                 cacheMap_.erase(fullName);
@@ -413,9 +420,10 @@ void MDnsProtocolImpl::ReceivePacket(int sock, const MDnsPayload &payload)
         return;
     }
     if ((msg.header.flags & DNSProto::HEADER_FLAGS_QR_MASK) == 0) {
+        NETMGR_EXT_LOG_D("MDNS_LOG ProcessAnswer message, [%{public}zu]", payload.size());
         ProcessQuestion(sock, msg);
     } else {
-        NETMGR_EXT_LOG_D("ProcessAnswer message, [%{public}zu]", payload.size());
+        NETMGR_EXT_LOG_D("MDNS_LOG ProcessAnswer message, [%{public}zu]", payload.size());
         ProcessAnswer(sock, msg);
     }
 }
