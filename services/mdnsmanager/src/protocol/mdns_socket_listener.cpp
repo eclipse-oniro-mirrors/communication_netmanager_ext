@@ -280,7 +280,7 @@ void MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
         reinterpret_cast<sockaddr_in *>(&saddr_[sock])->sin_family = AF_INET;
         reinterpret_cast<sockaddr_in *>(&saddr_[sock])->sin_addr = saddr->sin_addr;
     }
-    NETMGR_EXT_LOG_I("MDNS_LOG iface found, ifa_name=[%{public}s]", ifa->ifa_name);
+    NETMGR_EXT_LOG_I("mdns_log iface found, ifa_name=[%{public}s]", ifa->ifa_name);
 }
 
 inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
@@ -369,7 +369,7 @@ void MDnsSocketListener::Run()
             finished_(ctrlPair_[0]);
         }
     }
-    NETMGR_EXT_LOG_W("MDNS_LOG listener stopped");
+    NETMGR_EXT_LOG_W("mdns_log listener stopped");
 }
 
 void MDnsSocketListener::ReceiveInSock(int sock)
@@ -471,7 +471,6 @@ ssize_t MDnsSocketListener::Unicast(int sock, sockaddr *saddr, const MDnsPayload
 
 ssize_t MDnsSocketListener::MulticastAll(const MDnsPayload &payload)
 {
-    NETMGR_EXT_LOG_D("MDNS_LOG MulticastAll");
     ssize_t total = 0;
     for (size_t i = 0; i < socks_.size() && i < MDNS_MAX_SOCKET; ++i) {
         ssize_t sendLen = Multicast(socks_[i], payload);
