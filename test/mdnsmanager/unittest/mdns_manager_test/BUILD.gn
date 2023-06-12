@@ -22,23 +22,19 @@ ohos_unittest("mdns_manager_test") {
 
   include_dirs = [
     "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
   ]
 
   deps = [
+    "$EXT_INNERKITS_ROOT/mdnsclient:mdns_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/services/mdnsmanager:mdns_manager_static",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
-  external_deps = [
-    "ipc:ipc_core",
-    "netmanager_base:net_conn_manager_if",
-  ]
+  external_deps = [ "ipc:ipc_core" ]
 
   defines = [
     "NETMGR_LOG_TAG = \"MDnsManager\"",
