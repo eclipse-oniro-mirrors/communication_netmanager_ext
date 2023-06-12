@@ -41,7 +41,6 @@ ohos_fuzztest("MDnsClientFuzzTest") {
   sources = [ "mdns_client_fuzzer.cpp" ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_manager_if",
     "$NETMANAGER_EXT_ROOT/services/mdnsmanager:mdns_manager_static",
   ]
@@ -49,6 +48,7 @@ ohos_fuzztest("MDnsClientFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
   ]
 

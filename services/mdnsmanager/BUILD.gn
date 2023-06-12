@@ -44,7 +44,6 @@ ohos_shared_library("mdns_manager") {
   configs = [ ":mdns_manager_config" ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
@@ -69,6 +68,7 @@ ohos_shared_library("mdns_manager") {
   external_deps = [
     "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
   ]
 
@@ -107,7 +107,6 @@ ohos_static_library("mdns_manager_static") {
   configs = [ ":mdns_manager_config" ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
@@ -115,6 +114,7 @@ ohos_static_library("mdns_manager_static") {
   external_deps = [
     "hisysevent_native:libhisysevent",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
   ]
 
