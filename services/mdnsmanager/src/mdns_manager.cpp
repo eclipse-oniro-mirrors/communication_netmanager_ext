@@ -136,7 +136,7 @@ void MDnsManager::RestartDiscoverService()
         auto cb = it.first;
         if (cb == nullptr || cb->AsObject() == nullptr) {
             NETMGR_EXT_LOG_E("callback is nullptr");
-            return;
+            continue;
         }
         auto serviceType = it.second;
         impl.StopCbMap(serviceType);
