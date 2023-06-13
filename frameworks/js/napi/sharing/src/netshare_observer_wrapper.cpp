@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,9 +52,13 @@ napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
     }
 
     const std::string event = NapiUtils::GetStringFromValueUtf8(env, params[ARG_INDEX_0]);
-
-    if (Register()) {
+    auto ret = Register();
+    if (ret == NETMANAGER_EXT_SUCCESS) {
         manager_->AddListener(env, event, params[ARG_INDEX_1], false, asyncCallback);
+    } else {
+        NetBaseErrorCodeConvertor convertor;
+        std::string errorMsg = convertor.ConvertErrorCode(ret);
+        napi_throw_error(env, std::to_string(ret).c_str(), errorMsg.c_str());
     }
 
     return NapiUtils::GetUndefined(env);
@@ -97,6 +101,9 @@ napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
         int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(observer_);
         if (result != NETMANAGER_EXT_SUCCESS) {
             NETMANAGER_EXT_LOGE("unregister result = %{public}d", result);
+            NetBaseErrorCodeConvertor convertor;
+            std::string errorMsg = convertor.ConvertErrorCode(result);
+            napi_throw_error(env, std::to_string(result).c_str(), errorMsg.c_str());
             return NapiUtils::GetUndefined(env);
         }
         registed_ = false;
@@ -110,18 +117,14 @@ EventManager *NetShareObserverWrapper::GetEventManager() const
     return manager_;
 }
 
-bool NetShareObserverWrapper::Register()
+int32_t NetShareObserverWrapper::Register()
 {
     if (registed_) {
-        return true;
+        return NETMANAGER_EXT_SUCCESS;
     }
 
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(observer_);
-    if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMANAGER_EXT_LOGE("RegisterSharingEvent error = %{public}d", result);
-        return false;
-    }
-    return true;
+    return result;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
