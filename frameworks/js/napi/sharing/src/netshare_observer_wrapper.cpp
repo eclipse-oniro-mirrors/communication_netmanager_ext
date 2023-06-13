@@ -56,6 +56,7 @@ napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
     if (ret == NETMANAGER_EXT_SUCCESS) {
         manager_->AddListener(env, event, params[ARG_INDEX_1], false, asyncCallback);
     } else {
+        NETMANAGER_EXT_LOGE("RegisterSharingEvent error = %{public}d", ret);
         NetBaseErrorCodeConvertor convertor;
         std::string errorMsg = convertor.ConvertErrorCode(ret);
         napi_throw_error(env, std::to_string(ret).c_str(), errorMsg.c_str());
