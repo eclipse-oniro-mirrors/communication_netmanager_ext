@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,16 +14,16 @@
  */
 
 #include <gtest/gtest.h>
-
+#ifdef GTEST_API_
+#define private public
+#define protected public
+#endif
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
-
 #include "net_manager_constants.h"
 #include "networkshare_constants.h"
-#define private public
 #include "networkshare_service.h"
-#undef private
 #include "sharing_event_callback_stub.h"
 
 namespace OHOS {
@@ -136,11 +136,29 @@ HWTEST_F(NetworkShareServiceTest, IsNetworkSharingSupportedTest001, TestSize.Lev
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(NetworkShareServiceTest, IsNetworkSharingSupportedTest002, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t supported;
+    auto ret = instance_->IsNetworkSharingSupported(supported);
+    EXPECT_EQ(supported, NETWORKSHARE_IS_UNSUPPORTED);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_IFACE_CFG_ERROR);
+}
+
 HWTEST_F(NetworkShareServiceTest, IsSharingTest001, TestSize.Level1)
 {
     int32_t sharingStatus;
     auto ret = instance_->IsSharing(sharingStatus);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareServiceTest, IsSharingTest002, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t sharingStatus;
+    auto ret = instance_->IsSharing(sharingStatus);
+    EXPECT_NE(sharingStatus, NETWORKSHARE_IS_SHARING);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest001, TestSize.Level1)
@@ -187,10 +205,24 @@ HWTEST_F(NetworkShareServiceTest, RegisterSharingEventTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(NetworkShareServiceTest, RegisterSharingEventTest002, TestSize.Level1)
+{
+    AccessToken token;
+    auto ret = instance_->RegisterSharingEvent(eventCallback_);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest001, TestSize.Level1)
 {
     auto ret = instance_->UnregisterSharingEvent(eventCallback_);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest002, TestSize.Level1)
+{
+    AccessToken token;
+    auto ret = instance_->UnregisterSharingEvent(eventCallback_);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetSharableRegexsTest001, TestSize.Level1)
@@ -247,6 +279,14 @@ HWTEST_F(NetworkShareServiceTest, GetStatsRxBytesTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(NetworkShareServiceTest, GetStatsRxBytesTest002, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t bytes;
+    auto ret = instance_->GetStatsRxBytes(bytes);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest001, TestSize.Level1)
 {
     int32_t bytes;
@@ -254,11 +294,27 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest002, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t bytes;
+    auto ret = instance_->GetStatsTxBytes(bytes);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest001, TestSize.Level1)
 {
     int32_t bytes;
     auto ret = instance_->GetStatsTotalBytes(bytes);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest002, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t bytes;
+    auto ret = instance_->GetStatsTotalBytes(bytes);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetDumpMessage001, TestSize.Level1)
