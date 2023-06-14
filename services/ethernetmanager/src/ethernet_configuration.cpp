@@ -495,9 +495,9 @@ void EthernetConfiguration::ParserFileHttpProxy(const std::string &fileContent, 
     if (pos != std::string::npos) {
         pos += strlen(KEY_PROXY_EXCLUSIONS);
         auto exclusions = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-        std::set<std::string> exclusionList;
+        std::list<std::string> exclusionList;
         for (const auto &exclusion : CommonUtils::Split(exclusions, EXCLUSIONS_DELIMITER)) {
-            exclusionList.insert(exclusion);
+            exclusionList.push_back(exclusion);
         }
         cfg->httpProxy_.SetExclusionList(exclusionList);
     }
@@ -547,7 +547,7 @@ void EthernetConfiguration::GenHttpProxyContent(const sptr<InterfaceConfiguratio
     fileContent = fileContent + KEY_PROXY_EXCLUSIONS + exclusions + WRAP;
 }
 
-void EthernetConfiguration::GetExclusionsAsString(const std::set<std::string> &exclusionList, std::string &value) const
+void EthernetConfiguration::GetExclusionsAsString(const std::list<std::string> &exclusionList, std::string &value) const
 {
     int32_t index = 0;
     for (auto exclusion : exclusionList) {

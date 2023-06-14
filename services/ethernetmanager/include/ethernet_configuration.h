@@ -58,7 +58,7 @@ private:
     void ParserFileHttpProxy(const std::string &fileContent, const sptr<InterfaceConfiguration> &cfg);
     void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
     void GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent);
-    void GetExclusionsAsString(const std::set<std::string> &exclusionList, std::string &value) const;
+    void GetExclusionsAsString(const std::list<std::string> &exclusionList, std::string &value) const;
 
 private:
     std::mutex mutex_;
