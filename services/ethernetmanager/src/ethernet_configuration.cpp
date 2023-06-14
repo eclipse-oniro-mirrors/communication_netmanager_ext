@@ -21,11 +21,11 @@
 #include <fcntl.h>
 #include <fstream>
 #include <limits>
+#include <regex>
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <regex>
 
 #include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
@@ -303,7 +303,7 @@ sptr<InterfaceConfiguration>
     cfg->ipStatic_.gateway_.address_ = route.gateway_.address_;
     cfg->ipStatic_.netMask_.address_ = CommonUtils::GetMaskByLength(routeLocal.destination_.prefixlen_);
     cfg->ipStatic_.domain_ = devLinkInfo->domain_;
-    for (const auto addr : devLinkInfo->dnsList_) {
+    for (const auto &addr : devLinkInfo->dnsList_) {
         cfg->ipStatic_.dnsServers_.push_back(addr);
     }
     return cfg;

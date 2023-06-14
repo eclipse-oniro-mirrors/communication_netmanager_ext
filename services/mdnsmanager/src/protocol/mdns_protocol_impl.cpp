@@ -737,7 +737,7 @@ bool MDnsProtocolImpl::IsCacheAvailable(const std::string &key)
 {
     constexpr int64_t ms2S = 1000LL;
     return cacheMap_.find(key) != cacheMap_.end() &&
-           (ms2S * cacheMap_[key].ttl) > (MilliSecondsSinceEpoch() - cacheMap_[key].refrehTime);
+           (ms2S * cacheMap_[key].ttl) > static_cast<uint32_t>(MilliSecondsSinceEpoch() - cacheMap_[key].refrehTime);
 }
 
 bool MDnsProtocolImpl::IsDomainCacheAvailable(const std::string &key)

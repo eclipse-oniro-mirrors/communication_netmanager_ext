@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 
 #include "ethernet_service_stub.h"
 
-#include "net_manager_constants.h"
 #include "i_ethernet_service.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
@@ -33,7 +32,7 @@ constexpr uint32_t MAX_IFACE_NAME_LEN = 13;
 constexpr uint32_t MAX_MAC_ADDR_LEN = 17;
 constexpr uint32_t MAX_IPV4_ADDR_LEN = 15;
 constexpr uint32_t MAX_PRE_LEN = 128;
-}
+} // namespace
 
 EthernetServiceStub::EthernetServiceStub()
 {
@@ -249,17 +248,17 @@ int32_t EthernetServiceStub::OnSetInterfaceConfig(MessageParcel &data, MessagePa
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     cfg.prefixLength = data.ReadInt32();
-    if (cfg.prefixLength > MAX_PRE_LEN) {
+    if (cfg.prefixLength > static_cast<int32_t>(MAX_PRE_LEN)) {
         NETMGR_EXT_LOG_E("prefixLength=[%{public}d] is too large", cfg.prefixLength);
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
 
-    int32_t vecSize = data.ReadInt32();
+    uint32_t vecSize = data.ReadUint32();
     if (vecSize <= 0 || vecSize > MAX_SIZE) {
-        NETMGR_EXT_LOG_E("flags size=[%{public}d] is 0 or too large", vecSize);
+        NETMGR_EXT_LOG_E("flags size=[%{public}u] is 0 or too large", vecSize);
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
-    for (int32_t idx = 0; idx < vecSize; idx++) {
+    for (uint32_t idx = 0; idx < vecSize; idx++) {
         cfg.flags.push_back(data.ReadString());
     }
 
