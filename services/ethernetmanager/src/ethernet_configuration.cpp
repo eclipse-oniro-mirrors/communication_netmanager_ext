@@ -550,7 +550,7 @@ void EthernetConfiguration::GenHttpProxyContent(const sptr<InterfaceConfiguratio
 void EthernetConfiguration::GetExclusionsAsString(const std::list<std::string> &exclusionList, std::string &value) const
 {
     int32_t index = 0;
-    for (auto exclusion : exclusionList) {
+    for (const auto &exclusion : exclusionList) {
         if (index > 0) {
             value = value + EXCLUSIONS_DELIMITER;
         }
