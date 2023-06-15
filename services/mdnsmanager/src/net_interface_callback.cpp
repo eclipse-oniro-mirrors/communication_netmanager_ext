@@ -54,13 +54,13 @@ int32_t NetInterfaceStateCallback::OnInterfaceRemoved(const std::string &ifName)
 
 int32_t NetInterfaceStateCallback::OnInterfaceChanged(const std::string &ifName, bool up)
 {
-    NETMGR_EXT_LOG_D("mdns_log OnInterfaceChanged, iface:[%{public}s] -> Up:[%{public}d]", ifName.c_str(), up);
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceChanged, iface:[%{public}s]->Up:[%{public}d]", ifName.c_str(), up);
     return NETMANAGER_SUCCESS;
 }
 
 int32_t NetInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
 {
-    NETMGR_EXT_LOG_I("mdns_log OnInterfaceLinkStateChanged, iface:[%{public}s] -> Up:[%{public}d]", ifName.c_str(), up);
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceLinkStateChanged, iface:[%{public}s]->Up:[%{public}d]", ifName.c_str(), up);
     return NETMANAGER_SUCCESS;
 }
 } // namespace NetManagerStandard

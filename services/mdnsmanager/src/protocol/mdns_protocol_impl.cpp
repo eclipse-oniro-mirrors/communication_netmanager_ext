@@ -122,7 +122,7 @@ void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<
     NETMGR_EXT_LOG_D("mdns_log handleOfflineService key:[%{public}s]", key.c_str());
     for (auto it = res.begin(); it != res.end();) {
         if (lastRunTime - it->refrehTime > DEFAULT_LOST_MS && it->state == State::LIVE) {
-            NETMGR_EXT_LOG_D("mdns_log handleOfflineService lastRunTime:[%{public}lld] refrehTime:[%{public}lld]", 
+            NETMGR_EXT_LOG_D("mdns_log handleOfflineService lastRunTime:[%{public}lld] refrehTime:[%{public}lld]",
                 lastRunTime, it->refrehTime);
             it->state = State::DEAD;
             Result rst = *it;
