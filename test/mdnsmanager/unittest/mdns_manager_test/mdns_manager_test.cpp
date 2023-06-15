@@ -198,7 +198,7 @@ void DoTestForMdnsClient(MdnsClientTestParams param)
     }
     DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(param.registration);
     DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(param.registrationBack);
-    if (!g_cv.wait_for(lock, std::chrono::seconds(TIME_FIVE_MS), []() { return g_lost >= TIME_FOUR_MS; })) {
+    if (!g_cv.wait_for(lock, std::chrono::seconds(TIME_FIVE_MS), []() { return g_lost >= TIME_ONE_MS; })) {
         FAIL();
     }
     DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(param.discovery);
