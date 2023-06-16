@@ -26,7 +26,7 @@ NetInterfaceStateCallback::NetInterfaceStateCallback() {}
 int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &addr, const std::string &ifName,
                                                              int32_t flags, int32_t scope)
 {
-    NETMGR_EXT_LOG_D("MDNS_LOG OnInterfaceAddressUpdated, addr:[%{public}s], iface:[%{public}s], scope:[%{public}d]",
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceAddressUpdated, addr:[%{public}s], iface:[%{public}s], scope:[%{public}d]",
                      addr.c_str(), ifName.c_str(), scope);
     MDnsManager::GetInstance().RestartMDnsProtocolImpl();
     return NETMANAGER_SUCCESS;
@@ -35,32 +35,32 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
 int32_t NetInterfaceStateCallback::OnInterfaceAddressRemoved(const std::string &addr, const std::string &ifName,
                                                              int32_t flags, int32_t scope)
 {
-    NETMGR_EXT_LOG_D("MDNS_LOG OnInterfaceAddressRemoved, addr:[%{public}s], iface:[%{public}s], scope:[%{public}d]",
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceAddressRemoved, addr:[%{public}s], iface:[%{public}s], scope:[%{public}d]",
                      addr.c_str(), ifName.c_str(), scope);
     return NETMANAGER_SUCCESS;
 }
 
 int32_t NetInterfaceStateCallback::OnInterfaceAdded(const std::string &ifName)
 {
-    NETMGR_EXT_LOG_D("MDNS_LOG OnInterfaceAdded, iface:[%{public}s]", ifName.c_str());
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceAdded, iface:[%{public}s]", ifName.c_str());
     return NETMANAGER_SUCCESS;
 }
 
 int32_t NetInterfaceStateCallback::OnInterfaceRemoved(const std::string &ifName)
 {
-    NETMGR_EXT_LOG_D("MDNS_LOG OnInterfaceRemoved, iface:[%{public}s]", ifName.c_str());
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceRemoved, iface:[%{public}s]", ifName.c_str());
     return NETMANAGER_SUCCESS;
 }
 
 int32_t NetInterfaceStateCallback::OnInterfaceChanged(const std::string &ifName, bool up)
 {
-    NETMGR_EXT_LOG_D("MDNS_LOG OnInterfaceChanged, iface:[%{public}s] -> Up:[%{public}d]", ifName.c_str(), up);
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceChanged, iface:[%{public}s]->Up:[%{public}d]", ifName.c_str(), up);
     return NETMANAGER_SUCCESS;
 }
 
 int32_t NetInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
 {
-    NETMGR_EXT_LOG_I("MDNS_LOG OnInterfaceLinkStateChanged, iface:[%{public}s] -> Up:[%{public}d]", ifName.c_str(), up);
+    NETMGR_EXT_LOG_D("mdns_log OnInterfaceLinkStateChanged, iface:[%{public}s]->Up:[%{public}d]", ifName.c_str(), up);
     return NETMANAGER_SUCCESS;
 }
 } // namespace NetManagerStandard
