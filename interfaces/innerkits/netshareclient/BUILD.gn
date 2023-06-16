@@ -49,12 +49,12 @@ ohos_source_set("networkshare_parcel") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  deps = [ "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel" ]
+  external_deps = [ "netmanager_base:net_conn_parcel" ]
 
   if (is_standard_system) {
-    external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
   } else {
-    external_deps = [ "hilog:libhilog" ]
+    external_deps += [ "hilog:libhilog" ]
   }
 
   part_name = "netmanager_ext"
@@ -80,6 +80,7 @@ ohos_shared_library("net_tether_manager_if") {
   deps = [ ":networkshare_parcel" ]
 
   external_deps = [
+    "c_utils:utils",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
