@@ -354,8 +354,8 @@ int32_t EthernetServiceProxy::SetInterfaceConfig(const std::string &iface, OHOS:
     if (!data.WriteInt32(cfg.prefixLength)) {
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
-    int32_t vecSize = static_cast<int32_t>(cfg.flags.size());
-    if (!data.WriteInt32(vecSize)) {
+    uint32_t vecSize = static_cast<uint32_t>(cfg.flags.size());
+    if (!data.WriteUint32(vecSize)) {
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     for (auto str : cfg.flags) {
