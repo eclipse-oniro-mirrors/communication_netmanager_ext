@@ -58,3 +58,9 @@ group("mdns_packages") {
     ]
   }
 }
+
+group("vpn_packages") {
+  if (netmanager_ext_feature_vpn) {
+    deps = [ "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if" ]
+  }
+}

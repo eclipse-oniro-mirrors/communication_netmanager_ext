@@ -17,7 +17,6 @@
 #define I_VPN_EVENT_CALLBACK_H
 
 #include <iremote_broker.h>
-#include <string>
 
 #include "net_handle.h"
 #include "net_manager_ext_constants.h"

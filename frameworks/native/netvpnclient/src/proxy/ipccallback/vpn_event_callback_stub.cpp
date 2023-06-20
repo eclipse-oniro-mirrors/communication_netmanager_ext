@@ -15,14 +15,31 @@
 
 #include "vpn_event_callback_stub.h"
 #include "net_manager_constants.h"
-#include "string_ex.h"
+#include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 int32_t VpnEventCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
                                               MessageOption &option)
 {
-    return 0;
+    if (data.ReadInterfaceToken() != IVpnEventCallback::GetDescriptor()) {
+        NETMGR_EXT_LOG_E("descriptor checked failed");
+        return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
+    }
+
+    IVpnEventCallback::Message msgCode = static_cast<IVpnEventCallback::Message>(code);
+    if (IVpnEventCallback::Message::GLOBAL_VPN_STATE_CHANGED == msgCode) {
+        bool isConnected = false;
+        if (!data.ReadBool(isConnected)) {
+            NETMGR_EXT_LOG_E("IPC ReadBool failed");
+            return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+        }
+        OnVpnStateChanged(isConnected);
+        return NETMANAGER_EXT_SUCCESS;
+    }
+
+    NETMGR_EXT_LOG_W("stub default case, need check");
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

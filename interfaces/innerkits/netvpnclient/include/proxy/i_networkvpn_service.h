@@ -33,7 +33,8 @@ public:
     enum class MessageCode {
         CMD_START_INTERNAL_VPN, // for start internal vpn
         CMD_PREPARE,
-        CMD_START_SETUP, // for start extended vpn
+        CMD_START_VPN, // for start extended vpn
+        CMD_PROTECT,
         CMD_STOP_VPN,
         CMD_REGISTER_EVENT_CALLBACK,
         CMD_UNREGISTER_EVENT_CALLBACK,
@@ -41,7 +42,8 @@ public:
 
 public:
     virtual int32_t Prepare(bool &isExistVpn, bool &isRun, std::string &pkg) = 0;
-    virtual int32_t SetUp(const sptr<VpnConfig> &config) = 0;
+    virtual int32_t SetUpVpn(const sptr<VpnConfig> &config) = 0;
+    virtual int32_t Protect() = 0;
     virtual int32_t DestroyVpn() = 0;
     virtual int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
     virtual int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
