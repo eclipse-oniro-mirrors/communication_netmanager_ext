@@ -51,16 +51,14 @@ ohos_shared_library("ethernet_manager") {
     "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
   ]
 
-  deps = [
-    "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
-    "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel",
-    "$NETCONNMANAGER_COMMON_DIR:net_service_common",
-    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
-  ]
+  deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel" ]
 
   external_deps = [
+    "dhcp:dhcp_manager_service",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
+    "netmanager_base:net_service_common",
+    "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
   ]
 

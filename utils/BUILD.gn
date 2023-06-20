@@ -45,8 +45,6 @@ ohos_shared_library("net_manager_ext_common") {
     "$C_UTILS_ROOT/base:utils_config",
   ]
 
-  public_deps = [ "$C_UTILS_ROOT/base:utils" ]
-
   if (is_double_framework) {
     cflags_cc = [ "-DCONFIG_DUAL_FRAMEWORK" ]
   }

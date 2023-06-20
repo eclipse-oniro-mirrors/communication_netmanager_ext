@@ -55,9 +55,11 @@ ohos_source_set("ethernet_parcel") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  deps = [ "$NETMANAGER_BASE_ROOT/utils:net_manager_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "netmanager_base:net_manager_common",
+  ]
 
-  external_deps = [ "c_utils:utils" ]
   if (is_standard_system) {
     external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
   } else {
