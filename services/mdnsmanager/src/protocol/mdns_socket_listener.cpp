@@ -435,6 +435,7 @@ bool MDnsSocketListener::CanRefresh()
 
 ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
 {
+    NETMGR_EXT_LOG_I("mdns_log Multicast");
     const sockaddr *saddrIf = GetSockAddr(sock);
     if (saddrIf == nullptr) {
         NETMGR_EXT_LOG_E("mdns_log GetSockAddr failed");
