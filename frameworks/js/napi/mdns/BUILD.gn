@@ -43,13 +43,15 @@ ohos_shared_library("mdns") {
 
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_manager_if",
-    "$NETMANAGER_BASE_ROOT/utils/napi_utils:napi_utils",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "napi:ace_napi",
+    "netmanager_base:napi_utils",
   ]
 
   configs = [ ":mdns_config" ]

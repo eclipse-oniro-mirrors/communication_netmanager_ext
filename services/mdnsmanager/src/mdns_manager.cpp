@@ -33,15 +33,16 @@ MDnsManager::MDnsManager() {}
 
 void MDnsManager::RestartMDnsProtocolImpl()
 {
-    NETMGR_EXT_LOG_D("MDNS_LOG Network switching");
+    NETMGR_EXT_LOG_D("mdns_log Network switching");
     impl.Init();
     RestartDiscoverService();
 }
 
 int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
+    NETMGR_EXT_LOG_D("mdns_log RegisterService");
     if (cb == nullptr || cb->AsObject() == nullptr) {
-        NETMGR_EXT_LOG_E("callback is nullptr");
+        NETMGR_EXT_LOG_E("mdns_log callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
@@ -65,14 +66,15 @@ int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const s
 
 int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 {
+    NETMGR_EXT_LOG_D("mdns_log UnRegisterService");
     if (cb == nullptr || cb->AsObject() == nullptr) {
-        NETMGR_EXT_LOG_E("callback is nullptr");
+        NETMGR_EXT_LOG_E("mdns_log callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
     auto itr = registerMap_.find(cb);
     if (registerMap_.end() == itr) {
-        NETMGR_EXT_LOG_W("find registrer map failed");
+        NETMGR_EXT_LOG_W("mdns_log find registrer map failed");
         return NET_MDNS_ERR_CALLBACK_NOT_FOUND;
     }
 
@@ -86,6 +88,7 @@ int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 
 int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
+    NETMGR_EXT_LOG_D("mdns_log StartDiscoverService");
     if (cb == nullptr || cb->AsObject() == nullptr) {
         NETMGR_EXT_LOG_E("callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
@@ -111,8 +114,9 @@ int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const 
 
 int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 {
+    NETMGR_EXT_LOG_D("mdns_log StopDiscoverService");
     if (cb == nullptr || cb->AsObject() == nullptr) {
-        NETMGR_EXT_LOG_E("callback is nullptr");
+        NETMGR_EXT_LOG_E("mdns_log callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
     std::string key;
@@ -130,12 +134,12 @@ int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 
 void MDnsManager::RestartDiscoverService()
 {
-    NETMGR_EXT_LOG_I("MDNS_LOG RestartDiscoverService");
+    NETMGR_EXT_LOG_D("mdns_log RestartDiscoverService");
     std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
     for (auto &it : discoveryMap_) {
         auto cb = it.first;
         if (cb == nullptr || cb->AsObject() == nullptr) {
-            NETMGR_EXT_LOG_E("callback is nullptr");
+            NETMGR_EXT_LOG_E("mdns_log callback is nullptr");
             continue;
         }
         auto serviceType = it.second;
@@ -146,8 +150,9 @@ void MDnsManager::RestartDiscoverService()
 
 int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb)
 {
+    NETMGR_EXT_LOG_D("mdns_log ResolveService");
     if (cb == nullptr || cb->AsObject() == nullptr) {
-        NETMGR_EXT_LOG_E("callback is nullptr");
+        NETMGR_EXT_LOG_E("mdns_log callback is nullptr");
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 

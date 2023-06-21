@@ -70,14 +70,7 @@ ohos_shared_library("net_tether_manager") {
 
   configs = [ ":net_tether_manager_config" ]
 
-  deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
-    "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
-    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
-    "$NETMANAGER_EXT_ROOT/utils:net_event_report",
-    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
-    "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
-  ]
+  deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
 
   cflags = [
     "-fvisibility=hidden",
@@ -97,10 +90,16 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
+    "c_utils:utils",
+    "dhcp:dhcp_manager_service",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
+    "usb_manager:usbsrv_client",
     "wifi:wifi_sdk",
   ]
 
@@ -159,6 +158,7 @@ ohos_static_library("net_tether_manager_static") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",

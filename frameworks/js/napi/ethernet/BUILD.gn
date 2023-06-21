@@ -37,14 +37,14 @@ ohos_shared_library("ethernet") {
 
   defines = [ "NETMGR_DEBUG" ]
 
-  deps = [
-    "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
-    "$NETMANAGER_BASE_ROOT/utils/napi_utils:napi_utils",
-  ]
+  deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if" ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "napi:ace_napi",
+    "netmanager_base:napi_utils",
   ]
 
   relative_install_dir = "module/net"

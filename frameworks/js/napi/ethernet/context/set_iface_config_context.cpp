@@ -101,13 +101,13 @@ void SetIfaceConfigContext::ParseHttpProxy(napi_value *params)
     std::string host = NapiUtils::GetStringPropertyUtf8(GetEnv(), value, HTTP_RPPXY_HOST);
     uint16_t port =
         host.empty() ? 0 : static_cast<uint16_t>(NapiUtils::GetUint32Property(GetEnv(), value, HTTP_RPPXY_PORT));
-    std::set<std::string> exclusionList;
+    std::list<std::string> exclusionList;
     if (!host.empty()) {
         napi_value exclusionsValue = NapiUtils::GetNamedProperty(GetEnv(), value, HTTP_RPPXY_EXCLUSION_LIST);
         uint32_t size = NapiUtils::GetArrayLength(GetEnv(), exclusionsValue);
         for (uint32_t i = 0; i < size; ++i) {
             napi_value element = NapiUtils::GetArrayElement(GetEnv(), exclusionsValue, i);
-            exclusionList.insert(NapiUtils::GetStringFromValueUtf8(GetEnv(), element));
+            exclusionList.push_back(NapiUtils::GetStringFromValueUtf8(GetEnv(), element));
         }
     }
 
