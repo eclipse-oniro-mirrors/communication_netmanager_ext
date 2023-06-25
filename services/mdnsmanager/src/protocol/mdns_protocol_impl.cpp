@@ -94,7 +94,6 @@ bool MDnsProtocolImpl::Browse()
     if (lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS) {
         return false;
     }
-    NETMGR_EXT_LOG_D("mdns_log Browse browserMap_ size[%{public}zu]]", browserMap_.size());
     lastRunTime = MilliSecondsSinceEpoch();
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     for (auto &&[key, res] : browserMap_) {
@@ -281,16 +280,17 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
     NETMGR_EXT_LOG_D("mdns_log ResolveInstanceFromCache");
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     if (!IsInstanceCacheAvailable(name)) {
+        NETMGR_EXT_LOG_W("mdns_log ResolveInstanceFromCache cacheMap_ has no element [%{public}s]", name.c_str());
         return false;
     }
 
-    NETMGR_EXT_LOG_D("rr.name : [%{public}s]", name.c_str());
+    NETMGR_EXT_LOG_I("mdns_log rr.name : [%{public}s]", name.c_str());
     Result r = cacheMap_[name];
     if (IsDomainCacheAvailable(r.domain)) {
         r.ipv6 = cacheMap_[r.domain].ipv6;
         r.addr = cacheMap_[r.domain].addr;
 
-        NETMGR_EXT_LOG_D("Add Task DomainCache Available, [%{public}s]", r.domain.c_str());
+        NETMGR_EXT_LOG_D("mdns_log Add Task DomainCache Available, [%{public}s]", r.domain.c_str());
         AddTask([cb, info = ConvertResultToInfo(r)]() {
             if (nullptr != cb) {
                 cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
@@ -299,9 +299,7 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
         });
     } else {
         ResolveFromNet(r.domain, nullptr);
-        // key is serviceName
-
-        NETMGR_EXT_LOG_D("Add Event DomainCache UnAvailable, [%{public}s]", r.domain.c_str());
+        NETMGR_EXT_LOG_D("mdns_log Add Event DomainCache UnAvailable, [%{public}s]", r.domain.c_str());
         AddEvent(r.domain, [this, cb, r]() mutable {
             if (!IsDomainCacheAvailable(r.domain)) {
                 return false;
@@ -464,6 +462,7 @@ void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
 {
     const sockaddr *saddrIf = listener_.GetSockAddr(sock);
     if (saddrIf == nullptr) {
+        NETMGR_EXT_LOG_W("mdns_log ProcessQuestion saddrIf is null");
         return;
     }
     std::any anyAddr;
@@ -487,13 +486,13 @@ void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
 
     if (phase != 0 && response.answers.size() > 0) {
         int32_t ret = listener_.Multicast(sock, MDnsPayloadParser().ToBytes(response));
-        NETMGR_EXT_LOG_D("mdns_log send Multicast message size: [%{public}d]", ret);
     }
 }
 
 void MDnsProtocolImpl::ProcessQuestionRecord(const std::any &anyAddr, const DNSProto::RRType &anyAddrType,
                                              const DNSProto::Question &qu, int &phase, MDnsMessage &response)
 {
+    NETMGR_EXT_LOG_D("mdns_log ProcessQuestionRecord");
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     std::string name = qu.name;
     if (qu.qtype == DNSProto::RRTYPE_ANY || qu.qtype == DNSProto::RRTYPE_PTR) {
@@ -614,6 +613,7 @@ void MDnsProtocolImpl::UpdateSrv(bool v6, const DNSProto::ResourceRecord &rr, st
     }
     std::string name = rr.name;
     if (cacheMap_.find(name) == cacheMap_.end()) {
+        ExtractNameAndType(name, cacheMap_[name].serviceName, cacheMap_[name].serviceType);
         cacheMap_[name].state = State::ADD;
         cacheMap_[name].domain = srv->name;
         cacheMap_[name].port = srv->port;
@@ -704,6 +704,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
         srvMap_.find(name) != srvMap_.end()) {
         return;
     }
+    NETMGR_EXT_LOG_D("mdns_log ProcessAnswerRecord, type=[%{public}d]", rr.rtype);
     if (rr.rtype == DNSProto::RRTYPE_PTR) {
         UpdatePtr(v6, rr, changed);
     } else if (rr.rtype == DNSProto::RRTYPE_SRV) {
