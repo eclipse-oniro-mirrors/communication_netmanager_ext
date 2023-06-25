@@ -485,7 +485,7 @@ void MDnsProtocolImpl::ProcessQuestion(int sock, const MDnsMessage &msg)
     }
 
     if (phase != 0 && response.answers.size() > 0) {
-        int32_t ret = listener_.Multicast(sock, MDnsPayloadParser().ToBytes(response));
+        listener_.Multicast(sock, MDnsPayloadParser().ToBytes(response));
     }
 }
 
