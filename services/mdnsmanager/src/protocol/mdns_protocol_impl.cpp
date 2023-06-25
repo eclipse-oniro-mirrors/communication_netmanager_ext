@@ -644,6 +644,7 @@ void MDnsProtocolImpl::UpdateTxt(bool v6, const DNSProto::ResourceRecord &rr, st
     }
     std::string name = rr.name;
     if (cacheMap_.find(name) == cacheMap_.end()) {
+        ExtractNameAndType(name, cacheMap_[name].serviceName, cacheMap_[name].serviceType);
         cacheMap_[name].state = State::ADD;
         cacheMap_[name].txt = *txt;
     }
@@ -676,6 +677,7 @@ void MDnsProtocolImpl::UpdateAddr(bool v6, const DNSProto::ResourceRecord &rr, s
     }
     std::string name = rr.name;
     if (cacheMap_.find(name) == cacheMap_.end()) {
+        ExtractNameAndType(name, cacheMap_[name].serviceName, cacheMap_[name].serviceType);
         cacheMap_[name].state = State::ADD;
         cacheMap_[name].ipv6 = v6rr;
         cacheMap_[name].addr = addr;
