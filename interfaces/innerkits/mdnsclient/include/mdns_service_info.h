@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-struct MDnsServiceInfo : public Parcelable {
+struct MDnsServiceInfo final: public Parcelable {
     enum {
         UNKNOWN = -1,
         IPV4 = 0,

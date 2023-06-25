@@ -29,6 +29,13 @@ config("netmgr_ext_common_config") {
 }
 
 ohos_shared_library("net_manager_ext_common") {
+  sanitize = {
+    cfi = true
+    integer_overflow = true
+    boundary_sanitize = true
+    all_ubsan = true
+  }
+
   sources = [ "log/src/netmgr_ext_log_wrapper.cpp" ]
 
   defines = [
@@ -66,6 +73,7 @@ ohos_shared_library("net_manager_ext_common") {
 }
 
 ohos_shared_library("net_event_report") {
+
   sources = [ "event_report/src/net_event_report.cpp" ]
 
   public_configs = [ ":netmgr_ext_common_config" ]

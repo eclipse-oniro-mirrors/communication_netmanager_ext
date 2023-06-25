@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct VpnConfig : public Parcelable {
+struct VpnConfig final: public Parcelable {
     std::string user_;
     std::string sessionName_;
     int32_t mtu_;
@@ -42,7 +42,7 @@ struct VpnConfig : public Parcelable {
     bool isAcceptIPv4_;
     bool isAcceptIPv6_;
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     bool MarshallingAddrRoute(Parcel &parcel) const;
     bool MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec) const;
 

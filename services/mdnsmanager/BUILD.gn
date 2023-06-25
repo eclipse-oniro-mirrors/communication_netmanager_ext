@@ -30,6 +30,14 @@ config("mdns_manager_config") {
 }
 
 ohos_shared_library("mdns_manager") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    integer_overflow = true
+    boundary_sanitize = true
+    all_ubsan = true
+  }
+
   sources = [
     "src/mdns_manager.cpp",
     "src/mdns_service.cpp",

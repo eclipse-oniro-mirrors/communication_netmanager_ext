@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct NetworkShareRequestParcel : public Parcelable {
+struct NetworkShareRequestParcel final: public Parcelable {
     int32_t networkShareType_;
     int32_t connectivityScope_;
     INetAddr localIPv4Address_;
@@ -29,7 +29,7 @@ struct NetworkShareRequestParcel : public Parcelable {
     bool exemptFromEntitlementCheck_;
     bool showProvisioningUi_;
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static sptr<NetworkShareRequestParcel> Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard

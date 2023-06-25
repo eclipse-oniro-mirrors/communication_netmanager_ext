@@ -424,9 +424,19 @@ bool EthernetConfiguration::WriteFile(const std::string &filePath, const std::st
 void EthernetConfiguration::ParserFileConfig(const std::string &fileContent, std::string &iface,
                                              sptr<InterfaceConfiguration> cfg)
 {
-    std::string::size_type pos = fileContent.find(KEY_DEVICE) + strlen(KEY_DEVICE);
+    std::string::size_type pos = fileContent.find(KEY_DEVICE);
+    if (pos == std::string::npos) {
+        return;
+    } else {
+        pos += strlen(KEY_DEVICE);
+    }
     const auto &device = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    pos = fileContent.find(KEY_BOOTPROTO) + strlen(KEY_BOOTPROTO);
+    pos = fileContent.find(KEY_BOOTPROTO);
+    if (pos == std::string::npos) {
+        return;
+    } else {
+        pos += strlen(KEY_BOOTPROTO);
+    }
     const auto &bootProto = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     iface = device;
     if (bootProto == KEY_STATIC) {
