@@ -53,12 +53,12 @@ ohos_source_set("networkvpn_parcel") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
-    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
+  external_deps = [
+    "c_utils:utils",
+    "netmanager_base:net_conn_parcel",
+    "netmanager_base:net_manager_common",
   ]
 
-  external_deps = [ "c_utils:utils" ]
   if (is_standard_system) {
     external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
   } else {
@@ -80,13 +80,11 @@ ohos_shared_library("net_vpn_manager_if") {
 
   public_configs = [ ":net_conn_manager_if_config" ]
 
-  deps = [
-    ":networkvpn_parcel",
-    "$NETMANAGER_BASE_ROOT/services/netmanagernative/fwmarkclient:fwmark_client",
-  ]
+  deps = [ ":networkvpn_parcel" ]
 
   external_deps = [
-    "ipc:ipc_core",
+    "ipc:ipc_single",
+    "netmanager_base:fwmark_client",
     "samgr:samgr_proxy",
   ]
 

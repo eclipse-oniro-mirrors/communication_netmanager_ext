@@ -73,7 +73,7 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd)
     }
 
     tunFd = vpnInterface_.GetVpnInterfaceFd();
-    if (tunFd == 0) {
+    if (tunFd <= 0) {
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;

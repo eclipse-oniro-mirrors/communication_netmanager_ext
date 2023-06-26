@@ -32,6 +32,7 @@ namespace NetManagerStandard {
 namespace {
 static const sockaddr_un SERVER_PATH = {AF_UNIX, "/dev/unix/socket/tunfd"};
 constexpr int32_t CONNECT_TIMEOUT = 1;
+constexpr int32_t INVALID_FD = -1;
 } // namespace
 
 int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
@@ -90,21 +91,8 @@ int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
     }
 }
 
-int32_t VpnInterface::GetVpnInterfaceFd()
+int32_t VpnInterface::RecvMsgFromUnixServer(int32_t sockfd, msghdr &message)
 {
-    CloseVpnInterfaceFd();
-    int32_t sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        NETMGR_EXT_LOG_E("create unix SOCK_STREAM socket error: %{public}d", errno);
-        return 0;
-    }
-
-    if (ConnectControl(sockfd, CONNECT_TIMEOUT) != NETMANAGER_EXT_SUCCESS) {
-        close(sockfd);
-        NETMGR_EXT_LOG_E("connect error: %{public}d", errno);
-        return 0;
-    }
-
     char buf[1] = {0};
     iovec iov = {
         .iov_base = buf,
@@ -117,40 +105,62 @@ int32_t VpnInterface::GetVpnInterfaceFd()
     } cmsgu;
     if (memset_s(cmsgu.cmsg, sizeof(cmsgu.cmsg), 0, sizeof(cmsgu.cmsg)) != EOK) {
         NETMGR_EXT_LOG_E("memset_s cmsgu.cmsg failed!");
-        close(sockfd);
-        return 0;
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    msghdr message;
+
     if (memset_s(&message, sizeof(message), 0, sizeof(message)) != EOK) {
         NETMGR_EXT_LOG_E("memset_s message failed!");
-        close(sockfd);
-        return 0;
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
     message.msg_iov = &iov;
     message.msg_iovlen = 1;
     message.msg_control = cmsgu.cmsg;
     message.msg_controllen = sizeof(cmsgu.cmsg);
     if (recvmsg(sockfd, &message, 0) < 0) {
-        close(sockfd);
         NETMGR_EXT_LOG_E("recvmsg msg error: %{public}d", errno);
-        return 0;
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t VpnInterface::GetVpnInterfaceFd()
+{
+    CloseVpnInterfaceFd();
+    int32_t sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        NETMGR_EXT_LOG_E("create unix SOCK_STREAM socket error: %{public}d", errno);
+        return INVALID_FD;
+    }
+
+    if (ConnectControl(sockfd, CONNECT_TIMEOUT) != NETMANAGER_EXT_SUCCESS) {
+        close(sockfd);
+        NETMGR_EXT_LOG_E("connect error: %{public}d", errno);
+        return INVALID_FD;
+    }
+
+    msghdr message;
+    if (RecvMsgFromUnixServer(sockfd, message) != NETMANAGER_EXT_SUCCESS) {
+        close(sockfd);
+        return INVALID_FD;
     }
 
     close(sockfd);
     cmsghdr *cmsgh = CMSG_FIRSTHDR(&message);
     if (cmsgh == nullptr) {
         NETMGR_EXT_LOG_E("cmsgh is nullptr");
-        return 0;
+        return INVALID_FD;
     }
     if (cmsgh->cmsg_level != SOL_SOCKET || cmsgh->cmsg_type != SCM_RIGHTS ||
         cmsgh->cmsg_len != CMSG_LEN(sizeof(int32_t))) {
         NETMGR_EXT_LOG_E("cmsg_level: [%{public}d], cmsg_type: [%{public}d], cmsg_len: [%{public}d]", cmsgh->cmsg_level,
                          cmsgh->cmsg_type, cmsgh->cmsg_len);
-        return 0;
+        return INVALID_FD;
     }
 
     if (memcpy_s(&tunFd_, sizeof(tunFd_), CMSG_DATA(cmsgh), sizeof(tunFd_)) != EOK) {
         NETMGR_EXT_LOG_E("memcpy_s cmsgu failed!");
+        return INVALID_FD;
     }
     NETMGR_EXT_LOG_I("recv tun device fd: [%{public}d]", tunFd_);
     return tunFd_;
@@ -158,7 +168,7 @@ int32_t VpnInterface::GetVpnInterfaceFd()
 
 void VpnInterface::CloseVpnInterfaceFd()
 {
-    if (tunFd_ != 0) {
+    if (tunFd_ > 0) {
         NETMGR_EXT_LOG_I("close [%{public}d]", tunFd_);
         close(tunFd_);
         tunFd_ = 0;
