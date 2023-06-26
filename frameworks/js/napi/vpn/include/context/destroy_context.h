@@ -30,9 +30,6 @@ public:
     DestroyContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
-
-public:
-    bool destroyOK_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
