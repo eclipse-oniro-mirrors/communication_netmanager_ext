@@ -700,13 +700,13 @@ void MDnsProtocolImpl::UpdateAddr(bool v6, const DNSProto::ResourceRecord &rr, s
 
 void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceRecord &rr, std::set<std::string> &changed)
 {
+    NETMGR_EXT_LOG_D("mdns_log ProcessAnswerRecord, type=[%{public}d]", rr.rtype);
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     std::string name = rr.name;
     if (cacheMap_.find(name) == cacheMap_.end() && browserMap_.find(name) == browserMap_.end() &&
         srvMap_.find(name) != srvMap_.end()) {
         return;
     }
-    NETMGR_EXT_LOG_D("mdns_log ProcessAnswerRecord, type=[%{public}d]", rr.rtype);
     if (rr.rtype == DNSProto::RRTYPE_PTR) {
         UpdatePtr(v6, rr, changed);
     } else if (rr.rtype == DNSProto::RRTYPE_SRV) {
@@ -764,6 +764,7 @@ MDnsServiceInfo MDnsProtocolImpl::ConvertResultToInfo(const MDnsProtocolImpl::Re
 bool MDnsProtocolImpl::IsCacheAvailable(const std::string &key)
 {
     constexpr int64_t ms2S = 1000LL;
+    NETMGR_EXT_LOG_D("mdns_log IsCacheAvailable, ttl=[%{public}u]", cacheMap_[key].ttl);
     return cacheMap_.find(key) != cacheMap_.end() &&
            (ms2S * cacheMap_[key].ttl) > static_cast<uint32_t>(MilliSecondsSinceEpoch() - cacheMap_[key].refrehTime);
 }
