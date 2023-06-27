@@ -136,7 +136,7 @@ void MDnsManager::RestartDiscoverService()
 {
     NETMGR_EXT_LOG_D("mdns_log RestartDiscoverService");
     std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
-    for (auto &it : discoveryMap_) {
+    for (const auto &it : discoveryMap_) {
         auto cb = it.first;
         if (cb == nullptr || cb->AsObject() == nullptr) {
             NETMGR_EXT_LOG_E("mdns_log callback is nullptr");
