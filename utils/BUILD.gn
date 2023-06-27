@@ -73,7 +73,6 @@ ohos_shared_library("net_manager_ext_common") {
 }
 
 ohos_shared_library("net_event_report") {
-
   sources = [ "event_report/src/net_event_report.cpp" ]
 
   public_configs = [ ":netmgr_ext_common_config" ]
