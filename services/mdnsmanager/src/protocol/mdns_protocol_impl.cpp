@@ -97,7 +97,7 @@ bool MDnsProtocolImpl::Browse()
     lastRunTime = MilliSecondsSinceEpoch();
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     for (auto &&[key, res] : browserMap_) {
-        NETMGR_EXT_LOG_D("mdns_log Browse browserMap_ key[%{public}s res.size[%{public}zu]]", key.c_str(), res.size());
+        NETMGR_EXT_LOG_D("mdns_log Browse browserMap_ key[%{public}s] res.size[%{public}zu]", key.c_str(), res.size());
         if (nameCbMap_.find(key) != nameCbMap_.end() &&
             !MDnsManager::GetInstance().IsAvailableCallback(nameCbMap_[key])) {
             continue;
@@ -320,7 +320,7 @@ bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name, const spt
     NETMGR_EXT_LOG_D("mdns_log ResolveInstanceFromNet");
     {
         std::lock_guard<std::recursive_mutex> guard(mutex_);
-        cacheMap_[name];
+        cacheMap_[name].state = State::ADD;
         ExtractNameAndType(name, cacheMap_[name].serviceName, cacheMap_[name].serviceType);
     }
     MDnsPayloadParser parser;
@@ -834,7 +834,7 @@ void MDnsProtocolImpl::KillBrowseCache(const std::string &key, std::vector<Resul
         if (cacheMap_.find(fullName) != cacheMap_.end()) {
             cacheMap_.erase(fullName);
         }
-        it = browserMap_[key].erase(it); // erase error
+        it = browserMap_[key].erase(it);
     } else if (it->state == State::ADD || it->state == State::REFRESH) {
         it->state = State::LIVE;
         it++;
