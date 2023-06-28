@@ -26,6 +26,11 @@ namespace NetManagerStandard {
 class NetworkVpnServiceStub : public IRemoteStub<INetworkVpnService> {
     using NetworkVpnServiceFunc = int32_t (NetworkVpnServiceStub::*)(MessageParcel &, MessageParcel &);
 
+    struct ServicePermissionAndFunc {
+        std::string strPermission;
+        NetworkVpnServiceFunc serviceFunc;
+    };
+
 public:
     NetworkVpnServiceStub();
     ~NetworkVpnServiceStub() = default;
@@ -39,10 +44,10 @@ private:
     int32_t ReplyRegisterVpnEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyUnregisterVpnEvent(MessageParcel &data, MessageParcel &reply);
 
-    int32_t CheckVpnPermission(uint32_t msgCode);
+    int32_t CheckVpnPermission(std::string &strPermission);
 
 private:
-    std::map<uint32_t, NetworkVpnServiceFunc> memberFuncMap_;
+    std::map<INetworkVpnService::MessageCode, ServicePermissionAndFunc> permissionAndFuncMap_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -17,19 +17,16 @@
 #define NETWORK_VPN_SERVICE_H
 
 #include "event_handler.h"
+#include "i_vpn_conn_state_cb.h"
+#include "net_vpn_impl.h"
+#include "networkvpn_service_stub.h"
 #include "os_account_manager.h"
 #include "singleton.h"
 #include "system_ability.h"
 
-#include "i_vpn_conn_state_cb.h"
-#include "net_vpn_impl.h"
-#include "networkvpn_service_stub.h"
-
 namespace OHOS {
 namespace NetManagerStandard {
-class NetworkVpnService : public SystemAbility,
-                          public NetworkVpnServiceStub,
-                          public std::enable_shared_from_this<NetworkVpnService> {
+class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub {
     DECLARE_SINGLETON(NetworkVpnService)
     DECLARE_SYSTEM_ABILITY(NetworkVpnService)
 
@@ -40,12 +37,12 @@ class NetworkVpnService : public SystemAbility,
 
     class VpnConnStateCb : public IVpnConnStateCb {
     public:
-        explicit VpnConnStateCb(NetworkVpnService &vpnService) : vpnService_(vpnService){};
+        explicit VpnConnStateCb(const NetworkVpnService &vpnService) : vpnService_(vpnService){};
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state) override;
 
     private:
-        NetworkVpnService &vpnService_;
+        const NetworkVpnService &vpnService_;
     };
 
 public:
@@ -99,12 +96,18 @@ private:
     void GetDumpMessage(std::string &message);
     int32_t CheckCurrentUser(int32_t &hapUserId);
 
+    int32_t SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback);
+    int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
+
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool isServicePublished_ = false;
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
-    std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
+
+    std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
+    std::shared_ptr<AppExecFwk::EventRunner> policyCallRunner_;
+    std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
