@@ -70,7 +70,7 @@ ohos_shared_library("net_event_report") {
 
   public_configs = [ ":netmgr_ext_common_config" ]
 
-  external_deps = [ "hisysevent_native:libhisysevent" ]
+  external_deps = [ "hisysevent:libhisysevent" ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"

@@ -66,7 +66,7 @@ ohos_shared_library("mdns_manager") {
   ]
 
   external_deps = [
-    "hisysevent_native:libhisysevent",
+    "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
@@ -112,7 +112,7 @@ ohos_static_library("mdns_manager_static") {
   ]
 
   external_deps = [
-    "hisysevent_native:libhisysevent",
+    "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
