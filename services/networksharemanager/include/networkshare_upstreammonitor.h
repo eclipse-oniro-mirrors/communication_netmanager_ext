@@ -29,8 +29,14 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t INVALID_NETID = -1;
 class NetworkShareUpstreamMonitor : public std::enable_shared_from_this<NetworkShareUpstreamMonitor> {
-    DECLARE_DELAYED_SINGLETON(NetworkShareUpstreamMonitor)
-
+public:
+    static std::shared_ptr<NetworkShareUpstreamMonitor> &GetInstance()
+    {
+        static std::shared_ptr<NetworkShareUpstreamMonitor> instance = std::make_shared<NetworkShareUpstreamMonitor>();
+        return instance;
+    }
+    NetworkShareUpstreamMonitor();
+    virtual ~NetworkShareUpstreamMonitor();
     class NetConnectionCallback : public NetConnCallbackStub {
     public:
         NetConnectionCallback(const std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor, int32_t callbackType);
@@ -92,6 +98,7 @@ private:
     void HandleNetCapabilitiesChange(sptr<NetHandle> &netHandle, const sptr<NetAllCapabilities> &newNetAllCap);
     void HandleConnectionPropertiesChange(sptr<NetHandle> &netHandle, const sptr<NetLinkInfo> &newNetLinkInfo);
     void HandleNetLost(sptr<NetHandle> &netHandle);
+
 
 private:
     int32_t eventId_ = 0;
