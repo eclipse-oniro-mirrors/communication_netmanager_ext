@@ -38,7 +38,7 @@ public:
     int fd_;
 
 private:
-    bool ParseVpnConfig(napi_value *params, size_t paramsCount);
+    bool ParseVpnConfig(napi_value *params);
     bool ParseAddrRouteParams(napi_value config);
     bool ParseChoiceableParams(napi_value config);
 };

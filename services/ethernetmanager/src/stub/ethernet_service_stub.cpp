@@ -254,7 +254,7 @@ int32_t EthernetServiceStub::OnSetInterfaceConfig(MessageParcel &data, MessagePa
     }
 
     uint32_t vecSize = data.ReadUint32();
-    if (vecSize <= 0 || vecSize > MAX_SIZE) {
+    if (vecSize == 0 || vecSize > MAX_SIZE) {
         NETMGR_EXT_LOG_E("flags size=[%{public}u] is 0 or too large", vecSize);
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }

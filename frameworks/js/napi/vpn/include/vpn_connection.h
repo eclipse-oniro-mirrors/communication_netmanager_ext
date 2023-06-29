@@ -30,7 +30,6 @@ constexpr const char *PROTECT = "protect";
 constexpr const char *DESTROY = "destroy";
 constexpr const char *ON = "on";
 constexpr const char *OFF = "off";
-constexpr const char *CONNECT = "connect";
 } // namespace
 
 namespace VpnConnection {

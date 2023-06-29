@@ -13,24 +13,42 @@
  * limitations under the License.
  */
 
-#ifndef VPN_DESTROY_CONTEXT_H
-#define VPN_DESTROY_CONTEXT_H
+#include "extended_vpn_ctl.h"
 
-#include <cstddef>
-#include <napi/native_api.h>
+#include <regex>
+#include <string>
 
-#include "base_context.h"
-#include "event_manager.h"
+#include <fcntl.h>
+
+#include "net_manager_constants.h"
+#include "net_manager_ext_constants.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-class DestroyContext : public BaseContext {
-public:
-    DestroyContext() = delete;
-    DestroyContext(napi_env env, EventManager *manager);
 
-    void ParseParams(napi_value *params, size_t paramsCount);
-};
+ExtendedVpnCtl::ExtendedVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId)
+    : NetVpnImpl(config, pkg, userId)
+{
+}
+
+bool ExtendedVpnCtl::IsInternalVpn()
+{
+    return false;
+}
+
+int32_t ExtendedVpnCtl::SetUp()
+{
+    NETMGR_EXT_LOG_I("SetUp virtual network");
+    return NetVpnImpl::SetUp();
+}
+
+int32_t ExtendedVpnCtl::Destroy()
+{
+    NETMGR_EXT_LOG_I("Destroy virtual network");
+    return NetVpnImpl::Destroy();
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // VPN_DESTROY_CONTEXT_H

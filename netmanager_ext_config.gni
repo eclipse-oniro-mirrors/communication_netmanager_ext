@@ -21,6 +21,7 @@ ETHERNETMANAGER_INNERKITS_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/frameworks/native/ethernetclient"
 NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/frameworks/native/netshareclient"
+VPN_INNERKITS_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/frameworks/native/netvpnclient"
 
 # args of interfaces
 INTERFACES_INCLUDE =
@@ -35,6 +36,7 @@ ETHERNETMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/ethernetmanager"
 NETWORKSHAREMANAGER_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/services/networksharemanager"
 MDNSMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/mdnsmanager"
+VPNMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/vpnmanager"
 
 # args of uitls
 NETWORKSHAREMANAGER_UTILS_DIR = "$NETMANAGER_EXT_ROOT/utils"
@@ -79,4 +81,22 @@ declare_args() {
   netmanager_ext_feature_ethernet = true
   netmanager_ext_feature_share = true
   netmanager_ext_feature_mdns = true
+  netmanager_ext_feature_vpn = true
 }
+
+memory_optimization_cflags = [
+  "-fvisibility=hidden",
+  "-fdata-sections",
+  "-ffunction-sections",
+  "-Os",
+]
+
+memory_optimization_cflags_cc = [
+  "-fvisibility-inlines-hidden",
+  "-Os",
+]
+
+memory_optimization_ldflags = [
+  "-Wl,--exclude-libs=ALL",
+  "-Wl,--gc-sections",
+]

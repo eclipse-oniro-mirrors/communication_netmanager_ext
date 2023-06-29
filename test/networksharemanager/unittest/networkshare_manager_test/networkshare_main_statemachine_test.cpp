@@ -38,7 +38,7 @@ public:
 
 void NetworkShareMainStateMachineTest::SetUpTestCase()
 {
-    auto monitor = DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+    auto monitor = NetworkShareUpstreamMonitor::GetInstance();
     instance_ = std::make_shared<NetworkShareMainStateMachine>(monitor);
     std::shared_ptr<NetworkShareUpstreamMonitor> networkmonitor = nullptr;
     nullParamInstance_ = std::make_shared<NetworkShareMainStateMachine>(networkmonitor);

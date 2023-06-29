@@ -16,8 +16,9 @@
 #ifndef NET_VPN_INTERFACE_H
 #define NET_VPN_INTERFACE_H
 
-#include <stdint.h>
-#include <string>
+#include <cstdint>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -27,15 +28,15 @@ public:
     ~VpnInterface() = default;
 
 public:
-    int32_t CreateVpnInterface();
-    void DestoryVpnInterface();
-    std::string_view GetName();
-    int32_t SetVpnMtu(int mtu);
-    int32_t SetVpnAddress(const std::string &ipAddr, int prefix);
+    int32_t GetVpnInterfaceFd();
+    void CloseVpnInterfaceFd();
 
 private:
-    int32_t SetVpnUp();
-    int32_t SetVpnDown();
+    int32_t ConnectControl(int32_t sockfd, int32_t nsec);
+    int32_t RecvMsgFromUnixServer(int32_t sockfd, msghdr &message);
+
+private:
+    int32_t tunFd_ = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

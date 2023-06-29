@@ -14,11 +14,10 @@
  */
 
 #include "vpn_event_callback_proxy.h"
+#include "netmgr_ext_log_wrapper.h"
 
 #include "ipc_types.h"
 #include "parcel.h"
-
-#include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -29,6 +28,30 @@ VpnEventCallbackProxy::VpnEventCallbackProxy(const sptr<IRemoteObject> &object)
 
 void VpnEventCallbackProxy::OnVpnStateChanged(const bool &isConnected)
 {
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(IVpnEventCallback::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("write interface token failed");
+        return;
+    }
+
+    if (!data.WriteBool(isConnected)) {
+        NETMGR_EXT_LOG_E("OnVpnStateChanged WriteBool error.");
+        return;
+    }
+
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("OnVpnStateChanged get Remote() error.");
+        return;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(IVpnEventCallback::Message::GLOBAL_VPN_STATE_CHANGED), data,
+                                      reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("OnVpnStateChanged SendRequest error=[%{public}d].", ret);
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -16,7 +16,6 @@
 #ifndef NETWORKVPN_CLIENT_H
 #define NETWORKVPN_CLIENT_H
 
-#include <condition_variable>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -59,7 +58,7 @@ public:
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
-    int32_t Protect(uint32_t socketFd);
+    int32_t Protect(int32_t socketFd);
 
     /**
      * after extended vpn's negotiation over, need system create a VPN interface using the config parameters.
@@ -70,7 +69,7 @@ public:
      * @permission ohos.permission.CONNECTIVITY_INTERNAL
      * @systemapi Hide this for inner system use.
      */
-    int32_t SetUp(sptr<VpnConfig> config, int32_t &tunFd);
+    int32_t SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd);
 
     /**
      * stop the vpn connection, system will destroy the vpn network.
@@ -120,7 +119,7 @@ private:
 
 private:
     std::mutex mutex_;
-    std::unique_ptr<VpnInterface> vpnInterface_;
+    VpnInterface vpnInterface_;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
 };

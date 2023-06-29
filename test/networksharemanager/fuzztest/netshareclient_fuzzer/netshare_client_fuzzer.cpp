@@ -460,7 +460,7 @@ void NetworkShareMainStateMachineFuzzTest(const uint8_t *data, size_t size)
     }
 
     std::shared_ptr<NetworkShareUpstreamMonitor> networkmonitor =
-        DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+        NetworkShareUpstreamMonitor::GetInstance();
 
     auto networkShareMainStateMachine = std::make_unique<NetworkShareMainStateMachine>(networkmonitor);
     int32_t errType = GetData<int32_t>();
@@ -592,7 +592,7 @@ void UpstreammonitorFuzzTest(const uint8_t *data, size_t size)
 
     int32_t num = GetData<int32_t>();
     std::shared_ptr<NetworkShareUpstreamMonitor> networkmonitor =
-        DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+        NetworkShareUpstreamMonitor::GetInstance();
 
     networkmonitor->ListenDefaultNetwork();
     sptr<NetHandle> netHandle = new (std::nothrow) NetHandle(num);
@@ -630,7 +630,6 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     std::vector<std::string> ifaceRegexs;
     std::vector<std::string> ifaces;
     int32_t kbByte = 0;
-    NetworkShareTracker::GetInstance().Init();
     NetworkShareTracker::GetInstance().Uninit();
     NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
     NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
@@ -728,13 +727,9 @@ void NetworkShareConfigurationFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    uint32_t vectorSize = GetData<uint32_t>() % 10;
     std::string str = GetStringFromData(IFACE_LEN);
-    std::vector<std::string> match;
-    match.reserve(vectorSize);
-    for (size_t i = 0; i < vectorSize; i++) {
-        match.emplace_back(str);
-    }
+    std::vector<std::string> match = {"wlan", "softap", "usb"};
+
     NetworkShareConfiguration config;
     config.IsNetworkSharingSupported();
     config.IsUsbIface(str);

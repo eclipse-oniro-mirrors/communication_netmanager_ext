@@ -23,18 +23,17 @@ constexpr uint32_t MAX_SIZE = 64;
 }
 bool VpnConfig::Marshalling(Parcel &parcel) const
 {
-    bool allOK = parcel.WriteString(user_) &&
-                 parcel.WriteString(sessionName_) &&
+    bool allOK = MarshallingAddrRoute(parcel) &&
                  parcel.WriteInt32(mtu_) &&
-                 MarshallingAddrRoute(parcel) &&
+                 parcel.WriteBool(isAcceptIPv4_) &&
+                 parcel.WriteBool(isAcceptIPv6_) &&
+                 parcel.WriteBool(isLegacy_) &&
+                 parcel.WriteBool(isMetered_) &&
+                 parcel.WriteBool(isAcceptByPass_) &&
                  MarshallingVectorString(parcel, dnsAddresses_) &&
                  MarshallingVectorString(parcel, searchDomains_) &&
                  MarshallingVectorString(parcel, acceptedApplications_) &&
-                 MarshallingVectorString(parcel, refusedApplications_) &&
-                 parcel.WriteBool(isLegacy_) &&
-                 parcel.WriteBool(isMetered_) &&
-                 parcel.WriteBool(isAcceptIPv4_) &&
-                 parcel.WriteBool(isAcceptIPv6_);
+                 MarshallingVectorString(parcel, refusedApplications_);
     return allOK;
 }
 
@@ -80,21 +79,21 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
 {
     sptr<VpnConfig> ptr = new (std::nothrow) VpnConfig();
     if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;
     }
 
-    bool allOK = parcel.ReadString(ptr->user_) &&
-                 parcel.ReadString(ptr->sessionName_) &&
+    bool allOK = UnmarshallingAddrRoute(parcel, ptr) &&
                  parcel.ReadInt32(ptr->mtu_) &&
-                 UnmarshallingAddrRoute(parcel, ptr) &&
+                 parcel.ReadBool(ptr->isAcceptIPv4_) &&
+                 parcel.ReadBool(ptr->isAcceptIPv6_) &&
+                 parcel.ReadBool(ptr->isLegacy_) &&
+                 parcel.ReadBool(ptr->isMetered_) &&
+                 parcel.ReadBool(ptr->isAcceptByPass_) &&
                  UnmarshallingVectorString(parcel, ptr->dnsAddresses_) &&
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&
-                 UnmarshallingVectorString(parcel, ptr->refusedApplications_) &&
-                 parcel.ReadBool(ptr->isLegacy_) &&
-                 parcel.ReadBool(ptr->isMetered_) &&
-                 parcel.ReadBool(ptr->isAcceptIPv4_) &&
-                 parcel.ReadBool(ptr->isAcceptIPv6_);
+                 UnmarshallingVectorString(parcel, ptr->refusedApplications_);
     return allOK ? ptr : nullptr;
 }
 
