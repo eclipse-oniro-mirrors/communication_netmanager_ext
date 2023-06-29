@@ -30,7 +30,6 @@ public:
     virtual void HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
-
 };
 
 class IDiscoveryCallback : public IRemoteBroker {
@@ -40,14 +39,12 @@ public:
     virtual void HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
-
 };
 
 class IResolveCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.IResolveCallback");
     virtual void HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
-
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
