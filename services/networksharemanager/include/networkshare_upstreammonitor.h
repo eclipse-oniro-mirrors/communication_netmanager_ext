@@ -99,7 +99,6 @@ private:
     void HandleConnectionPropertiesChange(sptr<NetHandle> &netHandle, const sptr<NetLinkInfo> &newNetLinkInfo);
     void HandleNetLost(sptr<NetHandle> &netHandle);
 
-
 private:
     int32_t eventId_ = 0;
     sptr<NetConnectionCallback> defaultNetworkCallback_ = nullptr;

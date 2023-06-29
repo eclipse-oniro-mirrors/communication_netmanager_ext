@@ -728,7 +728,7 @@ void NetworkShareConfigurationFuzzTest(const uint8_t *data, size_t size)
     }
 
     std::string str = GetStringFromData(IFACE_LEN);
-    std::vector<std::string> match = {"wlan","softap","usb"};
+    std::vector<std::string> match = {"wlan", "softap", "usb"};
 
     NetworkShareConfiguration config;
     config.IsNetworkSharingSupported();
