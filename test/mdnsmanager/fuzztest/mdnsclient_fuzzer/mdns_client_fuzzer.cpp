@@ -148,7 +148,7 @@ void RegisterServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(IMDnsService::CMD_REGISTER, dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_REGISTER), dataParcel);
 }
 
 void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
@@ -181,7 +181,7 @@ void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(IMDnsService::CMD_STOP_REGISTER, dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_REGISTER), dataParcel);
 }
 
 void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
@@ -214,7 +214,7 @@ void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(IMDnsService::CMD_DISCOVER, dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER), dataParcel);
 }
 
 void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
@@ -247,7 +247,7 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(IMDnsService::CMD_STOP_DISCOVER, dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_DISCOVER), dataParcel);
 }
 
 void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
@@ -280,7 +280,7 @@ void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(IMDnsService::CMD_RESOLVE, dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE), dataParcel);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

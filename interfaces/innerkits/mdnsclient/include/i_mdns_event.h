@@ -19,6 +19,7 @@
 
 #include "iremote_broker.h"
 
+#include "mdns_ipc_interface_code.h"
 #include "mdns_service_info.h"
 
 namespace OHOS {
@@ -29,11 +30,7 @@ public:
     virtual void HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
-    enum class Message {
-        REGISTERED,
-        UNREGISTERED,
-        RESULT,
-    };
+
 };
 
 class IDiscoveryCallback : public IRemoteBroker {
@@ -43,21 +40,14 @@ public:
     virtual void HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
     virtual void HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
-    enum class Message {
-        STARTED,
-        STOPPED,
-        FOUND,
-        LOST,
-    };
+
 };
 
 class IResolveCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.IResolveCallback");
     virtual void HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) = 0;
-    enum class Message {
-        RESULT,
-    };
+
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

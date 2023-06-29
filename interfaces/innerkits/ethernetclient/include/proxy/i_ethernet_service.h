@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "ethernet_ipc_interface_code.h"
 #include "interface_configuration.h"
 #include "interface_state_callback.h"
 #include "interface_type.h"
@@ -31,19 +32,6 @@ constexpr int32_t GET_CFG_SUC = 1;
 class IEthernetService : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.IEthernetService");
-    enum {
-        CMD_SET_IF_CFG,
-        CMD_GET_IF_CFG,
-        CMD_IS_ACTIVATE,
-        CMD_GET_ACTIVATE_INTERFACE,
-        CMD_RESET_FACTORY,
-        CMD_REGISTER_INTERFACE_CB,
-        CMD_UNREGISTER_INTERFACE_CB,
-        CMD_SET_INTERFACE_UP,
-        CMD_SET_INTERFACE_DOWN,
-        CMD_GET_INTERFACE_CONFIG,
-        CMD_SET_INTERFACE_CONFIG,
-    };
 
 public:
     virtual int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) = 0;
