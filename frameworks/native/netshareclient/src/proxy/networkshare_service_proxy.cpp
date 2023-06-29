@@ -37,7 +37,7 @@ bool NetworkShareServiceProxy::WriteInterfaceToken(MessageParcel &data)
     return true;
 }
 
-int32_t NetworkShareServiceProxy::SendRequest(INetworkShareService::MessageCode code, MessageParcel &data,
+int32_t NetworkShareServiceProxy::SendRequest(TetheringInterfaceCode code, MessageParcel &data,
                                               MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
@@ -56,7 +56,7 @@ int32_t NetworkShareServiceProxy::IsNetworkSharingSupported(int32_t &supported)
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_SHARING_SUPPORTED, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_SHARING_SUPPORTED, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("IsNetworkSharingSupported proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -73,7 +73,7 @@ int32_t NetworkShareServiceProxy::IsSharing(int32_t &sharingStatus)
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_IS_SHARING, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_IS_SHARING, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("IsSharing proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -93,7 +93,7 @@ int32_t NetworkShareServiceProxy::StartNetworkSharing(const SharingIfaceType &ty
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_START_NETWORKSHARE, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_START_NETWORKSHARE, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("StartNetworkSharing proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -112,7 +112,7 @@ int32_t NetworkShareServiceProxy::StopNetworkSharing(const SharingIfaceType &typ
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_STOP_NETWORKSHARE, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_STOP_NETWORKSHARE, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("StopNetworkSharing proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -132,7 +132,7 @@ int32_t NetworkShareServiceProxy::GetSharableRegexs(SharingIfaceType type, std::
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_SHARABLE_REGEXS, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_SHARABLE_REGEXS, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy GetSharableRegexs SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -156,7 +156,7 @@ int32_t NetworkShareServiceProxy::GetSharingState(SharingIfaceType type, Sharing
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_SHARING_STATE, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_SHARING_STATE, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy GetSharingState SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -177,7 +177,7 @@ int32_t NetworkShareServiceProxy::GetNetSharingIfaces(const SharingIfaceState &s
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_SHARING_IFACES, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_SHARING_IFACES, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy GetNetSharingIfaces SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -206,7 +206,7 @@ int32_t NetworkShareServiceProxy::RegisterSharingEvent(sptr<ISharingEventCallbac
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_REGISTER_EVENT_CALLBACK, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_REGISTER_EVENT_CALLBACK, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("RegisterSharingEvent proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -230,7 +230,7 @@ int32_t NetworkShareServiceProxy::UnregisterSharingEvent(sptr<ISharingEventCallb
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_UNREGISTER_EVENT_CALLBACK, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("UnregisterSharingEvent proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -245,7 +245,7 @@ int32_t NetworkShareServiceProxy::GetStatsRxBytes(int32_t &bytes)
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_RX_BYTES, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_RX_BYTES, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("GetStatsRxBytes proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -261,7 +261,7 @@ int32_t NetworkShareServiceProxy::GetStatsTxBytes(int32_t &bytes)
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_TX_BYTES, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_TX_BYTES, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("GetStatsTxBytes proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -277,7 +277,7 @@ int32_t NetworkShareServiceProxy::GetStatsTotalBytes(int32_t &bytes)
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkShareService::MessageCode::CMD_GET_TOTAL_BYTES, data, reply);
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_GET_TOTAL_BYTES, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("GetStatsTotalBytes proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;

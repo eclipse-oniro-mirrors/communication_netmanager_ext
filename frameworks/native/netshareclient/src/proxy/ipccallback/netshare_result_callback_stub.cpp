@@ -28,8 +28,8 @@ int32_t NetShareResultCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel
     if (descriptor != INetShareResultCallback::GetDescriptor()) {
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-    INetShareResultCallback::Message msgCode = static_cast<INetShareResultCallback::Message>(code);
-    if (msgCode == INetShareResultCallback::Message::RESULT) {
+    TetheringResultInterfaceCode msgCode = static_cast<TetheringResultInterfaceCode>(code);
+    if (msgCode == TetheringResultInterfaceCode::RESULT) {
         int32_t status = data.ReadInt32();
         OnResult(status);
         return NETMANAGER_EXT_SUCCESS;

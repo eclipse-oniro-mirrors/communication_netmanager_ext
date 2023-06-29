@@ -28,14 +28,14 @@ int32_t SharingEventCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &
     if (descriptor != ISharingEventCallback::GetDescriptor()) {
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-    ISharingEventCallback::Message msgCode = static_cast<ISharingEventCallback::Message>(code);
+    TetheringEventInterfaceCode msgCode = static_cast<TetheringEventInterfaceCode>(code);
     switch (msgCode) {
-        case ISharingEventCallback::Message::GLOBAL_SHARING_STATE_CHANGED: {
+        case TetheringEventInterfaceCode::GLOBAL_SHARING_STATE_CHANGED: {
             bool isRunning = data.ReadBool();
             OnSharingStateChanged(isRunning);
             break;
         }
-        case ISharingEventCallback::Message::INTERFACE_SHARING_STATE_CHANGED: {
+        case TetheringEventInterfaceCode::INTERFACE_SHARING_STATE_CHANGED: {
             int32_t tmpInt = data.ReadInt32();
             SharingIfaceType type = static_cast<SharingIfaceType>(tmpInt);
             std::string iface = data.ReadString();
@@ -44,7 +44,7 @@ int32_t SharingEventCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &
             OnInterfaceSharingStateChanged(type, iface, state);
             break;
         }
-        case ISharingEventCallback::Message::SHARING_UPSTREAM_CHANGED: {
+        case TetheringEventInterfaceCode::SHARING_UPSTREAM_CHANGED: {
             int32_t netId = 0;
             if (!data.ReadInt32(netId)) {
                 return IPC_PROXY_ERR;

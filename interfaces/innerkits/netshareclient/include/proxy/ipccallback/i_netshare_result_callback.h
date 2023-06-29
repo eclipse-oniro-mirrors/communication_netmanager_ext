@@ -19,15 +19,13 @@
 #include <string>
 #include <iremote_broker.h>
 
+#include "tethering_ipc_interface_code.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
 class INetShareResultCallback : public IRemoteBroker {
 public:
     virtual void OnResult(const int32_t &status) = 0;
-
-    enum class Message {
-        RESULT,
-    };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkShareService.INetShareResultCallback");
 };

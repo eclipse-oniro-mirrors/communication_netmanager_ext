@@ -25,27 +25,11 @@
 #include "net_manager_ext_constants.h"
 #include "i_netshare_result_callback.h"
 #include "i_sharing_event_callback.h"
+#include "tethering_ipc_interface_code.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class INetworkShareService : public IRemoteBroker {
-public:
-    enum class MessageCode {
-        CMD_GET_SHARING_SUPPORTED,
-        CMD_GET_IS_SHARING,
-        CMD_START_NETWORKSHARE,
-        CMD_STOP_NETWORKSHARE,
-        CMD_GET_SHARABLE_REGEXS,
-        CMD_GET_SHARING_STATE,
-        CMD_GET_SHARING_IFACES,
-        CMD_REGISTER_EVENT_CALLBACK,
-        CMD_UNREGISTER_EVENT_CALLBACK,
-        CMD_GET_ACTIVATE_INTERFACE,
-        CMD_GET_RX_BYTES,
-        CMD_GET_TX_BYTES,
-        CMD_GET_TOTAL_BYTES,
-    };
-
 public:
     virtual int32_t IsNetworkSharingSupported(int32_t &supported) = 0;
     virtual int32_t IsSharing(int32_t &sharingStatus) = 0;
