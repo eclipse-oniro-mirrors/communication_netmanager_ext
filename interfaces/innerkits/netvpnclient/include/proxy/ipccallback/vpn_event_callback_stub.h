@@ -16,8 +16,6 @@
 #ifndef VPN_EVENT_CALLBACK_STUB_H
 #define VPN_EVENT_CALLBACK_STUB_H
 
-#include <string>
-
 #include "i_vpn_event_callback.h"
 #include "iremote_stub.h"
 
