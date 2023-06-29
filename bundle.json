@@ -46,7 +46,7 @@
                 "netmanager_base",
                 "eventhandler",
                 "bluetooth",
-                "hisysevent_native",
+                "hisysevent",
                 "c_utils",
                 "samgr",
                 "usb_manager",
