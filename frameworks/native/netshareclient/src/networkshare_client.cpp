@@ -194,8 +194,7 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         return nullptr;
     }
     {
-        std::mutex mutex;
-        std::unique_lock tempLock(mutex);
+        std::unique_lock tempLock(mutexCv_);
         g_cv.wait_for(tempLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
             [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
     }
