@@ -679,15 +679,6 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        if (NetsysController::GetInstance().InterfaceSetIpAddress(configuration_->GetUsbRndisIfaceName(),
-                                                                  configuration_->GetUsbRndisIpv4Addr()) != 0) {
-            NETMGR_EXT_LOG_E("Failed setting usb ip address");
-            return NETWORKSHARE_ERROR_USB_SHARING;
-        }
-        if (NetsysController::GetInstance().InterfaceSetIffUp(configuration_->GetUsbRndisIfaceName()) != 0) {
-            NETMGR_EXT_LOG_E("Failed setting usb iface up");
-            return NETWORKSHARE_ERROR_USB_SHARING;
-        }
         if (usbShareCount_ < INT32_MAX) {
             usbShareCount_++;
         }
@@ -1062,6 +1053,14 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
 
 void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 {
+    if (NetsysController::GetInstance().InterfaceSetIpAddress(iface, configuration_->GetUsbRndisIpv4Addr()) != 0) {
+        NETMGR_EXT_LOG_E("Failed setting usb ip address");
+        return;
+    }
+    if (NetsysController::GetInstance().InterfaceSetIffUp(iface) != 0) {
+        NETMGR_EXT_LOG_E("Failed setting usb iface up");
+        return;
+    }
     if (eventHandler_ == nullptr || !isInit) {
         NETMGR_EXT_LOG_E("eventHandler is null.");
         return;
