@@ -128,9 +128,7 @@ void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<
                 nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
             }
             it = res.erase(it);
-            if (cacheMap_.find(fullName) != cacheMap_.end()) {
-                cacheMap_.erase(fullName);
-            }
+            cacheMap_.erase(fullName);
         } else {
             it++;
         }
@@ -245,8 +243,8 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
                 NETMGR_EXT_LOG_D("mdns_log HandleServiceLost");
                 cb->HandleServiceLost(ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
                 if (cacheMap_.find(fullName) != cacheMap_.end()) {
-                    cacheMap_.erase(fullName);
                     res.state = State::ADD;
+                    cacheMap_.erase(fullName);
                 }
             }
         }
@@ -831,9 +829,7 @@ void MDnsProtocolImpl::KillBrowseCache(const std::string &key, std::vector<Resul
             nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
         }
         std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
-        if (cacheMap_.find(fullName) != cacheMap_.end()) {
-            cacheMap_.erase(fullName);
-        }
+        cacheMap_.erase(fullName);
         it = browserMap_[key].erase(it);
     } else if (it->state == State::ADD || it->state == State::REFRESH) {
         it->state = State::LIVE;
@@ -853,9 +849,7 @@ int32_t MDnsProtocolImpl::StopCbMap(const std::string &serviceType)
         cb = nameCbMap_[name];
         nameCbMap_.erase(name);
     }
-    if (taskOnChange_.find(name) != taskOnChange_.end()) {
-        taskOnChange_.erase(name);
-    }
+    taskOnChange_.erase(name);
     auto it = browserMap_.find(name);
     if (it != browserMap_.end()) {
         if (cb != nullptr) {
