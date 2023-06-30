@@ -46,12 +46,15 @@
                 "netmanager_base",
                 "eventhandler",
                 "bluetooth",
-                "hisysevent_native",
+                "hisysevent",
                 "c_utils",
                 "samgr",
                 "usb_manager",
                 "drivers_interface_usb",
-                "wifi"
+                "wifi",
+                "hilog",
+                "bundle_framework",
+                "os_account"
             ]
         },
         "build": {

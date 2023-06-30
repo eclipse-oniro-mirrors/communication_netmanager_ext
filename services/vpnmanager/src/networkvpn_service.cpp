@@ -180,7 +180,7 @@ int32_t NetworkVpnService::Protect()
      * Only permission verification is performed and
      * the protected socket implements fwmark_service in the netsys process.
      */
-    NETMGR_EXT_LOG_D("Protect vpn tunnel successfully.");
+    NETMGR_EXT_LOG_I("Protect vpn tunnel successfully.");
     return NETMANAGER_EXT_SUCCESS;
 }
 
