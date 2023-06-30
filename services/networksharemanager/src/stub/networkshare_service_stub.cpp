@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,29 +22,29 @@ namespace OHOS {
 namespace NetManagerStandard {
 NetworkShareServiceStub::NetworkShareServiceStub()
 {
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_SHARING_SUPPORTED)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARING_SUPPORTED)] =
         &NetworkShareServiceStub::ReplyIsNetworkSharingSupported;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_IS_SHARING)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_IS_SHARING)] =
         &NetworkShareServiceStub::ReplyIsSharing;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_START_NETWORKSHARE)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_START_NETWORKSHARE)] =
         &NetworkShareServiceStub::ReplyStartNetworkSharing;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_STOP_NETWORKSHARE)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_STOP_NETWORKSHARE)] =
         &NetworkShareServiceStub::ReplyStopNetworkSharing;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_SHARABLE_REGEXS)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARABLE_REGEXS)] =
         &NetworkShareServiceStub::ReplyGetSharableRegexs;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_SHARING_STATE)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARING_STATE)] =
         &NetworkShareServiceStub::ReplyGetSharingState;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_SHARING_IFACES)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARING_IFACES)] =
         &NetworkShareServiceStub::ReplyGetNetSharingIfaces;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_REGISTER_EVENT_CALLBACK)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_REGISTER_EVENT_CALLBACK)] =
         &NetworkShareServiceStub::ReplyRegisterSharingEvent;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_UNREGISTER_EVENT_CALLBACK)] =
         &NetworkShareServiceStub::ReplyUnregisterSharingEvent;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_RX_BYTES)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_RX_BYTES)] =
         &NetworkShareServiceStub::ReplyGetStatsRxBytes;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_TX_BYTES)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_TX_BYTES)] =
         &NetworkShareServiceStub::ReplyGetStatsTxBytes;
-    memberFuncMap_[static_cast<uint32_t>(INetworkShareService::MessageCode::CMD_GET_TOTAL_BYTES)] =
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_TOTAL_BYTES)] =
         &NetworkShareServiceStub::ReplyGetStatsTotalBytes;
 }
 
