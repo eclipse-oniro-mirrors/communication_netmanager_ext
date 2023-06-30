@@ -36,17 +36,28 @@ constexpr uint32_t MAX_PRE_LEN = 128;
 
 EthernetServiceStub::EthernetServiceStub()
 {
-    memberFuncMap_[CMD_SET_IF_CFG] = &EthernetServiceStub::OnSetIfaceConfig;
-    memberFuncMap_[CMD_GET_IF_CFG] = &EthernetServiceStub::OnGetIfaceConfig;
-    memberFuncMap_[CMD_IS_ACTIVATE] = &EthernetServiceStub::OnIsIfaceActive;
-    memberFuncMap_[CMD_GET_ACTIVATE_INTERFACE] = &EthernetServiceStub::OnGetAllActiveIfaces;
-    memberFuncMap_[CMD_RESET_FACTORY] = &EthernetServiceStub::OnResetFactory;
-    memberFuncMap_[CMD_REGISTER_INTERFACE_CB] = &EthernetServiceStub::OnRegisterIfacesStateChanged;
-    memberFuncMap_[CMD_UNREGISTER_INTERFACE_CB] = &EthernetServiceStub::OnUnregisterIfacesStateChanged;
-    memberFuncMap_[CMD_SET_INTERFACE_UP] = &EthernetServiceStub::OnSetInterfaceUp;
-    memberFuncMap_[CMD_SET_INTERFACE_DOWN] = &EthernetServiceStub::OnSetInterfaceDown;
-    memberFuncMap_[CMD_GET_INTERFACE_CONFIG] = &EthernetServiceStub::OnGetInterfaceConfig;
-    memberFuncMap_[CMD_SET_INTERFACE_CONFIG] = &EthernetServiceStub::OnSetInterfaceConfig;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_IF_CFG)] =
+        &EthernetServiceStub::OnSetIfaceConfig;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG)] =
+        &EthernetServiceStub::OnGetIfaceConfig;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_IS_ACTIVATE)] =
+        &EthernetServiceStub::OnIsIfaceActive;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_ACTIVATE_INTERFACE)] =
+        &EthernetServiceStub::OnGetAllActiveIfaces;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_RESET_FACTORY)] =
+        &EthernetServiceStub::OnResetFactory;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_REGISTER_INTERFACE_CB)] =
+        &EthernetServiceStub::OnRegisterIfacesStateChanged;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_UNREGISTER_INTERFACE_CB)] =
+        &EthernetServiceStub::OnUnregisterIfacesStateChanged;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP)] =
+        &EthernetServiceStub::OnSetInterfaceUp;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN)] =
+        &EthernetServiceStub::OnSetInterfaceDown;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG)] =
+        &EthernetServiceStub::OnGetInterfaceConfig;
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_CONFIG)] =
+        &EthernetServiceStub::OnSetInterfaceConfig;
 }
 
 int32_t EthernetServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,

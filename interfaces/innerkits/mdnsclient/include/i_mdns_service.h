@@ -23,6 +23,7 @@
 #include "iremote_object.h"
 
 #include "i_mdns_event.h"
+#include "mdns_ipc_interface_code.h"
 #include "mdns_service_info.h"
 
 namespace OHOS {
@@ -31,13 +32,6 @@ namespace NetManagerStandard {
 class IMDnsService : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.IMDnsService");
-    enum {
-        CMD_REGISTER,
-        CMD_STOP_REGISTER,
-        CMD_DISCOVER,
-        CMD_STOP_DISCOVER,
-        CMD_RESOLVE
-    };
 
     /**
      * Register mDNS service instance

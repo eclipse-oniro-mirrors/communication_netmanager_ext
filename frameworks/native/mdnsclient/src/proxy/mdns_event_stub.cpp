@@ -41,12 +41,12 @@ int32_t RegistrationCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &
         NETMGR_EXT_LOG_E("ReadInt32 failed");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    IRegistrationCallback::Message msgCode = static_cast<IRegistrationCallback::Message>(code);
-    if (msgCode == IRegistrationCallback::Message::REGISTERED) {
+    MdnsRegisterInterfaceCode msgCode = static_cast<MdnsRegisterInterfaceCode>(code);
+    if (msgCode == MdnsRegisterInterfaceCode::REGISTERED) {
         HandleRegister(*serviceInfo, retCode);
-    } else if (msgCode == IRegistrationCallback::Message::UNREGISTERED) {
+    } else if (msgCode == MdnsRegisterInterfaceCode::UNREGISTERED) {
         HandleUnRegister(*serviceInfo, retCode);
-    } else if (msgCode == IRegistrationCallback::Message::RESULT) {
+    } else if (msgCode == MdnsRegisterInterfaceCode::RESULT) {
         HandleRegisterResult(*serviceInfo, retCode);
     } else {
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -74,14 +74,14 @@ int32_t DiscoveryCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &dat
         NETMGR_EXT_LOG_E("ReadInt32 failed");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    IDiscoveryCallback::Message msgCode = static_cast<IDiscoveryCallback::Message>(code);
-    if (msgCode == IDiscoveryCallback::Message::STARTED) {
+    MdnsDiscoveryInterfaceCode msgCode = static_cast<MdnsDiscoveryInterfaceCode>(code);
+    if (msgCode == MdnsDiscoveryInterfaceCode::STARTED) {
         HandleStartDiscover(*serviceInfo, retCode);
-    } else if (msgCode == IDiscoveryCallback::Message::STOPPED) {
+    } else if (msgCode == MdnsDiscoveryInterfaceCode::STOPPED) {
         HandleStopDiscover(*serviceInfo, retCode);
-    } else if (msgCode == IDiscoveryCallback::Message::FOUND) {
+    } else if (msgCode == MdnsDiscoveryInterfaceCode::FOUND) {
         HandleServiceFound(*serviceInfo, retCode);
-    } else if (msgCode == IDiscoveryCallback::Message::LOST) {
+    } else if (msgCode == MdnsDiscoveryInterfaceCode::LOST) {
         HandleServiceLost(*serviceInfo, retCode);
     } else {
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -107,8 +107,8 @@ int32_t ResolveCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     if (!data.ReadInt32(retCode)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    IResolveCallback::Message msgCode = static_cast<IResolveCallback::Message>(code);
-    if (msgCode == IResolveCallback::Message::RESULT) {
+    MdnsResolveInterfaceCode msgCode = static_cast<MdnsResolveInterfaceCode>(code);
+    if (msgCode == MdnsResolveInterfaceCode::RESULT) {
         HandleResolveResult(*serviceInfo, retCode);
     } else {
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

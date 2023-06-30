@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,7 +63,8 @@ int32_t EthernetServiceProxy::SetIfaceConfig(const std::string &iface, sptr<Inte
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_SET_IF_CFG, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_IF_CFG),
+                                      data, reply, option);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -86,7 +87,8 @@ int32_t EthernetServiceProxy::GetIfaceConfig(const std::string &iface, sptr<Inte
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_GET_IF_CFG, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -121,7 +123,8 @@ int32_t EthernetServiceProxy::IsIfaceActive(const std::string &iface, int32_t &a
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_IS_ACTIVATE, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_IS_ACTIVATE),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -144,7 +147,8 @@ int32_t EthernetServiceProxy::GetAllActiveIfaces(std::vector<std::string> &activ
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_GET_ACTIVATE_INTERFACE, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_ACTIVATE_INTERFACE),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -174,7 +178,8 @@ int32_t EthernetServiceProxy::ResetFactory()
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_RESET_FACTORY, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_RESET_FACTORY),
+                                      data, reply, option);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -203,7 +208,8 @@ int32_t EthernetServiceProxy::RegisterIfacesStateChanged(const sptr<InterfaceSta
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_REGISTER_INTERFACE_CB, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_REGISTER_INTERFACE_CB),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -232,7 +238,8 @@ int32_t EthernetServiceProxy::UnregisterIfacesStateChanged(const sptr<InterfaceS
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_UNREGISTER_INTERFACE_CB, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_UNREGISTER_INTERFACE_CB),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -256,7 +263,8 @@ int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_SET_INTERFACE_UP, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -280,7 +288,8 @@ int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_SET_INTERFACE_DOWN, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -304,7 +313,8 @@ int32_t EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS:
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_GET_INTERFACE_CONFIG, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -366,7 +376,8 @@ int32_t EthernetServiceProxy::SetInterfaceConfig(const std::string &iface, OHOS:
 
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_SET_INTERFACE_CONFIG, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_CONFIG),
+                                      data, reply, option);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
