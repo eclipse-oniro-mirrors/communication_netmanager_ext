@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,8 +28,8 @@ int32_t NetShareResultCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel
     if (descriptor != INetShareResultCallback::GetDescriptor()) {
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-    INetShareResultCallback::Message msgCode = static_cast<INetShareResultCallback::Message>(code);
-    if (msgCode == INetShareResultCallback::Message::RESULT) {
+    TetheringResultInterfaceCode msgCode = static_cast<TetheringResultInterfaceCode>(code);
+    if (msgCode == TetheringResultInterfaceCode::RESULT) {
         int32_t status = data.ReadInt32();
         OnResult(status);
         return NETMANAGER_EXT_SUCCESS;

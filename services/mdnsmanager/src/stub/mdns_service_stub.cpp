@@ -22,11 +22,14 @@ namespace OHOS {
 namespace NetManagerStandard {
 MDnsServiceStub::MDnsServiceStub()
 {
-    memberFuncMap_[CMD_DISCOVER] = &MDnsServiceStub::OnStartDiscoverService;
-    memberFuncMap_[CMD_STOP_DISCOVER] = &MDnsServiceStub::OnStopDiscoverService;
-    memberFuncMap_[CMD_REGISTER] = &MDnsServiceStub::OnRegisterService;
-    memberFuncMap_[CMD_STOP_REGISTER] = &MDnsServiceStub::OnUnRegisterService;
-    memberFuncMap_[CMD_RESOLVE] = &MDnsServiceStub::OnResolveService;
+    memberFuncMap_[static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER)] =
+        &MDnsServiceStub::OnStartDiscoverService;
+    memberFuncMap_[static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_DISCOVER)] =
+        &MDnsServiceStub::OnStopDiscoverService;
+    memberFuncMap_[static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_REGISTER)] = &MDnsServiceStub::OnRegisterService;
+    memberFuncMap_[static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_REGISTER)] =
+        &MDnsServiceStub::OnUnRegisterService;
+    memberFuncMap_[static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE)] = &MDnsServiceStub::OnResolveService;
 }
 
 int32_t MDnsServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,

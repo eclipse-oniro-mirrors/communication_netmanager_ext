@@ -43,7 +43,7 @@ public:
     int32_t GetStatsTotalBytes(int32_t &bytes) override;
 
 private:
-    int32_t SendRequest(INetworkShareService::MessageCode code, MessageParcel &data, MessageParcel &reply);
+    int32_t SendRequest(TetheringInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<NetworkShareServiceProxy> delegator_;

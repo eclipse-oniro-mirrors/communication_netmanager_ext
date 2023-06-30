@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef I_NETSHARE_RESULT_CALLBACK_H
-#define I_NETSHARE_RESULT_CALLBACK_H
+#ifndef ETHERNET_IPC_INTERFACE_CODE_H
+#define ETHERNET_IPC_INTERFACE_CODE_H
 
-#include <string>
-#include <iremote_broker.h>
-
-#include "tethering_ipc_interface_code.h"
-
+/* SAID:1157 */
 namespace OHOS {
 namespace NetManagerStandard {
-class INetShareResultCallback : public IRemoteBroker {
-public:
-    virtual void OnResult(const int32_t &status) = 0;
-
-    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkShareService.INetShareResultCallback");
+enum class EthernetInterfaceCode {
+    CMD_SET_IF_CFG,
+    CMD_GET_IF_CFG,
+    CMD_IS_ACTIVATE,
+    CMD_GET_ACTIVATE_INTERFACE,
+    CMD_RESET_FACTORY,
+    CMD_REGISTER_INTERFACE_CB,
+    CMD_UNREGISTER_INTERFACE_CB,
+    CMD_SET_INTERFACE_UP,
+    CMD_SET_INTERFACE_DOWN,
+    CMD_GET_INTERFACE_CONFIG,
+    CMD_SET_INTERFACE_CONFIG,
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // I_NETSHARE_RESULT_CALLBACK_H
+#endif //ETHERNET_IPC_INTERFACE_CODE_H

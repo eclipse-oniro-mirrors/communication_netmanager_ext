@@ -54,7 +54,8 @@ int32_t MDnsServiceProxy::RegisterService(const MDnsServiceInfo &serviceInfo, co
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_REGISTER, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_REGISTER),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -86,7 +87,8 @@ int32_t MDnsServiceProxy::UnRegisterService(const sptr<IRegistrationCallback> &c
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_STOP_REGISTER, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_REGISTER),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -121,7 +123,8 @@ int32_t MDnsServiceProxy::StartDiscoverService(const std::string &serviceType, c
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_DISCOVER, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -154,7 +157,8 @@ int32_t MDnsServiceProxy::StopDiscoverService(const sptr<IDiscoveryCallback> &cb
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_STOP_DISCOVER, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_DISCOVER),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
@@ -195,7 +199,8 @@ int32_t MDnsServiceProxy::ResolveService(const MDnsServiceInfo &serviceInfo, con
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(CMD_RESOLVE, data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%d]", ret);
         return ret;

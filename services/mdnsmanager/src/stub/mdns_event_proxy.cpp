@@ -58,7 +58,8 @@ void RegistrationCallbackProxy::HandleRegister(const MDnsServiceInfo &serviceInf
     MessageParcel reply;
     MessageOption option;
     int32_t ret =
-        remote->SendRequest(static_cast<uint32_t>(IRegistrationCallback::Message::REGISTERED), data, reply, option);
+        remote->SendRequest(static_cast<uint32_t>(MdnsRegisterInterfaceCode::REGISTERED),
+                            data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -95,7 +96,8 @@ void RegistrationCallbackProxy::HandleUnRegister(const MDnsServiceInfo &serviceI
     MessageOption option;
     NETMGR_EXT_LOG_I("SendRequest");
     int32_t ret =
-        remote->SendRequest(static_cast<uint32_t>(IRegistrationCallback::Message::UNREGISTERED), data, reply, option);
+        remote->SendRequest(static_cast<uint32_t>(MdnsRegisterInterfaceCode::UNREGISTERED),
+                            data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -132,7 +134,8 @@ void RegistrationCallbackProxy::HandleRegisterResult(const MDnsServiceInfo &serv
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t ret =
-        remote->SendRequest(static_cast<uint32_t>(IRegistrationCallback::Message::RESULT), data, reply, option);
+        remote->SendRequest(static_cast<uint32_t>(MdnsRegisterInterfaceCode::RESULT),
+                            data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -173,7 +176,8 @@ void DiscoveryCallbackProxy::HandleStartDiscover(const MDnsServiceInfo &serviceI
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(IDiscoveryCallback::Message::STARTED), data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsDiscoveryInterfaceCode::STARTED),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -209,7 +213,8 @@ void DiscoveryCallbackProxy::HandleStopDiscover(const MDnsServiceInfo &serviceIn
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(IDiscoveryCallback::Message::STOPPED), data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsDiscoveryInterfaceCode::STOPPED),
+                                      data, reply, option);
     option.SetFlags(MessageOption::TF_ASYNC);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
@@ -246,7 +251,8 @@ void DiscoveryCallbackProxy::HandleServiceFound(const MDnsServiceInfo &serviceIn
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(IDiscoveryCallback::Message::FOUND), data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsDiscoveryInterfaceCode::FOUND),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -282,7 +288,8 @@ void DiscoveryCallbackProxy::HandleServiceLost(const MDnsServiceInfo &serviceInf
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(IDiscoveryCallback::Message::LOST), data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsDiscoveryInterfaceCode::LOST),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
     }
@@ -320,7 +327,8 @@ void ResolveCallbackProxy::HandleResolveResult(const MDnsServiceInfo &serviceInf
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(IResolveCallback::Message::RESULT), data, reply, option);
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsResolveInterfaceCode::RESULT),
+                                      data, reply, option);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SendRequest failed, error code: [%{public}d]", ret);
     }

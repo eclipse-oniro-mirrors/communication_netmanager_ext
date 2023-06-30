@@ -123,7 +123,7 @@ int32_t MDnsService::RegisterService(const MDnsServiceInfo &serviceInfo, const s
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = CMD_REGISTER;
+    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_REGISTER);
     eventInfo.data = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type + MDNS_HOSTPORT_SPLITER_STR +
                      std::to_string(serviceInfo.port);
     eventInfo.errorType = err;
@@ -138,7 +138,7 @@ int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = CMD_STOP_REGISTER;
+    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_STOP_REGISTER);
     eventInfo.data = EVENT_DATA_CALLBACK;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
@@ -152,7 +152,7 @@ int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const 
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = CMD_DISCOVER;
+    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER);
     eventInfo.data = serviceType;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
@@ -166,7 +166,7 @@ int32_t MDnsService::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = CMD_STOP_DISCOVER;
+    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_STOP_DISCOVER);
     eventInfo.data = EVENT_DATA_CALLBACK;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
@@ -180,7 +180,7 @@ int32_t MDnsService::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = CMD_RESOLVE;
+    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE);
     eventInfo.data = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);

@@ -213,7 +213,7 @@ void Init()
     }
 }
 
-int32_t OnRemoteRequest(INetworkShareService::MessageCode code, MessageParcel &data)
+int32_t OnRemoteRequest(TetheringInterfaceCode code, MessageParcel &data)
 {
     if (!g_isInited) {
         Init();
@@ -247,7 +247,7 @@ void IsNetworkSharingSupportedFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_SHARING_SUPPORTED, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_SHARING_SUPPORTED, dataParcel);
 }
 
 void IsSharingFuzzTest(const uint8_t *data, size_t size)
@@ -265,7 +265,7 @@ void IsSharingFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_IS_SHARING, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_IS_SHARING, dataParcel);
 }
 
 void StartNetworkSharingFuzzTest(const uint8_t *data, size_t size)
@@ -284,7 +284,7 @@ void StartNetworkSharingFuzzTest(const uint8_t *data, size_t size)
     }
     int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
     dataParcel.WriteInt32(type);
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_START_NETWORKSHARE, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_START_NETWORKSHARE, dataParcel);
 }
 
 void StopNetworkSharingFuzzTest(const uint8_t *data, size_t size)
@@ -303,7 +303,7 @@ void StopNetworkSharingFuzzTest(const uint8_t *data, size_t size)
     }
     int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
     dataParcel.WriteInt32(type);
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_STOP_NETWORKSHARE, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_STOP_NETWORKSHARE, dataParcel);
 }
 
 void GetSharableRegexsFuzzTest(const uint8_t *data, size_t size)
@@ -322,7 +322,7 @@ void GetSharableRegexsFuzzTest(const uint8_t *data, size_t size)
     }
     int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
     dataParcel.WriteInt32(type);
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_SHARABLE_REGEXS, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_SHARABLE_REGEXS, dataParcel);
 }
 
 void GetSharingStateFuzzTest(const uint8_t *data, size_t size)
@@ -341,7 +341,7 @@ void GetSharingStateFuzzTest(const uint8_t *data, size_t size)
     }
     int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
     dataParcel.WriteInt32(type);
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_SHARING_STATE, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_SHARING_STATE, dataParcel);
 }
 
 void GetNetSharingIfacesFuzzTest(const uint8_t *data, size_t size)
@@ -360,7 +360,7 @@ void GetNetSharingIfacesFuzzTest(const uint8_t *data, size_t size)
     }
     uint32_t state = GetData<int32_t>() % CREATE_SHARE_IFACE_STATE_VALUE + ENUM_TYPE_BEGIN;
     dataParcel.WriteInt32(state);
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_SHARING_IFACES, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_SHARING_IFACES, dataParcel);
 }
 
 void RegisterSharingEventFuzzTest(const uint8_t *data, size_t size)
@@ -379,7 +379,7 @@ void RegisterSharingEventFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     dataParcel.WriteRemoteObject(callback->AsObject());
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_REGISTER_EVENT_CALLBACK, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_REGISTER_EVENT_CALLBACK, dataParcel);
 }
 
 void UnregisterSharingEventFuzzTest(const uint8_t *data, size_t size)
@@ -398,7 +398,7 @@ void UnregisterSharingEventFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     dataParcel.WriteRemoteObject(callback->AsObject());
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_UNREGISTER_EVENT_CALLBACK, dataParcel);
 }
 
 void GetStatsRxBytesFuzzTest(const uint8_t *data, size_t size)
@@ -415,7 +415,7 @@ void GetStatsRxBytesFuzzTest(const uint8_t *data, size_t size)
     if (!WriteInterfaceToken(dataParcel)) {
         return;
     }
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_RX_BYTES, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_RX_BYTES, dataParcel);
 }
 
 void GetStatsTxBytesFuzzTest(const uint8_t *data, size_t size)
@@ -432,7 +432,7 @@ void GetStatsTxBytesFuzzTest(const uint8_t *data, size_t size)
     if (!WriteInterfaceToken(dataParcel)) {
         return;
     }
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_TX_BYTES, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_TX_BYTES, dataParcel);
 }
 
 void GetStatsTotalBytesFuzzTest(const uint8_t *data, size_t size)
@@ -449,7 +449,7 @@ void GetStatsTotalBytesFuzzTest(const uint8_t *data, size_t size)
     if (!WriteInterfaceToken(dataParcel)) {
         return;
     }
-    OnRemoteRequest(INetworkShareService::MessageCode::CMD_GET_TOTAL_BYTES, dataParcel);
+    OnRemoteRequest(TetheringInterfaceCode::CMD_GET_TOTAL_BYTES, dataParcel);
 }
 
 void NetworkShareMainStateMachineFuzzTest(const uint8_t *data, size_t size)
@@ -460,7 +460,7 @@ void NetworkShareMainStateMachineFuzzTest(const uint8_t *data, size_t size)
     }
 
     std::shared_ptr<NetworkShareUpstreamMonitor> networkmonitor =
-        DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+        NetworkShareUpstreamMonitor::GetInstance();
 
     auto networkShareMainStateMachine = std::make_unique<NetworkShareMainStateMachine>(networkmonitor);
     int32_t errType = GetData<int32_t>();
@@ -592,7 +592,7 @@ void UpstreammonitorFuzzTest(const uint8_t *data, size_t size)
 
     int32_t num = GetData<int32_t>();
     std::shared_ptr<NetworkShareUpstreamMonitor> networkmonitor =
-        DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+        NetworkShareUpstreamMonitor::GetInstance();
 
     networkmonitor->ListenDefaultNetwork();
     sptr<NetHandle> netHandle = new (std::nothrow) NetHandle(num);
@@ -630,7 +630,6 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     std::vector<std::string> ifaceRegexs;
     std::vector<std::string> ifaces;
     int32_t kbByte = 0;
-    NetworkShareTracker::GetInstance().Init();
     NetworkShareTracker::GetInstance().Uninit();
     NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
     NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
@@ -728,13 +727,9 @@ void NetworkShareConfigurationFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    uint32_t vectorSize = GetData<uint32_t>() % 10;
     std::string str = GetStringFromData(IFACE_LEN);
-    std::vector<std::string> match;
-    match.reserve(vectorSize);
-    for (size_t i = 0; i < vectorSize; i++) {
-        match.emplace_back(str);
-    }
+    std::vector<std::string> match = {"wlan", "softap", "usb"};
+
     NetworkShareConfiguration config;
     config.IsNetworkSharingSupported();
     config.IsUsbIface(str);
