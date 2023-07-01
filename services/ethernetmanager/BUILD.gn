@@ -74,7 +74,7 @@ ohos_shared_library("ethernet_manager") {
   }
 
   if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hilog_native:libhilog" ]
   } else {
     external_deps += [ "hilog:libhilog" ]
   }

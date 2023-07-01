@@ -53,7 +53,7 @@ ohos_source_set("mdns_parcel") {
   ]
 
   if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hilog_native:libhilog" ]
   } else {
     external_deps += [ "hilog:libhilog" ]
   }
@@ -93,7 +93,7 @@ ohos_shared_library("mdns_manager_if") {
   }
 
   if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hilog_native:libhilog" ]
   } else {
     external_deps += [ "hilog:libhilog" ]
   }

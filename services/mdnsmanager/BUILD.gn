@@ -82,7 +82,7 @@ ohos_shared_library("mdns_manager") {
   }
 
   if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hilog_native:libhilog" ]
   } else {
     external_deps += [ "hilog:libhilog" ]
   }
@@ -128,7 +128,7 @@ ohos_static_library("mdns_manager_static") {
   }
 
   if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hilog_native:libhilog" ]
   } else {
     external_deps += [ "hilog:libhilog" ]
   }
