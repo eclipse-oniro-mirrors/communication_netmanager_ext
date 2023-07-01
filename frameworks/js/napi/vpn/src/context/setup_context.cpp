@@ -41,16 +41,16 @@ constexpr const char *NET_DESTINATION = "destination";
 constexpr const char *NET_GATEWAY = "gateway";
 constexpr const char *NET_HAS_GATEWAY = "hasGateway";
 constexpr const char *NET_ISDEFAULTROUTE = "isDefaultRoute";
-constexpr const char *CONFIG_MTU = "mtu";
-constexpr const char *CONFIG_ISACCEPTIPV4 = "isAcceptIPv4";
-constexpr const char *CONFIG_ISACCEPTIPV6 = "isAcceptIPv6";
-constexpr const char *CONFIG_ISLEGACY = "isLegacy";
-constexpr const char *CONFIG_ISMETERED = "isMetered";
-constexpr const char *CONFIG_ISACCEPTBYPASS = "isAcceptByPass";
 constexpr const char *CONFIG_DNSADDRESSES = "dnsAddresses";
 constexpr const char *CONFIG_SEARCHDOMAINS = "searchDomains";
-constexpr const char *CONFIG_ACCEPTEDAPPLICATIONS = "acceptedApplications";
-constexpr const char *CONFIG_REFUSEDAPPLICATIONS = "refusedApplications";
+constexpr const char *CONFIG_MTU = "mtu";
+constexpr const char *CONFIG_ISIPV4ACCEPTED = "isIPv4Accepted";
+constexpr const char *CONFIG_ISIPV6ACCEPTED = "isIPv6Accepted";
+constexpr const char *CONFIG_ISLEGACY = "isLegacy";
+constexpr const char *CONFIG_ISMETERED = "isMetered";
+constexpr const char *CONFIG_ISBLOCKING = "isBlocking";
+constexpr const char *CONFIG_ALLOWEDAPPLICATIONS = "allowedApplications";
+constexpr const char *CONFIG_BLOCKEDAPPLICATIONS = "blockedApplications";
 bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {
     switch (paramsCount) {
@@ -205,24 +205,6 @@ static std::vector<std::string> ParseArrayString(napi_env env, napi_value array)
 bool SetUpContext::ParseChoiceableParams(napi_value config)
 {
     NETMANAGER_EXT_LOGI("choiceable");
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_MTU)) {
-        vpnConfig_->mtu_ = NapiUtils::GetInt32Property(GetEnv(), config, CONFIG_MTU);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISACCEPTIPV4)) {
-        vpnConfig_->isAcceptIPv4_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISACCEPTIPV4);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISACCEPTIPV6)) {
-        vpnConfig_->isAcceptIPv6_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISACCEPTIPV6);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISLEGACY)) {
-        vpnConfig_->isLegacy_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISLEGACY);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISMETERED)) {
-        vpnConfig_->isMetered_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISMETERED);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISACCEPTBYPASS)) {
-        vpnConfig_->isAcceptByPass_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISACCEPTBYPASS);
-    }
     if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_DNSADDRESSES)) {
         vpnConfig_->dnsAddresses_ =
             ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_DNSADDRESSES));
@@ -231,13 +213,31 @@ bool SetUpContext::ParseChoiceableParams(napi_value config)
         vpnConfig_->searchDomains_ =
             ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_SEARCHDOMAINS));
     }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ACCEPTEDAPPLICATIONS)) {
-        vpnConfig_->acceptedApplications_ =
-            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_ACCEPTEDAPPLICATIONS));
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_MTU)) {
+        vpnConfig_->mtu_ = NapiUtils::GetInt32Property(GetEnv(), config, CONFIG_MTU);
     }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_REFUSEDAPPLICATIONS)) {
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISIPV4ACCEPTED)) {
+        vpnConfig_->isAcceptIPv4_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISIPV4ACCEPTED);
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISIPV4ACCEPTED)) {
+        vpnConfig_->isAcceptIPv6_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISIPV6ACCEPTED);
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISLEGACY)) {
+        vpnConfig_->isLegacy_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISLEGACY);
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISMETERED)) {
+        vpnConfig_->isMetered_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISMETERED);
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISBLOCKING)) {
+        vpnConfig_->isBlocking_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISBLOCKING);
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ALLOWEDAPPLICATIONS)) {
+        vpnConfig_->acceptedApplications_ =
+            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_ALLOWEDAPPLICATIONS));
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_BLOCKEDAPPLICATIONS)) {
         vpnConfig_->refusedApplications_ =
-            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_REFUSEDAPPLICATIONS));
+            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_BLOCKEDAPPLICATIONS));
     }
     return true;
 }
