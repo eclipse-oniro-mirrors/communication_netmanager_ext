@@ -307,7 +307,7 @@ std::set<int32_t> NetVpnImpl::GetAppsUids(const std::vector<std::string> &applic
             NETMGR_EXT_LOG_E("GetAppsUids app:%{public}s error.", app.c_str());
         }
     }
-    NETMGR_EXT_LOG_I("GetAppsUids uids.size:%{public}d.", uids.size());
+    NETMGR_EXT_LOG_I("GetAppsUids uids.size:%{public}zd.", uids.size());
     return uids;
 }
 

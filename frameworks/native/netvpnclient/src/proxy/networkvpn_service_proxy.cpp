@@ -71,7 +71,7 @@ int32_t NetworkVpnServiceProxy::Prepare(bool &isExistVpn, bool &isRun, std::stri
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     if (!reply.ReadBool(isExistVpn) || !reply.ReadBool(isRun) || !reply.ReadString(pkg)) {
-        NETMGR_EXT_LOG_E("SetUp proxy read data failed");
+        NETMGR_EXT_LOG_E("Prepare proxy read data failed");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     return result;
@@ -108,7 +108,7 @@ int32_t NetworkVpnServiceProxy::Protect()
     MessageParcel reply;
     int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_PROTECT, data, reply);
     if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("DestroyVpn proxy SendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("Protect proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
