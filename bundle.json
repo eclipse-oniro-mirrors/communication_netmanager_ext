@@ -51,7 +51,10 @@
                 "samgr",
                 "usb_manager",
                 "drivers_interface_usb",
-                "wifi"
+                "wifi",
+                "hilog",
+                "bundle_framework",
+                "os_account"
             ]
         },
         "build": {

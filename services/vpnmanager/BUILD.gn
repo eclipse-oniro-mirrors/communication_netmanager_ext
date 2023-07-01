@@ -68,7 +68,7 @@ net_vpn_manager_external_deps = [
   "c_utils:utils",
   "eventhandler:libeventhandler",
   "hilog:libhilog",
-  "hisysevent_native:libhisysevent",
+  "hisysevent:libhisysevent",
   "ipc:ipc_core",
   "netmanager_base:net_conn_manager_if",
   "netmanager_base:net_manager_common",
