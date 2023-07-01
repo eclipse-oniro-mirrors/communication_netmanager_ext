@@ -33,7 +33,7 @@ public:
 
 private:
     int32_t ConnectControl(int32_t sockfd, int32_t nsec);
-    int32_t RecvMsgFromUnixServer(int32_t sockfd, msghdr &message);
+    int32_t RecvMsgFromUnixServer(int32_t sockfd);
 
 private:
     int32_t tunFd_ = 0;

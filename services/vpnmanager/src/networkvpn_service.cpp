@@ -158,7 +158,12 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
 
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
 {
+    int32_t uid = IPCSkeleton::GetCallingUid();
     int32_t hapUserId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, hapUserId) != ERR_OK) {
+        NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error.");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
 
     if (vpnObj_ != nullptr) {
         NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");

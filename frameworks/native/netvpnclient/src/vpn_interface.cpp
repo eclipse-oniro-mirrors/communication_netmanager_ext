@@ -91,14 +91,13 @@ int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
     }
 }
 
-int32_t VpnInterface::RecvMsgFromUnixServer(int32_t sockfd, msghdr &message)
+int32_t VpnInterface::RecvMsgFromUnixServer(int32_t sockfd)
 {
     char buf[1] = {0};
     iovec iov = {
         .iov_base = buf,
         .iov_len = sizeof(buf),
     };
-
     union {
         cmsghdr align;
         char cmsg[CMSG_SPACE(sizeof(int32_t))];
@@ -107,7 +106,7 @@ int32_t VpnInterface::RecvMsgFromUnixServer(int32_t sockfd, msghdr &message)
         NETMGR_EXT_LOG_E("memset_s cmsgu.cmsg failed!");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
+    msghdr message;
     if (memset_s(&message, sizeof(message), 0, sizeof(message)) != EOK) {
         NETMGR_EXT_LOG_E("memset_s message failed!");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -121,6 +120,22 @@ int32_t VpnInterface::RecvMsgFromUnixServer(int32_t sockfd, msghdr &message)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
+    cmsghdr *cmsgh = CMSG_FIRSTHDR(&message);
+    if (cmsgh == nullptr) {
+        NETMGR_EXT_LOG_E("cmsgh is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (cmsgh->cmsg_level != SOL_SOCKET || cmsgh->cmsg_type != SCM_RIGHTS ||
+        cmsgh->cmsg_len != CMSG_LEN(sizeof(int32_t))) {
+        NETMGR_EXT_LOG_E("cmsg_level: [%{public}d], cmsg_type: [%{public}d], cmsg_len: [%{public}d]", cmsgh->cmsg_level,
+                         cmsgh->cmsg_type, cmsgh->cmsg_len);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    if (memcpy_s(&tunFd_, sizeof(tunFd_), CMSG_DATA(cmsgh), sizeof(tunFd_)) != EOK) {
+        NETMGR_EXT_LOG_E("memcpy_s cmsgu failed!");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -139,29 +154,12 @@ int32_t VpnInterface::GetVpnInterfaceFd()
         return INVALID_FD;
     }
 
-    msghdr message;
-    if (RecvMsgFromUnixServer(sockfd, message) != NETMANAGER_EXT_SUCCESS) {
+    if (RecvMsgFromUnixServer(sockfd) != NETMANAGER_EXT_SUCCESS) {
         close(sockfd);
         return INVALID_FD;
     }
 
     close(sockfd);
-    cmsghdr *cmsgh = CMSG_FIRSTHDR(&message);
-    if (cmsgh == nullptr) {
-        NETMGR_EXT_LOG_E("cmsgh is nullptr");
-        return INVALID_FD;
-    }
-    if (cmsgh->cmsg_level != SOL_SOCKET || cmsgh->cmsg_type != SCM_RIGHTS ||
-        cmsgh->cmsg_len != CMSG_LEN(sizeof(int32_t))) {
-        NETMGR_EXT_LOG_E("cmsg_level: [%{public}d], cmsg_type: [%{public}d], cmsg_len: [%{public}d]", cmsgh->cmsg_level,
-                         cmsgh->cmsg_type, cmsgh->cmsg_len);
-        return INVALID_FD;
-    }
-
-    if (memcpy_s(&tunFd_, sizeof(tunFd_), CMSG_DATA(cmsgh), sizeof(tunFd_)) != EOK) {
-        NETMGR_EXT_LOG_E("memcpy_s cmsgu failed!");
-        return INVALID_FD;
-    }
     NETMGR_EXT_LOG_I("recv tun device fd: [%{public}d]", tunFd_);
     return tunFd_;
 }

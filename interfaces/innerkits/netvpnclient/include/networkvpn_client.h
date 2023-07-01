@@ -32,9 +32,18 @@
 namespace OHOS {
 namespace NetManagerStandard {
 class NetworkVpnClient {
-public:
+private:
     NetworkVpnClient() = default;
     ~NetworkVpnClient() = default;
+    NetworkVpnClient(const NetworkVpnClient &) = delete;
+    NetworkVpnClient &operator=(const NetworkVpnClient &) = delete;
+
+public:
+    static NetworkVpnClient &GetInstance()
+    {
+        static NetworkVpnClient instance;
+        return instance;
+    }
 
 public:
     /**

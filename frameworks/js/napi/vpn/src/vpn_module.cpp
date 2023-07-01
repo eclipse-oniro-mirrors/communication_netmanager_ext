@@ -30,7 +30,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 static void *MakeData(napi_env env, size_t paramsCount, napi_value *params, EventManager *manager)
 {
-    return reinterpret_cast<void *>(new NetworkVpnClient());
+    return reinterpret_cast<void *>(&NetworkVpnClient::GetInstance());
 }
 
 static napi_value CreateVpnConnection(napi_env env, napi_callback_info info)
