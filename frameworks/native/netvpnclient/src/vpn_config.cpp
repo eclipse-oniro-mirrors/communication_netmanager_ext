@@ -29,7 +29,7 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteBool(isAcceptIPv6_) &&
                  parcel.WriteBool(isLegacy_) &&
                  parcel.WriteBool(isMetered_) &&
-                 parcel.WriteBool(isAcceptByPass_) &&
+                 parcel.WriteBool(isBlocking_) &&
                  MarshallingVectorString(parcel, dnsAddresses_) &&
                  MarshallingVectorString(parcel, searchDomains_) &&
                  MarshallingVectorString(parcel, acceptedApplications_) &&
@@ -89,7 +89,7 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadBool(ptr->isAcceptIPv6_) &&
                  parcel.ReadBool(ptr->isLegacy_) &&
                  parcel.ReadBool(ptr->isMetered_) &&
-                 parcel.ReadBool(ptr->isAcceptByPass_) &&
+                 parcel.ReadBool(ptr->isBlocking_) &&
                  UnmarshallingVectorString(parcel, ptr->dnsAddresses_) &&
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&

@@ -28,12 +28,12 @@ namespace NetManagerStandard {
 struct VpnConfig : public Parcelable {
     std::vector<INetAddr> addresses_;
     std::vector<Route> routes_;
-    int32_t mtu_;
-    bool isAcceptIPv4_;
-    bool isAcceptIPv6_;
-    bool isLegacy_;
-    bool isMetered_;
-    bool isAcceptByPass_;
+    int32_t mtu_ = 0;
+    bool isAcceptIPv4_ = true;
+    bool isAcceptIPv6_ = false;
+    bool isLegacy_ = false;
+    bool isMetered_ = false;
+    bool isBlocking_ = false;
     std::vector<std::string> dnsAddresses_;
     std::vector<std::string> searchDomains_;
     std::vector<std::string> acceptedApplications_;
