@@ -42,7 +42,7 @@
                 "safwk",
                 "napi",
                 "dhcp",
-                "hilog_native",
+                "hilog",
                 "netmanager_base",
                 "eventhandler",
                 "bluetooth",

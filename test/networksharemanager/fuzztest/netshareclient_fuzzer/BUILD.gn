@@ -67,11 +67,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "safwk:system_ability_fwk",
     "wifi:wifi_sdk",
   ]
-  if (is_standard_system) {
-    external_deps += [ "hilog_native:libhilog" ]
-  } else {
-    external_deps += [ "hilog:libhilog" ]
-  }
+  external_deps += [ "hilog:libhilog" ]
 
   defines = [
     "NETMGR_LOG_TAG = \"NetShareManager\"",

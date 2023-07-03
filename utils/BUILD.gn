@@ -52,7 +52,7 @@ ohos_shared_library("net_manager_ext_common") {
   if (is_standard_system) {
     external_deps = [
       "c_utils:utils",
-      "hilog_native:libhilog",
+      "hilog:libhilog",
     ]
   } else {
     external_deps = [
