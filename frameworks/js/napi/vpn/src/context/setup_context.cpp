@@ -36,7 +36,7 @@ constexpr const char *NET_ADDRESS = "address";
 constexpr const char *NET_FAMILY = "family";
 constexpr const char *NET_PORT = "port";
 constexpr const char *NET_PREFIXLENGTH = "prefixLength";
-constexpr const char *NET_INTERFACES = "interfaces";
+constexpr const char *NET_INTERFACE = "interface";
 constexpr const char *NET_DESTINATION = "destination";
 constexpr const char *NET_GATEWAY = "gateway";
 constexpr const char *NET_HAS_GATEWAY = "hasGateway";
@@ -49,7 +49,7 @@ constexpr const char *CONFIG_ISIPV6ACCEPTED = "isIPv6Accepted";
 constexpr const char *CONFIG_ISLEGACY = "isLegacy";
 constexpr const char *CONFIG_ISMETERED = "isMetered";
 constexpr const char *CONFIG_ISBLOCKING = "isBlocking";
-constexpr const char *CONFIG_ALLOWEDAPPLICATIONS = "allowedApplications";
+constexpr const char *CONFIG_TRUSTEDAPPLICATIONS = "trustedApplications";
 constexpr const char *CONFIG_BLOCKEDAPPLICATIONS = "blockedApplications";
 bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {
@@ -146,11 +146,19 @@ static struct INetAddr ParseGateway(napi_env env, napi_value gateway)
 static struct Route ParseRoute(napi_env env, napi_value jsRoute)
 {
     struct Route route;
-    route.iface_ = NapiUtils::GetStringPropertyUtf8(env, jsRoute, NET_INTERFACES);
+    if (NapiUtils::HasNamedProperty(env, jsRoute, NET_INTERFACE)) {
+        route.iface_ = NapiUtils::GetStringPropertyUtf8(env, jsRoute, NET_INTERFACE);
+    }
+
     route.destination_ = ParseDestination(env, NapiUtils::GetNamedProperty(env, jsRoute, NET_DESTINATION));
     route.gateway_ = ParseGateway(env, NapiUtils::GetNamedProperty(env, jsRoute, NET_GATEWAY));
-    route.hasGateway_ = NapiUtils::GetBooleanProperty(env, jsRoute, NET_HAS_GATEWAY);
-    route.isDefaultRoute_ = NapiUtils::GetBooleanProperty(env, jsRoute, NET_ISDEFAULTROUTE);
+
+    if (NapiUtils::HasNamedProperty(env, jsRoute, NET_HAS_GATEWAY)) {
+        route.hasGateway_ = NapiUtils::GetBooleanProperty(env, jsRoute, NET_HAS_GATEWAY);
+    }
+    if (NapiUtils::HasNamedProperty(env, jsRoute, NET_ISDEFAULTROUTE)) {
+        route.isDefaultRoute_ = NapiUtils::GetBooleanProperty(env, jsRoute, NET_ISDEFAULTROUTE);
+    }
     return route;
 }
 
@@ -169,7 +177,7 @@ bool SetUpContext::ParseAddrRouteParams(napi_value config)
             INetAddr iNetAddr = ParseAddress(GetEnv(), address);
             iNetAddr.prefixlen_ =
                 static_cast<uint8_t>(NapiUtils::GetUint32Property(GetEnv(), address, NET_PREFIXLENGTH));
-            vpnConfig_->addresses_.push_back(iNetAddr);
+            vpnConfig_->addresses_.emplace_back(iNetAddr);
         }
     }
 
@@ -183,7 +191,8 @@ bool SetUpContext::ParseAddrRouteParams(napi_value config)
         uint32_t routesLength = NapiUtils::GetArrayLength(GetEnv(), routes);
         for (uint32_t idx = 0; idx < routesLength; ++idx) { // set length limit.
             napi_value route = NapiUtils::GetArrayElement(GetEnv(), routes, idx);
-            vpnConfig_->routes_.push_back(ParseRoute(GetEnv(), route));
+            Route routeInfo = ParseRoute(GetEnv(), route);
+            vpnConfig_->routes_.emplace_back(routeInfo);
         }
     }
     return true;
@@ -231,9 +240,9 @@ bool SetUpContext::ParseChoiceableParams(napi_value config)
     if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISBLOCKING)) {
         vpnConfig_->isBlocking_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISBLOCKING);
     }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ALLOWEDAPPLICATIONS)) {
+    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_TRUSTEDAPPLICATIONS)) {
         vpnConfig_->acceptedApplications_ =
-            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_ALLOWEDAPPLICATIONS));
+            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_TRUSTEDAPPLICATIONS));
     }
     if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_BLOCKEDAPPLICATIONS)) {
         vpnConfig_->refusedApplications_ =
