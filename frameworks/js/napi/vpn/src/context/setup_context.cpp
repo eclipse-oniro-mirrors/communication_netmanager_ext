@@ -22,7 +22,7 @@
 #include "inet_addr.h"
 #include "napi_utils.h"
 #include "net_manager_constants.h"
-#include "netmanager_ext_log.h"
+#include "netmgr_ext_log_wrapper.h"
 #include "route.h"
 
 namespace OHOS {
@@ -63,6 +63,53 @@ bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
             return false;
     }
 }
+
+bool GetStringFromJsMandatoryItem(napi_env env, napi_value object, const std::string &key, std::string &value)
+{
+    if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) != napi_string) {
+        NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
+        return false;
+    }
+    value = NapiUtils::GetStringPropertyUtf8(env, object, key);
+    NETMGR_EXT_LOG_I("%{public}s: %{public}s", key.c_str(), value.c_str());
+    return (value.empty()) ? false : true;
+}
+
+void GetStringFromJsOptionItem(napi_env env, napi_value object, const std::string &key, std::string &value)
+{
+    if (NapiUtils::HasNamedProperty(env, object, key)) {
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) == napi_string) {
+            value = NapiUtils::GetStringPropertyUtf8(env, object, key);
+            NETMGR_EXT_LOG_I("%{public}s: %{public}s", key.c_str(), value.c_str());
+        } else {
+            NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
+        }
+    }
+}
+
+void GetUint8FromJsOptionItem(napi_env env, napi_value object, const std::string &key, uint8_t &value)
+{
+    if (NapiUtils::HasNamedProperty(env, object, key)) {
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) == napi_number) {
+            value = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, object, key));
+            NETMGR_EXT_LOG_I("%{public}s: %{public}d", key.c_str(), value);
+        } else {
+            NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
+        }
+    }
+}
+
+void GetBoolFromJsOptionItem(napi_env env, napi_value object, const std::string &key, bool &value)
+{
+    if (NapiUtils::HasNamedProperty(env, object, key)) {
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) == napi_boolean) {
+            value = NapiUtils::GetBooleanProperty(env, object, key);
+            NETMGR_EXT_LOG_I("%{public}s: %{public}d", key.c_str(), value);
+        } else {
+            NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
+        }
+    }
+}
 } // namespace
 
 SetUpContext::SetUpContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
@@ -70,13 +117,13 @@ SetUpContext::SetUpContext(napi_env env, EventManager *manager) : BaseContext(en
 void SetUpContext::ParseParams(napi_value *params, size_t paramsCount)
 {
     if (!CheckParamsType(GetEnv(), params, paramsCount)) {
-        NETMANAGER_EXT_LOGE("params type failed");
+        NETMGR_EXT_LOG_E("params type is mismatch");
         SetNeedThrowException(true);
         SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
         return;
     }
     if (!ParseVpnConfig(params)) {
-        NETMANAGER_EXT_LOGE("params failed");
+        NETMGR_EXT_LOG_E("parse vpn config from js failed");
         SetNeedThrowException(true);
         SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
         return;
@@ -92,7 +139,7 @@ bool SetUpContext::ParseVpnConfig(napi_value *params)
 {
     vpnConfig_ = new (std::nothrow) VpnConfig();
     if (vpnConfig_ == nullptr) {
-        NETMANAGER_EXT_LOGE("vpnConfig is nullptr");
+        NETMGR_EXT_LOG_E("vpnConfig is nullptr");
         return false;
     }
     if (!ParseAddrRouteParams(params[0]) || !ParseChoiceableParams(params[0])) {
@@ -101,82 +148,105 @@ bool SetUpContext::ParseVpnConfig(napi_value *params)
     return true;
 }
 
-static struct INetAddr ParseAddress(napi_env env, napi_value address)
+static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
 {
-    struct INetAddr iNetAddr;
     napi_value netAddress = NapiUtils::GetNamedProperty(env, address, NET_ADDRESS);
-    iNetAddr.address_ = NapiUtils::GetStringPropertyUtf8(env, netAddress, NET_ADDRESS);
-    if (NapiUtils::HasNamedProperty(env, netAddress, NET_FAMILY)) {
-        iNetAddr.family_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, netAddress, NET_FAMILY));
+    if (NapiUtils::GetValueType(env, netAddress) != napi_object) {
+        NETMGR_EXT_LOG_E("param address type is mismatch");
+        return false;
     }
-    if (NapiUtils::HasNamedProperty(env, netAddress, NET_PORT)) {
-        iNetAddr.port_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, netAddress, NET_PORT));
+
+    if (!GetStringFromJsMandatoryItem(env, netAddress, NET_ADDRESS, iNetAddr.address_)) {
+        NETMGR_EXT_LOG_E("get address-address failed");
+        return false;
     }
-    return iNetAddr;
+    GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
+    GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
+
+    if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, address, NET_PREFIXLENGTH)) != napi_number) {
+        NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", NET_PREFIXLENGTH);
+        return false;
+    }
+    iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, address, NET_PREFIXLENGTH));
+    NETMGR_EXT_LOG_I("%{public}s: %{public}d", NET_PREFIXLENGTH, iNetAddr.prefixlen_);
+    return true;
 }
 
-static struct INetAddr ParseDestination(napi_env env, napi_value destination)
+static bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &iNetAddr)
 {
-    struct INetAddr iNetAddr;
+    napi_value destination = NapiUtils::GetNamedProperty(env, jsRoute, NET_DESTINATION);
+    if (NapiUtils::GetValueType(env, destination) != napi_object) {
+        NETMGR_EXT_LOG_E("param destination type is mismatch");
+        return false;
+    }
+
     napi_value netAddress = NapiUtils::GetNamedProperty(env, destination, NET_ADDRESS);
-    iNetAddr.address_ = NapiUtils::GetStringPropertyUtf8(env, netAddress, NET_ADDRESS);
-    if (NapiUtils::HasNamedProperty(env, netAddress, NET_FAMILY)) {
-        iNetAddr.family_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, netAddress, NET_FAMILY));
+    if (NapiUtils::GetValueType(env, netAddress) != napi_object) {
+        NETMGR_EXT_LOG_E("param address type is mismatch");
+        return false;
     }
-    if (NapiUtils::HasNamedProperty(env, netAddress, NET_PORT)) {
-        iNetAddr.port_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, netAddress, NET_PORT));
+
+    if (!GetStringFromJsMandatoryItem(env, netAddress, NET_ADDRESS, iNetAddr.address_)) {
+        NETMGR_EXT_LOG_E("get destination-address failed");
+        return false;
     }
-    iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, destination, NET_PREFIXLENGTH));
-    return iNetAddr;
+    GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
+    GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
+    GetUint8FromJsOptionItem(env, destination, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
+    return true;
 }
 
-static struct INetAddr ParseGateway(napi_env env, napi_value gateway)
+static bool ParseGateway(napi_env env, napi_value jsRoute, struct INetAddr &iNetAddr)
 {
-    struct INetAddr iNetAddr;
-    iNetAddr.address_ = NapiUtils::GetStringPropertyUtf8(env, gateway, NET_ADDRESS);
-    if (NapiUtils::HasNamedProperty(env, gateway, NET_FAMILY)) {
-        iNetAddr.family_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, gateway, NET_FAMILY));
+    napi_value gateway = NapiUtils::GetNamedProperty(env, jsRoute, NET_GATEWAY);
+    if (NapiUtils::GetValueType(env, gateway) != napi_object) {
+        NETMGR_EXT_LOG_E("param gateway type is mismatch");
+        return false;
     }
-    if (NapiUtils::HasNamedProperty(env, gateway, NET_PORT)) {
-        iNetAddr.port_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, gateway, NET_PORT));
+
+    if (!GetStringFromJsMandatoryItem(env, gateway, NET_ADDRESS, iNetAddr.address_)) {
+        NETMGR_EXT_LOG_E("get gateway-address failed");
+        return false;
     }
-    return iNetAddr;
+    GetUint8FromJsOptionItem(env, gateway, NET_FAMILY, iNetAddr.family_);
+    GetUint8FromJsOptionItem(env, gateway, NET_PORT, iNetAddr.port_);
+    return true;
 }
 
-static struct Route ParseRoute(napi_env env, napi_value jsRoute)
+static bool ParseRoute(napi_env env, napi_value jsRoute, Route &route)
 {
-    struct Route route;
-    if (NapiUtils::HasNamedProperty(env, jsRoute, NET_INTERFACE)) {
-        route.iface_ = NapiUtils::GetStringPropertyUtf8(env, jsRoute, NET_INTERFACE);
+    GetStringFromJsOptionItem(env, jsRoute, NET_INTERFACE, route.iface_);
+
+    if (!ParseDestination(env, jsRoute, route.destination_)) {
+        NETMGR_EXT_LOG_E("ParseDestination failed");
+        return false;
+    }
+    if (!ParseGateway(env, jsRoute, route.gateway_)) {
+        NETMGR_EXT_LOG_E("ParseGateway failed");
+        return false;
     }
 
-    route.destination_ = ParseDestination(env, NapiUtils::GetNamedProperty(env, jsRoute, NET_DESTINATION));
-    route.gateway_ = ParseGateway(env, NapiUtils::GetNamedProperty(env, jsRoute, NET_GATEWAY));
-
-    if (NapiUtils::HasNamedProperty(env, jsRoute, NET_HAS_GATEWAY)) {
-        route.hasGateway_ = NapiUtils::GetBooleanProperty(env, jsRoute, NET_HAS_GATEWAY);
-    }
-    if (NapiUtils::HasNamedProperty(env, jsRoute, NET_ISDEFAULTROUTE)) {
-        route.isDefaultRoute_ = NapiUtils::GetBooleanProperty(env, jsRoute, NET_ISDEFAULTROUTE);
-    }
-    return route;
+    GetBoolFromJsOptionItem(env, jsRoute, NET_HAS_GATEWAY, route.hasGateway_);
+    GetBoolFromJsOptionItem(env, jsRoute, NET_ISDEFAULTROUTE, route.isDefaultRoute_);
+    return true;
 }
 
 bool SetUpContext::ParseAddrRouteParams(napi_value config)
 {
     // parse addresses.
     if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ADDRESSES)) {
-        napi_value addresses = NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_ADDRESSES);
-        if (!NapiUtils::IsArray(GetEnv(), addresses)) {
-            NETMANAGER_EXT_LOGE("addresses is not array");
+        napi_value addrArray = NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_ADDRESSES);
+        if (!NapiUtils::IsArray(GetEnv(), addrArray)) {
+            NETMGR_EXT_LOG_E("addresses is not array");
             return false;
         }
-        uint32_t addressesLength = NapiUtils::GetArrayLength(GetEnv(), addresses);
-        for (uint32_t i = 0; i < addressesLength; ++i) { // set length limit.
-            napi_value address = NapiUtils::GetArrayElement(GetEnv(), addresses, i);
-            INetAddr iNetAddr = ParseAddress(GetEnv(), address);
-            iNetAddr.prefixlen_ =
-                static_cast<uint8_t>(NapiUtils::GetUint32Property(GetEnv(), address, NET_PREFIXLENGTH));
+        uint32_t addrLength = NapiUtils::GetArrayLength(GetEnv(), addrArray);
+        for (uint32_t i = 0; i < addrLength; ++i) { // set length limit.
+            INetAddr iNetAddr;
+            if (!ParseAddress(GetEnv(), NapiUtils::GetArrayElement(GetEnv(), addrArray, i), iNetAddr)) {
+                NETMGR_EXT_LOG_E("ParseAddress failed");
+                return false;
+            }
             vpnConfig_->addresses_.emplace_back(iNetAddr);
         }
     }
@@ -185,69 +255,64 @@ bool SetUpContext::ParseAddrRouteParams(napi_value config)
     if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ROUTES)) {
         napi_value routes = NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_ROUTES);
         if (!NapiUtils::IsArray(GetEnv(), routes)) {
-            NETMANAGER_EXT_LOGE("routes is not array");
+            NETMGR_EXT_LOG_E("routes is not array");
             return false;
         }
         uint32_t routesLength = NapiUtils::GetArrayLength(GetEnv(), routes);
         for (uint32_t idx = 0; idx < routesLength; ++idx) { // set length limit.
-            napi_value route = NapiUtils::GetArrayElement(GetEnv(), routes, idx);
-            Route routeInfo = ParseRoute(GetEnv(), route);
+            struct Route routeInfo;
+            if (!ParseRoute(GetEnv(), NapiUtils::GetArrayElement(GetEnv(), routes, idx), routeInfo)) {
+                NETMGR_EXT_LOG_E("ParseRoute failed");
+                return false;
+            }
             vpnConfig_->routes_.emplace_back(routeInfo);
         }
     }
     return true;
 }
 
-static std::vector<std::string> ParseArrayString(napi_env env, napi_value array)
+static bool ParseOptionArrayString(napi_env env, napi_value config, const std::string &key,
+                                   std::vector<std::string> &vector)
 {
-    if (!NapiUtils::IsArray(env, array)) {
-        return {};
+    if (NapiUtils::HasNamedProperty(env, config, key)) {
+        napi_value array = NapiUtils::GetNamedProperty(env, config, key);
+        if (!NapiUtils::IsArray(env, array)) {
+            NETMGR_EXT_LOG_E("param [%{public}s] is not array", key.c_str());
+            return false;
+        }
+        uint32_t arrayLength = NapiUtils::GetArrayLength(env, array);
+        for (uint32_t i = 0; i < arrayLength; ++i) {
+            std::string item = NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetArrayElement(env, array, i));
+            NETMGR_EXT_LOG_D("%{public}s: %{public}s", key.c_str(), item.c_str());
+            vector.push_back(item);
+        }
     }
-    std::vector<std::string> arrayString;
-    uint32_t arrayLength = NapiUtils::GetArrayLength(env, array);
-    for (uint32_t i = 0; i < arrayLength; ++i) {
-        arrayString.push_back(NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetArrayElement(env, array, i)));
-    }
-    return arrayString;
+    return true;
 }
 
 bool SetUpContext::ParseChoiceableParams(napi_value config)
 {
-    NETMANAGER_EXT_LOGI("choiceable");
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_DNSADDRESSES)) {
-        vpnConfig_->dnsAddresses_ =
-            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_DNSADDRESSES));
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_SEARCHDOMAINS)) {
-        vpnConfig_->searchDomains_ =
-            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_SEARCHDOMAINS));
-    }
+    ParseOptionArrayString(GetEnv(), config, CONFIG_DNSADDRESSES, vpnConfig_->dnsAddresses_);
+    ParseOptionArrayString(GetEnv(), config, CONFIG_SEARCHDOMAINS, vpnConfig_->searchDomains_);
+
     if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_MTU)) {
-        vpnConfig_->mtu_ = NapiUtils::GetInt32Property(GetEnv(), config, CONFIG_MTU);
+        if (NapiUtils::GetValueType(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_MTU)) ==
+            napi_number) {
+            vpnConfig_->mtu_ = NapiUtils::GetInt32Property(GetEnv(), config, CONFIG_MTU);
+            NETMGR_EXT_LOG_I("%{public}s: %{public}d", CONFIG_MTU, vpnConfig_->mtu_);
+        } else {
+            NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", CONFIG_MTU);
+        }
     }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISIPV4ACCEPTED)) {
-        vpnConfig_->isAcceptIPv4_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISIPV4ACCEPTED);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISIPV4ACCEPTED)) {
-        vpnConfig_->isAcceptIPv6_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISIPV6ACCEPTED);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISLEGACY)) {
-        vpnConfig_->isLegacy_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISLEGACY);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISMETERED)) {
-        vpnConfig_->isMetered_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISMETERED);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_ISBLOCKING)) {
-        vpnConfig_->isBlocking_ = NapiUtils::GetBooleanProperty(GetEnv(), config, CONFIG_ISBLOCKING);
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_TRUSTEDAPPLICATIONS)) {
-        vpnConfig_->acceptedApplications_ =
-            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_TRUSTEDAPPLICATIONS));
-    }
-    if (NapiUtils::HasNamedProperty(GetEnv(), config, CONFIG_BLOCKEDAPPLICATIONS)) {
-        vpnConfig_->refusedApplications_ =
-            ParseArrayString(GetEnv(), NapiUtils::GetNamedProperty(GetEnv(), config, CONFIG_BLOCKEDAPPLICATIONS));
-    }
+
+    GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISIPV4ACCEPTED, vpnConfig_->isAcceptIPv4_);
+    GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISIPV6ACCEPTED, vpnConfig_->isAcceptIPv6_);
+    GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISLEGACY, vpnConfig_->isLegacy_);
+    GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISMETERED, vpnConfig_->isMetered_);
+    GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISBLOCKING, vpnConfig_->isBlocking_);
+
+    ParseOptionArrayString(GetEnv(), config, CONFIG_TRUSTEDAPPLICATIONS, vpnConfig_->acceptedApplications_);
+    ParseOptionArrayString(GetEnv(), config, CONFIG_BLOCKEDAPPLICATIONS, vpnConfig_->refusedApplications_);
     return true;
 }
 } // namespace NetManagerStandard
