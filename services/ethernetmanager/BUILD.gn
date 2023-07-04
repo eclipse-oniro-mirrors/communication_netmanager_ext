@@ -15,6 +15,15 @@ import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 ohos_shared_library("ethernet_manager") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    integer_overflow = true
+    boundary_sanitize = true
+    all_ubsan = true
+    blocklist = "./ethernet_blocklist.txt"
+  }
+
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_proxy.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_stub.cpp",

@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct StaticConfiguration : public Parcelable {
+struct StaticConfiguration final: public Parcelable {
     INetAddr ipAddr_;
     INetAddr route_;
     INetAddr gateway_;
@@ -32,7 +32,7 @@ struct StaticConfiguration : public Parcelable {
     std::vector<INetAddr> dnsServers_;
     std::string domain_;
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static sptr<StaticConfiguration> Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard

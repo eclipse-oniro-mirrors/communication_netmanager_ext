@@ -15,6 +15,15 @@ import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 ohos_shared_library("ethernet") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    integer_overflow = true
+    boundary_sanitize = true
+    all_ubsan = true
+    blocklist = "./ethernet_blocklist.txt"
+  }
+
   include_dirs = [
     "context",
     "$BASE_INNERKITS_ROOT/netconnclient/include",

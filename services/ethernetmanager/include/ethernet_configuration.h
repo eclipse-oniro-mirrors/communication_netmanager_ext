@@ -46,6 +46,10 @@ public:
                                                             const sptr<NetLinkInfo> &devLinkInfo);
 
 private:
+    void ParseDevice(const std::string &fileContent, std::string &iface);
+    void ParseBootProto(const std::string &fileContent, sptr<InterfaceConfiguration> cfg);
+    void ParseStaticConfig(const std::string &fileContent, sptr<InterfaceConfiguration> cfg);
+
     std::string ReadJsonFile(const std::string &filePath);
     sptr<InterfaceConfiguration> ConvertJsonToConfiguration(const nlohmann::json &jsonData);
     bool IsDirExist(const std::string &dirPath);

@@ -62,6 +62,14 @@ ohos_source_set("networkshare_parcel") {
 }
 
 ohos_shared_library("net_tether_manager_if") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    integer_overflow = true
+    boundary_sanitize = true
+    all_ubsan = true
+  }
+
   include_dirs = [ "$NETMANAGER_EXT_ROOT/utils/log/include" ]
 
   sources = [

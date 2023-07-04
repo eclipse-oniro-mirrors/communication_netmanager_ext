@@ -39,7 +39,7 @@ struct VpnConfig : public Parcelable {
     std::vector<std::string> acceptedApplications_;
     std::vector<std::string> refusedApplications_;
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     bool MarshallingAddrRoute(Parcel &parcel) const;
     bool MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec) const;
 

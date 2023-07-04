@@ -23,6 +23,14 @@ config("sharing_config") {
 }
 
 ohos_shared_library("sharing") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    integer_overflow = true
+    boundary_sanitize = true
+    all_ubsan = true
+  }
+
   sources = [
     "src/netshare_async_work.cpp",
     "src/netshare_callback_observer.cpp",
