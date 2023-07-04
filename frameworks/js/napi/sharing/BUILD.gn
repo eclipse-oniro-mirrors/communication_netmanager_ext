@@ -48,7 +48,7 @@ ohos_shared_library("sharing") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",

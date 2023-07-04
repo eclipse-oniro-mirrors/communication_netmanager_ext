@@ -52,11 +52,7 @@ ohos_source_set("mdns_parcel") {
     "netmanager_base:net_manager_common",
   ]
 
-  if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
-  } else {
-    external_deps += [ "hilog:libhilog" ]
-  }
+  external_deps += [ "hilog:libhilog" ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
@@ -92,11 +88,7 @@ ohos_shared_library("mdns_manager_if") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
-  if (is_standard_system) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
-  } else {
-    external_deps += [ "hilog:libhilog" ]
-  }
+  external_deps += [ "hilog:libhilog" ]
 
   innerapi_tags = [ "platformsdk" ]
   part_name = "netmanager_ext"
