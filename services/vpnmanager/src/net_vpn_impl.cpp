@@ -279,7 +279,7 @@ void NetVpnImpl::GenerateUidRangesByRefusedApps(const std::set<int32_t> &uids, s
 
 std::set<int32_t> NetVpnImpl::GetAppsUids(const std::vector<std::string> &applications)
 {
-    std::set<int32_t> uids{0};
+    std::set<int32_t> uids;
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
         NETMGR_EXT_LOG_E("systemAbilityManager is null.");
