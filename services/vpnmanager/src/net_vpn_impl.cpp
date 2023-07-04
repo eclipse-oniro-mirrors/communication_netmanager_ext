@@ -75,7 +75,7 @@ int32_t NetVpnImpl::SetUp()
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
 
     auto netConnClientIns = DelayedSingleton<NetConnClient>::GetInstance();
-    if (nullptr == netConnClientIns) {
+    if (netConnClientIns == nullptr) {
         NETMGR_EXT_LOG_E("vpn RegisterNetSupplier netConnClientIns is nullptr");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR,
                                                  "get NetConnClient failed");
@@ -102,7 +102,7 @@ int32_t NetVpnImpl::SetUp()
 
     std::list<int32_t> netIdList;
     netConnClientIns->GetNetIdByIdentifier(TUN_CARD_NAME, netIdList);
-    if (netIdList.size() <= 0) {
+    if (netIdList.size() == 0) {
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR, "get Net id failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
@@ -296,18 +296,18 @@ std::set<int32_t> NetVpnImpl::GetAppsUids(const std::vector<std::string> &applic
         return uids;
     }
 
-    NETMGR_EXT_LOG_I("GetAppsUids userId:%{public}d.", userId_);
+    NETMGR_EXT_LOG_I("userId: %{public}d.", userId_);
     AppExecFwk::ApplicationFlag flags = AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO;
     for (auto app : applications) {
         AppExecFwk::ApplicationInfo appInfo;
         if (bundleMgr->GetApplicationInfo(app, flags, userId_, appInfo)) {
-            NETMGR_EXT_LOG_I("GetAppsUids app:%{public}s success, uid=%{public}d.", app.c_str(), appInfo.uid);
+            NETMGR_EXT_LOG_I("app: %{public}s success, uid=%{public}d.", app.c_str(), appInfo.uid);
             uids.insert(appInfo.uid);
         } else {
-            NETMGR_EXT_LOG_E("GetAppsUids app:%{public}s error.", app.c_str());
+            NETMGR_EXT_LOG_E("app: %{public}s error.", app.c_str());
         }
     }
-    NETMGR_EXT_LOG_I("GetAppsUids uids.size:%{public}zd.", uids.size());
+    NETMGR_EXT_LOG_I("uids.size: %{public}zd.", uids.size());
     return uids;
 }
 
