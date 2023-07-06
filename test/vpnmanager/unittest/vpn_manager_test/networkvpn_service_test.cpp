@@ -20,7 +20,9 @@
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 
+#ifdef GTEST_API_
 #define private public
+#endif
 #include "net_manager_constants.h"
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
