@@ -33,7 +33,9 @@
 #include "iservice_registry.h"
 #include "netmgr_ext_log_wrapper.h"
 
+#ifdef GTEST_API_
 #define private public
+#endif
 #include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
 #include "networkvpn_client.h"
