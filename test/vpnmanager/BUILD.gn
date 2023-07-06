@@ -17,4 +17,3 @@ group("unittest") {
   testonly = true
   deps = [ "unittest/vpn_manager_test:unittest" ]
 }
-
