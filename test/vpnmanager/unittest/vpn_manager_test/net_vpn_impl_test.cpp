@@ -17,8 +17,11 @@
 
 #include "route.h"
 #include <gtest/gtest.h>
+
+#ifdef GTEST_API_
 #define private public
 #define protected public
+#endif
 
 #include "net_manager_constants.h"
 #include "net_vpn_impl.h"
