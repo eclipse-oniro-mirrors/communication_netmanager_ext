@@ -10,15 +10,4 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import("//build/test.gni")
-
-group("unittest") {
-  testonly = true
-  deps = [ "unittest/vpn_manager_test:unittest" ]
-}
-
-group("fuzztest") {
-  testonly = true
-  deps = [ "fuzztest/vpn_client_fuzzer:fuzztest" ]
-}
+FUZZ
