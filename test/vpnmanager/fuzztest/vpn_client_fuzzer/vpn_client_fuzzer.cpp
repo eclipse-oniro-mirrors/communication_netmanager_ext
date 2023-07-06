@@ -242,6 +242,111 @@ void PrepareFuzzTest(const uint8_t *data, size_t size)
 
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PREPARE, dataParcel);
 }
+
+void ProtectFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("ProtectFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+
+    MessageParcel dataParcel;
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
+
+    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PROTECT, dataParcel);
+}
+
+void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("SetUpVpnFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+
+    MessageParcel dataParcel;
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
+
+    if (!config->Marshalling(dataParcel)) {
+        return;
+    }
+
+    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_START_VPN, dataParcel);
+}
+
+void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("DestroyVpnFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+
+    MessageParcel dataParcel;
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
+    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_STOP_VPN, dataParcel);
+}
+
+void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("RegisterVpnEventFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+
+    MessageParcel dataParcel;
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
+
+    if (!dataParcel.WriteRemoteObject(callback->AsObject())) {
+        return;
+    }
+    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK, dataParcel);
+}
+
+void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("UnregisterVpnEventFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+
+    MessageParcel dataParcel;
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
+
+    if (!dataParcel.WriteRemoteObject(callback->AsObject())) {
+        return;
+    }
+    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK, dataParcel);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -250,5 +355,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::NetManagerStandard::PrepareFuzzTest(data, size);
+    OHOS::NetManagerStandard::ProtectFuzzTest(data, size);
+    OHOS::NetManagerStandard::SetUpVpnFuzzTest(data, size);
+    OHOS::NetManagerStandard::DestroyVpnFuzzTest(data, size);
+    OHOS::NetManagerStandard::RegisterVpnEventFuzzTest(data, size);
+    OHOS::NetManagerStandard::UnregisterVpnEventFuzzTest(data, size);
     return 0;
 }
