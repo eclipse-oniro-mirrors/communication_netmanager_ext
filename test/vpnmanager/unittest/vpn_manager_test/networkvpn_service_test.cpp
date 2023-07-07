@@ -137,12 +137,16 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, RegisterSharingEventTest001, TestSize.Level1)
 {
-    EXPECT_EQ(instance_->RegisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    instance_->policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
+    instance_->policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(instance_->policyCallRunner_);
+    EXPECT_EQ(instance_->RegisterVpnEvent(eventCallback_), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, UnregisterSharingEventTest001, TestSize.Level1)
 {
-    EXPECT_EQ(instance_->UnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    instance_->policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
+    instance_->policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(instance_->policyCallRunner_);
+    EXPECT_EQ(instance_->UnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, CheckCurrentUser, TestSize.Level1)
