@@ -75,12 +75,6 @@ PermissionStateFull testState = {.permissionName = "ohos.permission.CONNECTIVITY
                                  .grantStatus = {PermissionState::PERMISSION_GRANTED},
                                  .grantFlags = {2}};
 
-PermissionStateFull testInternetState = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                         .isGeneral = true,
-                                         .resDeviceID = {"local"},
-                                         .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                         .grantFlags = {2}};
-
 HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
                                    .domain = "test.domain",
                                    .permList = {testPermDef},
@@ -89,7 +83,7 @@ HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
 HapPolicyParams testInternetPolicyPrams = {.apl = APL_SYSTEM_BASIC,
                                            .domain = "test.domain",
                                            .permList = {testPermDef, testInternetPermDef},
-                                           .permStateList = {testState, testInternetState}};
+                                           .permStateList = {testState}};
 } // namespace
 
 template <class T> T GetData()
