@@ -159,8 +159,8 @@ HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo, TestSize.Level1)
     std::string dnsServer2 = "192.168.2.0";
     netVpnImpl_->vpnConfig_->dnsAddresses_.push_back(dnsServer1);
     netVpnImpl_->vpnConfig_->dnsAddresses_.push_back(dnsServer2);
-    std::string domain1 = "baidu";
-    std::string domain2 = "ditu";
+    std::string domain1 = "baidu.com";
+    std::string domain2 = "changhong.com";
     netVpnImpl_->vpnConfig_->searchDomains_.push_back(domain1);
     netVpnImpl_->vpnConfig_->searchDomains_.push_back(domain2);
     EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
@@ -186,7 +186,7 @@ HWTEST_F(NetVpnImplTest, GenerateUidRangesByRefusedApps, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, GetAppsUids, TestSize.Level1)
 {
-    std::vector<std::string> applications = {"baidu", "gaode", "weixin"};
+    std::vector<std::string> applications = {"com.baidu.searchbox", "com.quark.browser", "com.tencent.mm"};
     std::set<int32_t> uids = netVpnImpl_->GetAppsUids(applications);
     EXPECT_EQ(uids.empty(), true);
 }
@@ -196,8 +196,8 @@ HWTEST_F(NetVpnImplTest, GenerateUidRanges, TestSize.Level1)
     std::vector<int32_t> beginUids;
     std::vector<int32_t> endUids;
     netVpnImpl_->userId_ = AppExecFwk::Constants::INVALID_USERID;
-    netVpnImpl_->vpnConfig_->acceptedApplications_ = {"baidu", "gaodeditu"};
-    netVpnImpl_->vpnConfig_->refusedApplications_ = {"qq", "weixin"};
+    netVpnImpl_->vpnConfig_->acceptedApplications_ = {"com.baidu.searchbox", "com.quark.browser"};
+    netVpnImpl_->vpnConfig_->refusedApplications_ = {"com.qq.reader", "com.tencent.mm"};
     int32_t result = netVpnImpl_->GenerateUidRanges(beginUids, endUids);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
