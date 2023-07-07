@@ -139,7 +139,6 @@ HWTEST_F(NetworkVpnClientTest, GetProxy, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, OnRemoteDied, TestSize.Level1)
 {
-    NETMGR_EXT_LOG_E("dmdebug OnRemoteDied ");
     sptr<IRemoteObject> remote = nullptr;
     networkVpnClient_.OnRemoteDied(remote);
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
