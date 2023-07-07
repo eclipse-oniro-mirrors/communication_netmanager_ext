@@ -18,8 +18,6 @@ ohos_unittest("vpn_manager_test") {
   sources = [
     "extended_vpn_ctl_test.cpp",
     "net_vpn_impl_test.cpp",
-    "networkvpn_client_test.cpp",
-    "networkvpn_service_test.cpp",
   ]
 
   include_dirs = [

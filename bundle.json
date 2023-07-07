@@ -103,7 +103,8 @@
                 "//foundation/communication/netmanager_ext/test/networksharemanager:unittest",
                 "//foundation/communication/netmanager_ext/test/mdnsmanager:fuzztest",
                 "//foundation/communication/netmanager_ext/test/mdnsmanager:unittest",
-                "//foundation/communication/netmanager_ext/test/vpnmanager:unittest"
+                "//foundation/communication/netmanager_ext/test/vpnmanager:unittest",
+                "//foundation/communication/netmanager_ext/test/vpnmanager:fuzztest"
             ]
         }
     }
