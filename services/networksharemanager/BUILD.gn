@@ -55,14 +55,6 @@ config("net_tether_manager_config") {
 }
 
 ohos_shared_library("net_tether_manager") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    integer_overflow = true
-    boundary_sanitize = true
-    all_ubsan = true
-  }
-
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
