@@ -463,7 +463,12 @@ void EthernetConfiguration::ParseStaticConfig(const std::string &fileContent, sp
     if (cfg->mode_ != STATIC) {
         return;
     }
-    std::string::size_type pos = fileContent.find(KEY_IPADDR) + strlen(KEY_IPADDR);
+    std::string::size_type pos = fileContent.find(KEY_IPADDR);
+    if (pos == std::string::npos) {
+        return;
+    } else {
+        pos += strlen(KEY_IPADDR);
+    }
     const auto &ipAddr = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     pos = fileContent.find(KEY_NETMASK) + strlen(KEY_NETMASK);
     const auto &netMask = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
