@@ -1033,11 +1033,11 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
     }
     NETMGR_EXT_LOG_I("interface[%{public}s] for [%{public}s]", iface.c_str(), up ? "up" : "down");
     if (up) {
-        std::string taskName = "InterfaceAdded_task";
         if (configuration_ == nullptr) {
             NETMGR_EXT_LOG_E("configuration_ is null");
             return;
         }
+        std::string taskName = "InterfaceAdded_task";
         if (iface == configuration_->GetUsbRndisIfaceName()) {
             std::function<void()> sharingUsbFunc =
                 std::bind(&NetworkShareTracker::Sharing, this, iface, SUB_SM_STATE_SHARED);
