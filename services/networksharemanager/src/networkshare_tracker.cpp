@@ -1033,6 +1033,10 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
     }
     NETMGR_EXT_LOG_I("interface[%{public}s] for [%{public}s]", iface.c_str(), up ? "up" : "down");
     if (up) {
+        if (configuration_ == nullptr) {
+            NETMGR_EXT_LOG_E("configuration_ is null");
+            return;
+        }
         std::string taskName = "InterfaceAdded_task";
         if (iface == configuration_->GetUsbRndisIfaceName()) {
             std::function<void()> sharingUsbFunc =
@@ -1053,6 +1057,10 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
 
 void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 {
+    if (configuration_ == nullptr) {
+        NETMGR_EXT_LOG_E("configuration_ is null");
+        return;
+    }
     if (NetsysController::GetInstance().InterfaceSetIpAddress(iface, configuration_->GetUsbRndisIpv4Addr()) != 0) {
         NETMGR_EXT_LOG_E("Failed setting usb ip address");
         return;
