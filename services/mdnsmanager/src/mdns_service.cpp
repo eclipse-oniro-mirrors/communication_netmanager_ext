@@ -106,7 +106,7 @@ bool MDnsService::Init()
         isRegistered_ = true;
     }
     netStateCallback_ = new (std::nothrow) NetInterfaceStateCallback();
-    int32_t err = DelayedSingleton<NetConnClient>::GetInstance()->RegisterNetInterfaceCallback(netStateCallback_);
+    int32_t err = NetConnClient::GetInstance().RegisterNetInterfaceCallback(netStateCallback_);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("mdns_log Failed to register the NetInterfaceCallback, error code: [%{public}d]", err);
         return err;

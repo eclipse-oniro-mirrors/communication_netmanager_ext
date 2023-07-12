@@ -74,13 +74,7 @@ int32_t NetVpnImpl::SetUp()
     NETMGR_EXT_LOG_I("SetUp interface name:%{public}s", TUN_CARD_NAME);
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
 
-    auto netConnClientIns = DelayedSingleton<NetConnClient>::GetInstance();
-    if (netConnClientIns == nullptr) {
-        NETMGR_EXT_LOG_E("vpn RegisterNetSupplier netConnClientIns is nullptr");
-        VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR,
-                                                 "get NetConnClient failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
+    auto& netConnClientIns = NetConnClient::GetInstance();
 
     if (!RegisterNetSupplier(netConnClientIns)) {
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_REG_NET_SUPPLIER_ERROR,
@@ -101,7 +95,7 @@ int32_t NetVpnImpl::SetUp()
     }
 
     std::list<int32_t> netIdList;
-    netConnClientIns->GetNetIdByIdentifier(TUN_CARD_NAME, netIdList);
+    netConnClientIns.GetNetIdByIdentifier(TUN_CARD_NAME, netIdList);
     if (netIdList.size() == 0) {
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR, "get Net id failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -131,13 +125,7 @@ int32_t NetVpnImpl::Destroy()
                                                  "remove app uid rule failed");
     }
 
-    auto netConnClientIns = DelayedSingleton<NetConnClient>::GetInstance();
-    if (netConnClientIns == nullptr) {
-        NETMGR_EXT_LOG_E("vpn RegisterNetSupplier netConnClientIns is nullptr");
-        VpnHisysEvent::SendFaultEventConnDestroy(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR,
-                                                 "get NetConnClient failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
+    auto& netConnClientIns = NetConnClient::GetInstance();
 
     UpdateNetSupplierInfo(netConnClientIns, false);
     UnregisterNetSupplier(netConnClientIns);
@@ -147,7 +135,7 @@ int32_t NetVpnImpl::Destroy()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-bool NetVpnImpl::RegisterNetSupplier(std::shared_ptr<NetConnClient> &netConnClientIns)
+bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns)
 {
     if (netSupplierId_) {
         NETMGR_EXT_LOG_E("NetSupplier [%{public}d] has been registered ", netSupplierId_);
@@ -158,7 +146,7 @@ bool NetVpnImpl::RegisterNetSupplier(std::shared_ptr<NetConnClient> &netConnClie
     if (vpnConfig_->isMetered_ == false) {
         netCap.insert(NET_CAPABILITY_NOT_METERED);
     }
-    if (netConnClientIns->RegisterNetSupplier(BEARER_VPN, TUN_CARD_NAME, netCap, netSupplierId_) !=
+    if (netConnClientIns.RegisterNetSupplier(BEARER_VPN, TUN_CARD_NAME, netCap, netSupplierId_) !=
         NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("vpn netManager RegisterNetSupplier error.");
         return false;
@@ -167,18 +155,18 @@ bool NetVpnImpl::RegisterNetSupplier(std::shared_ptr<NetConnClient> &netConnClie
     return true;
 }
 
-void NetVpnImpl::UnregisterNetSupplier(std::shared_ptr<NetConnClient> &netConnClientIns)
+void NetVpnImpl::UnregisterNetSupplier(NetConnClient &netConnClientIns)
 {
     if (!netSupplierId_) {
         NETMGR_EXT_LOG_E("NetSupplier [%{public}d] has been unregistered ", netSupplierId_);
         return;
     }
-    if (!netConnClientIns->UnregisterNetSupplier(netSupplierId_)) {
+    if (!netConnClientIns.UnregisterNetSupplier(netSupplierId_)) {
         netSupplierId_ = 0;
     }
 }
 
-bool NetVpnImpl::UpdateNetSupplierInfo(std::shared_ptr<NetConnClient> &netConnClientIns, bool isAvailable)
+bool NetVpnImpl::UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable)
 {
     if (!netSupplierId_) {
         NETMGR_EXT_LOG_E("vpn UpdateNetSupplierInfo error, netSupplierId is zero");
@@ -189,11 +177,11 @@ bool NetVpnImpl::UpdateNetSupplierInfo(std::shared_ptr<NetConnClient> &netConnCl
         return false;
     }
     netSupplierInfo_->isAvailable_ = isAvailable;
-    netConnClientIns->UpdateNetSupplierInfo(netSupplierId_, netSupplierInfo_);
+    netConnClientIns.UpdateNetSupplierInfo(netSupplierId_, netSupplierInfo_);
     return true;
 }
 
-bool NetVpnImpl::UpdateNetLinkInfo(std::shared_ptr<NetConnClient> &netConnClientIns)
+bool NetVpnImpl::UpdateNetLinkInfo(NetConnClient &netConnClientIns)
 {
     if (vpnConfig_ == nullptr) {
         NETMGR_EXT_LOG_E("vpnConfig_ is nullptr");
@@ -232,7 +220,7 @@ bool NetVpnImpl::UpdateNetLinkInfo(std::shared_ptr<NetConnClient> &netConnClient
         linkInfo->domain_.append(domain).append(" ");
     }
     linkInfo->mtu_ = vpnConfig_->mtu_;
-    netConnClientIns->UpdateNetLinkInfo(netSupplierId_, linkInfo);
+    netConnClientIns.UpdateNetLinkInfo(netSupplierId_, linkInfo);
     return true;
 }
 

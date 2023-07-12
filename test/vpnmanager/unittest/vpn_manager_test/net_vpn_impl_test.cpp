@@ -116,7 +116,7 @@ HWTEST_F(NetVpnImplTest, RegisterConnectStateChangedCb002, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, RegisterNetSupplier, TestSize.Level1)
 {
-    auto netConnClientIns = DelayedSingleton<NetConnClient>::GetInstance();
+    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->netSupplierId_ = 1;
     EXPECT_EQ(netVpnImpl_->RegisterNetSupplier(netConnClientIns), false);
     netVpnImpl_->netSupplierId_ = 0;
@@ -126,7 +126,7 @@ HWTEST_F(NetVpnImplTest, RegisterNetSupplier, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, UnregisterNetSupplier, TestSize.Level1)
 {
-    auto netConnClientIns = DelayedSingleton<NetConnClient>::GetInstance();
+    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->netSupplierId_ = 0;
     netVpnImpl_->UnregisterNetSupplier(netConnClientIns);
     netVpnImpl_->netSupplierId_ = 1;
@@ -136,7 +136,7 @@ HWTEST_F(NetVpnImplTest, UnregisterNetSupplier, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, UpdateNetSupplierInfo, TestSize.Level1)
 {
-    auto netConnClientIns = DelayedSingleton<NetConnClient>::GetInstance();
+    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->netSupplierInfo_ = nullptr;
     EXPECT_EQ(netVpnImpl_->UpdateNetSupplierInfo(netConnClientIns, true), false);
     netVpnImpl_->netSupplierId_ = 0;
@@ -148,7 +148,7 @@ HWTEST_F(NetVpnImplTest, UpdateNetSupplierInfo, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo, TestSize.Level1)
 {
-    auto netConnClientIns = DelayedSingleton<NetConnClient>::GetInstance();
+    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->vpnConfig_ = nullptr;
     EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), false);
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
