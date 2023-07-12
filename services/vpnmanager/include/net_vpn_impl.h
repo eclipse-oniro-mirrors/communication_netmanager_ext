@@ -66,10 +66,10 @@ public:
     }
 
 private:
-    bool RegisterNetSupplier(std::shared_ptr<NetConnClient> &netConnClientIns);
-    void UnregisterNetSupplier(std::shared_ptr<NetConnClient> &netConnClientIns);
-    bool UpdateNetSupplierInfo(std::shared_ptr<NetConnClient> &netConnClientIns, bool isAvailable);
-    bool UpdateNetLinkInfo(std::shared_ptr<NetConnClient> &netConnClientIns);
+    bool RegisterNetSupplier(NetConnClient &netConnClientIns);
+    void UnregisterNetSupplier(NetConnClient &netConnClientIns);
+    bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);
+    bool UpdateNetLinkInfo(NetConnClient &netConnClientIns);
 
     void GenerateUidRangesByAcceptedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
                                          std::vector<int32_t> &endUids);
