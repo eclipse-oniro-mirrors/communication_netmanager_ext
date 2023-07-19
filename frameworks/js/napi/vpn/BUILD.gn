@@ -32,6 +32,7 @@ ohos_shared_library("vpn") {
   include_dirs = [
     "$NETMANAGER_EXT_NAPI_ROOT/vpn/include",
     "$NETMANAGER_EXT_NAPI_ROOT/vpn/include/context",
+    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$NETMANAGER_BASE_ROOT/utils/log/include",
     "$BASE_INNERKITS_ROOT/netvpnclient/include",
     "$BASE_INNERKITS_ROOT/netvpnclient/include/proxy/ipccallback",
@@ -48,6 +49,7 @@ ohos_shared_library("vpn") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_manager_common",
   ]
 
   relative_install_dir = "module/net"
