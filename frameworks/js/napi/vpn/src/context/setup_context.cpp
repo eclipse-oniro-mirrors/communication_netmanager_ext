@@ -22,12 +22,14 @@
 #include "inet_addr.h"
 #include "napi_utils.h"
 #include "net_manager_constants.h"
+#include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "route.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+constexpr int32_t NET_MASK_MAX_LENGTH = 32;
 constexpr int32_t PARAM_JUST_OPTIONS = 1;
 constexpr int32_t PARAM_OPTIONS_AND_CALLBACK = 2;
 constexpr const char *CONFIG_ADDRESSES = "addresses";
@@ -160,6 +162,12 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
         NETMGR_EXT_LOG_E("get address-address failed");
         return false;
     }
+
+    if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
+        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
+        return false;
+    }
+
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
 
@@ -169,6 +177,21 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
     }
     iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, address, NET_PREFIXLENGTH));
     NETMGR_EXT_LOG_I("%{public}s: %{public}d", NET_PREFIXLENGTH, iNetAddr.prefixlen_);
+
+    uint32_t prefix = iNetAddr.prefixlen_;
+    if (prefix <= 0 || prefix >= NET_MASK_MAX_LENGTH) {
+        NETMGR_EXT_LOG_E("prefix: %{public}d error", prefix);
+        return false;
+    }
+
+    uint32_t maskUint = (~0 << (NET_MASK_MAX_LENGTH - prefix));
+    uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(iNetAddr.address_);
+    uint32_t subNetAddress = ipAddrUint & maskUint;
+    uint32_t boardcastAddress = subNetAddress | (~maskUint);
+    if ((ipAddrUint == subNetAddress) || (ipAddrUint == boardcastAddress)) {
+        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
+        return false;
+    }
     return true;
 }
 
@@ -190,6 +213,12 @@ static bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &
         NETMGR_EXT_LOG_E("get destination-address failed");
         return false;
     }
+
+    if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
+        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
+        return false;
+    }
+
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
     GetUint8FromJsOptionItem(env, destination, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
@@ -208,6 +237,12 @@ static bool ParseGateway(napi_env env, napi_value jsRoute, struct INetAddr &iNet
         NETMGR_EXT_LOG_E("get gateway-address failed");
         return false;
     }
+
+    if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
+        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
+        return false;
+    }
+
     GetUint8FromJsOptionItem(env, gateway, NET_FAMILY, iNetAddr.family_);
     GetUint8FromJsOptionItem(env, gateway, NET_PORT, iNetAddr.port_);
     return true;
