@@ -48,6 +48,7 @@ bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
     if (!parcel.WriteInt32(routeSize)) {
         return false;
     }
+
     for (auto route : routes_) {
         if (!route.Marshalling(parcel)) {
             return false;
