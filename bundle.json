@@ -52,7 +52,6 @@
                 "usb_manager",
                 "drivers_interface_usb",
                 "wifi",
-                "hilog",
                 "bundle_framework",
                 "os_account"
             ]
