@@ -44,7 +44,7 @@ bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
         }
     }
 
-    int32_t routeSize = static_cast<int32_t>(outes_.size());
+    int32_t routeSize = static_cast<int32_t>(routes_.size());
     if (!parcel.WriteInt32(routeSize)) {
         return false;
     }
