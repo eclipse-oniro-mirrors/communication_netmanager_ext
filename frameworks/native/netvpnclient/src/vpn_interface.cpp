@@ -37,7 +37,7 @@ constexpr int32_t INVALID_FD = -1;
 
 int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
 {
-    int32_t flags = fcntl(sockfd, F_GETFL, 0);
+    uint32_t flags = static_cast<uint32_t>(fcntl(sockfd, F_GETFL, 0));
     fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 
     /* EINPROGRESS - Indicates that the connection establishment has been started but is not complete */

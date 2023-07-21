@@ -281,9 +281,8 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     return true;
 }
 
-sptr<InterfaceConfiguration>
-    EthernetConfiguration::MakeInterfaceConfiguration(const sptr<InterfaceConfiguration> &devCfg,
-                                                      const sptr<NetLinkInfo> &devLinkInfo)
+sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
+    const sptr<InterfaceConfiguration> &devCfg, const sptr<NetLinkInfo> &devLinkInfo)
 {
     if (devCfg == nullptr || devLinkInfo == nullptr) {
         NETMGR_EXT_LOG_E("param is nullptr");

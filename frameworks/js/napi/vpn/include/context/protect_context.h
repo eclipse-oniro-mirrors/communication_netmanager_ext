@@ -33,7 +33,7 @@ public:
     void ParseParams(napi_value *params, size_t paramsCount);
 
 public:
-    int32_t socketFd_;
+    int32_t socketFd_ = -1;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -23,14 +23,9 @@ constexpr uint32_t MAX_SIZE = 64;
 }
 bool VpnConfig::Marshalling(Parcel &parcel) const
 {
-    bool allOK = MarshallingAddrRoute(parcel) &&
-                 parcel.WriteInt32(mtu_) &&
-                 parcel.WriteBool(isAcceptIPv4_) &&
-                 parcel.WriteBool(isAcceptIPv6_) &&
-                 parcel.WriteBool(isLegacy_) &&
-                 parcel.WriteBool(isMetered_) &&
-                 parcel.WriteBool(isBlocking_) &&
-                 MarshallingVectorString(parcel, dnsAddresses_) &&
+    bool allOK = MarshallingAddrRoute(parcel) && parcel.WriteInt32(mtu_) && parcel.WriteBool(isAcceptIPv4_) &&
+                 parcel.WriteBool(isAcceptIPv6_) && parcel.WriteBool(isLegacy_) && parcel.WriteBool(isMetered_) &&
+                 parcel.WriteBool(isBlocking_) && MarshallingVectorString(parcel, dnsAddresses_) &&
                  MarshallingVectorString(parcel, searchDomains_) &&
                  MarshallingVectorString(parcel, acceptedApplications_) &&
                  MarshallingVectorString(parcel, refusedApplications_);
@@ -39,7 +34,7 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
 
 bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
 {
-    int32_t addrSize = addresses_.size();
+    int32_t addrSize = static_cast<int32_t>(addresses_.size());
     if (!parcel.WriteInt32(addrSize)) {
         return false;
     }
@@ -49,10 +44,11 @@ bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
         }
     }
 
-    int32_t routeSize = routes_.size();
+    int32_t routeSize = static_cast<int32_t>(routes_.size());
     if (!parcel.WriteInt32(routeSize)) {
         return false;
     }
+
     for (auto route : routes_) {
         if (!route.Marshalling(parcel)) {
             return false;
@@ -63,7 +59,7 @@ bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
 
 bool VpnConfig::MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec) const
 {
-    int32_t size = vec.size();
+    int32_t size = static_cast<int32_t>(vec.size());
     if (!parcel.WriteInt32(size)) {
         return false;
     }
@@ -83,14 +79,10 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
-    bool allOK = UnmarshallingAddrRoute(parcel, ptr) &&
-                 parcel.ReadInt32(ptr->mtu_) &&
-                 parcel.ReadBool(ptr->isAcceptIPv4_) &&
-                 parcel.ReadBool(ptr->isAcceptIPv6_) &&
-                 parcel.ReadBool(ptr->isLegacy_) &&
-                 parcel.ReadBool(ptr->isMetered_) &&
-                 parcel.ReadBool(ptr->isBlocking_) &&
-                 UnmarshallingVectorString(parcel, ptr->dnsAddresses_) &&
+    bool allOK = UnmarshallingAddrRoute(parcel, ptr) && parcel.ReadInt32(ptr->mtu_) &&
+                 parcel.ReadBool(ptr->isAcceptIPv4_) && parcel.ReadBool(ptr->isAcceptIPv6_) &&
+                 parcel.ReadBool(ptr->isLegacy_) && parcel.ReadBool(ptr->isMetered_) &&
+                 parcel.ReadBool(ptr->isBlocking_) && UnmarshallingVectorString(parcel, ptr->dnsAddresses_) &&
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&
                  UnmarshallingVectorString(parcel, ptr->refusedApplications_);

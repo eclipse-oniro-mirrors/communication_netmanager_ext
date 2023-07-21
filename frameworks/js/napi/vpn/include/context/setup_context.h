@@ -35,7 +35,7 @@ public:
 
 public:
     sptr<VpnConfig> vpnConfig_ = nullptr;
-    int fd_;
+    int fd_ = -1;
 
 private:
     bool ParseVpnConfig(napi_value *params);
