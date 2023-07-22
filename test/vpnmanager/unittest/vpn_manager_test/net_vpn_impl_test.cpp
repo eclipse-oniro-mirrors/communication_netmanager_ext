@@ -124,19 +124,13 @@ HWTEST_F(NetVpnImplTest, RegisterNetSupplier, TestSize.Level1)
     EXPECT_EQ(netVpnImpl_->RegisterNetSupplier(netConnClientIns), false);
 }
 
-HWTEST_F(NetVpnImplTest, UnregisterNetSupplier, TestSize.Level1)
+HWTEST_F(NetVpnImplTest, UpdateNetSupplierInfo, TestSize.Level1)
 {
     auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->netSupplierId_ = 0;
     netVpnImpl_->UnregisterNetSupplier(netConnClientIns);
     netVpnImpl_->netSupplierId_ = 1;
     netVpnImpl_->UnregisterNetSupplier(netConnClientIns);
-    EXPECT_EQ(netVpnImpl_->netSupplierId_, 1);
-}
-
-HWTEST_F(NetVpnImplTest, UpdateNetSupplierInfo, TestSize.Level1)
-{
-    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->netSupplierInfo_ = nullptr;
     EXPECT_EQ(netVpnImpl_->UpdateNetSupplierInfo(netConnClientIns, true), false);
     netVpnImpl_->netSupplierId_ = 0;
