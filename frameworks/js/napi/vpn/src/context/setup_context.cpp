@@ -184,7 +184,7 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
         return false;
     }
 
-    uint32_t maskUint = (static_cast<uint32_t>(-1) << (NET_MASK_MAX_LENGTH - prefix));
+    uint32_t maskUint = (0xFFFFFFFF << (NET_MASK_MAX_LENGTH - prefix));
     uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(iNetAddr.address_);
     uint32_t subNetAddress = ipAddrUint & maskUint;
     uint32_t boardcastAddress = subNetAddress | (~maskUint);
