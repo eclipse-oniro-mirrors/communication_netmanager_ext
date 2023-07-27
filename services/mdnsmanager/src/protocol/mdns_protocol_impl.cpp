@@ -21,11 +21,14 @@
 #include <random>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "mdns_manager.h"
 #include "mdns_packet_parser.h"
 #include "net_conn_client.h"
 #include "netmgr_ext_log_wrapper.h"
+
+#include "securec.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -115,14 +118,101 @@ bool MDnsProtocolImpl::Browse()
     return false;
 }
 
+int32_t MDnsProtocolImpl::ConnectControl(int32_t sockfd, sockaddr* serverAddr)
+{
+    uint32_t flags = static_cast<uint32_t>(fcntl(sockfd, F_GETFL, 0));
+    fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+    int32_t ret = connect(sockfd, serverAddr, sizeof(sockaddr));
+    if ((ret < 0) && (errno != EINPROGRESS)) {
+        NETMGR_EXT_LOG_E("connect error: %{public}d", errno);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (ret == 0) {
+        fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
+        NETMGR_EXT_LOG_I("connect success.");
+        return NETMANAGER_EXT_SUCCESS;
+    }
+
+    fd_set rset;
+    FD_ZERO(&rset);
+    FD_SET(sockfd, &rset);
+    fd_set wset = rset;
+    timeval tval {1, 0};
+    ret = select(sockfd + 1, &rset, &wset, NULL, &tval);
+    if (ret < 0) { // select error.
+        NETMGR_EXT_LOG_E("select error: %{public}d", errno);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (ret == 0) { // timeout
+        NETMGR_EXT_LOG_E("connect timeout...");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (!FD_ISSET(sockfd, &rset) && !FD_ISSET(sockfd, &wset)) {
+        NETMGR_EXT_LOG_E("select error: sockfd not set");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    socklen_t len = sizeof(result);
+    if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &result, &len) < 0) {
+        NETMGR_EXT_LOG_E("getsockopt error: %{public}d", errno);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (result != 0) { // connect failed.
+        NETMGR_EXT_LOG_E("connect failed. error: %{public}d", result);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
+    NETMGR_EXT_LOG_I("lost but connect success.");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+bool MDnsProtocolImpl::IsConnectivity(const std::string &ip, int32_t port)
+{
+    if (ip.empty()) {
+        NETMGR_EXT_LOG_E("ip is empty");
+        return false;
+    }
+
+    int32_t sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        NETMGR_EXT_LOG_E("create socket error: %{public}d", errno);
+        return false;
+    }
+
+    struct sockaddr_in serverAddr;
+    if (memset_s(&serverAddr, sizeof(serverAddr), 0, sizeof(serverAddr)) != EOK) {
+        NETMGR_EXT_LOG_E("memset_s serverAddr failed!");
+        close(sockfd);
+        return false;
+    }
+
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+    serverAddr.sin_port = htons(port);
+    if (ConnectControl(sockfd, (struct sockaddr*)&serverAddr) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_I("connect error: %{public}d", errno);
+        close(sockfd);
+        return false;
+    }
+
+    close(sockfd);
+    return true;
+}
+
 void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<Result> &res)
 {
     NETMGR_EXT_LOG_D("mdns_log handleOfflineService key:[%{public}s]", key.c_str());
     for (auto it = res.begin(); it != res.end();) {
         if (lastRunTime - it->refrehTime > DEFAULT_LOST_MS && it->state == State::LIVE) {
-            it->state = State::DEAD;
-            Result rst = *it;
             std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
+            if ((cacheMap_.find(fullName) != cacheMap_.end()) &&
+                IsConnectivity(cacheMap_[fullName].addr, cacheMap_[fullName].port)) {
+                it++;
+                continue;
+            }
+
+            it->state = State::DEAD;
             if (nameCbMap_.find(key) != nameCbMap_.end() && nameCbMap_[key] != nullptr) {
                 NETMGR_EXT_LOG_W("mdns_log HandleServiceLost");
                 nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
