@@ -120,6 +120,9 @@ private:
     void handleOfflineService(const std::string &key, std::vector<Result> &res);
     void KillBrowseCache(const std::string &key, std::vector<Result>::iterator &it);
 
+    int32_t ConnectControl(int32_t sockfd, sockaddr* serverAddr);
+    bool IsConnectivity(const std::string &ip, int32_t port);
+
 public:
     std::map<std::string, Result> srvMap_;
 
