@@ -179,12 +179,12 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
     NETMGR_EXT_LOG_I("%{public}s: %{public}d", NET_PREFIXLENGTH, iNetAddr.prefixlen_);
 
     uint32_t prefix = iNetAddr.prefixlen_;
-    if (prefix <= 0 || prefix >= NET_MASK_MAX_LENGTH) {
+    if (prefix == 0 || prefix >= NET_MASK_MAX_LENGTH) {
         NETMGR_EXT_LOG_E("prefix: %{public}d error", prefix);
         return false;
     }
 
-    uint32_t maskUint = (~0 << (NET_MASK_MAX_LENGTH - prefix));
+    uint32_t maskUint = (0xFFFFFFFF << (NET_MASK_MAX_LENGTH - prefix));
     uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(iNetAddr.address_);
     uint32_t subNetAddress = ipAddrUint & maskUint;
     uint32_t boardcastAddress = subNetAddress | (~maskUint);
