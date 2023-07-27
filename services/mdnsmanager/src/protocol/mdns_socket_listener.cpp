@@ -31,6 +31,7 @@
 #include <cstring>
 #include <pthread.h>
 #include <iostream>
+#include <algorithm>
 
 #include "netmgr_ext_log_wrapper.h"
 
@@ -237,6 +238,13 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
         if (ifa->ifa_addr == nullptr || (ifa->ifa_addr->sa_family != AF_INET && ifa->ifa_addr->sa_family != AF_INET6)) {
             continue;
         }
+
+        std::string ifName(ifa->ifa_name);
+        std::transform(ifName.begin(), ifName.end(), ifName.begin(), ::tolower);
+        if (ifName.find("p2p") != std::string::npos) {
+            continue;
+        }
+
         if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
             loaddr = ifa;
             continue;
