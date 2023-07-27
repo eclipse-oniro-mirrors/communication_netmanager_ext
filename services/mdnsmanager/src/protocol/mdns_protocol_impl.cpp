@@ -126,7 +126,8 @@ int32_t MDnsProtocolImpl::ConnectControl(int32_t sockfd, sockaddr* serverAddr)
     if ((ret < 0) && (errno != EINPROGRESS)) {
         NETMGR_EXT_LOG_E("connect error: %{public}d", errno);
         return NETMANAGER_EXT_ERR_INTERNAL;
-    } else if (ret == 0) {
+    }
+    if (ret == 0) {
         fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
         NETMGR_EXT_LOG_I("connect success.");
         return NETMANAGER_EXT_SUCCESS;
@@ -141,31 +142,29 @@ int32_t MDnsProtocolImpl::ConnectControl(int32_t sockfd, sockaddr* serverAddr)
     if (ret < 0) { // select error.
         NETMGR_EXT_LOG_E("select error: %{public}d", errno);
         return NETMANAGER_EXT_ERR_INTERNAL;
-    } else if (ret == 0) { // timeout
+    }
+    if (ret == 0) { // timeout
         NETMGR_EXT_LOG_E("connect timeout...");
         return NETMANAGER_EXT_ERR_INTERNAL;
-    } else { // fd ready
-        int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
-        socklen_t len = sizeof(result);
-        if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
-            if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &result, &len) < 0) {
-                NETMGR_EXT_LOG_E("getsockopt error: %{public}d", errno);
-                return NETMANAGER_EXT_ERR_INTERNAL;
-            }
-        } else {
-            NETMGR_EXT_LOG_E("select error: sockfd not set");
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        }
-
-        if (result != NETMANAGER_EXT_SUCCESS) { // connect failed.
-            NETMGR_EXT_LOG_E("connect failed. error: %{public}d", result);
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        } else {                           // connect success.
-            fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
-            NETMGR_EXT_LOG_I("connect success.");
-            return NETMANAGER_EXT_SUCCESS;
-        }
     }
+    if (!FD_ISSET(sockfd, &rset) && !FD_ISSET(sockfd, &wset)) {
+        NETMGR_EXT_LOG_E("select error: sockfd not set");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    socklen_t len = sizeof(result);
+    if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &result, &len) < 0) {
+        NETMGR_EXT_LOG_E("getsockopt error: %{public}d", errno);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (result != 0) { // connect failed.
+        NETMGR_EXT_LOG_E("connect failed. error: %{public}d", result);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
+    NETMGR_EXT_LOG_I("lost but connect success.");
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 bool MDnsProtocolImpl::IsConnectivity(const std::string &ip, int32_t port)
