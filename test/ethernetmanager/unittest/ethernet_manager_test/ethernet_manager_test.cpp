@@ -98,8 +98,8 @@ public:
             }
             default:
                 return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-    }
-    return NETMANAGER_EXT_SUCCESS;
+        }
+        return NETMANAGER_EXT_SUCCESS;
     }
 };
 
@@ -228,30 +228,37 @@ sptr<InterfaceConfiguration> EthernetManagerTest::GetIfaceConfig()
     if (!ic) {
         return ic;
     }
-    ic->ipStatic_.ipAddr_.type_ = INetAddr::IPV4;
-    ic->ipStatic_.ipAddr_.family_ = 0x01;
-    ic->ipStatic_.ipAddr_.prefixlen_ = 0x01;
-    ic->ipStatic_.ipAddr_.address_ = "172.17.5.234";
-    ic->ipStatic_.ipAddr_.netMask_ = "255.255.254.0";
-    ic->ipStatic_.ipAddr_.hostName_ = "netAddr";
-    ic->ipStatic_.route_.type_ = INetAddr::IPV4;
-    ic->ipStatic_.route_.family_ = 0x01;
-    ic->ipStatic_.route_.prefixlen_ = 0x01;
-    ic->ipStatic_.route_.address_ = "0.0.0.0";
-    ic->ipStatic_.route_.netMask_ = "0.0.0.0";
-    ic->ipStatic_.route_.hostName_ = "netAddr";
-    ic->ipStatic_.gateway_.type_ = INetAddr::IPV4;
-    ic->ipStatic_.gateway_.family_ = 0x01;
-    ic->ipStatic_.gateway_.prefixlen_ = 0x01;
-    ic->ipStatic_.gateway_.address_ = "172.17.4.1";
-    ic->ipStatic_.gateway_.netMask_ = "0.0.0.0";
-    ic->ipStatic_.gateway_.hostName_ = "netAddr";
-    ic->ipStatic_.netMask_.type_ = INetAddr::IPV4;
-    ic->ipStatic_.netMask_.family_ = 0x01;
-    ic->ipStatic_.netMask_.netMask_ = "255.255.255.0";
-    ic->ipStatic_.netMask_.hostName_ = "netAddr";
-    ic->httpProxy_.SetHost(TEST_PROXY_HOST);
-    ic->httpProxy_.SetPort(TEST_PROXY_PORT);
+    INetAddr ipv4Addr;
+    ipv4Addr.type_ = INetAddr::IPV4;
+    ipv4Addr.family_ = 0x01;
+    ipv4Addr.prefixlen_ = 0x01;
+    ipv4Addr.address_ = "172.17.5.234";
+    ipv4Addr.netMask_ = "255.255.254.0";
+    ipv4Addr.hostName_ = "netAddr";
+    ic->ipStatic_.ipAddrList_.push_back(ipv4Addr);
+    INetAddr route;
+    route.type_ = INetAddr::IPV4;
+    route.family_ = 0x01;
+    route.prefixlen_ = 0x01;
+    route.address_ = "0.0.0.0";
+    route.netMask_ = "0.0.0.0";
+    route.hostName_ = "netAddr";
+    ic->ipStatic_.routeList_.push_back(route);
+    INetAddr gateway;
+    gateway.type_ = INetAddr::IPV4;
+    gateway.family_ = 0x01;
+    gateway.prefixlen_ = 0x01;
+    gateway.address_ = "172.17.4.1";
+    gateway.netMask_ = "0.0.0.0";
+    gateway.hostName_ = "netAddr";
+    ic->ipStatic_.gatewayList_.push_back(gateway);
+    INetAddr netMask;
+    netMask.type_ = INetAddr::IPV4;
+    netMask.family_ = 0x01;
+    netMask.address_ = "255.255.255.0";
+    netMask.hostName_ = "netAddr";
+    ic->ipStatic_.netMaskList_.push_back(netMask);
+    ic->httpProxy_ = {TEST_PROXY_HOST, TEST_PROXY_PORT, {}};
     INetAddr dns1;
     dns1.type_ = INetAddr::IPV4;
     dns1.family_ = 0x01;

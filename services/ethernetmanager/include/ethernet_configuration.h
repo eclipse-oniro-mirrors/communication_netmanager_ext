@@ -36,8 +36,8 @@ public:
     EthernetConfiguration();
     ~EthernetConfiguration() = default;
 
-    bool ReadSysteamConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
-                                  std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
+    bool ReadSystemConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
+                                 std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
     bool ReadUserConfiguration(std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
     bool WriteUserConfiguration(const std::string &iface, sptr<InterfaceConfiguration> &cfg);
     bool ClearAllUserConfiguration();
@@ -60,9 +60,11 @@ private:
     bool WriteFile(const std::string &filePath, const std::string &fileContent);
     void ParserFileConfig(const std::string &fileContent, std::string &iface, sptr<InterfaceConfiguration> cfg);
     void ParserFileHttpProxy(const std::string &fileContent, const sptr<InterfaceConfiguration> &cfg);
+    void ParserIfaceIpAndRoute(sptr<InterfaceConfiguration> &cfg, const std::string &rootNetMask);
     void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
     void GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent);
-    void GetExclusionsAsString(const std::list<std::string> &exclusionList, std::string &value) const;
+    std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList);
+    bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, sptr<StaticConfiguration> &config);
 
 private:
     std::mutex mutex_;

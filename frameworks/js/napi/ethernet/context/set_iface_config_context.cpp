@@ -20,13 +20,11 @@
 #include "constant.h"
 #include "napi_utils.h"
 #include "net_manager_constants.h"
-#include "netmanager_base_common_utils.h"
 #include "netmanager_base_log.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr int32_t DNS_MAX_SIZE = 10;
 constexpr const char *OBJECT_HTTP_RPPXY = "httpProxy";
 constexpr const char *HTTP_RPPXY_HOST = "host";
 constexpr const char *HTTP_RPPXY_PORT = "port";
@@ -62,28 +60,25 @@ void SetIfaceConfigContext::ParseParams(napi_value *params, size_t paramsCount)
         return;
     }
     config_->mode_ = static_cast<IPSetMode>(NapiUtils::GetInt32Property(GetEnv(), params[1], "mode"));
-    config_->ipStatic_.ipAddr_.address_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "ipAddr");
-    config_->ipStatic_.route_.address_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "route");
-    config_->ipStatic_.gateway_.address_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "gateway");
-    config_->ipStatic_.netMask_.address_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "netMask");
+    std::string ipAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "ipAddr");
+    StaticConfiguration::ExtractNetAddrBySeparator(ipAddresses, config_->ipStatic_.ipAddrList_);
+
+    std::string routeAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "route");
+    StaticConfiguration::ExtractNetAddrBySeparator(routeAddresses, config_->ipStatic_.routeList_);
+
+    std::string gatewayAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "gateway");
+    StaticConfiguration::ExtractNetAddrBySeparator(gatewayAddresses, config_->ipStatic_.gatewayList_);
+
+    std::string maskAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "netMask");
+    StaticConfiguration::ExtractNetAddrBySeparator(maskAddresses, config_->ipStatic_.netMaskList_);
+
+    std::string dnsServers = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "dnsServers");
+    StaticConfiguration::ExtractNetAddrBySeparator(dnsServers, config_->ipStatic_.dnsServers_);
+
     config_->ipStatic_.domain_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "domain");
-    for (const auto &dns :
-         CommonUtils::Split(NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "dnsServers"), ",")) {
-        INetAddr addr;
-        addr.address_ = dns;
-        config_->ipStatic_.dnsServers_.push_back(addr);
-        if (config_->ipStatic_.dnsServers_.size() == DNS_MAX_SIZE) {
-            break;
-        }
-    }
 
     ParseHttpProxy(params);
-
-    if (paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) {
-        SetParseOK(SetCallback(params[2]) == napi_ok);
-        return;
-    }
-    SetParseOK(true);
+    SetParseOK((paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) ? (SetCallback(params[2]) == napi_ok) : true);
 }
 
 void SetIfaceConfigContext::ParseHttpProxy(napi_value *params)

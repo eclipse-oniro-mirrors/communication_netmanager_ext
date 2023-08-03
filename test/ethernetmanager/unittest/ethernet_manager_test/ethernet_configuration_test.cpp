@@ -56,7 +56,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration001, TestSize.Level1)
     EthernetConfiguration ethernetConfiguration;
     std::map<std::string, std::set<NetCap>> devCaps;
     std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
-    bool ret = ethernetConfiguration.ReadSysteamConfiguration(devCaps, devCfgs);
+    bool ret = ethernetConfiguration.ReadSystemConfiguration(devCaps, devCfgs);
     EXPECT_TRUE(ret);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
     EXPECT_TRUE(ret);

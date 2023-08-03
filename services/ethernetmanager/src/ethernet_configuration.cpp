@@ -63,9 +63,11 @@ constexpr const char *KEY_PROXY_HOST = "PROXY_HOST=";
 constexpr const char *KEY_PROXY_PORT = "PROXY_PORT=";
 constexpr const char *KEY_PROXY_EXCLUSIONS = "PROXY_EXCLUSIONS=";
 constexpr const char *WRAP = "\n";
-constexpr const char *DEFAULT_NET_ADDR = "0.0.0.0";
+constexpr const char *DEFAULT_IPV4_ADDR = "0.0.0.0";
+constexpr const char *DEFAULT_IPV6_ADDR = "::";
+constexpr const char *DEFAULT_IPV6_MAX_ADDRESS = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff";
 constexpr const char *EMPTY_NET_ADDR = "*";
-constexpr const char *DNS_SEPARATOR = ",";
+constexpr const char *ADDR_SEPARATOR = ",";
 constexpr const char *EXCLUSIONS_DELIMITER = ",";
 } // namespace
 
@@ -74,8 +76,8 @@ EthernetConfiguration::EthernetConfiguration()
     CreateDir(USER_CONFIG_DIR);
 }
 
-bool EthernetConfiguration::ReadSysteamConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
-                                                     std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs)
+bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
+                                                    std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs)
 {
     const auto &jsonStr = ReadJsonFile(NETWORK_CONFIG_PATH);
     if (jsonStr.length() == 0) {
@@ -120,36 +122,15 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
         NETMGR_EXT_LOG_E("config is nullptr");
         return nullptr;
     }
+
     config->mode_ = STATIC;
-    config->ipStatic_.ipAddr_.address_ = jsonData[CONFIG_KEY_ETH_IP];
-    config->ipStatic_.ipAddr_.netMask_ = jsonData[CONFIG_KEY_ETH_NETMASK];
-    config->ipStatic_.ipAddr_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_IP]));
-    int prefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_NETMASK]);
-    if (config->ipStatic_.ipAddr_.family_ == AF_INET) {
-        config->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
-    }
-    config->ipStatic_.netMask_.address_ = jsonData[CONFIG_KEY_ETH_NETMASK];
-    config->ipStatic_.gateway_.address_ = jsonData[CONFIG_KEY_ETH_GATEWAY];
-    config->ipStatic_.gateway_.family_ =
-        static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_GATEWAY]));
-    if (config->ipStatic_.gateway_.family_ == AF_INET) {
-        config->ipStatic_.gateway_.prefixlen_ = prefixLen;
-    }
-    config->ipStatic_.route_.address_ = jsonData[CONFIG_KEY_ETH_ROUTE];
-    int routePrefixLen = 0;
-    if (!jsonData[CONFIG_KEY_ETH_ROUTE_MASK].empty()) {
-        routePrefixLen = CommonUtils::GetMaskLength(jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
-    }
-    config->ipStatic_.route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(jsonData[CONFIG_KEY_ETH_ROUTE]));
-    if (config->ipStatic_.route_.family_ == AF_INET) {
-        config->ipStatic_.route_.prefixlen_ = routePrefixLen;
-    }
-    std::vector<std::string> servers = CommonUtils::Split(jsonData[CONFIG_KEY_ETH_DNS], DNS_SEPARATOR);
-    for (const auto &dns : servers) {
-        INetAddr addr;
-        addr.address_ = dns;
-        config->ipStatic_.dnsServers_.push_back(addr);
-    }
+    StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_IP], config->ipStatic_.ipAddrList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_ROUTE], config->ipStatic_.routeList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_GATEWAY], config->ipStatic_.gatewayList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_NETMASK], config->ipStatic_.netMaskList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_DNS], config->ipStatic_.dnsServers_);
+
+    ParserIfaceIpAndRoute(config, jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
     return config;
 }
 
@@ -200,32 +181,15 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
         NETMGR_EXT_LOG_E("create dir failed");
         return false;
     }
+
     if (cfg->mode_ == STATIC) {
-        int prefixlen = 0;
-        cfg->ipStatic_.ipAddr_.family_ =
-            static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.ipAddr_.address_));
-        if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
-            if (cfg->ipStatic_.netMask_.address_.empty()) {
-                prefixlen = CommonUtils::GetMaskLength(cfg->ipStatic_.ipAddr_.netMask_);
-            } else {
-                prefixlen = CommonUtils::GetMaskLength(cfg->ipStatic_.netMask_.address_);
-            }
-        }
-        cfg->ipStatic_.ipAddr_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.gateway_.family_ =
-            static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.gateway_.address_));
-        cfg->ipStatic_.gateway_.prefixlen_ = prefixlen;
-        cfg->ipStatic_.route_.family_ =
-            static_cast<uint8_t>(CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_));
-        int routePrefixLen = 0;
-        if (!cfg->ipStatic_.route_.netMask_.empty()) {
-            routePrefixLen = CommonUtils::GetMaskLength(cfg->ipStatic_.route_.netMask_);
-        }
-        cfg->ipStatic_.route_.prefixlen_ = routePrefixLen;
+        ParserIfaceIpAndRoute(cfg, std::string());
     }
+
     std::string fileContent;
-    std::string filePath = std::string(USER_CONFIG_DIR) + FILE_OBLIQUE_LINE + iface;
     GenCfgContent(iface, cfg, fileContent);
+
+    std::string filePath = std::string(USER_CONFIG_DIR) + FILE_OBLIQUE_LINE + iface;
     return WriteFile(filePath, fileContent);
 }
 
@@ -241,37 +205,41 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
         NETMGR_EXT_LOG_E("Error ConvertToIpConfiguration config is null");
         return false;
     }
-    const auto &emPrefixlen = 0;
-    unsigned int prefixlen = 0;
-    config->ipAddr_.address_ = dhcpResult.ipAddr;
-    config->netMask_.address_ = dhcpResult.subNet;
-    config->ipAddr_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.ipAddr));
-    if (config->ipAddr_.family_ == AF_INET) {
-        config->ipAddr_.prefixlen_ = static_cast<uint8_t>(CommonUtils::GetMaskLength(dhcpResult.subNet));
+    if (!IsValidDhcpResult(dhcpResult, config)) {
+        return false;
     }
-    prefixlen = config->ipAddr_.prefixlen_;
-    config->gateway_.address_ = dhcpResult.gateWay;
-    config->gateway_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.gateWay));
-    config->gateway_.prefixlen_ = prefixlen;
-    if (dhcpResult.gateWay != dhcpResult.route1) {
-        if (dhcpResult.route1 == EMPTY_NET_ADDR) {
-            config->route_.address_ = DEFAULT_NET_ADDR;
-            config->route_.prefixlen_ = emPrefixlen;
-        } else {
-            config->route_.address_ = dhcpResult.route1;
-            config->route_.prefixlen_ = prefixlen;
-        }
+
+    INetAddr ipAddr;
+    ipAddr.address_ = dhcpResult.ipAddr;
+    ipAddr.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.ipAddr));
+    ipAddr.prefixlen_ = (ipAddr.family_ == AF_INET6)
+                            ? static_cast<uint8_t>(CommonUtils::Ipv6PrefixLen(dhcpResult.subNet))
+                            : static_cast<uint8_t>(CommonUtils::Ipv4PrefixLen(dhcpResult.subNet));
+    config->ipAddrList_.push_back(ipAddr);
+
+    INetAddr netMask;
+    netMask.address_ = dhcpResult.subNet;
+    config->netMaskList_.push_back(netMask);
+
+    INetAddr gateway;
+    gateway.address_ = dhcpResult.gateWay;
+    gateway.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.gateWay));
+    config->gatewayList_.push_back(gateway);
+
+    INetAddr route;
+    if (dhcpResult.gateWay != dhcpResult.route1 && dhcpResult.route1 != EMPTY_NET_ADDR) {
+        route.address_ = dhcpResult.route1;
+        route.prefixlen_ = ipAddr.prefixlen_;
+    } else if (dhcpResult.gateWay != dhcpResult.route2 && dhcpResult.route2 != EMPTY_NET_ADDR) {
+        route.address_ = dhcpResult.route2;
+        route.prefixlen_ = ipAddr.prefixlen_;
+    } else {
+        route.address_ = (ipAddr.family_ == AF_INET6) ? DEFAULT_IPV6_ADDR : DEFAULT_IPV4_ADDR;
+        route.prefixlen_ = 0;
     }
-    if (dhcpResult.gateWay != dhcpResult.route2) {
-        if (dhcpResult.route2 == EMPTY_NET_ADDR) {
-            config->route_.address_ = DEFAULT_NET_ADDR;
-            config->route_.prefixlen_ = emPrefixlen;
-        } else {
-            config->route_.address_ = dhcpResult.route2;
-            config->route_.prefixlen_ = prefixlen;
-        }
-    }
-    config->route_.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(config->route_.address_));
+    route.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(route.address_));
+    config->routeList_.push_back(route);
+
     INetAddr dnsNet1;
     dnsNet1.address_ = dhcpResult.dns1;
     INetAddr dnsNet2;
@@ -294,13 +262,22 @@ sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
         return nullptr;
     }
     cfg->mode_ = devCfg->mode_;
-    INetAddr addrNet = devLinkInfo->netAddrList_.back();
-    Route route = devLinkInfo->routeList_.front();
-    Route routeLocal = devLinkInfo->routeList_.back();
-    cfg->ipStatic_.ipAddr_.address_ = addrNet.address_;
-    cfg->ipStatic_.route_.address_ = route.destination_.address_;
-    cfg->ipStatic_.gateway_.address_ = route.gateway_.address_;
-    cfg->ipStatic_.netMask_.address_ = CommonUtils::GetMaskByLength(routeLocal.destination_.prefixlen_);
+    for (const auto &ipAddr : devLinkInfo->netAddrList_) {
+        cfg->ipStatic_.ipAddrList_.push_back(ipAddr);
+        auto family = CommonUtils::GetAddrFamily(ipAddr.address_);
+        INetAddr netMask;
+        netMask.address_ =
+            ipAddr.netMask_.empty()
+                ? (((family == AF_INET6) ? CommonUtils::GetIpv6Prefix(DEFAULT_IPV6_MAX_ADDRESS, ipAddr.prefixlen_)
+                                         : CommonUtils::GetMaskByLength(ipAddr.prefixlen_)))
+                : ipAddr.netMask_;
+        cfg->ipStatic_.netMaskList_.push_back(netMask);
+    }
+    for (const auto &route : devLinkInfo->routeList_) {
+        cfg->ipStatic_.routeList_.push_back(route.destination_);
+        cfg->ipStatic_.gatewayList_.push_back(route.gateway_);
+    }
+
     cfg->ipStatic_.domain_ = devLinkInfo->domain_;
     for (const auto &addr : devLinkInfo->dnsList_) {
         cfg->ipStatic_.dnsServers_.push_back(addr);
@@ -434,9 +411,8 @@ void EthernetConfiguration::ParseDevice(const std::string &fileContent, std::str
     std::string::size_type pos = fileContent.find(KEY_DEVICE);
     if (pos == std::string::npos) {
         return;
-    } else {
-        pos += strlen(KEY_DEVICE);
     }
+    pos += strlen(KEY_DEVICE);
     const auto &device = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     iface = device;
 }
@@ -446,15 +422,10 @@ void EthernetConfiguration::ParseBootProto(const std::string &fileContent, sptr<
     std::string::size_type pos = fileContent.find(KEY_BOOTPROTO);
     if (pos == std::string::npos) {
         return;
-    } else {
-        pos += strlen(KEY_BOOTPROTO);
     }
+    pos += strlen(KEY_BOOTPROTO);
     const auto &bootProto = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    if (bootProto == KEY_STATIC) {
-        cfg->mode_ = STATIC;
-    } else if (bootProto == KEY_DHCP) {
-        cfg->mode_ = DHCP;
-    }
+    cfg->mode_ = (bootProto == KEY_STATIC) ? STATIC : DHCP;
 }
 
 void EthernetConfiguration::ParseStaticConfig(const std::string &fileContent, sptr<InterfaceConfiguration> cfg)
@@ -462,50 +433,49 @@ void EthernetConfiguration::ParseStaticConfig(const std::string &fileContent, sp
     if (cfg->mode_ != STATIC) {
         return;
     }
-    std::string::size_type pos = fileContent.find(KEY_IPADDR);
-    if (pos == std::string::npos) {
-        return;
-    } else {
+    std::string ipAddresses, netMasks, gateways, routes, routeMasks, dnsServers;
+    auto pos = fileContent.find(KEY_IPADDR);
+    if (pos != std::string::npos) {
         pos += strlen(KEY_IPADDR);
+        ipAddresses = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     }
-    const auto &ipAddr = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    pos = fileContent.find(KEY_NETMASK) + strlen(KEY_NETMASK);
-    const auto &netMask = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    pos = fileContent.find(KEY_GATEWAY) + strlen(KEY_GATEWAY);
-    const auto &gatway = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    pos = fileContent.find(KEY_ROUTE) + strlen(KEY_ROUTE);
-    const auto &route = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    pos = fileContent.find(KEY_ROUTE_NETMASK) + strlen(KEY_ROUTE_NETMASK);
-    const auto &routeNetmask = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    pos = fileContent.find(KEY_DNS) + strlen(KEY_DNS);
-    const auto &dnsServers = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    cfg->ipStatic_.ipAddr_.address_ = ipAddr;
-    cfg->ipStatic_.ipAddr_.netMask_ = netMask;
-    cfg->ipStatic_.ipAddr_.family_ = CommonUtils::GetAddrFamily(ipAddr);
-    int prefixLen = CommonUtils::GetMaskLength(netMask);
-    if (cfg->ipStatic_.ipAddr_.family_ == AF_INET) {
-        cfg->ipStatic_.ipAddr_.prefixlen_ = prefixLen;
+
+    pos = fileContent.find(KEY_NETMASK);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_NETMASK);
+        netMasks = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     }
-    cfg->ipStatic_.netMask_.address_ = netMask;
-    cfg->ipStatic_.gateway_.address_ = gatway;
-    cfg->ipStatic_.gateway_.family_ = CommonUtils::GetAddrFamily(gatway);
-    if (cfg->ipStatic_.gateway_.family_ == AF_INET) {
-        cfg->ipStatic_.gateway_.prefixlen_ = prefixLen;
+
+    pos = fileContent.find(KEY_GATEWAY);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_GATEWAY);
+        gateways = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     }
-    cfg->ipStatic_.route_.address_ = !route.empty() ? route : DEFAULT_NET_ADDR;
-    int routePrefixLen = 0;
-    if (!routeNetmask.empty()) {
-        routePrefixLen = CommonUtils::GetMaskLength(routeNetmask);
+
+    pos = fileContent.find(KEY_ROUTE);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_ROUTE);
+        routes = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     }
-    cfg->ipStatic_.route_.family_ = CommonUtils::GetAddrFamily(cfg->ipStatic_.route_.address_);
-    if (cfg->ipStatic_.route_.family_ == AF_INET) {
-        cfg->ipStatic_.route_.prefixlen_ = routePrefixLen;
+
+    pos = fileContent.find(KEY_ROUTE_NETMASK);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_ROUTE_NETMASK);
+        routeMasks = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     }
-    for (const auto &dns : CommonUtils::Split(dnsServers, DNS_SEPARATOR)) {
-        INetAddr addr;
-        addr.address_ = dns;
-        cfg->ipStatic_.dnsServers_.push_back(addr);
+
+    pos = fileContent.find(KEY_DNS);
+    if (pos != std::string::npos) {
+        pos += strlen(KEY_DNS);
+        dnsServers = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
     }
+
+    StaticConfiguration::ExtractNetAddrBySeparator(ipAddresses, cfg->ipStatic_.ipAddrList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(routes, cfg->ipStatic_.routeList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(gateways, cfg->ipStatic_.gatewayList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(netMasks, cfg->ipStatic_.netMaskList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(dnsServers, cfg->ipStatic_.dnsServers_);
+    ParserIfaceIpAndRoute(cfg, routeMasks);
 }
 
 void EthernetConfiguration::ParserFileHttpProxy(const std::string &fileContent, const sptr<InterfaceConfiguration> &cfg)
@@ -535,6 +505,39 @@ void EthernetConfiguration::ParserFileHttpProxy(const std::string &fileContent, 
     }
 }
 
+void EthernetConfiguration::ParserIfaceIpAndRoute(sptr<InterfaceConfiguration> &cfg, const std::string &rootNetMask)
+{
+    if (cfg == nullptr) {
+        NETMGR_EXT_LOG_E("cfg is nullptr");
+        return;
+    }
+
+    std::for_each(cfg->ipStatic_.netMaskList_.begin(), cfg->ipStatic_.netMaskList_.end(), [&cfg](const auto &netMask) {
+        auto maskFamily = CommonUtils::GetAddrFamily(netMask.address_);
+        for (auto &ipAddr : cfg->ipStatic_.ipAddrList_) {
+            if (maskFamily != CommonUtils::GetAddrFamily(ipAddr.address_)) {
+                continue;
+            }
+            ipAddr.netMask_ = netMask.address_;
+            ipAddr.prefixlen_ = (maskFamily == AF_INET6) ? CommonUtils::Ipv6PrefixLen(netMask.address_)
+                                                         : CommonUtils::Ipv4PrefixLen(netMask.address_);
+            break;
+        }
+    });
+
+    for (const auto &routeMask : CommonUtils::Split(rootNetMask, ADDR_SEPARATOR)) {
+        auto maskFamily = CommonUtils::GetAddrFamily(routeMask);
+        for (auto &route : cfg->ipStatic_.routeList_) {
+            if (maskFamily != CommonUtils::GetAddrFamily(route.address_)) {
+                continue;
+            }
+            route.prefixlen_ = (maskFamily == AF_INET6) ? CommonUtils::Ipv6PrefixLen(routeMask)
+                                                        : CommonUtils::Ipv4PrefixLen(routeMask);
+            break;
+        }
+    }
+}
+
 void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg,
                                           std::string &fileContent)
 {
@@ -544,51 +547,84 @@ void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<Interfa
     }
     std::string().swap(fileContent);
     fileContent = fileContent + KEY_DEVICE + iface + WRAP;
+    std::string mode = (cfg->mode_ == STATIC) ? KEY_STATIC : KEY_DHCP;
+    fileContent = fileContent + KEY_BOOTPROTO + mode + WRAP;
     if (cfg->mode_ == STATIC) {
-        fileContent = fileContent + KEY_BOOTPROTO + KEY_STATIC + WRAP;
-        fileContent = fileContent + KEY_IPADDR + cfg->ipStatic_.ipAddr_.address_ + WRAP;
-        if (cfg->ipStatic_.netMask_.address_.empty()) {
-            fileContent = fileContent + KEY_NETMASK + cfg->ipStatic_.ipAddr_.netMask_ + WRAP;
-        } else {
-            fileContent = fileContent + KEY_NETMASK + cfg->ipStatic_.netMask_.address_ + WRAP;
-        }
-        fileContent = fileContent + KEY_GATEWAY + cfg->ipStatic_.gateway_.address_ + WRAP;
-        fileContent = fileContent + KEY_ROUTE + cfg->ipStatic_.route_.address_ + WRAP;
-        fileContent = fileContent + KEY_ROUTE_NETMASK + cfg->ipStatic_.route_.netMask_ + WRAP;
-        fileContent = fileContent + KEY_DNS;
-        for (uint32_t i = 0; i < cfg->ipStatic_.dnsServers_.size(); i++) {
-            fileContent = fileContent + cfg->ipStatic_.dnsServers_[i].address_;
-            if (cfg->ipStatic_.dnsServers_.size() - i > 1) {
-                fileContent = fileContent + DNS_SEPARATOR;
-            }
-        }
-        fileContent = fileContent + WRAP;
-    } else {
-        fileContent = fileContent + KEY_BOOTPROTO + KEY_DHCP + WRAP;
+        std::string ipAddresses = AccumulateNetAddress(cfg->ipStatic_.ipAddrList_);
+        std::string netMasks = AccumulateNetAddress(cfg->ipStatic_.netMaskList_);
+        std::string gateways = AccumulateNetAddress(cfg->ipStatic_.gatewayList_);
+        std::string routes = AccumulateNetAddress(cfg->ipStatic_.routeList_);
+        std::string routeMasks =
+            std::accumulate(cfg->ipStatic_.routeList_.begin(), cfg->ipStatic_.routeList_.end(), std::string(),
+                            [](const std::string &routeMask, const INetAddr &iter) {
+                                auto family = CommonUtils::GetAddrFamily(iter.address_);
+                                std::string mask = (family == AF_INET6) ? DEFAULT_IPV6_ADDR : DEFAULT_IPV4_ADDR;
+                                return routeMask.empty() ? routeMask + mask : (routeMask + ADDR_SEPARATOR + mask);
+                            });
+        std::string dnsServers = AccumulateNetAddress(cfg->ipStatic_.dnsServers_);
+
+        fileContent = fileContent + KEY_IPADDR + ipAddresses + WRAP;
+        fileContent = fileContent + KEY_NETMASK + netMasks + WRAP;
+        fileContent = fileContent + KEY_GATEWAY + gateways + WRAP;
+        fileContent = fileContent + KEY_ROUTE + routes + WRAP;
+        fileContent = fileContent + KEY_ROUTE_NETMASK + routeMasks + WRAP;
+        fileContent = fileContent + KEY_DNS + dnsServers + WRAP;
     }
     GenHttpProxyContent(cfg, fileContent);
 }
 
 void EthernetConfiguration::GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent)
 {
-    std::string exclusions;
-    GetExclusionsAsString(cfg->httpProxy_.GetExclusionList(), exclusions);
+    const auto &exclusionList = cfg->httpProxy_.GetExclusionList();
+    std::string exclusions =
+        std::accumulate(exclusionList.begin(), exclusionList.end(), std::string(),
+                        [](const std::string &exclusion, const std::string &next) {
+                            return exclusion.empty() ? exclusion + next : (exclusion + EXCLUSIONS_DELIMITER + next);
+                        });
 
     fileContent = fileContent + KEY_PROXY_HOST + cfg->httpProxy_.GetHost() + WRAP;
     fileContent = fileContent + KEY_PROXY_PORT + std::to_string(cfg->httpProxy_.GetPort()) + WRAP;
     fileContent = fileContent + KEY_PROXY_EXCLUSIONS + exclusions + WRAP;
 }
 
-void EthernetConfiguration::GetExclusionsAsString(const std::list<std::string> &exclusionList, std::string &value) const
+std::string EthernetConfiguration::AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
 {
-    int32_t index = 0;
-    for (const auto &exclusion : exclusionList) {
-        if (index > 0) {
-            value = value + EXCLUSIONS_DELIMITER;
-        }
-        value = value + exclusion;
-        index++;
+    return std::accumulate(netAddrList.begin(), netAddrList.end(), std::string(),
+                           [](const std::string &addr, const INetAddr &iter) {
+                               return addr.empty() ? (addr + iter.address_) : (addr + ADDR_SEPARATOR + iter.address_);
+                           });
+}
+
+bool EthernetConfiguration::IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult,
+                                              sptr<StaticConfiguration> &config)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("config is nullptr");
+        return false;
     }
+    if (dhcpResult.ipAddr.empty()) {
+        NETMGR_EXT_LOG_E("DhcpResult ip addr is empty");
+        return false;
+    }
+
+    bool isSameIp = false;
+    bool isSameGateway = false;
+    for (const auto &ipAddr : config->ipAddrList_) {
+        if (dhcpResult.ipAddr == ipAddr.address_) {
+            NETMGR_EXT_LOG_E("Same ip addr:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.ipAddr).c_str());
+            isSameIp = true;
+            break;
+        }
+    }
+
+    for (const auto &gateway : config->gatewayList_) {
+        if (dhcpResult.gateWay == gateway.address_) {
+            NETMGR_EXT_LOG_E("Same gateway:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.gateWay).c_str());
+            isSameGateway = true;
+            break;
+        }
+    }
+    return !(isSameIp && isSameGateway);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

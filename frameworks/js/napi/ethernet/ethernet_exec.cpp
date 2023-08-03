@@ -36,6 +36,15 @@ constexpr const char *NET_MASK = "netMask";
 constexpr const char *GATEWAY = "gateway";
 constexpr const char *DNS_SERVERS = "dnsServers";
 constexpr const char *DOMAIN = "domain";
+constexpr const char *DEFAULT_SEPARATOR = ",";
+
+std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
+{
+    return std::accumulate(
+        netAddrList.begin(), netAddrList.end(), std::string(), [](const std::string &addr, const INetAddr &iter) {
+            return addr.empty() ? (addr + iter.address_) : (addr + DEFAULT_SEPARATOR + iter.address_);
+        });
+}
 } // namespace
 bool ExecGetIfaceConfig(GetIfaceConfigContext *context)
 {
@@ -52,21 +61,22 @@ napi_value GetIfaceConfigCallback(GetIfaceConfigContext *context)
 {
     napi_value interfaceConfiguration = NapiUtils::CreateObject(context->GetEnv());
     NapiUtils::SetInt32Property(context->GetEnv(), interfaceConfiguration, MODE, context->config_->mode_);
-    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, IP_ADDR,
-                                     context->config_->ipStatic_.ipAddr_.address_);
-    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, ROUTE,
-                                     context->config_->ipStatic_.route_.address_);
-    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, GATEWAY,
-                                     context->config_->ipStatic_.gateway_.address_);
-    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, NET_MASK,
-                                     context->config_->ipStatic_.netMask_.address_);
-    std::string dnsServers = std::accumulate(context->config_->ipStatic_.dnsServers_.begin(),
-                                             context->config_->ipStatic_.dnsServers_.end(), std::string(),
-                                             [](const std::string &str_append, INetAddr const &iter) {
-                                                 return str_append + iter.address_ + ",";
-                                             });
 
+    std::string ipAddresses = AccumulateNetAddress(context->config_->ipStatic_.ipAddrList_);
+    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, IP_ADDR, ipAddresses);
+
+    std::string routeAddresses = AccumulateNetAddress(context->config_->ipStatic_.routeList_);
+    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, ROUTE, routeAddresses);
+
+    std::string gatewayAddresses = AccumulateNetAddress(context->config_->ipStatic_.gatewayList_);
+    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, GATEWAY, gatewayAddresses);
+
+    std::string maskAddresses = AccumulateNetAddress(context->config_->ipStatic_.netMaskList_);
+    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, NET_MASK, maskAddresses);
+
+    std::string dnsServers = AccumulateNetAddress(context->config_->ipStatic_.dnsServers_);
     NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DNS_SERVERS, dnsServers);
+
     NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DOMAIN,
                                      context->config_->ipStatic_.domain_);
     return interfaceConfiguration;
