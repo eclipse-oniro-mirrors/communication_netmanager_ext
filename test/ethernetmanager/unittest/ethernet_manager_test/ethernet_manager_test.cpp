@@ -411,17 +411,47 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
 }
 
 /**
- * @tc.name: EthernetManager005
+ * @tc.name: ResetFactoryTest001
  * @tc.desc: Test EthernetManager ResetFactory.
  * @tc.type: FUNC
  */
-HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
+HWTEST_F(EthernetManagerTest, ResetFactoryTest001, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    AccessToken accessToken(testPolicyPrams2);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: ResetFactoryTest002
+ * @tc.desc: Test EthernetManager ResetFactory.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, ResetFactoryTest002, TestSize.Level1)
 {
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: ResetFactoryTest003
+ * @tc.desc: Test EthernetManager ResetFactory.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, ResetFactoryTest003, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    AccessToken accessToken(testPolicyPrams1);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
@@ -429,7 +459,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    AccessToken accessToken(testPolicyPrams2);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -540,13 +570,16 @@ HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
     }
     AccessToken accessToken(testPolicyPrams2);
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
-    OHOS::nmd::InterfaceConfigurationParcel cfg;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_DOWN);
-    ASSERT_EQ(cfg.ifName, DEV_NAME);
-    ASSERT_TRUE(*fit == DEV_DOWN);
     ASSERT_TRUE(result == 0);
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    std::vector<std::string>().swap(cfg.flags);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
+    ASSERT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ASSERT_EQ(cfg.ifName, DEV_NAME);
+    std::find(cfg.flags.begin(), cfg.flags.end(), DEV_DOWN);
+    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_DOWN);
+    ASSERT_NE(fit, cfg.flags.end());
+    ASSERT_TRUE(*fit == DEV_DOWN);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
@@ -554,14 +587,18 @@ HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
+    AccessToken accessToken(testPolicyPrams2);
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
-    OHOS::nmd::InterfaceConfigurationParcel cfg;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_UP);
-    ASSERT_EQ(cfg.ifName, DEV_NAME);
-    ASSERT_TRUE(*fit == DEV_UP);
     ASSERT_TRUE(result == 0);
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    std::vector<std::string>().swap(cfg.flags);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
+    ASSERT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ASSERT_EQ(cfg.ifName, DEV_NAME);
+    std::find(cfg.flags.begin(), cfg.flags.end(), DEV_UP);
+    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_UP);
+    ASSERT_NE(fit, cfg.flags.end());
+    ASSERT_TRUE(*fit == DEV_UP);
 
     EthernetDhcpController ethernetDhcpController;
     bool bIpv6 = true;

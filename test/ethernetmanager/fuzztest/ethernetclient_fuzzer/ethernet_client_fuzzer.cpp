@@ -284,6 +284,8 @@ void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
     MessageParcel parcel;
     WriteInterfaceToken(parcel);
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_RESET_FACTORY), parcel);
