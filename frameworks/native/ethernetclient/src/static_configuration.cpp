@@ -17,46 +17,41 @@
 
 #include "inet_addr.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "parcel.h"
-#include "refbase.h"
+#include "netmanager_base_common_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr uint32_t MAX_SIZE = 50;
-}
+constexpr uint32_t MAX_DNS_SIZE = 10;
+constexpr uint32_t MAX_ADDR_SIZE = 2;
+
+constexpr const char *SEPARATOR = ",";
+} // namespace
 
 bool StaticConfiguration::Marshalling(Parcel &parcel) const
 {
-    if (!ipAddr_.Marshalling(parcel)) {
-        NETMGR_EXT_LOG_E("write ipAddr_ to parcel failed");
+    return MarshallingNetAddressList(ipAddrList_, MAX_ADDR_SIZE, parcel) &&
+           MarshallingNetAddressList(routeList_, MAX_ADDR_SIZE, parcel) &&
+           MarshallingNetAddressList(gatewayList_, MAX_ADDR_SIZE, parcel) &&
+           MarshallingNetAddressList(netMaskList_, MAX_ADDR_SIZE, parcel) &&
+           MarshallingNetAddressList(dnsServers_, MAX_DNS_SIZE, parcel) && parcel.WriteString(domain_);
+}
+
+bool StaticConfiguration::MarshallingNetAddressList(const std::vector<INetAddr> &netAddrList, uint32_t maxSize,
+                                                    Parcel &parcel) const
+{
+    uint32_t size = static_cast<uint32_t>(std::min(maxSize, netAddrList.size()));
+    if (!parcel.WriteUint32(size)) {
+        NETMGR_EXT_LOG_E("write netAddrList size to parcel failed");
         return false;
     }
-    if (!route_.Marshalling(parcel)) {
-        NETMGR_EXT_LOG_E("write route_ to parcel failed");
-        return false;
-    }
-    if (!gateway_.Marshalling(parcel)) {
-        NETMGR_EXT_LOG_E("write gateway_ to parcel failed");
-        return false;
-    }
-    if (!netMask_.Marshalling(parcel)) {
-        NETMGR_EXT_LOG_E("write netMask_ to parcel failed");
-        return false;
-    }
-    if (!parcel.WriteUint32(dnsServers_.size())) {
-        NETMGR_EXT_LOG_E("write dnsServers_ size to parcel failed");
-        return false;
-    }
-    for (auto dnsServer : dnsServers_) {
-        if (!dnsServer.Marshalling(parcel)) {
-            NETMGR_EXT_LOG_E("write dnsServers_ to parcel failed");
+
+    for (uint32_t index = 0; index < size; ++index) {
+        auto netAddr = netAddrList[index];
+        if (!netAddr.Marshalling(parcel)) {
+            NETMGR_EXT_LOG_E("write INetAddr to parcel failed");
             return false;
         }
-    }
-    if (!parcel.WriteString(domain_)) {
-        NETMGR_EXT_LOG_E("write domain_ to parcel failed");
-        return false;
     }
     return true;
 }
@@ -68,47 +63,44 @@ sptr<StaticConfiguration> StaticConfiguration::Unmarshalling(Parcel &parcel)
         NETMGR_EXT_LOG_E("ptr new failed");
         return nullptr;
     }
-    sptr<INetAddr> ipAddr = INetAddr::Unmarshalling(parcel);
-    if (ipAddr == nullptr) {
-        NETMGR_EXT_LOG_E("ipAddr is null");
-        return nullptr;
-    }
-    ptr->ipAddr_ = *ipAddr;
-    sptr<INetAddr> route = INetAddr::Unmarshalling(parcel);
-    if (route == nullptr) {
-        NETMGR_EXT_LOG_E("route is null");
-        return nullptr;
-    }
-    ptr->route_ = *route;
-    sptr<INetAddr> gateway = INetAddr::Unmarshalling(parcel);
-    if (gateway == nullptr) {
-        NETMGR_EXT_LOG_E("gateway is null");
-        return nullptr;
-    }
-    ptr->gateway_ = *gateway;
-    sptr<INetAddr> netMask = INetAddr::Unmarshalling(parcel);
-    if (netMask == nullptr) {
-        NETMGR_EXT_LOG_E("netMask is null");
-        return nullptr;
-    }
-    ptr->netMask_ = *netMask;
+
+    bool ret = UnmarshallingNetAddressList(parcel, ptr->ipAddrList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, ptr->routeList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, ptr->gatewayList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, ptr->netMaskList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, ptr->dnsServers_, MAX_DNS_SIZE) && parcel.ReadString(ptr->domain_);
+    return ret ? ptr : nullptr;
+}
+
+bool StaticConfiguration::UnmarshallingNetAddressList(Parcel &parcel, std::vector<INetAddr> &netAddrList,
+                                                      uint32_t maxSize)
+{
+    std::vector<INetAddr>().swap(netAddrList);
+
     uint32_t size = 0;
-    if (!parcel.ReadUint32(size) || size > MAX_SIZE) {
-        NETMGR_EXT_LOG_E("readUint32 failed or size=[%{public}d] is too large", size);
-        return nullptr;
+    if (!parcel.ReadUint32(size)) {
+        NETMGR_EXT_LOG_E("Read INetAddr list size failed");
+        return false;
     }
+    size = (size > maxSize) ? maxSize : size;
     for (uint32_t i = 0; i < size; i++) {
-        sptr<INetAddr> netAddr = INetAddr::Unmarshalling(parcel);
+        auto netAddr = INetAddr::Unmarshalling(parcel);
         if (netAddr == nullptr) {
-            NETMGR_EXT_LOG_E("netAddr is null");
-            return nullptr;
+            return false;
         }
-        ptr->dnsServers_.push_back(*netAddr);
+        netAddrList.push_back(*netAddr);
     }
-    if (!parcel.ReadString(ptr->domain_)) {
-        return nullptr;
+    return true;
+}
+
+void StaticConfiguration::ExtractNetAddrBySeparator(const std::string &input, std::vector<INetAddr> &netAddrList)
+{
+    std::vector<INetAddr>().swap(netAddrList);
+    for (const auto &netAddr : CommonUtils::Split(input, SEPARATOR)) {
+        INetAddr addr;
+        addr.address_ = netAddr;
+        netAddrList.push_back(addr);
     }
-    return ptr;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

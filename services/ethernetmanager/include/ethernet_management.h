@@ -86,6 +86,7 @@ private:
     std::unique_ptr<EthernetDhcpController> ethDhcpController_ = nullptr;
     sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_ = nullptr;
     sptr<NetsysControllerCallback> ethDevInterfaceStateCallback_ = nullptr;
+    std::map<std::string, sptr<StaticConfiguration>> netLinkConfigs_;
     std::mutex mutex_;
 };
 } // namespace NetManagerStandard

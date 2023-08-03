@@ -44,8 +44,7 @@ public:
     void SetIfcfg(sptr<InterfaceConfiguration> &ifCfg);
     void SetDhcpReqState(bool dhcpReqState);
     void UpdateNetHttpProxy(const HttpProxy &httpProxy);
-    void UpdateLinkInfo(const INetAddr &ipAddr, const INetAddr &netMask, const INetAddr &gateWay, const INetAddr &route,
-                        const INetAddr &dns1, const INetAddr &dns2);
+    void UpdateLinkInfo(const sptr<StaticConfiguration> &config);
     std::string GetDevName() const;
     const std::set<NetCap> &GetNetCaps() const;
     std::set<NetCap> GetNetCaps();
@@ -66,7 +65,11 @@ private:
     enum ConnLinkState { REGISTERED, UNREGISTERED, LINK_AVAILABLE, LINK_UNAVAILABLE };
     void UpdateLinkInfo();
     void UpdateSupplierAvailable();
-    Route CreateLocalRoute(const std::string &iface, const std::string &ipAddr, const std::string &maskAddr);
+    void CreateLocalRoute(const std::string &iface, const std::vector<INetAddr> &ipAddrList,
+                          const std::vector<INetAddr> &netMaskList);
+    std::string GetIpv4Prefix(const std::string &ipv4Addr, const std::vector<INetAddr> &netMaskList);
+    void GetTargetNetAddrWithSameFamily(const std::string &bySrcAddr, const std::vector<INetAddr> &fromAddrList,
+                                        INetAddr &targetNetAddr);
 
 private:
     ConnLinkState connLinkState_ = UNREGISTERED;

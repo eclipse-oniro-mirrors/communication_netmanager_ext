@@ -120,7 +120,7 @@ EthernetManagement::EthernetManagement()
     }
 
     ethConfiguration_ = std::make_unique<EthernetConfiguration>();
-    ethConfiguration_->ReadSysteamConfiguration(devCaps_, devCfgs_);
+    ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
 }
 
 EthernetManagement::~EthernetManagement() = default;
@@ -155,6 +155,7 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
             StopDhcpClient(dev, devState);
         }
         devState->RemoteUpdateNetSupplierInfo();
+        netLinkConfigs_[dev] = nullptr;
     }
 }
 
@@ -183,6 +184,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
             StartDhcpClient(iface, fit->second);
         } else {
             StopDhcpClient(iface, fit->second);
+            netLinkConfigs_[iface] = nullptr;
         }
     } else if (cfg->mode_ == DHCP) {
         fit->second->UpdateNetHttpProxy(cfg->httpProxy_);
@@ -195,6 +197,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
 int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     NETMGR_EXT_LOG_D("EthernetManagement::UpdateDevInterfaceLinkInfo");
+    std::lock_guard<std::mutex> locker(mutex_);
     auto fit = devs_.find(dhcpResult.iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", dhcpResult.iface.c_str());
@@ -204,18 +207,25 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         NETMGR_EXT_LOG_E("The iface[%{public}s] The device is not turned on", dhcpResult.iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
-    sptr<StaticConfiguration> config = new (std::nothrow) StaticConfiguration();
+
+    if (fit->second->GetIPSetMode() == IPSetMode::STATIC) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] set mode is STATIC now", dhcpResult.iface.c_str());
+        return ETHERNET_ERR_DEVICE_NOT_LINK;
+    }
+
+    auto &config = netLinkConfigs_[dhcpResult.iface];
     if (config == nullptr) {
-        NETMGR_EXT_LOG_E("config is nullptr");
-        return ETHERNET_ERR_EMPTY_CONFIGURATION;
+        config = new (std::nothrow) StaticConfiguration();
+        if (config == nullptr) {
+            NETMGR_EXT_LOG_E("Iface:%{public}s's link info config is nullptr", dhcpResult.iface.c_str());
+        }
     }
 
     if (!ethConfiguration_->ConvertToConfiguration(dhcpResult, config)) {
         NETMGR_EXT_LOG_E("EthernetManagement dhcp convert to configurations error!");
         return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
     }
-    fit->second->UpdateLinkInfo(config->ipAddr_, config->netMask_, config->gateway_, config->route_,
-                                config->dnsServers_.front(), config->dnsServers_.back());
+    fit->second->UpdateLinkInfo(config);
     fit->second->RemoteUpdateNetLinkInfo();
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -233,6 +243,9 @@ int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<In
         return NETMANAGER_EXT_SUCCESS;
     }
     auto temp = ethConfiguration_->MakeInterfaceConfiguration(fit->second->GetIfcfg(), fit->second->GetLinkInfo());
+    if (temp == nullptr) {
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
     *ifaceConfig = *temp;
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -333,14 +346,14 @@ bool EthernetManagement::IsIfaceLinkUp(const std::string &iface)
 void EthernetManagement::StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartDhcpClient[%{public}s]", dev.c_str());
-    ethDhcpController_->StartDhcpClient(dev, false);
+    ethDhcpController_->StartDhcpClient(dev, true);
     devState->SetDhcpReqState(true);
 }
 
 void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StopDhcpClient[%{public}s]", dev.c_str());
-    ethDhcpController_->StopDhcpClient(dev, false);
+    ethDhcpController_->StopDhcpClient(dev, true);
     devState->SetDhcpReqState(false);
 }
 
@@ -350,7 +363,7 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
     std::unique_lock<std::mutex> lock(mutex_);
     auto fitDev = devs_.find(devName);
     if (fitDev != devs_.end()) {
-        NETMGR_EXT_LOG_D("Interface name:[%{public}s] has added.", devName.c_str());
+        NETMGR_EXT_LOG_E("Interface name:[%{public}s] has added.", devName.c_str());
         return;
     }
     sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();

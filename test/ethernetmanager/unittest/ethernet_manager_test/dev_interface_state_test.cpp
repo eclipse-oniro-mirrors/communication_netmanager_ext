@@ -59,16 +59,13 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateTest001, TestSize.Level1)
     bool getDhcpReqState = devInterfaceState.GetDhcpReqState();
     EXPECT_TRUE(getDhcpReqState);
 
-    INetAddr ipAddr;
-    INetAddr netMask;
-    INetAddr gateWay;
-    INetAddr route;
-    INetAddr dns1;
-    INetAddr dns2;
+    sptr<StaticConfiguration> config = nullptr;
+    devInterfaceState.UpdateLinkInfo(config);
+    config = new (std::nothrow) StaticConfiguration();
     devInterfaceState.linkInfo_ = nullptr;
-    devInterfaceState.UpdateLinkInfo(ipAddr, netMask, gateWay, route, dns1, dns2);
+    devInterfaceState.UpdateLinkInfo(config);
     devInterfaceState.linkInfo_ = new (std::nothrow) NetLinkInfo();
-    devInterfaceState.UpdateLinkInfo(ipAddr, netMask, gateWay, route, dns1, dns2);
+    devInterfaceState.UpdateLinkInfo(config);
     std::string devName = devInterfaceState.GetDevName();
     EXPECT_STREQ(devName.c_str(), "ahaha");
     std::set<NetCap> getNetCaps = devInterfaceState.GetNetCaps();

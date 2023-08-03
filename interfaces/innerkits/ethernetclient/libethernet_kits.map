@@ -20,6 +20,7 @@
       vtable?for?OHOS::NetManagerStandard::INetAddr;
       VTT?for?OHOS::NetManagerStandard::StaticConfiguration;
       vtable?for?OHOS::NetManagerStandard::StaticConfiguration;
+      "OHOS::NetManagerStandard::StaticConfiguration::ExtractNetAddrBySeparator(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<OHOS::NetManagerStandard::INetAddr, std::__h::allocator<OHOS::NetManagerStandard::INetAddr>>&)";
       "OHOS::NetManagerStandard::EthernetClient::GetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration>&)";
       "OHOS::NetManagerStandard::EthernetClient::EthernetClient()";
       "OHOS::NetManagerStandard::EthernetClient::SetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration>&)";

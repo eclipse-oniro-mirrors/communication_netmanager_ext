@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,16 +24,20 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct StaticConfiguration final: public Parcelable {
-    INetAddr ipAddr_;
-    INetAddr route_;
-    INetAddr gateway_;
-    INetAddr netMask_;
+struct StaticConfiguration final : public Parcelable {
+    std::vector<INetAddr> ipAddrList_;
+    std::vector<INetAddr> routeList_;
+    std::vector<INetAddr> gatewayList_;
+    std::vector<INetAddr> netMaskList_;
     std::vector<INetAddr> dnsServers_;
     std::string domain_;
 
     bool Marshalling(Parcel &parcel) const override;
+    bool MarshallingNetAddressList(const std::vector<INetAddr> &netAddrList, uint32_t maxSize, Parcel &parcel) const;
+
     static sptr<StaticConfiguration> Unmarshalling(Parcel &parcel);
+    static bool UnmarshallingNetAddressList(Parcel &parcel, std::vector<INetAddr> &netAddrList, uint32_t maxSize);
+    static void ExtractNetAddrBySeparator(const std::string &input, std::vector<INetAddr> &netAddrList);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
