@@ -53,5 +53,28 @@ void VpnEventCallbackProxy::OnVpnStateChanged(const bool &isConnected)
         NETMGR_EXT_LOG_E("OnVpnStateChanged SendRequest error=[%{public}d].", ret);
     }
 }
+
+void VpnEventCallbackProxy::OnVpnMultiUserSetUp()
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(IVpnEventCallback::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("write interface token failed");
+        return;
+    }
+
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("OnVpnMultiUserSetUp get Remote() error.");
+        return;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(IVpnEventCallback::Message::GLOBAL_VPN_MULTI_USER_SETUP),
+                                      data, reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("OnVpnMultiUserSetUp SendRequest error=[%{public}d].", ret);
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

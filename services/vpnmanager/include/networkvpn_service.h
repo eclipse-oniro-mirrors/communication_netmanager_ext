@@ -94,8 +94,9 @@ public:
 private:
     bool Init();
     void GetDumpMessage(std::string &message);
-    int32_t CheckCurrentUser(int32_t &hapUserId);
+    int32_t CheckCurrentAccountType(int32_t &userId);
 
+    void OnVpnMultiUserSetUp();
     int32_t SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback);
     int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
 

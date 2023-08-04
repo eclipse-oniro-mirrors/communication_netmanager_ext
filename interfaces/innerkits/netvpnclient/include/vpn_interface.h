@@ -16,9 +16,10 @@
 #ifndef NET_VPN_INTERFACE_H
 #define NET_VPN_INTERFACE_H
 
+#include <atomic>
 #include <cstdint>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -36,7 +37,7 @@ private:
     int32_t RecvMsgFromUnixServer(int32_t sockfd);
 
 private:
-    int32_t tunFd_ = 0;
+    std::atomic_int tunFd_{0};
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

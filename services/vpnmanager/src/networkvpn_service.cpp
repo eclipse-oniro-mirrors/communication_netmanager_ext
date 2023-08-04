@@ -143,6 +143,17 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
     }
 }
 
+void NetworkVpnService::OnVpnMultiUserSetUp()
+{
+    NETMGR_EXT_LOG_I("user multiple execute set up.");
+    if (policyCallHandler_) {
+        policyCallHandler_->PostSyncTask([this]() {
+            std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
+                          [](const auto &callback) { callback->OnVpnMultiUserSetUp(); });
+        });
+    }
+}
+
 int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
 {
     isRun = false;
@@ -158,19 +169,23 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
 
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
 {
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    int32_t hapUserId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, hapUserId) != ERR_OK) {
-        NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error.");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t ret = CheckCurrentAccountType(userId);
+    if (NETMANAGER_EXT_SUCCESS != ret) {
+        return ret;
     }
 
     if (vpnObj_ != nullptr) {
-        NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        if (vpnObj_->GetUserId() == userId) {
+            NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");
+            return NETWORKVPN_ERROR_VPN_EXIST;
+        } else {
+            OnVpnMultiUserSetUp();
+            vpnObj_->Destroy();
+        }
     }
 
-    vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", hapUserId);
+    vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId);
     if (vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("SetUpVpn register internal callback fail.");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -191,6 +206,12 @@ int32_t NetworkVpnService::Protect()
 
 int32_t NetworkVpnService::DestroyVpn()
 {
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t ret = CheckCurrentAccountType(userId);
+    if (NETMANAGER_EXT_SUCCESS != ret) {
+        return ret;
+    }
+
     if ((vpnObj_ != nullptr) && (vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
         NETMGR_EXT_LOG_E("destroy vpn is failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -218,39 +239,36 @@ int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> call
     return ret;
 }
 
-int32_t NetworkVpnService::CheckCurrentUser(int32_t &hapUserId)
+int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId)
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
-    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, hapUserId) != ERR_OK) {
-        NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error.");
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
+        NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    std::vector<int32_t> activeUserId;
-    if (AccountSA::OsAccountManager::QueryActiveOsAccountIds(activeUserId) != ERR_OK) {
+    std::vector<int32_t> activeUserIds;
+    if (AccountSA::OsAccountManager::QueryActiveOsAccountIds(activeUserIds) != ERR_OK) {
         NETMGR_EXT_LOG_E("QueryActiveOsAccountIds error.");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (activeUserId.size() == 0) {
-        NETMGR_EXT_LOG_E("failed to get active user id.");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    if (hapUserId != activeUserId[0]) {
-        NETMGR_EXT_LOG_E("hapUserId:%{public}d, curUserId:%{public}d.", hapUserId, activeUserId[0]);
+
+    auto itr = std::find_if(activeUserIds.begin(), activeUserIds.end(),
+                            [userId](const int32_t &elem) { return (elem == userId) ? true : false; });
+    if (itr == activeUserIds.end()) {
+        NETMGR_EXT_LOG_E("userId: %{public}d is not active user. activeUserIds.size: %{public}zd", userId,
+                         activeUserIds.size());
         return NETWORKVPN_ERROR_REFUSE_CREATE_VPN;
     }
 
     AccountSA::OsAccountInfo accountInfo;
-    if (AccountSA::OsAccountManager::QueryOsAccountById(hapUserId, accountInfo) != ERR_OK) {
-        NETMGR_EXT_LOG_E("QueryOsAccountById error.");
+    if (AccountSA::OsAccountManager::QueryOsAccountById(userId, accountInfo) != ERR_OK) {
+        NETMGR_EXT_LOG_E("QueryOsAccountById error, userId: %{public}d.", userId);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    // ADMIN = 0, NORMAL, GUEST
-    AccountSA::OsAccountType userType = accountInfo.GetType();
-    if (userType == AccountSA::OsAccountType::GUEST ||
-        (userType == AccountSA::OsAccountType::NORMAL && vpnObj_ != nullptr)) {
-        NETMGR_EXT_LOG_E("hap User type=%{public}d, vpn=%{public}d.", userType, vpnObj_ != nullptr ? 1 : 0);
+    if (accountInfo.GetType() == AccountSA::OsAccountType::GUEST) {
+        NETMGR_EXT_LOG_E("The guest user cannot execute the VPN interface.");
         return NETWORKVPN_ERROR_REFUSE_CREATE_VPN;
     }
     return NETMANAGER_EXT_SUCCESS;

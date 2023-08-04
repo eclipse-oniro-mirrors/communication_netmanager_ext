@@ -27,10 +27,18 @@ namespace NetManagerStandard {
 class VpnEventCallback : public VpnEventCallbackStub {
 public:
     void OnVpnStateChanged(const bool &isConnected) override;
+    void OnVpnMultiUserSetUp() override{};
 };
 
 class VpnMonitor {
-    DECLARE_DELAYED_SINGLETON(VpnMonitor);
+private:
+    VpnMonitor() = default;
+    ~VpnMonitor() = default;
+    VpnMonitor(const VpnMonitor &) = delete;
+    VpnMonitor &operator=(const VpnMonitor &) = delete;
+
+public:
+    static VpnMonitor &GetInstance();
 
 public:
     napi_value On(napi_env env, napi_callback_info info);

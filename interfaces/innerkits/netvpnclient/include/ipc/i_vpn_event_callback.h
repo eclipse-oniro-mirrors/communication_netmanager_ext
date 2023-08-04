@@ -26,9 +26,11 @@ namespace NetManagerStandard {
 class IVpnEventCallback : public IRemoteBroker {
 public:
     virtual void OnVpnStateChanged(const bool &isConnected) = 0;
+    virtual void OnVpnMultiUserSetUp() = 0;
 
     enum class Message {
         GLOBAL_VPN_STATE_CHANGED,
+        GLOBAL_VPN_MULTI_USER_SETUP,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService.IVpnEventCallback");

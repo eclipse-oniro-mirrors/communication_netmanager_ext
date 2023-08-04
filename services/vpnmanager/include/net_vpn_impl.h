@@ -56,6 +56,10 @@ public:
     {
         return pkgName_;
     }
+    inline int32_t GetUserId() const
+    {
+        return userId_;
+    }
     inline bool IsVpnConnecting() const
     {
         return isVpnConnecting_;
