@@ -285,6 +285,15 @@ int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfac
 
 int32_t EthernetService::ResetFactory()
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        NETMGR_EXT_LOG_E("EthernetService GetAllActiveIfaces no js permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
     if (ethManagement_ == nullptr) {
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
