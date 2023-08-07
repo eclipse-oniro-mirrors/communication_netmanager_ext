@@ -45,23 +45,12 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
-class VpnEventTestCallback : public VpnEventCallbackStub {
-public:
-    inline void OnVpnStateChanged(const bool &isConnected) override
-    {
-        std::cout << std::endl;
-        std::cout << "OnVpnStateChanged::isConnected: " << isConnected << std::endl;
-        return;
-    }
-};
 } // namespace
 
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override
-    {
-        return;
-    }
+    void OnVpnStateChanged(const bool &isConnected) override{};
+    void OnVpnMultiUserSetUp() override{};
 };
 
 class NetworkVpnClientTest : public testing::Test {

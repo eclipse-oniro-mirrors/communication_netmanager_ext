@@ -125,10 +125,8 @@ bool InitGlobalData(const uint8_t *data, size_t size)
 
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override
-    {
-        return;
-    }
+    void OnVpnStateChanged(const bool &isConnected) override{};
+    void OnVpnMultiUserSetUp() override{};
 };
 
 class TestVpnStub : public NetworkVpnServiceStub {

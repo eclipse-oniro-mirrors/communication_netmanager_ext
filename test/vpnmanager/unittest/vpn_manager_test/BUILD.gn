@@ -26,10 +26,9 @@ ohos_unittest("vpn_manager_test") {
     "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
-    "$EXT_INNERKITS_ROOT/netvpnclient/include/proxy",
-    "$EXT_INNERKITS_ROOT/netvpnclient/include/proxy/ipccallback",
+    "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
-    "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/stub",
+    "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
 
