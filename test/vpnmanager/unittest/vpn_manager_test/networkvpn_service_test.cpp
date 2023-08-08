@@ -34,10 +34,8 @@ using namespace testing::ext;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 class VpnEventTestCallback : public VpnEventCallbackStub {
 public:
-    inline void OnVpnStateChanged(const bool &isConnected) override
-    {
-        return;
-    }
+    void OnVpnStateChanged(const bool &isConnected) override{};
+    void OnVpnMultiUserSetUp() override{};
 };
 } // namespace
 
@@ -47,7 +45,7 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    static inline auto instance_ = DelayedSingleton<NetworkVpnService>::GetInstance();
+    static inline auto instance_ = &Singleton<NetworkVpnService>::GetInstance();
     static inline sptr<IVpnEventCallback> eventCallback_ = nullptr;
 };
 
@@ -101,9 +99,9 @@ HWTEST_F(NetworkVpnServiceTest, GetDumpMessage, TestSize.Level1)
     std::string message;
     instance_->vpnObj_ = nullptr;
     instance_->GetDumpMessage(message);
-    int32_t hapUserId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", hapUserId);
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId);
     instance_->GetDumpMessage(message);
     EXPECT_EQ(message.empty(), false);
 }
@@ -118,10 +116,10 @@ HWTEST_F(NetworkVpnServiceTest, Prepare001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
 {
-    int32_t hapUserId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", hapUserId);
-    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_EXT_ERR_INTERNAL);
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId);
+    EXPECT_EQ(instance_->SetUpVpn(config), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
@@ -132,7 +130,7 @@ HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, DestroyVpn, TestSize.Level1)
 {
     instance_->vpnObj_ = nullptr;
-    EXPECT_EQ(instance_->DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->DestroyVpn(), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
 }
 
 HWTEST_F(NetworkVpnServiceTest, RegisterSharingEventTest001, TestSize.Level1)
@@ -151,8 +149,8 @@ HWTEST_F(NetworkVpnServiceTest, UnregisterSharingEventTest001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, CheckCurrentUser, TestSize.Level1)
 {
-    int32_t hapUserId = 10;
-    EXPECT_EQ(instance_->CheckCurrentUser(hapUserId), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
+    int32_t userId = 0;
+    EXPECT_EQ(instance_->CheckCurrentAccountType(userId), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
 }
 
 HWTEST_F(NetworkVpnServiceTest, SyncRegisterVpnEvent, TestSize.Level1)

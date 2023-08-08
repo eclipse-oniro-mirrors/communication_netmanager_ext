@@ -24,6 +24,18 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
+void VpnSetUpEventCallback::OnVpnMultiUserSetUp()
+{
+    NETMGR_EXT_LOG_I("vpn multiple user setup event.");
+    NetworkVpnClient::GetInstance().multiUserSetUpEvent();
+}
+
+NetworkVpnClient &NetworkVpnClient::GetInstance()
+{
+    static NetworkVpnClient instance;
+    return instance;
+}
+
 int32_t NetworkVpnClient::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
@@ -76,12 +88,27 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd)
     if (tunFd <= 0) {
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+
+    if (vpnEventCallback_ != nullptr) {
+        UnregisterVpnEvent(vpnEventCallback_);
+    }
+    vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
+    if (vpnEventCallback_ == nullptr) {
+        NETMGR_EXT_LOG_E("vpnEventCallback_ is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    RegisterVpnEvent(vpnEventCallback_);
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkVpnClient::DestroyVpn()
 {
     vpnInterface_.CloseVpnInterfaceFd();
+    if (vpnEventCallback_ != nullptr) {
+        UnregisterVpnEvent(vpnEventCallback_);
+        vpnEventCallback_ = nullptr;
+    }
+
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("DestroyVpn proxy is nullptr");
@@ -169,6 +196,15 @@ void NetworkVpnClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
     local->RemoveDeathRecipient(deathRecipient_);
     networkVpnService_ = nullptr;
+}
+
+void NetworkVpnClient::multiUserSetUpEvent()
+{
+    vpnInterface_.CloseVpnInterfaceFd();
+    if (vpnEventCallback_ != nullptr) {
+        UnregisterVpnEvent(vpnEventCallback_);
+        vpnEventCallback_ = nullptr;
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -28,13 +28,16 @@ int32_t VpnEventCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data
     }
 
     IVpnEventCallback::Message msgCode = static_cast<IVpnEventCallback::Message>(code);
-    if (IVpnEventCallback::Message::GLOBAL_VPN_STATE_CHANGED == msgCode) {
+    if (msgCode == IVpnEventCallback::Message::GLOBAL_VPN_STATE_CHANGED) {
         bool isConnected = false;
         if (!data.ReadBool(isConnected)) {
             NETMGR_EXT_LOG_E("IPC ReadBool failed");
             return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
         }
         OnVpnStateChanged(isConnected);
+        return NETMANAGER_EXT_SUCCESS;
+    } else if (msgCode == IVpnEventCallback::Message::GLOBAL_VPN_MULTI_USER_SETUP) {
+        OnVpnMultiUserSetUp();
         return NETMANAGER_EXT_SUCCESS;
     }
 

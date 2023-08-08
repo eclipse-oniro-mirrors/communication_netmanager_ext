@@ -52,12 +52,12 @@ napi_value Destroy(napi_env env, napi_callback_info info)
 
 napi_value On(napi_env env, napi_callback_info info)
 {
-    return DelayedSingleton<VpnMonitor>::GetInstance()->On(env, info);
+    return VpnMonitor::GetInstance().On(env, info);
 }
 
 napi_value Off(napi_env env, napi_callback_info info)
 {
-    return DelayedSingleton<VpnMonitor>::GetInstance()->Off(env, info);
+    return VpnMonitor::GetInstance().Off(env, info);
 }
 } // namespace VpnConnection
 } // namespace NetManagerStandard

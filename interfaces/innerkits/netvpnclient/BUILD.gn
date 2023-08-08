@@ -17,8 +17,7 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 config("net_conn_manager_if_config") {
   include_dirs = [
     "include",
-    "include/proxy",
-    "include/proxy/ipccallback",
+    "include/ipc",
     "$BASE_INNERKITS_ROOT/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
@@ -66,10 +65,9 @@ ohos_source_set("networkvpn_parcel") {
 
 ohos_shared_library("net_vpn_manager_if") {
   sources = [
+    "$VPN_INNERKITS_SOURCE_DIR/src/ipc/networkvpn_service_proxy.cpp",
+    "$VPN_INNERKITS_SOURCE_DIR/src/ipc/vpn_event_callback_stub.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/networkvpn_client.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/vpn_event_callback_proxy.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/vpn_event_callback_stub.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/proxy/networkvpn_service_proxy.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/vpn_interface.cpp",
   ]
 

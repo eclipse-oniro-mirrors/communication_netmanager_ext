@@ -27,6 +27,7 @@ public:
     virtual ~VpnEventCallbackProxy() = default;
 
     virtual void OnVpnStateChanged(const bool &isConnected) override;
+    virtual void OnVpnMultiUserSetUp() override;
 
 private:
     static inline BrokerDelegator<VpnEventCallbackProxy> delegator_;

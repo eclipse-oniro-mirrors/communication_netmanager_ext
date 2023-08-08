@@ -35,7 +35,7 @@ ohos_shared_library("vpn") {
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$NETMANAGER_BASE_ROOT/utils/log/include",
     "$BASE_INNERKITS_ROOT/netvpnclient/include",
-    "$BASE_INNERKITS_ROOT/netvpnclient/include/proxy/ipccallback",
+    "$BASE_INNERKITS_ROOT/netvpnclient/include/ipc",
   ]
 
   deps = [

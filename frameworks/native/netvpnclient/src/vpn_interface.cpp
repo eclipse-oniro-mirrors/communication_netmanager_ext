@@ -160,14 +160,14 @@ int32_t VpnInterface::GetVpnInterfaceFd()
     }
 
     close(sockfd);
-    NETMGR_EXT_LOG_I("recv tun device fd: [%{public}d]", tunFd_);
+    NETMGR_EXT_LOG_I("receive tun device fd: [%{public}d]", tunFd_.load());
     return tunFd_;
 }
 
 void VpnInterface::CloseVpnInterfaceFd()
 {
     if (tunFd_ > 0) {
-        NETMGR_EXT_LOG_I("close [%{public}d]", tunFd_);
+        NETMGR_EXT_LOG_I("close tunfd[%{public}d] of vpn interface", tunFd_.load());
         close(tunFd_);
         tunFd_ = 0;
     }

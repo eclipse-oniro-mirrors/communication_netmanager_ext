@@ -74,8 +74,7 @@ int32_t NetVpnImpl::SetUp()
     NETMGR_EXT_LOG_I("SetUp interface name:%{public}s", TUN_CARD_NAME);
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
 
-    auto& netConnClientIns = NetConnClient::GetInstance();
-
+    auto &netConnClientIns = NetConnClient::GetInstance();
     if (!RegisterNetSupplier(netConnClientIns)) {
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_REG_NET_SUPPLIER_ERROR,
                                                  "register Supplier failed");
@@ -97,6 +96,7 @@ int32_t NetVpnImpl::SetUp()
     std::list<int32_t> netIdList;
     netConnClientIns.GetNetIdByIdentifier(TUN_CARD_NAME, netIdList);
     if (netIdList.size() == 0) {
+        NETMGR_EXT_LOG_E("get netId failed, netId list size is 0");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR, "get Net id failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
@@ -125,8 +125,7 @@ int32_t NetVpnImpl::Destroy()
                                                  "remove app uid rule failed");
     }
 
-    auto& netConnClientIns = NetConnClient::GetInstance();
-
+    auto &netConnClientIns = NetConnClient::GetInstance();
     UpdateNetSupplierInfo(netConnClientIns, false);
     UnregisterNetSupplier(netConnClientIns);
 
@@ -146,8 +145,7 @@ bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns)
     if (vpnConfig_->isMetered_ == false) {
         netCap.insert(NET_CAPABILITY_NOT_METERED);
     }
-    if (netConnClientIns.RegisterNetSupplier(BEARER_VPN, TUN_CARD_NAME, netCap, netSupplierId_) !=
-        NETMANAGER_SUCCESS) {
+    if (netConnClientIns.RegisterNetSupplier(BEARER_VPN, TUN_CARD_NAME, netCap, netSupplierId_) != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("vpn netManager RegisterNetSupplier error.");
         return false;
     }

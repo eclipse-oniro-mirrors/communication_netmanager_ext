@@ -81,13 +81,16 @@ bool CheckParamType(napi_env env, napi_value *params, size_t paramsCount)
 
 void VpnEventCallback::OnVpnStateChanged(const bool &isConnected)
 {
-    auto manager = DelayedSingleton<VpnMonitor>::GetInstance()->GetManager();
+    auto manager = VpnMonitor::GetInstance().GetManager();
     bool *data = new bool(isConnected);
     manager->EmitByUv(CONNECT, reinterpret_cast<void *>(data), EventConnectCallback);
 }
 
-VpnMonitor::VpnMonitor() {}
-VpnMonitor::~VpnMonitor() {}
+VpnMonitor &VpnMonitor::GetInstance()
+{
+    static VpnMonitor instance;
+    return instance;
+}
 
 napi_value VpnMonitor::On(napi_env env, napi_callback_info info)
 {
