@@ -17,31 +17,24 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <iosfwd>
-#include <iostream>
-#include <memory>
-#include <new>
-#include <string>
+#include <securec.h>
 
 #include "accesstoken_kit.h"
 #include "refbase.h"
 #include "token_setproc.h"
-#include <securec.h>
 
-#include "i_networkvpn_service.h"
 #include "i_vpn_event_callback.h"
-#include "iremote_stub.h"
-#include "net_manager_ext_constants.h"
-#include "netmgr_ext_log_wrapper.h"
-#include "networkvpn_client.h"
-#include "networkvpn_service_stub.h"
+#include "networkvpn_service.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-const uint8_t *g_baseFuzzData = nullptr;
+
+constexpr size_t STR_LEN = 16;
+
+size_t g_baseFuzzPos = 0;
 size_t g_baseFuzzSize = 0;
-size_t g_baseFuzzPos;
+const uint8_t *g_baseFuzzData = nullptr;
 
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
@@ -51,25 +44,16 @@ HapInfoParams testInfoParms = {.userID = 1,
                                .appIDDesc = "test",
                                .isSystemApp = true};
 
-PermissionDef testPermDef = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+PermissionDef testPermDef = {.permissionName = "ohos.permission.MANAGE_VPN",
                              .bundleName = "vpn_client_fuzzer",
                              .grantMode = 1,
-                             .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+                             .availableLevel = APL_SYSTEM_BASIC,
                              .label = "label",
                              .labelId = 1,
                              .description = "Test vpn maneger network info",
                              .descriptionId = 1};
 
-PermissionDef testInternetPermDef = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                     .bundleName = "net_conn_client_fuzzer",
-                                     .grantMode = 1,
-                                     .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
-                                     .label = "label",
-                                     .labelId = 1,
-                                     .description = "Test netshare connectivity internet",
-                                     .descriptionId = 1};
-
-PermissionStateFull testState = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
+PermissionStateFull testState = {.permissionName = "ohos.permission.MANAGE_VPN",
                                  .isGeneral = true,
                                  .resDeviceID = {"local"},
                                  .grantStatus = {PermissionState::PERMISSION_GRANTED},
@@ -79,12 +63,36 @@ HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
                                    .domain = "test.domain",
                                    .permList = {testPermDef},
                                    .permStateList = {testState}};
+class AccessToken {
+public:
+    AccessToken() : currentID_(GetSelfTokenID())
+    {
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
+        accessID_ = tokenIdEx.tokenIDEx;
+        SetSelfTokenID(tokenIdEx.tokenIDEx);
+    }
+    ~AccessToken()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
 
-HapPolicyParams testInternetPolicyPrams = {.apl = APL_SYSTEM_BASIC,
-                                           .domain = "test.domain",
-                                           .permList = {testPermDef, testInternetPermDef},
-                                           .permStateList = {testState}};
+private:
+    AccessTokenID currentID_;
+    AccessTokenID accessID_ = 0;
+};
 } // namespace
+
+bool InitGlobalData(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+    g_baseFuzzPos = 0;
+    g_baseFuzzSize = size;
+    g_baseFuzzData = data;
+    return true;
+}
 
 template <class T> T GetData()
 {
@@ -101,194 +109,110 @@ template <class T> T GetData()
     return object;
 }
 
-std::string GetStringFromData(int strlen)
+std::string GetStringData()
 {
-    char cstr[strlen];
-    cstr[strlen - 1] = '\0';
-    for (int i = 0; i < strlen - 1; i++) {
+    char cstr[STR_LEN] = {0};
+    for (uint32_t i = 0; i < STR_LEN - 1; i++) {
         cstr[i] = GetData<char>();
     }
-    std::string str(cstr);
-    return str;
+    return std::string(cstr);
 }
 
-bool InitGlobalData(const uint8_t *data, size_t size)
+INetAddr GetAddressData()
 {
-    if (data == nullptr || size == 0) {
-        return false;
-    }
-    g_baseFuzzData = data;
-    g_baseFuzzSize = size;
-    g_baseFuzzPos = 0;
-    return true;
+    INetAddr netAddr;
+    netAddr.type_ = GetData<uint8_t>();
+    netAddr.family_ = GetData<uint8_t>();
+    netAddr.prefixlen_ = GetData<uint8_t>();
+    netAddr.address_ = GetStringData();
+    netAddr.netMask_ = GetStringData();
+    netAddr.hostName_ = GetStringData();
+    netAddr.port_ = GetData<uint8_t>();
+    return netAddr;
 }
 
-class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
+Route GetRouteData()
+{
+    Route route;
+    route.iface_ = GetStringData();
+    route.destination_ = GetAddressData();
+    route.gateway_ = GetAddressData();
+    route.mtu_ = GetData<int32_t>();
+    route.isHost_ = GetData<bool>();
+    route.hasGateway_ = GetData<bool>();
+    route.isDefaultRoute_ = GetData<bool>();
+    return route;
+}
+
+class VpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
     void OnVpnStateChanged(const bool &isConnected) override{};
     void OnVpnMultiUserSetUp() override{};
 };
 
-class TestVpnStub : public NetworkVpnServiceStub {
-public:
-    int32_t Prepare(bool &isExistVpn, bool &isRun, std::string &pkg) override
-    {
-        return 0;
-    }
-    int32_t SetUpVpn(const sptr<VpnConfig> &config) override
-    {
-        return 0;
-    }
-    int32_t Protect() override
-    {
-        return 0;
-    }
-    int32_t DestroyVpn() override
-    {
-        return 0;
-    }
-    int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) override
-    {
-        return 0;
-    }
-    int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) override
-    {
-        return 0;
-    }
-    TestVpnStub();
-    ~TestVpnStub();
-};
-
-TestVpnStub::TestVpnStub() {}
-
-TestVpnStub::~TestVpnStub() {}
-
 int32_t OnRemoteRequest(INetworkVpnService::MessageCode code, MessageParcel &data)
 {
     MessageParcel reply;
     MessageOption option;
-    std::shared_ptr<NetworkVpnServiceStub> test = std::make_shared<TestVpnStub>();
-    return test->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
-}
-
-class AccessToken {
-public:
-    AccessToken() : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(tokenIdEx.tokenIDEx);
-    }
-    ~AccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
-
-class AccessTokenInternetInfo {
-public:
-    AccessTokenInternetInfo() : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testInternetPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
-    }
-    ~AccessTokenInternetInfo()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
-
-bool WriteInterfaceToken(MessageParcel &data)
-{
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return false;
-    }
-    return true;
+    return Singleton<NetworkVpnService>::GetInstance().OnRemoteRequest(static_cast<uint32_t>(code), data, reply,
+                                                                       option);
 }
 
 void PrepareFuzzTest(const uint8_t *data, size_t size)
 {
-    NETMGR_EXT_LOG_D("PrepareFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PREPARE, dataParcel);
 }
 
 void ProtectFuzzTest(const uint8_t *data, size_t size)
 {
-    NETMGR_EXT_LOG_D("ProtectFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PROTECT, dataParcel);
 }
 
 void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
 {
-    NETMGR_EXT_LOG_D("SetUpVpnFuzzTest enter");
     if (!InitGlobalData(data, size)) {
         return;
     }
 
     AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    config->addresses_.emplace_back(GetAddressData());
+    config->routes_.emplace_back(GetRouteData());
+    config->mtu_ = GetData<int32_t>();
+    config->isAcceptIPv4_ = GetData<bool>();
+    config->isAcceptIPv6_ = GetData<bool>();
+    config->isLegacy_ = GetData<bool>();
+    config->isMetered_ = GetData<bool>();
+    config->isBlocking_ = GetData<bool>();
+    config->dnsAddresses_.emplace_back(GetStringData());
+    config->searchDomains_.emplace_back(GetStringData());
+    config->acceptedApplications_.emplace_back(GetStringData());
+    config->acceptedApplications_.emplace_back(GetStringData());
     if (!config->Marshalling(dataParcel)) {
         return;
     }
-
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_START_VPN, dataParcel);
 }
 
 void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
 {
-    NETMGR_EXT_LOG_D("DestroyVpnFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_STOP_VPN, dataParcel);
@@ -296,22 +220,14 @@ void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
 
 void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 {
-    NETMGR_EXT_LOG_D("RegisterVpnEventFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
-    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
 
-    if (!dataParcel.WriteRemoteObject(callback->AsObject())) {
+    sptr<IVpnEventCallback> callback = new (std::nothrow) VpnEventCallbackTest();
+    if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK, dataParcel);
@@ -319,22 +235,14 @@ void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 
 void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 {
-    NETMGR_EXT_LOG_D("UnregisterVpnEventFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
-    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
 
-    if (!dataParcel.WriteRemoteObject(callback->AsObject())) {
+    sptr<IVpnEventCallback> callback = new (std::nothrow) VpnEventCallbackTest();
+    if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK, dataParcel);

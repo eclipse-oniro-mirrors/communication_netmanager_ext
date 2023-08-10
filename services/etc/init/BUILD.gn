@@ -12,6 +12,13 @@
 # limitations under the License.
 import("//build/ohos.gni")
 
+ohos_prebuilt_etc("mdnsmanager_trust") {
+  source = "mdnsmanager_trust.json"
+  module_install_dir = "profile"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
 ## Install mdnsmanager.rc/mdnsmanager.rc to /system/etc/init
 ohos_prebuilt_etc("mdnsmanager.rc") {
   source = "mdnsmanager.cfg"

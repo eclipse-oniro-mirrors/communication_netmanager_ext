@@ -217,7 +217,7 @@ int32_t NetworkVpnService::DestroyVpn()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     vpnObj_ = nullptr;
-    NETMGR_EXT_LOG_I("destroy vpn successfully.");
+    NETMGR_EXT_LOG_I("Destroy vpn successfully.");
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -289,7 +289,7 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
     }
 
     vpnEventCallbacks_.push_back(callback);
-    NETMGR_EXT_LOG_D("Register vpn event callback success");
+    NETMGR_EXT_LOG_I("Register vpn event callback successfully");
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -298,7 +298,7 @@ int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> 
     for (auto iter = vpnEventCallbacks_.begin(); iter != vpnEventCallbacks_.end(); ++iter) {
         if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
             vpnEventCallbacks_.erase(iter);
-            NETMGR_EXT_LOG_D("unregister vpn event successfully.");
+            NETMGR_EXT_LOG_I("Unregister vpn event successfully.");
             return NETMANAGER_EXT_SUCCESS;
         }
     }
