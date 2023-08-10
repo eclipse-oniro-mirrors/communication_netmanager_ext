@@ -45,6 +45,52 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
+
+using namespace Security::AccessToken;
+using Security::AccessToken::AccessTokenID;
+HapInfoParams testInfoParms = {.userID = 1,
+                               .bundleName = "vpn_client_test",
+                               .instIndex = 0,
+                               .appIDDesc = "test",
+                               .isSystemApp = true};
+
+PermissionDef testPermDef = {.permissionName = "ohos.permission.MANAGE_VPN",
+                             .bundleName = "vpn_client_test",
+                             .grantMode = 1,
+                             .availableLevel = APL_SYSTEM_BASIC,
+                             .label = "label",
+                             .labelId = 1,
+                             .description = "Test vpn maneger network info",
+                             .descriptionId = 1};
+
+PermissionStateFull testState = {.permissionName = "ohos.permission.MANAGE_VPN",
+                                 .isGeneral = true,
+                                 .resDeviceID = {"local"},
+                                 .grantStatus = {PermissionState::PERMISSION_GRANTED},
+                                 .grantFlags = {2}};
+
+HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
+                                   .domain = "test.domain",
+                                   .permList = {testPermDef},
+                                   .permStateList = {testState}};
+class AccessToken {
+public:
+    AccessToken() : currentID_(GetSelfTokenID())
+    {
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
+        accessID_ = tokenIdEx.tokenIDEx;
+        SetSelfTokenID(tokenIdEx.tokenIDEx);
+    }
+    ~AccessToken()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+
+private:
+    AccessTokenID currentID_;
+    AccessTokenID accessID_ = 0;
+};
 } // namespace
 
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
@@ -72,7 +118,7 @@ void NetworkVpnClientTest::SetUp() {}
 
 void NetworkVpnClientTest::TearDown() {}
 
-HWTEST_F(NetworkVpnClientTest, Prepare, TestSize.Level1)
+HWTEST_F(NetworkVpnClientTest, Prepare001, TestSize.Level1)
 {
     bool isExistVpn = false;
     bool isRun = false;
@@ -80,40 +126,72 @@ HWTEST_F(NetworkVpnClientTest, Prepare, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.Prepare(isExistVpn, isRun, pkg), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
-HWTEST_F(NetworkVpnClientTest, Protect, TestSize.Level1)
+HWTEST_F(NetworkVpnClientTest, Prepare002, TestSize.Level1)
 {
-    int32_t socketFd = 0;
-    EXPECT_EQ(networkVpnClient_.Protect(socketFd), NETWORKVPN_ERROR_INVALID_FD);
-    socketFd = 1;
-    EXPECT_EQ(networkVpnClient_.Protect(socketFd), NETMANAGER_ERR_PERMISSION_DENIED);
+    AccessToken access;
+    bool isExistVpn = false;
+    bool isRun = false;
+    std::string pkg;
+    EXPECT_EQ(networkVpnClient_.Prepare(isExistVpn, isRun, pkg), NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(NetworkVpnClientTest, SetUpVpn, TestSize.Level1)
+HWTEST_F(NetworkVpnClientTest, Protect001, TestSize.Level1)
+{
+    EXPECT_EQ(networkVpnClient_.Protect(0), NETWORKVPN_ERROR_INVALID_FD);
+    EXPECT_EQ(networkVpnClient_.Protect(1), NETMANAGER_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnClientTest, Protect002, TestSize.Level1)
+{
+    AccessToken access;
+    EXPECT_EQ(networkVpnClient_.Protect(1), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
 {
     sptr<VpnConfig> config = nullptr;
     int32_t tunFd = 0;
     EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     config = new (std::nothrow) VpnConfig();
-    networkVpnClient_.vpnInterface_.tunFd_ = 0;
-    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
-    networkVpnClient_.vpnInterface_.tunFd_ = 1;
-    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
-HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent, TestSize.Level1)
+HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
 {
-    callback_ = nullptr;
-    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    AccessToken access;
+    int32_t tunFd = 0;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
+}
+
+HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
+{
+    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     callback_ = new (std::nothrow) IVpnEventCallbackTest();
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
-HWTEST_F(NetworkVpnClientTest, UnregisterVpnEvent, TestSize.Level1)
+HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent002, TestSize.Level1)
 {
-    callback_ = nullptr;
-    EXPECT_EQ(networkVpnClient_.UnregisterVpnEvent(callback_), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    AccessToken access;
+    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    callback_ = new (std::nothrow) IVpnEventCallbackTest();
+    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnClientTest, UnregisterVpnEvent001, TestSize.Level1)
+{
+    EXPECT_EQ(networkVpnClient_.UnregisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     callback_ = new (std::nothrow) IVpnEventCallbackTest();
     EXPECT_EQ(networkVpnClient_.UnregisterVpnEvent(callback_), NETMANAGER_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnClientTest, UnregisterVpnEvent002, TestSize.Level1)
+{
+    AccessToken access;
+    EXPECT_EQ(networkVpnClient_.UnregisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    callback_ = new (std::nothrow) IVpnEventCallbackTest();
+    EXPECT_EQ(networkVpnClient_.UnregisterVpnEvent(callback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, GetProxy, TestSize.Level1)
