@@ -16,8 +16,8 @@
 #include "static_configuration.h"
 
 #include "inet_addr.h"
-#include "netmgr_ext_log_wrapper.h"
 #include "netmanager_base_common_utils.h"
+#include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -40,7 +40,7 @@ bool StaticConfiguration::Marshalling(Parcel &parcel) const
 bool StaticConfiguration::MarshallingNetAddressList(const std::vector<INetAddr> &netAddrList, uint32_t maxSize,
                                                     Parcel &parcel) const
 {
-    uint32_t size = static_cast<uint32_t>(std::min(maxSize, netAddrList.size()));
+    uint32_t size = static_cast<uint32_t>(std::min(maxSize, static_cast<uint32_t>(netAddrList.size())));
     if (!parcel.WriteUint32(size)) {
         NETMGR_EXT_LOG_E("write netAddrList size to parcel failed");
         return false;
