@@ -67,6 +67,7 @@
                     "//foundation/communication/netmanager_ext:share_packages",
                     "//foundation/communication/netmanager_ext:mdns_packages",
                     "//foundation/communication/netmanager_ext:vpn_packages",
+                    "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager_trust",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager.rc",
                     "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile"
                 ]
