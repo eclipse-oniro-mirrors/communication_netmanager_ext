@@ -19,7 +19,7 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ohos_fuzztest("VpnClientFuzzTest") {
   module_out_path = "communication/netmanager_ext"
   fuzz_config_file =
-      "$NETMANAGER_EXT_ROOT/test/vpnmanager/fuzztest/vpn_client_fuzzer"
+      "$NETMANAGER_EXT_ROOT/test/vpnmanager/fuzztest/vpnclient_fuzzer"
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
@@ -39,7 +39,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "vpn_client_fuzzer.cpp" ]
+  sources = [ "vpnclient_fuzzer.cpp" ]
 
   deps = [
     "$EXT_INNERKITS_ROOT/netvpnclient:net_vpn_manager_if",
