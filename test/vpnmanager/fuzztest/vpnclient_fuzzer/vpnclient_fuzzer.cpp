@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "vpn_client_fuzzer.h"
+#include "vpnclient_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -39,13 +39,13 @@ const uint8_t *g_baseFuzzData = nullptr;
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
 HapInfoParams testInfoParms = {.userID = 1,
-                               .bundleName = "vpn_client_fuzzer",
+                               .bundleName = "vpnclient_fuzzer",
                                .instIndex = 0,
                                .appIDDesc = "test",
                                .isSystemApp = true};
 
 PermissionDef testPermDef = {.permissionName = "ohos.permission.MANAGE_VPN",
-                             .bundleName = "vpn_client_fuzzer",
+                             .bundleName = "vpnclient_fuzzer",
                              .grantMode = 1,
                              .availableLevel = APL_SYSTEM_BASIC,
                              .label = "label",

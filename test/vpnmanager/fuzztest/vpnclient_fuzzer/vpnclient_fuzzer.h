@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef VPN_CLIENT_FUZZER_H
-#define VPN_CLIENT_FUZZER_H
+#ifndef VPNCLIENT_FUZZER_H
+#define VPNCLIENT_FUZZER_H
 
 #define FUZZ_PROJECT_NAME "vpnclient_fuzzer"
 
-#endif // VPN_CLIENT_FUZZER_H
+#endif // VPNCLIENT_FUZZER_H
