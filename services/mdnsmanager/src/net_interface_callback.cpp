@@ -14,10 +14,11 @@
  */
 
 #include "net_interface_callback.h"
+#include "mdns_manager.h"
 
+#include <algorithm>
 #include <sys/types.h>
 #include <unistd.h>
-#include "mdns_manager.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -28,6 +29,14 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
 {
     NETMGR_EXT_LOG_D("mdns_log OnInterfaceAddressUpdated, addr:[%{public}s], iface:[%{public}s], scope:[%{public}d]",
                      addr.c_str(), ifName.c_str(), scope);
+
+    std::string ifrName = ifName;
+    std::transform(ifrName.begin(), ifrName.end(), ifrName.begin(), ::tolower);
+    if (ifrName.find("p2p") != std::string::npos) {
+        NETMGR_EXT_LOG_D("mdns_log Not p2p netcard handle");
+        return NETMANAGER_SUCCESS;
+    }
+
     MDnsManager::GetInstance().RestartMDnsProtocolImpl();
     return NETMANAGER_SUCCESS;
 }
