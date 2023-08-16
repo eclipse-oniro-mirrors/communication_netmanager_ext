@@ -68,9 +68,7 @@ void EthernetDhcpController::OnDhcpSuccess(const std::string &iface, OHOS::Wifi:
         NETMGR_EXT_LOG_E("Error OnDhcpSuccess No Cb!");
         return;
     }
-    NETMGR_EXT_LOG_I(
-        "OnDhcpSuccess -> strYourCli[%{public}s] strSubnet[%{public}s] strRouter1[%{public}s] strRouter2[%{public}s] ",
-        result.strYourCli.c_str(), result.strSubnet.c_str(), result.strRouter1.c_str(), result.strRouter2.c_str());
+
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.iface = iface;
     dhcpResult.ipAddr = result.strYourCli;
