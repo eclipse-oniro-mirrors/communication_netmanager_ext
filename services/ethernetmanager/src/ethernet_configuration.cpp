@@ -274,6 +274,9 @@ sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
         cfg->ipStatic_.netMaskList_.push_back(netMask);
     }
     for (const auto &route : devLinkInfo->routeList_) {
+        if (route.destination_.address_ != DEFAULT_IPV4_ADDR && route.destination_.address_ != DEFAULT_IPV6_ADDR) {
+            continue;
+        }
         cfg->ipStatic_.routeList_.push_back(route.destination_);
         cfg->ipStatic_.gatewayList_.push_back(route.gateway_);
     }
