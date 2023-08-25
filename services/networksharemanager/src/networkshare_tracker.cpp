@@ -1038,7 +1038,7 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
             return;
         }
         std::string taskName = "InterfaceAdded_task";
-        if (iface == configuration_->GetUsbRndisIfaceName()) {
+        if (configuration_->IsUsbIface(iface)) {
             std::function<void()> sharingUsbFunc =
                 std::bind(&NetworkShareTracker::Sharing, this, iface, SUB_SM_STATE_SHARED);
             eventHandler_->PostTask(sharingUsbFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
