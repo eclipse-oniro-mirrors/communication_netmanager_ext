@@ -175,6 +175,24 @@ bool InitGlobalData(const uint8_t *data, size_t size)
     return true;
 }
 
+bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParcel)
+{
+    if (!InitGlobalData(data, size)) {
+        return false;
+    }
+
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+
+    if (!WriteInterfaceToken(dataParcel)) {
+        return false;
+    }
+    int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
+    dataParcel.WriteInt32(type);
+
+    return true;
+}
+
 class INetShareCallbackTest : public IRemoteStub<ISharingEventCallback> {
 public:
     void OnSharingStateChanged(const bool &isRunning)
@@ -271,76 +289,42 @@ void IsSharingFuzzTest(const uint8_t *data, size_t size)
 void StartNetworkSharingFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("StartNetworkSharingFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
 
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
-    int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
-    dataParcel.WriteInt32(type);
+
     OnRemoteRequest(TetheringInterfaceCode::CMD_START_NETWORKSHARE, dataParcel);
 }
 
 void StopNetworkSharingFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("StopNetworkSharingFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
-    int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
-    dataParcel.WriteInt32(type);
     OnRemoteRequest(TetheringInterfaceCode::CMD_STOP_NETWORKSHARE, dataParcel);
 }
 
 void GetSharableRegexsFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("GetSharableRegexsFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
-    int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
-    dataParcel.WriteInt32(type);
     OnRemoteRequest(TetheringInterfaceCode::CMD_GET_SHARABLE_REGEXS, dataParcel);
 }
 
 void GetSharingStateFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("GetSharingStateFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
-    int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
-    dataParcel.WriteInt32(type);
     OnRemoteRequest(TetheringInterfaceCode::CMD_GET_SHARING_STATE, dataParcel);
 }
 

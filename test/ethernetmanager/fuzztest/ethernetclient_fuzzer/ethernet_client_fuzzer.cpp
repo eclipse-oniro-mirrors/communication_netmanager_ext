@@ -194,6 +194,27 @@ bool WriteInterfaceToken(MessageParcel &data)
     return true;
 }
 
+bool CheckDataAndWrite(const uint8_t *data, size_t size, MessageParcel &parcel)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
+    }
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+
+    std::string iface = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(iface)) {
+        return false;
+    }
+
+    return true;
+}
+
+
 int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
 {
     if (!g_isInited) {
@@ -207,20 +228,10 @@ int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
 
 void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return;
-    }
-    g_baseFuzzData = data;
-    g_baseFuzzSize = size;
-    g_baseFuzzPos = 0;
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
     MessageParcel parcel;
-    WriteInterfaceToken(parcel);
-    std::string iface = GetStringFromData(IFACE_LEN);
-    if (!parcel.WriteString(iface)) {
-        return;
+    if (!CheckDataAndWrite(data, size, parcel))
+    {
+         return;
     }
     auto ic = std::make_unique<InterfaceConfiguration>();
     if (!ic->Marshalling(parcel)) {
@@ -308,57 +319,30 @@ void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
 
 void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return;
-    }
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-    g_baseFuzzData = data;
-    g_baseFuzzSize = size;
-    g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string iface = GetStringFromData(IFACE_LEN);
-    WriteInterfaceToken(parcel);
-    if (!parcel.WriteString(iface)) {
-        return;
+    if (!CheckDataAndWrite(data, size, parcel))
+    {
+         return;
     }
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP), parcel);
 }
 
 void SetInterfaceDownFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return;
-    }
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-    g_baseFuzzData = data;
-    g_baseFuzzSize = size;
-    g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string iface = GetStringFromData(IFACE_LEN);
-    WriteInterfaceToken(parcel);
-    if (!parcel.WriteString(iface)) {
-        return;
+    if (!CheckDataAndWrite(data, size, parcel))
+    {
+         return;
     }
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN), parcel);
 }
 
 void GetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return;
-    }
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-    g_baseFuzzData = data;
-    g_baseFuzzSize = size;
-    g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string iface = GetStringFromData(IFACE_LEN);
-    WriteInterfaceToken(parcel);
-    if (!parcel.WriteString(iface)) {
-        return;
+    if (!CheckDataAndWrite(data, size, parcel))
+    {
+         return;
     }
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG), parcel);
 }

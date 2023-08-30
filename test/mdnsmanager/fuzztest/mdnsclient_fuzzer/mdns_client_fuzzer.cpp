@@ -99,6 +99,31 @@ bool WriteInterfaceToken(MessageParcel &data)
     return data.WriteInterfaceToken(IMDnsService::GetDescriptor());
 }
 
+bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParcel)
+{
+    if (!InitGlobalData(data, size)) {
+        return false;
+    }
+
+    if (!WriteInterfaceToken(dataParcel)) {
+        return false;
+    }
+
+    sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo();
+    info->name = GetStringFromData(STR_LEN);
+    info->type = GetStringFromData(STR_LEN);
+    info->family = GetData<int32_t>();
+    info->addr = GetStringFromData(STR_LEN);
+    info->port = GetData<int32_t>();
+    std::string str = GetStringFromData(STR_LEN);
+    info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
+    if (!MDnsServiceInfo::Marshalling(dataParcel, info)) {
+        return false;
+    }
+
+    return true;
+}
+
 void Init()
 {
     if (!g_isInited) {
@@ -121,24 +146,8 @@ int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
 void RegisterServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("RegisterServiceFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
-        return;
-    }
-
-    sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo();
-    info->name = GetStringFromData(STR_LEN);
-    info->type = GetStringFromData(STR_LEN);
-    info->family = GetData<int32_t>();
-    info->addr = GetStringFromData(STR_LEN);
-    info->port = GetData<int32_t>();
-    std::string str = GetStringFromData(STR_LEN);
-    info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
-    if (!MDnsServiceInfo::Marshalling(dataParcel, info)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
 
@@ -154,24 +163,8 @@ void RegisterServiceFuzzTest(const uint8_t *data, size_t size)
 void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("UnRegisterServiceFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
-        return;
-    }
-
-    sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo();
-    info->name = GetStringFromData(STR_LEN);
-    info->type = GetStringFromData(STR_LEN);
-    info->family = GetData<int32_t>();
-    info->addr = GetStringFromData(STR_LEN);
-    info->port = GetData<int32_t>();
-    std::string str = GetStringFromData(STR_LEN);
-    info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
-    if (!MDnsServiceInfo::Marshalling(dataParcel, info)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
 
@@ -187,24 +180,8 @@ void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
 void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("StartDiscoverServiceFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
-        return;
-    }
-
-    sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo();
-    info->name = GetStringFromData(STR_LEN);
-    info->type = GetStringFromData(STR_LEN);
-    info->family = GetData<int32_t>();
-    info->addr = GetStringFromData(STR_LEN);
-    info->port = GetData<int32_t>();
-    std::string str = GetStringFromData(STR_LEN);
-    info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
-    if (!MDnsServiceInfo::Marshalling(dataParcel, info)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
 
@@ -220,24 +197,8 @@ void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
 void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("StopDiscoverServiceFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
-        return;
-    }
-
-    sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo();
-    info->name = GetStringFromData(STR_LEN);
-    info->type = GetStringFromData(STR_LEN);
-    info->family = GetData<int32_t>();
-    info->addr = GetStringFromData(STR_LEN);
-    info->port = GetData<int32_t>();
-    std::string str = GetStringFromData(STR_LEN);
-    info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
-    if (!MDnsServiceInfo::Marshalling(dataParcel, info)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
 
@@ -253,24 +214,8 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
 void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("ResolveServiceFuzzTest enter");
-    if (!InitGlobalData(data, size)) {
-        return;
-    }
-
     MessageParcel dataParcel;
-    if (!WriteInterfaceToken(dataParcel)) {
-        return;
-    }
-
-    sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo();
-    info->name = GetStringFromData(STR_LEN);
-    info->type = GetStringFromData(STR_LEN);
-    info->family = GetData<int32_t>();
-    info->addr = GetStringFromData(STR_LEN);
-    info->port = GetData<int32_t>();
-    std::string str = GetStringFromData(STR_LEN);
-    info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
-    if (!MDnsServiceInfo::Marshalling(dataParcel, info)) {
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
 

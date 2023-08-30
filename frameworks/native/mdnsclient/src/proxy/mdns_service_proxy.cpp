@@ -28,23 +28,16 @@ MDnsServiceProxy::~MDnsServiceProxy() = default;
 int32_t MDnsServiceProxy::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    sptr<IRemoteObject> remote = Remote();
+    int32_t res = CheckMessageParcelRemote<sptr<IRegistrationCallback>>(cb, data, remote);
+    if (res != ERR_NONE) {
+        return res;
     }
 
     sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo(serviceInfo);
     if (info == nullptr) {
         NETMGR_EXT_LOG_E("info is nullptr");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
-    }
-    if (!MDnsServiceInfo::Marshalling(data, info)) {
-        NETMGR_EXT_LOG_E("Marshalling failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
-    if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
-        NETMGR_EXT_LOG_E("proxy write callback failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
 
     sptr<IRemoteObject> remote = Remote();
@@ -70,20 +63,11 @@ int32_t MDnsServiceProxy::RegisterService(const MDnsServiceInfo &serviceInfo, co
 int32_t MDnsServiceProxy::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-
-    if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
-        NETMGR_EXT_LOG_E("proxy write callback failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
 
     sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    int32_t res = CheckMessageParcelRemote<sptr<IRegistrationCallback>>(cb, data, remote);
+    if (res != ERR_NONE) {
+        return res;
     }
     MessageParcel reply;
     MessageOption option;
@@ -103,24 +87,16 @@ int32_t MDnsServiceProxy::UnRegisterService(const sptr<IRegistrationCallback> &c
 int32_t MDnsServiceProxy::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    sptr<IRemoteObject> remote = Remote();
+    int32_t res = CheckMessageParcelRemote<sptr<IDiscoveryCallback>>(cb, data, remote);
+    if (res != ERR_NONE) {
+        return res;
     }
 
     if (!data.WriteString(serviceType)) {
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
-    if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
-        NETMGR_EXT_LOG_E("proxy write callback failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
 
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
     MessageParcel reply;
     MessageOption option;
     int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER),
@@ -140,20 +116,12 @@ int32_t MDnsServiceProxy::StartDiscoverService(const std::string &serviceType, c
 int32_t MDnsServiceProxy::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-
-    if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
-        NETMGR_EXT_LOG_E("proxy write callback failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
 
     sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    sptr<IRemoteObject> remote = Remote();
+    int32_t res = CheckMessageParcelRemote<sptr<IDiscoveryCallback>>(cb, data, remote);
+    if (res != ERR_NONE) {
+        return res;
     }
     MessageParcel reply;
     MessageOption option;
@@ -173,9 +141,10 @@ int32_t MDnsServiceProxy::StopDiscoverService(const sptr<IDiscoveryCallback> &cb
 int32_t MDnsServiceProxy::ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    sptr<IRemoteObject> remote = Remote();
+    int32_t res = CheckMessageParcelRemote<sptr<IResolveCallback>>(cb, data, remote);
+    if (res != ERR_NONE) {
+        return res;
     }
 
     sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo(serviceInfo);
@@ -186,16 +155,6 @@ int32_t MDnsServiceProxy::ResolveService(const MDnsServiceInfo &serviceInfo, con
     if (!MDnsServiceInfo::Marshalling(data, info)) {
         NETMGR_EXT_LOG_E("Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
-    if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
-        NETMGR_EXT_LOG_E("proxy write callback failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
-
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     MessageParcel reply;
     MessageOption option;
@@ -210,6 +169,28 @@ int32_t MDnsServiceProxy::ResolveService(const MDnsServiceInfo &serviceInfo, con
         NETMGR_EXT_LOG_E("MDnsService::ResolveService return: [%{public}d]", retCode);
     }
     return retCode;
+}
+
+template <class T>
+int32_t MDnsServiceProxy::CheckMessageParcelRemote(const T &cb, MessageParcel &data, 
+                                                   const sptr<IRemoteObject> &remote)
+{
+    if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+
+    if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
+        NETMGR_EXT_LOG_E("proxy write callback failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+
+    return ERR_NONE;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

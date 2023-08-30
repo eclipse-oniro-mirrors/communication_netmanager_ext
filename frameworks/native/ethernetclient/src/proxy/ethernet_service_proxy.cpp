@@ -73,24 +73,10 @@ int32_t EthernetServiceProxy::SetIfaceConfig(const std::string &iface, sptr<Inte
 
 int32_t EthernetServiceProxy::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
-    MessageParcel data;
-    if (!WriteInterfaceToken(data)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    if (!data.WriteString(iface)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
     MessageParcel reply;
-    MessageOption option;
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG),
-                                      data, reply, option);
+    int32_t ret = SendRequest(data, iface, reply,
+                              static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG));
     if (ret != ERR_NONE) {
-        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     int32_t res = 0;
@@ -109,24 +95,10 @@ int32_t EthernetServiceProxy::GetIfaceConfig(const std::string &iface, sptr<Inte
 
 int32_t EthernetServiceProxy::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
-    MessageParcel data;
-    if (!WriteInterfaceToken(data)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    if (!data.WriteString(iface)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
     MessageParcel reply;
-    MessageOption option;
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_IS_ACTIVATE),
-                                      data, reply, option);
+    int32_t ret = SendRequest(data, iface, reply,
+                              static_cast<uint32_t>(EthernetInterfaceCode::CMD_IS_ACTIVATE));
     if (ret != ERR_NONE) {
-        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
 
@@ -249,24 +221,10 @@ int32_t EthernetServiceProxy::UnregisterIfacesStateChanged(const sptr<InterfaceS
 
 int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
 {
-    MessageParcel data;
-    if (!WriteInterfaceToken(data)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    if (!data.WriteString(iface)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
     MessageParcel reply;
-    MessageOption option;
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP),
-                                      data, reply, option);
+    int32_t ret = SendRequest(data, iface, reply,
+                              static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP));
     if (ret != ERR_NONE) {
-        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -274,24 +232,11 @@ int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
 
 int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
 {
-    MessageParcel data;
-    if (!WriteInterfaceToken(data)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    if (!data.WriteString(iface)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
     MessageParcel reply;
-    MessageOption option;
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN),
+    int32_t ret = SendRequest(data, iface, reply,
+                              static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN));
                                       data, reply, option);
     if (ret != ERR_NONE) {
-        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -299,24 +244,10 @@ int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
 
 int32_t EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
 {
-    MessageParcel data;
-    if (!WriteInterfaceToken(data)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    if (!data.WriteString(iface)) {
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
     MessageParcel reply;
-    MessageOption option;
-    int32_t ret = remote->SendRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG),
-                                      data, reply, option);
+    int32_t ret = SendRequest(data, iface, reply,
+                              static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG));
     if (ret != ERR_NONE) {
-        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     reply.ReadString(cfg.ifName);

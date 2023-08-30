@@ -32,6 +32,8 @@ public:
     void HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 
 private:
+    bool CheckMessageParcelRemote(MessageParcel &data, const MDnsServiceInfo &serviceInfo,
+                                  const sptr<IRemoteObject> &remote, int32_t retCode);
     static inline BrokerDelegator<RegistrationCallbackProxy> delegator_;
 };
 
@@ -46,6 +48,8 @@ public:
     void HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 
 private:
+    bool CheckMessageParcelRemote(MessageParcel &data, const MDnsServiceInfo &serviceInfo,
+                                  const sptr<IRemoteObject> &remote, int32_t retCode);
     static inline BrokerDelegator<DiscoveryCallbackProxy> delegator_;
 };
 
@@ -57,6 +61,8 @@ public:
     void HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 
 private:
+    bool CheckMessageParcelRemote(MessageParcel &data, const MDnsServiceInfo &serviceInfo, 
+                                  const sptr<IRemoteObject> &remote, int32_t retCode);
     static inline BrokerDelegator<ResolveCallbackProxy> delegator_;
 };
 } // namespace NetManagerStandard
