@@ -73,6 +73,7 @@ int32_t EthernetServiceProxy::SetIfaceConfig(const std::string &iface, sptr<Inte
 
 int32_t EthernetServiceProxy::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
+    MessageParcel data;
     MessageParcel reply;
     int32_t ret = SendRequest(data, iface, reply,
                               static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG));
@@ -95,6 +96,7 @@ int32_t EthernetServiceProxy::GetIfaceConfig(const std::string &iface, sptr<Inte
 
 int32_t EthernetServiceProxy::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
+    MessageParcel data;
     MessageParcel reply;
     int32_t ret = SendRequest(data, iface, reply,
                               static_cast<uint32_t>(EthernetInterfaceCode::CMD_IS_ACTIVATE));
@@ -221,6 +223,7 @@ int32_t EthernetServiceProxy::UnregisterIfacesStateChanged(const sptr<InterfaceS
 
 int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
 {
+    MessageParcel data;
     MessageParcel reply;
     int32_t ret = SendRequest(data, iface, reply,
                               static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP));
@@ -232,10 +235,10 @@ int32_t EthernetServiceProxy::SetInterfaceUp(const std::string &iface)
 
 int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
 {
+    MessageParcel data;
     MessageParcel reply;
     int32_t ret = SendRequest(data, iface, reply,
                               static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN));
-                                      data, reply, option);
     if (ret != ERR_NONE) {
         return ret;
     }
@@ -244,6 +247,7 @@ int32_t EthernetServiceProxy::SetInterfaceDown(const std::string &iface)
 
 int32_t EthernetServiceProxy::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
 {
+    MessageParcel data;
     MessageParcel reply;
     int32_t ret = SendRequest(data, iface, reply,
                               static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG));
