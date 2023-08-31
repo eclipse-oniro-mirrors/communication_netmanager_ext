@@ -74,6 +74,8 @@ private:
     void UnregisterNetSupplier(NetConnClient &netConnClientIns);
     bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);
     bool UpdateNetLinkInfo(NetConnClient &netConnClientIns);
+    void DelNetLinkInfo(NetConnClient &netConnClientIns);
+    void AdjustRouteInfo(Route &route);
 
     void GenerateUidRangesByAcceptedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
                                          std::vector<int32_t> &endUids);
