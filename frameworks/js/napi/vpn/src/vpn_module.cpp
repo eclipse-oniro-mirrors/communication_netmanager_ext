@@ -15,21 +15,37 @@
 
 #include <cstdint>
 
-#include <napi/native_api.h>
-#include <napi/native_common.h>
-
-#include "event_manager.h"
+#include "errorcode_convertor.h"
 #include "module_template.h"
 #include "napi_utils.h"
+#include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 #include "networkvpn_client.h"
-#include "vpn_async_work.h"
 #include "vpn_connection.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-static void *MakeData(napi_env env, size_t paramsCount, napi_value *params, EventManager *manager)
+constexpr int32_t ARG_NUM_0 = 0;
+constexpr int32_t PARAM_ONE = 1;
+
+static void *MakeData(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
 {
+    if ((argc != PARAM_ONE) || (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) != napi_object)) {
+        NETMANAGER_EXT_LOGE("funciton prameter error");
+        napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parameter error");
+        return nullptr;
+    }
+
+    bool isExistVpn = false;
+    bool isRun = false;
+    std::string pkg;
+    int32_t ret = NetworkVpnClient::GetInstance().Prepare(isExistVpn, isRun, pkg);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("execute prepare failed: %{public}d", ret);
+        std::string errorMsg = NetBaseErrorCodeConvertor().ConvertErrorCode(ret);
+        napi_throw_error(env, std::to_string(ret).c_str(), errorMsg.c_str());
+        return nullptr;
+    }
     return reinterpret_cast<void *>(&NetworkVpnClient::GetInstance());
 }
 
