@@ -34,6 +34,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr int32_t INVALID_UID = -1;
+constexpr int32_t NET_MASK_MAX_LENGTH = 32;
 constexpr const char *DEFAULT_ROUTE_ADDR = "0.0.0.0";
 } // namespace
 
@@ -126,6 +127,7 @@ int32_t NetVpnImpl::Destroy()
     }
 
     auto &netConnClientIns = NetConnClient::GetInstance();
+    DelNetLinkInfo(netConnClientIns);
     UpdateNetSupplierInfo(netConnClientIns, false);
     UnregisterNetSupplier(netConnClientIns);
 
@@ -193,19 +195,21 @@ bool NetVpnImpl::UpdateNetLinkInfo(NetConnClient &netConnClientIns)
 
     linkInfo->ifaceName_ = TUN_CARD_NAME;
     linkInfo->netAddrList_.assign(vpnConfig_->addresses_.begin(), vpnConfig_->addresses_.end());
-    linkInfo->routeList_.assign(vpnConfig_->routes_.begin(), vpnConfig_->routes_.end());
-    for (auto &route : linkInfo->routeList_) {
-        route.iface_ = TUN_CARD_NAME;
-    }
 
-    // add default route to vpn table(98)
-    Route defualtRoute;
-    defualtRoute.iface_ = TUN_CARD_NAME;
-    defualtRoute.destination_.type_ = INetAddr::IPV4;
-    defualtRoute.destination_.address_ = DEFAULT_ROUTE_ADDR;
-    defualtRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(DEFAULT_ROUTE_ADDR);
-    defualtRoute.gateway_.address_ = DEFAULT_ROUTE_ADDR;
-    linkInfo->routeList_.emplace_back(defualtRoute);
+    if (vpnConfig_->routes_.empty()) {
+        Route defaultRoute;
+        defaultRoute.iface_ = TUN_CARD_NAME;
+        defaultRoute.destination_.type_ = INetAddr::IPV4;
+        defaultRoute.destination_.address_ = DEFAULT_ROUTE_ADDR;
+        defaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(DEFAULT_ROUTE_ADDR);
+        defaultRoute.gateway_.address_ = DEFAULT_ROUTE_ADDR;
+        linkInfo->routeList_.emplace_back(defaultRoute);
+    } else {
+        linkInfo->routeList_.assign(vpnConfig_->routes_.begin(), vpnConfig_->routes_.end());
+        for (auto &route : linkInfo->routeList_) {
+            AdjustRouteInfo(route);
+        }
+    }
 
     for (auto dnsServer : vpnConfig_->dnsAddresses_) {
         INetAddr dns;
@@ -220,6 +224,26 @@ bool NetVpnImpl::UpdateNetLinkInfo(NetConnClient &netConnClientIns)
     linkInfo->mtu_ = vpnConfig_->mtu_;
     netConnClientIns.UpdateNetLinkInfo(netSupplierId_, linkInfo);
     return true;
+}
+
+void NetVpnImpl::DelNetLinkInfo(NetConnClient &netConnClientIns)
+{
+    for (auto &route : vpnConfig_->routes_) {
+        AdjustRouteInfo(route);
+        std::string destAddress = route.destination_.address_ + "/" + std::to_string(route.destination_.prefixlen_);
+        NetsysController::GetInstance().NetworkRemoveRoute(netId_, route.iface_, destAddress, route.gateway_.address_);
+    }
+}
+
+void NetVpnImpl::AdjustRouteInfo(Route &route)
+{
+    if (route.iface_.empty()) {
+        route.iface_ = TUN_CARD_NAME;
+    }
+    uint32_t maskUint = (0xFFFFFFFF << (NET_MASK_MAX_LENGTH - route.destination_.prefixlen_));
+    uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(route.destination_.address_);
+    uint32_t subNetAddress = ipAddrUint & maskUint;
+    route.destination_.address_ = CommonUtils::ConvertIpv4Address(subNetAddress);
 }
 
 void NetVpnImpl::GenerateUidRangesByAcceptedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
