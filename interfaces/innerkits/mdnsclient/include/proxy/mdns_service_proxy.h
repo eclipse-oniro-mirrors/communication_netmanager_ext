@@ -37,7 +37,7 @@ public:
 
 private:
     template <class T>
-    int32_t CheckMessageParcelRemote(const T &cb, MessageParcel &data, 
+    int32_t CheckMessageParcelRemote(const T &cb, MessageParcel &data,
                                      const sptr<IRemoteObject> &remote);
     static inline BrokerDelegator<MDnsServiceProxy> delegator_;
 };

@@ -166,7 +166,7 @@ int32_t MDnsServiceProxy::ResolveService(const MDnsServiceInfo &serviceInfo, con
 }
 
 template <class T>
-int32_t MDnsServiceProxy::CheckMessageParcelRemote(const T &cb, MessageParcel &data, 
+int32_t MDnsServiceProxy::CheckMessageParcelRemote(const T &cb, MessageParcel &data,
                                                    const sptr<IRemoteObject> &remote)
 {
     if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {

@@ -320,7 +320,8 @@ int32_t EthernetServiceProxy::SetInterfaceConfig(const std::string &iface, OHOS:
     return ret;
 }
 
-int32_t EthernetServiceProxy::SendRequest(MessageParcel &data, const std::string &iface, MessageParcel &reply, uint32_t code)
+int32_t EthernetServiceProxy::SendRequest(MessageParcel &data, const std::string &iface,
+                                          MessageParcel &reply, uint32_t code)
 {
     if (!WriteInterfaceToken(data)) {
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;

@@ -61,7 +61,7 @@ public:
     void HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 
 private:
-    bool CheckMessageParcelRemote(MessageParcel &data, const MDnsServiceInfo &serviceInfo, 
+    bool CheckMessageParcelRemote(MessageParcel &data, const MDnsServiceInfo &serviceInfo,
                                   const sptr<IRemoteObject> &remote, int32_t retCode);
     static inline BrokerDelegator<ResolveCallbackProxy> delegator_;
 };

@@ -522,8 +522,9 @@ void EthernetConfiguration::ParserIfaceIpAndRoute(sptr<InterfaceConfiguration> &
                 continue;
             }
             ipAddr.netMask_ = netMask.address_;
-            ipAddr.prefixlen_ = (maskFamily == AF_INET6) ? static_cast<uint8_t>(CommonUtils::Ipv6PrefixLen(netMask.address_))
-                                                         : static_cast<uint8_t>(CommonUtils::Ipv4PrefixLen(netMask.address_));
+            ipAddr.prefixlen_ =
+	    (maskFamily == AF_INET6) ? static_cast<uint8_t>(CommonUtils::Ipv6PrefixLen(netMask.address_))
+                                     : static_cast<uint8_t>(CommonUtils::Ipv4PrefixLen(netMask.address_));
             break;
         }
     });

@@ -229,9 +229,8 @@ int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
 void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
     MessageParcel parcel;
-    if (!CheckDataAndWrite(data, size, parcel))
-    {
-         return;
+    if (!CheckDataAndWrite(data, size, parcel)) {
+        return;
     }
     auto ic = std::make_unique<InterfaceConfiguration>();
     if (!ic->Marshalling(parcel)) {
@@ -320,9 +319,8 @@ void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
 void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
 {
     MessageParcel parcel;
-    if (!CheckDataAndWrite(data, size, parcel))
-    {
-         return;
+    if (!CheckDataAndWrite(data, size, parcel)) {
+        return;
     }
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP), parcel);
 }
@@ -330,9 +328,8 @@ void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
 void SetInterfaceDownFuzzTest(const uint8_t *data, size_t size)
 {
     MessageParcel parcel;
-    if (!CheckDataAndWrite(data, size, parcel))
-    {
-         return;
+    if (!CheckDataAndWrite(data, size, parcel)) {
+        return;
     }
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN), parcel);
 }
@@ -340,9 +337,8 @@ void SetInterfaceDownFuzzTest(const uint8_t *data, size_t size)
 void GetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
     MessageParcel parcel;
-    if (!CheckDataAndWrite(data, size, parcel))
-    {
-         return;
+    if (!CheckDataAndWrite(data, size, parcel)) {
+        return;
     }
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG), parcel);
 }
