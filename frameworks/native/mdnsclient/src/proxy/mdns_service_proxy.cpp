@@ -40,11 +40,6 @@ int32_t MDnsServiceProxy::RegisterService(const MDnsServiceInfo &serviceInfo, co
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
 
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
     MessageParcel reply;
     MessageOption option;
     int32_t ret = remote->SendRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_REGISTER),
@@ -117,7 +112,6 @@ int32_t MDnsServiceProxy::StopDiscoverService(const sptr<IDiscoveryCallback> &cb
 {
     MessageParcel data;
 
-    sptr<IRemoteObject> remote = Remote();
     sptr<IRemoteObject> remote = Remote();
     int32_t res = CheckMessageParcelRemote<sptr<IDiscoveryCallback>>(cb, data, remote);
     if (res != ERR_NONE) {

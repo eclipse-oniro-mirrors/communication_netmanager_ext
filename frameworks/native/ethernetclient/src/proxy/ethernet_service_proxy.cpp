@@ -315,5 +315,30 @@ int32_t EthernetServiceProxy::SetInterfaceConfig(const std::string &iface, OHOS:
     }
     return ret;
 }
+
+int32_t EthernetServiceProxy::SendRequest(MessageParcel &data, const std::string &iface, MessageParcel &reply, uint32_t code)
+{
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(iface)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+
+    MessageOption option;
+    int32_t ret = remote->SendRequest(code, data, reply, option);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+
+    return ERR_NONE;
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
