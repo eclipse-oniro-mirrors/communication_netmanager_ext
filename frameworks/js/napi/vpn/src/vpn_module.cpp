@@ -36,12 +36,9 @@ static void *MakeData(napi_env env, size_t argc, napi_value *argv, EventManager 
         return nullptr;
     }
 
-    bool isExistVpn = false;
-    bool isRun = false;
-    std::string pkg;
-    int32_t ret = NetworkVpnClient::GetInstance().Prepare(isExistVpn, isRun, pkg);
+    int32_t ret = NetworkVpnClient::GetInstance().CreateVpnConnection();
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMANAGER_EXT_LOGE("execute prepare failed: %{public}d", ret);
+        NETMANAGER_EXT_LOGE("execute CreateVpnConnection failed: %{public}d", ret);
         std::string errorMsg = NetBaseErrorCodeConvertor().ConvertErrorCode(ret);
         napi_throw_error(env, std::to_string(ret).c_str(), errorMsg.c_str());
         return nullptr;
