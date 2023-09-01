@@ -35,6 +35,8 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyRegisterVpnEvent};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyUnregisterVpnEvent};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION] = {
+        Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyCreateVpnConnection};
 }
 
 int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
@@ -146,5 +148,15 @@ int32_t NetworkVpnServiceStub::ReplyUnregisterVpnEvent(MessageParcel &data, Mess
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+
+int32_t NetworkVpnServiceStub::ReplyCreateVpnConnection(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t result = CreateVpnConnection();
+    if (!reply.WriteInt32(result)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

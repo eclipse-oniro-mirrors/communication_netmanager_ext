@@ -184,5 +184,20 @@ int32_t NetworkVpnServiceProxy::UnregisterVpnEvent(sptr<IVpnEventCallback> callb
     return result;
 }
 
+int32_t NetworkVpnServiceProxy::CreateVpnConnection()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION, data, reply);
+    if (ERR_NONE != ret) {
+        NETMGR_EXT_LOG_E("CreateVpnConnection proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    if (!reply.ReadInt32(result)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return result;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
