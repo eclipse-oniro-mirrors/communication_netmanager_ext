@@ -175,24 +175,6 @@ bool InitGlobalData(const uint8_t *data, size_t size)
     return true;
 }
 
-bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParcel)
-{
-    if (!InitGlobalData(data, size)) {
-        return false;
-    }
-
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
-
-    if (!WriteInterfaceToken(dataParcel)) {
-        return false;
-    }
-    int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
-    dataParcel.WriteInt32(type);
-
-    return true;
-}
-
 class INetShareCallbackTest : public IRemoteStub<ISharingEventCallback> {
 public:
     void OnSharingStateChanged(const bool &isRunning)
@@ -249,6 +231,24 @@ bool WriteInterfaceToken(MessageParcel &data)
     if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
         return false;
     }
+    return true;
+}
+
+bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParcel)
+{
+    if (!InitGlobalData(data, size)) {
+        return false;
+    }
+
+    AccessToken token;
+    AccessTokenInternetInfo tokenInfo;
+
+    if (!WriteInterfaceToken(dataParcel)) {
+        return false;
+    }
+    int32_t type = GetData<int32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE;
+    dataParcel.WriteInt32(type);
+
     return true;
 }
 
