@@ -51,6 +51,7 @@ static constexpr uint32_t ENUM_TYPE_BEGIN = 1;
 size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
 constexpr size_t IFACE_LEN = 5;
+bool WriteInterfaceToken(MessageParcel &data);
 
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
