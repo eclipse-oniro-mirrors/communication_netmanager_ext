@@ -37,7 +37,7 @@ public:
 
 private:
     template <class T>
-    int32_t MDnsServiceProxy::CheckParamVaildRemote(const T &cb, MessageParcel &data,
+    int32_t CheckParamVaildRemote(const T &cb, MessageParcel &data,
                                                     const sptr<IRemoteObject> &remote)
     {
         if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
