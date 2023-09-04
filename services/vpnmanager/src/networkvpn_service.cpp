@@ -239,6 +239,15 @@ int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> call
     return ret;
 }
 
+int32_t NetworkVpnService::CreateVpnConnection()
+{
+    /*
+     * Only permission verification is performed
+     */
+    NETMGR_EXT_LOG_I("CreateVpnConnection successfully.");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId)
 {
     int32_t uid = IPCSkeleton::GetCallingUid();

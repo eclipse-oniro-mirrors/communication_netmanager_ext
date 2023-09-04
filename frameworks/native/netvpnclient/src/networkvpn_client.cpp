@@ -145,6 +145,16 @@ int32_t NetworkVpnClient::UnregisterVpnEvent(sptr<IVpnEventCallback> callback)
     return proxy->UnregisterVpnEvent(callback);
 }
 
+int32_t NetworkVpnClient::CreateVpnConnection()
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("CreateVpnConnection proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->CreateVpnConnection();
+}
+
 sptr<INetworkVpnService> NetworkVpnClient::GetProxy()
 {
     std::lock_guard lock(mutex_);

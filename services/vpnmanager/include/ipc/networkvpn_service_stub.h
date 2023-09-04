@@ -43,6 +43,7 @@ private:
     int32_t ReplyDestroyVpn(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyRegisterVpnEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyUnregisterVpnEvent(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyCreateVpnConnection(MessageParcel &data, MessageParcel &reply);
 
     int32_t CheckVpnPermission(std::string &strPermission);
 
