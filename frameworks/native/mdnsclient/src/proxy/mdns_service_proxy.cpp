@@ -29,7 +29,7 @@ int32_t MDnsServiceProxy::RegisterService(const MDnsServiceInfo &serviceInfo, co
 {
     MessageParcel data;
     sptr<IRemoteObject> remote = Remote();
-    int32_t res = CheckMessageParcelRemote<sptr<IRegistrationCallback>>(cb, data, remote);
+    int32_t res = CheckParamVaildRemote<sptr<IRegistrationCallback>>(cb, data, remote);
     if (res != ERR_NONE) {
         return res;
     }
@@ -60,7 +60,7 @@ int32_t MDnsServiceProxy::UnRegisterService(const sptr<IRegistrationCallback> &c
     MessageParcel data;
 
     sptr<IRemoteObject> remote = Remote();
-    int32_t res = CheckMessageParcelRemote<sptr<IRegistrationCallback>>(cb, data, remote);
+    int32_t res = CheckParamVaildRemote<sptr<IRegistrationCallback>>(cb, data, remote);
     if (res != ERR_NONE) {
         return res;
     }
@@ -83,7 +83,7 @@ int32_t MDnsServiceProxy::StartDiscoverService(const std::string &serviceType, c
 {
     MessageParcel data;
     sptr<IRemoteObject> remote = Remote();
-    int32_t res = CheckMessageParcelRemote<sptr<IDiscoveryCallback>>(cb, data, remote);
+    int32_t res = CheckParamVaildRemote<sptr<IDiscoveryCallback>>(cb, data, remote);
     if (res != ERR_NONE) {
         return res;
     }
@@ -113,7 +113,7 @@ int32_t MDnsServiceProxy::StopDiscoverService(const sptr<IDiscoveryCallback> &cb
     MessageParcel data;
 
     sptr<IRemoteObject> remote = Remote();
-    int32_t res = CheckMessageParcelRemote<sptr<IDiscoveryCallback>>(cb, data, remote);
+    int32_t res = CheckParamVaildRemote<sptr<IDiscoveryCallback>>(cb, data, remote);
     if (res != ERR_NONE) {
         return res;
     }
@@ -136,7 +136,7 @@ int32_t MDnsServiceProxy::ResolveService(const MDnsServiceInfo &serviceInfo, con
 {
     MessageParcel data;
     sptr<IRemoteObject> remote = Remote();
-    int32_t res = CheckMessageParcelRemote<sptr<IResolveCallback>>(cb, data, remote);
+    int32_t res = CheckParamVaildRemote<sptr<IResolveCallback>>(cb, data, remote);
     if (res != ERR_NONE) {
         return res;
     }
@@ -163,28 +163,6 @@ int32_t MDnsServiceProxy::ResolveService(const MDnsServiceInfo &serviceInfo, con
         NETMGR_EXT_LOG_E("MDnsService::ResolveService return: [%{public}d]", retCode);
     }
     return retCode;
-}
-
-template <class T>
-int32_t MDnsServiceProxy::CheckMessageParcelRemote(const T &cb, MessageParcel &data,
-                                                   const sptr<IRemoteObject> &remote)
-{
-    if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
-    }
-
-    if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
-        NETMGR_EXT_LOG_E("proxy write callback failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
-
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }
-
-    return ERR_NONE;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -37,8 +37,26 @@ public:
 
 private:
     template <class T>
-    int32_t CheckMessageParcelRemote(const T &cb, MessageParcel &data,
-                                     const sptr<IRemoteObject> &remote);
+    int32_t MDnsServiceProxy::CheckParamVaildRemote(const T &cb, MessageParcel &data,
+                                                    const sptr<IRemoteObject> &remote)
+    {
+        if (!data.WriteInterfaceToken(MDnsServiceProxy::GetDescriptor())) {
+            NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+            return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+        }
+
+        if (!data.WriteRemoteObject(cb->AsObject().GetRefPtr())) {
+            NETMGR_EXT_LOG_E("proxy write callback failed");
+            return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+        }
+
+        if (remote == nullptr) {
+            NETMGR_EXT_LOG_E("Remote is null");
+            return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        }
+
+        return ERR_NONE;
+    }
     static inline BrokerDelegator<MDnsServiceProxy> delegator_;
 };
 } // namespace NetManagerStandard
