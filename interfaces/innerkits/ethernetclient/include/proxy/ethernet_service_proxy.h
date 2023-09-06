@@ -42,6 +42,8 @@ public:
     int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) override;
 
 private:
+
+    int32_t SendRequest(MessageParcel &data, const std::string &iface, MessageParcel &reply, uint32_t code);
     static inline BrokerDelegator<EthernetServiceProxy> delegator_;
 };
 } // namespace NetManagerStandard
