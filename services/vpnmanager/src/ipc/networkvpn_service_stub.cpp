@@ -36,7 +36,7 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyUnregisterVpnEvent};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION] = {
-        Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyCreateVpnConnection};
+        "", &NetworkVpnServiceStub::ReplyCreateVpnConnection};
 }
 
 int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
@@ -46,7 +46,7 @@ int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
     }
 
-    if (!NetManagerPermission::CheckPermission(strPermission)) {
+    if (!strPermission.empty() && !NetManagerPermission::CheckPermission(strPermission)) {
         NETMGR_EXT_LOG_E("Permission denied permission: %{public}s", strPermission.c_str());
         return NETMANAGER_ERR_PERMISSION_DENIED;
     }
