@@ -238,11 +238,6 @@ static bool ParseGateway(napi_env env, napi_value jsRoute, struct INetAddr &iNet
         return false;
     }
 
-    if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
-        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
-        return false;
-    }
-
     GetUint8FromJsOptionItem(env, gateway, NET_FAMILY, iNetAddr.family_);
     GetUint8FromJsOptionItem(env, gateway, NET_PORT, iNetAddr.port_);
     return true;

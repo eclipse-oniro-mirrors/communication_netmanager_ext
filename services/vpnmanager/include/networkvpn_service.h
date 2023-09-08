@@ -87,6 +87,11 @@ public:
     int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) override;
 
     /**
+     * create the vpn connection
+     */
+    int32_t CreateVpnConnection() override;
+
+    /**
      * dump function
      */
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;

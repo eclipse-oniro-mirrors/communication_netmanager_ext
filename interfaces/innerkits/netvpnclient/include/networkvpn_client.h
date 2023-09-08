@@ -114,6 +114,15 @@ public:
     int32_t UnregisterVpnEvent(sptr<IVpnEventCallback> callback);
 
     /**
+     * create vpn connection.
+     *
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t CreateVpnConnection();
+
+    /**
      * close the tunfd of vpn interface and unregister VpnEvent.
      */
     void multiUserSetUpEvent();

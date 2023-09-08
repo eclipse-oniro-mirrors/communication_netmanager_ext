@@ -35,6 +35,8 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyRegisterVpnEvent};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyUnregisterVpnEvent};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION] = {
+        "", &NetworkVpnServiceStub::ReplyCreateVpnConnection};
 }
 
 int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
@@ -44,7 +46,7 @@ int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
     }
 
-    if (!NetManagerPermission::CheckPermission(strPermission)) {
+    if (!strPermission.empty() && !NetManagerPermission::CheckPermission(strPermission)) {
         NETMGR_EXT_LOG_E("Permission denied permission: %{public}s", strPermission.c_str());
         return NETMANAGER_ERR_PERMISSION_DENIED;
     }
@@ -146,5 +148,15 @@ int32_t NetworkVpnServiceStub::ReplyUnregisterVpnEvent(MessageParcel &data, Mess
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+
+int32_t NetworkVpnServiceStub::ReplyCreateVpnConnection(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t result = CreateVpnConnection();
+    if (!reply.WriteInt32(result)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
