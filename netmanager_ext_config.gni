@@ -99,3 +99,4 @@ memory_optimization_ldflags = [
   "-Wl,--exclude-libs=ALL",
   "-Wl,--gc-sections",
 ]
+fuzz_test_path = "netmanager_ext/netmanager_ext"
