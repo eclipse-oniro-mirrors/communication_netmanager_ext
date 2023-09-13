@@ -32,8 +32,8 @@ constexpr const char *HTTP_RPPXY_EXCLUSION_LIST = "exclusionList";
 bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {
     if (paramsCount == PARAM_DOUBLE_OPTIONS || paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) {
-        if (NapiUtils::GetValueType(env, params[0]) != napi_string ||
-            NapiUtils::GetValueType(env, params[1]) != napi_object) {
+        if (NapiUtils::GetValueType(env, params[ARG_NUM_0]) != napi_string ||
+            NapiUtils::GetValueType(env, params[ARG_NUM_1]) != napi_object) {
             return false;
         }
     } else {
@@ -53,41 +53,41 @@ void SetIfaceConfigContext::ParseParams(napi_value *params, size_t paramsCount)
         SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
         return;
     }
-    iface_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[0]);
+    iface_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[ARG_NUM_0]);
     config_ = new (std::nothrow) InterfaceConfiguration();
     if (config_ == nullptr) {
         SetParseOK(false);
         return;
     }
-    config_->mode_ = static_cast<IPSetMode>(NapiUtils::GetInt32Property(GetEnv(), params[1], "mode"));
-    std::string ipAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "ipAddr");
+    config_->mode_ = static_cast<IPSetMode>(NapiUtils::GetInt32Property(GetEnv(), params[ARG_NUM_1], "mode"));
+    std::string ipAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[ARG_NUM_1], "ipAddr");
     StaticConfiguration::ExtractNetAddrBySeparator(ipAddresses, config_->ipStatic_.ipAddrList_);
 
-    std::string routeAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "route");
+    std::string routeAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[ARG_NUM_1], "route");
     StaticConfiguration::ExtractNetAddrBySeparator(routeAddresses, config_->ipStatic_.routeList_);
 
-    std::string gatewayAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "gateway");
+    std::string gatewayAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[ARG_NUM_1], "gateway");
     StaticConfiguration::ExtractNetAddrBySeparator(gatewayAddresses, config_->ipStatic_.gatewayList_);
 
-    std::string maskAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "netMask");
+    std::string maskAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[ARG_NUM_1], "netMask");
     StaticConfiguration::ExtractNetAddrBySeparator(maskAddresses, config_->ipStatic_.netMaskList_);
 
-    std::string dnsServers = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "dnsServers");
+    std::string dnsServers = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[ARG_NUM_1], "dnsServers");
     StaticConfiguration::ExtractNetAddrBySeparator(dnsServers, config_->ipStatic_.dnsServers_);
 
-    config_->ipStatic_.domain_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[1], "domain");
+    config_->ipStatic_.domain_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[ARG_NUM_1], "domain");
 
     ParseHttpProxy(params);
-    SetParseOK((paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) ? (SetCallback(params[2]) == napi_ok) : true);
+    SetParseOK((paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) ? (SetCallback(params[ARG_NUM_2]) == napi_ok) : true);
 }
 
 void SetIfaceConfigContext::ParseHttpProxy(napi_value *params)
 {
-    if (!NapiUtils::HasNamedProperty(GetEnv(), params[1], OBJECT_HTTP_RPPXY)) {
+    if (!NapiUtils::HasNamedProperty(GetEnv(), params[ARG_NUM_1], OBJECT_HTTP_RPPXY)) {
         NETMANAGER_BASE_LOGE("Do not use HttpProxy.");
         return;
     }
-    napi_value value = NapiUtils::GetNamedProperty(GetEnv(), params[1], OBJECT_HTTP_RPPXY);
+    napi_value value = NapiUtils::GetNamedProperty(GetEnv(), params[ARG_NUM_1], OBJECT_HTTP_RPPXY);
     if (NapiUtils::GetValueType(GetEnv(), value) != napi_object) {
         NETMANAGER_BASE_LOGE("httpProxy is not a object");
         return;
