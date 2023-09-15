@@ -17,7 +17,7 @@ import("//build/test.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("NetShareClientFuzzTest") {
-  module_out_path = "communication/netmanager_ext"
+  module_out_path = fuzz_test_path
   fuzz_config_file = "$NETMANAGER_EXT_ROOT/test/networksharemanager/fuzztest/netshareclient_fuzzer"
 
   include_dirs = [
