@@ -94,6 +94,16 @@
                         ],
                         "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
                     }
+                },
+                {
+                    "type": "so",
+                    "name": "//foundation/communication/netmanager_ext/interfaces/innerkits/mdnsclient:mdns_manager_if",
+                    "header": {
+                        "header_files": [
+                            "mdnsclient/include/mdns_client.h"
+                        ],
+                        "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
+                    }
                 }
             ],
             "test": [
