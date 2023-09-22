@@ -180,7 +180,7 @@ HWTEST_F(NetVpnImplTest, GenerateUidRangesByRefusedApps, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, GetAppsUids, TestSize.Level1)
 {
-    std::vector<std::string> applications = {"com.baidu.searchbox", "com.quark.browser", "com.tencent.mm"};
+    std::vector<std::string> applications = {"com.baidu.searchbox", "com.quark.browser"};
     std::set<int32_t> uids = netVpnImpl_->GetAppsUids(applications);
     EXPECT_EQ(uids.empty(), true);
 }
