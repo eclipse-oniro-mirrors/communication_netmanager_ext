@@ -29,11 +29,13 @@ constexpr size_t WAIT_REMOTE_TIME_SEC = 15;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 std::condition_variable g_cv;
+std::mutex g_mutexCv;
 } // namespace
 void NetworkShareLoadCallback::OnLoadSystemAbilitySuccess(
     int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
     NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
+    std::unique_lock<std::mutex> lock(g_mutexCv);
     remoteObject_ = remoteObject;
     g_cv.notify_one();
 }
@@ -194,8 +196,8 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         return nullptr;
     }
     {
-        std::unique_lock tempLock(mutexCv_);
-        g_cv.wait_for(tempLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
+        std::unique_lock<std::mutex> lock(g_mutexCv);
+        g_cv.wait_for(lock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
             [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
     }
 

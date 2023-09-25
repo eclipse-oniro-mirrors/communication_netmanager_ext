@@ -62,7 +62,7 @@ int32_t NetworkShareServiceProxy::IsNetworkSharingSupported(int32_t &supported)
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     supported = reply.ReadInt32();
-    return supported;
+    return reply.ReadInt32();
 }
 
 int32_t NetworkShareServiceProxy::IsSharing(int32_t &sharingStatus)
