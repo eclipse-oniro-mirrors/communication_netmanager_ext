@@ -101,6 +101,7 @@ HWTEST_F(NetworkVpnServiceTest, GetDumpMessage, TestSize.Level1)
     instance_->GetDumpMessage(message);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
     instance_->GetDumpMessage(message);
     EXPECT_EQ(message.empty(), false);
@@ -118,7 +119,8 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
 {
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId);
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
     EXPECT_EQ(instance_->SetUpVpn(config), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
 }
 
@@ -150,6 +152,7 @@ HWTEST_F(NetworkVpnServiceTest, UnregisterSharingEventTest001, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, CheckCurrentUser, TestSize.Level1)
 {
     int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
     EXPECT_EQ(instance_->CheckCurrentAccountType(userId, activeUserIds), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
 }
 
