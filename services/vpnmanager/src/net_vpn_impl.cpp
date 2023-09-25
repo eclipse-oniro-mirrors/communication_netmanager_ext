@@ -334,7 +334,7 @@ int32_t NetVpnImpl::GenerateUidRanges(int32_t userId, std::vector<int32_t> &begi
     }
     if (vpnConfig_->acceptedApplications_.size()) {
         std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->acceptedApplications_);
-        GenerateUidRangesByAcceptedApps(userId, uids, beginUids, endUids);
+        GenerateUidRangesByAcceptedApps(uids, beginUids, endUids);
     } else if (vpnConfig_->refusedApplications_.size()) {
         std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->refusedApplications_);
         GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);
