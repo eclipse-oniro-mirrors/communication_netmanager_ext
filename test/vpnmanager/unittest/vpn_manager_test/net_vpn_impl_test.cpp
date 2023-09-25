@@ -35,7 +35,7 @@ using namespace testing::ext;
 
 class NetVpnImplInstance : public NetVpnImpl {
 public:
-    NetVpnImplInstance(sptr<VpnConfig> config, const std::string &pkg, int32_t userId);
+    NetVpnImplInstance(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> activeUserIds);
     int32_t SetUp() override;
     int32_t Destroy() override;
     bool IsInternalVpn() override;
@@ -48,7 +48,7 @@ public:
     void OnVpnConnStateChanged(const VpnConnectState &state) override;
 };
 
-NetVpnImplInstance::NetVpnImplInstance(sptr<VpnConfig> config, const std::string &pkg, int32_t userId)
+NetVpnImplInstance::NetVpnImplInstance(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> activeUserIds)
     : NetVpnImpl(config, pkg, userId, activeUserIds)
 {
 }
