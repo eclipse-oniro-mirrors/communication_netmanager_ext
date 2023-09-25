@@ -174,6 +174,7 @@ HWTEST_F(NetVpnImplTest, GenerateUidRangesByRefusedApps, TestSize.Level1)
     std::set<int32_t> uids = {1, 2, 3};
     std::vector<int32_t> beginUids;
     std::vector<int32_t> endUids;
+    int32_t userId = 0;
     netVpnImpl_->GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);
     EXPECT_EQ(beginUids.empty(), false);
 }
@@ -181,6 +182,7 @@ HWTEST_F(NetVpnImplTest, GenerateUidRangesByRefusedApps, TestSize.Level1)
 HWTEST_F(NetVpnImplTest, GetAppsUids, TestSize.Level1)
 {
     std::vector<std::string> applications = {"com.baidu.searchbox", "com.quark.browser"};
+    int32_t userId = 0;
     std::set<int32_t> uids = netVpnImpl_->GetAppsUids(userId, applications);
     EXPECT_EQ(uids.empty(), true);
 }
@@ -191,6 +193,7 @@ HWTEST_F(NetVpnImplTest, GenerateUidRanges, TestSize.Level1)
     std::vector<int32_t> endUids;
     netVpnImpl_->userId_ = AppExecFwk::Constants::INVALID_USERID;
     netVpnImpl_->vpnConfig_->acceptedApplications_ = {"com.baidu.searchbox", "com.quark.browser"};
+    int32_t userId = 0;
     netVpnImpl_->vpnConfig_->refusedApplications_ = {"com.qq.reader", "com.tencent.mm"};
     int32_t result = netVpnImpl_->GenerateUidRanges(userId, beginUids, endUids);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
