@@ -272,7 +272,7 @@ void NetVpnImpl::GenerateUidRangesByAcceptedApps(const std::set<int32_t> &uids, 
     }
 }
 
-void NetVpnImpl::GenerateUidRangesByRefusedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
+void NetVpnImpl::GenerateUidRangesByRefusedApps(int32_t userId, const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
                                                 std::vector<int32_t> &endUids)
 {
     int32_t start = userId * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::BASE_APP_UID;
@@ -333,8 +333,8 @@ int32_t NetVpnImpl::GenerateUidRanges(int32_t userId, std::vector<int32_t> &begi
         userId = AppExecFwk::Constants::START_USERID;
     }
     if (vpnConfig_->acceptedApplications_.size()) {
-        std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->refusedApplications_);
-        GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);
+        std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->acceptedApplications_);
+        GenerateUidRangesByAcceptedApps(userId, uids, beginUids, endUids);
     } else if (vpnConfig_->refusedApplications_.size()) {
         std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->refusedApplications_);
         GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);

@@ -258,7 +258,6 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    std::vector<int32_t> activeUserIds;
     if (AccountSA::OsAccountManager::QueryActiveOsAccountIds(activeUserIds) != ERR_OK) {
         NETMGR_EXT_LOG_E("QueryActiveOsAccountIds error.");
     }
