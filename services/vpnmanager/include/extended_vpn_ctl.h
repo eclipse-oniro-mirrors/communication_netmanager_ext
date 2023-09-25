@@ -24,7 +24,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 class ExtendedVpnCtl : public NetVpnImpl {
 public:
-    ExtendedVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId);
+    ExtendedVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
     ~ExtendedVpnCtl() = default;
 
     bool IsInternalVpn() override;

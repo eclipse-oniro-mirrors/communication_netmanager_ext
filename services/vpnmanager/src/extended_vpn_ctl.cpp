@@ -28,8 +28,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-ExtendedVpnCtl::ExtendedVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId)
-    : NetVpnImpl(config, pkg, userId)
+ExtendedVpnCtl::ExtendedVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds)
+    : NetVpnImpl(config, pkg, userId, activeUserIds)
 {
 }
 

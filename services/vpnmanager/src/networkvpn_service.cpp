@@ -170,7 +170,8 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
 {
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    int32_t ret = CheckCurrentAccountType(userId);
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
@@ -185,7 +186,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
         }
     }
 
-    vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId);
+    vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
     if (vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("SetUpVpn register internal callback fail.");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -207,7 +208,8 @@ int32_t NetworkVpnService::Protect()
 int32_t NetworkVpnService::DestroyVpn()
 {
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    int32_t ret = CheckCurrentAccountType(userId);
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
@@ -248,7 +250,7 @@ int32_t NetworkVpnService::CreateVpnConnection()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId)
+int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<int32_t> &activeUserIds)
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
     if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
@@ -259,7 +261,10 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId)
     std::vector<int32_t> activeUserIds;
     if (AccountSA::OsAccountManager::QueryActiveOsAccountIds(activeUserIds) != ERR_OK) {
         NETMGR_EXT_LOG_E("QueryActiveOsAccountIds error.");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    if (userId >= 0 && userId <= 99) {
+       return NETMANAGER_EXT_SUCCESS;
     }
 
     auto itr = std::find_if(activeUserIds.begin(), activeUserIds.end(),
@@ -269,6 +274,8 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId)
                          activeUserIds.size());
         return NETWORKVPN_ERROR_REFUSE_CREATE_VPN;
     }
+
+    activeUserIds.clear();
 
     AccountSA::OsAccountInfo accountInfo;
     if (AccountSA::OsAccountManager::QueryOsAccountById(userId, accountInfo) != ERR_OK) {

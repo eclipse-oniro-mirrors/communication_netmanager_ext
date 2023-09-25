@@ -38,8 +38,8 @@ constexpr int32_t NET_MASK_MAX_LENGTH = 32;
 constexpr const char *DEFAULT_ROUTE_ADDR = "0.0.0.0";
 } // namespace
 
-NetVpnImpl::NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId)
-    : vpnConfig_(config), pkgName_(pkg), userId_(userId)
+NetVpnImpl::NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds)
+    : vpnConfig_(config), pkgName_(pkg), userId_(userId), activeUserIds_(activeUserIds)
 {
     netSupplierInfo_ = new (std::nothrow) NetSupplierInfo();
     if (netSupplierInfo_ == nullptr) {
@@ -104,7 +104,12 @@ int32_t NetVpnImpl::SetUp()
     netId_ = *(netIdList.begin());
     NETMGR_EXT_LOG_I("vpn network netid: %{public}d", netId_);
 
-    GenerateUidRanges(beginUids_, endUids_);
+    GenerateUidRanges(userId_, beginUids_, endUids_);
+
+    for (auto &elem : activeUserIds_) {
+        GenerateUidRanges(elem, beginUids_, endUids_);
+    }
+
     if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_, endUids_)) {
         NETMGR_EXT_LOG_E("vpn set whitelist rule error");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_SET_APP_UID_RULE_ERROR,
@@ -270,8 +275,8 @@ void NetVpnImpl::GenerateUidRangesByAcceptedApps(const std::set<int32_t> &uids, 
 void NetVpnImpl::GenerateUidRangesByRefusedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
                                                 std::vector<int32_t> &endUids)
 {
-    int32_t start = userId_ * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::BASE_APP_UID;
-    int32_t stop = userId_ * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::MAX_APP_UID;
+    int32_t start = userId * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::BASE_APP_UID;
+    int32_t stop = userId * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::MAX_APP_UID;
     for (int32_t uid : uids) {
         if (uid == start) {
             start++;
@@ -287,7 +292,7 @@ void NetVpnImpl::GenerateUidRangesByRefusedApps(const std::set<int32_t> &uids, s
     }
 }
 
-std::set<int32_t> NetVpnImpl::GetAppsUids(const std::vector<std::string> &applications)
+std::set<int32_t> NetVpnImpl::GetAppsUids(int32_t userId, const std::vector<std::string> &applications)
 {
     std::set<int32_t> uids;
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -306,11 +311,11 @@ std::set<int32_t> NetVpnImpl::GetAppsUids(const std::vector<std::string> &applic
         return uids;
     }
 
-    NETMGR_EXT_LOG_I("userId: %{public}d.", userId_);
+    NETMGR_EXT_LOG_I("userId: %{public}d.", userId);
     AppExecFwk::ApplicationFlag flags = AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO;
     for (auto app : applications) {
         AppExecFwk::ApplicationInfo appInfo;
-        if (bundleMgr->GetApplicationInfo(app, flags, userId_, appInfo)) {
+        if (bundleMgr->GetApplicationInfo(app, flags, userId, appInfo)) {
             NETMGR_EXT_LOG_I("app: %{public}s success, uid=%{public}d.", app.c_str(), appInfo.uid);
             uids.insert(appInfo.uid);
         } else {
@@ -321,21 +326,21 @@ std::set<int32_t> NetVpnImpl::GetAppsUids(const std::vector<std::string> &applic
     return uids;
 }
 
-int32_t NetVpnImpl::GenerateUidRanges(std::vector<int32_t> &beginUids, std::vector<int32_t> &endUids)
+int32_t NetVpnImpl::GenerateUidRanges(int32_t userId, std::vector<int32_t> &beginUids, std::vector<int32_t> &endUids)
 {
-    NETMGR_EXT_LOG_I("GenerateUidRanges userId_:%{public}d.", userId_);
-    if (userId_ == AppExecFwk::Constants::INVALID_USERID) {
-        userId_ = AppExecFwk::Constants::START_USERID;
+    NETMGR_EXT_LOG_I("GenerateUidRanges userId:%{public}d.", userId);
+    if (userId == AppExecFwk::Constants::INVALID_USERID) {
+        userId = AppExecFwk::Constants::START_USERID;
     }
     if (vpnConfig_->acceptedApplications_.size()) {
-        std::set<int32_t> uids = GetAppsUids(vpnConfig_->acceptedApplications_);
-        GenerateUidRangesByAcceptedApps(uids, beginUids, endUids);
+        std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->refusedApplications_);
+        GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);
     } else if (vpnConfig_->refusedApplications_.size()) {
-        std::set<int32_t> uids = GetAppsUids(vpnConfig_->refusedApplications_);
-        GenerateUidRangesByRefusedApps(uids, beginUids, endUids);
+        std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->refusedApplications_);
+        GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);
     } else {
-        int32_t start = userId_ * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::BASE_APP_UID;
-        int32_t stop = userId_ * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::MAX_APP_UID;
+        int32_t start = userId * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::BASE_APP_UID;
+        int32_t stop = userId * AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::MAX_APP_UID;
         beginUids.push_back(start);
         endUids.push_back(stop);
         NETMGR_EXT_LOG_I("GenerateUidRanges default all app, uid range: %{public}d -- %{public}d.", start, stop);

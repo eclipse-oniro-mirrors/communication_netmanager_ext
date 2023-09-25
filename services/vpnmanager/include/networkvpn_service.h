@@ -99,7 +99,7 @@ public:
 private:
     bool Init();
     void GetDumpMessage(std::string &message);
-    int32_t CheckCurrentAccountType(int32_t &userId);
+    int32_t CheckCurrentAccountType(int32_t &userId, std::vector<int32_t> &activeUserIds);
 
     void OnVpnMultiUserSetUp();
     int32_t SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback);

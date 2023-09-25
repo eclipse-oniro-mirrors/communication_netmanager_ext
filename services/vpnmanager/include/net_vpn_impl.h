@@ -37,7 +37,7 @@ constexpr const char *TUN_CARD_NAME = "vpn-tun";
 
 class NetVpnImpl {
 public:
-    NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId);
+    NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
     virtual ~NetVpnImpl() = default;
 
     virtual bool IsInternalVpn() = 0;
@@ -79,10 +79,10 @@ private:
 
     void GenerateUidRangesByAcceptedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
                                          std::vector<int32_t> &endUids);
-    void GenerateUidRangesByRefusedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
+    void GenerateUidRangesByRefusedApps(int32_t userId, const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
                                         std::vector<int32_t> &endUids);
-    std::set<int32_t> GetAppsUids(const std::vector<std::string> &applications);
-    int32_t GenerateUidRanges(std::vector<int32_t> &beginUids, std::vector<int32_t> &endUids);
+    std::set<int32_t> GetAppsUids(int32_t userId, const std::vector<std::string> &applications);
+    int32_t GenerateUidRanges(int32_t userId, std::vector<int32_t> &beginUids, std::vector<int32_t> &endUids);
 
 protected:
     sptr<VpnConfig> vpnConfig_ = nullptr;
@@ -90,6 +90,7 @@ protected:
 private:
     std::string pkgName_;
     int32_t userId_ = -1; // the calling app's user
+    std::vector<int32_t> activeUserIds_;
     bool isVpnConnecting_ = false;
 
     int32_t netId_ = -1;
