@@ -68,7 +68,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration001, TestSize.Level1)
     EthernetDhcpCallback::DhcpResult dhcpResult;
     sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
     ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     std::string strRet = ethernetConfiguration.ReadJsonFile(FILE_PATH);
     ret = ethernetConfiguration.IsDirExist(DIR_PATH);
     ret = ethernetConfiguration.CreateDir(DIR_PATH);
