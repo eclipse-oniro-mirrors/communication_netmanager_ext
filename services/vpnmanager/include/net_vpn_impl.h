@@ -91,7 +91,6 @@ private:
     std::string pkgName_;
     int32_t userId_ = -1; // the calling app's user
     std::vector<int32_t> activeUserIds_;
-    std::vector<int32_t> activeUserIds;
     bool isVpnConnecting_ = false;
 
     int32_t netId_ = -1;

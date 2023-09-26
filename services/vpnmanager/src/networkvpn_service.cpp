@@ -253,6 +253,7 @@ int32_t NetworkVpnService::CreateVpnConnection()
 int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<int32_t> &activeUserIds)
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t userId_Max = 99;
     if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
         NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -262,7 +263,7 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<
         NETMGR_EXT_LOG_E("QueryActiveOsAccountIds error.");
     }
 
-    if (userId >= 0 && userId <= 99) {
+    if (userId >= 0 && userId <= userId_Max) {
        return NETMANAGER_EXT_SUCCESS;
     }
 
