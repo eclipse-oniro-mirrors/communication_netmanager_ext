@@ -38,7 +38,8 @@ void ExtendedVpnCtlTest::SetUpTestSuite()
         return;
     }
     int32_t userId = 0;
-    vpnControl_ = std::make_unique<ExtendedVpnCtl>(config, "pkg", userId);
+    std::vector<int32_t> activeUserIds;
+    vpnControl_ = std::make_unique<ExtendedVpnCtl>(config, "pkg", userId, activeUserIds);
 }
 
 HWTEST_F(ExtendedVpnCtlTest, SetUp, TestSize.Level1)
