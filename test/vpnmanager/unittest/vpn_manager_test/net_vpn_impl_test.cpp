@@ -80,7 +80,7 @@ void NetVpnImplTest::SetUpTestSuite()
 {
     sptr<VpnConfig> config = new VpnConfig();
     int32_t userId = 100;
-    netVpnImpl_ = std::make_unique<NetVpnImplInstance>(config, "pkg", userId);
+    netVpnImpl_ = std::make_unique<NetVpnImplInstance>(config, "pkg", userId, activeUserIds);
 }
 
 HWTEST_F(NetVpnImplTest, SetUp, TestSize.Level1)
