@@ -117,11 +117,11 @@ HWTEST_F(NetworkVpnServiceTest, Prepare001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
 {
-    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
     std::vector<int32_t> activeUserIds;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(instance_->SetUpVpn(config), NETWORKVPN_ERROR_VPN_EXIST);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
