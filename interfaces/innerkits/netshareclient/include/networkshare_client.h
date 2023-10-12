@@ -190,7 +190,6 @@ private:
 
 private:
     std::mutex mutex_;
-    std::mutex mutexCv_;
     sptr<INetworkShareService> networkShareService_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };
