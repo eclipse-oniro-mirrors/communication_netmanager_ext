@@ -263,16 +263,16 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<
         NETMGR_EXT_LOG_E("QueryActiveOsAccountIds error.");
     }
 
-    if (userId >= 0 && userId <= userId_Max) {
-       return NETMANAGER_EXT_SUCCESS;
-    }
-
     auto itr = std::find_if(activeUserIds.begin(), activeUserIds.end(),
                             [userId](const int32_t &elem) { return (elem == userId) ? true : false; });
     if (itr == activeUserIds.end()) {
         NETMGR_EXT_LOG_E("userId: %{public}d is not active user. activeUserIds.size: %{public}zd", userId,
                          activeUserIds.size());
         return NETWORKVPN_ERROR_REFUSE_CREATE_VPN;
+    }
+
+    if (userId >= 0 && userId <= userId_Max) {
+       return NETMANAGER_EXT_SUCCESS;
     }
 
     activeUserIds.clear();
