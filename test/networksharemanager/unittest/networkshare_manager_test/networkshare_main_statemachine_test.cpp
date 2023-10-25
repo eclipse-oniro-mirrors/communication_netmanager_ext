@@ -125,5 +125,19 @@ HWTEST_F(NetworkShareMainStateMachineTest, HandleAliveUpstreamMonitorCallbackTes
     auto ret = instance_->HandleAliveUpstreamMonitorCallback(message);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkShareMainStateMachineTest, NetworkShareMainStateMachineBranchTest001, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    instance_->ChooseUpstreamNetwork();
+    instance_->DisableForward();
+
+    MessageUpstreamInfo message;
+    auto ret = instance_->HandleErrorClear(message);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    auto result = instance_->TurnOffMainShareSettings();
+    EXPECT_EQ(result, true);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

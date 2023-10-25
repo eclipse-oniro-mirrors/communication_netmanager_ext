@@ -19,6 +19,7 @@ ohos_unittest("networkshare_manager_test") {
 
   sources = [
     "interface_configuration_test.cpp",
+    "net_event_report_test.cpp",
     "netshare_result_callback_proxy_test.cpp",
     "netshare_result_callback_stub_test.cpp",
     "networkshare_hisysevent_test.cpp",
@@ -64,6 +65,7 @@ ohos_unittest("networkshare_manager_test") {
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel",
     "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
+    "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$THIRD_PARTY_ROOT/googletest:gmock_main",
     "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",

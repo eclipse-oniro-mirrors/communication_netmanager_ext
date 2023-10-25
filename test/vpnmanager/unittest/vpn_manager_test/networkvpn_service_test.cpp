@@ -122,6 +122,10 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
     std::vector<int32_t> activeUserIds;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
     EXPECT_EQ(instance_->SetUpVpn(config), NETWORKVPN_ERROR_VPN_EXIST);
+
+    userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
@@ -173,6 +177,11 @@ HWTEST_F(NetworkVpnServiceTest, SyncUnregisterVpnEvent, TestSize.Level1)
     EXPECT_EQ(instance_->SyncUnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_SUCCESS);
     instance_->vpnEventCallbacks_.clear();
     EXPECT_EQ(instance_->SyncUnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranch, TestSize.Level1)
+{
+    EXPECT_EQ(instance_->CreateVpnConnection(), NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

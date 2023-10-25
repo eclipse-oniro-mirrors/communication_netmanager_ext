@@ -161,7 +161,8 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
     AccessToken access;
     int32_t tunFd = 0;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETWORKVPN_ERROR_REFUSE_CREATE_VPN);
+    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
@@ -215,6 +216,16 @@ HWTEST_F(NetworkVpnClientTest, OnRemoteDied, TestSize.Level1)
     networkVpnClient_.networkVpnService_ = iface_cast<INetworkVpnService>(remote);
     networkVpnClient_.OnRemoteDied(remote);
     EXPECT_EQ(networkVpnClient_.networkVpnService_, nullptr);
+}
+
+HWTEST_F(NetworkVpnClientTest, NetworkVpnClientBranch001, TestSize.Level1)
+{
+    callback_ = new (std::nothrow) IVpnEventCallbackTest();
+    callback_->OnVpnMultiUserSetUp();
+    networkVpnClient_.multiUserSetUpEvent();
+
+    auto ret = networkVpnClient_.CreateVpnConnection();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
