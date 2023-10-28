@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -135,6 +135,7 @@ void NetworkShareService::GetShareRegexsContent(const SharingIfaceType &type, st
 
 int32_t NetworkShareService::IsNetworkSharingSupported(int32_t &supported)
 {
+    NETMGR_EXT_LOG_E("Register to sa manager failed");
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }

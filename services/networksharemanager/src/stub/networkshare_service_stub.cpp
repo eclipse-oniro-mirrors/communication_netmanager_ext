@@ -51,6 +51,7 @@ NetworkShareServiceStub::NetworkShareServiceStub()
 int32_t NetworkShareServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
                                                  MessageOption &option)
 {
+    NETMGR_LOG_D("stub call start, code = [%{public}d]", code);
     std::u16string myDescripter = NetworkShareServiceStub::GetDescriptor();
     std::u16string remoteDesc = data.ReadInterfaceToken();
     if (myDescripter != remoteDesc) {
@@ -61,7 +62,9 @@ int32_t NetworkShareServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &d
     if (itFunction != memberFuncMap_.end()) {
         auto requestFunc = itFunction->second;
         if (requestFunc != nullptr) {
-            return (this->*requestFunc)(data, reply);
+            int32_t ret = (this->*requestFunc)(data, reply);
+            NETMGR_LOG_D("stub call start, code = [%{public}d]", code);
+            return ret;
         }
     }
 
