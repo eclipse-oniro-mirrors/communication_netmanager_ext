@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,7 @@ void NetShareCallbackObserver::OnSharingStateChanged(const bool &isRunning)
         NETMANAGER_EXT_LOGE("no event listener find event sharingStateChange");
         return;
     }
-
+    NETMANAGER_EXT_LOGI("NetworkSharing OnSharingStateChanged isRunning = %{public}d", isRunning);
     bool *running = new bool(isRunning);
     DelayedSingleton<NetShareObserverWrapper>::GetInstance()->GetEventManager()->EmitByUv(
         static_cast<std::string>(EVENT_SHARE_STATE_CHANGE), reinterpret_cast<void *>(running),
@@ -54,7 +54,8 @@ void NetShareCallbackObserver::OnInterfaceSharingStateChanged(const SharingIface
         NETMANAGER_EXT_LOGE("no event listener find interfaceSharingStateChange");
         return;
     }
-
+    NETMANAGER_EXT_LOGI("OnInterfaceSharingStateChanged type[%{public}d], iface[%{public}s], state[%{public}d]",
+                        type, iface.c_str(), state);
     SharingState *data = new SharingState();
     data->type = type;
     data->iface = iface;
@@ -71,6 +72,7 @@ void NetShareCallbackObserver::OnSharingUpstreamChanged(const sptr<NetHandle> ne
         NETMANAGER_EXT_LOGE("no event listener find sharingUpstreamChange");
         return;
     }
+    NETMANAGER_EXT_LOGI("NetworkSharing OnSharingUpstreamChanged netId= %{public}d", netHandle->GetNetId());
     DelayedSingleton<NetShareObserverWrapper>::GetInstance()->GetEventManager()->EmitByUv(
         static_cast<std::string>(EVENT_SHARE_UPSTREAM_CHANGE), netHandle, SharingUpstreamChangedCallback);
 }

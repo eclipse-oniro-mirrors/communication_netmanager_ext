@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -135,6 +135,7 @@ void NetworkShareService::GetShareRegexsContent(const SharingIfaceType &type, st
 
 int32_t NetworkShareService::IsNetworkSharingSupported(int32_t &supported)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing IsNetworkSharingSupported");
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -146,6 +147,7 @@ int32_t NetworkShareService::IsNetworkSharingSupported(int32_t &supported)
 
 int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing IsSharing");
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -157,6 +159,7 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -168,6 +171,7 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -179,6 +183,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing Register Sharing Event.");
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -190,6 +195,7 @@ int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> ca
 
 int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing UnRegister Sharing Event.");
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }

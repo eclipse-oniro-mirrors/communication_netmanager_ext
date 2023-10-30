@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -372,6 +372,7 @@ int32_t NetworkShareTracker::IsNetworkSharingSupported(int32_t &supported)
     } else {
         supported = NETWORKSHARE_IS_UNSUPPORTED;
     }
+    NETMGR_EXT_LOG_I("NetworkShareTracker supported is %{public}d", supported);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -384,19 +385,24 @@ int32_t NetworkShareTracker::IsSharing(int32_t &sharingStatus)
             continue;
         }
         if (shareState->lastState_ == SUB_SM_STATE_SHARED) {
+            NETMGR_EXT_LOG_I("NetworkShareTracker is sharing.");
             sharingStatus = NETWORKSHARE_IS_SHARING;
             return NETMANAGER_EXT_SUCCESS;
         }
     }
+    NETMGR_EXT_LOG_I("NetworkShareTracker is unsharing.");
     sharingStatus = NETWORKSHARE_IS_UNSHARING;
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
 {
+    NETMGR_EXT_LOG_I("NetworkShare start sharing,clientRequestsVector_.size = %{public}zu.",
+                     clientRequestsVector_.size());
     auto fit = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
     if (fit != clientRequestsVector_.end()) {
-        int ret = EnableNetSharingInternal(type, false);
+        NETMGR_EXT_LOG_I("type[%{public}d] is sharing, will close", type);
+        int32_t ret = EnableNetSharingInternal(type, false);
         if (ret != NETMANAGER_EXT_SUCCESS) {
             NETMGR_EXT_LOG_E("stop current [%{public}d] sharing error [%{public}ul]", static_cast<int32_t>(type), ret);
             return ret;
@@ -410,6 +416,8 @@ int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareTracker::StopNetworkSharing(const SharingIfaceType &type)
 {
+    NETMGR_EXT_LOG_I("NetworkShare stop sharing,clientRequestsVector_.size = %{public}zu.",
+                     clientRequestsVector_.size());
     auto fit = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
     if (fit != clientRequestsVector_.end()) {
         clientRequestsVector_.erase(fit);
@@ -421,8 +429,10 @@ int32_t NetworkShareTracker::StopNetworkSharing(const SharingIfaceType &type)
 int32_t NetworkShareTracker::GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs)
 {
     if (configuration_ == nullptr) {
+        NETMGR_EXT_LOG_E("configuration_ is null.");
         return NETWORKSHARE_ERROR_IFACE_CFG_ERROR;
     }
+    NETMGR_EXT_LOG_I("NetworkSharing GetSharableRegexs type is %{public}d", type);
     switch (type) {
         case SharingIfaceType::SHARING_WIFI: {
             ifaceRegexs = configuration_->GetWifiIfaceRegexs();
@@ -462,6 +472,7 @@ bool NetworkShareTracker::IsInterfaceMatchType(const std::string &iface, const S
 
 int32_t NetworkShareTracker::GetSharingState(const SharingIfaceType type, SharingIfaceState &state)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing GetSharingState type is %{public}d", type);
     if (type != SharingIfaceType::SHARING_WIFI &&
         type != SharingIfaceType::SHARING_USB &&
         type != SharingIfaceType::SHARING_BLUETOOTH) {
@@ -500,11 +511,13 @@ int32_t NetworkShareTracker::GetSharingState(const SharingIfaceType type, Sharin
     if (!isFindType) {
         NETMGR_EXT_LOG_E("type=%{public}d is not find, used default value.", type);
     }
+    NETMGR_EXT_LOG_I("type=%{public}d is find, isFindType is %{public}d.", type, isFindType);
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareTracker::GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
 {
+    NETMGR_EXT_LOG_I("NetworkSharing GetNetSharingIfaces type is %{public}d", state);
     if (state != SharingIfaceState::SHARING_NIC_ERROR &&
         state != SharingIfaceState::SHARING_NIC_CAN_SERVER &&
         state != SharingIfaceState::SHARING_NIC_SERVING) {
@@ -524,7 +537,7 @@ int32_t NetworkShareTracker::GetNetSharingIfaces(const SharingIfaceState &state,
             ifaces.push_back(iter.first);
         }
     });
-
+    NETMGR_EXT_LOG_I("GetNetSharingIfaces ifaces.size is %{public}zu", ifaces.size());
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -540,6 +553,8 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
         return NETWORKSHARE_ERROR_ISSHARING_CALLBACK_ERROR;
     }
     sharingEventCallback_.push_back(callback);
+    NETMGR_EXT_LOG_I("RegisterSharingEvent is successful, sharingEventCallback_.size = %{public}zu",
+                     sharingEventCallback_.size());
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -552,12 +567,15 @@ int32_t NetworkShareTracker::UnregisterSharingEvent(sptr<ISharingEventCallback> 
             break;
         }
     }
+    NETMGR_EXT_LOG_I("UnregisterSharingEvent is successful, sharingEventCallback_.size = %{public}zu",
+                     sharingEventCallback_.size());
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareTracker::GetSharedSubSMTraffic(const TrafficType &type, int32_t &kbByte)
 {
     int64_t bytes = 0;
+    NETMGR_EXT_LOG_I("GetSharedSubSMTraffic start, type is %{public}d", type);
     for (auto &subSM : sharedSubSM_) {
         if (subSM == nullptr) {
             continue;
@@ -615,7 +633,7 @@ int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &ty
             result = NETWORKSHARE_ERROR_UNKNOWN_TYPE;
             break;
     }
-
+    NETMGR_EXT_LOG_I("NetSharing EnableNetSharingInternal result is %{public}d.", result);
     if (result != NETMANAGER_EXT_SUCCESS) {
         auto it = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
         if (it != clientRequestsVector_.end()) {
@@ -666,7 +684,6 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
 {
     auto &usbSrvClient = USB::UsbSrvClient::GetInstance();
     if (enable) {
-        curUsbState_ = UsbShareState::USB_SHARING;
         int32_t funcs = 0;
         int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
         if (ret != USB::UEC_OK) {
@@ -679,12 +696,12 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
+        curUsbState_ = UsbShareState::USB_SHARING;
         if (usbShareCount_ < INT32_MAX) {
             usbShareCount_++;
         }
         NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_, SharingIfaceType::SHARING_USB);
     } else {
-        curUsbState_ = UsbShareState::USB_CLOSING;
         int32_t funcs = 0;
         int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
         if (ret != USB::UEC_OK) {
@@ -697,6 +714,7 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("usb SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
+        curUsbState_ = UsbShareState::USB_CLOSING;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -710,6 +728,7 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
         return NETWORKSHARE_ERROR_BT_SHARING;
     }
     if (enable && panObserver_ == nullptr) {
+        NETMGR_EXT_LOG_I("register bluetooth pan callback.");
         RegisterBtPanCallback();
     }
     bool ret = profile->SetTethering(enable);
@@ -1129,6 +1148,8 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
             }
         }
     }
+    NETMGR_EXT_LOG_I("send global sharing state change, isNetworkSharing_[%{public}d] isSharing[%{public}d].",
+                     isNetworkSharing_, isSharing);
     if (isNetworkSharing_ != isSharing) {
         isNetworkSharing_ = isSharing;
         std::lock_guard lock(callbackMutex_);
@@ -1149,6 +1170,7 @@ void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType &ty
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
+    NETMGR_EXT_LOG_I("send iface sharing state change, type[%{public}d] iface[%{public}s]", type, iface.c_str());
     for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
              [type, iface, state](sptr<ISharingEventCallback> &callback) {
                  if (callback != nullptr) {
@@ -1164,6 +1186,7 @@ void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> &netHa
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
+    NETMGR_EXT_LOG_I("send sharing upstream change, netId[%{public}d]", netHandle->GetNetId());
     for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
              [netHandle](sptr<ISharingEventCallback> &callback) {
                  if (callback != nullptr) {

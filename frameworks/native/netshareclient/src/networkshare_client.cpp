@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,6 +62,7 @@ NetworkShareClient::~NetworkShareClient() {}
 
 int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
 {
+    NETMGR_EXT_LOG_I("NetworkShare StartSharing type= %{public}d", type);
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("StartSharing proxy is nullptr");
@@ -72,6 +73,7 @@ int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareClient::StopSharing(const SharingIfaceType &type)
 {
+    NETMGR_EXT_LOG_I("NetworkShare StopSharing type= %{public}d", type);
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("StopSharing proxy is nullptr");
@@ -82,6 +84,7 @@ int32_t NetworkShareClient::StopSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareClient::IsSharingSupported(int32_t &supported)
 {
+    NETMGR_EXT_LOG_I("NetworkShare IsSharingSupported.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("IsSharingSupported proxy is nullptr");
@@ -92,6 +95,7 @@ int32_t NetworkShareClient::IsSharingSupported(int32_t &supported)
 
 int32_t NetworkShareClient::IsSharing(int32_t &sharingStatus)
 {
+    NETMGR_EXT_LOG_I("NetworkShare IsSharing.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("IsSharing proxy is nullptr");
@@ -102,6 +106,7 @@ int32_t NetworkShareClient::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareClient::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    NETMGR_EXT_LOG_I("NetworkShare RegisterSharingEvent.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("RegisterSharingEvent proxy is nullptr");
@@ -112,6 +117,7 @@ int32_t NetworkShareClient::RegisterSharingEvent(sptr<ISharingEventCallback> cal
 
 int32_t NetworkShareClient::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    NETMGR_EXT_LOG_I("NetworkShare UnregisterSharingEvent.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("UnregisterSharingEvent proxy is nullptr");
@@ -122,6 +128,7 @@ int32_t NetworkShareClient::UnregisterSharingEvent(sptr<ISharingEventCallback> c
 
 int32_t NetworkShareClient::GetSharableRegexs(const SharingIfaceType &type, std::vector<std::string> &ifaceRegexs)
 {
+    NETMGR_EXT_LOG_I("NetworkShare GetSharableRegexs type= %{public}d.", type);
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetSharableRegexs proxy is nullptr");
@@ -132,6 +139,7 @@ int32_t NetworkShareClient::GetSharableRegexs(const SharingIfaceType &type, std:
 
 int32_t NetworkShareClient::GetSharingState(const SharingIfaceType &type, SharingIfaceState &state)
 {
+    NETMGR_EXT_LOG_I("NetworkShare GetSharingState type= %{public}d.", type);
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetSharingState proxy is nullptr");
@@ -142,6 +150,7 @@ int32_t NetworkShareClient::GetSharingState(const SharingIfaceType &type, Sharin
 
 int32_t NetworkShareClient::GetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
 {
+    NETMGR_EXT_LOG_I("NetworkShare GetSharingIfaces type= %{public}d.", state);
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetSharingIfaces proxy is nullptr");
@@ -152,6 +161,7 @@ int32_t NetworkShareClient::GetSharingIfaces(const SharingIfaceState &state, std
 
 int32_t NetworkShareClient::GetStatsRxBytes(int32_t &bytes)
 {
+    NETMGR_EXT_LOG_I("NetworkShare GetStatsRxBytes.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetStatsRxBytes proxy is nullptr");
@@ -162,6 +172,7 @@ int32_t NetworkShareClient::GetStatsRxBytes(int32_t &bytes)
 
 int32_t NetworkShareClient::GetStatsTxBytes(int32_t &bytes)
 {
+    NETMGR_EXT_LOG_I("NetworkShare GetStatsTxBytes.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetStatsTxBytes proxy is nullptr");
@@ -172,6 +183,7 @@ int32_t NetworkShareClient::GetStatsTxBytes(int32_t &bytes)
 
 int32_t NetworkShareClient::GetStatsTotalBytes(int32_t &bytes)
 {
+    NETMGR_EXT_LOG_I("NetworkShare GetStatsTotalBytes.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetStatsTotalBytes proxy is nullptr");
