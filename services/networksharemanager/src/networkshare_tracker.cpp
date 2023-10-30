@@ -1129,6 +1129,8 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
             }
         }
     }
+    NETMGR_EXT_LOG_I("send global sharing state change, isNetworkSharing_[%{public}d] isSharing[%{public}d].",
+                     isNetworkSharing_, isSharing);
     if (isNetworkSharing_ != isSharing) {
         isNetworkSharing_ = isSharing;
         std::lock_guard lock(callbackMutex_);
@@ -1149,6 +1151,7 @@ void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType &ty
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
+    NETMGR_EXT_LOG_I("send iface sharing state change, type[%{public}d] iface[%{public}s]", type, iface.c_str());
     for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
              [type, iface, state](sptr<ISharingEventCallback> &callback) {
                  if (callback != nullptr) {
@@ -1164,6 +1167,7 @@ void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> &netHa
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
+    NETMGR_EXT_LOG_I("send sharing upstream change, netId[%{public}d]", netHandle->GetNetId());
     for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
              [netHandle](sptr<ISharingEventCallback> &callback) {
                  if (callback != nullptr) {
