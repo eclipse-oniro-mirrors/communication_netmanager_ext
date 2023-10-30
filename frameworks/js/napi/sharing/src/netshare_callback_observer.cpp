@@ -55,7 +55,7 @@ void NetShareCallbackObserver::OnInterfaceSharingStateChanged(const SharingIface
         return;
     }
     NETMANAGER_EXT_LOGI("OnInterfaceSharingStateChanged type[%{public}d], iface[%{public}s], state[%{public}d]",
-            type, iface.c_str(), state);
+                        type, iface.c_str(), state);
     SharingState *data = new SharingState();
     data->type = type;
     data->iface = iface;
