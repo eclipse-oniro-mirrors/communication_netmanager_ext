@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,7 +34,6 @@ struct SharingState {
 
 void NetShareCallbackObserver::OnSharingStateChanged(const bool &isRunning)
 {
-
     if (!DelayedSingleton<NetShareObserverWrapper>::GetInstance()->GetEventManager()->HasEventListener(
         static_cast<std::string>(EVENT_SHARE_STATE_CHANGE))) {
         NETMANAGER_EXT_LOGE("no event listener find event sharingStateChange");
@@ -55,7 +54,8 @@ void NetShareCallbackObserver::OnInterfaceSharingStateChanged(const SharingIface
         NETMANAGER_EXT_LOGE("no event listener find interfaceSharingStateChange");
         return;
     }
-    NETMANAGER_EXT_LOGI("NetworkSharing OnInterfaceSharingStateChanged type[%{public}d], iface[%{public}s], state[%{public}d]", type, iface.c_str(), state);
+    NETMANAGER_EXT_LOGI("OnInterfaceSharingStateChanged type[%{public}d], iface[%{public}s], state[%{public}d]",
+            type, iface.c_str(), state);
     SharingState *data = new SharingState();
     data->type = type;
     data->iface = iface;

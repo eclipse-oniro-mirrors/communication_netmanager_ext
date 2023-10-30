@@ -84,7 +84,7 @@ int32_t NetworkShareClient::StopSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareClient::IsSharingSupported(int32_t &supported)
 {
-    NETMGR_EXT_LOG_I("NetworkShare IsSharingSupported");
+    NETMGR_EXT_LOG_I("NetworkShare IsSharingSupported.");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("IsSharingSupported proxy is nullptr");
