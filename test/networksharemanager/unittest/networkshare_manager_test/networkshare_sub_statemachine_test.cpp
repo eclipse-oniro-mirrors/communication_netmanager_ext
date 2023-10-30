@@ -449,5 +449,74 @@ HWTEST_F(NetworkShareSubStateMachineTest, AddRoutesToLocalNetwork002, TestSize.L
     ASSERT_NE(networkShareUsbSubStateMachine, nullptr);
     networkShareUsbSubStateMachine->AddRoutesToLocalNetwork();
 }
+
+/**
+ * @tc.name: NetworkShareSubStateMachineBranch001
+ * @tc.desc: Test NetworkShareSubStateMachine Branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, NetworkShareSubStateMachineBranch001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareWifiSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    ASSERT_NE(networkShareWifiSubStateMachine, nullptr);
+
+    networkShareWifiSubStateMachine->HandleConnection();
+
+    std::any messageObj = "";
+    auto ret = networkShareWifiSubStateMachine->HandleInitInterfaceDown(messageObj);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = networkShareWifiSubStateMachine->HandleSharedErrors(messageObj);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    networkShareWifiSubStateMachine->UnavailableStateEnter();
+
+    bool result = networkShareWifiSubStateMachine->StopDhcp();
+    ASSERT_TRUE(result);
+
+    networkShareWifiSubStateMachine->dhcpService_ = nullptr;
+    std::shared_ptr<INetAddr> netAddr = nullptr;
+    result = networkShareWifiSubStateMachine->StartDhcp(netAddr);
+    ASSERT_FALSE(result);
+
+    result = networkShareWifiSubStateMachine->StopDhcp();
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: NetworkShareSubStateMachineBranch002
+ * @tc.desc: Test NetworkShareSubStateMachine Branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, NetworkShareSubStateMachineBranch002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareWifiSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    ASSERT_NE(networkShareWifiSubStateMachine, nullptr);
+
+    networkShareWifiSubStateMachine->configuration_ = nullptr;
+    std::string testName = "";
+    auto result = networkShareWifiSubStateMachine->GetWifiApDestinationAddr(testName);
+    ASSERT_FALSE(result);
+
+    result = networkShareWifiSubStateMachine->GetWifiHotspotDhcpFlag();
+    ASSERT_FALSE(result);
+
+    result = networkShareWifiSubStateMachine->GetBtDestinationAddr(testName);
+    ASSERT_FALSE(result);
+
+    result = networkShareWifiSubStateMachine->GetUsbDestinationAddr(testName);
+    ASSERT_FALSE(result);
+
+    result = networkShareWifiSubStateMachine->CheckConfig(testName, testName);
+    ASSERT_FALSE(result);
+
+    std::shared_ptr<INetAddr> netAddr = nullptr;
+    result = networkShareWifiSubStateMachine->RequestIpv4Address(netAddr);
+    ASSERT_FALSE(result);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
