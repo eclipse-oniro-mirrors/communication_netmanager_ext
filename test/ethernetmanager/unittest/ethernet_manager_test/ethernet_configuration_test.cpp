@@ -85,5 +85,40 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration001, TestSize.Level1)
     ret = ethernetConfiguration.WriteUserConfiguration(IFACE, cfg2);
     EXPECT_FALSE(ret);
 }
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration002, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    sptr<StaticConfiguration> config = nullptr;
+    bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
+    EXPECT_FALSE(ret);
+
+    std::string filePath = "";
+    std::string fileContent = "";
+    sptr<InterfaceConfiguration> configSptr = nullptr;
+    ethernetConfiguration.ParserIfaceIpAndRoute(configSptr, filePath);
+
+    std::string iface = "";
+    ethernetConfiguration.GenCfgContent(iface, nullptr, fileContent);
+
+    ret = ethernetConfiguration.IsDirExist(filePath);
+    EXPECT_FALSE(ret);
+
+    configSptr = ethernetConfiguration.MakeInterfaceConfiguration(nullptr, nullptr);
+    EXPECT_TRUE(configSptr == nullptr);
+
+    ret = ethernetConfiguration.DelDir(filePath);
+    EXPECT_FALSE(ret);
+
+    ret = ethernetConfiguration.ReadFile(filePath, fileContent);
+    EXPECT_FALSE(ret);
+
+    ret = ethernetConfiguration.WriteFile(filePath, fileContent);
+    EXPECT_FALSE(ret);
+
+    ret = ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+    EXPECT_FALSE(ret);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
