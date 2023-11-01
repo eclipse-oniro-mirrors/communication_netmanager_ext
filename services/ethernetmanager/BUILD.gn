@@ -23,6 +23,7 @@ ohos_shared_library("ethernet_manager") {
     "src/ethernet_dhcp_controller.cpp",
     "src/ethernet_management.cpp",
     "src/ethernet_service.cpp",
+    "src/ethernet_lan_management.cpp",
     "src/ethernet_service_common.cpp",
     "src/stub/ethernet_service_stub.cpp",
   ]

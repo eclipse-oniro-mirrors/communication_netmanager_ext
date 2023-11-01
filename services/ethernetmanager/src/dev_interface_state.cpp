@@ -69,6 +69,14 @@ void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifCfg)
     }
 }
 
+void DevInterfaceState::SetLancfg(sptr<InterfaceConfiguration> &ifCfg)
+{
+    ifCfg_ = ifCfg;
+    if (ifCfg_->mode_ == LAN_STATIC) {
+        UpdateLanLinkInfo();
+    }
+}
+
 void DevInterfaceState::SetDhcpReqState(bool dhcpReqState)
 {
     dhcpReqState_ = dhcpReqState;
@@ -102,6 +110,17 @@ sptr<NetLinkInfo> DevInterfaceState::GetLinkInfo() const
 sptr<InterfaceConfiguration> DevInterfaceState::GetIfcfg() const
 {
     return ifCfg_;
+}
+
+bool DevInterfaceState::isLanIface()
+{
+    if(ifCfg_ == nullptr){
+        return false;
+    }
+    if(ifCfg_->mode_ == LAN_STATIC || ifCfg_->mode_ == LAN_DHCP){
+        return true;
+    }
+    return false;
 }
 
 IPSetMode DevInterfaceState::GetIPSetMode() const
@@ -221,6 +240,59 @@ void DevInterfaceState::UpdateLinkInfo()
         linkInfo_->dnsList_.push_back(dnsServer);
     }
     linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
+}
+
+void DevInterfaceState::UpdateLanLinkInfo(){
+    if (ifCfg_ == nullptr || ifCfg_->mode_ != LAN_STATIC) {
+        return;
+    }
+    if (linkInfo_ == nullptr) {
+        linkInfo_ = new (std::nothrow) NetLinkInfo();
+        if (linkInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("linkInfo_ is nullptr");
+            return;
+        }
+    }
+    std::list<INetAddr>().swap(linkInfo_->netAddrList_);
+    std::list<Route>().swap(linkInfo_->routeList_);
+    std::list<INetAddr>().swap(linkInfo_->dnsList_);
+    linkInfo_->ifaceName_ = devName_;
+    for (const auto &ipAddr : ifCfg_->ipStatic_.ipAddrList_) {
+        linkInfo_->netAddrList_.push_back(ipAddr);
+    }
+    CreateLocalRoute(devName_, ifCfg_->ipStatic_.ipAddrList_, ifCfg_->ipStatic_.netMaskList_);
+
+    for (auto dnsServer : ifCfg_->ipStatic_.dnsServers_) {
+        linkInfo_->dnsList_.push_back(dnsServer);
+    }
+    linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
+}
+
+void DevInterfaceState::UpdateLanLinkInfo(const sptr<StaticConfiguration> &config){
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("config is nullptr");
+        return;
+    }
+    if (linkInfo_ == nullptr) {
+        linkInfo_ = new (std::nothrow) NetLinkInfo();
+        if (linkInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("NetLinkInfo new failed");
+        }
+    }
+    std::list<INetAddr>().swap(linkInfo_->netAddrList_);
+    std::list<Route>().swap(linkInfo_->routeList_);
+    std::list<INetAddr>().swap(linkInfo_->dnsList_);
+    linkInfo_->ifaceName_ = devName_;
+    for (const auto &ipAddr : config->ipAddrList_) {
+        linkInfo_->netAddrList_.push_back(ipAddr);
+    }
+    CreateLocalRoute(devName_, config->ipAddrList_, config->netMaskList_);
+    for (auto dns : config->dnsServers_) {
+        linkInfo_->dnsList_.push_back(dns);
+    }
+    if (ifCfg_) {
+        linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
+    }
 }
 
 void DevInterfaceState::UpdateLinkInfo(const sptr<StaticConfiguration> &config)

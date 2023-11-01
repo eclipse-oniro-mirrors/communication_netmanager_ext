@@ -25,6 +25,7 @@
 #include "iservice_registry.h"
 #include "netsys_controller_callback.h"
 #include "system_ability_definition.h"
+#include "ethernet_lan_management.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -87,6 +88,7 @@ private:
     sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_ = nullptr;
     sptr<NetsysControllerCallback> ethDevInterfaceStateCallback_ = nullptr;
     std::map<std::string, sptr<StaticConfiguration>> netLinkConfigs_;
+    std::unique_ptr<EthernetLanManagement> ethLanManageMent_ = nullptr;
     std::mutex mutex_;
 };
 } // namespace NetManagerStandard

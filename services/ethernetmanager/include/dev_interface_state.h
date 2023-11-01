@@ -30,6 +30,7 @@
 #include "net_specifier.h"
 #include "net_supplier_info.h"
 #include "refbase.h"
+#include "ethernet_lan_management.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -42,6 +43,7 @@ public:
     void SetLinkUp(bool up);
     void SetlinkInfo(sptr<NetLinkInfo> &linkInfo);
     void SetIfcfg(sptr<InterfaceConfiguration> &ifCfg);
+    void SetLancfg(sptr<InterfaceConfiguration> &ifCfg);
     void SetDhcpReqState(bool dhcpReqState);
     void UpdateNetHttpProxy(const HttpProxy &httpProxy);
     void UpdateLinkInfo(const sptr<StaticConfiguration> &config);
@@ -53,6 +55,9 @@ public:
     sptr<InterfaceConfiguration> GetIfcfg() const;
     IPSetMode GetIPSetMode() const;
     bool GetDhcpReqState() const;
+    bool isLanIface();
+    void UpdateLanLinkInfo();
+    void UpdateLanLinkInfo(const sptr<StaticConfiguration> &config);
 
     void RemoteRegisterNetSupplier();
     void RemoteUnregisterNetSupplier();

@@ -39,6 +39,7 @@ namespace {
 const std::string IFACE_MATCH = "eth\\d";
 const std::string CONFIG_KEY_ETH_COMPONENT_FLAG = "config_ethernet_interfaces";
 const std::string CONFIG_KEY_ETH_IFACE = "iface";
+const std::string CONFIG_KEY_ETH_LANIFACE = "laniface";
 const std::string CONFIG_KEY_ETH_CAPS = "caps";
 const std::string CONFIG_KEY_ETH_IP = "ip";
 const std::string CONFIG_KEY_ETH_GATEWAY = "gateway";
@@ -53,6 +54,8 @@ constexpr const char *KEY_DEVICE = "DEVICE=";
 constexpr const char *KEY_BOOTPROTO = "BOOTPROTO=";
 constexpr const char *KEY_STATIC = "STATIC";
 constexpr const char *KEY_DHCP = "DHCP";
+constexpr const char *KEY_LAN_STATIC = "LAN_STATIC";
+constexpr const char *KEY_LAN_DHCP = "LAN_DHCP";
 constexpr const char *KEY_IPADDR = "IPADDR=";
 constexpr const char *KEY_NETMASK = "NETMASK=";
 constexpr const char *KEY_GATEWAY = "GATEWAY=";
@@ -92,7 +95,10 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
     const auto &arrIface = jsonCfg.at(CONFIG_KEY_ETH_COMPONENT_FLAG);
     NETMGR_EXT_LOG_D("read ConfigData ethValue:%{public}s", arrIface.dump().c_str());
     for (const auto &item : arrIface) {
-        const auto &iface = item[CONFIG_KEY_ETH_IFACE].get<std::string>();
+        bool isLan = item.contains(CONFIG_KEY_ETH_LANIFACE);
+        const auto &iface = isLan
+                           ? item[CONFIG_KEY_ETH_LANIFACE].get<std::string>()
+                           : item[CONFIG_KEY_ETH_IFACE].get<std::string>();
         const auto &caps = item.at(CONFIG_KEY_ETH_CAPS).get<std::set<NetCap>>();
         if (!caps.empty()) {
             devCaps[iface] = caps;
@@ -107,8 +113,14 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
             NETMGR_EXT_LOG_E("config is nullptr");
             return false;
         }
+        if(isLan){
+            config -> mode_ = LAN_DHCP;
+        }
         std::regex re(IFACE_MATCH);
         if (!item[CONFIG_KEY_ETH_IP].empty() && std::regex_search(iface, re)) {
+            if(isLan){
+                config -> mode_ = LAN_STATIC;
+            }
             devCfgs[iface] = config;
         }
     }
@@ -182,7 +194,7 @@ bool EthernetConfiguration::WriteUserConfiguration(const std::string &iface, spt
         return false;
     }
 
-    if (cfg->mode_ == STATIC) {
+    if (cfg->mode_ == STATIC || cfg->mode_ == LAN_STATIC) {
         ParserIfaceIpAndRoute(cfg, std::string());
     }
 
@@ -428,12 +440,21 @@ void EthernetConfiguration::ParseBootProto(const std::string &fileContent, sptr<
     }
     pos += strlen(KEY_BOOTPROTO);
     const auto &bootProto = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
-    cfg->mode_ = (bootProto == KEY_STATIC) ? STATIC : DHCP;
+    if(bootProto == KEY_LAN_STATIC){
+        cfg->mode_ = LAN_STATIC;
+    }else if(bootProto == KEY_LAN_DHCP){
+        cfg->mode_ = LAN_DHCP;
+    }else if(bootProto == KEY_STATIC){
+        cfg->mode_ = STATIC;
+    }else{
+        cfg->mode_ = DHCP;
+    }
+    //cfg->mode_ = (bootProto == KEY_STATIC) ? STATIC : DHCP;
 }
 
 void EthernetConfiguration::ParseStaticConfig(const std::string &fileContent, sptr<InterfaceConfiguration> cfg)
 {
-    if (cfg->mode_ != STATIC) {
+    if (cfg->mode_ != STATIC && cfg->mode_ != LAN_STATIC) {
         return;
     }
     std::string ipAddresses, netMasks, gateways, routes, routeMasks, dnsServers;
@@ -542,6 +563,18 @@ void EthernetConfiguration::ParserIfaceIpAndRoute(sptr<InterfaceConfiguration> &
     }
 }
 
+std::string EthernetConfiguration::getIfaceMode(IPSetMode mode){
+    if(mode == LAN_STATIC){
+        return KEY_LAN_STATIC;
+    }else if(mode == LAN_DHCP){
+        return KEY_LAN_DHCP;
+    }else if(mode == STATIC){
+        return KEY_STATIC;
+    }else{
+        return KEY_DHCP;
+    }
+}
+
 void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg,
                                           std::string &fileContent)
 {
@@ -551,9 +584,10 @@ void EthernetConfiguration::GenCfgContent(const std::string &iface, sptr<Interfa
     }
     std::string().swap(fileContent);
     fileContent = fileContent + KEY_DEVICE + iface + WRAP;
-    std::string mode = (cfg->mode_ == STATIC) ? KEY_STATIC : KEY_DHCP;
+    //std::string mode = (cfg->mode_ == STATIC) ? KEY_STATIC : KEY_DHCP;
+    std::string mode = getIfaceMode(cfg->mode_);
     fileContent = fileContent + KEY_BOOTPROTO + mode + WRAP;
-    if (cfg->mode_ == STATIC) {
+    if (cfg->mode_ == STATIC || cfg->mode_ == LAN_STATIC) {
         std::string ipAddresses = AccumulateNetAddress(cfg->ipStatic_.ipAddrList_);
         std::string netMasks = AccumulateNetAddress(cfg->ipStatic_.netMaskList_);
         std::string gateways = AccumulateNetAddress(cfg->ipStatic_.gatewayList_);

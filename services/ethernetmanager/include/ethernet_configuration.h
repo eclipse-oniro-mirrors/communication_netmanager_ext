@@ -65,6 +65,7 @@ private:
     void GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent);
     std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList);
     bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, sptr<StaticConfiguration> &config);
+    std::string getIfaceMode(IPSetMode mode);
 
 private:
     std::mutex mutex_;

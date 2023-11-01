@@ -24,6 +24,8 @@ namespace NetManagerStandard {
 typedef enum {
     STATIC,
     DHCP,
+    LAN_STATIC,
+    LAN_DHCP,
 } IPSetMode;
 struct InterfaceConfiguration : public Parcelable {
     IPSetMode mode_;
