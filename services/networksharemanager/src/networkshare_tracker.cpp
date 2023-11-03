@@ -552,6 +552,12 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
         NETMGR_EXT_LOG_E("callback above max count, return error.");
         return NETWORKSHARE_ERROR_ISSHARING_CALLBACK_ERROR;
     }
+    for (auto iter = sharingEventCallback_.begin(); iter != sharingEventCallback_.end(); ++iter) {
+        if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
+            NETMGR_EXT_LOG_I("SharingEventCallback find same callback");
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
     sharingEventCallback_.push_back(callback);
     NETMGR_EXT_LOG_I("RegisterSharingEvent is successful, sharingEventCallback_.size = %{public}zu",
                      sharingEventCallback_.size());
