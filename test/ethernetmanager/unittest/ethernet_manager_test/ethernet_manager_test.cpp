@@ -796,5 +796,54 @@ HWTEST_F(EthernetManagerTest, SetInterfaceDownTest001, TestSize.Level1)
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    NetsysControllerCallback::DhcpResult dhcpResult;
+    EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
+
+    auto ret = devCallback.OnInterfaceAdded(IFACE);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = devCallback.OnInterfaceRemoved(IFACE);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = devCallback.OnRouteChanged(true, "", "", "");
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = devCallback.OnDhcpSuccess(dhcpResult);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = devCallback.OnBandwidthReachedLimit("", IFACE);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest002, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+
+    sptr<InterfaceConfiguration> cfg = nullptr;
+    auto ret = ethernetManagement.UpdateDevInterfaceCfg(IFACE, cfg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
+    ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+
+    ret = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
+    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+
+    sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
+    if (devState != nullptr) {
+        ethernetManagement.StartDhcpClient(DEV_NAME, devState);
+        ethernetManagement.StopDhcpClient(DEV_NAME, devState);
+    }
+    ethernetManagement.DevInterfaceRemove(DEV_NAME);
+
+    int32_t activeStatus = 0;
+    ret = ethernetManagement.IsIfaceActive(IFACE, activeStatus);
+    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -117,5 +117,49 @@ HWTEST_F(DevInterfaceStateTest, SetIfcfgTest002, TestSize.Level1)
     devInterfaceState.UpdateLinkInfo();
     EXPECT_EQ(devInterfaceState.GetIfcfg()->mode_, DHCP);
 }
+
+HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest001, TestSize.Level1)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->mode_ = STATIC;
+    devInterfaceState.SetLinkUp(true);
+    devInterfaceState.UpdateSupplierAvailable();
+    devInterfaceState.SetIfcfg(ifCfg);
+    EXPECT_TRUE(devInterfaceState.linkUp_);
+
+    IPSetMode mode = devInterfaceState.GetIPSetMode();
+    EXPECT_EQ(mode, STATIC);
+
+    devInterfaceState.SetLinkUp(false);
+    devInterfaceState.UpdateSupplierAvailable();
+    devInterfaceState.SetIfcfg(ifCfg);
+    EXPECT_FALSE(devInterfaceState.linkUp_);
+
+    devInterfaceState.RemoteRegisterNetSupplier();
+    devInterfaceState.RemoteUnregisterNetSupplier();
+    devInterfaceState.RemoteUpdateNetSupplierInfo();
+    HttpProxy httpProxy;
+    devInterfaceState.UpdateNetHttpProxy(httpProxy);
+
+    sptr<NetLinkInfo> linkInfo = nullptr;
+    devInterfaceState.SetlinkInfo(linkInfo);
+    devInterfaceState.UpdateNetHttpProxy(httpProxy);
+    EXPECT_TRUE(devInterfaceState.linkInfo_ == nullptr);
+
+    std::vector<INetAddr> ipAddrList;
+    std::vector<INetAddr> netMaskList;
+    devInterfaceState.CreateLocalRoute("", ipAddrList, netMaskList);
+    EXPECT_TRUE(devInterfaceState.linkInfo_ == nullptr);
+
+    std::string testString = "";
+    auto result = devInterfaceState.GetIpv4Prefix(testString, netMaskList);
+    EXPECT_TRUE(result.empty());
+
+    INetAddr targetNetAddr = {};
+    devInterfaceState.GetTargetNetAddrWithSameFamily("", ipAddrList, targetNetAddr);
+    devInterfaceState.GetDumpInfo(testString);
+    EXPECT_TRUE(result.empty());
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -33,8 +33,8 @@
 #define protected public
 #include "ethernet_client.h"
 #include "ethernet_dhcp_controller.h"
-#include "ethernet_service.h"
 #include "ethernet_management.h"
+#include "ethernet_service.h"
 #include "ethernet_service_proxy.h"
 
 namespace OHOS {
@@ -45,12 +45,16 @@ namespace {
 using namespace Security::AccessToken;
 using Security::AccessToken::AccessTokenID;
 constexpr const char *DEV_NAME = "eth0";
+constexpr const char *IFACE_NAME = "wlan0";
 
-HapInfoParams testInfoParms = {.userID = 1,
-                               .bundleName = "ethernet_manager_test",
-                               .instIndex = 0,
-                               .appIDDesc = "test",
-                               .isSystemApp = true};
+HapInfoParams testInfoParms = {
+    .userID = 1,
+    .bundleName = "ethernet_manager_test",
+    .instIndex = 0,
+    .appIDDesc = "test",
+    .isSystemApp = true,
+};
+
 PermissionDef testPermDef = {
     .permissionName = "ohos.permission.GET_NETWORK_INFO",
     .bundleName = "ethernet_manager_test",
@@ -61,18 +65,13 @@ PermissionDef testPermDef = {
     .description = "Test network share manager",
     .descriptionId = 1,
 };
+
 PermissionStateFull testState = {
     .permissionName = "ohos.permission.GET_NETWORK_INFO",
     .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
-};
-HapPolicyParams testPolicyPrams1 = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef},
-    .permStateList = {testState},
+    .resDeviceID = { "local" },
+    .grantStatus = { PermissionState::PERMISSION_GRANTED },
+    .grantFlags = { 2 },
 };
 
 PermissionDef testPermDef2 = {
@@ -85,21 +84,108 @@ PermissionDef testPermDef2 = {
     .description = "Test network share manager",
     .descriptionId = 1,
 };
+
 PermissionStateFull testState2 = {
     .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
     .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
+    .resDeviceID = { "local" },
+    .grantStatus = { PermissionState::PERMISSION_GRANTED },
+    .grantFlags = { 2 },
 };
-HapPolicyParams testPolicyPrams2 = {
+
+PermissionDef testPermDef3 = {
+    .permissionName = "",
+    .bundleName = "ethernet_manager_test",
+    .grantMode = 1,
+    .availableLevel = APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test network share manager",
+    .descriptionId = 1,
+};
+
+PermissionStateFull testState3 = {
+    .permissionName = "",
+    .isGeneral = true,
+    .resDeviceID = { "local" },
+    .grantStatus = { PermissionState::PERMISSION_GRANTED },
+    .grantFlags = { 2 },
+};
+
+HapPolicyParams testPolicyPrams = {
     .apl = APL_SYSTEM_BASIC,
     .domain = "test.domain",
-    .permList = {testPermDef2},
-    .permStateList = {testState2},
+    .permList = { testPermDef, testPermDef2 },
+    .permStateList = { testState, testState2 },
+};
+
+HapPolicyParams testNoPermission = {
+    .apl = APL_SYSTEM_BASIC,
+    .domain = "test.domain",
+    .permList = { testPermDef3 },
+    .permStateList = { testState3 },
 };
 } // namespace
 } // namespace
+
+class AccessToken {
+public:
+    AccessToken() : currentID_(GetSelfTokenID())
+    {
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
+        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
+        SetSelfTokenID(accessID_);
+    }
+    ~AccessToken()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+
+private:
+    AccessTokenID currentID_;
+    AccessTokenID accessID_ = 0;
+};
+
+class AccessTokenInternetInfo {
+public:
+    AccessTokenInternetInfo()
+    {
+        currentID_ = GetSelfTokenID();
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
+        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
+        SetSelfTokenID(tokenIdEx.tokenIDEx);
+    }
+    ~AccessTokenInternetInfo()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+
+private:
+    AccessTokenID currentID_ = 0;
+    AccessTokenID accessID_ = 0;
+};
+
+class AccessTokenNoPermission {
+public:
+    AccessTokenNoPermission()
+    {
+        currentID_ = GetSelfTokenID();
+        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testNoPermission);
+        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
+        SetSelfTokenID(tokenIdEx.tokenIDEx);
+    }
+    ~AccessTokenNoPermission()
+    {
+        AccessTokenKit::DeleteToken(accessID_);
+        SetSelfTokenID(currentID_);
+    }
+
+private:
+    AccessTokenID currentID_ = 0;
+    AccessTokenID accessID_ = 0;
+};
 
 class EtherNetServiceTest : public testing::Test {
 public:
@@ -356,6 +442,173 @@ HWTEST_F(EtherNetServiceTest, SetInterfaceConfigTest001, TestSize.Level1)
     config.flags.push_back("broadcast");
     int32_t ret = ethernetService.SetInterfaceConfig(DEV_NAME, config);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, EthernetServiceCommonTest001, TestSize.Level1)
+{
+    sptr<EthernetServiceCommon> serviceComm_ = new (std::nothrow) EthernetServiceCommon();
+    if (serviceComm_ == nullptr) {
+        NETMGR_EXT_LOG_E("serviceComm_ is nullptr");
+        return;
+    }
+    auto ret = serviceComm_->ResetEthernetFactory();
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+    AccessTokenInternetInfo token;
+    ret = serviceComm_->ResetEthernetFactory();
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+}
+
+HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    bool ret = ethernetService.Init();
+    EXPECT_FALSE(ret);
+
+    ethernetService.OnStop();
+
+    AccessToken token;
+    int32_t result = ethernetService.ResetFactory();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
+    ethernetService.InitManagement();
+
+    std::string iface = "";
+    sptr<InterfaceConfiguration> ic = nullptr;
+    result = ethernetService.SetIfaceConfig(iface, ic);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
+    result = ethernetService.GetIfaceConfig(iface, ic);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
+    int32_t activeStatus = 0;
+    result = ethernetService.IsIfaceActive(iface, activeStatus);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
+    std::vector<std::string> activeIfaces;
+    result = ethernetService.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
+    result = ethernetService.ResetFactory();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
+HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
+{
+    AccessTokenInternetInfo token;
+    EthernetService ethernetService;
+    ethernetService.InitManagement();
+
+    sptr<InterfaceStateCallback> callback = nullptr;
+    auto result = ethernetService.RegisterIfacesStateChanged(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+
+    result = ethernetService.UnregisterMonitorIfaceCallbackAsync(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+
+    OHOS::nmd::InterfaceConfigurationParcel config;
+    result = ethernetService.SetInterfaceConfig(IFACE_NAME, config);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+    result = ethernetService.GetInterfaceConfig(IFACE_NAME, config);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+    int32_t fd = 0;
+    std::vector<std::u16string> args;
+    result = ethernetService.Dump(fd, args);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS); // 0
+
+    std::string iface = "";
+    sptr<InterfaceConfiguration> ic = nullptr;
+    result = ethernetService.SetIfaceConfig(IFACE_NAME, ic);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
+    result = ethernetService.GetIfaceConfig(IFACE_NAME, ic);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+
+    int32_t activeStatus = 0;
+    result = ethernetService.IsIfaceActive(iface, activeStatus);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+
+    result = ethernetService.SetInterfaceDown(IFACE_NAME);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    result = ethernetService.SetInterfaceConfig(IFACE_NAME, config);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+    result = ethernetService.GetInterfaceConfig(IFACE_NAME, cfg);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+    result = ethernetService.ResetFactory();
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+    std::vector<std::string> activeIfaces;
+    result = ethernetService.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+    result = ethernetService.SetInterfaceUp(IFACE_NAME);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    bool ret = ethernetService.Init();
+    EXPECT_FALSE(ret);
+
+    ethernetService.OnStart();
+    ethernetService.OnStop();
+
+    AccessTokenInternetInfo token;
+    ethernetService.ethManagement_ = nullptr;
+    int32_t result = ethernetService.ResetFactory();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
+    int32_t fd = 0;
+    std::vector<std::u16string> args;
+    result = ethernetService.Dump(fd, args);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
+    std::string iface = "";
+    sptr<InterfaceConfiguration> ic = nullptr;
+
+    result = ethernetService.SetIfaceConfig(iface, ic);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
+    result = ethernetService.GetIfaceConfig(iface, ic);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
+    int32_t activeStatus = 0;
+    result = ethernetService.IsIfaceActive(iface, activeStatus);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
+    std::vector<std::string> activeIfaces;
+    result = ethernetService.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+}
+
+HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest004, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    AccessTokenNoPermission token;
+    int32_t activeStatus = 0;
+    std::string iface = "";
+    int32_t result = ethernetService.IsIfaceActive(iface, activeStatus);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+    sptr<InterfaceStateCallback> callback = nullptr;
+    result = ethernetService.RegisterIfacesStateChanged(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+
+    result = ethernetService.UnregisterIfacesStateChanged(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+
+    result = ethernetService.RegisterMonitorIfaceCallbackAsync(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+
+    result = ethernetService.UnregisterMonitorIfaceCallbackAsync(callback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
