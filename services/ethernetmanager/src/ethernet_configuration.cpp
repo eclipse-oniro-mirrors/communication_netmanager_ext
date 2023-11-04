@@ -122,7 +122,7 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
 }
 
 sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(const nlohmann::json &jsonData,
-                                                                                bool isLan)
+                                                                               bool isLan)
 {
     sptr<InterfaceConfiguration> config = new (std::nothrow) InterfaceConfiguration();
     if (config == nullptr) {
@@ -565,9 +565,9 @@ std::string EthernetConfiguration::GetIfaceMode(IPSetMode mode)
 {
     if (mode == LAN_STATIC) {
         return KEY_LAN_STATIC;
-    } else if(mode == LAN_DHCP) {
+    } else if (mode == LAN_DHCP) {
         return KEY_LAN_DHCP;
-    } else if(mode == STATIC) {
+    } else if (mode == STATIC) {
         return KEY_STATIC;
     } else {
         return KEY_DHCP;

@@ -186,13 +186,14 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is unlink", iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
-    if (fit->second->GetIfcfg()->mode_ == STATIC || fit->second->GetIfcfg()->mode_ == STATIC){
-        if(cfg->mode_ == LAN_STATIC || cfg->mode_ == LAN_DHCP){
+    IPSetMode mode = fit->second->GetIfcfg()->mode_;
+    if (mode == STATIC || mode == DHCP) {
+        if (cfg->mode_ == LAN_STATIC || cfg->mode_ == LAN_DHCP) {
             NETMGR_EXT_LOG_E("The iface[%{public}s] device is WAN, can not change to LAN", iface.c_str());
             return NETMANAGER_ERR_INVALID_PARAMETER;
         }
-    } else if (fit->second->GetIfcfg()->mode_ == LAN_STATIC || fit->second->GetIfcfg()->mode_ == LAN_STATIC) {
-        if(cfg->mode_ == STATIC || cfg->mode_ == DHCP){
+    } else if (mode == LAN_STATIC || mode == LAN_DHCP) {
+        if (cfg->mode_ == STATIC || cfg->mode_ == DHCP) {
             NETMGR_EXT_LOG_E("The iface[%{public}s] device is LAN, can not change to WAN", iface.c_str());
             return NETMANAGER_ERR_INVALID_PARAMETER;
         }
@@ -411,7 +412,7 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
     if (fitCfg != devCfgs_.end()) {
         if (fitCfg->second->mode_ == LAN_STATIC || fitCfg->second->mode_ == LAN_DHCP) {
             NETMGR_EXT_LOG_D("Lan Interface name:[%{public}s] add, mode [%{public}d]",
-                                                 devName.c_str(), fitCfg->second->mode_);
+                             devName.c_str(), fitCfg->second->mode_);
             devState->SetLancfg(fitCfg->second);
             ethLanManageMent_->UpdateLanLinkInfo(devState);
             return;

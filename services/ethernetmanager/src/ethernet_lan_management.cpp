@@ -69,7 +69,7 @@ int32_t EthernetLanManagement::SetIp(const NetLinkInfo &newNetLinkInfo)
                                              : ((family == AF_INET6) ? CommonUtils::Ipv6PrefixLen(inetAddr.netMask_)
                                                                      : CommonUtils::Ipv4PrefixLen(inetAddr.netMask_));
         int ret = NetsysController::GetInstance().AddInterfaceAddress(newNetLinkInfo.ifaceName_,
-                     inetAddr.address_, prefixLen);
+                                                                      inetAddr.address_, prefixLen);
         if (ret != NETMANAGER_SUCCESS) {
             NETMGR_EXT_LOG_E("set lan interface address failed");
             return ret;
@@ -87,7 +87,7 @@ int32_t EthernetLanManagement::DelIp(const NetLinkInfo &newNetLinkInfo)
                                              : ((family == AF_INET6) ? CommonUtils::Ipv6PrefixLen(inetAddr.netMask_)
                                                                      : CommonUtils::Ipv4PrefixLen(inetAddr.netMask_));
         int ret = NetsysController::GetInstance().DelInterfaceAddress(netLinkInfo_.ifaceName_,
-                     inetAddr.address_, prefixLen);
+                                                                      inetAddr.address_, prefixLen);
         if (ret != NETMANAGER_SUCCESS) {
             NETMGR_EXT_LOG_E("del lan interface address failed");
             return ret;
@@ -101,7 +101,7 @@ int32_t EthernetLanManagement::SetRoute(const NetLinkInfo &newNetLinkInfo)
     for (const auto &route : newNetLinkInfo.routeList_) {
         std::string destAddress = route.destination_.address_ + "/" + std::to_string(route.destination_.prefixlen_);
         auto ret = NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, route.iface_, destAddress,
-                         route.gateway_.address_);
+                                                                   route.gateway_.address_);
         if (ret != NETMANAGER_SUCCESS) {
             NETMGR_EXT_LOG_E("Set lan route failed");
             return ret;
@@ -115,7 +115,7 @@ int32_t EthernetLanManagement::DelRoute(const NetLinkInfo &newNetLinkInfo)
     for (const auto &route : netLinkInfo_.routeList_) {
         std::string destAddress = route.destination_.address_ + "/" + std::to_string(route.destination_.prefixlen_);
         auto ret = NetsysController::GetInstance().NetworkRemoveRoute(LOCAL_NET_ID, route.iface_, destAddress,
-                         route.gateway_.address_);
+                                                                      route.gateway_.address_);
         if (ret != NETMANAGER_SUCCESS) {
             NETMGR_EXT_LOG_E("del lan route failed");
             return ret;

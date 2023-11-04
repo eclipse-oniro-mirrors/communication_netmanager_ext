@@ -20,12 +20,14 @@
 #include "gtest/hwext/gtest-ext.h"
 #include "gtest/hwext/gtest-tag.h"
 
-#define private public
 #include "dev_interface_state.h"
 #include "ethernet_lan_management.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+using namespace testing::ext;
+} // namespace
 
 class EthernetLanManagementTest : public testing::Test {
 public:
