@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,30 +13,29 @@
  * limitations under the License.
  */
 
-#ifndef ETHERNETLANMANAGEMENT_H
-#define ETHERNETLANMANAGEMENT_H
+#ifndef ETHERNET_LAN_MANAGEMENT_H
+#define ETHERNET_LAN_MANAGEMENT_H
 
+#include "dev_interface_state.h"
 #include "interface_configuration.h"
 #include "net_link_info.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-class EthernetLanManagement
-{
-    public:
-        EthernetLanManagement();
-        ~EthernetLanManagement() = default;
-        int32_t SetIp(const NetLinkInfo &newNetLinkInfo);
-        int32_t DelIp(const NetLinkInfo &newNetLinkInfo);
-        int32_t SetRoute(const NetLinkInfo &newNetLinkInfo);
-        int32_t DelRoute(const NetLinkInfo &newNetLinkInfo);
-        int32_t UpdateLanLinkInfo(const NetLinkInfo &newNetLinkInfo);
+class EthernetLanManagement {
+public:
+    EthernetLanManagement();
+    ~EthernetLanManagement() = default;
+    int32_t SetIp(const NetLinkInfo &newNetLinkInfo);
+    int32_t DelIp(const NetLinkInfo &newNetLinkInfo);
+    int32_t SetRoute(const NetLinkInfo &newNetLinkInfo);
+    int32_t DelRoute(const NetLinkInfo &newNetLinkInfo);
+    void UpdateLanLinkInfo(sptr<DevInterfaceState> &devState);
+    void ReleaseLanNetLink(sptr<DevInterfaceState> &devState);
 
-    protected:
-
-    private:
+private:
     NetLinkInfo netLinkInfo_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // ETHERNETLANMANAGEMENT_H
+#endif // ETHERNET_LAN_MANAGEMENT_H

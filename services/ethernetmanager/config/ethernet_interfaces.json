@@ -23,13 +23,13 @@
       "routemask":""
     },
     {
-      "laniface":"eth2",
+      "laniface":"",
       "caps":[
       ],
-      "ip":"192.168.42.1",
+      "ip":"",
       "gateway":"",
       "dns":"",
-      "netmask":"255.255.255.0",
+      "netmask":"",
       "route":"",
       "routemask":""
     }

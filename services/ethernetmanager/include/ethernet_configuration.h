@@ -51,7 +51,7 @@ private:
     void ParseStaticConfig(const std::string &fileContent, sptr<InterfaceConfiguration> cfg);
 
     std::string ReadJsonFile(const std::string &filePath);
-    sptr<InterfaceConfiguration> ConvertJsonToConfiguration(const nlohmann::json &jsonData);
+    sptr<InterfaceConfiguration> ConvertJsonToConfiguration(const nlohmann::json &jsonData, bool isLan);
     bool IsDirExist(const std::string &dirPath);
     bool CreateDir(const std::string &dirPath);
     bool DelDir(const std::string &dirPath);
@@ -65,7 +65,7 @@ private:
     void GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent);
     std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList);
     bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, sptr<StaticConfiguration> &config);
-    std::string getIfaceMode(IPSetMode mode);
+    std::string GetIfaceMode(IPSetMode mode);
 
 private:
     std::mutex mutex_;

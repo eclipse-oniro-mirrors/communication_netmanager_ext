@@ -30,7 +30,6 @@
 #include "net_specifier.h"
 #include "net_supplier_info.h"
 #include "refbase.h"
-#include "ethernet_lan_management.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -55,7 +54,7 @@ public:
     sptr<InterfaceConfiguration> GetIfcfg() const;
     IPSetMode GetIPSetMode() const;
     bool GetDhcpReqState() const;
-    bool isLanIface();
+    bool IsLanIface();
     void UpdateLanLinkInfo();
     void UpdateLanLinkInfo(const sptr<StaticConfiguration> &config);
 
