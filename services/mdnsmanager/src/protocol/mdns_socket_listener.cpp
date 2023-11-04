@@ -48,6 +48,7 @@ constexpr const char *CONTROL_TAG_REFRESH = "R";
 constexpr uint16_t MDNS_PORT = 5353;
 constexpr size_t RECV_BUFFER = 2000;
 constexpr int WAIT_THREAD_MS = 5;
+constexpr int SOCKET_INIT_INTERVAL_MS = 1000;
 constexpr size_t MDNS_MAX_SOCKET = 16;
 constexpr size_t REFRESH_BUFFER_LEN = 2;
 
@@ -224,64 +225,79 @@ void MDnsSocketListener::Stop()
     }
 }
 
+bool MDnsSocketListener::Ifaceverification(ifaddrs *ifa, ifaddrs *loaddr)
+{
+    if (ifa->ifa_addr == nullptr || (ifa->ifa_addr->sa_family != AF_INET && ifa->ifa_addr->sa_family != AF_INET6)) {
+        return false;
+    }
+
+    std::string ifName(ifa->ifa_name);
+    std::transform(ifName.begin(), ifName.end(), ifName.begin(), ::tolower);
+    if (ifName.find("p2p") != std::string::npos) {
+        return false;
+    }
+
+    if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
+        loaddr = ifa;
+        return false;
+    }
+    if (!IfaceIsSupported(ifa)) {
+        NETMGR_EXT_LOG_I("mdns_log iface [%{public}s] is mismatch", ifa->ifa_name);
+        return false;
+    }
+    return true;
+}
+
 void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 {
     ifaddrs *ifaddr = nullptr;
     ifaddrs *loaddr = nullptr;
+    bool ret = false;
 
-    if (getifaddrs(&ifaddr) < 0) {
-        NETMGR_EXT_LOG_F("mdns_log getifaddrs failed, errno=[%{public}d]", errno);
-        return;
-    }
-
-    for (ifaddrs *ifa = ifaddr; ifa != nullptr && socks_.size() < MDNS_MAX_SOCKET; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == nullptr || (ifa->ifa_addr->sa_family != AF_INET && ifa->ifa_addr->sa_family != AF_INET6)) {
+    do {
+        if (getifaddrs(&ifaddr) < 0) {
+            NETMGR_EXT_LOG_F("mdns_log getifaddrs failed, errno=[%{public}d]", errno);
+            std::this_thread::sleep_for(std::chrono::microseconds(SOCKET_INIT_INTERVAL_MS));
             continue;
-        }
+        } else {
+            for (ifaddrs *ifa = ifaddr; ifa != nullptr && socks_.size() < MDNS_MAX_SOCKET; ifa = ifa->ifa_next) {
+                if (!Ifaceverification(ifa, loaddr)) {
+                    continue;
+                }
+                if (ifa->ifa_addr->sa_family == AF_INET) {
+                    ret |= OpenSocketV4(ifa);
+                } else if (ifa->ifa_addr->sa_family == AF_INET6) {
+                    ret |= OpenSocketV6(ifa, ipv6Support);
+                }
+            }
 
-        std::string ifName(ifa->ifa_name);
-        std::transform(ifName.begin(), ifName.end(), ifName.begin(), ::tolower);
-        if (ifName.find("p2p") != std::string::npos) {
-            continue;
-        }
+            if (lo && socks_.size() == 0 && loaddr && loaddr->ifa_addr) {
+                ret |= OpenSocketV4(loaddr);
+            }
 
-        if ((ifa->ifa_flags & IFF_LOOPBACK) && ifa->ifa_addr->sa_family == AF_INET) {
-            loaddr = ifa;
-            continue;
-        }
-        if (!IfaceIsSupported(ifa)) {
-            NETMGR_EXT_LOG_I("mdns_log iface [%{public}s] is mismatch", ifa->ifa_name);
-            continue;
-        }
-        if (ifa->ifa_addr->sa_family == AF_INET) {
-            OpenSocketV4(ifa);
-        } else if (ifa->ifa_addr->sa_family == AF_INET6) {
-            OpenSocketV6(ifa, ipv6Support);
-        }
-    }
+            freeifaddrs(ifaddr);
 
-    if (lo && socks_.size() == 0 && loaddr && loaddr->ifa_addr) {
-        OpenSocketV4(loaddr);
-    }
-
-    freeifaddrs(ifaddr);
-
-    if (socks_.size() == 0) {
-        NETMGR_EXT_LOG_F("mdns_log no available iface found");
-    }
+            if (socks_.size() == 0 || ret == false) {
+                NETMGR_EXT_LOG_W("mdns_log no available iface found");
+                std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_INIT_INTERVAL_MS));
+                continue;
+            }
+        }
+    } while (false);
 }
 
-void MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
+bool MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
 {
     sockaddr_in *saddr = reinterpret_cast<sockaddr_in *>(ifa->ifa_addr);
     int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
         NETMGR_EXT_LOG_E("mdns_log socket create failed, errno:[%{public}d]", errno);
-        return;
+        return false;
     }
     if (InitSocketV4(sock, ifa, MDNS_PORT)) {
         NETMGR_EXT_LOG_E("mdns_log InitSocketV4 failed, errno=[%{public}d]", errno);
         close(sock);
+        return false;
     } else {
         socks_.emplace_back(sock);
         iface_[sock] = ifa->ifa_name;
@@ -289,6 +305,7 @@ void MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
         reinterpret_cast<sockaddr_in *>(&saddr_[sock])->sin_addr = saddr->sin_addr;
     }
     NETMGR_EXT_LOG_I("mdns_log iface found, ifa_name=[%{public}s]", ifa->ifa_name);
+    return true;
 }
 
 inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
@@ -296,22 +313,23 @@ inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
     return IN6_IS_ADDR_LOOPBACK(addr6);
 }
 
-void MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
+bool MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
 {
     if (!ipv6Support || IN6_IS_ADDR_LOOPBACK(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) ||
         (reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id != 0)) {
         NETMGR_EXT_LOG_D("mdns_log ipv6 not supported");
-        return;
+        return false;
     }
     sockaddr_in6 *saddr = reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr);
     int sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
         NETMGR_EXT_LOG_E("mdns_log socket create failed, errno:[%{public}d]", errno);
-        return;
+        return false;
     }
     if (InitSocketV6(sock, ifa, MDNS_PORT)) {
         NETMGR_EXT_LOG_E("mdns_log InitSocketV6 failed, errno=[%{public}d]", errno);
         close(sock);
+        return false;
     } else {
         socks_.emplace_back(sock);
         iface_[sock] = ifa->ifa_name;
@@ -319,25 +337,34 @@ void MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
         reinterpret_cast<sockaddr_in6 *>(&saddr_[sock])->sin6_addr = saddr->sin6_addr;
     }
     NETMGR_EXT_LOG_I("mdns_log iface found, ifa_name=[%{public}s]", ifa->ifa_name);
+    return true;
 }
 
 void MDnsSocketListener::OpenSocketForDefault(bool ipv6Support)
 {
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (socks_.size() < MDNS_MAX_SOCKET && InitSocketV4(sock, nullptr, MDNS_PORT)) {
-        close(sock);
-    } else {
-        socks_.emplace_back(sock);
-    }
-    if (!ipv6Support) {
-        return;
-    }
-    int sock6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-    if (socks_.size() < MDNS_MAX_SOCKET && InitSocketV6(sock6, nullptr, MDNS_PORT)) {
-        close(sock6);
-    } else {
-        socks_.emplace_back(sock6);
-    }
+    do {
+        if (!ipv6Support) {
+            int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+            if (socks_.size() < MDNS_MAX_SOCKET && InitSocketV4(sock, nullptr, MDNS_PORT)) {
+                close(sock);
+                NETMGR_EXT_LOG_E("mdns_log OpenSocjetForDefault ipv4 failed");
+                std::this_thread::sleep_for(std::chrono::microseconds(SOCKET_INIT_INTERVAL_MS));
+                continue;
+            } else {
+                socks_.emplace_back(sock);
+            }
+        } else {
+            int sock6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+            if (socks_.size() < MDNS_MAX_SOCKET && InitSocketV6(sock6, nullptr, MDNS_PORT)) {
+                close(sock6);
+                NETMGR_EXT_LOG_E("mdns_log OpenSocjetForDefault ipv6 failed");
+                std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_INIT_INTERVAL_MS));
+                continue;
+            } else {
+                socks_.emplace_back(sock6);
+            }
+        }
+    } while (false);
 }
 
 void MDnsSocketListener::CloseAllSocket()
@@ -450,19 +477,23 @@ ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
         return -1;
     }
 
+    int ret = -1;
     if (saddrIf->sa_family == AF_INET) {
         in_addr addr;
         addr.s_addr = htonl(MDNS_MULTICAST_INADDR);
         sockaddr_in saddr{.sin_family = AF_INET, .sin_port = htons(MDNS_PORT), .sin_addr = addr};
-        return sendto(sock, payload.data(), payload.size(), 0, reinterpret_cast<const sockaddr *>(&saddr),
-                      sizeof(saddr));
+        ret = sendto(sock, payload.data(), payload.size(), 0, reinterpret_cast<const sockaddr *>(&saddr),
+                     sizeof(saddr));
     }
     if (saddrIf->sa_family == AF_INET6) {
         sockaddr_in6 saddr{.sin6_family = AF_INET6, .sin6_port = htons(MDNS_PORT), .sin6_addr = MDNS_MULTICAST_IN6ADDR};
-        return sendto(sock, payload.data(), payload.size(), 0, reinterpret_cast<const sockaddr *>(&saddr),
-                      sizeof(saddr));
+        ret = sendto(sock, payload.data(), payload.size(), 0, reinterpret_cast<const sockaddr *>(&saddr),
+                     sizeof(saddr));
     }
-    return -1;
+    if (ret < 0) {
+        NETMGR_EXT_LOG_I("mdns_log sendto error[%{public}d] error info:[%{public}s]", errno, strerror(errno));
+    }
+    return ret;
 }
 
 ssize_t MDnsSocketListener::Unicast(int sock, sockaddr *saddr, const MDnsPayload &payload)
