@@ -1188,7 +1188,7 @@ void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType &ty
 void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> &netHandle)
 {
     std::lock_guard lock(callbackMutex_);
-    if (sharingEventCallback_.size() == 0) {
+    if (sharingEventCallback_.size() == 0 || netHandle == nullptr) {
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
     }
