@@ -22,11 +22,13 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+constexpr const int32_t LOCAL_NET_ID = 99;
+} // namespace
+
 EthernetLanManagement::EthernetLanManagement()
 {
 }
-
-int32_t LOCAL_NET_ID = 99;
 
 void EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devState)
 {
