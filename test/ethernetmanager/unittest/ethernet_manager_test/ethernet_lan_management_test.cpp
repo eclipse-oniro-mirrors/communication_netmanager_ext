@@ -22,6 +22,7 @@
 
 #include "dev_interface_state.h"
 #include "ethernet_lan_management.h"
+#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -71,7 +72,7 @@ HWTEST_F(EthernetLanManagementTest, EthernetLanManagement001, TestSize.Level1)
     ic->ipStatic_.routeList_.push_back(route);
 
     devState->SetLancfg(ic);
-    int32_t ret = ethernetLanManager.DelIp(*(devState->GetLinkInfo()))
+    int32_t ret = ethernetLanManager.DelIp(*(devState->GetLinkInfo()));
     ASSERT_EQ(ret, NETMANAGER_SUCCESS);
 }
 } // namespace NetManagerStandard

@@ -186,17 +186,9 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is unlink", iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
-    IPSetMode mode = fit->second->GetIfcfg()->mode_;
-    if (mode == STATIC || mode == DHCP) {
-        if (cfg->mode_ == LAN_STATIC || cfg->mode_ == LAN_DHCP) {
-            NETMGR_EXT_LOG_E("The iface[%{public}s] device is WAN, can not change to LAN", iface.c_str());
-            return NETMANAGER_ERR_INVALID_PARAMETER;
-        }
-    } else if (mode == LAN_STATIC || mode == LAN_DHCP) {
-        if (cfg->mode_ == STATIC || cfg->mode_ == DHCP) {
-            NETMGR_EXT_LOG_E("The iface[%{public}s] device is LAN, can not change to WAN", iface.c_str());
-            return NETMANAGER_ERR_INVALID_PARAMETER;
-        }
+    if (!ModeInputCheck(fit->second->GetIfcfg()->mode_, cfg->mode_)) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device can not exchange between WAN and LAN", iface.c_str());
+        return NETMANAGER_ERR_INVALID_PARAMETER;
     }
     if (!ethConfiguration_->WriteUserConfiguration(iface, cfg)) {
         NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
@@ -209,7 +201,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
             StopDhcpClient(iface, fit->second);
             netLinkConfigs_[iface] = nullptr;
         }
-    } else if (cfg->mode_ == DHCP || cfg->mode_ == LAN_DHCP) {
+    } else if (cfg->mode_ == DHCP) {
         fit->second->UpdateNetHttpProxy(cfg->httpProxy_);
     }
     if (fit->second->IsLanIface()) {
@@ -454,6 +446,20 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
 void EthernetManagement::GetDumpInfo(std::string &info)
 {
     std::for_each(devs_.begin(), devs_.end(), [&info](const auto &dev) { dev.second->GetDumpInfo(info); });
+}
+
+bool EthernetManagement::ModeInputCheck(IPSetMode origin, IPSetMode input)
+{
+    if (origin == STATIC || origin == DHCP) {
+        if (input == LAN_STATIC || input == LAN_DHCP) {
+            return false;
+        }
+    } else if (origin == LAN_STATIC || origin == LAN_DHCP) {
+        if (input == STATIC || input == DHCP) {
+            return false;
+        }
+    }
+    return true;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
