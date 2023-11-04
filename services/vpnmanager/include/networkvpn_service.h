@@ -114,6 +114,7 @@ private:
     std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
     std::shared_ptr<AppExecFwk::EventRunner> policyCallRunner_;
     std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
+    std::mutex netVpnMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
