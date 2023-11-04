@@ -116,6 +116,7 @@ bool NetworkVpnService::Init()
 
 void NetworkVpnService::GetDumpMessage(std::string &message)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     message.append("Net Vpn Info:\n");
     if (vpnObj_ != nullptr) {
         const auto &config = vpnObj_->GetVpnConfig();
@@ -156,6 +157,7 @@ void NetworkVpnService::OnVpnMultiUserSetUp()
 
 int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     isRun = false;
     isExistVpn = false;
     if (vpnObj_ != nullptr) {
@@ -169,6 +171,7 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
 
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -207,6 +210,7 @@ int32_t NetworkVpnService::Protect()
 
 int32_t NetworkVpnService::DestroyVpn()
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
