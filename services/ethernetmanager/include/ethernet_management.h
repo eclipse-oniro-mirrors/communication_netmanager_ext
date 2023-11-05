@@ -25,6 +25,7 @@
 #include "iservice_registry.h"
 #include "netsys_controller_callback.h"
 #include "system_ability_definition.h"
+#include "ethernet_lan_management.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -77,6 +78,7 @@ private:
     void StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StartSetDevUpThd();
     bool IsIfaceLinkUp(const std::string &iface);
+    bool ModeInputCheck(IPSetMode origin, IPSetMode input);
 
 private:
     std::map<std::string, std::set<NetCap>> devCaps_;
@@ -87,6 +89,7 @@ private:
     sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_ = nullptr;
     sptr<NetsysControllerCallback> ethDevInterfaceStateCallback_ = nullptr;
     std::map<std::string, sptr<StaticConfiguration>> netLinkConfigs_;
+    std::unique_ptr<EthernetLanManagement> ethLanManageMent_ = nullptr;
     std::mutex mutex_;
 };
 } // namespace NetManagerStandard

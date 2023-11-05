@@ -21,6 +21,17 @@
       "netmask":"",
       "route":"",
       "routemask":""
+    },
+    {
+      "laniface":"",
+      "caps":[
+      ],
+      "ip":"",
+      "gateway":"",
+      "dns":"",
+      "netmask":"",
+      "route":"",
+      "routemask":""
     }
   ]
 }

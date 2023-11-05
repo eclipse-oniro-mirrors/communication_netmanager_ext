@@ -42,6 +42,7 @@ public:
     void SetLinkUp(bool up);
     void SetlinkInfo(sptr<NetLinkInfo> &linkInfo);
     void SetIfcfg(sptr<InterfaceConfiguration> &ifCfg);
+    void SetLancfg(sptr<InterfaceConfiguration> &ifCfg);
     void SetDhcpReqState(bool dhcpReqState);
     void UpdateNetHttpProxy(const HttpProxy &httpProxy);
     void UpdateLinkInfo(const sptr<StaticConfiguration> &config);
@@ -53,6 +54,9 @@ public:
     sptr<InterfaceConfiguration> GetIfcfg() const;
     IPSetMode GetIPSetMode() const;
     bool GetDhcpReqState() const;
+    bool IsLanIface();
+    void UpdateLanLinkInfo();
+    void UpdateLanLinkInfo(const sptr<StaticConfiguration> &config);
 
     void RemoteRegisterNetSupplier();
     void RemoteUnregisterNetSupplier();
@@ -70,6 +74,8 @@ private:
     std::string GetIpv4Prefix(const std::string &ipv4Addr, const std::vector<INetAddr> &netMaskList);
     void GetTargetNetAddrWithSameFamily(const std::string &bySrcAddr, const std::vector<INetAddr> &fromAddrList,
                                         INetAddr &targetNetAddr);
+    void GetRoutePrefixlen(const std::string &bySrcAddr, const std::vector<INetAddr> &fromAddrList,
+                           INetAddr &targetNetAddr);
 
 private:
     ConnLinkState connLinkState_ = UNREGISTERED;

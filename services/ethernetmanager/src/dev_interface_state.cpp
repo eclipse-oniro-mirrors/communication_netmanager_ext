@@ -69,6 +69,14 @@ void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifCfg)
     }
 }
 
+void DevInterfaceState::SetLancfg(sptr<InterfaceConfiguration> &ifCfg)
+{
+    ifCfg_ = ifCfg;
+    if (ifCfg_->mode_ == LAN_STATIC) {
+        UpdateLanLinkInfo();
+    }
+}
+
 void DevInterfaceState::SetDhcpReqState(bool dhcpReqState)
 {
     dhcpReqState_ = dhcpReqState;
@@ -102,6 +110,17 @@ sptr<NetLinkInfo> DevInterfaceState::GetLinkInfo() const
 sptr<InterfaceConfiguration> DevInterfaceState::GetIfcfg() const
 {
     return ifCfg_;
+}
+
+bool DevInterfaceState::IsLanIface()
+{
+    if (ifCfg_ == nullptr) {
+        return false;
+    }
+    if (ifCfg_->mode_ == LAN_STATIC || ifCfg_->mode_ == LAN_DHCP) {
+        return true;
+    }
+    return false;
 }
 
 IPSetMode DevInterfaceState::GetIPSetMode() const
@@ -223,6 +242,64 @@ void DevInterfaceState::UpdateLinkInfo()
     linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
 }
 
+void DevInterfaceState::UpdateLanLinkInfo()
+{
+    if (ifCfg_ == nullptr || ifCfg_->mode_ != LAN_STATIC) {
+        return;
+    }
+    if (linkInfo_ == nullptr) {
+        linkInfo_ = new (std::nothrow) NetLinkInfo();
+        if (linkInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("linkInfo_ is nullptr");
+            return;
+        }
+    }
+    std::list<INetAddr>().swap(linkInfo_->netAddrList_);
+    std::list<Route>().swap(linkInfo_->routeList_);
+    linkInfo_->ifaceName_ = devName_;
+    for (const auto &ipAddr : ifCfg_->ipStatic_.ipAddrList_) {
+        linkInfo_->netAddrList_.push_back(ipAddr);
+    }
+
+    for (const auto &netAddr : ifCfg_->ipStatic_.routeList_) {
+        Route route;
+        route.iface_ = devName_;
+        route.destination_ = netAddr;
+        GetRoutePrefixlen(netAddr.address_, ifCfg_->ipStatic_.netMaskList_, route.destination_);
+        GetTargetNetAddrWithSameFamily(netAddr.address_, ifCfg_->ipStatic_.gatewayList_, route.gateway_);
+        linkInfo_->routeList_.push_back(route);
+    }
+}
+
+void DevInterfaceState::UpdateLanLinkInfo(const sptr<StaticConfiguration> &config)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("config is nullptr");
+        return;
+    }
+    if (linkInfo_ == nullptr) {
+        linkInfo_ = new (std::nothrow) NetLinkInfo();
+        if (linkInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("NetLinkInfo new failed");
+        }
+    }
+    std::list<INetAddr>().swap(linkInfo_->netAddrList_);
+    std::list<Route>().swap(linkInfo_->routeList_);
+    linkInfo_->ifaceName_ = devName_;
+    for (const auto &ipAddr : config->ipAddrList_) {
+        linkInfo_->netAddrList_.push_back(ipAddr);
+    }
+
+    for (const auto &routeAddr : config->routeList_) {
+        Route routeStc;
+        routeStc.iface_ = devName_;
+        routeStc.destination_ = routeAddr;
+        GetRoutePrefixlen(routeAddr.address_, config->netMaskList_, routeStc.destination_);
+        GetTargetNetAddrWithSameFamily(routeAddr.address_, config->gatewayList_, routeStc.gateway_);
+        linkInfo_->routeList_.push_back(routeStc);
+    }
+}
+
 void DevInterfaceState::UpdateLinkInfo(const sptr<StaticConfiguration> &config)
 {
     if (config == nullptr) {
@@ -309,6 +386,21 @@ void DevInterfaceState::GetTargetNetAddrWithSameFamily(const std::string &bySrcA
         }
         targetNetAddr = addr;
         return;
+    }
+}
+
+void DevInterfaceState::GetRoutePrefixlen(const std::string &bySrcAddr,
+                                          const std::vector<INetAddr> &fromAddrList,
+                                          INetAddr &targetNetAddr)
+{
+    auto route_family = CommonUtils::GetAddrFamily(bySrcAddr);
+    for (const auto &netMask : fromAddrList) {
+        auto route_mask_family = CommonUtils::GetAddrFamily(netMask.address_);
+        if (route_family == route_mask_family) {
+            targetNetAddr.prefixlen_ = (route_family == AF_INET6)
+                ? static_cast<uint32_t>(CommonUtils::Ipv6PrefixLen(netMask.address_))
+                : static_cast<uint32_t>(CommonUtils::Ipv4PrefixLen(netMask.address_));
+        }
     }
 }
 

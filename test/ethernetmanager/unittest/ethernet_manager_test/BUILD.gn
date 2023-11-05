@@ -20,6 +20,7 @@ ohos_unittest("ethernet_manager_test") {
   sources = [
     "dev_interface_state_test.cpp",
     "ethernet_configuration_test.cpp",
+    "ethernet_lan_management_test.cpp",
     "ethernet_manager_test.cpp",
     "ethernet_service_proxy_test.cpp",
     "ethernet_service_test.cpp",

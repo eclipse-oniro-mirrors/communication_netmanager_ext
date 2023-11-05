@@ -121,6 +121,7 @@ EthernetManagement::EthernetManagement()
 
     ethConfiguration_ = std::make_unique<EthernetConfiguration>();
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
+    ethLanManageMent_ = std::make_unique<EthernetLanManagement>();
 }
 
 EthernetManagement::~EthernetManagement() = default;
@@ -144,17 +145,27 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
     NETMGR_EXT_LOG_D("EthernetManagement UpdateInterfaceState mode[%{public}d] dhcpReqState[%{public}d]",
                      static_cast<int32_t>(mode), dhcpReqState);
     if (up) {
-        devState->RemoteUpdateNetSupplierInfo();
-        if (mode == DHCP && !dhcpReqState) {
+        if (!devState->IsLanIface()) {
+            devState->RemoteUpdateNetSupplierInfo();
+        }
+        if ((mode == DHCP || mode == LAN_DHCP) && !dhcpReqState) {
             StartDhcpClient(dev, devState);
         } else {
-            devState->RemoteUpdateNetLinkInfo();
+            if (devState->IsLanIface()) {
+                ethLanManageMent_->UpdateLanLinkInfo(devState);
+            } else {
+                devState->RemoteUpdateNetLinkInfo();
+            }
         }
     } else {
-        if (mode == DHCP && dhcpReqState) {
+        if ((mode == DHCP || mode == LAN_DHCP) && dhcpReqState) {
             StopDhcpClient(dev, devState);
         }
-        devState->RemoteUpdateNetSupplierInfo();
+        if (devState->IsLanIface()) {
+            ethLanManageMent_->ReleaseLanNetLink(devState);
+        } else {
+            devState->RemoteUpdateNetSupplierInfo();
+        }
         netLinkConfigs_[dev] = nullptr;
     }
 }
@@ -175,12 +186,16 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is unlink", iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
+    if (!ModeInputCheck(fit->second->GetIfcfg()->mode_, cfg->mode_)) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device can not exchange between WAN and LAN", iface.c_str());
+        return NETMANAGER_ERR_INVALID_PARAMETER;
+    }
     if (!ethConfiguration_->WriteUserConfiguration(iface, cfg)) {
         NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
         return ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL;
     }
     if (fit->second->GetIfcfg()->mode_ != cfg->mode_) {
-        if (cfg->mode_ == DHCP) {
+        if (cfg->mode_ == DHCP || cfg->mode_ == LAN_DHCP) {
             StartDhcpClient(iface, fit->second);
         } else {
             StopDhcpClient(iface, fit->second);
@@ -189,7 +204,12 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
     } else if (cfg->mode_ == DHCP) {
         fit->second->UpdateNetHttpProxy(cfg->httpProxy_);
     }
-    fit->second->SetIfcfg(cfg);
+    if (fit->second->IsLanIface()) {
+        fit->second->SetLancfg(cfg);
+        ethLanManageMent_->UpdateLanLinkInfo(fit->second);
+    } else {
+        fit->second->SetIfcfg(cfg);
+    }
     devCfgs_[iface] = cfg;
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -208,7 +228,8 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
 
-    if (fit->second->GetIPSetMode() == IPSetMode::STATIC) {
+    IPSetMode mode = fit->second->GetIPSetMode();
+    if (mode == IPSetMode::STATIC || mode == IPSetMode::LAN_STATIC) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] set mode is STATIC now", dhcpResult.iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
@@ -225,8 +246,13 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         NETMGR_EXT_LOG_E("EthernetManagement dhcp convert to configurations error!");
         return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
     }
-    fit->second->UpdateLinkInfo(config);
-    fit->second->RemoteUpdateNetLinkInfo();
+    if (fit->second->IsLanIface()) {
+        fit->second->UpdateLanLinkInfo(config);
+        ethLanManageMent_->UpdateLanLinkInfo(fit->second);
+    } else {
+        fit->second->UpdateLinkInfo(config);
+        fit->second->RemoteUpdateNetLinkInfo();
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -371,11 +397,19 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
         NETMGR_EXT_LOG_E("devState is nullptr");
         return;
     }
+    ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
     devs_.insert(std::make_pair(devName, devState));
     devState->SetDevName(devName);
-    devState->RemoteRegisterNetSupplier();
     auto fitCfg = devCfgs_.find(devName);
     if (fitCfg != devCfgs_.end()) {
+        if (fitCfg->second->mode_ == LAN_STATIC || fitCfg->second->mode_ == LAN_DHCP) {
+            NETMGR_EXT_LOG_D("Lan Interface name:[%{public}s] add, mode [%{public}d]",
+                             devName.c_str(), fitCfg->second->mode_);
+            devState->SetLancfg(fitCfg->second);
+            ethLanManageMent_->UpdateLanLinkInfo(devState);
+            return;
+        }
+        devState->RemoteRegisterNetSupplier();
         devState->SetIfcfg(fitCfg->second);
     } else {
         sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
@@ -384,6 +418,7 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
             return;
         }
         ifCfg->mode_ = DHCP;
+        devState->RemoteRegisterNetSupplier();
         devState->SetIfcfg(ifCfg);
     }
     auto fitCap = devCaps_.find(devName);
@@ -400,6 +435,9 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
     if (fitDev != devs_.end()) {
         if (fitDev->second != nullptr) {
             fitDev->second->RemoteUnregisterNetSupplier();
+            if (fitDev->second->IsLanIface()) {
+                ethLanManageMent_->ReleaseLanNetLink(fitDev->second);
+            }
         }
         devs_.erase(fitDev);
     }
@@ -408,6 +446,20 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
 void EthernetManagement::GetDumpInfo(std::string &info)
 {
     std::for_each(devs_.begin(), devs_.end(), [&info](const auto &dev) { dev.second->GetDumpInfo(info); });
+}
+
+bool EthernetManagement::ModeInputCheck(IPSetMode origin, IPSetMode input)
+{
+    if (origin == STATIC || origin == DHCP) {
+        if (input == LAN_STATIC || input == LAN_DHCP) {
+            return false;
+        }
+    } else if (origin == LAN_STATIC || origin == LAN_DHCP) {
+        if (input == STATIC || input == DHCP) {
+            return false;
+        }
+    }
+    return true;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
