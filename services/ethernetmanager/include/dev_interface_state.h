@@ -74,6 +74,8 @@ private:
     std::string GetIpv4Prefix(const std::string &ipv4Addr, const std::vector<INetAddr> &netMaskList);
     void GetTargetNetAddrWithSameFamily(const std::string &bySrcAddr, const std::vector<INetAddr> &fromAddrList,
                                         INetAddr &targetNetAddr);
+    void GetRoutePrefixlen(const std::string &bySrcAddr, const std::vector<INetAddr> &fromAddrList,
+                           INetAddr &targetNetAddr);
 
 private:
     ConnLinkState connLinkState_ = UNREGISTERED;

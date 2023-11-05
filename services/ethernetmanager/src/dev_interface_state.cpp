@@ -265,16 +265,7 @@ void DevInterfaceState::UpdateLanLinkInfo()
         Route route;
         route.iface_ = devName_;
         route.destination_ = netAddr;
-        auto route_family = CommonUtils::GetAddrFamily(netAddr.address_);
-        for (const auto &netMask : ifCfg_->ipStatic_.netMaskList_) {
-            auto route_mask_family = CommonUtils::GetAddrFamily(netMask.address_);
-            if (route_family == route_mask_family) {
-                route.destination_.prefixlen_ = (route_family == AF_INET6)
-                    ? static_cast<uint32_t>(CommonUtils::Ipv6PrefixLen(netMask.address_))
-                    : static_cast<uint32_t>(CommonUtils::Ipv4PrefixLen(netMask.address_));
-                break;
-            }
-        }
+        GetRoutePrefixlen(netAddr.address_, ifCfg_->ipStatic_.netMaskList_, route.destination_);
         GetTargetNetAddrWithSameFamily(netAddr.address_, ifCfg_->ipStatic_.gatewayList_, route.gateway_);
         linkInfo_->routeList_.push_back(route);
     }
@@ -303,16 +294,7 @@ void DevInterfaceState::UpdateLanLinkInfo(const sptr<StaticConfiguration> &confi
         Route routeStc;
         routeStc.iface_ = devName_;
         routeStc.destination_ = routeAddr;
-        auto route_family = CommonUtils::GetAddrFamily(routeAddr.address_);
-        for (const auto &netMask : ifCfg_->ipStatic_.netMaskList_) {
-            auto route_mask_family = CommonUtils::GetAddrFamily(netMask.address_);
-            if (route_family == route_mask_family) {
-                routeStc.destination_.prefixlen_ = (route_family == AF_INET6)
-                    ? static_cast<uint32_t>(CommonUtils::Ipv6PrefixLen(netMask.address_))
-                    : static_cast<uint32_t>(CommonUtils::Ipv4PrefixLen(netMask.address_));
-                break;
-            }
-        }
+        GetRoutePrefixlen(routeAddr.address_, config->netMaskList_, routeStc.destination_);
         GetTargetNetAddrWithSameFamily(routeAddr.address_, config->gatewayList_, routeStc.gateway_);
         linkInfo_->routeList_.push_back(routeStc);
     }
@@ -404,6 +386,21 @@ void DevInterfaceState::GetTargetNetAddrWithSameFamily(const std::string &bySrcA
         }
         targetNetAddr = addr;
         return;
+    }
+}
+
+void DevInterfaceState::GetRoutePrefixlen(const std::string &bySrcAddr,
+                                          const std::vector<INetAddr> &fromAddrList,
+                                          INetAddr &targetNetAddr)
+{
+    auto route_family = CommonUtils::GetAddrFamily(bySrcAddr);
+    for (const auto &netMask : fromAddrList) {
+        auto route_mask_family = CommonUtils::GetAddrFamily(netMask.address_);
+        if (route_family == route_mask_family) {
+            targetNetAddr.prefixlen_ = (route_family == AF_INET6)
+                ? static_cast<uint32_t>(CommonUtils::Ipv6PrefixLen(netMask.address_))
+                : static_cast<uint32_t>(CommonUtils::Ipv4PrefixLen(netMask.address_));
+        }
     }
 }
 
