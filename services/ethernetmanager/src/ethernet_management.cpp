@@ -205,6 +205,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         fit->second->UpdateNetHttpProxy(cfg->httpProxy_);
     }
     if (fit->second->IsLanIface()) {
+        ethLanManageMent_->GetOldLinkInfo(fit->second);
         fit->second->SetLancfg(cfg);
         ethLanManageMent_->UpdateLanLinkInfo(fit->second);
     } else {
@@ -247,6 +248,7 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
     }
     if (fit->second->IsLanIface()) {
+        ethLanManageMent_->GetOldLinkInfo(fit->second);
         fit->second->UpdateLanLinkInfo(config);
         ethLanManageMent_->UpdateLanLinkInfo(fit->second);
     } else {
@@ -435,9 +437,6 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
     if (fitDev != devs_.end()) {
         if (fitDev->second != nullptr) {
             fitDev->second->RemoteUnregisterNetSupplier();
-            if (fitDev->second->IsLanIface()) {
-                ethLanManageMent_->ReleaseLanNetLink(fitDev->second);
-            }
         }
         devs_.erase(fitDev);
     }
