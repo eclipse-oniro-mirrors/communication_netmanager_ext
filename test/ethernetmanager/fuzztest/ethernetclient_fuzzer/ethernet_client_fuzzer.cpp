@@ -107,16 +107,16 @@ template <class T> T GetData()
     g_baseFuzzPos += objectSize;
     return object;
 }
-class AccessToken {
+class EthernetClientAccessToken {
 public:
-    AccessToken()
+    EthernetClientAccessToken()
     {
         currentID_ = GetSelfTokenID();
         AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
         accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
         SetSelfTokenID(tokenIdEx.tokenIDEx);
     }
-    ~AccessToken()
+    ~EthernetClientAccessToken()
     {
         AccessTokenKit::DeleteToken(accessID_);
         SetSelfTokenID(currentID_);
@@ -199,7 +199,7 @@ bool IsDataAndWriteVaild(const uint8_t *data, size_t size, MessageParcel &parcel
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    AccessToken token;
+    EthernetClientAccessToken token;
     AccessTokenInternetInfo tokenInfo;
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
@@ -247,7 +247,7 @@ void GetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
-    AccessToken token;
+    EthernetClientAccessToken token;
     AccessTokenInternetInfo tokenInfo;
     MessageParcel parcel;
     std::string iface = GetStringFromData(IFACE_LEN);
@@ -266,7 +266,7 @@ void IsIfaceActiveFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
-    AccessToken token;
+    EthernetClientAccessToken token;
     AccessTokenInternetInfo tokenInfo;
     MessageParcel parcel;
     std::string iface = GetStringFromData(IFACE_LEN);
@@ -282,7 +282,7 @@ void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    AccessToken token;
+    EthernetClientAccessToken token;
     AccessTokenInternetInfo tokenInfo;
     MessageParcel parcel;
     WriteInterfaceToken(parcel);
@@ -294,7 +294,7 @@ void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    AccessToken token;
+    EthernetClientAccessToken token;
     AccessTokenInternetInfo tokenInfo;
     MessageParcel parcel;
     WriteInterfaceToken(parcel);
@@ -306,7 +306,7 @@ void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    AccessToken token;
+    EthernetClientAccessToken token;
     AccessTokenInternetInfo tokenInfo;
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
@@ -348,7 +348,7 @@ void SetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    AccessToken token;
+    EthernetClientAccessToken token;
     AccessTokenInternetInfo tokenInfo;
     g_baseFuzzData = data;
     g_baseFuzzSize = size;

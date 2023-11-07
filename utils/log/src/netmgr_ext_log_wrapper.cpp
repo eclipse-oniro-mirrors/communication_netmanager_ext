@@ -28,14 +28,14 @@ bool NetMgrExtLogWrapper::JudgeLevel(const NetMgrExtLogLevel &level)
 
 std::string NetMgrExtLogWrapper::GetBriefFileName(const std::string &file)
 {
-    auto pos = file.find_last_of("/");
-    if (pos != std::string::npos) {
-        return file.substr(pos + 1);
+    auto position = file.find_last_of("/");
+    if (position != std::string::npos) {
+        return file.substr(position + 1);
     }
 
-    pos = file.find_last_of("\\");
-    if (pos != std::string::npos) {
-        return file.substr(pos + 1);
+    position = file.find_last_of("\\");
+    if (position != std::string::npos) {
+        return file.substr(position + 1);
     }
 
     return file;
