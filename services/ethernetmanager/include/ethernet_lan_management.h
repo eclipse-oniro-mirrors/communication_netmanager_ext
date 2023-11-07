@@ -32,6 +32,7 @@ public:
     int32_t DelRoute(const NetLinkInfo &newNetLinkInfo);
     void UpdateLanLinkInfo(sptr<DevInterfaceState> &devState);
     void ReleaseLanNetLink(sptr<DevInterfaceState> &devState);
+    void GetOldLinkInfo(sptr<DevInterfaceState> &devState);
 
 private:
     NetLinkInfo netLinkInfo_;

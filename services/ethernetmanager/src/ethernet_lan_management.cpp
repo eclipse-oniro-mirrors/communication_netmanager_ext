@@ -30,6 +30,15 @@ EthernetLanManagement::EthernetLanManagement()
 {
 }
 
+void EthernetLanManagement::GetOldLinkInfo(sptr<DevInterfaceState> &devState)
+{
+    if (devState == nullptr) {
+        NETMGR_EXT_LOG_D("EthernetLanManagement:GetOldLinkInfo fail due to devState is nullptr");
+        return;
+    }
+    netLinkInfo_ = *(devState->GetLinkInfo());
+}
+
 void EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devState)
 {
     if (devState == nullptr) {
@@ -45,25 +54,48 @@ void EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devState)
     SetIp(newNetLinkInfo);
     DelRoute(newNetLinkInfo);
     SetRoute(newNetLinkInfo);
-    netLinkInfo_ = newNetLinkInfo;
 }
 
 void EthernetLanManagement::ReleaseLanNetLink(sptr<DevInterfaceState> &devState)
 {
+    NETMGR_EXT_LOG_D("EthernetLanManagement:ReleaseLanNetLink...");
     if (devState == nullptr) {
         NETMGR_EXT_LOG_D("EthernetLanManagement:ReleaseLanNetLink fail due to devState is nullptr");
         return;
     }
     NetLinkInfo newNetLinkInfo = *(devState->GetLinkInfo());
-    DelIp(newNetLinkInfo);
-    DelRoute(newNetLinkInfo);
-    netLinkInfo_.Initialize();
+    for (const auto &inetAddr : newNetLinkInfo.netAddrList_) {
+        auto family = CommonUtils::GetAddrFamily(inetAddr.address_);
+        auto prefixLen = inetAddr.prefixlen_ ? static_cast<int32_t>(inetAddr.prefixlen_)
+                                             : ((family == AF_INET6) ? CommonUtils::Ipv6PrefixLen(inetAddr.netMask_)
+                                                                     : CommonUtils::Ipv4PrefixLen(inetAddr.netMask_));
+        int ret = NetsysController::GetInstance().DelInterfaceAddress(newNetLinkInfo.ifaceName_,
+                                                                      inetAddr.address_, prefixLen);
+        if (ret != NETMANAGER_SUCCESS) {
+            NETMGR_EXT_LOG_E("del lan interface[%{public}s] address[%{private}s] failed",
+                             newNetLinkInfo.ifaceName_.c_str(), inetAddr.address_.c_str());
+        }
+    }
+    for (const auto &route : newNetLinkInfo.routeList_) {
+        std::string destAddress = route.destination_.address_ + "/" + std::to_string(route.destination_.prefixlen_);
+        auto ret = NetsysController::GetInstance().NetworkRemoveRoute(LOCAL_NET_ID, route.iface_, destAddress,
+                                                                      route.gateway_.address_);
+        if (ret != NETMANAGER_SUCCESS) {
+            NETMGR_EXT_LOG_E("del lan[%{public}s] route failed, destAddress[%{private}s], nexthop[%{private}s]",
+                             route.iface_.c_str(), destAddress.c_str(), route.gateway_.address_.c_str());
+        }
+    }
 }
 
 int32_t EthernetLanManagement::SetIp(const NetLinkInfo &newNetLinkInfo)
 {
     NETMGR_EXT_LOG_D("EthernetLanManagement:SetIp...");
     for (const auto &inetAddr : newNetLinkInfo.netAddrList_) {
+        if (netLinkInfo_.HasNetAddr(inetAddr)) {
+            NETMGR_EXT_LOG_W("Same ip address:[%{public}s], there is no need to add it again",
+                             CommonUtils::ToAnonymousIp(inetAddr.address_).c_str());
+            continue;
+        }
         auto family = CommonUtils::GetAddrFamily(inetAddr.address_);
         auto prefixLen = inetAddr.prefixlen_ ? static_cast<int32_t>(inetAddr.prefixlen_)
                                              : ((family == AF_INET6) ? CommonUtils::Ipv6PrefixLen(inetAddr.netMask_)
@@ -82,6 +114,11 @@ int32_t EthernetLanManagement::DelIp(const NetLinkInfo &newNetLinkInfo)
 {
     NETMGR_EXT_LOG_D("EthernetLanManagement:DelIp...");
     for (const auto &inetAddr : netLinkInfo_.netAddrList_) {
+        if (newNetLinkInfo.HasNetAddr(inetAddr)) {
+            NETMGR_EXT_LOG_W("Same ip address:[%{public}s], there is not need to be deleted",
+                             CommonUtils::ToAnonymousIp(inetAddr.address_).c_str());
+            continue;
+        }
         auto family = CommonUtils::GetAddrFamily(inetAddr.address_);
         auto prefixLen = inetAddr.prefixlen_ ? static_cast<int32_t>(inetAddr.prefixlen_)
                                              : ((family == AF_INET6) ? CommonUtils::Ipv6PrefixLen(inetAddr.netMask_)
@@ -99,6 +136,11 @@ int32_t EthernetLanManagement::DelIp(const NetLinkInfo &newNetLinkInfo)
 int32_t EthernetLanManagement::SetRoute(const NetLinkInfo &newNetLinkInfo)
 {
     for (const auto &route : newNetLinkInfo.routeList_) {
+        if (netLinkInfo_.HasRoute(route)) {
+            NETMGR_EXT_LOG_W("Same route:[%{public}s]  ifo, there is no need to add it again",
+                             CommonUtils::ToAnonymousIp(route.destination_.address_).c_str());
+            continue;
+        }
         std::string destAddress = route.destination_.address_ + "/" + std::to_string(route.destination_.prefixlen_);
         auto ret = NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, route.iface_, destAddress,
                                                                    route.gateway_.address_);
@@ -113,6 +155,11 @@ int32_t EthernetLanManagement::SetRoute(const NetLinkInfo &newNetLinkInfo)
 int32_t EthernetLanManagement::DelRoute(const NetLinkInfo &newNetLinkInfo)
 {
     for (const auto &route : netLinkInfo_.routeList_) {
+        if (newNetLinkInfo.HasRoute(route)) {
+            NETMGR_EXT_LOG_W("Same route:[%{public}s]  ifo, there is not need to be deleted",
+                             CommonUtils::ToAnonymousIp(route.destination_.address_).c_str());
+            continue;
+        }
         std::string destAddress = route.destination_.address_ + "/" + std::to_string(route.destination_.prefixlen_);
         auto ret = NetsysController::GetInstance().NetworkRemoveRoute(LOCAL_NET_ID, route.iface_, destAddress,
                                                                       route.gateway_.address_);
