@@ -122,6 +122,24 @@ int32_t NetVpnImpl::SetUp()
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t NetVpnImpl::ResumeUids()
+{
+    if (!isVpnConnecting_) {
+        NETMGR_EXT_LOG_I("unecessary to resume uids");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_, endUids_)) {
+        NETMGR_EXT_LOG_E("vpn set whitelist rule error");
+        VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
+        VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_SET_APP_UID_RULE_ERROR,
+            "set app uid rule failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t NetVpnImpl::Destroy()
 {
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;

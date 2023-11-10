@@ -69,6 +69,9 @@ public:
         return TUN_CARD_NAME;
     }
 
+    /* resume network id */
+    int32_t ResumeUids();
+
 private:
     bool RegisterNetSupplier(NetConnClient &netConnClientIns);
     void UnregisterNetSupplier(NetConnClient &netConnClientIns);
