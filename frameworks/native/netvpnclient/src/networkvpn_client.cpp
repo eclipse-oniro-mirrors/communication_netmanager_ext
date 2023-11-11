@@ -15,6 +15,8 @@
 
 #include "networkvpn_client.h"
 
+#include <thread>
+
 #include "fwmark_client.h"
 #include "iservice_registry.h"
 #include "net_manager_constants.h"
@@ -23,6 +25,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+
+static constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
+static constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 
 void VpnSetUpEventCallback::OnVpnMultiUserSetUp()
 {
@@ -128,7 +133,13 @@ int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
         NETMGR_EXT_LOG_E("RegisterVpnEvent proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->RegisterVpnEvent(callback);
+    int32_t ret = proxy->RegisterVpnEvent(callback);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_D("RegisterVpnEvent success, save callback.");
+        callback_ = callback;
+    }
+
+    return ret;
 }
 
 int32_t NetworkVpnClient::UnregisterVpnEvent(sptr<IVpnEventCallback> callback)
@@ -142,7 +153,13 @@ int32_t NetworkVpnClient::UnregisterVpnEvent(sptr<IVpnEventCallback> callback)
         NETMGR_EXT_LOG_E("UnregisterVpnEvent proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->UnregisterVpnEvent(callback);
+    int32_t ret = proxy->UnregisterVpnEvent(callback);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_D("UnRegisterVpnEvent success, delete callback.");
+        callback_ = nullptr;
+    }
+
+    return ret;
 }
 
 int32_t NetworkVpnClient::CreateVpnConnection()
@@ -188,6 +205,21 @@ sptr<INetworkVpnService> NetworkVpnClient::GetProxy()
     return networkVpnService_;
 }
 
+void NetworkVpnClient::RecoverCallback()
+{
+    uint32_t count = 0;
+    while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_SERVICE_TIME_MS));
+        count++;
+    }
+    auto proxy = GetProxy();
+    NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
+    if (proxy != nullptr && callback_ != nullptr) {
+        int32_t ret = RegisterVpnEvent(callback_);
+        NETMGR_EXT_LOG_D("Register result %{public}d", ret);
+    }
+}
+
 void NetworkVpnClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     if (remote == nullptr) {
@@ -206,6 +238,16 @@ void NetworkVpnClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
     local->RemoveDeathRecipient(deathRecipient_);
     networkVpnService_ = nullptr;
+
+    if (callback_ != nullptr) {
+        NETMGR_EXT_LOG_D("on remote died recover callback");
+        std::thread t([this]() {
+            RecoverCallback();
+        });
+        std::string threadName = "networkvpnRecoverCallback";
+        pthread_setname_np(t.native_handle(), threadName.c_str());
+        t.detach();
+    }
 }
 
 void NetworkVpnClient::multiUserSetUpEvent()

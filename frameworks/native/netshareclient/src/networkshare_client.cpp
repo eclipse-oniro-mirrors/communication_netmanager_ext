@@ -27,6 +27,7 @@ namespace NetManagerStandard {
 namespace {
 constexpr size_t WAIT_REMOTE_TIME_SEC = 15;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
+constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 std::condition_variable g_cv;
 std::mutex g_mutexCv;
@@ -56,7 +57,7 @@ const sptr<IRemoteObject> &NetworkShareLoadCallback::GetRemoteObject() const
     return remoteObject_;
 }
 
-NetworkShareClient::NetworkShareClient() : networkShareService_(nullptr), deathRecipient_(nullptr) {}
+NetworkShareClient::NetworkShareClient() : networkShareService_(nullptr), deathRecipient_(nullptr), callback_(nullptr) {}
 
 NetworkShareClient::~NetworkShareClient() {}
 
@@ -112,7 +113,13 @@ int32_t NetworkShareClient::RegisterSharingEvent(sptr<ISharingEventCallback> cal
         NETMGR_EXT_LOG_E("RegisterSharingEvent proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->RegisterSharingEvent(callback);
+    int32_t ret = proxy->RegisterSharingEvent(callback);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_D("RegisterSharingEvent success, save callback.");
+        callback_ = callback;
+    }
+
+    return ret;
 }
 
 int32_t NetworkShareClient::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
@@ -123,7 +130,13 @@ int32_t NetworkShareClient::UnregisterSharingEvent(sptr<ISharingEventCallback> c
         NETMGR_EXT_LOG_E("UnregisterSharingEvent proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->UnregisterSharingEvent(callback);
+    int32_t ret = proxy->UnregisterSharingEvent(callback);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_D("UnRegisterSharingEvent success, delete callback.");
+        callback_ = nullptr;
+    }
+
+    return ret;
 }
 
 int32_t NetworkShareClient::GetSharableRegexs(const SharingIfaceType &type, std::vector<std::string> &ifaceRegexs)
@@ -236,6 +249,21 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
     return networkShareService_;
 }
 
+void NetworkShareClient::RecoverCallback()
+{
+    uint32_t count = 0;
+    while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_SERVICE_TIME_MS));
+        count++;
+    }
+    auto proxy = GetProxy();
+    NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
+    if (proxy != nullptr && callback_ != nullptr) {
+        int32_t ret = RegisterSharingEvent(callback_);
+        NETMGR_EXT_LOG_D("Register result %{public}d", ret);
+    }
+}
+
 void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     if (remote == nullptr) {
@@ -256,6 +284,16 @@ void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     networkShareService_ = nullptr;
 
     std::thread([this]() { this->RestartNetTetheringManagerSysAbility(); }).detach();
+
+    if (callback_ != nullptr) {
+        NETMGR_EXT_LOG_D("on remote died recover callback");
+        std::thread t([this]() {
+            RecoverCallback();
+        });
+        std::string threadName = "networkshareRecoverCallback";
+        pthread_setname_np(t.native_handle(), threadName.c_str());
+        t.detach();
+    }
 }
 
 void NetworkShareClient::RestartNetTetheringManagerSysAbility()
