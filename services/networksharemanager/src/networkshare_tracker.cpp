@@ -896,6 +896,22 @@ void NetworkShareTracker::SetUpstreamNetHandle(const std::shared_ptr<UpstreamNet
     NotifyDownstreamsHasNewUpstreamIface(netinfo);
 }
 
+void NetworkShareTracker::StartDnsProxy()
+{
+    if (clientRequestsVector_.empty()) {
+       return;
+    }
+
+    int32_t ret = NETMANAGER_SUCCESS;
+    ret = NetsysController::GetInstance().StartDnsProxyListen();
+    if (ret != NETSYS_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
+        mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
+        return;
+    }
+    NETMGR_EXT_LOG_I("StartDnsProxy successful.");
+}
+
 void NetworkShareTracker::SetDnsForwarders(const NetHandle &netHandle)
 {
     if (mainStateMachine_ == nullptr) {
@@ -1215,6 +1231,19 @@ SharingIfaceState NetworkShareTracker::SubSmStateToExportState(int32_t state)
         newState = SharingIfaceState::SHARING_NIC_ERROR;
     }
     return newState;
+}
+
+void NetworkShareTracker::RestartResume()
+{
+    mainStateMachine_->RestartResume();
+
+     for (auto &subsm : sharedSubSM_) {
+        if (subsm != nullptr) {
+            NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_CONNECTION_CHANGED.",
+                                subsm->GetInterfaceName().c_str());
+            subsm->HandleConnection();
+        }
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

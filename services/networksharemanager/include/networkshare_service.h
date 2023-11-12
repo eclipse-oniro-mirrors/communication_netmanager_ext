@@ -112,12 +112,17 @@ public:
      */
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
+protected:
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+
 private:
     bool Init();
     void GetDumpMessage(std::string &message);
     void GetSharingType(const SharingIfaceType &type, const std::string &typeContent, std::string &sharingType);
     void GetShareRegexsContent(const SharingIfaceType &type, std::string &shareRegexsContent);
 
+    void OnNetSysRestart();
+	
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;

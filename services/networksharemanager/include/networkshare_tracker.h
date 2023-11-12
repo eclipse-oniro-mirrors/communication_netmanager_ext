@@ -199,6 +199,9 @@ public:
 
     int32_t GetSharedSubSMTraffic(const TrafficType &type, int32_t &kbByte);
 
+    void StartDnsProxy();
+    void RestartResume();
+
 private:
     NetworkShareTracker() = default;
 
