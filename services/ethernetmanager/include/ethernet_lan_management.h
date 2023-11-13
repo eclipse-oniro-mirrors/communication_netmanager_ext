@@ -30,8 +30,8 @@ public:
     int32_t DelIp(const NetLinkInfo &newNetLinkInfo);
     int32_t SetRoute(const NetLinkInfo &newNetLinkInfo);
     int32_t DelRoute(const NetLinkInfo &newNetLinkInfo);
-    void UpdateLanLinkInfo(sptr<DevInterfaceState> &devState);
-    void ReleaseLanNetLink(sptr<DevInterfaceState> &devState);
+    int32_t UpdateLanLinkInfo(sptr<DevInterfaceState> &devState);
+    int32_t ReleaseLanNetLink(sptr<DevInterfaceState> &devState);
     void GetOldLinkInfo(sptr<DevInterfaceState> &devState);
 
 private:
