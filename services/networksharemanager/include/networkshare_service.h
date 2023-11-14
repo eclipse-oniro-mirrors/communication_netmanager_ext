@@ -117,8 +117,6 @@ private:
     void GetDumpMessage(std::string &message);
     void GetSharingType(const SharingIfaceType &type, const std::string &typeContent, std::string &sharingType);
     void GetShareRegexsContent(const SharingIfaceType &type, std::string &shareRegexsContent);
-    void SaveSharingType(const SharingIfaceType &type);
-    void DeleteSharingType(const SharingIfaceType &type);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;

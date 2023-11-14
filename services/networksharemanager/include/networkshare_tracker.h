@@ -42,8 +42,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 enum class EHandlerEventType { EVENT_HANDLER_MSG_FIR = 1, EVENT_HANDLER_MSG_SEC = 2 };
 
-extern const char* NETWORK_SHARING_TYPE_RECORD_PATH;
-
 class NetworkShareMainStateMachine;
 class NetworkShareTracker {
     class NetsysCallback : public NetsysControllerCallback {
@@ -238,7 +236,6 @@ private:
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
 #endif
     void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event, int32_t state);
-    void RecoverSharingType();
 
 private:
     std::mutex mutex_;

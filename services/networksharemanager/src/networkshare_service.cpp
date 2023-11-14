@@ -157,30 +157,6 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
     return NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
 }
 
-void NetworkShareService::SaveSharingType(const SharingIfaceType &type)
-{
-    NETMGR_EXT_LOG_D("gsw NetworkSharing start sharing, cfg filePath is %{public}s", NETWORK_SHARING_TYPE_RECORD_PATH);
-    std::ifstream ifs(NETWORK_SHARING_TYPE_RECORD_PATH);
-    if (!ifs) {
-        NETMGR_EXT_LOG_D("gsw NetworkSharing start sharing share_type.cfg don't exist, create file");
-        std::ofstream ofs(NETWORK_SHARING_TYPE_RECORD_PATH);
-        ofs << static_cast<int>(type) << std::endl;
-    } else {
-        std::vector<int> vInt;
-        std::string line;
-        while (std::getline(ifs, line)) {
-            int type = atoi(line.c_str());
-            NETMGR_EXT_LOG_D("gsw NetworkSharing start sharing,share_type.cfg has type %{public}d", type);
-            vInt.push_back(type);
-        }
-        if (std::find(vInt.begin(), vInt.end(), static_cast<int>(type)) == vInt.end()) {
-            std::ofstream ofs(NETWORK_SHARING_TYPE_RECORD_PATH, std::ios::app);
-            ofs << static_cast<int>(type) << std::endl;
-            NETMGR_EXT_LOG_D("gsw NetworkSharing start sharing,share_type.cfg add type %{public}d", type);
-        }
-    }
-}
-    
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
     NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
@@ -190,42 +166,7 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
-    if (NETMANAGER_EXT_SUCCESS == ret) {
-        SaveSharingType(type);
-    }
-    
-    return ret;
-}
-
-void NetworkShareService::DeleteSharingType(const SharingIfaceType &type)
-{
-    NETMGR_EXT_LOG_D("gsw NetworkSharing stop sharing, cfg filePath is %{public}s", NETWORK_SHARING_TYPE_RECORD_PATH);
-    std::ifstream ifs(NETWORK_SHARING_TYPE_RECORD_PATH);
-    if (!ifs) {
-        NETMGR_EXT_LOG_D("gsw NetworkSharing stop sharing, open share_type.cfg failed");
-        return;
-    } else {
-        std::vector<int> vInt;
-        std::string line;
-        while (std::getline(ifs, line)) {
-            int type = atoi(line.c_str());
-            NETMGR_EXT_LOG_D("gsw NetworkSharing stop sharing,share_type.cfg has type %{public}d", type);
-            vInt.push_back(type);
-        }
-        vInt.erase(std::find(vInt.begin(), vInt.end(), static_cast<int>(type)));
-        NETMGR_EXT_LOG_D("gsw NetworkSharing stop sharing,share_type.cfg has delete type %{public}d", type);
-        if (!vInt.empty()) {
-            std::ofstream ofs(NETWORK_SHARING_TYPE_RECORD_PATH, std::ios::trunc);
-            for (auto mem : vInt) {
-                ofs << mem << std::endl;
-                NETMGR_EXT_LOG_D("gsw NetworkSharing stop sharing,share_type.cfg has type %{public}d", type);
-            }
-        } else {
-            std::remove(NETWORK_SHARING_TYPE_RECORD_PATH);
-            NETMGR_EXT_LOG_D("gsw NetworkSharing stop sharing,share_type.cfg has delete share_type.cfg");
-        }
-    }
+    return NetworkShareTracker::GetInstance().StartNetworkSharing(type);
 }
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
@@ -237,12 +178,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
-    if(NETMANAGER_EXT_SUCCESS == ret) {
-        DeleteSharingType(type);
-    }
-
-    return ret;
+    return NetworkShareTracker::GetInstance().StopNetworkSharing(type);
 }
 
 int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)

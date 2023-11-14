@@ -20,7 +20,6 @@
 #include <securec.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <cstdio>
 
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
@@ -48,9 +47,6 @@ constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed"
 constexpr int32_t BYTE_TRANSFORM_KB = 1024;
 constexpr int32_t MAX_CALLBACK_COUNT = 100;
 }
-
-const char* NETWORK_SHARING_TYPE_RECORD_PATH = "/data/service/el1/public/netmanager/network_share_type_record";
-const char* FORWORDING_REQUESTOT = "netsharing_requester";
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAddressUpdated(const std::string &, const std::string &, int,
                                                                        int)
@@ -197,46 +193,6 @@ NetworkShareTracker &NetworkShareTracker::GetInstance()
     return instance;
 }
 
-void NetworkShareTracker::RecoverSharingType()
-{
-    std::ifstream ifs(NETWORK_SHARING_TYPE_RECORD_PATH);
-    if (!ifs) {
-        NETMGR_EXT_LOG_D("network_share_type_config.cfg don't exist, don't need recover");
-    } else {
-        int32_t result = NetsysController::GetInstance().IpDisableForwarding(FORWORDING_REQUESTOT);
-        if (result != NETSYS_SUCCESS) {
-            NETMGR_EXT_LOG_E("IpfwdDisableForwarding is error");
-            return;
-        }
-        std::vector<int> vInt;
-        std::string line;
-        while (std::getline(ifs, line)) {
-            int type = atoi(line.c_str());
-            NETMGR_EXT_LOG_D("gsw NetworkSharing start sharing,share_type.cfg has type %{public}d", type);
-            vInt.push_back(type);
-        }
-        for (auto mem : vInt) {
-            switch (mem) {
-                case static_cast<int>(SharingIfaceType::SHARING_WIFI): {
-                    StartNetworkSharing(SharingIfaceType::SHARING_WIFI);
-                    break;
-                }
-
-                case static_cast<int>(SharingIfaceType::SHARING_USB): {
-                    StartNetworkSharing(SharingIfaceType::SHARING_USB);
-                    break;
-                }
-                case static_cast<int>(SharingIfaceType::SHARING_BLUETOOTH): {
-                    StartNetworkSharing(SharingIfaceType::SHARING_BLUETOOTH);
-                    break;
-                }
-                default: 
-                    break;
-            }
-        }
-    }
-}
-
 bool NetworkShareTracker::Init()
 {
     configuration_ = std::make_shared<NetworkShareConfiguration>();
@@ -262,9 +218,6 @@ bool NetworkShareTracker::Init()
     isNetworkSharing_ = false;
     isInit = true;
     NETMGR_EXT_LOG_I("Tracker Init sucessful.");
-
-    // recover sharing type
-    RecoverSharingType();
     return true;
 }
 
