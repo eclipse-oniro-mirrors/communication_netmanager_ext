@@ -133,13 +133,7 @@ int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
         NETMGR_EXT_LOG_E("RegisterVpnEvent proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    int32_t ret = proxy->RegisterVpnEvent(callback);
-    if (ret == NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_D("RegisterVpnEvent success, save callback.");
-        callback_ = callback;
-    }
-
-    return ret;
+    return proxy->RegisterVpnEvent(callback);
 }
 
 int32_t NetworkVpnClient::UnregisterVpnEvent(sptr<IVpnEventCallback> callback)
@@ -153,13 +147,7 @@ int32_t NetworkVpnClient::UnregisterVpnEvent(sptr<IVpnEventCallback> callback)
         NETMGR_EXT_LOG_E("UnregisterVpnEvent proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    int32_t ret = proxy->UnregisterVpnEvent(callback);
-    if (ret == NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_D("UnRegisterVpnEvent success, delete callback.");
-        callback_ = nullptr;
-    }
-
-    return ret;
+    return proxy->UnregisterVpnEvent(callback);
 }
 
 int32_t NetworkVpnClient::CreateVpnConnection()
@@ -214,8 +202,8 @@ void NetworkVpnClient::RecoverCallback()
     }
     auto proxy = GetProxy();
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
-    if (proxy != nullptr && callback_ != nullptr) {
-        int32_t ret = proxy->RegisterVpnEvent(callback_);
+    if (proxy != nullptr && vpnEventCallback_ != nullptr) {
+        int32_t ret = proxy->RegisterVpnEvent(vpnEventCallback_);
         NETMGR_EXT_LOG_D("Register result %{public}d", ret);
     }
 }
@@ -239,7 +227,7 @@ void NetworkVpnClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     local->RemoveDeathRecipient(deathRecipient_);
     networkVpnService_ = nullptr;
 
-    if (callback_ != nullptr) {
+    if (vpnEventCallback_ != nullptr) {
         NETMGR_EXT_LOG_D("on remote died recover callback");
         std::thread t([this]() {
             RecoverCallback();

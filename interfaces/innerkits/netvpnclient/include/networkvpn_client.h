@@ -151,7 +151,6 @@ private:
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    sptr<IVpnEventCallback> callback_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
