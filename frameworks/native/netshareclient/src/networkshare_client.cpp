@@ -57,7 +57,7 @@ const sptr<IRemoteObject> &NetworkShareLoadCallback::GetRemoteObject() const
     return remoteObject_;
 }
 
-NetworkShareClient::NetworkShareClient() 
+NetworkShareClient::NetworkShareClient()
     : networkShareService_(nullptr), deathRecipient_(nullptr), callback_(nullptr) {}
 
 NetworkShareClient::~NetworkShareClient() {}
