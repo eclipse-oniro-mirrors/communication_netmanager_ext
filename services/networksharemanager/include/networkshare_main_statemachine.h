@@ -57,6 +57,7 @@ public:
      * execute event
      */
     void MainSmEventHandle(int eventId, const std::any &messageObj);
+
 private:
     bool TurnOnMainShareSettings();
     bool TurnOffMainShareSettings();
