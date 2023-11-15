@@ -169,7 +169,6 @@ void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         pthread_setname_np(t.native_handle(), threadName.c_str());
         t.detach();
     }
-
 }
 
 int32_t EthernetClient::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
