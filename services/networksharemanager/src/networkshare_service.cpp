@@ -285,7 +285,6 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
 void NetworkShareService::OnNetSysRestart()
 {
     NETMGR_EXT_LOG_I("NetworkShareService::OnNetSysRestart");
-    NetworkShareTracker::GetInstance().StartDnsProxy();
     NetworkShareTracker::GetInstance().RestartResume();
 }
 } // namespace NetManagerStandard

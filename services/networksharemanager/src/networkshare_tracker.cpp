@@ -896,22 +896,6 @@ void NetworkShareTracker::SetUpstreamNetHandle(const std::shared_ptr<UpstreamNet
     NotifyDownstreamsHasNewUpstreamIface(netinfo);
 }
 
-void NetworkShareTracker::StartDnsProxy()
-{
-    if (clientRequestsVector_.empty()) {
-       return;
-    }
-
-    int32_t ret = NETMANAGER_SUCCESS;
-    ret = NetsysController::GetInstance().StartDnsProxyListen();
-    if (ret != NETSYS_SUCCESS) {
-        NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
-        mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
-        return;
-    }
-    NETMGR_EXT_LOG_I("StartDnsProxy successful.");
-}
-
 void NetworkShareTracker::SetDnsForwarders(const NetHandle &netHandle)
 {
     if (mainStateMachine_ == nullptr) {
@@ -941,6 +925,8 @@ void NetworkShareTracker::SetDnsForwarders(const NetHandle &netHandle)
         mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
         return;
     }
+
+    netId_ = netId;
     NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId);
 }
 
@@ -1235,7 +1221,34 @@ SharingIfaceState NetworkShareTracker::SubSmStateToExportState(int32_t state)
 
 void NetworkShareTracker::RestartResume()
 {
-    mainStateMachine_->RestartResume();
+    if (!clientRequestsVector_.empty()) {
+        NETMGR_EXT_LOG_E("RestartResume error, no StartDnsProxy.");
+        return;
+    }
+
+    int32_t ret = NETMANAGER_SUCCESS;
+
+    if (isStartDnsProxy_) {
+        StopDnsProxy();
+
+        int32_t ret = NetsysController::GetInstance().StartDnsProxyListen();
+        if (ret != NETSYS_SUCCESS) {
+            NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
+            mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
+            return;
+        }
+        isStartDnsProxy_ = true;
+        NETMGR_EXT_LOG_I("StartDnsProxy successful.");
+    }
+
+    ret = NetsysController::GetInstance().ShareDnsSet(netId_);
+    if (ret != NETSYS_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetDns error, result[%{public}d].", ret);
+        mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
+        return;
+    }
+
+    NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId);
 
      for (auto &subsm : sharedSubSM_) {
         if (subsm != nullptr) {

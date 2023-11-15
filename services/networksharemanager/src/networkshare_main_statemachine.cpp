@@ -374,12 +374,5 @@ void NetworkShareMainStateMachine::DisableForward()
     }
     upstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
 }
-
-void NetworkShareMainStateMachine::RestartResume()
-{
-    NETMGR_EXT_LOG_I("MainSM restart resume");
-    TurnOffMainShareSettings();
-    AliveStateEnter();
-}
 } // namespace NetManagerStandard
 } // namespace OHOS

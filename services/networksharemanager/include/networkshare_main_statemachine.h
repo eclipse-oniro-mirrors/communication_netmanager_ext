@@ -58,7 +58,6 @@ public:
      */
     void MainSmEventHandle(int eventId, const std::any &messageObj);
     
-    void RestartResume();
 private:
     bool TurnOnMainShareSettings();
     bool TurnOffMainShareSettings();

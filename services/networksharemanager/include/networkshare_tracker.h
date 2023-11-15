@@ -199,7 +199,6 @@ public:
 
     int32_t GetSharedSubSMTraffic(const TrafficType &type, int32_t &kbByte);
 
-    void StartDnsProxy();
     void RestartResume();
 
 private:
@@ -266,6 +265,8 @@ private:
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
     std::atomic_bool isInit = false;
     WifiEvent g_wifiEvent = {0};
+
+    int32_t netId_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
