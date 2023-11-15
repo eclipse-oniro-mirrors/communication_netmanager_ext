@@ -97,7 +97,7 @@ public:
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
 protected:
-    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override; // 调用OnNetSysRestart
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
 private:
     bool Init();
