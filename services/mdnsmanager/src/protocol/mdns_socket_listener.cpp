@@ -51,6 +51,8 @@ constexpr int WAIT_THREAD_MS = 5;
 constexpr int SOCKET_INIT_INTERVAL_MS = 1000;
 constexpr size_t MDNS_MAX_SOCKET = 16;
 constexpr size_t REFRESH_BUFFER_LEN = 2;
+constexpr uint32_t BOOL_VALUE_FALSE = 0;
+constexpr uint32_t BOOL_VALUE_TRUE = 1;
 
 inline bool IfaceIsSupported(ifaddrs *ifa)
 {
@@ -252,7 +254,7 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 {
     ifaddrs *ifaddr = nullptr;
     ifaddrs *loaddr = nullptr;
-    bool ret = false;
+    uint32_t ret = BOOL_VALUE_FALSE;
 
     do {
         if (getifaddrs(&ifaddr) < 0) {
@@ -277,7 +279,7 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 
             freeifaddrs(ifaddr);
 
-            if (socks_.size() == 0 || ret == false) {
+            if (socks_.size() == 0 || ret == BOOL_VALUE_FALSE) {
                 NETMGR_EXT_LOG_W("mdns_log no available iface found");
                 std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_INIT_INTERVAL_MS));
                 continue;
@@ -286,18 +288,18 @@ void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
     } while (false);
 }
 
-bool MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
+uint32_t MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
 {
     sockaddr_in *saddr = reinterpret_cast<sockaddr_in *>(ifa->ifa_addr);
     int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
         NETMGR_EXT_LOG_E("mdns_log socket create failed, errno:[%{public}d]", errno);
-        return false;
+        return BOOL_VALUE_FALSE;
     }
     if (InitSocketV4(sock, ifa, MDNS_PORT)) {
         NETMGR_EXT_LOG_E("mdns_log InitSocketV4 failed, errno=[%{public}d]", errno);
         close(sock);
-        return false;
+        return BOOL_VALUE_FALSE;
     } else {
         socks_.emplace_back(sock);
         iface_[sock] = ifa->ifa_name;
@@ -305,7 +307,7 @@ bool MDnsSocketListener::OpenSocketV4(ifaddrs *ifa)
         reinterpret_cast<sockaddr_in *>(&saddr_[sock])->sin_addr = saddr->sin_addr;
     }
     NETMGR_EXT_LOG_I("mdns_log iface found, ifa_name=[%{public}s]", ifa->ifa_name);
-    return true;
+    return BOOL_VALUE_TRUE;
 }
 
 inline bool InetAddrV6IsLoopback(const in6_addr *addr6)

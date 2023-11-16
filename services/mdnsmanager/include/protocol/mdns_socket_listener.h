@@ -60,7 +60,7 @@ private:
     void Run();
     bool CanRefresh();
     void ReceiveInSock(int sock);
-    bool OpenSocketV4(ifaddrs *ifa);
+    uint32_t OpenSocketV4(ifaddrs *ifa);
     bool OpenSocketV6(ifaddrs *ifa, bool ipv6Support);
     bool Ifaceverification(ifaddrs *ifa, ifaddrs *loaddr);
 

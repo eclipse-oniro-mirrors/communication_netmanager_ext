@@ -194,7 +194,7 @@ int32_t NetworkShareClient::GetStatsTotalBytes(int32_t &bytes)
 
 sptr<INetworkShareService> NetworkShareClient::GetProxy()
 {
-    std::lock_guard lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     if (networkShareService_ != nullptr) {
         return networkShareService_;
     }
@@ -224,7 +224,7 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         NETMGR_EXT_LOG_E("deathRecipient_ is nullptr");
         return nullptr;
     }
-    if ((remote->IsProxyObject()) && (!remote->AddDeathRecipient(deathRecipient_))) {
+    if (!remote->AddDeathRecipient(deathRecipient_)) {
         NETMGR_EXT_LOG_E("add death recipient failed");
         return nullptr;
     }
