@@ -1221,8 +1221,8 @@ SharingIfaceState NetworkShareTracker::SubSmStateToExportState(int32_t state)
 
 void NetworkShareTracker::RestartResume()
 {
-    if (!clientRequestsVector_.empty()) {
-        NETMGR_EXT_LOG_E("RestartResume error, no StartDnsProxy.");
+    if (clientRequestsVector_.empty()) {
+        NETMGR_EXT_LOG_E("RestartResume, no StartDnsProxy.");
         return;
     }
 
@@ -1248,7 +1248,7 @@ void NetworkShareTracker::RestartResume()
         return;
     }
 
-    NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId);
+    NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId_);
 
      for (auto &subsm : sharedSubSM_) {
         if (subsm != nullptr) {
