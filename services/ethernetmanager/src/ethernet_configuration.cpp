@@ -563,14 +563,15 @@ void EthernetConfiguration::ParserIfaceIpAndRoute(sptr<InterfaceConfiguration> &
 
 std::string EthernetConfiguration::GetIfaceMode(IPSetMode mode)
 {
-    if (mode == LAN_STATIC) {
-        return KEY_LAN_STATIC;
-    } else if (mode == LAN_DHCP) {
-        return KEY_LAN_DHCP;
-    } else if (mode == STATIC) {
-        return KEY_STATIC;
-    } else {
-        return KEY_DHCP;
+    switch (mode) {
+        case LAN_STATIC:
+            return KEY_LAN_STATIC;
+        case LAN_DHCP:
+            return KEY_LAN_DHCP;
+        case STATIC:
+            return KEY_STATIC;
+        default:
+            return KEY_DHCP;
     }
 }
 
