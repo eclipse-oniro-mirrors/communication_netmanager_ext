@@ -1250,10 +1250,10 @@ void NetworkShareTracker::RestartResume()
 
     NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId_);
 
-     for (auto &subsm : sharedSubSM_) {
+    for (auto &subsm : sharedSubSM_) {
         if (subsm != nullptr) {
             NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_CONNECTION_CHANGED.",
-                                subsm->GetInterfaceName().c_str());
+                subsm->GetInterfaceName().c_str());
             subsm->HandleConnection();
         }
     }
