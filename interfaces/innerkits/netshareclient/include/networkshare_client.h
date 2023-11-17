@@ -186,12 +186,14 @@ private:
 
 private:
     sptr<INetworkShareService> GetProxy();
+    void RecoverCallback();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
 
 private:
     std::mutex mutex_;
     sptr<INetworkShareService> networkShareService_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+    sptr<ISharingEventCallback> callback_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

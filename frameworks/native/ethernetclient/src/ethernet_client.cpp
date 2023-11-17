@@ -15,6 +15,8 @@
 
 #include "ethernet_client.h"
 
+#include <thread>
+
 #include "i_ethernet_service.h"
 #include "if_system_ability_manager.h"
 #include "interface_configuration.h"
@@ -29,7 +31,11 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nullptr) {}
+
+static constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
+static constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
+
+EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nullptr), callback_(nullptr) {}
 
 EthernetClient::~EthernetClient() = default;
 
@@ -116,6 +122,21 @@ sptr<IEthernetService> EthernetClient::GetProxy()
     return ethernetService_;
 }
 
+void EthernetClient::RecoverCallback()
+{
+    uint32_t count = 0;
+    while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_SERVICE_TIME_MS));
+        count++;
+    }
+    auto proxy = GetProxy();
+    NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
+    if (proxy != nullptr && callback_ != nullptr) {
+        int32_t ret = proxy->RegisterIfacesStateChanged(callback_);
+        NETMGR_EXT_LOG_D("Register result %{public}d", ret);
+    }
+}
+
 void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     if (remote == nullptr) {
@@ -138,26 +159,50 @@ void EthernetClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
     local->RemoveDeathRecipient(deathRecipient_);
     ethernetService_ = nullptr;
+
+    if (callback_ != nullptr) {
+        NETMGR_EXT_LOG_D("on remote died recover callback");
+        std::thread t([this]() {
+            RecoverCallback();
+        });
+        std::string threadName = "ethernetRecoverCallback";
+        pthread_setname_np(t.native_handle(), threadName.c_str());
+        t.detach();
+    }
 }
 
 int32_t EthernetClient::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
 {
+    NETMGR_EXT_LOG_D("RegisterIfacesStateChanged client in.");
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->RegisterIfacesStateChanged(callback);
+    int32_t ret = proxy->RegisterIfacesStateChanged(callback);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_D("RegisterIfacesStateChanged success, save callback.");
+        callback_ = callback;
+    }
+
+    return ret;
 }
 
 int32_t EthernetClient::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
 {
+    NETMGR_EXT_LOG_D("UnRegisterIfacesStateChanged client in.");
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->UnregisterIfacesStateChanged(callback);
+    int32_t ret = proxy->UnregisterIfacesStateChanged(callback);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_D("UnRegisterIfacesStateChanged success, delete callback.");
+        callback_ = nullptr;
+    }
+
+    return ret;
 }
 
 int32_t EthernetClient::SetInterfaceUp(const std::string &iface)

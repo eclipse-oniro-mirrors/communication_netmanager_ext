@@ -142,6 +142,7 @@ private:
     };
 
     sptr<INetworkVpnService> GetProxy();
+    void RecoverCallback();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
 
 private:
