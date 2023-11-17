@@ -830,6 +830,26 @@ HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest002, TestSize.Level1)
 
     ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+	
+    IPSetMode origin = STATIC;
+    IPSetMode input = DHCP;
+    ret = ethernetManagement.ModeInputCheck(origin, input);
+    EXPECT_FALSE(ret);
+
+    origin = STATIC;
+    input = LAN_STATIC;
+    ret = ethernetManagement.ModeInputCheck(origin, input);
+    EXPECT_FALSE(ret);
+
+    origin = LAN_STATIC;
+    input = DHCP;
+    ret = ethernetManagement.ModeInputCheck(origin, input);
+    EXPECT_FALSE(ret);
+
+    origin = LAN_STATIC;
+    input = LAN_DHCP;
+    ret = ethernetManagement.ModeInputCheck(origin, input);
+    EXPECT_FALSE(ret);
 
     ret = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
