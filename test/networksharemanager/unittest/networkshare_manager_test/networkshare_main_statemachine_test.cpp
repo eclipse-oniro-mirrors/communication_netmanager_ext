@@ -102,6 +102,14 @@ HWTEST_F(NetworkShareMainStateMachineTest, MainSmEventHandleTest002, TestSize.Le
     nullParamInstance_->MainSmEventHandle(eventId, active);
 }
 
+HWTEST_F(NetworkShareMainStateMachineTest, HandleInitInterfaceStateActiveTest001, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    MessageIfaceActive message;
+    auto ret = instance_->HandleInitInterfaceStateActive(message);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkShareMainStateMachineTest, HandleInitInterfaceStateInactiveTest001, TestSize.Level1)
 {
     ASSERT_NE(instance_, nullptr);
@@ -116,6 +124,14 @@ HWTEST_F(NetworkShareMainStateMachineTest, HandleAliveInterfaceStateActiveTest00
     MessageIfaceActive message;
     auto ret = instance_->HandleAliveInterfaceStateActive(message);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareMainStateMachineTest, HandleAliveInterfaceStateInactiveTest001, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    MessageIfaceActive message;
+    auto ret = instance_->HandleAliveInterfaceStateInactive(message);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 }
 
 HWTEST_F(NetworkShareMainStateMachineTest, HandleAliveUpstreamMonitorCallbackTest001, TestSize.Level1)
