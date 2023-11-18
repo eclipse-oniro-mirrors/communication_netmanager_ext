@@ -278,7 +278,18 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
 {
     NETMGR_EXT_LOG_D("NetworkShareService::OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
-        OnNetSysRestart();
+        if (hasSARemoved_) {
+            OnNetSysRestart();
+            hasSARemoved_ = false;
+        }
+    }
+}
+
+void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    NETMGR_EXT_LOG_D("NetPolicyService::OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
+        hasSARemoved_ = true;
     }
 }
 

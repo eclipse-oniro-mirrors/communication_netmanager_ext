@@ -114,6 +114,7 @@ public:
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+    void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
 private:
     bool Init();
@@ -126,6 +127,8 @@ private:
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;
+
+    bool hasSARemoved_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

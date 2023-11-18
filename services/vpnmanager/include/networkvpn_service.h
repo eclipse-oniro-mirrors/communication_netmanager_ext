@@ -98,6 +98,7 @@ public:
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+    void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
 private:
     bool Init();
@@ -120,6 +121,7 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> policyCallRunner_;
     std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
     std::mutex netVpnMutex_;
+    bool hasSARemoved_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
