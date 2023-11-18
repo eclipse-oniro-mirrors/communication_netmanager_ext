@@ -476,7 +476,6 @@ HWTEST_F(NetworkShareSubStateMachineTest, NetworkShareSubStateMachineBranch001, 
     bool result = networkShareWifiSubStateMachine->StopDhcp();
     ASSERT_TRUE(result);
 
-    networkShareWifiSubStateMachine->dhcpService_ = nullptr;
     std::shared_ptr<INetAddr> netAddr = nullptr;
     result = networkShareWifiSubStateMachine->StartDhcp(netAddr);
     ASSERT_FALSE(result);

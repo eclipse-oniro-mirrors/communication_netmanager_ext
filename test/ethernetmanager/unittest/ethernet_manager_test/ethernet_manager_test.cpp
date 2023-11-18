@@ -609,12 +609,12 @@ HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
 
     EthernetDhcpController ethernetDhcpController;
     bool bIpv6 = true;
-    ethernetDhcpController.StartDhcpClient(IFACE, bIpv6);
-    ethernetDhcpController.StopDhcpClient(IFACE, bIpv6);
-    OHOS::Wifi::DhcpResult dhcpResult;
-    ethernetDhcpController.OnDhcpSuccess(IFACE, dhcpResult);
+    ethernetDhcpController.StartClient(IFACE, bIpv6);
+    ethernetDhcpController.StopClient(IFACE, bIpv6);
+    DhcpResult dhcpResult;
+    ethernetDhcpController.OnDhcpSuccess(IFACE, &dhcpResult);
     ethernetDhcpController.cbObject_ = nullptr;
-    ethernetDhcpController.OnDhcpSuccess(IFACE, dhcpResult);
+    ethernetDhcpController.OnDhcpSuccess(IFACE, &dhcpResult);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager009, TestSize.Level1)
@@ -760,19 +760,18 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
     sptr<EthernetDhcpCallback> callback = nullptr;
     dhcpController.RegisterDhcpCallback(callback);
     const std::string iface = "eth0";
-    dhcpController.StartDhcpClient(iface, true);
-    dhcpController.StopDhcpClient(iface, true);
+    dhcpController.StartClient(iface, true);
+    dhcpController.StopClient(iface, true);
 
-    OHOS::Wifi::DhcpResult result;
-    dhcpController.OnDhcpSuccess(iface, result);
+    DhcpResult result;
+    dhcpController.OnDhcpSuccess(iface, &result);
 
-    EthernetDhcpController::EthernetDhcpControllerResultNotify ethernetDhcpControllerResultNotify(dhcpController);
+    EthernetDhcpController::EthernetDhcpControllerResultNotify ethernetDhcpControllerResultNotify;
     int status = 1;
     std::string ifname;
     std::string reason;
-    ethernetDhcpControllerResultNotify.OnSuccess(status, ifname, result);
-    ethernetDhcpControllerResultNotify.OnFailed(status, ifname, reason);
-    ethernetDhcpControllerResultNotify.OnSerExitNotify(ifname);
+    ethernetDhcpControllerResultNotify.OnSuccess(status, ifname.c_str(), &result);
+    ethernetDhcpControllerResultNotify.OnFailed(status, ifname.c_str(), reason.c_str());
 }
 
 HWTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
