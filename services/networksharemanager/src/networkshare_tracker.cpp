@@ -264,7 +264,7 @@ void NetworkShareTracker::RegisterBtPanCallback()
     }
     panObserver_ = std::make_shared<SharingPanObserver>();
     if (panObserver_ != nullptr) {
-        profile->RegisterObserver(panObserver_.get());
+        profile->RegisterObserver(panObserver_);
     }
 #endif
 }
@@ -278,7 +278,7 @@ void NetworkShareTracker::Uninit()
         NETMGR_EXT_LOG_E("bt-pan profile or observer is null.");
         return;
     }
-    profile->DeregisterObserver(panObserver_.get());
+    profile->DeregisterObserver(panObserver_);
 #endif
     NETMGR_EXT_LOG_I("Uninit successful.");
 }
