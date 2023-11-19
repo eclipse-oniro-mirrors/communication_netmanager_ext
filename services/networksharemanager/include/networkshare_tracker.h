@@ -199,6 +199,8 @@ public:
 
     int32_t GetSharedSubSMTraffic(const TrafficType &type, int32_t &kbByte);
 
+    void RestartResume();
+
 private:
     NetworkShareTracker() = default;
 
@@ -263,6 +265,8 @@ private:
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
     std::atomic_bool isInit = false;
     WifiEvent g_wifiEvent = {0};
+
+    int32_t netId_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

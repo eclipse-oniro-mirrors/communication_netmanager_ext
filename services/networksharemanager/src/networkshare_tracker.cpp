@@ -925,6 +925,8 @@ void NetworkShareTracker::SetDnsForwarders(const NetHandle &netHandle)
         mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
         return;
     }
+
+    netId_ = netId;
     NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId);
 }
 
@@ -1215,6 +1217,46 @@ SharingIfaceState NetworkShareTracker::SubSmStateToExportState(int32_t state)
         newState = SharingIfaceState::SHARING_NIC_ERROR;
     }
     return newState;
+}
+
+void NetworkShareTracker::RestartResume()
+{
+    if (clientRequestsVector_.empty()) {
+        NETMGR_EXT_LOG_E("RestartResume, no StartDnsProxy.");
+        return;
+    }
+
+    int32_t ret = NETMANAGER_SUCCESS;
+
+    if (isStartDnsProxy_) {
+        StopDnsProxy();
+
+        int32_t ret = NetsysController::GetInstance().StartDnsProxyListen();
+        if (ret != NETSYS_SUCCESS) {
+            NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
+            mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
+            return;
+        }
+        isStartDnsProxy_ = true;
+        NETMGR_EXT_LOG_I("StartDnsProxy successful.");
+    }
+
+    ret = NetsysController::GetInstance().ShareDnsSet(netId_);
+    if (ret != NETSYS_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetDns error, result[%{public}d].", ret);
+        mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
+        return;
+    }
+
+    NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId_);
+
+    for (auto &subsm : sharedSubSM_) {
+        if (subsm != nullptr) {
+            NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_CONNECTION_CHANGED.",
+                subsm->GetInterfaceName().c_str());
+            subsm->HandleConnection();
+        }
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

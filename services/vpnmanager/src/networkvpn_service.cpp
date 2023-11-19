@@ -103,6 +103,8 @@ bool NetworkVpnService::Init()
         isServicePublished_ = true;
     }
 
+    AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
+
     if (!vpnConnCallback_) {
         vpnConnCallback_ = std::make_shared<VpnConnStateCb>(*this);
     }
@@ -326,5 +328,32 @@ int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> 
     return NETMANAGER_EXT_ERR_OPERATION_FAILED;
 }
 
+void NetworkVpnService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    NETMGR_EXT_LOG_D("NetworkVpnService::OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
+        if (hasSARemoved_) {
+            OnNetSysRestart();
+            hasSARemoved_ = false;
+        }
+    }
+}
+
+void NetworkVpnService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    NETMGR_EXT_LOG_D("NetworkVpnService::OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
+        hasSARemoved_ = true;
+    }
+}
+
+void NetworkVpnService::OnNetSysRestart()
+{
+    NETMGR_EXT_LOG_I("NetworkVpnService::OnNetSysRestart");
+
+    if (vpnObj_ != nullptr) {
+        vpnObj_->ResumeUids();
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
