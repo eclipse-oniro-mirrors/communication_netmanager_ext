@@ -335,7 +335,6 @@ void NetworkVpnService::RecoverVpnConfig()
     }
     std::string jsonString;
     std::getline(ifs, jsonString);
-    NETMGR_EXT_LOG_D("RecoverVpnConfig vpncfg json string is : %{public}s", jsonString.c_str());
     ParseJsonToConfig(vpnCfg, jsonString);
     SetUpVpn(vpnCfg);
 }
@@ -425,7 +424,6 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
     std::string jsonString;
     ParseConfigToJson(vpnCfg, jsonString);
     std::ofstream ofs(VPN_CONFIG_FILE);
-    NETMGR_EXT_LOG_D("SaveVpnConfig vpncfg json string is : %{public}s", jsonString.c_str());
     ofs << jsonString;
 }
 
@@ -456,7 +454,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
     }
     NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
     ret = vpnObj_->SetUp();
-    if (NETMANAGER_EXT_SUCCESS == ret) {
+    if (ret == NETMANAGER_EXT_SUCCESS) {
         SaveVpnConfig(config);
     }
 
