@@ -110,6 +110,17 @@ private:
     int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
 
     void OnNetSysRestart();
+    void ConvertVecRouteToJson(const std::vector<Route>& routes, nlohmann::json& jVecRoutes);
+    void ConvertNetAddrToJson(const INetAddr& netAddr, nlohmann::json& jInetAddr);
+    void ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString);
+    void SaveVpnConfig(const sptr<VpnConfig> &vpnCfg);
+
+    void ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
+    void ConvertNetAddrToConfig(INetAddr& tmp, const nlohmann::json& mem);
+    void ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
+    void ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
+    void ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString);
+    void RecoverVpnConfig();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
