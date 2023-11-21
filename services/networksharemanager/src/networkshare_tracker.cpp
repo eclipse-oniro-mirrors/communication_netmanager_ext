@@ -691,6 +691,7 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
     auto &usbSrvClient = USB::UsbSrvClient::GetInstance();
     if (enable) {
         int32_t funcs = 0;
+        curUsbState_ = UsbShareState::USB_SHARING;
         int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("GetCurrentFunctions error[%{public}d].", ret);
@@ -702,12 +703,12 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        curUsbState_ = UsbShareState::USB_SHARING;
         if (usbShareCount_ < INT32_MAX) {
             usbShareCount_++;
         }
         NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_, SharingIfaceType::SHARING_USB);
     } else {
+        curUsbState_ = UsbShareState::USB_CLOSING;
         int32_t funcs = 0;
         int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
         if (ret != USB::UEC_OK) {
@@ -720,7 +721,6 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("usb SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        curUsbState_ = UsbShareState::USB_CLOSING;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
