@@ -23,6 +23,9 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <fstream>
 
 #include "ipc_skeleton.h"
 #include "securec.h"
@@ -42,6 +45,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t MAX_CALLBACK_COUNT = 128;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
+constexpr const char* VPN_CONFIG_FILE = "/data/service/el1/public/netmanager/vpn_config.json";
 
 const bool REGISTER_LOCAL_RESULT_NETVPN =
     SystemAbility::MakeAndRegisterAbility(&Singleton<NetworkVpnService>::GetInstance());
@@ -113,6 +117,10 @@ bool NetworkVpnService::Init()
         policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
         policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(policyCallRunner_);
     }
+
+    // recover vpn config
+    RecoverVpnConfig();
+
     return true;
 }
 
@@ -171,6 +179,259 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
     return NETMANAGER_EXT_SUCCESS;
 }
 
+void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc)
+{
+    if (doc.contains("dnsAddresses") && doc.at("dnsAddresses").is_array()) {
+        nlohmann::json jDnsAddrs = doc.at("dnsAddresses");
+        for (const auto& mem : jDnsAddrs) {
+            if (mem.is_string()) {
+                vpnCfg->dnsAddresses_.push_back(mem);
+            }
+        }
+    }
+    if (doc.contains("searchDomains") && doc.at("searchDomains").is_array()) {
+        nlohmann::json jDomains = doc.at("searchDomains");
+        for (const auto& mem : jDomains) {
+            if (mem.is_string()) {
+                vpnCfg->searchDomains_.push_back(mem);
+            }
+        }
+    }
+    if (doc.contains("acceptedApplications") && doc.at("acceptedApplications").is_array()) {
+        nlohmann::json jAcceptApp = doc.at("acceptedApplications");
+        for (const auto& mem : jAcceptApp) {
+            if (mem.is_string()) {
+                vpnCfg->acceptedApplications_.push_back(mem);
+            }
+        }
+    }
+    if (doc.contains("refusedApplications") && doc.at("refusedApplications").is_array()) {
+        nlohmann::json jRefuseApp = doc.at("refusedApplications");
+        for (const auto& mem : jRefuseApp) {
+            if (mem.is_string()) {
+                vpnCfg->refusedApplications_.push_back(mem);
+            }
+        }
+    }
+}
+
+void NetworkVpnService::ConvertNetAddrToConfig(INetAddr& tmp, const nlohmann::json& mem)
+{
+    if (mem.contains("type") && mem.at("type").is_number()) {
+        tmp.type_ = static_cast<int32_t>(mem.at("type"));
+    }
+    if (mem.contains("family") && mem.at("family").is_number()) {
+        tmp.family_ = static_cast<int32_t>(mem.at("family"));
+    }
+    if (mem.contains("prefixlen") && mem.at("prefixlen").is_number()) {
+        tmp.prefixlen_ = static_cast<int32_t>(mem.at("prefixlen"));
+    }
+    if (mem.contains("address") && mem.at("address").is_string()) {
+        tmp.address_ = mem.at("address");
+    }
+    if (mem.contains("netMask") && mem.at("netMask").is_string()) {
+        tmp.netMask_ = mem.at("netMask");
+    }
+    if (mem.contains("hostName") && mem.at("hostName").is_string()) {
+        tmp.hostName_ = mem.at("hostName");
+    }
+    if (mem.contains("port") && mem.at("port").is_number()) {
+        tmp.port_ = static_cast<int32_t>(mem.at("port"));
+    }
+}
+
+void NetworkVpnService::ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc)
+{
+    if (doc.contains("addresses") && doc.at("addresses").is_array()) {
+        nlohmann::json jAddrs = doc.at("addresses");
+        for (const auto& mem : jAddrs) {
+            if (mem.is_object()) {
+                INetAddr tmp;
+                ConvertNetAddrToConfig(tmp, mem);
+                vpnCfg->addresses_.push_back(tmp);
+            }
+        }
+    }
+}
+
+void NetworkVpnService::ConvertRouteToConfig(Route& tmp, const nlohmann::json& mem)
+{
+    if (mem.contains("iface") && mem.at("iface").is_string()) {
+        tmp.iface_ = mem.at("iface");
+    }
+    if (mem.contains("rtnType") && mem.at("rtnType").is_number()) {
+        tmp.rtnType_ = mem.at("rtnType");
+    }
+    if (mem.contains("mtu") && mem.at("mtu").is_number()) {
+        tmp.mtu_ = mem.at("mtu");
+    }
+    if (mem.contains("isHost") && mem.at("isHost").is_boolean()) {
+        tmp.isHost_ = mem.at("isHost");
+    }
+    if (mem.contains("hasGateway") && mem.at("hasGateway").is_boolean()) {
+        tmp.hasGateway_ = mem.at("hasGateway");
+    }
+    if (mem.contains("isDefaultRoute") && mem.at("isDefaultRoute").is_boolean()) {
+        tmp.isDefaultRoute_ = mem.at("isDefaultRoute");
+    }
+    if (mem.contains("destination") && mem.at("destination").is_object()) {
+        nlohmann::json elem = mem.at("destination");
+        INetAddr tmpINet;
+        ConvertNetAddrToConfig(tmpINet, elem);
+        tmp.destination_ = tmpINet;
+    }
+    if (mem.contains("gateway") && mem.at("gateway").is_object()) {
+        nlohmann::json elem = mem.at("gateway");
+        INetAddr tmpINet;
+        ConvertNetAddrToConfig(tmpINet, elem);
+        tmp.gateway_ = tmpINet;
+    }
+}
+
+void NetworkVpnService::ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc)
+{
+    if (doc.contains("routes") && doc.at("routes").is_array()) {
+        nlohmann::json jRoutes = doc.at("routes");
+        for (const auto& mem : jRoutes) {
+            if (mem.is_object()) {
+                Route tmp;
+                ConvertRouteToConfig(tmp, mem);
+                vpnCfg->routes_.push_back(tmp);
+            }
+        }
+    }
+}
+
+void NetworkVpnService::ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString)
+{
+    nlohmann::json doc = nlohmann::json::parse(jsonString);
+    if (doc.contains("mtu") && doc.at("mtu").is_number()) {
+        vpnCfg->mtu_ = doc.at("mtu");
+    }
+    if (doc.contains("isAcceptIPv4") && doc.at("isAcceptIPv4").is_boolean()) {
+        vpnCfg->isAcceptIPv4_ = doc.at("isAcceptIPv4");
+    }
+    if (doc.contains("isAcceptIPv6") && doc.at("isAcceptIPv6").is_boolean()) {
+        vpnCfg->isAcceptIPv6_ = doc.at("isAcceptIPv6");
+    }
+    if (doc.contains("isLegacy") && doc.at("isLegacy").is_boolean()) {
+        vpnCfg->isLegacy_ = doc.at("isLegacy");
+    }
+    if (doc.contains("isMetered") && doc.at("isMetered").is_boolean()) {
+        vpnCfg->isMetered_ = doc.at("isMetered");
+    }
+    if (doc.contains("isBlocking") && doc.at("isBlocking").is_boolean()) {
+        vpnCfg->isBlocking_ = doc.at("isBlocking");
+    }
+    ConvertStringToConfig(vpnCfg, doc);
+
+    ConvertVecAddrToConfig(vpnCfg, doc);
+
+    ConvertVecRouteToConfig(vpnCfg, doc);
+}
+
+void NetworkVpnService::RecoverVpnConfig()
+{
+    sptr<VpnConfig> vpnCfg = new VpnConfig();
+    std::ifstream ifs(VPN_CONFIG_FILE);
+    if (!ifs) {
+        NETMGR_EXT_LOG_D("file don't exist, don't need recover");
+        return;
+    }
+    std::string jsonString;
+    std::getline(ifs, jsonString);
+    ParseJsonToConfig(vpnCfg, jsonString);
+    SetUpVpn(vpnCfg);
+}
+
+void NetworkVpnService::ConvertNetAddrToJson(const INetAddr& netAddr, nlohmann::json& jInetAddr)
+{
+    jInetAddr["type"] = netAddr.type_;
+    jInetAddr["family"] = netAddr.family_;
+    jInetAddr["prefixlen"] = netAddr.prefixlen_;
+    jInetAddr["address"] = netAddr.address_;
+    jInetAddr["netMask"] = netAddr.netMask_;
+    jInetAddr["hostName"] = netAddr.hostName_;
+    jInetAddr["port"] = netAddr.port_;
+}
+
+void NetworkVpnService::ConvertVecRouteToJson(const std::vector<Route>& routes, nlohmann::json& jVecRoutes)
+{
+    for (const auto& mem : routes) {
+        nlohmann::json jRoute;
+        jRoute["iface"] = mem.iface_;
+        nlohmann::json jDestination;
+        ConvertNetAddrToJson(mem.destination_, jDestination);
+        jRoute["destination"] = jDestination;
+        nlohmann::json jGateway;
+        ConvertNetAddrToJson(mem.gateway_, jGateway);
+        jRoute["gateway"] = jGateway;
+        jRoute["rtnType"] = mem.rtnType_;
+        jRoute["mtu"] = mem.mtu_;
+        jRoute["isHost"] = mem.isHost_;
+        jRoute["hasGateway"] = mem.hasGateway_;
+        jRoute["isDefaultRoute"] = mem.isDefaultRoute_;
+        jVecRoutes.push_back(jRoute);
+    }
+}
+
+void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString)
+{
+    nlohmann::json jVpnCfg;
+    nlohmann::json jVecAddrs = nlohmann::json::array();
+    for (const auto& mem : vpnCfg->addresses_) {
+        nlohmann::json jInetAddr;
+        ConvertNetAddrToJson(mem, jInetAddr);
+        jVecAddrs.push_back(jInetAddr);
+    }
+    jVpnCfg["addresses"] = jVecAddrs;
+
+    nlohmann::json jVecRoutes = nlohmann::json::array();
+    ConvertVecRouteToJson(vpnCfg->routes_, jVecRoutes);
+    jVpnCfg["routes"] = jVecRoutes;
+
+    jVpnCfg["mtu"] = vpnCfg->mtu_;
+    jVpnCfg["isAcceptIPv4"] = vpnCfg->isAcceptIPv4_;
+    jVpnCfg["isAcceptIPv6"] = vpnCfg->isAcceptIPv6_;
+    jVpnCfg["isLegacy"] = vpnCfg->isLegacy_;
+    jVpnCfg["isMetered"] = vpnCfg->isMetered_;
+    jVpnCfg["isBlocking"] = vpnCfg->isBlocking_;
+
+    nlohmann::json jVecDnsAddrs = nlohmann::json::array();
+    for (const auto& mem : vpnCfg->dnsAddresses_) {
+        jVecDnsAddrs.push_back(mem);
+    }
+    jVpnCfg["dnsAddresses"] = jVecDnsAddrs;
+
+    nlohmann::json jVecDomains = nlohmann::json::array();
+    for (const auto& mem : vpnCfg->searchDomains_) {
+        jVecDomains.push_back(mem);
+    }
+    jVpnCfg["searchDomains"] = jVecDomains;
+
+    nlohmann::json jVecAcceptApp = nlohmann::json::array();
+    for (const auto& mem : vpnCfg->acceptedApplications_) {
+        jVecAcceptApp.push_back(mem);
+    }
+    jVpnCfg["acceptedApplications"] = jVecAcceptApp;
+
+    nlohmann::json jVecRefuseApp = nlohmann::json::array();
+    for (const auto& mem : vpnCfg->refusedApplications_) {
+        jVecRefuseApp.push_back(mem);
+    }
+    jVpnCfg["refusedApplications"] = jVecRefuseApp;
+
+    jsonString = jVpnCfg.dump();
+}
+
+void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
+{
+    std::string jsonString;
+    ParseConfigToJson(vpnCfg, jsonString);
+    std::ofstream ofs(VPN_CONFIG_FILE);
+    ofs << jsonString;
+}
+
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
@@ -197,7 +458,12 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
-    return vpnObj_->SetUp();
+    ret = vpnObj_->SetUp();
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        SaveVpnConfig(config);
+    }
+
+    return ret;
 }
 
 int32_t NetworkVpnService::Protect()
@@ -225,6 +491,8 @@ int32_t NetworkVpnService::DestroyVpn()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     vpnObj_ = nullptr;
+    // remove vpn config
+    remove(VPN_CONFIG_FILE);
     NETMGR_EXT_LOG_I("Destroy vpn successfully.");
     return NETMANAGER_EXT_SUCCESS;
 }
