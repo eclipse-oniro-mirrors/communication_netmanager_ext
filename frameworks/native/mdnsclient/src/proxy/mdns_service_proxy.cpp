@@ -68,7 +68,7 @@ int32_t MDnsServiceProxy::RegisterService(const MDnsServiceInfo &serviceInfo, co
         NETMGR_EXT_LOG_E("MDnsService::RegisterService return: [%{public}d]", retCode);
     } else {
         MDnsClientResume::GetInstance().SaveRegisterService(serviceInfo, cb);
-    }    
+    }
     return retCode;
 }
 
