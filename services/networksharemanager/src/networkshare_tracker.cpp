@@ -17,6 +17,7 @@
 
 #include <net/if.h>
 #include <netinet/in.h>
+#include <regex>
 #include <securec.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -47,6 +48,8 @@ constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed"
 constexpr int32_t BYTE_TRANSFORM_KB = 1024;
 constexpr int32_t MAX_CALLBACK_COUNT = 100;
 }
+constexpr const SharingIfaceType SHARE_VALID_INTERFACES[3] = {SharingIfaceType::SHARING_WIFI,
+    SharingIfaceType::SHARING_USB, SharingIfaceType::SHARING_BLUETOOTH};
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAddressUpdated(const std::string &, const std::string &, int,
                                                                        int)
@@ -1084,6 +1087,10 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
 
 void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 {
+    if (!CheckValidShareInterface(iface)) {
+        NETMGR_EXT_LOG_I("invalid share interface");
+        return;
+    }
     if (configuration_ == nullptr) {
         NETMGR_EXT_LOG_E("configuration_ is null");
         return;
@@ -1257,6 +1264,20 @@ void NetworkShareTracker::RestartResume()
             subsm->HandleConnection();
         }
     }
+}
+
+bool NetworkShareTracker::CheckValidShareInterface(const std::string &iface)
+{
+    bool ret = false;
+    uint32_t ifacesize = sizeof(SHARE_VALID_INTERFACES) / sizeof(SHARE_VALID_INTERFACES[0]);
+
+    for (uint32_t i = 0; i < ifacesize; ++i) {
+        ret = IsInterfaceMatchType(iface, SHARE_VALID_INTERFACES[i]);
+        if (ret) {
+            break;
+        }
+    }
+    return ret;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
