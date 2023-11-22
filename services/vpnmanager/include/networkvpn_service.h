@@ -115,6 +115,7 @@ private:
     void ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString);
     void SaveVpnConfig(const sptr<VpnConfig> &vpnCfg);
 
+    void ConvertRouteToConfig(Route& tmp, const nlohmann::json& mem);
     void ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
     void ConvertNetAddrToConfig(INetAddr& tmp, const nlohmann::json& mem);
     void ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);

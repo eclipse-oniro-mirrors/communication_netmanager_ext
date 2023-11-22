@@ -254,6 +254,40 @@ void NetworkVpnService::ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const nl
     }
 }
 
+void NetworkVpnService::ConvertRouteToConfig(Route& tmp, const nlohmann::json& mem)
+{
+    if (mem.contains("iface") && mem.at("iface").is_string()) {
+        tmp.iface_ = mem.at("iface");
+    }
+    if (mem.contains("rtnType") && mem.at("rtnType").is_number()) {
+        tmp.rtnType_ = mem.at("rtnType");
+    }
+    if (mem.contains("mtu") && mem.at("mtu").is_number()) {
+        tmp.mtu_ = mem.at("mtu");
+    }
+    if (mem.contains("isHost") && mem.at("isHost").is_boolean()) {
+        tmp.isHost_ = mem.at("isHost");
+    }
+    if (mem.contains("hasGateway") && mem.at("hasGateway").is_boolean()) {
+        tmp.hasGateway_ = mem.at("hasGateway");
+    }
+    if (mem.contains("isDefaultRoute") && mem.at("isDefaultRoute").is_boolean()) {
+        tmp.isDefaultRoute_ = mem.at("isDefaultRoute");
+    }
+    if (mem.contains("destination") && mem.at("destination").is_object()) {
+        nlohmann::json elem = mem.at("destination");
+        INetAddr tmpINet;
+        ConvertNetAddrToConfig(tmpINet, elem);
+        tmp.destination_ = tmpINet;
+    }
+    if (mem.contains("gateway") && mem.at("gateway").is_object()) {
+        nlohmann::json elem = mem.at("gateway");
+        INetAddr tmpINet;
+        ConvertNetAddrToConfig(tmpINet, elem);
+        tmp.gateway_ = tmpINet;
+    }
+}
+
 void NetworkVpnService::ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc)
 {
     if (doc.contains("routes") && doc.at("routes").is_array()) {
@@ -261,36 +295,7 @@ void NetworkVpnService::ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const n
         for (const auto& mem : jRoutes) {
             if (mem.is_object()) {
                 Route tmp;
-                if (mem.contains("iface") && mem.at("iface").is_string()) {
-                    tmp.iface_ = mem.at("iface");
-                }
-                if (mem.contains("rtnType") && mem.at("rtnType").is_number()) {
-                    tmp.rtnType_ = mem.at("rtnType");
-                }
-                if (mem.contains("mtu") && mem.at("mtu").is_number()) {
-                    tmp.mtu_ = mem.at("mtu");
-                }
-                if (mem.contains("isHost") && mem.at("isHost").is_boolean()) {
-                    tmp.isHost_ = mem.at("isHost");
-                }
-                if (mem.contains("hasGateway") && mem.at("hasGateway").is_boolean()) {
-                    tmp.hasGateway_ = mem.at("hasGateway");
-                }
-                if (mem.contains("isDefaultRoute") && mem.at("isDefaultRoute").is_boolean()) {
-                    tmp.isDefaultRoute_ = mem.at("isDefaultRoute");
-                }
-                if (mem.contains("destination") && mem.at("destination").is_object()) {
-                    nlohmann::json elem = mem.at("destination");
-                    INetAddr tmpINet;
-                    ConvertNetAddrToConfig(tmpINet, elem);
-                    tmp.destination_ = tmpINet;
-                }
-                if (mem.contains("gateway") && mem.at("gateway").is_object()) {
-                    nlohmann::json elem = mem.at("gateway");
-                    INetAddr tmpINet;
-                    ConvertNetAddrToConfig(tmpINet, elem);
-                    tmp.gateway_ = tmpINet;
-                }
+                ConvertRouteToConfig(tmp, mem);
                 vpnCfg->routes_.push_back(tmp);
             }
         }
