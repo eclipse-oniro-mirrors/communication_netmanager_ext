@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <unistd.h>
+#include <thread>
 
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -25,12 +26,16 @@
 #include "system_ability_definition.h"
 
 #include "mdns_common.h"
+#include "mdns_client_resume.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 
 std::mutex g_loadMutex;
 std::condition_variable g_cv;
+
+static constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
+constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 
 void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
@@ -223,6 +228,37 @@ sptr<IMDnsService> MDnsClient::GetProxy()
     return mdnsService_;
 }
 
+void MDnsClient::RestartResume()
+{
+    NETMGR_EXT_LOG_I("MDnsClient::RestartResume");
+    std::thread t([this]() {
+        NETMGR_EXT_LOG_I("resume RegisterService");
+        for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetRegisterServiceMap()) {
+            RegisterService(value, key);
+        }
+        NETMGR_EXT_LOG_I("resume RegisterService ok");
+
+        uint32_t count = 0;
+        while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+            std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
+            count++;
+        }
+        auto proxy = GetProxy();
+        NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
+        if (proxy != nullptr) {
+            NETMGR_EXT_LOG_D("resume StartDiscoverService");
+            for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetStartDiscoverServiceMap()) {
+                StartDiscoverService(value, key);
+            }
+
+            NETMGR_EXT_LOG_I("resume StartDiscoverService ok");
+        }
+    });
+    std::string threadName = "mdnsGetProxy";
+    pthread_setname_np(t.native_handle(), threadName.c_str());
+    t.detach();
+}
+
 void MDnsClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     NETMGR_EXT_LOG_D("on remote died");
@@ -242,6 +278,8 @@ void MDnsClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
     local->RemoveDeathRecipient(deathRecipient_);
     mdnsService_ = nullptr;
+
+    RestartResume();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
