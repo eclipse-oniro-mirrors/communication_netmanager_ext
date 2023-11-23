@@ -238,6 +238,7 @@ private:
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
 #endif
     void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event, int32_t state);
+    bool CheckValidShareInterface(const std::string &iface);
 
 private:
     std::mutex mutex_;
