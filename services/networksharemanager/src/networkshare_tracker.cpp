@@ -196,6 +196,36 @@ NetworkShareTracker &NetworkShareTracker::GetInstance()
     return instance;
 }
 
+void NetworkShareTracker::RecoverSharingType()
+{
+    NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType in");
+    auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
+    std::string queryRes;
+    int32_t ret;
+    {
+        Uri uri(SHARING_WIFI_URI);
+        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_WIFI, queryRes);
+        if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
+            clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
+        }
+    }
+    {
+        Uri uri(SHARING_USB_URI);
+        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_USB, queryRes);
+        if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
+            clientRequestsVector_.push_back(SharingIfaceType::SHARING_USB);
+        }
+    }
+    {
+        Uri uri(SHARING_BLUETOOTH_URI);
+        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_BLUETOOTH, queryRes);
+        if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
+            clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
+        }
+    }
+    NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType out");
+}
+
 bool NetworkShareTracker::Init()
 {
     configuration_ = std::make_shared<NetworkShareConfiguration>();
@@ -221,6 +251,9 @@ bool NetworkShareTracker::Init()
     isNetworkSharing_ = false;
     isInit = true;
     NETMGR_EXT_LOG_I("Tracker Init sucessful.");
+
+    RecoverSharingType();
+
     return true;
 }
 
