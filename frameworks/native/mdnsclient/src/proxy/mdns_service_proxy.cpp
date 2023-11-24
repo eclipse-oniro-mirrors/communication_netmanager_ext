@@ -66,8 +66,6 @@ int32_t MDnsServiceProxy::RegisterService(const MDnsServiceInfo &serviceInfo, co
     int32_t retCode = reply.ReadInt32();
     if (retCode != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("MDnsService::RegisterService return: [%{public}d]", retCode);
-    } else {
-        MDnsClientResume::GetInstance().SaveRegisterService(serviceInfo, cb);
     }
     return retCode;
 }
@@ -101,8 +99,6 @@ int32_t MDnsServiceProxy::UnRegisterService(const sptr<IRegistrationCallback> &c
     int32_t retCode = reply.ReadInt32();
     if (retCode != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("MDnsService::UnRegisterService return: [%{public}d]", retCode);
-    } else {
-        MDnsClientResume::GetInstance().RemoveRegisterService(cb);
     }
     return retCode;
 }
@@ -140,8 +136,6 @@ int32_t MDnsServiceProxy::StartDiscoverService(const std::string &serviceType, c
     int32_t retCode = reply.ReadInt32();
     if (retCode != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("MDnsService::DiscoverServices return: [%{public}d]", retCode);
-    } else {
-        MDnsClientResume::GetInstance().SaveStartDiscoverService(serviceType, cb);
     }
     return retCode;
 }
@@ -175,8 +169,6 @@ int32_t MDnsServiceProxy::StopDiscoverService(const sptr<IDiscoveryCallback> &cb
     int32_t retCode = reply.ReadInt32();
     if (retCode != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("MDnsService::StopServiceDiscovery return: [%{public}d]", retCode);
-    } else {
-        MDnsClientResume::GetInstance().RemoveStopDiscoverService(cb);
     }
     return retCode;
 }
