@@ -19,9 +19,6 @@
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 
-#include "mdns_client_resume.h"
-
-
 namespace OHOS {
 namespace NetManagerStandard {
 MDnsServiceProxy::MDnsServiceProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IMDnsService>(impl) {}
