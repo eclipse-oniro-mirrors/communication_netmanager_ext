@@ -40,7 +40,6 @@ constexpr const char *SHARING_BLUETOOTH_URI =
 constexpr const char *KEY_SHARING_WIFI = "settings.netmanager.sharing_wifi";
 constexpr const char *KEY_SHARING_USB = "settings.netmanager.sharing_usb";
 constexpr const char *KEY_SHARING_BLUETOOTH = "settings.netmanager.sharing_bluetooth";
-
 } // namespace
 
 class NetDataShareHelperUtils final {

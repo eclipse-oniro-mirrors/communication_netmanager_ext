@@ -23,7 +23,6 @@
 #include "networkshare_constants.h"
 #include "system_ability_definition.h"
 
-
 namespace OHOS {
 namespace NetManagerStandard {
 const bool REGISTER_LOCAL_RESULT_NETSHARE =
