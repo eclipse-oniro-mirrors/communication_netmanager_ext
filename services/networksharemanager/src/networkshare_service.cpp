@@ -213,7 +213,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
-    if(ret == NETMANAGER_EXT_SUCCESS) {
+    if (ret == NETMANAGER_EXT_SUCCESS) {
         auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
         switch (type) {
             case SharingIfaceType::SHARING_WIFI:

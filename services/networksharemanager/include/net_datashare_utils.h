@@ -30,11 +30,11 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr const char *SHARING_WIFI_URI = 
+constexpr const char *SHARING_WIFI_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=sharing_wifi";
-constexpr const char *SHARING_USB_URI = 
+constexpr const char *SHARING_USB_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=sharing_usb";
-constexpr const char *SHARING_BLUETOOTH_URI = 
+constexpr const char *SHARING_BLUETOOTH_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=sharing_bluetooth";
 
 constexpr const char *KEY_SHARING_WIFI = "settings.netmanager.sharing_wifi";

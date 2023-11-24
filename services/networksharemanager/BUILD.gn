@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,66 +12,70 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+import("//foundation/communication/netmanager_base/netmanager_base_config.gni")
 
-config("net_tether_manager_config") {
+config("net_conn_manager_config") {
   include_dirs = [
-    "$UTILS_ROOT/native/base/include",
-    "$UTILS_ROOT/system/safwk/native/include",
-    "$THIRD_PARTY_ROOT/json/include",
-    "$THIRD_PARTY_ROOT/openssl/include",
-    "$BASE_INNERKITS_ROOT/netshareclient/include",
-    "$BASE_INNERKITS_ROOT/netshareclient/include/proxy",
-    "$BASE_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
-    "$BASE_INNERKITS_ROOT/ethernetclient/include/proxy",
-    "$BASE_INNERKITS_ROOT/netstatsclient/include",
-    "$EXT_INNERKITS_ROOT/include",
-    "$EXT_INNERKITS_ROOT/netshareclient/include",
-    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
-    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
+    "include",
+    "include/stub",
+    "$INNERKITS_ROOT/include",
+    "$INNERKITS_ROOT/netconnclient/include",
+    "$INNERKITS_ROOT/netconnclient/include/proxy",
+    "$INNERKITS_ROOT/netmanagernative/include",
+    "$INNERKITS_ROOT/netstatsclient/include",
     "$NETCONNMANAGER_COMMON_DIR/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/include",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
-    "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netmanagernative/include",
-    "$BASE_INNERKITS_ROOT/dnsresolverclient/include",
+    "$NETSYSNATIVE_SOURCE_DIR/include/netsys",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-    "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
-    "$BLUETOOTH_ROOT/interfaces/inner_api/include",
-    "$USB_MANAGER_ROOT/interfaces/innerkits/native/include",
-    "$USB_MANAGER_ROOT/utils/native/include",
-    "$USB_MANAGER_ROOT/services/zidl/include",
-    "//third_party/jsoncpp/include/json",
-    "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
-    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
+    "$NETMANAGER_BASE_ROOT/services/netmanagernative/fwmarkclient/include",
+    "$INNERKITS_ROOT/netmanagernative/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
+    "$THIRD_PARTY_ROOT/curl/include",
   ]
 }
 
-ohos_shared_library("net_tether_manager") {
+ohos_shared_library("net_conn_manager") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    boundary_sanitize = true
+    all_ubsan = true
+    blocklist = "./connect_blocklist.txt"
+    debug = false
+  }
+
   sources = [
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
+    "$NETCONNMANAGER_COMMON_DIR/src/route_utils.cpp",
+    "src/dns_result_call_back.cpp",
+    "src/net_activate.cpp",
+    "src/net_caps.cpp",
+    "src/net_conn_event_handler.cpp",
+    "src/net_conn_service.cpp",
+    "src/net_conn_service_iface.cpp",
+    "src/net_datashare_utils.cpp",
+    "src/net_http_probe.cpp",
+    "src/net_http_probe_result.cpp",
+    "src/net_http_proxy_tracker.cpp",
+    "src/net_monitor.cpp",
+    "src/net_score.cpp",
+    "src/net_supplier.cpp",
+    "src/network.cpp",
+    "src/stub/net_conn_callback_proxy.cpp",
+    "src/stub/net_conn_service_stub.cpp",
+    "src/stub/net_detection_callback_proxy.cpp",
+    "src/stub/net_interface_callback_proxy.cpp",
+    "src/stub/net_supplier_callback_proxy.cpp",
   ]
 
-  configs = [ ":net_tether_manager_config" ]
+  configs = [ ":net_conn_manager_config" ]
 
-  deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
+  deps = [
+    "$NETCONNMANAGER_COMMON_DIR:net_service_common",
+    "$NETMANAGER_BASE_ROOT/services/netmanagernative:netsys_native_manager",
+    "$NETMANAGER_BASE_ROOT/services/netmanagernative/fwmarkclient:fwmark_client",
+    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
+    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
+    "$THIRD_PARTY_ROOT/curl:curl_shared",
+  ]
 
   cflags = [
     "-fvisibility=hidden",
@@ -91,110 +95,106 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:ability_manager",
     "c_utils:utils",
-    "dhcp:dhcp_manager_service",
-    "drivers_interface_usb:usb_idl_headers",
-    "eventhandler:libeventhandler",
-    "ipc:ipc_core",
-    "netmanager_base:net_conn_manager_if",
-    "netmanager_base:net_manager_common",
-    "netmanager_base:netsys_controller",
-    "safwk:system_ability_fwk",
-    "usb_manager:usbsrv_client",
-    "wifi:wifi_sdk",
+    "common_event_service:cesfwk_innerkits",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "ability_base:zuri",
   ]
 
-  if (!defined(global_parts_info) ||
-      defined(global_parts_info.communication_bluetooth)) {
-    defines = [ "BLUETOOTH_MODOULE=1" ]
-    external_deps += [ "bluetooth:btframework" ]
-  } else {
-    defines = []
+  defines = [
+    "NETMGR_LOG_TAG = \"NetConnManager\"",
+    "LOG_DOMAIN = 0xD0015B0",
+  ]
+
+  if (enable_netmgr_debug) {
+    defines += [ "NETMGR_DEBUG" ]
   }
 
-  defines += [
-    "NETMGR_LOG_TAG = \"NetworkShareManager\"",
-    "LOG_DOMAIN = 0xD0015B0",
-    "NETWORK_SHARING_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/network_share_config.cfg\"",
-  ]
-
-  if (enable_netmgr_ext_debug) {
-    defines += [ "NETMGR_DEBUG" ]
+  if (enable_sys_func) {
+    defines += [ "SYS_FUNC" ]
   }
 
   external_deps += [ "hilog:libhilog" ]
 
-  part_name = "netmanager_ext"
+  part_name = "netmanager_base"
   subsystem_name = "communication"
 }
 
-ohos_static_library("net_tether_manager_static") {
+ohos_static_library("net_conn_manager_static") {
   testonly = true
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
+    "$NETCONNMANAGER_COMMON_DIR/src/route_utils.cpp",
+    "src/dns_result_call_back.cpp",
+    "src/net_activate.cpp",
+    "src/net_caps.cpp",
+    "src/net_conn_event_handler.cpp",
+    "src/net_conn_service.cpp",
+    "src/net_conn_service_iface.cpp",
+    "src/net_datashare_utils.cpp",
+    "src/net_http_probe.cpp",
+    "src/net_http_probe_result.cpp",
+    "src/net_http_proxy_tracker.cpp",
+    "src/net_monitor.cpp",
+    "src/net_score.cpp",
+    "src/net_supplier.cpp",
+    "src/network.cpp",
+    "src/stub/net_conn_callback_proxy.cpp",
+    "src/stub/net_conn_service_stub.cpp",
+    "src/stub/net_detection_callback_proxy.cpp",
+    "src/stub/net_interface_callback_proxy.cpp",
+    "src/stub/net_supplier_callback_proxy.cpp",
   ]
 
-  configs = [ ":net_tether_manager_config" ]
+  configs = [ ":net_conn_manager_config" ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
-    "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
+    "$NETCONNMANAGER_COMMON_DIR:net_service_common",
+    "$NETMANAGER_BASE_ROOT/services/netmanagernative:netsys_native_manager",
+    "$NETMANAGER_BASE_ROOT/services/netmanagernative/fwmarkclient:fwmark_client",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
-    "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
-    "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
+    "$THIRD_PARTY_ROOT/curl:curl_shared",
   ]
 
   external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:ability_manager",
     "c_utils:utils",
-    "drivers_interface_usb:usb_idl_headers",
+    "common_event_service:cesfwk_innerkits",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
-    "wifi:wifi_sdk",
+    "samgr:samgr_proxy",
   ]
 
-  if (!defined(global_parts_info) ||
-      defined(global_parts_info.communication_bluetooth)) {
-    defines = [ "BLUETOOTH_MODOULE=1" ]
-    external_deps += [ "bluetooth:btframework" ]
-  } else {
-    defines = []
+  defines = [
+    "NETMGR_LOG_TAG = \"NetConnManager\"",
+    "LOG_DOMAIN = 0xD0015B0",
+  ]
+
+  if (enable_netmgr_debug) {
+    defines += [ "NETMGR_DEBUG" ]
   }
 
-  defines += [
-    "NETMGR_LOG_TAG = \"NetworkShareManager\"",
-    "LOG_DOMAIN = 0xD0015B0",
-    "NETWORK_SHARING_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/network_share_config.cfg\"",
-  ]
-
-  if (enable_netmgr_ext_debug) {
-    defines += [ "NETMGR_DEBUG" ]
+  if (enable_sys_func) {
+    defines += [ "SYS_FUNC" ]
   }
 
   external_deps += [ "hilog:libhilog" ]
 
-  part_name = "netmanager_ext"
+  part_name = "netmanager_base"
   subsystem_name = "communication"
-}
-
-## Install network_share_config.cfg to /system/etc/communication/netmanager_ext
-ohos_prebuilt_etc("network_share_config") {
-  source = "$NETMANAGER_EXT_ROOT/services/networksharemanager/network_share_config.cfg"
-  install_enable = true
-  relative_install_dir = "communication/netmanager_ext"
-  part_name = "netmanager_ext"
 }
