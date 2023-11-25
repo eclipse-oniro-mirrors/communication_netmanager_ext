@@ -254,8 +254,7 @@ void MDnsClient::RestartResume()
         auto proxy = GetProxy();
         NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
         if (proxy != nullptr) {
-
-            NETMGR_EXT_LOG_D("resume StartDiscoverService");
+            NETMGR_EXT_LOG_I("resume StartDiscoverService");
             for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetStartDiscoverServiceMap()) {
                 StartDiscoverService(value, key);
             }
