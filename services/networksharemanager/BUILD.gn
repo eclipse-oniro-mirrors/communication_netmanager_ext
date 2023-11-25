@@ -145,6 +145,7 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
   ]
 
   configs = [ ":net_tether_manager_config" ]
@@ -159,11 +160,15 @@ ohos_static_library("net_tether_manager_static") {
   ]
 
   external_deps = [
+    "ability_base:zuri",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
     "wifi:wifi_sdk",
   ]
 
