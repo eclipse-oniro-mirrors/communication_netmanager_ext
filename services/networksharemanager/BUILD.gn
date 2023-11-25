@@ -137,6 +137,7 @@ ohos_static_library("net_tether_manager_static") {
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
@@ -145,7 +146,6 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
   ]
 
   configs = [ ":net_tether_manager_config" ]
