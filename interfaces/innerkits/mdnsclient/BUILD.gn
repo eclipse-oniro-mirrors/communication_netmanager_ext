@@ -61,6 +61,7 @@ ohos_source_set("mdns_parcel") {
 ohos_shared_library("mdns_manager_if") {
   sources = [
     "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_client.cpp",
+    "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_client_resume.cpp",
     "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/proxy/mdns_event_stub.cpp",
     "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/proxy/mdns_service_proxy.cpp",
   ]

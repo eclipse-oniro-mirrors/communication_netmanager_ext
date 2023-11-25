@@ -100,6 +100,8 @@ public:
      */
     int32_t ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb);
 
+    void RestartResume();
+
 private:
     class MDnsDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
