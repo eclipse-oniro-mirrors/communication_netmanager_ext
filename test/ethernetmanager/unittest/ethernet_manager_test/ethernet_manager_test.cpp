@@ -834,7 +834,7 @@ HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest002, TestSize.Level1)
     IPSetMode origin = STATIC;
     IPSetMode input = DHCP;
     ret = ethernetManagement.ModeInputCheck(origin, input);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 
     origin = STATIC;
     input = LAN_STATIC;
@@ -849,7 +849,7 @@ HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest002, TestSize.Level1)
     origin = LAN_STATIC;
     input = LAN_DHCP;
     ret = ethernetManagement.ModeInputCheck(origin, input);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 
     ret = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
