@@ -37,6 +37,7 @@
 #include "networkshare_upstreammonitor.h"
 #include "wifi_ap_msg.h"
 #include "wifi_hotspot.h"
+#include "net_datashare_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -239,6 +240,7 @@ private:
 #endif
     void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event, int32_t state);
     bool CheckValidShareInterface(const std::string &iface);
+    void RecoverSharingType();
 
 private:
     std::mutex mutex_;

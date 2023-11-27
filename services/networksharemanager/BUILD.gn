@@ -58,6 +58,7 @@ ohos_shared_library("net_tether_manager") {
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
@@ -90,7 +91,10 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
+    "ability_base:zuri",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "dhcp:dhcp_manager_service",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
@@ -99,6 +103,7 @@ ohos_shared_library("net_tether_manager") {
     "netmanager_base:net_manager_common",
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
     "usb_manager:usbsrv_client",
     "wifi:wifi_sdk",
   ]
@@ -132,6 +137,7 @@ ohos_static_library("net_tether_manager_static") {
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
@@ -154,11 +160,15 @@ ohos_static_library("net_tether_manager_static") {
   ]
 
   external_deps = [
+    "ability_base:zuri",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
     "wifi:wifi_sdk",
   ]
 
