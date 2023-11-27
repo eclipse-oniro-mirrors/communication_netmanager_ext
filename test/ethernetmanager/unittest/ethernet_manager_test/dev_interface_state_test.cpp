@@ -156,6 +156,9 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest001, TestSize.Level1)
     auto result = devInterfaceState.GetIpv4Prefix(testString, netMaskList);
     EXPECT_TRUE(result.empty());
 
+    sptr<StaticConfiguration> config = nullptr;
+    devInterfaceState.UpdateLanLinkInfo(config);
+
     INetAddr targetNetAddr = {};
     devInterfaceState.GetTargetNetAddrWithSameFamily("", ipAddrList, targetNetAddr);
     devInterfaceState.GetDumpInfo(testString);

@@ -37,6 +37,11 @@ void EthernetLanManagement::GetOldLinkInfo(sptr<DevInterfaceState> &devState)
         NETMGR_EXT_LOG_D("EthernetLanManagement:GetOldLinkInfo fail due to devState is nullptr");
         return;
     }
+    if (devState->GetLinkInfo() == nullptr) {
+        NETMGR_EXT_LOG_W("EthernetLanManagement:GetOldLinkInfo fail due to linkInfo is NULL");
+        netLinkInfo_.Initialize();
+        return;
+    }
     netLinkInfo_ = *(devState->GetLinkInfo());
 }
 
@@ -49,6 +54,10 @@ int32_t EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devSta
     if (!devState->GetLinkUp()) {
         NETMGR_EXT_LOG_D("EthernetLanManagement:UpdateLanLinkInfo fail due to not link up");
         return ETHERNET_ERR_DEVICE_NOT_LINK;
+    }
+    if (devState->GetLinkInfo() == nullptr) {
+        NETMGR_EXT_LOG_E("EthernetLanManagement:UpdateLanLinkInfo fail due to newNetLinkInfo is NULL");
+        return NETMANAGER_ERR_INTERNAL;
     }
     NetLinkInfo newNetLinkInfo = *(devState->GetLinkInfo());
     int32_t ret = NETMANAGER_SUCCESS;
@@ -64,6 +73,10 @@ int32_t EthernetLanManagement::ReleaseLanNetLink(sptr<DevInterfaceState> &devSta
     NETMGR_EXT_LOG_D("EthernetLanManagement:ReleaseLanNetLink...");
     if (devState == nullptr) {
         NETMGR_EXT_LOG_D("EthernetLanManagement:ReleaseLanNetLink fail due to devState is nullptr");
+        return NETMANAGER_ERR_INTERNAL;
+    }
+    if (devState->GetLinkInfo() == nullptr) {
+        NETMGR_EXT_LOG_E("EthernetLanManagement:ReleaseLanNetLink fail due to newNetLinkInfo is NULL");
         return NETMANAGER_ERR_INTERNAL;
     }
     NetLinkInfo newNetLinkInfo = *(devState->GetLinkInfo());

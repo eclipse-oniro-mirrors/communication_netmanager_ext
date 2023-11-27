@@ -37,6 +37,7 @@
 #include "networkshare_upstreammonitor.h"
 #include "wifi_ap_msg.h"
 #include "wifi_hotspot.h"
+#include "net_datashare_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -199,6 +200,8 @@ public:
 
     int32_t GetSharedSubSMTraffic(const TrafficType &type, int32_t &kbByte);
 
+    void RestartResume();
+
 private:
     NetworkShareTracker() = default;
 
@@ -236,6 +239,8 @@ private:
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
 #endif
     void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event, int32_t state);
+    bool CheckValidShareInterface(const std::string &iface);
+    void RecoverSharingType();
 
 private:
     std::mutex mutex_;
@@ -263,6 +268,8 @@ private:
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
     std::atomic_bool isInit = false;
     WifiEvent g_wifiEvent = {0};
+
+    int32_t netId_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

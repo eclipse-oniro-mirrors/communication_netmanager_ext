@@ -82,6 +82,9 @@ bool NetworkShareService::Init()
         }
         registerToService_ = true;
     }
+
+    AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
+
     return NetworkShareTracker::GetInstance().Init();
 }
 
@@ -166,7 +169,37 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().StartNetworkSharing(type);
+    int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
+        switch (type) {
+            case SharingIfaceType::SHARING_WIFI:
+                {
+                    Uri uri(SHARING_WIFI_URI);
+                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_WIFI, std::to_string(true));
+                }
+                break;
+            case SharingIfaceType::SHARING_USB:
+                {
+                    Uri uri(SHARING_USB_URI);
+                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_USB, std::to_string(true));
+                }
+                break;
+            case SharingIfaceType::SHARING_BLUETOOTH:
+                {
+                    Uri uri(SHARING_BLUETOOTH_URI);
+                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_BLUETOOTH, std::to_string(true));
+                }
+                break;
+            default:
+                break;
+        }
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("Update sharetype: %{public}d to datashare failed", static_cast<int>(type));
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+    }
+    return ret;
 }
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
@@ -178,7 +211,38 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().StopNetworkSharing(type);
+    int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
+        switch (type) {
+            case SharingIfaceType::SHARING_WIFI:
+                {
+                    Uri uri(SHARING_WIFI_URI);
+                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_WIFI, std::to_string(false));
+                    break;
+                }
+            case SharingIfaceType::SHARING_USB:
+                {
+                    Uri uri(SHARING_USB_URI);
+                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_USB, std::to_string(false));
+                    break;
+                }
+            case SharingIfaceType::SHARING_BLUETOOTH:
+                {
+                    Uri uri(SHARING_BLUETOOTH_URI);
+                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_BLUETOOTH, std::to_string(false));
+                    break;
+                }
+            default:
+                break;
+        }
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("Update sharetype: %{public}d to datashare failed", static_cast<int>(type));
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+    }
+
+    return ret;
 }
 
 int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
@@ -269,6 +333,31 @@ int32_t NetworkShareService::GetStatsTotalBytes(int32_t &bytes)
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_ALL, bytes);
+}
+
+void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    NETMGR_EXT_LOG_D("NetworkShareService::OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
+        if (hasSARemoved_) {
+            OnNetSysRestart();
+            hasSARemoved_ = false;
+        }
+    }
+}
+
+void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    NETMGR_EXT_LOG_D("NetworkShareService::OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
+        hasSARemoved_ = true;
+    }
+}
+
+void NetworkShareService::OnNetSysRestart()
+{
+    NETMGR_EXT_LOG_I("NetworkShareService::OnNetSysRestart");
+    NetworkShareTracker::GetInstance().RestartResume();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

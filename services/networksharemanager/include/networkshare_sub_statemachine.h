@@ -82,6 +82,8 @@ public:
      */
     void GetUpIfaceName(std::string &upIface);
 
+    void HandleConnection();
+
 private:
     void CreateInitStateTable();
     void CreateSharedStateTable();
@@ -103,7 +105,6 @@ private:
     bool StartDhcp(const std::shared_ptr<INetAddr> &netAddr);
     bool StopDhcp();
     void HandleConnectionChanged(const std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo);
-    void HandleConnection();
     void RemoveRoutesToLocalNetwork();
     void AddRoutesToLocalNetwork();
     void CleanupUpstreamInterface();

@@ -96,6 +96,10 @@ public:
      */
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
+protected:
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+    void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+
 private:
     bool Init();
     void GetDumpMessage(std::string &message);
@@ -104,6 +108,20 @@ private:
     void OnVpnMultiUserSetUp();
     int32_t SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback);
     int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
+
+    void OnNetSysRestart();
+    void ConvertVecRouteToJson(const std::vector<Route>& routes, nlohmann::json& jVecRoutes);
+    void ConvertNetAddrToJson(const INetAddr& netAddr, nlohmann::json& jInetAddr);
+    void ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString);
+    void SaveVpnConfig(const sptr<VpnConfig> &vpnCfg);
+
+    void ConvertRouteToConfig(Route& tmp, const nlohmann::json& mem);
+    void ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
+    void ConvertNetAddrToConfig(INetAddr& tmp, const nlohmann::json& mem);
+    void ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
+    void ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
+    void ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString);
+    void RecoverVpnConfig();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -115,6 +133,7 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> policyCallRunner_;
     std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
     std::mutex netVpnMutex_;
+    bool hasSARemoved_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

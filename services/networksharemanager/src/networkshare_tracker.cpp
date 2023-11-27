@@ -17,6 +17,7 @@
 
 #include <net/if.h>
 #include <netinet/in.h>
+#include <regex>
 #include <securec.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -47,6 +48,8 @@ constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed"
 constexpr int32_t BYTE_TRANSFORM_KB = 1024;
 constexpr int32_t MAX_CALLBACK_COUNT = 100;
 }
+constexpr const SharingIfaceType SHARE_VALID_INTERFACES[3] = {SharingIfaceType::SHARING_WIFI,
+    SharingIfaceType::SHARING_USB, SharingIfaceType::SHARING_BLUETOOTH};
 
 int32_t NetworkShareTracker::NetsysCallback::OnInterfaceAddressUpdated(const std::string &, const std::string &, int,
                                                                        int)
@@ -193,6 +196,36 @@ NetworkShareTracker &NetworkShareTracker::GetInstance()
     return instance;
 }
 
+void NetworkShareTracker::RecoverSharingType()
+{
+    NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType in");
+    auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
+    std::string queryRes;
+    int32_t ret;
+    {
+        Uri uri(SHARING_WIFI_URI);
+        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_WIFI, queryRes);
+        if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
+            clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
+        }
+    }
+    {
+        Uri uri(SHARING_USB_URI);
+        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_USB, queryRes);
+        if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
+            clientRequestsVector_.push_back(SharingIfaceType::SHARING_USB);
+        }
+    }
+    {
+        Uri uri(SHARING_BLUETOOTH_URI);
+        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_BLUETOOTH, queryRes);
+        if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
+            clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
+        }
+    }
+    NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType out");
+}
+
 bool NetworkShareTracker::Init()
 {
     configuration_ = std::make_shared<NetworkShareConfiguration>();
@@ -218,6 +251,9 @@ bool NetworkShareTracker::Init()
     isNetworkSharing_ = false;
     isInit = true;
     NETMGR_EXT_LOG_I("Tracker Init sucessful.");
+
+    RecoverSharingType();
+
     return true;
 }
 
@@ -264,7 +300,7 @@ void NetworkShareTracker::RegisterBtPanCallback()
     }
     panObserver_ = std::make_shared<SharingPanObserver>();
     if (panObserver_ != nullptr) {
-        profile->RegisterObserver(panObserver_.get());
+        profile->RegisterObserver(panObserver_);
     }
 #endif
 }
@@ -278,7 +314,7 @@ void NetworkShareTracker::Uninit()
         NETMGR_EXT_LOG_E("bt-pan profile or observer is null.");
         return;
     }
-    profile->DeregisterObserver(panObserver_.get());
+    profile->DeregisterObserver(panObserver_);
 #endif
     NETMGR_EXT_LOG_I("Uninit successful.");
 }
@@ -691,6 +727,7 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
     auto &usbSrvClient = USB::UsbSrvClient::GetInstance();
     if (enable) {
         int32_t funcs = 0;
+        curUsbState_ = UsbShareState::USB_SHARING;
         int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("GetCurrentFunctions error[%{public}d].", ret);
@@ -702,12 +739,12 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        curUsbState_ = UsbShareState::USB_SHARING;
         if (usbShareCount_ < INT32_MAX) {
             usbShareCount_++;
         }
         NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_, SharingIfaceType::SHARING_USB);
     } else {
+        curUsbState_ = UsbShareState::USB_CLOSING;
         int32_t funcs = 0;
         int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
         if (ret != USB::UEC_OK) {
@@ -720,7 +757,6 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("usb SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        curUsbState_ = UsbShareState::USB_CLOSING;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -925,6 +961,8 @@ void NetworkShareTracker::SetDnsForwarders(const NetHandle &netHandle)
         mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
         return;
     }
+
+    netId_ = netId;
     NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId);
 }
 
@@ -1082,6 +1120,10 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
 
 void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 {
+    if (!CheckValidShareInterface(iface)) {
+        NETMGR_EXT_LOG_I("invalid share interface");
+        return;
+    }
     if (configuration_ == nullptr) {
         NETMGR_EXT_LOG_E("configuration_ is null");
         return;
@@ -1215,6 +1257,60 @@ SharingIfaceState NetworkShareTracker::SubSmStateToExportState(int32_t state)
         newState = SharingIfaceState::SHARING_NIC_ERROR;
     }
     return newState;
+}
+
+void NetworkShareTracker::RestartResume()
+{
+    if (clientRequestsVector_.empty()) {
+        NETMGR_EXT_LOG_E("RestartResume, no StartDnsProxy.");
+        return;
+    }
+
+    int32_t ret = NETMANAGER_SUCCESS;
+
+    if (isStartDnsProxy_) {
+        StopDnsProxy();
+
+        int32_t ret = NetsysController::GetInstance().StartDnsProxyListen();
+        if (ret != NETSYS_SUCCESS) {
+            NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
+            mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
+            return;
+        }
+        isStartDnsProxy_ = true;
+        NETMGR_EXT_LOG_I("StartDnsProxy successful.");
+    }
+
+    ret = NetsysController::GetInstance().ShareDnsSet(netId_);
+    if (ret != NETSYS_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetDns error, result[%{public}d].", ret);
+        mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
+        return;
+    }
+
+    NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId_);
+
+    for (auto &subsm : sharedSubSM_) {
+        if (subsm != nullptr) {
+            NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_CONNECTION_CHANGED.",
+                subsm->GetInterfaceName().c_str());
+            subsm->HandleConnection();
+        }
+    }
+}
+
+bool NetworkShareTracker::CheckValidShareInterface(const std::string &iface)
+{
+    bool ret = false;
+    uint32_t ifacesize = sizeof(SHARE_VALID_INTERFACES) / sizeof(SHARE_VALID_INTERFACES[0]);
+
+    for (uint32_t i = 0; i < ifacesize; ++i) {
+        ret = IsInterfaceMatchType(iface, SHARE_VALID_INTERFACES[i]);
+        if (ret) {
+            break;
+        }
+    }
+    return ret;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
