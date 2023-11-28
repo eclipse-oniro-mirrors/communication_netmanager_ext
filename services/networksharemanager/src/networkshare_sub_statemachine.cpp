@@ -20,6 +20,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "route_utils.h"
+#include "dhcp_c_api.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -480,13 +481,6 @@ bool NetworkShareSubStateMachine::GetUsbDestinationAddr(std::string &addrStr)
 
 bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &netAddr)
 {
-    if (dhcpService_ == nullptr) {
-        dhcpService_ = OHOS::Wifi::DhcpServiceApi::GetInstance();
-        if (dhcpService_ == nullptr) {
-            NETMGR_EXT_LOG_E("StartDhcp DhcpService create failed.");
-            return false;
-        }
-    }
     if (netAddr == nullptr) {
         NETMGR_EXT_LOG_E("StartDhcp netAddr is null.");
         return false;
@@ -508,25 +502,43 @@ bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &net
     std::string ipEnd = ipAddr.substr(pos + 1);
     std::string startIp = std::to_string(atoi(ipEnd.c_str()) + 1);
 
-    OHOS::Wifi::DhcpRange range;
+    std::string strStartip = ipHead + "." + startIp;
+    std::string strEndip = ipHead + "." + endIp;
+
+    DhcpRange range;
     range.iptype = IP_V4;
-    range.strStartip = ipHead + "." + startIp;
-    range.strEndip = ipHead + "." + endIp;
-    range.strSubnet = mask;
-    range.strTagName = ifaceName_;
-    NETMGR_EXT_LOG_I(
-        "Set dhcp range : ifaceName[%{public}s] TagName[%{public}s] start ip[%{private}s] end ip[%{private}s]",
-        ifaceName_.c_str(), range.strTagName.c_str(), range.strStartip.c_str(), range.strEndip.c_str());
-    if (dhcpService_->SetDhcpRange(ifaceName_, range) != Wifi::DHCP_OPT_SUCCESS) {
-        NETMGR_EXT_LOG_E("StartDhcp SetDhcpRange failed.");
-        return false;
-    }
-    if (dhcpService_->StartDhcpServer(ifaceName_) != Wifi::DHCP_OPT_SUCCESS) {
-        NETMGR_EXT_LOG_E("StartDhcpServer failed.");
+    if (strcpy_s(range.strTagName, DHCP_MAX_FILE_BYTES, ifaceName_.c_str()) != 0) {
+        NETMGR_EXT_LOG_E("strcpy_s strTagName failed!");
         return false;
     }
 
-    NETMGR_EXT_LOG_I("StartDhcpServer successful.");
+    if (strcpy_s(range.strStartip, INET_ADDRSTRLEN, strStartip.c_str()) != 0) {
+        NETMGR_EXT_LOG_E("strcpy_s strStartip failed!");
+        return false;
+    }
+
+    if (strcpy_s(range.strEndip, INET_ADDRSTRLEN, strEndip.c_str()) != 0) {
+        NETMGR_EXT_LOG_E("strcpy_s strEndip failed!");
+        return false;
+    }
+
+    if (strcpy_s(range.strSubnet, INET_ADDRSTRLEN, mask.c_str()) != 0) {
+        NETMGR_EXT_LOG_E("strcpy_s strSubnet failed!");
+        return false;
+    }
+    NETMGR_EXT_LOG_I(
+        "Set dhcp range : ifaceName[%{public}s] TagName[%{public}s] start ip[%{private}s] end ip[%{private}s]",
+        ifaceName_.c_str(), range.strTagName, range.strStartip, range.strEndip);
+
+    if (SetDhcpRange(ifaceName_.c_str(), &range) != DHCP_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartDhcp SetDhcpRange failed.");
+        return false;
+    }
+    if (StartDhcpServer(ifaceName_.c_str()) != DHCP_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartDhcp StartDhcpServer failed.");
+        return false;
+    }
+    NETMGR_EXT_LOG_I("StartDhcp StartDhcpServer successful.");
     return true;
 }
 
@@ -555,12 +567,9 @@ bool NetworkShareSubStateMachine::StopDhcp()
         NETMGR_EXT_LOG_W("StopDhcp wifi hotspot not need stop.");
         return true;
     }
-    if (dhcpService_ == nullptr) {
-        NETMGR_EXT_LOG_E("StopDhcp dhcpService is null.");
-        return false;
-    }
-    int ret = dhcpService_->StopDhcpServer(ifaceName_);
-    if (ret != Wifi::DHCP_OPT_SUCCESS) {
+
+    int ret = StopDhcpServer(ifaceName_.c_str());
+    if (ret != 0) {
         NETMGR_EXT_LOG_E("StopDhcpServer failed, error[%{public}d].", ret);
         return false;
     }

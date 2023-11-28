@@ -21,11 +21,6 @@ ohos_fuzztest("NetShareClientFuzzTest") {
   fuzz_config_file = "$NETMANAGER_EXT_ROOT/test/networksharemanager/fuzztest/netshareclient_fuzzer"
 
   include_dirs = [
-    "$DHCP_MANAGER_ROOT/services/mgr_service/include",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
@@ -53,7 +48,6 @@ ohos_fuzztest("NetShareClientFuzzTest") {
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
     "$BLUETOOTH_ROOT/frameworks/inner:btframework",
-    "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
@@ -66,6 +60,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "dhcp:dhcp_sdk",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

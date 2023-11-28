@@ -23,7 +23,6 @@
 #include <set>
 #include <sstream>
 
-#include "dhcp_service_api.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "networkshare_configuration.h"
@@ -130,7 +129,6 @@ private:
     int32_t lastError_ = NETMANAGER_EXT_SUCCESS;
     std::string upstreamIfaceName_;
     std::shared_ptr<SubStateMachineCallback> trackerCallback_ = nullptr;
-    std::unique_ptr<OHOS::Wifi::IDhcpService> dhcpService_ = nullptr;
     std::shared_ptr<NetworkShareConfiguration> configuration_ = nullptr;
     int32_t curState_ = SUBSTATE_INIT;
     std::vector<SubSmStateTable> stateTable_;
