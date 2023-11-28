@@ -93,7 +93,6 @@ ohos_shared_library("net_tether_manager") {
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
-    "dhcp:dhcp_manager_service",
     "dhcp:dhcp_sdk",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
