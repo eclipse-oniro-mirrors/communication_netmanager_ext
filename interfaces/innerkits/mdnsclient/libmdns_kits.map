@@ -28,6 +28,13 @@
       "OHOS::NetManagerStandard::MDnsClient::StopDiscoverService(OHOS::sptr<OHOS::NetManagerStandard::IDiscoveryCallback> const&)";
       "OHOS::NetManagerStandard::MDnsClient::~MDnsClient()";
       "OHOS::NetManagerStandard::MDnsServiceInfo::GetAttrMap()";
+      "OHOS::NetManagerStandard::MDnsClientResume::GetInstance()";
+      "OHOS::NetManagerStandard::MDnsClientResume::GetRegisterServiceMap()";
+      "OHOS::NetManagerStandard::MDnsClientResume::GetStartDiscoverServiceMap()";
+      "OHOS::NetManagerStandard::MDnsClientResume::SaveRegisterService(OHOS::NetManagerStandard::MDnsServiceInfo const&, OHOS::sptr<OHOS::NetManagerStandard::IRegistrationCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClientResume::RemoveRegisterService(OHOS::sptr<OHOS::NetManagerStandard::IRegistrationCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClientResume::SaveStartDiscoverService(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::IDiscoveryCallback> const&)";
+      "OHOS::NetManagerStandard::MDnsClientResume::RemoveStopDiscoverService(OHOS::sptr<OHOS::NetManagerStandard::IDiscoveryCallback> const&)";
     };
   local:
    *;

@@ -16,12 +16,18 @@
 #include <gtest/gtest.h>
 #include <thread>
 
+#ifdef GTEST_API_
+#define private public
+#define protected public
+#endif
+
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 
 #include "mdns_client.h"
 #include "mdns_common.h"
 #include "mdns_event_stub.h"
+#include "mdns_client_resume.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -131,6 +137,22 @@ public:
     MDnsServiceInfo expected_;
 };
 
+class MDnsClientResumeTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void MDnsClientResumeTest::SetUpTestCase() {}
+
+void MDnsClientResumeTest::TearDownTestCase() {}
+
+void MDnsClientResumeTest::SetUp() {}
+
+void MDnsClientResumeTest::TearDown() {}
+
 class MDnsClientTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -205,6 +227,53 @@ void DoTestForMdnsClient(MdnsClientTestParams param)
     DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(param.registrationBack);
 
     std::this_thread::sleep_for(std::chrono::seconds(TIME_ONE_MS));
+
+    // DelayedSingleton<MDnsClient>::GetInstance()->RestartResume();
+}
+
+HWTEST_F(MDnsClientResumeTest, ResumeTest001, TestSize.Level1)
+{
+    MDnsServiceInfo info;
+    MDnsServiceInfo infoBack;
+    info.name = DEMO_NAME;
+    info.type = DEMO_TYPE;
+    info.port = DEMO_PORT;
+    info.SetAttrMap(g_txt);
+
+    sptr<MDnsTestRegistrationCallback> registration(new (std::nothrow) MDnsTestRegistrationCallback(info));
+    sptr<MDnsTestDiscoveryCallback> discovery(new (std::nothrow) MDnsTestDiscoveryCallback({info, infoBack}));
+    ASSERT_NE(registration, nullptr);
+    ASSERT_NE(discovery, nullptr);
+
+    int32_t ret = MDnsClientResume::GetInstance().SaveRegisterService(info, registration);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = MDnsClientResume::GetInstance().SaveRegisterService(info, registration);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = MDnsClientResume::GetInstance().SaveStartDiscoverService(info.type, discovery);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = MDnsClientResume::GetInstance().SaveStartDiscoverService(info.type, discovery);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = MDnsClientResume::GetInstance().RemoveRegisterService(registration);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = MDnsClientResume::GetInstance().RemoveRegisterService(registration);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = MDnsClientResume::GetInstance().RemoveStopDiscoverService(discovery);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = MDnsClientResume::GetInstance().RemoveStopDiscoverService(discovery);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    RegisterServiceMap *rsm = MDnsClientResume::GetInstance().GetRegisterServiceMap();
+    ASSERT_NE(rsm, nullptr);
+
+    DiscoverServiceMap *dsm = MDnsClientResume::GetInstance().GetStartDiscoverServiceMap();
+    ASSERT_NE(dsm, nullptr);
 }
 
 /**
