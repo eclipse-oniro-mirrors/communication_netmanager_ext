@@ -96,6 +96,13 @@ public:
      */
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
+	 /**
+     * factory reset vpn , such as always on vpn
+     *
+     * @return Returns 0 success. Otherwise fail
+     */
+    int32_t FactoryResetVpn() override;
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -134,6 +141,22 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
     std::mutex netVpnMutex_;
     bool hasSARemoved_ = false;
+
+private:
+    void RegisterFactoryResetCallback();
+    class FactoryResetCallBack : public IRemoteStub<INetFactoryResetCallback> {
+    public:
+        explicit FactoryResetCallBack(NetworkVpnService& vpnService):vpnService_(vpnService){};
+
+        int32_t OnNetFactoryReset()
+        {
+            return vpnService_.FactoryResetVpn();
+        }
+    private:
+        NetworkVpnService& vpnService_;
+    };
+
+    sptr<INetFactoryResetCallback> netFactoryResetCallback_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

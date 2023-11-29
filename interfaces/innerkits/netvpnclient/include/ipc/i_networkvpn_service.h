@@ -39,6 +39,7 @@ public:
         CMD_REGISTER_EVENT_CALLBACK,
         CMD_UNREGISTER_EVENT_CALLBACK,
         CMD_CREATE_VPN_CONNECTION,
+        CMD_FACTORYRESET_VPN,
     };
 
 public:
@@ -49,6 +50,7 @@ public:
     virtual int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
     virtual int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
     virtual int32_t CreateVpnConnection() = 0;
+    virtual int32_t FactoryResetVpn() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");
 };

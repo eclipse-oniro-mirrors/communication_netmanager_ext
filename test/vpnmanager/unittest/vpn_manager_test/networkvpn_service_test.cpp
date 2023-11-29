@@ -183,5 +183,10 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranch, TestSize.Level1)
 {
     EXPECT_EQ(instance_->CreateVpnConnection(), NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnServiceTest, FactoryResetVpnTest001, TestSize.Level1)
+{
+    EXPECT_EQ(instance_->FactoryResetVpn(), NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
