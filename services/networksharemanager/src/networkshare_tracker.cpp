@@ -201,7 +201,7 @@ void NetworkShareTracker::RecoverSharingType()
     NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType in");
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     std::string queryRes;
-    int32_t ret;
+    int32_t ret = NETMANAGER_ERROR;
     {
         Uri uri(SHARING_WIFI_URI);
         ret = dataShareHelperUtils->Query(uri, KEY_SHARING_WIFI, queryRes);
