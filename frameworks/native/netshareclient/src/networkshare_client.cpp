@@ -208,7 +208,7 @@ int32_t NetworkShareClient::GetStatsTotalBytes(int32_t &bytes)
 
 sptr<INetworkShareService> NetworkShareClient::GetProxy()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard locker(mutex_);
     if (networkShareService_ != nullptr) {
         return networkShareService_;
     }
@@ -222,8 +222,8 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         return nullptr;
     }
     {
-        std::unique_lock<std::mutex> lock(g_mutexCv);
-        g_cv.wait_for(lock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
+        std::unique_lock<std::mutex> uniqueLock(g_mutexCv);
+        g_cv.wait_for(uniqueLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
             [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
     }
 
