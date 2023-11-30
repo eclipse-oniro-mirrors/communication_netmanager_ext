@@ -228,7 +228,7 @@ void DoTestForMdnsClient(MdnsClientTestParams param)
 
     std::this_thread::sleep_for(std::chrono::seconds(TIME_ONE_MS));
 
-    // DelayedSingleton<MDnsClient>::GetInstance()->RestartResume();
+    DelayedSingleton<MDnsClient>::GetInstance()->RestartResume();
 }
 
 HWTEST_F(MDnsClientResumeTest, ResumeTest001, TestSize.Level1)
