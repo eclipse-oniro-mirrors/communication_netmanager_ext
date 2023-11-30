@@ -19,6 +19,7 @@ ohos_unittest("networkshare_manager_test") {
 
   sources = [
     "interface_configuration_test.cpp",
+    "net_datashare_utils_test.cpp",
     "net_event_report_test.cpp",
     "netshare_result_callback_proxy_test.cpp",
     "netshare_result_callback_stub_test.cpp",
@@ -30,7 +31,6 @@ ohos_unittest("networkshare_manager_test") {
     "networkshare_sub_statemachine_test.cpp",
     "networkshare_tracker_test.cpp",
     "networkshare_upstreammonitor_test.cpp",
-    "net_datashare_utils_test.cpp",
     "sharing_event_callback_proxy_test.cpp",
     "sharing_event_callback_stub_test.cpp",
     "static_configuration_test.cpp",
