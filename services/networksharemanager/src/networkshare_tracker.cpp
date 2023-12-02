@@ -223,7 +223,7 @@ void NetworkShareTracker::RecoverSharingType()
             clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
         }
     }
-    NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}d]", clientRequestsVector_.size());
+    NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}zu]", clientRequestsVector_.size());
 }
 
 bool NetworkShareTracker::Init()

@@ -187,7 +187,7 @@ int32_t NetworkShareService::UpdateDataSharingType(const SharingIfaceType &type,
             break;
     }
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("Update sharetype:[%{public}d]to datashare failed", static_cast<int>(type));
+        NETMGR_EXT_LOG_E("Update sharetype:[%{public}d]to datashare failed", static_cast<int32_t>(type));
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return ret;
