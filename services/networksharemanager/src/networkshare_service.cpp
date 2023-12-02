@@ -160,6 +160,39 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
     return NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
 }
 
+int32_t NetworkShareService::UpdateDataSharingType(const SharingIfaceType &type, bool isOpen)
+{
+    int32_t ret = NETMANAGER_ERROR;
+    auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
+    switch (type) {
+        case SharingIfaceType::SHARING_WIFI:
+            {
+                Uri uri(SHARING_WIFI_URI);
+                ret = dataShareHelperUtils->Update(uri, KEY_SHARING_WIFI, std::to_string(isOpen));
+            }
+            break;
+        case SharingIfaceType::SHARING_USB:
+            {
+                Uri uri(SHARING_USB_URI);
+                ret = dataShareHelperUtils->Update(uri, KEY_SHARING_USB, std::to_string(isOpen));
+            }
+            break;
+        case SharingIfaceType::SHARING_BLUETOOTH:
+            {
+                Uri uri(SHARING_BLUETOOTH_URI);
+                ret = dataShareHelperUtils->Update(uri, KEY_SHARING_BLUETOOTH, std::to_string(isOpen));
+            }
+            break;
+        default:
+            break;
+    }
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Update sharetype:[%{public}d]to datashare failed", static_cast<int32_t>(type));
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    return ret;
+}
+
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
     NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
@@ -171,33 +204,7 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
-        switch (type) {
-            case SharingIfaceType::SHARING_WIFI:
-                {
-                    Uri uri(SHARING_WIFI_URI);
-                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_WIFI, std::to_string(true));
-                }
-                break;
-            case SharingIfaceType::SHARING_USB:
-                {
-                    Uri uri(SHARING_USB_URI);
-                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_USB, std::to_string(true));
-                }
-                break;
-            case SharingIfaceType::SHARING_BLUETOOTH:
-                {
-                    Uri uri(SHARING_BLUETOOTH_URI);
-                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_BLUETOOTH, std::to_string(true));
-                }
-                break;
-            default:
-                break;
-        }
-        if (ret != NETMANAGER_EXT_SUCCESS) {
-            NETMGR_EXT_LOG_E("Update sharetype: %{public}d to datashare failed", static_cast<int>(type));
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        }
+        ret = UpdateDataSharingType(type, true);
     }
     return ret;
 }
@@ -213,33 +220,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
-        switch (type) {
-            case SharingIfaceType::SHARING_WIFI:
-                {
-                    Uri uri(SHARING_WIFI_URI);
-                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_WIFI, std::to_string(false));
-                    break;
-                }
-            case SharingIfaceType::SHARING_USB:
-                {
-                    Uri uri(SHARING_USB_URI);
-                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_USB, std::to_string(false));
-                    break;
-                }
-            case SharingIfaceType::SHARING_BLUETOOTH:
-                {
-                    Uri uri(SHARING_BLUETOOTH_URI);
-                    ret = dataShareHelperUtils->Update(uri, KEY_SHARING_BLUETOOTH, std::to_string(false));
-                    break;
-                }
-            default:
-                break;
-        }
-        if (ret != NETMANAGER_EXT_SUCCESS) {
-            NETMGR_EXT_LOG_E("Update sharetype: %{public}d to datashare failed", static_cast<int>(type));
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        }
+        ret = UpdateDataSharingType(type, false);
     }
 
     return ret;
