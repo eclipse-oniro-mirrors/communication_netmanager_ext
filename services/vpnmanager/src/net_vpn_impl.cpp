@@ -223,22 +223,14 @@ bool NetVpnImpl::UpdateNetLinkInfo(NetConnClient &netConnClientIns)
 
     if (vpnConfig_->routes_.empty()) {
         if (vpnConfig_->isAcceptIPv4_ == true) {
-            Route defaultRoute;
-            defaultRoute.iface_ = TUN_CARD_NAME;
-            defaultRoute.destination_.type_ = INetAddr::IPV4;
-            defaultRoute.destination_.address_ = IPV4_DEFAULT_ROUTE_ADDR;
-            defaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(IPV4_DEFAULT_ROUTE_ADDR);
-            defaultRoute.gateway_.address_ = IPV4_DEFAULT_ROUTE_ADDR;
-            linkInfo->routeList_.emplace_back(defaultRoute);
+            Route ipv4DefaultRoute;
+            SetIpv4DefaultRoute(ipv4DefaultRoute);
+            linkInfo->routeList_.emplace_back(ipv4DefaultRoute);
         }
         if (vpnConfig_->isAcceptIPv6_== true) {
-            Route ipv6defaultRoute;
-            ipv6defaultRoute.iface_ = TUN_CARD_NAME;
-            ipv6defaultRoute.destination_.type_ = INetAddr::IPV6;
-            ipv6defaultRoute.destination_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
-            ipv6defaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(IPV6_DEFAULT_ROUTE_ADDR);
-            ipv6defaultRoute.gateway_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
-            linkInfo->routeList_.emplace_back(ipv6defaultRoute);
+            Route ipv6DefaultRoute;
+            SetIpv6DefaultRoute(ipv6DefaultRoute);
+            linkInfo->routeList_.emplace_back(ipv6DefaultRoute);
         }
     } else {
         linkInfo->routeList_.assign(vpnConfig_->routes_.begin(), vpnConfig_->routes_.end());
@@ -264,6 +256,24 @@ bool NetVpnImpl::UpdateNetLinkInfo(NetConnClient &netConnClientIns)
     linkInfo->mtu_ = vpnConfig_->mtu_;
     netConnClientIns.UpdateNetLinkInfo(netSupplierId_, linkInfo);
     return true;
+}
+
+void NetVpnImpl::SetIpv4DefaultRoute(Route &ipv4DefaultRoute)
+{
+    ipv4DefaultRoute.iface_ = TUN_CARD_NAME;
+    ipv4DefaultRoute.destination_.type_ = INetAddr::IPV4;
+    ipv4DefaultRoute.destination_.address_ = IPV4_DEFAULT_ROUTE_ADDR;
+    ipv4DefaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(IPV4_DEFAULT_ROUTE_ADDR);
+    ipv4DefaultRoute.gateway_.address_ = IPV4_DEFAULT_ROUTE_ADDR;
+}
+
+void NetVpnImpl::SetIpv6DefaultRoute(Route &ipv6DefaultRoute)
+{
+    ipv6DefaultRoute.iface_ = TUN_CARD_NAME;
+    ipv6DefaultRoute.destination_.type_ = INetAddr::IPV6;
+    ipv6DefaultRoute.destination_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
+    ipv6DefaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(IPV6_DEFAULT_ROUTE_ADDR);
+    ipv6DefaultRoute.gateway_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
 }
 
 void NetVpnImpl::DelNetLinkInfo(NetConnClient &netConnClientIns)

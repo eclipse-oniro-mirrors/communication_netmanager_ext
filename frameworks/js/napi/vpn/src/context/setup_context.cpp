@@ -165,7 +165,7 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
     }
 
     bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
-    if (!isIpv6){
+    if (!isIpv6) {
         if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
             NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
             return false;
@@ -179,19 +179,19 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
         NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", NET_PREFIXLENGTH);
         return false;
     }
-    if (!isIpv6){
+    if (!isIpv6) {
         iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, address, NET_PREFIXLENGTH));
-    }else {
+    } else {
         iNetAddr.prefixlen_ = CommonUtils::Ipv6PrefixLen(iNetAddr.address_);
     }
 
     NETMGR_EXT_LOG_I("isIpv6:%{public}d, %{public}s: %{public}d", isIpv6, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
 
     uint32_t prefix = iNetAddr.prefixlen_;
-     if (prefix ==0 || prefix >= (isIpv6 ? IPV6_NET_PREFIX_MAX_LENGTH : NET_MASK_MAX_LENGTH)) {
+    if (prefix == 0 || prefix >= (isIpv6 ? IPV6_NET_PREFIX_MAX_LENGTH : NET_MASK_MAX_LENGTH)) {
         NETMGR_EXT_LOG_E("prefix: %{public}d error", prefix);
         return false;
-     }
+    }
     if (!isIpv6) {
         uint32_t maskUint = (0xFFFFFFFF << (NET_MASK_MAX_LENGTH - prefix));
         uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(iNetAddr.address_);
