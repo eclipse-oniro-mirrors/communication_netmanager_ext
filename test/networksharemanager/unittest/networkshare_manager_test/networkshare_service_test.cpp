@@ -367,7 +367,10 @@ HWTEST_F(NetworkShareServiceTest, OnAddSystemAbility001, TestSize.Level1)
 {
     std::string deviceId = "dev1";
     instance_->OnRemoveSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
+    EXPECT_TRUE(instance_->hasSARemoved_);
+
     instance_->OnAddSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
+    EXPECT_FALSE(instance_->hasSARemoved_);
 }
 
 HWTEST_F(NetworkShareServiceTest, UpdateDataSharingType001, TestSize.Level1)
