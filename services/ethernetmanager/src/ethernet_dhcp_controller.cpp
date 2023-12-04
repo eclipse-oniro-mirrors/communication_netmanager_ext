@@ -14,32 +14,39 @@
  */
 
 #include "ethernet_dhcp_controller.h"
-
 #include <string>
-
-#include "dhcp_define.h"
-#include "dhcp_service.h"
 #include "ethernet_dhcp_callback.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t DHCP_TIMEOUT = 300;
-void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnSuccess(int status, const std::string &ifname,
-                                                                           OHOS::Wifi::DhcpResult &result)
+
+EthernetDhcpController *EthernetDhcpController::EthernetDhcpControllerResultNotify::ethDhcpController_ = nullptr;
+void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnSuccess(int status, const char *ifname,
+                                                                           DhcpResult *result)
 {
-    ethDhcpController_.OnDhcpSuccess(ifname, result);
+    if (ifname == nullptr || result == nullptr) {
+        NETMGR_EXT_LOG_E("ifname or result is nullptr!");
+        return;
+    }
+
+    if (ethDhcpController_ != nullptr) {
+        NETMGR_EXT_LOG_I("EthernetDhcpControllerResultNotify OnSuccess.");
+        ethDhcpController_->OnDhcpSuccess(ifname, result);
+    }
 }
 
-void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnFailed(int status, const std::string &ifname,
-                                                                          const std::string &reason)
+void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnFailed(int status, const char *ifname,
+                                                                          const char *reason)
 {
+    NETMGR_EXT_LOG_I("EthernetDhcpControllerResultNotify OnFailed.");
     return;
 }
 
-void EthernetDhcpController::EthernetDhcpControllerResultNotify::OnSerExitNotify(const std::string &ifname)
+void EthernetDhcpController::EthernetDhcpControllerResultNotify::SetEthernetDhcpController(
+    EthernetDhcpController *ethDhcpController)
 {
-    return;
+    ethDhcpController_ = ethDhcpController;
 }
 
 void EthernetDhcpController::RegisterDhcpCallback(sptr<EthernetDhcpCallback> callback)
@@ -47,40 +54,48 @@ void EthernetDhcpController::RegisterDhcpCallback(sptr<EthernetDhcpCallback> cal
     cbObject_ = callback;
 }
 
-void EthernetDhcpController::StartDhcpClient(const std::string &iface, bool bIpv6)
+void EthernetDhcpController::StartClient(const std::string &iface, bool bIpv6)
 {
-    NETMGR_EXT_LOG_D("Start dhcp client iface[%{public}s] ipv6[%{public}d]", iface.c_str(), bIpv6);
-    dhcpService_->StartDhcpClient(iface, bIpv6);
-    if (dhcpService_->GetDhcpResult(iface, dhcpResultNotify_.get(), DHCP_TIMEOUT) != 0) {
-        NETMGR_EXT_LOG_D(" Dhcp connection failed.\n");
-    }
-}
-
-void EthernetDhcpController::StopDhcpClient(const std::string &iface, bool bIpv6)
-{
-    NETMGR_EXT_LOG_D("Stop dhcp client iface[%{public}s] ipv6[%{public}d]", iface.c_str(), bIpv6);
-    dhcpService_->StopDhcpClient(iface, bIpv6);
-}
-
-void EthernetDhcpController::OnDhcpSuccess(const std::string &iface, OHOS::Wifi::DhcpResult &result)
-{
-    if (cbObject_ == nullptr) {
-        NETMGR_EXT_LOG_E("Error OnDhcpSuccess No Cb!");
+    clientEvent.OnIpSuccessChanged = EthernetDhcpControllerResultNotify::OnSuccess;
+    clientEvent.OnIpFailChanged = EthernetDhcpControllerResultNotify::OnFailed;
+    dhcpResultNotify_->SetEthernetDhcpController(this);
+    if (RegisterDhcpClientCallBack(iface.c_str(), &clientEvent) != DHCP_SUCCESS) {
+        NETMGR_EXT_LOG_E("RegisterDhcpClientCallBack failed.");
         return;
     }
+    NETMGR_EXT_LOG_I("Start dhcp client iface[%{public}s] ipv6[%{public}d]", iface.c_str(), bIpv6);
+    if (StartDhcpClient(iface.c_str(), bIpv6) != DHCP_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartDhcpClient failed.");
+    }
+}
 
+void EthernetDhcpController::StopClient(const std::string &iface, bool bIpv6)
+{
+    NETMGR_EXT_LOG_D("StopClient iface[%{public}s] ipv6[%{public}d]", iface.c_str(), bIpv6);
+    if (StopDhcpClient(iface.c_str(), bIpv6) != DHCP_SUCCESS) {
+        NETMGR_EXT_LOG_E("StopDhcpClient failed.");
+    }
+}
+
+void EthernetDhcpController::OnDhcpSuccess(const std::string &iface, DhcpResult *result)
+{
+    if (cbObject_ == nullptr || result == nullptr) {
+        NETMGR_EXT_LOG_E("cbObject_ or result is nullptr!");
+        return;
+    }
+    NETMGR_EXT_LOG_I("OnDhcpSuccess, iface[%{public}s]", iface.c_str());
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.iface = iface;
-    dhcpResult.ipAddr = result.strYourCli;
-    dhcpResult.gateWay = result.strRouter1;
-    dhcpResult.subNet = result.strSubnet;
-    dhcpResult.route1 = result.strRouter1;
-    dhcpResult.route2 = result.strRouter2;
-    dhcpResult.dns1 = result.strDns1;
-    dhcpResult.dns2 = result.strDns2;
+    dhcpResult.ipAddr = result->strOptClientId;
+    dhcpResult.gateWay = result->strOptRouter1;
+    dhcpResult.subNet = result->strOptSubnet;
+    dhcpResult.route1 = result->strOptRouter1;
+    dhcpResult.route2 = result->strOptRouter2;
+    dhcpResult.dns1 = result->strOptDns1;
+    dhcpResult.dns2 = result->strOptDns2;
     cbObject_->OnDhcpSuccess(dhcpResult);
 }
 
-void EthernetDhcpController::OnDhcpFailed(int status, const std::string &ifname, const std::string &reason) {}
+void EthernetDhcpController::OnDhcpFailed(int status, const std::string &ifname, const char *reason) {}
 } // namespace NetManagerStandard
 } // namespace OHOS

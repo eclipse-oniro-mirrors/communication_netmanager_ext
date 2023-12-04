@@ -41,8 +41,6 @@ config("net_tether_manager_config") {
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$WIFI_MANAGER_ROOT/interfaces/kits/c",
     "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
     "$BLUETOOTH_ROOT/interfaces/inner_api/include",
     "$USB_MANAGER_ROOT/interfaces/innerkits/native/include",
     "$USB_MANAGER_ROOT/utils/native/include",
@@ -58,6 +56,7 @@ ohos_shared_library("net_tether_manager") {
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
@@ -90,8 +89,11 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
+    "ability_base:zuri",
     "c_utils:utils",
-    "dhcp:dhcp_manager_service",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "dhcp:dhcp_sdk",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
@@ -99,6 +101,7 @@ ohos_shared_library("net_tether_manager") {
     "netmanager_base:net_manager_common",
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
     "usb_manager:usbsrv_client",
     "wifi:wifi_sdk",
   ]
@@ -132,6 +135,7 @@ ohos_static_library("net_tether_manager_static") {
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/net_datashare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
@@ -146,7 +150,6 @@ ohos_static_library("net_tether_manager_static") {
 
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
-    "$DHCP_MANAGER_ROOT/services/mgr_service:dhcp_manager_service",
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
@@ -154,11 +157,16 @@ ohos_static_library("net_tether_manager_static") {
   ]
 
   external_deps = [
+    "ability_base:zuri",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "dhcp:dhcp_sdk",
     "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
     "wifi:wifi_sdk",
   ]
 

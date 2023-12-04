@@ -43,9 +43,6 @@ ohos_shared_library("ethernet_manager") {
     "$BASE_INNERKITS_ROOT/dnsresolverclient/include",
     "$BASE_INNERKITS_ROOT/ethernetclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$DHCP_MANAGER_ROOT/services/mgr_service/include",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/include",
-    "$DHCP_MANAGER_ROOT/interfaces/inner_api/interfaces",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
@@ -55,7 +52,7 @@ ohos_shared_library("ethernet_manager") {
   deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel" ]
 
   external_deps = [
-    "dhcp:dhcp_manager_service",
+    "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",

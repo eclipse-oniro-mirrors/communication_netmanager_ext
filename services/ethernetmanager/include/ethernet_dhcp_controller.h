@@ -20,50 +20,39 @@
 #include <iosfwd>
 #include <memory>
 
-#include "dhcp_service.h"
 #include "ethernet_dhcp_callback.h"
-#include "i_dhcp_result_notify.h"
-#include "i_dhcp_service.h"
 #include "refbase.h"
+#include "dhcp_c_api.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class EthernetDhcpController {
 public:
-    class EthernetDhcpControllerResultNotify : public OHOS::Wifi::IDhcpResultNotify {
+    class EthernetDhcpControllerResultNotify {
     public:
-        explicit EthernetDhcpControllerResultNotify(EthernetDhcpController &dhcpController)
-            : ethDhcpController_(dhcpController)
+        EthernetDhcpControllerResultNotify()
         {
         }
-
-        ~EthernetDhcpControllerResultNotify() = default;
-        void OnSuccess(int status, const std::string &ifname, OHOS::Wifi::DhcpResult &result) override;
-        void OnFailed(int status, const std::string &ifname, const std::string &reason) override;
-        void OnSerExitNotify(const std::string &ifname) override;
-
+        ~EthernetDhcpControllerResultNotify()  = default;
+        static void OnSuccess(int status, const char *ifname, DhcpResult *result);
+        static void OnFailed(int status, const char *ifname, const char *reason);
+        static void SetEthernetDhcpController(EthernetDhcpController *ethDhcpController);
     private:
-        EthernetDhcpController &ethDhcpController_;
+        static EthernetDhcpController *ethDhcpController_;
     };
-
 public:
-    EthernetDhcpController()
-        : dhcpService_(std::make_unique<OHOS::Wifi::DhcpService>()),
-          dhcpResultNotify_(std::make_unique<EthernetDhcpControllerResultNotify>(*this))
+    EthernetDhcpController() : dhcpResultNotify_(std::make_unique<EthernetDhcpControllerResultNotify>())
     {
     }
     ~EthernetDhcpController() = default;
-
     void RegisterDhcpCallback(sptr<EthernetDhcpCallback> callback);
-    void StartDhcpClient(const std::string &iface, bool bIpv6);
-    void StopDhcpClient(const std::string &iface, bool bIpv6);
-
+    void StartClient(const std::string &iface, bool bIpv6);
+    void StopClient(const std::string &iface, bool bIpv6);
 private:
-    void OnDhcpSuccess(const std::string &iface, OHOS::Wifi::DhcpResult &result);
-    void OnDhcpFailed(int status, const std::string &ifname, const std::string &reason);
-
+    void OnDhcpSuccess(const std::string &iface, DhcpResult *result);
+    void OnDhcpFailed(int status, const std::string &ifname, const char *reason);
 private:
-    std::unique_ptr<OHOS::Wifi::IDhcpService> dhcpService_ = nullptr;
+    ClientCallBack clientEvent;
     std::unique_ptr<EthernetDhcpControllerResultNotify> dhcpResultNotify_ = nullptr;
     sptr<EthernetDhcpCallback> cbObject_ = nullptr;
 };

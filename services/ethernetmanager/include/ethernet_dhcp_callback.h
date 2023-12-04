@@ -17,6 +17,7 @@
 #define ETHERNET_DHCP_CALLBACK_H
 
 #include "refbase.h"
+#include <string>
 
 namespace OHOS {
 namespace NetManagerStandard {

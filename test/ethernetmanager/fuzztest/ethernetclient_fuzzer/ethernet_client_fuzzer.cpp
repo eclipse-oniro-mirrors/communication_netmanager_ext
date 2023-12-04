@@ -446,9 +446,9 @@ void EthernetDhcpControllerFuzzTest(const uint8_t *data, size_t size)
 
     std::string iface = GetStringFromData(IFACE_LEN);
     bool bIpv6 = GetData<uint32_t>() % CREATE_BOOL_TYPE_VALUE == 0;
-    ethernetDhcpController->StartDhcpClient(iface, bIpv6);
+    ethernetDhcpController->StartClient(iface, bIpv6);
 
-    ethernetDhcpController->StopDhcpClient(iface, bIpv6);
+    ethernetDhcpController->StopClient(iface, bIpv6);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

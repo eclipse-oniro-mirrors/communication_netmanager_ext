@@ -374,14 +374,14 @@ bool EthernetManagement::IsIfaceLinkUp(const std::string &iface)
 void EthernetManagement::StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartDhcpClient[%{public}s]", dev.c_str());
-    ethDhcpController_->StartDhcpClient(dev, true);
+    ethDhcpController_->StartClient(dev, true);
     devState->SetDhcpReqState(true);
 }
 
 void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState)
 {
     NETMGR_EXT_LOG_D("EthernetManagement StopDhcpClient[%{public}s]", dev.c_str());
-    ethDhcpController_->StopDhcpClient(dev, true);
+    ethDhcpController_->StopClient(dev, true);
     devState->SetDhcpReqState(false);
 }
 

@@ -369,5 +369,20 @@ HWTEST_F(NetworkShareServiceTest, OnAddSystemAbility001, TestSize.Level1)
     instance_->OnRemoveSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
     instance_->OnAddSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
 }
+
+HWTEST_F(NetworkShareServiceTest, UpdateDataSharingType001, TestSize.Level1)
+{
+    int32_t ret = instance_->UpdateDataSharingType(SharingIfaceType::SHARING_WIFI, true);
+    std::cout << "UpdateDataSharingType001 ret = " << ret << std::endl;
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(NetworkShareServiceTest, UpdateDataSharingType002, TestSize.Level1)
+{
+    AccessToken token;
+    int32_t ret = instance_->UpdateDataSharingType(SharingIfaceType::SHARING_WIFI, true);
+    std::cout << "UpdateDataSharingType002 ret = " << ret << std::endl;
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
