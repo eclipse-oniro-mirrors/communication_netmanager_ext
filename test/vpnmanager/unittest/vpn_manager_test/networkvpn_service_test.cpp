@@ -22,10 +22,13 @@
 
 #ifdef GTEST_API_
 #define private public
+#define protected public
 #endif
+
 #include "net_manager_constants.h"
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -182,6 +185,16 @@ HWTEST_F(NetworkVpnServiceTest, SyncUnregisterVpnEvent, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranch, TestSize.Level1)
 {
     EXPECT_EQ(instance_->CreateVpnConnection(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnAddSystemAbility001, TestSize.Level1)
+{
+    std::string deviceId = "dev1";
+    instance_->OnRemoveSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
+    EXPECT_TRUE(instance_->hasSARemoved_);
+
+    instance_->OnAddSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
+    EXPECT_FALSE(instance_->hasSARemoved_);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
