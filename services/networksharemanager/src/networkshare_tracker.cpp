@@ -1271,7 +1271,7 @@ void NetworkShareTracker::RestartResume()
     if (isStartDnsProxy_) {
         StopDnsProxy();
 
-        int32_t ret = NetsysController::GetInstance().StartDnsProxyListen();
+        ret = NetsysController::GetInstance().StartDnsProxyListen();
         if (ret != NETSYS_SUCCESS) {
             NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
             mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);

@@ -315,23 +315,23 @@ inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
     return IN6_IS_ADDR_LOOPBACK(addr6);
 }
 
-bool MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
+uint32_t MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
 {
     if (!ipv6Support || IN6_IS_ADDR_LOOPBACK(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) ||
         (reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id != 0)) {
         NETMGR_EXT_LOG_D("mdns_log ipv6 not supported");
-        return false;
+        return BOOL_VALUE_FALSE;
     }
     sockaddr_in6 *saddr = reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr);
     int sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
         NETMGR_EXT_LOG_E("mdns_log socket create failed, errno:[%{public}d]", errno);
-        return false;
+        return BOOL_VALUE_FALSE;
     }
     if (InitSocketV6(sock, ifa, MDNS_PORT)) {
         NETMGR_EXT_LOG_E("mdns_log InitSocketV6 failed, errno=[%{public}d]", errno);
         close(sock);
-        return false;
+        return BOOL_VALUE_FALSE;
     } else {
         socks_.emplace_back(sock);
         iface_[sock] = ifa->ifa_name;
@@ -339,7 +339,7 @@ bool MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
         reinterpret_cast<sockaddr_in6 *>(&saddr_[sock])->sin6_addr = saddr->sin6_addr;
     }
     NETMGR_EXT_LOG_I("mdns_log iface found, ifa_name=[%{public}s]", ifa->ifa_name);
-    return true;
+    return BOOL_VALUE_TRUE;
 }
 
 void MDnsSocketListener::OpenSocketForDefault(bool ipv6Support)
