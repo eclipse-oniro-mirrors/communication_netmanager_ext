@@ -28,7 +28,9 @@
 #include "refbase.h"
 #include "singleton.h"
 #include "token_setproc.h"
+#ifdef WIFI_MODOULE
 #include "wifi_ap_msg.h"
+#endif
 
 #include "i_networkshare_service.h"
 #include "interface_configuration.h"
@@ -44,9 +46,13 @@ const uint8_t *g_baseFuzzData = nullptr;
 static constexpr uint32_t CREATE_SHARE_IFACE_TYPE_VALUE = 3;
 static constexpr uint32_t CREATE_SHARE_IFACE_STATE_VALUE = 3;
 static constexpr uint32_t ENUM_TYPE_VALUE3 = 3;
+#ifdef BLUETOOTH_MODOULE
 static constexpr uint32_t ENUM_TYPE_VALUE4 = 4;
+#endif
 static constexpr uint32_t ENUM_TYPE_VALUE5 = 5;
+#ifdef WIFI_MODOULE
 static constexpr uint32_t ENUM_TYPE_VALUE6 = 6;
+#endif
 static constexpr uint32_t ENUM_TYPE_BEGIN = 1;
 size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
@@ -657,7 +663,9 @@ void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
     tra.HandleSubSmUpdateInterfaceState(subSm, num, num);
     tra.EnableNetSharingInternal(ifaceType, num > 0);
     tra.SetWifiNetworkSharing(num > 0);
+#ifdef USB_MODOULE
     tra.SetUsbNetworkSharing(num > 0);
+#endif
     tra.SetBluetoothNetworkSharing(num > 0);
     tra.EnableWifiSubStateMachine();
     tra.EnableBluetoothSubStateMachine();
@@ -679,7 +687,9 @@ void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
     tra.SubSmStateToExportState(num);
     tra.RegisterWifiApCallback();
     tra.RegisterBtPanCallback();
+#ifdef WIFI_MODOULE
     tra.SetWifiState(Wifi::ApState(num % ENUM_TYPE_VALUE6));
+#endif
 #ifdef BLUETOOTH_MODOULE
     tra.SetBluetoothState(Bluetooth::BTConnectState(num % ENUM_TYPE_VALUE4));
 #endif

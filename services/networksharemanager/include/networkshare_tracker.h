@@ -27,7 +27,9 @@
 #include "event_handler.h"
 #include "i_netshare_result_callback.h"
 #include "i_sharing_event_callback.h"
+#ifdef WIFI_MODOULE
 #include "i_wifi_hotspot_callback.h"
+#endif
 #include "net_manager_ext_constants.h"
 #include "netsys_controller_callback.h"
 #include "networkshare_configuration.h"
@@ -35,8 +37,10 @@
 #include "networkshare_main_statemachine.h"
 #include "networkshare_sub_statemachine.h"
 #include "networkshare_upstreammonitor.h"
+#ifdef WIFI_MODOULE
 #include "wifi_ap_msg.h"
 #include "wifi_hotspot.h"
+#endif
 #include "net_datashare_utils.h"
 
 namespace OHOS {
@@ -234,7 +238,9 @@ private:
     static void OnWifiHotspotStateChanged(int state);
     void RegisterWifiApCallback();
     void RegisterBtPanCallback();
+#ifdef WIFI_MODOULE
     void SetWifiState(const Wifi::ApState &state);
+#endif
 #ifdef BLUETOOTH_MODOULE
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
 #endif
@@ -257,18 +263,21 @@ private:
     std::vector<SharingIfaceType> clientRequestsVector_;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
+#ifdef WIFI_MODOULE
     int32_t wifiShareCount_ = 0;
-    int32_t usbShareCount_ = 0;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
+    WifiEvent g_wifiEvent = {0};
+#endif
 #ifdef BLUETOOTH_MODOULE
     std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;
     int32_t bluetoothShareCount_ = 0;
     Bluetooth::BTConnectState curBluetoothState_ = Bluetooth::BTConnectState::DISCONNECTED;
 #endif
+#ifdef USB_MODOULE
+    int32_t usbShareCount_ = 0;
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
+#endif
     std::atomic_bool isInit = false;
-    WifiEvent g_wifiEvent = {0};
-
     int32_t netId_;
 };
 } // namespace NetManagerStandard
