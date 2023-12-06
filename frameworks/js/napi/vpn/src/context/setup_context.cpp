@@ -167,7 +167,7 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
     bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
     if (!isIpv6) {
         if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
-            NETMGR_EXT_LOG_E("invalid ip address [%{private}s]", iNetAddr.address_.c_str());
+            NETMGR_EXT_LOG_E("invalid ip address");
             return false;
         }
     }
@@ -198,7 +198,7 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
         uint32_t subNetAddress = ipAddrUint & maskUint;
         uint32_t boardcastAddress = subNetAddress | (~maskUint);
         if ((ipAddrUint == subNetAddress) || (ipAddrUint == boardcastAddress)) {
-            NETMGR_EXT_LOG_E("invalid ip address [%{private}s]", iNetAddr.address_.c_str());
+            NETMGR_EXT_LOG_E("invalid ip address");
             return false;
         }
     }
@@ -225,7 +225,7 @@ static bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &
     }
 
     if (!CommonUtils::IsValidIPV4(iNetAddr.address_) && !CommonUtils::IsValidIPV6(iNetAddr.address_)) {
-        NETMGR_EXT_LOG_E("invalid ip address [%{private}s]", iNetAddr.address_.c_str());
+        NETMGR_EXT_LOG_E("invalid ip address");
         return false;
     }
 
