@@ -263,8 +263,9 @@ private:
     std::vector<SharingIfaceType> clientRequestsVector_;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
-#ifdef WIFI_MODOULE
     int32_t wifiShareCount_ = 0;
+    int32_t usbShareCount_ = 0;
+#ifdef WIFI_MODOULE
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
     WifiEvent g_wifiEvent = {0};
 #endif
@@ -274,7 +275,6 @@ private:
     Bluetooth::BTConnectState curBluetoothState_ = Bluetooth::BTConnectState::DISCONNECTED;
 #endif
 #ifdef USB_MODOULE
-    int32_t usbShareCount_ = 0;
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
 #endif
     std::atomic_bool isInit = false;

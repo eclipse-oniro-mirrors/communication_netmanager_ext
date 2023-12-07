@@ -83,7 +83,7 @@ declare_args() {
   netmanager_ext_feature_share = true
   netmanager_ext_feature_mdns = true
   netmanager_ext_feature_vpn = true
-  usb_manager_enable = true
+  usb_manager_enable = false
 }
 
 memory_optimization_cflags = [
@@ -113,6 +113,11 @@ if (defined(global_parts_info) &&
     defined(global_parts_info.communication_bluetooth) &&
     global_parts_info.communication_bluetooth) {
   communication_bluetooth_switch_enable = true
+}
+
+if (defined(global_parts_info) && defined(global_parts_info.usb_usb_manager) &&
+    global_parts_info.usb_usb_manager) {
+  usb_manager_enable = true
 }
 
 fuzz_test_path = "netmanager_ext/netmanager_ext"
