@@ -201,7 +201,7 @@ void NetworkShareTracker::RecoverSharingType()
     NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType in");
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     std::string queryRes;
-    int32_t ret;
+    int32_t ret = NETMANAGER_ERROR;
     {
         Uri uri(SHARING_WIFI_URI);
         ret = dataShareHelperUtils->Query(uri, KEY_SHARING_WIFI, queryRes);
@@ -223,7 +223,7 @@ void NetworkShareTracker::RecoverSharingType()
             clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
         }
     }
-    NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType out");
+    NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}zu]", clientRequestsVector_.size());
 }
 
 bool NetworkShareTracker::Init()
@@ -1271,7 +1271,7 @@ void NetworkShareTracker::RestartResume()
     if (isStartDnsProxy_) {
         StopDnsProxy();
 
-        int32_t ret = NetsysController::GetInstance().StartDnsProxyListen();
+        ret = NetsysController::GetInstance().StartDnsProxyListen();
         if (ret != NETSYS_SUCCESS) {
             NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
             mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);

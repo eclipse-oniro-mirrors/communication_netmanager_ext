@@ -61,7 +61,7 @@ private:
     bool CanRefresh();
     void ReceiveInSock(int sock);
     uint32_t OpenSocketV4(ifaddrs *ifa);
-    bool OpenSocketV6(ifaddrs *ifa, bool ipv6Support);
+    uint32_t OpenSocketV6(ifaddrs *ifa, bool ipv6Support);
     bool Ifaceverification(ifaddrs *ifa, ifaddrs *loaddr);
 
     std::vector<int> socks_;

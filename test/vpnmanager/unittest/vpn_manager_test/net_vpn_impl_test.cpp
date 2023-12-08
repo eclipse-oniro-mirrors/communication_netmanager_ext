@@ -199,5 +199,11 @@ HWTEST_F(NetVpnImplTest, GenerateUidRanges, TestSize.Level1)
     int32_t result = netVpnImpl_->GenerateUidRanges(userId, beginUids, endUids);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetVpnImplTest, ResumeUids001, TestSize.Level1)
+{
+    int32_t result = netVpnImpl_->ResumeUids();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

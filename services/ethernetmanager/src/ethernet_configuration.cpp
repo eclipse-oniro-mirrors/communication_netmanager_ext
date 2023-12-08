@@ -646,20 +646,18 @@ bool EthernetConfiguration::IsValidDhcpResult(const EthernetDhcpCallback::DhcpRe
 
     bool isSameIp = false;
     bool isSameGateway = false;
-    for (const auto &ipAddr : config->ipAddrList_) {
-        if (dhcpResult.ipAddr == ipAddr.address_) {
-            NETMGR_EXT_LOG_E("Same ip addr:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.ipAddr).c_str());
-            isSameIp = true;
-            break;
-        }
+    if (std::any_of(config->ipAddrList_.begin(), config->ipAddrList_.end(), [&dhcpResult](const auto &ipAddr) {
+        return dhcpResult.ipAddr == ipAddr.address_;
+        })) {
+        NETMGR_EXT_LOG_I("Same ip addr:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.ipAddr).c_str());
+        isSameIp = true;
     }
 
-    for (const auto &gateway : config->gatewayList_) {
-        if (dhcpResult.gateWay == gateway.address_) {
-            NETMGR_EXT_LOG_E("Same gateway:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.gateWay).c_str());
-            isSameGateway = true;
-            break;
-        }
+    if (std::any_of(config->gatewayList_.begin(), config->gatewayList_.end(), [&dhcpResult](const auto &gateway) {
+        return dhcpResult.gateWay == gateway.address_;
+        })) {
+        NETMGR_EXT_LOG_I("Same gateway:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.gateWay).c_str());
+        isSameGateway = true;
     }
     return !(isSameIp && isSameGateway);
 }
