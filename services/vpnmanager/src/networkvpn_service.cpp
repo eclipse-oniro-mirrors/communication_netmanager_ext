@@ -649,7 +649,11 @@ void NetworkVpnService::RegisterFactoryResetCallback()
         } else {
             netFactoryResetCallback_ = (std::make_unique<FactoryResetCallBack>(*this)).release();
             if (netFactoryResetCallback_ != nullptr) {
-                NetConnClient::GetInstance().RegisterNetFactoryResetCallback(netFactoryResetCallback_);
+                int ret = NetConnClient::GetInstance().RegisterNetFactoryResetCallback(netFactoryResetCallback_);
+                if (ret != NETMANAGER_SUCCESS) {
+                    NETMGR_EXT_LOG_E("RegisterNetFactoryResetCallback ret: %{public}d.", ret);
+                    return ret;
+                }
             } else {
                 NETMGR_EXT_LOG_E("netFactoryResetCallback_ is null.");
             }

@@ -202,18 +202,7 @@ int32_t NetworkVpnServiceProxy::CreateVpnConnection()
 
 int32_t NetworkVpnServiceProxy::FactoryResetVpn()
 {
-    MessageParcel data;
-    MessageParcel reply;
-    int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_FACTORYRESET_VPN, data, reply);
-    if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("FactoryResetVpn proxy SendRequest failed, error code: [%{public}d]", ret);
-        return ret;
-    }
-    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
-    if (!reply.ReadInt32(result)) {
-        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
-    }
-    return result;
+    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

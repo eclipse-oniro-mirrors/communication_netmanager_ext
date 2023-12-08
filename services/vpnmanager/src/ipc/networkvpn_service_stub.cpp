@@ -162,10 +162,6 @@ int32_t NetworkVpnServiceStub::ReplyCreateVpnConnection(MessageParcel &data, Mes
 
 int32_t NetworkVpnServiceStub::ReplyFactoryResetVpn(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t result = FactoryResetVpn();
-    if (!reply.WriteInt32(result)) {
-        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
-    }
     return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
