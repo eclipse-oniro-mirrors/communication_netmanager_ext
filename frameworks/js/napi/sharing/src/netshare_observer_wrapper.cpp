@@ -55,6 +55,7 @@ napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
     NETMANAGER_EXT_LOGI("NetworkShare RegisterSharingEvent event = %{public}s", event.c_str());
     auto ret = Register();
     if (ret == NETMANAGER_EXT_SUCCESS) {
+        registed_ = true;
         manager_->AddListener(env, event, params[ARG_INDEX_1], false, asyncCallback);
     } else {
         NETMANAGER_EXT_LOGE("RegisterSharingEvent error = %{public}d", ret);
