@@ -30,6 +30,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr int32_t NET_MASK_MAX_LENGTH = 32;
+constexpr int32_t IPV6_NET_PREFIX_MAX_LENGTH = 128;
 constexpr int32_t PARAM_JUST_OPTIONS = 1;
 constexpr int32_t PARAM_OPTIONS_AND_CALLBACK = 2;
 constexpr const char *CONFIG_ADDRESSES = "addresses";
@@ -163,9 +164,12 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
         return false;
     }
 
-    if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
-        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
-        return false;
+    bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
+    if (!isIpv6) {
+        if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
+            NETMGR_EXT_LOG_E("invalid ip address");
+            return false;
+        }
     }
 
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
@@ -175,22 +179,28 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
         NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", NET_PREFIXLENGTH);
         return false;
     }
-    iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, address, NET_PREFIXLENGTH));
-    NETMGR_EXT_LOG_I("%{public}s: %{public}d", NET_PREFIXLENGTH, iNetAddr.prefixlen_);
+    if (!isIpv6) {
+        iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, address, NET_PREFIXLENGTH));
+    } else {
+        iNetAddr.prefixlen_ = CommonUtils::Ipv6PrefixLen(iNetAddr.address_);
+    }
+
+    NETMGR_EXT_LOG_I("isIpv6:%{public}d, %{public}s: %{public}d", isIpv6, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
 
     uint32_t prefix = iNetAddr.prefixlen_;
-    if (prefix == 0 || prefix >= NET_MASK_MAX_LENGTH) {
+    if (prefix == 0 || prefix >= (isIpv6 ? IPV6_NET_PREFIX_MAX_LENGTH : NET_MASK_MAX_LENGTH)) {
         NETMGR_EXT_LOG_E("prefix: %{public}d error", prefix);
         return false;
     }
-
-    uint32_t maskUint = (0xFFFFFFFF << (NET_MASK_MAX_LENGTH - prefix));
-    uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(iNetAddr.address_);
-    uint32_t subNetAddress = ipAddrUint & maskUint;
-    uint32_t boardcastAddress = subNetAddress | (~maskUint);
-    if ((ipAddrUint == subNetAddress) || (ipAddrUint == boardcastAddress)) {
-        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
-        return false;
+    if (!isIpv6) {
+        uint32_t maskUint = (0xFFFFFFFF << (NET_MASK_MAX_LENGTH - prefix));
+        uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(iNetAddr.address_);
+        uint32_t subNetAddress = ipAddrUint & maskUint;
+        uint32_t boardcastAddress = subNetAddress | (~maskUint);
+        if ((ipAddrUint == subNetAddress) || (ipAddrUint == boardcastAddress)) {
+            NETMGR_EXT_LOG_E("invalid ip address");
+            return false;
+        }
     }
     return true;
 }
@@ -214,8 +224,8 @@ static bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &
         return false;
     }
 
-    if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
-        NETMGR_EXT_LOG_E("invalid ip address [%{public}s]", iNetAddr.address_.c_str());
+    if (!CommonUtils::IsValidIPV4(iNetAddr.address_) && !CommonUtils::IsValidIPV6(iNetAddr.address_)) {
+        NETMGR_EXT_LOG_E("invalid ip address");
         return false;
     }
 
@@ -278,6 +288,9 @@ bool SetUpContext::ParseAddrRouteParams(napi_value config)
                 return false;
             }
             vpnConfig_->addresses_.emplace_back(iNetAddr);
+            bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
+            vpnConfig_->isAcceptIPv4_ = !isIpv6;
+            vpnConfig_->isAcceptIPv6_ = isIpv6;
         }
     }
 

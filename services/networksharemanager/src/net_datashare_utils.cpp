@@ -29,7 +29,7 @@ constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdat
 constexpr const char *SETTINGS_DATA_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTINGS_DATA_COLUMN_VALUE = "VALUE";
 
-constexpr int INVALID_VALUE = -1;
+constexpr int32_t INVALID_VALUE = -1;
 } // namespace
 
 NetDataShareHelperUtils::NetDataShareHelperUtils()
@@ -73,7 +73,7 @@ int32_t NetDataShareHelperUtils::Query(Uri &uri, const std::string &key, std::st
         return NETMANAGER_ERROR;
     }
 
-    int columnIndex;
+    int32_t columnIndex;
     result->GetColumnIndex(SETTINGS_DATA_COLUMN_VALUE, columnIndex);
     result->GetString(columnIndex, value);
     result->Close();

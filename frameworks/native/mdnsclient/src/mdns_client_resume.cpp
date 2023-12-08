@@ -41,11 +41,9 @@ MDnsClientResume &MDnsClientResume::GetInstance()
 {
     static MDnsClientResume singleInstance_;
     static std::mutex mutex_;
+    std::unique_lock<std::mutex> lock(mutex_);
     if (!singleInstance_.initFlag_) {
-        std::unique_lock<std::mutex> lock(mutex_);
-        if (!singleInstance_.initFlag_) {
-            singleInstance_.Init();
-        }
+        singleInstance_.Init();
     }
 
     return singleInstance_;

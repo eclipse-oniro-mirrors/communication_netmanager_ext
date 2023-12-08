@@ -78,6 +78,8 @@ private:
     bool UpdateNetLinkInfo(NetConnClient &netConnClientIns);
     void DelNetLinkInfo(NetConnClient &netConnClientIns);
     void AdjustRouteInfo(Route &route);
+    void SetIpv4DefaultRoute(Route &ipv4DefaultRoute);
+    void SetIpv6DefaultRoute(Route &ipv6DefaultRoute);
 
     void GenerateUidRangesByAcceptedApps(const std::set<int32_t> &uids, std::vector<int32_t> &beginUids,
                                          std::vector<int32_t> &endUids);
