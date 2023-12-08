@@ -32,9 +32,14 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-    "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
   ]
+
+  if (communication_wifi_switch_enable) {
+    include_dirs += [
+      "$WIFI_MANAGER_ROOT/interfaces/kits/c",
+      "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
+    ]
+  }
 
   cflags = [
     "-g",
@@ -61,19 +66,25 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "dhcp:dhcp_sdk",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "wifi:wifi_sdk",
   ]
-  external_deps += [ "hilog:libhilog" ]
 
-  defines = [
+  defines = []
+
+  if (communication_wifi_switch_enable) {
+    defines += [ "WIFI_MODOULE" ]
+    external_deps += [ "wifi:wifi_sdk" ]
+  }
+
+  defines += [
     "NETMGR_LOG_TAG = \"NetShareManager\"",
     "LOG_DOMAIN = 0xD0015B0",
   ]
-  if (!defined(global_parts_info) ||
-      defined(global_parts_info.communication_bluetooth)) {
+
+  if (communication_bluetooth_switch_enable) {
     defines += [ "BLUETOOTH_MODOULE=1" ]
     external_deps += [ "bluetooth:btframework" ]
   }

@@ -49,12 +49,19 @@ ohos_unittest("networkshare_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/stub",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$THIRD_PARTY_ROOT/openssl/include",
-    "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-    "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
     "$USB_MANAGER_ROOT/utils/native/include",
     "$USB_MANAGER_ROOT/services/zidl/include",
     "//third_party/jsoncpp/include/json",
   ]
+
+  defines = []
+  if (communication_wifi_switch_enable) {
+    defines += [ "WIFI_MODOULE" ]
+    include_dirs += [
+      "$WIFI_MANAGER_ROOT/interfaces/kits/c",
+      "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
+    ]
+  }
 
   deps = [
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel",
@@ -63,7 +70,6 @@ ohos_unittest("networkshare_manager_test") {
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$THIRD_PARTY_ROOT/googletest:gmock_main",
-    "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
   ]
 
   external_deps = [
@@ -72,13 +78,24 @@ ohos_unittest("networkshare_manager_test") {
     "access_token:libtoken_setproc",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
-    "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
-    "wifi:wifi_sdk",
   ]
 
-  defines = [
+  if (communication_wifi_switch_enable) {
+    defines += [ "WIFI_MODOULE" ]
+    external_deps += [ "wifi:wifi_sdk" ]
+  }
+
+  if (usb_manager_enable) {
+    defines += [ "USB_MODOULE" ]
+    external_deps += [
+      "drivers_interface_usb:usb_idl_headers",
+      "usb_manager:usbsrv_client",
+    ]
+  }
+
+  defines += [
     "NETMGR_LOG_TAG = \"NetworkShareManager\"",
     "LOG_DOMAIN = 0xD0015B0",
   ]

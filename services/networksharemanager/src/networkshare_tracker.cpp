@@ -30,17 +30,21 @@
 #include "networkshare_constants.h"
 #include "networkshare_state_common.h"
 #include "system_ability_definition.h"
+#ifdef USB_MODOULE
 #include "usb_errors.h"
 #include "usb_srv_client.h"
 #include "usb_srv_support.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
+#ifdef WIFI_MODOULE
 constexpr const char *ERROR_MSG_ENABLE_WIFI = "Enable Wifi Iface failed";
 constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed";
+#endif
 #ifdef BLUETOOTH_MODOULE
 constexpr const char *ERROR_MSG_ENABLE_BTPAN = "Enable BlueTooth Iface failed";
 constexpr const char *ERROR_MSG_DISABLE_BTPAN = "Disable BlueTooth Iface failed";
@@ -260,6 +264,7 @@ bool NetworkShareTracker::Init()
 void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
 {
     NETMGR_EXT_LOG_I("Receive Hotspot state changed event, state[%{public}d]", state);
+#ifdef WIFI_MODOULE
     Wifi::ApState curState = static_cast<Wifi::ApState>(state);
     NetworkShareTracker::GetInstance().SetWifiState(curState);
     switch (curState) {
@@ -279,16 +284,19 @@ void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
         default:
             break;
     }
+#endif
 }
 
 void NetworkShareTracker::RegisterWifiApCallback()
 {
+#ifdef WIFI_MODOULE
     g_wifiEvent.OnHotspotStateChanged = NetworkShareTracker::OnWifiHotspotStateChanged;
     int32_t ret = RegisterWifiEvent(&g_wifiEvent);
     if (ret != WIFI_SUCCESS) {
         NETMGR_EXT_LOG_E("Register wifi hotspot callback error[%{public}d].", ret);
     }
     return;
+#endif
 }
 
 void NetworkShareTracker::RegisterBtPanCallback()
@@ -324,16 +332,20 @@ std::shared_ptr<NetworkShareMainStateMachine> &NetworkShareTracker::GetMainState
     return mainStateMachine_;
 }
 
+#ifdef WIFI_MODOULE
 void NetworkShareTracker::SetWifiState(const Wifi::ApState &state)
 {
     curWifiState_ = state;
 }
+#endif
+
 #ifdef BLUETOOTH_MODOULE
 void NetworkShareTracker::SetBluetoothState(const Bluetooth::BTConnectState &state)
 {
     curBluetoothState_ = state;
 }
 #endif
+
 void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<NetworkShareSubStateMachine> &who,
                                                           int32_t state, int32_t lastError)
 {
@@ -689,6 +701,7 @@ int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &ty
 int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
 {
     int32_t result = NETMANAGER_EXT_SUCCESS;
+#ifdef WIFI_MODOULE
     if (enable) {
         int32_t ret = EnableHotspot();
         if (ret != WIFI_SUCCESS) {
@@ -718,12 +731,13 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
             NETMGR_EXT_LOG_I("DisableHotspot successful.");
         }
     }
-
+#endif
     return result;
 }
 
 int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
 {
+#ifdef USB_MODOULE
     auto &usbSrvClient = USB::UsbSrvClient::GetInstance();
     if (enable) {
         int32_t funcs = 0;
@@ -758,6 +772,7 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
     }
+#endif
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -1066,20 +1081,24 @@ bool NetworkShareTracker::InterfaceNameToType(const std::string &iface, SharingI
 
 bool NetworkShareTracker::IsHandleNetlinkEvent(const SharingIfaceType &type, bool up)
 {
+#ifdef WIFI_MODOULE
     if (type == SharingIfaceType::SHARING_WIFI) {
         return up ? curWifiState_ == Wifi::ApState::AP_STATE_STARTING
                   : curWifiState_ == Wifi::ApState::AP_STATE_CLOSING;
     }
+#endif
 #ifdef BLUETOOTH_MODOULE
     if (type == SharingIfaceType::SHARING_BLUETOOTH) {
         return up ? curBluetoothState_ == Bluetooth::BTConnectState::CONNECTING
                   : curBluetoothState_ == Bluetooth::BTConnectState::DISCONNECTING;
     }
 #endif
+#ifdef USB_MODOULE
     if (type == SharingIfaceType::SHARING_USB) {
         return up ? curUsbState_ == UsbShareState::USB_SHARING
                   : curUsbState_ == UsbShareState::USB_CLOSING;
     }
+#endif
     return false;
 }
 

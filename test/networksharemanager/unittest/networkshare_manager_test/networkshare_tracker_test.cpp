@@ -541,6 +541,7 @@ HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic03, TestSize.Level1)
     EXPECT_GE(kbByte, 0);
 }
 
+#ifdef WIFI_MODOULE
 HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged01, TestSize.Level1)
 {
     int32_t state = 2;
@@ -563,6 +564,7 @@ HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged01, TestSize.Level1)
     NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
     EXPECT_EQ(NetworkShareTracker::GetInstance().curWifiState_, Wifi::ApState::AP_STATE_NONE);
 }
+#endif
 
 HWTEST_F(NetworkShareTrackerTest, EnableNetSharingInternal01, TestSize.Level1)
 {
@@ -635,19 +637,25 @@ HWTEST_F(NetworkShareTrackerTest, InterfaceNameToType01, TestSize.Level1)
 
 HWTEST_F(NetworkShareTrackerTest, IsHandleNetlinkEvent01, TestSize.Level1)
 {
-    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    SharingIfaceType type;
+    bool ret = false;
+#ifdef WIFI_MODOULE
+    type = SharingIfaceType::SHARING_WIFI;
     NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_CLOSING;
-    auto ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
+    ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
     EXPECT_TRUE(ret);
-
+#endif
+#ifdef USB_MODOULE
     type = SharingIfaceType::SHARING_USB;
     NetworkShareTracker::GetInstance().curUsbState_ = UsbShareState::USB_CLOSING;
     ret = NetworkShareTracker::GetInstance().IsHandleNetlinkEvent(type, false);
     EXPECT_TRUE(ret);
-
+#endif
     NetworkShareTracker::GetInstance().InterfaceStatusChanged(TEST_IFACE_NAME, false);
     NetworkShareTracker::GetInstance().InterfaceStatusChanged(WIFI_AP_DEFAULT_IFACE_NAME, false);
+#ifdef WIFI_MODOULE
     NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_STARTING;
+#endif
     NetworkShareTracker::GetInstance().InterfaceStatusChanged(WIFI_AP_DEFAULT_IFACE_NAME, true);
     NetworkShareTracker::GetInstance().InterfaceStatusChanged(USB_AP_RNDIS_IFACE_NAME, true);
 

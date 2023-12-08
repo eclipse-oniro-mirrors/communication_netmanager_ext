@@ -76,11 +76,14 @@ C_UTILS_ROOT = "//commonlibrary/c_utils"
 
 use_js_debug = false
 declare_args() {
+  communication_bluetooth_switch_enable = false
+  communication_wifi_switch_enable = false
   enable_netmgr_ext_debug = true
   netmanager_ext_feature_ethernet = true
   netmanager_ext_feature_share = true
   netmanager_ext_feature_mdns = true
   netmanager_ext_feature_vpn = true
+  usb_manager_enable = false
 }
 
 memory_optimization_cflags = [
@@ -99,4 +102,22 @@ memory_optimization_ldflags = [
   "-Wl,--exclude-libs=ALL",
   "-Wl,--gc-sections",
 ]
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.communication_wifi) &&
+    global_parts_info.communication_wifi) {
+  communication_wifi_switch_enable = true
+}
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.communication_bluetooth) &&
+    global_parts_info.communication_bluetooth) {
+  communication_bluetooth_switch_enable = true
+}
+
+if (defined(global_parts_info) && defined(global_parts_info.usb_usb_manager) &&
+    global_parts_info.usb_usb_manager) {
+  usb_manager_enable = true
+}
+
 fuzz_test_path = "netmanager_ext/netmanager_ext"

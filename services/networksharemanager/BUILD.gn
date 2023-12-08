@@ -39,17 +39,25 @@ config("net_tether_manager_config") {
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
     "$BASE_INNERKITS_ROOT/dnsresolverclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-    "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
     "$BLUETOOTH_ROOT/interfaces/inner_api/include",
-    "$USB_MANAGER_ROOT/interfaces/innerkits/native/include",
-    "$USB_MANAGER_ROOT/utils/native/include",
-    "$USB_MANAGER_ROOT/services/zidl/include",
     "//third_party/jsoncpp/include/json",
     "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
   ]
+  if (communication_wifi_switch_enable) {
+    include_dirs += [
+      "$WIFI_MANAGER_ROOT/interfaces/kits/c",
+      "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
+    ]
+  }
+  if (usb_manager_enable) {
+    include_dirs += [
+      "$USB_MANAGER_ROOT/interfaces/innerkits/native/include",
+      "$USB_MANAGER_ROOT/services/zidl/include",
+      "$USB_MANAGER_ROOT/utils/native/include",
+    ]
+  }
 }
 
 ohos_shared_library("net_tether_manager") {
@@ -94,7 +102,6 @@ ohos_shared_library("net_tether_manager") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "dhcp:dhcp_sdk",
-    "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
@@ -102,16 +109,26 @@ ohos_shared_library("net_tether_manager") {
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "usb_manager:usbsrv_client",
-    "wifi:wifi_sdk",
   ]
 
-  if (!defined(global_parts_info) ||
-      defined(global_parts_info.communication_bluetooth)) {
-    defines = [ "BLUETOOTH_MODOULE=1" ]
+  defines = []
+
+  if (communication_wifi_switch_enable) {
+    defines += [ "WIFI_MODOULE" ]
+    external_deps += [ "wifi:wifi_sdk" ]
+  }
+
+  if (usb_manager_enable) {
+    defines += [ "USB_MODOULE" ]
+    external_deps += [
+      "drivers_interface_usb:usb_idl_headers",
+      "usb_manager:usbsrv_client",
+    ]
+  }
+
+  if (communication_bluetooth_switch_enable) {
+    defines += [ "BLUETOOTH_MODOULE=1" ]
     external_deps += [ "bluetooth:btframework" ]
-  } else {
-    defines = []
   }
 
   defines += [
@@ -153,7 +170,6 @@ ohos_static_library("net_tether_manager_static") {
     "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
-    "$USB_MANAGER_ROOT/interfaces/innerkits:usbsrv_client",
   ]
 
   external_deps = [
@@ -162,20 +178,30 @@ ohos_static_library("net_tether_manager_static") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "dhcp:dhcp_sdk",
-    "drivers_interface_usb:usb_idl_headers",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "wifi:wifi_sdk",
   ]
 
-  if (!defined(global_parts_info) ||
-      defined(global_parts_info.communication_bluetooth)) {
-    defines = [ "BLUETOOTH_MODOULE=1" ]
+  defines = []
+
+  if (communication_wifi_switch_enable) {
+    defines += [ "WIFI_MODOULE" ]
+    external_deps += [ "wifi:wifi_sdk" ]
+  }
+
+  if (usb_manager_enable) {
+    defines += [ "USB_MODOULE" ]
+    external_deps += [
+      "drivers_interface_usb:usb_idl_headers",
+      "usb_manager:usbsrv_client",
+    ]
+  }
+
+  if (communication_bluetooth_switch_enable) {
+    defines += [ "BLUETOOTH_MODOULE=1" ]
     external_deps += [ "bluetooth:btframework" ]
-  } else {
-    defines = []
   }
 
   defines += [
