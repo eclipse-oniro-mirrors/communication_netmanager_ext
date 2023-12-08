@@ -49,6 +49,16 @@ ohos_shared_library("ethernet_manager") {
     "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
   ]
 
+  cflags = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
+
+  cflags_cc = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
+
   deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel" ]
 
   external_deps = [

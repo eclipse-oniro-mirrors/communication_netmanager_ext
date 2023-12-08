@@ -39,6 +39,16 @@ ohos_shared_library("vpn") {
     "$BASE_INNERKITS_ROOT/netvpnclient/include/ipc",
   ]
 
+  cflags = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
+
+  cflags_cc = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
+
   deps = [
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
