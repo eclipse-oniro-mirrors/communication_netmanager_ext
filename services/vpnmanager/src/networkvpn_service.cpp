@@ -652,7 +652,6 @@ void NetworkVpnService::RegisterFactoryResetCallback()
                 int ret = NetConnClient::GetInstance().RegisterNetFactoryResetCallback(netFactoryResetCallback_);
                 if (ret != NETMANAGER_SUCCESS) {
                     NETMGR_EXT_LOG_E("RegisterNetFactoryResetCallback ret: %{public}d.", ret);
-                    return ret;
                 }
             } else {
                 NETMGR_EXT_LOG_E("netFactoryResetCallback_ is null.");
