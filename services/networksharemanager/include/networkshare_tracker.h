@@ -231,7 +231,7 @@ private:
     void SetDnsForwarders(const NetHandle &netHandle);
     void StopDnsProxy();
     SharingIfaceState SubSmStateToExportState(int32_t state);
-    void OnChangeSharingState(const SharingIfaceType &type,bool state);
+    void OnChangeSharingState(const SharingIfaceType &type, bool state);
     static void OnWifiHotspotStateChanged(int state);
     void RegisterWifiApCallback();
     void RegisterBtPanCallback();

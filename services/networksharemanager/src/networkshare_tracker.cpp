@@ -257,7 +257,7 @@ bool NetworkShareTracker::Init()
     return true;
 }
 
-void NetworkShareTracker::OnChangeSharingState(const SharingIfaceType &type,bool state)
+void NetworkShareTracker::OnChangeSharingState(const SharingIfaceType &type, bool state)
 {
     auto fit = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
     if (state && fit == clientRequestsVector_.end()) {
