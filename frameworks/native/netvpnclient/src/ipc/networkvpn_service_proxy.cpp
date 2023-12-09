@@ -199,5 +199,10 @@ int32_t NetworkVpnServiceProxy::CreateVpnConnection()
     }
     return result;
 }
+
+int32_t NetworkVpnServiceProxy::FactoryResetVpn()
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

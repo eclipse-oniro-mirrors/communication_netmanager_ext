@@ -26,6 +26,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <fstream>
+#include <thread>
 
 #include "ipc_skeleton.h"
 #include "securec.h"
@@ -46,6 +47,8 @@ namespace NetManagerStandard {
 constexpr int32_t MAX_CALLBACK_COUNT = 128;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 constexpr const char* VPN_CONFIG_FILE = "/data/service/el1/public/netmanager/vpn_config.json";
+constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
+constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 
 const bool REGISTER_LOCAL_RESULT_NETVPN =
     SystemAbility::MakeAndRegisterAbility(&Singleton<NetworkVpnService>::GetInstance());
@@ -121,6 +124,7 @@ bool NetworkVpnService::Init()
     // recover vpn config
     RecoverVpnConfig();
 
+    RegisterFactoryResetCallback();
     return true;
 }
 
@@ -622,6 +626,41 @@ void NetworkVpnService::OnNetSysRestart()
     if (vpnObj_ != nullptr) {
         vpnObj_->ResumeUids();
     }
+}
+
+int32_t NetworkVpnService::FactoryResetVpn()
+{
+    NETMGR_EXT_LOG_I("factory reset Vpn enter.");
+
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+void NetworkVpnService::RegisterFactoryResetCallback()
+{
+    std::thread t([this]() {
+        uint32_t count = 0;
+        while (NetConnClient::GetInstance().SystemReady() != NETMANAGER_SUCCESS && count < MAX_GET_SERVICE_COUNT) {
+            std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
+            count++;
+        }
+        NETMGR_EXT_LOG_W("NetConnClient Get SystemReady count: %{public}u", count);
+        if (count > MAX_GET_SERVICE_COUNT) {
+            NETMGR_EXT_LOG_E("Connect netconn service fail.");
+        } else {
+            netFactoryResetCallback_ = (std::make_unique<FactoryResetCallBack>(*this)).release();
+            if (netFactoryResetCallback_ != nullptr) {
+                int ret = NetConnClient::GetInstance().RegisterNetFactoryResetCallback(netFactoryResetCallback_);
+                if (ret != NETMANAGER_SUCCESS) {
+                    NETMGR_EXT_LOG_E("RegisterNetFactoryResetCallback ret: %{public}d.", ret);
+                }
+            } else {
+                NETMGR_EXT_LOG_E("netFactoryResetCallback_ is null.");
+            }
+        }
+    });
+    std::string threadName = "vpnRegisterFactoryResetCallback";
+    pthread_setname_np(t.native_handle(), threadName.c_str());
+    t.detach();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -35,6 +35,7 @@ public:
     int32_t RegisterVpnEvent(sptr<IVpnEventCallback> callback) override;
     int32_t UnregisterVpnEvent(sptr<IVpnEventCallback> callback) override;
     int32_t CreateVpnConnection() override;
+    int32_t FactoryResetVpn() override;
 
 private:
     int32_t WriteTokenAndSendRequest(INetworkVpnService::MessageCode code, MessageParcel &data, MessageParcel &reply);
