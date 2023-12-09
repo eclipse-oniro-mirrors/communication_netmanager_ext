@@ -706,5 +706,12 @@ HWTEST_F(NetworkShareTrackerTest, SubSmStateToExportState01, TestSize.Level1)
     ret = NetworkShareTracker::GetInstance().SubSmStateToExportState(state);
     EXPECT_EQ(ret, SharingIfaceState::SHARING_NIC_ERROR);
 }
+
+HWTEST_F(NetworkShareTrackerTest, OnChangeSharingState01, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
+    NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().clientRequestsVector_.size(), 0);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -261,6 +261,18 @@ bool NetworkShareTracker::Init()
     return true;
 }
 
+void NetworkShareTracker::OnChangeSharingState(const SharingIfaceType &type, bool state)
+{
+    auto fit = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
+    if (state && fit == clientRequestsVector_.end()) {
+        clientRequestsVector_.push_back(type);
+    }
+    if (!state && fit != clientRequestsVector_.end()) {
+        clientRequestsVector_.erase(fit);
+    }
+    NETMGR_EXT_LOG_I("Hotspot OnChangeSharing, clientRequestsVector_ [%{public}zu]", clientRequestsVector_.size());
+}
+
 void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
 {
     NETMGR_EXT_LOG_I("Receive Hotspot state changed event, state[%{public}d]", state);
@@ -271,12 +283,14 @@ void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
         case Wifi::ApState::AP_STATE_STARTING:
             break;
         case Wifi::ApState::AP_STATE_STARTED: {
+            NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, true);
             NetworkShareTracker::GetInstance().EnableWifiSubStateMachine();
             break;
         }
         case Wifi::ApState::AP_STATE_CLOSING:
             break;
         case Wifi::ApState::AP_STATE_CLOSED: {
+            NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
             NetworkShareTracker::GetInstance().StopSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME,
                                                                    SharingIfaceType::SHARING_WIFI);
             break;
