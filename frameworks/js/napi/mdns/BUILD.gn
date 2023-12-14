@@ -18,6 +18,16 @@ NETMANAGER_EXT_NAPI_ROOT = "$NETMANAGER_EXT_ROOT/frameworks/js/napi/"
 
 config("mdns_config") {
   visibility = [ ":mdns" ]
+
+  cflags = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
+
+  cflags_cc = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
 }
 
 ohos_shared_library("mdns") {

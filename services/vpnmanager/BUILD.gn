@@ -82,7 +82,13 @@ ohos_shared_library("net_vpn_manager") {
   external_deps = net_vpn_manager_external_deps
 
   cflags = memory_optimization_cflags
+  cflags += [ "-fstack-protector-strong" ]
+  cflags += [ "-D_FORTIFY_SOURCE=2 -O2" ]
+
   cflags_cc = memory_optimization_cflags_cc
+  cflags_cc += [ "-fstack-protector-strong" ]
+  cflags_cc += [ "-D_FORTIFY_SOURCE=2 -O2" ]
+
   ldflags = memory_optimization_ldflags
 
   part_name = "netmanager_ext"

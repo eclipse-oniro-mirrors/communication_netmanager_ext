@@ -37,6 +37,16 @@ ohos_shared_library("ethernet") {
 
   defines = [ "NETMGR_DEBUG" ]
 
+  cflags = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
+
+  cflags_cc = [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
+  ]
+
   deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if" ]
 
   external_deps = [

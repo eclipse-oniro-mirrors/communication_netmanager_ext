@@ -53,11 +53,15 @@ ohos_shared_library("mdns_manager") {
     "-fdata-sections",
     "-ffunction-sections",
     "-Os",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
   ]
 
   cflags_cc = [
     "-fvisibility-inlines-hidden",
     "-Os",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2 -O2",
   ]
 
   ldflags = [
