@@ -86,6 +86,7 @@ ohos_shared_library("net_tether_manager") {
     "-Os",
     "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
+    "-O2",
   ]
 
   cflags_cc = [
@@ -93,6 +94,7 @@ ohos_shared_library("net_tether_manager") {
     "-Os",
     "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
+    "-O2",
   ]
 
   ldflags = [
