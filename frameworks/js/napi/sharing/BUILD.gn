@@ -23,12 +23,12 @@ config("sharing_config") {
 
   cflags = [
     "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2 -O2",
+    "-D_FORTIFY_SOURCE=2",
   ]
 
   cflags_cc = [
     "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2 -O2",
+    "-D_FORTIFY_SOURCE=2",
   ]
 }
 

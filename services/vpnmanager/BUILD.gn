@@ -83,11 +83,11 @@ ohos_shared_library("net_vpn_manager") {
 
   cflags = memory_optimization_cflags
   cflags += [ "-fstack-protector-strong" ]
-  cflags += [ "-D_FORTIFY_SOURCE=2 -O2" ]
+  cflags += [ "-D_FORTIFY_SOURCE=2" ]
 
   cflags_cc = memory_optimization_cflags_cc
   cflags_cc += [ "-fstack-protector-strong" ]
-  cflags_cc += [ "-D_FORTIFY_SOURCE=2 -O2" ]
+  cflags_cc += [ "-D_FORTIFY_SOURCE=2" ]
 
   ldflags = memory_optimization_ldflags
 
