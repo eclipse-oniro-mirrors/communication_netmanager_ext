@@ -513,7 +513,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     result = ethernetService.GetInterfaceConfig(IFACE_NAME, config);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
-    int32_t fd = 0;
+    int32_t fd = 1;
     std::vector<std::u16string> args;
     result = ethernetService.Dump(fd, args);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
