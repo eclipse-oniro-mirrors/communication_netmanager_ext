@@ -39,11 +39,11 @@ config("net_conn_manager_if_config") {
   }
 
   cflags += [ "-fstack-protector-strong" ]
-  cflags += [ "-D_FORTIFY_SOURCE=2 -O2" ]
+  cflags += [ "-D_FORTIFY_SOURCE=2" ]
 
   cflags_cc = [
     "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2 -O2",
+    "-D_FORTIFY_SOURCE=2",
   ]
 }
 

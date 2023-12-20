@@ -47,7 +47,7 @@ ohos_shared_library("net_manager_ext_common") {
 
   cflags = [
     "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2 -O2",
+    "-D_FORTIFY_SOURCE=2",
   ]
 
   if (is_double_framework) {
@@ -57,7 +57,7 @@ ohos_shared_library("net_manager_ext_common") {
     cflags_cc = [ "-fstack-protector-strong" ]
   }
 
-  cflags_cc += [ "-D_FORTIFY_SOURCE=2 -O2" ]
+  cflags_cc += [ "-D_FORTIFY_SOURCE=2" ]
 
   if (is_standard_system) {
     external_deps = [
@@ -78,12 +78,12 @@ ohos_shared_library("net_manager_ext_common") {
 ohos_shared_library("net_event_report") {
   cflags = [
     "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2 -O2",
+    "-D_FORTIFY_SOURCE=2",
   ]
 
   cflags_cc = [
     "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2 -O2",
+    "-D_FORTIFY_SOURCE=2",
   ]
 
   sources = [ "event_report/src/net_event_report.cpp" ]
