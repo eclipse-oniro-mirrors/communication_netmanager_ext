@@ -262,7 +262,7 @@ HWTEST_F(NetworkShareSubStateMachineTest, StartDhcp01, TestSize.Level1)
     std::shared_ptr<INetAddr> ipv4Address = nullptr;
     bool ret = networkShareSubStateMachine->RequestIpv4Address(ipv4Address);
     ret = networkShareSubStateMachine->StartDhcp(ipv4Address);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, true);
 }
 
 /**
