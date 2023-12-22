@@ -36,6 +36,8 @@
 #include "usb_srv_support.h"
 #endif
 
+#define IFACENAME_LEN 10
+
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
@@ -283,6 +285,15 @@ void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
         case Wifi::ApState::AP_STATE_STARTING:
             break;
         case Wifi::ApState::AP_STATE_STARTED: {
+            char tmpData[IFACENAME_LEN];
+            if (NetworkShareTracker::GetInstance().mApIfaceName_.empty()) {
+                if (ErrCode(GetApIfaceName(tmpData, IFACENAME_LEN)) != 0) {
+                    NETMGR_EXT_LOG_E("get AP ifcace name failed! use default value");
+                    NetworkShareTracker::GetInstance().mApIfaceName_ = WIFI_AP_DEFAULT_IFACE_NAME;
+                } else {
+                    NetworkShareTracker::GetInstance().mApIfaceName_ = tmpData;
+                }
+            }
             NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, true);
             NetworkShareTracker::GetInstance().EnableWifiSubStateMachine();
             break;
@@ -291,7 +302,7 @@ void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
             break;
         case Wifi::ApState::AP_STATE_CLOSED: {
             NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
-            NetworkShareTracker::GetInstance().StopSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME,
+            NetworkShareTracker::GetInstance().StopSubStateMachine(NetworkShareTracker::GetInstance().mApIfaceName_,
                                                                    SharingIfaceType::SHARING_WIFI);
             break;
         }
@@ -901,13 +912,13 @@ bool NetworkShareTracker::FindSubStateMachine(const std::string &iface, const Sh
 
 void NetworkShareTracker::EnableWifiSubStateMachine()
 {
-    int32_t ret = CreateSubStateMachine(WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, false);
+    int32_t ret = CreateSubStateMachine(mApIfaceName_, SharingIfaceType::SHARING_WIFI, false);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("create wifi sub SM failed, error[%{public}d].", ret);
         return;
     }
 
-    ret = Sharing(WIFI_AP_DEFAULT_IFACE_NAME, SUB_SM_STATE_SHARED);
+    ret = Sharing(mApIfaceName_, SUB_SM_STATE_SHARED);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("start wifi sharing failed, error[%{public}d].", ret);
     }
