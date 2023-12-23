@@ -41,7 +41,6 @@
 #include "wifi_ap_msg.h"
 #include "wifi_hotspot.h"
 #endif
-#include "net_datashare_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

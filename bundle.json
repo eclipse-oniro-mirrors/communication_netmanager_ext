@@ -53,12 +53,7 @@
                 "drivers_interface_usb",
                 "wifi",
                 "bundle_framework",
-                "os_account",
-                "ability_base",
-                "data_share"
-            ],
-            "third_party": [
-                "sqlite"
+                "os_account"
             ]
         },
         "build": {

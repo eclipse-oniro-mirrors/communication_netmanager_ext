@@ -23,6 +23,7 @@
 #include <sys/socket.h>
 
 #include "net_manager_constants.h"
+#include "net_datashare_utils_iface.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
@@ -203,26 +204,22 @@ NetworkShareTracker &NetworkShareTracker::GetInstance()
 void NetworkShareTracker::RecoverSharingType()
 {
     NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType in");
-    auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     std::string queryRes;
     int32_t ret = NETMANAGER_ERROR;
     {
-        Uri uri(SHARING_WIFI_URI);
-        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_WIFI, queryRes);
+        ret = NetDataShareHelperUtilsIface::Query(SHARING_WIFI_URI, KEY_SHARING_WIFI, queryRes);
         if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
             clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
         }
     }
     {
-        Uri uri(SHARING_USB_URI);
-        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_USB, queryRes);
+        ret = NetDataShareHelperUtilsIface::Query(SHARING_USB_URI, KEY_SHARING_USB, queryRes);
         if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
             clientRequestsVector_.push_back(SharingIfaceType::SHARING_USB);
         }
     }
     {
-        Uri uri(SHARING_BLUETOOTH_URI);
-        ret = dataShareHelperUtils->Query(uri, KEY_SHARING_BLUETOOTH, queryRes);
+        ret = NetDataShareHelperUtilsIface::Query(SHARING_BLUETOOTH_URI, KEY_SHARING_BLUETOOTH, queryRes);
         if (ret == NETMANAGER_EXT_SUCCESS && atoi(queryRes.c_str())) {
             clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
         }
