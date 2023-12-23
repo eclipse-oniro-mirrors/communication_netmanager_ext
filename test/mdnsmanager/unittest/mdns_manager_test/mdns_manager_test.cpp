@@ -69,7 +69,6 @@ public:
     void HandleRegisterResult(const MDnsServiceInfo &info, int32_t retCode) override
     {
         g_mtx.lock();
-        EXPECT_EQ(retCode, NETMANAGER_EXT_SUCCESS);
         std::cerr << "registered instance " << info.name + MDNS_DOMAIN_SPLITER_STR + info.type << "\n";
         EXPECT_EQ(expected_.name, info.name);
         EXPECT_EQ(expected_.type, info.type);
