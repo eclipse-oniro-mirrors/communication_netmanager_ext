@@ -19,6 +19,7 @@
 #include "net_manager_center.h"
 #include "net_manager_constants.h"
 #include "netmanager_base_permission.h"
+#include "net_datashare_utils_iface.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
 #include "system_ability_definition.h"
@@ -163,25 +164,15 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 int32_t NetworkShareService::UpdateDataSharingType(const SharingIfaceType &type, bool isOpen)
 {
     int32_t ret = NETMANAGER_ERROR;
-    auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     switch (type) {
         case SharingIfaceType::SHARING_WIFI:
-            {
-                Uri uri(SHARING_WIFI_URI);
-                ret = dataShareHelperUtils->Update(uri, KEY_SHARING_WIFI, std::to_string(isOpen));
-            }
+            NetDataShareHelperUtilsIface::Update(SHARING_WIFI_URI, KEY_SHARING_WIFI, std::to_string(isOpen));
             break;
         case SharingIfaceType::SHARING_USB:
-            {
-                Uri uri(SHARING_USB_URI);
-                ret = dataShareHelperUtils->Update(uri, KEY_SHARING_USB, std::to_string(isOpen));
-            }
+            NetDataShareHelperUtilsIface::Update(SHARING_USB_URI, KEY_SHARING_USB, std::to_string(isOpen));
             break;
         case SharingIfaceType::SHARING_BLUETOOTH:
-            {
-                Uri uri(SHARING_BLUETOOTH_URI);
-                ret = dataShareHelperUtils->Update(uri, KEY_SHARING_BLUETOOTH, std::to_string(isOpen));
-            }
+            NetDataShareHelperUtilsIface::Update(SHARING_BLUETOOTH_URI, KEY_SHARING_BLUETOOTH, std::to_string(isOpen));
             break;
         default:
             break;
