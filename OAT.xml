@@ -53,7 +53,8 @@
                 <!--policyitem type="compatibility" name="GPL-2.0+" path=".*" desc="Process that runs independently, invoked by the X process."/-->
                 <!--policyitem type="license" name="LGPL" path=".*" desc="Dynamically linked by module X"/-->
                 <!--policyitem type="copyright" name="xxx" path=".*" rule="may" group="defaultGroup" filefilter="copyrightPolicyFilter" desc="Developed by X Company"/-->
-
+                <policyitem type="copyright" name="HiSilicon (Shanghai) Technologies CO.," path=".*" rule="may" group="defaultGroup" filefilter="copyrightPolicyFilter" desc="Developed by Hisilicon Company"/-->
+                <policyitem type="license" name="LGPL" path=".*" desc="Not used, or used, called by the process in dynamic link mode"/>
             </policy>
         </policylist>
 

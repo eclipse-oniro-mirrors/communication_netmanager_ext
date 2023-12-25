@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-// 构造单例对象
 export default class GlobalContext {
   private constructor() {}
   private static instance: GlobalContext;
