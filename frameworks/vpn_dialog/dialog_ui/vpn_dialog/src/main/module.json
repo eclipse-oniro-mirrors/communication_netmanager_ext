@@ -1,0 +1,45 @@
+{
+  "module": {
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.MANAGE_SECURE_SETTINGS"
+      }
+    ],
+    "name": "vpn_dialog",
+    "type": "feature",
+    "srcEntrance": "./ets/Application/MyAbilityStage.ts",
+    "description": "$string:entry_desc",
+    "mainElement": "MainAbility",
+    "deviceTypes": [
+      "default",
+      "tablet",
+      "2in1"
+    ],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "MainAbility",
+        "startWindowIcon": "$media:icon",
+        "srcEntrance": "./ets/MainAbility/MainAbility.ts",
+        "description": "$string:MainAbility_desc",
+        "icon": "$media:icon",
+        "label": "$string:MainAbility_label",
+        "visible": true,
+        "launchType": "standard"
+      }
+    ],
+    "extensionAbilities": [
+      {
+        "name": "VpnServiceExtAbility",
+        "srcEntrance": "./ets/ServiceExtAbility/VpnDialogAbility.ts",
+        "description": "$string:VpnDialogAbility_desc",
+        "icon": "$media:icon",
+        "label": "$string:VpnDialogAbility_label",
+        "visible": true,
+        "type": "service"
+      }
+    ]
+  }
+}
