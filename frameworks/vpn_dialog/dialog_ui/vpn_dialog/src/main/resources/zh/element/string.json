@@ -1,0 +1,28 @@
+{
+  "string": [
+    {
+      "name": "allowButton",
+      "value": "确定"
+    },
+    {
+      "name": "notAllowButton",
+      "value": "取消"
+    },
+    {
+      "name": "allow",
+      "value": "是否允许 "
+    },
+    {
+      "name": "warning",
+      "value": "请确认您信任此应用，否则可能面临网络被监控，数据遭到恶意盗用的风险。"
+    },
+    {
+      "name": "use",
+      "value": " 使用 "
+    },
+    {
+      "name": "title",
+      "value": "是否允许使用VPN？"
+    }
+  ]
+}

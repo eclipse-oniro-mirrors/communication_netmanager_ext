@@ -1,0 +1,48 @@
+{
+  "string": [
+    {
+      "name": "entry_desc",
+      "value": "description"
+    },
+    {
+      "name": "VpnDialogAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "VpnDialogAbility_label",
+      "value": "label"
+    },
+    {
+      "name": "MainAbility_desc",
+      "value": "manage the permissions of all applications from the permission and application dimensions"
+    },
+    {
+      "name": "MainAbility_label",
+      "value": "authorization manager"
+    },
+    {
+      "name": "allowButton",
+      "value": "Allow"
+    },
+    {
+      "name": "notAllowButton",
+      "value": "Cancel"
+    },
+    {
+      "name": "allow",
+      "value": "Whether "
+    },
+    {
+      "name": "warning",
+      "value": "Please make sure you trust this application, otherwise you may face the risk of your network being monitored and your data being maliciously stolen."
+    },
+    {
+      "name": "use",
+      "value": " allowed to use the "
+    },
+    {
+      "name": "title",
+      "value": "是否允许使用VPN？"
+    }
+  ]
+}
