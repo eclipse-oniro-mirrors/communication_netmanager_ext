@@ -27,6 +27,9 @@
 #include <string>
 #include <fstream>
 #include <thread>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <fstream>
 
 #include "ipc_skeleton.h"
 #include "securec.h"
@@ -41,6 +44,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "networkvpn_hisysevent.h"
+#include "net_datashare_utils_iface.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -112,6 +116,7 @@ bool NetworkVpnService::Init()
 
     AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
 
+    SubscribeCommonEvent();
     if (!vpnConnCallback_) {
         vpnConnCallback_ = std::make_shared<VpnConnStateCb>(*this);
     }
@@ -436,7 +441,7 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
     ofs << jsonString;
 }
 
-int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
+int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
@@ -470,7 +475,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config)
     return ret;
 }
 
-int32_t NetworkVpnService::Protect()
+int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 {
     /*
      * Only permission verification is performed and
@@ -480,7 +485,7 @@ int32_t NetworkVpnService::Protect()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::DestroyVpn()
+int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
@@ -519,7 +524,7 @@ int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> call
     return ret;
 }
 
-int32_t NetworkVpnService::CreateVpnConnection()
+int32_t NetworkVpnService::CreateVpnConnection(bool isVpnExtCall)
 {
     /*
      * Only permission verification is performed
@@ -661,6 +666,98 @@ void NetworkVpnService::RegisterFactoryResetCallback()
     std::string threadName = "vpnRegisterFactoryResetCallback";
     pthread_setname_np(t.native_handle(), threadName.c_str());
     t.detach();
+}
+
+//Moer add
+int32_t NetworkVpnService::SetAlwaysOnVpn(std::string &pkg, bool &enable)
+{
+    int32_t ret = NetDataShareHelperUtilsIface::Update(ALWAYS_ON_VPN_URI, KEY_ALWAYS_ON_VPN, (enable ? pkg:""));
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetAlwaysOnVpn fail: %{public}d", ret);
+        return NETMANAGER_ERR_INTERNAL;
+    }
+    NETMGR_EXT_LOG_I("SetAlwaysOnVpn success: %{public}s", pkg.c_str());
+
+    StartAlwaysOnVpn();
+
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+//Moer add
+int32_t NetworkVpnService::GetAlwaysOnVpn(std::string &pkg)
+{
+    std::string value = "";
+    int32_t ret = NetDataShareHelperUtilsIface::Query(ALWAYS_ON_VPN_URI, KEY_ALWAYS_ON_VPN, value);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("GetAlwaysOnVpn fail: %{public}d", ret);
+        return NETMANAGER_ERR_INTERNAL;
+    }
+    pkg = value;
+    NETMGR_EXT_LOG_I("GetAlwaysOnVpn success: %{public}s", pkg.c_str());
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+//Moer add
+void NetworkVpnService::StartAlwaysOnVpn()
+{
+    //first, according the uerId, query local vpn config, if exist apply
+    //the config as VPN, if the local VPN is null, query the local kept
+    //package if exist will call up the target app to provide the VPN
+    std::string alwaysOnBundleName = "";
+    int32_t ret = GetAlwaysOnVpn(alwaysOnBundleName);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartAlwaysOnVpn fail: %{public}d", ret);
+        return;
+    }
+
+    if (alwaysOnBundleName != "") {
+        if (vpnObj_ != nullptr) {
+            std::string pkg = vpnObj_->GetVpnPkg();
+            if (pkg != alwaysOnBundleName) {
+                NETMGR_EXT_LOG_W("vpn [ %{public}s] exist, destroy vpn first", pkg.c_str());
+                DestroyVpn();
+            }
+        }
+        // recover vpn config
+        RecoverVpnConfig();
+    }
+}
+
+//Moer add
+void NetworkVpnService::SubscribeCommonEvent()
+{
+    //Moer add
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_POWER_SAVE_MODE_CHANGED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    // 1 means CORE_EVENT_PRIORITY
+    subscribeInfo.SetPriority(1);
+    subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
+    bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
+    if (!ret) {
+        NETMGR_EXT_LOG_E("SubscribeCommonEvent fail: %{public}d", ret);
+    }
+}
+
+void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
+{
+    const auto &action = eventData.GetWant().GetAction();
+    const auto &data = eventData.GetData();
+    const auto &code = eventData.GetCode();
+    NETMGR_EXT_LOG_I("NetVReceiveMessage::OnReceiveEvent(), event:[%{public}s], data:[%{public}s], code:[%{public}d]",
+        action.c_str(), data.c_str(), code);
+    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_POWER_SAVE_MODE_CHANGED) {
+        bool isPowerSave = (code == SAVE_MODE || code == LOWPOWER_MODE);
+        if (isPowerSave) {
+            vpnService_.StartAlwaysOnVpn();
+        }
+        return;
+    }
+
+    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
+        vpnService_.StartAlwaysOnVpn();
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

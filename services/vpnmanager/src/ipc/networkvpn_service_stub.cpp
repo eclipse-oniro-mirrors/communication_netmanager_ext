@@ -39,6 +39,14 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         "", &NetworkVpnServiceStub::ReplyCreateVpnConnection};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_FACTORYRESET_VPN] = {
         "", &NetworkVpnServiceStub::ReplyFactoryResetVpn};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION_EXT] = {
+        "", &NetworkVpnServiceStub::ReplyCreateVpnConnection};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_START_VPN_EXT] = {
+        "", &NetworkVpnServiceStub::ReplySetUpVpn};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_PROTECT_EXT] = {
+        "", &NetworkVpnServiceStub::ReplyProtect};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_STOP_VPN_EXT] = {
+        "", &NetworkVpnServiceStub::ReplyDestroyVpn};
 }
 
 int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
@@ -47,7 +55,6 @@ int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
         NETMGR_EXT_LOG_E("is not system call");
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
     }
-
     if (!strPermission.empty() && !NetManagerPermission::CheckPermission(strPermission)) {
         NETMGR_EXT_LOG_E("Permission denied permission: %{public}s", strPermission.c_str());
         return NETMANAGER_ERR_PERMISSION_DENIED;
@@ -62,16 +69,27 @@ int32_t NetworkVpnServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &dat
         NETMGR_EXT_LOG_E("descriptor checked failed");
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-
     auto itr = permissionAndFuncMap_.find(static_cast<INetworkVpnService::MessageCode>(code));
     if (itr != permissionAndFuncMap_.end()) {
-        int32_t checkResult = CheckVpnPermission(itr->second.strPermission);
-        if (checkResult != NETMANAGER_SUCCESS) {
-            return checkResult;
-        }
-        auto serviceFunc = itr->second.serviceFunc;
-        if (serviceFunc != nullptr) {
-            return (this->*serviceFunc)(data, reply);
+        if (itr->first == INetworkVpnService::MessageCode::CMD_START_VPN_EXT ||
+            itr->first == INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION_EXT ||
+            itr->first == INetworkVpnService::MessageCode::CMD_PROTECT_EXT ||
+            itr->first == INetworkVpnService::MessageCode::CMD_STOP_VPN_EXT) {
+            NETMGR_EXT_LOG_I("enter OnRemoteRequest code %{public}d:", code);
+            auto serviceFunc = itr->second.serviceFunc;
+            if (serviceFunc != nullptr) {
+                return (this->*serviceFunc)(data, reply);
+            }
+        } else {
+            NETMGR_EXT_LOG_I("enter OnRemoteRequest code %{public}d:", code);
+            int32_t checkResult = CheckVpnPermission(itr->second.strPermission);
+            if (checkResult != NETMANAGER_SUCCESS) {
+                return checkResult;
+            }
+            auto serviceFunc = itr->second.serviceFunc;
+            if (serviceFunc != nullptr) {
+                return (this->*serviceFunc)(data, reply);
+            }
         }
     }
 

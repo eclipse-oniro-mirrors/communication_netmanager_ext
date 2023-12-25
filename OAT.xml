@@ -61,6 +61,13 @@
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
                 <filteritem type="filename" name="*.png" desc="Image files used in readme"/>
             </filefilter>
+                <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
+                <filteritem type="filepath" name="figures/.*.png" desc="vpn architecture diagram"/>
+                <filteritem type="filepath" name="frameworks/vpn_dailog/dialog_ui/signature/am.p7b" desc="signature file"/>
+                <filteritem type="filepath" name="frameworks/vpn_dailog/dialog_ui/AppScope/resources/base/media/app_icon.png" desc="app icon"/>
+                <filteritem type="filepath" name="frameworks/vpn_dailog/dialog_ui/vpn_dialog/src/main/resources/base/media/icon.png" desc="icon"/>
+            </filefilter>
+
         </filefilterlist>
     </oatconfig>
 </configuration>

@@ -29,12 +29,12 @@ public:
     virtual ~NetworkVpnServiceProxy() = default;
 
     int32_t Prepare(bool &isExistVpn, bool &isRun, std::string &pkg) override;
-    int32_t SetUpVpn(const sptr<VpnConfig> &config) override;
-    int32_t Protect() override;
-    int32_t DestroyVpn() override;
+    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override;
+    int32_t Protect(bool isVpnExtCall = false) override;
+    int32_t DestroyVpn(bool isVpnExtCall = false) override;
     int32_t RegisterVpnEvent(sptr<IVpnEventCallback> callback) override;
     int32_t UnregisterVpnEvent(sptr<IVpnEventCallback> callback) override;
-    int32_t CreateVpnConnection() override;
+    int32_t CreateVpnConnection(bool isVpnExtCall = false) override;
     int32_t FactoryResetVpn() override;
 
 private:
