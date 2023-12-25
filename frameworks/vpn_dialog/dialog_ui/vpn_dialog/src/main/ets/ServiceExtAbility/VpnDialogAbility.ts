@@ -21,7 +21,7 @@ import type Want from '@ohos.app.ability.Want';
 import GlobalContext from '../MainAbility/GlobalContext';
 import display from '@ohos.display';
 
-class UsbDialogStub extends rpc.RemoteObject {
+class VpnDialogStub extends rpc.RemoteObject {
   constructor(des) {
     super(des);
   }
@@ -69,13 +69,13 @@ export default class VpnDialogAbility extends extension {
       height: dis.height
     };
     let windowConfig: window.Configuration = {
-      name: 'Usb Dialog',
+      name: 'Vpn Dialog',
       windowType: window.WindowType.TYPE_FLOAT,
       ctx: this.context
     };
     this.createWindow(windowConfig, navigationBarRect);
 
-    return new UsbDialogStub('UsbRightDialog');
+    return new VpnDialogStub('VpnRightDialog');
   }
 
   onDisconnect(want: Want): void {
