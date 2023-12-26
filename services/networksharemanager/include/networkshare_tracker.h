@@ -279,6 +279,7 @@ private:
 #endif
     std::atomic_bool isInit = false;
     int32_t netId_;
+    std::string mApIfaceName_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
