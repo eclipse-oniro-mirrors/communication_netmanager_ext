@@ -61,9 +61,6 @@
                 "window_manager",
                 "ability_base",
                 "os_account"
-            ],
-            "third_party": [
-                "sqlite"
             ]
         },
         "build": {
