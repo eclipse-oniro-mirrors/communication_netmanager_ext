@@ -27,7 +27,6 @@ ohos_shared_library("vpnextension") {
     "src/vpn_exec_ext.cpp",
     "src/vpn_module_ext.cpp",
     "src/vpn_monitor_ext.cpp",
-    "src/vpn_profile_util_ext.cpp",
   ]
 
   configs = [ "$ABILITY_RUNTIME_SERVICES_PATH/abilitymgr:abilityms_config" ]
@@ -63,7 +62,6 @@ ohos_shared_library("vpnextension") {
     "napi:ace_napi",
     "netmanager_base:napi_utils",
     "netmanager_base:net_manager_common",
-    "preferences:native_preferences",
     "samgr:samgr_proxy",
   ]
 

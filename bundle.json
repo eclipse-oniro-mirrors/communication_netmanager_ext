@@ -59,9 +59,7 @@
                 "common_event_service",
                 "hitrace",
                 "window_manager",
-                "preferences",
-                "ability_base",
-                "os_account"
+                "ability_base"
             ],
             "third_party": [
                 "sqlite",

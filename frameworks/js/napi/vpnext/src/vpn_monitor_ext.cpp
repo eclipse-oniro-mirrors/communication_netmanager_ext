@@ -181,7 +181,7 @@ void VpnMonitor::Unregister(napi_env env)
     vpnClient->UnregisterVpnEvent(eventCallback_);
 }
 
-bool VpnMonitor::ShowUsbDialog(const std::string &bundleName, const std::string &abilityName)
+bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string &abilityName)
 {
     auto abmc = AAFwk::AbilityManagerClient::GetInstance();
     if (abmc == nullptr) {
@@ -194,8 +194,8 @@ bool VpnMonitor::ShowUsbDialog(const std::string &bundleName, const std::string 
     want.SetParam("bundleName", bundleName);
     want.SetParam("abilityName", abilityName);
 
-    sptr<VpnMonitor::UsbAbilityConn> usbAbilityConn_ = new (std::nothrow) VpnMonitor::UsbAbilityConn();
-    auto ret = abmc->ConnectAbility(want, usbAbilityConn_, -1);
+    sptr<VpnMonitor::VpnAbilityConn> vpnAbilityConn_ = new (std::nothrow) VpnMonitor::VpnAbilityConn();
+    auto ret = abmc->ConnectAbility(want, vpnAbilityConn_, -1);
     if (ret != 0) {
         NETMANAGER_EXT_LOGE("connectAbility failed %{public}d", ret);
         return false;

@@ -46,7 +46,7 @@ public:
 public:
     napi_value On(napi_env env, napi_callback_info info);
     napi_value Off(napi_env env, napi_callback_info info);
-    bool ShowUsbDialog(const std::string &bundleName, const std::string &abilityName);
+    bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName);
 
     EventManager inline *GetManager() const
     {
@@ -58,7 +58,7 @@ private:
     napi_value callback_ = nullptr;
     EventManager *manager_ = nullptr;
 
-class UsbAbilityConn : public AAFwk::AbilityConnectionStub {
+class VpnAbilityConn : public AAFwk::AbilityConnectionStub {
     void OnAbilityConnectDone(const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject,
         int32_t resultCode) override
     {

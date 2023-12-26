@@ -28,7 +28,6 @@
 #include "napi_common_want.h"
 #include "vpn_extension_context.h"
 #include "vpn_monitor_ext.h"
-#include "vpn_profile_util_ext.h"
 #include "net_datashare_utils_iface.h"
 
 namespace OHOS {
@@ -89,7 +88,7 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     std::string vpnExtMode = std::to_string(vpnDialogSelect);
     int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
     if (ret != 0 || vpnExtMode != "1") {
-        VpnMonitor::GetInstance().ShowUsbDialog(bundleName, abilityName);
+        VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName);
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         return NapiUtils::GetUndefined(env);
     }
