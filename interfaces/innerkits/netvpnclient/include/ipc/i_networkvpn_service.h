@@ -40,16 +40,20 @@ public:
         CMD_UNREGISTER_EVENT_CALLBACK,
         CMD_CREATE_VPN_CONNECTION,
         CMD_FACTORYRESET_VPN,
+        CMD_START_VPN_EXT, // for start extension extended vpn
+        CMD_PROTECT_EXT,
+        CMD_STOP_VPN_EXT,
+        CMD_CREATE_VPN_CONNECTION_EXT
     };
 
 public:
     virtual int32_t Prepare(bool &isExistVpn, bool &isRun, std::string &pkg) = 0;
-    virtual int32_t SetUpVpn(const sptr<VpnConfig> &config) = 0;
-    virtual int32_t Protect() = 0;
-    virtual int32_t DestroyVpn() = 0;
+    virtual int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) = 0;
+    virtual int32_t Protect(bool isVpnExtCall = false) = 0;
+    virtual int32_t DestroyVpn(bool isVpnExtCall = false) = 0;
     virtual int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
     virtual int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
-    virtual int32_t CreateVpnConnection() = 0;
+    virtual int32_t CreateVpnConnection(bool isVpnExtCall = false) = 0;
     virtual int32_t FactoryResetVpn() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");

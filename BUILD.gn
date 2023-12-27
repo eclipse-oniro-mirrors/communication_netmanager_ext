@@ -68,3 +68,16 @@ group("vpn_packages") {
     ]
   }
 }
+
+group("vpn_ext_packages") {
+  if (netmanager_ext_feature_vpnext) {
+    deps = [
+      "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensionability:vpnextensionability",
+      "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensionability:vpnextensionability_napi",
+      "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensioncontext:vpnextensioncontext_napi",
+      "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpnext:vpnextension",
+      "$NETMANAGER_EXT_ROOT/interfaces/innerkits/vpnextension:vpn_extension",
+      "$NETMANAGER_EXT_ROOT/interfaces/innerkits/vpnextension:vpn_extension_module",
+    ]
+  }
+}

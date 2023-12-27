@@ -51,7 +51,7 @@ int32_t NetworkVpnClient::Prepare(bool &isExistVpn, bool &isRun, std::string &pk
     return proxy->Prepare(isExistVpn, isRun, pkg);
 }
 
-int32_t NetworkVpnClient::Protect(int32_t socketFd)
+int32_t NetworkVpnClient::Protect(int32_t socketFd, bool isVpnExtCall)
 {
     if (socketFd <= 0) {
         NETMGR_EXT_LOG_E("Invalid socket file discriptor");
@@ -63,7 +63,7 @@ int32_t NetworkVpnClient::Protect(int32_t socketFd)
         NETMGR_EXT_LOG_E("Protect proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    int32_t result = proxy->Protect();
+    int32_t result = proxy->Protect(isVpnExtCall);
     if (result != NETMANAGER_EXT_SUCCESS) {
         return result;
     }
@@ -71,7 +71,7 @@ int32_t NetworkVpnClient::Protect(int32_t socketFd)
     return fwmarkClient.ProtectFromVpn(socketFd);
 }
 
-int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd)
+int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("SetUpVpn param config is nullptr");
@@ -83,7 +83,8 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd)
         NETMGR_EXT_LOG_E("SetUpVpn proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    int32_t result = proxy->SetUpVpn(config);
+    NETMGR_EXT_LOG_I("enter SetUpVpn 1, %{public}d", isVpnExtCall);
+    int32_t result = proxy->SetUpVpn(config, isVpnExtCall);
     if (result != NETMANAGER_EXT_SUCCESS) {
         tunFd = 0;
         return result;
@@ -106,7 +107,7 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnClient::DestroyVpn()
+int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
 {
     vpnInterface_.CloseVpnInterfaceFd();
     if (vpnEventCallback_ != nullptr) {
@@ -119,7 +120,7 @@ int32_t NetworkVpnClient::DestroyVpn()
         NETMGR_EXT_LOG_E("DestroyVpn proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->DestroyVpn();
+    return proxy->DestroyVpn(isVpnExtCall);
 }
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
@@ -150,14 +151,14 @@ int32_t NetworkVpnClient::UnregisterVpnEvent(sptr<IVpnEventCallback> callback)
     return proxy->UnregisterVpnEvent(callback);
 }
 
-int32_t NetworkVpnClient::CreateVpnConnection()
+int32_t NetworkVpnClient::CreateVpnConnection(bool isVpnExtCall)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("CreateVpnConnection proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->CreateVpnConnection();
+    return proxy->CreateVpnConnection(isVpnExtCall);
 }
 
 sptr<INetworkVpnService> NetworkVpnClient::GetProxy()

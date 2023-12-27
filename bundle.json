@@ -29,7 +29,8 @@
             "netmanager_ext_feature_ethernet",
             "netmanager_ext_feature_share",
             "netmanager_ext_feature_mdns",
-            "netmanager_ext_feature_vpn"
+            "netmanager_ext_feature_vpn",
+            "netmanager_ext_feature_vpnext"
         ],
         "adapted_system_type": [
             "standard"
@@ -53,6 +54,12 @@
                 "drivers_interface_usb",
                 "wifi",
                 "bundle_framework",
+                "ability_runtime",
+                "access_token",
+                "common_event_service",
+                "hitrace",
+                "window_manager",
+                "ability_base",
                 "os_account"
             ]
         },
@@ -67,6 +74,7 @@
                     "//foundation/communication/netmanager_ext:share_packages",
                     "//foundation/communication/netmanager_ext:mdns_packages",
                     "//foundation/communication/netmanager_ext:vpn_packages",
+                    "//foundation/communication/netmanager_ext:vpn_ext_packages",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager_trust",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager.rc",
                     "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile"
@@ -101,6 +109,16 @@
                     "header": {
                         "header_files": [
                             "mdnsclient/include/mdns_client.h"
+                        ],
+                        "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
+                    }
+                },
+                {
+                    "type": "so",
+                    "name": "//foundation/communication/netmanager_ext/interfaces/innerkits/vpnextension:vpn_extension_module",
+                    "header": {
+                        "header_files": [
+                            "vpnextension/include/vpn_extension_module_loader.h"
                         ],
                         "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
                     }

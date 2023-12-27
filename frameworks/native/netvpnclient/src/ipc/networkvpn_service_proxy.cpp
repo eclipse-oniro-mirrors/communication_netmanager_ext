@@ -77,7 +77,7 @@ int32_t NetworkVpnServiceProxy::Prepare(bool &isExistVpn, bool &isRun, std::stri
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config)
+int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
@@ -90,7 +90,12 @@ int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config)
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_START_VPN, data, reply);
+    int32_t ret = 0;
+    if (isVpnExtCall) {
+        ret = SendRequest(INetworkVpnService::MessageCode::CMD_START_VPN_EXT, data, reply);
+    } else {
+        ret = SendRequest(INetworkVpnService::MessageCode::CMD_START_VPN, data, reply);
+    }
     if (ERR_NONE != ret) {
         NETMGR_EXT_LOG_E("SetUpVpn proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -102,11 +107,16 @@ int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config)
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::Protect()
+int32_t NetworkVpnServiceProxy::Protect(bool isVpnExtCall)
 {
     MessageParcel data;
     MessageParcel reply;
-    int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_PROTECT, data, reply);
+    int32_t ret = 0;
+    if (isVpnExtCall) {
+        ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_PROTECT_EXT, data, reply);
+    } else {
+        ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_PROTECT, data, reply);
+    }
     if (ERR_NONE != ret) {
         NETMGR_EXT_LOG_E("Protect proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -118,11 +128,16 @@ int32_t NetworkVpnServiceProxy::Protect()
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::DestroyVpn()
+int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
 {
     MessageParcel data;
     MessageParcel reply;
-    int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_STOP_VPN, data, reply);
+    int32_t ret = 0;
+    if (isVpnExtCall) {
+        ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_STOP_VPN_EXT, data, reply);
+    } else {
+        ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_STOP_VPN, data, reply);
+    }
     if (ERR_NONE != ret) {
         NETMGR_EXT_LOG_E("DestroyVpn proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
@@ -184,11 +199,16 @@ int32_t NetworkVpnServiceProxy::UnregisterVpnEvent(sptr<IVpnEventCallback> callb
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::CreateVpnConnection()
+int32_t NetworkVpnServiceProxy::CreateVpnConnection(bool isVpnExtCall)
 {
     MessageParcel data;
     MessageParcel reply;
-    int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION, data, reply);
+    int32_t ret = 0;
+    if (isVpnExtCall) {
+        ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION_EXT, data, reply);
+    } else {
+        ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION, data, reply);
+    }
     if (ERR_NONE != ret) {
         NETMGR_EXT_LOG_E("CreateVpnConnection proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;

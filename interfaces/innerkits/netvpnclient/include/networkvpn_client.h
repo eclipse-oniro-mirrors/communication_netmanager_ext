@@ -71,7 +71,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t Protect(int32_t socketFd);
+    int32_t Protect(int32_t socketFd, bool isVpnExtCall = false);
 
     /**
      * after extended vpn's negotiation over, need system create a VPN interface using the config parameters.
@@ -82,7 +82,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd);
+    int32_t SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall = false);
 
     /**
      * stop the vpn connection, system will destroy the vpn network.
@@ -91,7 +91,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t DestroyVpn();
+    int32_t DestroyVpn(bool isVpnExtCall = false);
 
     /**
      * register the vpn state callback
@@ -120,7 +120,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t CreateVpnConnection();
+    int32_t CreateVpnConnection(bool isVpnExtCall = false);
 
     /**
      * close the tunfd of vpn interface and unregister VpnEvent.

@@ -23,9 +23,19 @@
 #include "os_account_manager.h"
 #include "singleton.h"
 #include "system_ability.h"
+#include "common_event_manager.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+constexpr const char *ALWAYS_ON_VPN_URI =
+    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnalwayson_mode";
+constexpr const char *KEY_ALWAYS_ON_VPN = "settings.alwayson.vpn";
+
+} // namespace
+using namespace OHOS::EventFwk;
 class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub {
     DECLARE_SINGLETON(NetworkVpnService)
     DECLARE_SYSTEM_ABILITY(NetworkVpnService)
@@ -35,6 +45,14 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub {
         STATE_RUNNING,
     };
 
+    enum {
+        POWER_MODE_MIN = 600,
+        NORMAL_MODE = POWER_MODE_MIN,
+        SAVE_MODE,
+        EXTREME_MODE,
+        LOWPOWER_MODE,
+        POWER_MODE_MAX = LOWPOWER_MODE
+    };
     class VpnConnStateCb : public IVpnConnStateCb {
     public:
         explicit VpnConnStateCb(const NetworkVpnService &vpnService) : vpnService_(vpnService){};
@@ -43,6 +61,17 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub {
 
     private:
         const NetworkVpnService &vpnService_;
+    };
+
+    class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
+    public:
+        explicit ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo, NetworkVpnService &vpnService)
+            : EventFwk::CommonEventSubscriber(subscriberInfo), vpnService_(vpnService){};
+
+        virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
+
+    private:
+        NetworkVpnService &vpnService_;
     };
 
 public:
@@ -64,17 +93,17 @@ public:
     /**
      * This function is called when the three-party vpn application negotiation ends
      */
-    int32_t SetUpVpn(const sptr<VpnConfig> &config) override;
+    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override;
 
     /**
      * protect vpn tunnel
      */
-    int32_t Protect() override;
+    int32_t Protect(bool isVpnExtCall = false) override;
 
     /**
      * stop the vpn connection
      */
-    int32_t DestroyVpn() override;
+    int32_t DestroyVpn(bool isVpnExtCall = false) override;
 
     /**
      * register callback
@@ -89,7 +118,7 @@ public:
     /**
      * create the vpn connection
      */
-    int32_t CreateVpnConnection() override;
+    int32_t CreateVpnConnection(bool isVpnExtCall = false) override;
 
     /**
      * dump function
@@ -102,6 +131,17 @@ public:
      * @return Returns 0 success. Otherwise fail
      */
     int32_t FactoryResetVpn() override;
+
+    /**
+     * persist the always on vpn's package
+     * pass empty will disable always on VPN
+    */
+    int32_t SetAlwaysOnVpn(std::string &pkg, bool &enable); //Moer add
+
+    /**
+     * read the persisted always on vpn's package
+    */
+    int32_t GetAlwaysOnVpn(std::string &pkg); //Moer add
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -129,6 +169,10 @@ private:
     void ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
     void ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString);
     void RecoverVpnConfig();
+    ////Moer add always on VPN
+    void StartAlwaysOnVpn();
+    //Moer add
+    void SubscribeCommonEvent();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -141,6 +185,8 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
     std::mutex netVpnMutex_;
     bool hasSARemoved_ = false;
+    //Moer add
+    std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
 
 private:
     void RegisterFactoryResetCallback();
