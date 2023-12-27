@@ -166,13 +166,13 @@ int32_t NetworkShareService::UpdateDataSharingType(const SharingIfaceType &type,
     int32_t ret = NETMANAGER_ERROR;
     switch (type) {
         case SharingIfaceType::SHARING_WIFI:
-            NetDataShareHelperUtilsIface::Update(SHARING_WIFI_URI, KEY_SHARING_WIFI, std::to_string(isOpen));
+            ret = NetDataShareHelperUtilsIface::Update(SHARING_WIFI_URI, KEY_SHARING_WIFI, std::to_string(isOpen));
             break;
         case SharingIfaceType::SHARING_USB:
-            NetDataShareHelperUtilsIface::Update(SHARING_USB_URI, KEY_SHARING_USB, std::to_string(isOpen));
+            ret = NetDataShareHelperUtilsIface::Update(SHARING_USB_URI, KEY_SHARING_USB, std::to_string(isOpen));
             break;
         case SharingIfaceType::SHARING_BLUETOOTH:
-            NetDataShareHelperUtilsIface::Update(SHARING_BLUETOOTH_URI, KEY_SHARING_BLUETOOTH, std::to_string(isOpen));
+            ret = NetDataShareHelperUtilsIface::Update(SHARING_BLUETOOTH_URI, KEY_SHARING_BLUETOOTH, std::to_string(isOpen));
             break;
         default:
             break;
