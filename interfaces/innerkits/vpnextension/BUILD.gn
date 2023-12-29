@@ -94,7 +94,7 @@ ohos_shared_library("vpn_extension") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "ipc:ipc_napi_common",
+    "ipc:ipc_napi",
     "ipc:ipc_single",
     "napi:ace_napi",
     "netmanager_base:fwmark_client",
