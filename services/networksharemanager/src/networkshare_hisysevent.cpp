@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,9 +26,10 @@ NetworkShareHisysEvent &NetworkShareHisysEvent::GetInstance()
     return instance;
 }
 
-void NetworkShareHisysEvent::SendFaultEvent(const NetworkShareEventOperator &operatorType,
-                                            const NetworkShareEventErrorType &errorCode, const std::string &errorMsg,
-                                            const NetworkShareEventType &eventType)
+__attribute__((no_sanitize("cfi"))) void NetworkShareHisysEvent::SendFaultEvent(
+    const NetworkShareEventOperator &operatorType,
+    const NetworkShareEventErrorType &errorCode, const std::string &errorMsg,
+    const NetworkShareEventType &eventType)
 {
     EventInfo eventInfo;
     eventInfo.operatorType = static_cast<int32_t>(operatorType);
