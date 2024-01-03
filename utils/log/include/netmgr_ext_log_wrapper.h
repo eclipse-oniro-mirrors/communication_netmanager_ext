@@ -49,7 +49,6 @@ private:
     static NetMgrExtLogLevel level_;
 };
 
-
 #ifndef NETMGR_EXT_LOG_TAG
 #define NETMGR_EXT_LOG_TAG "NetMgrExtPart"
 #endif
