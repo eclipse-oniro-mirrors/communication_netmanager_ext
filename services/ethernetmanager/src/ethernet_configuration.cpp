@@ -87,6 +87,10 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
         NETMGR_EXT_LOG_E("ReadConfigData config file is return empty!");
         return false;
     }
+    if (!nlohmann::json::accept(jsonStr)) {
+        NETMGR_EXT_LOG_E("Invalid JSON format!");
+        return false;
+    }
     const auto &jsonCfg = nlohmann::json::parse(jsonStr);
     if (jsonCfg.find(CONFIG_KEY_ETH_COMPONENT_FLAG) == jsonCfg.end()) {
         NETMGR_EXT_LOG_E("ReadConfigData not find network_ethernet_component!");

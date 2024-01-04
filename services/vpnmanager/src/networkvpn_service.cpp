@@ -313,6 +313,9 @@ void NetworkVpnService::ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const n
 
 void NetworkVpnService::ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString)
 {
+    if (jsonString.empty() || !nlohmann::json::accept(jsonString)) {
+        return;
+    }
     nlohmann::json doc = nlohmann::json::parse(jsonString);
     if (doc.contains("mtu") && doc.at("mtu").is_number()) {
         vpnCfg->mtu_ = doc.at("mtu");
