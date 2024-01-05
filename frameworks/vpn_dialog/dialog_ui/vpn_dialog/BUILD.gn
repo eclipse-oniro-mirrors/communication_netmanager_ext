@@ -20,11 +20,11 @@ ohos_hap("dialog_hap") {
     ":vpn_dialog_resources",
   ]
   certificate_profile = "../signature/vpndialog.p7b"
-  hap_name = "vpn_dailog"
-  part_name = "prebuilt_hap"
-  subsystem_name = "applications"
+  hap_name = "VpnDialog"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
   js_build_mode = "release"
-  module_install_dir = "app/com.ohos.vpndialog"
+  module_install_dir = "app/VpnDialog"
 }
 
 ohos_app_scope("vpn_dialog_app_profile") {
