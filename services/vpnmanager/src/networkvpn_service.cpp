@@ -53,6 +53,8 @@ constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 constexpr const char* VPN_CONFIG_FILE = "/data/service/el1/public/netmanager/vpn_config.json";
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
+constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL = 500;
+constexpr uint32_t MAX_RETRY_TIMES = 10;
 
 const bool REGISTER_LOCAL_RESULT_NETVPN =
     SystemAbility::MakeAndRegisterAbility(&Singleton<NetworkVpnService>::GetInstance());
@@ -671,7 +673,6 @@ void NetworkVpnService::RegisterFactoryResetCallback()
     t.detach();
 }
 
-//Moer add
 int32_t NetworkVpnService::SetAlwaysOnVpn(std::string &pkg, bool &enable)
 {
     int32_t ret = NetDataShareHelperUtilsIface::Update(ALWAYS_ON_VPN_URI, KEY_ALWAYS_ON_VPN, (enable ? pkg:""));
@@ -686,7 +687,6 @@ int32_t NetworkVpnService::SetAlwaysOnVpn(std::string &pkg, bool &enable)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-//Moer add
 int32_t NetworkVpnService::GetAlwaysOnVpn(std::string &pkg)
 {
     std::string value = "";
@@ -700,7 +700,6 @@ int32_t NetworkVpnService::GetAlwaysOnVpn(std::string &pkg)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-//Moer add
 void NetworkVpnService::StartAlwaysOnVpn()
 {
     //first, according the uerId, query local vpn config, if exist apply
@@ -726,10 +725,8 @@ void NetworkVpnService::StartAlwaysOnVpn()
     }
 }
 
-//Moer add
 void NetworkVpnService::SubscribeCommonEvent()
 {
-    //Moer add
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_POWER_SAVE_MODE_CHANGED);
@@ -737,9 +734,18 @@ void NetworkVpnService::SubscribeCommonEvent()
     // 1 means CORE_EVENT_PRIORITY
     subscribeInfo.SetPriority(1);
     subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
-    bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
-    if (!ret) {
-        NETMGR_EXT_LOG_E("SubscribeCommonEvent fail: %{public}d", ret);
+    uint32_t tryCount = 0;
+    bool subscribeResult = false;
+    while (!subscribeResult && tryCount <= MAX_RETRY_TIMES)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(AGAIN_REGISTER_CALLBACK_INTERVAL));
+        subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
+        tryCount++;
+        NETMGR_EXT_LOG_E("SubscribeCommonEvent try  %{public}d", tryCount);
+    }
+
+    if (!subscribeResult) {
+        NETMGR_EXT_LOG_E("SubscribeCommonEvent fail: %{public}d", subscribeResult);
     }
 }
 
