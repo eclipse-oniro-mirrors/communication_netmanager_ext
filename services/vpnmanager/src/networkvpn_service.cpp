@@ -736,8 +736,7 @@ void NetworkVpnService::SubscribeCommonEvent()
     subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
     uint32_t tryCount = 0;
     bool subscribeResult = false;
-    while (!subscribeResult && tryCount <= MAX_RETRY_TIMES)
-    {
+    while (!subscribeResult && tryCount <= MAX_RETRY_TIMES) {
         std::this_thread::sleep_for(std::chrono::milliseconds(AGAIN_REGISTER_CALLBACK_INTERVAL));
         subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
         tryCount++;

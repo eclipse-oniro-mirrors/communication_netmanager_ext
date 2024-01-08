@@ -136,12 +136,12 @@ public:
      * persist the always on vpn's package
      * pass empty will disable always on VPN
     */
-    int32_t SetAlwaysOnVpn(std::string &pkg, bool &enable); 
+    int32_t SetAlwaysOnVpn(std::string &pkg, bool &enable);
 
     /**
      * read the persisted always on vpn's package
     */
-    int32_t GetAlwaysOnVpn(std::string &pkg); 
+    int32_t GetAlwaysOnVpn(std::string &pkg);
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
