@@ -31,8 +31,8 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr const char *ALWAYS_ON_VPN_URI =
-    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnalwayson_mode";
-constexpr const char *KEY_ALWAYS_ON_VPN = "settings.alwayson.vpn";
+    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=sharing_always_on_vpn";
+constexpr const char *KEY_ALWAYS_ON_VPN = "settings.netmanager.always_on_vpn";
 
 } // namespace
 using namespace OHOS::EventFwk;
@@ -136,12 +136,12 @@ public:
      * persist the always on vpn's package
      * pass empty will disable always on VPN
     */
-    int32_t SetAlwaysOnVpn(std::string &pkg, bool &enable); //Moer add
+    int32_t SetAlwaysOnVpn(std::string &pkg, bool &enable);
 
     /**
      * read the persisted always on vpn's package
     */
-    int32_t GetAlwaysOnVpn(std::string &pkg); //Moer add
+    int32_t GetAlwaysOnVpn(std::string &pkg);
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -169,9 +169,8 @@ private:
     void ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
     void ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString);
     void RecoverVpnConfig();
-    ////Moer add always on VPN
+
     void StartAlwaysOnVpn();
-    //Moer add
     void SubscribeCommonEvent();
 
 private:
@@ -185,7 +184,7 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
     std::mutex netVpnMutex_;
     bool hasSARemoved_ = false;
-    //Moer add
+
     std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
 
 private:

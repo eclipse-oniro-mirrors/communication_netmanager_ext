@@ -43,7 +43,7 @@
       ]
     },
     {
-      "name": "vpn_dailog",
+      "name": "VpnDialog",
       "srcPath": "./vpn_dailog",
       "targets": [
         {

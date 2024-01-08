@@ -190,7 +190,7 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
     }
 
     AAFwk::Want want;
-    want.SetElementName("VpnDialog", "VpnServiceExtAbility");
+    want.SetElementName("com.ohos.vpndialog", "VpnServiceExtAbility");
     want.SetParam("bundleName", bundleName);
     want.SetParam("abilityName", abilityName);
 
