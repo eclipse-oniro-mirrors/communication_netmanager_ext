@@ -67,8 +67,8 @@ private:
 
 #ifdef NETMGR_EXT_DEBUG
 #define PRINT_LOG(op, fmt, ...)                                                                               \
-    (void)HILOG_##op(LOG_CORE, "[%{public}s-(%{public}s:%{public}d)]" fmt, __FUNCTION__, \
-                                     MAKE_FILE_NAME, __LINE__, ##__VA_ARGS__)
+    (void)HILOG_IMPL(LOG_CORE, LOG_##op, LOG_DOMAIN, LOG_TAG, "[%{public}s-(%{public}s:%{public}d)]" fmt,     \
+                                    __FUNCTION__, MAKE_FILE_NAME, __LINE__, ##__VA_ARGS__)
 #else
 #define PRINT_LOG(op, fmt, ...)
 #endif
