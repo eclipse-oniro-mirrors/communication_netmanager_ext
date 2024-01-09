@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Huawei Device Co., Ltd.
+# Copyright (C) 2023-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -30,6 +30,15 @@ config("mdns_manager_config") {
 }
 
 ohos_shared_library("mdns_manager") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    blocklist = "./cfi_blocklist.txt"
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [
     "src/mdns_manager.cpp",
     "src/mdns_service.cpp",
@@ -95,6 +104,15 @@ ohos_shared_library("mdns_manager") {
 
 ohos_static_library("mdns_manager_static") {
   testonly = true
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    blocklist = "./cfi_blocklist.txt"
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [
     "src/mdns_manager.cpp",
     "src/mdns_service.cpp",

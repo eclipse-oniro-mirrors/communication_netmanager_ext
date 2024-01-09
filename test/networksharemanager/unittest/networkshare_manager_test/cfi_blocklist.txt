@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Copyright (C) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,19 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//build/ohos.gni")
 
-ohos_prebuilt_etc("mdnsmanager_trust") {
-  source = "mdnsmanager_trust.json"
-  module_install_dir = "profile"
-  part_name = "netmanager_ext"
-  subsystem_name = "communication"
-}
-
-## Install mdnsmanager.rc/mdnsmanager.rc to /system/etc/init
-ohos_prebuilt_etc("mdnsmanager.rc") {
-  source = "mdnsmanager.cfg"
-  relative_install_dir = "init"
-  part_name = "netmanager_ext"
-  subsystem_name = "communication"
-}
+[cfi]
+type:*OHOS::Parcel*
+type:*OHOS::RefBase*
+fun:*Marshalling*
