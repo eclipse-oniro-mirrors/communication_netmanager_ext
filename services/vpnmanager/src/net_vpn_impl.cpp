@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,7 +68,7 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
     connChangedCb_->OnVpnConnStateChanged(state);
 }
 
-__attribute__((no_sanitize("cfi"))) int32_t NetVpnImpl::SetUp()
+int32_t NetVpnImpl::SetUp()
 {
     if (vpnConfig_ == nullptr) {
         NETMGR_EXT_LOG_E("VpnConnect vpnConfig_ is nullptr");
