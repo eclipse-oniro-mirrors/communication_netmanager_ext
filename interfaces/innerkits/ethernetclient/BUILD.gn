@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -49,14 +49,6 @@ config("net_conn_manager_if_config") {
 }
 
 ohos_source_set("ethernet_parcel") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  branch_protector_ret = "pac_ret"
-
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/interface_configuration.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/static_configuration.cpp",
@@ -83,14 +75,6 @@ ohos_source_set("ethernet_parcel") {
 }
 
 ohos_shared_library("ethernet_manager_if") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  branch_protector_ret = "pac_ret"
-
   include_dirs = [ "$NETMANAGER_EXT_ROOT/utils/log/include" ]
 
   sources = [

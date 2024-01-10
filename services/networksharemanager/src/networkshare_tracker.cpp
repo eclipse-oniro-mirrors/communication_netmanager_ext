@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -360,8 +360,8 @@ void NetworkShareTracker::SetBluetoothState(const Bluetooth::BTConnectState &sta
 }
 #endif
 
-__attribute__((no_sanitize("cfi"))) void NetworkShareTracker::HandleSubSmUpdateInterfaceState(
-    const std::shared_ptr<NetworkShareSubStateMachine> &who, int32_t state, int32_t lastError)
+void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<NetworkShareSubStateMachine> &who,
+                                                          int32_t state, int32_t lastError)
 {
     if (who == nullptr) {
         NETMGR_EXT_LOG_E("subsm is null.");
