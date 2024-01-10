@@ -54,8 +54,10 @@ static constexpr uint32_t ENUM_TYPE_VALUE5 = 5;
 static constexpr uint32_t ENUM_TYPE_VALUE6 = 6;
 #endif
 static constexpr uint32_t ENUM_TYPE_BEGIN = 1;
+static constexpr uint32_t LIMIT_RUN_NUMBER = 5;
 size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
+uint32_t g_testRunTimes = 0;
 constexpr size_t IFACE_LEN = 5;
 
 using namespace Security::AccessToken;
@@ -641,7 +643,14 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     NetworkShareTracker::GetInstance().SetUpstreamNetHandle(upstreamNetInfo);
     NetworkShareTracker::GetInstance().GetUpstreamInfo(upstreamNetInfo);
     NetworkShareTracker::GetInstance().NotifyDownstreamsHasNewUpstreamIface(upstreamNetInfo);
-    NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(trafficTYpe, kbByte);
+    /*
+     * There will be operations of the fork process here, and it is necessary to limit the number of runs. Otherwise,
+     * frequent high-speed calls to the FUZZ test case will cause insufficient resources and lead to downtime.
+     */
+    if (g_testRunTimes < LIMIT_RUN_NUMBER) {
+        NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(trafficTYpe, kbByte);
+        g_testRunTimes++;
+    }
 }
 
 void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
