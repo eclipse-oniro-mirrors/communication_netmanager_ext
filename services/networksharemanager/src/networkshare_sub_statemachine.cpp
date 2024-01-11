@@ -20,7 +20,6 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "route_utils.h"
-#include "dhcp_c_api.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -507,6 +506,26 @@ bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &net
 
     DhcpRange range;
     range.iptype = IP_V4;
+    if (!SetRange(range, ipHead, strStartip, strEndip, mask)) {
+        return false;
+    }
+
+    if (SetDhcpRange(ifaceName_.c_str(), &range) != DHCP_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartDhcp SetDhcpRange failed.");
+        return false;
+    }
+
+    if (StartDhcpServer(ifaceName_.c_str()) != DHCP_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartDhcp StartDhcpServer failed.");
+        return false;
+    }
+    NETMGR_EXT_LOG_I("StartDhcp StartDhcpServer successful.");
+    return true;
+}
+
+bool NetworkShareSubStateMachine::SetRange(DhcpRange &range, const std::string &ipHead, const std::string &strStartip,
+                                           const std::string &strEndip, const std::string &mask)
+{
     if (strcpy_s(range.strTagName, DHCP_MAX_FILE_BYTES, ifaceName_.c_str()) != 0) {
         NETMGR_EXT_LOG_E("strcpy_s strTagName failed!");
         return false;
@@ -530,15 +549,6 @@ bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &net
         "Set dhcp range : ifaceName[%{public}s] TagName[%{public}s] start ip[%{private}s] end ip[%{private}s]",
         ifaceName_.c_str(), range.strTagName, range.strStartip, range.strEndip);
 
-    if (SetDhcpRange(ifaceName_.c_str(), &range) != DHCP_SUCCESS) {
-        NETMGR_EXT_LOG_E("StartDhcp SetDhcpRange failed.");
-        return false;
-    }
-    if (StartDhcpServer(ifaceName_.c_str()) != DHCP_SUCCESS) {
-        NETMGR_EXT_LOG_E("StartDhcp StartDhcpServer failed.");
-        return false;
-    }
-    NETMGR_EXT_LOG_I("StartDhcp StartDhcpServer successful.");
     return true;
 }
 
