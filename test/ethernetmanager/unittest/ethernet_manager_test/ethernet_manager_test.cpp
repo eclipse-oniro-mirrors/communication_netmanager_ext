@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,18 @@
 
 #include <gtest/gtest.h>
 
-#include "accesstoken_kit.h"
 #include "ethernet_client.h"
 #include "http_proxy.h"
 #include "inet_addr.h"
 #include "interface_configuration.h"
 #include "interface_state_callback_stub.h"
 #include "interface_type.h"
-#include "nativetoken_kit.h"
 #include "net_manager_constants.h"
+#include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "static_configuration.h"
-#include "token_setproc.h"
 #include "gtest/gtest-message.h"
 #include "gtest/gtest-test-part.h"
 #include "gtest/hwext/gtest-ext.h"
@@ -46,14 +44,17 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
-using namespace Security::AccessToken;
-using Security::AccessToken::AccessTokenID;
-
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *DEV_UP = "up";
 constexpr const char *DEV_DOWN = "down";
 constexpr const char *TEST_PROXY_HOST = "127.0.0.1";
 constexpr uint16_t TEST_PROXY_PORT = 8080;
+std::string INFO = "info";
+constexpr const char *IFACE = "iface0";
+const int32_t FD = 5;
+const int32_t SYSTEM_ABILITY_INVALID = 666;
+constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
+const int32_t RET_ZERO = 0;
 
 class MonitorInterfaceStateCallback : public InterfaceStateCallbackStub {
 public:
@@ -102,107 +103,7 @@ public:
         return NETMANAGER_EXT_SUCCESS;
     }
 };
-
-HapInfoParams testInfoParms = {.userID = 1,
-                               .bundleName = "ethernet_manager_test",
-                               .instIndex = 0,
-                               .appIDDesc = "test",
-                               .isSystemApp = true};
-PermissionDef testPermDef = {
-    .permissionName = "ohos.permission.GET_NETWORK_INFO",
-    .bundleName = "ethernet_manager_test",
-    .grantMode = 1,
-    .availableLevel = APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test network share manager",
-    .descriptionId = 1,
-};
-PermissionStateFull testState = {
-    .permissionName = "ohos.permission.GET_NETWORK_INFO",
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
-};
-HapPolicyParams testPolicyPrams1 = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef},
-    .permStateList = {testState},
-};
-
-PermissionDef testPermDef2 = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .bundleName = "ethernet_manager_test",
-    .grantMode = 1,
-    .availableLevel = APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test network share manager",
-    .descriptionId = 1,
-};
-PermissionStateFull testState2 = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
-};
-HapPolicyParams testPolicyPrams2 = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef2},
-    .permStateList = {testState2},
-};
-
-PermissionDef testPermDef3 = {
-    .bundleName = "ethernet_manager_test",
-    .grantMode = 1,
-    .availableLevel = APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test network share manager",
-    .descriptionId = 1,
-};
-PermissionStateFull testState3 = {
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
-};
-HapPolicyParams testPolicyPrams3 = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef3},
-    .permStateList = {testState3},
-};
-std::string INFO = "info";
-constexpr const char *IFACE = "iface0";
-const int32_t FD = 5;
-const int32_t SYSTEM_ABILITY_INVALID = 666;
-constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
-const int32_t RET_ZERO = 0;
 } // namespace
-
-class AccessToken {
-public:
-    explicit AccessToken(HapPolicyParams &testPolicyPrams) : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(tokenIdEx.tokenIDEx);
-    }
-    ~AccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
 
 class EthernetManagerTest : public testing::Test {
 public:
@@ -276,7 +177,7 @@ sptr<InterfaceConfiguration> EthernetManagerTest::GetIfaceConfig()
 
 bool EthernetManagerTest::CheckIfaceUp(const std::string &iface)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     int32_t activeStatus = 0;
     (void)DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(iface, activeStatus);
     return activeStatus == 1;
@@ -308,7 +209,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME, ic), NETMANAGER_EXT_SUCCESS);
 }
@@ -323,7 +224,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager0011, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     const char *DEV_NAME_1 = "eth3";
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME_1, ic);
@@ -340,7 +241,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     sptr<InterfaceConfiguration> ic;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME, ic);
     ASSERT_TRUE(ic != nullptr);
@@ -357,7 +258,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager0021, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     sptr<InterfaceConfiguration> ic;
     const char *DEV_NAME_1 = "eth3";
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME_1, ic);
@@ -375,7 +276,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     int32_t activeStatus = -1;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
     ASSERT_EQ(activeStatus, 1);
@@ -392,7 +293,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager0031, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     int32_t activeStatus = -1;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive("eth3", activeStatus);
     ASSERT_NE(activeStatus, 1);
@@ -409,7 +310,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     std::vector<std::string> result;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces(result);
     std::vector<std::string>::iterator it = std::find(result.begin(), result.end(), DEV_NAME);
@@ -427,7 +328,7 @@ HWTEST_F(EthernetManagerTest, ResetFactoryTest001, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -456,7 +357,7 @@ HWTEST_F(EthernetManagerTest, ResetFactoryTest003, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
@@ -466,7 +367,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -539,7 +440,7 @@ HWTEST_F(EthernetManagerTest, SetInterfaceConfig001, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = "eth0";
     config.hwAddr = "";
@@ -556,7 +457,7 @@ HWTEST_F(EthernetManagerTest, SetInterfaceConfig002, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(DEV_NAME);
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = "eth0";
@@ -575,7 +476,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
     ASSERT_TRUE(result == 0);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
@@ -594,7 +495,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
     ASSERT_TRUE(result == 0);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
@@ -686,14 +587,14 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager011, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(nullptr);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager012, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     sptr<InterfaceStateCallback> interfaceCallback = new (std::nothrow) MonitorInterfaceStateCallback();
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(interfaceCallback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -703,14 +604,14 @@ HWTEST_F(EthernetManagerTest, EthernetManager012, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager013, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(nullptr);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager014, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     sptr<InterfaceStateCallback> interfaceCallback = new (std::nothrow) MonitorInterfaceStateCallback();
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(interfaceCallback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -748,7 +649,15 @@ HWTEST_F(EthernetManagerTest, EthernetManager018, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager019, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams3);
+    NetManagerExtNotSystemAccessToken token;
+    int32_t activeStatus = -1;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager020, TestSize.Level1)
+{
+    NoPermissionAccessToken token;
     int32_t activeStatus = -1;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
@@ -779,7 +688,7 @@ HWTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     std::string iface = "eth1";
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -790,7 +699,7 @@ HWTEST_F(EthernetManagerTest, SetInterfaceDownTest001, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     std::string iface = "eth1";
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);

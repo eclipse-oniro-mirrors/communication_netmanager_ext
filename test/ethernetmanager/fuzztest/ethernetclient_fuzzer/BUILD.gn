@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,6 +16,8 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ##############################fuzztest##########################################
+EXT_SECURITY_PATH = "../../.."
+
 ohos_fuzztest("EthernetClientFuzzTest") {
   module_out_path = fuzz_test_path
   fuzz_config_file =
@@ -25,6 +27,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
+    "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
@@ -43,7 +46,10 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "ethernet_client_fuzzer.cpp" ]
+  sources = [
+    "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "ethernet_client_fuzzer.cpp",
+  ]
 
   deps = [
     "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager",
@@ -55,6 +61,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "c_utils:utils",
     "dhcp:dhcp_sdk",

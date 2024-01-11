@@ -14,10 +14,13 @@
 import("//build/test.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
+EXT_SECURITY_PATH = "../../.."
+
 ohos_unittest("ethernet_manager_test") {
   module_out_path = "netmanager_ext/ethernet_manager_test"
 
   sources = [
+    "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
     "dev_interface_state_test.cpp",
     "ethernet_configuration_test.cpp",
     "ethernet_lan_management_test.cpp",
@@ -31,6 +34,7 @@ ohos_unittest("ethernet_manager_test") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
+    "$EXT_SECURITY_PATH/security",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include/stub",
