@@ -43,8 +43,8 @@
       ]
     },
     {
-      "name": "VpnDialog",
-      "srcPath": "./vpn_dailog",
+      "name": "vpn_dialog",
+      "srcPath": "./vpn_dialog",
       "targets": [
         {
           "name": "default",

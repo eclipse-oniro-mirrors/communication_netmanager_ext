@@ -5,7 +5,7 @@
         "name": "ohos.permission.MANAGE_SECURE_SETTINGS"
       }
     ],
-    "name": "VpnDialog",
+    "name": "vpn_dialog",
     "type": "feature",
     "srcEntrance": "./ets/Application/MyAbilityStage.ts",
     "description": "$string:entry_desc",
