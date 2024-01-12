@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,6 +16,8 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 ##############################fuzztest##########################################
+EXT_SECURITY_PATH = "../../.."
+
 ohos_fuzztest("VpnClientFuzzTest") {
   module_out_path = fuzz_test_path
   fuzz_config_file =
@@ -24,6 +26,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
+    "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$NETMANAGER_EXT_ROOT/utils/event_report/include",
     "$VPNMANAGER_SOURCE_DIR/include",
@@ -39,7 +42,10 @@ ohos_fuzztest("VpnClientFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "vpnclient_fuzzer.cpp" ]
+  sources = [
+    "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "vpnclient_fuzzer.cpp",
+  ]
 
   deps = [
     "$EXT_INNERKITS_ROOT/netvpnclient:net_vpn_manager_if",
@@ -48,6 +54,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

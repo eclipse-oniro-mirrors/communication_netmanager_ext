@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,10 +23,9 @@
 #include <securec.h>
 #include <string>
 
-#include "accesstoken_kit.h"
+#include "netmanager_ext_test_security.h"
 #include "refbase.h"
 #include "singleton.h"
-#include "token_setproc.h"
 
 #include "dev_interface_state.h"
 #define private public
@@ -43,54 +42,6 @@ static constexpr uint32_t CREATE_BOOL_TYPE_VALUE = 2;
 size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
 constexpr size_t IFACE_LEN = 5;
-
-using namespace Security::AccessToken;
-using Security::AccessToken::AccessTokenID;
-HapInfoParams testInfoParms = {.userID = 1,
-                               .bundleName = "ethernet_client_fuzzer",
-                               .instIndex = 0,
-                               .appIDDesc = "test",
-                               .isSystemApp = true};
-
-PermissionDef testPermDef = {.permissionName = "ohos.permission.GET_NETWORK_INFO",
-                             .bundleName = "ethernet_client_fuzzer",
-                             .grantMode = 1,
-                             .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
-                             .label = "label",
-                             .labelId = 1,
-                             .description = "Test ethernet maneger network info",
-                             .descriptionId = 1};
-
-PermissionDef testInternetPermDef = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                     .bundleName = "net_conn_client_fuzzer",
-                                     .grantMode = 1,
-                                     .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
-                                     .label = "label",
-                                     .labelId = 1,
-                                     .description = "Test ethernet connectivity internet",
-                                     .descriptionId = 1};
-
-PermissionStateFull testState = {.permissionName = "ohos.permission.GET_NETWORK_INFO",
-                                 .isGeneral = true,
-                                 .resDeviceID = {"local"},
-                                 .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                 .grantFlags = {2}};
-
-PermissionStateFull testInternetState = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                         .isGeneral = true,
-                                         .resDeviceID = {"local"},
-                                         .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                         .grantFlags = {2}};
-
-HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
-                                   .domain = "test.domain",
-                                   .permList = {testPermDef},
-                                   .permStateList = {testState}};
-
-HapPolicyParams testInternetPolicyPrams = {.apl = APL_SYSTEM_BASIC,
-                                           .domain = "test.domain",
-                                           .permList = {testPermDef, testInternetPermDef},
-                                           .permStateList = {testState, testInternetState}};
 } // namespace
 
 template <class T> T GetData()
@@ -107,45 +58,6 @@ template <class T> T GetData()
     g_baseFuzzPos += objectSize;
     return object;
 }
-class EthernetClientAccessToken {
-public:
-    EthernetClientAccessToken()
-    {
-        currentID_ = GetSelfTokenID();
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(tokenIdEx.tokenIDEx);
-    }
-    ~EthernetClientAccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_ = 0;
-    AccessTokenID accessID_ = 0;
-};
-
-class AccessTokenInternetInfo {
-public:
-    AccessTokenInternetInfo()
-    {
-        currentID_ = GetSelfTokenID();
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testInternetPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
-    }
-    ~AccessTokenInternetInfo()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_ = 0;
-    AccessTokenID accessID_ = 0;
-};
 
 class MonitorInterfaceStateCallback : public InterfaceStateCallbackStub {
 public:
@@ -199,8 +111,7 @@ bool IsDataAndWriteVaild(const uint8_t *data, size_t size, MessageParcel &parcel
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    EthernetClientAccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
@@ -247,8 +158,7 @@ void GetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
-    EthernetClientAccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
     MessageParcel parcel;
     std::string iface = GetStringFromData(IFACE_LEN);
     WriteInterfaceToken(parcel);
@@ -266,8 +176,7 @@ void IsIfaceActiveFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
-    EthernetClientAccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
     MessageParcel parcel;
     std::string iface = GetStringFromData(IFACE_LEN);
     WriteInterfaceToken(parcel);
@@ -282,8 +191,7 @@ void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    EthernetClientAccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
     MessageParcel parcel;
     WriteInterfaceToken(parcel);
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_ACTIVATE_INTERFACE), parcel);
@@ -294,8 +202,7 @@ void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    EthernetClientAccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
     MessageParcel parcel;
     WriteInterfaceToken(parcel);
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_RESET_FACTORY), parcel);
@@ -306,8 +213,7 @@ void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    EthernetClientAccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
@@ -348,8 +254,7 @@ void SetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return;
     }
-    EthernetClientAccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
     g_baseFuzzData = data;
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;

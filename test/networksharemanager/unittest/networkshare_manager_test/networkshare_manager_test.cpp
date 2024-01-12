@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,11 +20,8 @@
 
 #include <gtest/gtest.h>
 
-#include "accesstoken_kit.h"
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
-
 #include "net_manager_constants.h"
+#include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netshare_result_callback_stub.h"
 #define private public
@@ -37,43 +34,8 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
-using namespace Security::AccessToken;
-using Security::AccessToken::AccessTokenID;
 constexpr int32_t EIGHT_SECONDS = 8;
 constexpr int32_t TWO_SECONDS = 2;
-HapInfoParams testInfoParms = {
-    .userID = 1,
-    .bundleName = "networkshare_manager_test",
-    .instIndex = 0,
-    .appIDDesc = "test",
-    .isSystemApp = true
-};
-
-PermissionDef testPermDef = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .bundleName = "networkshare_manager_test",
-    .grantMode = 1,
-    .availableLevel = APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test network share maneger",
-    .descriptionId = 1,
-};
-
-PermissionStateFull testState = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
-};
-
-HapPolicyParams testPolicyPrams = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef},
-    .permStateList = {testState},
-};
 
 class TestSharingEventCallback : public OHOS::NetManagerStandard::SharingEventCallbackStub {
 public:
@@ -87,25 +49,6 @@ public:
 
 sptr<TestSharingEventCallback> g_sharingEventCb = new (std::nothrow) TestSharingEventCallback();
 } // namespace
-
-class AccessToken {
-public:
-    AccessToken() : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(tokenIdEx.tokenIDEx);
-    }
-    ~AccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
 
 class NetworkShareManagerTest : public testing::Test {
 public:
@@ -161,7 +104,7 @@ HWTEST_F(NetworkShareManagerTest, OnLoadSystemAbilityFail, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     int32_t supportedFlag;
     DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
     EXPECT_EQ(supportedFlag, NETWORKSHARE_IS_SUPPORTED);
@@ -176,7 +119,7 @@ HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, GetWifiSharableRegexs, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     std::vector<std::string> wifiRegexs;
     DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_WIFI, wifiRegexs);
     EXPECT_NE(wifiRegexs.size(), static_cast<uint32_t>(0));
@@ -187,7 +130,7 @@ HWTEST_F(NetworkShareManagerTest, GetWifiSharableRegexs, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, GetUSBSharableRegexs, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     std::vector<std::string> usbRegexs;
     DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_USB, usbRegexs);
     EXPECT_NE(usbRegexs.size(), static_cast<uint32_t>(0));
@@ -198,7 +141,7 @@ HWTEST_F(NetworkShareManagerTest, GetUSBSharableRegexs, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, GetBluetoothSharableRegexs, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     std::vector<std::string> blueRegexs;
     DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_BLUETOOTH,
                                                                            blueRegexs);
@@ -210,7 +153,7 @@ HWTEST_F(NetworkShareManagerTest, GetBluetoothSharableRegexs, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, StartWifiSharing, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StartSharing(SharingIfaceType::SHARING_WIFI);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     sleep(EIGHT_SECONDS);
@@ -221,7 +164,7 @@ HWTEST_F(NetworkShareManagerTest, StartWifiSharing, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, StopWifiSharing, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StopSharing(SharingIfaceType::SHARING_WIFI);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     sleep(TWO_SECONDS);
@@ -232,14 +175,14 @@ HWTEST_F(NetworkShareManagerTest, StopWifiSharing, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent001, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(g_sharingEventCb);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent002, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     sptr<ISharingEventCallback> callback = nullptr;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
@@ -247,7 +190,7 @@ HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent002, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent001, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     sptr<ISharingEventCallback> callback = nullptr;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(g_sharingEventCb);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
@@ -255,7 +198,7 @@ HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent001, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent002, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     sptr<ISharingEventCallback> callback = nullptr;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
@@ -271,7 +214,7 @@ HWTEST_F(NetworkShareManagerTest, GetSharingIfaces01, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, GetSharingIfaces02, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_SERVING;
     std::vector<std::string> ifaces;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingIfaces(state, ifaces);
@@ -287,7 +230,7 @@ HWTEST_F(NetworkShareManagerTest, GetStatsRxBytes01, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, GetStatsRxBytes02, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     int32_t bytes = 0;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsRxBytes(bytes);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
@@ -302,7 +245,7 @@ HWTEST_F(NetworkShareManagerTest, GetStatsTxBytes01, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, GetStatsTxBytes02, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     int32_t bytes = 0;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTxBytes(bytes);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
@@ -317,7 +260,7 @@ HWTEST_F(NetworkShareManagerTest, GetStatsTotalBytes01, TestSize.Level1)
 
 HWTEST_F(NetworkShareManagerTest, GetStatsTotalBytes02, TestSize.Level1)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     int32_t bytes = 0;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetStatsTotalBytes(bytes);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,12 +19,10 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "accesstoken_kit.h"
-#include "refbase.h"
-#include "token_setproc.h"
-
 #include "i_vpn_event_callback.h"
+#include "netmanager_ext_test_security.h"
 #include "networkvpn_service.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -35,52 +33,6 @@ constexpr size_t STR_LEN = 16;
 size_t g_baseFuzzPos = 0;
 size_t g_baseFuzzSize = 0;
 const uint8_t *g_baseFuzzData = nullptr;
-
-using namespace Security::AccessToken;
-using Security::AccessToken::AccessTokenID;
-HapInfoParams testInfoParms = {.userID = 1,
-                               .bundleName = "vpnclient_fuzzer",
-                               .instIndex = 0,
-                               .appIDDesc = "test",
-                               .isSystemApp = true};
-
-PermissionDef testPermDef = {.permissionName = "ohos.permission.MANAGE_VPN",
-                             .bundleName = "vpnclient_fuzzer",
-                             .grantMode = 1,
-                             .availableLevel = APL_SYSTEM_BASIC,
-                             .label = "label",
-                             .labelId = 1,
-                             .description = "Test vpn maneger network info",
-                             .descriptionId = 1};
-
-PermissionStateFull testState = {.permissionName = "ohos.permission.MANAGE_VPN",
-                                 .isGeneral = true,
-                                 .resDeviceID = {"local"},
-                                 .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                 .grantFlags = {2}};
-
-HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
-                                   .domain = "test.domain",
-                                   .permList = {testPermDef},
-                                   .permStateList = {testState}};
-class AccessToken {
-public:
-    AccessToken() : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIDEx;
-        SetSelfTokenID(tokenIdEx.tokenIDEx);
-    }
-    ~AccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
 } // namespace
 
 bool InitGlobalData(const uint8_t *data, size_t size)
@@ -160,7 +112,7 @@ int32_t OnRemoteRequest(INetworkVpnService::MessageCode code, MessageParcel &dat
 
 void PrepareFuzzTest(const uint8_t *data, size_t size)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -170,7 +122,7 @@ void PrepareFuzzTest(const uint8_t *data, size_t size)
 
 void ProtectFuzzTest(const uint8_t *data, size_t size)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -184,7 +136,7 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
+    NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -210,7 +162,7 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
 
 void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -220,7 +172,7 @@ void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
 
 void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -235,7 +187,7 @@ void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 
 void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 {
-    AccessToken token;
+    NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;

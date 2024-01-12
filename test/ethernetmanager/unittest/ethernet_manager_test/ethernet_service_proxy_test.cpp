@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "accesstoken_kit.h"
 #include "ethernet_client.h"
 #include "gtest/gtest-message.h"
 #include "gtest/gtest-test-part.h"
@@ -24,12 +23,12 @@
 #include "http_proxy.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
-#include "nativetoken_kit.h"
 #include "net_manager_constants.h"
+#include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "static_configuration.h"
-#include "token_setproc.h"
+
 #define private public
 #define protected public
 #include "ethernet_client.h"
@@ -42,83 +41,10 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
-using namespace Security::AccessToken;
-using Security::AccessToken::AccessTokenID;
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *TEST_PROXY_HOST = "127.0.0.1";
 constexpr uint16_t TEST_PROXY_PORT = 8080;
-HapInfoParams testInfoParms = {.userID = 1,
-                               .bundleName = "ethernet_manager_test",
-                               .instIndex = 0,
-                               .appIDDesc = "test",
-                               .isSystemApp = true};
-PermissionDef testPermDef = {
-    .permissionName = "ohos.permission.GET_NETWORK_INFO",
-    .bundleName = "ethernet_manager_test",
-    .grantMode = 1,
-    .availableLevel = APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test network share manager",
-    .descriptionId = 1,
-};
-PermissionStateFull testState = {
-    .permissionName = "ohos.permission.GET_NETWORK_INFO",
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
-};
-HapPolicyParams testPolicyPrams1 = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef},
-    .permStateList = {testState},
-};
-
-PermissionDef testPermDef2 = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .bundleName = "ethernet_manager_test",
-    .grantMode = 1,
-    .availableLevel = APL_SYSTEM_BASIC,
-    .label = "label",
-    .labelId = 1,
-    .description = "Test network share manager",
-    .descriptionId = 1,
-};
-PermissionStateFull testState2 = {
-    .permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-    .isGeneral = true,
-    .resDeviceID = {"local"},
-    .grantStatus = {PermissionState::PERMISSION_GRANTED},
-    .grantFlags = {2},
-};
-HapPolicyParams testPolicyPrams2 = {
-    .apl = APL_SYSTEM_BASIC,
-    .domain = "test.domain",
-    .permList = {testPermDef2},
-    .permStateList = {testState2},
-};
-} // namespace
-
-class AccessToken {
-public:
-    explicit AccessToken(HapPolicyParams &testPolicyPrams) : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(tokenIdEx.tokenIDEx);
-    }
-    ~AccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
+}
 
 class EtherNetServiceProxyTest : public testing::Test {
 public:
@@ -191,7 +117,7 @@ void EtherNetServiceProxyTest::TearDown() {}
 
 HWTEST_F(EtherNetServiceProxyTest, SetIfaceConfigTest001, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     auto ret = ethernetServiceProxy.SetIfaceConfig(DEV_NAME, ic);
@@ -200,7 +126,7 @@ HWTEST_F(EtherNetServiceProxyTest, SetIfaceConfigTest001, TestSize.Level1)
 
 HWTEST_F(EtherNetServiceProxyTest, GetIfaceConfigTest001, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
     int32_t ret = ethernetServiceProxy.GetIfaceConfig(DEV_NAME, ifaceConfig);
@@ -209,7 +135,7 @@ HWTEST_F(EtherNetServiceProxyTest, GetIfaceConfigTest001, TestSize.Level1)
 
 HWTEST_F(EtherNetServiceProxyTest, IsIfaceActiveTest001, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     sptr<InterfaceConfiguration> ifaceConfig = new (std::nothrow) InterfaceConfiguration();
     std::string ifcaeName = "eth0";
@@ -220,7 +146,7 @@ HWTEST_F(EtherNetServiceProxyTest, IsIfaceActiveTest001, TestSize.Level1)
 
 HWTEST_F(EtherNetServiceProxyTest, GetAllActiveIfacesTest001, TestSize.Level1)
 {
-    AccessToken accessToken(testPolicyPrams1);
+    NetManagerExtAccessToken token;
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     std::vector<std::string> result;
     int32_t ret = ethernetServiceProxy.GetAllActiveIfaces(result);
@@ -237,7 +163,7 @@ HWTEST_F(EtherNetServiceProxyTest, ResetFactoryTest001, TestSize.Level1)
 HWTEST_F(EtherNetServiceProxyTest, SetInterfaceUpTest001, TestSize.Level1)
 {
     EthernetServiceProxy ethernetServiceProxy(nullptr);
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     int32_t ret = ethernetServiceProxy.SetInterfaceUp(DEV_NAME);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
@@ -248,7 +174,7 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceUpTest001, TestSize.Level1)
 HWTEST_F(EtherNetServiceProxyTest, SetInterfaceDownTest001, TestSize.Level1)
 {
     EthernetServiceProxy ethernetServiceProxy(nullptr);
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     int32_t ret = ethernetServiceProxy.SetInterfaceDown(DEV_NAME);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
@@ -256,7 +182,7 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceDownTest001, TestSize.Level1)
 HWTEST_F(EtherNetServiceProxyTest, SetInterfaceConfigTest001, TestSize.Level1)
 {
     EthernetServiceProxy ethernetServiceProxy(nullptr);
-    AccessToken accessToken(testPolicyPrams2);
+    NetManagerExtAccessToken token;
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = "eth0";
     config.hwAddr = "";

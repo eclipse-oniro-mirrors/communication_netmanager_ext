@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,10 +24,8 @@
 
 #include <securec.h>
 
-#include "accesstoken_kit.h"
 #include "refbase.h"
 #include "singleton.h"
-#include "token_setproc.h"
 #ifdef WIFI_MODOULE
 #include "wifi_ap_msg.h"
 #endif
@@ -35,6 +33,7 @@
 #include "i_networkshare_service.h"
 #include "interface_configuration.h"
 #include "net_manager_ext_constants.h"
+#include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
 #define private public
 #include "networkshare_service.h"
@@ -59,54 +58,6 @@ size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
 uint32_t g_testRunTimes = 0;
 constexpr size_t IFACE_LEN = 5;
-
-using namespace Security::AccessToken;
-using Security::AccessToken::AccessTokenID;
-HapInfoParams testInfoParms = {.userID = 1,
-                               .bundleName = "netshare_client_fuzzer",
-                               .instIndex = 0,
-                               .appIDDesc = "test",
-                               .isSystemApp = true};
-
-PermissionDef testPermDef = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                             .bundleName = "netshare_client_fuzzer",
-                             .grantMode = 1,
-                             .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
-                             .label = "label",
-                             .labelId = 1,
-                             .description = "Test netshare maneger network info",
-                             .descriptionId = 1};
-
-PermissionDef testInternetPermDef = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                     .bundleName = "net_conn_client_fuzzer",
-                                     .grantMode = 1,
-                                     .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
-                                     .label = "label",
-                                     .labelId = 1,
-                                     .description = "Test netshare connectivity internet",
-                                     .descriptionId = 1};
-
-PermissionStateFull testState = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                 .isGeneral = true,
-                                 .resDeviceID = {"local"},
-                                 .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                 .grantFlags = {2}};
-
-PermissionStateFull testInternetState = {.permissionName = "ohos.permission.CONNECTIVITY_INTERNAL",
-                                         .isGeneral = true,
-                                         .resDeviceID = {"local"},
-                                         .grantStatus = {PermissionState::PERMISSION_GRANTED},
-                                         .grantFlags = {2}};
-
-HapPolicyParams testPolicyPrams = {.apl = APL_SYSTEM_BASIC,
-                                   .domain = "test.domain",
-                                   .permList = {testPermDef},
-                                   .permStateList = {testState}};
-
-HapPolicyParams testInternetPolicyPrams = {.apl = APL_SYSTEM_BASIC,
-                                           .domain = "test.domain",
-                                           .permList = {testPermDef, testInternetPermDef},
-                                           .permStateList = {testState, testInternetState}};
 } // namespace
 
 template <class T> T GetData()
@@ -123,43 +74,6 @@ template <class T> T GetData()
     g_baseFuzzPos += objectSize;
     return object;
 }
-class AccessToken {
-public:
-    AccessToken() : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(tokenIdEx.tokenIDEx);
-    }
-    ~AccessToken()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
-
-class AccessTokenInternetInfo {
-public:
-    AccessTokenInternetInfo() : currentID_(GetSelfTokenID())
-    {
-        AccessTokenIDEx tokenIdEx = AccessTokenKit::AllocHapToken(testInfoParms, testInternetPolicyPrams);
-        accessID_ = tokenIdEx.tokenIdExStruct.tokenID;
-        SetSelfTokenID(accessID_);
-    }
-    ~AccessTokenInternetInfo()
-    {
-        AccessTokenKit::DeleteToken(accessID_);
-        SetSelfTokenID(currentID_);
-    }
-
-private:
-    AccessTokenID currentID_;
-    AccessTokenID accessID_ = 0;
-};
 
 std::string GetStringFromData(int strlen)
 {
@@ -248,8 +162,7 @@ bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParce
         return false;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     if (!WriteInterfaceToken(dataParcel)) {
         return false;
@@ -266,7 +179,7 @@ void IsNetworkSharingSupportedFuzzTest(const uint8_t *data, size_t size)
     if (!InitGlobalData(data, size)) {
         return;
     }
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     MessageParcel dataParcel;
     if (!WriteInterfaceToken(dataParcel)) {
@@ -283,8 +196,7 @@ void IsSharingFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     MessageParcel dataParcel;
     if (!WriteInterfaceToken(dataParcel)) {
@@ -343,8 +255,7 @@ void GetNetSharingIfacesFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     MessageParcel dataParcel;
     if (!WriteInterfaceToken(dataParcel)) {
@@ -362,8 +273,7 @@ void RegisterSharingEventFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     sptr<ISharingEventCallback> callback = new (std::nothrow) INetShareCallbackTest();
     MessageParcel dataParcel;
@@ -381,8 +291,7 @@ void UnregisterSharingEventFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     sptr<ISharingEventCallback> callback = new (std::nothrow) INetShareCallbackTest();
     MessageParcel dataParcel;
@@ -400,8 +309,7 @@ void GetStatsRxBytesFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     MessageParcel dataParcel;
     if (!WriteInterfaceToken(dataParcel)) {
@@ -417,8 +325,7 @@ void GetStatsTxBytesFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     MessageParcel dataParcel;
     if (!WriteInterfaceToken(dataParcel)) {
@@ -434,14 +341,22 @@ void GetStatsTotalBytesFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    AccessToken token;
-    AccessTokenInternetInfo tokenInfo;
+    NetManagerExtAccessToken token;
 
     MessageParcel dataParcel;
     if (!WriteInterfaceToken(dataParcel)) {
         return;
     }
     OnRemoteRequest(TetheringInterfaceCode::CMD_GET_TOTAL_BYTES, dataParcel);
+}
+
+void NetGetStatsBytesFuzzTest(const uint8_t *data, size_t size)
+{
+    if (g_testRunTimes < LIMIT_RUN_NUMBER) {
+        GetStatsRxBytesFuzzTest(data, size);
+        GetStatsTxBytesFuzzTest(data, size);
+        GetStatsTotalBytesFuzzTest(data, size);
+    }
 }
 
 void NetworkShareMainStateMachineFuzzTest(const uint8_t *data, size_t size)
@@ -775,9 +690,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::GetNetSharingIfacesFuzzTest(data, size);
     OHOS::NetManagerStandard::RegisterSharingEventFuzzTest(data, size);
     OHOS::NetManagerStandard::UnregisterSharingEventFuzzTest(data, size);
-    OHOS::NetManagerStandard::GetStatsRxBytesFuzzTest(data, size);
-    OHOS::NetManagerStandard::GetStatsTxBytesFuzzTest(data, size);
-    OHOS::NetManagerStandard::GetStatsTotalBytesFuzzTest(data, size);
     OHOS::NetManagerStandard::NetworkShareConfigurationFuzzTest(data, size);
     OHOS::NetManagerStandard::UpstreammonitorFuzzTest(data, size);
     OHOS::NetManagerStandard::NetworkShareTrackerFuzzTest(data, size);
@@ -786,5 +698,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::NetworkShareSubStateMachinePrivateFuzzTest(data, size);
     OHOS::NetManagerStandard::NetworkShareMainStateMachineFuzzTest(data, size);
     OHOS::NetManagerStandard::NetworkShareHisysEventFuzzTest(data, size);
+    OHOS::NetManagerStandard::NetGetStatsBytesFuzzTest(data, size);
     return 0;
 }
