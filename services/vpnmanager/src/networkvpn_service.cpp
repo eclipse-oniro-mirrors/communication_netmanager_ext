@@ -128,9 +128,6 @@ bool NetworkVpnService::Init()
         policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(policyCallRunner_);
     }
 
-    // recover vpn config
-    RecoverVpnConfig();
-
     RegisterFactoryResetCallback();
     return true;
 }
@@ -473,10 +470,6 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
     }
     NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
     ret = vpnObj_->SetUp();
-    if (ret == NETMANAGER_EXT_SUCCESS) {
-        SaveVpnConfig(config);
-    }
-
     return ret;
 }
 
