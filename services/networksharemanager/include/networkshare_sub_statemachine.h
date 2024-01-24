@@ -29,6 +29,7 @@
 #include "networkshare_constants.h"
 #include "networkshare_hisysevent.h"
 #include "networkshare_state_common.h"
+#include "dhcp_c_api.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -103,6 +104,8 @@ private:
     bool ConfigureShareDhcp(bool enabled);
     bool RequestIpv4Address(std::shared_ptr<INetAddr> &netAddr);
     bool StartDhcp(const std::shared_ptr<INetAddr> &netAddr);
+    bool SetRange(DhcpRange &range, const std::string &ipHead, const std::string &strStartip,
+                                           const std::string &strEndip, const std::string &mask);
     bool StopDhcp();
     void HandleConnectionChanged(const std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo);
     void RemoveRoutesToLocalNetwork();
