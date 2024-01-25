@@ -256,11 +256,14 @@ void JsVpnExtension::OnStart(const AAFwk::Want &want)
     NETMGR_EXT_LOG_I("call");
 
     auto context = GetContext();
-    if (context != nullptr) {
-        int displayId = want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, Rosen::WindowScene::DEFAULT_DISPLAY_ID);
-        auto configUtils = std::make_shared<ConfigurationUtils>();
-        configUtils->InitDisplayConfig(displayId, context->GetConfiguration(), context->GetResourceManager());
+    if (context == nullptr) {
+        NETMGR_EXT_LOG_E("context is null");
+        return;
     }
+
+    int displayId = want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, Rosen::WindowScene::DEFAULT_DISPLAY_ID);
+    auto configUtils = std::make_shared<ConfigurationUtils>();
+    configUtils->InitDisplayConfig(displayId, context->GetConfiguration(), context->GetResourceManager());
 
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
