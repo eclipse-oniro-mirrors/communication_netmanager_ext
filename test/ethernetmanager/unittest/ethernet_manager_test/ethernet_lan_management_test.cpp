@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -122,6 +122,20 @@ HWTEST_F(EthernetLanManagementTest, EthernetLanManagement002, TestSize.Level1)
     ASSERT_EQ(ret, NETMANAGER_SUCCESS);
     ret = ethernetLanManager.SetRoute(netLinkInfo);
     ASSERT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(EthernetLanManagementTest, EthernetLanManagementBranchTest001, TestSize.Level1)
+{
+    EthernetLanManagement ethernetLanManager;
+    sptr<DevInterfaceState> devState = nullptr;
+    ethernetLanManager.GetOldLinkInfo(devState);
+    int32_t ret = ethernetLanManager.ReleaseLanNetLink(devState);
+    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
+
+    devState = new (std::nothrow) DevInterfaceState();
+    ethernetLanManager.GetOldLinkInfo(devState);
+    ret = ethernetLanManager.ReleaseLanNetLink(devState);
+    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
