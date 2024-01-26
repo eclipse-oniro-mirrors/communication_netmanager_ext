@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -163,6 +163,23 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest001, TestSize.Level1)
     devInterfaceState.GetTargetNetAddrWithSameFamily("", ipAddrList, targetNetAddr);
     devInterfaceState.GetDumpInfo(testString);
     EXPECT_TRUE(result.empty());
+}
+
+HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest002, TestSize.Level1)
+{
+    DevInterfaceState devInterfaceState;
+    devInterfaceState.GetNetCaps();
+
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->mode_ = STATIC;
+    devInterfaceState.SetLancfg(ifCfg);
+    bool ret = devInterfaceState.IsLanIface();
+    EXPECT_FALSE(ret);
+
+    ifCfg->mode_ = LAN_STATIC;
+    devInterfaceState.SetLancfg(ifCfg);
+    ret = devInterfaceState.IsLanIface();
+    EXPECT_TRUE(ret);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
