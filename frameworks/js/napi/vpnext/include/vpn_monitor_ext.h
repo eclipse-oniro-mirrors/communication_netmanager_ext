@@ -27,6 +27,12 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+/*
+ * There is several functionalities of this string:
+ * 1: to identify the application which called StartVpnExtensionAbility is the VPN APP or VPNDialog APP.
+ * 2: to identify VPNDialog APP call UpdateVpnAuthorize in order to update vpnExtMode to 1 or 0.
+ */
+static constexpr const char *VPN_DIALOG_POSTFIX = "**vpndialog**";
 class VpnEventCallback : public VpnEventCallbackStub {
 public:
     void OnVpnStateChanged(const bool &isConnected) override;

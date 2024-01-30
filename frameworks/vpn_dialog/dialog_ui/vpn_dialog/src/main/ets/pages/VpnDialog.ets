@@ -78,6 +78,8 @@ export default struct ConfirmDialog {
         Text($r('app.string.notAllowButton'))
           .ControlBtn(this.notAllowFontColor)
           .onClick(() => {
+            let bundleName = globalThis.bundleName;
+            vpnext.updateVpnAuthorizedState(bundleName + "**vpndialog**");
             this.destruction()
           })
         Text('|')
