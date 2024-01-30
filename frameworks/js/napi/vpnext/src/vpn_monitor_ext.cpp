@@ -192,7 +192,7 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
     AAFwk::Want want;
     want.SetElementName("com.ohos.vpndialog", "VpnServiceExtAbility");
     want.SetParam("bundleName", bundleName);
-    want.SetParam("abilityName", abilityName);
+    want.SetParam("abilityName", abilityName + VPN_DIALOG_POSTFIX);
 
     sptr<VpnMonitor::VpnAbilityConn> vpnAbilityConn_ = new (std::nothrow) VpnMonitor::VpnAbilityConn();
     auto ret = abmc->ConnectAbility(want, vpnAbilityConn_, -1);

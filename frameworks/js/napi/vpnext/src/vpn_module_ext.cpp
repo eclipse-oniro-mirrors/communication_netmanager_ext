@@ -61,6 +61,19 @@ static void *MakeDataExt(napi_env env, size_t argc, napi_value *argv, EventManag
     return reinterpret_cast<void *>(&NetworkVpnClient::GetInstance());
 }
 
+static bool g_started = false;
+
+static std::string Replace(std::string s)
+{
+    std::string tmp = VPN_DIALOG_POSTFIX;
+    auto pos = s.find(tmp);
+    if (pos == std::string::npos) {
+        return s;
+    }
+    s.replace(pos, tmp.length(), "");
+    return s;
+}
+
 napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
 {
     napi_value thisVal = nullptr;
@@ -83,15 +96,20 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
 
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
-
-    bool vpnDialogSelect = false;
-    std::string vpnExtMode = std::to_string(vpnDialogSelect);
-    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-    if (ret != 0 || vpnExtMode != "1") {
-        VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName);
-        NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
-        return NapiUtils::GetUndefined(env);
+    if (abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
+        bool vpnDialogSelect = false;
+        std::string vpnExtMode = std::to_string(vpnDialogSelect);
+        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+        if (!g_started || ret != 0 || vpnExtMode != "1") {
+            g_started = true;
+            VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName);
+            NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
+            return NapiUtils::GetUndefined(env);
+        }
     }
+    auto elem = want.GetElement();
+    elem.SetAbilityName(Replace(abilityName));
+    want.SetElement(elem);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
@@ -146,6 +164,10 @@ static napi_value UpdateVpnAuthorize(napi_env env, napi_callback_info info)
     std::string bundleName  = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_0]);
 
     bool vpnDialogSelect = true;
+    if (bundleName.find(VPN_DIALOG_POSTFIX) != std::string::npos) {
+        vpnDialogSelect = false;
+        bundleName = Replace(bundleName);
+    }
     std::string vpnExtMode = std::to_string(vpnDialogSelect);
     int32_t ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, vpnExtMode);
     NETMANAGER_EXT_LOGI("UpdateVpnAuthorize result. ret = %{public}d", ret);
