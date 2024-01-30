@@ -19,6 +19,7 @@
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
+#include "networkshare_tracker.h"
 #include "route_utils.h"
 
 namespace OHOS {
@@ -137,9 +138,19 @@ void NetworkShareSubStateMachine::SubSmStateSwitch(int newState)
     }
 }
 
+std::recursive_mutex &NetworkShareSubStateMachine::getUsefulMutex()
+{
+    auto mainStateMachinePtr = NetworkShareTracker::GetInstance().GetMainStateMachine();
+    if (!mainStateMachinePtr) {
+        NETMGR_EXT_LOG_W("The point of NetworkShareMainStateMachine is nullptr, use mutex in this category.");
+        return mutex_;
+    }
+    return mainStateMachinePtr->GetEventMutex();
+}
+
 void NetworkShareSubStateMachine::SubSmEventHandle(int eventId, const std::any &messageObj)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(getUsefulMutex());
     int nextState = NO_NEXT_STATE;
     int (NetworkShareSubStateMachine::*eventFunc)(const std::any &messageObj) = nullptr;
     for (const auto &iterState : stateTable_) {
