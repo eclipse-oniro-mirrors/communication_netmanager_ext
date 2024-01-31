@@ -58,6 +58,11 @@ public:
      */
     void MainSmEventHandle(int eventId, const std::any &messageObj);
 
+    /**
+     * execute get mutex
+     */
+    std::recursive_mutex &GetEventMutex();
+
 private:
     bool TurnOnMainShareSettings();
     bool TurnOffMainShareSettings();
