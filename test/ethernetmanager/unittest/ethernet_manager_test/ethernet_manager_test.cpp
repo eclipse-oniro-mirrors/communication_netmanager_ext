@@ -725,6 +725,11 @@ HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest001, TestSize.Level1)
 
     ret = devCallback.OnBandwidthReachedLimit("", IFACE);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    EthernetDhcpCallback::DhcpResult dhcp;
+    EthernetManagement::EhternetDhcpNotifyCallback ehternetDhcpNotifyCallback(ethernetManagement);
+    ret = ehternetDhcpNotifyCallback.OnDhcpSuccess(dhcp);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest002, TestSize.Level1)
@@ -772,6 +777,20 @@ HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest002, TestSize.Level1)
     int32_t activeStatus = 0;
     ret = ethernetManagement.IsIfaceActive(IFACE, activeStatus);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManagerBranchTest003, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    std::string iface = "";
+    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+
+    std::string devName = "";
+    ethernetManagement.DevInterfaceAdd(devName);
+    bool ret = ethernetManagement.IsIfaceLinkUp(iface);
+    EXPECT_FALSE(ret);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

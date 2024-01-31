@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,10 @@ constexpr const char *FILE_PATH = "./BUILD.gn";
 constexpr const char *DIR_PATH = "./BUILD.gn";
 std::string REAL_PATH = "./BUILD.gn";
 std::string FILE_CONTENT = "./BUILD.gn";
+constexpr const char *LAN_STATIC_KEY = "LAN_STATIC";
+constexpr const char *STATIC_KEY = "STATIC";
+constexpr const char *DHCP_KEY = "DHCP";
+constexpr const char *LAN_DHCP_KEY = "LAN_DHCP";
 } // namespace
 
 class EthernetConfigurationTest : public testing::Test {
@@ -119,6 +123,27 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration002, TestSize.Level1)
 
     ret = ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
     EXPECT_FALSE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration003, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "test";
+    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+
+    std::string result = ethernetConfiguration.GetIfaceMode(IPSetMode::LAN_STATIC);
+    EXPECT_TRUE(result == LAN_STATIC_KEY);
+
+    result = ethernetConfiguration.GetIfaceMode(IPSetMode::LAN_DHCP);
+    EXPECT_TRUE(result == LAN_DHCP_KEY);
+
+    result = ethernetConfiguration.GetIfaceMode(IPSetMode::STATIC);
+    EXPECT_TRUE(result == STATIC_KEY);
+
+    result = ethernetConfiguration.GetIfaceMode(IPSetMode::DHCP);
+    EXPECT_TRUE(result == DHCP_KEY);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
