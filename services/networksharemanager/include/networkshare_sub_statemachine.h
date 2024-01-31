@@ -118,6 +118,7 @@ private:
     bool GetUsbDestinationAddr(std::string &addrStr);
     bool CheckConfig(std::string &endIp, std::string &mask);
     bool FindDestinationAddr(std::string &destination);
+    std::recursive_mutex &getUsefulMutex();
 
 private:
     struct SubSmStateTable {
