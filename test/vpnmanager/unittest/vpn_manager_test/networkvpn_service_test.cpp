@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -200,6 +200,28 @@ HWTEST_F(NetworkVpnServiceTest, OnAddSystemAbility001, TestSize.Level1)
 
     instance_->OnAddSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
     EXPECT_FALSE(instance_->hasSARemoved_);
+}
+
+HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
+{
+    instance_->RecoverVpnConfig();
+    instance_->RegisterFactoryResetCallback();
+    instance_->StartAlwaysOnVpn();
+    instance_->SubscribeCommonEvent();
+    std::string pkg = "";
+    bool enable = false;
+    sptr<VpnConfig> vpnCfg = new (std::nothrow) VpnConfig();
+    ASSERT_TRUE(vpnCfg != nullptr);
+    if (vpnCfg != nullptr) {
+        instance_->SetAlwaysOnVpn(pkg, enable);
+        std::string jsonString = "";
+        instance_->ParseConfigToJson(vpnCfg, jsonString);
+        instance_->ParseJsonToConfig(vpnCfg, jsonString);
+    }
+    int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
+    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
+    ret = instance_->GetAlwaysOnVpn(pkg);
+    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -712,6 +712,44 @@ HWTEST_F(NetworkShareTrackerTest, OnChangeSharingState01, TestSize.Level1)
     NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
     NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
     EXPECT_EQ(NetworkShareTracker::GetInstance().clientRequestsVector_.size(), 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, NetworkShareTrackerBranchTest01, TestSize.Level1)
+{
+#ifdef BLUETOOTH_MODOULE
+    NetworkShareTracker::GetInstance().SetBluetoothState(Bluetooth::BTConnectState::CONNECTING);
+#endif
+
+    NetworkShareTracker::NetsysCallback callback;
+    std::string testString = "";
+    int testNumber = 0;
+    auto ret = callback.OnInterfaceAddressUpdated(testString, testString, testNumber, testNumber);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = callback.OnInterfaceAddressRemoved(testString, testString, testNumber, testNumber);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = callback.OnInterfaceAdded(testString);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = callback.OnInterfaceRemoved(testString);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = callback.OnInterfaceChanged(testString, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = callback.OnInterfaceLinkStateChanged(testString, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = callback.OnRouteChanged(false, testString, testString, testString);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    NetsysControllerCallback::DhcpResult dhcpResult;
+    ret = callback.OnDhcpSuccess(dhcpResult);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = callback.OnBandwidthReachedLimit(testString, testString);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
