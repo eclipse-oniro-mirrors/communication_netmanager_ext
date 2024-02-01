@@ -170,6 +170,11 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest002, TestSize.Level1)
     DevInterfaceState devInterfaceState;
     devInterfaceState.GetNetCaps();
 
+    sptr<NetLinkInfo> linkInfo = nullptr;
+    devInterfaceState.SetlinkInfo(linkInfo);
+    sptr<StaticConfiguration> config = new (std::nothrow) StaticConfiguration();
+    devInterfaceState.UpdateLanLinkInfo(config);
+
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
     ifCfg->mode_ = STATIC;
     devInterfaceState.SetLancfg(ifCfg);

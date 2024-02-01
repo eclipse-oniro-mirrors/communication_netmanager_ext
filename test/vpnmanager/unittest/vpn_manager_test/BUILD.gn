@@ -22,17 +22,21 @@ ohos_unittest("vpn_manager_test") {
     "extended_vpn_ctl_test.cpp",
     "net_vpn_impl_test.cpp",
     "networkvpn_client_test.cpp",
+    "networkvpn_service_stub_test.cpp",
     "networkvpn_service_test.cpp",
   ]
 
   include_dirs = [
     "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
+    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
     "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
+    "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
 
