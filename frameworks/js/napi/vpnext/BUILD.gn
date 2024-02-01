@@ -61,6 +61,7 @@ ohos_shared_library("vpnextension") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_data_share",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
   ]
