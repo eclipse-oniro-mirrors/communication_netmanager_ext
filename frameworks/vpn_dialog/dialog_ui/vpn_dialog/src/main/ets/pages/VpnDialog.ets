@@ -21,8 +21,6 @@ import vpnext from '@ohos.net.vpnExtension'
 import Want from '@ohos.app.ability.Want';
 import GlobalContext from "../MainAbility/GlobalContext.ts";
 
-
-
 // allow,notAllow button style
 @Extend(Text)
 function ControlBtn(fontColor: string) {
@@ -91,14 +89,18 @@ export default struct ConfirmDialog {
           .onClick(() => {
             let bundleName = globalThis.bundleName;
             let abilityName = globalThis.abilityName;
-            vpnext.updateVpnAuthorizedState(bundleName);
-            let want: Want = {
-              deviceId: "",
-              bundleName: bundleName,
-              abilityName: abilityName,
-            };
-            vpnext.startVpnExtensionAbility(want)
-            this.destruction()
+            if (bundleName == null || abilityName == null) {
+              this.destruction();
+            } else {
+              vpnext.updateVpnAuthorizedState(bundleName);
+              let want: Want = {
+                deviceId: "",
+                bundleName: bundleName,
+                abilityName: abilityName,
+              };
+              vpnext.startVpnExtensionAbility(want)
+              this.destruction()
+            }
           })
 
       }.margin({ bottom: 16, left: 24, right: 24})
@@ -106,9 +108,14 @@ export default struct ConfirmDialog {
   }
 
   destruction() {
-    this.controller.close();
-    globalThis.vpnWin.destroy()
-    globalThis.extensionContext.terminateSelf()
+    this.controller.close()
+    try {
+      globalThis.vpnWin.destroy()
+      globalThis.extensionContext.terminateSelf()
+    } catch {
+      console.info('Vpn ConfirmDialog destruction error!');
+    }
+    featureAbility.terminateSelf();
   }
 }
 
