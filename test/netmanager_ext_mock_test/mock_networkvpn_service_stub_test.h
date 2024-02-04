@@ -67,16 +67,6 @@ public:
     {
         return 0;
     }
-
-    int32_t SetAlwaysOnVpn(std::string &pkg, bool &enable)
-    {
-        return 0;
-    }
-
-    int32_t GetAlwaysOnVpn(std::string &pkg)
-    {
-        return 0;
-    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
