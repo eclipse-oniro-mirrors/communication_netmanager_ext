@@ -512,6 +512,11 @@ HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
     bool bIpv6 = true;
     ethernetDhcpController.StartClient(IFACE, bIpv6);
     ethernetDhcpController.StopClient(IFACE, bIpv6);
+
+    int32_t status = 0;
+    std::string ifname = "";
+    char *reason = nullptr;
+    ethernetDhcpController.OnDhcpFailed(status, ifname, reason);
     DhcpResult dhcpResult;
     ethernetDhcpController.OnDhcpSuccess(IFACE, &dhcpResult);
     ethernetDhcpController.cbObject_ = nullptr;
