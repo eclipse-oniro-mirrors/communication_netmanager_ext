@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,13 +21,13 @@
 #define protected public
 #endif
 
-#include "netmgr_ext_log_wrapper.h"
-#include "refbase.h"
-
 #include "mdns_client.h"
+#include "mdns_client_resume.h"
 #include "mdns_common.h"
 #include "mdns_event_stub.h"
-#include "mdns_client_resume.h"
+#include "mock_i_discovery_callback_test.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -423,6 +423,28 @@ HWTEST_F(MDnsServerTest, MDnsCommonTest003, TestSize.Level1)
     ExtractNameAndType(instance1, name, type);
     EXPECT_EQ(name, "_x");
     EXPECT_EQ(type, "_y._tcp");
+}
+
+HWTEST_F(MDnsServerTest, MDnsServerBranchTest001, TestSize.Level1)
+{
+    std::string serviceType = "test";
+    sptr<IDiscoveryCallback> callback = new (std::nothrow) MockIDiscoveryCallbackTest();
+    EXPECT_TRUE(callback != nullptr);
+    if (callback == nullptr) {
+        return;
+    }
+    auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(serviceType, callback);
+    EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+
+    ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(callback);
+    EXPECT_EQ(ret, NET_MDNS_ERR_CALLBACK_NOT_FOUND);
+
+    callback = nullptr;
+    ret = DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(serviceType, callback);
+    EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+
+    ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(callback);
+    EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

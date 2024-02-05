@@ -20,6 +20,10 @@
 #endif
 #include "sharing_event_callback_stub.h"
 #include "networkshare_tracker.h"
+#ifdef BLUETOOTH_MODOULE
+#include "bluetooth_pan.h"
+#include "bluetooth_remote_device.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -750,6 +754,18 @@ HWTEST_F(NetworkShareTrackerTest, NetworkShareTrackerBranchTest01, TestSize.Leve
 
     ret = callback.OnBandwidthReachedLimit(testString, testString);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+#ifdef BLUETOOTH_MODOULE
+    std::shared_ptr<NetworkShareTracker::SharingPanObserver> observer =
+        std::make_shared<NetworkShareTracker::SharingPanObserver>();
+    Bluetooth::BluetoothRemoteDevice device;
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTING));
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTED));
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTING));
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTED));
+    int32_t invalidValue = 100;
+    observer->OnConnectionStateChanged(device, invalidValue);
+#endif
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

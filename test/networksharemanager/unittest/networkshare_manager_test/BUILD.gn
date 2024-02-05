@@ -29,6 +29,7 @@ ohos_unittest("networkshare_manager_test") {
     "networkshare_main_statemachine_test.cpp",
     "networkshare_manager_test.cpp",
     "networkshare_request_parcel_test.cpp",
+    "networkshare_service_stub_test.cpp",
     "networkshare_service_test.cpp",
     "networkshare_sub_statemachine_test.cpp",
     "networkshare_tracker_test.cpp",
@@ -50,6 +51,7 @@ ohos_unittest("networkshare_manager_test") {
     "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/stub",
+    "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$THIRD_PARTY_ROOT/openssl/include",
     "$USB_MANAGER_ROOT/utils/native/include",
@@ -64,6 +66,9 @@ ohos_unittest("networkshare_manager_test") {
       "$WIFI_MANAGER_ROOT/interfaces/kits/c",
       "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
     ]
+  }
+  if (communication_bluetooth_switch_enable) {
+    defines += [ "BLUETOOTH_MODOULE" ]
   }
 
   deps = [
