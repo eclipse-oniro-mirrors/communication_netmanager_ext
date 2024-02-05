@@ -264,6 +264,30 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     return true;
 }
 
+std::vector<INetAddr> EthernetConfiguration::GetGatewayFromMap(const std::unordered_map<std::string, INetAddr> &temp)
+{
+    std::vector<INetAddr> t;
+    for (auto [k, v] : temp) {
+        t.push_back(v);
+    }
+    return t;
+}
+
+std::vector<INetAddr> EthernetConfiguration::GetGatewayFromRouteList(std::list<Route> &routeList)
+{
+    std::unordered_map<std::string, INetAddr> temp;
+    for (const auto &route : routeList) {
+        temp.emplace(route.gateway_.address_, route.gateway_);
+    }
+    auto temp2 = temp;
+    temp.erase(DEFAULT_IPV4_ADDR);
+    temp.erase(DEFAULT_IPV6_ADDR);
+    if (temp.size() > 0) {
+        return GetGatewayFromMap(temp);
+    }
+    return GetGatewayFromMap(temp2);
+}
+
 sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
     const sptr<InterfaceConfiguration> &devCfg, const sptr<NetLinkInfo> &devLinkInfo)
 {
@@ -290,8 +314,8 @@ sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
     }
     for (const auto &route : devLinkInfo->routeList_) {
         cfg->ipStatic_.routeList_.push_back(route.destination_);
-        cfg->ipStatic_.gatewayList_.push_back(route.gateway_);
     }
+    cfg->ipStatic_.gatewayList_ = GetGatewayFromRouteList(devLinkInfo->routeList_);
 
     cfg->ipStatic_.domain_ = devLinkInfo->domain_;
     for (const auto &addr : devLinkInfo->dnsList_) {
