@@ -43,8 +43,8 @@ public:
 public:
     EthernetDhcpController() : dhcpResultNotify_(std::make_unique<EthernetDhcpControllerResultNotify>())
     {
-        clientEvent.OnIpSuccessChanged = nullptr;
-        clientEvent.OnIpFailChanged = nullptr;
+        clientEvent.OnIpSuccessChanged = EthernetDhcpControllerResultNotify::OnSuccess;
+        clientEvent.OnIpFailChanged = EthernetDhcpControllerResultNotify::OnFailed;
     }
     ~EthernetDhcpController() = default;
     void RegisterDhcpCallback(sptr<EthernetDhcpCallback> callback);
