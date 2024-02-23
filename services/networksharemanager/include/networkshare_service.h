@@ -122,8 +122,6 @@ private:
     void GetSharingType(const SharingIfaceType &type, const std::string &typeContent, std::string &sharingType);
     void GetShareRegexsContent(const SharingIfaceType &type, std::string &shareRegexsContent);
 
-    int32_t UpdateDataSharingType(const SharingIfaceType &type, bool isOpen);
-
     void OnNetSysRestart();
 	
 private:

@@ -19,10 +19,10 @@
 #include "net_manager_center.h"
 #include "net_manager_constants.h"
 #include "netmanager_base_permission.h"
-#include "net_datashare_utils_iface.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
 #include "system_ability_definition.h"
+#include "netsys_controller.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -161,32 +161,6 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
     return NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
 }
 
-int32_t NetworkShareService::UpdateDataSharingType(const SharingIfaceType &type, bool isOpen)
-{
-    int32_t ret = NETMANAGER_ERROR;
-    switch (type) {
-        case SharingIfaceType::SHARING_WIFI:
-            ret = NetDataShareHelperUtilsIface::Update(SHARING_WIFI_URI, KEY_SHARING_WIFI,
-                                                       std::to_string(isOpen));
-            break;
-        case SharingIfaceType::SHARING_USB:
-            ret = NetDataShareHelperUtilsIface::Update(SHARING_USB_URI, KEY_SHARING_USB,
-                                                       std::to_string(isOpen));
-            break;
-        case SharingIfaceType::SHARING_BLUETOOTH:
-            ret = NetDataShareHelperUtilsIface::Update(SHARING_BLUETOOTH_URI, KEY_SHARING_BLUETOOTH,
-                                                       std::to_string(isOpen));
-            break;
-        default:
-            break;
-    }
-    if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("Update sharetype:[%{public}d]to datashare failed", static_cast<int32_t>(type));
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    return ret;
-}
-
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
     NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
@@ -198,7 +172,7 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        ret = UpdateDataSharingType(type, true);
+        ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
     }
     return ret;
 }
@@ -214,7 +188,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        ret = UpdateDataSharingType(type, false);
+        ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
     }
 
     return ret;
