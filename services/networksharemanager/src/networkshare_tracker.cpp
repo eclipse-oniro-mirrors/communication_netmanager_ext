@@ -212,10 +212,9 @@ void NetworkShareTracker::RecoverSharingType()
             clientRequestsVector_.push_back(static_cast<SharingIfaceType>(mem));
             NETMGR_EXT_LOG_D("clientRequestsVector_.push_back = [%{public}d]", clientRequestsVector_[0]);
         }
-        NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}zu]", clientRequestsVector_.size());
-        return;
+        NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}zu], ret = [%{public}d]",
+                         clientRequestsVector_.size(), ret);
     }
-    NETMGR_EXT_LOG_I("don't need recover");
 }
 
 bool NetworkShareTracker::Init()
