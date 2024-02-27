@@ -211,7 +211,7 @@ void NetworkShareTracker::RecoverSharingType()
         clientRequestsVector_.clear();
         for (auto mem : sharingTypeIsOn) {
             clientRequestsVector_.push_back(static_cast<SharingIfaceType>(mem));
-            NETMGR_EXT_LOG_D("clientRequestsVector_.push_back = [%{public}lu]", mem);
+            NETMGR_EXT_LOG_D("clientRequestsVector_.push_back = [%{public}u]", mem);
         }
         NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}zu], ret = [%{public}d]",
                          clientRequestsVector_.size(), ret);
