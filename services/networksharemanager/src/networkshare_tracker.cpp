@@ -205,12 +205,13 @@ NetworkShareTracker &NetworkShareTracker::GetInstance()
 void NetworkShareTracker::RecoverSharingType()
 {
     NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType in");
-    std::vector<uint32_t> sharingTypeIsOn;
+    std::set<uint32_t> sharingTypeIsOn;
     int32_t ret = NetsysController::GetInstance().GetNetworkSharingType(sharingTypeIsOn);
     if (ret == NETMANAGER_EXT_SUCCESS) {
+        clientRequestsVector_.clear();
         for (auto mem : sharingTypeIsOn) {
             clientRequestsVector_.push_back(static_cast<SharingIfaceType>(mem));
-            NETMGR_EXT_LOG_D("clientRequestsVector_.push_back = [%{public}d]", clientRequestsVector_[0]);
+            NETMGR_EXT_LOG_D("clientRequestsVector_.push_back = [%{public}lu]", mem);
         }
         NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}zu], ret = [%{public}d]",
                          clientRequestsVector_.size(), ret);
