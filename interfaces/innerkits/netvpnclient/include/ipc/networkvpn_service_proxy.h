@@ -36,6 +36,7 @@ public:
     int32_t UnregisterVpnEvent(sptr<IVpnEventCallback> callback) override;
     int32_t CreateVpnConnection(bool isVpnExtCall = false) override;
     int32_t FactoryResetVpn() override;
+    int32_t RegisterBundleName(const std::string &bundleName) override;
 
 private:
     int32_t WriteTokenAndSendRequest(INetworkVpnService::MessageCode code, MessageParcel &data, MessageParcel &reply);

@@ -43,7 +43,8 @@ public:
         CMD_START_VPN_EXT, // for start extension extended vpn
         CMD_PROTECT_EXT,
         CMD_STOP_VPN_EXT,
-        CMD_CREATE_VPN_CONNECTION_EXT
+        CMD_CREATE_VPN_CONNECTION_EXT,
+        CMD_REGISTER_BUNDLENAME
     };
 
 public:
@@ -55,6 +56,7 @@ public:
     virtual int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
     virtual int32_t CreateVpnConnection(bool isVpnExtCall = false) = 0;
     virtual int32_t FactoryResetVpn() = 0;
+    virtual int32_t RegisterBundleName(const std::string &bundleName) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");
 };

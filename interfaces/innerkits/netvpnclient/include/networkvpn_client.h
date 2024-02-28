@@ -126,6 +126,7 @@ public:
      * close the tunfd of vpn interface and unregister VpnEvent.
      */
     void multiUserSetUpEvent();
+    int32_t RegisterBundleName(const std::string &bundleName);
 
 private:
     class MonitorVpnServiceDead : public IRemoteObject::DeathRecipient {

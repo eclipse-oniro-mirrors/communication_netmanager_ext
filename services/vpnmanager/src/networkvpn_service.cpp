@@ -51,6 +51,7 @@ namespace NetManagerStandard {
 constexpr int32_t MAX_CALLBACK_COUNT = 128;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 constexpr const char* VPN_CONFIG_FILE = "/data/service/el1/public/netmanager/vpn_config.json";
+constexpr const char* VPN_EXTENSION_LABEL = ":vpn";
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL = 500;
@@ -127,7 +128,7 @@ bool NetworkVpnService::Init()
         policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
         policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(policyCallRunner_);
     }
-
+    vpnHapObserver_ = new VpnHapObserver(*this);
     RegisterFactoryResetCallback();
     return true;
 }
@@ -468,8 +469,14 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
         NETMGR_EXT_LOG_E("SetUpVpn register internal callback fail.");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
     ret = vpnObj_->SetUp();
+    if (ret == NETMANAGER_EXT_SUCCESS && !vpnBundleName_.empty()) {
+        std::vector<std::string> list = {vpnBundleName_, vpnBundleName_.append(VPN_EXTENSION_LABEL)};
+        auto regRet = Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver
+            (vpnHapObserver_, list);
+        NETMGR_EXT_LOG_I("vpnHapOberver RegisterApplicationStateObserver ret = %{public}d", regRet);
+    }
+    NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
     return ret;
 }
 
@@ -500,6 +507,8 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     vpnObj_ = nullptr;
     // remove vpn config
     remove(VPN_CONFIG_FILE);
+    vpnBundleName_ = "";
+
     NETMGR_EXT_LOG_I("Destroy vpn successfully.");
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -759,6 +768,38 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
         vpnService_.StartAlwaysOnVpn();
     }
+}
+
+int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName)
+{
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    NETMGR_EXT_LOG_I("VpnService RegisterBundleName %{public}s", bundleName.c_str());
+    vpnBundleName_ = bundleName;
+    return 0;
+}
+
+void NetworkVpnService::VpnHapObserver::OnExtensionStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
+{
+    NETMGR_EXT_LOG_I("VPN HAP is OnExtensionStateChanged");
+}
+
+void NetworkVpnService::VpnHapObserver::OnProcessCreated(const AppExecFwk::ProcessData &processData)
+{
+    NETMGR_EXT_LOG_I("VPN HAP is OnProcessCreated");
+}
+void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::ProcessData &processData)
+{
+    NETMGR_EXT_LOG_I("VPN HAP is OnProcessStateChanged");
+}
+void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
+{
+    std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
+    if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
+        NETMGR_EXT_LOG_E("destroy vpn is failed");
+    }
+    vpnService_.vpnObj_ = nullptr;
+    vpnService_.vpnBundleName_ = "";
+    NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied");
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
