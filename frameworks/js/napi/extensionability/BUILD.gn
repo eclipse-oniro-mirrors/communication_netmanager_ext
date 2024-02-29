@@ -35,6 +35,14 @@ gen_js_obj("vpn_extension_ability_abc") {
 }
 
 ohos_shared_library("vpnextensionability_napi") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [ "vpn_extension_ability_module.cpp" ]
 
   deps = [
@@ -50,6 +58,14 @@ ohos_shared_library("vpnextensionability_napi") {
 }
 
 ohos_shared_library("vpnextensionability") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [ "vpn_extension_ability_module.cpp" ]
 
   deps = [

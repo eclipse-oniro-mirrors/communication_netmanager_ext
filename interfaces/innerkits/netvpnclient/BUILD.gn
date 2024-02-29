@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -54,6 +54,14 @@ config("net_conn_manager_if_config") {
 }
 
 ohos_source_set("networkvpn_parcel") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [ "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp" ]
 
   include_dirs = [
@@ -76,6 +84,14 @@ ohos_source_set("networkvpn_parcel") {
 }
 
 ohos_shared_library("net_vpn_manager_if") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [
     "$VPN_INNERKITS_SOURCE_DIR/src/ipc/networkvpn_service_proxy.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/ipc/vpn_event_callback_stub.cpp",

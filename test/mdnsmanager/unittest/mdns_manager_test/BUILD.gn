@@ -16,6 +16,14 @@ import("//build/test.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 ohos_unittest("mdns_manager_test") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   module_out_path = "netmanager_ext/mdns_manager_test"
 
   sources = [ "mdns_manager_test.cpp" ]

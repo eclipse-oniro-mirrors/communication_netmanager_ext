@@ -35,6 +35,14 @@ gen_js_obj("vpn_extension_context_abc") {
 }
 
 ohos_shared_library("vpnextensioncontext_napi") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [ "vpn_extension_context_module.cpp" ]
 
   deps = [
