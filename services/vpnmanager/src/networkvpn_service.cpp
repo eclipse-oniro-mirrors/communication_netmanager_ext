@@ -472,8 +472,8 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
     ret = vpnObj_->SetUp();
     if (ret == NETMANAGER_EXT_SUCCESS && !vpnBundleName_.empty()) {
         std::vector<std::string> list = {vpnBundleName_, vpnBundleName_.append(VPN_EXTENSION_LABEL)};
-        auto regRet = Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver
-            (vpnHapObserver_, list);
+        auto regRet =
+            Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver_, list);
         NETMGR_EXT_LOG_I("vpnHapOberver RegisterApplicationStateObserver ret = %{public}d", regRet);
     }
     NETMGR_EXT_LOG_I("NetworkVpnService SetUp");

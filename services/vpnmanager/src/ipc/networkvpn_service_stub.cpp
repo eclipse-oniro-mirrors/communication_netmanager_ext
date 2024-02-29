@@ -186,11 +186,11 @@ int32_t NetworkVpnServiceStub::ReplyFactoryResetVpn(MessageParcel &data, Message
 int32_t NetworkVpnServiceStub::ReplyRegisterBundleName(MessageParcel &data, MessageParcel &reply)
 {
     std::string bundleName;
-    if(!data.ReadString(bundleName)){
+    if (!data.ReadString(bundleName)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
-    int32_t result = RegisterBundleName(bundleName);
 
+    int32_t result = RegisterBundleName(bundleName);
     if (!reply.WriteInt32(result)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }

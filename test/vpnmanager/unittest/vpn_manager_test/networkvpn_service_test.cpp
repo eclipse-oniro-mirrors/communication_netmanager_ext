@@ -226,7 +226,7 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
 {
-    AppExecFwk::ProcessData data = nullptr;
+    AppExecFwk::ProcessData data;
     instance_->vpnHapObserver_->OnProcessDied(data);
     EXPECT_TRUE(instance_->vpnBundleName_.empty());
 }
