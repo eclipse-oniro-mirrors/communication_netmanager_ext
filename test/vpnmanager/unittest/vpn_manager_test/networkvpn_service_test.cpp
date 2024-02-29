@@ -28,6 +28,7 @@
 #include "net_manager_constants.h"
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
