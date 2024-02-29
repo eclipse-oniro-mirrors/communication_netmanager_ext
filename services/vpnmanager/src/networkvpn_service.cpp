@@ -57,10 +57,7 @@ constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL = 500;
 constexpr uint32_t MAX_RETRY_TIMES = 10;
 
 const bool REGISTER_LOCAL_RESULT_NETVPN =
-    SystemAbility::MakeAndRegisterAbility(&Singleton<NetworkVpnService>::GetInstance());
-
-NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
-NetworkVpnService::~NetworkVpnService() = default;
+    SystemAbility::MakeAndRegisterAbility(new NetworkVpnService(COMM_VPN_MANAGER_SYS_ABILITY_ID, true));
 
 void NetworkVpnService::OnStart()
 {
@@ -109,7 +106,7 @@ bool NetworkVpnService::Init()
         return false;
     }
     if (!isServicePublished_) {
-        if (!Publish(&Singleton<NetworkVpnService>::GetInstance())) {
+        if (!Publish(this)) {
             NETMGR_EXT_LOG_E("Register to sa manager failed");
             return false;
         }

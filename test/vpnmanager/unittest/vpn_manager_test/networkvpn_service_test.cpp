@@ -48,7 +48,7 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    static inline auto instance_ = &Singleton<NetworkVpnService>::GetInstance();
+    static inline auto instance_ = new NetworkVpnService(COMM_VPN_MANAGER_SYS_ABILITY_ID, true);
     static inline sptr<IVpnEventCallback> eventCallback_ = nullptr;
 };
 

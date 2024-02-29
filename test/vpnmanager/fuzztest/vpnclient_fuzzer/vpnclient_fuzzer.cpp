@@ -23,6 +23,7 @@
 #include "netmanager_ext_test_security.h"
 #include "networkvpn_service.h"
 #include "refbase.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -33,6 +34,7 @@ constexpr size_t STR_LEN = 16;
 size_t g_baseFuzzPos = 0;
 size_t g_baseFuzzSize = 0;
 const uint8_t *g_baseFuzzData = nullptr;
+auto g_instance = new NetworkVpnService(COMM_VPN_MANAGER_SYS_ABILITY_ID, true);
 } // namespace
 
 bool InitGlobalData(const uint8_t *data, size_t size)
@@ -106,8 +108,7 @@ int32_t OnRemoteRequest(INetworkVpnService::MessageCode code, MessageParcel &dat
 {
     MessageParcel reply;
     MessageOption option;
-    return Singleton<NetworkVpnService>::GetInstance().OnRemoteRequest(static_cast<uint32_t>(code), data, reply,
-                                                                       option);
+    return g_instance->OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
 }
 
 void PrepareFuzzTest(const uint8_t *data, size_t size)
