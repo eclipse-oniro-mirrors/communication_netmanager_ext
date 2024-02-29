@@ -178,5 +178,12 @@ HWTEST_F(NetworkVpnClientTest, NetworkVpnClientBranch001, TestSize.Level1)
     auto ret = networkVpnClient_.CreateVpnConnection();
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnClientTest, RegisterBundleName001, TestSize.Level1)
+{
+    std::string bundleName = "com.test.test";
+    auto ret = networkVpnClient_.RegisterBundleName(bundleName);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

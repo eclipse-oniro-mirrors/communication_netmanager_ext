@@ -223,5 +223,12 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
     ret = instance_->GetAlwaysOnVpn(pkg);
     EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
 }
+
+HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
+{
+    AppExecFwk::ProcessData data = nullptr;
+    instance_->vpnHapObserver_->OnProcessDied(data);
+    EXPECT_TRUE(instance_->vpnBundleName_.empty());
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
