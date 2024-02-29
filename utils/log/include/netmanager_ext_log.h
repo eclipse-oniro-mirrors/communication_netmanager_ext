@@ -26,7 +26,7 @@
 #include "hilog/log.h"
 
 #undef LOG_TAG
-#define LOG_TAG "NETMANAGER_EXT_1"
+#define LOG_TAG "NETMANAGER_EXT"
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD0015B0
@@ -76,10 +76,8 @@ static void NetManagerStandardPrintLog(const char *fmt, ...)
     fflush(stdout);
 }
 
-#undef LOG_TAG
-#define LOG_TAG "NETMANAGER_EXT_2"
 #define NETMANAGER_EXT_HILOG_PRINT(Level, fmt, ...) \
-    NetManagerStandardPrintLog("%s [%s %d] " fmt, #Level, MAKE_FILE_NAME, __LINE__, ##__VA_ARGS__)
+    NetManagerStandardPrintLog("NETMANAGER_EXT %s [%s %d] " fmt, #Level, MAKE_FILE_NAME, __LINE__, ##__VA_ARGS__)
 
 #define NETMANAGER_EXT_LOGE(fmt, ...) NETMANAGER_EXT_HILOG_PRINT(Error, fmt, ##__VA_ARGS__)
 
