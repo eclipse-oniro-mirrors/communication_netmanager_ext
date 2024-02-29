@@ -28,6 +28,7 @@
 #include "net_manager_constants.h"
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
+#include <memory>
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -48,7 +49,7 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    static inline auto instance_ = new NetworkVpnService(COMM_VPN_MANAGER_SYS_ABILITY_ID, true);
+    static inline auto instance_ = std::make_shared<NetworkVpnService>(COMM_VPN_MANAGER_SYS_ABILITY_ID, true);
     static inline sptr<IVpnEventCallback> eventCallback_ = nullptr;
 };
 
