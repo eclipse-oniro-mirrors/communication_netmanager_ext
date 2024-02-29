@@ -42,6 +42,9 @@ class NetworkVpnService : public SystemAbility,
                           protected std::enable_shared_from_this<NetworkVpnService> {
     DECLARE_SYSTEM_ABILITY(NetworkVpnService)
 
+    NetworkVpnService();
+    virtual ~NetworkVpnService();
+
     enum ServiceRunningState {
         STATE_STOPPED = 0,
         STATE_RUNNING,
