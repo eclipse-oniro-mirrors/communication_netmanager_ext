@@ -163,7 +163,7 @@ int32_t NetworkVpnClient::CreateVpnConnection(bool isVpnExtCall)
 
 int32_t NetworkVpnClient::RegisterBundleName(const std::string &bundleName)
 {
-    NETMGR_EXT_LOG_E("VpnClient::RegisterBundleName is %{public}s", bundleName.c_str());
+    NETMGR_EXT_LOG_D("VpnClient::RegisterBundleName is %{public}s", bundleName.c_str());
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("CreateVpnConnection proxy is nullptr");

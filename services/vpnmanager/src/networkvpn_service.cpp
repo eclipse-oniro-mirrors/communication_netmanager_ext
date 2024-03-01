@@ -787,15 +787,17 @@ void NetworkVpnService::VpnHapObserver::OnProcessCreated(const AppExecFwk::Proce
 {
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessCreated");
 }
+
 void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::ProcessData &processData)
 {
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessStateChanged");
 }
+
 void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
 {
     std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
     if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
-        NETMGR_EXT_LOG_E("destroy vpn is failed");
+        NETMGR_EXT_LOG_E("destroy vpn failed");
     }
     vpnService_.vpnObj_ = nullptr;
     vpnService_.vpnBundleName_ = "";
