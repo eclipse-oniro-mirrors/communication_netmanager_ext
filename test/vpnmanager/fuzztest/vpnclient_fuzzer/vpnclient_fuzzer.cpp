@@ -106,8 +106,7 @@ int32_t OnRemoteRequest(INetworkVpnService::MessageCode code, MessageParcel &dat
 {
     MessageParcel reply;
     MessageOption option;
-    return Singleton<NetworkVpnService>::GetInstance().OnRemoteRequest(static_cast<uint32_t>(code), data, reply,
-                                                                       option);
+    return NetworkVpnService::GetInstance().OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
 }
 
 void PrepareFuzzTest(const uint8_t *data, size_t size)

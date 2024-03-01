@@ -16,6 +16,7 @@
 #ifndef NETWORK_VPN_SERVICE_H
 #define NETWORK_VPN_SERVICE_H
 
+#include <memory>
 #include "event_handler.h"
 #include "i_vpn_conn_state_cb.h"
 #include "net_vpn_impl.h"
@@ -36,9 +37,11 @@ constexpr const char *KEY_ALWAYS_ON_VPN = "settings.netmanager.always_on_vpn";
 
 } // namespace
 using namespace OHOS::EventFwk;
-class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub {
-    DECLARE_SINGLETON(NetworkVpnService)
+class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, protected NoCopyable {
     DECLARE_SYSTEM_ABILITY(NetworkVpnService)
+
+    NetworkVpnService();
+    virtual ~NetworkVpnService();
 
     enum ServiceRunningState {
         STATE_STOPPED = 0,
@@ -75,6 +78,11 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub {
     };
 
 public:
+    static NetworkVpnService &GetInstance()
+    {
+        static NetworkVpnService instance;
+        return instance;
+    }
     /**
      * service start
      */
