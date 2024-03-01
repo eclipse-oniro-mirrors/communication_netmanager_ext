@@ -109,7 +109,7 @@ bool NetworkVpnService::Init()
         return false;
     }
     if (!isServicePublished_) {
-        if (!Publish(this)) {
+        if (!Publish(&NetworkVpnService::GetInstance())) {
             NETMGR_EXT_LOG_E("Register to sa manager failed");
             return false;
         }
