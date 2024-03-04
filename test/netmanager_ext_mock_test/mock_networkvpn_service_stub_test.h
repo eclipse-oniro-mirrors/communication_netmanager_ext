@@ -67,6 +67,11 @@ public:
     {
         return 0;
     }
+
+    int32_t RegisterBundleName(const std::string &bundleName) override
+    {
+        return 0;
+    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

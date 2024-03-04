@@ -220,6 +220,31 @@ int32_t NetworkVpnServiceProxy::CreateVpnConnection(bool isVpnExtCall)
     return result;
 }
 
+int32_t NetworkVpnServiceProxy::RegisterBundleName(const std::string &bundleName)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("write interface token failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(bundleName)) {
+        NETMGR_EXT_LOG_E("RegisterVpnEvent proxy write callback failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+
+    MessageParcel reply;
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME, data, reply);
+    if (ERR_NONE != ret) {
+        NETMGR_EXT_LOG_E("RegisterVpnEvent proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    if (!reply.ReadInt32(result)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return result;
+}
+
 int32_t NetworkVpnServiceProxy::FactoryResetVpn()
 {
     return NETMANAGER_EXT_SUCCESS;

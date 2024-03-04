@@ -47,6 +47,8 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         "", &NetworkVpnServiceStub::ReplyProtect};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_STOP_VPN_EXT] = {
         "", &NetworkVpnServiceStub::ReplyDestroyVpn};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME] = {
+        "", &NetworkVpnServiceStub::ReplyRegisterBundleName};
 }
 
 int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
@@ -71,10 +73,8 @@ int32_t NetworkVpnServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &dat
     }
     auto itr = permissionAndFuncMap_.find(static_cast<INetworkVpnService::MessageCode>(code));
     if (itr != permissionAndFuncMap_.end()) {
-        if (itr->first == INetworkVpnService::MessageCode::CMD_START_VPN_EXT ||
-            itr->first == INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION_EXT ||
-            itr->first == INetworkVpnService::MessageCode::CMD_PROTECT_EXT ||
-            itr->first == INetworkVpnService::MessageCode::CMD_STOP_VPN_EXT) {
+        if (itr->first >= INetworkVpnService::MessageCode::CMD_START_VPN_EXT &&
+                itr->first <= INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME) {
             NETMGR_EXT_LOG_I("enter OnRemoteRequest code %{public}d:", code);
             auto serviceFunc = itr->second.serviceFunc;
             if (serviceFunc != nullptr) {
@@ -180,6 +180,20 @@ int32_t NetworkVpnServiceStub::ReplyCreateVpnConnection(MessageParcel &data, Mes
 
 int32_t NetworkVpnServiceStub::ReplyFactoryResetVpn(MessageParcel &data, MessageParcel &reply)
 {
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyRegisterBundleName(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName;
+    if (!data.ReadString(bundleName)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+
+    int32_t result = RegisterBundleName(bundleName);
+    if (!reply.WriteInt32(result)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard

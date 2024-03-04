@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,8 @@
 #include "common_event_manager.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
+#include "application_state_observer_stub.h"
+#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -210,6 +212,23 @@ private:
     };
 
     sptr<INetFactoryResetCallback> netFactoryResetCallback_ = nullptr;
+
+public:
+    int32_t RegisterBundleName(const std::string &bundleName) override;
+    class VpnHapObserver : public AppExecFwk::ApplicationStateObserverStub {
+    public:
+        explicit VpnHapObserver(NetworkVpnService &vpnService) : vpnService_(vpnService){};
+        virtual ~VpnHapObserver() = default;
+        void OnExtensionStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override ;
+        void OnProcessCreated(const AppExecFwk::ProcessData &processData) override ;
+        void OnProcessStateChanged(const AppExecFwk::ProcessData &processData) override ;
+        void OnProcessDied(const AppExecFwk::ProcessData &processData) override ;
+    private:
+        NetworkVpnService& vpnService_;
+    };
+private:
+    sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
+    std::string vpnBundleName_ = "";
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

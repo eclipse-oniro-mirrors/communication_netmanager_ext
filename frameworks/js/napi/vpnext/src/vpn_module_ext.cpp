@@ -95,6 +95,8 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     }
 
     std::string bundleName = want.GetElement().GetBundleName();
+    int32_t rst = NetworkVpnClient::GetInstance().RegisterBundleName(bundleName);
+    NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
     std::string abilityName = want.GetElement().GetAbilityName();
     if (abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
         bool vpnDialogSelect = false;
