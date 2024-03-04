@@ -26,6 +26,8 @@
 #include "mdns_common.h"
 #include "mdns_event_stub.h"
 #include "mock_i_discovery_callback_test.h"
+#include "net_conn_client.h"
+#include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 
@@ -199,6 +201,12 @@ struct MdnsClientTestParams {
 
 void DoTestForMdnsClient(MdnsClientTestParams param)
 {
+    NetManagerExtAccessToken token;
+    bool flag = false;
+    NetConnClient::GetInstance().HasDefaultNet(flag);
+    if (!flag) {
+        return;
+    }
     std::unique_lock<std::mutex> lock(g_mtx);
     DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(param.info, param.registration);
     DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(param.infoBack, param.registrationBack);
