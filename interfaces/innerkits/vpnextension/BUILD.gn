@@ -51,6 +51,14 @@ config("net_vpn_extension_if_config") {
 }
 
 ohos_shared_library("vpn_extension") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   sources = [
     "$ABILITY_RUNTIME_PATH/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp",
     "$VPN_EXTENSION_SOURCE_DIR/src/js_vpn_extension.cpp",
@@ -121,6 +129,14 @@ ohos_shared_library("vpn_extension") {
 }
 
 ohos_shared_library("vpn_extension_module") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
   include_dirs =
       [ "$VPN_EXTENSION_SOURCE_DIR/interfaces/innerkits/vpnextension" ]
 
