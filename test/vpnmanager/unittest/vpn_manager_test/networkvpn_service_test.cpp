@@ -227,6 +227,10 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
 {
     AppExecFwk::ProcessData data;
+    instance_->vpnHapObserver_ = new NetworkVpnService::VpnHapObserver(*instance_);
+    if (instance_->vpnHapObserver_ == nullptr) {
+        return;
+    }
     instance_->vpnHapObserver_->OnProcessDied(data);
     EXPECT_TRUE(instance_->vpnBundleName_.empty());
 }
