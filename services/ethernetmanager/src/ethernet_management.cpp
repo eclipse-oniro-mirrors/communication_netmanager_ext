@@ -80,8 +80,7 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceChanged(const 
 
 int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
 {
-    NETMGR_EXT_LOG_I("DevInterfaceStateCallback::OnInterfaceLinkStateChanged iface[%{public}s] up[%{public}d]",
-                     ifName.c_str(), up);
+    NETMGR_EXT_LOG_I("OnInterfaceLinkStateChanged iface[%{public}s] up[%{public}d]", ifName.c_str(), up);
     std::regex re(IFACE_MATCH);
     if (std::regex_search(ifName, re)) {
         ethernetManagement_.UpdateInterfaceState(ifName, up);

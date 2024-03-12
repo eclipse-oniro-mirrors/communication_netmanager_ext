@@ -286,7 +286,7 @@ int32_t NetworkShareService::GetStatsTotalBytes(int32_t &bytes)
 
 void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
-    NETMGR_EXT_LOG_D("NetworkShareService::OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    NETMGR_EXT_LOG_D("OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         if (hasSARemoved_) {
             OnNetSysRestart();
@@ -297,7 +297,7 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
 
 void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
-    NETMGR_EXT_LOG_D("NetworkShareService::OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    NETMGR_EXT_LOG_D("OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         hasSARemoved_ = true;
     }
@@ -305,7 +305,7 @@ void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const s
 
 void NetworkShareService::OnNetSysRestart()
 {
-    NETMGR_EXT_LOG_I("NetworkShareService::OnNetSysRestart");
+    NETMGR_EXT_LOG_I("OnNetSysRestart");
     NetworkShareTracker::GetInstance().RestartResume();
 }
 } // namespace NetManagerStandard
