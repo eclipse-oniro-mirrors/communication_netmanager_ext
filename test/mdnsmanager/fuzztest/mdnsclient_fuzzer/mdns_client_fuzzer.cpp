@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,14 +17,16 @@
 
 #include <cstddef>
 #include <cstdint>
-
-#include "message_parcel.h"
-#include "refbase.h"
 #include <securec.h>
 
 #include "i_mdns_event.h"
+#include "iservice_registry.h"
+#include "message_parcel.h"
 #include "net_manager_ext_constants.h"
+#include "refbase.h"
+#include "system_ability_definition.h"
 #define private public
+#include "mdns_client.h"
 #include "mdns_service.h"
 #undef private
 
@@ -227,6 +229,54 @@ void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
 
     OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE), dataParcel);
 }
+
+void MdnsRegisterServiceFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    MDnsServiceInfo serviceInfo;
+    std::string name(reinterpret_cast<const char *>(data), size);
+    serviceInfo.name =name;
+    serviceInfo.port =  static_cast<int32_t>(size % STR_LEN);
+    sptr<IRegistrationCallbackTest> callback = new (std::nothrow) IRegistrationCallbackTest();
+    if (callback == nullptr) {
+        return;
+    }
+    DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(serviceInfo, callback);
+    DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(callback);
+}
+
+void MdnsStartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    sptr<IDiscoveryCallbackTest> callback = new (std::nothrow) IDiscoveryCallbackTest();
+    if (callback == nullptr) {
+        return;
+    }
+    std::string serviceType(reinterpret_cast<const char *>(data), size);
+    DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(serviceType, callback);
+    DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(callback);
+}
+
+void MdnsResolveServiceFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    sptr<IResolveCallbackTest> callback = new (std::nothrow) IResolveCallbackTest();
+    if (callback == nullptr) {
+        return;
+    }
+    MDnsServiceInfo serviceInfo;
+    std::string name(reinterpret_cast<const char *>(data), size);
+    serviceInfo.port = static_cast<int32_t>(size % STR_LEN);
+    serviceInfo.name = name;
+    DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(serviceInfo, callback);
+    DelayedSingleton<MDnsClient>::GetInstance()->RestartResume();
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -239,5 +289,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::StopDiscoverServiceFuzzTest(data, size);
     OHOS::NetManagerStandard::ResolveServiceFuzzTest(data, size);
     OHOS::NetManagerStandard::UnRegisterServiceFuzzTest(data, size);
+    OHOS::NetManagerStandard::MdnsRegisterServiceFuzzTest(data, size);
+    OHOS::NetManagerStandard::MdnsStartDiscoverServiceFuzzTest(data, size);
+    OHOS::NetManagerStandard::MdnsResolveServiceFuzzTest(data, size);
     return 0;
 }
