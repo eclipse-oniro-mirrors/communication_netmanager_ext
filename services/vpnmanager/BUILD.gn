@@ -57,7 +57,10 @@ net_vpn_manager_sources = [
   "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp",
 ]
 
-net_vpn_manager_deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
+net_vpn_manager_deps = [ 
+  "$NETMANAGER_EXT_ROOT/utils:net_event_report",
+  "$THIRD_PARTY_ROOT/cJSON:cjson",
+]
 
 net_vpn_manager_external_deps = [
   "ability_base:want",

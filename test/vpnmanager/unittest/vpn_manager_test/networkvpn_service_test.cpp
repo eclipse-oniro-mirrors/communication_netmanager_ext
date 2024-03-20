@@ -217,6 +217,9 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
         std::string jsonString = "";
         instance_->ParseConfigToJson(vpnCfg, jsonString);
         instance_->ParseJsonToConfig(vpnCfg, jsonString);
+        std::string cjsonString = "";
+        instance_->CjsonParseConfigToJson(vpnCfg, cjsonString);
+        instance_->CjsonParseJsonToConfig(vpnCfg, cjsonString);
     }
     int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
     EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);

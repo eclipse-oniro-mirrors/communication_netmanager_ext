@@ -92,6 +92,7 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
         return false;
     }
     const auto &jsonCfg = nlohmann::json::parse(jsonStr);
+    NETMGR_EXT_LOG_E("ReadSystemConfiguration jsonCfg: %{public}s", jsonCfg.dump().c_str());
     if (jsonCfg.find(CONFIG_KEY_ETH_COMPONENT_FLAG) == jsonCfg.end()) {
         NETMGR_EXT_LOG_E("ReadConfigData not find network_ethernet_component!");
         return false;
@@ -103,9 +104,13 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
         const auto &iface = isLan
                            ? item[CONFIG_KEY_ETH_LANIFACE].get<std::string>()
                            : item[CONFIG_KEY_ETH_IFACE].get<std::string>();
+        NETMGR_EXT_LOG_E("ReadSystemConfiguration iface: %{public}s", iface.c_str());
         const auto &caps = item.at(CONFIG_KEY_ETH_CAPS).get<std::set<NetCap>>();
         if (!caps.empty()) {
             devCaps[iface] = caps;
+        }
+        for (const auto& element : caps) {
+            NETMGR_EXT_LOG_E("ReadConfigData caps : %{public}d", element);
         }
         const auto &fit = devCfgs.find(iface);
         if (fit != devCfgs.end()) {
@@ -122,6 +127,83 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
             devCfgs[iface] = config;
         }
     }
+    return true;
+}
+
+bool EthernetConfiguration::CjsonReadEthernetInterfaces(std::map<std::string, std::set<NetCap>> &devCaps,
+                                                        std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs,
+                                                        const cJSON* const json)
+{
+    uint32_t itemSize = cJSON_GetArraySize(json);
+    for (uint32_t i = 0; i < itemSize; i++) {
+        cJSON *item = cJSON_GetArrayItem(json, i);
+        if (item == nullptr) {
+            continue;
+        }
+        std::string iface;
+        bool isLan = false;
+        cJSON *lanIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_LANIFACE.c_str());
+        if (lanIface == nullptr) {
+            iface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IFACE.c_str())->valuestring;
+            isLan = false;
+        } else {
+            iface = lanIface->valuestring;
+            isLan = true;
+        }
+        if (iface.empty()) {
+            continue;
+        }
+        NETMGR_EXT_LOG_E("ReadConfigData Iface is %{public}s", iface.c_str());
+        cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS.c_str());
+        uint32_t capsItemSize = cJSON_GetArraySize(capsObj);
+        for (uint32_t j = 0; j < capsItemSize; j++) {
+            cJSON *capsItem = cJSON_GetArrayItem(capsObj, j);
+            if (capsItem == nullptr) {
+                continue;
+            }
+            const auto caps = capsItem->valueint;
+            NETMGR_EXT_LOG_E("ReadConfigData caps : %{public}d", caps);
+            devCaps[iface].insert(NetCap(caps));
+        }
+        const auto &fit = devCfgs.find(iface);
+        if (fit != devCfgs.end()) {
+            NETMGR_EXT_LOG_E("The iface=%{public}s device have set!", fit->first.c_str());
+            continue;
+        }
+        sptr<InterfaceConfiguration> config = CjsonConvertJsonToConfiguration(item, isLan);
+        if (config == nullptr) {
+            return false;
+        }
+        std::regex re(IFACE_MATCH);
+        if (cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IP.c_str()) && std::regex_search(iface, re)) {
+            devCfgs[iface] = config;
+        }
+    }
+    return true;
+}
+
+bool EthernetConfiguration::CjsonReadSystemConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
+                                                         std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs)
+{
+    const auto &jsonStr = ReadJsonFile(NETWORK_CONFIG_PATH);
+    if (jsonStr.length() == 0) {
+        NETMGR_EXT_LOG_E("ReadConfigData config file is return empty!");
+        return false;
+    }
+    cJSON *json = cJSON_Parse(jsonStr.c_str());
+    if (json == nullptr) {
+        NETMGR_EXT_LOG_E("json parse failed!");
+        return false;
+    }
+    NETMGR_EXT_LOG_E("CjsonReadSystemConfiguration : %{public}s", cJSON_Print(json));
+    cJSON *jsonEth = cJSON_GetObjectItem(json, CONFIG_KEY_ETH_COMPONENT_FLAG.c_str());
+    if (jsonEth == nullptr) {
+        NETMGR_EXT_LOG_E("ReadConfigData not find config_ethernet_interfaces!");
+        return false;
+    }
+    NETMGR_EXT_LOG_E("ReadConfigData ethValue: %{public}s", cJSON_Print(jsonEth));
+    CjsonReadEthernetInterfaces(devCaps, devCfgs, jsonEth);
+    cJSON_Delete(json);
     return true;
 }
 
@@ -144,8 +226,49 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_GATEWAY], config->ipStatic_.gatewayList_);
     StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_NETMASK], config->ipStatic_.netMaskList_);
     StaticConfiguration::ExtractNetAddrBySeparator(jsonData[CONFIG_KEY_ETH_DNS], config->ipStatic_.dnsServers_);
+    NETMGR_EXT_LOG_E("config ip:%{public}s", jsonData[CONFIG_KEY_ETH_IP].dump().c_str());
+    NETMGR_EXT_LOG_E("config route:%{public}s", jsonData[CONFIG_KEY_ETH_ROUTE].dump().c_str());
+    NETMGR_EXT_LOG_E("config gateway:%{public}s", jsonData[CONFIG_KEY_ETH_GATEWAY].dump().c_str());
+    NETMGR_EXT_LOG_E("config netmask:%{public}s", jsonData[CONFIG_KEY_ETH_NETMASK].dump().c_str());
+    NETMGR_EXT_LOG_E("config dns:%{public}s", jsonData[CONFIG_KEY_ETH_DNS].dump().c_str());
+    NETMGR_EXT_LOG_E("config routemask:%{public}s", jsonData[CONFIG_KEY_ETH_ROUTE_MASK].dump().c_str());
 
     ParserIfaceIpAndRoute(config, jsonData[CONFIG_KEY_ETH_ROUTE_MASK]);
+    return config;
+}
+
+sptr<InterfaceConfiguration> EthernetConfiguration::CjsonConvertJsonToConfiguration(const cJSON* const jsonData,
+                                                                                    bool isLan)
+{
+    sptr<InterfaceConfiguration> config = new (std::nothrow) InterfaceConfiguration();
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("config is nullptr");
+        return nullptr;
+    }
+
+    if (isLan) {
+        config->mode_ = LAN_STATIC;
+    } else {
+        config->mode_ = STATIC;
+    }
+    std::string ip = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_IP.c_str())->valuestring;
+    std::string route = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE.c_str())->valuestring;
+    std::string gateway = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_GATEWAY.c_str())->valuestring;
+    std::string netmask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_NETMASK.c_str())->valuestring;
+    std::string dns = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_DNS.c_str())->valuestring;
+    NETMGR_EXT_LOG_E("config ip:%{public}s", ip.c_str());
+    NETMGR_EXT_LOG_E("config route:%{public}s", route.c_str());
+    NETMGR_EXT_LOG_E("config gateway:%{public}s", gateway.c_str());
+    NETMGR_EXT_LOG_E("config netmask:%{public}s", netmask.c_str());
+    NETMGR_EXT_LOG_E("config dns:%{public}s", dns.c_str());
+    StaticConfiguration::ExtractNetAddrBySeparator(ip, config->ipStatic_.ipAddrList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(route, config->ipStatic_.routeList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(gateway, config->ipStatic_.gatewayList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(netmask, config->ipStatic_.netMaskList_);
+    StaticConfiguration::ExtractNetAddrBySeparator(dns, config->ipStatic_.dnsServers_);
+    std::string routeMask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE_MASK.c_str())->valuestring;
+    NETMGR_EXT_LOG_E("config routemask:%{public}s", routeMask.c_str());
+    ParserIfaceIpAndRoute(config, routeMask);
     return config;
 }
 

@@ -66,7 +66,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
-    "$THIRD_PARTY_ROOT/json:nlohmann_json_static",
+    "$THIRD_PARTY_ROOT/cJSON:cjson_static",
   ]
 
   external_deps = [

@@ -62,6 +62,8 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration001, TestSize.Level1)
     std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
     bool ret = ethernetConfiguration.ReadSystemConfiguration(devCaps, devCfgs);
     EXPECT_TRUE(ret);
+    ret = ethernetConfiguration.CjsonReadSystemConfiguration(devCaps, devCfgs);
+    EXPECT_TRUE(ret);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
     EXPECT_TRUE(ret);
     sptr<InterfaceConfiguration> cfg = (std::make_unique<InterfaceConfiguration>()).release();
