@@ -23,7 +23,6 @@ config("net_conn_manager_if_config") {
     "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$BASE_INNERKITS_ROOT/netmanagernative/include",
-    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
   ]
 
   cflags = []
