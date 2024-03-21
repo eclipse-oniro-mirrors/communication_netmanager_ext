@@ -19,6 +19,8 @@ config("sharing_config") {
   include_dirs = [
     "include",
     "$NETMANAGER_BASE_ROOT/utils/log/include",
+    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
+    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
   ]
 
   cflags = [
@@ -64,6 +66,7 @@ ohos_shared_library("sharing") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_manager_common",
   ]
 
   configs = [ ":sharing_config" ]
