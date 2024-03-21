@@ -19,7 +19,6 @@ config("sharing_config") {
   include_dirs = [
     "include",
     "$NETMANAGER_BASE_ROOT/utils/log/include",
-    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
   ]
 
