@@ -29,7 +29,6 @@ ohos_shared_library("ethernet") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
     "$NETCONNMANAGER_UTILS_DIR/common_utils/include",
-    "$NETMANAGER_BASE_ROOT/utils/log/include",
     "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
   ]
