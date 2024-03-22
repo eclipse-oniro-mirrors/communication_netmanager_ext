@@ -69,12 +69,10 @@ ohos_shared_library("ethernet_manager") {
     "-O2",
   ]
 
-  deps = [ 
-    "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel",
-    "$THIRD_PARTY_ROOT/cJSON:cjson",
-  ]
+  deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel" ]
 
   external_deps = [
+    "cJSON:cjson",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",

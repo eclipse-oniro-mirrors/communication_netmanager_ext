@@ -60,9 +60,7 @@
                 "hitrace",
                 "window_manager",
                 "ability_base",
-                "os_account"
-            ],
-            "third_party": [
+                "os_account",
                 "cJSON"
             ]
         },
