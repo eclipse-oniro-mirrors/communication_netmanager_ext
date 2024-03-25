@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-import usbManager from '@ohos.usbManager'
-import featureAbility from '@ohos.ability.featureAbility'
+import usbManager from '@ohos.usbManager';
+import featureAbility from '@ohos.ability.featureAbility';
 import common from '@ohos.app.ability.common';
 import window from '@ohos.window';
-import vpnext from '@ohos.net.vpnExtension'
+import vpnext from '@ohos.net.vpnExtension';
 import Want from '@ohos.app.ability.Want';
-import GlobalContext from "../MainAbility/GlobalContext.ts";
+import GlobalContext from '../MainAbility/GlobalContext.ts';
 
 // allow,notAllow button style
 @Extend(Text)
-function ControlBtn(fontColor: string) {
+function ControlBtn(fontColor : string) {
   .fontColor(fontColor)
   .backgroundColor(0xffffff)
   .width(100)
   .height(56)
   .fontSize(20)
-  .textAlign(TextAlign.Center)
+  .textAlign(TextAlign.Center);
 }
 
 @Extend(Text)
@@ -37,7 +37,7 @@ function ControlText() {
     .backgroundColor(0xffffff)
     .height(56)
     .fontSize(20)
-    .textAlign(TextAlign.Center)
+    .textAlign(TextAlign.Center);
 }
 
 // content style
@@ -49,15 +49,15 @@ function ControlFontSize(fontSize: number) {
   .textAlign(TextAlign.Center)
   .padding({ top: 30, left: 50, right: 50 })
   .alignSelf(ItemAlign.Center)
-  .margin({ top: 10 })
+  .margin({ top: 10 });
 }
 
 @CustomDialog
 export default struct ConfirmDialog {
-  content: string = ''
-  notAllowFontColor: string = '#E84026'
-  allowFontColor: string = '#ff1a0af7'
-  controller: CustomDialogController
+  content: string = '';
+  notAllowFontColor: string = '#E84026';
+  allowFontColor: string = '#ff1a0af7';
+  controller: CustomDialogController;
   private extensionWin: window.Window = null;
   private extensionContext: common.ServiceExtensionContext = null;
 
@@ -66,24 +66,24 @@ export default struct ConfirmDialog {
   TipTextStyle(tip: string, fontSize: number) {
     Text(tip)
       .ControlFontSize(fontSize)
-      .visibility(tip.length > 0 ? Visibility.Visible : Visibility.None)
+      .visibility(tip.length > 0 ? Visibility.Visible : Visibility.None);
   }
 
   build() {
     Column() {
-      this.TipTextStyle(this.content, 20)
-      Text($r('app.string.title')).ControlText()
-      Text($r('app.string.warning')).fontSize(16).margin({ top: 0, bottom: 8, left: 24, right: 24 })
+      this.TipTextStyle(this.content, 20);
+      Text($r('app.string.title')).ControlText();
+      Text($r('app.string.warning')).fontSize(16).margin({ top: 0, bottom: 8, left: 24, right: 24 });
       Flex({ justifyContent: FlexAlign.SpaceAround }) {
         Text($r('app.string.notAllowButton'))
           .ControlBtn(this.notAllowFontColor)
           .onClick(() => {
             let bundleName = globalThis.bundleName;
-            vpnext.updateVpnAuthorizedState(bundleName + "**vpndialog**");
-            this.destruction()
-          })
+            vpnext.updateVpnAuthorizedState(bundleName + '**vpndialog**');
+            this.destruction();
+          });
         Text('|')
-          .fontSize(20)
+          .fontSize(20);
         Text($r('app.string.allowButton'))
           .ControlBtn(this.allowFontColor)
           .onClick(() => {
@@ -94,37 +94,37 @@ export default struct ConfirmDialog {
             } else {
               vpnext.updateVpnAuthorizedState(bundleName);
               let want: Want = {
-                deviceId: "",
+                deviceId: '',
                 bundleName: bundleName,
                 abilityName: abilityName,
               };
-              vpnext.startVpnExtensionAbility(want)
-              this.destruction()
+              vpnext.startVpnExtensionAbility(want);
+              this.destruction();
             }
           })
 
-      }.margin({ bottom: 16, left: 24, right: 24})
-    }
+      }.margin({ bottom: 16, left: 24, right: 24});
+    };
   }
 
   destruction() {
-    this.controller.close()
+    this.controller.close();
     try {
-      globalThis.vpnWin.destroy()
-      globalThis.extensionContext.terminateSelf()
+      globalThis.vpnWin.destroy();
+      globalThis.extensionContext.terminateSelf();
     } catch {
       console.info('Vpn ConfirmDialog destruction error!');
     }
     featureAbility.terminateSelf();
   }
-}
+};
 
 @Entry
 @Component
 struct IndexHapComponent {
-  private content: string = ''
-  private allow: string = ''
-  private use: string = ''
+  private content: string = '';
+  private allow: string = '';
+  private use: string = '';
   private extensionWin: window.Window = null;
   private extensionContext: common.ServiceExtensionContext = null;
 
@@ -132,7 +132,7 @@ struct IndexHapComponent {
     builder: ConfirmDialog({ content: this.content }),
     autoCancel: false,
     alignment: DialogAlignment.Center,
-  })
+  });
 
   async aboutToAppear() {
     this.extensionWin = globalThis.vpnWin;
@@ -141,8 +141,8 @@ struct IndexHapComponent {
     this.allow = await JSON.stringify(GlobalContext.getContext().getObject('app.string.allow'));
     this.use = await JSON.stringify(GlobalContext.getContext().getObject('app.string.use'));
     this.content = this.allow + GlobalContext.getContext()
-      .getObject("bundleName") + this.use + GlobalContext.getContext().getObject("deviceName");
-    this.ConfirmDialogController.open()
+      .getObject('bundleName') + this.use + GlobalContext.getContext().getObject('deviceName');
+    this.ConfirmDialogController.open();
   }
 
   build() {
