@@ -168,26 +168,17 @@ private:
     int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
 
     void OnNetSysRestart();
-    void ConvertVecRouteToJson(const std::vector<Route>& routes, nlohmann::json& jVecRoutes);
-    void CjsonConvertVecRouteToJson(const std::vector<Route>& routes, cJSON* jVecRoutes);
-    void ConvertNetAddrToJson(const INetAddr& netAddr, nlohmann::json& jInetAddr);
-    void CjsonConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr);
+    void ConvertVecRouteToJson(const std::vector<Route>& routes, cJSON* jVecRoutes);
+    void ConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr);
     void ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString);
-    void CjsonParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString);
     void SaveVpnConfig(const sptr<VpnConfig> &vpnCfg);
 
-    void ConvertRouteToConfig(Route& tmp, const nlohmann::json& mem);
-    void CjsonConvertRouteToConfig(Route& tmp, const cJSON* const mem);
-    void ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
-    void CjsonConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc);
-    void ConvertNetAddrToConfig(INetAddr& tmp, const nlohmann::json& mem);
-    void CjsonConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const mem);
-    void ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
-    void CjsonConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc);
-    void ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc);
-    void CjsonConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc);
+    void ConvertRouteToConfig(Route& tmp, const cJSON* const mem);
+    void ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc);
+    void ConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const mem);
+    void ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc);
+    void ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc);
     void ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString);
-    void CjsonParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString);
     void RecoverVpnConfig();
 
     void StartAlwaysOnVpn();

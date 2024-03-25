@@ -185,47 +185,7 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
     return NETMANAGER_EXT_SUCCESS;
 }
 
-void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc)
-{
-    if (doc.contains("dnsAddresses") && doc.at("dnsAddresses").is_array()) {
-        nlohmann::json jDnsAddrs = doc.at("dnsAddresses");
-        for (const auto& mem : jDnsAddrs) {
-            if (mem.is_string()) {
-                NETMGR_EXT_LOG_E("dnsAddresses_ = %{public}s", mem.dump().c_str());
-                vpnCfg->dnsAddresses_.push_back(mem);
-            }
-        }
-    }
-    if (doc.contains("searchDomains") && doc.at("searchDomains").is_array()) {
-        nlohmann::json jDomains = doc.at("searchDomains");
-        for (const auto& mem : jDomains) {
-            if (mem.is_string()) {
-                NETMGR_EXT_LOG_E("searchDomains_ = %{public}s", mem.dump().c_str());
-                vpnCfg->searchDomains_.push_back(mem);
-            }
-        }
-    }
-    if (doc.contains("acceptedApplications") && doc.at("acceptedApplications").is_array()) {
-        nlohmann::json jAcceptApp = doc.at("acceptedApplications");
-        for (const auto& mem : jAcceptApp) {
-            if (mem.is_string()) {
-                NETMGR_EXT_LOG_E("acceptedApplications_ = %{public}s", mem.dump().c_str());
-                vpnCfg->acceptedApplications_.push_back(mem);
-            }
-        }
-    }
-    if (doc.contains("refusedApplications") && doc.at("refusedApplications").is_array()) {
-        nlohmann::json jRefuseApp = doc.at("refusedApplications");
-        for (const auto& mem : jRefuseApp) {
-            if (mem.is_string()) {
-                NETMGR_EXT_LOG_E("refusedApplications_ = %{public}s", mem.dump().c_str());
-                vpnCfg->refusedApplications_.push_back(mem);
-            }
-        }
-    }
-}
-
-void NetworkVpnService::CjsonConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
+void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
 {
     uint32_t itemSize = 0;
     uint32_t i = 0;
@@ -237,7 +197,9 @@ void NetworkVpnService::CjsonConvertStringToConfig(sptr<VpnConfig> &vpnCfg, cons
         for (i = 0; i < itemSize; i++) {
             item = cJSON_GetArrayItem(dnsAddr, i);
             if (item->type == cJSON_String) {
-                NETMGR_EXT_LOG_E("dnsAddr = %{public}s", item->valuestring);
+                std::string mem = cJSON_GetStringValue(item);
+                NETMGR_EXT_LOG_D("dnsAddr = %{public}s", mem.c_str());
+                vpnCfg->dnsAddresses_.push_back(mem);
             }
         }
     }
@@ -247,7 +209,9 @@ void NetworkVpnService::CjsonConvertStringToConfig(sptr<VpnConfig> &vpnCfg, cons
         for (i = 0; i < itemSize; i++) {
             item = cJSON_GetArrayItem(sDomain, i);
             if (item->type == cJSON_String) {
-                NETMGR_EXT_LOG_E("sDomain = %{public}s", item->valuestring);
+                std::string mem = cJSON_GetStringValue(item);
+                NETMGR_EXT_LOG_D("sDomain = %{public}s", mem.c_str());
+                vpnCfg->searchDomains_.push_back(mem);
             }
         }
     }
@@ -257,7 +221,9 @@ void NetworkVpnService::CjsonConvertStringToConfig(sptr<VpnConfig> &vpnCfg, cons
         for (i = 0; i < itemSize; i++) {
             item = cJSON_GetArrayItem(acceptApp, i);
             if (item->type == cJSON_String) {
-                NETMGR_EXT_LOG_E("acceptApp = %{public}s", item->valuestring);
+                std::string mem = cJSON_GetStringValue(item);
+                NETMGR_EXT_LOG_D("acceptApp = %{public}s", mem.c_str());
+                vpnCfg->acceptedApplications_.push_back(mem);
             }
         }
     }
@@ -267,98 +233,54 @@ void NetworkVpnService::CjsonConvertStringToConfig(sptr<VpnConfig> &vpnCfg, cons
         for (i = 0; i < itemSize; i++) {
             item = cJSON_GetArrayItem(refusedApp, i);
             if (item->type == cJSON_String) {
-                NETMGR_EXT_LOG_E("refusedApp = %{public}s", item->valuestring);
+                std::string mem = cJSON_GetStringValue(item);
+                NETMGR_EXT_LOG_D("refusedApp = %{public}s", mem.c_str());
+                vpnCfg->refusedApplications_.push_back(mem);
             }
         }
     }
 }
 
-void NetworkVpnService::ConvertNetAddrToConfig(INetAddr& tmp, const nlohmann::json& mem)
-{
-    if (mem.contains("type") && mem.at("type").is_number()) {
-        tmp.type_ = static_cast<int32_t>(mem.at("type"));
-        NETMGR_EXT_LOG_E("type_ = %{public}d",  tmp.type_);
-    }
-    if (mem.contains("family") && mem.at("family").is_number()) {
-        tmp.family_ = static_cast<int32_t>(mem.at("family"));
-        NETMGR_EXT_LOG_E("family_ = %{public}d", tmp.family_);
-    }
-    if (mem.contains("prefixlen") && mem.at("prefixlen").is_number()) {
-        tmp.prefixlen_ = static_cast<int32_t>(mem.at("prefixlen"));
-        NETMGR_EXT_LOG_E("prefixlen_ = %{public}d", tmp.prefixlen_);
-    }
-    if (mem.contains("address") && mem.at("address").is_string()) {
-        tmp.address_ = mem.at("address");
-        NETMGR_EXT_LOG_E("address_ = %{public}s", tmp.address_.c_str());
-    }
-    if (mem.contains("netMask") && mem.at("netMask").is_string()) {
-        tmp.netMask_ = mem.at("netMask");
-        NETMGR_EXT_LOG_E("netMask_ = %{public}s", tmp.netMask_.c_str());
-    }
-    if (mem.contains("hostName") && mem.at("hostName").is_string()) {
-        tmp.hostName_ = mem.at("hostName");
-        NETMGR_EXT_LOG_E("hostName_ = %{public}s", tmp.hostName_.c_str());
-    }
-    if (mem.contains("port") && mem.at("port").is_number()) {
-        tmp.port_ = static_cast<int32_t>(mem.at("port"));
-        NETMGR_EXT_LOG_E("port_ = %{public}d", tmp.port_);
-    }
-}
-
-void NetworkVpnService::CjsonConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const mem)
+void NetworkVpnService::ConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const mem)
 {
     cJSON *type = cJSON_GetObjectItem(mem, "type");
     if (type != nullptr && cJSON_IsNumber(type)) {
         tmp.type_ = static_cast<int32_t>(cJSON_GetNumberValue(type));
-        NETMGR_EXT_LOG_E("type = %{public}d", tmp.type_);
+        NETMGR_EXT_LOG_D("type = %{public}d", tmp.type_);
     }
     cJSON *family = cJSON_GetObjectItem(mem, "family");
     if (family != nullptr && cJSON_IsNumber(family)) {
         tmp.family_ = static_cast<int32_t>(cJSON_GetNumberValue(family));
-        NETMGR_EXT_LOG_E("family = %{public}d", tmp.family_);
+        NETMGR_EXT_LOG_D("family = %{public}d", tmp.family_);
     }
     cJSON *prefixlen = cJSON_GetObjectItem(mem, "prefixlen");
     if (prefixlen != nullptr && cJSON_IsNumber(prefixlen)) {
         tmp.prefixlen_ = static_cast<int32_t>(cJSON_GetNumberValue(prefixlen));
-        NETMGR_EXT_LOG_E("prefixlen = %{public}d", tmp.prefixlen_);
+        NETMGR_EXT_LOG_D("prefixlen = %{public}d", tmp.prefixlen_);
     }
     cJSON *address = cJSON_GetObjectItem(mem, "address");
     if (address != nullptr && cJSON_IsString(address)) {
         tmp.address_ = cJSON_GetStringValue(address);
-        NETMGR_EXT_LOG_E("address = %{public}s", tmp.address_.c_str());
+        NETMGR_EXT_LOG_D("address = %{public}s", tmp.address_.c_str());
     }
     cJSON *netMask = cJSON_GetObjectItem(mem, "netMask");
     if (netMask != nullptr && cJSON_IsString(netMask)) {
         tmp.netMask_ = cJSON_GetStringValue(netMask);
-        NETMGR_EXT_LOG_E("netMask = %{public}s", tmp.netMask_.c_str());
+        NETMGR_EXT_LOG_D("netMask = %{public}s", tmp.netMask_.c_str());
     }
     cJSON *hostName = cJSON_GetObjectItem(mem, "hostName");
     if (hostName != nullptr && cJSON_IsString(hostName)) {
         tmp.hostName_ = cJSON_GetStringValue(hostName);
-        NETMGR_EXT_LOG_E("hostName = %{public}s", tmp.hostName_.c_str());
+        NETMGR_EXT_LOG_D("hostName = %{public}s", tmp.hostName_.c_str());
     }
     cJSON *port = cJSON_GetObjectItem(mem, "port");
     if (port != nullptr && cJSON_IsNumber(port)) {
         tmp.port_ = static_cast<int32_t>(cJSON_GetNumberValue(port));
-        NETMGR_EXT_LOG_E("port = %{public}d", tmp.port_);
+        NETMGR_EXT_LOG_D("port = %{public}d", tmp.port_);
     }
 }
 
-void NetworkVpnService::ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc)
-{
-    if (doc.contains("addresses") && doc.at("addresses").is_array()) {
-        nlohmann::json jAddrs = doc.at("addresses");
-        for (const auto& mem : jAddrs) {
-            if (mem.is_object()) {
-                INetAddr tmp;
-                ConvertNetAddrToConfig(tmp, mem);
-                vpnCfg->addresses_.push_back(tmp);
-            }
-        }
-    }
-}
-
-void NetworkVpnService::CjsonConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
+void NetworkVpnService::ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
 {
     cJSON *addresses = cJSON_GetObjectItem(doc, "addresses");
     if (addresses != nullptr && cJSON_IsArray(addresses)) {
@@ -367,113 +289,60 @@ void NetworkVpnService::CjsonConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, con
             cJSON *item = cJSON_GetArrayItem(addresses, i);
             if (cJSON_IsObject(item)) {
                 INetAddr tmp;
-                CjsonConvertNetAddrToConfig(tmp, item);
+                ConvertNetAddrToConfig(tmp, item);
+                vpnCfg->addresses_.push_back(tmp);
             }
         }
     }
 }
 
-void NetworkVpnService::ConvertRouteToConfig(Route& tmp, const nlohmann::json& mem)
-{
-    if (mem.contains("iface") && mem.at("iface").is_string()) {
-        tmp.iface_ = mem.at("iface");
-        NETMGR_EXT_LOG_E("iface_ = %{public}s", tmp.iface_.c_str());
-    }
-    if (mem.contains("rtnType") && mem.at("rtnType").is_number()) {
-        tmp.rtnType_ = mem.at("rtnType");
-        NETMGR_EXT_LOG_E("rtnType_ = %{public}d", tmp.rtnType_);
-    }
-    if (mem.contains("mtu") && mem.at("mtu").is_number()) {
-        tmp.mtu_ = mem.at("mtu");
-        NETMGR_EXT_LOG_E("mtu_ = %{public}d", tmp.mtu_);
-    }
-    if (mem.contains("isHost") && mem.at("isHost").is_boolean()) {
-        tmp.isHost_ = mem.at("isHost");
-        NETMGR_EXT_LOG_E("isHost_ = %{public}d", tmp.isHost_);
-    }
-    if (mem.contains("hasGateway") && mem.at("hasGateway").is_boolean()) {
-        tmp.hasGateway_ = mem.at("hasGateway");
-        NETMGR_EXT_LOG_E("hasGateway_ = %{public}d", tmp.hasGateway_);
-    }
-    if (mem.contains("isDefaultRoute") && mem.at("isDefaultRoute").is_boolean()) {
-        tmp.isDefaultRoute_ = mem.at("isDefaultRoute");
-        NETMGR_EXT_LOG_E("isDefaultRoute_ = %{public}d", tmp.isDefaultRoute_);
-    }
-    if (mem.contains("destination") && mem.at("destination").is_object()) {
-        nlohmann::json elem = mem.at("destination");
-        INetAddr tmpINet;
-        ConvertNetAddrToConfig(tmpINet, elem);
-        tmp.destination_ = tmpINet;
-    }
-    if (mem.contains("gateway") && mem.at("gateway").is_object()) {
-        nlohmann::json elem = mem.at("gateway");
-        INetAddr tmpINet;
-        ConvertNetAddrToConfig(tmpINet, elem);
-        tmp.gateway_ = tmpINet;
-    }
-}
-
-void NetworkVpnService::CjsonConvertRouteToConfig(Route& tmp, const cJSON* const mem)
+void NetworkVpnService::ConvertRouteToConfig(Route& tmp, const cJSON* const mem)
 {
     cJSON *iface = cJSON_GetObjectItem(mem, "iface");
     if (iface != nullptr && cJSON_IsString(iface)) {
         tmp.iface_ = cJSON_GetStringValue(iface);
-        NETMGR_EXT_LOG_E("iface = %{public}s", tmp.iface_.c_str());
+        NETMGR_EXT_LOG_D("iface = %{public}s", tmp.iface_.c_str());
     }
     cJSON *rtnType = cJSON_GetObjectItem(mem, "rtnType");
     if (rtnType != nullptr && cJSON_IsNumber(rtnType)) {
         tmp.rtnType_ = cJSON_GetNumberValue(rtnType);
-        NETMGR_EXT_LOG_E("rtnType = %{public}d", tmp.rtnType_);
+        NETMGR_EXT_LOG_D("rtnType = %{public}d", tmp.rtnType_);
     }
     cJSON *mtu = cJSON_GetObjectItem(mem, "mtu");
     if (mtu != nullptr && cJSON_IsNumber(mtu)) {
         tmp.mtu_ = cJSON_GetNumberValue(mtu);
-        NETMGR_EXT_LOG_E("mtu = %{public}d", tmp.mtu_);
+        NETMGR_EXT_LOG_D("mtu = %{public}d", tmp.mtu_);
     }
     cJSON *isHost = cJSON_GetObjectItem(mem, "isHost");
     if (isHost != nullptr && cJSON_IsBool(isHost)) {
         tmp.isHost_ = cJSON_IsTrue(isHost) ? true : false;
-        NETMGR_EXT_LOG_E("isHost = %{public}d", tmp.isHost_);
+        NETMGR_EXT_LOG_D("isHost = %{public}d", tmp.isHost_);
     }
     cJSON *hasGateway = cJSON_GetObjectItem(mem, "hasGateway");
     if (isHost != nullptr && cJSON_IsBool(hasGateway)) {
         tmp.hasGateway_ = cJSON_IsTrue(hasGateway) ? true : false;
-        NETMGR_EXT_LOG_E("hasGateway_ = %{public}d", tmp.hasGateway_);
+        NETMGR_EXT_LOG_D("hasGateway_ = %{public}d", tmp.hasGateway_);
     }
     cJSON *isDefaultRoute = cJSON_GetObjectItem(mem, "isDefaultRoute");
     if (isDefaultRoute != nullptr && cJSON_IsBool(isDefaultRoute)) {
         tmp.isDefaultRoute_ = cJSON_IsTrue(isDefaultRoute) ? true : false;
-        NETMGR_EXT_LOG_E("hasGateway_ = %{public}d", tmp.isDefaultRoute_);
+        NETMGR_EXT_LOG_D("hasGateway_ = %{public}d", tmp.isDefaultRoute_);
     }
     cJSON *destination = cJSON_GetObjectItem(mem, "destination");
     if (destination != nullptr && cJSON_IsObject(destination)) {
         INetAddr tmpINet;
-        CjsonConvertNetAddrToConfig(tmpINet, destination);
+        ConvertNetAddrToConfig(tmpINet, destination);
         tmp.destination_ = tmpINet;
     }
     cJSON *gateway = cJSON_GetObjectItem(mem, "gateway");
     if (gateway != nullptr && cJSON_IsObject(gateway)) {
         INetAddr tmpINet;
-        CjsonConvertNetAddrToConfig(tmpINet, gateway);
+        ConvertNetAddrToConfig(tmpINet, gateway);
         tmp.gateway_ = tmpINet;
     }
 }
 
-void NetworkVpnService::ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const nlohmann::json& doc)
-{
-    if (doc.contains("routes") && doc.at("routes").is_array()) {
-        nlohmann::json jRoutes = doc.at("routes");
-        for (const auto& mem : jRoutes) {
-            if (mem.is_object()) {
-                Route tmp;
-                ConvertRouteToConfig(tmp, mem);
-                vpnCfg->routes_.push_back(tmp);
-            }
-        }
-    }
-}
-
-void NetworkVpnService::CjsonConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
+void NetworkVpnService::ConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
 {
     cJSON *routes = cJSON_GetObjectItem(doc, "routes");
     if (routes != nullptr && cJSON_IsArray(routes)) {
@@ -482,7 +351,8 @@ void NetworkVpnService::CjsonConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, co
             cJSON *item = cJSON_GetArrayItem(routes, i);
             if (cJSON_IsObject(item)) {
                 Route tmp;
-                CjsonConvertRouteToConfig(tmp, item);
+                ConvertRouteToConfig(tmp, item);
+                vpnCfg->routes_.push_back(tmp);
             }
         }
     }
@@ -490,81 +360,44 @@ void NetworkVpnService::CjsonConvertVecRouteToConfig(sptr<VpnConfig> &vpnCfg, co
 
 void NetworkVpnService::ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString)
 {
-    if (jsonString.empty() || !nlohmann::json::accept(jsonString)) {
+    cJSON *doc = cJSON_Parse(jsonString.c_str());
+    if (doc == nullptr) {
+        NETMGR_EXT_LOG_E("jsonString parse failed!");
         return;
     }
-    nlohmann::json doc = nlohmann::json::parse(jsonString);
-    NETMGR_EXT_LOG_E("doc = %{public}s", doc.dump().c_str());
-    if (doc.contains("mtu") && doc.at("mtu").is_number()) {
-        vpnCfg->mtu_ = doc.at("mtu");
-        NETMGR_EXT_LOG_E("mtu_ = %{public}d", vpnCfg->mtu_);
+    NETMGR_EXT_LOG_D("doc = %{public}s", cJSON_PrintUnformatted(doc));
+    cJSON *mtu = cJSON_GetObjectItem(doc, "mtu");
+    if (mtu != nullptr && cJSON_IsNumber(mtu)) {
+        NETMGR_EXT_LOG_D("mtu = %{public}lf", cJSON_GetNumberValue(mtu));
     }
-    if (doc.contains("isAcceptIPv4") && doc.at("isAcceptIPv4").is_boolean()) {
-        vpnCfg->isAcceptIPv4_ = doc.at("isAcceptIPv4");
-        NETMGR_EXT_LOG_E("isAcceptIPv4_ = %{public}d", vpnCfg->isAcceptIPv4_);
+    cJSON *isAcceptIPv4 = cJSON_GetObjectItem(doc, "isAcceptIPv4");
+    if (isAcceptIPv4 != nullptr && cJSON_IsBool(isAcceptIPv4)) {
+        NETMGR_EXT_LOG_D("isAcceptIPv4 = %{public}d", cJSON_IsTrue(isAcceptIPv4) ? true : false);
     }
-    if (doc.contains("isAcceptIPv6") && doc.at("isAcceptIPv6").is_boolean()) {
-        vpnCfg->isAcceptIPv6_ = doc.at("isAcceptIPv6");
-        NETMGR_EXT_LOG_E("isAcceptIPv6_ = %{public}d", vpnCfg->isAcceptIPv6_);
+    cJSON *isAcceptIPv6 = cJSON_GetObjectItem(doc, "isAcceptIPv6");
+    if (isAcceptIPv6 != nullptr && cJSON_IsBool(isAcceptIPv6)) {
+        NETMGR_EXT_LOG_D("isAcceptIPv6 = %{public}d", cJSON_IsTrue(isAcceptIPv6) ? true : false);
     }
-    if (doc.contains("isLegacy") && doc.at("isLegacy").is_boolean()) {
-        vpnCfg->isLegacy_ = doc.at("isLegacy");
-        NETMGR_EXT_LOG_E("isLegacy_ = %{public}d", vpnCfg->isLegacy_);
+    cJSON *isLegacy = cJSON_GetObjectItem(doc, "isLegacy");
+    if (isLegacy != nullptr && cJSON_IsBool(isLegacy)) {
+        NETMGR_EXT_LOG_D("isLegacy = %{public}d", cJSON_IsTrue(isLegacy) ? true : false);
     }
-    if (doc.contains("isMetered") && doc.at("isMetered").is_boolean()) {
-        vpnCfg->isMetered_ = doc.at("isMetered");
-        NETMGR_EXT_LOG_E("isMetered_ = %{public}d", vpnCfg->isMetered_);
+    cJSON *isMetered = cJSON_GetObjectItem(doc, "isMetered");
+    if (isMetered != nullptr && cJSON_IsBool(isMetered)) {
+        NETMGR_EXT_LOG_D("isMetered = %{public}d", cJSON_IsTrue(isMetered) ? true : false);
     }
-    if (doc.contains("isBlocking") && doc.at("isBlocking").is_boolean()) {
-        vpnCfg->isBlocking_ = doc.at("isBlocking");
-        NETMGR_EXT_LOG_E("isBlocking_ = %{public}d", vpnCfg->isBlocking_);
+    cJSON *isBlocking = cJSON_GetObjectItem(doc, "isBlocking");
+    if (isBlocking != nullptr && cJSON_IsBool(isBlocking)) {
+        NETMGR_EXT_LOG_D("isBlocking = %{public}d", cJSON_IsTrue(isBlocking) ? true : false);
     }
+
     ConvertStringToConfig(vpnCfg, doc);
 
     ConvertVecAddrToConfig(vpnCfg, doc);
 
     ConvertVecRouteToConfig(vpnCfg, doc);
-}
 
-void NetworkVpnService::CjsonParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::string& jsonString)
-{
-    cJSON *json = cJSON_Parse(jsonString.c_str());
-    if (json == nullptr) {
-        NETMGR_EXT_LOG_E("json parse failed!");
-        return;
-    }
-    NETMGR_EXT_LOG_E("json = %{public}s", cJSON_Print(json));
-    cJSON *mtu = cJSON_GetObjectItem(json, "mtu");
-    if (mtu != nullptr && cJSON_IsNumber(mtu)) {
-        NETMGR_EXT_LOG_E("mtu = %{public}lf", cJSON_GetNumberValue(mtu));
-    }
-    cJSON *isAcceptIPv4 = cJSON_GetObjectItem(json, "isAcceptIPv4");
-    if (isAcceptIPv4 != nullptr && cJSON_IsBool(isAcceptIPv4)) {
-        NETMGR_EXT_LOG_E("isAcceptIPv4 = %{public}d", cJSON_IsTrue(isAcceptIPv4) ? true : false);
-    }
-    cJSON *isAcceptIPv6 = cJSON_GetObjectItem(json, "isAcceptIPv6");
-    if (isAcceptIPv6 != nullptr && cJSON_IsBool(isAcceptIPv6)) {
-        NETMGR_EXT_LOG_E("isAcceptIPv6 = %{public}d", cJSON_IsTrue(isAcceptIPv6) ? true : false);
-    }
-    cJSON *isLegacy = cJSON_GetObjectItem(json, "isLegacy");
-    if (isLegacy != nullptr && cJSON_IsBool(isLegacy)) {
-        NETMGR_EXT_LOG_E("isLegacy = %{public}d", cJSON_IsTrue(isLegacy) ? true : false);
-    }
-    cJSON *isMetered = cJSON_GetObjectItem(json, "isMetered");
-    if (isMetered != nullptr && cJSON_IsBool(isMetered)) {
-        NETMGR_EXT_LOG_E("isMetered = %{public}d", cJSON_IsTrue(isMetered) ? true : false);
-    }
-    cJSON *isBlocking = cJSON_GetObjectItem(json, "isBlocking");
-    if (isBlocking != nullptr && cJSON_IsBool(isBlocking)) {
-        NETMGR_EXT_LOG_E("isBlocking = %{public}d", cJSON_IsTrue(isBlocking) ? true : false);
-    }
-
-    CjsonConvertStringToConfig(vpnCfg, json);
-
-    CjsonConvertVecAddrToConfig(vpnCfg, json);
-
-    CjsonConvertVecRouteToConfig(vpnCfg, json);
-    cJSON_Delete(json);
+    cJSON_Delete(doc);
 }
 
 void NetworkVpnService::RecoverVpnConfig()
@@ -578,22 +411,10 @@ void NetworkVpnService::RecoverVpnConfig()
     std::string jsonString;
     std::getline(ifs, jsonString);
     ParseJsonToConfig(vpnCfg, jsonString);
-    CjsonParseJsonToConfig(vpnCfg, jsonString);
     SetUpVpn(vpnCfg);
 }
 
-void NetworkVpnService::ConvertNetAddrToJson(const INetAddr& netAddr, nlohmann::json& jInetAddr)
-{
-    jInetAddr["type"] = netAddr.type_;
-    jInetAddr["family"] = netAddr.family_;
-    jInetAddr["prefixlen"] = netAddr.prefixlen_;
-    jInetAddr["address"] = netAddr.address_;
-    jInetAddr["netMask"] = netAddr.netMask_;
-    jInetAddr["hostName"] = netAddr.hostName_;
-    jInetAddr["port"] = netAddr.port_;
-}
-
-void NetworkVpnService::CjsonConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr)
+void NetworkVpnService::ConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr)
 {
     cJSON* type = cJSON_CreateObject();
     cJSON_SetIntValue(type, netAddr.type_);
@@ -612,36 +433,16 @@ void NetworkVpnService::CjsonConvertNetAddrToJson(const INetAddr& netAddr, cJSON
     cJSON_AddItemToObject(jInetAddr, "port", port);
 }
 
-void NetworkVpnService::ConvertVecRouteToJson(const std::vector<Route>& routes, nlohmann::json& jVecRoutes)
-{
-    for (const auto& mem : routes) {
-        nlohmann::json jRoute;
-        jRoute["iface"] = mem.iface_;
-        nlohmann::json jDestination;
-        ConvertNetAddrToJson(mem.destination_, jDestination);
-        jRoute["destination"] = jDestination;
-        nlohmann::json jGateway;
-        ConvertNetAddrToJson(mem.gateway_, jGateway);
-        jRoute["gateway"] = jGateway;
-        jRoute["rtnType"] = mem.rtnType_;
-        jRoute["mtu"] = mem.mtu_;
-        jRoute["isHost"] = mem.isHost_;
-        jRoute["hasGateway"] = mem.hasGateway_;
-        jRoute["isDefaultRoute"] = mem.isDefaultRoute_;
-        jVecRoutes.push_back(jRoute);
-    }
-}
-
-void NetworkVpnService::CjsonConvertVecRouteToJson(const std::vector<Route>& routes, cJSON* jVecRoutes)
+void NetworkVpnService::ConvertVecRouteToJson(const std::vector<Route>& routes, cJSON* jVecRoutes)
 {
     for (const auto& mem : routes) {
         cJSON *jRoute = cJSON_CreateObject();
         cJSON_AddItemToObject(jRoute, "iface", cJSON_CreateString(mem.iface_.c_str()));
         cJSON *jDestination = cJSON_CreateObject();
-        CjsonConvertNetAddrToJson(mem.destination_, jDestination);
+        ConvertNetAddrToJson(mem.destination_, jDestination);
         cJSON_AddItemToObject(jRoute, "destination", jDestination);
         cJSON *jGateway = cJSON_CreateObject();
-        CjsonConvertNetAddrToJson(mem.gateway_, jGateway);
+        ConvertNetAddrToJson(mem.gateway_, jGateway);
         cJSON_AddItemToObject(jRoute, "gateway", jGateway);
         cJSON_AddItemToObject(jRoute, "rtnType", cJSON_CreateNumber(mem.rtnType_));
         cJSON_AddItemToObject(jRoute, "mtu", cJSON_CreateNumber(mem.mtu_));
@@ -653,67 +454,17 @@ void NetworkVpnService::CjsonConvertVecRouteToJson(const std::vector<Route>& rou
 
 void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString)
 {
-    nlohmann::json jVpnCfg;
-    nlohmann::json jVecAddrs = nlohmann::json::array();
-    for (const auto& mem : vpnCfg->addresses_) {
-        nlohmann::json jInetAddr;
-        ConvertNetAddrToJson(mem, jInetAddr);
-        jVecAddrs.push_back(jInetAddr);
-    }
-    jVpnCfg["addresses"] = jVecAddrs;
-
-    nlohmann::json jVecRoutes = nlohmann::json::array();
-    ConvertVecRouteToJson(vpnCfg->routes_, jVecRoutes);
-    jVpnCfg["routes"] = jVecRoutes;
-
-    jVpnCfg["mtu"] = vpnCfg->mtu_;
-    jVpnCfg["isAcceptIPv4"] = vpnCfg->isAcceptIPv4_;
-    jVpnCfg["isAcceptIPv6"] = vpnCfg->isAcceptIPv6_;
-    jVpnCfg["isLegacy"] = vpnCfg->isLegacy_;
-    jVpnCfg["isMetered"] = vpnCfg->isMetered_;
-    jVpnCfg["isBlocking"] = vpnCfg->isBlocking_;
-
-    nlohmann::json jVecDnsAddrs = nlohmann::json::array();
-    for (const auto& mem : vpnCfg->dnsAddresses_) {
-        jVecDnsAddrs.push_back(mem);
-    }
-    jVpnCfg["dnsAddresses"] = jVecDnsAddrs;
-
-    nlohmann::json jVecDomains = nlohmann::json::array();
-    for (const auto& mem : vpnCfg->searchDomains_) {
-        jVecDomains.push_back(mem);
-    }
-    jVpnCfg["searchDomains"] = jVecDomains;
-
-    nlohmann::json jVecAcceptApp = nlohmann::json::array();
-    for (const auto& mem : vpnCfg->acceptedApplications_) {
-        jVecAcceptApp.push_back(mem);
-    }
-    jVpnCfg["acceptedApplications"] = jVecAcceptApp;
-
-    nlohmann::json jVecRefuseApp = nlohmann::json::array();
-    for (const auto& mem : vpnCfg->refusedApplications_) {
-        jVecRefuseApp.push_back(mem);
-    }
-    jVpnCfg["refusedApplications"] = jVecRefuseApp;
-
-    jsonString = jVpnCfg.dump();
-    NETMGR_EXT_LOG_E("jsonString = %{public}s", jsonString.c_str());
-}
-
-void NetworkVpnService::CjsonParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString)
-{
     cJSON *root = cJSON_CreateObject();
     cJSON *jVecAddrs = cJSON_CreateArray();
     for (const auto& mem : vpnCfg->addresses_) {
         cJSON *jInetAddr = cJSON_CreateObject();
-        CjsonConvertNetAddrToJson(mem, jInetAddr);
+        ConvertNetAddrToJson(mem, jInetAddr);
         cJSON_AddItemToArray(jVecAddrs, jInetAddr);
     }
     cJSON_AddItemToObject(root, "addresses", jVecAddrs);
 
     cJSON *jVecRoutes = cJSON_CreateArray();
-    CjsonConvertVecRouteToJson(vpnCfg->routes_, jVecRoutes);
+    ConvertVecRouteToJson(vpnCfg->routes_, jVecRoutes);
     cJSON_AddItemToObject(root, "routes", jVecRoutes);
 
     cJSON* mtu = cJSON_CreateObject();
@@ -748,17 +499,18 @@ void NetworkVpnService::CjsonParseConfigToJson(const sptr<VpnConfig> &vpnCfg, st
         cJSON_AddItemToArray(jVecRefuseApp, cJSON_CreateString(mem.c_str()));
     }
     cJSON_AddItemToObject(root, "refusedApplications", jVecRefuseApp);
-
-    jsonString = cJSON_Print(root);
-    NETMGR_EXT_LOG_E("jsonString = %{public}s", jsonString.c_str());
+    NETMGR_EXT_LOG_D("root = %{public}s", cJSON_PrintUnformatted(root));
+    char *str = cJSON_Print(root);
+    jsonString = str;
+    NETMGR_EXT_LOG_D("jsonString = %{public}s", jsonString.c_str());
+    cJSON_Delete(root);
+    free(str);
 }
 
 void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 {
     std::string jsonString;
     ParseConfigToJson(vpnCfg, jsonString);
-    std::string cjsonString;
-    CjsonParseConfigToJson(vpnCfg, cjsonString);
     std::ofstream ofs(VPN_CONFIG_FILE);
     ofs << jsonString;
 }

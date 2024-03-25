@@ -120,7 +120,6 @@ EthernetManagement::EthernetManagement()
 
     ethConfiguration_ = std::make_unique<EthernetConfiguration>();
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
-    ethConfiguration_->CjsonReadSystemConfiguration(devCaps_, devCfgs_);
     ethLanManageMent_ = std::make_unique<EthernetLanManagement>();
 }
 
@@ -400,7 +399,6 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
         return;
     }
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
-    ethConfiguration_->CjsonReadSystemConfiguration(devCaps_, devCfgs_);
     devs_.insert(std::make_pair(devName, devState));
     devState->SetDevName(devName);
     auto fitCfg = devCfgs_.find(devName);
