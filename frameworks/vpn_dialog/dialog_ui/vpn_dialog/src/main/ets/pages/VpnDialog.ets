@@ -23,7 +23,7 @@ import GlobalContext from '../MainAbility/GlobalContext.ts';
 
 // allow,notAllow button style
 @Extend(Text)
-function ControlBtn(fontColor : string) {
+function controlBtn(fontColor : string) {
   .fontColor(fontColor)
   .backgroundColor(0xffffff)
   .width(100)
@@ -33,7 +33,7 @@ function ControlBtn(fontColor : string) {
 }
 
 @Extend(Text)
-function ControlText() {
+function controlText() {
     .backgroundColor(0xffffff)
     .height(56)
     .fontSize(20)
@@ -42,7 +42,7 @@ function ControlText() {
 
 // content style
 @Extend(Text)
-function ControlFontSize(fontSize: number) {
+function controlFontSize(fontSize : number) {
   .fontSize(fontSize)
   .width('180%')
   .fontColor('rgba(10, 10, 10, 1.00)')
@@ -65,18 +65,18 @@ export default struct ConfirmDialog {
   @Builder
   TipTextStyle(tip: string, fontSize: number) {
     Text(tip)
-      .ControlFontSize(fontSize)
+      .controlFontSize(fontSize)
       .visibility(tip.length > 0 ? Visibility.Visible : Visibility.None);
   }
 
   build() {
     Column() {
       this.TipTextStyle(this.content, 20);
-      Text($r('app.string.title')).ControlText();
+      Text($r('app.string.title')).controlText();
       Text($r('app.string.warning')).fontSize(16).margin({ top: 0, bottom: 8, left: 24, right: 24 });
       Flex({ justifyContent: FlexAlign.SpaceAround }) {
         Text($r('app.string.notAllowButton'))
-          .ControlBtn(this.notAllowFontColor)
+          .controlBtn(this.notAllowFontColor)
           .onClick(() => {
             let bundleName = globalThis.bundleName;
             vpnext.updateVpnAuthorizedState(bundleName + '**vpndialog**');
@@ -85,7 +85,7 @@ export default struct ConfirmDialog {
         Text('|')
           .fontSize(20);
         Text($r('app.string.allowButton'))
-          .ControlBtn(this.allowFontColor)
+          .controlBtn(this.allowFontColor)
           .onClick(() => {
             let bundleName = globalThis.bundleName;
             let abilityName = globalThis.abilityName;
@@ -136,7 +136,7 @@ struct IndexHapComponent {
 
   async aboutToAppear() {
     this.extensionWin = globalThis.vpnWin;
-    this.extensionContext =  globalThis.extensionContext;
+    this.extensionContext = globalThis.extensionContext;
 
     this.allow = await JSON.stringify(GlobalContext.getContext().getObject('app.string.allow'));
     this.use = await JSON.stringify(GlobalContext.getContext().getObject('app.string.use'));
