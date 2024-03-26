@@ -64,6 +64,7 @@ ohos_shared_library("sharing") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_manager_common",
   ]
 
   configs = [ ":sharing_config" ]

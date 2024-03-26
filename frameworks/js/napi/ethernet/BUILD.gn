@@ -65,6 +65,7 @@ ohos_shared_library("ethernet") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_manager_common",
   ]
 
   relative_install_dir = "module/net"
