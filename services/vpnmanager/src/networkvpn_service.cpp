@@ -187,15 +187,11 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
 
 void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
 {
-    uint32_t itemSize = 0;
-    uint32_t i = 0;
-    cJSON *item = nullptr;
-
     cJSON *dnsAddr = cJSON_GetObjectItem(doc, "dnsAddresses");
     if (dnsAddr != nullptr && cJSON_IsArray(dnsAddr)) {
-        itemSize = cJSON_GetArraySize(dnsAddr);
-        for (i = 0; i < itemSize; i++) {
-            item = cJSON_GetArrayItem(dnsAddr, i);
+        uint32_t itemSize = cJSON_GetArraySize(dnsAddr);
+        for (uint32_t i = 0; i < itemSize; i++) {
+            cJSON *item = cJSON_GetArrayItem(dnsAddr, i);
             if (item->type == cJSON_String) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("dnsAddr = %{public}s", mem.c_str());
@@ -205,9 +201,9 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *sDomain = cJSON_GetObjectItem(doc, "searchDomains");
     if (sDomain != nullptr && cJSON_IsArray(sDomain)) {
-        itemSize = cJSON_GetArraySize(sDomain);
-        for (i = 0; i < itemSize; i++) {
-            item = cJSON_GetArrayItem(sDomain, i);
+        uint32_t itemSize = cJSON_GetArraySize(sDomain);
+        for (uint32_t i = 0; i < itemSize; i++) {
+            cJSON *item = cJSON_GetArrayItem(sDomain, i);
             if (item->type == cJSON_String) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("sDomain = %{public}s", mem.c_str());
@@ -217,9 +213,9 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *acceptApp = cJSON_GetObjectItem(doc, "acceptedApplications");
     if (acceptApp != nullptr && cJSON_IsArray(acceptApp)) {
-        itemSize = cJSON_GetArraySize(acceptApp);
-        for (i = 0; i < itemSize; i++) {
-            item = cJSON_GetArrayItem(acceptApp, i);
+        uint32_t itemSize = cJSON_GetArraySize(acceptApp);
+        for (uint32_t i = 0; i < itemSize; i++) {
+            cJSON *item = cJSON_GetArrayItem(acceptApp, i);
             if (item->type == cJSON_String) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("acceptApp = %{public}s", mem.c_str());
@@ -229,9 +225,9 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *refusedApp = cJSON_GetObjectItem(doc, "refusedApplications");
     if (refusedApp != nullptr && cJSON_IsArray(refusedApp)) {
-        itemSize = cJSON_GetArraySize(refusedApp);
-        for (i = 0; i < itemSize; i++) {
-            item = cJSON_GetArrayItem(refusedApp, i);
+        uint32_t itemSize = cJSON_GetArraySize(refusedApp);
+        for (uint32_t i = 0; i < itemSize; i++) {
+            cJSON *item = cJSON_GetArrayItem(refusedApp, i);
             if (item->type == cJSON_String) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("refusedApp = %{public}s", mem.c_str());
