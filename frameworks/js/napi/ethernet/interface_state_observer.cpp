@@ -51,6 +51,13 @@ int32_t InterfaceStateObserver::OnInterfaceRemoved(const std::string &iface)
 
 int32_t InterfaceStateObserver::OnInterfaceChanged(const std::string &iface, bool up)
 {
+    if (!InterfaceStateObserverWrapper::GetInstance().GetEventManager()->HasEventListener(EVENT_STATS_CHANGE)) {
+        NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_STATS_CHANGE);
+        return -1;
+    }
+    auto pair = new std::pair<std::string, bool>(iface, up);
+    InterfaceStateObserverWrapper::GetInstance().GetEventManager()->EmitByUv(EVENT_STATS_CHANGE, pair,
+                                                                             IfaceChangedCallback);
     return 0;
 }
 
