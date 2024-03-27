@@ -499,8 +499,8 @@ void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::st
     NETMGR_EXT_LOG_D("root = %{public}s", cJSON_PrintUnformatted(root));
     char *str = cJSON_Print(root);
     if (str == nullptr) {
-       cJSON_Delete(root);
-       return; 
+        cJSON_Delete(root);
+        return;
     }
     jsonString = str;
     cJSON_Delete(root);
