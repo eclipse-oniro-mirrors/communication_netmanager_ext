@@ -56,12 +56,12 @@
                 "bundle_framework",
                 "ability_runtime",
                 "access_token",
+                "cJSON",
                 "common_event_service",
                 "hitrace",
                 "window_manager",
                 "ability_base",
-                "os_account",
-                "cJSON"
+                "os_account"
             ]
         },
         "build": {
