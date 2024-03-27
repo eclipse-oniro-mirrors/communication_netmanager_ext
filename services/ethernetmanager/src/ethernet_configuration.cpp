@@ -92,14 +92,12 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
         bool isLan = false;
         cJSON *lanIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_LANIFACE.c_str());
         if (lanIface == nullptr) {
-            iface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IFACE.c_str())->valuestring;
+            cJSON *ethIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IFACE.c_str());
+            iface = cJSON_GetStringValue(ethIface);
             isLan = false;
         } else {
             iface = cJSON_GetStringValue(lanIface);
             isLan = true;
-        }
-        if (iface.empty()) {
-            continue;
         }
         NETMGR_EXT_LOG_D("ReadConfigData Iface is %{public}s", iface.c_str());
         cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS.c_str());
@@ -147,6 +145,7 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
     cJSON *jsonEth = cJSON_GetObjectItem(json, CONFIG_KEY_ETH_COMPONENT_FLAG.c_str());
     if (jsonEth == nullptr) {
         NETMGR_EXT_LOG_E("ReadConfigData not find config_ethernet_interfaces!");
+        cJSON_Delete(json);
         return false;
     }
     NETMGR_EXT_LOG_D("ReadConfigData ethValue: %{public}s", cJSON_PrintUnformatted(jsonEth));
@@ -173,18 +172,15 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     std::string gateway = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_GATEWAY.c_str())->valuestring;
     std::string netmask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_NETMASK.c_str())->valuestring;
     std::string dns = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_DNS.c_str())->valuestring;
-    NETMGR_EXT_LOG_D("config ip:%{public}s", ip.c_str());
-    NETMGR_EXT_LOG_D("config route:%{public}s", route.c_str());
-    NETMGR_EXT_LOG_D("config gateway:%{public}s", gateway.c_str());
-    NETMGR_EXT_LOG_D("config netmask:%{public}s", netmask.c_str());
-    NETMGR_EXT_LOG_D("config dns:%{public}s", dns.c_str());
     StaticConfiguration::ExtractNetAddrBySeparator(ip, config->ipStatic_.ipAddrList_);
     StaticConfiguration::ExtractNetAddrBySeparator(route, config->ipStatic_.routeList_);
     StaticConfiguration::ExtractNetAddrBySeparator(gateway, config->ipStatic_.gatewayList_);
     StaticConfiguration::ExtractNetAddrBySeparator(netmask, config->ipStatic_.netMaskList_);
     StaticConfiguration::ExtractNetAddrBySeparator(dns, config->ipStatic_.dnsServers_);
     std::string routeMask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE_MASK.c_str())->valuestring;
-    NETMGR_EXT_LOG_D("config routemask:%{public}s", routeMask.c_str());
+    NETMGR_EXT_LOG_D("ip:%{public}s, route:%{public}s, gateway:%{public}s, netmask:%{public}s, dns:%{public}s,\
+                     routemask:%{public}s", ip.c_str(), route.c_str(), gateway.c_str(), netmask.c_str(),
+                     dns.c_str(), routeMask.c_str());
     ParserIfaceIpAndRoute(config, routeMask);
     return config;
 }

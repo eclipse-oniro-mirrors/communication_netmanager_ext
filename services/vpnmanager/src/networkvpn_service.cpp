@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
-
 #include <string>
 #include <fstream>
 #include <thread>
@@ -189,10 +188,9 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
 {
     cJSON *dnsAddr = cJSON_GetObjectItem(doc, "dnsAddresses");
     if (dnsAddr != nullptr && cJSON_IsArray(dnsAddr)) {
-        uint32_t itemSize = cJSON_GetArraySize(dnsAddr);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        for (uint32_t i = 0; i < cJSON_GetArraySize(dnsAddr); i++) {
             cJSON *item = cJSON_GetArrayItem(dnsAddr, i);
-            if (item->type == cJSON_String) {
+            if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("dnsAddr = %{public}s", mem.c_str());
                 vpnCfg->dnsAddresses_.push_back(mem);
@@ -201,10 +199,9 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *sDomain = cJSON_GetObjectItem(doc, "searchDomains");
     if (sDomain != nullptr && cJSON_IsArray(sDomain)) {
-        uint32_t itemSize = cJSON_GetArraySize(sDomain);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        for (uint32_t i = 0; i < cJSON_GetArraySize(sDomain); i++) {
             cJSON *item = cJSON_GetArrayItem(sDomain, i);
-            if (item->type == cJSON_String) {
+            if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("sDomain = %{public}s", mem.c_str());
                 vpnCfg->searchDomains_.push_back(mem);
@@ -213,10 +210,9 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *acceptApp = cJSON_GetObjectItem(doc, "acceptedApplications");
     if (acceptApp != nullptr && cJSON_IsArray(acceptApp)) {
-        uint32_t itemSize = cJSON_GetArraySize(acceptApp);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        for (uint32_t i = 0; i < cJSON_GetArraySize(acceptApp); i++) {
             cJSON *item = cJSON_GetArrayItem(acceptApp, i);
-            if (item->type == cJSON_String) {
+            if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("acceptApp = %{public}s", mem.c_str());
                 vpnCfg->acceptedApplications_.push_back(mem);
@@ -225,10 +221,9 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *refusedApp = cJSON_GetObjectItem(doc, "refusedApplications");
     if (refusedApp != nullptr && cJSON_IsArray(refusedApp)) {
-        uint32_t itemSize = cJSON_GetArraySize(refusedApp);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        for (uint32_t i = 0; i < cJSON_GetArraySize(refusedApp); i++) {
             cJSON *item = cJSON_GetArrayItem(refusedApp, i);
-            if (item->type == cJSON_String) {
+            if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
                 NETMGR_EXT_LOG_D("refusedApp = %{public}s", mem.c_str());
                 vpnCfg->refusedApplications_.push_back(mem);
@@ -315,7 +310,7 @@ void NetworkVpnService::ConvertRouteToConfig(Route& tmp, const cJSON* const mem)
         NETMGR_EXT_LOG_D("isHost = %{public}d", tmp.isHost_);
     }
     cJSON *hasGateway = cJSON_GetObjectItem(mem, "hasGateway");
-    if (isHost != nullptr && cJSON_IsBool(hasGateway)) {
+    if (hasGateway != nullptr && cJSON_IsBool(hasGateway)) {
         tmp.hasGateway_ = cJSON_IsTrue(hasGateway) ? true : false;
         NETMGR_EXT_LOG_D("hasGateway_ = %{public}d", tmp.hasGateway_);
     }
@@ -364,27 +359,33 @@ void NetworkVpnService::ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::st
     NETMGR_EXT_LOG_D("doc = %{public}s", cJSON_PrintUnformatted(doc));
     cJSON *mtu = cJSON_GetObjectItem(doc, "mtu");
     if (mtu != nullptr && cJSON_IsNumber(mtu)) {
-        NETMGR_EXT_LOG_D("mtu = %{public}lf", cJSON_GetNumberValue(mtu));
+        vpnCfg->mtu_ = cJSON_GetNumberValue(mtu);
+        NETMGR_EXT_LOG_D("mtu = %{public}d", vpnCfg->mtu_);
     }
     cJSON *isAcceptIPv4 = cJSON_GetObjectItem(doc, "isAcceptIPv4");
     if (isAcceptIPv4 != nullptr && cJSON_IsBool(isAcceptIPv4)) {
-        NETMGR_EXT_LOG_D("isAcceptIPv4 = %{public}d", cJSON_IsTrue(isAcceptIPv4) ? true : false);
+        vpnCfg->isAcceptIPv4_ = cJSON_IsTrue(isAcceptIPv4);
+        NETMGR_EXT_LOG_D("isAcceptIPv4 = %{public}d", vpnCfg->isAcceptIPv4_);
     }
     cJSON *isAcceptIPv6 = cJSON_GetObjectItem(doc, "isAcceptIPv6");
     if (isAcceptIPv6 != nullptr && cJSON_IsBool(isAcceptIPv6)) {
-        NETMGR_EXT_LOG_D("isAcceptIPv6 = %{public}d", cJSON_IsTrue(isAcceptIPv6) ? true : false);
+        vpnCfg->isAcceptIPv6_ = cJSON_IsTrue(isAcceptIPv6);
+        NETMGR_EXT_LOG_D("isAcceptIPv6 = %{public}d", vpnCfg->isAcceptIPv6_);
     }
     cJSON *isLegacy = cJSON_GetObjectItem(doc, "isLegacy");
     if (isLegacy != nullptr && cJSON_IsBool(isLegacy)) {
-        NETMGR_EXT_LOG_D("isLegacy = %{public}d", cJSON_IsTrue(isLegacy) ? true : false);
+        vpnCfg->isLegacy_ = cJSON_IsTrue(isLegacy);
+        NETMGR_EXT_LOG_D("isLegacy = %{public}d", vpnCfg->isLegacy_);
     }
     cJSON *isMetered = cJSON_GetObjectItem(doc, "isMetered");
     if (isMetered != nullptr && cJSON_IsBool(isMetered)) {
-        NETMGR_EXT_LOG_D("isMetered = %{public}d", cJSON_IsTrue(isMetered) ? true : false);
+        vpnCfg->isMetered_ = cJSON_IsTrue(isMetered);
+        NETMGR_EXT_LOG_D("isMetered = %{public}d", vpnCfg->isMetered_);
     }
     cJSON *isBlocking = cJSON_GetObjectItem(doc, "isBlocking");
     if (isBlocking != nullptr && cJSON_IsBool(isBlocking)) {
-        NETMGR_EXT_LOG_D("isBlocking = %{public}d", cJSON_IsTrue(isBlocking) ? true : false);
+        vpnCfg->isBlocking_ = cJSON_IsTrue(isBlocking);
+        NETMGR_EXT_LOG_D("isBlocking = %{public}d", vpnCfg->isBlocking_);
     }
 
     ConvertStringToConfig(vpnCfg, doc);
@@ -497,8 +498,11 @@ void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::st
     cJSON_AddItemToObject(root, "refusedApplications", jVecRefuseApp);
     NETMGR_EXT_LOG_D("root = %{public}s", cJSON_PrintUnformatted(root));
     char *str = cJSON_Print(root);
+    if (str == nullptr) {
+       cJSON_Delete(root);
+       return; 
+    }
     jsonString = str;
-    NETMGR_EXT_LOG_D("jsonString = %{public}s", jsonString.c_str());
     cJSON_Delete(root);
     free(str);
 }

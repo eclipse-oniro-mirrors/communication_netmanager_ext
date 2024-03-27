@@ -18,17 +18,17 @@
 
 #include <map>
 #include <mutex>
+#include <numeric>
 #include <set>
 #include <string>
 #include <vector>
-#include <numeric>
 
+#include "cJSON.h"
 #include "ethernet_dhcp_callback.h"
 #include "http_proxy.h"
 #include "interface_configuration.h"
 #include "net_all_capabilities.h"
 #include "net_link_info.h"
-#include "cJSON.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -37,9 +37,6 @@ public:
     EthernetConfiguration();
     ~EthernetConfiguration() = default;
 
-    bool ReadEthernetInterfaces(std::map<std::string, std::set<NetCap>> &devCaps,
-                                std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs,
-                                const cJSON* const json);
     bool ReadSystemConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
                                  std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
     bool ReadUserConfiguration(std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
@@ -54,6 +51,9 @@ private:
     void ParseBootProto(const std::string &fileContent, sptr<InterfaceConfiguration> cfg);
     void ParseStaticConfig(const std::string &fileContent, sptr<InterfaceConfiguration> cfg);
 
+    bool ReadEthernetInterfaces(std::map<std::string, std::set<NetCap>> &devCaps,
+                                std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs,
+                                const cJSON* const json);
     std::string ReadJsonFile(const std::string &filePath);
     sptr<InterfaceConfiguration> ConvertJsonToConfiguration(const cJSON* const jsonData, bool isLan);
     bool IsDirExist(const std::string &dirPath);
