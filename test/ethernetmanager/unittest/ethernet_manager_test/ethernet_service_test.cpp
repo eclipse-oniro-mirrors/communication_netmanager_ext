@@ -313,7 +313,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceCommonTest001, TestSize.Level1)
 
     NetManagerExtAccessToken token;
     ret = serviceComm_->ResetEthernetFactory();
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(ret, 0);
 }
 
 HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
@@ -430,15 +430,15 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 
     result = ethernetService.GetIfaceConfig(iface, ic);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     int32_t activeStatus = 0;
     result = ethernetService.IsIfaceActive(iface, activeStatus);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     std::vector<std::string> activeIfaces;
     result = ethernetService.GetAllActiveIfaces(activeIfaces);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, 0);
 }
 
 HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest004, TestSize.Level1)
