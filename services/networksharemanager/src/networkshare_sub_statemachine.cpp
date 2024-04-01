@@ -13,26 +13,34 @@
  * limitations under the License.
  */
 
-#include "networkshare_sub_statemachine.h"
-
+#include "net_manager_center.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
+#include "networkshare_sub_statemachine.h"
 #include "networkshare_tracker.h"
 #include "route_utils.h"
+#include <ifaddrs.h>
+#include <random>
+#include <sys/types.h>
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr const char *NEXT_HOT = "0.0.0.0";
+constexpr const char *IPV6_NEXT_HOT = "";
+constexpr const char *DEFAULT_LINK_ROUTE = "fe80::/64";
 constexpr const char *ERROR_MSG_CONFIG_FORWARD = "Config Forward failed";
 constexpr const char *ERROR_MSG_ADD_ROUTE_STRATEGY = "Add Route Strategy failed";
 constexpr const char *ERROR_MSG_ADD_ROUTE_RULE = "Add Route Rule failed";
 constexpr const char *ERROR_MSG_REMOVE_ROUTE_RULE = "Remove Route Rule failed";
 constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
 constexpr int32_t IP_V4 = 0;
-}
+constexpr int32_t RAND_HALF = 2;
+constexpr uint8_t BYTE_BIT = 8;
+constexpr int32_t PREFIX_LEN = 64;
+} // namespace
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
     const std::string &ifaceName, const SharingIfaceType &interfaceType,
@@ -210,22 +218,170 @@ int NetworkShareSubStateMachine::HandleInitInterfaceDown(const std::any &message
     return NETMANAGER_EXT_SUCCESS;
 }
 
+bool NetworkShareSubStateMachine::GetShareIpv6Prefix(RaParams &raParam, const std::string &iface)
+{
+    struct ifaddrs *ifaddr = nullptr;
+    char ipv6Addr[NI_MAXHOST] = {};
+    if (getifaddrs(&ifaddr)) {
+        NETMGR_EXT_LOG_E("getifaddrs err!");
+        return false;
+    }
+
+    int32_t ret = 0;
+    for (struct ifaddrs *ifa = ifaddr; ifa; ifa = ifa->ifa_next) {
+        if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET6) {
+            continue;
+        }
+        std::string ifname = std::string(ifa->ifa_name);
+        if (ifname != iface) {
+            continue;
+        }
+
+        ret = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), ipv6Addr, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
+        if (ret != 0) {
+            NETMGR_EXT_LOG_E("getnameinfo err!");
+            break;
+        }
+
+        if (strstr(ipv6Addr, "fe80") != nullptr) {
+            continue;
+        }
+        IpPrefix ipPrefix;
+        std::string ipv6AddrStr = std::string(ipv6Addr);
+        inet_pton(AF_INET6, ipv6Addr, &ipPrefix.address);
+        ipPrefix.prefixesLength = PREFIX_LEN;
+        NETMGR_EXT_LOG_I("iface: %{public}s, prefixesLength: %{public}d, addr:%{public}s", iface.c_str(),
+                         ipPrefix.prefixesLength, ipv6AddrStr.c_str());
+        raParam.prefixes_.emplace_back(ipPrefix);
+    }
+
+    freeifaddrs(ifaddr);
+    return true;
+}
+
+int8_t NetworkShareSubStateMachine::GetLocalIpFor()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(RAND_HALF, 0xFF);
+    return (int8_t)distrib(gen);
+}
+
+int32_t NetworkShareSubStateMachine::GenerateIpv6(RaParams &ra, const std::string &iface)
+{
+    NETMGR_EXT_LOG_I("GenerateIpv6 enter");
+    if (ra.prefixes_.size() == 0) {
+        NETMGR_EXT_LOG_W("Failed get dns by prefix iface: %{public}s", iface.c_str());
+        return NETMANAGER_ERROR;
+    }
+
+    size_t offset = 0;
+    for (IpPrefix &prefix : ra.prefixes_) {
+        offset = std::min((uint32_t)sizeof(prefix.address.s6_addr), prefix.prefixesLength / BYTE_BIT);
+        memset_s(prefix.address.s6_addr + offset, sizeof(prefix.address.s6_addr) - offset, 0,
+                 sizeof(prefix.address.s6_addr) - offset);
+        prefix.address.s6_addr[sizeof(prefix.address.s6_addr) - 1] = GetLocalIpFor();
+    }
+
+    NETMGR_EXT_LOG_I("GenerateIpv6 exit");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+bool NetworkShareSubStateMachine::GetIpv6ShareIntfParams()
+{
+    RaParams raParam;
+    if (!GetShareIpv6Prefix(raParam, upstreamIfaceName_)) {
+        NETMGR_EXT_LOG_E("Get ipv6 addr for iface[%{public}s fail.", upstreamIfaceName_.c_str());
+        return false;
+    }
+
+    if (GenerateIpv6(raParam, upstreamIfaceName_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Generate ipv6 adress Fail %{public}s", upstreamIfaceName_.c_str());
+        return false;
+    }
+
+    int32_t mtu = NetsysController::GetInstance().GetInterfaceMtu(ifaceName_);
+    raParam.mtu_ = mtu > IPV6_MIN_MTU ? mtu : IPV6_MIN_MTU;
+
+    OHOS::nmd::InterfaceConfigurationParcel config;
+    config.ifName = ifaceName_;
+    if (NetsysController::GetInstance().GetInterfaceConfig(config) != ERR_NONE) {
+        NETMGR_EXT_LOG_E("Get interface mac err!");
+        return false;
+    }
+
+    raParam.macAddr_ = config.hwAddr;
+
+    NETMGR_EXT_LOG_I("Get Interface mtu:[%{public}d], mac:[%{public}s]", raParam.mtu_, raParam.macAddr_.c_str());
+
+    // init dns
+    in6_addr dns = {};
+    for (const IpPrefix &prefix : raParam.prefixes_) {
+        memcpy_s(dns.s6_addr, sizeof(dns.s6_addr), prefix.address.s6_addr, sizeof(prefix.address.s6_addr));
+        raParam.dnses_.emplace_back(dns);
+    }
+
+    // Set Params to Ra Params
+    if (raDaemon_ == nullptr) {
+        raDaemon_ = std::make_shared<RouterAdvertisementDaemon>();
+    }
+    RaParams deprecatedParams = raDaemon_->GetDeprecatedRaParams(lastRaParams_, raParam);
+    raDaemon_->BuildNewRa(deprecatedParams, raParam);
+    lastRaParams_.Set(raParam);
+    return true;
+}
+
+bool NetworkShareSubStateMachine::StartIpv6()
+{
+    NETMGR_EXT_LOG_I("Start ipv6 for iface: %{public}s", ifaceName_.c_str());
+    if (raDaemon_ == nullptr) {
+        NETMGR_EXT_LOG_E("fail due to Radaemon is nullptr");
+        return false;
+    }
+
+    if (lastRaParams_.prefixes_.size() == 0) {
+        NETMGR_EXT_LOG_I("have nothing ipv6 address!");
+        return false;
+    }
+
+    if (raDaemon_->Init(ifaceName_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Init ipv6 share failed");
+        return false;
+    }
+
+    if (!raDaemon_->StartRa()) {
+        StopIpv6();
+        return false;
+    }
+    return true;
+}
+
+void NetworkShareSubStateMachine::StopIpv6()
+{
+    NETMGR_EXT_LOG_I("Stop ipv6 for iface: %{public}s", ifaceName_.c_str());
+    if (raDaemon_ != nullptr) {
+        raDaemon_->StopRa();
+        lastRaParams_.Clear();
+        raDaemon_ = nullptr;
+    }
+}
 void NetworkShareSubStateMachine::SharedStateEnter()
 {
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Shared State.", ifaceName_.c_str());
-    if (!ConfigureShareDhcp(true)) {
-        lastError_ = NETWORKSHARE_ERROR_IFACE_CFG_ERROR;
-        NETMGR_EXT_LOG_E("Enter sub StateMachine[%{public}s] Shared State configIpv4 error.", ifaceName_.c_str());
-    }
-    if (lastError_ != NETMANAGER_EXT_SUCCESS) {
-        SubSmStateSwitch(SUBSTATE_INIT);
-        return;
-    }
     if (trackerCallback_ == nullptr) {
         NETMGR_EXT_LOG_E("Enter Sub StateMachine Shared State error, trackerCallback_ is null.");
         return;
     }
     trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_SHARED, lastError_);
+
+    if (!ConfigureShareDhcp(true)) {
+        lastError_ = NETWORKSHARE_ERROR_IFACE_CFG_ERROR;
+        NETMGR_EXT_LOG_E("Enter sub StateMachine[%{public}s] Shared State configIpv4 error.", ifaceName_.c_str());
+    }
+
+    if (!StartIpv6()) {
+        NETMGR_EXT_LOG_E("Start Ipv6 failed.");
+    }
 }
 
 void NetworkShareSubStateMachine::SharedStateExit()
@@ -233,6 +389,7 @@ void NetworkShareSubStateMachine::SharedStateExit()
     NETMGR_EXT_LOG_I("Exit Sub StateMachine[%{public}s] Shared State.", ifaceName_.c_str());
     CleanupUpstreamInterface();
     ConfigureShareDhcp(false);
+    StopIpv6();
 }
 
 int NetworkShareSubStateMachine::HandleSharedUnrequest(const std::any &messageObj)
@@ -306,6 +463,7 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
 
     HandleConnection();
     AddRoutesToLocalNetwork();
+    AddIpv6InfoToLocalNetwork();
 }
 
 void NetworkShareSubStateMachine::HandleConnection()
@@ -373,6 +531,73 @@ void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
             NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route error[%{public}d].", ifaceName_.c_str(), result);
     }
+}
+
+void NetworkShareSubStateMachine::AddIpv6AddrToLocalNetwork()
+{
+    char address[INET6_ADDRSTRLEN] = {0};
+    for (auto prefix : lastRaParams_.prefixes_) {
+        if (inet_ntop(AF_INET6, &(prefix.address), address, sizeof(address)) == nullptr) {
+            NETMGR_EXT_LOG_E("DNS address %{public}s", address);
+            return;
+        }
+        NETMGR_EXT_LOG_I("Generate ipv6 adress %{public}s", address);
+        if (NetsysController::GetInstance().AddInterfaceAddress(ifaceName_, address, PREFIX_LEN) != 0) {
+            NETMGR_EXT_LOG_E("Failed setting ipv6 address");
+            return;
+        }
+    }
+}
+
+void NetworkShareSubStateMachine::AddIpv6RoutesToLocalNetwork()
+{
+    std::string destination = "";
+    for (auto prefix : lastRaParams_.prefixes_) {
+        memset_s(prefix.address.s6_addr + BYTE_BIT, sizeof(prefix.address.s6_addr) - BYTE_BIT, 0,
+                 sizeof(prefix.address.s6_addr) - BYTE_BIT);
+        char addressPrefix[INET6_ADDRSTRLEN] = {0};
+        if (inet_ntop(AF_INET6, &(prefix.address), addressPrefix, sizeof(addressPrefix)) == nullptr) {
+            NETMGR_EXT_LOG_E("DNS address %{public}s", addressPrefix);
+            return;
+        }
+
+        destination = std::string(addressPrefix) + "/64";
+        int32_t result =
+            NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, ifaceName_, destination, IPV6_NEXT_HOT);
+        if (result != NETSYS_SUCCESS) {
+            NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+                netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
+                NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ADD_ROUTE_RULE,
+                NetworkShareEventType::SETUP_EVENT);
+            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route error[%{public}d].", ifaceName_.c_str(), result);
+        }
+
+        destination = std::string(DEFAULT_LINK_ROUTE);
+        result = NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, ifaceName_, destination, IPV6_NEXT_HOT);
+        if (result != NETSYS_SUCCESS) {
+            NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+                netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
+                NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ADD_ROUTE_RULE,
+                NetworkShareEventType::SETUP_EVENT);
+            NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route error[%{public}d].", ifaceName_.c_str(), result);
+        }
+    }
+}
+
+void NetworkShareSubStateMachine::AddIpv6InfoToLocalNetwork()
+{
+    if (!GetIpv6ShareIntfParams()) {
+        NETMGR_EXT_LOG_I("have nothing ipv6 params!");
+        return;
+    }
+
+    if (lastRaParams_.prefixes_.size() == 0) {
+        NETMGR_EXT_LOG_I("have nothing ipv6 address!");
+        return;
+    }
+
+    AddIpv6AddrToLocalNetwork();
+    AddIpv6RoutesToLocalNetwork();
 }
 
 bool NetworkShareSubStateMachine::FindDestinationAddr(std::string &destination)

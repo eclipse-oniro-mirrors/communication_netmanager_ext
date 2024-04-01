@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,20 +16,21 @@
 #ifndef NETWORKSHARE_SUB_STATEMACHINE_H
 #define NETWORKSHARE_SUB_STATEMACHINE_H
 
-#include <any>
-#include <cstring>
-#include <map>
-#include <mutex>
-#include <set>
-#include <sstream>
-
+#include "dhcp_c_api.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "networkshare_configuration.h"
 #include "networkshare_constants.h"
 #include "networkshare_hisysevent.h"
 #include "networkshare_state_common.h"
-#include "dhcp_c_api.h"
+#include "router_advertisement_daemon.h"
+#include "router_advertisement_params.h"
+#include <any>
+#include <cstring>
+#include <map>
+#include <mutex>
+#include <set>
+#include <sstream>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -105,7 +106,7 @@ private:
     bool RequestIpv4Address(std::shared_ptr<INetAddr> &netAddr);
     bool StartDhcp(const std::shared_ptr<INetAddr> &netAddr);
     bool SetRange(DhcpRange &range, const std::string &ipHead, const std::string &strStartip,
-                                           const std::string &strEndip, const std::string &mask);
+                  const std::string &strEndip, const std::string &mask);
     bool StopDhcp();
     void HandleConnectionChanged(const std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo);
     void RemoveRoutesToLocalNetwork();
@@ -119,6 +120,15 @@ private:
     bool CheckConfig(std::string &endIp, std::string &mask);
     bool FindDestinationAddr(std::string &destination);
     std::recursive_mutex &getUsefulMutex();
+    bool StartIpv6();
+    void StopIpv6();
+    int8_t GetLocalIpFor();
+    int32_t GenerateIpv6(RaParams &ra, const std::string &iface);
+    bool GetIpv6ShareIntfParams();
+    bool GetShareIpv6Prefix(RaParams &ra, const std::string &iface);
+    void AddIpv6AddrToLocalNetwork();
+    void AddIpv6RoutesToLocalNetwork();
+    void AddIpv6InfoToLocalNetwork();
 
 private:
     struct SubSmStateTable {
@@ -136,6 +146,8 @@ private:
     std::shared_ptr<NetworkShareConfiguration> configuration_ = nullptr;
     int32_t curState_ = SUBSTATE_INIT;
     std::vector<SubSmStateTable> stateTable_;
+    std::shared_ptr<RouterAdvertisementDaemon> raDaemon_ = nullptr;
+    RaParams lastRaParams_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
