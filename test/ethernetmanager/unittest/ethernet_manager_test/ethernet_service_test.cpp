@@ -418,9 +418,13 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
     ethernetService.OnStop();
 
     NetManagerExtAccessToken token;
+    ethernetService.ethManagement_ = nullptr;
+    int32_t result = ethernetService.ResetFactory();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+
     int32_t fd = 0;
     std::vector<std::u16string> args;
-    int32_t result = ethernetService.Dump(fd, args);
+    result = ethernetService.Dump(fd, args);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 
     std::string iface = "";

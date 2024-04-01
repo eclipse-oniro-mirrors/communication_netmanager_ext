@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class EthernetManagement {
+class EthernetManagement : public std::enable_shared_from_this<EthernetManagement> {
 private:
     class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
     public:
@@ -60,7 +60,8 @@ private:
     };
 
 public:
-    static EthernetManagement& GetInstance();
+    EthernetManagement();
+    ~EthernetManagement();
     void Init();
     int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
     void UpdateInterfaceState(const std::string &dev, bool up);
@@ -74,10 +75,6 @@ public:
     void DevInterfaceRemove(const std::string &devName);
 
 private:
-    EthernetManagement();
-    ~EthernetManagement();
-    EthernetManagement(const EthernetManagement&) = delete;
-    EthernetManagement& operator=(const EthernetManagement&) = delete;
     void StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StartSetDevUpThd();
