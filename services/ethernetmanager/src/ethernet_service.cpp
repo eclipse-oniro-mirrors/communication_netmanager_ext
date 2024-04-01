@@ -76,7 +76,10 @@ int32_t EthernetService::Dump(int32_t fd, const std::vector<std::u16string> &arg
 {
     NETMGR_EXT_LOG_D("Start Dump, fd: %{public}d", fd);
     std::string result;
-    ethManagement_.GetDumpInfo(result);
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    ethManagement_->GetDumpInfo(result);
     int32_t ret = dprintf(fd, "%s\n", result.c_str());
     return ret < 0 ? NETMANAGER_EXT_ERR_LOCAL_PTR_NULL : NETMANAGER_EXT_SUCCESS;
 }
@@ -141,7 +144,10 @@ bool EthernetService::Init()
 void EthernetService::InitManagement()
 {
     NETMGR_EXT_LOG_D("EthernetService::InitManagement Enter");
-    ethManagement_.Init();
+    if (ethManagement_ == nullptr) {
+        ethManagement_ = std::make_shared<EthernetManagement>();
+        ethManagement_->Init();
+    }
 }
 
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &addr,
@@ -217,7 +223,11 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<Interface
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.UpdateDevInterfaceCfg(iface, ic);
+    if (ethManagement_ == nullptr) {
+        NETMGR_EXT_LOG_E("ethManagement is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    return ethManagement_->UpdateDevInterfaceCfg(iface, ic);
 }
 
 int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
@@ -232,7 +242,10 @@ int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<Interface
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.GetDevInterfaceCfg(iface, ifaceConfig);
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    return ethManagement_->GetDevInterfaceCfg(iface, ifaceConfig);
 }
 
 int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
@@ -247,7 +260,10 @@ int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &active
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.IsIfaceActive(iface, activeStatus);
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    return ethManagement_->IsIfaceActive(iface, activeStatus);
 }
 
 int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
@@ -261,7 +277,10 @@ int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfac
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.GetAllActiveIfaces(activeIfaces);
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    return ethManagement_->GetAllActiveIfaces(activeIfaces);
 }
 
 int32_t EthernetService::ResetFactory()
@@ -275,7 +294,10 @@ int32_t EthernetService::ResetFactory()
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.ResetFactory();
+    if (ethManagement_ == nullptr) {
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    return ethManagement_->ResetFactory();
 }
 
 int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)

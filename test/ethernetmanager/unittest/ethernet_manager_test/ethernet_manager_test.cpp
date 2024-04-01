@@ -547,6 +547,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager009, TestSize.Level1)
     args.push_back(strU16);
     int32_t dumpRes = ethernetService.Dump(FD, args);
     EXPECT_NE(dumpRes, NETMANAGER_EXT_SUCCESS);
+    ethernetService.ethManagement_ = nullptr;
     dumpRes = ethernetService.Dump(FD, args);
     EXPECT_NE(dumpRes, NETMANAGER_EXT_SUCCESS);
     ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, DEV_NAME);
@@ -554,6 +555,10 @@ HWTEST_F(EthernetManagerTest, EthernetManager009, TestSize.Level1)
     ethernetService.OnAddSystemAbility(SYSTEM_ABILITY_INVALID, DEV_NAME);
     ethernetService.dependentServiceState_ = DEPENDENT_SERVICE_All;
     ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, DEV_NAME);
+    ethernetService.InitManagement();
+    ethernetService.ethManagement_ = nullptr;
+    ethernetService.InitManagement();
+    EXPECT_NE(ethernetService.ethManagement_, nullptr);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)

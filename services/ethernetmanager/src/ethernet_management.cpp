@@ -105,12 +105,6 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnBandwidthReachedLimit(c
     return 0;
 }
 
-EthernetManagement &EthernetManagement::GetInstance()
-{
-    static EthernetManagement gInstance;
-    return gInstance;
-}
-
 EthernetManagement::EthernetManagement()
 {
     ethDhcpController_ = std::make_unique<EthernetDhcpController>();
@@ -336,7 +330,7 @@ void EthernetManagement::Init()
         }
         DevInterfaceAdd(devName);
     }
-    std::thread t(&EthernetManagement::StartSetDevUpThd, &EthernetManagement::GetInstance());
+    std::thread t(&EthernetManagement::StartSetDevUpThd, shared_from_this());
     std::string threadName = "SetDevUpThd";
     pthread_setname_np(t.native_handle(), threadName.c_str());
     t.detach();
