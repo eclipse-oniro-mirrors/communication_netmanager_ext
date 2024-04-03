@@ -99,16 +99,19 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
             iface = cJSON_GetStringValue(lanIface);
             isLan = true;
         }
-        NETMGR_EXT_LOG_D("ReadConfigData Iface is %{public}s", iface.c_str());
         cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS.c_str());
+        std::set<NetCap> caps;
         for (uint32_t j = 0; j < cJSON_GetArraySize(capsObj); j++) {
             cJSON *capsItem = cJSON_GetArrayItem(capsObj, j);
             if (capsItem == nullptr) {
                 continue;
             }
-            const auto caps = capsItem->valueint;
-            NETMGR_EXT_LOG_D("ReadConfigData caps : %{public}d", caps);
-            devCaps[iface].insert(NetCap(caps));
+            const auto capsValue = capsItem->valueint;
+            NETMGR_EXT_LOG_D("ReadConfigData capsValue : %{public}d", capsValue); 
+            caps.insert(NetCap(capsValue));
+        }
+        if (!caps.empty()) {
+            devCaps[iface] = caps;
         }
         const auto &fit = devCfgs.find(iface);
         if (fit != devCfgs.end()) {
