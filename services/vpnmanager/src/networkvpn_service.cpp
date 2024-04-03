@@ -446,6 +446,7 @@ void NetworkVpnService::ConvertVecRouteToJson(const std::vector<Route>& routes, 
         cJSON_AddItemToObject(jRoute, "isHost", cJSON_CreateBool(mem.isHost_));
         cJSON_AddItemToObject(jRoute, "hasGateway", cJSON_CreateBool(mem.hasGateway_));
         cJSON_AddItemToObject(jRoute, "isDefaultRoute", cJSON_CreateBool(mem.isDefaultRoute_));
+        cJSON_AddItemToArray(jVecRoutes, jRoute);
     }
 }
 
