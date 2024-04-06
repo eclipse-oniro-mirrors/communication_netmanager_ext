@@ -107,7 +107,7 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
                 continue;
             }
             const auto capsValue = capsItem->valueint;
-            NETMGR_EXT_LOG_D("ReadConfigData capsValue : %{public}d", capsValue); 
+            NETMGR_EXT_LOG_D("ReadConfigData capsValue : %{public}d", capsValue);
             caps.insert(NetCap(capsValue));
         }
         if (!caps.empty()) {
