@@ -413,16 +413,13 @@ void NetworkVpnService::RecoverVpnConfig()
 
 void NetworkVpnService::ConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr)
 {
-    cJSON *type = cJSON_CreateNumber(static_cast<double>(netAddr.type_));
-    NETMGR_EXT_LOG_D("ConvertNetAddrToJson type = %{public}d", type->valueint);
-    cJSON_AddItemToObject(jInetAddr, "type", type);
-    cJSON_AddItemToObject(jInetAddr, "family", cJSON_CreateNumber(static_cast<double>(netAddr.family_)));
-    cJSON_AddItemToObject(jInetAddr, "prefixlen", cJSON_CreateNumber(static_cast<double>(netAddr.prefixlen_)));
+    cJSON_AddItemToObject(jInetAddr, "type", cJSON_CreateNumber(netAddr.type_));
+    cJSON_AddItemToObject(jInetAddr, "family", cJSON_CreateNumber(netAddr.family_));
+    cJSON_AddItemToObject(jInetAddr, "prefixlen", cJSON_CreateNumber(netAddr.prefixlen_));
     cJSON_AddItemToObject(jInetAddr, "address", cJSON_CreateString(netAddr.address_.c_str()));
     cJSON_AddItemToObject(jInetAddr, "netMask", cJSON_CreateString(netAddr.netMask_.c_str()));
     cJSON_AddItemToObject(jInetAddr, "hostName", cJSON_CreateString(netAddr.hostName_.c_str()));
-    cJSON_AddItemToObject(jInetAddr, "port", cJSON_CreateNumber(static_cast<double>(netAddr.port_)));
-    NETMGR_EXT_LOG_D("jInetAddr = %{public}s", cJSON_PrintUnformatted(jInetAddr));
+    cJSON_AddItemToObject(jInetAddr, "port", cJSON_CreateNumber(netAddr.port_));
 }
 
 void NetworkVpnService::ConvertVecRouteToJson(const std::vector<Route>& routes, cJSON* jVecRoutes)
@@ -436,16 +433,13 @@ void NetworkVpnService::ConvertVecRouteToJson(const std::vector<Route>& routes, 
         cJSON *jGateway = cJSON_CreateObject();
         ConvertNetAddrToJson(mem.gateway_, jGateway);
         cJSON_AddItemToObject(jRoute, "gateway", jGateway);
-        cJSON *rtnType = cJSON_CreateNumber(static_cast<double>(mem.rtnType_));
-        NETMGR_EXT_LOG_D("ConvertVecRouteToJson rtnType = %{public}d", rtnType->valueint);
         cJSON_AddItemToObject(jRoute, "rtnType", rtnType);
-        cJSON_AddItemToObject(jRoute, "mtu", cJSON_CreateNumber(static_cast<double>(mem.mtu_)));
+        cJSON_AddItemToObject(jRoute, "mtu", cJSON_CreateNumber(mem.mtu_));
         cJSON_AddItemToObject(jRoute, "isHost", cJSON_CreateBool(mem.isHost_));
         cJSON_AddItemToObject(jRoute, "hasGateway", cJSON_CreateBool(mem.hasGateway_));
         cJSON_AddItemToObject(jRoute, "isDefaultRoute", cJSON_CreateBool(mem.isDefaultRoute_));
         cJSON_AddItemToArray(jVecRoutes, jRoute);
     }
-    NETMGR_EXT_LOG_D("jVecRoutes = %{public}s", cJSON_PrintUnformatted(jVecRoutes));
 }
 
 void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::string& jsonString)
@@ -461,7 +455,6 @@ void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::st
 
     cJSON *jVecRoutes = cJSON_CreateArray();
     ConvertVecRouteToJson(vpnCfg->routes_, jVecRoutes);
-    NETMGR_EXT_LOG_D("ConvertVecRouteToJson = %{public}s", cJSON_PrintUnformatted(jVecRoutes));
     cJSON_AddItemToObject(root, "routes", jVecRoutes);
 
     cJSON_AddItemToObject(root, "mtu", cJSON_CreateNumber(vpnCfg->mtu_));
