@@ -433,7 +433,7 @@ void NetworkVpnService::ConvertVecRouteToJson(const std::vector<Route>& routes, 
         cJSON *jGateway = cJSON_CreateObject();
         ConvertNetAddrToJson(mem.gateway_, jGateway);
         cJSON_AddItemToObject(jRoute, "gateway", jGateway);
-        cJSON_AddItemToObject(jRoute, "rtnType", rtnType);
+        cJSON_AddItemToObject(jRoute, "rtnType", cJSON_CreateNumber(mem.rtnType_));
         cJSON_AddItemToObject(jRoute, "mtu", cJSON_CreateNumber(mem.mtu_));
         cJSON_AddItemToObject(jRoute, "isHost", cJSON_CreateBool(mem.isHost_));
         cJSON_AddItemToObject(jRoute, "hasGateway", cJSON_CreateBool(mem.hasGateway_));
