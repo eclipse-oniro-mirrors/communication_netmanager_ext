@@ -452,10 +452,7 @@ void DonetworkShareSubStateMachine(std::unique_ptr<NetworkShareSubStateMachine> 
     networkShareSubStateMachine->RequestIpv4Address(addr);
     networkShareSubStateMachine->StartDhcp(addr);
     networkShareSubStateMachine->StopDhcp();
-    networkShareSubStateMachine->GetLocalIpFor();
-    networkShareSubStateMachine->GetIpv6ShareIntfParams();
     networkShareSubStateMachine->AddIpv6AddrToLocalNetwork();
-    networkShareSubStateMachine->AddIpv6RoutesToLocalNetwork();
     networkShareSubStateMachine->AddIpv6InfoToLocalNetwork();
     networkShareSubStateMachine->StartIpv6();
     networkShareSubStateMachine->StopIpv6();

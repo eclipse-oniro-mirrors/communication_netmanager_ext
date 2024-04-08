@@ -80,8 +80,6 @@ ohos_shared_library("net_tether_manager") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
   ]
 
@@ -181,8 +179,6 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
   ]
 

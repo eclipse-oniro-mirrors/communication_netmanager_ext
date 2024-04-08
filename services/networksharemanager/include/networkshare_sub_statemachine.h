@@ -116,18 +116,17 @@ private:
     bool GetWifiHotspotDhcpFlag();
     bool GetBtDestinationAddr(std::string &addrStr);
     bool GetWifiApDestinationAddr(std::string &addrStr);
+    bool GetWifiApDstIpv6Addr();
     bool GetUsbDestinationAddr(std::string &addrStr);
     bool CheckConfig(std::string &endIp, std::string &mask);
     bool FindDestinationAddr(std::string &destination);
     std::recursive_mutex &getUsefulMutex();
     bool StartIpv6();
     void StopIpv6();
-    int8_t GetLocalIpFor();
-    int32_t GenerateIpv6(RaParams &ra, const std::string &iface);
-    bool GetIpv6ShareIntfParams();
-    bool GetShareIpv6Prefix(RaParams &ra, const std::string &iface);
+    std::string MacToEui64Addr(std::string &mac);
+    int32_t GenerateIpv6(const std::string &iface);
+    bool GetShareIpv6Prefix(const std::string &iface);
     void AddIpv6AddrToLocalNetwork();
-    void AddIpv6RoutesToLocalNetwork();
     void AddIpv6InfoToLocalNetwork();
 
 private:
