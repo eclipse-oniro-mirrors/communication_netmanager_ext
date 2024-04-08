@@ -89,7 +89,8 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool 
         tunFd = 0;
         return result;
     }
-    config_=config;
+    clientVpnConfig_.first = config;
+    clientVpnConfig_.second = isVpnExtCall;
 
     tunFd = vpnInterface_.GetVpnInterfaceFd();
     if (tunFd <= 0) {
@@ -214,7 +215,9 @@ void NetworkVpnClient::RecoverCallback()
         count++;
     }
     auto proxy = GetProxy();
-    proxy->SetUpVpn(config_, false);
+    if (proxy != nullptr && clientVpnConfig_.first != nullptr) {
+        proxy->SetUpVpn(clientVpnConfig_.first, clientVpnConfig_.second);
+    }
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
     if (proxy != nullptr && vpnEventCallback_ != nullptr) {
         int32_t ret = proxy->RegisterVpnEvent(vpnEventCallback_);

@@ -152,7 +152,7 @@ private:
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    sptr<VpnConfig> config_ = nullptr;
+    std::pair<sptr<VpnConfig>, bool> clientVpnConfig_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
