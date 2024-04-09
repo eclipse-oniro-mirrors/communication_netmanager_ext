@@ -62,6 +62,7 @@ ohos_unittest("vpn_manager_test") {
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_core",

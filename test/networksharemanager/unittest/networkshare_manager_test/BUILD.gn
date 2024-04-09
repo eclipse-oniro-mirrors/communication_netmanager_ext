@@ -65,7 +65,6 @@ ohos_unittest("networkshare_manager_test") {
     "$THIRD_PARTY_ROOT/openssl/include",
     "$USB_MANAGER_ROOT/utils/native/include",
     "$USB_MANAGER_ROOT/services/zidl/include",
-    "//third_party/jsoncpp/include/json",
   ]
 
   defines = []

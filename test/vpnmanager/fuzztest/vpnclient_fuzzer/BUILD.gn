@@ -67,6 +67,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",

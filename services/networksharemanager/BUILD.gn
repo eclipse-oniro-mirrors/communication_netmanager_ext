@@ -18,7 +18,6 @@ config("net_tether_manager_config") {
   include_dirs = [
     "$UTILS_ROOT/native/base/include",
     "$UTILS_ROOT/system/safwk/native/include",
-    "$THIRD_PARTY_ROOT/json/include",
     "$THIRD_PARTY_ROOT/openssl/include",
     "$BASE_INNERKITS_ROOT/netshareclient/include",
     "$BASE_INNERKITS_ROOT/netshareclient/include/proxy",
@@ -40,7 +39,6 @@ config("net_tether_manager_config") {
     "$BASE_INNERKITS_ROOT/dnsresolverclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$BLUETOOTH_ROOT/interfaces/inner_api/include",
-    "//third_party/jsoncpp/include/json",
     "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
