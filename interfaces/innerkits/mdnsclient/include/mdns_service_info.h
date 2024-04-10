@@ -20,7 +20,6 @@
 #include "parcel.h"
 
 #include "mdns_common.h"
-#include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
