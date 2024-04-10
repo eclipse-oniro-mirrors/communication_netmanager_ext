@@ -25,6 +25,7 @@
 #include "net_manager_ext_constants.h"
 #include "refbase.h"
 #include "system_ability_definition.h"
+#include "netmgr_ext_log_wrapper.h"
 #define private public
 #include "mdns_client.h"
 #include "mdns_service.h"
