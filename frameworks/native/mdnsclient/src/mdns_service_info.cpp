@@ -14,6 +14,7 @@
  */
 
 #include "mdns_service_info.h"
+#include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

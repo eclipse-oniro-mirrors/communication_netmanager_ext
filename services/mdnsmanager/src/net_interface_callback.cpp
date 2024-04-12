@@ -15,6 +15,7 @@
 
 #include "net_interface_callback.h"
 #include "mdns_manager.h"
+#include "netmgr_ext_log_wrapper.h"
 
 #include <algorithm>
 #include <sys/types.h>
