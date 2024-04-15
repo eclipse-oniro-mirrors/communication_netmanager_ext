@@ -295,11 +295,8 @@ void NetVpnImpl::AdjustRouteInfo(Route &route)
         uint32_t subNetAddress = ipAddrUint & maskUint;
         route.destination_.address_ = CommonUtils::ConvertIpv4Address(subNetAddress);
     } else {
-        NETMGR_EXT_LOG_E("GetRouteAddress destination: %{public}s, prefixlen = %{public}d",
-                         route.destination_.address_.c_str(), route.destination_.prefixlen_);
-        route.destination_.address_ = CommonUtils::GetRouteAddress(route.destination_.address_, route.destination_.prefixlen_);
-        NETMGR_EXT_LOG_E("GetRouteAddress destination 2: %{public}s, prefixlen = %{public}d",
-                         route.destination_.address_.c_str(), route.destination_.prefixlen_);
+        route.destination_.address_ = CommonUtils::GetRouteAddress(route.destination_.address_,
+            route.destination_.prefixlen_);
     }
 }
 
