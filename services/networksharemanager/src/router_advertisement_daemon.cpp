@@ -311,7 +311,6 @@ uint16_t RouterAdvertisementDaemon::PutRaHeader(uint8_t *raBuf)
     raHeadSt.type = ICMPV6_ND_ROUTER_ADVERT_TYPE;
     raHeadSt.curHopLimit = DEFAULT_HOPLIMIT;
     raHeadSt.flags = DEFAULT_ROUTER_PRE;
-    raHeadSt.flags = DEFAULT_ROUTER_PRE;
     raHeadSt.routerLifetime = htons(DEFAULT_LIFETIME);
     if (memcpy_s(raBuf, sizeof(Icmpv6HeadSt), &raHeadSt, sizeof(Icmpv6HeadSt)) != EOK) {
         return 0;
