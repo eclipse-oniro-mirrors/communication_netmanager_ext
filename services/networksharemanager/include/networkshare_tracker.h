@@ -98,7 +98,7 @@ private:
         SharingPanObserver() = default;
         virtual ~SharingPanObserver() = default;
 
-        void OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device, int state) override;
+        void OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device, int state, int cause) override;
     };
 #endif
     class NetSharingSubSmState {
