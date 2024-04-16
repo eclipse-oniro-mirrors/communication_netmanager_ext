@@ -158,7 +158,7 @@ void RouterAdvertisementDaemon::CloseRaSocket()
 
 bool RouterAdvertisementDaemon::MaybeSendRa(sockaddr_in6 &dest)
 {
-    NETMGR_EXT_LOG_D("Send Ra Enter, socket_[%{public}d], raPacketLength_[%{public}zu]", socket_, raPacketLength_);
+    NETMGR_EXT_LOG_D("Send Ra Enter, socket_[%{public}d], raPacketLength_[%{public}hu]", socket_, raPacketLength_);
     if (raPacketLength_ < RA_HEADER_SIZE) {
         NETMGR_EXT_LOG_E("Send Ra failed due to Ra packet length less than RA header size");
         return false;
@@ -211,7 +211,7 @@ void RouterAdvertisementDaemon::RunRecvRsThread()
         auto rval =
             recvfrom(socket_, solicitation, IPV6_MIN_MTU, 0, reinterpret_cast<sockaddr *>(&solicitor), &sendLen);
         if (rval <= 0 && errno != EAGAIN && errno != EINTR) {
-            NETMGR_EXT_LOG_E("recvfrom failed, rval[%{public}d], errno[%{public}d]", rval, errno);
+            NETMGR_EXT_LOG_E("recvfrom failed, rval[%{public}zd], errno[%{public}d]", rval, errno);
             break;
         }
         if (solicitation[0] != ICMPV6_ND_ROUTER_SOLICIT_TYPE) {
@@ -286,7 +286,7 @@ bool RouterAdvertisementDaemon::AssembleRaLocked()
     if (memcpy_s(raPacket_, sizeof(raPacket_), raBuf, raPacketLength_) != EOK) {
         return false;
     }
-    NETMGR_EXT_LOG_D("Generate Ra package end, raPacketLength_: %{public}zu", raPacketLength_);
+    NETMGR_EXT_LOG_D("Generate Ra package end, raPacketLength_: %{public}hu", raPacketLength_);
     return true;
 }
 
