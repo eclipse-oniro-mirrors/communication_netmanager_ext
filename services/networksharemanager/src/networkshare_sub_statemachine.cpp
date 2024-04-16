@@ -250,18 +250,17 @@ int NetworkShareSubStateMachine::HandleInitInterfaceDown(const std::any &message
 
 bool NetworkShareSubStateMachine::GetShareIpv6Prefix(const std::string &iface)
 {
-    struct ifaddrs *ifaddr = nullptr;
+    ifaddrs *ifaddr = nullptr;
     char ipv6Addr[INET6_ADDRSTRLEN] = {};
     if (getifaddrs(&ifaddr)) {
         NETMGR_EXT_LOG_E("getifaddrs err!");
         return false;
     }
-    for (struct ifaddrs *ifa = ifaddr; ifa; ifa = ifa->ifa_next) {
+    for (auto ifa = ifaddr; ifa; ifa = ifa->ifa_next) {
         if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET6 || std::string(ifa->ifa_name) != iface) {
             continue;
         }
-        if (getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), ipv6Addr, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST) !=
-            0) {
+        if (getnameinfo(ifa->ifa_addr, sizeof(sockaddr_in6), ipv6Addr, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST) != 0) {
             NETMGR_EXT_LOG_E("getnameinfo err!");
             break;
         }
@@ -284,7 +283,7 @@ bool NetworkShareSubStateMachine::GetShareIpv6Prefix(const std::string &iface)
 
 std::string NetworkShareSubStateMachine::MacToEui64Addr(std::string &mac)
 {
-    struct sockaddr macSockaddr = {};
+    sockaddr macSockaddr = {};
     for (size_t i = 0; i < mac.length(); i += MAC_SSCANF_SPACE) {
         std::string byte = mac.substr(i, MAC_BLOCK);
         macSockaddr.sa_data[i / MAC_SSCANF_SPACE] = static_cast<char>(strtol(byte.c_str(), nullptr, HEX_BASE));
@@ -303,7 +302,7 @@ std::string NetworkShareSubStateMachine::MacToEui64Addr(std::string &mac)
     if (snprintf_s(eui64Addr, sizeof(eui64Addr), sizeof(eui64Addr) - 1, "%02x%02x:%02x%02x:%02x%02x:%02x%02x",
                    eui64Sa[BYTE_ZERO], eui64Sa[BYTE_ONE], eui64Sa[BYTE_TWO], eui64Sa[BYTE_THREE], eui64Sa[BYTE_FOUR],
                    eui64Sa[BYTE_FIVE], eui64Sa[BYTE_SIX], eui64Sa[BYTE_SEVEN]) < 0) {
-        return std::string("");
+        return std::string{};
     }
     return std::string(eui64Addr);
 }
@@ -311,7 +310,7 @@ std::string NetworkShareSubStateMachine::MacToEui64Addr(std::string &mac)
 int32_t NetworkShareSubStateMachine::GenerateIpv6(const std::string &iface)
 {
     std::string eui64Addr = std::string("::") + MacToEui64Addr(lastRaParams_.macAddr_);
-    struct in6_addr eui64 = IN6ADDR_ANY_INIT;
+    in6_addr eui64 = IN6ADDR_ANY_INIT;
     inet_pton(AF_INET6, eui64Addr.c_str(), &eui64);
     for (IpPrefix &prefix : lastRaParams_.prefixes_) {
         for (int32_t index = HALF_IN6ADDR; index < MAX_IPV6_PREFIX_LENGTH / BYTE_BIT; ++index) {
@@ -528,9 +527,9 @@ void NetworkShareSubStateMachine::AddIpv6AddrToLocalNetwork()
 {
     char address[INET6_ADDRSTRLEN] = {0};
     char addressPrefix[INET6_ADDRSTRLEN] = {0};
-    std::string destination = "";
+    std::string destination;
     int32_t result = NETSYS_SUCCESS;
-    for (auto prefix : lastRaParams_.prefixes_) {
+    for (const auto &prefix : lastRaParams_.prefixes_) {
         inet_ntop(AF_INET6, &(prefix.address), address, sizeof(address));
         if (NetsysController::GetInstance().AddInterfaceAddress(ifaceName_, address, PREFIX_LEN) != 0) {
             NETMGR_EXT_LOG_E("Failed setting ipv6 address");
