@@ -110,7 +110,7 @@ void RouterAdvertisementDaemon::StopRa()
     raParams_ = nullptr;
 
     // close timer
-    struct itimerval value = {};
+    itimerval value = {};
     setitimer(ITIMER_REAL, &value, nullptr);
 }
 
@@ -199,7 +199,7 @@ void RouterAdvertisementDaemon::RunRecvRsThread()
         CloseRaSocket();
         return;
     }
-    struct itimerval setvalue = {};
+    itimerval setvalue = {};
     setvalue.it_interval.tv_sec = SEND_RA_INTERVAL;
     setvalue.it_value.tv_sec = SEND_RA_DELAY;
     setitimer(ITIMER_REAL, &setvalue, nullptr);
@@ -252,8 +252,8 @@ void RouterAdvertisementDaemon::ResetRaRetryInterval()
         return;
     }
     if (sendRaTimes_ == MAX_URGENT_RTR_ADVERTISEMENTS) {
-        struct itimerval setvalue = {};
-        struct itimerval oldvalue = {};
+        itimerval setvalue = {};
+        itimerval oldvalue = {};
         setvalue.it_interval.tv_sec = MIN_RTR_ADV_INTERVAL_SEC;
         setvalue.it_value.tv_sec = 1;
         setitimer(ITIMER_REAL, &setvalue, &oldvalue);
@@ -307,7 +307,7 @@ uint16_t RouterAdvertisementDaemon::PutRaHeader(uint8_t *raBuf)
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |   Options ...
     // +-+-+-+-+-+-+-+-+-+-+-+-
-    Icmpv6HeadSt raHeadSt = {};
+    Icmpv6HeadSt raHeadSt;
     raHeadSt.type = ICMPV6_ND_ROUTER_ADVERT_TYPE;
     raHeadSt.curHopLimit = DEFAULT_HOPLIMIT;
     raHeadSt.flags = DEFAULT_ROUTER_PRE;
@@ -315,7 +315,7 @@ uint16_t RouterAdvertisementDaemon::PutRaHeader(uint8_t *raBuf)
     if (memcpy_s(raBuf, sizeof(Icmpv6HeadSt), &raHeadSt, sizeof(Icmpv6HeadSt)) != EOK) {
         return 0;
     }
-    return sizeof(Icmpv6HeadSt);
+    return static_cast<uint16_t>(sizeof(Icmpv6HeadSt));
 }
 
 uint16_t RouterAdvertisementDaemon::PutRaSlla(uint8_t *raBuf, const std::string &mac)
@@ -327,7 +327,7 @@ uint16_t RouterAdvertisementDaemon::PutRaSlla(uint8_t *raBuf, const std::string 
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |     Type      |    Length     |    Link-Layer Address ...
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    Icmpv6SllOpt srcLinkAddrSt = {};
+    Icmpv6SllOpt srcLinkAddrSt;
     srcLinkAddrSt.type = ND_OPTION_SLLA_TYPE;
     srcLinkAddrSt.len = sizeof(Icmpv6SllOpt) / UNITS_OF_OCTETS;
     char strAddr[MAC_ADDRESS_STR_LEN] = {};
@@ -344,7 +344,7 @@ uint16_t RouterAdvertisementDaemon::PutRaSlla(uint8_t *raBuf, const std::string 
     if (memcpy_s(raBuf, sizeof(Icmpv6SllOpt), &srcLinkAddrSt, sizeof(Icmpv6SllOpt)) != EOK) {
         return 0;
     }
-    return sizeof(Icmpv6SllOpt);
+    return static_cast<uint16_t>(sizeof(Icmpv6SllOpt));
 }
 
 uint16_t RouterAdvertisementDaemon::PutRaMtu(uint8_t *raBuf, int32_t mtu)
@@ -358,14 +358,14 @@ uint16_t RouterAdvertisementDaemon::PutRaMtu(uint8_t *raBuf, int32_t mtu)
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |                              MTU                              |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    Icmpv6MtuOpt mtuSt = {};
+    Icmpv6MtuOpt mtuSt;
     mtuSt.type = ND_OPTION_MTU_TYPE;
     mtuSt.len = sizeof(Icmpv6MtuOpt) / UNITS_OF_OCTETS;
-    mtuSt.mtu = (uint32_t)htonl(mtu);
+    mtuSt.mtu = static_cast<uint32_t>(htonl(mtu));
     if (memcpy_s(raBuf, sizeof(Icmpv6MtuOpt), &mtuSt, sizeof(Icmpv6MtuOpt)) != EOK) {
         return 0;
     }
-    return sizeof(Icmpv6MtuOpt);
+    return static_cast<uint16_t>(sizeof(Icmpv6MtuOpt));
 }
 
 uint16_t RouterAdvertisementDaemon::PutRaPio(uint8_t *raBuf, IpPrefix &ipp)
@@ -391,7 +391,7 @@ uint16_t RouterAdvertisementDaemon::PutRaPio(uint8_t *raBuf, IpPrefix &ipp)
     // +                                                               +
     // |                                                               |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    Icmpv6PrefixInfoOpt prefixInfoSt = {};
+    Icmpv6PrefixInfoOpt prefixInfoSt;
     prefixInfoSt.type = ND_OPTION_PIO_TYPE;
     prefixInfoSt.len = sizeof(Icmpv6PrefixInfoOpt) / UNITS_OF_OCTETS;
     prefixInfoSt.prefixLen = ipp.prefixesLength;
@@ -405,7 +405,7 @@ uint16_t RouterAdvertisementDaemon::PutRaPio(uint8_t *raBuf, IpPrefix &ipp)
     if (memcpy_s(raBuf, sizeof(Icmpv6PrefixInfoOpt), &prefixInfoSt, sizeof(Icmpv6PrefixInfoOpt)) != EOK) {
         return 0;
     }
-    return sizeof(Icmpv6PrefixInfoOpt);
+    return static_cast<uint16_t>(sizeof(Icmpv6PrefixInfoOpt));
 }
 
 } // namespace NetManagerStandard

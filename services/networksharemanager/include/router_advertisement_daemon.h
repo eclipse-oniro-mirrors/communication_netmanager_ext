@@ -73,35 +73,35 @@ struct DeprecatedInfoTracker {
 
 #pragma pack(1)
 struct Icmpv6HeadSt {
-    uint8_t type;
-    uint8_t code;
-    uint16_t checkSum;
-    uint8_t curHopLimit;
-    uint8_t flags;
-    uint16_t routerLifetime;
-    uint32_t reachLifetime;
-    uint32_t retransTimer;
+    uint8_t type = ICMPV6_ND_ROUTER_ADVERT_TYPE;
+    uint8_t code = 0;
+    uint16_t checkSum = 0;
+    uint8_t curHopLimit = 0;
+    uint8_t flags = 0;
+    uint16_t routerLifetime = 0;
+    uint32_t reachLifetime = 0;
+    uint32_t retransTimer = 0;
 };
 struct Icmpv6SllOpt {
-    uint8_t type;
-    uint8_t len;
-    uint8_t linkAddress[HW_MAC_LENGTH];
+    uint8_t type = ND_OPTION_SLLA_TYPE;
+    uint8_t len = 0;
+    uint8_t linkAddress[HW_MAC_LENGTH] = {};
 };
 struct Icmpv6MtuOpt {
-    uint8_t type;
-    uint8_t len;
-    uint16_t res;
-    uint32_t mtu;
+    uint8_t type = ND_OPTION_MTU_TYPE;
+    uint8_t len = 0;
+    uint16_t res = 0;
+    uint32_t mtu = 0;
 };
 struct Icmpv6PrefixInfoOpt {
-    uint8_t type;
-    uint8_t len;
-    uint8_t prefixLen;
-    uint8_t flag;
-    uint32_t validLifetime;
-    uint32_t prefLifetime;
-    uint32_t res;
-    uint8_t prefix[IPV6_ADDR_LEN];
+    uint8_t type = ND_OPTION_PIO_TYPE;
+    uint8_t len = 0;
+    uint8_t prefixLen = 0;
+    uint8_t flag = 0;
+    uint32_t validLifetime = 0;
+    uint32_t prefLifetime = 0;
+    uint32_t res = 0;
+    uint8_t prefix[IPV6_ADDR_LEN] = {};
 };
 #pragma pack()
 class RouterAdvertisementDaemon {
@@ -138,7 +138,7 @@ private:
     uint8_t sendRaTimes_ = 1;
     volatile bool stopRaThread_ = false;
     uint8_t raPacket_[IPV6_MIN_MTU] = {};
-    size_t raPacketLength_ = 0;
+    uint16_t raPacketLength_ = 0;
     std::shared_ptr<RaParams> raParams_;
     DeprecatedInfoTracker deprecatedInfoTracker_;
 };
