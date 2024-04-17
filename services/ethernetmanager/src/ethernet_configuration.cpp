@@ -144,14 +144,12 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
         NETMGR_EXT_LOG_E("json parse failed!");
         return false;
     }
-    NETMGR_EXT_LOG_D("json : %{public}s", cJSON_PrintUnformatted(json));
     cJSON *jsonEth = cJSON_GetObjectItem(json, CONFIG_KEY_ETH_COMPONENT_FLAG.c_str());
     if (jsonEth == nullptr) {
         NETMGR_EXT_LOG_E("ReadConfigData not find config_ethernet_interfaces!");
         cJSON_Delete(json);
         return false;
     }
-    NETMGR_EXT_LOG_D("ReadConfigData ethValue: %{public}s", cJSON_PrintUnformatted(jsonEth));
     ReadEthernetInterfaces(devCaps, devCfgs, jsonEth);
     cJSON_Delete(json);
     return true;

@@ -356,7 +356,6 @@ void NetworkVpnService::ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::st
         NETMGR_EXT_LOG_E("jsonString parse failed!");
         return;
     }
-    NETMGR_EXT_LOG_D("doc = %{public}s", cJSON_PrintUnformatted(doc));
     cJSON *mtu = cJSON_GetObjectItem(doc, "mtu");
     if (mtu != nullptr && cJSON_IsNumber(mtu)) {
         vpnCfg->mtu_ = cJSON_GetNumberValue(mtu);
@@ -487,7 +486,6 @@ void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::st
         cJSON_AddItemToArray(jVecRefuseApp, cJSON_CreateString(mem.c_str()));
     }
     cJSON_AddItemToObject(root, "refusedApplications", jVecRefuseApp);
-    NETMGR_EXT_LOG_D("root = %{public}s", cJSON_PrintUnformatted(root));
     char *str = cJSON_Print(root);
     if (str == nullptr) {
         cJSON_Delete(root);
