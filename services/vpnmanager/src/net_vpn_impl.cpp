@@ -262,7 +262,7 @@ void NetVpnImpl::SetIpv4DefaultRoute(Route &ipv4DefaultRoute)
     ipv4DefaultRoute.iface_ = TUN_CARD_NAME;
     ipv4DefaultRoute.destination_.type_ = INetAddr::IPV4;
     ipv4DefaultRoute.destination_.address_ = IPV4_DEFAULT_ROUTE_ADDR;
-    ipv4DefaultRoute.destination_.prefixlen_ = 0;
+    ipv4DefaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(IPV4_DEFAULT_ROUTE_ADDR);
     ipv4DefaultRoute.gateway_.address_ = IPV4_DEFAULT_ROUTE_ADDR;
 }
 
@@ -271,7 +271,7 @@ void NetVpnImpl::SetIpv6DefaultRoute(Route &ipv6DefaultRoute)
     ipv6DefaultRoute.iface_ = TUN_CARD_NAME;
     ipv6DefaultRoute.destination_.type_ = INetAddr::IPV6;
     ipv6DefaultRoute.destination_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
-    ipv6DefaultRoute.destination_.prefixlen_ = 0;
+    ipv6DefaultRoute.destination_.prefixlen_ = CommonUtils::Ipv6PrefixLen(IPV6_DEFAULT_ROUTE_ADDR);
     ipv6DefaultRoute.gateway_.address_ = "";
 }
 
@@ -295,7 +295,7 @@ void NetVpnImpl::AdjustRouteInfo(Route &route)
         uint32_t subNetAddress = ipAddrUint & maskUint;
         route.destination_.address_ = CommonUtils::ConvertIpv4Address(subNetAddress);
     } else {
-        route.destination_.address_ = CommonUtils::GetRouteAddress(route.destination_.address_,
+        route.destination_.address_ = CommonUtils::GetIpv6Prefix(route.destination_.address_,
             route.destination_.prefixlen_);
     }
 }
