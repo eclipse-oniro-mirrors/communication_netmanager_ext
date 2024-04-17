@@ -221,8 +221,11 @@ void NetworkShareTracker::RecoverSharingType()
 bool NetworkShareTracker::Init()
 {
     configuration_ = std::make_shared<NetworkShareConfiguration>();
-    std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create("network_share_tracker");
-    eventHandler_ = std::make_shared<NetworkShareTracker::ManagerEventHandler>(eventRunner);
+    networkShareTrackerFfrtQueue_ =  std::make_shared<ffrt::queue>("networkShareTrackerFfrtQueue_");
+    if (!networkShareTrackerFfrtQueue_) {
+        NETMGR_EXT_LOG_E("ffrt create failed!");
+        return false;
+    }
 
     std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor =
         DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
@@ -367,7 +370,7 @@ void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<
     std::shared_ptr<NetSharingSubSmState> shareState = nullptr;
     std::string ifaceName;
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<ffrt::mutex> lock(mutex_);
         auto iter = subStateMachineMap_.find(who->GetInterfaceName());
         if (iter != subStateMachineMap_.end()) {
             ifaceName = iter->first;
@@ -437,7 +440,7 @@ int32_t NetworkShareTracker::IsNetworkSharingSupported(int32_t &supported)
 
 int32_t NetworkShareTracker::IsSharing(int32_t &sharingStatus)
 {
-    std::lock_guard lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     for (auto &iter : subStateMachineMap_) {
         std::shared_ptr<NetSharingSubSmState> shareState = iter.second;
         if (shareState == nullptr) {
@@ -539,7 +542,7 @@ int32_t NetworkShareTracker::GetSharingState(const SharingIfaceType type, Sharin
     }
     bool isFindType = false;
     state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
-    std::lock_guard lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     for (const auto &iter : subStateMachineMap_) {
         if (IsInterfaceMatchType(iter.first, type)) {
             std::shared_ptr<NetSharingSubSmState> subsmState = iter.second;
@@ -582,7 +585,7 @@ int32_t NetworkShareTracker::GetNetSharingIfaces(const SharingIfaceState &state,
         state != SharingIfaceState::SHARING_NIC_SERVING) {
         return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
     }
-    std::lock_guard lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     for_each(subStateMachineMap_.begin(), subStateMachineMap_.end(), [&](auto iter) {
         std::shared_ptr<NetSharingSubSmState> subsmState = iter.second;
         if (subsmState == nullptr) {
@@ -606,7 +609,7 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
         NETMGR_EXT_LOG_E("callback is null.");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    std::lock_guard lock(callbackMutex_);
+    std::lock_guard<ffrt::mutex> lock(callbackMutex_);
     if (sharingEventCallback_.size() >= MAX_CALLBACK_COUNT) {
         NETMGR_EXT_LOG_E("callback above max count, return error.");
         return NETWORKSHARE_ERROR_ISSHARING_CALLBACK_ERROR;
@@ -625,7 +628,7 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
 
 int32_t NetworkShareTracker::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
-    std::lock_guard lock(callbackMutex_);
+    std::lock_guard<ffrt::mutex> lock(callbackMutex_);
     for (auto iter = sharingEventCallback_.begin(); iter != sharingEventCallback_.end(); ++iter) {
         if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
             sharingEventCallback_.erase(iter);
@@ -829,7 +832,7 @@ int32_t NetworkShareTracker::Sharing(const std::string &iface, int32_t reqState)
 {
     std::shared_ptr<NetSharingSubSmState> subSMState = nullptr;
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<ffrt::mutex> lock(mutex_);
         std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter = subStateMachineMap_.find(iface);
         if (iter == subStateMachineMap_.end()) {
             NETMGR_EXT_LOG_E("Try to share an unknown iface:%{public}s, ignore.", iface.c_str());
@@ -860,7 +863,7 @@ int32_t NetworkShareTracker::Sharing(const std::string &iface, int32_t reqState)
 bool NetworkShareTracker::FindSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType,
                                               std::shared_ptr<NetworkShareSubStateMachine> &subSM, std::string &findKey)
 {
-    std::lock_guard lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter = subStateMachineMap_.find(iface);
     if (iter != subStateMachineMap_.end()) {
         if (iter->second == nullptr) {
@@ -1026,7 +1029,7 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
                                                    bool isNcm)
 {
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<ffrt::mutex> lock(mutex_);
         if (subStateMachineMap_.count(iface) != 0) {
             NETMGR_EXT_LOG_W("iface[%{public}s] has added, ignoring", iface.c_str());
             return NETMANAGER_EXT_SUCCESS;
@@ -1039,7 +1042,7 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
     subSm->RegisterSubSMCallback(smcallback);
 
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<ffrt::mutex> lock(mutex_);
         std::shared_ptr<NetSharingSubSmState> netShareState = std::make_shared<NetSharingSubSmState>(subSm, isNcm);
         subStateMachineMap_.insert(std::make_pair(iface, netShareState));
     }
@@ -1060,7 +1063,7 @@ void NetworkShareTracker::StopSubStateMachine(const std::string &iface, const Sh
     subSM->SubSmEventHandle(CMD_NETSHARE_UNREQUESTED, 0);
 
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<ffrt::mutex> lock(mutex_);
         if (subStateMachineMap_.count(findKey) > 0) {
             subStateMachineMap_.erase(findKey);
             NETMGR_EXT_LOG_I("removed iface[%{public}s] subSM, current subSM count[%{public}s].", iface.c_str(),
@@ -1115,7 +1118,7 @@ bool NetworkShareTracker::IsHandleNetlinkEvent(const SharingIfaceType &type, boo
 
 void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool up)
 {
-    if (eventHandler_ == nullptr || !isInit) {
+    if (!isInit) {
         NETMGR_EXT_LOG_E("eventHandler is null.");
         return;
     }
@@ -1134,17 +1137,17 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
         if (configuration_->IsUsbIface(iface)) {
             std::function<void()> sharingUsbFunc =
                 std::bind(&NetworkShareTracker::Sharing, this, iface, SUB_SM_STATE_SHARED);
-            eventHandler_->PostTask(sharingUsbFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+            networkShareTrackerFfrtQueue_->submit(sharingUsbFunc, ffrt::task_attr().name(taskName.c_str()));
         } else {
             std::function<void()> createSubStateMachineFunc =
                 std::bind(&NetworkShareTracker::CreateSubStateMachine, this, iface, type, false);
-            eventHandler_->PostTask(createSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+            networkShareTrackerFfrtQueue_->submit(createSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
         }
     } else {
         std::string taskName = "InterfaceRemoved_task";
         std::function<void()> stopSubStateMachineFunc =
             std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface, type);
-        eventHandler_->PostTask(stopSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        networkShareTrackerFfrtQueue_->submit(stopSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
     }
 }
 
@@ -1166,7 +1169,7 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
         NETMGR_EXT_LOG_E("Failed setting usb iface up");
         return;
     }
-    if (eventHandler_ == nullptr || !isInit) {
+    if (!isInit) {
         NETMGR_EXT_LOG_E("eventHandler is null.");
         return;
     }
@@ -1179,12 +1182,12 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
     std::string taskName = "InterfaceAdded_task";
     std::function<void()> createSubStateMachineFunc =
         std::bind(&NetworkShareTracker::CreateSubStateMachine, this, iface, type, false);
-    eventHandler_->PostTask(createSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+    networkShareTrackerFfrtQueue_->submit(createSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
 }
 
 void NetworkShareTracker::InterfaceRemoved(const std::string &iface)
 {
-    if (eventHandler_ == nullptr || !isInit) {
+    if (!isInit) {
         NETMGR_EXT_LOG_E("eventHandler is null.");
         return;
     }
@@ -1197,14 +1200,14 @@ void NetworkShareTracker::InterfaceRemoved(const std::string &iface)
     std::string taskName = "InterfaceRemoved_task";
     std::function<void()> stopSubStateMachineFunc =
         std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface, type);
-    eventHandler_->PostTask(stopSubStateMachineFunc, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
+    networkShareTrackerFfrtQueue_->submit(stopSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
 }
 
 void NetworkShareTracker::SendGlobalSharingStateChange()
 {
     uint32_t callbackSize = 0;
     {
-        std::lock_guard lock(callbackMutex_);
+        std::lock_guard<ffrt::mutex> lock(callbackMutex_);
         callbackSize = sharingEventCallback_.size();
     }
     if (callbackSize == 0) {
@@ -1213,7 +1216,7 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
     }
     bool isSharing = false;
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<ffrt::mutex> lock(mutex_);
         for (auto &iter : subStateMachineMap_) {
             std::shared_ptr<NetSharingSubSmState> subsmState = iter.second;
             if (subsmState == nullptr) {
@@ -1230,7 +1233,7 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
                      isNetworkSharing_, isSharing);
     if (isNetworkSharing_ != isSharing) {
         isNetworkSharing_ = isSharing;
-        std::lock_guard lock(callbackMutex_);
+        std::lock_guard<ffrt::mutex> lock(callbackMutex_);
         for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
                  [isSharing](sptr<ISharingEventCallback> &callback) {
                      if (callback != nullptr) {
@@ -1243,7 +1246,7 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
 void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType &type, const std::string &iface,
                                                       const SharingIfaceState &state)
 {
-    std::lock_guard lock(callbackMutex_);
+    std::lock_guard<ffrt::mutex> lock(callbackMutex_);
     if (sharingEventCallback_.size() == 0) {
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;
@@ -1259,7 +1262,7 @@ void NetworkShareTracker::SendIfaceSharingStateChange(const SharingIfaceType &ty
 
 void NetworkShareTracker::SendSharingUpstreamChange(const sptr<NetHandle> &netHandle)
 {
-    std::lock_guard lock(callbackMutex_);
+    std::lock_guard<ffrt::mutex> lock(callbackMutex_);
     if (sharingEventCallback_.size() == 0 || netHandle == nullptr) {
         NETMGR_EXT_LOG_E("sharingEventCallback is empty.");
         return;

@@ -95,6 +95,7 @@ ohos_unittest("networkshare_manager_test") {
     "access_token:libtoken_setproc",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "ipc:ipc_core",
   ]
 

@@ -114,6 +114,7 @@ ohos_shared_library("net_tether_manager") {
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
@@ -198,6 +199,7 @@ ohos_static_library("net_tether_manager_static") {
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
   ]
