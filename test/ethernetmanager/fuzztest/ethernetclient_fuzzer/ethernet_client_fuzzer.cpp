@@ -299,6 +299,47 @@ void EthernetServiceCommonFuzzTest(const uint8_t *data, size_t size)
     ethernetServiceCommon->ResetEthernetFactory();
 }
 
+void StartDhcpClientFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    auto ethernetManagement = std::make_unique<EthernetManagement>();
+    std::string dev = GetStringFromData(IFACE_LEN);
+    sptr<DevInterfaceState> devState = new DevInterfaceState();
+    ethernetManagement->StartDhcpClient(dev, devState);
+}
+
+void StopDhcpClientFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    auto ethernetManagement = std::make_unique<EthernetManagement>();
+    std::string dev = GetStringFromData(IFACE_LEN);
+    sptr<DevInterfaceState> devState = new DevInterfaceState();
+    ethernetManagement->StopDhcpClient(dev, devState);
+}
+
+void IsIfaceLinkUpFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    auto ethernetManagement = std::make_unique<EthernetManagement>();
+    std::string iface = GetStringFromData(IFACE_LEN);
+    ethernetManagement->IsIfaceLinkUp(iface);
+}
+
 void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -375,5 +416,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::EthernetServiceCommonFuzzTest(data, size);
     OHOS::NetManagerStandard::EthernetManagementFuzzTest(data, size);
     OHOS::NetManagerStandard::EthernetDhcpControllerFuzzTest(data, size);
+    OHOS::NetManagerStandard::IsIfaceLinkUpFuzzTest(data, size);
+    OHOS::NetManagerStandard::StartDhcpClientFuzzTest(data, size);
+    OHOS::NetManagerStandard::StopDhcpClientFuzzTest(data, size);
     return 0;
 }
