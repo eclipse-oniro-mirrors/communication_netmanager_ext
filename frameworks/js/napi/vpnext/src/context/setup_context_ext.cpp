@@ -173,7 +173,7 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
     }
 
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
-    iNetAddr.family_ = (iNetAddr.family_ == 2) ? AF_INET6 : AF_INET;
+    iNetAddr.family_ = (iNetAddr.family_ != 1) ? AF_INET6 : AF_INET;
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
 
     if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, address, NET_PREFIXLENGTH)) != napi_number) {
@@ -229,7 +229,7 @@ static bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &
         return false;
     }
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
-    iNetAddr.family_ = (iNetAddr.family_ == 2) ? AF_INET6 : AF_INET;
+    iNetAddr.family_ = (iNetAddr.family_ != 1) ? AF_INET6 : AF_INET;
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
     GetUint8FromJsOptionItem(env, destination, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
     return true;
@@ -246,7 +246,7 @@ static bool ParseGateway(napi_env env, napi_value jsRoute, struct INetAddr &iNet
     GetStringFromJsMandatoryItem(env, gateway, NET_ADDRESS, iNetAddr.address_);
 
     GetUint8FromJsOptionItem(env, gateway, NET_FAMILY, iNetAddr.family_);
-    iNetAddr.family_ = (iNetAddr.family_ == 2) ? AF_INET6 : AF_INET;
+    iNetAddr.family_ = (iNetAddr.family_ != 1) ? AF_INET6 : AF_INET;
     GetUint8FromJsOptionItem(env, gateway, NET_PORT, iNetAddr.port_);
     return true;
 }
