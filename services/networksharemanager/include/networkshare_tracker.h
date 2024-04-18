@@ -30,6 +30,7 @@
 #ifdef WIFI_MODOULE
 #include "i_wifi_hotspot_callback.h"
 #endif
+#include "ffrt.h"
 #include "net_manager_ext_constants.h"
 #include "netsys_controller_callback.h"
 #include "networkshare_configuration.h"
@@ -250,15 +251,15 @@ private:
     void RecoverSharingType();
 
 private:
-    std::mutex mutex_;
+    ffrt::mutex mutex_;
     std::shared_ptr<NetworkShareConfiguration> configuration_ = nullptr;
     sptr<NetsysControllerCallback> netsysCallback_ = nullptr;
-    std::shared_ptr<NetworkShareTracker::ManagerEventHandler> eventHandler_ = nullptr;
+    std::shared_ptr<ffrt::queue> networkShareTrackerFfrtQueue_ = nullptr;
     std::weak_ptr<NetworkShareUpstreamMonitor::MonitorEventHandler> monitorHandler_;
     std::shared_ptr<NetworkShareMainStateMachine> mainStateMachine_ = nullptr;
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
     std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;
-    std::mutex callbackMutex_;
+    ffrt::mutex callbackMutex_;
     bool isNetworkSharing_ = false;
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
     std::vector<SharingIfaceType> clientRequestsVector_;

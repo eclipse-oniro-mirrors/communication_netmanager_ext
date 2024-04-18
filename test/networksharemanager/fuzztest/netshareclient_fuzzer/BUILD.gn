@@ -80,6 +80,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "access_token:libtoken_setproc",
     "c_utils:utils",
     "dhcp:dhcp_sdk",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
