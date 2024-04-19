@@ -30,6 +30,7 @@
 #include "application_state_observer_stub.h"
 #include "app_mgr_client.h"
 #include "cJSON.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -191,8 +192,7 @@ private:
     std::shared_ptr<NetVpnImpl> vpnObj_;
 
     std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
-    std::shared_ptr<AppExecFwk::EventRunner> policyCallRunner_;
-    std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
+    std::shared_ptr<ffrt::queue> networkVpnServiceFfrtQueue_ = nullptr;
     std::mutex netVpnMutex_;
     bool hasSARemoved_ = false;
 

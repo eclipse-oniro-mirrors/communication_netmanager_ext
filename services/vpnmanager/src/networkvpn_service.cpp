@@ -80,9 +80,6 @@ void NetworkVpnService::OnStop()
     state_ = STATE_STOPPED;
     isServicePublished_ = false;
 
-    if (policyCallRunner_) {
-        policyCallRunner_->Stop();
-    }
     NETMGR_EXT_LOG_I("OnStop vpn successful");
 }
 
@@ -105,6 +102,11 @@ bool NetworkVpnService::Init()
         NETMGR_EXT_LOG_E("Register to local sa manager failed");
         return false;
     }
+    networkVpnServiceFfrtQueue_ = std::make_shared<ffrt::queue>("NetworkVpnService");
+    if (!networkVpnServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Create Fail");
+        return false;
+    }
     if (!isServicePublished_) {
         if (!Publish(&NetworkVpnService::GetInstance())) {
             NETMGR_EXT_LOG_E("Register to sa manager failed");
@@ -120,10 +122,6 @@ bool NetworkVpnService::Init()
         vpnConnCallback_ = std::make_shared<VpnConnStateCb>(*this);
     }
 
-    if (!policyCallHandler_) {
-        policyCallRunner_ = AppExecFwk::EventRunner::Create(NET_ACTIVATE_WORK_THREAD);
-        policyCallHandler_ = std::make_shared<AppExecFwk::EventHandler>(policyCallRunner_);
-    }
     vpnHapObserver_ = new VpnHapObserver(*this);
     RegisterFactoryResetCallback();
     return true;
@@ -149,25 +147,35 @@ void NetworkVpnService::GetDumpMessage(std::string &message)
 void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectState &state)
 {
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
-    if (vpnService_.policyCallHandler_) {
-        vpnService_.policyCallHandler_->PostSyncTask([this, &state]() {
-            std::for_each(vpnService_.vpnEventCallbacks_.begin(), vpnService_.vpnEventCallbacks_.end(),
-                          [&state](const auto &callback) {
-                              callback->OnVpnStateChanged((VpnConnectState::VPN_CONNECTED == state) ? true : false);
-                          });
-        });
+    if (!vpnService_.networkVpnServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Create Fail");
+        return;
     }
+    std::function<void()> OnVpnConnStateChangedFunction = [this, &state]() {
+        std::for_each(vpnService_.vpnEventCallbacks_.begin(), vpnService_.vpnEventCallbacks_.end(),
+                      [&state](const auto &callback) {
+                          callback->OnVpnStateChanged((VpnConnectState::VPN_CONNECTED == state) ? true : false);
+                      });
+    };
+    ffrt::task_handle OnVpnConnStateTask =
+        vpnService_.networkVpnServiceFfrtQueue_->submit_h(OnVpnConnStateChangedFunction);
+    vpnService_.networkVpnServiceFfrtQueue_->wait(OnVpnConnStateTask);
 }
 
 void NetworkVpnService::OnVpnMultiUserSetUp()
 {
     NETMGR_EXT_LOG_I("user multiple execute set up.");
-    if (policyCallHandler_) {
-        policyCallHandler_->PostSyncTask([this]() {
-            std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
-                          [](const auto &callback) { callback->OnVpnMultiUserSetUp(); });
-        });
+    if (!networkVpnServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Create Fail");
+        return;
     }
+    std::function<void()> OnVpnMultiUserSetUpFunction = [this]() {
+        std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
+                      [](const auto &callback) { callback->OnVpnMultiUserSetUp(); });
+    };
+    ffrt::task_handle OnVpnMultiUserSetUpTask =
+        networkVpnServiceFfrtQueue_->submit_h(OnVpnMultiUserSetUpFunction);
+    networkVpnServiceFfrtQueue_->wait(OnVpnMultiUserSetUpTask);
 }
 
 int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
@@ -578,18 +586,28 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    if (policyCallHandler_) {
-        policyCallHandler_->PostSyncTask([this, &callback, &ret]() { ret = SyncRegisterVpnEvent(callback); });
+    if (!networkVpnServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Create Fail");
+        return ret;
     }
+    ffrt::task_handle RegisterVpnEventTask = networkVpnServiceFfrtQueue_->submit_h([this, &callback, &ret]() {
+        ret = SyncRegisterVpnEvent(callback);
+    });
+    networkVpnServiceFfrtQueue_->wait(RegisterVpnEventTask);
     return ret;
 }
 
 int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    if (policyCallHandler_) {
-        policyCallHandler_->PostSyncTask([this, &callback, &ret]() { ret = SyncUnregisterVpnEvent(callback); });
+    if (!networkVpnServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Create Fail");
+        return ret;
     }
+    ffrt::task_handle UnregisterVpnEventTask = networkVpnServiceFfrtQueue_->submit_h([this, &callback, &ret]() {
+        ret = SyncUnregisterVpnEvent(callback);
+    });
+    networkVpnServiceFfrtQueue_->wait(UnregisterVpnEventTask);
     return ret;
 }
 

@@ -64,6 +64,7 @@ ohos_unittest("vpn_manager_test") {
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
     "netmanager_base:net_manager_common",
