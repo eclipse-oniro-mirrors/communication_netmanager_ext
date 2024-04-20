@@ -529,8 +529,8 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
             NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");
             return NETWORKVPN_ERROR_VPN_EXIST;
         } else {
-            OnVpnMultiUserSetUp();
-            vpnObj_->Destroy();
+            NETMGR_EXT_LOG_W("vpn using by other user");
+            return NETWORKVPN_ERROR_VPN_EXIST;
         }
     }
 
