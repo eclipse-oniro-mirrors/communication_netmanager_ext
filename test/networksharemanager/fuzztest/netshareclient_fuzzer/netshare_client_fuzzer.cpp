@@ -45,6 +45,7 @@ const uint8_t *g_baseFuzzData = nullptr;
 static constexpr uint32_t CREATE_SHARE_IFACE_TYPE_VALUE = 3;
 static constexpr uint32_t CREATE_SHARE_IFACE_STATE_VALUE = 3;
 static constexpr uint32_t ENUM_TYPE_VALUE3 = 3;
+static constexpr uint32_t ENUM_TYPE_VALUE2 = 2;
 #ifdef BLUETOOTH_MODOULE
 static constexpr uint32_t ENUM_TYPE_VALUE4 = 4;
 #endif
@@ -543,7 +544,7 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     NetworkShareTracker::GetInstance().Uninit();
     NetworkShareTracker::GetInstance().Init();
     NetworkShareTracker::OnWifiHotspotStateChanged(num);
-    NetworkShareTracker::GetInstance().OnChangeSharingState(ifaceType, num % 2);
+    NetworkShareTracker::GetInstance().OnChangeSharingState(ifaceType, num % ENUM_TYPE_VALUE2);
     NetworkShareTracker::MainSmUpstreamCallback().OnUpstreamStateChanged(num, num);
     NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
     NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
@@ -583,13 +584,13 @@ void RestartResumeFuzzTest(const uint8_t *data, size_t size)
     }
 
     switch (size % ENUM_TYPE_VALUE3) {
-        case SHARING_WIFI:
+        case 0:
             NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
             break;
-        case SHARING_USB:
+        case 1:
             NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_USB);
             break;
-        case SHARING_BLUETOOTH:
+        case ENUM_TYPE_VALUE2:
             NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
             break;
     }
