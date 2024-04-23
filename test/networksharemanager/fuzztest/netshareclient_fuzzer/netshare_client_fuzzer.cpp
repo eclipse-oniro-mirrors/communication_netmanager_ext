@@ -527,7 +527,6 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     if (!InitGlobalData(data, size)) {
         return;
     }
-
     int32_t num = GetData<int32_t>();
     std::string iface = GetStringFromData(IFACE_LEN);
     sptr<NetHandle> netHandle = new (std::nothrow) NetHandle(num);
@@ -541,16 +540,11 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     std::vector<std::string> ifaceRegexs;
     std::vector<std::string> ifaces;
     int32_t kbByte = 0;
-    const SharingIfaceType type {};
-    bool state = size % 2 == 0;
-    auto msgName = static_cast<int32_t >(size);
-    auto param1 = static_cast<int32_t >(size);
-
     NetworkShareTracker::GetInstance().Uninit();
     NetworkShareTracker::GetInstance().Init();
     NetworkShareTracker::OnWifiHotspotStateChanged(num);
-    NetworkShareTracker::GetInstance().OnChangeSharingState(type, state);
-    NetworkShareTracker::MainSmUpstreamCallback().OnUpstreamStateChanged(msgName, param1);
+    NetworkShareTracker::GetInstance().OnChangeSharingState(ifaceType, num % 2);
+    NetworkShareTracker::MainSmUpstreamCallback().OnUpstreamStateChanged(num, num);
     NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
     NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
     NetworkShareTracker::GetInstance().StartNetworkSharing(ifaceType);
@@ -588,18 +582,34 @@ void RestartResumeFuzzTest(const uint8_t *data, size_t size)
         return;
     }
 
-    switch (size % 3) {
-        case 0:
+    switch (size % ENUM_TYPE_VALUE3) {
+        case SHARING_WIFI:
             NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
             break;
-        case 1:
+        case SHARING_USB:
             NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_USB);
             break;
-        case 2:
+        case SHARING_BLUETOOTH:
             NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
             break;
     }
     NetworkShareTracker::GetInstance().RestartResume();
+}
+
+void EnableNetSharingInternalFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("NetworkShareTrackerPrivateFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+    int32_t num = GetData<int32_t>();
+    auto &tra = NetworkShareTracker::GetInstance();
+    SharingIfaceType ifaceType = SharingIfaceType(SharingIfaceType(num % ENUM_TYPE_VALUE3));
+    int32_t enable = 0;
+    while (enable < ENUM_TYPE_VALUE3) {
+        tra.EnableNetSharingInternal(ifaceType, enable);
+        enable++;
+    }
 }
 
 void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
@@ -619,11 +629,6 @@ void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
 
     auto &tra = NetworkShareTracker::GetInstance();
     tra.HandleSubSmUpdateInterfaceState(subSm, num, num);
-    int32_t enable = 0;
-    while (enable < 3) {
-        tra.EnableNetSharingInternal(ifaceType, enable);
-        enable++;
-    }
     tra.SetWifiNetworkSharing(num > 0);
 #ifdef USB_MODOULE
     tra.SetUsbNetworkSharing(num > 0);
@@ -738,5 +743,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::NetworkShareHisysEventFuzzTest(data, size);
     OHOS::NetManagerStandard::NetGetStatsBytesFuzzTest(data, size);
     OHOS::NetManagerStandard::RestartResumeFuzzTest(data, size);
+    OHOS::NetManagerStandard::EnableNetSharingInternalFuzzTest(data, size);
     return 0;
 }
