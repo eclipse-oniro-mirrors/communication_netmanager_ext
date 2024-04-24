@@ -102,7 +102,7 @@ public:
     void OnVpnMultiUserSetUp() override{};
 };
 
-int32_t OnRemoteRequest(INetworkVpnService::MessageCode code, MessageParcel &data)
+__attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(INetworkVpnService::MessageCode code, MessageParcel &data)
 {
     MessageParcel reply;
     MessageOption option;

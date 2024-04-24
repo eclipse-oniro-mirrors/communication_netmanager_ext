@@ -41,7 +41,7 @@ public:
     NetworkShareSubStateMachine() = delete;
     NetworkShareSubStateMachine(const std::string &ifaceName, const SharingIfaceType &interfaceType,
                                 const std::shared_ptr<NetworkShareConfiguration> &configuration);
-    ~NetworkShareSubStateMachine() = default;
+    ~NetworkShareSubStateMachine();
 
     /**
      * get sub state machine share type
