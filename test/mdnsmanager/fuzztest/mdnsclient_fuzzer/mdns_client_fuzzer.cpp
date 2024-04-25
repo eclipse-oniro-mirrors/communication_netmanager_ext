@@ -102,7 +102,7 @@ bool WriteInterfaceToken(MessageParcel &data)
     return data.WriteInterfaceToken(IMDnsService::GetDescriptor());
 }
 
-bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParcel)
+__attribute__((no_sanitize("cfi"))) bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParcel)
 {
     if (!InitGlobalData(data, size)) {
         return false;
@@ -135,7 +135,7 @@ void Init()
     }
 }
 
-int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
+__attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
 {
     if (!g_isInited) {
         Init();

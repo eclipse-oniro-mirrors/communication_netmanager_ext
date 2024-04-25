@@ -21,6 +21,7 @@ EXT_SECURITY_PATH = "../../.."
 ohos_fuzztest("NetShareClientFuzzTest") {
   module_out_path = fuzz_test_path
   fuzz_config_file = "$NETMANAGER_EXT_ROOT/test/networksharemanager/fuzztest/netshareclient_fuzzer"
+  _cfi_blocklist_path = "$NETMANAGER_EXT_ROOT/test/networksharemanager/fuzztest/netshareclient_fuzzer/cfi_blocklist.txt"
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
@@ -53,6 +54,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "-fsanitize=cfi",
     "-fsanitize-cfi-cross-dso",
     "-fvisibility=hidden",
+    "-fsanitize-blacklist=" + rebase_path(_cfi_blocklist_path, root_build_dir),
   ]
 
   ldflags = [

@@ -20,6 +20,7 @@ ohos_fuzztest("MDnsClientFuzzTest") {
   module_out_path = fuzz_test_path
   fuzz_config_file =
       "$NETMANAGER_EXT_ROOT/test/mdnsmanager/fuzztest/mdnsclient_fuzzer"
+  _cfi_blocklist_path = "$NETMANAGER_EXT_ROOT/test/mdnsmanager/fuzztest/mdnsclient_fuzzer/cfi_blocklist.txt"
 
   include_dirs = [
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/mdnsclient",
@@ -41,6 +42,7 @@ ohos_fuzztest("MDnsClientFuzzTest") {
     "-fsanitize=cfi",
     "-fsanitize-cfi-cross-dso",
     "-fvisibility=hidden",
+    "-fsanitize-blacklist=" + rebase_path(_cfi_blocklist_path, root_build_dir),
   ]
 
   ldflags = [
@@ -58,12 +60,11 @@ ohos_fuzztest("MDnsClientFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "safwk:system_ability_fwk",
   ]
-
-  external_deps += [ "hilog:libhilog" ]
 
   defines = [
     "NETMGR_LOG_TAG = \"NetShareManager\"",

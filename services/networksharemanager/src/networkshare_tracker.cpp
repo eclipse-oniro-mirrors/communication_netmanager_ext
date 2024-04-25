@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1051,7 +1051,8 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
     return NETMANAGER_EXT_SUCCESS;
 }
 
-void NetworkShareTracker::StopSubStateMachine(const std::string &iface, const SharingIfaceType &interfaceType)
+__attribute__((no_sanitize("cfi"))) void NetworkShareTracker::StopSubStateMachine(
+    const std::string &iface, const SharingIfaceType &interfaceType)
 {
     std::shared_ptr<NetworkShareSubStateMachine> subSM = nullptr;
     std::string findKey;

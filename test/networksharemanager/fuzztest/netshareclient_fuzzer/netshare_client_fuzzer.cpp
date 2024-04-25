@@ -135,7 +135,7 @@ void Init()
     }
 }
 
-int32_t OnRemoteRequest(TetheringInterfaceCode code, MessageParcel &data)
+__attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(TetheringInterfaceCode code, MessageParcel &data)
 {
     if (!g_isInited) {
         Init();
@@ -359,7 +359,7 @@ void NetGetStatsBytesFuzzTest(const uint8_t *data, size_t size)
     }
 }
 
-void NetworkShareMainStateMachineFuzzTest(const uint8_t *data, size_t size)
+__attribute__((no_sanitize("cfi"))) void NetworkShareMainStateMachineFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("NetworkShareMainStateMachineFuzzTest enter");
     if (!InitGlobalData(data, size)) {

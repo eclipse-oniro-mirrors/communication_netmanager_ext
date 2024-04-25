@@ -22,6 +22,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
   module_out_path = fuzz_test_path
   fuzz_config_file =
       "$NETMANAGER_EXT_ROOT/test/vpnmanager/fuzztest/vpnclient_fuzzer"
+  _cfi_blocklist_path = "$NETMANAGER_EXT_ROOT/test/vpnmanager/fuzztest/vpnclient_fuzzer/cfi_blocklist.txt"
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
@@ -44,6 +45,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
     "-fsanitize=cfi",
     "-fsanitize-cfi-cross-dso",
     "-fvisibility=hidden",
+    "-fsanitize-blacklist=" + rebase_path(_cfi_blocklist_path, root_build_dir),
   ]
   ldflags = [
     "-flto",
