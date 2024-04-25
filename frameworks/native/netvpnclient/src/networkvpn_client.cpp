@@ -68,7 +68,11 @@ int32_t NetworkVpnClient::Protect(int32_t socketFd, bool isVpnExtCall)
         return result;
     }
     nmd::FwmarkClient fwmarkClient;
-    return fwmarkClient.ProtectFromVpn(socketFd);
+    int32_t protectResult = fwmarkClient.ProtectFromVpn(socketFd);
+    if (protectResult == NETMANAGER_ERROR) {
+        return NETWORKVPN_ERROR_INVALID_FD;
+    }
+    return protectResult;
 }
 
 int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall)
