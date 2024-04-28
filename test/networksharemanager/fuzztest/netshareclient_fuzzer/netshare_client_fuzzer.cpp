@@ -593,6 +593,9 @@ void RestartResumeFuzzTest(const uint8_t *data, size_t size)
         case ENUM_TYPE_VALUE2:
             NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_BLUETOOTH);
             break;
+        default:
+            NETMGR_EXT_LOG_D("Size length judgment failed");
+            break; 
     }
     NetworkShareTracker::GetInstance().RestartResume();
 }
