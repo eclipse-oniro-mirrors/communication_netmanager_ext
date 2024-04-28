@@ -595,7 +595,7 @@ void RestartResumeFuzzTest(const uint8_t *data, size_t size)
             break;
         default:
             NETMGR_EXT_LOG_D("Size length judgment failed");
-            break; 
+            break;
     }
     NetworkShareTracker::GetInstance().RestartResume();
 }
