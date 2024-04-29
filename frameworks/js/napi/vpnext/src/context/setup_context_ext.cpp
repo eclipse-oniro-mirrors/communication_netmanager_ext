@@ -29,8 +29,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr int32_t NET_FAMILY_IPV4 = 1;
-constexpr int32_t NET_FAMILY_IPV6 = 2;
+constexpr uint8_t NET_FAMILY_IPV4 = 1;
+constexpr uint8_t NET_FAMILY_IPV6 = 2;
 constexpr int32_t NET_MASK_MAX_LENGTH = 32;
 constexpr int32_t IPV6_NET_PREFIX_MAX_LENGTH = 128;
 constexpr int32_t PARAM_JUST_OPTIONS = 1;
@@ -153,18 +153,22 @@ bool SetUpContext::ParseVpnConfig(napi_value *params)
     return true;
 }
 
-static bool ParseAddressFamily(napi_env env, napi_value netAddress, int32_t &family)
+static bool ParseAddressFamily(napi_env env, napi_value netAddress, uint8_t &family)
 {
+    // The value is 1 for IPv4 and 2 for IPv6. The default value is 1.
+    if (!NapiUtils::HasNamedProperty(env, netAddress, NET_FAMILY)) {
+        family = AF_INET;
+        return true;
+    }
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, family);
     if (family == NET_FAMILY_IPV4) {
         family = AF_INET;
         return true;
-    } else if (iNetAddr.family_ == NET_FAMILY_IPV6) {
+    } else if (family == NET_FAMILY_IPV6) {
         family = AF_INET6;
         return true;
     } else {
-        NETMGR_EXT_LOG_E("family %{public}d is mismatch", family);
-        SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+        NETMGR_EXT_LOG_E("family %{public}u is mismatch", family);
         return false;
     }
 }
