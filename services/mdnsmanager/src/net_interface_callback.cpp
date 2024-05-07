@@ -20,9 +20,12 @@
 #include <algorithm>
 #include <sys/types.h>
 #include <unistd.h>
+#include <thread>
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr int WAITING_TIME_MS = 1000;
+
 NetInterfaceStateCallback::NetInterfaceStateCallback() {}
 
 int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &addr, const std::string &ifName,
@@ -38,6 +41,7 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
         return NETMANAGER_SUCCESS;
     }
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAITING_TIME_MS));
     MDnsManager::GetInstance().RestartMDnsProtocolImpl();
     return NETMANAGER_SUCCESS;
 }
