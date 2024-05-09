@@ -173,7 +173,15 @@ void DevInterfaceState::RemoteUpdateNetLinkInfo()
         NETMGR_EXT_LOG_E("DevInterfaceCfg RemoteUpdateNetLinkInfo linkInfo_ is nullptr");
         return;
     }
-    NetManagerCenter::GetInstance().UpdateNetLinkInfo(netSupplier_, linkInfo_);
+    auto newNetLinkinfo = linkInfo_;
+    for (auto &netAddr: newNetLinkinfo->netAddrList_) {
+        if (netAddr.family_ == AF_INET) {
+            netAddr.family_ = INetAddr::IpType::IPV4;
+        } else if (netAddr.family_ == AF_INET6) {
+            netAddr.family_ = INetAddr::IpType::IPV6;
+        }
+    }
+    NetManagerCenter::GetInstance().UpdateNetLinkInfo(netSupplier_, newNetLinkinfo);
 }
 
 void DevInterfaceState::RemoteUpdateNetSupplierInfo()
