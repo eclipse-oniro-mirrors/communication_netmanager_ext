@@ -60,6 +60,7 @@ export default struct ConfirmDialog {
   controller: CustomDialogController;
   private extensionWin: window.Window = null;
   private extensionContext: common.ServiceExtensionContext = null;
+  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
 
   // title style
   @Builder
@@ -115,7 +116,7 @@ export default struct ConfirmDialog {
     } catch {
       console.info('Vpn ConfirmDialog destruction error!');
     }
-    featureAbility.terminateSelf();
+    this.context.terminateSelf();
   }
 };
 
