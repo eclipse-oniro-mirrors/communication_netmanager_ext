@@ -105,6 +105,11 @@ export default class VpnDialogAbility extends extension {
       await this.vpnWin.setUIContent('pages/VpnDialog');
       await this.vpnWin.setWindowBackgroundColor('#00000000');
       await this.vpnWin.showWindow();
+      try {
+        await this.vpnWin.hideNonSystemFloatingWindows(true);
+      } catch (err) {
+        console.error('window hideNonSystemFloatingWindows failed!');
+      }
       console.log('VpnDialogAbility window create successfully');
     } catch (exception) {
       console.error('VpnDialogAbility Failed to create the window. Cause: ' + JSON.stringify(exception));
