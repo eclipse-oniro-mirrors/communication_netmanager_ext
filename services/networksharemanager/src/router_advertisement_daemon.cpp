@@ -208,6 +208,9 @@ void RouterAdvertisementDaemon::RunRecvRsThread()
     uint8_t solicitation[IPV6_MIN_MTU] = {};
     socklen_t sendLen = sizeof(solicitation);
     while (IsSocketValid() && !stopRaThread_) {
+        if (memset_s(solicitation, sizeof(solicitation), 0, sizeof(solicitation)) != EOK) {
+            break;
+        }
         auto rval =
             recvfrom(socket_, solicitation, IPV6_MIN_MTU, 0, reinterpret_cast<sockaddr *>(&solicitor), &sendLen);
         if (rval <= 0 && errno != EAGAIN && errno != EINTR) {

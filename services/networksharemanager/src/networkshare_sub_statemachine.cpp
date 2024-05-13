@@ -561,6 +561,7 @@ void NetworkShareSubStateMachine::AddIpv6AddrToLocalNetwork()
 
 void NetworkShareSubStateMachine::AddIpv6InfoToLocalNetwork()
 {
+    lastRaParams_.Clear();
     if (!GetWifiApDstIpv6Addr()) {
         NETMGR_EXT_LOG_E("have nothing ipv6 params!");
         return;
