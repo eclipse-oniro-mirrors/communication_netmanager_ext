@@ -320,7 +320,10 @@ uint16_t RouterAdvertisementDaemon::PutRaHeader(uint8_t *raBuf)
 
 uint16_t RouterAdvertisementDaemon::PutRaSlla(uint8_t *raBuf, const std::string &mac)
 {
-    NETMGR_EXT_LOG_D("Append Ra source link lay address");
+    NETMGR_EXT_LOG_D("Append Ra source link lay address,mac:%{public}d", mac.size());
+    if (mac.size() < HW_MAC_STR_LENGTH) {
+        return 0;
+    }
     // https://datatracker.ietf.org/doc/html/rfc4861#section-4.6.1
     //  0                   1                   2                   3
     // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1

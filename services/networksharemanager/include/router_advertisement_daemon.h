@@ -41,6 +41,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 constexpr uint32_t HW_MAC_LENGTH = 6;
+
+// eg:11:22:33:44:55:66 or 11-22-33-44-55-66
+constexpr uint32_t HW_MAC_STR_LENGTH = 17;
 constexpr uint32_t IPV6_ADDR_LEN = 16;
 constexpr uint32_t MAX_RTR_ADV_INTERVAL_SEC = 600;
 constexpr uint32_t DEFAULT_LIFETIME = 6 * MAX_RTR_ADV_INTERVAL_SEC;
