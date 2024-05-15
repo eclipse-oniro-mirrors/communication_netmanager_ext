@@ -88,10 +88,9 @@ NetworkShareUpstreamMonitor::~NetworkShareUpstreamMonitor()
     NetConnClient::GetInstance().UnregisterNetConnCallback(defaultNetworkCallback_);
 }
 
-void NetworkShareUpstreamMonitor::SetOptionData(int32_t what, std::weak_ptr<MonitorEventHandler> &handler)
+void NetworkShareUpstreamMonitor::SetOptionData(int32_t what)
 {
     eventId_ = what;
-    eventHandler_ = handler;
 }
 
 void NetworkShareUpstreamMonitor::ListenDefaultNetwork()

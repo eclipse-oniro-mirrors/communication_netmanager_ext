@@ -74,7 +74,7 @@ public:
     /**
      * set eventhandler
      */
-    void SetOptionData(int what, std::weak_ptr<MonitorEventHandler> &handler);
+    void SetOptionData(int what);
 
     /**
      * set callback to listen default network modify
@@ -105,7 +105,6 @@ private:
     std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>> networkMaps_;
     std::mutex networkMapMutex_;
     int32_t defaultNetworkId_ = INVALID_NETID;
-    std::weak_ptr<MonitorEventHandler> eventHandler_;
     std::shared_ptr<NotifyUpstreamCallback> notifyUpstreamCallback_ = nullptr;
 };
 } // namespace NetManagerStandard
