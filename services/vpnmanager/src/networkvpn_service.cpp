@@ -713,6 +713,7 @@ void NetworkVpnService::OnNetSysRestart()
 {
     NETMGR_EXT_LOG_I("NetworkVpnService::OnNetSysRestart");
 
+    std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
     if (vpnObj_ != nullptr) {
         vpnObj_->ResumeUids();
     }
