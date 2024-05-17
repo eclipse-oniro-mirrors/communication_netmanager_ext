@@ -75,6 +75,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "cJSON:cjson",
     "c_utils:utils",
     "dhcp:dhcp_sdk",
+    "ffrt:libffrt",
     "ipc:ipc_core",
   ]
   external_deps += [ "hilog:libhilog" ]

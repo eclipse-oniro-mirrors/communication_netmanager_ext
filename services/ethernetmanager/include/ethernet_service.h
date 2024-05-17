@@ -30,6 +30,7 @@
 #include "refbase.h"
 #include "singleton.h"
 #include "system_ability.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -103,8 +104,8 @@ private:
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
     sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
     std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
-    std::shared_ptr<AppExecFwk::EventRunner> policyCallRunner_;
-    std::shared_ptr<AppExecFwk::EventHandler> policyCallHandler_;
+    std::shared_ptr<ffrt::queue> ethernetServiceFfrtQueue_ = nullptr;
+    ffrt::task_handle ethernetServiceTask_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
