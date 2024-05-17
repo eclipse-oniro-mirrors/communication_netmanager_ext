@@ -74,7 +74,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, UpstreamMonitorTest, TestSize.Level1)
 
     int32_t eventId = 0;
     monitorHandler_ = std::make_shared<NetworkShareUpstreamMonitor::MonitorEventHandler>(monitor, nullptr);
-    monitor->SetOptionData(eventId, monitorHandler_);
+    monitor->SetOptionData(eventId);
     monitor->RegisterUpstreamChangedCallback(nullptr);
 }
 
