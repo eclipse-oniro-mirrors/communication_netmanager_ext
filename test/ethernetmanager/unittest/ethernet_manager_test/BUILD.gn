@@ -67,6 +67,7 @@ ohos_unittest("ethernet_manager_test") {
     "access_token:libtoken_setproc",
     "cJSON:cjson",
     "dhcp:dhcp_sdk",
+    "ffrt:libffrt",
     "ipc:ipc_core",
   ]
 
