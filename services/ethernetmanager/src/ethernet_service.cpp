@@ -397,10 +397,10 @@ void EthernetService::NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction)
         NETMGR_EXT_LOG_E("FFRT Init Fail");
         return;
     }
-    ethernetServiceTask_ = ethernetServiceFfrtQueue_->submit_h([this, &onFunction]() {
+    ffrt::task_handle NotifyMonitorIfaceTask_ = ethernetServiceFfrtQueue_->submit_h([this, &onFunction]() {
         std::for_each(monitorIfaceCallbacks_.begin(), monitorIfaceCallbacks_.end(), onFunction);
     });
-    ethernetServiceFfrtQueue_->wait(ethernetServiceTask_);
+    ethernetServiceFfrtQueue_->wait(NotifyMonitorIfaceTask_);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

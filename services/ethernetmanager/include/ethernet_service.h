@@ -105,7 +105,6 @@ private:
     sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
     std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
     std::shared_ptr<ffrt::queue> ethernetServiceFfrtQueue_ = nullptr;
-    ffrt::task_handle ethernetServiceTask_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
