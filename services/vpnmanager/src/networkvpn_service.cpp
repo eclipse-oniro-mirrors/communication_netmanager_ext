@@ -711,8 +711,8 @@ void NetworkVpnService::OnRemoveSystemAbility(int32_t systemAbilityId, const std
 
 void NetworkVpnService::OnNetSysRestart()
 {
+    std::lock_guard<std::mutex> locker(netVpnMutex_);
     NETMGR_EXT_LOG_I("NetworkVpnService::OnNetSysRestart");
-
     if (vpnObj_ != nullptr) {
         vpnObj_->ResumeUids();
     }
