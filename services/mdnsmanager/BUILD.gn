@@ -80,6 +80,7 @@ ohos_shared_library("mdns_manager") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
@@ -130,6 +131,7 @@ ohos_static_library("mdns_manager_static") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",

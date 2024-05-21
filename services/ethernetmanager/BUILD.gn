@@ -72,6 +72,7 @@ ohos_shared_library("ethernet_manager") {
   deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel" ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "cJSON:cjson",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
