@@ -229,10 +229,7 @@ bool NetworkShareTracker::Init()
 
     std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor =
         DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
-    std::shared_ptr<AppExecFwk::EventRunner> monitorRunner = AppExecFwk::EventRunner::Create("network_share_monitor");
-    monitorHandler_ =
-        std::make_shared<NetworkShareUpstreamMonitor::MonitorEventHandler>(upstreamNetworkMonitor, monitorRunner);
-    upstreamNetworkMonitor->SetOptionData(EVENT_UPSTREAM_CALLBACK, monitorHandler_);
+    upstreamNetworkMonitor->SetOptionData(EVENT_UPSTREAM_CALLBACK);
     upstreamNetworkMonitor->ListenDefaultNetwork();
     upstreamNetworkMonitor->RegisterUpstreamChangedCallback(std::make_shared<MainSmUpstreamCallback>());
     mainStateMachine_ = std::make_shared<NetworkShareMainStateMachine>(upstreamNetworkMonitor);
