@@ -40,12 +40,19 @@ public:
 
 private:
     int32_t OnSetNetFirewallStatus(MessageParcel &data, MessageParcel &reply);
+
     int32_t OnGetNetFirewallStatus(MessageParcel &data, MessageParcel &reply);
+
     int32_t OnAddNetFirewallRule(MessageParcel &data, MessageParcel &reply);
+
     int32_t OnUpdateNetFirewallRule(MessageParcel &data, MessageParcel &reply);
+
     int32_t OnDeleteNetFirewallRule(MessageParcel &data, MessageParcel &reply);
+
     int32_t OnGetAllNetFirewallRules(MessageParcel &data, MessageParcel &reply);
+
     int32_t OnGetNetFirewallRule(MessageParcel &data, MessageParcel &reply);
+
     int32_t OnGetAllInterceptRecords(MessageParcel &data, MessageParcel &reply);
 
     int32_t CheckFirewallPermission(std::string &strPermission);

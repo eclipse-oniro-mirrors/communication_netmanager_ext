@@ -99,17 +99,24 @@ constexpr const char *CREATE_RECORD_TABLE = "CREATE TABLE IF NOT EXISTS [interce
 class NetFirewallDataBase : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDataBase> GetInstance();
+
     int64_t Insert(const OHOS::NativeRdb::ValuesBucket &insertValues, const std::string tableName);
+
     int32_t Update(const std::string &tableName, int32_t &changedRows, const OHOS::NativeRdb::ValuesBucket &values,
         const std::string &whereClause, const std::vector<std::string> &whereArgs);
 
     int32_t Delete(const std::string &tableName, int32_t &changedRows, const std::string &whereClause,
         const std::vector<std::string> &whereArgs);
+
     std::shared_ptr<OHOS::NativeRdb::ResultSet> Query(const OHOS::NativeRdb::AbsRdbPredicates &predicates,
         const std::vector<std::string> &columns);
+
     int32_t BeginTransaction();
+
     int32_t Commit();
+
     int32_t RollBack();
+
     int32_t Count(int64_t &outValue, const OHOS::NativeRdb::AbsRdbPredicates &predicates);
 
 private:
@@ -122,7 +129,9 @@ private:
 class NetFirewallDataBaseCallBack : public OHOS::NativeRdb::RdbOpenCallback {
 public:
     int32_t OnCreate(OHOS::NativeRdb::RdbStore &rdbStore) override;
+
     int32_t OnUpgrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t oldVersion, int32_t newVersion) override;
+
     int32_t OnDowngrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t currentVersion, int32_t targetVersion) override;
 
 private:

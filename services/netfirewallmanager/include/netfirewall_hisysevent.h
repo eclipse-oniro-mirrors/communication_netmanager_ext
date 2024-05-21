@@ -31,19 +31,52 @@ struct NetFirewallEvent {
 
 class NetFirewallHisysEvent {
 public:
-    static NetFirewallHisysEvent &GetInstance();
     ~NetFirewallHisysEvent() = default;
 
+    static NetFirewallHisysEvent &GetInstance();
+
+    /*
+     * Send firewall configuration management information
+     *
+     * @param rule Firewall configuration information
+     * @param Errorcode
+     */
     static void SendFirewallConfigReport(sptr<NetFirewallRule> rule, int32_t &errorCode);
+
+    /*
+     * Send and obtain firewall management information
+     *
+     * @param userId User id
+     * @param info Query input information
+     * @param Errorcode
+     */
     static void SendFirewallRequestReport(const int32_t userId, const std::string &info, int32_t &errorCode);
+
+    /*
+     * Sending and obtaining interception records and tracking information
+     *
+     * @param userId User id
+     * @param Errorcode
+     */
     static void SendRecordRequestReport(const int32_t userId, int32_t &errorCode);
+
+    /*
+     * Send initialization default rule information
+     *
+     * @param userId User id
+     * @param Errorcode
+     */
     static void SendInitDefaultRequestReport(const int32_t userId, int32_t &errorCode);
 
 private:
     NetFirewallHisysEvent() = default;
+
     void SendNetFirewallRuleFault(const NetFirewallEvent &event, const std::string &info, const std::string &eventName);
+
     void SendNetFirewallRuleBehavior(const int32_t userId, const std::string &info, const std::string &eventName);
+
     void SendNetFirewallFault(const NetFirewallEvent &event, const std::string &eventName);
+
     void SendNetFirewallBehavior(const int32_t userId, const std::string &eventName);
 };
 } // namespace NetManagerStandard

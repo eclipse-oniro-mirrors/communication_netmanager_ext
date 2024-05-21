@@ -51,6 +51,8 @@ class NetFirewallService : public SystemAbility,
 
 public:
     void SubscribeCommonEvent();
+
+    // Broadcast Listener
     class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
     public:
         explicit ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
@@ -63,6 +65,7 @@ public:
         NetFirewallService &_netfirewallService;
     };
 
+    // Firewall interception log callback
     class FirewallCallback : public OHOS::NetsysNative::NetFirewallCallbackStub {
     public:
         FirewallCallback(NetFirewallService &netfirewallService) : netfirewallService_(netfirewallService) {};
@@ -158,46 +161,82 @@ public:
 
 protected:
     void OnStart() override;
+
     void OnStop() override;
+
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
 private:
     void GetDumpMessage(std::string &message);
+
     int32_t OnInit();
+
     int32_t DeleteNetFirewallRuleByAppId(const int32_t appUid);
+
     int32_t DeleteNetFirewallRuleByUserId(const int32_t userId);
+
     int32_t AddDefaultNetFirewallRule(int32_t userId);
+
     int32_t GetCurrentAccountId();
+
     int32_t ClearCurrentNetFirewallPreferences(const int32_t userId);
+
     int32_t DistributeAllRules();
+
     int32_t DistributeDnsAndDomainRules();
+
     void InitQueryUserId(int32_t times);
+
     bool InitUsersOnBoot();
+
     void InitServiceHandler();
+
     bool InitQueryNetFirewallRules();
+
     int32_t ChekcUserExits(const int32_t userId);
+
     int32_t CheckRuleExits(const int32_t ruleId, NetFirewallRule &oldRule);
+
     int32_t GetAllRuleConstraint(const int32_t userId);
+
     int32_t CheckRuleConstraint(const sptr<NetFirewallRule> &rule);
+
     void ClearRecordCache(const int32_t userId);
+
     std::string GetServiceState();
+
     std::string GetLastRulePushTime();
+
     std::string GetLastRulePushResult();
+
     int32_t GetAllUserFirewallState(std::map<int32_t, bool> &firewallStateMap);
+
     void GetStatusFormPreference(const int32_t userId, sptr<NetFirewallStatus> &status);
+
     bool GetCurrentFirewallState();
+
     bool CheckAccountExits(int32_t userId);
+
     int32_t GetEnabledNetFirewallRules(const int32_t userId, std::vector<NetFirewallRule> &ruleList);
+
     int32_t GetEnabledDomainOrDnsRules(const int32_t userId, std::vector<NetFirewallRule> &ruleList);
+
     int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, bool isNotify, int32_t &result);
+
     void initFirewallStatusCache();
+
     void NetFirewallRule2IpRule(const NetFirewallRule &rule, NetFirewallIpRule &ip);
+
     void SplitFirewallRules(const std::vector<NetFirewallRule> firewallRules, std::vector<NetFirewallIpRule> &ipRules,
         std::vector<NetFirewallDnsRule> &dnsRules, std::vector<NetFirewallDomainRule> &domainRules);
+
     void SplitFirewallRules(const std::vector<NetFirewallRule> firewallRules, std::vector<NetFirewallDnsRule> &dnsRules,
         std::vector<NetFirewallDomainRule> &domainRules);
+
     bool IsNetFirewallOpen(const int32_t userId);
+
     int32_t SetFirewallIpRules2Bpf(const std::vector<NetFirewallIpRule> &ipRules);
 
 private:

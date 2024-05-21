@@ -25,22 +25,39 @@ class NetFireWallAnalysisJson {
 public:
     NetFireWallAnalysisJson() = default;
     ~NetFireWallAnalysisJson() = default;
+
+    // Get default firewall rules
     static bool GetDefaultRules(std::vector<NetFirewallRule> &ruleList);
 
 private:
+    // Parsing firewall rules in JSON
     static void ConvertFirewallRuleToConfig(NetFirewallRule &rule, const cJSON * const mem);
+
+    // Parsing IP parameters in JSON
     static void ConvertIpParamToConfig(NetFirewallIpParam &rule, const cJSON * const mem);
+
     static void ConvertPortParamToConfig(NetFirewallPortParam &rule, const cJSON * const mem);
+
     static void ConvertDomainParamToConfig(NetFirewallDomainParam &rule, const cJSON * const mem);
+
     static void ConvertDnsParamToConfig(NetFirewallDnsParam &rule, const cJSON * const mem);
+
+    // Read JSON file
     static std::string ReadJsonFile(const std::string &filePath);
+
     static void ParseIpList(std::vector<NetFirewallIpParam> &ipParamlist, const cJSON * const mem,
         const std::string jsonKey);
+
+    // Parse port list
     static void ParsePortList(std::vector<NetFirewallPortParam> &portParamlist, const cJSON * const mem,
         const std::string jsonKey);
+
     static void ParseDomainList(std::vector<NetFirewallDomainParam> &domainParamlist, const cJSON * const mem,
         const std::string jsonKey);
+
     static void ParseDnsObject(NetFirewallDnsParam &dnsParam, const cJSON * const mem, const std::string jsonKey);
+
+    // Parse list object
     static void ParseListObject(NetFirewallRule &rule, const cJSON * const mem);
 };
 } // namespace NetManagerStandard

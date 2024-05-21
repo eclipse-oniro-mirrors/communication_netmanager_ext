@@ -24,11 +24,15 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+// Firewall load callback
 class NetFirewallLoadCallback : public SystemAbilityLoadCallbackStub {
 public:
     void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject) override;
+
     void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
+
     bool IsFailed();
+
     const sptr<IRemoteObject> &GetRemoteObject() const;
 
 private:
@@ -80,8 +84,11 @@ private:
     };
 
     sptr<INetFirewallService> GetProxy();
+
     sptr<IRemoteObject> LoadSaOnDemand();
+
     void RestartNetFirewallManagerSysAbility();
+
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
 
 private:
