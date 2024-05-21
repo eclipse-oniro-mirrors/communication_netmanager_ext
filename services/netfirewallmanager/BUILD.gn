@@ -1,0 +1,121 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
+config("netfirewall_manager_config") {
+  include_dirs = [
+    "$UTILS_ROOT/native/base/include",
+    "$UTILS_ROOT/system/safwk/native/include",
+    "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/netfirewallclient/include",
+    "$NETCONNMANAGER_COMMON_DIR/include",
+    "$NETMANAGER_EXT_ROOT/utils/log/include",
+    "$NETFIREWALLMANAGER_SOURCE_DIR/include",
+    "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
+    "$NETSYSCONTROLLER_ROOT_DIR/include",
+    "$NETCONNMANAGER_UTILS_DIR/common_utils/include",
+    "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
+  ]
+
+  defines = [
+    "NETMGR_EXT_LOG_TAG = \"NetFirewallManager\"",
+    "LOG_DOMAIN = 0xD0015B0",
+    "DEFAULT_RULE_FILE = \"/system/etc/communication/netmanager_ext/default_firewall_rule.json\"",
+  ]
+
+  if (enable_netmgr_ext_debug) {
+    defines += [ "NETMGR_DEBUG" ]
+  }
+}
+
+netfirewall_manager_deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
+
+netfirewall_manager_external_deps = [
+  "ability_base:want",
+  "ability_base:zuri",
+  "bundle_framework:appexecfwk_base",
+  "bundle_framework:appexecfwk_core",
+  "cJSON:cjson",
+  "c_utils:utils",
+  "common_event_service:cesfwk_innerkits",
+  "eventhandler:libeventhandler",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "hitrace:hitrace_meter",
+  "ipc:ipc_core",
+  "netmanager_base:net_conn_manager_if",
+  "netmanager_base:net_data_share",
+  "netmanager_base:net_manager_common",
+  "netmanager_base:net_native_manager_if",
+  "netmanager_base:netsys_controller",
+  "os_account:os_account_innerkits",
+  "preferences:native_preferences",
+  "relational_store:native_rdb",
+  "safwk:system_ability_fwk",
+  "samgr:samgr_proxy",
+]
+
+ohos_shared_library("netfirewall_manager") {
+  configs = [
+    ":netfirewall_manager_config",
+    "$NETMANAGER_EXT_ROOT/resource:coverage_flags",
+  ]
+
+  deps = netfirewall_manager_deps
+  external_deps = netfirewall_manager_external_deps
+
+  cflags = memory_optimization_cflags
+  cflags += [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-O2",
+  ]
+
+  cflags_cc = memory_optimization_cflags_cc
+  cflags_cc += [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-O2",
+  ]
+
+  deps += [ "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_parcel" ]
+
+  ldflags = memory_optimization_ldflags
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+ohos_static_library("netfirewall_manager_static") {
+  configs = [
+    ":netfirewall_manager_config",
+    "$NETMANAGER_EXT_ROOT/resource:coverage_flags",
+  ]
+
+  sources = netfirewall_manager_sources
+  deps = netfirewall_manager_deps
+  external_deps = netfirewall_manager_external_deps
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+ohos_prebuilt_etc("netfirewall_default_rule") {
+  source = "$NETMANAGER_EXT_ROOT/services/netfirewallmanager/config/default_firewall_rule.json"
+  install_enable = true
+  relative_install_dir = "communication/netmanager_ext"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
