@@ -33,7 +33,7 @@ namespace NetManagerStandard {
 namespace {
 static constexpr const char *FUNCTION_SET_NET_FIREWALL_STATUS = "setNetFirewallStatus";
 static constexpr const char *FUNCTION_GET_NET_FIREWALL_STATUS = "getNetFirewallStatus";
-static constexpr const char *FUNCTION_GET_ALL_INTERCEPT_RECORDS = "getAllInterceptRecords";
+static constexpr const char *FUNCTION_GET_ALL_INTERCEPT_RECORDS = "getInterceptRecords";
 
 napi_value SetNetFirewallStatus(napi_env env, napi_callback_info info)
 {

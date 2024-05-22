@@ -142,7 +142,7 @@ void NetFirewallService::GetStatusFormPreference(const int32_t userId, sptr<NetF
     referencesUtil_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
     status->isOpen = referencesUtil_->ObtainBool("isOpen", true);
     status->inAction = static_cast<FirewallRuleAction>(
-        referencesUtil_->ObtainInt("inAction", static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
+        referencesUtil_->ObtainInt("inAction", static_cast<int>(FirewallRuleAction::RULE_DENY)));
     status->outAction = static_cast<FirewallRuleAction>(
         referencesUtil_->ObtainInt("outAction", static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
 }
