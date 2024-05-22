@@ -436,7 +436,6 @@ void NetFirewallService::OnRemoveSystemAbility(int32_t systemAbilityId, const st
 void NetFirewallService::SubscribeCommonEvent()
 {
     EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_ADDED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
@@ -466,10 +465,6 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
     NETMGR_EXT_LOG_I("NetVReceiveMessage::OnReceiveEvent(), event:[%{public}s], data:[%{public}s], code:[%{public}d]",
         action.c_str(), data.c_str(), code);
     int32_t userId = code;
-    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_ADDED) {
-        NETMGR_EXT_LOG_I("NetFirewallService: COMMON_EVENT_USER_ADDED");
-        return;
-    }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED) {
         NETMGR_EXT_LOG_I("NetFirewallService: COMMON_EVENT_USER_REMOVED");
         _netfirewallService.ClearCurrentNetFirewallPreferences(userId);
