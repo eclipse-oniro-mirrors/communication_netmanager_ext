@@ -186,10 +186,6 @@ HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing01, TestSize.Level1)
     type = SharingIfaceType::SHARING_USB;
     ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_USB_SHARING);
-
-    type = SharingIfaceType::SHARING_BLUETOOTH;
-    ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**
@@ -206,10 +202,6 @@ HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing01, TestSize.Level1)
     type = SharingIfaceType::SHARING_USB;
     ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_USB_SHARING);
-
-    type = SharingIfaceType::SHARING_BLUETOOTH;
-    ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**

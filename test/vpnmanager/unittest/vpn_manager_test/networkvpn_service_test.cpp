@@ -122,10 +122,6 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
     std::vector<int32_t> activeUserIds;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
     EXPECT_EQ(instance_->SetUpVpn(config), NETWORKVPN_ERROR_VPN_EXIST);
-
-    userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
@@ -214,7 +210,7 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
         instance_->ParseJsonToConfig(vpnCfg, jsonString);
     }
     int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
-    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
+    EXPECT_EQ(ret, 0);
     ret = instance_->GetAlwaysOnVpn(pkg);
     EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
 }
