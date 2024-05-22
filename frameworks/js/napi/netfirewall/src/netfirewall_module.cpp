@@ -33,6 +33,7 @@ namespace NetManagerStandard {
 namespace {
 static constexpr const char *FUNCTION_SET_NET_FIREWALL_STATUS = "setNetFirewallStatus";
 static constexpr const char *FUNCTION_GET_NET_FIREWALL_STATUS = "getNetFirewallStatus";
+static constexpr const char *FUNCTION_GET_ALL_INTERCEPT_RECORDS = "getAllInterceptRecords";
 
 napi_value SetNetFirewallStatus(napi_env env, napi_callback_info info)
 {
@@ -45,6 +46,13 @@ napi_value GetNetFirewallStatus(napi_env env, napi_callback_info info)
     return ModuleTemplate::Interface<GetNetFirewallStatusContext>(env, info, FUNCTION_GET_NET_FIREWALL_STATUS, nullptr,
         NetFirewallAsyncWork::ExecGetNetFirewallStatus, NetFirewallAsyncWork::GetNetFirewallStatusCallback);
 }
+
+napi_value GetAllInterceptRecords(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetAllInterceptRecordsContext>(env, info, FUNCTION_GET_ALL_INTERCEPT_RECORDS,
+        nullptr, NetFirewallAsyncWork::ExecGetAllInterceptRecords,
+        NetFirewallAsyncWork::GetAllInterceptRecordCallbacks);
+}
 } // namespace
 
 napi_value DeclarePcfirewallInterface(napi_env env, napi_value exports)
@@ -53,6 +61,7 @@ napi_value DeclarePcfirewallInterface(napi_env env, napi_value exports)
         {
         DECLARE_NAPI_FUNCTION(FUNCTION_SET_NET_FIREWALL_STATUS, SetNetFirewallStatus),
         DECLARE_NAPI_FUNCTION(FUNCTION_GET_NET_FIREWALL_STATUS, GetNetFirewallStatus),
+        DECLARE_NAPI_FUNCTION(FUNCTION_GET_ALL_INTERCEPT_RECORDS, GetAllInterceptRecords),
         });
     return exports;
 }

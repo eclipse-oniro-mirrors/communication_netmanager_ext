@@ -35,6 +35,8 @@ NetFirewallStub::NetFirewallStub()
                                                                       &NetFirewallStub::OnSetNetFirewallStatus};
     memberFuncMap_[static_cast<uint32_t>(GET_NET_FIREWALL_STATUS)] = {Permission::MANAGE_NET_STRATEGY,
                                                                       &NetFirewallStub::OnGetNetFirewallStatus};
+    memberFuncMap_[static_cast<uint32_t>(GET_ALL_INTERCEPT_RECORDS)] = {Permission::MANAGE_NET_STRATEGY,
+                                                                       &NetFirewallStub::OnGetAllInterceptRecords};
 }
 
 int32_t NetFirewallStub::CheckFirewallPermission(std::string &strPermission)
@@ -99,6 +101,29 @@ int32_t NetFirewallStub::OnGetNetFirewallStatus(MessageParcel &data, MessageParc
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
+    return ret;
+}
+
+int32_t NetFirewallStub::OnGetAllInterceptRecords(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId;
+    if (!data.ReadInt32(userId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    sptr<RequestParam> param = RequestParam::Unmarshalling(data);
+    if (param == nullptr) {
+        NETMGR_EXT_LOG_E("param is nullptr.");
+        return FIREWALL_ERR_INTERNAL;
+    }
+    sptr<InterceptRecordPage> info = new (std::nothrow) InterceptRecordPage();
+    int32_t ret = GetAllInterceptRecords(userId, param, info);
+    if (ret == FIREWALL_SUCCESS) {
+        if (!info->Marshalling(reply)) {
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+    }
+    NetFirewallHisysEvent::SendRecordRequestReport(userId, ret);
     return ret;
 }
 } // namespace NetManagerStandard

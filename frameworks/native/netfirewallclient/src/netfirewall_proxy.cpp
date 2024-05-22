@@ -83,5 +83,38 @@ int32_t NetFirewallProxy::GetNetFirewallStatus(const int32_t userId, sptr<NetFir
     }
     return FIREWALL_SUCCESS;
 }
+
+int32_t NetFirewallProxy::GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+    sptr<InterceptRecordPage> &info)
+{
+    HiLog::Info(LABEL, "GetAllInterceptRecords set firewall status");
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    data.WriteInt32(userId);
+    if (!requestParam->Marshalling(data)) {
+        NETMGR_EXT_LOG_E("proxy Marshalling failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(GET_ALL_INTERCEPT_RECORDS), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    info = InterceptRecordPage::Unmarshalling(reply);
+    if (info == nullptr) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return FIREWALL_SUCCESS;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

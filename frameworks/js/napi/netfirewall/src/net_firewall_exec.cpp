@@ -81,6 +81,47 @@ napi_value GetNetFirewallStatusCallback(GetNetFirewallStatusContext *context)
         static_cast<int32_t>(context->status_->outAction));
     return firewallStatus;
 }
+
+bool ExecGetAllInterceptRecords(GetAllInterceptRecordsContext *context)
+{
+    if (!context->IsParseOK()) {
+        return false;
+    }
+    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->GetAllInterceptRecords(context->userId_,
+        context->requestParam_, context->pageInfo_);
+    if (result != FIREWALL_SUCCESS || context->pageInfo_ == nullptr) {
+        NETMANAGER_EXT_LOGE("ExecGetAllNetFirewallRules error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value GetAllInterceptRecordCallbacks(GetAllInterceptRecordsContext *context)
+{
+    napi_value pageInfo = NapiUtils::CreateObject(context->GetEnv());
+    NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE, context->pageInfo_->page);
+    NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE_SIZE, context->pageInfo_->pageSize);
+    NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_TOTAL_PAGE, context->pageInfo_->totalPage);
+    napi_value list = NapiUtils::CreateArray(context->GetEnv(), context->pageInfo_->data.size());
+
+    uint32_t index = 0;
+    for (const auto &iface : context->pageInfo_->data) {
+        napi_value rule = NapiUtils::CreateObject(context->GetEnv());
+        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_TIME, iface.time);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_RECORD_SOURCE_IP, iface.sourceIp);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_RECORD_DEST_IP, iface.destIp);
+        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_SOURCE_PORT, iface.sourcePort);
+        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_DEST_PORT, iface.destPort);
+        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_PROTOCOL, iface.protocol);
+        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_UID, iface.appUid);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_DOMAIN, iface.domain);
+
+        NapiUtils::SetArrayElement(context->GetEnv(), list, index++, rule);
+    }
+    NapiUtils::SetNamedProperty(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE_DATA, list);
+    return pageInfo;
+}
 } // namespace NetFirewallExec
 } // namespace NetManagerStandard
 } // namespace OHOS

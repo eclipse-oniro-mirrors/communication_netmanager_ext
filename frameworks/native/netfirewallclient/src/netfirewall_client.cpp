@@ -87,6 +87,17 @@ int32_t NetFirewallClient::GetNetFirewallStatus(const int32_t userId, sptr<NetFi
     return proxy->GetNetFirewallStatus(userId, status);
 }
 
+int32_t NetFirewallClient::GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+    sptr<InterceptRecordPage> &info)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetAllInterceptRecords proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetAllInterceptRecords(userId, requestParam, info);
+}
+
 sptr<INetFirewallService> NetFirewallClient::GetProxy()
 {
     NETMGR_EXT_LOG_I("NetFirewallClient getproxy");

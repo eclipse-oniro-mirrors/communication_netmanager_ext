@@ -52,6 +52,17 @@ void GetNetFirewallStatusCallback(napi_env env, napi_status status, void *data)
     BaseAsyncWork::AsyncWorkCallback<GetNetFirewallStatusContext, NetFirewallExec::GetNetFirewallStatusCallback>(env,
         status, data);
 }
+
+void ExecGetAllInterceptRecords(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetAllInterceptRecordsContext, NetFirewallExec::ExecGetAllInterceptRecords>(env, data);
+}
+
+void GetAllInterceptRecordCallbacks(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetAllInterceptRecordsContext, NetFirewallExec::GetAllInterceptRecordCallbacks>(
+        env, status, data);
+}
 } // namespace NetFirewallAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

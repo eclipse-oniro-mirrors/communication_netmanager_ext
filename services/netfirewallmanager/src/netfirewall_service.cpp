@@ -35,14 +35,12 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr uint32_t MAX_RETRY_TIMES = 10;
-constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL = 500;
-constexpr int64_t QUERY_USER_ID_INTERVAL = 300L;
+constexpr uint32_t MAX_REGISTER_EVENT_TIMES = 10;
+constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL_MS = 500;
+constexpr int64_t QUERY_USER_ID_DELAY_TIME_MS = 300L;
 constexpr int32_t QUERY_USER_MAX_RETRY_TIMES = 100;
-constexpr int32_t FIREWALL_ALL_USER_MAX_RULE = 2000;
-constexpr int32_t FIREWALL_ALL_USER_MAX_DOMAIN = 20000;
 constexpr int32_t RECORD_CACHE_SIZE = 100;
-constexpr int64_t RECORD_TASK_DELAY = 3 * 60 * 1000;
+constexpr int64_t RECORD_TASK_DELAY_TIME_MS = 3 * 60 * 1000;
 constexpr std::string_view PUSH_RESULT_SUCCESS = "Success";
 constexpr std::string_view PUSH_RESULT_FAILD = "Faild";
 constexpr std::string_view PUSH_RESULT_UNKONW = "Unkonw";
@@ -152,7 +150,9 @@ void NetFirewallService::GetStatusFormPreference(const int32_t userId, sptr<NetF
 /*
  * Query firewall status
  *
- * @return Firewall status of user userId
+ * @param userId User id
+ * @param Firewall status of user userId
+ * @return Error code
  */
 int32_t NetFirewallService::GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status)
 {
@@ -167,6 +167,26 @@ int32_t NetFirewallService::GetNetFirewallStatus(const int32_t userId, sptr<NetF
         status->outAction = firewallStatus_->outAction;
     } else {
         GetStatusFormPreference(userId, status);
+    }
+    return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallService::GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+    sptr<InterceptRecordPage> &info)
+{
+    NETMGR_EXT_LOG_I("GetAllInterceptRecords");
+    int32_t ret = ChekcUserExits(userId);
+    if (ret != FIREWALL_SUCCESS) {
+        return ret;
+    }
+    // Cache data writing to avoid not being able to access new data
+    ClearRecordCache(currentUserId_);
+    info->pageSize = requestParam->pageSize;
+    std::shared_ptr<NetFirewallDbHelper> helper = NetFirewallDbHelper::GetInstance();
+    ret = helper->QueryInterceptRecord(userId, requestParam, info);
+    if (ret < 0) {
+        NETMGR_EXT_LOG_E("GetAllInterceptRecords error");
+        return FIREWALL_ERR_INTERNAL;
     }
     return FIREWALL_SUCCESS;
 }
@@ -353,7 +373,7 @@ void NetFirewallService::InitQueryUserId(int32_t times)
     bool ret = InitUsersOnBoot();
     if (!ret && times > 0) {
         NETMGR_EXT_LOG_I("InitQueryUserId failed");
-        serviceHandler_->PostTask([this, times]() { InitQueryUserId(times); }, QUERY_USER_ID_INTERVAL);
+        serviceHandler_->PostTask([this, times]() { InitQueryUserId(times); }, QUERY_USER_ID_DELAY_TIME_MS);
     }
 }
 
@@ -421,12 +441,13 @@ void NetFirewallService::SubscribeCommonEvent()
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-    subscribeInfo.SetPriority(1); // 1 means CORE_EVENT_PRIORITY
+    // 1 means CORE_EVENT_PRIORITY
+    subscribeInfo.SetPriority(1);
     subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
     uint32_t tryCount = 0;
     bool subscribeResult = false;
-    while (!subscribeResult && tryCount <= MAX_RETRY_TIMES) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(AGAIN_REGISTER_CALLBACK_INTERVAL));
+    while (!subscribeResult && tryCount <= MAX_REGISTER_EVENT_TIMES) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(AGAIN_REGISTER_CALLBACK_INTERVAL_MS));
         subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
         tryCount++;
         NETMGR_EXT_LOG_I("SubscribeCommonEvent try  %{public}d", tryCount);
@@ -452,6 +473,7 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED) {
         NETMGR_EXT_LOG_I("NetFirewallService: COMMON_EVENT_USER_REMOVED");
         _netfirewallService.ClearCurrentNetFirewallPreferences(userId);
+        NetFirewallDbHelper::GetInstance()->DeleteInterceptRecord(userId);
         if (!_netfirewallService.userRuleSize_.empty() && _netfirewallService.userRuleSize_.count(userId)) {
             _netfirewallService.userRuleSize_.erase(userId);
         }
@@ -460,6 +482,7 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         NETMGR_EXT_LOG_I("NetFirewallService: COMMON_EVENT_USER_SWITCHED");
         // Old user cache cleaning
+        _netfirewallService.ClearRecordCache(_netfirewallService.currentUserId_);
         _netfirewallService.firewallStatus_ = nullptr;
         _netfirewallService.currentUserId_ = userId;
         return;
@@ -472,6 +495,28 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         }
         uint32_t deletedUid = static_cast<uint32_t>(eventData.GetWant().GetIntParam(AppExecFwk::Constants::UID, 0));
         NETMGR_EXT_LOG_I("NetFirewallService: deletedUid %{public}d", deletedUid);
+    }
+}
+
+int32_t NetFirewallService::FirewallCallback::OnIntercept(sptr<InterceptRecord> &record)
+{
+    netfirewallService_.recordCache_.emplace_back(record);
+    serviceHandler_->RemoveTask(INTERCEPT_RECORD_TASK);
+    auto callback = [this]() { netfirewallService_.ClearRecordCache(netfirewallService_.currentUserId_); };
+    if (netfirewallService_.recordCache_.size() < RECORD_CACHE_SIZE) {
+        // Write every three minutes when dissatisfied
+        serviceHandler_->PostTask(callback, INTERCEPT_RECORD_TASK, RECORD_TASK_DELAY_TIME_MS);
+    } else {
+        serviceHandler_->PostImmediateTask(callback);
+    }
+    return FIREWALL_SUCCESS;
+}
+
+void NetFirewallService::ClearRecordCache(const int32_t userId)
+{
+    if (!recordCache_.empty()) {
+        NetFirewallDbHelper::GetInstance()->AddInterceptRecord(userId, recordCache_);
+        recordCache_.clear();
     }
 }
 
