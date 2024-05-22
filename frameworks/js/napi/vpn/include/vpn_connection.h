@@ -30,6 +30,11 @@ constexpr const char *PROTECT = "protect";
 constexpr const char *DESTROY = "destroy";
 constexpr const char *ON = "on";
 constexpr const char *OFF = "off";
+constexpr const char *SAVE_SYSTEM_VPN = "saveSystemVpn";
+constexpr const char *DELETE_SYSTEM_VPN = "deleteSystemVpn";
+constexpr const char *GET_SYSTEM_VPN_LIST = "getSystemVpnList";
+constexpr const char *GET_SYSTEM_VPN = "getSystemVpn";
+constexpr const char *GET_CONNECTED_SYSTEM_VPN = "getConnectedSystemVpn";
 } // namespace
 
 namespace VpnConnection {
@@ -39,6 +44,11 @@ napi_value Protect(napi_env env, napi_callback_info info);
 napi_value Destroy(napi_env env, napi_callback_info info);
 napi_value On(napi_env env, napi_callback_info info);
 napi_value Off(napi_env env, napi_callback_info info);
+napi_value SaveSystemVpn(napi_env env, napi_callback_info info);
+napi_value DeleteSystemVpn(napi_env env, napi_callback_info info);
+napi_value GetSystemVpnList(napi_env env, napi_callback_info info);
+napi_value GetSystemVpn(napi_env env, napi_callback_info info);
+napi_value GetConnectedSystemVpn(napi_env env, napi_callback_info info);
 } // namespace VpnConnection
 } // namespace NetManagerStandard
 } // namespace OHOS

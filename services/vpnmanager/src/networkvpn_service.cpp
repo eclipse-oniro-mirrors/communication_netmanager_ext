@@ -581,6 +581,31 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t NetworkVpnService::SaveSystemVpn(sptr<VpnConfig> &config)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnService::DeleteSystemVpn(std::string &vpnUuid)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnService::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnService::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnService::GetConnectedSystemVpn(sptr<VpnConfig> &config)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;

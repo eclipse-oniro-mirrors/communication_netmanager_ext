@@ -118,6 +118,31 @@ public:
     int32_t DestroyVpn(bool isVpnExtCall = false) override;
 
     /**
+     * save the vpn config
+     */
+    int32_t SaveSystemVpn(sptr<VpnConfig> &config) override;
+
+    /**
+     * get the vpn config list
+     */
+    int32_t DeleteSystemVpn(std::string &vpnUuid) override;
+
+    /**
+     * get the vpn config listGetConnectedSystemVpn
+     */
+    int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList) override;
+
+    /**
+     * get the vpn config
+     */
+    int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid) override;
+
+    /**
+     * get the vpn connection state
+     */
+    int32_t GetConnectedSystemVpn(sptr<VpnConfig> &config) override;
+
+    /**
      * register callback
      */
     int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) override;

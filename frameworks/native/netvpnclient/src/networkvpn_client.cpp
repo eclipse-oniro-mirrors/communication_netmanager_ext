@@ -16,6 +16,7 @@
 #include "networkvpn_client.h"
 
 #include <thread>
+#include <vector>
 
 #include "fwmark_client.h"
 #include "iservice_registry.h"
@@ -127,6 +128,56 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     return proxy->DestroyVpn(isVpnExtCall);
+}
+
+int32_t NetworkVpnClient::SaveSystemVpn(sptr<VpnConfig> &config)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("SaveSystemVpn proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->SaveSystemVpn(config);
+}
+
+int32_t NetworkVpnClient::DeleteSystemVpn(std::string &vpnUuid)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("DeleteSystemVpn proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->DeleteSystemVpn(vpnUuid);
+}
+
+int32_t NetworkVpnClient::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetSystemVpnList proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetSystemVpnList(vpnList);
+}
+
+int32_t NetworkVpnClient::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetSystemVpnList proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetSystemVpn(config, vpnUuid);
+}
+
+int32_t NetworkVpnClient::GetConnectedSystemVpn(sptr<VpnConfig> &config)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetConnectedSystemVpn proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetConnectedSystemVpn(config);
 }
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)

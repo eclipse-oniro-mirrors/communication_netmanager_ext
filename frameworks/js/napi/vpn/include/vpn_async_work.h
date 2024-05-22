@@ -32,6 +32,21 @@ void ProtectCallback(napi_env env, napi_status status, void *data);
 
 void ExecDestroy(napi_env env, void *data);
 void DestroyCallback(napi_env env, napi_status status, void *data);
+
+void ExecSaveSystemVpn(napi_env env, void *data);
+void SaveSystemVpnCallback(napi_env env, napi_status status, void *data);
+
+void ExecDeleteSystemVpn(napi_env env, void *data);
+void DeleteSystemVpnCallback(napi_env env, napi_status status, void *data);
+
+void ExecGetSystemVpnList(napi_env env, void *data);
+void GetSystemVpnListCallback(napi_env env, napi_status status, void *data);
+
+void ExecGetSystemVpn(napi_env env, void *data);
+void GetSystemVpnCallback(napi_env env, napi_status status, void *data);
+
+void ExecGetConnectedSystemVpn(napi_env env, void *data);
+void GetConnectedSystemVpnCallback(napi_env env, napi_status status, void *data);
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

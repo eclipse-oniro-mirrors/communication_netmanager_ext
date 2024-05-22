@@ -40,6 +40,11 @@ public:
         CMD_UNREGISTER_EVENT_CALLBACK,
         CMD_CREATE_VPN_CONNECTION,
         CMD_FACTORYRESET_VPN,
+        CMD_SAVE_SYSTEM_VPN,
+        CMD_DELETE_SYSTEM_VPN,
+        CMD_GET_SYSTEM_VPN_LIST,
+        CMD_GET_SYSTEM_VPN,
+        CMD_GET_CONNECTED_SYSTEM_VPN,
         CMD_START_VPN_EXT, // for start extension extended vpn
         CMD_PROTECT_EXT,
         CMD_STOP_VPN_EXT,
@@ -57,6 +62,11 @@ public:
     virtual int32_t CreateVpnConnection(bool isVpnExtCall = false) = 0;
     virtual int32_t FactoryResetVpn() = 0;
     virtual int32_t RegisterBundleName(const std::string &bundleName) = 0;
+    virtual int32_t SaveSystemVpn(sptr<VpnConfig> &config) = 0;
+    virtual int32_t DeleteSystemVpn(std::string &vpnUuid) = 0;
+    virtual int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList) = 0;
+    virtual int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid) = 0;
+    virtual int32_t GetConnectedSystemVpn(sptr<VpnConfig> &config) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");
 };

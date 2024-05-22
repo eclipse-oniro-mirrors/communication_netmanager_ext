@@ -64,6 +64,14 @@ napi_value RegisterVpnModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(SET_UP, VpnConnection::SetUp),
                                     DECLARE_NAPI_FUNCTION(PROTECT, VpnConnection::Protect),
                                     DECLARE_NAPI_FUNCTION(DESTROY, VpnConnection::Destroy),
+                                    DECLARE_NAPI_FUNCTION(ON, VpnConnection::On),
+                                    DECLARE_NAPI_FUNCTION(OFF, VpnConnection::Off),
+                                    DECLARE_NAPI_FUNCTION(SAVE_SYSTEM_VPN, VpnConnection::SaveSystemVpn),
+                                    DECLARE_NAPI_FUNCTION(DELETE_SYSTEM_VPN, VpnConnection::DeleteSystemVpn),
+                                    DECLARE_NAPI_FUNCTION(GET_SYSTEM_VPN_LIST, VpnConnection::GetSystemVpnList),
+                                    DECLARE_NAPI_FUNCTION(GET_SYSTEM_VPN, VpnConnection::GetSystemVpn),
+                                    DECLARE_NAPI_FUNCTION(GET_CONNECTED_SYSTEM_VPN,
+                                        VpnConnection::GetConnectedSystemVpn),
                                 },
                                 VPN_CONNECTION);
     return exports;

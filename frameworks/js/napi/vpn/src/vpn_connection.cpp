@@ -22,6 +22,11 @@
 #include "setup_context.h"
 #include "vpn_async_work.h"
 #include "vpn_monitor.h"
+#include "save_context.h"
+#include "delete_context.h"
+#include "get_list_context.h"
+#include "get_context.h"
+#include "get_connected_context.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -58,6 +63,36 @@ napi_value On(napi_env env, napi_callback_info info)
 napi_value Off(napi_env env, napi_callback_info info)
 {
     return VpnMonitor::GetInstance().Off(env, info);
+}
+
+napi_value SaveSystemVpn(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<SaveContext>(env, info, SAVE_SYSTEM_VPN, nullptr,
+        VpnAsyncWork::ExecSaveSystemVpn, VpnAsyncWork::SaveSystemVpnCallback);
+}
+
+napi_value DeleteSystemVpn(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<DeleteContext>(env, info, DELETE_SYSTEM_VPN, nullptr,
+        VpnAsyncWork::ExecDeleteSystemVpn, VpnAsyncWork::DeleteSystemVpnCallback);
+}
+
+napi_value GetSystemVpnList(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetListContext>(env, info, GET_SYSTEM_VPN_LIST, nullptr,
+        VpnAsyncWork::ExecGetSystemVpnList, VpnAsyncWork::GetSystemVpnListCallback);
+}
+
+napi_value GetSystemVpn(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetContext>(env, info, GET_SYSTEM_VPN, nullptr,
+        VpnAsyncWork::ExecGetSystemVpn, VpnAsyncWork::GetSystemVpnCallback);
+}
+
+napi_value GetConnectedSystemVpn(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetConnectedContext>(env, info, GET_CONNECTED_SYSTEM_VPN, nullptr,
+        VpnAsyncWork::ExecGetConnectedSystemVpn, VpnAsyncWork::GetConnectedSystemVpnCallback);
 }
 } // namespace VpnConnection
 } // namespace NetManagerStandard

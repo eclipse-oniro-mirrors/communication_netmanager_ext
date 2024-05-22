@@ -92,6 +92,81 @@ bool ExecDestroy(DestroyContext *context)
     return true;
 }
 
+bool ExecSaveSystemVpn(SaveContext *context)
+{
+    auto vpnClient = GetVpnConnectionInstance(context);
+    if (vpnClient == nullptr) {
+        NETMANAGER_EXT_LOGE("vpnClient is nullptr");
+        return false;
+    }
+    int32_t result = vpnClient->SaveSystemVpn(context->vpnConfig_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+bool ExecDeleteSystemVpn(DeleteContext *context)
+{
+    auto vpnClient = GetVpnConnectionInstance(context);
+    if (vpnClient == nullptr) {
+        NETMANAGER_EXT_LOGE("vpnClient is nullptr");
+        return false;
+    }
+    int32_t result = vpnClient->DeleteSystemVpn(context->vpnUuid_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+bool ExecGetSystemVpnList(GetListContext *context)
+{
+    auto vpnClient = GetVpnConnectionInstance(context);
+    if (vpnClient == nullptr) {
+        NETMANAGER_EXT_LOGE("vpnClient is nullptr");
+        return false;
+    }
+    int32_t result = vpnClient->GetSystemVpnList(context->vpnList_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+bool ExecGetSystemVpn(GetContext *context)
+{
+    auto vpnClient = GetVpnConnectionInstance(context);
+    if (vpnClient == nullptr) {
+        NETMANAGER_EXT_LOGE("vpnClient is nullptr");
+        return false;
+    }
+    int32_t result = vpnClient->GetSystemVpn(context->vpnConfig_, context->vpnUuid_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+bool ExecGetConnectedSystemVpn(GetConnectedContext *context)
+{
+    auto vpnClient = GetVpnConnectionInstance(context);
+    if (vpnClient == nullptr) {
+        NETMANAGER_EXT_LOGE("vpnClient is nullptr");
+        return false;
+    }
+    int32_t result = vpnClient->GetConnectedSystemVpn(context->vpnConfig_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
 napi_value PrepareCallback(PrepareContext *context)
 {
     napi_value obj = NapiUtils::CreateObject(context->GetEnv());
@@ -114,6 +189,36 @@ napi_value ProtectCallback(ProtectContext *context)
 napi_value DestroyCallback(DestroyContext *context)
 {
     return NapiUtils::GetUndefined(context->GetEnv());
+}
+
+napi_value SaveSystemVpnCallback(SaveContext *context)
+{
+    return NapiUtils::GetUndefined(context->GetEnv());
+}
+
+napi_value DeleteSystemVpnCallback(DeleteContext *context)
+{
+    return NapiUtils::GetUndefined(context->GetEnv());
+}
+
+napi_value GetSystemVpnCallback(GetContext *context)
+{
+    napi_value config = NapiUtils::CreateObject(context->GetEnv());
+    return config;
+}
+
+napi_value GetSystemVpnListCallback(GetListContext *context)
+{
+    auto len = context->vpnList_.size();
+    NETMANAGER_EXT_LOGI("GetSystemVpnListCallBack, len: %{public}d", len);
+    napi_value array = NapiUtils::CreateArray(context->GetEnv(), len);
+    return array;
+}
+
+napi_value GetConnectedSystemVpnCallback(GetConnectedContext *context)
+{
+    napi_value config = NapiUtils::CreateObject(context->GetEnv());
+    return config;
 }
 } // namespace VpnExec
 } // namespace NetManagerStandard

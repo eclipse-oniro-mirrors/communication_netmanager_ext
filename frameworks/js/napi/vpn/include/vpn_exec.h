@@ -22,6 +22,11 @@
 #include "prepare_context.h"
 #include "protect_context.h"
 #include "setup_context.h"
+#include "save_context.h"
+#include "delete_context.h"
+#include "get_list_context.h"
+#include "get_context.h"
+#include "get_connected_context.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -37,6 +42,21 @@ napi_value ProtectCallback(ProtectContext *context);
 
 bool ExecDestroy(DestroyContext *context);
 napi_value DestroyCallback(DestroyContext *context);
+
+bool ExecSaveSystemVpn(SaveContext *context);
+napi_value SaveSystemVpnCallback(SaveContext *context);
+
+bool ExecDeleteSystemVpn(DeleteContext *context);
+napi_value DeleteSystemVpnCallback(DeleteContext *context);
+
+bool ExecGetSystemVpnList(GetListContext *context);
+napi_value GetSystemVpnListCallback(GetListContext *context);
+
+bool ExecGetSystemVpn(GetContext *context);
+napi_value GetSystemVpnCallback(GetContext *context);
+
+bool ExecGetConnectedSystemVpn(GetConnectedContext *context);
+napi_value GetConnectedSystemVpnCallback(GetConnectedContext *context);
 } // namespace VpnExec
 } // namespace NetManagerStandard
 } // namespace OHOS

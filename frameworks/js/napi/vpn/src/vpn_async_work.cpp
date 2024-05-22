@@ -66,6 +66,56 @@ void DestroyCallback(napi_env env, napi_status status, void *data)
 {
     BaseAsyncWork::AsyncWorkCallback<DestroyContext, VpnExec::DestroyCallback>(env, status, data);
 }
+
+void ExecSaveSystemVpn(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<SaveContext, VpnExec::ExecSaveSystemVpn>(env, data);
+}
+
+void SaveSystemVpnCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<SaveContext, VpnExec::SaveSystemVpnCallback>(env, status, data);
+}
+
+void ExecDeleteSystemVpn(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<DeleteContext, VpnExec::ExecDeleteSystemVpn>(env, data);
+}
+
+void DeleteSystemVpnCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<DeleteContext, VpnExec::DeleteSystemVpnCallback>(env, status, data);
+}
+
+void ExecGetSystemVpnList(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetListContext, VpnExec::ExecGetSystemVpnList>(env, data);
+}
+
+void GetSystemVpnListCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetListContext, VpnExec::GetSystemVpnListCallback>(env, status, data);
+}
+
+void ExecGetSystemVpn(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetContext, VpnExec::ExecGetSystemVpn>(env, data);
+}
+
+void GetSystemVpnCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetContext, VpnExec::GetSystemVpnCallback>(env, status, data);
+}
+
+void ExecGetConnectedSystemVpn(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetConnectedContext, VpnExec::ExecGetConnectedSystemVpn>(env, data);
+}
+
+void GetConnectedSystemVpnCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetConnectedContext, VpnExec::GetConnectedSystemVpnCallback>(env, status, data);
+}
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS
