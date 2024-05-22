@@ -289,7 +289,7 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch001, TestSize.Level1)
 
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     std::vector<std::string> ifaces;
-    ret = instance_->GetNetSharingIfaces(state, ifaces);
+    int32_t ret = instance_->GetNetSharingIfaces(state, ifaces);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
