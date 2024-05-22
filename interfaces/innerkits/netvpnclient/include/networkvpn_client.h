@@ -132,7 +132,7 @@ public:
 
     /**
      * get connected vpn
-     *	 
+     *
      * @param config VpnConfig
      * @return VpnConnectState
      * @permission ohos.permission.MANAGE_VPN
