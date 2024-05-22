@@ -112,6 +112,61 @@ sptr<RequestParam> RequestParam::Unmarshalling(Parcel &parcel)
     return ptr;
 }
 
+// 规则页面内容
+bool FirewallRulePage::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(page)) {
+        return false;
+    }
+    if (!parcel.WriteInt32(pageSize)) {
+        return false;
+    }
+    if (!parcel.WriteInt32(totalPage)) {
+        return false;
+    }
+    uint32_t size = data.size();
+    if (!parcel.WriteUint32(size)) {
+        return false;
+    }
+    for (auto value : data) {
+        if (!value.Marshalling(parcel)) {
+            NETMGR_EXT_LOG_E("FirewallRulePage write Marshalling to parcel failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+sptr<FirewallRulePage> FirewallRulePage::Unmarshalling(Parcel &parcel)
+{
+    sptr<FirewallRulePage> ptr = new (std::nothrow) FirewallRulePage();
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+    if (!parcel.ReadInt32(ptr->page)) {
+        return nullptr;
+    }
+    if (!parcel.ReadInt32(ptr->pageSize)) {
+        return nullptr;
+    }
+    if (!parcel.ReadInt32(ptr->totalPage)) {
+        return nullptr;
+    }
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
+        return nullptr;
+    }
+    for (uint32_t i = 0; i < size; i++) {
+        auto value = NetFirewallRule::Unmarshalling(parcel);
+        if (value == nullptr) {
+            NETMGR_EXT_LOG_E("FirewallRulePage read Unmarshalling to parcel failed");
+            return nullptr;
+        }
+        ptr->data.push_back(*value);
+    }
+    return ptr;
+}
+
 // Intercept record pagination content
 bool InterceptRecordPage::Marshalling(Parcel &parcel) const
 {

@@ -87,6 +87,57 @@ int32_t NetFirewallClient::GetNetFirewallStatus(const int32_t userId, sptr<NetFi
     return proxy->GetNetFirewallStatus(userId, status);
 }
 
+int32_t NetFirewallClient::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("AddNetFirewallRule proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->AddNetFirewallRule(rule, result);
+}
+
+int32_t NetFirewallClient::UpdateNetFirewallRule(const sptr<NetFirewallRule> &rule)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("UpdateNetFirewallRule proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->UpdateNetFirewallRule(rule);
+}
+
+int32_t NetFirewallClient::DeleteNetFirewallRule(const int32_t userId, const int32_t ruleId)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("DeleteNetFirewallRule proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->DeleteNetFirewallRule(userId, ruleId);
+}
+
+int32_t NetFirewallClient::GetAllNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
+    sptr<FirewallRulePage> &info)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetAllNetFirewallRules proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetAllNetFirewallRules(userId, requestParam, info);
+}
+
+int32_t NetFirewallClient::GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetNetFirewallRule proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetNetFirewallRule(userId, ruleId, rule);
+}
+
 int32_t NetFirewallClient::GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<InterceptRecordPage> &info)
 {

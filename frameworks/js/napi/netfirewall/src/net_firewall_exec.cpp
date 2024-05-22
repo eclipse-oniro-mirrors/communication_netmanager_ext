@@ -82,6 +82,122 @@ napi_value GetNetFirewallStatusCallback(GetNetFirewallStatusContext *context)
     return firewallStatus;
 }
 
+bool ExecAddNetFirewallRule(AddNetFirewallRuleContext *context)
+{
+    if (!context->IsParseOK()) {
+        return false;
+    }
+    int32_t result =
+        DelayedSingleton<NetFirewallClient>::GetInstance()->AddNetFirewallRule(context->rule_, context->reslut_);
+    if (result != FIREWALL_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecAddNetFirewallRule error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value AddNetFirewallRuleCallback(AddNetFirewallRuleContext *context)
+{
+    // 返回基本数据类型
+    return NapiUtils::CreateInt32(context->GetEnv(), context->reslut_);
+}
+
+bool ExecUpdateNetFirewallRule(UpdateNetFirewallRuleContext *context)
+{
+    if (!context->IsParseOK()) {
+        return false;
+    }
+    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->UpdateNetFirewallRule(context->rule_);
+    if (result != FIREWALL_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecUpdateNetFirewallRule error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value UpdateNetFirewallRuleCallback(UpdateNetFirewallRuleContext *context)
+{
+    // 返回基本数据类型
+    return NapiUtils::GetUndefined(context->GetEnv());
+}
+
+bool ExecDeleteNetFirewallRule(DeleteNetFirewallRuleContext *context)
+{
+    if (!context->IsParseOK()) {
+        return false;
+    }
+    int32_t result =
+        DelayedSingleton<NetFirewallClient>::GetInstance()->DeleteNetFirewallRule(context->userId_, context->ruleId_);
+    if (result != FIREWALL_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecDeleteNetFirewallRule error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value DeleteNetFirewallRuleCallback(DeleteNetFirewallRuleContext *context)
+{
+    // 返回基本数据类型
+    return NapiUtils::GetUndefined(context->GetEnv());
+}
+
+bool ExecGetAllNetFirewallRules(GetAllNetFirewallRulesContext *context)
+{
+    if (!context->IsParseOK()) {
+        return false;
+    }
+    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->GetAllNetFirewallRules(context->userId_,
+        context->requestParam_, context->pageInfo_);
+    if (result != FIREWALL_SUCCESS || context->pageInfo_ == nullptr) {
+        NETMANAGER_EXT_LOGE("ExecGetAllNetFirewallRules error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value GetAllNetFirewallRulesCallback(GetAllNetFirewallRulesContext *context)
+{
+    napi_value pageInfo = NapiUtils::CreateObject(context->GetEnv());
+    NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE, context->pageInfo_->page);
+    NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE_SIZE, context->pageInfo_->pageSize);
+    NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_TOTAL_PAGE, context->pageInfo_->totalPage);
+    napi_value list = NapiUtils::CreateArray(context->GetEnv(), context->pageInfo_->data.size());
+    uint32_t index = 0;
+    for (const auto &iface : context->pageInfo_->data) {
+        napi_value rule = NapiUtils::CreateObject(context->GetEnv());
+        NetFirewallRuleParse::SetRuleParams(context->GetEnv(), rule, iface);
+        NapiUtils::SetArrayElement(context->GetEnv(), list, index++, rule);
+    }
+    NapiUtils::SetNamedProperty(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE_DATA, list);
+    return pageInfo;
+}
+
+bool ExecGetNetFirewallRule(GetNetFirewallRuleContext *context)
+{
+    if (!context->IsParseOK()) {
+        return false;
+    }
+    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->GetNetFirewallRule(context->userId_,
+        context->ruleId_, context->rule_);
+    if (result != FIREWALL_SUCCESS || context->rule_ == nullptr) {
+        NETMANAGER_EXT_LOGE("ExecGetNetFirewallRule error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value GetNetFirewallRuleCallback(GetNetFirewallRuleContext *context)
+{
+    napi_value rule = NapiUtils::CreateObject(context->GetEnv());
+    NetFirewallRuleParse::SetRuleParams(context->GetEnv(), rule, *(context->rule_));
+    return rule;
+}
+
 bool ExecGetAllInterceptRecords(GetAllInterceptRecordsContext *context)
 {
     if (!context->IsParseOK()) {
