@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include "netfirewall_common.h"
-
+#include <sstream>
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
-#include <sstream>
+#include "netfirewall_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -112,7 +111,7 @@ sptr<RequestParam> RequestParam::Unmarshalling(Parcel &parcel)
     return ptr;
 }
 
-// 规则页面内容
+// 瑙勫垯椤甸潰鍐呭
 bool FirewallRulePage::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteInt32(page)) {

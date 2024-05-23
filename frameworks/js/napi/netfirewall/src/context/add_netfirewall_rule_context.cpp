@@ -31,7 +31,7 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount
             return false;
         }
     } else {
-        // if paramsCount is not 1 or 2, means count error.
+        // if paramsCount is not 0 or 1, means count error.
         return false;
     }
     return true;

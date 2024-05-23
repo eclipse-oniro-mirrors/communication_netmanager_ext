@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
+#include <regex>
+
 #include "napi_utils.h"
 #include "net_firewall_param_check.h"
 #include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
 #include "netmanager_ext_log.h"
-#include <regex>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -165,8 +166,9 @@ bool NetFirewallParamCheck::CheckIpAddress(const std::string &startIp, const std
 {
     int32_t ret = 0;
     if (family == FAMILY_IPV6) {
-        in6_addr in6_addr1, in6_addr2;
-        // 将IPv6地址转换为二进制形式
+        in6_addr in6_addr1;
+        in6_addr in6_addr2;
+        // Convert IPv6 addresses to binary form
         ret = inet_pton(AF_INET6, startIp.c_str(), &in6_addr1);
         if (ret <= 0) {
             NETMANAGER_EXT_LOGE("CheckIpAddress ipv6: startIp is invalid");
@@ -177,7 +179,7 @@ bool NetFirewallParamCheck::CheckIpAddress(const std::string &startIp, const std
             NETMANAGER_EXT_LOGE("CheckIpAddress ipv6: endIp is invalid");
             return false;
         }
-        // 比较二进制形式的IPv6地址
+        // Comparing IPv6 addresses in binary form
         ret = memcmp(&in6_addr1, &in6_addr2, sizeof(in6_addr1));
         if (ret > 0) {
             NETMANAGER_EXT_LOGE("CheckIpAddress ipv6: start Ip is larger than endIp");

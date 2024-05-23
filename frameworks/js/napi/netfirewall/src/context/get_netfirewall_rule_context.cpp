@@ -19,20 +19,17 @@
 #include "net_firewall_rule_parse.h"
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-
 #include "netfirewall_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {
-    if (paramsCount == PARAM_DOUBLE_OPTIONS || paramsCount == PARAM_DOUBLE_OPTIONS_AND_CALLBACK) {
-        if (NapiUtils::GetValueType(env, params[ARG_INDEX_0]) != napi_number ||
-            NapiUtils::GetValueType(env, params[ARG_INDEX_1]) != napi_number) {
-            return false;
-        }
-    } else {
-        // if paramsCount is not 1 or 2, means count error.
+    if (paramsCount != PARAM_DOUBLE_OPTIONS && paramsCount != PARAM_DOUBLE_OPTIONS_AND_CALLBACK) {
+        return false;
+    }
+    if (NapiUtils::GetValueType(env, params[ARG_INDEX_0]) != napi_number ||
+        NapiUtils::GetValueType(env, params[ARG_INDEX_1]) != napi_number) {
         return false;
     }
     return true;
@@ -55,7 +52,7 @@ void GetNetFirewallRuleContext::ParseParams(napi_value *params, size_t paramsCou
         return;
     }
     if (ruleId_ <= 0) {
-        NETMGR_EXT_LOG_E("ruleid param invalid.");
+        NETMGR_EXT_LOG_E("GetNetFirewallRuleContext ruleid param invalid.");
         SetErrorCode(FIREWALL_ERR_INVALID_PARAMETER);
         return;
     }

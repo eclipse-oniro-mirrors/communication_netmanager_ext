@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-#include "netfirewall_database.h"
-#include "hilog/log.h"
-#include "netmgr_ext_log_wrapper.h"
 #include <filesystem>
 #include <system_error>
+
+#include "hilog/log.h"
+#include "netmgr_ext_log_wrapper.h"
+#include "netfirewall_database.h"
 
 using namespace OHOS::NativeRdb;
 

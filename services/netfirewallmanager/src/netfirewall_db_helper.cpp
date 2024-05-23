@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-#include "netfirewall_db_helper.h"
+#include <string>
+
 #include "hilog/log.h"
 #include "netmgr_ext_log_wrapper.h"
-#include <string>
+#include "netfirewall_db_helper.h"
 
 using namespace OHOS::NativeRdb;
 
@@ -599,7 +600,7 @@ int32_t NetFirewallDbHelper::GetResultSetIpTableInfo(const std::shared_ptr<OHOS:
     std::vector<std::string> columnNames;
     if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GetColumnCount(columnCount) != E_OK ||
         resultSet->GetAllColumnNames(columnNames) != E_OK) {
-        NETMGR_EXT_LOG_E("get table info failed");
+        NETMGR_EXT_LOG_E("GetResultSetIpTableInfo get table info failed");
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
 
@@ -653,32 +654,32 @@ int32_t NetFirewallDbHelper::GetResultSetPortTableInfo(const std::shared_ptr<OHO
     std::vector<std::string> columnNames;
     if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GetColumnCount(columnCount) != E_OK ||
         resultSet->GetAllColumnNames(columnNames) != E_OK) {
-        NETMGR_EXT_LOG_E("get table info failed");
+        NETMGR_EXT_LOG_E("GetResultSetPortTableInfo get table info failed");
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
 
     int32_t columnNamesCount = static_cast<int32_t>(columnNames.size());
     for (int32_t i = 0; i < columnNamesCount; i++) {
-        std::string &columnName = columnNames.at(i);
-        if (columnName == "id") {
+        std::string &name = columnNames.at(i);
+        if (name == "id") {
             table.idIndex = i;
         }
-        if (columnName == "ruleId") {
+        if (name == "ruleId") {
             table.ruleIdIndex = i;
         }
-        if (columnName == "userId") {
+        if (name == "userId") {
             table.userIdIndex = i;
         }
-        if (columnName == "appUid") {
+        if (name == "appUid") {
             table.appUidIndex = i;
         }
-        if (columnName == "locationType") {
+        if (name == "locationType") {
             table.locationTypeIndex = i;
         }
-        if (columnName == "startPort") {
+        if (name == "startPort") {
             table.startPortIndex = i;
         }
-        if (columnName == "endPort") {
+        if (name == "endPort") {
             table.endPortIndex = i;
         }
     }
@@ -697,29 +698,29 @@ int32_t NetFirewallDbHelper::GetResultSetDomainTableInfo(const std::shared_ptr<O
     std::vector<std::string> columnNames;
     if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GetColumnCount(columnCount) != E_OK ||
         resultSet->GetAllColumnNames(columnNames) != E_OK) {
-        NETMGR_EXT_LOG_E("get table info failed");
+        NETMGR_EXT_LOG_E("GetResultSetDomainTableInfo get table info failed");
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
 
     int32_t columnNamesCount = static_cast<int32_t>(columnNames.size());
     for (int32_t i = 0; i < columnNamesCount; i++) {
-        std::string &columnName = columnNames.at(i);
-        if (columnName == "id") {
+        std::string &column = columnNames.at(i);
+        if (column == "id") {
             table.idIndex = i;
         }
-        if (columnName == "ruleId") {
+        if (column == "ruleId") {
             table.ruleIdIndex = i;
         }
-        if (columnName == "userId") {
+        if (column == "userId") {
             table.userIdIndex = i;
         }
-        if (columnName == "appUid") {
+        if (column == "appUid") {
             table.appUidIndex = i;
         }
-        if (columnName == "isWildcard") {
+        if (column == "isWildcard") {
             table.isWildcardIndex = i;
         }
-        if (columnName == "domain") {
+        if (column == "domain") {
             table.domainIndex = i;
         }
     }
@@ -787,7 +788,7 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     NetFirewallPortRuleInfo table;
     int32_t ret = GetResultSetPortTableInfo(resultSet, table);
     if (ret < FIREWALL_OK) {
-        NETMGR_EXT_LOG_E("GetResultSetTableInfo failed");
+        NETMGR_EXT_LOG_E("GetResultRightRecordEx GetResultSetTableInfo failed");
         return ret;
     }
 
@@ -813,12 +814,6 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
 
         resultSet->IsEnded(endFlag);
     }
-    int32_t position = 0;
-    resultSet->GetRowIndex(position);
-    resultSet->IsEnded(endFlag);
-    NETMGR_EXT_LOG_D("row=%{public}d col=%{public}d pos=%{public}d ret=%{public}zu end=%{public}s", table.rowCount,
-        table.columnCount, position, rules.size(), (endFlag ? "yes" : "no"));
-
     resultSet->Close();
     return rules.size();
 }
@@ -833,14 +828,14 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
         return ret;
     }
 
-    bool endFlag = false;
+    bool isEnd = false;
     int32_t ruleId = 0;
     int32_t userId = 0;
     int32_t appUid = 0;
     int32_t isWildcard = 0;
     std::string domain = "";
 
-    for (int32_t i = 0; (i < table.rowCount) && !endFlag; i++) {
+    for (int32_t i = 0; (i < table.rowCount) && !isEnd; i++) {
         if (resultSet->GoToRow(i) != E_OK) {
             NETMGR_EXT_LOG_E("GoToRow %{public}d", i);
             break;
@@ -861,19 +856,11 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
         if (resultSet->GetString(table.domainIndex, domain) == E_OK) {
             info.domain = domain;
         }
-
         if (info.ruleId > 0) {
             rules.emplace_back(info);
         }
-
-        resultSet->IsEnded(endFlag);
+        resultSet->IsEnded(isEnd);
     }
-    int32_t position = 0;
-    resultSet->GetRowIndex(position);
-    resultSet->IsEnded(endFlag);
-    NETMGR_EXT_LOG_D("row=%{public}d col=%{public}d pos=%{public}d ret=%{public}zu end=%{public}s", table.rowCount,
-        table.columnCount, position, rules.size(), (endFlag ? "yes" : "no"));
-
     resultSet->Close();
     return rules.size();
 }
@@ -957,7 +944,7 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     bool endFlag = false;
     for (int32_t i = 0; (i < table.rowCount) && !endFlag; i++) {
         if (resultSet->GoToRow(i) != E_OK) {
-            NETMGR_EXT_LOG_E("GoToRow %{public}d", i);
+            NETMGR_EXT_LOG_E("GetResultRightRecordEx GoToRow %{public}d", i);
             break;
         }
         InterceptRecord info;
@@ -974,11 +961,11 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
         }
         resultSet->IsEnded(endFlag);
     }
-    int32_t position = 0;
-    resultSet->GetRowIndex(position);
+    int32_t index = 0;
+    resultSet->GetRowIndex(index);
     resultSet->IsEnded(endFlag);
     NETMGR_EXT_LOG_I("row=%{public}d col=%{public}d pos=%{public}d ret=%{public}zu end=%{public}s", table.rowCount,
-        table.columnCount, position, rules.size(), (endFlag ? "yes" : "no"));
+        table.columnCount, index, rules.size(), (endFlag ? "yes" : "no"));
 
     resultSet->Close();
     return rules.size();
@@ -1485,7 +1472,8 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
     int64_t offset = MAX_DATA - size;
     if (rowCount >= offset) {
         std::string whereClause = { "userId = ?" };
-        std::vector<std::string> whereArgs = { std::to_string(userId), "LIMIT " + std::to_string(rowCount - offset + 1)};
+        std::vector<std::string> whereArgs = { std::to_string(userId),
+            "LIMIT " + std::to_string(rowCount - offset + 1) };
         ret = firewallDatabase_->Delete(INTERCEPT_RECORD_TABLE, changedRows, whereClause, whereArgs);
     }
     // New data written to the database

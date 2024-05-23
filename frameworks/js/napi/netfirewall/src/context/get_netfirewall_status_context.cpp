@@ -18,14 +18,13 @@
 #include "napi_utils.h"
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-
 #include "netfirewall_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
+static bool CheckParamsType(napi_env env, napi_value *params, size_t count)
 {
-    if (paramsCount == PARAM_JUST_OPTIONS || paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
+    if (count == PARAM_JUST_OPTIONS || count == PARAM_OPTIONS_AND_CALLBACK) {
         if (NapiUtils::GetValueType(env, params[ARG_INDEX_0]) != napi_number) {
             return false;
         }

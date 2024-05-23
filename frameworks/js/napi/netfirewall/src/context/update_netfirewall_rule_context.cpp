@@ -20,7 +20,6 @@
 #include "net_firewall_rule_parse.h"
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-
 #include "netfirewall_common.h"
 
 namespace OHOS {
@@ -32,7 +31,6 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount
             return false;
         }
     } else {
-        // if paramsCount is not 1 or 2, means count error.
         return false;
     }
     return true;
@@ -51,14 +49,14 @@ void UpdateNetFirewallRuleContext::ParseParams(napi_value *params, size_t params
 
     int32_t ret = NetFirewallParamCheck::CheckUpdateFirewallRule(GetEnv(), params[ARG_INDEX_0]);
     if (ret != FIREWALL_SUCCESS) {
-        NETMGR_EXT_LOG_E("firewall rule parma invalid.");
+        NETMGR_EXT_LOG_E("UpdateNetFirewallRuleContext firewall rule parma invalid.");
         SetErrorCode(ret);
         return;
     }
 
     rule_ = new (std::nothrow) NetFirewallRule();
     if (rule_ == nullptr) {
-        NETMGR_EXT_LOG_E("firewall rule object is nullptr.");
+        NETMGR_EXT_LOG_E("UpdateNetFirewallRuleContext firewall rule object is nullptr.");
         SetErrorCode(FIREWALL_ERR_INTERNAL);
         return;
     }

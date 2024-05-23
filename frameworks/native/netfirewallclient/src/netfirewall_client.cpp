@@ -13,15 +13,13 @@
  * limitations under the License.
  */
 
-#include "netfirewall_client.h"
-
+#include <thread>
 #include "hilog/log.h"
 #include "iservice_registry.h"
 #include "net_manager_constants.h"
+#include "netfirewall_client.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
-
-#include <thread>
 
 using namespace OHOS::HiviewDFX;
 
@@ -245,6 +243,5 @@ void NetFirewallClient::RestartNetFirewallManagerSysAbility()
     }
     NETMGR_EXT_LOG_E("Restart NetFirewallManager failed.");
 }
-
 } // namespace NetManagerStandard
 } // namespace OHOS

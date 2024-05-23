@@ -14,7 +14,6 @@
  */
 
 #include "netfirewall_proxy.h"
-
 #include "hilog/log.h"
 #include "iremote_object.h"
 #include "message_option.h"
@@ -93,7 +92,7 @@ int32_t NetFirewallProxy::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, 
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!rule->Marshalling(data)) {
-        NETMGR_EXT_LOG_E("proxy Marshalling failed");
+        NETMGR_EXT_LOG_E("AddNetFirewallRule proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
@@ -117,11 +116,11 @@ int32_t NetFirewallProxy::UpdateNetFirewallRule(const sptr<NetFirewallRule> &rul
     HiLog::Info(LABEL, "UpdateNetFirewallRule set firewall status");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        NETMGR_EXT_LOG_E("UpdateNetFirewallRule WriteInterfaceToken failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!rule->Marshalling(data)) {
-        NETMGR_EXT_LOG_E("proxy Marshalling failed");
+        NETMGR_EXT_LOG_E("UpdateNetFirewallRule proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
@@ -173,7 +172,7 @@ int32_t NetFirewallProxy::GetAllNetFirewallRules(const int32_t userId, const spt
     }
     data.WriteInt32(userId);
     if (!requestParam->Marshalling(data)) {
-        NETMGR_EXT_LOG_E("proxy Marshalling failed");
+        NETMGR_EXT_LOG_E("GetAllNetFirewallRules proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
@@ -200,14 +199,14 @@ int32_t NetFirewallProxy::GetNetFirewallRule(const int32_t userId, const int32_t
     HiLog::Info(LABEL, "GetNetFirewallRule set firewall status");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        NETMGR_EXT_LOG_E("GetNetFirewallRule WriteInterfaceToken failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     data.WriteInt32(userId);
     data.WriteInt32(ruleId);
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("Remote is null");
+        NETMGR_EXT_LOG_E("GetNetFirewallRule Remote is null");
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     MessageParcel reply;
@@ -230,12 +229,12 @@ int32_t NetFirewallProxy::GetAllInterceptRecords(const int32_t userId, const spt
     HiLog::Info(LABEL, "GetAllInterceptRecords set firewall status");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        NETMGR_EXT_LOG_E("GetAllInterceptRecords WriteInterfaceToken failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     data.WriteInt32(userId);
     if (!requestParam->Marshalling(data)) {
-        NETMGR_EXT_LOG_E("proxy Marshalling failed");
+        NETMGR_EXT_LOG_E("GetAllInterceptRecords proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();

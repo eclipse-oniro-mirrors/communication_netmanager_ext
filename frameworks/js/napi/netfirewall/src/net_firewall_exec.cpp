@@ -13,17 +13,15 @@
  * limitations under the License.
  */
 
-#include "net_firewall_exec.h"
-
 #include <cstdint>
 #include <securec.h>
 
 #include "napi_utils.h"
+#include "net_firewall_exec.h"
 #include "net_firewall_rule_parse.h"
 #include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 #include "netfirewall_client.h"
-
 #include "singleton.h"
 
 namespace OHOS {

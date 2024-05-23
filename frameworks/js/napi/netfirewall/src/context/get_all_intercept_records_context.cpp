@@ -19,7 +19,6 @@
 #include "net_firewall_rule_parse.h"
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
-
 #include "netfirewall_common.h"
 
 namespace OHOS {
@@ -32,7 +31,6 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount
             return false;
         }
     } else {
-        // if paramsCount is not 1 or 2, means count error.
         return false;
     }
     return true;

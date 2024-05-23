@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include "net_firewall_async_work.h"
-
 #include <napi/native_api.h>
 
 #include "add_netfirewall_rule_context.h"
@@ -24,6 +22,7 @@
 #include "get_all_netfirewall_rules_context.h"
 #include "get_netfirewall_rule_context.h"
 #include "get_netfirewall_status_context.h"
+#include "net_firewall_async_work.h"
 #include "net_firewall_exec.h"
 #include "set_netfirewall_status_context.h"
 #include "update_netfirewall_rule_context.h"
