@@ -26,7 +26,7 @@ public:
     NetFireWallAnalysisJson() = default;
     ~NetFireWallAnalysisJson() = default;
 
-    /*
+    /**
      * Get default netfirewall rules
      *
      * @param ruleList Netfirewall rule list
@@ -35,7 +35,7 @@ public:
      */
     static bool GetDefaultRules(std::vector<NetFirewallRule> &ruleList);
 private:
-    /*
+    /**
      * Parsing netfirewall rules in JSON.
      *
      * @param rule Netfirewall rule
@@ -43,7 +43,7 @@ private:
      */
     static void ConvertFirewallRuleToConfig(NetFirewallRule &rule, const cJSON * const mem);
 
-    /*
+    /**
      * Parsing ip parameters in JSON
      *
      * @param rule Netfirewall ip parameter rule
@@ -51,7 +51,7 @@ private:
      */
     static void ConvertIpParamToConfig(NetFirewallIpParam &rule, const cJSON * const mem);
 
-    /*
+    /**
      * Parsing port parameters in JSON
      *
      * @param rule Netfirewall port parameter rule
@@ -59,7 +59,7 @@ private:
      */
     static void ConvertPortParamToConfig(NetFirewallPortParam &rule, const cJSON * const mem);
 
-    /*
+    /**
      * Parsing domain name parameters in JSON
      *
      * @param rule Netfirewall domain name parameter rule
@@ -67,7 +67,7 @@ private:
      */
     static void ConvertDomainParamToConfig(NetFirewallDomainParam &rule, const cJSON * const mem);
 
-    /*
+    /**
      * Parsing dns parameters in JSON
      *
      * @param rule Netfirewall dns parameter rule
@@ -75,7 +75,7 @@ private:
      */
     static void ConvertDnsParamToConfig(NetFirewallDnsParam &rule, const cJSON * const mem);
 
-    /*
+    /**
      * Read JSON file
      *
      * @param filePath Json file path
@@ -83,7 +83,7 @@ private:
      */
     static std::string ReadJsonFile(const std::string &filePath);
 
-    /*
+    /**
      * Parse ip list
      *
      * @param ipParamlist Ip paramter list
@@ -93,7 +93,7 @@ private:
     static void ParseIpList(std::vector<NetFirewallIpParam> &ipParamlist, const cJSON * const mem,
         const std::string jsonKey);
 
-    /*
+    /**
      * Parse port list
      *
      * @param portParamlist Port paramter list
@@ -103,7 +103,7 @@ private:
     static void ParsePortList(std::vector<NetFirewallPortParam> &portParamlist, const cJSON * const mem,
         const std::string jsonKey);
 
-    /*
+    /**
      * Parse domain list
      *
      * @param domain name paramter list
@@ -113,7 +113,7 @@ private:
     static void ParseDomainList(std::vector<NetFirewallDomainParam> &domainParamlist, const cJSON * const mem,
         const std::string jsonKey);
 
-    /*
+    /**
      * Parse dns object
      *
      * @param dnsParam Dns paramter list
@@ -122,7 +122,7 @@ private:
      */
     static void ParseDnsObject(NetFirewallDnsParam &dnsParam, const cJSON * const mem, const std::string jsonKey);
 
-    /*
+    /**
      * Parse list object
      *
      * @param rule Netfirwall rule

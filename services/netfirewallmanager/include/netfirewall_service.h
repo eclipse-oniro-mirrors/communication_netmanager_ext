@@ -24,12 +24,10 @@
 #include "netfirewall_stub.h"
 #include "singleton.h"
 #include "system_ability.h"
-
 #include "common_event_manager.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
 #include "netfirewall_callback_stub.h"
-
 #include "netfirewall_preferences_util.h"
 
 namespace OHOS {
@@ -76,7 +74,7 @@ public:
         NetFirewallService &netfirewallService_;
     };
 
-    /*
+    /**
      * Turn on or off the firewall
      *
      * @param userId User id
@@ -85,7 +83,7 @@ public:
      */
     int32_t SetNetFirewallStatus(const int32_t userId, const sptr<NetFirewallStatus> &status) override;
 
-    /*
+    /**
      * Query firewall status
      *
      * @param userId User id
@@ -94,7 +92,7 @@ public:
      */
     int32_t GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status) override;
 
-    /*
+    /**
      * Add firewall rules
      *
      * @param rule Firewall rules
@@ -103,7 +101,7 @@ public:
      */
     int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result) override;
 
-    /*
+    /**
      * Modify firewall rules
      *
      * @param rule Firewall rules
@@ -111,7 +109,7 @@ public:
      */
     int32_t UpdateNetFirewallRule(const sptr<NetFirewallRule> &rule) override;
 
-    /*
+    /**
      * Delete firewall rules
      *
      * @param userId User ID
@@ -120,7 +118,7 @@ public:
      */
     int32_t DeleteNetFirewallRule(const int32_t userId, const int32_t ruleId) override;
 
-    /*
+    /**
      * Get all firewall rules
      *
      * @param userId User ID
@@ -130,7 +128,7 @@ public:
      */
     int32_t GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<FirewallRulePage> &info) override;
-    /*
+    /**
      * Get information about the specified rule ID
      *
      * @param ruleId Rule ID
@@ -139,7 +137,7 @@ public:
      */
     int32_t GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule) override;
 
-    /*
+    /**
      * Get all interception records
      *
      * @param userId User ID
@@ -150,7 +148,7 @@ public:
     int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) override;
 
-    /*
+    /**
      * dump function
      *
      * @param fd File handle

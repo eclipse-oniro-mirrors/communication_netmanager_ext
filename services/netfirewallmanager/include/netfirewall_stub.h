@@ -17,6 +17,7 @@
 #define NET_FIREWALL_STUB_H
 
 #include <map>
+
 #include "i_netfirewall_service.h"
 #include "iremote_stub.h"
 #include "net_manager_constants.h"
@@ -34,6 +35,7 @@ class NetFirewallStub : public IRemoteStub<INetFirewallService> {
 
 public:
     NetFirewallStub();
+    
     ~NetFirewallStub() = default;
 
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;

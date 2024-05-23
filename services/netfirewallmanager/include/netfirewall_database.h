@@ -101,17 +101,17 @@ class NetFirewallDataBase : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDataBase> GetInstance();
 
-    /*
+    /**
      * Insert value into the table
      *
      * @param insertValues Value inserted
      * @param tableName Table name
      * @return Error or row id. when rdb store is not exsit, or store inserted return value is not OK,
-     *         it will return to error
+     *       it will return to error
      */
     int64_t Insert(const OHOS::NativeRdb::ValuesBucket &insertValues, const std::string tableName);
 
-    /*
+    /**
      * Update value in table
      *
      * @param tableName Table name
@@ -124,7 +124,7 @@ public:
     int32_t Update(const std::string &tableName, int32_t &changedRows, const OHOS::NativeRdb::ValuesBucket &values,
         const std::string &whereClause, const std::vector<std::string> &whereArgs);
 
-    /*
+    /**
      * Delete rows in table
      *
      * @param tableName Table name
@@ -136,10 +136,9 @@ public:
     int32_t Delete(const std::string &tableName, int32_t &changedRows, const std::string &whereClause,
         const std::vector<std::string> &whereArgs);
 
-    /*
+    /**
      * Query columns in table
      *
-     * @param tableName Table name
      * @param predicates Matching criteria
      * @param columns Column
      * @return Shared pointer of ResultSet
@@ -147,7 +146,7 @@ public:
     std::shared_ptr<OHOS::NativeRdb::ResultSet> Query(const OHOS::NativeRdb::AbsRdbPredicates &predicates,
         const std::vector<std::string> &columns);
 
-    /*
+    /**
      * Begin transaction
      *
      * @param void
@@ -155,14 +154,15 @@ public:
      */
     int32_t BeginTransaction();
 
-    /*
+    /**
      * Commit
+     * 
      * @param void
      * @return Returns 0 success. Otherwise fail
      */
     int32_t Commit();
 
-    /*
+    /**
      * Roll back
      *
      * @param void
@@ -170,7 +170,7 @@ public:
      */
     int32_t RollBack();
 
-    /*
+    /**
      * Count
      *
      * @param outValue Number of queries found

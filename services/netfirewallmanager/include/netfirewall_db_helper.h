@@ -17,6 +17,7 @@
 #define FIREWALL_DB_HELPER_H
 
 #include <string>
+
 #include "netfirewall_database.h"
 #include "netfirewall_common.h"
 #include "rdb_common.h"
@@ -161,7 +162,7 @@ class NetFirewallDbHelper : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDbHelper> GetInstance();
 
-    /*
+    /**
      * add NetFirewallRuleData record
      *
      * @param rule net firewall rule
@@ -169,7 +170,7 @@ public:
      */
     int32_t AddFirewallRuleRecord(const NetFirewallRule &rule);
 
-    /*
+    /**
      * Add interception logs
      *
      * @param userId User id
@@ -178,7 +179,7 @@ public:
      */
     int32_t AddInterceptRecord(const int32_t userId, std::vector<sptr<InterceptRecord>> &records);
 
-    /*
+    /**
      * Query enabled rule set
      *
      * @param userId User id
@@ -187,7 +188,7 @@ public:
      */
     int32_t QueryEnabledFirewallRules(int32_t userId, std::vector<NetFirewallRule> &rules);
 
-    /*
+    /**
      * Query enabled rule set
      *
      * @param userId User id
@@ -197,7 +198,7 @@ public:
      */
     int32_t QueryEnabledFirewallRules(int32_t userId, int32_t appUid, std::vector<NetFirewallRule> &rules);
 
-    /*
+    /**
      * Query enabled domain names and DNS rule sets
      *
      * @param userId User id
@@ -206,17 +207,17 @@ public:
      */
     int32_t QueryEnabledDomainOrDnsRules(int32_t userId, std::vector<NetFirewallRule> &rules);
 
-    /*
+    /**
      * Query all rules
-
+     * 
      * @param rules List of rules obtained from query
      * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryAllFirewallRuleRecord(std::vector<NetFirewallRule> &rules);
 
-    /*
+    /**
      * Query firewall rule
-
+     *  
      * @param ruleId Rule id
      * @param userId User id
      * @param rules List of rules obtained from query
@@ -224,7 +225,7 @@ public:
      */
     int32_t QueryFirewallRuleRecord(int32_t ruleId, int32_t userId, std::vector<NetFirewallRule> &rules);
 
-    /*
+    /**
      * Paging query firewall rules
      *
      * @param userId User id
@@ -235,7 +236,7 @@ public:
     int32_t QueryFirewallRule(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<FirewallRulePage> &info);
 
-    /*
+    /**
      * Query IP rules
      *
      * @param userId User id
@@ -246,7 +247,7 @@ public:
     int32_t QueryFirewallIpRuleRecord(int32_t userId, std::vector<NetFirewallIpRuleData> &srcIpRules,
         std::vector<NetFirewallIpRuleData> &dstIpRules);
 
-    /*
+    /**
      * Query port rules
      *
      * @param userId User id
@@ -257,7 +258,7 @@ public:
     int32_t QueryFirewallPortRuleRecord(int32_t userId, std::vector<NetFirewallPortRuleData> &srcPortRules,
         std::vector<NetFirewallPortRuleData> &dstProtRules);
 
-    /*
+    /**
      * Query domain rules
      *
      * @param userId User id
@@ -266,7 +267,7 @@ public:
      */
     int32_t QueryFirewallDomainRuleRecord(int32_t userId, std::vector<NetFirewallDomainRuleData> &domainRules);
 
-    /*
+    /**
      * Paging query interception records
      *
      * @param userId User id
@@ -277,7 +278,7 @@ public:
     int32_t QueryInterceptRecord(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info);
 
-    /*
+    /**
      * Query the number of firewall rules for a specified user
      *
      * @param userId User id
@@ -286,7 +287,7 @@ public:
      */
     int32_t QueryFirewallRuleByUserIdCount(const int32_t userId, int64_t &rowCount);
 
-    /*
+    /**
      * Query the number of all firewall rules
      *
      * @param rowCount Number of queries found
@@ -294,7 +295,7 @@ public:
      */
     int32_t QueryFirewallRuleAllCount(int64_t &rowCount);
 
-    /*
+    /**
      * Query the number of all domain rules
      *
      * @param rowCount Number of queries found
@@ -302,7 +303,7 @@ public:
      */
     int32_t QueryFirewallRuleAllDomainCount(int64_t &rowCount);
 
-    /*
+    /**
      * Update firewall rule
      *
      * @param rule firewall ruele
@@ -310,7 +311,7 @@ public:
      */
     int32_t UpdateFirewallRuleRecord(const NetFirewallRule &rule);
 
-    /*
+    /**
      * Delete firewall rule
      *
      * @param userId User id
@@ -319,7 +320,7 @@ public:
      */
     int32_t DeleteFirewallRuleRecord(int32_t userId, int32_t ruleId);
 
-    /*
+    /**
      * Delete firewall rule by user id
      *
      * @param userId User id
@@ -327,7 +328,7 @@ public:
      */
     int32_t DeleteFirewallRuleRecordByUserId(int32_t userId);
 
-    /*
+    /**
      * Delete firewall rule by app uid
      *
      * @param appUid The UID of an application or service
@@ -335,7 +336,7 @@ public:
      */
     int32_t DeleteFirewallRuleRecordByAppId(int32_t appUid);
 
-    /*
+    /**
      * Delete intercept record by user id
      *
      * @param userId User id
@@ -343,7 +344,7 @@ public:
      */
     int32_t DeleteInterceptRecord(int32_t userId);
 
-    /*
+    /**
      * Does the specified firewall rule exist
      *
      * @param oldRule Current existing rules
@@ -351,7 +352,7 @@ public:
      */
     bool IsFirewallRuleExits(int32_t ruleId, NetFirewallRule &oldRule);
 
-    /*
+    /**
      * Does the specified dns rule exist
      *
      * @param oldRule Current existing rules
@@ -359,7 +360,7 @@ public:
      */
     bool IsDnsRuleExist(const sptr<NetFirewallRule> &rule);
 
-    /*
+    /**
      * Query the number of query databases
      *
      * @param outValue Number of queries found

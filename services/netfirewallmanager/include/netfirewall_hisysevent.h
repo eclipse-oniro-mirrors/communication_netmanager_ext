@@ -17,6 +17,7 @@
 #define NETFIREWALL_HISYSEVENT_H
 
 #include <string>
+
 #include "netfirewall_parcel.h"
 #include "net_event_report.h"
 #include "net_manager_ext_constants.h"
@@ -35,36 +36,39 @@ public:
 
     static NetFirewallHisysEvent &GetInstance();
 
-    /*
+    /**
      * Send firewall configuration management information
      *
      * @param rule Firewall configuration information
-     * @param Errorcode
+     * @param errorCode
      */
     static void SendFirewallConfigReport(sptr<NetFirewallRule> rule, int32_t &errorCode);
 
-    /*
+    /**
      * Send and obtain firewall management information
      *
      * @param userId User id
      * @param info Query input information
-     * @param Errorcode
+     * @param errorCode Errorcode such as FIREWALL_SUCCESS = 0,
+     *     FIREWALL_ERR_PERMISSION_DENIED = 201 and so on
      */
     static void SendFirewallRequestReport(const int32_t userId, const std::string &info, int32_t &errorCode);
 
-    /*
+    /**
      * Sending and obtaining interception records and tracking information
      *
      * @param userId User id
-     * @param Errorcode
+     * @param errorCode Errorcode such as FIREWALL_SUCCESS = 0,
+     *     FIREWALL_ERR_PERMISSION_DENIED = 201 and so on
      */
     static void SendRecordRequestReport(const int32_t userId, int32_t &errorCode);
 
-    /*
+    /**
      * Send initialization default rule information
      *
      * @param userId User id
-     * @param Errorcode
+     * @param errorCode Errorcode such as FIREWALL_SUCCESS = 0,
+     *     FIREWALL_ERR_PERMISSION_DENIED = 201 and so on
      */
     static void SendInitDefaultRequestReport(const int32_t userId, int32_t &errorCode);
 
