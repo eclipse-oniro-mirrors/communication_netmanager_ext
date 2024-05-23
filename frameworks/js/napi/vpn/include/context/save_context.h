@@ -21,7 +21,7 @@
 
 #include "base_context.h"
 #include "event_manager.h"
-#include "vpn_config.h"
+#include "systemvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -34,7 +34,7 @@ public:
     bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount);
 
 public:
-    sptr<VpnConfig> vpnConfig_ = nullptr;
+    sptr<SystemVpnConfig> vpnConfig_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

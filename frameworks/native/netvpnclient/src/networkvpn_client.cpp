@@ -130,7 +130,7 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
     return proxy->DestroyVpn(isVpnExtCall);
 }
 
-int32_t NetworkVpnClient::SaveSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnClient::SaveSystemVpn(sptr<SystemVpnConfig> &config)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
@@ -150,7 +150,7 @@ int32_t NetworkVpnClient::DeleteSystemVpn(std::string &vpnUuid)
     return proxy->DeleteSystemVpn(vpnUuid);
 }
 
-int32_t NetworkVpnClient::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
+int32_t NetworkVpnClient::GetSystemVpnList(std::vector<SystemVpnConfig> &vpnList)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
@@ -160,7 +160,7 @@ int32_t NetworkVpnClient::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
     return proxy->GetSystemVpnList(vpnList);
 }
 
-int32_t NetworkVpnClient::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid)
+int32_t NetworkVpnClient::GetSystemVpn(sptr<SystemVpnConfig> &config, std::string &vpnUuid)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
@@ -170,7 +170,7 @@ int32_t NetworkVpnClient::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpn
     return proxy->GetSystemVpn(config, vpnUuid);
 }
 
-int32_t NetworkVpnClient::GetConnectedSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnClient::GetConnectedSystemVpn(sptr<SystemVpnConfig> &config)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {

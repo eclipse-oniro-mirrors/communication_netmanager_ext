@@ -22,7 +22,7 @@
 
 #include "base_context.h"
 #include "event_manager.h"
-#include "vpn_config.h"
+#include "systemvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -33,7 +33,7 @@ public:
 
     void ParseParams(napi_value *params, size_t paramsCount);
 
-    std::vector<VpnConfig> vpnList_;
+    std::vector<SystemVpnConfig> vpnList_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
