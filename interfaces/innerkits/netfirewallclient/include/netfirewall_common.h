@@ -16,11 +16,11 @@
 #ifndef NETFIREWALL_COMMON_H
 #define NETFIREWALL_COMMON_H
 
+#include <string>
+#include <vector>
 #include "parcel.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netfirewall_parcel.h"
-#include <string>
-#include <vector>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -94,6 +94,12 @@ struct InterceptRecordPage : public Parcelable {
     virtual bool Marshalling(Parcel &parcel) const override;
     static sptr<InterceptRecordPage> Unmarshalling(Parcel &parcel);
 };
+
+inline uint64_t GetCurrentMilliseconds()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+        .count();
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 

@@ -15,8 +15,9 @@
 #ifndef NET_FIREWALL_PARAM_CHECK_H
 #define NET_FIREWALL_PARAM_CHECK_H
 
-#include "netfirewall_common.h"
 #include <napi/native_api.h>
+
+#include "netfirewall_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

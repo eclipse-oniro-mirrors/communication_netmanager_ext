@@ -19,6 +19,7 @@
 #include <map>
 
 #include "preferences.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
 class NetFirewallPreferencesUtil {

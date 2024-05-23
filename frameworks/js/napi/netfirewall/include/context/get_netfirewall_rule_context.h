@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class GetNetFirewallRuleContext : public BaseContext {
 public:
     GetNetFirewallRuleContext() = delete;
-    
+
     GetNetFirewallRuleContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);

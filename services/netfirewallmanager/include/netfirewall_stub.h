@@ -16,12 +16,12 @@
 #ifndef NET_FIREWALL_STUB_H
 #define NET_FIREWALL_STUB_H
 
+#include <map>
 #include "i_netfirewall_service.h"
 #include "iremote_stub.h"
 #include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 #include "refbase.h"
-#include <map>
 
 namespace OHOS {
 namespace NetManagerStandard {

@@ -229,6 +229,8 @@ private:
 
     void NetFirewallRule2IpRule(const NetFirewallRule &rule, NetFirewallIpRule &ip);
 
+    void NetFirewallRule2DomainRule(const NetFirewallRule &rule, std::vector<NetFirewallDomainRule> &domainRules);
+
     void SplitFirewallRules(const std::vector<NetFirewallRule> firewallRules, std::vector<NetFirewallIpRule> &ipRules,
         std::vector<NetFirewallDnsRule> &dnsRules, std::vector<NetFirewallDomainRule> &domainRules);
 
@@ -260,12 +262,6 @@ private:
     std::map<int32_t, int64_t> userRuleSize_;
     bool isServicePublished_ = false;
     bool hasSaRemoved_ = false;
-    inline uint64_t GetCurrentMilliseconds()
-    {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch())
-            .count();
-    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

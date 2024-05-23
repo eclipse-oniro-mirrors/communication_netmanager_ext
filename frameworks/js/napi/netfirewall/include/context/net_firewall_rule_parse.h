@@ -15,8 +15,9 @@
 #ifndef NET_FIREWALL_RULE_PARSE_H
 #define NET_FIREWALL_RULE_PARSE_H
 
-#include "netfirewall_common.h"
 #include <napi/native_api.h>
+
+#include "netfirewall_common.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

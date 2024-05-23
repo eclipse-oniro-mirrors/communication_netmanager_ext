@@ -16,6 +16,8 @@
 #ifndef FIREWALL_DATABASE_H
 #define FIREWALL_DATABASE_H
 
+#include <string>
+
 #include "rdb_common.h"
 #include "rdb_errno.h"
 #include "rdb_helper.h"
@@ -25,7 +27,6 @@
 #include "result_set.h"
 #include "system_ability.h"
 #include "value_object.h"
-#include <string>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -93,7 +94,7 @@ constexpr const char *CREATE_RECORD_TABLE = "CREATE TABLE IF NOT EXISTS [interce
     "[sourcePort] INTEGER, "
     "[destPort] INTEGER, "
     "[protocol] INTEGER, "
-    "[appUid] INTEGER, "
+    "[appUid] INTEGER NOT NULL, "
     "[domain] TEXT);";
 
 class NetFirewallDataBase : public NoCopyable {

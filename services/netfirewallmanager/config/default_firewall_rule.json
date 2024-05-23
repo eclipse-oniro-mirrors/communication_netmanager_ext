@@ -1,33 +1,11 @@
 {
   "default_rules": [
     {
-      "ruleName": "允许文件和打印机共享",
+      "ruleName": "",
       "ruleDirection": 1,
       "ruleAction": 0,
-      "ruleType": 1,
-      "isEnabled": true,
-      "appUid": 0,
-      "localIps": [],
-      "remoteIps": [],
-      "protocol": 6,
-      "localPorts": [],
-      "remotePorts": [
-        {
-          "startPort": 137,
-          "endPort": 139
-        },
-        {
-          "startPort": 445,
-          "endPort": 445
-        }
-      ]
-    },
-    {
-      "ruleName": "允许DNS查询",
-      "ruleDirection": 1,
-      "ruleAction": 0,
-      "ruleType": 1,
-      "isEnabled": true,
+      "ruleType": -1,
+      "isEnabled": false,
       "appUid": 0,
       "localIps": [],
       "remoteIps": [],
@@ -35,44 +13,8 @@
       "localPorts": [],
       "remotePorts": [
         {
-          "startPort": 53,
-          "endPort": 53
-        }
-      ]
-    },
-    {
-      "ruleName": "允许DHCP服务",
-      "ruleDirection": 1,
-      "ruleAction": 0,
-      "ruleType": 1,
-      "isEnabled": true,
-      "appUid": 0,
-      "localIps": [],
-      "remoteIps": [],
-      "protocol": 6,
-      "localPorts": [],
-      "remotePorts": [
-        {
-          "startPort": 67,
-          "endPort": 67
-        }
-      ]
-    },
-    {
-      "ruleName": "允许时间同步服务",
-      "ruleDirection": 1,
-      "ruleAction": 0,
-      "ruleType": 1,
-      "isEnabled": true,
-      "appUid": 0,
-      "localIps": [],
-      "remoteIps": [],
-      "protocol": 17,
-      "localPorts": [],
-      "remotePorts": [
-        {
-          "startPort": 123,
-          "endPort": 123
+          "startPort": 0,
+          "endPort": 0
         }
       ]
     }

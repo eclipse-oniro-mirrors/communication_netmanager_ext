@@ -16,8 +16,8 @@
 #ifndef FIREWALL_DB_HELPER_H
 #define FIREWALL_DB_HELPER_H
 
+#include <string>
 #include "netfirewall_database.h"
-
 #include "netfirewall_common.h"
 #include "rdb_common.h"
 #include "rdb_errno.h"
@@ -28,8 +28,6 @@
 #include "result_set.h"
 #include "system_ability.h"
 #include "value_object.h"
-
-#include <string>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -67,7 +65,10 @@ struct NetFirewallRuleInfo {
 };
 
 // Direction: source or destination
-enum class LocationType { SRC_LOCATION = 0, DST_LOCATION };
+enum class LocationType {
+    SRC_LOCATION = 0,
+    DST_LOCATION
+};
 
 // IP parameter data
 struct NetFirewallIpRuleData {
@@ -466,12 +467,6 @@ private:
     std::mutex databaseMutex_;
     std::shared_ptr<NetFirewallDataBase> firewallDatabase_;
     uint64_t callStartTime_ = 0;
-    inline uint64_t GetCurrentMilliseconds()
-    {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch())
-            .count();
-    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

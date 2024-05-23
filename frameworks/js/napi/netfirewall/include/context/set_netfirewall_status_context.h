@@ -18,12 +18,12 @@
 
 #include <cstddef>
 #include <napi/native_api.h>
+#include <string>
 
 #include "base_context.h"
 #include "event_manager.h"
 #include "netfirewall_common.h"
 #include "refbase.h"
-#include <string>
 
 namespace OHOS {
 namespace NetManagerStandard {
