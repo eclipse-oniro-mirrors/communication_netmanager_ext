@@ -49,7 +49,6 @@ struct SystemVpnConfig : public Parcelable {
     int32_t userId_ = 0;
     std::string vpnAddress_;
 
-
     //openvpn
     std::string ovpnPort_;
     int32_t ovpnProtocol_;
@@ -72,7 +71,6 @@ struct SystemVpnConfig : public Parcelable {
     std::string ipsecCaCertFileName_;
     std::string ipsecUserCertFileName_;
     std::string ipsecServerCertFileName_;
-
 
     bool Marshalling(Parcel &parcel) const override;
     bool MarshallingAddrRoute(Parcel &parcel) const;

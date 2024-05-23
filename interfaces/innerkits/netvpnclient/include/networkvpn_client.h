@@ -96,7 +96,7 @@ public:
     /**
      * save vpn
      *
-     * @param config VpnConfig
+     * @param config vpn config
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
@@ -106,6 +106,7 @@ public:
     /**
      * delete vpn
      *
+     * @param vpnUuid vpn uuid
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
@@ -115,6 +116,7 @@ public:
     /**
      * get vpn list
      *
+     * @param vpnList vpn list (out param)
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
@@ -124,6 +126,8 @@ public:
     /**
      * get vpn detail
      *
+     * @param config vpn config (out param)
+     * @param vpnUuid vpn uuid
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
