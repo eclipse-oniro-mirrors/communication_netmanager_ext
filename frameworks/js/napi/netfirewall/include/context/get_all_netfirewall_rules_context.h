@@ -25,11 +25,11 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class GetAllNetFirewallRulesContext : public BaseContext {
+class GetNetFirewallRulesContext : public BaseContext {
 public:
-    GetAllNetFirewallRulesContext() = delete;
+    GetNetFirewallRulesContext() = delete;
 
-    GetAllNetFirewallRulesContext(napi_env env, EventManager *manager);
+    GetNetFirewallRulesContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

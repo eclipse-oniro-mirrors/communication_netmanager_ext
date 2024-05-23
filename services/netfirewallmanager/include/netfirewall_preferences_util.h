@@ -19,7 +19,6 @@
 #include <map>
 
 #include "preferences.h"
-
 namespace OHOS {
 namespace NetManagerStandard {
 class NetFirewallPreferencesUtil {
@@ -34,7 +33,8 @@ public:
      *
      * @param key String
      * @param value Integer value
-     * @return True or false
+     * @return If get preferences success and save inner int value success, there is a return to true,
+     *         otherwise it will be false
      */
     bool SaveInt(const std::string &key, int32_t value);
 
@@ -43,7 +43,8 @@ public:
      *
      * @param key String
      * @param value Bool value
-     * @param True or false
+     * @param If get preferences success and save inner bool value success, there is a return to true,
+     *        otherwise it will be false
      */
     bool SaveBool(const std::string &key, bool value);
 
@@ -61,7 +62,8 @@ public:
      *
      * @param key String
      * @param defValue Value
-     * @return True or false
+     * @return If get preferences success and obtain inner bool value success,
+     *         there is a return to true, otherwise it will be false
      */
     bool ObtainBool(const std::string &key, bool defValue);
 
@@ -69,7 +71,8 @@ public:
      * Cleaning Data using preferences
      *
      * @param filePath File path
-     * @return True or false
+     * @return If there is a preference file and get preferences not null, and delete preferences success,
+     *         it will return to true, otherwise it will be false
      */
     bool Clear(const std::string &filePath);
 
@@ -77,7 +80,8 @@ public:
      * Get Object Handle
      *
      * @param filePath File path
-     * @return True or false
+     * @return If there is a preference file and get preferences not null, it will return to true,
+     *         otherwise it will be false
      */
     bool GetPreference(const std::string &filePath);
 

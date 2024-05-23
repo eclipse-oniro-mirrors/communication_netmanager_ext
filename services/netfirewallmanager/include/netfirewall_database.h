@@ -106,7 +106,8 @@ public:
      *
      * @param insertValues Value inserted
      * @param tableName Table name
-     * @return Error or row id
+     * @return Error or row id. when rdb store is not exsit, or store inserted return value is not OK,
+     *         it will return to error
      */
     int64_t Insert(const OHOS::NativeRdb::ValuesBucket &insertValues, const std::string tableName);
 

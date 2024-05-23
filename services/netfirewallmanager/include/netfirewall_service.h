@@ -128,7 +128,7 @@ public:
      * @param info Paging data information
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t GetAllNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
+    int32_t GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<FirewallRulePage> &info) override;
     /*
      * Get information about the specified rule ID
@@ -147,7 +147,7 @@ public:
      * @param info Paging data information
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+    int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) override;
 
     /*
@@ -240,6 +240,8 @@ private:
     bool IsNetFirewallOpen(const int32_t userId);
 
     int32_t SetFirewallIpRules2Bpf(const std::vector<NetFirewallIpRule> &ipRules);
+
+    void RegisterSubscribeCommonEvent();
 
 private:
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;

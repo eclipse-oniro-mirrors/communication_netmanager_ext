@@ -50,17 +50,17 @@ bool ExecDeleteNetFirewallRule(DeleteNetFirewallRuleContext *context);
 
 napi_value DeleteNetFirewallRuleCallback(DeleteNetFirewallRuleContext *context);
 
-bool ExecGetAllNetFirewallRules(GetAllNetFirewallRulesContext *context);
+bool ExecGetNetFirewallRules(GetNetFirewallRulesContext *context);
 
-napi_value GetAllNetFirewallRulesCallback(GetAllNetFirewallRulesContext *context);
+napi_value GetNetFirewallRulesCallback(GetNetFirewallRulesContext *context);
 
 bool ExecGetNetFirewallRule(GetNetFirewallRuleContext *context);
 
 napi_value GetNetFirewallRuleCallback(GetNetFirewallRuleContext *context);
 
-bool ExecGetAllInterceptRecords(GetAllInterceptRecordsContext *context);
+bool ExecGetInterceptRecords(GetInterceptRecordsContext *context);
 
-napi_value GetAllInterceptRecordCallbacks(GetAllInterceptRecordsContext *context);
+napi_value GetInterceptRecordCallbacks(GetInterceptRecordsContext *context);
 } // namespace NetFirewallExec
 } // namespace NetManagerStandard
 } // namespace OHOS

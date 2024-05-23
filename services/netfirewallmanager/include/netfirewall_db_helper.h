@@ -161,10 +161,21 @@ class NetFirewallDbHelper : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDbHelper> GetInstance();
 
-    // add NetFirewallRuleData record
+    /*
+     * add NetFirewallRuleData record
+     *
+     * @param rule net firewall rule
+     * @return Returns 0 success. Otherwise fail
+     */
     int32_t AddFirewallRuleRecord(const NetFirewallRule &rule);
 
-    // Add interception logs
+    /*
+     * Add interception logs
+     *
+     * @param userId User id
+     * @param records intercept records
+     * @return Returns 0 success. Otherwise fail
+     */
     int32_t AddInterceptRecord(const int32_t userId, std::vector<sptr<InterceptRecord>> &records);
 
     /*

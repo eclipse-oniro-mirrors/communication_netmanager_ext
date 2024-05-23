@@ -41,17 +41,17 @@ void ExecDeleteNetFirewallRule(napi_env env, void *data);
 
 void DeleteNetFirewallRuleCallback(napi_env env, napi_status status, void *data);
 
-void ExecGetAllNetFirewallRules(napi_env env, void *data);
+void ExecGetNetFirewallRules(napi_env env, void *data);
 
-void GetAllNetFirewallRulesCallback(napi_env env, napi_status status, void *data);
+void GetNetFirewallRulesCallback(napi_env env, napi_status status, void *data);
 
 void ExecGetNetFirewallRule(napi_env env, void *data);
 
 void GetNetFirewallRuleCallback(napi_env env, napi_status status, void *data);
 
-void ExecGetAllInterceptRecords(napi_env env, void *data);
+void ExecGetInterceptRecords(napi_env env, void *data);
 
-void GetAllInterceptRecordCallbacks(napi_env env, napi_status status, void *data);
+void GetInterceptRecordCallbacks(napi_env env, napi_status status, void *data);
 } // namespace NetFirewallAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

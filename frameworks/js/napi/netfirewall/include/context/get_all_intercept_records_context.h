@@ -25,11 +25,11 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class GetAllInterceptRecordsContext : public BaseContext {
+class GetInterceptRecordsContext : public BaseContext {
 public:
-    GetAllInterceptRecordsContext() = delete;
+    GetInterceptRecordsContext() = delete;
 
-    GetAllInterceptRecordsContext(napi_env env, EventManager *manager);
+    GetInterceptRecordsContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

@@ -61,12 +61,12 @@ public:
 
     int32_t DeleteNetFirewallRule(const int32_t userId, const int32_t ruleId);
 
-    int32_t GetAllNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
+    int32_t GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<FirewallRulePage> &info);
 
     int32_t GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule);
 
-    int32_t GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+    int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info);
 
 private:

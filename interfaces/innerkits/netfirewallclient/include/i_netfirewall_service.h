@@ -33,12 +33,12 @@ public:
 
     virtual int32_t DeleteNetFirewallRule(const int32_t userId, const int32_t ruleId) = 0;
 
-    virtual int32_t GetAllNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
+    virtual int32_t GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<FirewallRulePage> &info) = 0;
 
     virtual int32_t GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule) = 0;
 
-    virtual int32_t GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+    virtual int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) = 0;
 
     enum {

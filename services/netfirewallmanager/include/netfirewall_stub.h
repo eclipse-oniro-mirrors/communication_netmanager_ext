@@ -49,11 +49,11 @@ private:
 
     int32_t OnDeleteNetFirewallRule(MessageParcel &data, MessageParcel &reply);
 
-    int32_t OnGetAllNetFirewallRules(MessageParcel &data, MessageParcel &reply);
+    int32_t OnGetNetFirewallRules(MessageParcel &data, MessageParcel &reply);
 
     int32_t OnGetNetFirewallRule(MessageParcel &data, MessageParcel &reply);
 
-    int32_t OnGetAllInterceptRecords(MessageParcel &data, MessageParcel &reply);
+    int32_t OnGetInterceptRecords(MessageParcel &data, MessageParcel &reply);
 
     int32_t CheckFirewallPermission(std::string &strPermission);
 

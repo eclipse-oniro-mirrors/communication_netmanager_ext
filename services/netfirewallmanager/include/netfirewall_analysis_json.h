@@ -30,33 +30,16 @@ public:
      * Get default netfirewall rules
      *
      * @param ruleList Netfirewall rule list
-     * @return False or true
+     * @return If get object item DEFAULT_RULES is not null, and item is object, and json file is array format, there is
+     *     a return to true, otherwise it will be false
      */
     static bool GetDefaultRules(std::vector<NetFirewallRule> &ruleList);
-
-    /*
-     * Get configure value
-     *
-     * @param ruleList Netfirewall rule list
-     * @return False or true
-     */
-    static bool GetConfigValue(std::vector<NetFirewallRule> &ruleList);
-
-    /*
-     * Get intercept log rotation parameter from jason file
-     *
-     * @param params Intercept log rotation parameters
-     * @return False or true
-     */
-    static bool GetInterceptLogParams(InterceptLogRotationParam &params);
-
 private:
     /*
      * Parsing netfirewall rules in JSON.
      *
      * @param rule Netfirewall rule
-     * @param mem Memory
-     * @return void
+     * @param mem cJson Object
      */
     static void ConvertFirewallRuleToConfig(NetFirewallRule &rule, const cJSON * const mem);
 
@@ -64,8 +47,7 @@ private:
      * Parsing ip parameters in JSON
      *
      * @param rule Netfirewall ip parameter rule
-     * @param mem Memory
-     * @return void
+     * @param mem cJson Object
      */
     static void ConvertIpParamToConfig(NetFirewallIpParam &rule, const cJSON * const mem);
 
@@ -73,8 +55,7 @@ private:
      * Parsing port parameters in JSON
      *
      * @param rule Netfirewall port parameter rule
-     * @param mem Memory
-     * @return void
+     * @param mem cJson Object
      */
     static void ConvertPortParamToConfig(NetFirewallPortParam &rule, const cJSON * const mem);
 
@@ -82,8 +63,7 @@ private:
      * Parsing domain name parameters in JSON
      *
      * @param rule Netfirewall domain name parameter rule
-     * @param mem Memory
-     * @return void
+     * @param mem cJson Object
      */
     static void ConvertDomainParamToConfig(NetFirewallDomainParam &rule, const cJSON * const mem);
 
@@ -91,8 +71,7 @@ private:
      * Parsing dns parameters in JSON
      *
      * @param rule Netfirewall dns parameter rule
-     * @param mem Memory
-     * @return void
+     * @param mem cJson Object
      */
     static void ConvertDnsParamToConfig(NetFirewallDnsParam &rule, const cJSON * const mem);
 
@@ -100,7 +79,7 @@ private:
      * Read JSON file
      *
      * @param filePath Json file path
-     * @return String
+     * @return json file content
      */
     static std::string ReadJsonFile(const std::string &filePath);
 
@@ -108,9 +87,8 @@ private:
      * Parse ip list
      *
      * @param ipParamlist Ip paramter list
-     * @param mem Memory
+     * @param mem cJson Object
      * @param jsonKey json key
-     * @return void
      */
     static void ParseIpList(std::vector<NetFirewallIpParam> &ipParamlist, const cJSON * const mem,
         const std::string jsonKey);
@@ -119,9 +97,8 @@ private:
      * Parse port list
      *
      * @param portParamlist Port paramter list
-     * @param mem Memory
+     * @param mem cJson Object
      * @param jsonKey Json key
-     * @return void
      */
     static void ParsePortList(std::vector<NetFirewallPortParam> &portParamlist, const cJSON * const mem,
         const std::string jsonKey);
@@ -130,9 +107,8 @@ private:
      * Parse domain list
      *
      * @param domain name paramter list
-     * @param mem Memory
+     * @param mem cJson Object
      * @param jsonKey Json key
-     * @return void
      */
     static void ParseDomainList(std::vector<NetFirewallDomainParam> &domainParamlist, const cJSON * const mem,
         const std::string jsonKey);
@@ -141,9 +117,8 @@ private:
      * Parse dns object
      *
      * @param dnsParam Dns paramter list
-     * @param mem Memory
+     * @param mem cJson Object
      * @param jsonKey Json key
-     * @return void
      */
     static void ParseDnsObject(NetFirewallDnsParam &dnsParam, const cJSON * const mem, const std::string jsonKey);
 
@@ -151,20 +126,9 @@ private:
      * Parse list object
      *
      * @param rule Netfirwall rule
-     * @param mem Memory
-     * @return void
+     * @param mem cJson Object
      */
     static void ParseListObject(NetFirewallRule &rule, const cJSON * const mem);
-
-    /*
-     * Parse intercept log rotation config in JASON
-     *
-     * @param param Intercept log rotation parameter
-     * @param mem Memory
-     * @return void
-     */
-    static void ConvertInteceptLogParamToConfig(InterceptLogRotationParam &param,
-                                                const cJSON * const mem);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

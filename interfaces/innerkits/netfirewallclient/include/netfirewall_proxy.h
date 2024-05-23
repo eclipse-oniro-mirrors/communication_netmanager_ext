@@ -35,12 +35,12 @@ public:
 
     int32_t DeleteNetFirewallRule(const int32_t userId, const int32_t ruleId) override;
 
-    int32_t GetAllNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
+    int32_t GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<FirewallRulePage> &info) override;
 
     int32_t GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule) override;
 
-    int32_t GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+    int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) override;
 
     explicit NetFirewallProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<INetFirewallService>(impl) {}
