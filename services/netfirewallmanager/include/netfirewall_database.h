@@ -101,23 +101,81 @@ class NetFirewallDataBase : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDataBase> GetInstance();
 
+    /*
+     * Insert value into the table
+     *
+     * @param insertValues Value inserted
+     * @param tableName Table name
+     * @return Error or row id
+     */
     int64_t Insert(const OHOS::NativeRdb::ValuesBucket &insertValues, const std::string tableName);
 
+    /*
+     * Update value in table
+     *
+     * @param tableName Table name
+     * @param changedRows Changed rows
+     * @param values Update value
+     * @param whereClause Where clause
+     * @param whereArgs Condition arguments
+     * @return Error code
+     */
     int32_t Update(const std::string &tableName, int32_t &changedRows, const OHOS::NativeRdb::ValuesBucket &values,
         const std::string &whereClause, const std::vector<std::string> &whereArgs);
 
+    /*
+     * Delete rows in table
+     *
+     * @param tableName Table name
+     * @param changedRows Changed rows
+     * @param whereClause Where clause
+     * @param whereArgs Condition arguments
+     * @return error code
+     */
     int32_t Delete(const std::string &tableName, int32_t &changedRows, const std::string &whereClause,
         const std::vector<std::string> &whereArgs);
 
+    /*
+     * Query columns in table
+     *
+     * @param tableName Table name
+     * @param predicates Matching criteria
+     * @param columns Column
+     * @return Shared pointer of ResultSet
+     */
     std::shared_ptr<OHOS::NativeRdb::ResultSet> Query(const OHOS::NativeRdb::AbsRdbPredicates &predicates,
         const std::vector<std::string> &columns);
 
+    /*
+     * Begin transaction
+     *
+     * @param void
+     * @return Error code
+     */
     int32_t BeginTransaction();
 
+    /*
+     * Commit
+     * @param void
+     * @return Error code
+     */
     int32_t Commit();
 
+    /*
+     * Roll back
+     *
+     * @param void
+     * @return Error code
+     */
     int32_t RollBack();
 
+    /*
+     * Count
+     *
+     * @param outValue Number of queries found
+     * @param predicates Matching criteria
+     * @return Error code
+     */
     int32_t Count(int64_t &outValue, const OHOS::NativeRdb::AbsRdbPredicates &predicates);
 
 private:

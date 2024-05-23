@@ -29,22 +29,56 @@ public:
 
     static std::shared_ptr<NetFirewallPreferencesUtil> GetInstance();
 
-    // Preferences: Save int data
+    /*
+     * Save int data using preferences
+     *
+     * @param key String
+     * @param value Integer value
+     * @return True or false
+     */
     bool SaveInt(const std::string &key, int32_t value);
 
-    // Preferences: Save bool data
+    /*
+     * Save bool data using preferences
+     *
+     * @param key String
+     * @param value Bool value
+     * @param True or false
+     */
     bool SaveBool(const std::string &key, bool value);
 
-    // Preferences: Get int data
+    /*
+     * Get integer data using preferences
+     *
+     * @param key String
+     * @param value Integer value
+     * @return Integer
+     */
     int32_t ObtainInt(const std::string &key, int32_t defValue);
 
-    // Preferences: Get bool data
+    /*
+     * Get bool data
+     *
+     * @param key String
+     * @param defValue Value
+     * @return True or false
+     */
     bool ObtainBool(const std::string &key, bool defValue);
 
-    // Preferences: Cleaning Data
+    /*
+     * Cleaning Data using preferences
+     *
+     * @param filePath File path
+     * @return True or false
+     */
     bool Clear(const std::string &filePath);
 
-    // Preferences: Preferences: Get Object Handle
+    /*
+     * Get Object Handle
+     *
+     * @param filePath File path
+     * @return True or false
+     */
     bool GetPreference(const std::string &filePath);
 
 private:
