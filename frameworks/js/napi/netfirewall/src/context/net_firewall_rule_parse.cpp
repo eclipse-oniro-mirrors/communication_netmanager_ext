@@ -36,19 +36,19 @@ void NetFirewallRuleParse::ParseIpList(napi_env env, napi_value params, std::vec
         }
         NetFirewallIpParam param;
         param.family = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_FAMILY);
-        // 默认ipv4
+        // Default IPv4
         if (param.family == 0) {
             param.family = FAMILY_IPV4;
         }
         param.type = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_TYPE);
-        // 默认单ip
+        // Default single IP
         if (param.type == 0) {
             param.type = SINGLE_IP;
         }
         if (param.type == SINGLE_IP) {
             param.address = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_ADDRESS);
             param.mask = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_MASK);
-            // 默认ipv4掩码是32，ipv6前缀是64
+            // The default IPv4 mask is 32, The IPv6 prefix is 64
             if (param.mask == 0 && param.type == SINGLE_IP) {
                 param.mask = param.family == FAMILY_IPV4 ? IPV4_MASK_MAX : IPV6_MASK_MAX;
             }

@@ -231,7 +231,7 @@ int32_t NetFirewallParamCheck::CheckIpV6(const std::string &ipV6)
 
 int32_t NetFirewallParamCheck::CheckSingeIp(napi_env env, napi_value valAttr, int32_t family)
 {
-    // 单ip时，address必须有
+    // When using a single IP, Address must have
     if (!NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_ADDRESS)) {
         NETMANAGER_EXT_LOGE("params ip type1 but no address");
         return FIREWALL_ERR_INVALID_PARAMETER;
@@ -264,7 +264,7 @@ int32_t NetFirewallParamCheck::CheckSingeIp(napi_env env, napi_value valAttr, in
 
 int32_t NetFirewallParamCheck::CheckMultipleIp(napi_env env, napi_value valAttr, int32_t family)
 {
-    // 多ip时，起始地址必须有
+    // When using multiple IPs, the starting address must have
     if (!NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_START) ||
         !NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_END)) {
         NETMANAGER_EXT_LOGE("params ip type2 but no startIp or endIp");
