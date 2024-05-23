@@ -161,21 +161,10 @@ class NetFirewallDbHelper : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDbHelper> GetInstance();
 
-    /*
-     * add NetFirewallRuleData record
-     *
-     * @param rule net firewall rule
-     * @return Error code
-     */
+    // add NetFirewallRuleData record
     int32_t AddFirewallRuleRecord(const NetFirewallRule &rule);
 
-    /*
-     * Add interception logs
-     *
-     * @param userId User id
-     * @param records intercept records
-     * @return Error code
-     */
+    // Add interception logs
     int32_t AddInterceptRecord(const int32_t userId, std::vector<sptr<InterceptRecord>> &records);
 
     /*
@@ -183,7 +172,7 @@ public:
      *
      * @param userId User id
      * @param rules List of rules obtained from query
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryEnabledFirewallRules(int32_t userId, std::vector<NetFirewallRule> &rules);
 
@@ -193,7 +182,7 @@ public:
      * @param userId User id
      * @param appUid The UID of an application or service
      * @param rules List of rules obtained from query
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryEnabledFirewallRules(int32_t userId, int32_t appUid, std::vector<NetFirewallRule> &rules);
 
@@ -202,7 +191,7 @@ public:
      *
      * @param userId User id
      * @param rules List of rules obtained from query
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryEnabledDomainOrDnsRules(int32_t userId, std::vector<NetFirewallRule> &rules);
 
@@ -210,7 +199,7 @@ public:
      * Query all rules
 
      * @param rules List of rules obtained from query
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryAllFirewallRuleRecord(std::vector<NetFirewallRule> &rules);
 
@@ -220,7 +209,7 @@ public:
      * @param ruleId Rule id
      * @param userId User id
      * @param rules List of rules obtained from query
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallRuleRecord(int32_t ruleId, int32_t userId, std::vector<NetFirewallRule> &rules);
 
@@ -230,7 +219,7 @@ public:
      * @param userId User id
      * @param requestParam Pagination query input
      * @param rules List of rules obtained from query
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallRule(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<FirewallRulePage> &info);
@@ -241,7 +230,7 @@ public:
      * @param userId User id
      * @param srcIpRules The source IP list of the firewall
      * @param dstIpRules The destination IP list of the firewall
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallIpRuleRecord(int32_t userId, std::vector<NetFirewallIpRuleData> &srcIpRules,
         std::vector<NetFirewallIpRuleData> &dstIpRules);
@@ -252,7 +241,7 @@ public:
      * @param userId User id
      * @param srcPortRules The source port list of the firewall
      * @param dstProtRules The destination port list of the firewall
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallPortRuleRecord(int32_t userId, std::vector<NetFirewallPortRuleData> &srcPortRules,
         std::vector<NetFirewallPortRuleData> &dstProtRules);
@@ -262,7 +251,7 @@ public:
      *
      * @param userId User id
      * @param domainRules Domain name list for firewall
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallDomainRuleRecord(int32_t userId, std::vector<NetFirewallDomainRuleData> &domainRules);
 
@@ -272,7 +261,7 @@ public:
      * @param userId User id
      * @param requestParam Pagination query input
      * @param rules List of record obtained from query
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryInterceptRecord(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info);
@@ -282,7 +271,7 @@ public:
      *
      * @param userId User id
      * @param rowCount Number of queries found
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallRuleByUserIdCount(const int32_t userId, int64_t &rowCount);
 
@@ -290,7 +279,7 @@ public:
      * Query the number of all firewall rules
      *
      * @param rowCount Number of queries found
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallRuleAllCount(int64_t &rowCount);
 
@@ -298,7 +287,7 @@ public:
      * Query the number of all domain rules
      *
      * @param rowCount Number of queries found
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallRuleAllDomainCount(int64_t &rowCount);
 
@@ -306,7 +295,7 @@ public:
      * Update firewall rule
      *
      * @param rule firewall ruele
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t UpdateFirewallRuleRecord(const NetFirewallRule &rule);
 
@@ -315,7 +304,7 @@ public:
      *
      * @param userId User id
      * @param ruleId Rule id
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t DeleteFirewallRuleRecord(int32_t userId, int32_t ruleId);
 
@@ -323,7 +312,7 @@ public:
      * Delete firewall rule by user id
      *
      * @param userId User id
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t DeleteFirewallRuleRecordByUserId(int32_t userId);
 
@@ -331,7 +320,7 @@ public:
      * Delete firewall rule by app uid
      *
      * @param appUid The UID of an application or service
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t DeleteFirewallRuleRecordByAppId(int32_t appUid);
 
@@ -339,7 +328,7 @@ public:
      * Delete intercept record by user id
      *
      * @param userId User id
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t DeleteInterceptRecord(int32_t userId);
 
@@ -364,7 +353,7 @@ public:
      *
      * @param outValue Number of queries found
      * @param predicates Matching criteria
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t Count(int64_t &outValue, const OHOS::NativeRdb::AbsRdbPredicates &predicates);
 

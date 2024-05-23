@@ -118,7 +118,7 @@ public:
      * @param values Update value
      * @param whereClause Where clause
      * @param whereArgs Condition arguments
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t Update(const std::string &tableName, int32_t &changedRows, const OHOS::NativeRdb::ValuesBucket &values,
         const std::string &whereClause, const std::vector<std::string> &whereArgs);
@@ -130,7 +130,7 @@ public:
      * @param changedRows Changed rows
      * @param whereClause Where clause
      * @param whereArgs Condition arguments
-     * @return error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t Delete(const std::string &tableName, int32_t &changedRows, const std::string &whereClause,
         const std::vector<std::string> &whereArgs);
@@ -150,14 +150,14 @@ public:
      * Begin transaction
      *
      * @param void
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t BeginTransaction();
 
     /*
      * Commit
      * @param void
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t Commit();
 
@@ -165,7 +165,7 @@ public:
      * Roll back
      *
      * @param void
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t RollBack();
 
@@ -174,7 +174,7 @@ public:
      *
      * @param outValue Number of queries found
      * @param predicates Matching criteria
-     * @return Error code
+     * @return Returns 0 success. Otherwise fail
      */
     int32_t Count(int64_t &outValue, const OHOS::NativeRdb::AbsRdbPredicates &predicates);
 

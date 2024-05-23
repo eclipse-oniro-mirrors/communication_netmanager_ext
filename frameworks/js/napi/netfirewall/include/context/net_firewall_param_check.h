@@ -52,51 +52,46 @@ private:
 
     static int32_t CheckDomainList(napi_env env, napi_value object);
 
-    /*
+    /**
      * Verify IP address
      *
      * @param ipStr string of ip
-     * @return Error code
-     *
+     * @return Returns 0 success. Otherwise fail
      */
     static int32_t CheckIpAddress(const std::string &ipStr);
 
-    /*
+    /**
      * Verify IP address
      *
      * @param ipStr string of ip
      * @param family IPV4 or IPV6
-     * @return Error code
-     *
+     * @return Returns 0 success. Otherwise fail
      */
     static int32_t CheckIpAddress(const std::string &ipStr, const int32_t family);
 
-    /*
+    /**
      * Verify IP segment address
      *
      * @param startIp Starting IP
      * @param endIp Terminate IP
      * @param family IPV4 or IPV6
      * @return Success returns true, otherwise returns false
-     *
      */
     static bool CheckIpAddress(const std::string &startIp, const std::string &endIp, const int32_t family);
 
-    /*
+    /**
      * Verify if the given IP is IPv4
      *
      * @param ipV4 string of ip
-     * @return Error code
-     *
+     * @return Returns 0 success. Otherwise fail
      */
     static int32_t CheckIpV4(const std::string &ipV4);
 
-    /*
+    /**
      * Verify if the given IP is IPv4
      *
      * @param ipV4 string of ip
-     * @return Error code
-     *
+     * @return Returns 0 success. Otherwise fail
      */
     static int32_t CheckIpV6(const std::string &ipV6);
 
