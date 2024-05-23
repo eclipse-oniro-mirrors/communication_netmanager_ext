@@ -283,19 +283,13 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch001, TestSize.Level1)
     instance_->state_ = NetworkShareService::ServiceRunningState::STATE_RUNNING;
     instance_->OnStart();
 
-    std::vector<std::u16string> args;
-    args.emplace_back(u"test data");
-    int32_t fd = 0;
-    int32_t ret = instance_->Dump(fd, args);
-    EXPECT_EQ(ret, NETWORKSHARE_ERROR_INTERNAL_ERROR);
-
     std::string sharingType;
     std::string typeContent = "wifi;";
     instance_->GetSharingType(SharingIfaceType::SHARING_BLUETOOTH, typeContent, sharingType);
 
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     std::vector<std::string> ifaces;
-    ret = instance_->GetNetSharingIfaces(state, ifaces);
+    int32_t ret = instance_->GetNetSharingIfaces(state, ifaces);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 

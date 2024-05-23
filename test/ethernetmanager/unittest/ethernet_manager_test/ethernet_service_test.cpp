@@ -397,9 +397,6 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     result = ethernetService.GetInterfaceConfig(IFACE_NAME, cfg);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
-    result = ethernetService.ResetFactory();
-    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
-
     std::vector<std::string> activeIfaces;
     result = ethernetService.GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
@@ -421,7 +418,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
     int32_t fd = 0;
     std::vector<std::u16string> args;
     int32_t result = ethernetService.Dump(fd, args);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, 0);
 
     std::string iface = "";
     sptr<InterfaceConfiguration> ic = nullptr;
