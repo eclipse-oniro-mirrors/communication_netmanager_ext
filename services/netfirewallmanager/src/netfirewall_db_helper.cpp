@@ -1454,12 +1454,11 @@ bool NetFirewallDbHelper::IsDnsRuleExist(const sptr<NetFirewallRule> &rule)
 int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vector<sptr<InterceptRecord>> &records)
 {
     std::lock_guard<std::mutex> guard(databaseMutex_);
-    const int MAX_TIME = 8 * 24 * 60 * 60;
-    const int MAX_DATA = 999;
     int32_t ret = firewallDatabase_->BeginTransaction();
     // Aging by date, record up to 8 days of data
     std::string whereClause = { "userId = ? AND time < ?" };
-    std::vector<std::string> whereArgs = { std::to_string(userId), std::to_string(records.back()->time - MAX_TIME) };
+    std::vector<std::string> whereArgs = { std::to_string(userId),
+        std::to_string(records.back()->time - RECORD_MAX_SAVE_TIME) };
     int32_t changedRows = 0;
     ret = firewallDatabase_->Delete(INTERCEPT_RECORD_TABLE, changedRows, whereClause, whereArgs);
 
@@ -1469,7 +1468,7 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
     firewallDatabase_->Count(rowCount, rdbPredicates);
     // Aging by number, record up to 1000 pieces of data
     size_t size = records.size();
-    int64_t offset = MAX_DATA - size;
+    int64_t offset = RECORD_MAX_DATA_NUM - 1 - size;
     if (rowCount >= offset) {
         std::string whereClause = { "userId = ?" };
         std::vector<std::string> whereArgs = { std::to_string(userId),

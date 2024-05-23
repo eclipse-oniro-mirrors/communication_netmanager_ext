@@ -85,14 +85,14 @@ void DeleteNetFirewallRuleCallback(napi_env env, napi_status status, void *data)
         status, data);
 }
 
-void ExecGetAllNetFirewallRules(napi_env env, void *data)
+void ExecGetNetFirewallRules(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<GetAllNetFirewallRulesContext, NetFirewallExec::ExecGetAllNetFirewallRules>(env, data);
+    BaseAsyncWork::ExecAsyncWork<GetNetFirewallRulesContext, NetFirewallExec::ExecGetNetFirewallRules>(env, data);
 }
 
-void GetAllNetFirewallRulesCallback(napi_env env, napi_status status, void *data)
+void GetNetFirewallRulesCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<GetAllNetFirewallRulesContext, NetFirewallExec::GetAllNetFirewallRulesCallback>(
+    BaseAsyncWork::AsyncWorkCallback<GetNetFirewallRulesContext, NetFirewallExec::GetNetFirewallRulesCallback>(
         env, status, data);
 }
 
@@ -107,14 +107,14 @@ void GetNetFirewallRuleCallback(napi_env env, napi_status status, void *data)
         status, data);
 }
 
-void ExecGetAllInterceptRecords(napi_env env, void *data)
+void ExecGetInterceptRecords(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<GetAllInterceptRecordsContext, NetFirewallExec::ExecGetAllInterceptRecords>(env, data);
+    BaseAsyncWork::ExecAsyncWork<GetInterceptRecordsContext, NetFirewallExec::ExecGetInterceptRecords>(env, data);
 }
 
-void GetAllInterceptRecordCallbacks(napi_env env, napi_status status, void *data)
+void GetInterceptRecordCallbacks(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<GetAllInterceptRecordsContext, NetFirewallExec::GetAllInterceptRecordCallbacks>(
+    BaseAsyncWork::AsyncWorkCallback<GetInterceptRecordsContext, NetFirewallExec::GetInterceptRecordCallbacks>(
         env, status, data);
 }
 } // namespace NetFirewallAsyncWork

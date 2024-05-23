@@ -36,9 +36,9 @@ static constexpr const char *FUNCTION_GET_NET_FIREWALL_STATUS = "getNetFirewallS
 static constexpr const char *FUNCTION_ADD_NET_FIREWALL_RULE = "addNetFirewallRule";
 static constexpr const char *FUNCTION_UPDATE_NET_FIREWALL_RULE = "updateNetFirewallRule";
 static constexpr const char *FUNCTION_DELETE_NET_FIREWALL_RULE = "deleteNetFirewallRule";
-static constexpr const char *FUNCTION_GET_ALL_NET_FIREWALL_RULES = "getNetFirewallRules";
+static constexpr const char *FUNCTION_GET_NET_FIREWALL_RULES = "getNetFirewallRules";
 static constexpr const char *FUNCTION_GET_NET_FIREWALL_RULE = "getNetFirewallRule";
-static constexpr const char *FUNCTION_GET_ALL_INTERCEPT_RECORDS = "getInterceptRecords";
+static constexpr const char *FUNCTION_GET_INTERCEPT_RECORDS = "getInterceptRecords";
 
 napi_value SetNetFirewallStatus(napi_env env, napi_callback_info info)
 {
@@ -70,11 +70,11 @@ napi_value DeleteNetFirewallRule(napi_env env, napi_callback_info info)
         nullptr, NetFirewallAsyncWork::ExecDeleteNetFirewallRule, NetFirewallAsyncWork::DeleteNetFirewallRuleCallback);
 }
 
-napi_value GetAllNetFirewallRules(napi_env env, napi_callback_info info)
+napi_value GetNetFirewallRules(napi_env env, napi_callback_info info)
 {
-    return ModuleTemplate::Interface<GetAllNetFirewallRulesContext>(env, info, FUNCTION_GET_ALL_NET_FIREWALL_RULES,
-        nullptr, NetFirewallAsyncWork::ExecGetAllNetFirewallRules,
-        NetFirewallAsyncWork::GetAllNetFirewallRulesCallback);
+    return ModuleTemplate::Interface<GetNetFirewallRulesContext>(env, info, FUNCTION_GET_NET_FIREWALL_RULES,
+        nullptr, NetFirewallAsyncWork::ExecGetNetFirewallRules,
+        NetFirewallAsyncWork::GetNetFirewallRulesCallback);
 }
 
 napi_value GetNetFirewallRule(napi_env env, napi_callback_info info)
@@ -83,15 +83,15 @@ napi_value GetNetFirewallRule(napi_env env, napi_callback_info info)
         NetFirewallAsyncWork::ExecGetNetFirewallRule, NetFirewallAsyncWork::GetNetFirewallRuleCallback);
 }
 
-napi_value GetAllInterceptRecords(napi_env env, napi_callback_info info)
+napi_value GetInterceptRecords(napi_env env, napi_callback_info info)
 {
-    return ModuleTemplate::Interface<GetAllInterceptRecordsContext>(env, info, FUNCTION_GET_ALL_INTERCEPT_RECORDS,
-        nullptr, NetFirewallAsyncWork::ExecGetAllInterceptRecords,
-        NetFirewallAsyncWork::GetAllInterceptRecordCallbacks);
+    return ModuleTemplate::Interface<GetInterceptRecordsContext>(env, info, FUNCTION_GET_INTERCEPT_RECORDS,
+        nullptr, NetFirewallAsyncWork::ExecGetInterceptRecords,
+        NetFirewallAsyncWork::GetInterceptRecordCallbacks);
 }
 } // namespace
 
-napi_value DeclarePcfirewallInterface(napi_env env, napi_value exports)
+napi_value DeclareNetFirewallInterface(napi_env env, napi_value exports)
 {
     NapiUtils::DefineProperties(env, exports,
         {
@@ -100,9 +100,9 @@ napi_value DeclarePcfirewallInterface(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION(FUNCTION_ADD_NET_FIREWALL_RULE, AddNetFirewallRule),
         DECLARE_NAPI_FUNCTION(FUNCTION_UPDATE_NET_FIREWALL_RULE, UpdateNetFirewallRule),
         DECLARE_NAPI_FUNCTION(FUNCTION_DELETE_NET_FIREWALL_RULE, DeleteNetFirewallRule),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_ALL_NET_FIREWALL_RULES, GetAllNetFirewallRules),
+        DECLARE_NAPI_FUNCTION(FUNCTION_GET_NET_FIREWALL_RULES, GetNetFirewallRules),
         DECLARE_NAPI_FUNCTION(FUNCTION_GET_NET_FIREWALL_RULE, GetNetFirewallRule),
-        DECLARE_NAPI_FUNCTION(FUNCTION_GET_ALL_INTERCEPT_RECORDS, GetAllInterceptRecords),
+        DECLARE_NAPI_FUNCTION(FUNCTION_GET_INTERCEPT_RECORDS, GetInterceptRecords),
         });
     return exports;
 }
@@ -111,7 +111,7 @@ static napi_module g_netfirewallModule = {
     .nm_version = 1,
     .nm_flags = 0,
     .nm_filename = nullptr,
-    .nm_register_func = DeclarePcfirewallInterface,
+    .nm_register_func = DeclareNetFirewallInterface,
     .nm_modname = "net.netfirewall",
     .nm_priv = (0),
     .reserved = { 0 },

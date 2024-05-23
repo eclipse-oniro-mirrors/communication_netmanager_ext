@@ -14,6 +14,7 @@
  */
 
 #include <sstream>
+
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "netfirewall_common.h"
@@ -111,7 +112,7 @@ sptr<RequestParam> RequestParam::Unmarshalling(Parcel &parcel)
     return ptr;
 }
 
-// 规则页面内容
+// The content of the rules page
 bool FirewallRulePage::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteInt32(page)) {

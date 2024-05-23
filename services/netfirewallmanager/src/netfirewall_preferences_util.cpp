@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include "netfirewall_preferences_util.h"
-
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "netfirewall_preferences_util.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "preferences_errno.h"
 #include "preferences_helper.h"

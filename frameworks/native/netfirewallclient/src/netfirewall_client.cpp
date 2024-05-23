@@ -14,6 +14,7 @@
  */
 
 #include <thread>
+
 #include "hilog/log.h"
 #include "iservice_registry.h"
 #include "net_manager_constants.h"
@@ -115,15 +116,15 @@ int32_t NetFirewallClient::DeleteNetFirewallRule(const int32_t userId, const int
     return proxy->DeleteNetFirewallRule(userId, ruleId);
 }
 
-int32_t NetFirewallClient::GetAllNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
+int32_t NetFirewallClient::GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<FirewallRulePage> &info)
 {
     sptr<INetFirewallService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetAllNetFirewallRules proxy is nullptr");
+        NETMGR_EXT_LOG_E("GetNetFirewallRules proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetAllNetFirewallRules(userId, requestParam, info);
+    return proxy->GetNetFirewallRules(userId, requestParam, info);
 }
 
 int32_t NetFirewallClient::GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule)
@@ -136,15 +137,15 @@ int32_t NetFirewallClient::GetNetFirewallRule(const int32_t userId, const int32_
     return proxy->GetNetFirewallRule(userId, ruleId, rule);
 }
 
-int32_t NetFirewallClient::GetAllInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
+int32_t NetFirewallClient::GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<InterceptRecordPage> &info)
 {
     sptr<INetFirewallService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetAllInterceptRecords proxy is nullptr");
+        NETMGR_EXT_LOG_E("GetInterceptRecords proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetAllInterceptRecords(userId, requestParam, info);
+    return proxy->GetInterceptRecords(userId, requestParam, info);
 }
 
 sptr<INetFirewallService> NetFirewallClient::GetProxy()

@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "netfirewall_analysis_json.h"
 
 #include <fstream>
 
 #include "netmgr_ext_log_wrapper.h"
+#include "netfirewall_analysis_json.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

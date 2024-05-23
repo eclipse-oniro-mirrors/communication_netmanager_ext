@@ -97,7 +97,7 @@ bool ExecAddNetFirewallRule(AddNetFirewallRuleContext *context)
 
 napi_value AddNetFirewallRuleCallback(AddNetFirewallRuleContext *context)
 {
-    // 返回基本数据类型
+    // return basic data type
     return NapiUtils::CreateInt32(context->GetEnv(), context->reslut_);
 }
 
@@ -117,7 +117,7 @@ bool ExecUpdateNetFirewallRule(UpdateNetFirewallRuleContext *context)
 
 napi_value UpdateNetFirewallRuleCallback(UpdateNetFirewallRuleContext *context)
 {
-    // 返回基本数据类型
+    // return basic data type
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
@@ -138,26 +138,26 @@ bool ExecDeleteNetFirewallRule(DeleteNetFirewallRuleContext *context)
 
 napi_value DeleteNetFirewallRuleCallback(DeleteNetFirewallRuleContext *context)
 {
-    // 返回基本数据类型
+    // return basic data type
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
-bool ExecGetAllNetFirewallRules(GetAllNetFirewallRulesContext *context)
+bool ExecGetNetFirewallRules(GetNetFirewallRulesContext *context)
 {
     if (!context->IsParseOK()) {
         return false;
     }
-    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->GetAllNetFirewallRules(context->userId_,
+    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->GetNetFirewallRules(context->userId_,
         context->requestParam_, context->pageInfo_);
     if (result != FIREWALL_SUCCESS || context->pageInfo_ == nullptr) {
-        NETMANAGER_EXT_LOGE("ExecGetAllNetFirewallRules error, errorCode: %{public}d", result);
+        NETMANAGER_EXT_LOGE("ExecGetNetFirewallRules error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
         return false;
     }
     return true;
 }
 
-napi_value GetAllNetFirewallRulesCallback(GetAllNetFirewallRulesContext *context)
+napi_value GetNetFirewallRulesCallback(GetNetFirewallRulesContext *context)
 {
     napi_value pageInfo = NapiUtils::CreateObject(context->GetEnv());
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE, context->pageInfo_->page);
@@ -196,22 +196,22 @@ napi_value GetNetFirewallRuleCallback(GetNetFirewallRuleContext *context)
     return rule;
 }
 
-bool ExecGetAllInterceptRecords(GetAllInterceptRecordsContext *context)
+bool ExecGetInterceptRecords(GetInterceptRecordsContext *context)
 {
     if (!context->IsParseOK()) {
         return false;
     }
-    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->GetAllInterceptRecords(context->userId_,
+    int32_t result = DelayedSingleton<NetFirewallClient>::GetInstance()->GetInterceptRecords(context->userId_,
         context->requestParam_, context->pageInfo_);
     if (result != FIREWALL_SUCCESS || context->pageInfo_ == nullptr) {
-        NETMANAGER_EXT_LOGE("ExecGetAllNetFirewallRules error, errorCode: %{public}d", result);
+        NETMANAGER_EXT_LOGE("ExecGetNetFirewallRules error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
         return false;
     }
     return true;
 }
 
-napi_value GetAllInterceptRecordCallbacks(GetAllInterceptRecordsContext *context)
+napi_value GetInterceptRecordCallbacks(GetInterceptRecordsContext *context)
 {
     napi_value pageInfo = NapiUtils::CreateObject(context->GetEnv());
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE, context->pageInfo_->page);
