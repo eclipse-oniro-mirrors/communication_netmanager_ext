@@ -1,0 +1,22 @@
+{
+  "default_rules": [
+    {
+      "ruleName": "",
+      "ruleDirection": 1,
+      "ruleAction": 0,
+      "ruleType": -1,
+      "isEnabled": false,
+      "appUid": 0,
+      "localIps": [],
+      "remoteIps": [],
+      "protocol": 17,
+      "localPorts": [],
+      "remotePorts": [
+        {
+          "startPort": 0,
+          "endPort": 0
+        }
+      ]
+    }
+  ]
+}
