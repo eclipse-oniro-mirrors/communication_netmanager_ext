@@ -107,7 +107,7 @@ public:
      * @param insertValues Value inserted
      * @param tableName Table name
      * @return Error or row id. when rdb store is not exsit, or store inserted return value is not OK,
-     *       it will return to error
+     *     it will return to error
      */
     int64_t Insert(const OHOS::NativeRdb::ValuesBucket &insertValues, const std::string tableName);
 
@@ -146,28 +146,10 @@ public:
     std::shared_ptr<OHOS::NativeRdb::ResultSet> Query(const OHOS::NativeRdb::AbsRdbPredicates &predicates,
         const std::vector<std::string> &columns);
 
-    /**
-     * Begin transaction
-     *
-     * @param void
-     * @return Returns 0 success. Otherwise fail
-     */
     int32_t BeginTransaction();
 
-    /**
-     * Commit
-     * 
-     * @param void
-     * @return Returns 0 success. Otherwise fail
-     */
     int32_t Commit();
 
-    /**
-     * Roll back
-     *
-     * @param void
-     * @return Returns 0 success. Otherwise fail
-     */
     int32_t RollBack();
 
     /**

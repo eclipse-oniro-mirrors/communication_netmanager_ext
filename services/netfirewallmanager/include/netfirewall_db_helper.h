@@ -217,7 +217,7 @@ public:
 
     /**
      * Query firewall rule
-     *  
+     *
      * @param ruleId Rule id
      * @param userId User id
      * @param rules List of rules obtained from query
