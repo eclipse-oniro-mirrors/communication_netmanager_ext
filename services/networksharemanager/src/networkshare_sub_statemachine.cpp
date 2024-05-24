@@ -23,6 +23,7 @@
 #include "route_utils.h"
 #include <ifaddrs.h>
 #include <random>
+#include <regex>
 #include <sys/types.h>
 
 namespace OHOS {
@@ -324,28 +325,27 @@ int32_t NetworkShareSubStateMachine::GenerateIpv6(const std::string &iface)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-bool NetworkShareSubStateMachine::StartIpv6()
+void NetworkShareSubStateMachine::StartIpv6()
 {
     NETMGR_EXT_LOG_I("Start ipv6 for iface: %{public}s", ifaceName_.c_str());
     if (lastRaParams_.prefixes_.size() == 0) {
         NETMGR_EXT_LOG_I("have nothing ipv6 address!");
-        return false;
+        return;
     }
     if (raDaemon_ == nullptr) {
         raDaemon_ = std::make_shared<RouterAdvertisementDaemon>();
     }
-    if (!raDaemon_->Init(ifaceName_)) {
+    if (raDaemon_->Init(ifaceName_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("Init ipv6 share failed");
-        return false;
+        return;
     }
     int32_t mtu = NetsysController::GetInstance().GetInterfaceMtu(ifaceName_);
     lastRaParams_.mtu_ = mtu > IPV6_MIN_MTU ? mtu : IPV6_MIN_MTU;
     raDaemon_->BuildNewRa(lastRaParams_);
-    if (!raDaemon_->StartRa()) {
+    if (raDaemon_->StartRa() != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartRa failed");
         StopIpv6();
-        return false;
     }
-    return true;
 }
 
 void NetworkShareSubStateMachine::StopIpv6()
@@ -365,15 +365,11 @@ void NetworkShareSubStateMachine::SharedStateEnter()
         return;
     }
     trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_SHARED, lastError_);
-
     if (!ConfigureShareDhcp(true)) {
         lastError_ = NETWORKSHARE_ERROR_IFACE_CFG_ERROR;
         NETMGR_EXT_LOG_E("Enter sub StateMachine[%{public}s] Shared State configIpv4 error.", ifaceName_.c_str());
     }
-
-    if (!StartIpv6()) {
-        NETMGR_EXT_LOG_E("Start Ipv6 failed.");
-    }
+    StartIpv6();
 }
 
 void NetworkShareSubStateMachine::SharedStateExit()
@@ -561,7 +557,6 @@ void NetworkShareSubStateMachine::AddIpv6AddrToLocalNetwork()
 
 void NetworkShareSubStateMachine::AddIpv6InfoToLocalNetwork()
 {
-    lastRaParams_.Clear();
     if (!GetWifiApDstIpv6Addr()) {
         NETMGR_EXT_LOG_E("have nothing ipv6 params!");
         return;
@@ -660,10 +655,16 @@ bool NetworkShareSubStateMachine::GetWifiApDestinationAddr(std::string &addrStr)
 
 bool NetworkShareSubStateMachine::GetWifiApDstIpv6Addr()
 {
+    lastRaParams_.Clear();
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = ifaceName_;
     if (NetsysController::GetInstance().GetInterfaceConfig(config) != ERR_NONE) {
         NETMGR_EXT_LOG_E("Get interface mac err!");
+        return false;
+    }
+    std::regex pattern("^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$");
+    if (!std::regex_match(config.hwAddr, pattern)) {
+        NETMGR_EXT_LOG_E("Get interface mac format err!");
         return false;
     }
     lastRaParams_.macAddr_ = config.hwAddr;
@@ -672,7 +673,7 @@ bool NetworkShareSubStateMachine::GetWifiApDstIpv6Addr()
         return false;
     }
     if (lastRaParams_.prefixes_.size() == 0) {
-        NETMGR_EXT_LOG_E("have nothing ipv6 address!");
+        NETMGR_EXT_LOG_E("have nothing ipv6 address for iface[%{public}s!", upstreamIfaceName_.c_str());
         return false;
     }
     if (GenerateIpv6(upstreamIfaceName_) != NETMANAGER_EXT_SUCCESS) {

@@ -30,7 +30,6 @@ namespace {
  *                 MaxRtrAdvInterval >= 9 seconds; otherwise, the
  *                 Default is MaxRtrAdvInterval.
  */
-constexpr uint32_t MIN_RTR_ADV_INTERVAL_SEC = 600;
 constexpr uint32_t MAX_URGENT_RTR_ADVERTISEMENTS = 10;
 constexpr uint32_t RECV_RS_TIMEOUT = 1;
 constexpr uint32_t SEND_RA_INTERVAL = 3;
@@ -44,7 +43,6 @@ constexpr size_t RA_HEADER_SIZE = 16;
  */
 constexpr uint8_t DEFAULT_ROUTER_PRE = 0x08;
 constexpr uint8_t PREFIX_INFO_FLAGS = 0xc0;
-constexpr int32_t MAC_ADDRESS_STR_LEN = 18;
 constexpr uint32_t DEFAULT_HOP_LIMIT = 255;
 
 /**
@@ -72,34 +70,34 @@ void RouterAdvertisementDaemon::HupRaThread()
     stopRaThread_ = true;
 }
 
-bool RouterAdvertisementDaemon::Init(const std::string &ifaceName)
+int32_t RouterAdvertisementDaemon::Init(const std::string &ifaceName)
 {
     sendRaTimes_ = 0;
     raParams_->name_ = ifaceName;
     raParams_->index_ = if_nametoindex(ifaceName.c_str());
     if (memset_s(&dstIpv6Addr_, sizeof(dstIpv6Addr_), 0, sizeof(dstIpv6Addr_)) != EOK) {
-        return false;
+        return NETMANAGER_EXT_ERR_MEMSET_FAIL;
     }
     dstIpv6Addr_.sin6_port = 0;
     dstIpv6Addr_.sin6_family = AF_INET6;
     dstIpv6Addr_.sin6_scope_id = 0;
     inet_pton(AF_INET6, DST_IPV6, &dstIpv6Addr_.sin6_addr);
-    return true;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-bool RouterAdvertisementDaemon::StartRa()
+int32_t RouterAdvertisementDaemon::StartRa()
 {
     NETMGR_EXT_LOG_I("StartRa");
     if (!CreateRASocket()) {
         NETMGR_EXT_LOG_E("StartRa fail due to socket");
-        return false;
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     pThis = this;
     stopRaThread_ = false;
     recvRsThread_ = std::thread(&RouterAdvertisementDaemon::RunRecvRsThread, this);
     pthread_setname_np(recvRsThread_.native_handle(), "OH_Net_RecvRs");
     recvRsThread_.detach();
-    return true;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void RouterAdvertisementDaemon::StopRa()
@@ -257,7 +255,7 @@ void RouterAdvertisementDaemon::ResetRaRetryInterval()
     if (sendRaTimes_ == MAX_URGENT_RTR_ADVERTISEMENTS) {
         itimerval setvalue = {};
         itimerval oldvalue = {};
-        setvalue.it_interval.tv_sec = MIN_RTR_ADV_INTERVAL_SEC;
+        setvalue.it_interval.tv_sec = DEFAULT_RTR_INTERVAL_SEC;
         setvalue.it_value.tv_sec = 1;
         setitimer(ITIMER_REAL, &setvalue, &oldvalue);
         sendRaTimes_++;
@@ -336,16 +334,12 @@ uint16_t RouterAdvertisementDaemon::PutRaSlla(uint8_t *raBuf, const std::string 
     Icmpv6SllOpt srcLinkAddrSt;
     srcLinkAddrSt.type = ND_OPTION_SLLA_TYPE;
     srcLinkAddrSt.len = sizeof(Icmpv6SllOpt) / UNITS_OF_OCTETS;
-    char strAddr[MAC_ADDRESS_STR_LEN] = {};
-    if (memcpy_s(strAddr, MAC_ADDRESS_STR_LEN, mac.c_str(), mac.size()) != EOK) {
-        return 0;
-    }
-    uint8_t byte = 0;
+    std::istringstream iss(mac);
+    int value = 0;
     for (uint32_t i = 0; i < HW_MAC_LENGTH; i++) {
-        if (sscanf_s(strAddr + MAC_SSCANF_SPACE * i, "%2x", &byte) <= 0) {
-            return 0;
-        }
-        srcLinkAddrSt.linkAddress[i] = byte;
+        iss >> std::hex >> value;
+        srcLinkAddrSt.linkAddress[i] = static_cast<uint8_t>(value);
+        iss.ignore(1, ':');
     }
     if (memcpy_s(raBuf, sizeof(Icmpv6SllOpt), &srcLinkAddrSt, sizeof(Icmpv6SllOpt)) != EOK) {
         return 0;

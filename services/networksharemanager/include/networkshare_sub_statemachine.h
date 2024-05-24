@@ -121,7 +121,7 @@ private:
     bool CheckConfig(std::string &endIp, std::string &mask);
     bool FindDestinationAddr(std::string &destination);
     std::recursive_mutex &getUsefulMutex();
-    bool StartIpv6();
+    void StartIpv6();
     void StopIpv6();
     std::string MacToEui64Addr(std::string &mac);
     int32_t GenerateIpv6(const std::string &iface);
