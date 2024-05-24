@@ -55,12 +55,12 @@ public:
     public:
         explicit ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
             NetFirewallService &netfirewallService)
-            : EventFwk::CommonEventSubscriber(subscriberInfo), _netfirewallService(netfirewallService) {};
+            : EventFwk::CommonEventSubscriber(subscriberInfo), netfirewallService_(netfirewallService) {};
 
         virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
 
     private:
-        NetFirewallService &_netfirewallService;
+        NetFirewallService &netfirewallService_;
     };
 
     // Firewall interception log callback

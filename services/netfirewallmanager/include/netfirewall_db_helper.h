@@ -209,7 +209,7 @@ public:
 
     /**
      * Query all rules
-     * 
+     *
      * @param rules List of rules obtained from query
      * @return Returns 0 success. Otherwise fail
      */
