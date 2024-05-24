@@ -43,7 +43,7 @@ public:
         return 0;
     }
 
-    int32_t SaveSystemVpn(sptr<VpnConfig> &config) override
+    int32_t SaveSystemVpn(sptr<SystemVpnConfig> &config) override
     {
         return 0;
     }
@@ -53,17 +53,17 @@ public:
         return 0;
     }
 
-    int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList) override
+    int32_t GetSystemVpnList(std::vector<SystemVpnConfig> &vpnList) override
     {
         return 0;
     }
 
-    int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid) override
+    int32_t GetSystemVpn(sptr<SystemVpnConfig> &config, std::string &vpnUuid) override
     {
         return 0;
     }
 
-    int32_t GetConnectedSystemVpn(sptr<VpnConfig> &config) override
+    int32_t GetConnectedSystemVpn(sptr<SystemVpnConfig> &config) override
     {
         return 0;
     }
