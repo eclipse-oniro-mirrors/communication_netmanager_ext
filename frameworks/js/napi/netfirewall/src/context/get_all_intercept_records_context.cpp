@@ -36,11 +36,11 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount
     return true;
 }
 
-GetAllInterceptRecordsContext::GetAllInterceptRecordsContext(napi_env env, EventManager *manager)
+GetInterceptRecordsContext::GetInterceptRecordsContext(napi_env env, EventManager *manager)
     : BaseContext(env, manager)
 {}
 
-void GetAllInterceptRecordsContext::ParseParams(napi_value *params, size_t paramsCount)
+void GetInterceptRecordsContext::ParseParams(napi_value *params, size_t paramsCount)
 {
     if (!CheckParamsType(GetEnv(), params, paramsCount)) {
         SetErrorCode(FIREWALL_ERR_PARAMETER_ERROR);

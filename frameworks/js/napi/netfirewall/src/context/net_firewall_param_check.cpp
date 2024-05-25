@@ -23,12 +23,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t MAX_RULE_NAME_LEN = 128;
-constexpr int32_t MAX_RULE_DESCRIPTION_LEN = 256;
-constexpr int32_t MAX_RULE_IP_COUNT = 20;
-constexpr int32_t MAX_RULE_PORT_COUNT = 10;
-constexpr int32_t MAX_RULE_DOMAIN_COUNT = 100;
-constexpr int32_t MAX_RULE_DOMAIN_NAME_LEN = 253;
 constexpr int32_t MAX_RULE_PORT = 65535;
 const std::regex DOMAIN_PATTERN { "(https?://"
     ")?([a-zA-Z0-9-]|\\*)+(\\.([a-zA-Z0-9-])+)*\\.(com|net|org|edu|gov|mil|cn|hk|tw|jp|de|uk|fr|au|ca|br|ru|it|es|in|"
@@ -52,32 +46,30 @@ int32_t NetFirewallParamCheck::CheckFirewallRuleStatus(napi_env env, napi_value 
     }
 
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_IN_ACTION)) {
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_IN_ACTION)) ==
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_IN_ACTION)) !=
             napi_number) {
-            FirewallRuleAction inAction =
-                static_cast<FirewallRuleAction>(NapiUtils::GetInt32Property(env, object, NET_FIREWALL_IN_ACTION));
-            if (inAction != FirewallRuleAction::RULE_ALLOW && inAction != FirewallRuleAction::RULE_DENY) {
-                NETMANAGER_EXT_LOGE("params inAction invalid");
-                return FIREWALL_ERR_INVALID_PARAMETER;
-            }
-        } else {
             NETMANAGER_EXT_LOGE("params inAction type invalid");
             return FIREWALL_ERR_PARAMETER_ERROR;
+        }
+        FirewallRuleAction inAction =
+            static_cast<FirewallRuleAction>(NapiUtils::GetInt32Property(env, object, NET_FIREWALL_IN_ACTION));
+        if (inAction != FirewallRuleAction::RULE_ALLOW && inAction != FirewallRuleAction::RULE_DENY) {
+            NETMANAGER_EXT_LOGE("params inAction invalid");
+            return FIREWALL_ERR_INVALID_PARAMETER;
         }
     }
 
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_OUT_ACTION)) {
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_OUT_ACTION)) ==
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_OUT_ACTION)) !=
             napi_number) {
-            FirewallRuleAction outAction =
-                static_cast<FirewallRuleAction>(NapiUtils::GetInt32Property(env, object, NET_FIREWALL_OUT_ACTION));
-            if (outAction != FirewallRuleAction::RULE_ALLOW && outAction != FirewallRuleAction::RULE_DENY) {
-                NETMANAGER_EXT_LOGE("params outAction invalid");
-                return FIREWALL_ERR_INVALID_PARAMETER;
-            }
-        } else {
             NETMANAGER_EXT_LOGE("params outAction type invalid");
             return FIREWALL_ERR_PARAMETER_ERROR;
+        }
+        FirewallRuleAction outAction =
+            static_cast<FirewallRuleAction>(NapiUtils::GetInt32Property(env, object, NET_FIREWALL_OUT_ACTION));
+        if (outAction != FirewallRuleAction::RULE_ALLOW && outAction != FirewallRuleAction::RULE_DENY) {
+            NETMANAGER_EXT_LOGE("params outAction invalid");
+            return FIREWALL_ERR_INVALID_PARAMETER;
         }
     }
     return FIREWALL_SUCCESS;
@@ -86,32 +78,30 @@ int32_t NetFirewallParamCheck::CheckFirewallRuleStatus(napi_env env, napi_value 
 int32_t NetFirewallParamCheck::CheckFirewallDns(napi_env env, napi_value object)
 {
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_DNS_PRIMARY)) {
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_PRIMARY)) ==
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_PRIMARY)) !=
             napi_string) {
-            std::string primaryDns = NapiUtils::GetStringFromValueUtf8(env,
-                NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_PRIMARY));
-            int32_t ret = CheckIpAddress(primaryDns);
-            if (ret != FIREWALL_SUCCESS) {
-                return ret;
-            }
-        } else {
             NETMANAGER_EXT_LOGE("params dns type invalid");
             return FIREWALL_ERR_PARAMETER_ERROR;
+        }
+        std::string primaryDns =
+            NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_PRIMARY));
+        int32_t ret = CheckIpAddress(primaryDns);
+        if (ret != FIREWALL_SUCCESS) {
+            return ret;
         }
     }
 
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_DNS_STANDY)) {
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_STANDY)) ==
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_STANDY)) !=
             napi_string) {
-            std::string standyDns = NapiUtils::GetStringFromValueUtf8(env,
-                NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_STANDY));
-            int32_t ret = CheckIpAddress(standyDns);
-            if (ret != FIREWALL_SUCCESS) {
-                return ret;
-            }
-        } else {
             NETMANAGER_EXT_LOGE("params dns type invalid");
             return FIREWALL_ERR_PARAMETER_ERROR;
+        }
+        std::string standyDns =
+            NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_STANDY));
+        int32_t ret = CheckIpAddress(standyDns);
+        if (ret != FIREWALL_SUCCESS) {
+            return ret;
         }
     }
     return FIREWALL_SUCCESS;
@@ -165,18 +155,15 @@ int32_t NetFirewallParamCheck::CheckIpAddress(const std::string &ipStr, const in
 bool NetFirewallParamCheck::CheckIpAddress(const std::string &startIp, const std::string &endIp, const int32_t family)
 {
     int32_t ret = 0;
+    int32_t endRet = 0;
     if (family == FAMILY_IPV6) {
         in6_addr in6_addr1;
         in6_addr in6_addr2;
         // Convert IPv6 addresses to binary form
         ret = inet_pton(AF_INET6, startIp.c_str(), &in6_addr1);
-        if (ret <= 0) {
-            NETMANAGER_EXT_LOGE("CheckIpAddress ipv6: startIp is invalid");
-            return false;
-        }
-        ret = inet_pton(AF_INET6, endIp.c_str(), &in6_addr2);
-        if (ret <= 0) {
-            NETMANAGER_EXT_LOGE("CheckIpAddress ipv6: endIp is invalid");
+        endRet = inet_pton(AF_INET6, endIp.c_str(), &in6_addr2);
+        if (ret <= 0 || endRet <= 0) {
+            NETMANAGER_EXT_LOGE("CheckIpAddress ipv6: startIp or endIp is invalid");
             return false;
         }
         // Comparing IPv6 addresses in binary form
@@ -191,13 +178,9 @@ bool NetFirewallParamCheck::CheckIpAddress(const std::string &startIp, const std
     in_addr inAddr1;
     in_addr inAddr2;
     ret = inet_pton(AF_INET, startIp.c_str(), &inAddr1);
-    if (ret <= 0) {
-        NETMANAGER_EXT_LOGE("CheckIpAddress ipv4: startIp is invalid");
-        return false;
-    }
-    ret = inet_pton(AF_INET, endIp.c_str(), &inAddr2);
-    if (ret <= 0) {
-        NETMANAGER_EXT_LOGE("CheckIpAddress ipv4: endIp is invalid");
+    endRet = inet_pton(AF_INET, endIp.c_str(), &inAddr2);
+    if (ret <= 0 || endRet <= 0) {
+        NETMANAGER_EXT_LOGE("CheckIpAddress ipv4: startIp or endIp is invalid");
         return false;
     }
     ret = memcmp(&startIp, &endIp, sizeof(struct in_addr));
@@ -215,7 +198,6 @@ int32_t NetFirewallParamCheck::CheckIpV4(const std::string &ipV4)
     if (ret <= 0) {
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
-
     return FIREWALL_SUCCESS;
 }
 
@@ -231,7 +213,7 @@ int32_t NetFirewallParamCheck::CheckIpV6(const std::string &ipV6)
 
 int32_t NetFirewallParamCheck::CheckSingeIp(napi_env env, napi_value valAttr, int32_t family)
 {
-    // When using a single IP, Address must have
+    // Address must be filled if a single IP is used
     if (!NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_ADDRESS)) {
         NETMANAGER_EXT_LOGE("params ip type1 but no address");
         return FIREWALL_ERR_INVALID_PARAMETER;
@@ -264,7 +246,7 @@ int32_t NetFirewallParamCheck::CheckSingeIp(napi_env env, napi_value valAttr, in
 
 int32_t NetFirewallParamCheck::CheckMultipleIp(napi_env env, napi_value valAttr, int32_t family)
 {
-    // When using multiple IPs, the starting address must have
+    // Starting address must be filled if the multiple IPs are used
     if (!NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_START) ||
         !NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_END)) {
         NETMANAGER_EXT_LOGE("params ip type2 but no startIp or endIp");
@@ -303,12 +285,11 @@ int32_t NetFirewallParamCheck::CheckIpList(napi_env env, napi_value object)
         }
         int32_t family = FAMILY_IPV4;
         if (NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_FAMILY)) {
-            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_IP_FAMILY)) ==
+            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_IP_FAMILY)) !=
                 napi_number) {
-                family = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_FAMILY);
-            } else {
                 return FIREWALL_ERR_PARAMETER_ERROR;
             }
+            family = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_FAMILY);
             if (family != FAMILY_IPV4 && family != FAMILY_IPV6) {
                 NETMANAGER_EXT_LOGE("family param invalid.");
                 return FIREWALL_ERR_INVALID_PARAMETER;
@@ -317,12 +298,11 @@ int32_t NetFirewallParamCheck::CheckIpList(napi_env env, napi_value object)
 
         int32_t type = SINGLE_IP;
         if (NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_IP_TYPE)) {
-            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_IP_TYPE)) ==
+            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_IP_TYPE)) !=
                 napi_number) {
-                type = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_TYPE);
-            } else {
                 return FIREWALL_ERR_PARAMETER_ERROR;
             }
+            type = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_TYPE);
             if (type != SINGLE_IP && type != MULTIPLE_IP) {
                 NETMANAGER_EXT_LOGE("params ip type invalid");
                 return FIREWALL_ERR_INVALID_PARAMETER;
@@ -357,12 +337,11 @@ int32_t NetFirewallParamCheck::CheckPortList(napi_env env, napi_value object)
         }
         int32_t startPort = 0;
         if (NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_PORT_START)) {
-            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_PORT_START)) ==
+            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_PORT_START)) !=
                 napi_number) {
-                startPort = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_PORT_START);
-            } else {
                 return FIREWALL_ERR_PARAMETER_ERROR;
             }
+            startPort = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_PORT_START);
             if (startPort > MAX_RULE_PORT || startPort < 0) {
                 NETMANAGER_EXT_LOGE("start port is more then %{public}d", MAX_RULE_PORT);
                 return FIREWALL_ERR_INVALID_PARAMETER;
@@ -370,12 +349,11 @@ int32_t NetFirewallParamCheck::CheckPortList(napi_env env, napi_value object)
         }
         if (NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_PORT_END)) {
             int32_t endPort = 0;
-            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_PORT_END)) ==
+            if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_PORT_END)) !=
                 napi_number) {
-                endPort = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_PORT_END);
-            } else {
                 return FIREWALL_ERR_PARAMETER_ERROR;
             }
+            endPort = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_PORT_END);
             if (endPort > MAX_RULE_PORT || endPort < 0 || endPort < startPort) {
                 NETMANAGER_EXT_LOGE("end port is more then %{public}d", MAX_RULE_PORT);
                 return FIREWALL_ERR_INVALID_PARAMETER;
@@ -409,22 +387,19 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
             napi_value value = NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN_IS_WILDCARD);
             if (NapiUtils::GetValueType(env, value) != napi_boolean) {
                 return FIREWALL_ERR_PARAMETER_ERROR;
-            } else {
-                isWildCard = NapiUtils::GetBooleanValue(env, value);
             }
+            isWildCard = NapiUtils::GetBooleanValue(env, value);
         }
 
         if (!NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN)) {
             continue;
         }
         std::string domain = "";
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN)) ==
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN)) !=
             napi_string) {
-            domain =
-                NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN));
-        } else {
             return FIREWALL_ERR_PARAMETER_ERROR;
         }
+        domain = NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN));
         if (domain.empty() || domain.size() > MAX_RULE_DOMAIN_NAME_LEN) {
             NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}d", MAX_RULE_DOMAIN_NAME_LEN);
             return FIREWALL_ERR_INVALID_PARAMETER;
@@ -441,21 +416,18 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
 
 int32_t NetFirewallParamCheck::CheckUpdateFirewallRule(napi_env env, napi_value object)
 {
-    if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_RULE_ID)) {
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_ID)) ==
-            napi_number) {
-            int32_t ruleId = NapiUtils::GetInt32Property(env, object, NET_FIREWALL_RULE_ID);
-            if (ruleId < 0 || ruleId > INT32_MAX) {
-                NETMANAGER_EXT_LOGE("invalid ruleId");
-                return FIREWALL_ERR_INVALID_PARAMETER;
-            }
-        } else {
-            NETMANAGER_EXT_LOGE("params type invalid");
-            return FIREWALL_ERR_PARAMETER_ERROR;
-        }
-    } else {
+    if (!NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_RULE_ID)) {
         NETMANAGER_EXT_LOGE("params type invalid");
         return FIREWALL_ERR_PARAMETER_ERROR;
+    }
+    if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_ID)) != napi_number) {
+        NETMANAGER_EXT_LOGE("params type invalid");
+        return FIREWALL_ERR_PARAMETER_ERROR;
+    }
+    int32_t ruleId = NapiUtils::GetInt32Property(env, object, NET_FIREWALL_RULE_ID);
+    if (ruleId < 0 || ruleId > INT32_MAX) {
+        NETMANAGER_EXT_LOGE("invalid ruleId");
+        return FIREWALL_ERR_INVALID_PARAMETER;
     }
     return CheckFirewallRule(env, object);
 }
@@ -517,15 +489,22 @@ int32_t NetFirewallParamCheck::CheckFirewallRule(napi_env env, napi_value object
 int32_t NetFirewallParamCheck::CheckRuleObjectParams(napi_env env, napi_value object, const NetFirewallRuleType &type)
 {
     std::vector<std::string> objectParam;
-    if (type == NetFirewallRuleType::RULE_IP) {
-        objectParam.emplace_back(NET_FIREWALL_LOCAL_IP);
-        objectParam.emplace_back(NET_FIREWALL_REMOTE_IP);
-        objectParam.emplace_back(NET_FIREWALL_LOCAL_PORT);
-        objectParam.emplace_back(NET_FIREWALL_REMOTE_PORT);
-    } else if (type == NetFirewallRuleType::RULE_DOMAIN) {
-        objectParam.emplace_back(NET_FIREWALL_RULE_DOMAIN);
-    } else {
-        objectParam.emplace_back(NET_FIREWALL_DNS);
+    switch (type) {
+        case NetFirewallRuleType::RULE_IP: {
+            objectParam.emplace_back(NET_FIREWALL_LOCAL_IP);
+            objectParam.emplace_back(NET_FIREWALL_REMOTE_IP);
+            objectParam.emplace_back(NET_FIREWALL_LOCAL_PORT);
+            objectParam.emplace_back(NET_FIREWALL_REMOTE_PORT);
+            break;
+        }
+        case NetFirewallRuleType::RULE_DOMAIN:
+            objectParam.emplace_back(NET_FIREWALL_RULE_DOMAIN);
+            break;
+        case NetFirewallRuleType::RULE_DNS:
+            objectParam.emplace_back(NET_FIREWALL_DNS);
+            break;
+        default:
+            break;
     }
     int32_t ret;
     for (const std::string &propertyName : objectParam) {
@@ -549,16 +528,16 @@ int32_t NetFirewallParamCheck::CheckRuleObjectParamValue(napi_env env, napi_valu
         NETMANAGER_EXT_LOGE("CheckRuleObjectParamValue property is not object");
         return FIREWALL_ERR_PARAMETER_ERROR;
     }
-    if (propertyName.find("Ips") != std::string::npos) {
+    if (propertyName == NET_FIREWALL_LOCAL_IP || propertyName == NET_FIREWALL_REMOTE_IP) {
         return CheckIpList(env, value);
     }
-    if (propertyName.find("Ports") != std::string::npos) {
+    if (propertyName == NET_FIREWALL_LOCAL_PORT || propertyName == NET_FIREWALL_REMOTE_PORT) {
         return CheckPortList(env, value);
     }
-    if (propertyName.find("domains") != std::string::npos) {
+    if (propertyName == NET_FIREWALL_RULE_DOMAIN) {
         return CheckDomainList(env, value);
     }
-    if (propertyName.find("dns") != std::string::npos) {
+    if (propertyName == NET_FIREWALL_DNS) {
         return CheckFirewallDns(env, value);
     }
     return FIREWALL_SUCCESS;
@@ -567,32 +546,30 @@ int32_t NetFirewallParamCheck::CheckRuleObjectParamValue(napi_env env, napi_valu
 int32_t NetFirewallParamCheck::CheckRuleName(napi_env env, napi_value object)
 {
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_RULE_NAME)) {
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_NAME)) ==
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_NAME)) !=
             napi_string) {
-            std::string ruleName = NapiUtils::GetStringFromValueUtf8(env,
-                NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_NAME));
-            if (ruleName.size() == 0 || ruleName.size() > MAX_RULE_NAME_LEN) {
-                NETMANAGER_EXT_LOGE("ruleName=[%{public}s] is too long", ruleName.c_str());
-                return FIREWALL_ERR_INVALID_PARAMETER;
-            }
-        } else {
             NETMANAGER_EXT_LOGE("params ruleName type invalid");
             return FIREWALL_ERR_PARAMETER_ERROR;
+        }
+        std::string ruleName =
+            NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_NAME));
+        if (ruleName.size() == 0 || ruleName.size() > MAX_RULE_NAME_LEN) {
+            NETMANAGER_EXT_LOGE("ruleName=[%{public}s] is too long", ruleName.c_str());
+            return FIREWALL_ERR_INVALID_PARAMETER;
         }
     }
 
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_RULE_DESC)) {
-        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_DESC)) ==
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_DESC)) !=
             napi_string) {
-            std::string ruleDescription = NapiUtils::GetStringFromValueUtf8(env,
-                NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_DESC));
-            if (ruleDescription.size() > MAX_RULE_DESCRIPTION_LEN) {
-                NETMANAGER_EXT_LOGE("ruleDescription size=%{public}d is too long", ruleDescription.size());
-                return FIREWALL_ERR_INVALID_PARAMETER;
-            }
-        } else {
             NETMANAGER_EXT_LOGE("params ruleDescription type invalid");
             return FIREWALL_ERR_PARAMETER_ERROR;
+        }
+        std::string ruleDescription =
+            NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_DESC));
+        if (ruleDescription.size() > MAX_RULE_DESCRIPTION_LEN) {
+            NETMANAGER_EXT_LOGE("ruleDescription size=%{public}d is too long", ruleDescription.size());
+            return FIREWALL_ERR_INVALID_PARAMETER;
         }
     }
     return FIREWALL_SUCCESS;

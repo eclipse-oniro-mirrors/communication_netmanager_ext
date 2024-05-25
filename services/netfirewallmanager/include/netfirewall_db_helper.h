@@ -186,7 +186,8 @@ public:
      * @param rules List of rules obtained from query
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t QueryEnabledFirewallRules(int32_t userId, std::vector<NetFirewallRule> &rules);
+    int32_t QueryEnabledFirewallRules(int32_t userId, std::vector<NetFirewallRule> &rules,
+        NetFirewallRuleType type = NetFirewallRuleType::RULE_ALL);
 
     /**
      * Query enabled rule set
@@ -197,15 +198,6 @@ public:
      * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryEnabledFirewallRules(int32_t userId, int32_t appUid, std::vector<NetFirewallRule> &rules);
-
-    /**
-     * Query enabled domain names and DNS rule sets
-     *
-     * @param userId User id
-     * @param rules List of rules obtained from query
-     * @return Returns 0 success. Otherwise fail
-     */
-    int32_t QueryEnabledDomainOrDnsRules(int32_t userId, std::vector<NetFirewallRule> &rules);
 
     /**
      * Query all rules
@@ -390,9 +382,6 @@ private:
 
     int32_t DeleteAndNoOtherOperation(const std::string &whereClause, const std::vector<std::string> &whereArgs);
 
-    int32_t DeleteFirewallRuleRecordByTable(const std::string &whereClause, const std::vector<std::string> &whereArgs,
-        const std::string &tableName);
-
     template <typename T>
     int32_t QueryAndGetResult(const NativeRdb::RdbPredicates &rdbPredicates, const std::vector<std::string> &columns,
         std::vector<T> &rules);
@@ -478,7 +467,6 @@ private:
     static std::shared_ptr<NetFirewallDbHelper> instance_;
     std::mutex databaseMutex_;
     std::shared_ptr<NetFirewallDataBase> firewallDatabase_;
-    uint64_t callStartTime_ = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

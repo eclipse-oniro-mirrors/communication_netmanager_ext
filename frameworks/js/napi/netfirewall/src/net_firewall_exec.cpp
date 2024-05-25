@@ -29,12 +29,18 @@ namespace NetManagerStandard {
 namespace NetFirewallExec {
 template <typename ContextT> static inline NetFirewallClient *GetNetFirewallInstance(ContextT *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
     auto manager = context->GetManager();
     return (manager == nullptr) ? nullptr : reinterpret_cast<NetFirewallClient *>(manager->GetData());
 }
 
 bool ExecSetNetFirewallStatus(SetNetFirewallStatusContext *context)
 {
+    if (context == nullptr || context->status_ == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -50,11 +56,17 @@ bool ExecSetNetFirewallStatus(SetNetFirewallStatusContext *context)
 
 napi_value SetNetFirewallStatusCallback(SetNetFirewallStatusContext *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
 bool ExecGetNetFirewallStatus(GetNetFirewallStatusContext *context)
 {
+    if (context == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -70,6 +82,9 @@ bool ExecGetNetFirewallStatus(GetNetFirewallStatusContext *context)
 
 napi_value GetNetFirewallStatusCallback(GetNetFirewallStatusContext *context)
 {
+    if (context == nullptr || context->status_ == nullptr) {
+        return nullptr;
+    }
     napi_value firewallStatus = NapiUtils::CreateObject(context->GetEnv());
 
     NapiUtils::SetBooleanProperty(context->GetEnv(), firewallStatus, NET_FIREWALL_IS_OPEN, context->status_->isOpen);
@@ -82,6 +97,9 @@ napi_value GetNetFirewallStatusCallback(GetNetFirewallStatusContext *context)
 
 bool ExecAddNetFirewallRule(AddNetFirewallRuleContext *context)
 {
+    if (context == nullptr || context->rule_ == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -97,12 +115,18 @@ bool ExecAddNetFirewallRule(AddNetFirewallRuleContext *context)
 
 napi_value AddNetFirewallRuleCallback(AddNetFirewallRuleContext *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
     // return basic data type
     return NapiUtils::CreateInt32(context->GetEnv(), context->reslut_);
 }
 
 bool ExecUpdateNetFirewallRule(UpdateNetFirewallRuleContext *context)
 {
+    if (context == nullptr || context->rule_ == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -117,12 +141,18 @@ bool ExecUpdateNetFirewallRule(UpdateNetFirewallRuleContext *context)
 
 napi_value UpdateNetFirewallRuleCallback(UpdateNetFirewallRuleContext *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
     // return basic data type
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
 bool ExecDeleteNetFirewallRule(DeleteNetFirewallRuleContext *context)
 {
+    if (context == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -138,12 +168,18 @@ bool ExecDeleteNetFirewallRule(DeleteNetFirewallRuleContext *context)
 
 napi_value DeleteNetFirewallRuleCallback(DeleteNetFirewallRuleContext *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
     // return basic data type
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
 bool ExecGetNetFirewallRules(GetNetFirewallRulesContext *context)
 {
+    if (context == nullptr || context->requestParam_ == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -159,7 +195,13 @@ bool ExecGetNetFirewallRules(GetNetFirewallRulesContext *context)
 
 napi_value GetNetFirewallRulesCallback(GetNetFirewallRulesContext *context)
 {
+    if (context == nullptr || context->pageInfo_ == nullptr) {
+        return nullptr;
+    }
     napi_value pageInfo = NapiUtils::CreateObject(context->GetEnv());
+    if (pageInfo == nullptr) {
+        return nullptr;
+    }
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE, context->pageInfo_->page);
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE_SIZE, context->pageInfo_->pageSize);
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_TOTAL_PAGE, context->pageInfo_->totalPage);
@@ -176,6 +218,9 @@ napi_value GetNetFirewallRulesCallback(GetNetFirewallRulesContext *context)
 
 bool ExecGetNetFirewallRule(GetNetFirewallRuleContext *context)
 {
+    if (context == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -191,6 +236,9 @@ bool ExecGetNetFirewallRule(GetNetFirewallRuleContext *context)
 
 napi_value GetNetFirewallRuleCallback(GetNetFirewallRuleContext *context)
 {
+    if (context == nullptr || context->rule_ == nullptr) {
+        return nullptr;
+    }
     napi_value rule = NapiUtils::CreateObject(context->GetEnv());
     NetFirewallRuleParse::SetRuleParams(context->GetEnv(), rule, *(context->rule_));
     return rule;
@@ -198,6 +246,9 @@ napi_value GetNetFirewallRuleCallback(GetNetFirewallRuleContext *context)
 
 bool ExecGetInterceptRecords(GetInterceptRecordsContext *context)
 {
+    if (context == nullptr || context->requestParam_ == nullptr) {
+        return false;
+    }
     if (!context->IsParseOK()) {
         return false;
     }
@@ -213,7 +264,13 @@ bool ExecGetInterceptRecords(GetInterceptRecordsContext *context)
 
 napi_value GetInterceptRecordCallbacks(GetInterceptRecordsContext *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
     napi_value pageInfo = NapiUtils::CreateObject(context->GetEnv());
+    if (context->pageInfo_ == nullptr) {
+        return nullptr;
+    }
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE, context->pageInfo_->page);
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE_SIZE, context->pageInfo_->pageSize);
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_TOTAL_PAGE, context->pageInfo_->totalPage);

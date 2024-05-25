@@ -36,11 +36,11 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount
     return false;
 }
 
-GetAllNetFirewallRulesContext::GetAllNetFirewallRulesContext(napi_env env, EventManager *manager)
+GetNetFirewallRulesContext::GetNetFirewallRulesContext(napi_env env, EventManager *manager)
     : BaseContext(env, manager)
 {}
 
-void GetAllNetFirewallRulesContext::ParseParams(napi_value *params, size_t paramsCount)
+void GetNetFirewallRulesContext::ParseParams(napi_value *params, size_t paramsCount)
 {
     if (!CheckParamsType(GetEnv(), params, paramsCount)) {
         SetErrorCode(FIREWALL_ERR_PARAMETER_ERROR);
@@ -49,7 +49,7 @@ void GetAllNetFirewallRulesContext::ParseParams(napi_value *params, size_t param
 
     userId_ = NapiUtils::GetInt32FromValue(GetEnv(), params[ARG_INDEX_0]);
     if (userId_ <= 0) {
-        NETMGR_EXT_LOG_E("GetAllNetFirewallRulesContext userid param invalid.");
+        NETMGR_EXT_LOG_E("GetNetFirewallRulesContext userid param invalid.");
         SetErrorCode(FIREWALL_ERR_INVALID_PARAMETER);
         return;
     }
