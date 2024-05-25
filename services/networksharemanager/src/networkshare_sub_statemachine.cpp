@@ -31,6 +31,7 @@ namespace NetManagerStandard {
 namespace {
 constexpr const char *NEXT_HOT = "0.0.0.0";
 constexpr const char *IPV6_NEXT_HOT = "";
+const std::regex REGEX_MAC(std::string(R"(^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$)"));
 
 /** https://www.rfc-editor.org/rfc/rfc4291
  * The type of an IPv6 address is identified by the high-order bits of
@@ -662,8 +663,7 @@ bool NetworkShareSubStateMachine::GetWifiApDstIpv6Addr()
         NETMGR_EXT_LOG_E("Get interface mac err!");
         return false;
     }
-    std::regex pattern("^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$");
-    if (!std::regex_match(config.hwAddr, pattern)) {
+    if (!std::regex_match(config.hwAddr, REGEX_MAC)) {
         NETMGR_EXT_LOG_E("Get interface mac format err!");
         return false;
     }
