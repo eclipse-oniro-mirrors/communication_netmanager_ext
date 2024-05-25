@@ -24,9 +24,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t MAX_RULE_PORT = 65535;
-const std::regex DOMAIN_PATTERN { "(https?://"
-    ")?([a-zA-Z0-9-]|\\*)+(\\.([a-zA-Z0-9-])+)*\\.(com|net|org|edu|gov|mil|cn|hk|tw|jp|de|uk|fr|au|ca|br|ru|it|es|in|"
-    "online|shop|vip|club|xyz|top|icu|work|website|tech|asia|xin|co|mobi|info)" };
+const std::regex DOMAIN_PATTERN { "^[A-Za-z0-9-]{1,63}(\\.[A-Za-z0-9-]{1,63}){0,}$" };
+const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)([A-Za-z0-9-]{1,63})(\\.)([A-Za-z0-9-]{1,63}){0,}$" };
 
 int32_t NetFirewallParamCheck::CheckFirewallRuleStatus(napi_env env, napi_value object)
 {
@@ -375,7 +374,6 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
         NETMANAGER_EXT_LOGE("domain invalid, size is too long.");
         return FIREWALL_ERR_EXCEED_MAX_DOMAIN;
     }
-
     for (size_t j = 0; j < len; j++) {
         napi_value valAttr = NapiUtils::GetArrayElement(env, object, j);
         if (NapiUtils::GetValueType(env, valAttr) != napi_object) {
@@ -390,7 +388,6 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
             }
             isWildCard = NapiUtils::GetBooleanValue(env, value);
         }
-
         if (!NapiUtils::HasNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN)) {
             continue;
         }
@@ -404,13 +401,13 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
             NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}d", MAX_RULE_DOMAIN_NAME_LEN);
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
-        bool isValid = isWildCard ? std::regex_match(domain, DOMAIN_PATTERN) : CommonUtils::IsValidDomain(domain);
+        std::regex pattern = isWildCard ? WILDCARD_DOMAIN_PATTERN : DOMAIN_PATTERN;
+        bool isValid = std::regex_match(domain, pattern);
         if (!isValid) {
             NETMANAGER_EXT_LOGE("invalid domain address");
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
     }
-
     return FIREWALL_SUCCESS;
 }
 
