@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-#include "ipsecvpn_config.h"
+#include "l2tpvpn_config.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-namespace {
-constexpr uint32_t MAX_SIZE = 64;
-}
 bool L2tpVpnConfig::Marshalling(Parcel &parcel) const
 {
     bool allOK = parcel.WriteString(uuid_) &&

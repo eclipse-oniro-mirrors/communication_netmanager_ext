@@ -18,9 +18,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-namespace {
-constexpr uint32_t MAX_SIZE = 64;
-}
 bool IpsecVpnConfig::Marshalling(Parcel &parcel) const
 {
     bool allOK = parcel.WriteString(uuid_) &&

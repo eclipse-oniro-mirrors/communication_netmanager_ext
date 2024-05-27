@@ -149,7 +149,7 @@ int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::SaveSystemVpn(sptr<SystemVpnConfig> &config)
+int32_t NetworkVpnServiceProxy::SaveSystemVpn(sptr<VpnConfig> &config)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
@@ -195,7 +195,7 @@ int32_t NetworkVpnServiceProxy::DeleteSystemVpn(std::string &vpnUuid)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::GetSystemVpnList(std::vector<SystemVpnConfig> &vpnList)
+int32_t NetworkVpnServiceProxy::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -210,7 +210,7 @@ int32_t NetworkVpnServiceProxy::GetSystemVpnList(std::vector<SystemVpnConfig> &v
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
     for (int32_t idx = 0; idx < vpnListSize; idx++) {
-        sptr<SystemVpnConfig> vpnConfig = SystemVpnConfig::Unmarshalling(reply);
+        sptr<VpnConfig> vpnConfig = VpnConfig::Unmarshalling(reply);
         if (vpnConfig == nullptr) {
             NETMGR_EXT_LOG_E("GetSystemVpnList vpnConfig is null");
             return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
@@ -220,7 +220,7 @@ int32_t NetworkVpnServiceProxy::GetSystemVpnList(std::vector<SystemVpnConfig> &v
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::GetSystemVpn(sptr<SystemVpnConfig> &config, std::string &vpnUuid)
+int32_t NetworkVpnServiceProxy::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
@@ -238,7 +238,7 @@ int32_t NetworkVpnServiceProxy::GetSystemVpn(sptr<SystemVpnConfig> &config, std:
         NETMGR_EXT_LOG_E("GetSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
-    config = SystemVpnConfig::Unmarshalling(reply);
+    config = VpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("GetSystemVpn read reply failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
@@ -246,7 +246,7 @@ int32_t NetworkVpnServiceProxy::GetSystemVpn(sptr<SystemVpnConfig> &config, std:
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::GetConnectedSystemVpn(sptr<SystemVpnConfig> &config)
+int32_t NetworkVpnServiceProxy::GetConnectedSystemVpn(sptr<VpnConfig> &config)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -256,7 +256,7 @@ int32_t NetworkVpnServiceProxy::GetConnectedSystemVpn(sptr<SystemVpnConfig> &con
         NETMGR_EXT_LOG_E("GetConnectedSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
-    config = SystemVpnConfig::Unmarshalling(reply);
+    config = VpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("GetConnectedSystemVpn read data size failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;

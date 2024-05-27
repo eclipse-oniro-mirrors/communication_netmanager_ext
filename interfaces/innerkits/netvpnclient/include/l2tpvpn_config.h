@@ -32,7 +32,7 @@ struct L2tpVpnConfig : public Parcelable {
 
     std::string userName_;
     std::string password_;
-    bool saveLogin_ = false;
+    int32_t saveLogin_ = 0;
     int32_t userId_ = 0;
     std::string vpnAddress_;
 

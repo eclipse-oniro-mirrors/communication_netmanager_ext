@@ -101,7 +101,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t SaveSystemVpn(sptr<SystemVpnConfig> &config);
+    int32_t SaveSystemVpn(sptr<VpnConfig> &config);
 
     /**
      * delete vpn
@@ -121,7 +121,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetSystemVpnList(std::vector<SystemVpnConfig> &vpnList);
+    int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList);
 
     /**
      * get vpn detail
@@ -132,7 +132,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetSystemVpn(sptr<SystemVpnConfig> &config, std::string &vpnUuid);
+    int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid);
 
     /**
      * get connected vpn
@@ -142,7 +142,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetConnectedSystemVpn(sptr<SystemVpnConfig> &config);
+    int32_t GetConnectedSystemVpn(sptr<VpnConfig> &config);
 
     /**
      * register the vpn state callback
