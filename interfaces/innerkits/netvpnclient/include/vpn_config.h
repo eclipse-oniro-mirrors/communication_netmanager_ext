@@ -22,12 +22,17 @@
 #include "inet_addr.h"
 #include "parcel.h"
 #include "route.h"
+#include "openvpn_config.h"
+#include "ipsecvpn_config.h"
+#include "l2tpvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 struct VpnConfig : public Parcelable {
     std::string uuid_;
+    std::string vpnName_;
     int32_t vpnType_ = 0;
+
     std::vector<INetAddr> addresses_;
     std::vector<Route> routes_;
     int32_t mtu_ = 0;
