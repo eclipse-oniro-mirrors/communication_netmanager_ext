@@ -24,8 +24,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t MAX_RULE_PORT = 65535;
-const std::regex DOMAIN_PATTERN { "^[A-Za-z0-9-]{1,63}(\\.[A-Za-z0-9-]{1,63}){0,}$" };
-const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)([A-Za-z0-9-]{1,63})(\\.)([A-Za-z0-9-]{1,63}){0,}$" };
+const std::regex DOMAIN_PATTERN { "^([A-Za-z0-9-\\.]{1,63})(\\.)([A-Za-z0-9-]{1,63}){0,}$" };
+const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)([A-Za-z0-9-]{1,63})(\\.)([A-Za-z0-9-\\.]{1,63}){0,}$" };
 
 int32_t NetFirewallParamCheck::CheckFirewallRuleStatus(napi_env env, napi_value object)
 {
@@ -182,7 +182,7 @@ bool NetFirewallParamCheck::CheckIpAddress(const std::string &startIp, const std
         NETMANAGER_EXT_LOGE("CheckIpAddress ipv4: startIp or endIp is invalid");
         return false;
     }
-    ret = memcmp(&startIp, &endIp, sizeof(struct in_addr));
+    ret = memcmp(&inAddr1, &inAddr2, sizeof(struct in_addr));
     if (ret > 0) {
         NETMANAGER_EXT_LOGE("CheckIpAddress ipv4: start Ip is larger than endIp");
         return false;
