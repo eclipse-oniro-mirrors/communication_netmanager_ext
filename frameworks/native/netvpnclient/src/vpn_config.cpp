@@ -29,7 +29,10 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
                  MarshallingVectorString(parcel, searchDomains_) &&
                  MarshallingVectorString(parcel, acceptedApplications_) &&
                  MarshallingVectorString(parcel, refusedApplications_) &&
-                 parcel.WriteString(uuid_) && parcel.WriteString(vpnName_) && parcel.WriteInt32(vpnType_);
+                 parcel.WriteString(uuid_) && parcel.WriteString(vpnName_) && parcel.WriteInt32(vpnType_)
+                 parcel.WriteStrongParcelable(openVpnConfig_) &&
+                 parcel.WriteStrongParcelable(ipsecVpnConfig_) &&
+                 parcel.WriteStrongParcelable(l2tpVpnConfig_);
     return allOK;
 }
 
@@ -87,7 +90,10 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&
                  UnmarshallingVectorString(parcel, ptr->refusedApplications_) &&
-                 parcel.ReadString(ptr->uuid_) && parcel.ReadString(ptr->vpnName_) && parcel.ReadInt32(ptr->vpnType_);
+                 parcel.ReadString(ptr->uuid_) && parcel.ReadString(ptr->vpnName_) && parcel.ReadInt32(ptr->vpnType_)
+                 parcel.ReadStrongParcelable(ptr->openVpnConfig_) &&
+                 parcel.ReadStrongParcelable(ptr->ipsecVpnConfig_) &&
+                 parcel.ReadStrongParcelable(ptr->l2tpVpnConfig_);
     return allOK ? ptr : nullptr;
 }
 

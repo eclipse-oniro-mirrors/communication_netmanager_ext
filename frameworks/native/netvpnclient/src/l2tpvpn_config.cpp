@@ -27,9 +27,13 @@ bool L2tpVpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteString(password_) &&
                  parcel.WriteInt32(saveLogin_) &&
                  parcel.WriteString(vpnAddress_) &&
+                 parcel.WriteString(ipsecConf_) &&
+                 parcel.WriteString(ipsecSecrets_) &&
+                 parcel.WriteString(optionsL2tpdClient_) &&
+                 parcel.WriteString(xl2tpdConf_) &&
+                 parcel.WriteString(l2tpSharedKey_) &&
                  parcel.WriteString(ipsecPreSharedKey_) &&
                  parcel.WriteString(ipsecIdentifier_) &&
-                 parcel.WriteString(swanctlConf_) &&
                  parcel.WriteString(strongswanConf_) &&
                  parcel.WriteString(ipsecCaCertConf_) &&
                  parcel.WriteString(ipsecUserCertConf_) &&
@@ -44,7 +48,7 @@ sptr<L2tpVpnConfig> L2tpVpnConfig::Unmarshalling(Parcel &parcel)
 {
     sptr<L2tpVpnConfig> ptr = new (std::nothrow) L2tpVpnConfig();
     if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("ptr is null");
+        NETMGR_EXT_LOG_E("L2tpVpnConfig ptr is null");
         return nullptr;
     }
 
@@ -55,9 +59,13 @@ sptr<L2tpVpnConfig> L2tpVpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadString(ptr->password_) &&
                  parcel.ReadInt32(ptr->saveLogin_) &&
                  parcel.ReadString(ptr->vpnAddress_) &&
+                 parcel.ReadString(ptr->ipsecConf_) &&
+                 parcel.ReadString(ptr->ipsecSecrets_) &&
+                 parcel.ReadString(ptr->optionsL2tpdClient_) &&
+                 parcel.ReadString(ptr->xl2tpdConf_) &&
+                 parcel.ReadString(ptr->l2tpSharedKey_) &&
                  parcel.ReadString(ptr->ipsecPreSharedKey_) &&
                  parcel.ReadString(ptr->ipsecIdentifier_) &&
-                 parcel.ReadString(ptr->swanctlConf_) &&
                  parcel.ReadString(ptr->strongswanConf_) &&
                  parcel.ReadString(ptr->ipsecCaCertConf_) &&
                  parcel.ReadString(ptr->ipsecUserCertConf_) &&

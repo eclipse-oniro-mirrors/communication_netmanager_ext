@@ -35,11 +35,15 @@ struct L2tpVpnConfig : public Parcelable {
     int32_t saveLogin_ = 0;
     int32_t userId_ = 0;
     std::string vpnAddress_;
+    
+    std::string ipsecConf_;
+    std::string ipsecSecrets_;
+    std::string optionsL2tpdClient_;
+    std::string xl2tpdConf_;
+    std::string l2tpSharedKey_;
 
-    //ipsec
     std::string ipsecPreSharedKey_;
     std::string ipsecIdentifier_;
-    std::string swanctlConf_;
     std::string strongswanConf_;
     std::string ipsecCaCertConf_;
     std::string ipsecUserCertConf_;

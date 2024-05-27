@@ -43,7 +43,7 @@ sptr<OpenVpnConfig> OpenVpnConfig::Unmarshalling(Parcel &parcel)
 {
     sptr<OpenVpnConfig> ptr = new (std::nothrow) OpenVpnConfig();
     if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("ptr is null");
+        NETMGR_EXT_LOG_E("OpenVpnConfig ptr is null");
         return nullptr;
     }
 

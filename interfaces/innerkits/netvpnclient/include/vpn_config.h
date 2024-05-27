@@ -32,6 +32,9 @@ struct VpnConfig : public Parcelable {
     std::string uuid_;
     std::string vpnName_;
     int32_t vpnType_ = 0;
+    sptr<OpenVpnConifg> openVpnConfig_;
+    sptr<IpsecVpnConifg> ipsecVpnConfig_;
+    sptr<L2tpVpnConifg> l2tpVpnConfig_;
 
     std::vector<INetAddr> addresses_;
     std::vector<Route> routes_;
