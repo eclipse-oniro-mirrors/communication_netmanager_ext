@@ -95,9 +95,9 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
     bool systemVpnOK = parcel.ReadString(ptr->uuid_) && parcel.ReadString(ptr->vpnName_) &&
                  parcel.ReadInt32(ptr->vpnType_);
     if (systemVpnOK) {
-        ptr->openVpnConfig_ = parcel.ReadStrongParcelable();
-        ptr->ipsecVpnConfig_ = parcel.ReadStrongParcelable();
-        ptr->l2tpVpnConfig_ = parcel.ReadStrongParcelable();
+        ptr->openVpnConfig_ = parcel.ReadStrongParcelable<OpenVpnConfig>();
+        ptr->ipsecVpnConfig_ = parcel.ReadStrongParcelable<IpsecVpnConfig>();
+        ptr->l2tpVpnConfig_ = parcel.ReadStrongParcelable<L2tpVpnConfig>();
     }
     return (allOK && systemVpnOK) ? ptr : nullptr;
 }
