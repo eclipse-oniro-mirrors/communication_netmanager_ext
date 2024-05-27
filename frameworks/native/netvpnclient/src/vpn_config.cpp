@@ -28,12 +28,14 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteBool(isBlocking_) && MarshallingVectorString(parcel, dnsAddresses_) &&
                  MarshallingVectorString(parcel, searchDomains_) &&
                  MarshallingVectorString(parcel, acceptedApplications_) &&
-                 MarshallingVectorString(parcel, refusedApplications_) &&
-                 parcel.WriteString(uuid_) && parcel.WriteString(vpnName_) && parcel.WriteInt32(vpnType_)
+                 MarshallingVectorString(parcel, refusedApplications_);
+    bool systemVpnOK = parcel.WriteString(uuid_) &&
+                 parcel.WriteString(vpnName_) &&
+                 parcel.WriteInt32(vpnType_) &&
                  parcel.WriteStrongParcelable(openVpnConfig_) &&
                  parcel.WriteStrongParcelable(ipsecVpnConfig_) &&
                  parcel.WriteStrongParcelable(l2tpVpnConfig_);
-    return allOK;
+    return allOK && systemVpnOK;
 }
 
 bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
@@ -89,12 +91,15 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadBool(ptr->isBlocking_) && UnmarshallingVectorString(parcel, ptr->dnsAddresses_) &&
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&
-                 UnmarshallingVectorString(parcel, ptr->refusedApplications_) &&
-                 parcel.ReadString(ptr->uuid_) && parcel.ReadString(ptr->vpnName_) && parcel.ReadInt32(ptr->vpnType_)
-                 parcel.ReadStrongParcelable(ptr->openVpnConfig_) &&
-                 parcel.ReadStrongParcelable(ptr->ipsecVpnConfig_) &&
-                 parcel.ReadStrongParcelable(ptr->l2tpVpnConfig_);
-    return allOK ? ptr : nullptr;
+                 UnmarshallingVectorString(parcel, ptr->refusedApplications_);
+    bool systemVpnOK = parcel.ReadString(ptr->uuid_) && parcel.ReadString(ptr->vpnName_) &&
+                 parcel.ReadInt32(ptr->vpnType_);
+    if (systemVpnOK) {
+        ptr->openVpnConfig_ = parcel.ReadStrongParcelable();
+        ptr->ipsecVpnConfig_ = parcel.ReadStrongParcelable();
+        ptr->l2tpVpnConfig_ = parcel.ReadStrongParcelable();
+    }
+    return (allOK && systemVpnOK) ? ptr : nullptr;
 }
 
 bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, sptr<VpnConfig> &config)

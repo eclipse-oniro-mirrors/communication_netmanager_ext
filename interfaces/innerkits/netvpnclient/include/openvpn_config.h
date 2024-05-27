@@ -19,9 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "inet_addr.h"
 #include "parcel.h"
-#include "route.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

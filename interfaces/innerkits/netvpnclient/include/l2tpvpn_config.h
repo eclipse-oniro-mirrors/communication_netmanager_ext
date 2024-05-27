@@ -19,9 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "inet_addr.h"
 #include "parcel.h"
-#include "route.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -35,12 +33,6 @@ struct L2tpVpnConfig : public Parcelable {
     int32_t saveLogin_ = 0;
     int32_t userId_ = 0;
     std::string vpnAddress_;
-    
-    std::string ipsecConf_;
-    std::string ipsecSecrets_;
-    std::string optionsL2tpdClient_;
-    std::string xl2tpdConf_;
-    std::string l2tpSharedKey_;
 
     std::string ipsecPreSharedKey_;
     std::string ipsecIdentifier_;
@@ -51,6 +43,12 @@ struct L2tpVpnConfig : public Parcelable {
     std::string ipsecCaCertFileName_;
     std::string ipsecUserCertFileName_;
     std::string ipsecServerCertFileName_;
+
+    std::string ipsecConf_;
+    std::string ipsecSecrets_;
+    std::string optionsL2tpdClient_;
+    std::string xl2tpdConf_;
+    std::string l2tpSharedKey_;
 
     bool Marshalling(Parcel &parcel) const override;
     static sptr<L2tpVpnConfig> Unmarshalling(Parcel &parcel);
