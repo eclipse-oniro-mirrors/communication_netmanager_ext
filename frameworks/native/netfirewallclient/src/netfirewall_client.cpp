@@ -201,10 +201,8 @@ sptr<IRemoteObject> NetFirewallClient::LoadSaOnDemand()
         if (!g_cv.wait_for(lk, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
             [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
             NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
-            lk.unlock();
             return nullptr;
         }
-        lk.unlock();
     }
     return loadCallback_->GetRemoteObject();
 }
