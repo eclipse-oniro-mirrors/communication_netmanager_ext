@@ -23,13 +23,17 @@
 #include "networkshare_constants.h"
 #include "system_ability_definition.h"
 #include "netsys_controller.h"
+#include "parameter.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 const bool REGISTER_LOCAL_RESULT_NETSHARE =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkShareService>::GetInstance().get());
+constexpr uint32_t PARAM_BUFFER_LENGTH = 128;
+constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
 
-NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
+NetworkShareService* NetworkShareService::m_staticSelf;
+NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) { m_staticSelf = this; }
 
 NetworkShareService::~NetworkShareService(){};
 
@@ -163,6 +167,10 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
+    if (!CheckEdmParameter()) {
+        NETMGR_EXT_LOG_E("NetworkSharing start sharing, check EDM param false");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
@@ -179,7 +187,7 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 {
-    NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
+    NETMGR_EXT_LOG_I("NetworkSharing stop sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -188,6 +196,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
+        RemoveWatchParameter();
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
     }
 
@@ -307,6 +316,51 @@ void NetworkShareService::OnNetSysRestart()
 {
     NETMGR_EXT_LOG_I("OnNetSysRestart");
     NetworkShareTracker::GetInstance().RestartResume();
+}
+
+bool NetworkShareService::CheckEdmParameter()
+{
+    char paramOutBuf[PARAM_BUFFER_LENGTH] = {0};
+    int ret = GetParameter(NETWORK_SHARE_POLICY_PARAM, "", paramOutBuf, PARAM_BUFFER_LENGTH);
+    NETMGR_EXT_LOG_I("NetworkShare StartSharing check EDM param %{public}d", ret);
+    if (ret > 0) {
+        if (strcmp(paramOutBuf, "true") == 0) {
+            AddWatchParameter();
+            return true;
+        } else {
+            NETMGR_EXT_LOG_E("NetworkShare StartSharing check EDM param result: %{public}s", paramOutBuf);
+        }
+    }
+    return false;
+}
+
+void NetworkShareService::AddWatchParameter()
+{
+    auto context = new (std::nothrow) std::weak_ptr<NetworkShareClient>();
+    int ret = WatchParameter(NETWORK_SHARE_POLICY_PARAM, DisAllowNetwworkShareEventCallback,
+        context);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("AddWatchParameter %{public}s failed with %{public}d.",
+            NETWORK_SHARE_POLICY_PARAM, ret);
+    }
+}
+
+void NetworkShareService::RemoveWatchParameter()
+{
+    int ret = RemoveParameterWatcher(NETWORK_SHARE_POLICY_PARAM, nullptr, nullptr);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("NetworkShare StopSharing RemoveParameterWatcher err: %{public}d", ret);
+    }
+}
+
+void NetworkShareService::DisAllowNetwworkShareEventCallback(const char *key, const char *value, void *context)
+{
+    if (strcmp(value, "true") != 0) {
+        NETMGR_EXT_LOG_I("DisAllowNetwworkShareEventCallback calledstop all network sharing with %{public}s", value);
+        m_staticSelf->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
+        m_staticSelf->StopNetworkSharing(SharingIfaceType::SHARING_USB);
+        m_staticSelf->StopNetworkSharing(SharingIfaceType::SHARING_BLUETOOTH);
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

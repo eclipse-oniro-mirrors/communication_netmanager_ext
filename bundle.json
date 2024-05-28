@@ -63,7 +63,8 @@
                 "window_manager",
                 "ability_base",
                 "os_account",
-                "ffrt"
+                "ffrt",
+                "init"
             ]
         },
         "build": {

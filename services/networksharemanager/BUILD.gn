@@ -42,6 +42,7 @@ config("net_tether_manager_config") {
     "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
+    "$INIT_ROOT/interfaces/innerkits/include/syspara",
   ]
   if (communication_wifi_switch_enable) {
     include_dirs += [
@@ -115,6 +116,8 @@ ohos_shared_library("net_tether_manager") {
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",

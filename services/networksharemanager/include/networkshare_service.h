@@ -123,12 +123,17 @@ private:
     void GetShareRegexsContent(const SharingIfaceType &type, std::string &shareRegexsContent);
 
     void OnNetSysRestart();
+    bool CheckEdmParameter();
+    void AddWatchParameter();
+    void RemoveWatchParameter();
+    static void DisAllowNetwworkShareEventCallback(const char *key, const char *value, void *context);
 	
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;
 
     bool hasSARemoved_ = false;
+    static NetworkShareClient* m_staticSelf;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
