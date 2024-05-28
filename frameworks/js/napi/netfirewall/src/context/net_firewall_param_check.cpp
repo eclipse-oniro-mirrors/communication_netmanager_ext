@@ -272,10 +272,6 @@ int32_t NetFirewallParamCheck::CheckIpList(napi_env env, napi_value object)
         return FIREWALL_ERR_PARAMETER_ERROR;
     }
     uint32_t len = NapiUtils::GetArrayLength(env, object);
-    if (len > MAX_RULE_IP_COUNT || len > MAX_RULE_IP_COUNT) {
-        NETMANAGER_EXT_LOGE("ip invalid, size is too long.");
-        return FIREWALL_ERR_EXCEED_MAX_IP;
-    }
     for (size_t j = 0; j < len; j++) {
         napi_value valAttr = NapiUtils::GetArrayElement(env, object, j);
         if (NapiUtils::GetValueType(env, valAttr) != napi_object) {
@@ -323,11 +319,6 @@ int32_t NetFirewallParamCheck::CheckPortList(napi_env env, napi_value object)
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
     uint32_t len = NapiUtils::GetArrayLength(env, object);
-    if (len > MAX_RULE_PORT_COUNT) {
-        NETMANAGER_EXT_LOGE("port invalid, size is too long.");
-        return FIREWALL_ERR_EXCEED_MAX_PORT;
-    }
-
     for (size_t j = 0; j < len; j++) {
         napi_value valAttr = NapiUtils::GetArrayElement(env, object, j);
         if (NapiUtils::GetValueType(env, valAttr) != napi_object) {
@@ -370,10 +361,6 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
     uint32_t len = NapiUtils::GetArrayLength(env, object);
-    if (len > MAX_RULE_DOMAIN_COUNT) {
-        NETMANAGER_EXT_LOGE("domain invalid, size is too long.");
-        return FIREWALL_ERR_EXCEED_MAX_DOMAIN;
-    }
     for (size_t j = 0; j < len; j++) {
         napi_value valAttr = NapiUtils::GetArrayElement(env, object, j);
         if (NapiUtils::GetValueType(env, valAttr) != napi_object) {
