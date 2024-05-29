@@ -25,9 +25,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 class NetFirewallProxy : public IRemoteProxy<INetFirewallService> {
 public:
-    int32_t SetNetFirewallStatus(const int32_t userId, const sptr<NetFirewallStatus> &status) override;
+    int32_t SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &status) override;
 
-    int32_t GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status) override;
+    int32_t GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &status) override;
 
     int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result) override;
 

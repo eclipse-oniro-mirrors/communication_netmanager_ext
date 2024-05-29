@@ -24,7 +24,7 @@ namespace NetManagerStandard {
 class NetFirewallParamCheck {
 public:
     // Firewall state input verification
-    static int32_t CheckFirewallRuleStatus(napi_env env, napi_value object);
+    static int32_t CheckFirewallRulePolicy(napi_env env, napi_value object);
 
     // Add firewall rule entry verification
     static int32_t CheckAddFirewallRule(napi_env env, napi_value object);

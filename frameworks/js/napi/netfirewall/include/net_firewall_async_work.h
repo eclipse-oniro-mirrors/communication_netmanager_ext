@@ -21,13 +21,13 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace NetFirewallAsyncWork {
-void ExecSetNetFirewallStatus(napi_env env, void *data);
+void ExecSetNetFirewallPolicy(napi_env env, void *data);
 
-void SetNetFirewallStatusCallback(napi_env env, napi_status status, void *data);
+void SetNetFirewallPolicyCallback(napi_env env, napi_status status, void *data);
 
-void ExecGetNetFirewallStatus(napi_env env, void *data);
+void ExecGetNetFirewallPolicy(napi_env env, void *data);
 
-void GetNetFirewallStatusCallback(napi_env env, napi_status status, void *data);
+void GetNetFirewallPolicyCallback(napi_env env, napi_status status, void *data);
 
 void ExecAddNetFirewallRule(napi_env env, void *data);
 

@@ -51,9 +51,9 @@ public:
     static NetFirewallClient &GetInstance();
 
 public:
-    int32_t SetNetFirewallStatus(const int32_t userId, const sptr<NetFirewallStatus> &status);
+    int32_t SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &status);
 
-    int32_t GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status);
+    int32_t GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &status);
 
     int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result);
 

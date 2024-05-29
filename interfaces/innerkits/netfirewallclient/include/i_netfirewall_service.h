@@ -23,9 +23,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 class INetFirewallService : public IRemoteBroker {
 public:
-    virtual int32_t SetNetFirewallStatus(const int32_t userId, const sptr<NetFirewallStatus> &status) = 0;
+    virtual int32_t SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &status) = 0;
 
-    virtual int32_t GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status) = 0;
+    virtual int32_t GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &status) = 0;
 
     virtual int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result) = 0;
 
