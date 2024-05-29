@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "get_netfirewall_status_context.h"
+#include "get_netfirewall_policy_context.h"
 #include "constant.h"
 #include "napi_utils.h"
 #include "net_manager_constants.h"
@@ -34,11 +34,11 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t count)
     return true;
 }
 
-GetNetFirewallStatusContext::GetNetFirewallStatusContext(napi_env env, EventManager *manager)
+GetNetFirewallPolicyContext::GetNetFirewallPolicyContext(napi_env env, EventManager *manager)
     : BaseContext(env, manager)
 {}
 
-void GetNetFirewallStatusContext::ParseParams(napi_value *params, size_t paramsCount)
+void GetNetFirewallPolicyContext::ParseParams(napi_value *params, size_t paramsCount)
 {
     if (!CheckParamsType(GetEnv(), params, paramsCount)) {
         SetErrorCode(FIREWALL_ERR_PARAMETER_ERROR);

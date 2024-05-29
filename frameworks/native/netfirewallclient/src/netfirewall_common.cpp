@@ -21,8 +21,8 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-// Firewall status
-bool NetFirewallStatus::Marshalling(Parcel &parcel) const
+// Firewall policy
+bool NetFirewallPolicy::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteBool(isOpen)) {
         return false;
@@ -36,11 +36,11 @@ bool NetFirewallStatus::Marshalling(Parcel &parcel) const
     return true;
 }
 
-sptr<NetFirewallStatus> NetFirewallStatus::Unmarshalling(Parcel &parcel)
+sptr<NetFirewallPolicy> NetFirewallPolicy::Unmarshalling(Parcel &parcel)
 {
-    sptr<NetFirewallStatus> ptr = new (std::nothrow) NetFirewallStatus();
+    sptr<NetFirewallPolicy> ptr = new (std::nothrow) NetFirewallPolicy();
     if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("NetFirewallStatus ptr is null");
+        NETMGR_EXT_LOG_E("NetFirewallPolicy ptr is null");
         return nullptr;
     }
     if (!parcel.ReadBool(ptr->isOpen)) {
@@ -64,7 +64,7 @@ std::string RequestParam::ToString() const
 {
     std::stringstream ss;
     ss << "RequestParam:{" << NET_FIREWALL_PAGE << EQUAL << this->page << COMMA << NET_FIREWALL_PAGE_SIZE << EQUAL <<
-        this->pageSize << COMMA << NET_FIREWALL_ORDER_FILED << EQUAL << static_cast<int32_t>(this->orderFiled) <<
+        this->pageSize << COMMA << NET_FIREWALL_ORDER_FIELD << EQUAL << static_cast<int32_t>(this->orderField) <<
         COMMA << NET_FIREWALL_ORDER_TYPE << EQUAL << static_cast<int32_t>(this->orderType) << "}";
     return ss.str();
 }
@@ -77,7 +77,7 @@ bool RequestParam::Marshalling(Parcel &parcel) const
     if (!parcel.WriteInt32(pageSize)) {
         return false;
     }
-    if (!parcel.WriteInt32(static_cast<int32_t>(orderFiled))) {
+    if (!parcel.WriteInt32(static_cast<int32_t>(orderField))) {
         return false;
     }
     if (!parcel.WriteInt32(static_cast<int32_t>(orderType))) {
@@ -99,11 +99,11 @@ sptr<RequestParam> RequestParam::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadInt32(ptr->pageSize)) {
         return nullptr;
     }
-    int32_t orderFiled = 0;
-    if (!parcel.ReadInt32(orderFiled)) {
+    int32_t orderField = 0;
+    if (!parcel.ReadInt32(orderField)) {
         return nullptr;
     }
-    ptr->orderFiled = static_cast<NetFirewallOrderFiled>(orderFiled);
+    ptr->orderField = static_cast<NetFirewallOrderField>(orderField);
     int32_t orderType = 0;
     if (!parcel.ReadInt32(orderType)) {
         return nullptr;

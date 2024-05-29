@@ -60,14 +60,14 @@ constexpr int32_t IPV6_MASK_MAX = 128;
 
 const std::string NET_FIREWALL_PAGE = "page";
 const std::string NET_FIREWALL_PAGE_SIZE = "pageSize";
-const std::string NET_FIREWALL_ORDER_FILED = "orderFiled";
+const std::string NET_FIREWALL_ORDER_FIELD = "orderField";
 const std::string NET_FIREWALL_ORDER_TYPE = "orderType";
 const std::string NET_FIREWALL_TOTAL_PAGE = "totalPage";
 const std::string NET_FIREWALL_PAGE_DATA = "data";
 }
 
 // Sort by rule name or interception time
-enum class NetFirewallOrderFiled {
+enum class NetFirewallOrderField {
     ORDER_BY_RULE_NAME = 1,     // Sort by rule name
     ORDER_BY_RECORD_TIME = 100, // Sort by interception record time
 };
@@ -78,21 +78,21 @@ enum class NetFirewallOrderType {
     ORDER_DESC = 100, // Descending order
 };
 
-// Firewall status
-struct NetFirewallStatus : public Parcelable {
+// Firewall policy
+struct NetFirewallPolicy : public Parcelable {
     bool isOpen;                  // Whether to open, required
     FirewallRuleAction inAction;  // Inbound default allowed or blocked, mandatory
     FirewallRuleAction outAction; // Outbound default allowed or blocked, mandatory
 
     virtual bool Marshalling(Parcel &parcel) const override;
-    static sptr<NetFirewallStatus> Unmarshalling(Parcel &parcel);
+    static sptr<NetFirewallPolicy> Unmarshalling(Parcel &parcel);
 };
 
 // Pagination query input
 struct RequestParam : public Parcelable {
     int32_t page;                     // Current page
     int32_t pageSize;                 // Page size
-    NetFirewallOrderFiled orderFiled; // Sort Filed
+    NetFirewallOrderField orderField; // Sort Filed
     NetFirewallOrderType orderType;   // sort order
     std::string ToString() const;
     virtual bool Marshalling(Parcel &parcel) const override;

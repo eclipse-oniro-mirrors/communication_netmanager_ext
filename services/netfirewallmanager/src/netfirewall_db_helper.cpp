@@ -548,17 +548,17 @@ int32_t NetFirewallDbHelper::GetResultSetTableInfo(const std::shared_ptr<OHOS::N
         if (columnName == NET_FIREWALL_RECORD_TIME) {
             table.timeIndex = i;
         }
-        if (columnName == NET_FIREWALL_RECORD_SOURCE_IP) {
-            table.sourceIpIndex = i;
+        if (columnName == NET_FIREWALL_RECORD_LOCAL_IP) {
+            table.localIpIndex = i;
         }
-        if (columnName == NET_FIREWALL_RECORD_DEST_IP) {
-            table.destIpIndex = i;
+        if (columnName == NET_FIREWALL_RECORD_REMOTE_IP) {
+            table.remoteIpIndex = i;
         }
-        if (columnName == NET_FIREWALL_RECORD_SOURCE_PORT) {
-            table.sourcePortIndex = i;
+        if (columnName == NET_FIREWALL_RECORD_LOCAL_PORT) {
+            table.localPortIndex = i;
         }
-        if (columnName == NET_FIREWALL_RECORD_DEST_PORT) {
-            table.destPortIndex = i;
+        if (columnName == NET_FIREWALL_RECORD_REMOTE_PORT) {
+            table.remotePortIndex = i;
         }
         if (columnName == NET_FIREWALL_RECORD_PROTOCOL) {
             table.protocolIndex = i;
@@ -911,10 +911,10 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
         }
         InterceptRecord info;
         resultSet->GetInt(table.timeIndex, info.time);
-        resultSet->GetString(table.sourceIpIndex, info.sourceIp);
-        resultSet->GetString(table.destIpIndex, info.destIp);
-        resultSet->GetInt(table.sourcePortIndex, info.sourcePort);
-        resultSet->GetInt(table.destPortIndex, info.destPort);
+        resultSet->GetString(table.localIpIndex, info.localIp);
+        resultSet->GetString(table.remoteIpIndex, info.remoteIp);
+        resultSet->GetInt(table.localPortIndex, info.localPort);
+        resultSet->GetInt(table.remotePortIndex, info.remotePort);
         resultSet->GetInt(table.protocolIndex, info.protocol);
         resultSet->GetInt(table.appUidIndex, info.appUid);
         resultSet->GetString(table.domainIndex, info.domain);
@@ -1359,10 +1359,10 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
         values.Clear();
         values.PutInt("userId", userId);
         values.PutInt(NET_FIREWALL_RECORD_TIME, records[i]->time);
-        values.PutString(NET_FIREWALL_RECORD_SOURCE_IP, records[i]->sourceIp);
-        values.PutString(NET_FIREWALL_RECORD_DEST_IP, records[i]->destIp);
-        values.PutInt(NET_FIREWALL_RECORD_SOURCE_PORT, records[i]->sourcePort);
-        values.PutInt(NET_FIREWALL_RECORD_DEST_PORT, records[i]->destPort);
+        values.PutString(NET_FIREWALL_RECORD_LOCAL_IP, records[i]->localIp);
+        values.PutString(NET_FIREWALL_RECORD_REMOTE_IP, records[i]->remoteIp);
+        values.PutInt(NET_FIREWALL_RECORD_LOCAL_PORT, records[i]->localPort);
+        values.PutInt(NET_FIREWALL_RECORD_REMOTE_PORT, records[i]->remotePort);
         values.PutInt(NET_FIREWALL_RECORD_PROTOCOL, records[i]->protocol);
         values.PutInt(NET_FIREWALL_RECORD_UID, records[i]->appUid);
         values.PutString(NET_FIREWALL_DOMAIN, records[i]->domain);

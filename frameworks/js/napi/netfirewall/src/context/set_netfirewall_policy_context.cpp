@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "set_netfirewall_status_context.h"
+#include "set_netfirewall_policy_context.h"
 #include "constant.h"
 #include "napi_utils.h"
 #include "net_firewall_param_check.h"
@@ -38,11 +38,11 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t count)
     return true;
 }
 
-SetNetFirewallStatusContext::SetNetFirewallStatusContext(napi_env env, EventManager *manager)
+SetNetFirewallPolicyContext::SetNetFirewallPolicyContext(napi_env env, EventManager *manager)
     : BaseContext(env, manager)
 {}
 
-void SetNetFirewallStatusContext::ParseParams(napi_value *params, size_t paramsCount)
+void SetNetFirewallPolicyContext::ParseParams(napi_value *params, size_t paramsCount)
 {
     if (!CheckParamsType(GetEnv(), params, paramsCount)) {
         SetErrorCode(FIREWALL_ERR_PARAMETER_ERROR);
@@ -51,19 +51,19 @@ void SetNetFirewallStatusContext::ParseParams(napi_value *params, size_t paramsC
 
     userId_ = NapiUtils::GetInt32FromValue(GetEnv(), params[ARG_INDEX_0]);
     if (userId_ < 0) {
-        NETMGR_EXT_LOG_E("SetNetFirewallStatusContext userId parma invalid.");
+        NETMGR_EXT_LOG_E("SetNetFirewallPolicyContext userId parma invalid.");
         SetErrorCode(FIREWALL_ERR_INVALID_PARAMETER);
         return;
     }
 
-    int ret = NetFirewallParamCheck::CheckFirewallRuleStatus(GetEnv(), params[ARG_INDEX_1]);
+    int ret = NetFirewallParamCheck::CheckFirewallRulePolicy(GetEnv(), params[ARG_INDEX_1]);
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("rule action parma invalid.");
         SetErrorCode(ret);
         return;
     }
 
-    status_ = new (std::nothrow) NetFirewallStatus();
+    status_ = new (std::nothrow) NetFirewallPolicy();
     if (status_ == nullptr) {
         NETMGR_EXT_LOG_E("firewall rule object is nullptr.");
         SetErrorCode(FIREWALL_ERR_INTERNAL);

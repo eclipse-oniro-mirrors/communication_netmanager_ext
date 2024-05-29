@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-int32_t NetFirewallProxy::SetNetFirewallStatus(const int32_t userId, const sptr<NetFirewallStatus> &status)
+int32_t NetFirewallProxy::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &status)
 {
     NETMGR_EXT_LOG_I("NetFirewallProxy set firewall status");
     MessageParcel data;
@@ -52,7 +52,7 @@ int32_t NetFirewallProxy::SetNetFirewallStatus(const int32_t userId, const sptr<
     return ret;
 }
 
-int32_t NetFirewallProxy::GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status)
+int32_t NetFirewallProxy::GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &status)
 {
     NETMGR_EXT_LOG_I("NetFirewallProxy get firewall status");
     sptr<IRemoteObject> remote = Remote();
@@ -70,10 +70,10 @@ int32_t NetFirewallProxy::GetNetFirewallStatus(const int32_t userId, sptr<NetFir
     data.WriteInt32(userId);
     int32_t ret = remote->SendRequest(static_cast<uint32_t>(GET_NET_FIREWALL_STATUS), data, reply, option);
     if (ret != FIREWALL_SUCCESS) {
-        NETMGR_EXT_LOG_E("GetNetFirewallStatus proxy SendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("GetNetFirewallPolicy proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
-    status = NetFirewallStatus::Unmarshalling(reply);
+    status = NetFirewallPolicy::Unmarshalling(reply);
     if (status == nullptr) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }

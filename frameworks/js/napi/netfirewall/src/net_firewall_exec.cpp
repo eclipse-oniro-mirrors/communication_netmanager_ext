@@ -36,7 +36,7 @@ template <typename ContextT> static inline NetFirewallClient *GetNetFirewallInst
     return (manager == nullptr) ? nullptr : reinterpret_cast<NetFirewallClient *>(manager->GetData());
 }
 
-bool ExecSetNetFirewallStatus(SetNetFirewallStatusContext *context)
+bool ExecSetNetFirewallPolicy(SetNetFirewallPolicyContext *context)
 {
     if (context == nullptr || context->status_ == nullptr) {
         return false;
@@ -45,7 +45,7 @@ bool ExecSetNetFirewallStatus(SetNetFirewallStatusContext *context)
         return false;
     }
     int32_t result =
-        DelayedSingleton<NetFirewallClient>::GetInstance()->SetNetFirewallStatus(context->userId_, context->status_);
+        DelayedSingleton<NetFirewallClient>::GetInstance()->SetNetFirewallPolicy(context->userId_, context->status_);
     if (result != FIREWALL_SUCCESS) {
         NETMANAGER_EXT_LOGE("ExecSetIfaceConfig error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
@@ -54,7 +54,7 @@ bool ExecSetNetFirewallStatus(SetNetFirewallStatusContext *context)
     return true;
 }
 
-napi_value SetNetFirewallStatusCallback(SetNetFirewallStatusContext *context)
+napi_value SetNetFirewallPolicyCallback(SetNetFirewallPolicyContext *context)
 {
     if (context == nullptr) {
         return nullptr;
@@ -62,7 +62,7 @@ napi_value SetNetFirewallStatusCallback(SetNetFirewallStatusContext *context)
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
-bool ExecGetNetFirewallStatus(GetNetFirewallStatusContext *context)
+bool ExecGetNetFirewallPolicy(GetNetFirewallPolicyContext *context)
 {
     if (context == nullptr) {
         return false;
@@ -71,7 +71,7 @@ bool ExecGetNetFirewallStatus(GetNetFirewallStatusContext *context)
         return false;
     }
     int32_t result =
-        DelayedSingleton<NetFirewallClient>::GetInstance()->GetNetFirewallStatus(context->userId_, context->status_);
+        DelayedSingleton<NetFirewallClient>::GetInstance()->GetNetFirewallPolicy(context->userId_, context->status_);
     if (result != FIREWALL_SUCCESS || context->status_ == nullptr) {
         NETMANAGER_EXT_LOGE("ExecGetIfaceConfig error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
@@ -80,7 +80,7 @@ bool ExecGetNetFirewallStatus(GetNetFirewallStatusContext *context)
     return true;
 }
 
-napi_value GetNetFirewallStatusCallback(GetNetFirewallStatusContext *context)
+napi_value GetNetFirewallPolicyCallback(GetNetFirewallPolicyContext *context)
 {
     if (context == nullptr || context->status_ == nullptr) {
         return nullptr;
@@ -280,10 +280,10 @@ napi_value GetInterceptRecordCallbacks(GetInterceptRecordsContext *context)
     for (const auto &iface : context->pageInfo_->data) {
         napi_value rule = NapiUtils::CreateObject(context->GetEnv());
         NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_TIME, iface.time);
-        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_RECORD_SOURCE_IP, iface.sourceIp);
-        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_RECORD_DEST_IP, iface.destIp);
-        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_SOURCE_PORT, iface.sourcePort);
-        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_DEST_PORT, iface.destPort);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_RECORD_LOCAL_IP, iface.localIp);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_RECORD_REMOTE_IP, iface.remoteIp);
+        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_LOCAL_PORT, iface.localPort);
+        NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_REMOTE_PORT, iface.remotePort);
         NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_PROTOCOL, iface.protocol);
         NapiUtils::SetInt32Property(context->GetEnv(), rule, NET_FIREWALL_RECORD_UID, iface.appUid);
         NapiUtils::SetStringPropertyUtf8(context->GetEnv(), rule, NET_FIREWALL_DOMAIN, iface.domain);

@@ -211,7 +211,7 @@ int32_t NetFirewallRuleParse::ParsePageParam(napi_env env, napi_value object, co
 {
     if (!NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_PAGE) ||
         !NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_PAGE_SIZE) ||
-        !NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_ORDER_FILED) ||
+        !NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_ORDER_FIELD) ||
         !NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_ORDER_TYPE)) {
         NETMANAGER_EXT_LOGE("params can not be empty.");
         return FIREWALL_ERR_PARAMETER_ERROR;
@@ -226,11 +226,11 @@ int32_t NetFirewallRuleParse::ParsePageParam(napi_env env, napi_value object, co
         NETMANAGER_EXT_LOGE("ParsePageParam pageSize[%{public}d] is error", param->pageSize);
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
-    param->orderFiled =
-        static_cast<NetFirewallOrderFiled>(NapiUtils::GetInt32Property(env, object, NET_FIREWALL_ORDER_FILED));
-    if ((isRule && param->orderFiled != NetFirewallOrderFiled::ORDER_BY_RULE_NAME) ||
-        (!isRule && param->orderFiled != NetFirewallOrderFiled::ORDER_BY_RECORD_TIME)) {
-        NETMANAGER_EXT_LOGE("params orderFiled invalid");
+    param->orderField =
+        static_cast<NetFirewallOrderField>(NapiUtils::GetInt32Property(env, object, NET_FIREWALL_ORDER_FIELD));
+    if ((isRule && param->orderField != NetFirewallOrderField::ORDER_BY_RULE_NAME) ||
+        (!isRule && param->orderField != NetFirewallOrderField::ORDER_BY_RECORD_TIME)) {
+        NETMANAGER_EXT_LOGE("params orderField invalid");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
     param->orderType =

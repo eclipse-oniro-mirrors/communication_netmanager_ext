@@ -23,20 +23,20 @@
 #include "get_all_intercept_records_context.h"
 #include "get_all_netfirewall_rules_context.h"
 #include "get_netfirewall_rule_context.h"
-#include "get_netfirewall_status_context.h"
-#include "set_netfirewall_status_context.h"
+#include "get_netfirewall_policy_context.h"
+#include "set_netfirewall_policy_context.h"
 #include "update_netfirewall_rule_context.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace NetFirewallExec {
-bool ExecSetNetFirewallStatus(SetNetFirewallStatusContext *context);
+bool ExecSetNetFirewallPolicy(SetNetFirewallPolicyContext *context);
 
-napi_value SetNetFirewallStatusCallback(SetNetFirewallStatusContext *context);
+napi_value SetNetFirewallPolicyCallback(SetNetFirewallPolicyContext *context);
 
-bool ExecGetNetFirewallStatus(GetNetFirewallStatusContext *context);
+bool ExecGetNetFirewallPolicy(GetNetFirewallPolicyContext *context);
 
-napi_value GetNetFirewallStatusCallback(GetNetFirewallStatusContext *context);
+napi_value GetNetFirewallPolicyCallback(GetNetFirewallPolicyContext *context);
 
 bool ExecAddNetFirewallRule(AddNetFirewallRuleContext *context);
 

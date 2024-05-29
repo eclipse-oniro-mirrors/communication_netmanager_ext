@@ -21,34 +21,34 @@
 #include "get_all_intercept_records_context.h"
 #include "get_all_netfirewall_rules_context.h"
 #include "get_netfirewall_rule_context.h"
-#include "get_netfirewall_status_context.h"
+#include "get_netfirewall_policy_context.h"
 #include "net_firewall_async_work.h"
 #include "net_firewall_exec.h"
-#include "set_netfirewall_status_context.h"
+#include "set_netfirewall_policy_context.h"
 #include "update_netfirewall_rule_context.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace NetFirewallAsyncWork {
-void ExecSetNetFirewallStatus(napi_env env, void *data)
+void ExecSetNetFirewallPolicy(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<SetNetFirewallStatusContext, NetFirewallExec::ExecSetNetFirewallStatus>(env, data);
+    BaseAsyncWork::ExecAsyncWork<SetNetFirewallPolicyContext, NetFirewallExec::ExecSetNetFirewallPolicy>(env, data);
 }
 
-void SetNetFirewallStatusCallback(napi_env env, napi_status status, void *data)
+void SetNetFirewallPolicyCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<SetNetFirewallStatusContext, NetFirewallExec::SetNetFirewallStatusCallback>(env,
+    BaseAsyncWork::AsyncWorkCallback<SetNetFirewallPolicyContext, NetFirewallExec::SetNetFirewallPolicyCallback>(env,
         status, data);
 }
 
-void ExecGetNetFirewallStatus(napi_env env, void *data)
+void ExecGetNetFirewallPolicy(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<GetNetFirewallStatusContext, NetFirewallExec::ExecGetNetFirewallStatus>(env, data);
+    BaseAsyncWork::ExecAsyncWork<GetNetFirewallPolicyContext, NetFirewallExec::ExecGetNetFirewallPolicy>(env, data);
 }
 
-void GetNetFirewallStatusCallback(napi_env env, napi_status status, void *data)
+void GetNetFirewallPolicyCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<GetNetFirewallStatusContext, NetFirewallExec::GetNetFirewallStatusCallback>(env,
+    BaseAsyncWork::AsyncWorkCallback<GetNetFirewallPolicyContext, NetFirewallExec::GetNetFirewallPolicyCallback>(env,
         status, data);
 }
 

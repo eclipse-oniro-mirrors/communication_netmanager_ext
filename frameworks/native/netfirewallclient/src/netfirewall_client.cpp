@@ -66,24 +66,24 @@ NetFirewallClient &NetFirewallClient::GetInstance()
     return instance;
 }
 
-int32_t NetFirewallClient::SetNetFirewallStatus(const int32_t userId, const sptr<NetFirewallStatus> &status)
+int32_t NetFirewallClient::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &status)
 {
     sptr<INetFirewallService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("SetNetFirewallStatus proxy is nullptr");
+        NETMGR_EXT_LOG_E("SetNetFirewallPolicy proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->SetNetFirewallStatus(userId, status);
+    return proxy->SetNetFirewallPolicy(userId, status);
 }
 
-int32_t NetFirewallClient::GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status)
+int32_t NetFirewallClient::GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &status)
 {
     sptr<INetFirewallService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetNetFirewallStatus proxy is nullptr");
+        NETMGR_EXT_LOG_E("GetNetFirewallPolicy proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetNetFirewallStatus(userId, status);
+    return proxy->GetNetFirewallPolicy(userId, status);
 }
 
 int32_t NetFirewallClient::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result)

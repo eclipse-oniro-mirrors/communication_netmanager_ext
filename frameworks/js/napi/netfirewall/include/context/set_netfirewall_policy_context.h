@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NET_FIREWALL_SET_STATUS_CONTEXT_H
-#define NET_FIREWALL_SET_STATUS_CONTEXT_H
+#ifndef NET_FIREWALL_SET_POLICY_CONTEXT_H
+#define NET_FIREWALL_SET_POLICY_CONTEXT_H
 
 #include <cstddef>
 #include <napi/native_api.h>
@@ -27,18 +27,18 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class SetNetFirewallStatusContext : public BaseContext {
+class SetNetFirewallPolicyContext : public BaseContext {
 public:
-    SetNetFirewallStatusContext() = delete;
+    SetNetFirewallPolicyContext() = delete;
 
-    SetNetFirewallStatusContext(napi_env env, EventManager *manager);
+    SetNetFirewallPolicyContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 
 public:
     int32_t userId_ = 0;
-    sptr<NetFirewallStatus> status_ = nullptr;
+    sptr<NetFirewallPolicy> status_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NET_FIREWALL_SET_STATUS_CONTEXT_H
+#endif // NET_FIREWALL_SET_POLICY_CONTEXT_H

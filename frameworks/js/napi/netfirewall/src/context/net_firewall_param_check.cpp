@@ -27,7 +27,7 @@ constexpr int32_t MAX_RULE_PORT = 65535;
 const std::regex DOMAIN_PATTERN { "^([A-Za-z0-9-\\.]{1,63})(\\.)([A-Za-z0-9-]{1,63}){0,}$" };
 const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)([A-Za-z0-9-]{1,63})(\\.)([A-Za-z0-9-\\.]{1,63}){0,}$" };
 
-int32_t NetFirewallParamCheck::CheckFirewallRuleStatus(napi_env env, napi_value object)
+int32_t NetFirewallParamCheck::CheckFirewallRulePolicy(napi_env env, napi_value object)
 {
     if (!NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_IS_OPEN) ||
         !NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_IN_ACTION) ||

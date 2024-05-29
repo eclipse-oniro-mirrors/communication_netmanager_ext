@@ -149,10 +149,10 @@ struct NetInterceptRecordInfo {
     int32_t columnCount;
     int32_t idIndex;
     int32_t timeIndex;
-    int32_t sourceIpIndex;
-    int32_t destIpIndex;
-    int32_t sourcePortIndex;
-    int32_t destPortIndex;
+    int32_t localIpIndex;
+    int32_t remoteIpIndex;
+    int32_t localPortIndex;
+    int32_t remotePortIndex;
     int32_t protocolIndex;
     int32_t appUidIndex;
     int32_t domainIndex;
