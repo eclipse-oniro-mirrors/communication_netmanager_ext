@@ -133,7 +133,7 @@ private:
     bool registerToService_ = false;
 
     bool hasSARemoved_ = false;
-    static NetworkShareClient* m_staticSelf;
+    static NetworkShareService* m_staticSelf;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
