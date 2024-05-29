@@ -33,9 +33,9 @@ constexpr uint32_t PARAM_BUFFER_LENGTH = 128;
 constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
 
 NetworkShareService* NetworkShareService::m_staticSelf;
-NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) 
-{ 
-    m_staticSelf = this; 
+NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true)
+{
+    m_staticSelf = this;
 }
 
 NetworkShareService::~NetworkShareService(){};
@@ -324,7 +324,7 @@ void NetworkShareService::OnNetSysRestart()
 bool NetworkShareService::CheckEdmParameter()
 {
     char paramOutBuf[PARAM_BUFFER_LENGTH] = {0};
-    int ret = GetParameter(NETWORK_SHARE_POLICY_PARAM, "", paramOutBuf, PARAM_BUFFER_LENGTH);
+    int ret = GetParameter(NETWORK_SHARE_POLICY_PARAM, "true", paramOutBuf, PARAM_BUFFER_LENGTH);
     NETMGR_EXT_LOG_I("NetworkShare StartSharing check EDM param %{public}d", ret);
     if (ret > 0) {
         if (strcmp(paramOutBuf, "true") == 0) {
@@ -339,9 +339,7 @@ bool NetworkShareService::CheckEdmParameter()
 
 void NetworkShareService::AddWatchParameter()
 {
-    auto context = new (std::nothrow) std::weak_ptr<NetworkShareClient>();
-    int ret = WatchParameter(NETWORK_SHARE_POLICY_PARAM, DisAllowNetwworkShareEventCallback,
-        context);
+    int ret = WatchParameter(NETWORK_SHARE_POLICY_PARAM, DisAllowNetwworkShareEventCallback, nullptr);
     if (ret != 0) {
         NETMGR_EXT_LOG_E("AddWatchParameter %{public}s failed with %{public}d.",
             NETWORK_SHARE_POLICY_PARAM, ret);
