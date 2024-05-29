@@ -22,7 +22,7 @@
 #include "prepare_context.h"
 #include "protect_context.h"
 #include "setup_context.h"
-#include "save_context.h"
+#include "add_context.h"
 #include "delete_context.h"
 #include "get_list_context.h"
 #include "get_context.h"
@@ -43,8 +43,8 @@ napi_value ProtectCallback(ProtectContext *context);
 bool ExecDestroy(DestroyContext *context);
 napi_value DestroyCallback(DestroyContext *context);
 
-bool ExecSaveSystemVpn(SaveContext *context);
-napi_value SaveSystemVpnCallback(SaveContext *context);
+bool ExecAddSystemVpn(AddContext *context);
+napi_value AddSystemVpnCallback(AddContext *context);
 
 bool ExecDeleteSystemVpn(DeleteContext *context);
 napi_value DeleteSystemVpnCallback(DeleteContext *context);

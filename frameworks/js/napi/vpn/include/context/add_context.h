@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef VPN_SAVE_CONTEXT_H
-#define VPN_SAVE_CONTEXT_H
+#ifndef VPN_ADD_CONTEXT_H
+#define VPN_ADD_CONTEXT_H
 
 #include <cstddef>
 #include <napi/native_api.h>
@@ -25,10 +25,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class SaveContext : public BaseContext {
+class AddContext : public BaseContext {
 public:
-    SaveContext() = delete;
-    SaveContext(napi_env env, EventManager *manager);
+    AddContext() = delete;
+    AddContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
     bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount);
@@ -38,4 +38,4 @@ public:
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // VPN_SAVE_CONTEXT_H
+#endif // VPN_ADD_CONTEXT_H

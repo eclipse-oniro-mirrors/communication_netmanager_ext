@@ -14,7 +14,7 @@
  */
 
 
-#include "save_context.h"
+#include "add_context.h"
 #include "net_manager_constants.h"
 #include "napi_utils.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -28,9 +28,9 @@ constexpr int32_t PARAM_OPTIONS_AND_CALLBACK = 2;
 constexpr int32_t PARAM_NONE = 0;
 constexpr int32_t PARAM_JUST_CALLBACK = 1;
 
-SaveContext::SaveContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+AddContext::AddContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
 
-bool SaveContext::CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
+bool AddContext::CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {
     switch (paramsCount) {
         case PARAM_JUST_OPTIONS:
@@ -43,7 +43,7 @@ bool SaveContext::CheckParamsType(napi_env env, napi_value *params, size_t param
     }
 }
 
-void SaveContext::ParseParams(napi_value *params, size_t paramsCount)
+void AddContext::ParseParams(napi_value *params, size_t paramsCount)
 {
     switch (paramsCount) {
         case PARAM_NONE:

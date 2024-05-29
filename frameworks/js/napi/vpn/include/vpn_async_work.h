@@ -33,8 +33,8 @@ void ProtectCallback(napi_env env, napi_status status, void *data);
 void ExecDestroy(napi_env env, void *data);
 void DestroyCallback(napi_env env, napi_status status, void *data);
 
-void ExecSaveSystemVpn(napi_env env, void *data);
-void SaveSystemVpnCallback(napi_env env, napi_status status, void *data);
+void ExecAddSystemVpn(napi_env env, void *data);
+void AddSystemVpnCallback(napi_env env, napi_status status, void *data);
 
 void ExecDeleteSystemVpn(napi_env env, void *data);
 void DeleteSystemVpnCallback(napi_env env, napi_status status, void *data);

@@ -22,7 +22,7 @@
 #include "setup_context.h"
 #include "vpn_async_work.h"
 #include "vpn_monitor.h"
-#include "save_context.h"
+#include "add_context.h"
 #include "delete_context.h"
 #include "get_list_context.h"
 #include "get_context.h"
@@ -65,10 +65,10 @@ napi_value Off(napi_env env, napi_callback_info info)
     return VpnMonitor::GetInstance().Off(env, info);
 }
 
-napi_value SaveSystemVpn(napi_env env, napi_callback_info info)
+napi_value AddSystemVpn(napi_env env, napi_callback_info info)
 {
-    return ModuleTemplate::Interface<SaveContext>(env, info, SAVE_SYSTEM_VPN, nullptr,
-        VpnAsyncWork::ExecSaveSystemVpn, VpnAsyncWork::SaveSystemVpnCallback);
+    return ModuleTemplate::Interface<AddContext>(env, info, SAVE_SYSTEM_VPN, nullptr,
+        VpnAsyncWork::ExecAddSystemVpn, VpnAsyncWork::AddSystemVpnCallback);
 }
 
 napi_value DeleteSystemVpn(napi_env env, napi_callback_info info)

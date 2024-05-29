@@ -101,7 +101,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t SaveSystemVpn(sptr<VpnConfig> &config);
+    int32_t AddSystemVpn(sptr<VpnConfig> &config);
 
     /**
      * delete vpn

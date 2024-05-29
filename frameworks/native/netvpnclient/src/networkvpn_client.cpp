@@ -130,14 +130,14 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
     return proxy->DestroyVpn(isVpnExtCall);
 }
 
-int32_t NetworkVpnClient::SaveSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnClient::AddSystemVpn(sptr<VpnConfig> &config)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("SaveSystemVpn proxy is nullptr");
+        NETMGR_EXT_LOG_E("AddSystemVpn proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->SaveSystemVpn(config);
+    return proxy->AddSystemVpn(config);
 }
 
 int32_t NetworkVpnClient::DeleteSystemVpn(std::string &vpnUuid)
@@ -164,7 +164,7 @@ int32_t NetworkVpnClient::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpn
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetSystemVpnList proxy is nullptr");
+        NETMGR_EXT_LOG_E("GetSystemVpn proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     return proxy->GetSystemVpn(config, vpnUuid);

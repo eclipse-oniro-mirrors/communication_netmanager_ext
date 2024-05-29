@@ -120,7 +120,7 @@ public:
     /**
      * save the vpn config
      */
-    int32_t SaveSystemVpn(sptr<VpnConfig> &config) override;
+    int32_t AddSystemVpn(sptr<VpnConfig> &config) override;
 
     /**
      * get the vpn config list

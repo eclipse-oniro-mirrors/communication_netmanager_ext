@@ -43,7 +43,7 @@ public:
         return 0;
     }
 
-    int32_t SaveSystemVpn(sptr<VpnConfig> &config) override
+    int32_t AddSystemVpn(sptr<VpnConfig> &config) override
     {
         return 0;
     }

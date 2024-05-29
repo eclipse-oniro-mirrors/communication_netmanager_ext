@@ -581,7 +581,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::SaveSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnService::AddSystemVpn(sptr<VpnConfig> &config)
 {
     return NETMANAGER_EXT_SUCCESS;
 }

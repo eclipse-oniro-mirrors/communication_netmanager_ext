@@ -67,14 +67,14 @@ void DestroyCallback(napi_env env, napi_status status, void *data)
     BaseAsyncWork::AsyncWorkCallback<DestroyContext, VpnExec::DestroyCallback>(env, status, data);
 }
 
-void ExecSaveSystemVpn(napi_env env, void *data)
+void ExecAddSystemVpn(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<SaveContext, VpnExec::ExecSaveSystemVpn>(env, data);
+    BaseAsyncWork::ExecAsyncWork<AddContext, VpnExec::ExecAddSystemVpn>(env, data);
 }
 
-void SaveSystemVpnCallback(napi_env env, napi_status status, void *data)
+void AddSystemVpnCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<SaveContext, VpnExec::SaveSystemVpnCallback>(env, status, data);
+    BaseAsyncWork::AsyncWorkCallback<AddContext, VpnExec::AddSystemVpnCallback>(env, status, data);
 }
 
 void ExecDeleteSystemVpn(napi_env env, void *data)

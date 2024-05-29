@@ -63,7 +63,7 @@ public:
     virtual int32_t CreateVpnConnection(bool isVpnExtCall = false) = 0;
     virtual int32_t FactoryResetVpn() = 0;
     virtual int32_t RegisterBundleName(const std::string &bundleName) = 0;
-    virtual int32_t SaveSystemVpn(sptr<VpnConfig> &config) = 0;
+    virtual int32_t AddSystemVpn(sptr<VpnConfig> &config) = 0;
     virtual int32_t DeleteSystemVpn(std::string &vpnUuid) = 0;
     virtual int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList) = 0;
     virtual int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid) = 0;

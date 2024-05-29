@@ -149,21 +149,21 @@ int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::SaveSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnServiceProxy::AddSystemVpn(sptr<VpnConfig> &config)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("SaveSystemVpn write interface token failed");
+        NETMGR_EXT_LOG_E("AddSystemVpn write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!config->Marshalling(data)) {
-        NETMGR_EXT_LOG_E("SaveSystemVpn proxy Marshalling failed");
+        NETMGR_EXT_LOG_E("AddSystemVpn proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_SAVE_SYSTEM_VPN, data, reply);
     if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("SaveSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("AddSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     if (!reply.ReadInt32(ret)) {

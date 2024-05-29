@@ -92,14 +92,14 @@ bool ExecDestroy(DestroyContext *context)
     return true;
 }
 
-bool ExecSaveSystemVpn(SaveContext *context)
+bool ExecAddSystemVpn(AddContext *context)
 {
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
         return false;
     }
-    int32_t result = vpnClient->SaveSystemVpn(context->vpnConfig_);
+    int32_t result = vpnClient->AddSystemVpn(context->vpnConfig_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
         return false;
@@ -191,7 +191,7 @@ napi_value DestroyCallback(DestroyContext *context)
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
-napi_value SaveSystemVpnCallback(SaveContext *context)
+napi_value AddSystemVpnCallback(AddContext *context)
 {
     return NapiUtils::GetUndefined(context->GetEnv());
 }
