@@ -161,7 +161,7 @@ int32_t NetworkVpnServiceProxy::AddSystemVpn(sptr<VpnConfig> &config)
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_SAVE_SYSTEM_VPN, data, reply);
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_ADD_SYSTEM_VPN, data, reply);
     if (ERR_NONE != ret) {
         NETMGR_EXT_LOG_E("AddSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;

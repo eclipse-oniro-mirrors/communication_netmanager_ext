@@ -67,7 +67,7 @@ napi_value Off(napi_env env, napi_callback_info info)
 
 napi_value AddSystemVpn(napi_env env, napi_callback_info info)
 {
-    return ModuleTemplate::Interface<AddContext>(env, info, SAVE_SYSTEM_VPN, nullptr,
+    return ModuleTemplate::Interface<AddContext>(env, info, ADD_SYSTEM_VPN, nullptr,
         VpnAsyncWork::ExecAddSystemVpn, VpnAsyncWork::AddSystemVpnCallback);
 }
 
