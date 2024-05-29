@@ -42,7 +42,6 @@ config("net_tether_manager_config") {
     "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
     "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
     "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
-    "$INIT_ROOT/interfaces/innerkits/include/syspara",
   ]
   if (communication_wifi_switch_enable) {
     include_dirs += [
