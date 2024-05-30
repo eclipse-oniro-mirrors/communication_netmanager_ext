@@ -29,6 +29,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+constexpr uint8_t NET_FAMILY_IPV4 = 1;
+constexpr uint8_t NET_FAMILY_IPV6 = 2;
 constexpr int32_t NET_MASK_MAX_LENGTH = 32;
 constexpr int32_t IPV6_NET_PREFIX_MAX_LENGTH = 128;
 constexpr int32_t PARAM_JUST_OPTIONS = 1;
@@ -151,6 +153,26 @@ bool SetUpContext::ParseVpnConfig(napi_value *params)
     return true;
 }
 
+static bool ParseAddressFamily(napi_env env, napi_value netAddress, uint8_t &family)
+{
+    // The value is 1 for IPv4 and 2 for IPv6. The default value is 1.
+    if (!NapiUtils::HasNamedProperty(env, netAddress, NET_FAMILY)) {
+        family = AF_INET;
+        return true;
+    }
+    GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, family);
+    if (family == NET_FAMILY_IPV4) {
+        family = AF_INET;
+        return true;
+    } else if (family == NET_FAMILY_IPV6) {
+        family = AF_INET6;
+        return true;
+    } else {
+        NETMGR_EXT_LOG_E("family %{public}u is mismatch", family);
+        return false;
+    }
+}
+
 static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
 {
     napi_value netAddress = NapiUtils::GetNamedProperty(env, address, NET_ADDRESS);
@@ -172,16 +194,18 @@ static bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNet
         }
     }
 
-    GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
+    if (!ParseAddressFamily(env, netAddress, iNetAddr.family_)) {
+        return false;
+    }
+
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
 
     if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, address, NET_PREFIXLENGTH)) != napi_number) {
         NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", NET_PREFIXLENGTH);
         return false;
     }
-    if (!isIpv6) {
-        iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, address, NET_PREFIXLENGTH));
-    } else {
+    iNetAddr.prefixlen_ = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, address, NET_PREFIXLENGTH));
+    if (isIpv6 && iNetAddr.prefixlen_ == 0) {
         iNetAddr.prefixlen_ = CommonUtils::Ipv6PrefixLen(iNetAddr.address_);
     }
 
@@ -229,7 +253,9 @@ static bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &
         return false;
     }
 
-    GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
+    if (!ParseAddressFamily(env, netAddress, iNetAddr.family_)) {
+        return false;
+    }
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
     GetUint8FromJsOptionItem(env, destination, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
     return true;
@@ -243,12 +269,11 @@ static bool ParseGateway(napi_env env, napi_value jsRoute, struct INetAddr &iNet
         return false;
     }
 
-    if (!GetStringFromJsMandatoryItem(env, gateway, NET_ADDRESS, iNetAddr.address_)) {
-        NETMGR_EXT_LOG_E("get gateway-address failed");
+    GetStringFromJsMandatoryItem(env, gateway, NET_ADDRESS, iNetAddr.address_);
+
+    if (!ParseAddressFamily(env, gateway, iNetAddr.family_)) {
         return false;
     }
-
-    GetUint8FromJsOptionItem(env, gateway, NET_FAMILY, iNetAddr.family_);
     GetUint8FromJsOptionItem(env, gateway, NET_PORT, iNetAddr.port_);
     return true;
 }

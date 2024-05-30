@@ -36,8 +36,7 @@ namespace {
 constexpr int32_t INVALID_UID = -1;
 constexpr int32_t IPV4_NET_MASK_MAX_LENGTH = 32;
 constexpr const char *IPV4_DEFAULT_ROUTE_ADDR = "0.0.0.0";
-constexpr const char *IPV6_DEFAULT_ROUTE_ADDR = "";
-constexpr const char *IPV6_ROUTE_ADDR = "fe80::";
+constexpr const char *IPV6_DEFAULT_ROUTE_ADDR = "fe80::";
 } // namespace
 
 NetVpnImpl::NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds)
@@ -272,7 +271,7 @@ void NetVpnImpl::SetIpv6DefaultRoute(Route &ipv6DefaultRoute)
     ipv6DefaultRoute.iface_ = TUN_CARD_NAME;
     ipv6DefaultRoute.destination_.type_ = INetAddr::IPV6;
     ipv6DefaultRoute.destination_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
-    ipv6DefaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(IPV6_DEFAULT_ROUTE_ADDR);
+    ipv6DefaultRoute.destination_.prefixlen_ = CommonUtils::Ipv6PrefixLen(IPV6_DEFAULT_ROUTE_ADDR);
     ipv6DefaultRoute.gateway_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
 }
 
@@ -296,7 +295,8 @@ void NetVpnImpl::AdjustRouteInfo(Route &route)
         uint32_t subNetAddress = ipAddrUint & maskUint;
         route.destination_.address_ = CommonUtils::ConvertIpv4Address(subNetAddress);
     } else {
-        route.destination_.address_ = IPV6_ROUTE_ADDR;
+        route.destination_.address_ = CommonUtils::GetIpv6Prefix(route.destination_.address_,
+            route.destination_.prefixlen_);
     }
 }
 
