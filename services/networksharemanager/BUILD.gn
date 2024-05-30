@@ -202,6 +202,8 @@ ohos_static_library("net_tether_manager_static") {
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
   ]
