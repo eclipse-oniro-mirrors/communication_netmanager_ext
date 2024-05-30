@@ -18,7 +18,6 @@
 
 #include <cstddef>
 #include <napi/native_api.h>
-#include <vector>
 
 #include "base_context.h"
 #include "event_manager.h"

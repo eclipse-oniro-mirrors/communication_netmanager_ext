@@ -17,7 +17,6 @@
 #define NET_OPEN_VPN_CONFIG_H
 
 #include <string>
-#include <vector>
 
 #include "parcel.h"
 

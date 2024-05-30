@@ -25,7 +25,6 @@
 #include "i_vpn_event_callback.h"
 #include "net_manager_ext_constants.h"
 #include "vpn_config.h"
-#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

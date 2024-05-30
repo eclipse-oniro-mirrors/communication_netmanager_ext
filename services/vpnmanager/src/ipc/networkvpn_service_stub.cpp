@@ -31,6 +31,16 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyProtect};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_STOP_VPN] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyDestroyVpn};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_ADD_SYSTEM_VPN] = {
+        Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyAddSystemVpn};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_DELETE_SYSTEM_VPN] = {
+        Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyDeleteSystemVpn};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_SYSTEM_VPN_LIST] = {
+        Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetSystemVpnList};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_SYSTEM_VPN] = {
+        Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetSystemVpn};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYSTEM_VPN] = {
+        Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetConnectedSystemVpn};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyRegisterVpnEvent};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK] = {
@@ -134,6 +144,81 @@ int32_t NetworkVpnServiceStub::ReplyDestroyVpn(MessageParcel &data, MessageParce
 {
     int32_t result = DestroyVpn();
     if (!reply.WriteInt32(result)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyAddSystemVpn(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<VpnConfig> config = VpnConfig::Unmarshalling(data);
+    if (config == nullptr) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t result = AddSystemVpn(config);
+    if (!reply.WriteInt32(result)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyDeleteSystemVpn(MessageParcel &data, MessageParcel &reply)
+{
+    std::string vpnUuid;
+    if (!data.ReadString(vpnUuid)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t result = DeleteSystemVpn(vpnUuid);
+    if (!reply.WriteInt32(result)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyGetSystemVpnList(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<VpnConfig> vpnList;
+    int32_t result = GetSystemVpnList(vpnList);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        return result;
+    }
+    int32_t vpnListSize = static_cast<int32_t>(vpnList.size());
+    if (!reply.WriteInt32(vpnListSize)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    for (auto &config : vpnList) {
+        if (!config.Marshalling(reply)) {
+            return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyGetSystemVpn(MessageParcel &data, MessageParcel &reply)
+{
+    std::string vpnUuid;
+    if (!data.ReadString(vpnUuid)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    sptr<VpnConfig> config = nullptr;
+    int32_t result = GetSystemVpn(config, vpnUuid);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        return result;
+    }
+    if (!config->Marshalling(reply)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyGetConnectedSystemVpn(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<VpnConfig> config = nullptr;
+    int32_t result = GetConnectedSystemVpn(config);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        return result;
+    }
+    if (!config->Marshalling(reply)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
