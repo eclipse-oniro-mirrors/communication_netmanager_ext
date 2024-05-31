@@ -328,7 +328,7 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
             return;
         }
 
-        NetworkShareService* servicePtr = static_cast<NetworkShareService*>(const);
+        NetworkShareService* servicePtr = static_cast<NetworkShareService*>(context);
         std::string sharingType;
         servicePtr->GetSharingType(SharingIfaceType::SHARING_WIFI, "wifi;", sharingType);
         servicePtr->GetSharingType(SharingIfaceType::SHARING_USB, "usb;", sharingType);
