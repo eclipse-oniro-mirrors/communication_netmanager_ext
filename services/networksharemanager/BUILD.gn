@@ -32,6 +32,7 @@ config("net_tether_manager_config") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/include/utils",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
     "$BASE_INNERKITS_ROOT/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
@@ -81,6 +82,7 @@ ohos_shared_library("net_tether_manager") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
   ]
 
   configs = [ ":net_tether_manager_config" ]
