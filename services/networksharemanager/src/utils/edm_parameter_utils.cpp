@@ -47,6 +47,7 @@ bool EdmParameterUtils::CheckBoolEdmParameter(const char *key, const char *defau
 
 void NetworkShareService::RegisterEdmParameterChangeEvent(const char *key, ParameterChgPtr callback, void *context)
 {
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
     int ret = WatchParameter(key, callback, context);
     if (ret != 0) {
         NETMGR_EXT_LOG_E("RegisterEdmParameterChangeEvent %{public}s failed with %{public}d.",
@@ -56,6 +57,7 @@ void NetworkShareService::RegisterEdmParameterChangeEvent(const char *key, Param
 
 void NetworkShareService::UnRegisterEdmParameterChangeEvent(const char *key)
 {
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
     int ret = RemoveParameterWatcher(key, nullptr, nullptr);
     if (ret != 0) {
         NETMGR_EXT_LOG_E("UnRegisterEdmParameterChangeEvent %{public}s err: %{public}d", key, ret);
