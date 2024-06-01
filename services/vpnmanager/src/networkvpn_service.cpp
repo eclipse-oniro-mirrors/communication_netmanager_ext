@@ -581,28 +581,93 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::AddSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    if (NETMANAGER_EXT_SUCCESS != ret) {
+        return ret;
+    }
+
+    NETMGR_EXT_LOG_I("sysvpn service AddSysVpnConfig");
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::DeleteSystemVpn(std::string &vpnUuid)
+int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    if (NETMANAGER_EXT_SUCCESS != ret) {
+        return ret;
+    }
+
+    NETMGR_EXT_LOG_I("sysvpn service DeleteSysVpnConfig");
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
+int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    if (NETMANAGER_EXT_SUCCESS != ret) {
+        return ret;
+    }
+
+    NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfigList");
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid)
+int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    if (NETMANAGER_EXT_SUCCESS != ret) {
+        return ret;
+    }
+
+    NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfig");
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::GetConnectedSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    if (NETMANAGER_EXT_SUCCESS != ret) {
+        return ret;
+    }
+
+    NETMGR_EXT_LOG_I("sysvpn service GetConnectedSysVpnConfig");
     return NETMANAGER_EXT_SUCCESS;
 }
 

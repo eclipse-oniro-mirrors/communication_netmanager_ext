@@ -46,7 +46,7 @@ void GetContext::ParseParams(napi_value *params, size_t paramsCount)
         SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
         return;
     }
-    vpnUuid_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[0]);
+    vpnId_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[0]);
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
         SetParseOK(SetCallback(params[1]) == napi_ok);
         return;

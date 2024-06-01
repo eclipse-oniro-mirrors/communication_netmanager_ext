@@ -149,21 +149,21 @@ int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::AddSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("AddSystemVpn write interface token failed");
+        NETMGR_EXT_LOG_E("AddSysVpnConfig write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     if (!config->Marshalling(data)) {
-        NETMGR_EXT_LOG_E("AddSystemVpn proxy Marshalling failed");
+        NETMGR_EXT_LOG_E("AddSysVpnConfig proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_ADD_SYSTEM_VPN, data, reply);
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG, data, reply);
     if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("AddSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("AddSysVpnConfig proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     if (!reply.ReadInt32(ret)) {
@@ -172,21 +172,21 @@ int32_t NetworkVpnServiceProxy::AddSystemVpn(sptr<VpnConfig> &config)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::DeleteSystemVpn(std::string &vpnUuid)
+int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(std::string &vpnId)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("DeleteSystemVpn write interface token failed");
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
-    if (!data.WriteString(vpnUuid)) {
-        NETMGR_EXT_LOG_E("DeleteSystemVpn proxy write data failed");
+    if (!data.WriteString(vpnId)) {
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig proxy write data failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_DELETE_SYSTEM_VPN, data, reply);
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG, data, reply);
     if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("DeleteSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     if (!reply.ReadInt32(ret)) {
@@ -195,24 +195,24 @@ int32_t NetworkVpnServiceProxy::DeleteSystemVpn(std::string &vpnUuid)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
+int32_t NetworkVpnServiceProxy::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
     MessageParcel data;
     MessageParcel reply;
-    int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_GET_SYSTEM_VPN_LIST, data, reply);
+    int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG_LIST, data, reply);
     if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("GetSystemVpnList proxy WriteTokenAndSendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("GetSysVpnConfigList proxy WriteTokenAndSendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
     int vpnListSize = 0;
     if (!reply.ReadInt32(vpnListSize)) {
-        NETMGR_EXT_LOG_E("GetSystemVpnList read data size failed");
+        NETMGR_EXT_LOG_E("GetSysVpnConfigList read data size failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
     for (int32_t idx = 0; idx < vpnListSize; idx++) {
-        sptr<VpnConfig> vpnConfig = VpnConfig::Unmarshalling(reply);
+        sptr<SysVpnConfig> vpnConfig = SysVpnConfig::Unmarshalling(reply);
         if (vpnConfig == nullptr) {
-            NETMGR_EXT_LOG_E("GetSystemVpnList vpnConfig is null");
+            NETMGR_EXT_LOG_E("GetSysVpnConfigList vpnConfig is null");
             return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
         }
         vpnList.push_back(*vpnConfig);
@@ -220,45 +220,45 @@ int32_t NetworkVpnServiceProxy::GetSystemVpnList(std::vector<VpnConfig> &vpnList
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid)
+int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
-        NETMGR_EXT_LOG_E("GetSystemVpn write interface token failed");
+        NETMGR_EXT_LOG_E("GetSysVpnConfig write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
-    if (!data.WriteString(vpnUuid)) {
-        NETMGR_EXT_LOG_E("GetSystemVpn proxy write data failed");
+    if (!data.WriteString(vpnId)) {
+        NETMGR_EXT_LOG_E("GetSysVpnConfig proxy write data failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
 
     MessageParcel reply;
-    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_GET_SYSTEM_VPN, data, reply);
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG, data, reply);
     if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("GetSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("GetSysVpnConfig proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
-    config = VpnConfig::Unmarshalling(reply);
+    config = SysVpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
-        NETMGR_EXT_LOG_E("GetSystemVpn read reply failed");
+        NETMGR_EXT_LOG_E("GetSysVpnConfig read reply failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::GetConnectedSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     MessageParcel data;
     MessageParcel reply;
     int32_t ret = 0;
-    ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYSTEM_VPN, data, reply);
+    ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG, data, reply);
     if (ERR_NONE != ret) {
-        NETMGR_EXT_LOG_E("GetConnectedSystemVpn proxy SendRequest failed, error code: [%{public}d]", ret);
+        NETMGR_EXT_LOG_E("GetConnectedSysVpnConfig proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
-    config = VpnConfig::Unmarshalling(reply);
+    config = SysVpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
-        NETMGR_EXT_LOG_E("GetConnectedSystemVpn read data size failed");
+        NETMGR_EXT_LOG_E("GetConnectedSysVpnConfig read data size failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;

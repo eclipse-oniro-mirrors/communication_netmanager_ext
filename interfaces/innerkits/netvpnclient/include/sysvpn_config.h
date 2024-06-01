@@ -13,26 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef VPN_DELETE_CONTEXT_H
-#define VPN_DELETE_CONTEXT_H
+#ifndef NET_SYS_VPN_CONFIG_H
+#define NET_SYS_VPN_CONFIG_H
 
-#include <cstddef>
-#include <napi/native_api.h>
+#include <string>
 
-#include "base_context.h"
-#include "event_manager.h"
+#include "parcel.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-class DeleteContext : public BaseContext {
-public:
-    DeleteContext() = delete;
-    DeleteContext(napi_env env, EventManager *manager);
+struct SysVpnConfig : public Parcelable {
+    std::string uuid_;
+    std::string vpnName_;
+    int32_t vpnType_ = 0;
+    std::string userName_;
+    std::string password_;
+    bool saveLogin_ = false;
+    int32_t userId_ = 0;
+    std::string forwardingRoutes_;
 
-    void ParseParams(napi_value *params, size_t paramsCount);
-
-    std::string vpnId_;
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<SysVpnConfig> Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // VPN_SAVE_CONTEXT_H
+#endif // NET_SYS_VPN_CONFIG_H

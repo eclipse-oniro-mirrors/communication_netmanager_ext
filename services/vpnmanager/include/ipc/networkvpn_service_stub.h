@@ -41,11 +41,11 @@ private:
     int32_t ReplySetUpVpn(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyProtect(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyDestroyVpn(MessageParcel &data, MessageParcel &reply);
-    int32_t ReplyAddSystemVpn(MessageParcel &data, MessageParcel &reply);
-    int32_t ReplyDeleteSystemVpn(MessageParcel &data, MessageParcel &reply);
-    int32_t ReplyGetSystemVpnList(MessageParcel &data, MessageParcel &reply);
-    int32_t ReplyGetSystemVpn(MessageParcel &data, MessageParcel &reply);
-    int32_t ReplyGetConnectedSystemVpn(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyAddSysVpnConfig(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyDeleteSysVpnConfig(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetSysVpnConfigList(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetSysVpnConfig(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetConnectedSysVpnConfig(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyRegisterVpnEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyUnregisterVpnEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyCreateVpnConnection(MessageParcel &data, MessageParcel &reply);

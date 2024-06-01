@@ -33,20 +33,20 @@ void ProtectCallback(napi_env env, napi_status status, void *data);
 void ExecDestroy(napi_env env, void *data);
 void DestroyCallback(napi_env env, napi_status status, void *data);
 
-void ExecAddSystemVpn(napi_env env, void *data);
-void AddSystemVpnCallback(napi_env env, napi_status status, void *data);
+void ExecAddSysVpnConfig(napi_env env, void *data);
+void AddSysVpnConfigCallback(napi_env env, napi_status status, void *data);
 
-void ExecDeleteSystemVpn(napi_env env, void *data);
-void DeleteSystemVpnCallback(napi_env env, napi_status status, void *data);
+void ExecDeleteSysVpnConfig(napi_env env, void *data);
+void DeleteSysVpnConfigCallback(napi_env env, napi_status status, void *data);
 
-void ExecGetSystemVpnList(napi_env env, void *data);
-void GetSystemVpnListCallback(napi_env env, napi_status status, void *data);
+void ExecGetSysVpnConfigList(napi_env env, void *data);
+void GetSysVpnConfigListCallback(napi_env env, napi_status status, void *data);
 
-void ExecGetSystemVpn(napi_env env, void *data);
-void GetSystemVpnCallback(napi_env env, napi_status status, void *data);
+void ExecGetSysVpnConfig(napi_env env, void *data);
+void GetSysVpnConfigCallback(napi_env env, napi_status status, void *data);
 
-void ExecGetConnectedSystemVpn(napi_env env, void *data);
-void GetConnectedSystemVpnCallback(napi_env env, napi_status status, void *data);
+void ExecGetConnectedSysVpnConfig(napi_env env, void *data);
+void GetConnectedSysVpnConfigCallback(napi_env env, napi_status status, void *data);
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -43,20 +43,20 @@ napi_value ProtectCallback(ProtectContext *context);
 bool ExecDestroy(DestroyContext *context);
 napi_value DestroyCallback(DestroyContext *context);
 
-bool ExecAddSystemVpn(AddContext *context);
-napi_value AddSystemVpnCallback(AddContext *context);
+bool ExecAddSysVpnConfig(AddContext *context);
+napi_value AddSysVpnConfigCallback(AddContext *context);
 
-bool ExecDeleteSystemVpn(DeleteContext *context);
-napi_value DeleteSystemVpnCallback(DeleteContext *context);
+bool ExecDeleteSysVpnConfig(DeleteContext *context);
+napi_value DeleteSysVpnConfigCallback(DeleteContext *context);
 
-bool ExecGetSystemVpnList(GetListContext *context);
-napi_value GetSystemVpnListCallback(GetListContext *context);
+bool ExecGetSysVpnConfigList(GetListContext *context);
+napi_value GetSysVpnConfigListCallback(GetListContext *context);
 
-bool ExecGetSystemVpn(GetContext *context);
-napi_value GetSystemVpnCallback(GetContext *context);
+bool ExecGetSysVpnConfig(GetContext *context);
+napi_value GetSysVpnConfigCallback(GetContext *context);
 
-bool ExecGetConnectedSystemVpn(GetConnectedContext *context);
-napi_value GetConnectedSystemVpnCallback(GetConnectedContext *context);
+bool ExecGetConnectedSysVpnConfig(GetConnectedContext *context);
+napi_value GetConnectedSysVpnConfigCallback(GetConnectedContext *context);
 } // namespace VpnExec
 } // namespace NetManagerStandard
 } // namespace OHOS

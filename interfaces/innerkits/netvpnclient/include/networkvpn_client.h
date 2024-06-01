@@ -101,17 +101,17 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t AddSystemVpn(sptr<VpnConfig> &config);
+    int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config);
 
     /**
      * delete vpn
      *
-     * @param vpnUuid vpn uuid
+     * @param vpnId vpn uuid
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t DeleteSystemVpn(std::string &vpnUuid);
+    int32_t DeleteSysVpnConfig(std::string &vpnId);
 
     /**
      * get vpn list
@@ -121,18 +121,18 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList);
+    int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList);
 
     /**
      * get vpn detail
      *
      * @param config vpn config (out param)
-     * @param vpnUuid vpn uuid
+     * @param vpnId vpn uuid
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid);
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId);
 
     /**
      * get connected vpn
@@ -142,7 +142,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetConnectedSystemVpn(sptr<VpnConfig> &config);
+    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config);
 
     /**
      * register the vpn state callback

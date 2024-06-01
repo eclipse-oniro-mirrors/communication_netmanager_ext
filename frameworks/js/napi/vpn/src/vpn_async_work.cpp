@@ -67,54 +67,54 @@ void DestroyCallback(napi_env env, napi_status status, void *data)
     BaseAsyncWork::AsyncWorkCallback<DestroyContext, VpnExec::DestroyCallback>(env, status, data);
 }
 
-void ExecAddSystemVpn(napi_env env, void *data)
+void ExecAddSysVpnConfig(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<AddContext, VpnExec::ExecAddSystemVpn>(env, data);
+    BaseAsyncWork::ExecAsyncWork<AddContext, VpnExec::ExecAddSysVpnConfig>(env, data);
 }
 
-void AddSystemVpnCallback(napi_env env, napi_status status, void *data)
+void AddSysVpnConfigCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<AddContext, VpnExec::AddSystemVpnCallback>(env, status, data);
+    BaseAsyncWork::AsyncWorkCallback<AddContext, VpnExec::AddSysVpnConfigCallback>(env, status, data);
 }
 
-void ExecDeleteSystemVpn(napi_env env, void *data)
+void ExecDeleteSysVpnConfig(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<DeleteContext, VpnExec::ExecDeleteSystemVpn>(env, data);
+    BaseAsyncWork::ExecAsyncWork<DeleteContext, VpnExec::ExecDeleteSysVpnConfig>(env, data);
 }
 
-void DeleteSystemVpnCallback(napi_env env, napi_status status, void *data)
+void DeleteSysVpnConfigCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<DeleteContext, VpnExec::DeleteSystemVpnCallback>(env, status, data);
+    BaseAsyncWork::AsyncWorkCallback<DeleteContext, VpnExec::DeleteSysVpnConfigCallback>(env, status, data);
 }
 
-void ExecGetSystemVpnList(napi_env env, void *data)
+void ExecGetSysVpnConfigList(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<GetListContext, VpnExec::ExecGetSystemVpnList>(env, data);
+    BaseAsyncWork::ExecAsyncWork<GetListContext, VpnExec::ExecGetSysVpnConfigList>(env, data);
 }
 
-void GetSystemVpnListCallback(napi_env env, napi_status status, void *data)
+void GetSysVpnConfigListCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<GetListContext, VpnExec::GetSystemVpnListCallback>(env, status, data);
+    BaseAsyncWork::AsyncWorkCallback<GetListContext, VpnExec::GetSysVpnConfigListCallback>(env, status, data);
 }
 
-void ExecGetSystemVpn(napi_env env, void *data)
+void ExecGetSysVpnConfig(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<GetContext, VpnExec::ExecGetSystemVpn>(env, data);
+    BaseAsyncWork::ExecAsyncWork<GetContext, VpnExec::ExecGetSysVpnConfig>(env, data);
 }
 
-void GetSystemVpnCallback(napi_env env, napi_status status, void *data)
+void GetSysVpnConfigCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<GetContext, VpnExec::GetSystemVpnCallback>(env, status, data);
+    BaseAsyncWork::AsyncWorkCallback<GetContext, VpnExec::GetSysVpnConfigCallback>(env, status, data);
 }
 
-void ExecGetConnectedSystemVpn(napi_env env, void *data)
+void ExecGetConnectedSysVpnConfig(napi_env env, void *data)
 {
-    BaseAsyncWork::ExecAsyncWork<GetConnectedContext, VpnExec::ExecGetConnectedSystemVpn>(env, data);
+    BaseAsyncWork::ExecAsyncWork<GetConnectedContext, VpnExec::ExecGetConnectedSysVpnConfig>(env, data);
 }
 
-void GetConnectedSystemVpnCallback(napi_env env, napi_status status, void *data)
+void GetConnectedSysVpnConfigCallback(napi_env env, napi_status status, void *data)
 {
-    BaseAsyncWork::AsyncWorkCallback<GetConnectedContext, VpnExec::GetConnectedSystemVpnCallback>(env, status, data);
+    BaseAsyncWork::AsyncWorkCallback<GetConnectedContext, VpnExec::GetConnectedSysVpnConfigCallback>(env, status, data);
 }
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard

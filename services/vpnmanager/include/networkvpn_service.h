@@ -120,27 +120,27 @@ public:
     /**
      * save the vpn config
      */
-    int32_t AddSystemVpn(sptr<VpnConfig> &config) override;
+    int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;
 
     /**
      * get the vpn config list
      */
-    int32_t DeleteSystemVpn(std::string &vpnUuid) override;
+    int32_t DeleteSysVpnConfig(std::string &vpnId) override;
 
     /**
-     * get the vpn config listGetConnectedSystemVpn
+     * get the vpn config listGetConnectedSysVpnConfig
      */
-    int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList) override;
+    int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override;
 
     /**
      * get the vpn config
      */
-    int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid) override;
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override;
 
     /**
      * get the vpn connection state
      */
-    int32_t GetConnectedSystemVpn(sptr<VpnConfig> &config) override;
+    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
 
     /**
      * register callback

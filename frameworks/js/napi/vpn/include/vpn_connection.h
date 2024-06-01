@@ -28,13 +28,6 @@ constexpr const char *PREPARE = "prepare";
 constexpr const char *SET_UP = "setUp";
 constexpr const char *PROTECT = "protect";
 constexpr const char *DESTROY = "destroy";
-constexpr const char *ON = "on";
-constexpr const char *OFF = "off";
-constexpr const char *ADD_SYSTEM_VPN = "addSystemVpn";
-constexpr const char *DELETE_SYSTEM_VPN = "deleteSystemVpn";
-constexpr const char *GET_SYSTEM_VPN_LIST = "getSystemVpnList";
-constexpr const char *GET_SYSTEM_VPN = "getSystemVpn";
-constexpr const char *GET_CONNECTED_SYSTEM_VPN = "getConnectedSystemVpn";
 } // namespace
 
 namespace VpnConnection {
@@ -42,13 +35,6 @@ napi_value Prepare(napi_env env, napi_callback_info info);
 napi_value SetUp(napi_env env, napi_callback_info info);
 napi_value Protect(napi_env env, napi_callback_info info);
 napi_value Destroy(napi_env env, napi_callback_info info);
-napi_value On(napi_env env, napi_callback_info info);
-napi_value Off(napi_env env, napi_callback_info info);
-napi_value AddSystemVpn(napi_env env, napi_callback_info info);
-napi_value DeleteSystemVpn(napi_env env, napi_callback_info info);
-napi_value GetSystemVpnList(napi_env env, napi_callback_info info);
-napi_value GetSystemVpn(napi_env env, napi_callback_info info);
-napi_value GetConnectedSystemVpn(napi_env env, napi_callback_info info);
 } // namespace VpnConnection
 } // namespace NetManagerStandard
 } // namespace OHOS

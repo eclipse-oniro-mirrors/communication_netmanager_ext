@@ -130,54 +130,54 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
     return proxy->DestroyVpn(isVpnExtCall);
 }
 
-int32_t NetworkVpnClient::AddSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("AddSystemVpn proxy is nullptr");
+        NETMGR_EXT_LOG_E("AddSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->AddSystemVpn(config);
+    return proxy->AddSysVpnConfig(config);
 }
 
-int32_t NetworkVpnClient::DeleteSystemVpn(std::string &vpnUuid)
+int32_t NetworkVpnClient::DeleteSysVpnConfig(std::string &vpnId)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("DeleteSystemVpn proxy is nullptr");
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->DeleteSystemVpn(vpnUuid);
+    return proxy->DeleteSysVpnConfig(vpnId);
 }
 
-int32_t NetworkVpnClient::GetSystemVpnList(std::vector<VpnConfig> &vpnList)
+int32_t NetworkVpnClient::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetSystemVpnList proxy is nullptr");
+        NETMGR_EXT_LOG_E("GetSysVpnConfigList proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetSystemVpnList(vpnList);
+    return proxy->GetSysVpnConfigList(vpnList);
 }
 
-int32_t NetworkVpnClient::GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid)
+int32_t NetworkVpnClient::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetSystemVpn proxy is nullptr");
+        NETMGR_EXT_LOG_E("GetSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetSystemVpn(config, vpnUuid);
+    return proxy->GetSysVpnConfig(config, vpnId);
 }
 
-int32_t NetworkVpnClient::GetConnectedSystemVpn(sptr<VpnConfig> &config)
+int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetConnectedSystemVpn proxy is nullptr");
+        NETMGR_EXT_LOG_E("GetConnectedSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetConnectedSystemVpn(config);
+    return proxy->GetConnectedSysVpnConfig(config);
 }
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)

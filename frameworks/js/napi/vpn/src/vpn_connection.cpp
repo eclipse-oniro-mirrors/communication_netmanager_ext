@@ -21,12 +21,6 @@
 #include "protect_context.h"
 #include "setup_context.h"
 #include "vpn_async_work.h"
-#include "vpn_monitor.h"
-#include "add_context.h"
-#include "delete_context.h"
-#include "get_list_context.h"
-#include "get_context.h"
-#include "get_connected_context.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -53,46 +47,6 @@ napi_value Destroy(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<DestroyContext>(env, info, DESTROY, nullptr, VpnAsyncWork::ExecDestroy,
                                                      VpnAsyncWork::DestroyCallback);
-}
-
-napi_value On(napi_env env, napi_callback_info info)
-{
-    return VpnMonitor::GetInstance().On(env, info);
-}
-
-napi_value Off(napi_env env, napi_callback_info info)
-{
-    return VpnMonitor::GetInstance().Off(env, info);
-}
-
-napi_value AddSystemVpn(napi_env env, napi_callback_info info)
-{
-    return ModuleTemplate::Interface<AddContext>(env, info, ADD_SYSTEM_VPN, nullptr,
-        VpnAsyncWork::ExecAddSystemVpn, VpnAsyncWork::AddSystemVpnCallback);
-}
-
-napi_value DeleteSystemVpn(napi_env env, napi_callback_info info)
-{
-    return ModuleTemplate::Interface<DeleteContext>(env, info, DELETE_SYSTEM_VPN, nullptr,
-        VpnAsyncWork::ExecDeleteSystemVpn, VpnAsyncWork::DeleteSystemVpnCallback);
-}
-
-napi_value GetSystemVpnList(napi_env env, napi_callback_info info)
-{
-    return ModuleTemplate::Interface<GetListContext>(env, info, GET_SYSTEM_VPN_LIST, nullptr,
-        VpnAsyncWork::ExecGetSystemVpnList, VpnAsyncWork::GetSystemVpnListCallback);
-}
-
-napi_value GetSystemVpn(napi_env env, napi_callback_info info)
-{
-    return ModuleTemplate::Interface<GetContext>(env, info, GET_SYSTEM_VPN, nullptr,
-        VpnAsyncWork::ExecGetSystemVpn, VpnAsyncWork::GetSystemVpnCallback);
-}
-
-napi_value GetConnectedSystemVpn(napi_env env, napi_callback_info info)
-{
-    return ModuleTemplate::Interface<GetConnectedContext>(env, info, GET_CONNECTED_SYSTEM_VPN, nullptr,
-        VpnAsyncWork::ExecGetConnectedSystemVpn, VpnAsyncWork::GetConnectedSystemVpnCallback);
 }
 } // namespace VpnConnection
 } // namespace NetManagerStandard

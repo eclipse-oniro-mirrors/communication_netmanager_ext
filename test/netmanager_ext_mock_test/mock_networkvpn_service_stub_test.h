@@ -43,27 +43,27 @@ public:
         return 0;
     }
 
-    int32_t AddSystemVpn(sptr<VpnConfig> &config) override
+    int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override
     {
         return 0;
     }
 
-    int32_t DeleteSystemVpn(std::string &vpnUuid) override
+    int32_t DeleteSysVpnConfig(std::string &vpnId) override
     {
         return 0;
     }
 
-    int32_t GetSystemVpnList(std::vector<VpnConfig> &vpnList) override
+    int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override
     {
         return 0;
     }
 
-    int32_t GetSystemVpn(sptr<VpnConfig> &config, std::string &vpnUuid) override
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override
     {
         return 0;
     }
 
-    int32_t GetConnectedSystemVpn(sptr<VpnConfig> &config) override
+    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override
     {
         return 0;
     }
