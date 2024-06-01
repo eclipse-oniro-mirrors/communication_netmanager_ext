@@ -29,6 +29,8 @@ public:
     void UnRegisterEdmParameterChangeEvent(const char *key);
 
 private:
+    NetworkShareTracker() = default;
+    
     std::recursive_mutex mutex_;
 };
 } // namespace NetManagerStandard

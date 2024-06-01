@@ -22,9 +22,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr uint32_t PARAM_BUFFER_LENGTH = 128;
 
-private:
-    EdmParameterUtils() {};
-public:
 EdmParameterUtils(const EdmParameterUtils &) = delete;
 EdmParameterUtils &operator=(const EdmParameterUtils &) = delete;
 
@@ -42,7 +39,6 @@ bool EdmParameterUtils::CheckBoolEdmParameter(const char *key, const char *defau
     NETMGR_EXT_LOG_I("NetworkShare StartSharing check EDM param %{public}d", ret);
     if (ret > 0) {
         if (strcmp(paramOutBuf, "true") == 0) {
-            AddWatchParameter();
             return true;
         } else {
             NETMGR_EXT_LOG_E("NetworkShare StartSharing check EDM param result: %{public}s", paramOutBuf);
