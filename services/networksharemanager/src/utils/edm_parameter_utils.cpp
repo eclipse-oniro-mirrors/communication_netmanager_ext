@@ -22,8 +22,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr uint32_t PARAM_BUFFER_LENGTH = 128;
 
-EdmParameterUtils(const EdmParameterUtils &) = delete;
-EdmParameterUtils &operator=(const EdmParameterUtils &) = delete;
+public:
+EdmParameterUtils(const EdmParameterUtils&) = delete;
+EdmParameterUtils& operator=(const EdmParameterUtils &) = delete;
 
 EdmParameterUtils &EdmParameterUtils::GetInstance()
 {
@@ -47,7 +48,7 @@ bool EdmParameterUtils::CheckBoolEdmParameter(const char *key, const char *defau
     return false;
 }
 
-void NetworkShareService::RegisterEdmParameterChangeEvent(const char *key, ParameterChgPtr callback, void *context)
+void EdmParameterUtils::RegisterEdmParameterChangeEvent(const char *key, ParameterChgPtr callback, void *context)
 {
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     int ret = WatchParameter(key, callback, context);
@@ -57,7 +58,7 @@ void NetworkShareService::RegisterEdmParameterChangeEvent(const char *key, Param
     }
 }
 
-void NetworkShareService::UnRegisterEdmParameterChangeEvent(const char *key)
+void EdmParameterUtils::UnRegisterEdmParameterChangeEvent(const char *key)
 {
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     int ret = RemoveParameterWatcher(key, nullptr, nullptr);
