@@ -23,6 +23,10 @@ namespace NetManagerStandard {
 class EdmParameterUtils {
 public:
     static EdmParameterUtils &GetInstance();
+    ~EdmParameterUtils() = default;
+    EdmParameterUtils(const EdmParameterUtils&) = delete;
+    EdmParameterUtils& operator=(const EdmParameterUtils&) = delete;
+    
     bool CheckBoolEdmParameter(const char *key, const char *defaultValue);
     typedef void (*ParameterChgPtr)(const char *key, const char *value, void *context);
     void RegisterEdmParameterChangeEvent(const char *key, ParameterChgPtr callback, void *context);
