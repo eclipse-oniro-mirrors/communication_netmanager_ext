@@ -187,6 +187,7 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
   ]
 
   configs = [ ":net_tether_manager_config" ]
