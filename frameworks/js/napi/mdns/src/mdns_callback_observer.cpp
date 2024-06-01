@@ -161,7 +161,7 @@ void MDnsDiscoveryObserver::ServiceCallbackWithError(uv_work_t *work, int32_t st
 napi_value MDnsDiscoveryObserver::CreateService(napi_env env, void *data)
 {
     auto serviceInfo = static_cast<MDnsServiceInfo *>(data);
-    napi_value obj = NapiUtils::CreateObject(env);
+    napi_value obj = CreateCallbackParam(*serviceInfo, env);
     napi_value infoObj = CreateCallbackParam(*serviceInfo, env);
     NapiUtils::SetNamedProperty(env, obj, SERVICEINFO, infoObj);
     delete serviceInfo;
