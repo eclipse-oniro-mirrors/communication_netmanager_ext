@@ -29,7 +29,7 @@ public:
     void UnRegisterEdmParameterChangeEvent(const char *key);
 
 private:
-    NetworkShareTracker() = default;
+    EdmParameterUtils() = default;
     
     std::recursive_mutex mutex_;
 };
