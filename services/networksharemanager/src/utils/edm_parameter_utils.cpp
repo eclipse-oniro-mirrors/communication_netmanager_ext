@@ -22,10 +22,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr uint32_t PARAM_BUFFER_LENGTH = 128;
 
-public:
-EdmParameterUtils(const EdmParameterUtils&) = delete;
-EdmParameterUtils& operator=(const EdmParameterUtils&) = delete;
-
 EdmParameterUtils &EdmParameterUtils::GetInstance()
 {
     static EdmParameterUtils instance;
