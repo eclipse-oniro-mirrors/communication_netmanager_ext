@@ -240,8 +240,7 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, std:
     }
     config = SysVpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
-        NETMGR_EXT_LOG_E("GetSysVpnConfig read reply failed");
-        return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
+        NETMGR_EXT_LOG_I("GetSysVpnConfig config == nullptr");
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -258,8 +257,7 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
     }
     config = SysVpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
-        NETMGR_EXT_LOG_E("GetConnectedSysVpnConfig read data size failed");
-        return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
+        NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig config == nullptr");
     }
     return NETMANAGER_EXT_SUCCESS;
 }

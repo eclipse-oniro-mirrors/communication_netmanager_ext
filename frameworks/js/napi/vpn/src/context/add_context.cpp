@@ -25,8 +25,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t PARAM_JUST_OPTIONS = 1;
 constexpr int32_t PARAM_OPTIONS_AND_CALLBACK = 2;
-constexpr int32_t PARAM_NONE = 0;
-constexpr int32_t PARAM_JUST_CALLBACK = 1;
 
 AddContext::AddContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
 
@@ -45,18 +43,14 @@ bool AddContext::CheckParamsType(napi_env env, napi_value *params, size_t params
 
 void AddContext::ParseParams(napi_value *params, size_t paramsCount)
 {
-    switch (paramsCount) {
-        case PARAM_NONE:
-            SetParseOK(true);
-            break;
-        case PARAM_JUST_CALLBACK:
-            SetParseOK(SetCallback(params[0]) == napi_ok);
-            break;
-        default:
-            SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-            SetNeedThrowException(true);
-            break;
+    if (!CheckParamsType(GetEnv(), params, paramsCount)) {
+        NETMGR_EXT_LOG_E("params type is mismatch");
+        SetNeedThrowException(true);
+        SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+        return;
     }
+    vpnConfig_ = new (std::nothrow) SysVpnConfig();
+    SetParseOK(true);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

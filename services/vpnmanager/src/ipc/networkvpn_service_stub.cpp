@@ -205,7 +205,7 @@ int32_t NetworkVpnServiceStub::ReplyGetSysVpnConfig(MessageParcel &data, Message
     if (result != NETMANAGER_EXT_SUCCESS) {
         return result;
     }
-    if (!config->Marshalling(reply)) {
+    if (config != nullptr && !config->Marshalling(reply)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -218,7 +218,7 @@ int32_t NetworkVpnServiceStub::ReplyGetConnectedSysVpnConfig(MessageParcel &data
     if (result != NETMANAGER_EXT_SUCCESS) {
         return result;
     }
-    if (!config->Marshalling(reply)) {
+    if (config != nullptr && !config->Marshalling(reply)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;

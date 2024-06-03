@@ -583,33 +583,41 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 
 int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("sysvpn AddSysVpnConfig config == nullptr");
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
+        NETMGR_EXT_LOG_E("sysvpn service CheckCurrentAccountType failed!");
         return ret;
     }
 
-    NETMGR_EXT_LOG_I("sysvpn service AddSysVpnConfig");
+    NETMGR_EXT_LOG_I("sysvpn service AddSysVpnConfig %s", config->vpnName_.c_str());
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
+        NETMGR_EXT_LOG_E("sysvpn service CheckCurrentAccountType failed!");
         return ret;
     }
 
@@ -619,15 +627,17 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
 
 int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
+        NETMGR_EXT_LOG_E("sysvpn service CheckCurrentAccountType failed!");
         return ret;
     }
 
@@ -637,15 +647,17 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
 
 int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
+        NETMGR_EXT_LOG_E("sysvpn service CheckCurrentAccountType failed!");
         return ret;
     }
 
@@ -655,15 +667,16 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
 
 int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 {
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
+        NETMGR_EXT_LOG_E("sysvpn service CheckCurrentAccountType failed!");
         return ret;
     }
 
