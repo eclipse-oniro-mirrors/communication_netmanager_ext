@@ -32,6 +32,8 @@ constexpr int32_t FIREWALL_USER_MAX_RULE = 1000;
 constexpr int32_t MAX_PAGE_SIZE = 50;
 // Maximum number of rules for all users
 constexpr int32_t FIREWALL_ALL_USER_MAX_RULE = 2000;
+// Maximum number of domain for per users
+constexpr int32_t FIREWALL_SINGLE_USER_MAX_DOMAIN = 10000;
 // Maximum number of domain for all users
 constexpr int32_t FIREWALL_ALL_USER_MAX_DOMAIN = 20000;
 // Maximum length of rule name

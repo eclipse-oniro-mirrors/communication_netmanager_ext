@@ -224,7 +224,7 @@ int32_t NetFirewallRuleManager::GetEnabledNetFirewallRules(const int32_t userId,
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
-    ret = NetFirewallDbHelper::GetInstance()->QueryEnabledFirewallRules(ruleList, type);
+    ret = NetFirewallDbHelper::GetInstance()->QueryAllUserEnabledFirewallRules(ruleList, type);
     if (ret < 0) {
         NETMGR_EXT_LOG_E("GetEnabledNetFirewallRules error");
         return FIREWALL_ERR_INTERNAL;
@@ -332,6 +332,11 @@ int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> 
     if (allUserRule_ + 1 > FIREWALL_ALL_USER_MAX_RULE || userRuleSize_.at(userId) + 1 > FIREWALL_USER_MAX_RULE) {
         NETMGR_EXT_LOG_E("check rule constraint error, rule is large.");
         return FIREWALL_ERR_EXCEED_MAX_RULE;
+    }
+    int64_t domainsCount = 0;
+    NetFirewallDbHelper::GetInstance()->QueryFirewallRuleDomainByUserIdCount(userId, domainsCount);
+    if (domainsCount + rule->domains.size() > FIREWALL_SINGLE_USER_MAX_DOMAIN) {
+        return FIREWALL_ERR_EXCEED_MAX_DOMAIN;
     }
     if (allUserDomain_ + rule->domains.size() > FIREWALL_ALL_USER_MAX_DOMAIN) {
         return FIREWALL_ERR_EXCEED_ALL_MAX_DOMAIN;
