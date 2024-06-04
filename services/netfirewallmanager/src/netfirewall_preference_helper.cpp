@@ -16,7 +16,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "netfirewall_preferences_util.h"
+#include "netfirewall_preference_helper.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "preferences_errno.h"
 #include "preferences_helper.h"
@@ -25,13 +25,13 @@ using namespace std;
 
 namespace OHOS {
 namespace NetManagerStandard {
-shared_ptr<NetFirewallPreferencesUtil> NetFirewallPreferencesUtil::GetInstance()
+shared_ptr<NetFirewallPreferenceHelper> NetFirewallPreferenceHelper::GetInstance()
 {
-    static std::shared_ptr<NetFirewallPreferencesUtil> instance = make_shared<NetFirewallPreferencesUtil>();
+    static std::shared_ptr<NetFirewallPreferenceHelper> instance = make_shared<NetFirewallPreferenceHelper>();
     return instance;
 }
 
-bool NetFirewallPreferencesUtil::GetPreference()
+bool NetFirewallPreferenceHelper::GetPreference()
 {
     if (ptr_ != nullptr) {
         return true;
@@ -45,7 +45,7 @@ bool NetFirewallPreferencesUtil::GetPreference()
     return true;
 }
 
-bool NetFirewallPreferencesUtil::GetPreference(const std::string &filePath)
+bool NetFirewallPreferenceHelper::GetPreference(const std::string &filePath)
 {
     if (ptr_ != nullptr) {
         return true;
@@ -60,17 +60,17 @@ bool NetFirewallPreferencesUtil::GetPreference(const std::string &filePath)
     return true;
 }
 
-bool NetFirewallPreferencesUtil::SaveInt(const std::string &key, int32_t value)
+bool NetFirewallPreferenceHelper::SaveInt(const std::string &key, int32_t value)
 {
     return Save(key, value);
 }
 
-bool NetFirewallPreferencesUtil::SaveBool(const std::string &key, bool value)
+bool NetFirewallPreferenceHelper::SaveBool(const std::string &key, bool value)
 {
     return Save(key, value);
 }
 
-template <typename T> bool NetFirewallPreferencesUtil::Save(const std::string &key, const T &value)
+template <typename T> bool NetFirewallPreferenceHelper::Save(const std::string &key, const T &value)
 {
     if (!GetPreference()) {
         return false;
@@ -82,7 +82,7 @@ template <typename T> bool NetFirewallPreferencesUtil::Save(const std::string &k
     return RefreshSync();
 }
 
-bool NetFirewallPreferencesUtil::SaveInner(std::shared_ptr<NativePreferences::Preferences> ptr, const std::string &key,
+bool NetFirewallPreferenceHelper::SaveInner(std::shared_ptr<NativePreferences::Preferences> ptr, const std::string &key,
     const int32_t &value)
 {
     if (ptr == nullptr) {
@@ -92,7 +92,7 @@ bool NetFirewallPreferencesUtil::SaveInner(std::shared_ptr<NativePreferences::Pr
     return ptr->PutInt(key, value) == NativePreferences::E_OK;
 }
 
-bool NetFirewallPreferencesUtil::SaveInner(std::shared_ptr<NativePreferences::Preferences> ptr, const std::string &key,
+bool NetFirewallPreferenceHelper::SaveInner(std::shared_ptr<NativePreferences::Preferences> ptr, const std::string &key,
     const bool &value)
 {
     if (ptr == nullptr) {
@@ -102,17 +102,17 @@ bool NetFirewallPreferencesUtil::SaveInner(std::shared_ptr<NativePreferences::Pr
     return ptr->PutBool(key, value) == NativePreferences::E_OK;
 }
 
-int32_t NetFirewallPreferencesUtil::ObtainInt(const std::string &key, int32_t defValue)
+int32_t NetFirewallPreferenceHelper::ObtainInt(const std::string &key, int32_t defValue)
 {
     return Obtain(key, defValue);
 }
 
-bool NetFirewallPreferencesUtil::ObtainBool(const std::string &key, bool defValue)
+bool NetFirewallPreferenceHelper::ObtainBool(const std::string &key, bool defValue)
 {
     return Obtain(key, defValue);
 }
 
-template <typename T> T NetFirewallPreferencesUtil::Obtain(const std::string &key, const T &defValue)
+template <typename T> T NetFirewallPreferenceHelper::Obtain(const std::string &key, const T &defValue)
 {
     if (!GetPreference()) {
         NETMGR_EXT_LOG_I("Obtain GetPreference failed");
@@ -121,19 +121,19 @@ template <typename T> T NetFirewallPreferencesUtil::Obtain(const std::string &ke
     return ObtainInner(ptr_, key, defValue);
 }
 
-int32_t NetFirewallPreferencesUtil::ObtainInner(std::shared_ptr<NativePreferences::Preferences> ptr,
+int32_t NetFirewallPreferenceHelper::ObtainInner(std::shared_ptr<NativePreferences::Preferences> ptr,
     const std::string &key, const int32_t &defValue)
 {
     return ptr->GetInt(key, defValue);
 }
 
-bool NetFirewallPreferencesUtil::ObtainInner(std::shared_ptr<NativePreferences::Preferences> ptr,
+bool NetFirewallPreferenceHelper::ObtainInner(std::shared_ptr<NativePreferences::Preferences> ptr,
     const std::string &key, const bool &defValue)
 {
     return ptr->GetBool(key, defValue);
 }
 
-bool NetFirewallPreferencesUtil::RefreshSync()
+bool NetFirewallPreferenceHelper::RefreshSync()
 {
     if (!GetPreference()) {
         NETMGR_EXT_LOG_I("RefreshSync GetPreference failed");
@@ -150,7 +150,7 @@ bool NetFirewallPreferencesUtil::RefreshSync()
     return true;
 }
 
-bool NetFirewallPreferencesUtil::Clear(const std::string &filePath)
+bool NetFirewallPreferenceHelper::Clear(const std::string &filePath)
 {
     if (!GetPreference(filePath)) {
         NETMGR_EXT_LOG_I("Clear GetPreference failed");

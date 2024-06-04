@@ -84,10 +84,17 @@ int32_t NetFirewallParamCheck::CheckFirewallDns(napi_env env, napi_value object)
         }
         std::string primaryDns =
             NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_PRIMARY));
+        if (primaryDns.size() == 0) {
+            NETMANAGER_EXT_LOGE("primary dns is null, params invalid");
+            return FIREWALL_ERR_PARAMETER_ERROR;
+        }
         int32_t ret = CheckIpAddress(primaryDns);
         if (ret != FIREWALL_SUCCESS) {
             return ret;
         }
+    } else {
+        NETMANAGER_EXT_LOGE("primary dns is null, params invalid");
+        return FIREWALL_ERR_PARAMETER_ERROR;
     }
 
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_DNS_STANDY)) {
@@ -552,7 +559,7 @@ int32_t NetFirewallParamCheck::CheckRuleName(napi_env env, napi_value object)
         std::string ruleDescription =
             NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_DESC));
         if (ruleDescription.size() > MAX_RULE_DESCRIPTION_LEN) {
-            NETMANAGER_EXT_LOGE("ruleDescription size=%{public}d is too long", ruleDescription.size());
+            NETMANAGER_EXT_LOGE("ruleDescription size=%{public}zu is too long", ruleDescription.size());
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
     }

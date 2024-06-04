@@ -13,20 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef NET_FIREWALL_PREFERENCES_UTIL_H
-#define NET_FIREWALL_PREFERENCES_UTIL_H
+#ifndef NET_FIREWALL_PREFERENCES_HELPER_H
+#define NET_FIREWALL_PREFERENCES_HELPER_H
 
 #include <map>
 
 #include "preferences.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
-class NetFirewallPreferencesUtil {
+class NetFirewallPreferenceHelper {
 public:
-    NetFirewallPreferencesUtil() = default;
-    ~NetFirewallPreferencesUtil() = default;
+    NetFirewallPreferenceHelper() = default;
+    ~NetFirewallPreferenceHelper() = default;
 
-    static std::shared_ptr<NetFirewallPreferencesUtil> GetInstance();
+    static std::shared_ptr<NetFirewallPreferenceHelper> GetInstance();
 
     /**
      * Save int data using preferences
@@ -34,7 +35,7 @@ public:
      * @param key String
      * @param value Integer value
      * @return If get preferences success and save inner int value success, there is a return to true,
-     *     otherwise it will be false
+     * otherwise it will be false
      */
     bool SaveInt(const std::string &key, int32_t value);
 
@@ -44,7 +45,7 @@ public:
      * @param key String
      * @param value Bool value
      * @return If get preferences success and save inner bool value success, there is a return to true,
-     *     otherwise it will be false
+     * otherwise it will be false
      */
     bool SaveBool(const std::string &key, bool value);
 
@@ -62,7 +63,7 @@ public:
      * @param key String
      * @param defValue Value
      * @return If get preferences success and obtain inner bool value success,
-     *     there is a return to true, otherwise it will be false
+     * there is a return to true, otherwise it will be false
      */
     bool ObtainBool(const std::string &key, bool defValue);
 
@@ -71,7 +72,7 @@ public:
      *
      * @param filePath File path
      * @return If there is a preference file and get preferences not null, and delete preferences success,
-     *     it will return to true, otherwise it will be false
+     * it will return to true, otherwise it will be false
      */
     bool Clear(const std::string &filePath);
 
@@ -80,7 +81,7 @@ public:
      *
      * @param filePath File path
      * @return If there is a preference file and get preferences not null, it will return to true,
-     *     otherwise it will be false
+     * otherwise it will be false
      */
     bool GetPreference(const std::string &filePath);
 
@@ -107,4 +108,4 @@ private:
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NET_FIREWALL_PREFERENCES_UTIL_H
+#endif // NET_FIREWALL_PREFERENCES_HELPER_H

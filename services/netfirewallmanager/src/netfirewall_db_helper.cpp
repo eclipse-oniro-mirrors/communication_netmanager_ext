@@ -954,16 +954,14 @@ int32_t NetFirewallDbHelper::QueryAllFirewallRuleRecord(std::vector<NetFirewallR
     return QueryFirewallRuleRecord(rdbPredicates, columns, rules);
 }
 
-int32_t NetFirewallDbHelper::QueryEnabledFirewallRules(int32_t userId, std::vector<NetFirewallRule> &rules,
+int32_t NetFirewallDbHelper::QueryEnabledFirewallRules(std::vector<NetFirewallRule> &rules,
     NetFirewallRuleType type)
 {
     std::lock_guard<std::mutex> guard(databaseMutex_);
-    NETMGR_EXT_LOG_I("Query detail: userId=%{public}d ", userId);
+    NETMGR_EXT_LOG_I("Query detail: all userId");
     std::vector<std::string> columns;
     RdbPredicates rdbPredicates(FIREWALL_TABLE_NAME);
     rdbPredicates.BeginWrap()
-        ->EqualTo(NET_FIREWALL_USER_ID, std::to_string(userId))
-        ->And()
         ->EqualTo(NET_FIREWALL_IS_ENABLED, "1");
     if (type != NetFirewallRuleType::RULE_ALL && type != NetFirewallRuleType::RULE_INVALID) {
         rdbPredicates.And()->EqualTo(NET_FIREWALL_RULE_TYPE, std::to_string(static_cast<int32_t>(type)));
@@ -1105,7 +1103,7 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleRecord(const NativeRdb::RdbPredica
 
         rules.emplace_back(std::move(ruleDataParam));
     }
-    NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule size: %{public}d", rules.size());
+    NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule size: %{public}zu", rules.size());
     return FIREWALL_OK;
 }
 

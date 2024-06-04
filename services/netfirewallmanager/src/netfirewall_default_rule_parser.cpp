@@ -16,73 +16,73 @@
 #include <fstream>
 
 #include "netmgr_ext_log_wrapper.h"
-#include "netfirewall_analysis_json.h"
+#include "netfirewall_default_rule_parser.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr const char *DEFAULT_RULES = "default_rules";
 
-void NetFireWallAnalysisJson::ConvertFirewallRuleToConfig(NetFirewallRule &rule, const cJSON * const mem)
+void NetFirewallDefaultRuleParser::ConvertFirewallRuleToConfig(sptr<NetFirewallRule> &rule, const cJSON * const mem)
 {
     cJSON *ruleName = cJSON_GetObjectItem(mem, NET_FIREWALL_RULE_NAME.c_str());
     if (ruleName != nullptr && cJSON_IsString(ruleName)) {
-        rule.ruleName = cJSON_GetStringValue(ruleName);
-        NETMGR_EXT_LOG_D("ruleName = %{public}s", rule.ruleName.c_str());
+        rule->ruleName = cJSON_GetStringValue(ruleName);
+        NETMGR_EXT_LOG_D("ruleName = %{public}s", rule->ruleName.c_str());
     }
     cJSON *ruleDescription = cJSON_GetObjectItem(mem, NET_FIREWALL_RULE_DESC.c_str());
     if (ruleDescription != nullptr && cJSON_IsString(ruleDescription)) {
-        rule.ruleDescription = cJSON_GetStringValue(ruleDescription);
-        NETMGR_EXT_LOG_D("ruleDescription = %{public}s", rule.ruleDescription.c_str());
+        rule->ruleDescription = cJSON_GetStringValue(ruleDescription);
+        NETMGR_EXT_LOG_D("ruleDescription = %{public}s", rule->ruleDescription.c_str());
     }
     cJSON *ruleDirection = cJSON_GetObjectItem(mem, NET_FIREWALL_RULE_DIR.c_str());
     if (ruleDirection != nullptr && cJSON_IsNumber(ruleDirection)) {
-        rule.ruleDirection = static_cast<NetFirewallRuleDirection>(cJSON_GetNumberValue(ruleDirection));
-        NETMGR_EXT_LOG_D("mtu = %{public}d", rule.ruleDirection);
+        rule->ruleDirection = static_cast<NetFirewallRuleDirection>(cJSON_GetNumberValue(ruleDirection));
+        NETMGR_EXT_LOG_D("mtu = %{public}d", rule->ruleDirection);
     }
     cJSON *ruleAction = cJSON_GetObjectItem(mem, NET_FIREWALL_RULE_ACTION.c_str());
     if (ruleAction != nullptr && cJSON_IsNumber(ruleAction)) {
-        rule.ruleAction = static_cast<FirewallRuleAction>(cJSON_GetNumberValue(ruleAction));
-        NETMGR_EXT_LOG_D("ruleAction = %{public}d", rule.ruleAction);
+        rule->ruleAction = static_cast<FirewallRuleAction>(cJSON_GetNumberValue(ruleAction));
+        NETMGR_EXT_LOG_D("ruleAction = %{public}d", rule->ruleAction);
     }
     cJSON *ruleType = cJSON_GetObjectItem(mem, NET_FIREWALL_RULE_TYPE.c_str());
     if (ruleType != nullptr && cJSON_IsNumber(ruleType)) {
-        rule.ruleType = static_cast<NetFirewallRuleType>(cJSON_GetNumberValue(ruleType));
-        NETMGR_EXT_LOG_D("ruleType = %{public}d", rule.ruleType);
+        rule->ruleType = static_cast<NetFirewallRuleType>(cJSON_GetNumberValue(ruleType));
+        NETMGR_EXT_LOG_D("ruleType = %{public}d", rule->ruleType);
     }
     cJSON *isEnabled = cJSON_GetObjectItem(mem, NET_FIREWALL_IS_ENABLED.c_str());
     if (isEnabled != nullptr && cJSON_IsBool(isEnabled)) {
-        rule.isEnabled = cJSON_IsTrue(isEnabled);
-        NETMGR_EXT_LOG_D("isEnabled = %{public}d", rule.isEnabled);
+        rule->isEnabled = cJSON_IsTrue(isEnabled);
+        NETMGR_EXT_LOG_D("isEnabled = %{public}d", rule->isEnabled);
     }
     cJSON *appUid = cJSON_GetObjectItem(mem, NET_FIREWALL_APP_ID.c_str());
     if (appUid != nullptr && cJSON_IsNumber(appUid)) {
-        rule.appUid = cJSON_GetNumberValue(appUid);
-        NETMGR_EXT_LOG_D("appUid = %{public}d", rule.appUid);
+        rule->appUid = cJSON_GetNumberValue(appUid);
+        NETMGR_EXT_LOG_D("appUid = %{public}d", rule->appUid);
     }
     ParseListObject(rule, mem);
     cJSON *protocol = cJSON_GetObjectItem(mem, NET_FIREWALL_PROTOCOL.c_str());
     if (protocol != nullptr && cJSON_IsNumber(protocol)) {
-        rule.protocol = static_cast<NetworkProtocol>(cJSON_GetNumberValue(protocol));
-        NETMGR_EXT_LOG_D("protocol = %{public}d", rule.protocol);
+        rule->protocol = static_cast<NetworkProtocol>(cJSON_GetNumberValue(protocol));
+        NETMGR_EXT_LOG_D("protocol = %{public}d", rule->protocol);
     }
-    ParseDnsObject(rule.dns, mem, NET_FIREWALL_DNS);
+    ParseDnsObject(rule->dns, mem, NET_FIREWALL_DNS);
     cJSON *userId = cJSON_GetObjectItem(mem, NET_FIREWALL_USER_ID.c_str());
     if (userId != nullptr && cJSON_IsNumber(userId)) {
-        rule.userId = cJSON_GetNumberValue(userId);
-        NETMGR_EXT_LOG_D("userId = %{public}d", rule.userId);
+        rule->userId = cJSON_GetNumberValue(userId);
+        NETMGR_EXT_LOG_D("userId = %{public}d", rule->userId);
     }
 }
 
-void NetFireWallAnalysisJson::ParseListObject(NetFirewallRule &rule, const cJSON * const mem)
+void NetFirewallDefaultRuleParser::ParseListObject(sptr<NetFirewallRule> &rule, const cJSON * const mem)
 {
-    ParseIpList(rule.localIps, mem, NET_FIREWALL_LOCAL_IP);
-    ParseIpList(rule.remoteIps, mem, NET_FIREWALL_REMOTE_IP);
-    ParsePortList(rule.localPorts, mem, NET_FIREWALL_LOCAL_PORT);
-    ParsePortList(rule.remotePorts, mem, NET_FIREWALL_REMOTE_PORT);
-    ParseDomainList(rule.domains, mem, NET_FIREWALL_RULE_DOMAIN);
+    ParseIpList(rule->localIps, mem, NET_FIREWALL_LOCAL_IP);
+    ParseIpList(rule->remoteIps, mem, NET_FIREWALL_REMOTE_IP);
+    ParsePortList(rule->localPorts, mem, NET_FIREWALL_LOCAL_PORT);
+    ParsePortList(rule->remotePorts, mem, NET_FIREWALL_REMOTE_PORT);
+    ParseDomainList(rule->domains, mem, NET_FIREWALL_RULE_DOMAIN);
 }
 
-void NetFireWallAnalysisJson::ParseIpList(std::vector<NetFirewallIpParam> &ipParamlist, const cJSON * const mem,
+void NetFirewallDefaultRuleParser::ParseIpList(std::vector<NetFirewallIpParam> &ipParamlist, const cJSON * const mem,
     const std::string jsonKey)
 {
     cJSON *ips = cJSON_GetObjectItem(mem, jsonKey.c_str());
@@ -93,14 +93,14 @@ void NetFireWallAnalysisJson::ParseIpList(std::vector<NetFirewallIpParam> &ipPar
             if (cJSON_IsObject(item)) {
                 NetFirewallIpParam ipParam;
                 ConvertIpParamToConfig(ipParam, item);
-                ipParamlist.emplace_back(ipParam);
+                ipParamlist.emplace_back(std::move(ipParam));
             }
         }
     }
 }
 
-void NetFireWallAnalysisJson::ParsePortList(std::vector<NetFirewallPortParam> &portParamlist, const cJSON * const mem,
-    const std::string jsonKey)
+void NetFirewallDefaultRuleParser::ParsePortList(std::vector<NetFirewallPortParam> &portParamlist,
+    const cJSON * const mem, const std::string jsonKey)
 {
     cJSON *prot = cJSON_GetObjectItem(mem, jsonKey.c_str());
     if (prot != nullptr && cJSON_IsArray(prot)) {
@@ -110,13 +110,13 @@ void NetFireWallAnalysisJson::ParsePortList(std::vector<NetFirewallPortParam> &p
             if (cJSON_IsObject(item)) {
                 NetFirewallPortParam portParam;
                 ConvertPortParamToConfig(portParam, item);
-                portParamlist.emplace_back(portParam);
+                portParamlist.emplace_back(std::move(portParam));
             }
         }
     }
 }
 
-void NetFireWallAnalysisJson::ParseDomainList(std::vector<NetFirewallDomainParam> &domainParamlist,
+void NetFirewallDefaultRuleParser::ParseDomainList(std::vector<NetFirewallDomainParam> &domainParamlist,
     const cJSON * const mem, const std::string jsonKey)
 {
     cJSON *domain = cJSON_GetObjectItem(mem, jsonKey.c_str());
@@ -127,13 +127,13 @@ void NetFireWallAnalysisJson::ParseDomainList(std::vector<NetFirewallDomainParam
             if (cJSON_IsObject(item)) {
                 NetFirewallDomainParam domainParam;
                 ConvertDomainParamToConfig(domainParam, item);
-                domainParamlist.emplace_back(domainParam);
+                domainParamlist.emplace_back(std::move(domainParam));
             }
         }
     }
 }
 
-void NetFireWallAnalysisJson::ParseDnsObject(NetFirewallDnsParam &dns, const cJSON * const mem,
+void NetFirewallDefaultRuleParser::ParseDnsObject(NetFirewallDnsParam &dns, const cJSON * const mem,
     const std::string jsonKey)
 {
     cJSON *obj = cJSON_GetObjectItem(mem, jsonKey.c_str());
@@ -144,7 +144,7 @@ void NetFireWallAnalysisJson::ParseDnsObject(NetFirewallDnsParam &dns, const cJS
     }
 }
 
-void NetFireWallAnalysisJson::ConvertIpParamToConfig(NetFirewallIpParam &rule, const cJSON * const mem)
+void NetFirewallDefaultRuleParser::ConvertIpParamToConfig(NetFirewallIpParam &rule, const cJSON * const mem)
 {
     cJSON *family = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_FAMILY.c_str());
     if (family != nullptr && cJSON_IsNumber(family)) {
@@ -178,7 +178,7 @@ void NetFireWallAnalysisJson::ConvertIpParamToConfig(NetFirewallIpParam &rule, c
     }
 }
 
-void NetFireWallAnalysisJson::ConvertPortParamToConfig(NetFirewallPortParam &rule, const cJSON * const mem)
+void NetFirewallDefaultRuleParser::ConvertPortParamToConfig(NetFirewallPortParam &rule, const cJSON * const mem)
 {
     cJSON *startPort = cJSON_GetObjectItem(mem, NET_FIREWALL_PORT_START.c_str());
     if (startPort != nullptr && cJSON_IsNumber(startPort)) {
@@ -192,7 +192,7 @@ void NetFireWallAnalysisJson::ConvertPortParamToConfig(NetFirewallPortParam &rul
     }
 }
 
-void NetFireWallAnalysisJson::ConvertDomainParamToConfig(NetFirewallDomainParam &rule, const cJSON * const mem)
+void NetFirewallDefaultRuleParser::ConvertDomainParamToConfig(NetFirewallDomainParam &rule, const cJSON * const mem)
 {
     cJSON *isWildcard = cJSON_GetObjectItem(mem, NET_FIREWALL_DOMAIN_IS_WILDCARD.c_str());
     if (isWildcard != nullptr && cJSON_IsBool(isWildcard)) {
@@ -206,7 +206,7 @@ void NetFireWallAnalysisJson::ConvertDomainParamToConfig(NetFirewallDomainParam 
     }
 }
 
-void NetFireWallAnalysisJson::ConvertDnsParamToConfig(NetFirewallDnsParam &rule, const cJSON * const mem)
+void NetFirewallDefaultRuleParser::ConvertDnsParamToConfig(NetFirewallDnsParam &rule, const cJSON * const mem)
 {
     cJSON *primaryDns = cJSON_GetObjectItem(mem, NET_FIREWALL_DNS_PRIMARY.c_str());
     if (primaryDns != nullptr && cJSON_IsString(primaryDns)) {
@@ -220,7 +220,7 @@ void NetFireWallAnalysisJson::ConvertDnsParamToConfig(NetFirewallDnsParam &rule,
     }
 }
 
-bool NetFireWallAnalysisJson::GetDefaultRules(std::vector<NetFirewallRule> &ruleList)
+bool NetFirewallDefaultRuleParser::GetDefaultRules(std::vector<sptr<NetFirewallRule>> &ruleList)
 {
     const auto &jsonString = ReadJsonFile(DEFAULT_RULE_FILE);
     if (jsonString.length() == 0) {
@@ -236,9 +236,9 @@ bool NetFireWallAnalysisJson::GetDefaultRules(std::vector<NetFirewallRule> &rule
         for (uint32_t i = 0; i < itemSize; i++) {
             cJSON *item = cJSON_GetArrayItem(defaultRules, i);
             if (cJSON_IsObject(item)) {
-                NetFirewallRule netFirewallRule;
-                ConvertFirewallRuleToConfig(netFirewallRule, item);
-                ruleList.emplace_back(netFirewallRule);
+                sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
+                ConvertFirewallRuleToConfig(rule, item);
+                ruleList.emplace_back(std::move(rule));
             }
         }
     } else {
@@ -250,7 +250,7 @@ bool NetFireWallAnalysisJson::GetDefaultRules(std::vector<NetFirewallRule> &rule
     return true;
 }
 
-std::string NetFireWallAnalysisJson::ReadJsonFile(const std::string &filePath)
+std::string NetFirewallDefaultRuleParser::ReadJsonFile(const std::string &filePath)
 {
     std::ifstream infile;
     std::string strLine;

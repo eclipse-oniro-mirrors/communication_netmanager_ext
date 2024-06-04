@@ -182,11 +182,10 @@ public:
     /**
      * Query enabled rule set
      *
-     * @param userId User id
      * @param rules List of rules obtained from query
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t QueryEnabledFirewallRules(int32_t userId, std::vector<NetFirewallRule> &rules,
+    int32_t QueryEnabledFirewallRules(std::vector<NetFirewallRule> &rules,
         NetFirewallRuleType type = NetFirewallRuleType::RULE_ALL);
 
     /**

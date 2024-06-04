@@ -18,7 +18,6 @@
 
 #include <string>
 
-#include "event_handler.h"
 #include "os_account_manager.h"
 #include "netfirewall_common.h"
 #include "netfirewall_stub.h"
@@ -27,20 +26,19 @@
 #include "common_event_manager.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
-#include "netfirewall_callback_stub.h"
-#include "netfirewall_preferences_util.h"
+
+#include "netfirewall_policy_manager.h"
+#include "netfirewall_rule_manager.h"
+#include "netfirewall_rule_native_helper.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-namespace {
-const std::string FIREWALL_PREFERENCE_PATH = "/data/service/el1/public/netmanager/netfirewall_status_";
-} // namespace
-
 using namespace OHOS::EventFwk;
 class NetFirewallService : public SystemAbility,
     public NetFirewallStub,
     public std::enable_shared_from_this<NetFirewallService> {
-    DECLARE_SINGLETON(NetFirewallService)
+    DECLARE_DELAYED_SINGLETON(NetFirewallService);
     DECLARE_SYSTEM_ABILITY(NetFirewallService)
     enum class ServiceRunningState {
         STATE_NOT_START,
@@ -54,34 +52,23 @@ public:
     class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
     public:
         explicit ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
-            NetFirewallService &netfirewallService)
+            std::shared_ptr<NetFirewallService> netfirewallService)
             : EventFwk::CommonEventSubscriber(subscriberInfo), netfirewallService_(netfirewallService) {};
 
         virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
 
     private:
-        NetFirewallService &netfirewallService_;
+        std::shared_ptr<NetFirewallService> netfirewallService_ = nullptr;
     };
 
-    // Firewall interception log callback
-    class FirewallCallback : public OHOS::NetsysNative::NetFirewallCallbackStub {
-    public:
-        FirewallCallback(NetFirewallService &netfirewallService) : netfirewallService_(netfirewallService) {};
-        ~FirewallCallback() override = default;
-        virtual int32_t OnIntercept(sptr<InterceptRecord> &record) override;
-
-    private:
-        NetFirewallService &netfirewallService_;
-    };
-
-    /**
+    /* *
      * Turn on or off the firewall
      *
      * @param userId User id
      * @param status The firewall status to be set
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t SetNetFirewallStatus(const int32_t userId, const sptr<NetFirewallStatus> &status) override;
+    int32_t SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &status) override;
 
     /**
      * Query firewall status
@@ -90,16 +77,16 @@ public:
      * @param status Return to firewall status
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t GetNetFirewallStatus(const int32_t userId, sptr<NetFirewallStatus> &status) override;
+    int32_t GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &status) override;
 
     /**
      * Add firewall rules
      *
      * @param rule Firewall rules
-     * @param result Rule ID
+     * @param ruleId Rule id genarated by database
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result) override;
+    int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &ruleId) override;
 
     /**
      * Modify firewall rules
@@ -171,19 +158,9 @@ private:
 
     int32_t OnInit();
 
-    int32_t DeleteNetFirewallRuleByAppId(const int32_t appUid);
-
-    int32_t DeleteNetFirewallRuleByUserId(const int32_t userId);
-
-    int32_t AddDefaultNetFirewallRule(int32_t userId);
-
     int32_t GetCurrentAccountId();
 
-    int32_t ClearCurrentNetFirewallPreferences(const int32_t userId);
-
-    int32_t DistributeAllRules();
-
-    int32_t DistributeDnsAndDomainRules();
+    void SetCurrentUserId(int32_t userId);
 
     void InitQueryUserId(int32_t times);
 
@@ -193,16 +170,6 @@ private:
 
     bool InitQueryNetFirewallRules();
 
-    int32_t ChekcUserExits(const int32_t userId);
-
-    int32_t CheckRuleExits(const int32_t ruleId, NetFirewallRule &oldRule);
-
-    int32_t GetAllRuleConstraint(const int32_t userId);
-
-    int32_t CheckRuleConstraint(const sptr<NetFirewallRule> &rule);
-
-    void ClearRecordCache(const int32_t userId);
-
     std::string GetServiceState();
 
     std::string GetLastRulePushTime();
@@ -211,57 +178,22 @@ private:
 
     int32_t GetAllUserFirewallState(std::map<int32_t, bool> &firewallStateMap);
 
-    void GetStatusFormPreference(const int32_t userId, sptr<NetFirewallStatus> &status);
+    int32_t AddDefaultNetFirewallRule(int32_t userId);
 
-    bool GetCurrentFirewallState();
-
-    bool CheckAccountExits(int32_t userId);
-
-    int32_t GetEnabledNetFirewallRules(const int32_t userId, std::vector<NetFirewallRule> &ruleList);
-
-    int32_t GetEnabledDomainOrDnsRules(const int32_t userId, std::vector<NetFirewallRule> &ruleList);
-
-    int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, bool isNotify, int32_t &result);
-
-    void initFirewallStatusCache();
-
-    void NetFirewallRule2IpRule(const NetFirewallRule &rule, NetFirewallIpRule &ip);
-
-    void NetFirewallRule2DomainRule(const NetFirewallRule &rule, std::vector<NetFirewallDomainRule> &domainRules);
-
-    void SplitFirewallRules(const std::vector<NetFirewallRule> firewallRules, std::vector<NetFirewallIpRule> &ipRules,
-        std::vector<NetFirewallDnsRule> &dnsRules, std::vector<NetFirewallDomainRule> &domainRules);
-
-    void SplitFirewallRules(const std::vector<NetFirewallRule> firewallRules, std::vector<NetFirewallDnsRule> &dnsRules,
-        std::vector<NetFirewallDomainRule> &domainRules);
-
-    bool IsNetFirewallOpen(const int32_t userId);
-
-    int32_t SetFirewallIpRules2Bpf(const std::vector<NetFirewallIpRule> &ipRules);
+    int32_t CheckUserExsist(const int32_t userId);
 
     void RegisterSubscribeCommonEvent();
 
 private:
-    static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-    int64_t allUserRule_ = 0;
-    int64_t allUserDomain_ = 0;
-    uint64_t currentSetRuleSecond_ = 0;
-    int64_t lastRulePushResult_ = -1;
-    uint64_t serviceSpendTime_ = 0;
-    int64_t maxDefaultRuleSize_ = 0;
-    uint64_t startTimeTest_ = 0;
-    std::mutex netfirewallMutex_;
-    std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
-    std::shared_ptr<NetFirewallPreferencesUtil> referencesUtil_ = nullptr;
-    sptr<OHOS::NetsysNative::INetFirewallCallback> callback_ = nullptr;
-    ServiceRunningState state_;
-    // Cache the current state
-    sptr<NetFirewallStatus> firewallStatus_ = nullptr;
-    std::vector<sptr<InterceptRecord>> recordCache_;
-    int32_t currentUserId_ = 0;
-    std::map<int32_t, int64_t> userRuleSize_;
+    static std::shared_ptr<ffrt::queue> ffrtServiceHandler_;
+    std::atomic<uint64_t> currentSetRuleSecond_ = 0;
+    std::atomic<int64_t> lastRulePushResult_ = -1;
+    std::atomic<uint64_t> serviceSpendTime_ = 0;
+    std::atomic<int32_t> currentUserId_ = 0;
+    std::atomic<ServiceRunningState> state_;
     bool isServicePublished_ = false;
     bool hasSaRemoved_ = false;
+    std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
