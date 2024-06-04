@@ -123,6 +123,7 @@ private:
     void GetShareRegexsContent(const SharingIfaceType &type, std::string &shareRegexsContent);
 
     void OnNetSysRestart();
+    static void DisAllowNetworkShareEventCallback(const char *key, const char *value, void *context);
 	
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;

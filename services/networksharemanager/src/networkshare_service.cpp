@@ -23,11 +23,13 @@
 #include "networkshare_constants.h"
 #include "system_ability_definition.h"
 #include "netsys_controller.h"
+#include "edm_parameter_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 const bool REGISTER_LOCAL_RESULT_NETSHARE =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkShareService>::GetInstance().get());
+constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
 
@@ -163,6 +165,10 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
+    if (!EdmParameterUtils::GetInstance().CheckBoolEdmParameter(NETWORK_SHARE_POLICY_PARAM, "true")) {
+        NETMGR_EXT_LOG_E("NetworkSharing start sharing, check EDM param false");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
@@ -172,6 +178,8 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
+        EdmParameterUtils::GetInstance().RegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM,
+            DisAllowNetworkShareEventCallback, this);
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
     }
     return ret;
@@ -179,7 +187,7 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 {
-    NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
+    NETMGR_EXT_LOG_I("NetworkSharing stop sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -188,6 +196,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
+        EdmParameterUtils::GetInstance().UnRegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM);
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
     }
 
@@ -307,6 +316,33 @@ void NetworkShareService::OnNetSysRestart()
 {
     NETMGR_EXT_LOG_I("OnNetSysRestart");
     NetworkShareTracker::GetInstance().RestartResume();
+}
+
+void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, const char *value, void *context)
+{
+    if (strcmp(value, "true") != 0) {
+        NETMGR_EXT_LOG_I("DisAllowNetworkShareEventCallback calledstop all network sharing with %{public}s", value);
+
+        if (!context) {
+            NETMGR_EXT_LOG_I("DisAllowNetworkShareEventCallback context is NULL");
+            return;
+        }
+
+        NetworkShareService* servicePtr = static_cast<NetworkShareService*>(context);
+        std::string sharingType;
+        servicePtr->GetSharingType(SharingIfaceType::SHARING_WIFI, "wifi;", sharingType);
+        servicePtr->GetSharingType(SharingIfaceType::SHARING_USB, "usb;", sharingType);
+        servicePtr->GetSharingType(SharingIfaceType::SHARING_BLUETOOTH, "bluetooth;", sharingType);
+        if (sharingType.find("wifi") != std::string::npos) {
+            servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
+        }
+        if (sharingType.find("usb") != std::string::npos) {
+            servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_USB);
+        }
+        if (sharingType.find("bluetooth") != std::string::npos) {
+            servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_BLUETOOTH);
+        }
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
