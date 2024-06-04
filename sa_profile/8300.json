@@ -1,0 +1,12 @@
+{
+    "process": "netmanager",
+    "systemability": [
+        {
+            "name": 8300,
+            "libpath": "libnetfirewall_manager.z.so",
+            "run-on-create": false,
+            "distributed": false,
+            "dump_level": 1
+        }
+    ]
+}

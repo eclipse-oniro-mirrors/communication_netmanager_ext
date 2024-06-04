@@ -11,25 +11,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos/sa_profile/sa_profile.gni")
+import("//build/test.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
-ohos_sa_profile("net_manager_ext_profile") {
-  sources = [
-    "1154.xml",
-    "1155.xml",
-  ]
-
-  part_name = "netmanager_ext"
+group("unittest") {
+  testonly = true
+  if (netmanager_ext_feature_net_firewall) {
+    deps = [ "unittest/netfirewallmanager_test:unittest" ]
+  }
 }
 
-ohos_sa_profile("mdns_manager_profile") {
-  sources = [ "1161.json" ]
-
-  part_name = "netmanager_ext"
-}
-
-ohos_sa_profile("netfirewall_manager_profile") {
-  sources = [ "8300.json" ]
-
-  part_name = "netmanager_ext"
+group("fuzztest") {
+  testonly = true
+  if (netmanager_ext_feature_net_firewall) {
+    deps = [ "fuzztest/netfirewallclient_fuzzer:fuzztest" ]
+  }
 }

@@ -23,14 +23,17 @@
             "SystemCapability.Communication.NetManager.Ethernet",
             "SystemCapability.Communication.NetManager.NetSharing",
             "SystemCapability.Communication.NetManager.MDNS",
-            "SystemCapability.Communication.NetManager.Vpn"
+            "SystemCapability.Communication.NetManager.Vpn",
+            "SystemCapability.Communication.NetManager.NetFirewall"
         ],
         "features": [
+            "netmanager_ext_feature_coverage = false",
             "netmanager_ext_feature_ethernet",
             "netmanager_ext_feature_share",
             "netmanager_ext_feature_mdns",
             "netmanager_ext_feature_vpn",
-            "netmanager_ext_feature_vpnext"
+            "netmanager_ext_feature_vpnext",
+            "netmanager_ext_feature_net_firewall"
         ],
         "adapted_system_type": [
             "standard"
@@ -63,6 +66,8 @@
                 "window_manager",
                 "ability_base",
                 "os_account",
+                "relational_store",
+                "preferences",
                 "ffrt",
                 "init"
             ]
@@ -81,7 +86,9 @@
                     "//foundation/communication/netmanager_ext:vpn_ext_packages",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager_trust",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager.rc",
-                    "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile"
+                    "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile",
+                    "//foundation/communication/netmanager_ext/sa_profile:netfirewall_manager_profile",
+                    "//foundation/communication/netmanager_ext:netfirewall_packages"
                 ]
             },
             "inner_kits": [
@@ -136,6 +143,16 @@
                         ],
                         "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
                     }
+                },
+                {
+                    "type": "so",
+                    "name": "//foundation/communication/netmanager_ext/interfaces/innerkits/netfirewallclient:netfirewall_manager_if",
+                    "header": {
+                        "header_files": [
+                            "netfirewallclient/include/netfirewall_client.h"
+                        ],
+                        "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
+                    }
                 }
             ],
             "test": [
@@ -146,7 +163,9 @@
                 "//foundation/communication/netmanager_ext/test/mdnsmanager:fuzztest",
                 "//foundation/communication/netmanager_ext/test/mdnsmanager:unittest",
                 "//foundation/communication/netmanager_ext/test/vpnmanager:unittest",
-                "//foundation/communication/netmanager_ext/test/vpnmanager:fuzztest"
+                "//foundation/communication/netmanager_ext/test/vpnmanager:fuzztest",
+                "//foundation/communication/netmanager_ext/test/netfirewallmanager:unittest",
+                "//foundation/communication/netmanager_ext/test/netfirewallmanager:fuzztest"
             ]
         }
     }
