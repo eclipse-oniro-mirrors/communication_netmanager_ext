@@ -175,7 +175,8 @@ bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sy
     }
     ParseSystemVpnParams(env, config, systemVpnConfig);
 
-    sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(static_cast<IpsecVpnConfig*>(systemVpnConfig.GetRefPtr()));
+    sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(
+        static_cast<IpsecVpnConfig*>(systemVpnConfig.GetRefPtr()));
     if (ipsecVpnConfig) {
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, ipsecVpnConfig->ipsecPreSharedKey_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, ipsecVpnConfig->ipsecIdentifier_);
@@ -471,28 +472,55 @@ napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
     }
 }
 
+napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
+{
+    napi_value config = NapiUtils::CreateObject(env);
+    std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
+    if (!addresses.empty()) {
+        napi_value netArray = NapiUtils::CreateArray(env, 1);
+        napi_value netAddr = NapiUtils::CreateObject(env);
+        NapiUtils::SetStringPropertyUtf8(env, netAddr, NET_ADDRESS, addresses[0].address_);
+        NapiUtils::SetArrayElement(env, netArray, 0, netAddr);
+        NapiUtils::SetNamedProperty(env, config, CONFIG_ADDRESSES, netArray);
+    }
+    std::vector<std::string> dnsAddresses = sysVpnConfig->dnsAddresses_;
+    if (!dnsAddresses.empty()) {
+        napi_value dnsArray = NapiUtils::CreateArray(env, 1);
+        NapiUtils::SetArrayElement(env, dnsArray, 0, NapiUtils::CreateStringUtf8(env, dnsAddresses[0]));
+        NapiUtils::SetNamedProperty(env, config, CONFIG_DNSADDRESSES, dnsArray);
+    }
+    std::vector<std::string> searchDomains = sysVpnConfig->searchDomains_;
+    if (!searchDomains.empty()) {
+        napi_value domainsArray = NapiUtils::CreateArray(env, 1);
+        NapiUtils::SetArrayElement(env, domainsArray, 0, NapiUtils::CreateStringUtf8(env, searchDomains[0]));
+        NapiUtils::SetNamedProperty(env, config, CONFIG_SEARCHDOMAINS, domainsArray);
+    }
+    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_ID, sysVpnConfig->vpnId_);
+    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_NAME, sysVpnConfig->vpnName_);
+    NapiUtils::SetInt32Property(env, config, CONFIG_VPN_TYPE, sysVpnConfig->vpnType_);
+    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_USER_NAME, sysVpnConfig->userName_);
+    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
+    NapiUtils::SetBooleanProperty(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_ == 0 ? false : true);
+    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
+    return config;
+}
+
 napi_value CreateNapiOpenVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
+    napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
     sptr<OpenVpnConfig> openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (!openVpnConfig) {
         return NapiUtils::GetUndefined(env);
     }
-    napi_value config = NapiUtils::CreateObject(env);
-    CreateNapiAdressAndDomains(env, config, openVpnConfig);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_ID, openVpnConfig->vpnId_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_NAME, openVpnConfig->vpnName_);
-    NapiUtils::SetInt32Property(env, config, CONFIG_VPN_TYPE, openVpnConfig->vpnType_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_USER_NAME, openVpnConfig->userName_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_PASSWORD, openVpnConfig->password_);
-    NapiUtils::SetBooleanProperty(env, config, CONFIG_SAVE_LOGIN, openVpnConfig->saveLogin_ == 0 ? false : true);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_FORWARDED_ROUTES, openVpnConfig->forwardingRoutes_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OVPN_PORT, openVpnConfig->ovpnPort_);
     NapiUtils::SetInt32Property(env, config, CONFIG_OPEN_VPN_PROTOCOL, openVpnConfig->ovpnProtocol_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CFG, openVpnConfig->ovpnConfig_);
     NapiUtils::SetInt32Property(env, config, CONFIG_OPEN_VPN_AUTH_TYPE, openVpnConfig->ovpnAuthType_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_ASKPASS, openVpnConfig->askpass_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CFG_FILE_PATH, openVpnConfig->ovpnConfigFilePath_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CA_CERT_FILE_PATH, openVpnConfig->ovpnCaCertFilePath_);
+    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CFG_FILE_PATH,
+        openVpnConfig->ovpnConfigFilePath_);
+    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CA_CERT_FILE_PATH,
+        openVpnConfig->ovpnCaCertFilePath_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_USER_CERT_FILE_PATH,
         openVpnConfig->ovpnUserCertFilePath_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_PRIVATE_KEY_FILE_PATH,
@@ -502,19 +530,11 @@ napi_value CreateNapiOpenVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
 
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
+    napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
     sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (!ipsecVpnConfig) {
         return NapiUtils::GetUndefined(env);
     }
-    napi_value config = NapiUtils::CreateObject(env);
-    CreateNapiAdressAndDomains(env, config, ipsecVpnConfig);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_ID, ipsecVpnConfig->vpnId_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_NAME, ipsecVpnConfig->vpnName_);
-    NapiUtils::SetInt32Property(env, config, CONFIG_VPN_TYPE, ipsecVpnConfig->vpnType_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_USER_NAME, ipsecVpnConfig->userName_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_PASSWORD, ipsecVpnConfig->password_);
-    NapiUtils::SetBooleanProperty(env, config, CONFIG_SAVE_LOGIN, ipsecVpnConfig->saveLogin_ == 0 ? false : true);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_FORWARDED_ROUTES, ipsecVpnConfig->forwardingRoutes_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, ipsecVpnConfig->ipsecPreSharedKey_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_IDENTIFIER, ipsecVpnConfig->ipsecIdentifier_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_SWANCTL_CONF, ipsecVpnConfig->swanctlConf_);
@@ -541,45 +561,13 @@ napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConf
     return config;
 }
 
-void CreateNapiAdressAndDomains(napi_env env, napi_value config, sptr<SysVpnConfig> sysVpnConfig)
-{
-    std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
-    if (!addresses.empty()) {
-        napi_value netArray = NapiUtils::CreateArray(env, 1);
-        napi_value netAddr = NapiUtils::CreateObject(env);
-        NapiUtils::SetStringPropertyUtf8(env, netAddr, NET_ADDRESS, addresses[0].address_);
-        NapiUtils::SetArrayElement(env, netArray, 0, netAddr);
-        NapiUtils::SetNamedProperty(env, config, CONFIG_ADDRESSES, netArray);
-    }
-    std::vector<std::string> dnsAddresses = sysVpnConfig->dnsAddresses_;
-    if (!dnsAddresses.empty()) {
-        napi_value dnsArray = NapiUtils::CreateArray(env, 1);
-        NapiUtils::SetArrayElement(env, dnsArray, 0, NapiUtils::CreateStringUtf8(env, dnsAddresses[0]));
-        NapiUtils::SetNamedProperty(env, config, CONFIG_DNSADDRESSES, dnsArray);
-    }
-    std::vector<std::string> searchDomains = sysVpnConfig->searchDomains_;
-    if (!searchDomains.empty()) {
-        napi_value domainsArray = NapiUtils::CreateArray(env, 1);
-        NapiUtils::SetArrayElement(env, domainsArray, 0, NapiUtils::CreateStringUtf8(env, searchDomains[0]));
-        NapiUtils::SetNamedProperty(env, config, CONFIG_SEARCHDOMAINS, domainsArray);
-    }
-}
-
 napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
+    napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
     sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (!l2tpVpnConfig) {
-       return NapiUtils::GetUndefined(env);
+        return NapiUtils::GetUndefined(env);
     }
-    napi_value config = NapiUtils::CreateObject(env);
-    CreateNapiAdressAndDomains(env, config, l2tpVpnConfig);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_ID, l2tpVpnConfig->vpnId_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_NAME, l2tpVpnConfig->vpnName_);
-    NapiUtils::SetInt32Property(env, config, CONFIG_VPN_TYPE, l2tpVpnConfig->vpnType_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_USER_NAME, l2tpVpnConfig->userName_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_PASSWORD, l2tpVpnConfig->password_);
-    NapiUtils::SetBooleanProperty(env, config, CONFIG_SAVE_LOGIN, l2tpVpnConfig->saveLogin_ == 0 ? false : true);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_FORWARDED_ROUTES, l2tpVpnConfig->forwardingRoutes_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, l2tpVpnConfig->ipsecPreSharedKey_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_IDENTIFIER, l2tpVpnConfig->ipsecIdentifier_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_STRONGSWAN_CONF, l2tpVpnConfig->strongswanConf_);

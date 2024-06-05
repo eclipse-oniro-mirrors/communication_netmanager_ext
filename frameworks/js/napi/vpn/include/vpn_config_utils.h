@@ -115,10 +115,10 @@ bool GetStringFromJsMandatoryItem(napi_env env, napi_value object, const std::st
 void GetInt32FromJsOptionItem(napi_env env, napi_value object, const std::string &key, int32_t &value);
 
 napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
+napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiOpenVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
-void CreateNapiAdressAndDomains(napi_env env, napi_value config, sptr<SysVpnConfig> sysVpnConfig);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
