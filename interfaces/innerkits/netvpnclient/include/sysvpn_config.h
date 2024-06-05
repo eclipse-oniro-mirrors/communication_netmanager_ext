@@ -33,7 +33,7 @@ struct SysVpnConfig : public VpnConfig {
 
     bool Marshalling(Parcel &parcel) const override;
     static sptr<SysVpnConfig> Unmarshalling(Parcel &parcel);
-	static bool Unmarshalling(Parcel &parcel, sptr<SysVpnConfig> ptr);
+    static bool Unmarshalling(Parcel &parcel, sptr<SysVpnConfig> ptr);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

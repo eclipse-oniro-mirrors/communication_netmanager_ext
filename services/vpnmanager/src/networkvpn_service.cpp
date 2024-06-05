@@ -41,7 +41,6 @@
 #include "netsys_controller.h"
 #include "networkvpn_hisysevent.h"
 #include "net_datashare_utils_iface.h"
-#include "ipsecvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -601,10 +600,8 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
 
-    sptr<IpsecVpnConfig> ptr = sptr<IpsecVpnConfig>(static_cast<IpsecVpnConfig*>(config.GetRefPtr()));
-
-    NETMGR_EXT_LOG_I("sysvpn service AddSysVpnConfig id=%{public}s ipsecPreSharedKey=%{public}s type=%{public}d",
-        ptr->vpnId_.c_str(), ptr->ipsecPreSharedKey_.c_str(), ptr->vpnType_);
+    NETMGR_EXT_LOG_I("sysvpn service AddSysVpnConfig id=%{public}s name=%{public}s type=%{public}d",
+        config->vpnId_.c_str(), config->vpnName_.c_str(), config->vpnType_);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -618,7 +615,7 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
         NETMGR_EXT_LOG_E("sysvpn service DeleteSysVpnConfig failed!");
         return ret;
     }
-	if (!NetManagerPermission::IsSystemCaller()) {
+    if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -637,12 +634,12 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
         NETMGR_EXT_LOG_E("sysvpn service GetSysVpnConfigList failed!");
         return ret;
     }
-	if (!NetManagerPermission::IsSystemCaller()) {
+    if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
 
-	NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfigList");
+    NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfigList");
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -656,7 +653,7 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
         NETMGR_EXT_LOG_E("sysvpn service GetSysVpnConfig failed!");
         return ret;
     }
-	if (!NetManagerPermission::IsSystemCaller()) {
+    if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -675,7 +672,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("sysvpn service GetConnectedSysVpnConfig failed!");
         return ret;
     }
-	if (!NetManagerPermission::IsSystemCaller()) {
+    if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -684,7 +681,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig is null. maybe not setup yet");
         return NETMANAGER_EXT_SUCCESS;
     }
-    // config = vpnObj_->GetVpnConfig();
+
     return NETMANAGER_EXT_SUCCESS;
 }
 

@@ -46,8 +46,7 @@ sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
     int32_t type = -1;
     parcel.ReadInt32(type);
 
-    sptr<SysVpnConfig> ptr;
-    switch (type){
+    switch (type) {
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):

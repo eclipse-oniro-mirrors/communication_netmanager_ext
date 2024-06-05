@@ -161,8 +161,10 @@ bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sys
         GetStringFromJsOptionItem(env, config, CONFIG_ASKPASS, openVpnConfig->askpass_);
         GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_CFG_FILE_PATH, openVpnConfig->ovpnConfigFilePath_);
         GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_CA_CERT_FILE_PATH, openVpnConfig->ovpnCaCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_USER_CERT_FILE_PATH, openVpnConfig->ovpnUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_PRIVATE_KEY_FILE_PATH, openVpnConfig->ovpnPrivateKeyFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_USER_CERT_FILE_PATH,
+            openVpnConfig->ovpnUserCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_PRIVATE_KEY_FILE_PATH,
+            openVpnConfig->ovpnPrivateKeyFilePath_);
         return true;
     } else {
         return false;
@@ -183,15 +185,23 @@ bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sy
         GetStringFromJsOptionItem(env, config, CONFIG_SWANCTL_CONF, ipsecVpnConfig->swanctlConf_);
         GetStringFromJsOptionItem(env, config, CONFIG_STRONGSWAN_CONF, ipsecVpnConfig->strongswanConf_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_CONF, ipsecVpnConfig->ipsecCaCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF, ipsecVpnConfig->ipsecPrivateUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF, ipsecVpnConfig->ipsecPublicUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF, ipsecVpnConfig->ipsecPrivateServerCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF, ipsecVpnConfig->ipsecPublicServerCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF,
+            ipsecVpnConfig->ipsecPrivateUserCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF,
+            ipsecVpnConfig->ipsecPublicUserCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF,
+            ipsecVpnConfig->ipsecPrivateServerCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF,
+            ipsecVpnConfig->ipsecPublicServerCertConf_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_FILE_PATH, ipsecVpnConfig->ipsecCaCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH, ipsecVpnConfig->ipsecPrivateUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH, ipsecVpnConfig->ipsecPublicUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH, ipsecVpnConfig->ipsecPrivateServerCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH, ipsecVpnConfig->ipsecPublicServerCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH,
+            ipsecVpnConfig->ipsecPrivateUserCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH,
+            ipsecVpnConfig->ipsecPublicUserCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH,
+            ipsecVpnConfig->ipsecPrivateServerCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
+            ipsecVpnConfig->ipsecPublicServerCertFilePath_);
         return true;
     } else {
         return false;
@@ -211,15 +221,24 @@ bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sys
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, l2tpVpnConfig->ipsecIdentifier_);
         GetStringFromJsOptionItem(env, config, CONFIG_STRONGSWAN_CONF, l2tpVpnConfig->strongswanConf_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_CONF, l2tpVpnConfig->ipsecCaCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF, l2tpVpnConfig->ipsecPrivateUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF, l2tpVpnConfig->ipsecPublicUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF, l2tpVpnConfig->ipsecPrivateServerCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF, l2tpVpnConfig->ipsecPublicServerCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_FILE_PATH, l2tpVpnConfig->ipsecCaCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH, l2tpVpnConfig->ipsecPrivateUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH, l2tpVpnConfig->ipsecPublicUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH, l2tpVpnConfig->ipsecPrivateServerCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH, l2tpVpnConfig->ipsecPublicServerCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF,
+            l2tpVpnConfig->ipsecPrivateUserCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF,
+            l2tpVpnConfig->ipsecPublicUserCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF,
+            l2tpVpnConfig->ipsecPrivateServerCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF,
+            l2tpVpnConfig->ipsecPublicServerCertConf_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_FILE_PATH,
+            l2tpVpnConfig->ipsecCaCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH,
+            l2tpVpnConfig->ipsecPrivateUserCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH,
+            l2tpVpnConfig->ipsecPublicUserCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH,
+            l2tpVpnConfig->ipsecPrivateServerCertFilePath_);
+        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
+            l2tpVpnConfig->ipsecPublicServerCertFilePath_);
 
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CONF, l2tpVpnConfig->ipsecConf_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_SECRETS, l2tpVpnConfig->ipsecSecrets_);
@@ -449,7 +468,7 @@ napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
             return CreateNapiOpenVpnConfig(env, sysVpnConfig);
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
-            return CreateNapiL2tpVpnConfig(env, sysVpnConfig);   
+            return CreateNapiL2tpVpnConfig(env, sysVpnConfig);
         default:
             return NapiUtils::GetUndefined(env);
     }

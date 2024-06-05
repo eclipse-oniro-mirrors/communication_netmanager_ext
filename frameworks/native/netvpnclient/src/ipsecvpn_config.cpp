@@ -35,7 +35,6 @@ bool IpsecVpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteString(ipsecPublicUserCertFilePath_) &&
                  parcel.WriteString(ipsecPrivateServerCertFilePath_) &&
                  parcel.WriteString(ipsecPublicServerCertFilePath_);
-    NETMGR_EXT_LOG_I("sysvpn ipsec Marshalling allOK=%{public}d key=%{public}s", allOK, ipsecPreSharedKey_.c_str());
     return allOK;
 }
 
@@ -62,7 +61,6 @@ sptr<IpsecVpnConfig> IpsecVpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadString(ptr->ipsecPublicUserCertFilePath_) &&
                  parcel.ReadString(ptr->ipsecPrivateServerCertFilePath_) &&
                  parcel.ReadString(ptr->ipsecPublicServerCertFilePath_);
-    NETMGR_EXT_LOG_I("sysvpn ipsec Unmarshalling allOK=%{public}d key=%{public}s", allOK, ptr->ipsecPreSharedKey_.c_str());
     return allOK ? ptr : nullptr;
 }
 } // namespace NetManagerStandard

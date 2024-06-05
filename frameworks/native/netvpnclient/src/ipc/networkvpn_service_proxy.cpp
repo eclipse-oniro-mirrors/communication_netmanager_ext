@@ -214,7 +214,7 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfigList(std::vector<SysVpnConfig> &v
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
     for (int32_t idx = 0; idx < vpnListSize; idx++) {
-        sptr<SysVpnConfig> vpnConfig = SysVpnConfig::Unmarshalling(reply);;
+        sptr<SysVpnConfig> vpnConfig = SysVpnConfig::Unmarshalling(reply);
         if (vpnConfig == nullptr) {
             NETMGR_EXT_LOG_E("GetSysVpnConfigList vpnConfig is null");
             return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
