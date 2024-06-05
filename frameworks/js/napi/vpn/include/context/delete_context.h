@@ -35,4 +35,4 @@ public:
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // VPN_SAVE_CONTEXT_H
+#endif // VPN_DELETE_CONTEXT_H

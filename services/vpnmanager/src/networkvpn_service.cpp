@@ -658,7 +658,7 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
 
-	NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfig");
+    NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfig");
     return NETMANAGER_EXT_SUCCESS;
 }
 
