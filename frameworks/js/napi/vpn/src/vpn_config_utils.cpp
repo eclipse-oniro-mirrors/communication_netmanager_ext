@@ -475,7 +475,7 @@ napi_value CreateNapiOpenVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
 {
     sptr<OpenVpnConfig> openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (!openVpnConfig) {
-        NapiUtils::GetUndefined(env);
+        return NapiUtils::GetUndefined(env);
     }
     napi_value config = NapiUtils::CreateObject(env);
     CreateNapiAdressAndDomains(env, config, openVpnConfig);
@@ -504,7 +504,7 @@ napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConf
 {
     sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (!ipsecVpnConfig) {
-        NapiUtils::GetUndefined(env);
+        return NapiUtils::GetUndefined(env);
     }
     napi_value config = NapiUtils::CreateObject(env);
     CreateNapiAdressAndDomains(env, config, ipsecVpnConfig);
@@ -541,7 +541,7 @@ napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConf
     return config;
 }
 
-void CreateNapiAdressAndDomains(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
+void CreateNapiAdressAndDomains(napi_env env, napi_value config, sptr<SysVpnConfig> sysVpnConfig)
 {
     std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
     if (!addresses.empty()) {
@@ -569,7 +569,7 @@ napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
 {
     sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (!l2tpVpnConfig) {
-        NapiUtils::GetUndefined(env);
+       return NapiUtils::GetUndefined(env);
     }
     napi_value config = NapiUtils::CreateObject(env);
     CreateNapiAdressAndDomains(env, config, l2tpVpnConfig);
