@@ -478,7 +478,7 @@ napi_value CreateNapiOpenVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
         NapiUtils::GetUndefined(env);
     }
     napi_value config = NapiUtils::CreateObject(env);
-    CreateNapiAdressAndDomains(env, openVpnConfig);
+    CreateNapiAdressAndDomains(env, config, openVpnConfig);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_ID, openVpnConfig->vpnId_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_NAME, openVpnConfig->vpnName_);
     NapiUtils::SetInt32Property(env, config, CONFIG_VPN_TYPE, openVpnConfig->vpnType_);
@@ -507,7 +507,7 @@ napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConf
         NapiUtils::GetUndefined(env);
     }
     napi_value config = NapiUtils::CreateObject(env);
-    CreateNapiAdressAndDomains(env, ipsecVpnConfig);
+    CreateNapiAdressAndDomains(env, config, ipsecVpnConfig);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_ID, ipsecVpnConfig->vpnId_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_NAME, ipsecVpnConfig->vpnName_);
     NapiUtils::SetInt32Property(env, config, CONFIG_VPN_TYPE, ipsecVpnConfig->vpnType_);
@@ -572,7 +572,7 @@ napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
         NapiUtils::GetUndefined(env);
     }
     napi_value config = NapiUtils::CreateObject(env);
-    CreateNapiAdressAndDomains(env, l2tpVpnConfig);
+    CreateNapiAdressAndDomains(env, config, l2tpVpnConfig);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_ID, l2tpVpnConfig->vpnId_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_VPN_NAME, l2tpVpnConfig->vpnName_);
     NapiUtils::SetInt32Property(env, config, CONFIG_VPN_TYPE, l2tpVpnConfig->vpnType_);
