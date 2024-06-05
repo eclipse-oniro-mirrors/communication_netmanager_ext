@@ -22,6 +22,7 @@
 #include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 #include "networkvpn_client.h"
+#include "vpn_config_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -178,21 +179,28 @@ napi_value DeleteSysVpnConfigCallback(DeleteContext *context)
 
 napi_value GetSysVpnConfigCallback(GetContext *context)
 {
-    napi_value config = NapiUtils::CreateObject(context->GetEnv());
-    return config;
+    return VpnConfigUtils::CreateNapiVpnConfig(context->GetEnv(), context->vpnConfig_);
 }
 
 napi_value GetSysVpnConfigListCallback(GetListContext *context)
 {
+    int32_t index = 0;
     auto len = context->vpnList_.size();
+    NETMANAGER_EXT_LOGI("GetSystemVpnListCallBack, len: %{public}d", len);
     napi_value array = NapiUtils::CreateArray(context->GetEnv(), len);
+    for (const auto &info : context->vpnList_) {
+        napi_value config = NapiUtils::CreateObject(context->GetEnv());
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), config, VpnConfigUtils::CONFIG_VPN_ID, info.vpnId_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), config, VpnConfigUtils::CONFIG_VPN_NAME, info.vpnName_);
+        NapiUtils::SetArrayElement(context->GetEnv(), array, index, config);
+        ++index;
+    }
     return array;
 }
 
 napi_value GetConnectedSysVpnConfigCallback(GetConnectedContext *context)
 {
-    napi_value config = NapiUtils::CreateObject(context->GetEnv());
-    return config;
+    return VpnConfigUtils::CreateNapiVpnConfig(context->GetEnv(), context->vpnConfig_);
 }
 } // namespace VpnExec
 } // namespace NetManagerStandard

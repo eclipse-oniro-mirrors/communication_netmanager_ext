@@ -36,6 +36,7 @@ ohos_shared_library("vpn") {
     "src/context/protect_context.cpp",
     "src/context/setup_context.cpp",
     "src/vpn_async_work.cpp",
+    "src/vpn_config_utils.cpp",
     "src/vpn_connection.cpp",
     "src/vpn_exec.cpp",
     "src/vpn_module.cpp",

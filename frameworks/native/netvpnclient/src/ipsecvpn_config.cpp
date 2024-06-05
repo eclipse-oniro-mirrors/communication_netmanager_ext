@@ -20,23 +20,22 @@ namespace OHOS {
 namespace NetManagerStandard {
 bool IpsecVpnConfig::Marshalling(Parcel &parcel) const
 {
-    bool allOK = parcel.WriteString(uuid_) &&
-                 parcel.WriteString(vpnName_) &&
-                 parcel.WriteInt32(vpnType_) &&
-                 parcel.WriteString(userName_) &&
-                 parcel.WriteString(password_) &&
-                 parcel.WriteInt32(saveLogin_) &&
-                 parcel.WriteString(vpnAddress_) &&
+    bool allOK = SysVpnConfig::Marshalling(parcel) &&
                  parcel.WriteString(ipsecPreSharedKey_) &&
                  parcel.WriteString(ipsecIdentifier_) &&
                  parcel.WriteString(swanctlConf_) &&
                  parcel.WriteString(strongswanConf_) &&
                  parcel.WriteString(ipsecCaCertConf_) &&
-                 parcel.WriteString(ipsecUserCertConf_) &&
-                 parcel.WriteString(ipsecServerCertConf_) &&
-                 parcel.WriteString(ipsecCaCertFileName_) &&
-                 parcel.WriteString(ipsecUserCertFileName_) &&
-                 parcel.WriteString(ipsecServerCertFileName_);
+                 parcel.WriteString(ipsecPrivateUserCertConf_) &&
+                 parcel.WriteString(ipsecPublicUserCertConf_) &&
+                 parcel.WriteString(ipsecPrivateServerCertConf_) &&
+                 parcel.WriteString(ipsecPublicServerCertConf_) &&
+                 parcel.WriteString(ipsecCaCertFilePath_) &&
+                 parcel.WriteString(ipsecPrivateUserCertFilePath_) &&
+                 parcel.WriteString(ipsecPublicUserCertFilePath_) &&
+                 parcel.WriteString(ipsecPrivateServerCertFilePath_) &&
+                 parcel.WriteString(ipsecPublicServerCertFilePath_);
+    NETMGR_EXT_LOG_I("sysvpn ipsec Marshalling allOK=%{public}d key=%{public}s", allOK, ipsecPreSharedKey_.c_str());
     return allOK;
 }
 
@@ -48,23 +47,22 @@ sptr<IpsecVpnConfig> IpsecVpnConfig::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
-    bool allOK = parcel.ReadString(ptr->uuid_) &&
-                 parcel.ReadString(ptr->vpnName_) &&
-                 parcel.ReadInt32(ptr->vpnType_) &&
-                 parcel.ReadString(ptr->userName_) &&
-                 parcel.ReadString(ptr->password_) &&
-                 parcel.ReadInt32(ptr->saveLogin_) &&
-                 parcel.ReadString(ptr->vpnAddress_) &&
+    bool allOK = SysVpnConfig::Unmarshalling(parcel, ptr) &&
                  parcel.ReadString(ptr->ipsecPreSharedKey_) &&
                  parcel.ReadString(ptr->ipsecIdentifier_) &&
                  parcel.ReadString(ptr->swanctlConf_) &&
                  parcel.ReadString(ptr->strongswanConf_) &&
                  parcel.ReadString(ptr->ipsecCaCertConf_) &&
-                 parcel.ReadString(ptr->ipsecUserCertConf_) &&
-                 parcel.ReadString(ptr->ipsecServerCertConf_) &&
-                 parcel.ReadString(ptr->ipsecCaCertFileName_) &&
-                 parcel.ReadString(ptr->ipsecUserCertFileName_) &&
-                 parcel.ReadString(ptr->ipsecServerCertFileName_);
+                 parcel.ReadString(ptr->ipsecPrivateUserCertConf_) &&
+                 parcel.ReadString(ptr->ipsecPublicUserCertConf_) &&
+                 parcel.ReadString(ptr->ipsecPrivateServerCertConf_) &&
+                 parcel.ReadString(ptr->ipsecPublicServerCertConf_) &&
+                 parcel.ReadString(ptr->ipsecCaCertFilePath_) &&
+                 parcel.ReadString(ptr->ipsecPrivateUserCertFilePath_) &&
+                 parcel.ReadString(ptr->ipsecPublicUserCertFilePath_) &&
+                 parcel.ReadString(ptr->ipsecPrivateServerCertFilePath_) &&
+                 parcel.ReadString(ptr->ipsecPublicServerCertFilePath_);
+    NETMGR_EXT_LOG_I("sysvpn ipsec Unmarshalling allOK=%{public}d key=%{public}s", allOK, ptr->ipsecPreSharedKey_.c_str());
     return allOK ? ptr : nullptr;
 }
 } // namespace NetManagerStandard

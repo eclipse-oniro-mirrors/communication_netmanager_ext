@@ -17,32 +17,20 @@
 #define NET_OPEN_VPN_CONFIG_H
 
 #include <string>
-
-#include "parcel.h"
+#include "sysvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct OpenVpnConfig : public Parcelable {
-    std::string uuid_;
-    std::string vpnName_;
-    int32_t vpnType_ = 0;
-
-    std::string userName_;
-    std::string password_;
-    int32_t saveLogin_ = 0;
-    int32_t userId_ = 0;
-    std::string vpnAddress_;
-
-    // openvpn
+struct OpenVpnConfig : SysVpnConfig {
     std::string ovpnPort_;
     int32_t ovpnProtocol_;
     std::string ovpnConfig_;
     int32_t ovpnAuthType_;
     std::string askpass_;
-    std::string ovpnConfigFileName_;
-    std::string ovpnCaCertFileName_;
-    std::string ovpnUserCertFileName_;
-    std::string ovpnPrivateKeyFileName_;
+    std::string ovpnConfigFilePath_;
+    std::string ovpnCaCertFilePath_;
+    std::string ovpnUserCertFilePath_;
+    std::string ovpnPrivateKeyFilePath_;
 
     bool Marshalling(Parcel &parcel) const override;
     static sptr<OpenVpnConfig> Unmarshalling(Parcel &parcel);

@@ -22,20 +22,10 @@
 #include "inet_addr.h"
 #include "parcel.h"
 #include "route.h"
-#include "openvpn_config.h"
-#include "ipsecvpn_config.h"
-#include "l2tpvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 struct VpnConfig : public Parcelable {
-    std::string uuid_;
-    std::string vpnName_;
-    int32_t vpnType_ = 0;
-    sptr<OpenVpnConfig> openVpnConfig_;
-    sptr<IpsecVpnConfig> ipsecVpnConfig_;
-    sptr<L2tpVpnConfig> l2tpVpnConfig_;
-
     std::vector<INetAddr> addresses_;
     std::vector<Route> routes_;
     int32_t mtu_ = 0;
@@ -54,6 +44,7 @@ struct VpnConfig : public Parcelable {
     bool MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec) const;
 
     static sptr<VpnConfig> Unmarshalling(Parcel &parcel);
+    static bool UnmarshallingVpnConfig(Parcel &parcel, sptr<VpnConfig> config);
     static bool UnmarshallingAddrRoute(Parcel &parcel, sptr<VpnConfig> &config);
     static bool UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec);
 };

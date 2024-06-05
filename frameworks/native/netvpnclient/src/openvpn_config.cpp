@@ -20,22 +20,16 @@ namespace OHOS {
 namespace NetManagerStandard {
 bool OpenVpnConfig::Marshalling(Parcel &parcel) const
 {
-    bool allOK = parcel.WriteString(uuid_) &&
-                 parcel.WriteString(vpnName_) &&
-                 parcel.WriteInt32(vpnType_) &&
-                 parcel.WriteString(userName_) &&
-                 parcel.WriteString(password_) &&
-                 parcel.WriteInt32(saveLogin_) &&
-                 parcel.WriteString(vpnAddress_) &&
+    bool allOK = SysVpnConfig::Marshalling(parcel) &&
                  parcel.WriteString(ovpnPort_) &&
                  parcel.WriteInt32(ovpnProtocol_) &&
                  parcel.WriteString(ovpnConfig_) &&
                  parcel.WriteInt32(ovpnAuthType_) &&
                  parcel.WriteString(askpass_) &&
-                 parcel.WriteString(ovpnConfigFileName_) &&
-                 parcel.WriteString(ovpnCaCertFileName_) &&
-                 parcel.WriteString(ovpnUserCertFileName_) &&
-                 parcel.WriteString(ovpnPrivateKeyFileName_);
+                 parcel.WriteString(ovpnConfigFilePath_) &&
+                 parcel.WriteString(ovpnCaCertFilePath_) &&
+                 parcel.WriteString(ovpnUserCertFilePath_) &&
+                 parcel.WriteString(ovpnPrivateKeyFilePath_);
     return allOK;
 }
 
@@ -47,22 +41,16 @@ sptr<OpenVpnConfig> OpenVpnConfig::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
-    bool allOK = parcel.ReadString(ptr->uuid_) &&
-                 parcel.ReadString(ptr->vpnName_) &&
-                 parcel.ReadInt32(ptr->vpnType_) &&
-                 parcel.ReadString(ptr->userName_) &&
-                 parcel.ReadString(ptr->password_) &&
-                 parcel.ReadInt32(ptr->saveLogin_) &&
-                 parcel.ReadString(ptr->vpnAddress_) &&
+    bool allOK = SysVpnConfig::Unmarshalling(parcel, ptr) &&
                  parcel.ReadString(ptr->ovpnPort_) &&
                  parcel.ReadInt32(ptr->ovpnProtocol_) &&
                  parcel.ReadString(ptr->ovpnConfig_) &&
                  parcel.ReadInt32(ptr->ovpnAuthType_) &&
                  parcel.ReadString(ptr->askpass_) &&
-                 parcel.ReadString(ptr->ovpnConfigFileName_) &&
-                 parcel.ReadString(ptr->ovpnCaCertFileName_) &&
-                 parcel.ReadString(ptr->ovpnUserCertFileName_) &&
-                 parcel.ReadString(ptr->ovpnPrivateKeyFileName_);
+                 parcel.ReadString(ptr->ovpnConfigFilePath_) &&
+                 parcel.ReadString(ptr->ovpnCaCertFilePath_) &&
+                 parcel.ReadString(ptr->ovpnUserCertFilePath_) &&
+                 parcel.ReadString(ptr->ovpnPrivateKeyFilePath_);
     return allOK ? ptr : nullptr;
 }
 } // namespace NetManagerStandard

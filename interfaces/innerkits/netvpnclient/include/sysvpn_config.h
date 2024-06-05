@@ -17,13 +17,12 @@
 #define NET_SYS_VPN_CONFIG_H
 
 #include <string>
-
-#include "parcel.h"
+#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct SysVpnConfig : public Parcelable {
-    std::string uuid_;
+struct SysVpnConfig : public VpnConfig {
+    std::string vpnId_;
     std::string vpnName_;
     int32_t vpnType_ = 0;
     std::string userName_;
@@ -34,6 +33,7 @@ struct SysVpnConfig : public Parcelable {
 
     bool Marshalling(Parcel &parcel) const override;
     static sptr<SysVpnConfig> Unmarshalling(Parcel &parcel);
+	static bool Unmarshalling(Parcel &parcel, sptr<SysVpnConfig> ptr);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

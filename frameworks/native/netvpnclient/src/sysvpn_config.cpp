@@ -14,13 +14,22 @@
  */
 
 #include "sysvpn_config.h"
+#include "openvpn_config.h"
+#include "ipsecvpn_config.h"
+#include "l2tpvpn_config.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "net_manager_ext_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+
 bool SysVpnConfig::Marshalling(Parcel &parcel) const
 {
-    bool allOK = parcel.WriteString(uuid_) &&
+    // add vpnType first
+    parcel.WriteInt32(vpnType_);
+
+    bool allOK = VpnConfig::Marshalling(parcel) &&
+                 parcel.WriteString(vpnId_) &&
                  parcel.WriteString(vpnName_) &&
                  parcel.WriteInt32(vpnType_) &&
                  parcel.WriteString(userName_) &&
@@ -33,13 +42,34 @@ bool SysVpnConfig::Marshalling(Parcel &parcel) const
 
 sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
 {
-    sptr<SysVpnConfig> ptr = new (std::nothrow) SysVpnConfig();
-    if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("SysVpnConfig ptr is null");
-        return nullptr;
-    }
+    // get vpnType first
+    int32_t type = -1;
+    parcel.ReadInt32(type);
 
-    bool allOK = parcel.ReadString(ptr->uuid_) &&
+    sptr<SysVpnConfig> ptr;
+    switch (type){
+        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
+        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
+        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
+        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_PSK):
+        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
+        case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
+            return IpsecVpnConfig::Unmarshalling(parcel);
+        case static_cast<int32_t>(VpnType::OPENVPN):
+            return OpenVpnConfig::Unmarshalling(parcel);
+        case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
+        case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
+            return L2tpVpnConfig::Unmarshalling(parcel);
+        default:
+            NETMGR_EXT_LOG_E("sysvpn SysVpnConfig Unmarshalling failed, type=%{public}d", type);
+            return nullptr;
+    }
+}
+
+bool SysVpnConfig::Unmarshalling(Parcel &parcel, sptr<SysVpnConfig> ptr)
+{
+    bool allOK = VpnConfig::UnmarshallingVpnConfig(parcel, ptr) &&
+                 parcel.ReadString(ptr->vpnId_) &&
                  parcel.ReadString(ptr->vpnName_) &&
                  parcel.ReadInt32(ptr->vpnType_) &&
                  parcel.ReadString(ptr->userName_) &&
@@ -47,7 +77,7 @@ sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadBool(ptr->saveLogin_) &&
                  parcel.ReadInt32(ptr->userId_) &&
                  parcel.ReadString(ptr->forwardingRoutes_);
-    return allOK ? ptr : nullptr;
+    return allOK;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

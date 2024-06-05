@@ -29,13 +29,7 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
                  MarshallingVectorString(parcel, searchDomains_) &&
                  MarshallingVectorString(parcel, acceptedApplications_) &&
                  MarshallingVectorString(parcel, refusedApplications_);
-    bool systemVpnOK = parcel.WriteString(uuid_) &&
-                 parcel.WriteString(vpnName_) &&
-                 parcel.WriteInt32(vpnType_) &&
-                 parcel.WriteStrongParcelable(openVpnConfig_) &&
-                 parcel.WriteStrongParcelable(ipsecVpnConfig_) &&
-                 parcel.WriteStrongParcelable(l2tpVpnConfig_);
-    return allOK && systemVpnOK;
+    return allOK;
 }
 
 bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
@@ -85,6 +79,16 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
+    bool allOK = UnmarshallingVpnConfig(parcel, ptr);
+    return allOK ? ptr : nullptr;
+}
+
+bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, sptr<VpnConfig> ptr)
+{
+    if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("VpnConfig ptr is null");
+        return false;
+    }
     bool allOK = UnmarshallingAddrRoute(parcel, ptr) && parcel.ReadInt32(ptr->mtu_) &&
                  parcel.ReadBool(ptr->isAcceptIPv4_) && parcel.ReadBool(ptr->isAcceptIPv6_) &&
                  parcel.ReadBool(ptr->isLegacy_) && parcel.ReadBool(ptr->isMetered_) &&
@@ -92,14 +96,7 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&
                  UnmarshallingVectorString(parcel, ptr->refusedApplications_);
-    bool systemVpnOK = parcel.ReadString(ptr->uuid_) && parcel.ReadString(ptr->vpnName_) &&
-                 parcel.ReadInt32(ptr->vpnType_);
-    if (systemVpnOK) {
-        ptr->openVpnConfig_ = parcel.ReadStrongParcelable<OpenVpnConfig>();
-        ptr->ipsecVpnConfig_ = parcel.ReadStrongParcelable<IpsecVpnConfig>();
-        ptr->l2tpVpnConfig_ = parcel.ReadStrongParcelable<L2tpVpnConfig>();
-    }
-    return (allOK && systemVpnOK) ? ptr : nullptr;
+    return allOK;
 }
 
 bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, sptr<VpnConfig> &config)
@@ -159,6 +156,5 @@ bool VpnConfig::UnmarshallingVectorString(Parcel &parcel, std::vector<std::strin
     }
     return true;
 }
-
 } // namespace NetManagerStandard
 } // namespace OHOS

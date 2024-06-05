@@ -17,31 +17,24 @@
 #define NET_L2TP_VPN_CONFIG_H
 
 #include <string>
-
-#include "parcel.h"
+#include "sysvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct L2tpVpnConfig : public Parcelable {
-    std::string uuid_;
-    int32_t vpnType_ = 0;
-    std::string vpnName_;
-
-    std::string userName_;
-    std::string password_;
-    int32_t saveLogin_ = 0;
-    int32_t userId_ = 0;
-    std::string vpnAddress_;
-
+struct L2tpVpnConfig : SysVpnConfig {
     std::string ipsecPreSharedKey_;
     std::string ipsecIdentifier_;
     std::string strongswanConf_;
     std::string ipsecCaCertConf_;
-    std::string ipsecUserCertConf_;
-    std::string ipsecServerCertConf_;
-    std::string ipsecCaCertFileName_;
-    std::string ipsecUserCertFileName_;
-    std::string ipsecServerCertFileName_;
+    std::string ipsecPrivateUserCertConf_;
+    std::string ipsecPublicUserCertConf_;
+    std::string ipsecPrivateServerCertConf_;
+    std::string ipsecPublicServerCertConf_;
+    std::string ipsecCaCertFilePath_;
+    std::string ipsecPrivateUserCertFilePath_;
+    std::string ipsecPublicUserCertFilePath_;
+    std::string ipsecPrivateServerCertFilePath_;
+    std::string ipsecPublicServerCertFilePath_;
 
     std::string ipsecConf_;
     std::string ipsecSecrets_;
