@@ -34,6 +34,7 @@ constexpr const char *EVENT_KEY_FIREWALL_RULE_INFO = "ruleInfo";
 constexpr const char *EVENT_KEY_FIREWALL_ERROR_TYPE = "errorType";
 constexpr const char *EVENT_KEY_FIREWALL_ERROR_MSG = "errorMsg";
 }
+
 NetFirewallHisysEvent &NetFirewallHisysEvent::GetInstance()
 {
     static NetFirewallHisysEvent instance;

@@ -422,7 +422,6 @@ bool NetFirewallRuleManager::ExtractIpRules(const std::vector<NetFirewallRule> &
     }
     // Release historical rule pointer
     for (auto &rule : ipRules_) {
-        delete rule;
         rule = nullptr;
     }
     ipRules_.clear();
@@ -471,7 +470,6 @@ bool NetFirewallRuleManager::ExtractDnsRules(const std::vector<NetFirewallRule> 
     }
     // Release historical rule pointer
     for (auto &rule : dnsRules_) {
-        delete rule;
         rule = nullptr;
     }
     dnsRules_.clear();
