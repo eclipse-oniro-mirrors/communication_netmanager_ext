@@ -35,6 +35,7 @@ public:
             ffrtQueue_ =
                 std::make_shared<ffrt::queue>("FirewallCallbackQueue", ffrt::queue_attr().qos(ffrt::qos_utility));
         }
+
         ~FirewallCallback()
         {
             ffrtQueue_.reset();

@@ -78,7 +78,7 @@ int32_t NetFirewallRuleManager::AddNetFirewallRule(const sptr<NetFirewallRule> &
 int32_t NetFirewallRuleManager::AddDefaultNetFirewallRule(int32_t userId)
 {
     if (!userRuleSize_.empty() && userRuleSize_.count(userId) && userRuleSize_.at(userId) > 0) {
-        NETMGR_EXT_LOG_W("AddDefaultNetFirewallRule , current user rule is exits.");
+        NETMGR_EXT_LOG_W("AddDefaultNetFirewallRule , current user rule is exist.");
         return 0;
     }
     std::vector<sptr<NetFirewallRule>> rules;
@@ -109,12 +109,12 @@ int32_t NetFirewallRuleManager::UpdateNetFirewallRule(const sptr<NetFirewallRule
     if (ret != FIREWALL_OK) {
         return ret;
     }
-    ret = CheckUserExsist(rule->userId);
+    ret = CheckUserExist(rule->userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
     NetFirewallRule oldRule;
-    ret = CheckRuleExits(rule->ruleId, oldRule);
+    ret = CheckRuleExist(rule->ruleId, oldRule);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -135,13 +135,13 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRule(const int32_t userId, cons
 {
     NETMGR_EXT_LOG_I("DeleteNetFirewallRule");
     std::lock_guard<std::shared_mutex> locker(setFirewallRuleMutex_);
-    int32_t ret = CheckUserExsist(userId);
+    int32_t ret = CheckUserExist(userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
 
     NetFirewallRule oldRule;
-    ret = CheckRuleExits(ruleId, oldRule);
+    ret = CheckRuleExist(ruleId, oldRule);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -220,7 +220,7 @@ int32_t NetFirewallRuleManager::GetEnabledNetFirewallRules(const int32_t userId,
     NetFirewallRuleType type)
 {
     NETMGR_EXT_LOG_I("GetEnabledNetFirewallRules:: type=%{public}d", static_cast<int32_t>(type));
-    int32_t ret = CheckUserExsist(userId);
+    int32_t ret = CheckUserExist(userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -237,7 +237,7 @@ int32_t NetFirewallRuleManager::GetNetFirewallRules(const int32_t userId, const 
 {
     NETMGR_EXT_LOG_I("GetNetFirewallRules");
     std::shared_lock<std::shared_mutex> locker(setFirewallRuleMutex_);
-    int32_t ret = CheckUserExsist(userId);
+    int32_t ret = CheckUserExist(userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -256,7 +256,7 @@ int32_t NetFirewallRuleManager::GetNetFirewallRule(const int32_t userId, const i
 {
     NETMGR_EXT_LOG_I("GetNetFirewallRule userId=%{public}d ruleId=%{public}d", userId, ruleId);
     std::shared_lock<std::shared_mutex> locker(setFirewallRuleMutex_);
-    int32_t ret = CheckUserExsist(userId);
+    int32_t ret = CheckUserExist(userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -268,7 +268,21 @@ int32_t NetFirewallRuleManager::GetNetFirewallRule(const int32_t userId, const i
         return FIREWALL_ERR_INTERNAL;
     }
     if (outRules.size() > 0) {
-        rule = sptr<NetFirewallRule>(&(outRules[0]));
+        const NetFirewallRule &outRule = outRules[0];
+        rule->userId = outRule.userId;
+        rule->ruleId = outRule.ruleId;
+        rule->ruleName = outRule.ruleName;
+        rule->ruleDescription = outRule.ruleDescription;
+        rule->ruleAction = outRule.ruleAction;
+        rule->ruleDirection = outRule.ruleDirection;
+        rule->ruleType = outRule.ruleType;
+        rule->appUid = outRule.appUid;
+        rule->protocol = outRule.protocol;
+        rule->dns = outRule.dns;
+        rule->localIps.assign(outRule.localIps.begin(), outRule.localIps.end());
+        rule->remoteIps.assign(outRule.remoteIps.begin(), outRule.remoteIps.end());
+        rule->localPorts.assign(outRule.localPorts.begin(), outRule.localPorts.end());
+        rule->remotePorts.assign(outRule.remotePorts.begin(), outRule.remotePorts.end());
     } else {
         NETMGR_EXT_LOG_E("QueryFirewallRuleRecord size is 0");
         return FIREWALL_ERR_NO_RULE;
@@ -276,7 +290,7 @@ int32_t NetFirewallRuleManager::GetNetFirewallRule(const int32_t userId, const i
     return FIREWALL_SUCCESS;
 }
 
-int32_t NetFirewallRuleManager::CheckUserExsist(const int32_t userId)
+int32_t NetFirewallRuleManager::CheckUserExist(const int32_t userId)
 {
     AccountSA::OsAccountInfo accountInfo;
     if (AccountSA::OsAccountManager::QueryOsAccountById(userId, accountInfo) != ERR_OK) {
@@ -286,12 +300,12 @@ int32_t NetFirewallRuleManager::CheckUserExsist(const int32_t userId)
     return FIREWALL_SUCCESS;
 }
 
-int32_t NetFirewallRuleManager::CheckRuleExits(const int32_t ruleId, NetFirewallRule &oldRule)
+int32_t NetFirewallRuleManager::CheckRuleExist(const int32_t ruleId, NetFirewallRule &oldRule)
 {
     std::shared_ptr<NetFirewallDbHelper> helper = NetFirewallDbHelper::GetInstance();
-    bool isExits = helper->IsFirewallRuleExits(ruleId, oldRule);
-    if (!isExits) {
-        NETMGR_EXT_LOG_E("Query ruleId: %{public}d is not exits.", ruleId);
+    bool isExist = helper->IsFirewallRuleExist(ruleId, oldRule);
+    if (!isExist) {
+        NETMGR_EXT_LOG_E("Query ruleId: %{public}d is not exist.", ruleId);
         return FIREWALL_ERR_NO_RULE;
     }
     return FIREWALL_SUCCESS;
@@ -320,8 +334,8 @@ int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> 
 {
     int32_t userId = rule->userId;
     GetAllRuleConstraint(userId);
-    if (!CheckAccountExits(userId)) {
-        NETMGR_EXT_LOG_E("current accoutn is not exits, userId: %{public}d.", userId);
+    if (!CheckAccountExist(userId)) {
+        NETMGR_EXT_LOG_E("current accoutn is not exist, userId: %{public}d.", userId);
         return FIREWALL_ERR_NO_RULE;
     }
     if (userRuleSize_.at(userId) < maxDefaultRuleSize_) {
@@ -334,11 +348,18 @@ int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> 
         return FIREWALL_ERR_EXCEED_MAX_RULE;
     }
     int64_t domainsCount = 0;
-    NetFirewallDbHelper::GetInstance()->QueryFirewallRuleDomainByUserIdCount(userId, domainsCount);
-    if (domainsCount + rule->domains.size() > FIREWALL_SINGLE_USER_MAX_DOMAIN) {
+    std::shared_ptr<NetFirewallDbHelper> helper = NetFirewallDbHelper::GetInstance();
+    helper->QueryFirewallRuleDomainByUserIdCount(userId, domainsCount);
+    size_t size = rule->domains.size();
+    if (domainsCount + size > FIREWALL_SINGLE_USER_MAX_DOMAIN) {
         return FIREWALL_ERR_EXCEED_MAX_DOMAIN;
     }
-    if (allUserDomain_ + rule->domains.size() > FIREWALL_ALL_USER_MAX_DOMAIN) {
+    helper->QueryFirewallRuleAllFuzzyDomainCount(domainsCount);
+    if (allUserDomain_ + size > FIREWALL_ALL_USER_MAX_DOMAIN ||
+        domainsCount + size > FIREWALL_ALL_USER_MAX_FUZZY_DOMAIN) {
+        NETMGR_EXT_LOG_E(
+            "check rule constraint domain number is more than max, all domain=%{public}d all fuzzy=%{public}d",
+            static_cast<int32_t>(allUserDomain_), static_cast<int32_t>(domainsCount));
         return FIREWALL_ERR_EXCEED_ALL_MAX_DOMAIN;
     }
     // DNS rule check duplicate
@@ -349,7 +370,7 @@ int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> 
     return FIREWALL_SUCCESS;
 }
 
-bool NetFirewallRuleManager::CheckAccountExits(int32_t userId)
+bool NetFirewallRuleManager::CheckAccountExist(int32_t userId)
 {
     AccountSA::OsAccountInfo accountInfo;
     if (AccountSA::OsAccountManager::QueryOsAccountById(userId, accountInfo) != ERR_OK) {
@@ -422,7 +443,6 @@ bool NetFirewallRuleManager::ExtractDomainRules(const std::vector<NetFirewallRul
     }
     // Release historical rule pointer
     for (auto &rule : domainRules_) {
-        delete rule;
         rule = nullptr;
     }
     domainRules_.clear();
@@ -516,7 +536,7 @@ int32_t NetFirewallRuleManager::GetCurrentAccountId()
 int32_t NetFirewallRuleManager::OpenOrCloseNativeFirewall(bool isOpen)
 {
     std::lock_guard<std::shared_mutex> locker(setFirewallRuleMutex_);
-    NETMGR_EXT_LOG_I("OpenOrCloseNativeFirewall: type=%{public}d", NetFirewallRuleType::RULE_ALL);
+    NETMGR_EXT_LOG_I("OpenOrCloseNativeFirewall: isOpen=%{public}d", isOpen);
     NetmanagerHiTrace::NetmanagerStartSyncTrace("OpenOrCloseNativeFirewall");
     auto userId = GetCurrentAccountId();
     if (!isOpen) {
@@ -574,9 +594,9 @@ int32_t NetFirewallRuleManager::SetRulesToNativeByType(const int32_t userId, con
             break;
         case NetFirewallRuleType::RULE_ALL: {
             if (rules.empty()) {
-                NetFirewallRuleNativeHelper::GetInstance()->ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
                 break;
             }
+            NetFirewallRuleNativeHelper::GetInstance()->ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
             ret = HandleIpTypeForDistributeRules(rules);
             ret += HandleDnsTypeForDistributeRules(rules);
             ret += HandleDomainTypeForDistributeRules(rules);

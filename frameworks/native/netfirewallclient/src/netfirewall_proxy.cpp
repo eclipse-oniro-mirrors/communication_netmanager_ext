@@ -54,7 +54,6 @@ int32_t NetFirewallProxy::SetNetFirewallPolicy(const int32_t userId, const sptr<
 
 int32_t NetFirewallProxy::GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &status)
 {
-    NETMGR_EXT_LOG_I("GetNetFirewallPolicy");
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("Remote is null");
@@ -161,7 +160,6 @@ int32_t NetFirewallProxy::DeleteNetFirewallRule(const int32_t userId, const int3
 int32_t NetFirewallProxy::GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<FirewallRulePage> &info)
 {
-    NETMGR_EXT_LOG_I("GetNetFirewallRules");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
@@ -193,7 +191,6 @@ int32_t NetFirewallProxy::GetNetFirewallRules(const int32_t userId, const sptr<R
 
 int32_t NetFirewallProxy::GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule)
 {
-    NETMGR_EXT_LOG_I("GetNetFirewallRule");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("GetNetFirewallRule WriteInterfaceToken failed");
@@ -223,7 +220,6 @@ int32_t NetFirewallProxy::GetNetFirewallRule(const int32_t userId, const int32_t
 int32_t NetFirewallProxy::GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<InterceptRecordPage> &info)
 {
-    NETMGR_EXT_LOG_I("GetInterceptRecords");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("GetInterceptRecords WriteInterfaceToken failed");

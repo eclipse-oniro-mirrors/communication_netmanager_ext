@@ -35,19 +35,19 @@ void NetFirewallRuleParse::ParseIpList(napi_env env, napi_value params, std::vec
             continue;
         }
         NetFirewallIpParam param;
-        param.family = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_FAMILY);
+        param.family = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, valAttr, NET_FIREWALL_IP_FAMILY));
         // Default IPv4
         if (param.family == 0) {
             param.family = FAMILY_IPV4;
         }
-        param.type = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_TYPE);
+        param.type = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, valAttr, NET_FIREWALL_IP_TYPE));
         // Default single IP
         if (param.type == 0) {
             param.type = SINGLE_IP;
         }
         if (param.type == SINGLE_IP) {
+            param.mask = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, valAttr, NET_FIREWALL_IP_MASK));
             param.address = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_ADDRESS);
-            param.mask = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_IP_MASK);
             // The default IPv4 mask is 32, The IPv6 prefix is 64
             if (param.mask == 0 && param.type == SINGLE_IP) {
                 param.mask = param.family == FAMILY_IPV4 ? IPV4_MASK_MAX : IPV6_MASK_MAX;
@@ -75,8 +75,8 @@ void NetFirewallRuleParse::ParsePortList(napi_env env, napi_value params, std::v
             continue;
         }
         NetFirewallPortParam param;
-        param.startPort = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_PORT_START);
-        param.endPort = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_PORT_END);
+        param.startPort = static_cast<uint16_t>(NapiUtils::GetUint32Property(env, valAttr, NET_FIREWALL_PORT_START));
+        param.endPort = static_cast<uint16_t>(NapiUtils::GetUint32Property(env, valAttr, NET_FIREWALL_PORT_END));
         list.emplace_back(param);
     }
 }
@@ -137,13 +137,15 @@ void NetFirewallRuleParse::SetIpList(napi_env env, napi_value object, const std:
     napi_value ipList = NapiUtils::CreateArray(env, list.size());
     for (const auto &iface : list) {
         napi_value element = NapiUtils::CreateObject(env);
-        NapiUtils::SetInt32Property(env, element, NET_FIREWALL_IP_FAMILY, iface.family);
-        NapiUtils::SetInt32Property(env, element, NET_FIREWALL_IP_TYPE, iface.type);
-        NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_ADDRESS, iface.address);
-        NapiUtils::SetInt32Property(env, element, NET_FIREWALL_IP_MASK, iface.mask);
-        NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_START, iface.startIp);
-        NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_END, iface.endIp);
-
+        NapiUtils::SetUint32Property(env, element, NET_FIREWALL_IP_FAMILY, static_cast<uint32_t>(iface.family));
+        NapiUtils::SetUint32Property(env, element, NET_FIREWALL_IP_TYPE, static_cast<uint32_t>(iface.type));
+        if (iface.type == SINGLE_IP) {
+            NapiUtils::SetUint32Property(env, element, NET_FIREWALL_IP_MASK, static_cast<uint32_t>(iface.mask));
+            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_ADDRESS, iface.address);
+        } else {
+            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_START, iface.startIp);
+            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_END, iface.endIp);
+        }
         NapiUtils::SetArrayElement(env, ipList, index++, element);
     }
     NapiUtils::SetNamedProperty(env, object, propertyName, ipList);
@@ -156,8 +158,8 @@ void NetFirewallRuleParse::SetPortList(napi_env env, napi_value object, const st
     napi_value portList = NapiUtils::CreateArray(env, list.size());
     for (const auto &iface : list) {
         napi_value element = NapiUtils::CreateObject(env);
-        NapiUtils::SetInt32Property(env, element, NET_FIREWALL_PORT_START, iface.startPort);
-        NapiUtils::SetInt32Property(env, element, NET_FIREWALL_PORT_END, iface.endPort);
+        NapiUtils::SetUint32Property(env, element, NET_FIREWALL_PORT_START, static_cast<uint32_t>(iface.startPort));
+        NapiUtils::SetUint32Property(env, element, NET_FIREWALL_PORT_END, static_cast<uint32_t>(iface.endPort));
 
         NapiUtils::SetArrayElement(env, portList, index++, element);
     }

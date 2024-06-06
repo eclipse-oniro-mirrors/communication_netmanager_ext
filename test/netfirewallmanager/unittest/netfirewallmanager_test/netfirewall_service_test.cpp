@@ -62,14 +62,14 @@ constexpr int32_t MAX_USER_RULE = 1;
 constexpr int32_t MAX_IPS = 1;
 constexpr int32_t MAX_PORTS = 1;
 constexpr int32_t MAX_DOMAINS = 1;
-constexpr int32_t LOCAL_START_PORT = 10020;
-constexpr int32_t LOCAL_END_PORT = 1003;
-constexpr int32_t REMOTE_START_PORT = 1002;
-constexpr int32_t REMOTE_END_PORT = 10030;
+constexpr uint16_t LOCAL_START_PORT = 10020;
+constexpr uint16_t LOCAL_END_PORT = 1003;
+constexpr uint16_t REMOTE_START_PORT = 1002;
+constexpr uint16_t REMOTE_END_PORT = 10030;
 
 std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart)
 {
-    const int32_t mask = 24;
+    const uint8_t mask = 24;
     std::vector<NetFirewallIpParam> localParamList;
     NetFirewallIpParam localParam;
     localParam.family = 1;
@@ -639,8 +639,8 @@ HWTEST_F(NetFirewallServiceTest, OnIntercept, TestSize.Level1)
 {
     sptr<InterceptRecord> record = (std::make_unique<InterceptRecord>()).release();
     const uint32_t time = 10025152;
-    const uint32_t sourcePort = 10000;
-    const uint32_t destPort = 20000;
+    const uint16_t sourcePort = 10000;
+    const uint16_t destPort = 20000;
     const uint32_t uid = 10085;
     record->time = time;
     record->localIp = "192.168.1.2";

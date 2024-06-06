@@ -62,7 +62,7 @@ int32_t NetFirewallInterceptRecorder::GetInterceptRecords(const int32_t userId, 
 
 void NetFirewallInterceptRecorder::SetCurrentUserId(int32_t userId)
 {
-    NETMGR_EXT_LOG_I("SetCurrentUserId");
+    NETMGR_EXT_LOG_I("SetCurrentUserId userid = %{public}d", userId);
     std::lock_guard<std::shared_mutex> locker(setRecordMutex_);
     currentUserId_ = userId;
 }
@@ -113,14 +113,14 @@ int32_t NetFirewallInterceptRecorder::UnRegisterInterceptCallback()
 
 int32_t NetFirewallInterceptRecorder::FirewallCallback::OnIntercept(sptr<InterceptRecord> &record)
 {
-    NETMGR_EXT_LOG_I("FirewallCallback::OnIntercept: %{public}s", record->ToString().c_str());
-    NetFirewallInterceptRecorder::GetInstance()->PutRecordCache(record);
+    NETMGR_EXT_LOG_I("FirewallCallback::OnIntercept: time=%{public}d", record->time);
+    recorder_->PutRecordCache(record);
     if (recordTaskHandle_ != nullptr) {
         ffrtQueue_->cancel(recordTaskHandle_);
         recordTaskHandle_ = nullptr;
     }
-    auto callback = [this]() { NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache(); };
-    if (NetFirewallInterceptRecorder::GetInstance()->GetRecordCacheSize() < RECORD_CACHE_SIZE) {
+    auto callback = [this]() { recorder_->SyncRecordCache(); };
+    if (recorder_->GetRecordCacheSize() < RECORD_CACHE_SIZE) {
         // Write every three minutes when dissatisfied
         recordTaskHandle_ = ffrtQueue_->submit_h(callback, ffrt::task_attr().delay(RECORD_TASK_DELAY_TIME_MS));
     } else {

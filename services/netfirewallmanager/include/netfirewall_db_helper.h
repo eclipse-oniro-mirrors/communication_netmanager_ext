@@ -301,6 +301,14 @@ public:
     int32_t QueryFirewallRuleAllDomainCount(int64_t &rowCount);
 
     /**
+     * Query the number of ambiguous domain names
+     *
+     * @param rowCount Number of queries found
+     * @return Returns 0 success. Otherwise fail
+     */
+    int32_t QueryFirewallRuleAllFuzzyDomainCount(int64_t &rowCount);
+
+    /**
      * Query the number of domain rules by userId
      *
      * @param userId User id
@@ -356,7 +364,7 @@ public:
      * @param oldRule Current existing rules
      * @return If there is a return to true, otherwise it will be false
      */
-    bool IsFirewallRuleExits(int32_t ruleId, NetFirewallRule &oldRule);
+    bool IsFirewallRuleExist(int32_t ruleId, NetFirewallRule &oldRule);
 
     /**
      * Does the specified dns rule exist

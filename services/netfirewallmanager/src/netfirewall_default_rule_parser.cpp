@@ -148,12 +148,12 @@ void NetFirewallDefaultRuleParser::ConvertIpParamToConfig(NetFirewallIpParam &ru
 {
     cJSON *family = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_FAMILY.c_str());
     if (family != nullptr && cJSON_IsNumber(family)) {
-        rule.family = cJSON_GetNumberValue(family);
+        rule.family = static_cast<uint8_t>(cJSON_GetNumberValue(family));
         NETMGR_EXT_LOG_D("family = %{public}d", rule.family);
     }
     cJSON *type = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_TYPE.c_str());
     if (type != nullptr && cJSON_IsNumber(type)) {
-        rule.type = cJSON_GetNumberValue(type);
+        rule.type = static_cast<uint8_t>(cJSON_GetNumberValue(type));
         NETMGR_EXT_LOG_D("type = %{public}d", rule.type);
     }
     cJSON *address = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_ADDRESS.c_str());
@@ -163,7 +163,7 @@ void NetFirewallDefaultRuleParser::ConvertIpParamToConfig(NetFirewallIpParam &ru
     }
     cJSON *mask = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_MASK.c_str());
     if (mask != nullptr && cJSON_IsNumber(mask)) {
-        rule.mask = cJSON_GetNumberValue(mask);
+        rule.mask = static_cast<uint8_t>(cJSON_GetNumberValue(mask));
         NETMGR_EXT_LOG_D("mask = %{public}d", rule.mask);
     }
     cJSON *startIp = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_START.c_str());
@@ -182,12 +182,12 @@ void NetFirewallDefaultRuleParser::ConvertPortParamToConfig(NetFirewallPortParam
 {
     cJSON *startPort = cJSON_GetObjectItem(mem, NET_FIREWALL_PORT_START.c_str());
     if (startPort != nullptr && cJSON_IsNumber(startPort)) {
-        rule.startPort = cJSON_GetNumberValue(startPort);
+        rule.startPort = static_cast<uint16_t>(cJSON_GetNumberValue(startPort));
         NETMGR_EXT_LOG_D("startPort = %{public}d", rule.startPort);
     }
     cJSON *endPort = cJSON_GetObjectItem(mem, NET_FIREWALL_PORT_END.c_str());
     if (endPort != nullptr && cJSON_IsNumber(endPort)) {
-        rule.endPort = cJSON_GetNumberValue(endPort);
+        rule.endPort = static_cast<uint16_t>(cJSON_GetNumberValue(endPort));
         NETMGR_EXT_LOG_D("endPort = %{public}d", rule.endPort);
     }
 }

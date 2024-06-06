@@ -62,9 +62,9 @@ int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, con
     }
 
     preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    preferencesHelper_->SaveBool("isOpen", policy->isOpen);
-    preferencesHelper_->SaveInt("inAction", static_cast<int>(policy->inAction));
-    preferencesHelper_->SaveInt("outAction", static_cast<int>(policy->outAction));
+    preferencesHelper_->SaveBool(NET_FIREWALL_IS_OPEN, policy->isOpen);
+    preferencesHelper_->SaveInt(NET_FIREWALL_IN_ACTION, static_cast<int>(policy->inAction));
+    preferencesHelper_->SaveInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(policy->outAction));
 
     return FIREWALL_SUCCESS;
 }
@@ -198,11 +198,11 @@ void NetFirewallPolicyManager::RebuildFirewallPolicyCache(const int32_t userId)
 void NetFirewallPolicyManager::LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy)
 {
     preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    policy->isOpen = preferencesHelper_->ObtainBool("isOpen", true);
+    policy->isOpen = preferencesHelper_->ObtainBool(NET_FIREWALL_IS_OPEN, true);
     policy->inAction = static_cast<FirewallRuleAction>(
-        preferencesHelper_->ObtainInt("inAction", static_cast<int>(FirewallRuleAction::RULE_DENY)));
+        preferencesHelper_->ObtainInt(NET_FIREWALL_IN_ACTION, static_cast<int>(FirewallRuleAction::RULE_DENY)));
     policy->outAction = static_cast<FirewallRuleAction>(
-        preferencesHelper_->ObtainInt("outAction", static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
+        preferencesHelper_->ObtainInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

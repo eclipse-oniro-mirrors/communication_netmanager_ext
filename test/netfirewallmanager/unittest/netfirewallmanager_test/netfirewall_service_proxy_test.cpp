@@ -44,11 +44,11 @@ const int32_t PAGE = 0;
 const int32_t PAGE_SIZE = 5;
 const int32_t TOTAL_PAGE = 10;
 const int32_t APP_ID = 2034;
-const int32_t MASK = 24;
-const int32_t LOCAL_START_PORT = 10020;
-const int32_t LOCAL_END_PORT = 1003;
-const int32_t REMOTE_START_PORT = 1002;
-const int32_t REMOTE_END_PORT = 10030;
+const uint8_t MASK = 24;
+const uint16_t LOCAL_START_PORT = 10020;
+const uint16_t LOCAL_END_PORT = 1003;
+const uint16_t REMOTE_START_PORT = 1002;
+const uint16_t REMOTE_END_PORT = 10030;
 
 sptr<NetFirewallRule> GetNetFirewallRuleSptr()
 {
@@ -111,17 +111,17 @@ sptr<NetFirewallPolicy> GetNetFirewallPolicySptr()
 sptr<InterceptRecord> GetInterceptRecordSptr()
 {
     sptr<InterceptRecord> record = (std::make_unique<InterceptRecord>()).release();
-    const uint32_t TIME = 10025152;
-    const uint32_t SOURCE_PORT = 10000;
-    const uint32_t DEST_PORT = 20000;
-    const uint32_t UID = 10085;
-    record->time = TIME;
+    const uint32_t time = 10025152;
+    const uint16_t localPort = 10000;
+    const uint16_t remotePort = 20000;
+    const uint32_t uid = 10085;
+    record->time = time;
     record->localIp = "192.168.1.2";
     record->remoteIp = "192.168.1.3";
-    record->localPort = SOURCE_PORT;
-    record->remotePort = DEST_PORT;
+    record->localPort = localPort;
+    record->remotePort = remotePort;
     record->protocol = 1;
-    record->appUid = UID;
+    record->appUid = uid;
     return record;
 }
 } // namespace

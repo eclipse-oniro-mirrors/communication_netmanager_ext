@@ -165,7 +165,7 @@ int32_t NetFirewallService::GetInterceptRecords(const int32_t userId, const sptr
     sptr<InterceptRecordPage> &info)
 {
     NETMGR_EXT_LOG_I("GetInterceptRecords");
-    int32_t ret = CheckUserExsist(userId);
+    int32_t ret = CheckUserExist(userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -174,7 +174,7 @@ int32_t NetFirewallService::GetInterceptRecords(const int32_t userId, const sptr
     return NetFirewallInterceptRecorder::GetInstance()->GetInterceptRecords(userId, requestParam, info);
 }
 
-int32_t NetFirewallService::CheckUserExsist(const int32_t userId)
+int32_t NetFirewallService::CheckUserExist(const int32_t userId)
 {
     AccountSA::OsAccountInfo accountInfo;
     if (AccountSA::OsAccountManager::QueryOsAccountById(userId, accountInfo) != ERR_OK) {

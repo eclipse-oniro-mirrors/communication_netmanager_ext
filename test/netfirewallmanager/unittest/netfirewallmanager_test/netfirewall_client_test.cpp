@@ -50,18 +50,18 @@ int32_t g_rowId = 0;
 constexpr int32_t MAX_USER_RULE = 1;
 constexpr uint32_t APPID_TEST01 = 2034;
 constexpr int32_t USER_ID1 = 100;
-const int32_t LOCAL_START_PORT = 10020;
-const int32_t LOCAL_END_PORT = 1003;
-const int32_t REMOTE_START_PORT = 1002;
-const int32_t REMOTE_END_PORT = 10030;
+const uint16_t LOCAL_START_PORT = 10020;
+const uint16_t LOCAL_END_PORT = 1003;
+const uint16_t REMOTE_START_PORT = 1002;
+const uint16_t REMOTE_END_PORT = 10030;
 constexpr int32_t MAX_IPS = 1;
 constexpr int32_t MAX_PORTS = 1;
 constexpr int32_t MAX_DOMAINS = 1;
 const int32_t MAX_RULE_DESCRITION_LEN = 256;
 
-std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart, int32_t type)
+std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart, uint8_t type)
 {
-    const int32_t mask = 24;
+    const uint8_t mask = 24;
     std::vector<NetFirewallIpParam> localParamList;
     NetFirewallIpParam localParam;
     localParam.family = 1;
@@ -79,7 +79,7 @@ std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart, int32
     return localParamList;
 }
 
-std::vector<NetFirewallPortParam> GetPortList(const int32_t startPort, const int32_t endPort)
+std::vector<NetFirewallPortParam> GetPortList(const uint16_t startPort, const uint16_t endPort)
 {
     const int32_t offset = 20;
     std::vector<NetFirewallPortParam> localPortParamList;
@@ -108,7 +108,7 @@ std::string generateRandomString(int32_t length)
 }
 
 sptr<NetFirewallRule> GetNetFirewallRuleSptr(NetFirewallRuleType ruleType = NetFirewallRuleType::RULE_IP,
-    NetFirewallRuleDirection ruleDirection = NetFirewallRuleDirection::RULE_OUT, int32_t type = SINGLE_IP)
+    NetFirewallRuleDirection ruleDirection = NetFirewallRuleDirection::RULE_OUT, uint8_t type = SINGLE_IP)
 {
     sptr<NetFirewallRule> rule = (std::make_unique<NetFirewallRule>()).release();
     if (!rule) {

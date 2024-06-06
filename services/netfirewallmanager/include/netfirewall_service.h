@@ -180,7 +180,7 @@ private:
 
     int32_t AddDefaultNetFirewallRule(int32_t userId);
 
-    int32_t CheckUserExsist(const int32_t userId);
+    int32_t CheckUserExist(const int32_t userId);
 
     void RegisterSubscribeCommonEvent();
 

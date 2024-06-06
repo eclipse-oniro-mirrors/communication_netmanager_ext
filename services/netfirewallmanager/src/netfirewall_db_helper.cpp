@@ -182,20 +182,15 @@ int32_t NetFirewallDbHelper::AddFirewallIpRule(NativeRdb::ValuesBucket &values, 
         ruledata.ruleId = ruleId;
         ruledata.userId = rule.userId;
         ruledata.appUid = rule.appUid;
-        ruledata.family = netFirewallIpParamList[i].family;
-        ruledata.type = netFirewallIpParamList[i].type;
+        ruledata.family = static_cast<int32_t>(netFirewallIpParamList[i].family);
+        ruledata.type = static_cast<int32_t>(netFirewallIpParamList[i].type);
         ruledata.locationType = locationType;
-        NETMGR_EXT_LOG_I("Insert ipParam: ruleId=%{public}d type=%{public}d", ruleId, ruledata.type);
         if (ruledata.type == SINGLE_IP) {
             ruledata.address = netFirewallIpParamList[i].address;
-            ruledata.mask = netFirewallIpParamList[i].mask;
-            NETMGR_EXT_LOG_I("Insert ipParam: address=%{public}s mask=%{public}d", ruledata.address.c_str(),
-                ruledata.mask);
+            ruledata.mask = static_cast<int32_t>(netFirewallIpParamList[i].mask);
         } else {
             ruledata.startIp = netFirewallIpParamList[i].startIp;
             ruledata.endIp = netFirewallIpParamList[i].endIp;
-            NETMGR_EXT_LOG_I("Insert ipParam: startIp=%{public}s endIp=%{public}s", ruledata.startIp.c_str(),
-                ruledata.endIp.c_str());
         }
         ret = AddFirewallIpRule(values, ruledata);
         if (ret < FIREWALL_OK) {
@@ -218,8 +213,8 @@ int32_t NetFirewallDbHelper::AddFirewallPortRule(NativeRdb::ValuesBucket &values
         ruledata.ruleId = ruleId;
         ruledata.userId = rule.userId;
         ruledata.appUid = rule.appUid;
-        ruledata.startPort = netFirewallPortParamList[i].startPort;
-        ruledata.endPort = netFirewallPortParamList[i].endPort;
+        ruledata.startPort = static_cast<int32_t>(netFirewallPortParamList[i].startPort);
+        ruledata.endPort = static_cast<int32_t>(netFirewallPortParamList[i].endPort);
         ruledata.locationType = locationType;
         ret = AddFirewallPortRule(values, ruledata);
         if (ret < FIREWALL_OK) {
@@ -401,12 +396,12 @@ int32_t NetFirewallDbHelper::SubTableAddIpParam4UpdateRule(const NetFirewallRule
         ruledata.ruleId = rule.ruleId;
         ruledata.userId = rule.userId;
         ruledata.appUid = rule.appUid;
-        ruledata.family = paramList[i].family;
-        ruledata.type = paramList[i].type;
+        ruledata.family = static_cast<int32_t>(paramList[i].family);
+        ruledata.type = static_cast<int32_t>(paramList[i].type);
         ruledata.locationType = locationType;
         if (ruledata.type == SINGLE_IP) {
             ruledata.address = paramList[i].address;
-            ruledata.mask = paramList[i].mask;
+            ruledata.mask = static_cast<int32_t>(paramList[i].mask);
         } else {
             ruledata.startIp = paramList[i].startIp;
             ruledata.endIp = paramList[i].endIp;
@@ -431,8 +426,8 @@ int32_t NetFirewallDbHelper::SubTableAddPortParam4UpdateRule(const NetFirewallRu
         ruledata.ruleId = rule.ruleId;
         ruledata.userId = rule.userId;
         ruledata.appUid = rule.appUid;
-        ruledata.startPort = paramList[i].startPort;
-        ruledata.endPort = paramList[i].endPort;
+        ruledata.startPort = static_cast<int32_t>(paramList[i].startPort);
+        ruledata.endPort = static_cast<int32_t>(paramList[i].endPort);
         ruledata.locationType = locationType;
         ret = AddFirewallPortRule(values, ruledata);
         if (ret < FIREWALL_OK) {
@@ -907,6 +902,9 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     }
 
     bool endFlag = false;
+    int32_t localPort = 0;
+    int32_t remotePort = 0;
+    int32_t protocol = 0;
     for (int32_t i = 0; (i < table.rowCount) && !endFlag; i++) {
         if (resultSet->GoToRow(i) != E_OK) {
             NETMGR_EXT_LOG_E("GetResultRightRecordEx GoToRow %{public}d", i);
@@ -916,9 +914,15 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
         resultSet->GetInt(table.timeIndex, info.time);
         resultSet->GetString(table.localIpIndex, info.localIp);
         resultSet->GetString(table.remoteIpIndex, info.remoteIp);
-        resultSet->GetInt(table.localPortIndex, info.localPort);
-        resultSet->GetInt(table.remotePortIndex, info.remotePort);
-        resultSet->GetInt(table.protocolIndex, info.protocol);
+        if (resultSet->GetInt(table.localPortIndex, localPort) == E_OK) {
+            info.localPort = static_cast<uint16_t>(localPort);
+        }
+        if (resultSet->GetInt(table.remotePortIndex, remotePort) == E_OK) {
+            info.remotePort = static_cast<uint16_t>(remotePort);
+        }
+        if (resultSet->GetInt(table.protocolIndex, protocol) == E_OK) {
+            info.protocol = static_cast<uint16_t>(protocol);
+        }
         resultSet->GetInt(table.appUidIndex, info.appUid);
         resultSet->GetString(table.domainIndex, info.domain);
         if (info.time > 0) {
@@ -1013,12 +1017,12 @@ void NetFirewallDbHelper::GetFirewallIpRuleRecord(int32_t ruleId, const std::vec
     for (size_t i = 0; i < size; i++) {
         if (inIpRules[i].ruleId == ruleId) {
             NetFirewallIpParam param;
-            param.family = inIpRules[i].family;
-            param.type = inIpRules[i].type;
+            param.family = static_cast<uint8_t>(inIpRules[i].family);
+            param.type = static_cast<uint8_t>(inIpRules[i].type);
+            param.mask = static_cast<uint8_t>(inIpRules[i].mask);
             param.address.assign(inIpRules[i].address);
             param.startIp.assign(inIpRules[i].startIp);
             param.endIp.assign(inIpRules[i].endIp);
-            param.mask = inIpRules[i].mask;
             outIpRules.emplace_back(std::move(param));
         }
     }
@@ -1031,8 +1035,8 @@ void NetFirewallDbHelper::GetFirewallPortRuleRecord(int32_t ruleId,
     for (size_t i = 0; i < size; i++) {
         if (inPortRules[i].ruleId == ruleId) {
             NetFirewallPortParam param;
-            param.startPort = inPortRules[i].startPort;
-            param.endPort = inPortRules[i].endPort;
+            param.startPort = static_cast<uint16_t>(inPortRules[i].startPort);
+            param.endPort = static_cast<uint16_t>(inPortRules[i].endPort);
             outProtRules.emplace_back(std::move(param));
         }
     }
@@ -1239,15 +1243,15 @@ int32_t NetFirewallDbHelper::DeleteFirewallRuleRecordByAppId(int32_t appUid)
     return ret;
 }
 
-bool NetFirewallDbHelper::IsFirewallRuleExits(int32_t ruleId, NetFirewallRule &oldRule)
+bool NetFirewallDbHelper::IsFirewallRuleExist(int32_t ruleId, NetFirewallRule &oldRule)
 {
     std::lock_guard<std::mutex> guard(databaseMutex_);
-    bool isExits = false;
-    int32_t ret = CheckIfNeedUpdateEx(FIREWALL_TABLE_NAME, isExits, ruleId, oldRule);
+    bool isExist = false;
+    int32_t ret = CheckIfNeedUpdateEx(FIREWALL_TABLE_NAME, isExist, ruleId, oldRule);
     if (ret < FIREWALL_OK) {
         NETMGR_EXT_LOG_E("check if need update error: %{public}d", ret);
     }
-    return isExits;
+    return isExist;
 }
 
 int32_t NetFirewallDbHelper::QueryFirewallRuleByUserIdCount(int32_t userId, int64_t &rowCount)
@@ -1266,8 +1270,14 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleAllCount(int64_t &rowCount)
 
 int32_t NetFirewallDbHelper::QueryFirewallRuleAllDomainCount(int64_t &rowCount)
 {
-    std::vector<std::string> columns;
     RdbPredicates rdbPredicates(FIREWALL_TABLE_DOMAIN_RULE);
+    return Count(rowCount, rdbPredicates);
+}
+
+int32_t NetFirewallDbHelper::QueryFirewallRuleAllFuzzyDomainCount(int64_t &rowCount)
+{
+    RdbPredicates rdbPredicates(FIREWALL_TABLE_DOMAIN_RULE);
+    rdbPredicates.BeginWrap()->EqualTo(NET_FIREWALL_DOMAIN_IS_WILDCARD, "1")->EndWrap();
     return Count(rowCount, rdbPredicates);
 }
 
@@ -1384,9 +1394,9 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
         values.PutInt(NET_FIREWALL_RECORD_TIME, records[i]->time);
         values.PutString(NET_FIREWALL_RECORD_LOCAL_IP, records[i]->localIp);
         values.PutString(NET_FIREWALL_RECORD_REMOTE_IP, records[i]->remoteIp);
-        values.PutInt(NET_FIREWALL_RECORD_LOCAL_PORT, records[i]->localPort);
-        values.PutInt(NET_FIREWALL_RECORD_REMOTE_PORT, records[i]->remotePort);
-        values.PutInt(NET_FIREWALL_RECORD_PROTOCOL, records[i]->protocol);
+        values.PutInt(NET_FIREWALL_RECORD_LOCAL_PORT, static_cast<int32_t>(records[i]->localPort));
+        values.PutInt(NET_FIREWALL_RECORD_REMOTE_PORT, static_cast<int32_t>(records[i]->remotePort));
+        values.PutInt(NET_FIREWALL_RECORD_PROTOCOL, static_cast<int32_t>(records[i]->protocol));
         values.PutInt(NET_FIREWALL_RECORD_UID, records[i]->appUid);
         values.PutString(NET_FIREWALL_DOMAIN, records[i]->domain);
 

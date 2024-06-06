@@ -24,8 +24,10 @@
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t MAX_RULE_PORT = 65535;
-const std::regex DOMAIN_PATTERN { "^([A-Za-z0-9-\\.]{1,63})(\\.)([A-Za-z0-9-]{1,63}){0,}$" };
-const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)([A-Za-z0-9-]{1,63})(\\.)([A-Za-z0-9-\\.]{1,63}){0,}$" };
+const std::regex DOMAIN_PATTERN { "^(([a-zA-Z0-9][a-zA-Z0-9\\-]{1,61}[a-zA-Z0-9]\\.)+)([a-zA-Z]{2,}\\.?)|\\[([0-9a-fA-"
+                                  "F]{1,4}:){7,7}[0-9a-fA-F]{1,4}\\]$" };
+const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)(([a-zA-Z0-9][a-zA-Z0-9\\-]{1,61}[a-zA-Z0-9]\\.)+)([a-zA-Z]{2,}"
+                                           "\\.?)|\\[([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}\\]$" };
 
 int32_t NetFirewallParamCheck::CheckFirewallRulePolicy(napi_env env, napi_value object)
 {
@@ -391,8 +393,9 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
             return FIREWALL_ERR_PARAMETER_ERROR;
         }
         domain = NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN));
-        if (domain.empty() || domain.size() > MAX_RULE_DOMAIN_NAME_LEN) {
-            NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}d", MAX_RULE_DOMAIN_NAME_LEN);
+        int32_t maxSize = isWildCard ? MAX_FUZZY_DOMAIN_NAME_LEN : MAX_EXACT_DOMAIN_NAME_LEN;
+        if (domain.empty() || domain.size() > maxSize) {
+            NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}d", maxSize);
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
         std::regex pattern = isWildCard ? WILDCARD_DOMAIN_PATTERN : DOMAIN_PATTERN;

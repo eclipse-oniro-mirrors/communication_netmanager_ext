@@ -95,15 +95,15 @@ public:
 private:
     int32_t AddNetFirewallRule(const sptr<NetFirewallRule> &rule, bool isNotify, int32_t &ruleId);
 
-    int32_t CheckUserExsist(const int32_t userId);
+    int32_t CheckUserExist(const int32_t userId);
 
-    int32_t CheckRuleExits(const int32_t ruleId, NetFirewallRule &oldRule);
+    int32_t CheckRuleExist(const int32_t ruleId, NetFirewallRule &oldRule);
 
     int32_t GetAllRuleConstraint(const int32_t userId);
 
     int32_t CheckRuleConstraint(const sptr<NetFirewallRule> &rule);
 
-    bool CheckAccountExits(int32_t userId);
+    bool CheckAccountExist(int32_t userId);
 
     const sptr<NetFirewallIpRule> ExtractIpRule(const NetFirewallRule &rule);
 
