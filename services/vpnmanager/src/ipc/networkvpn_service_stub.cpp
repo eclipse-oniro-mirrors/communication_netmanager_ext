@@ -189,7 +189,7 @@ int32_t NetworkVpnServiceStub::ReplyGetSysVpnConfigList(MessageParcel &data, Mes
     for (auto &config : vpnList) {
         if (!(reply.WriteString(config.vpnId_) &&
                 reply.WriteString(config.vpnName_) &&
-                reply.WriteInt32(config.vpnType_) )) {
+                reply.WriteInt32(config.vpnType_))) {
             return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
         }
     }

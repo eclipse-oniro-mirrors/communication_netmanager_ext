@@ -88,7 +88,6 @@ void VpnEventCallback::OnVpnStateChanged(const bool &isConnected)
 
 VpnMonitor::VpnMonitor()
 {
-    NETMANAGER_EXT_LOGE("sysvpn VpnMonitor");
     manager_ = new EventManager();
 }
 
