@@ -133,9 +133,6 @@ void ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &s
     GetStringFromJsOptionItem(env, config, CONFIG_VPN_ID, sysVpnConfig->vpnId_);
     GetStringFromJsOptionItem(env, config, CONFIG_VPN_NAME, sysVpnConfig->vpnName_);
     GetInt32FromJsOptionItem(env, config, CONFIG_VPN_TYPE, sysVpnConfig->vpnType_);
-    GetStringFromJsOptionItem(env, config, CONFIG_VPN_ID, sysVpnConfig->vpnId_);
-    GetStringFromJsOptionItem(env, config, CONFIG_VPN_NAME, sysVpnConfig->vpnName_);
-    GetInt32FromJsOptionItem(env, config, CONFIG_VPN_TYPE, sysVpnConfig->vpnType_);
     GetStringFromJsOptionItem(env, config, CONFIG_USER_NAME, sysVpnConfig->userName_);
     GetStringFromJsOptionItem(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
     GetStringFromJsOptionItem(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);

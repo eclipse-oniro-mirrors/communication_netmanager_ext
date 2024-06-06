@@ -37,6 +37,9 @@ bool SysVpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteBool(saveLogin_) &&
                  parcel.WriteInt32(userId_) &&
                  parcel.WriteString(forwardingRoutes_);
+    if (!allOK) {
+        NETMGR_EXT_LOG_I("sysvpn SysVpnConfig Marshalling failed");
+    }
     return allOK;
 }
 
@@ -76,6 +79,9 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, sptr<SysVpnConfig> ptr)
                  parcel.ReadBool(ptr->saveLogin_) &&
                  parcel.ReadInt32(ptr->userId_) &&
                  parcel.ReadString(ptr->forwardingRoutes_);
+    if (!allOK) {
+        NETMGR_EXT_LOG_I("sysvpn SysVpnConfig Unmarshalling failed");
+    }
     return allOK;
 }
 } // namespace NetManagerStandard
