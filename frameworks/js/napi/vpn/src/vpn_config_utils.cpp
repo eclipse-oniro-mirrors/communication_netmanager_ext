@@ -39,12 +39,14 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
         case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
             vpnConfig = new (std::nothrow) IpsecVpnConfig();
             if (!ParseIpsecVpnParams(env, params[0], vpnConfig)) {
+                NETMGR_EXT_LOG_E("ParseIpsecVpnParams failed");
                 return false;
             }
             break;
         case static_cast<int32_t>(VpnType::OPENVPN):
             vpnConfig = new (std::nothrow) OpenVpnConfig();
             if (!ParseOpenVpnParams(env, params[0], vpnConfig)) {
+                NETMGR_EXT_LOG_E("ParseOpenVpnParams failed");
                 return false;
             }
             break;
@@ -52,6 +54,7 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
             vpnConfig = new (std::nothrow) L2tpVpnConfig();
             if (!ParseL2tpVpnParams(env, params[0], vpnConfig)) {
+                NETMGR_EXT_LOG_E("ParseL2tpVpnParams failed");
                 return false;
             }
             break;
@@ -69,6 +72,7 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
 bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
 {
     if (vpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("vpnConfig is null");
         return false;
     }
     // parse addresses.
@@ -115,6 +119,7 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
 bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
 {
     if (vpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("sysVpnConfig is null");
         return false;
     }
     ParseOptionArrayString(env, config, CONFIG_DNSADDRESSES, vpnConfig->dnsAddresses_);
@@ -133,6 +138,7 @@ bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &
 bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("sysVpnConfig is null");
         return false;
     }
     GetStringFromJsOptionItem(env, config, CONFIG_VPN_ID, sysVpnConfig->vpnId_);
@@ -148,9 +154,13 @@ bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &s
 bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("sysVpnConfig is null");
         return false;
     }
-    ParseSystemVpnParams(env, config, sysVpnConfig);
+    if (!ParseSystemVpnParams(env, config, sysVpnConfig)) {
+        NETMGR_EXT_LOG_E("ParseSystemVpnParams failed");
+        return false;
+    }
 
     sptr<OpenVpnConfig> openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (openVpnConfig) {
@@ -174,9 +184,13 @@ bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sys
 bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("sysVpnConfig is null");
         return false;
     }
-    ParseSystemVpnParams(env, config, sysVpnConfig);
+    if (!ParseSystemVpnParams(env, config, sysVpnConfig)) {
+        NETMGR_EXT_LOG_E("ParseSystemVpnParams failed");
+        return false;
+    }
 
     sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(
             static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr()));
@@ -212,9 +226,13 @@ bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sy
 bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("sysVpnConfig is null");
         return false;
     }
-    ParseSystemVpnParams(env, config, sysVpnConfig);
+    if (!ParseSystemVpnParams(env, config, sysVpnConfig)) {
+        NETMGR_EXT_LOG_E("ParseSystemVpnParams failed");
+        return false;
+    }
 
     sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (l2tpVpnConfig) {
