@@ -151,10 +151,6 @@ int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
 
 int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("AddSysVpnConfig config is null");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("AddSysVpnConfig write interface token failed");
@@ -178,10 +174,6 @@ int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 
 int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(std::string &vpnId)
 {
-    if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("DeleteSysVpnConfig write interface token failed");
@@ -233,10 +225,6 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfigList(std::vector<SysVpnConfig> &v
 
 int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
 {
-    if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("GetSysVpnConfig write interface token failed");

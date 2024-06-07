@@ -30,7 +30,6 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
 {
     int vpnType = -1;
     GetInt32FromJsOptionItem(env, params[0], CONFIG_VPN_TYPE, vpnType);
-    NETMGR_EXT_LOG_I("sysvpn ParseSysVpnConfig type=%{public}d", vpnType);
     switch (vpnType) {
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
@@ -57,7 +56,7 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
             }
             break;
         default:
-            NETMGR_EXT_LOG_I("sysvpn ParseSysVpnConfig failed! invalid type=%{public}d", vpnType);
+            NETMGR_EXT_LOG_E("sysvpn ParseSysVpnConfig failed! invalid type=%{public}d", vpnType);
             return false;
     }
 
@@ -114,15 +113,12 @@ bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &
 {
     ParseOptionArrayString(env, config, CONFIG_DNSADDRESSES, vpnConfig->dnsAddresses_);
     ParseOptionArrayString(env, config, CONFIG_SEARCHDOMAINS, vpnConfig->searchDomains_);
-
     GetInt32FromJsOptionItem(env, config, CONFIG_MTU, vpnConfig->mtu_);
-
     GetBoolFromJsOptionItem(env, config, CONFIG_ISIPV4ACCEPTED, vpnConfig->isAcceptIPv4_);
     GetBoolFromJsOptionItem(env, config, CONFIG_ISIPV6ACCEPTED, vpnConfig->isAcceptIPv6_);
     GetBoolFromJsOptionItem(env, config, CONFIG_ISLEGACY, vpnConfig->isLegacy_);
     GetBoolFromJsOptionItem(env, config, CONFIG_ISMETERED, vpnConfig->isMetered_);
     GetBoolFromJsOptionItem(env, config, CONFIG_ISBLOCKING, vpnConfig->isBlocking_);
-
     ParseOptionArrayString(env, config, CONFIG_TRUSTEDAPPLICATIONS, vpnConfig->acceptedApplications_);
     ParseOptionArrayString(env, config, CONFIG_BLOCKEDAPPLICATIONS, vpnConfig->refusedApplications_);
     return true;
@@ -234,7 +230,6 @@ bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sys
             l2tpVpnConfig->ipsecPrivateServerCertFilePath_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
             l2tpVpnConfig->ipsecPublicServerCertFilePath_);
-
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CONF, l2tpVpnConfig->ipsecConf_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_SECRETS, l2tpVpnConfig->ipsecSecrets_);
         GetStringFromJsOptionItem(env, config, CONFIG_OPTIONS_L2TPD_CLIENT, l2tpVpnConfig->optionsL2tpdClient_);
@@ -245,8 +240,6 @@ bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sys
         return false;
     }
 }
-
-//private
 
 bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
 {
@@ -273,7 +266,7 @@ bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
 
     if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, address, NET_PREFIXLENGTH)) != napi_number) {
-        NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", NET_PREFIXLENGTH);
+        NETMGR_EXT_LOG_E("param NET_PREFIXLENGTH type is mismatch");
         return false;
     }
     if (!isIpv6) {
@@ -282,11 +275,9 @@ bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
         iNetAddr.prefixlen_ = CommonUtils::Ipv6PrefixLen(iNetAddr.address_);
     }
 
-    NETMGR_EXT_LOG_I("isIpv6:%{public}d, %{public}s: %{public}d", isIpv6, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
-
     uint32_t prefix = iNetAddr.prefixlen_;
     if (prefix == 0 || prefix >= (isIpv6 ? IPV6_NET_PREFIX_MAX_LENGTH : NET_MASK_MAX_LENGTH)) {
-        NETMGR_EXT_LOG_E("prefix: %{public}d error", prefix);
+        NETMGR_EXT_LOG_E("prefixlen_ error");
         return false;
     }
     if (!isIpv6) {
@@ -380,7 +371,6 @@ bool ParseOptionArrayString(napi_env env, napi_value config, const std::string &
         uint32_t arrayLength = NapiUtils::GetArrayLength(env, array);
         for (uint32_t i = 0; i < arrayLength; ++i) {
             std::string item = NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetArrayElement(env, array, i));
-            NETMGR_EXT_LOG_D("%{public}s: %{public}s", key.c_str(), item.c_str());
             vector.push_back(item);
         }
     }
@@ -394,7 +384,6 @@ bool GetStringFromJsMandatoryItem(napi_env env, napi_value object, const std::st
         return false;
     }
     value = NapiUtils::GetStringPropertyUtf8(env, object, key);
-    NETMGR_EXT_LOG_I("%{public}s: %{public}s", key.c_str(), value.c_str());
     return (value.empty()) ? false : true;
 }
 
@@ -403,7 +392,6 @@ void GetStringFromJsOptionItem(napi_env env, napi_value object, const std::strin
     if (NapiUtils::HasNamedProperty(env, object, key)) {
         if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) == napi_string) {
             value = NapiUtils::GetStringPropertyUtf8(env, object, key);
-            NETMGR_EXT_LOG_I("%{public}s: %{public}s", key.c_str(), value.c_str());
         } else {
             NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
         }
@@ -415,7 +403,6 @@ void GetUint8FromJsOptionItem(napi_env env, napi_value object, const std::string
     if (NapiUtils::HasNamedProperty(env, object, key)) {
         if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) == napi_number) {
             value = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, object, key));
-            NETMGR_EXT_LOG_I("%{public}s: %{public}d", key.c_str(), value);
         } else {
             NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
         }
@@ -427,7 +414,6 @@ void GetBoolFromJsOptionItem(napi_env env, napi_value object, const std::string 
     if (NapiUtils::HasNamedProperty(env, object, key)) {
         if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) == napi_boolean) {
             value = NapiUtils::GetBooleanProperty(env, object, key);
-            NETMGR_EXT_LOG_I("%{public}s: %{public}d", key.c_str(), value);
         } else {
             NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
         }
@@ -439,7 +425,6 @@ void GetInt32FromJsOptionItem(napi_env env, napi_value object, const std::string
     if (NapiUtils::HasNamedProperty(env, object, key)) {
         if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, key)) == napi_number) {
             value = NapiUtils::GetInt32Property(env, object, key);
-            NETMGR_EXT_LOG_I("%{public}s: %{public}d", key.c_str(), value);
         } else {
             NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", key.c_str());
         }
@@ -587,7 +572,6 @@ napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
         l2tpVpnConfig->ipsecPrivateServerCertFilePath_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
         l2tpVpnConfig->ipsecPublicServerCertFilePath_);
-
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_CONF, l2tpVpnConfig->ipsecConf_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_SECRETS, l2tpVpnConfig->ipsecSecrets_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPTIONS_L2TPD_CLIENT, l2tpVpnConfig->optionsL2tpdClient_);
