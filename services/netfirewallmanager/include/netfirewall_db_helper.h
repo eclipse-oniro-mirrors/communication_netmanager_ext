@@ -158,6 +158,11 @@ struct NetInterceptRecordInfo {
     int32_t domainIndex;
 };
 
+enum class QueryType {
+    QUERY_USER = 0,
+    QUERY_ALL
+};
+
 class NetFirewallDbHelper : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDbHelper> GetInstance();
@@ -182,11 +187,10 @@ public:
     /**
      * Query enabled rule set
      *
-     * @param userId User id
      * @param rules List of rules obtained from query
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t QueryEnabledFirewallRules(int32_t userId, std::vector<NetFirewallRule> &rules,
+    int32_t QueryAllUserEnabledFirewallRules(std::vector<NetFirewallRule> &rules,
         NetFirewallRuleType type = NetFirewallRuleType::RULE_ALL);
 
     /**
@@ -237,7 +241,7 @@ public:
      * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallIpRuleRecord(int32_t userId, std::vector<NetFirewallIpRuleData> &srcIpRules,
-        std::vector<NetFirewallIpRuleData> &dstIpRules);
+        std::vector<NetFirewallIpRuleData> &dstIpRules, bool isQueryUser = true);
 
     /**
      * Query port rules
@@ -248,7 +252,7 @@ public:
      * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallPortRuleRecord(int32_t userId, std::vector<NetFirewallPortRuleData> &srcPortRules,
-        std::vector<NetFirewallPortRuleData> &dstProtRules);
+        std::vector<NetFirewallPortRuleData> &dstProtRules, bool isQueryUser = true);
 
     /**
      * Query domain rules
@@ -257,7 +261,8 @@ public:
      * @param domainRules Domain name list for firewall
      * @return Returns 0 success. Otherwise fail
      */
-    int32_t QueryFirewallDomainRuleRecord(int32_t userId, std::vector<NetFirewallDomainRuleData> &domainRules);
+    int32_t QueryFirewallDomainRuleRecord(int32_t userId, std::vector<NetFirewallDomainRuleData> &domainRules,
+        bool isQueryUser = true);
 
     /**
      * Paging query interception records
@@ -294,6 +299,23 @@ public:
      * @return Returns 0 success. Otherwise fail
      */
     int32_t QueryFirewallRuleAllDomainCount(int64_t &rowCount);
+
+    /**
+     * Query the number of ambiguous domain names
+     *
+     * @param rowCount Number of queries found
+     * @return Returns 0 success. Otherwise fail
+     */
+    int32_t QueryFirewallRuleAllFuzzyDomainCount(int64_t &rowCount);
+
+    /**
+     * Query the number of domain rules by userId
+     *
+     * @param userId User id
+     * @param rowCount Number of queries found
+     * @return Returns 0 success. Otherwise fail
+     */
+    int32_t QueryFirewallRuleDomainByUserIdCount(int32_t userId, int64_t &rowCount);
 
     /**
      * Update firewall rule
@@ -342,7 +364,7 @@ public:
      * @param oldRule Current existing rules
      * @return If there is a return to true, otherwise it will be false
      */
-    bool IsFirewallRuleExits(int32_t ruleId, NetFirewallRule &oldRule);
+    bool IsFirewallRuleExist(int32_t ruleId, NetFirewallRule &oldRule);
 
     /**
      * Does the specified dns rule exist
@@ -378,7 +400,8 @@ private:
     int32_t CheckIfNeedUpdateEx(const std::string &tableName, bool &isUpdate, int32_t ruleId, NetFirewallRule &oldRule);
 
     int32_t QueryFirewallRuleRecord(const NativeRdb::RdbPredicates &rdbPredicates,
-        const std::vector<std::string> &columns, std::vector<NetFirewallRule> &rules, bool isQuerySub = true);
+        const std::vector<std::string> &columns, std::vector<NetFirewallRule> &rules, bool isQuerySub = true,
+        QueryType queryType = QueryType::QUERY_USER);
 
     int32_t DeleteAndNoOtherOperation(const std::string &whereClause, const std::vector<std::string> &whereArgs);
 

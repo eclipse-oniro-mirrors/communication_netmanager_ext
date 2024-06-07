@@ -41,9 +41,9 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    int32_t OnSetNetFirewallStatus(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSetNetFirewallPolicy(MessageParcel &data, MessageParcel &reply);
 
-    int32_t OnGetNetFirewallStatus(MessageParcel &data, MessageParcel &reply);
+    int32_t OnGetNetFirewallPolicy(MessageParcel &data, MessageParcel &reply);
 
     int32_t OnAddNetFirewallRule(MessageParcel &data, MessageParcel &reply);
 

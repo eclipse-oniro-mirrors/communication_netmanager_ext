@@ -32,31 +32,37 @@ constexpr int32_t FIREWALL_USER_MAX_RULE = 1000;
 constexpr int32_t MAX_PAGE_SIZE = 50;
 // Maximum number of rules for all users
 constexpr int32_t FIREWALL_ALL_USER_MAX_RULE = 2000;
+// Maximum number of domain for per users
+constexpr int32_t FIREWALL_SINGLE_USER_MAX_DOMAIN = 1000;
 // Maximum number of domain for all users
-constexpr int32_t FIREWALL_ALL_USER_MAX_DOMAIN = 20000;
+constexpr int32_t FIREWALL_ALL_USER_MAX_DOMAIN = 2000;
+// Maximum number of fuzzy domain for all users
+constexpr int32_t FIREWALL_ALL_USER_MAX_FUZZY_DOMAIN = 100;
 // Maximum length of rule name
 constexpr int32_t MAX_RULE_NAME_LEN = 128;
 // Maximum length of rule description
 constexpr int32_t MAX_RULE_DESCRIPTION_LEN = 256;
 // Maximum number of IPs per rule
-constexpr int32_t MAX_RULE_IP_COUNT = 20;
+constexpr int32_t MAX_RULE_IP_COUNT = 10;
 // Maximum number of ports per rule
 constexpr int32_t MAX_RULE_PORT_COUNT = 10;
 // Maximum number of domain per rule
 constexpr int32_t MAX_RULE_DOMAIN_COUNT = 100;
-// Maximum domain name length
-constexpr int32_t MAX_RULE_DOMAIN_NAME_LEN = 253;
+// Maximum exact domain name length
+constexpr int32_t MAX_EXACT_DOMAIN_NAME_LEN = 253;
+// Maximum fuzzy domain name length
+constexpr int32_t MAX_FUZZY_DOMAIN_NAME_LEN = 63;
 // Intercept log aging: maximum save time
 constexpr int32_t RECORD_MAX_SAVE_TIME = 8 * 24 * 60 * 60;
 // Intercept log aging: Save maximum number of entries
 constexpr int32_t RECORD_MAX_DATA_NUM = 1000;
 
-constexpr int32_t FAMILY_IPV4 = 1;
-constexpr int32_t FAMILY_IPV6 = 2;
-constexpr int32_t SINGLE_IP = 1;
-constexpr int32_t MULTIPLE_IP = 2;
-constexpr int32_t IPV4_MASK_MAX = 32;
-constexpr int32_t IPV6_MASK_MAX = 128;
+constexpr uint8_t FAMILY_IPV4 = 1;
+constexpr uint8_t FAMILY_IPV6 = 2;
+constexpr uint8_t SINGLE_IP = 1;
+constexpr uint8_t MULTIPLE_IP = 2;
+constexpr uint8_t IPV4_MASK_MAX = 32;
+constexpr uint8_t IPV6_MASK_MAX = 128;
 
 const std::string NET_FIREWALL_PAGE = "page";
 const std::string NET_FIREWALL_PAGE_SIZE = "pageSize";

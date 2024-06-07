@@ -1,10 +1,10 @@
 {
   "default_rules": [
     {
-      "ruleName": "",
-      "ruleDirection": 1,
-      "ruleAction": 0,
-      "ruleType": -1,
+      "name": "",
+      "direction": 1,
+      "action": 0,
+      "type": -1,
       "isEnabled": false,
       "appUid": 0,
       "localIps": [],

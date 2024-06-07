@@ -24,8 +24,10 @@
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t MAX_RULE_PORT = 65535;
-const std::regex DOMAIN_PATTERN { "^([A-Za-z0-9-\\.]{1,63})(\\.)([A-Za-z0-9-]{1,63}){0,}$" };
-const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)([A-Za-z0-9-]{1,63})(\\.)([A-Za-z0-9-\\.]{1,63}){0,}$" };
+const std::regex DOMAIN_PATTERN { "^(([a-zA-Z0-9][a-zA-Z0-9\\-]{1,61}[a-zA-Z0-9]\\.)+)([a-zA-Z]{2,}\\.?)|\\[([0-9a-fA-"
+    "F]{1,4}:){7,7}[0-9a-fA-F]{1,4}\\]$" };
+const std::regex WILDCARD_DOMAIN_PATTERN { "^(\\*)(\\.)(([a-zA-Z0-9][a-zA-Z0-9\\-]{1,61}[a-zA-Z0-9]\\.)+)([a-zA-Z]{2,}"
+    "\\.?)|\\[([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}\\]$" };
 
 int32_t NetFirewallParamCheck::CheckFirewallRulePolicy(napi_env env, napi_value object)
 {
@@ -84,10 +86,17 @@ int32_t NetFirewallParamCheck::CheckFirewallDns(napi_env env, napi_value object)
         }
         std::string primaryDns =
             NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_DNS_PRIMARY));
+        if (primaryDns.size() == 0) {
+            NETMANAGER_EXT_LOGE("primary dns is null, params invalid");
+            return FIREWALL_ERR_PARAMETER_ERROR;
+        }
         int32_t ret = CheckIpAddress(primaryDns);
         if (ret != FIREWALL_SUCCESS) {
             return ret;
         }
+    } else {
+        NETMANAGER_EXT_LOGE("primary dns is null, params invalid");
+        return FIREWALL_ERR_PARAMETER_ERROR;
     }
 
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_DNS_STANDY)) {
@@ -384,8 +393,9 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
             return FIREWALL_ERR_PARAMETER_ERROR;
         }
         domain = NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN));
-        if (domain.empty() || domain.size() > MAX_RULE_DOMAIN_NAME_LEN) {
-            NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}d", MAX_RULE_DOMAIN_NAME_LEN);
+        int32_t maxSize = isWildCard ? MAX_FUZZY_DOMAIN_NAME_LEN : MAX_EXACT_DOMAIN_NAME_LEN;
+        if (domain.empty() || domain.size() > maxSize) {
+            NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}d", maxSize);
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
         std::regex pattern = isWildCard ? WILDCARD_DOMAIN_PATTERN : DOMAIN_PATTERN;
@@ -552,7 +562,7 @@ int32_t NetFirewallParamCheck::CheckRuleName(napi_env env, napi_value object)
         std::string ruleDescription =
             NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_DESC));
         if (ruleDescription.size() > MAX_RULE_DESCRIPTION_LEN) {
-            NETMANAGER_EXT_LOGE("ruleDescription size=%{public}d is too long", ruleDescription.size());
+            NETMANAGER_EXT_LOGE("ruleDescription size=%{public}zu is too long", ruleDescription.size());
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
     }

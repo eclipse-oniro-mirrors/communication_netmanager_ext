@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef NET_FIREWALL_ANALYSIS_JSON_H
-#define NET_FIREWALL_ANALYSIS_JSON_H
+#ifndef NET_FIREWALL_DEFAULT_RULE_PARSER_H
+#define NET_FIREWALL_DEFAULT_RULE_PARSER_H
 
 #include "netfirewall_common.h"
 #include "cJSON.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-class NetFireWallAnalysisJson {
+class NetFirewallDefaultRuleParser {
 public:
-    NetFireWallAnalysisJson() = default;
-    ~NetFireWallAnalysisJson() = default;
+    NetFirewallDefaultRuleParser() = default;
+    ~NetFirewallDefaultRuleParser() = default;
 
     /**
      * Get default netfirewall rules
@@ -33,7 +33,7 @@ public:
      * @return If get object item DEFAULT_RULES is not null, and item is object, and json file is array format, there is
      *     a return to true, otherwise it will be false
      */
-    static bool GetDefaultRules(std::vector<NetFirewallRule> &ruleList);
+    static bool GetDefaultRules(std::vector<sptr<NetFirewallRule>> &ruleList);
 private:
     /**
      * Parsing netfirewall rules in JSON.
@@ -41,7 +41,7 @@ private:
      * @param rule Netfirewall rule
      * @param mem cJson Object
      */
-    static void ConvertFirewallRuleToConfig(NetFirewallRule &rule, const cJSON * const mem);
+    static void ConvertFirewallRuleToConfig(sptr<NetFirewallRule> &rule, const cJSON * const mem);
 
     /**
      * Parsing ip parameters in JSON
@@ -128,8 +128,8 @@ private:
      * @param rule Netfirwall rule
      * @param mem cJson Object
      */
-    static void ParseListObject(NetFirewallRule &rule, const cJSON * const mem);
+    static void ParseListObject(sptr<NetFirewallRule> &rule, const cJSON * const mem);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NET_FIREWALL_ANALYSIS_JSON_H
+#endif // NET_FIREWALL_DEFAULT_RULE_PARSER_H

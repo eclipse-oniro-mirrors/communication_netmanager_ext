@@ -88,11 +88,30 @@ PermissionStateFull manageVpnState = {
     .grantFlags = { 2 },
 };
 
+PermissionDef getNetFirewallPermDef = {
+    .permissionName = "ohos.permission.MANAGE_NET_STRATEGY",
+    .bundleName = "netmanager_ext_test",
+    .grantMode = 1,
+    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test netfirewall maneger info",
+    .descriptionId = 1,
+};
+
+PermissionStateFull getNetFirewallState = {
+    .permissionName = "ohos.permission.MANAGE_NET_STRATEGY",
+    .isGeneral = true,
+    .resDeviceID = { "local" },
+    .grantStatus = { PermissionState::PERMISSION_GRANTED },
+    .grantFlags = { 2 },
+};
+
 HapPolicyParams netManagerExtPolicy = {
     .apl = APL_SYSTEM_BASIC,
     .domain = "test.domain",
-    .permList = { getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef },
-    .permStateList = { getNetworkInfoState, connectivityInternalState, manageVpnState },
+    .permList = { getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef, getNetFirewallPermDef },
+    .permStateList = { getNetworkInfoState, connectivityInternalState, manageVpnState, getNetFirewallState },
 };
 
 PermissionDef testNoPermissionDef = {
