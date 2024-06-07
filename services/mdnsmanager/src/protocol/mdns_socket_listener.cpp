@@ -472,13 +472,12 @@ bool MDnsSocketListener::CanRefresh()
 
 ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
 {
-    NETMGR_EXT_LOG_I("mdns_log Multicast");
     const sockaddr *saddrIf = GetSockAddr(sock);
     if (saddrIf == nullptr) {
         NETMGR_EXT_LOG_E("mdns_log GetSockAddr failed");
         return -1;
     }
-
+    NETMGR_EXT_LOG_I("mdns_log Multicast, sock=%{public}d, family=%{public}d", sock, saddrIf->sa_family);
     int ret = -1;
     if (saddrIf->sa_family == AF_INET) {
         in_addr addr;
