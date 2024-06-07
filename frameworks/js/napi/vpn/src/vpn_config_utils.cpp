@@ -68,6 +68,9 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
 
 bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
 {
+    if (vpnConfig == nullptr) {
+        return false;
+    }
     // parse addresses.
     if (NapiUtils::HasNamedProperty(env, config, CONFIG_ADDRESSES)) {
         napi_value addrArray = NapiUtils::GetNamedProperty(env, config, CONFIG_ADDRESSES);
@@ -111,6 +114,9 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
 
 bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
 {
+    if (vpnConfig == nullptr) {
+        return false;
+    }
     ParseOptionArrayString(env, config, CONFIG_DNSADDRESSES, vpnConfig->dnsAddresses_);
     ParseOptionArrayString(env, config, CONFIG_SEARCHDOMAINS, vpnConfig->searchDomains_);
     GetInt32FromJsOptionItem(env, config, CONFIG_MTU, vpnConfig->mtu_);
@@ -124,8 +130,11 @@ bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &
     return true;
 }
 
-void ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
+bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
+    if (sysVpnConfig == nullptr) {
+        return false;
+    }
     GetStringFromJsOptionItem(env, config, CONFIG_VPN_ID, sysVpnConfig->vpnId_);
     GetStringFromJsOptionItem(env, config, CONFIG_VPN_NAME, sysVpnConfig->vpnName_);
     GetInt32FromJsOptionItem(env, config, CONFIG_VPN_TYPE, sysVpnConfig->vpnType_);
@@ -133,16 +142,17 @@ void ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &s
     GetStringFromJsOptionItem(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
     GetStringFromJsOptionItem(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
     GetBoolFromJsOptionItem(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_);
+    return true;
 }
 
-bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &systemVpnConfig)
+bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
-    if (systemVpnConfig == nullptr) {
+    if (sysVpnConfig == nullptr) {
         return false;
     }
-    ParseSystemVpnParams(env, config, systemVpnConfig);
+    ParseSystemVpnParams(env, config, sysVpnConfig);
 
-    sptr<OpenVpnConfig> openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(systemVpnConfig.GetRefPtr()));
+    sptr<OpenVpnConfig> openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (openVpnConfig) {
         GetStringFromJsOptionItem(env, config, CONFIG_OVPN_PORT, openVpnConfig->ovpnPort_);
         GetInt32FromJsOptionItem(env, config, CONFIG_OPEN_VPN_PROTOCOL, openVpnConfig->ovpnProtocol_);
@@ -161,15 +171,15 @@ bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sys
     }
 }
 
-bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &systemVpnConfig)
+bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
-    if (systemVpnConfig == nullptr) {
+    if (sysVpnConfig == nullptr) {
         return false;
     }
-    ParseSystemVpnParams(env, config, systemVpnConfig);
+    ParseSystemVpnParams(env, config, sysVpnConfig);
 
     sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(
-        static_cast<IpsecVpnConfig*>(systemVpnConfig.GetRefPtr()));
+            static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (ipsecVpnConfig) {
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, ipsecVpnConfig->ipsecPreSharedKey_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, ipsecVpnConfig->ipsecIdentifier_);
@@ -199,14 +209,14 @@ bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sy
     }
 }
 
-bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &systemVpnConfig)
+bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
 {
-    if (systemVpnConfig == nullptr) {
+    if (sysVpnConfig == nullptr) {
         return false;
     }
-    ParseSystemVpnParams(env, config, systemVpnConfig);
+    ParseSystemVpnParams(env, config, sysVpnConfig);
 
-    sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig*>(systemVpnConfig.GetRefPtr()));
+    sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr()));
     if (l2tpVpnConfig) {
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, l2tpVpnConfig->ipsecPreSharedKey_);
         GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, l2tpVpnConfig->ipsecIdentifier_);
