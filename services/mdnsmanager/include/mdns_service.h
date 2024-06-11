@@ -57,6 +57,7 @@ public:
 protected:
     void OnStart() override;
     void OnStop() override;
+    int32_t OnIdle(const SystemAbilityOnDemandReason &idleReason) override;
 
 private:
     bool Init();
@@ -64,6 +65,28 @@ private:
     bool isRegistered_;
     ServiceRunningState state_;
     sptr<INetInterfaceStateCallback> netStateCallback_;
+
+private:
+    class MdnsCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit MdnsCallbackDeathRecipient(MDnsService &client) : client_(client) {}
+        ~MdnsCallbackDeathRecipient() override = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) override
+        {
+            client_.OnRemoteDied(remote);
+        }
+
+    private:
+        MDnsService &client_;
+    };
+    void OnRemoteDied(const wptr<IRemoteObject> &remoteObject);
+    void AddClientDeathRecipient(const sptr<IDiscoveryCallback> &callback);
+    void RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &callback);
+    void UnloadSystemAbility();
+    void RemoveALLClientDeathRecipient();
+    std::mutex remoteMutex_;
+    sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
+    std::vector<sptr<IDiscoveryCallback>> remoteCallback_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
