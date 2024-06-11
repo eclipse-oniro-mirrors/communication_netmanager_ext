@@ -59,6 +59,17 @@ group("mdns_packages") {
   }
 }
 
+group("netfirewall_packages") {
+  if (netmanager_ext_feature_net_firewall) {
+    deps = [
+      "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall:netfirewall",
+      "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netfirewallclient:netfirewall_manager_if",
+      "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_default_rule",
+      "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_manager",
+    ]
+  }
+}
+
 group("vpn_packages") {
   if (netmanager_ext_feature_vpn) {
     deps = [

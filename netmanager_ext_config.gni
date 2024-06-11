@@ -23,6 +23,8 @@ NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/frameworks/native/netshareclient"
 VPN_INNERKITS_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/frameworks/native/netvpnclient"
 VPN_EXTENSION_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/frameworks/native/vpnextension"
+NETFIREWALL_EXTENSION_SOURCE_DIR =
+    "$NETMANAGER_EXT_ROOT/frameworks/native/netfirewallclient"
 
 # args of interfaces
 INTERFACES_INCLUDE =
@@ -38,6 +40,8 @@ NETWORKSHAREMANAGER_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/services/networksharemanager"
 MDNSMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/mdnsmanager"
 VPNMANAGER_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/vpnmanager"
+NETFIREWALLMANAGER_SOURCE_DIR =
+    "$NETMANAGER_EXT_ROOT/services/netfirewallmanager"
 
 # args of uitls
 NETWORKSHAREMANAGER_UTILS_DIR = "$NETMANAGER_EXT_ROOT/utils"
@@ -90,6 +94,7 @@ declare_args() {
   netmanager_ext_feature_ethernet = true
   netmanager_ext_feature_share = true
   netmanager_ext_feature_mdns = true
+  netmanager_ext_feature_net_firewall = false
   netmanager_ext_feature_vpn = true
   netmanager_ext_feature_vpnext = true
   usb_manager_enable = false
