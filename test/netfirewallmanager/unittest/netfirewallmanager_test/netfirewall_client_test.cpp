@@ -355,8 +355,11 @@ HWTEST_F(NetFirewallClientTest, GetNetFirewallRule001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t ruleId = 1;
     int32_t userId = 100;
+    NetFirewallRuleManager::GetInstance()->GetAllRuleConstraint(userId);
+    ruleId = NetFirewallRuleManager::GetInstance()->allUserRule_;
     int32_t ret = -1;
     sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
+    rule->ruleId = ruleId;
     g_startTimeTest = GetCurrentMilliseconds();
     for (int32_t i = 0; i < MAX_USER_RULE; i++) {
         ret = netfirewallClient_.GetNetFirewallRule(userId, ruleId, rule);
@@ -365,8 +368,11 @@ HWTEST_F(NetFirewallClientTest, GetNetFirewallRule001, TestSize.Level1)
     g_endTimeTest = GetCurrentMilliseconds();
     std::cout << "CALL_TEST GetNetFirewallRule user " << userId << " call " << MAX_USER_RULE << ", use time : " <<
         g_endTimeTest - g_startTimeTest << " ms" << std::endl;
-
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    if (ruleId == 0) {
+        EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
+    } else {
+        EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    }
 }
 
 /**
@@ -411,6 +417,8 @@ HWTEST_F(NetFirewallClientTest, DeleteNetFirewallRule001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t userId = 100;
     int32_t ruleId = 0;
+    NetFirewallRuleManager::GetInstance()->GetAllRuleConstraint(userId);
+    ruleId = NetFirewallRuleManager::GetInstance()->allUserRule_;
     int32_t ret = -1;
     g_startTimeTest = GetCurrentMilliseconds();
     for (int32_t i = 0; i < MAX_USER_RULE; i++) {
@@ -421,7 +429,11 @@ HWTEST_F(NetFirewallClientTest, DeleteNetFirewallRule001, TestSize.Level1)
     g_endTimeTest = GetCurrentMilliseconds();
     std::cout << "CALL_TEST DeleteNetFirewallRule user " << ruleId << " call " << MAX_USER_RULE << ", use time : " <<
         g_endTimeTest - g_startTimeTest << " ms" << std::endl;
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    if (ruleId == 0) {
+        EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
+    } else {
+        EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
