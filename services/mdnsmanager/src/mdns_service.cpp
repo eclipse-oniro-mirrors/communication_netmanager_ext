@@ -94,7 +94,7 @@ void MDnsService::OnStart()
 int32_t MDnsService::OnIdle(const SystemAbilityOnDemandReason &idleReason)
 {
     std::lock_guard<std::mutex> autoLock(remoteMutex_);
-    if(!remoteCallback_.empty()) {
+    if (!remoteCallback_.empty()) {
         return NETMANAGER_ERROR;
     }
     return UNLOAD_IMMEDIATELY;
@@ -165,11 +165,11 @@ int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 void MDnsService::UnloadSystemAbility()
 {
     auto systemAbilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if(systemAbilityMgr == nullptr) {
+    if (systemAbilityMgr == nullptr) {
         return;
     }
     int32_t ret = systemAbilityMgr->UnloadSystemAbility(COMM_MDNS_MANAGER_SYS_ABILITY_ID);
-    if(ret != NETMANAGER_EXT_SUCCESS) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         return;
     }
 }
@@ -208,19 +208,19 @@ void MDnsService::AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
 void MDnsService::RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
 {
     {
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
-    auto iter =
-        std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&cb](const sptr<IDiscoveryCallback> &item) {
-            return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
-        });
-    if (iter == remoteCallback_.cend()) {
-        return;
-    }
-    cb->AsObject()->RemoveDeathRecipient(deathRecipient_);
-    remoteCallback_.erase(iter);
-    if(!remoteCallback_.empty()) {
-        return;
-    }
+        std::lock_guard<std::mutex> autoLock(remoteMutex_);
+        auto iter =
+            std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&cb](const sptr<IDiscoveryCallback> &item) {
+                return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
+            });
+        if (iter == remoteCallback_.cend()) {
+            return;
+        }
+        cb->AsObject()->RemoveDeathRecipient(deathRecipient_);
+        remoteCallback_.erase(iter);
+        if (!remoteCallback_.empty()) {
+            return;
+        }
     }
     UnloadSystemAbility();
 }
