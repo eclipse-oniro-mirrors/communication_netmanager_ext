@@ -26,7 +26,6 @@ ohos_fuzztest("MDnsClientFuzzTest") {
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/mdnsclient",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/mdnsclient/proxy",
     "$NETMANAGER_EXT_ROOT/services/mdnsmanager/include",
-    "$NETMANAGER_EXT_ROOT/services/mdnsmanager/include/protocol",
     "$NETMANAGER_EXT_ROOT/services/mdnsmanager/include/stub",
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
