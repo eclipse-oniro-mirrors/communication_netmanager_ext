@@ -84,17 +84,17 @@ int32_t NetFirewallPolicyManager::GetNetFirewallPolicy(const int32_t userId, spt
     return FIREWALL_SUCCESS;
 }
 
-bool NetFirewallPolicyManager::IsOpenOrCloseNativeFirewall(const sptr<NetFirewallPolicy> &policy)
+bool NetFirewallPolicyManager::IsFirewallStatusChange(const sptr<NetFirewallPolicy> &policy)
 {
+    NETMGR_EXT_LOG_D("IsFirewallStatusChange");
     std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
-    NETMGR_EXT_LOG_D("IsNetFirewallPolicyChanage");
-
     EnsureCurrentFirewallPolicyCached();
     return (policy->isOpen != currentFirewallPolicy_->isOpen) && currentFirewallPolicy_->isOpen;
 }
 
-bool NetFirewallPolicyManager::IsSetFirewallDefaultAction(const sptr<NetFirewallPolicy> &policy)
+bool NetFirewallPolicyManager::IsFirewallActionChange(const sptr<NetFirewallPolicy> &policy)
 {
+    NETMGR_EXT_LOG_D("IsFirewallActionChange");
     std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
     EnsureCurrentFirewallPolicyCached();
     return currentFirewallPolicy_->isOpen && (policy->inAction != currentFirewallPolicy_->inAction ||

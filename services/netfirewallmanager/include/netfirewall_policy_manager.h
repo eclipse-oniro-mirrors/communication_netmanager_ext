@@ -114,20 +114,20 @@ public:
     FirewallRuleAction GetFirewallPolicyOutAction();
 
     /**
-     * open or close native firewall
+     * Is firewall status change
      *
      * @param policy input policy status
      * @return Returns true is change, Otherwise not change
      */
-    bool IsOpenOrCloseNativeFirewall(const sptr<NetFirewallPolicy> &policy);
+    bool IsFirewallStatusChange(const sptr<NetFirewallPolicy> &policy);
 
     /**
-     * set firewall default action
+     * Is firewall default action change
      *
      * @param policy input policy status
      * @return Returns true is change, Otherwise not change
      */
-    bool IsSetFirewallDefaultAction(const sptr<NetFirewallPolicy> &policy);
+    bool IsFirewallActionChange(const sptr<NetFirewallPolicy> &policy);
 
     /**
      * Get firewall policy inAction

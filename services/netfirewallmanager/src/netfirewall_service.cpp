@@ -66,7 +66,7 @@ void NetFirewallService::SetCurrentUserId(int32_t userId)
     currentUserId_ = userId;
     NetFirewallPolicyManager::GetInstance()->SetCurrentUserId(currentUserId_);
     NetFirewallInterceptRecorder::GetInstance()->SetCurrentUserId(currentUserId_);
-    //set current userid to native
+    // set current userid to native
     NetFirewallRuleNativeHelper::GetInstance()->SetCurrentUserId(currentUserId_);
 }
 
@@ -101,14 +101,12 @@ int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const spt
 
     if (userId == currentUserId_) {
         // If the firewall switch status of the current user has changed, determine whether to issue it
-        if (policyManager->IsOpenOrCloseNativeFirewall(policy)) {
+        if (policyManager->IsFirewallStatusChange(policy)) {
             // netfirewall rules to native
-            NetFirewallRuleManager::GetInstance()->OpenOrCloseNativeFirewall(
-                NetFirewallPolicyManager::GetInstance()->IsCurrentFirewallOpen());
+            NetFirewallRuleManager::GetInstance()->OpenOrCloseNativeFirewall(policy->isOpen);
         }
-        if (policyManager->IsSetFirewallDefaultAction(policy)) {
-            NetsysController::GetInstance().SetFirewallDefaultAction(policyManager->GetFirewallPolicyInAction(),
-                policyManager->GetFirewallPolicyOutAction());
+        if (policyManager->IsFirewallActionChange(policy)) {
+            NetsysController::GetInstance().SetFirewallDefaultAction(policy->inAction, policy->outAction);
         }
         policyManager->SetCurrentUserFirewallPolicy(policy);
     }
