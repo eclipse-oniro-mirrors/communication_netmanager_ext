@@ -429,11 +429,7 @@ HWTEST_F(NetFirewallClientTest, DeleteNetFirewallRule001, TestSize.Level1)
     g_endTimeTest = GetCurrentMilliseconds();
     std::cout << "CALL_TEST DeleteNetFirewallRule user " << ruleId << " call " << MAX_USER_RULE << ", use time : " <<
         g_endTimeTest - g_startTimeTest << " ms" << std::endl;
-    if (ruleId == 0) {
-        EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
-    } else {
-        EXPECT_EQ(ret, FIREWALL_SUCCESS);
-    }
+    EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

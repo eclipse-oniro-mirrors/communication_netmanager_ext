@@ -146,7 +146,7 @@ public:
                 GetNetFirewallPolicySptr()->Marshalling(reply);
                 break;
             case static_cast<uint32_t>(INetFirewallService::GET_NET_FIREWALL_RULE):
-                GetNetFirewallPolicySptr()->Marshalling(reply);
+                GetNetFirewallRuleSptr()->Marshalling(reply);
                 break;
             case static_cast<uint32_t>(INetFirewallService::GET_ALL_NET_FIREWALL_RULES): {
                 std::vector<NetFirewallRule> ruleList;
@@ -309,7 +309,7 @@ HWTEST_F(NetFirewallServiceProxyTest, GetNetFirewallRule001, TestSize.Level1)
     int32_t ruleId = 1;
     int32_t userId = USER_ID;
     sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule;
-    auto ret = instance_->GetNetFirewallRule(ruleId, userId, rule);
+    auto ret = instance_->GetNetFirewallRule(userId, ruleId, rule);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 

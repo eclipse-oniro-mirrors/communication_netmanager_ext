@@ -366,7 +366,7 @@ HWTEST_F(NetFirewallServiceTest, GetNetFirewallPolicy001, TestSize.Level1)
     sptr<NetFirewallPolicy> status = new (std::nothrow) NetFirewallPolicy;
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetNetFirewallPolicy(userId, status);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
-    EXPECT_FALSE(!status->isOpen);
+    EXPECT_TRUE(status->isOpen);
 }
 
 /**
@@ -586,7 +586,7 @@ HWTEST_F(NetFirewallServiceTest, GetNetFirewallRule001, TestSize.Level1)
     uint64_t endTime = GetCurrentMilliseconds();
     std::cout << "GetNetFirewallRule " << userId << "running time : " << endTime - startTime << std::endl;
 
-    if (ruleId == 0) {
+    if (rule->ruleId == 0) {
         EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
     } else {
         EXPECT_EQ(ret, FIREWALL_SUCCESS);
@@ -757,7 +757,7 @@ HWTEST_F(NetFirewallServiceTest, QueryEnabledFirewallRules001, TestSize.Level1)
     int32_t userId = USER_ID1;
     int32_t appUip = APPID_TEST01;
     int32_t ret = _netFileDbHelper->QueryEnabledFirewallRules(userId, appUip, rules);
-    EXPECT_EQ(ret != FIREWALL_SUCCESS, false);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
 /**
@@ -823,8 +823,8 @@ HWTEST_F(NetFirewallServiceTest, AddFirewallDomainRule001, TestSize.Level1)
     }
     rule.domains = domainList;
 
-    int32_t ret = _netFileDbHelper->AddFirewallDomainRule(values, rule, USER_ID1);
-    EXPECT_EQ(ret > 0, true);
+    int32_t ruleId = _netFileDbHelper->AddFirewallDomainRule(values, rule, USER_ID1);
+    EXPECT_GT(ruleId, 0);
 }
 
 /**
@@ -916,9 +916,9 @@ HWTEST_F(NetFirewallServiceTest, QueryAllFirewallRuleRecord001, TestSize.Level1)
     auto _netFileDbHelper = NetFirewallDbHelper::GetInstance();
 
     std::vector<NetFirewallRule> rules;
-    int64_t outRowId = 1;
     int32_t ret = _netFileDbHelper->QueryAllFirewallRuleRecord(rules);
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_GT(rules.size(), 0);
 }
 
 /**
