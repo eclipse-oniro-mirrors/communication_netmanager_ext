@@ -487,11 +487,14 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
     napi_value config = NapiUtils::CreateObject(env);
     std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
     if (!addresses.empty()) {
-        napi_value netArray = NapiUtils::CreateArray(env, 1);
+        napi_value linkAddresses = NapiUtils::CreateArray(env, 1);
         napi_value netAddr = NapiUtils::CreateObject(env);
         NapiUtils::SetStringPropertyUtf8(env, netAddr, NET_ADDRESS, addresses[0].address_);
-        NapiUtils::SetArrayElement(env, netArray, 0, netAddr);
-        NapiUtils::SetNamedProperty(env, config, CONFIG_ADDRESSES, netArray);
+        napi_value linkAddr = NapiUtils::CreateObject(env);
+        NapiUtils::SetNamedProperty(env, linkAddr, NET_ADDRESS, netAddr);
+        NapiUtils::SetUint32Property(env, linkAddr, NET_PREFIXLENGTH, 1);
+        NapiUtils::SetArrayElement(env, linkAddresses, 0, linkAddr);
+        NapiUtils::SetNamedProperty(env, config, CONFIG_ADDRESSES, linkAddresses);
     }
     std::vector<std::string> dnsAddresses = sysVpnConfig->dnsAddresses_;
     if (!dnsAddresses.empty()) {
