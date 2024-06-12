@@ -91,11 +91,10 @@ void MDnsService::OnStart()
     state_ = STATE_RUNNING;
 }
 
-int32_t OnIdle(const SystemAbilityOnDemandReason &idleReason)
+int32_t MDnsService::OnIdle(const SystemAbilityOnDemandReason &idleReason)
 {
     std::lock_guard<std::mutex> autoLock(remoteMutex_);
-    if(!remoteCallback_.empty())
-    {
+    if(!remoteCallback_.empty()) {
         return NETMANAGER_ERROR;
     }
     return UNLOAD_IMMEDIATELY;
@@ -128,7 +127,7 @@ bool MDnsService::Init()
     }
 
     if (deathRecipient_ == nullptr) {
-        deathRecipient_ = new (std::nothrow) ConnCallbackDeathRecipient(*this);
+        deathRecipient_ = new (std::nothrow) MdnsCallbackDeathRecipient(*this);
     }
     NETMGR_EXT_LOG_D("mdns_log Init mdns service OK");
     return true;
@@ -165,13 +164,12 @@ int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 
 void MDnsService::UnloadSystemAbility()
 {
-    auto systemAbilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilitymanager();
-    if(systemAbilityMgr == nullptr){
+    auto systemAbilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if(systemAbilityMgr == nullptr) {
         return;
     }
     int32_t ret = systemAbilityMgr->UnloadSystemAbility(COMM_MDNS_MANAGER_SYS_ABILITY_ID);
-    if(ret != NETMANAGER_EXT_SUCCESS)
-    {
+    if(ret != NETMANAGER_EXT_SUCCESS) {
         return;
     }
 }
@@ -187,7 +185,7 @@ void MDnsService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     RemoveClientDeathRecipient(cb);
 }
 
-void MDnsService::AddClientDeathRecipient(const sptr<INetConnCallback> &cb)
+void MDnsService::AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
 {
     if (deathRecipient_ == nullptr) {
         NETMGR_EXT_LOG_E("mdns_log deathRecipient is null");
@@ -199,7 +197,7 @@ void MDnsService::AddClientDeathRecipient(const sptr<INetConnCallback> &cb)
     }
     std::lock_guard<std::mutex> autoLock(remoteMutex_);
     auto iter =
-        std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&cb](const sptr<INetConnCallback> &item) {
+        std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&cb](const sptr<IDiscoveryCallback> &item) {
             return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
         });
     if (iter == remoteCallback_.cend()) {
@@ -207,12 +205,12 @@ void MDnsService::AddClientDeathRecipient(const sptr<INetConnCallback> &cb)
     }
 }
 
-void MDnsService::RemoveClientDeathRecipient(const sptr<INetConnCallback> &cb)
+void MDnsService::RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
 {
     {
     std::lock_guard<std::mutex> autoLock(remoteMutex_);
     auto iter =
-        std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&callback](const sptr<INetConnCallback> &item) {
+        std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&cb](const sptr<IDiscoveryCallback> &item) {
             return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
         });
     if (iter == remoteCallback_.cend()) {
@@ -220,8 +218,7 @@ void MDnsService::RemoveClientDeathRecipient(const sptr<INetConnCallback> &cb)
     }
     cb->AsObject()->RemoveDeathRecipient(deathRecipient_);
     remoteCallback_.erase(iter);
-    if(!remoteCallback_.empty)
-    {
+    if(!remoteCallback_.empty()) {
         return;
     }
     }
@@ -249,7 +246,7 @@ int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const 
     eventInfo.data = serviceType;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
-    AddClientDeathRecipient(cb)
+    AddClientDeathRecipient(cb);
     return err;
 }
 

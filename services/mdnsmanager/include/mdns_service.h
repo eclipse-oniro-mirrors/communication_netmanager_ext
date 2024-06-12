@@ -80,8 +80,8 @@ private:
         MDnsService &client_;
     };
     void OnRemoteDied(const wptr<IRemoteObject> &remoteObject);
-    void AddClientDeathRecipient(const sptr<IDiscoveryCallback> &callback);
-    void RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &callback);
+    void AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb);
+    void RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &cb);
     void UnloadSystemAbility();
     void RemoveALLClientDeathRecipient();
     std::mutex remoteMutex_;
