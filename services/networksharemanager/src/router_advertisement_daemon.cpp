@@ -280,7 +280,9 @@ bool RouterAdvertisementDaemon::AssembleRaLocked()
         ptr += raPrefixLen;
         raPrefixLens += raPrefixLen;
     }
-    raPacketLength_ = raHeadLen + raSllLen + raMtuLen + raPrefixLens;
+    uint16_t raRdnsLen = PutRaRdnss(ptr);
+    ptr += raRdnsLen;
+    raPacketLength_ = raHeadLen + raSllLen + raMtuLen + raPrefixLens + raRdnsLen;
     if (memset_s(&raPacket_, sizeof(raPacket_), 0, sizeof(raPacket_)) != EOK) {
         return false;
     }
@@ -408,5 +410,38 @@ uint16_t RouterAdvertisementDaemon::PutRaPio(uint8_t *raBuf, IpPrefix &ipp)
     return static_cast<uint16_t>(sizeof(Icmpv6PrefixInfoOpt));
 }
 
+uint16_t RouterAdvertisementDaemon::PutRaRdnss(uint8_t *raBuf)
+{
+    NETMGR_EXT_LOG_D("Make RA DNS server option");
+    // https://datatracker.ietf.org/doc/rfc8106/
+    //   0                   1                   2                   3
+    //   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    //  |     Type      |     Length    |           Reserved            |
+    //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    //  |                           Lifetime                            |
+    //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    //  |                                                               |
+    //  :            Addresses of IPv6 Recursive DNS Servers            :
+    //  |                                                               |
+    //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    Icmpv6RdnsOpt rdnsInfoSt;
+    size_t raRdnsNum = raParams_->prefixes_.size();
+    rdnsInfoSt.type = ND_OPTION_RDNSS_TYPE;
+    rdnsInfoSt.len = (sizeof(Icmpv6RdnsOpt) + raRdnsNum * IPV6_ADDR_LEN) / UNITS_OF_OCTETS;
+    rdnsInfoSt.lifetime = htonl(DEFAULT_LIFETIME);
+    if (memcpy_s(raBuf, sizeof(Icmpv6RdnsOpt), &rdnsInfoSt, sizeof(Icmpv6RdnsOpt)) != EOK) {
+        return 0;
+    }
+    raBuf += sizeof(Icmpv6RdnsOpt);
+    uint32_t index = 0;
+    for (IpPrefix ipp : raParams_->prefixes_) {
+        if (memcpy_s(raBuf + index * IPV6_ADDR_LEN, IPV6_ADDR_LEN, ipp.prefix.s6_addr, IPV6_ADDR_LEN) != EOK) {
+            return 0;
+        }
+        index++;
+    }
+    return static_cast<uint16_t>(sizeof(Icmpv6RdnsOpt) + raRdnsNum * IPV6_ADDR_LEN);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
