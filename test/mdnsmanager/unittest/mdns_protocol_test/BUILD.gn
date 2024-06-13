@@ -34,7 +34,6 @@ ohos_unittest("mdns_protocol_test") {
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
     "$NETMANAGER_EXT_ROOT/services/mdnsmanager/include",
-    "$NETMANAGER_EXT_ROOT/services/mdnsmanager/include/protocol",
     "$NETMANAGER_EXT_ROOT/services/mdnsmanager/include/stub",
   ]
 
