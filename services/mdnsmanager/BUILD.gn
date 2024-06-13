@@ -39,11 +39,11 @@ ohos_shared_library("mdns_manager") {
 
   sources = [
     "src/mdns_manager.cpp",
-    "src/mdns_service.cpp",
-    "src/net_interface_callback.cpp",
     "src/mdns_packet_parser.cpp",
     "src/mdns_protocol_impl.cpp",
+    "src/mdns_service.cpp",
     "src/mdns_socket_listener.cpp",
+    "src/net_interface_callback.cpp",
     "src/stub/mdns_event_proxy.cpp",
     "src/stub/mdns_service_stub.cpp",
   ]
@@ -113,11 +113,11 @@ ohos_static_library("mdns_manager_static") {
 
   sources = [
     "src/mdns_manager.cpp",
-    "src/mdns_service.cpp",
-    "src/net_interface_callback.cpp",
     "src/mdns_packet_parser.cpp",
     "src/mdns_protocol_impl.cpp",
+    "src/mdns_service.cpp",
     "src/mdns_socket_listener.cpp",
+    "src/net_interface_callback.cpp",
     "src/stub/mdns_event_proxy.cpp",
     "src/stub/mdns_service_stub.cpp",
   ]
