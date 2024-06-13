@@ -22,6 +22,7 @@
 #include "hisysevent.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
+#include "iservice_registry.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -36,6 +37,7 @@ constexpr const char *EVENT_KEY_ERROR_TYPE = "ERROR_TYPE";
 constexpr const char *EVENT_KEY_ERROR_MSG = "ERROR_MSG";
 
 constexpr const char *EVENT_DATA_CALLBACK = "callback";
+constexpr int32_t UNLOAD_IMMEDIATELY = 0;
 
 using HiSysEvent = OHOS::HiviewDFX::HiSysEvent;
 
@@ -71,7 +73,10 @@ MDnsService::MDnsService()
 {
 }
 
-MDnsService::~MDnsService() = default;
+MDnsService::~MDnsService()
+{
+    RemoveALLClientDeathRecipient();
+}
 
 void MDnsService::OnStart()
 {
@@ -84,6 +89,15 @@ void MDnsService::OnStart()
         return;
     }
     state_ = STATE_RUNNING;
+}
+
+int32_t MDnsService::OnIdle(const SystemAbilityOnDemandReason &idleReason)
+{
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    if (!remoteCallback_.empty()) {
+        return NETMANAGER_ERROR;
+    }
+    return UNLOAD_IMMEDIATELY;
 }
 
 void MDnsService::OnStop()
@@ -112,6 +126,9 @@ bool MDnsService::Init()
         return err;
     }
 
+    if (deathRecipient_ == nullptr) {
+        deathRecipient_ = new (std::nothrow) MdnsCallbackDeathRecipient(*this);
+    }
     NETMGR_EXT_LOG_D("mdns_log Init mdns service OK");
     return true;
 }
@@ -145,6 +162,79 @@ int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
     return err;
 }
 
+void MDnsService::UnloadSystemAbility()
+{
+    auto systemAbilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityMgr == nullptr) {
+        return;
+    }
+    int32_t ret = systemAbilityMgr->UnloadSystemAbility(COMM_MDNS_MANAGER_SYS_ABILITY_ID);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        return;
+    }
+}
+
+void MDnsService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
+{
+    sptr<IRemoteObject> diedRemoted = remoteObject.promote();
+    if (diedRemoted == nullptr) {
+        NETMGR_EXT_LOG_E("mdns_log diedRemoted is null");
+        return;
+    }
+    sptr<IDiscoveryCallback> cb = iface_cast<IDiscoveryCallback>(diedRemoted);
+    RemoveClientDeathRecipient(cb);
+}
+
+void MDnsService::AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
+{
+    if (deathRecipient_ == nullptr) {
+        NETMGR_EXT_LOG_E("mdns_log deathRecipient is null");
+        return;
+    }
+    if (!cb->AsObject()->AddDeathRecipient(deathRecipient_)) {
+        NETMGR_EXT_LOG_E("mdns_log AddClientDeathRecipient failed");
+        return;
+    }
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    auto iter =
+        std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&cb](const sptr<IDiscoveryCallback> &item) {
+            return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
+        });
+    if (iter == remoteCallback_.cend()) {
+        remoteCallback_.emplace_back(cb);
+    }
+}
+
+void MDnsService::RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
+{
+    {
+        std::lock_guard<std::mutex> autoLock(remoteMutex_);
+        auto iter =
+            std::find_if(remoteCallback_.cbegin(), remoteCallback_.cend(), [&cb](const sptr<IDiscoveryCallback> &item) {
+                return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
+            });
+        if (iter == remoteCallback_.cend()) {
+            return;
+        }
+        cb->AsObject()->RemoveDeathRecipient(deathRecipient_);
+        remoteCallback_.erase(iter);
+        if (!remoteCallback_.empty()) {
+            return;
+        }
+    }
+    UnloadSystemAbility();
+}
+
+void MDnsService::RemoveALLClientDeathRecipient()
+{
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    for (auto &item : remoteCallback_) {
+        item->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    }
+    remoteCallback_.clear();
+    deathRecipient_ = nullptr;
+}
+
 int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
 {
     int32_t err = MDnsManager::GetInstance().StartDiscoverService(serviceType, cb);
@@ -156,6 +246,7 @@ int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const 
     eventInfo.data = serviceType;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
+    AddClientDeathRecipient(cb);
     return err;
 }
 
@@ -170,6 +261,7 @@ int32_t MDnsService::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
     eventInfo.data = EVENT_DATA_CALLBACK;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
+    RemoveClientDeathRecipient(cb);
     return err;
 }
 
