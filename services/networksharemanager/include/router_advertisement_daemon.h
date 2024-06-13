@@ -68,7 +68,7 @@ constexpr uint8_t ICMPV6_ND_ROUTER_ADVERT_TYPE = 134;
 constexpr uint8_t ND_OPTION_SLLA_TYPE = 1;
 constexpr uint8_t ND_OPTION_PIO_TYPE = 3;
 constexpr uint8_t ND_OPTION_MTU_TYPE = 5;
-
+constexpr uint8_t ND_OPTION_RDNSS_TYPE = 25;
 struct DeprecatedInfoTracker {
     std::vector<IpPrefix> deprecatedPrefixes;
     std::vector<in6_addr> deprecatedDnses;
@@ -106,6 +106,13 @@ struct Icmpv6PrefixInfoOpt {
     uint32_t res = 0;
     uint8_t prefix[IPV6_ADDR_LEN] = {};
 };
+struct Icmpv6RdnsOpt {
+    uint8_t type = ND_OPTION_RDNSS_TYPE;
+    uint8_t len = 0;
+    uint16_t res = 0;
+    uint32_t lifetime = 0;
+    uint8_t dnsServer[0] = {};
+};
 #pragma pack()
 class RouterAdvertisementDaemon {
 public:
@@ -132,6 +139,7 @@ private:
     uint16_t PutRaSlla(uint8_t *raBuf, const std::string &mac);
     uint16_t PutRaMtu(uint8_t *raBuf, int32_t mtu);
     uint16_t PutRaPio(uint8_t *raBuf, IpPrefix &ipp);
+    uint16_t PutRaRdnss(uint8_t *raBuf);
 
 private:
     sockaddr_in6 dstIpv6Addr_ = {};
