@@ -57,10 +57,6 @@ constexpr int32_t RECORD_MAX_SAVE_TIME = 8 * 24 * 60 * 60;
 // Intercept log aging: Save maximum number of entries
 constexpr int32_t RECORD_MAX_DATA_NUM = 1000;
 
-constexpr uint8_t FAMILY_IPV4 = 1;
-constexpr uint8_t FAMILY_IPV6 = 2;
-constexpr uint8_t SINGLE_IP = 1;
-constexpr uint8_t MULTIPLE_IP = 2;
 constexpr uint8_t IPV4_MASK_MAX = 32;
 constexpr uint8_t IPV6_MASK_MAX = 128;
 

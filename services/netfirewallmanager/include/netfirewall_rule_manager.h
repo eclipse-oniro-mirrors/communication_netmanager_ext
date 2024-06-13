@@ -105,11 +105,7 @@ private:
 
     bool CheckAccountExist(int32_t userId);
 
-    const sptr<NetFirewallIpRule> ExtractIpRule(const NetFirewallRule &rule);
-
     bool ExtractIpRules(const std::vector<NetFirewallRule> &rules);
-
-    void ExtractDomainRule(const NetFirewallRule &rule, std::vector<sptr<NetFirewallDomainRule>> &outRuleList);
 
     bool ExtractDomainRules(const std::vector<NetFirewallRule> &rules);
 
@@ -122,12 +118,6 @@ private:
     int32_t HandleDomainTypeForDistributeRules(std::vector<NetFirewallRule> &rules);
 
     int32_t GetCurrentAccountId();
-
-    int32_t AddFirewallRuleToNative(const NetFirewallRule &rule, int32_t ruleId);
-
-    int32_t UpdateNativeFirewallRule(const NetFirewallRule &rule);
-
-    int32_t DeleteNativeFirewallRule(const NetFirewallRule &rule);
 
     int32_t SetRulesToNativeByType(const int32_t userId, const NetFirewallRuleType type);
 

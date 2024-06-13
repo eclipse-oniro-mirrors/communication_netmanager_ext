@@ -73,12 +73,10 @@ std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart)
     std::vector<NetFirewallIpParam> localParamList;
     NetFirewallIpParam localParam;
     localParam.family = 1;
-    localParam.type = 0;
+    localParam.type = 1;
     localParam.mask = mask;
-    localParam.startIp = "192.168.16.7";
-    localParam.endIp = "19.168.1.3";
     for (int i = 0; i < MAX_IPS; i++) {
-        localParam.address = addressStart + std::to_string(i);
+        inet_pton(AF_INET, (addressStart + std::to_string(i)).c_str(), &localParam.ipv4.startIp);
         localParamList.push_back(localParam);
     }
     return localParamList;
