@@ -45,82 +45,6 @@ NetFirewallRuleNativeHelper::~NetFirewallRuleNativeHelper()
 }
 
 /**
- * Add firewall rules to bpf maps
- *
- * @param ruleList list of NetFirewallIpRule
- * @param isFinish transmit finish or not
- * @return 0 if success or -1 if an error occurred
- */
-int32_t NetFirewallRuleNativeHelper::AddFirewallIpRules(const std::vector<sptr<NetFirewallIpRule>> &ruleList,
-    bool isFinish)
-{
-    std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().AddFirewallIpRules(ruleList, isFinish);
-}
-
-/**
- * Update firewall rules to bpf maps
- *
- * @param rule list of NetFirewallIpRule
- * @return 0 if success or -1 if an error occurred
- */
-int32_t NetFirewallRuleNativeHelper::UpdateFirewallIpRule(const sptr<NetFirewallIpRule> &rule)
-{
-    std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().UpdateFirewallIpRule(rule);
-}
-
-/**
- * Add firewall domain rules
- *
- * @param ruleList list of NetFirewallDomainRule
- * @param isFinish transmit finish or not
- * @return 0 if success or -1 if an error occurred
- */
-int32_t NetFirewallRuleNativeHelper::AddFirewallDomainRules(const std::vector<sptr<NetFirewallDomainRule>> &ruleList,
-    bool isFinish)
-{
-    std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().AddFirewallDomainRules(ruleList, isFinish);
-}
-
-/**
- * Update firewall domain rules
- *
- * @param rule list of NetFirewallDomainRule
- * @return 0 if success or -1 if an error occurred
- */
-int32_t NetFirewallRuleNativeHelper::UpdateFirewallDomainRules(const std::vector<sptr<NetFirewallDomainRule>> &ruleList)
-{
-    std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().UpdateFirewallDomainRules(ruleList);
-}
-
-/**
- * Delete firewall rules
- *
- * @param ruleIds list of NetFirewallRule ids
- * @return 0 if success or -1 if an error occurred
- */
-int32_t NetFirewallRuleNativeHelper::DeleteFirewallRules(NetFirewallRuleType type, const std::vector<int32_t> &ruleIds)
-{
-    std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().DeleteFirewallRules(type, ruleIds);
-}
-
-/**
- * Set firewall rules to bpf maps
- *
- * @param ruleList list of NetFirewallIpRule
- * @return 0 if success or -1 if an error occurred
- */
-int32_t NetFirewallRuleNativeHelper::SetFirewallIpRules(const std::vector<sptr<NetFirewallIpRule>> &ruleList)
-{
-    std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().SetFirewallIpRules(ruleList);
-}
-
-/**
  * Set firewall default action
  *
  * @param inDefault  Default action of NetFirewallRuleDirection:RULE_IN
@@ -147,6 +71,19 @@ int32_t NetFirewallRuleNativeHelper::ClearFirewallRules(NetFirewallRuleType type
 }
 
 /**
+ * Set firewall rules to bpf maps
+ *
+ * @param ruleList list of NetFirewallIpRule
+ * @return 0 if success or -1 if an error occurred
+ */
+int32_t NetFirewallRuleNativeHelper::SetFirewallIpRules(const std::vector<sptr<NetFirewallIpRule>> &ruleList)
+{
+    std::vector<sptr<NetFirewallBaseRule>> rules;
+    rules.assign(ruleList.begin(), ruleList.end());
+    return SetFirewallRulesInner(NetFirewallRuleType::RULE_IP, rules, FIREWALL_IPC_IP_RULE_PAGE_SIZE);
+}
+
+/**
  * Set the Firewall DNS rules
  *
  * @param ruleList firewall rules
@@ -154,8 +91,9 @@ int32_t NetFirewallRuleNativeHelper::ClearFirewallRules(NetFirewallRuleType type
  */
 int32_t NetFirewallRuleNativeHelper::SetFirewallDnsRules(const std::vector<sptr<NetFirewallDnsRule>> &ruleList)
 {
-    std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().SetFirewallDnsRules(ruleList);
+    std::vector<sptr<NetFirewallBaseRule>> rules;
+    rules.assign(ruleList.begin(), ruleList.end());
+    return SetFirewallRulesInner(NetFirewallRuleType::RULE_DNS, rules, FIREWALL_RULE_SIZE_MAX);
 }
 
 /**
@@ -166,8 +104,37 @@ int32_t NetFirewallRuleNativeHelper::SetFirewallDnsRules(const std::vector<sptr<
  */
 int32_t NetFirewallRuleNativeHelper::SetFirewallDomainRules(const std::vector<sptr<NetFirewallDomainRule>> &ruleList)
 {
+    std::vector<sptr<NetFirewallBaseRule>> rules;
+    rules.assign(ruleList.begin(), ruleList.end());
+    return SetFirewallRulesInner(NetFirewallRuleType::RULE_DOMAIN, rules, FIREWALL_IPC_DOMAIN_RULE_PAGE_SIZE);
+}
+
+int32_t NetFirewallRuleNativeHelper::SetFirewallRulesInner(NetFirewallRuleType type,
+    const std::vector<sptr<NetFirewallBaseRule>> &ruleList, uint32_t pageSize)
+{
+    NETMGR_EXT_LOG_I("SetFirewallRulesInner: type=%{public}" PRId32 " ruleSize=%{public}zu pageSize=%{public}" PRIu32,
+        type, ruleList.size(), pageSize);
     std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().SetFirewallDomainRules(ruleList);
+    int32_t ret = FIREWALL_SUCCESS;
+    size_t size = ruleList.size();
+    auto start = ruleList.begin();
+    int count = 0;
+    while (size > 0) {
+        size_t offset = (size > pageSize ? pageSize : size);
+        size -= offset;
+        start += offset * count;
+        std::vector<sptr<NetFirewallBaseRule>> subVector;
+        subVector.assign(start, start + offset);
+        bool isFinish = (size <= 0);
+
+        ret += NetsysController::GetInstance().SetFirewallRules(type, subVector, isFinish);
+        if (ret != ERR_NONE) {
+            NETMGR_EXT_LOG_E("SetFirewallRules SendRequest failed");
+            return ret;
+        }
+        count++;
+    }
+    return ret;
 }
 
 /**

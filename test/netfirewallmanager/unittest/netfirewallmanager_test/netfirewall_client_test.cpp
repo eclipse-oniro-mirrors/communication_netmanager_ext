@@ -47,6 +47,7 @@ namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
 int32_t g_rowId = 0;
+constexpr int32_t MAX_TEST_CNT = 1;
 constexpr int32_t MAX_USER_RULE = 1;
 constexpr uint32_t APPID_TEST01 = 2034;
 constexpr int32_t USER_ID1 = 100;
@@ -62,19 +63,28 @@ const int32_t MAX_RULE_DESCRITION_LEN = 256;
 std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart, uint8_t type)
 {
     const uint8_t mask = 24;
+    const int32_t gap = 10;
+    const int32_t hexWidth = 4;
     std::vector<NetFirewallIpParam> localParamList;
     NetFirewallIpParam localParam;
-    localParam.family = 1;
+    localParam.family = FAMILY_IPV6;
     localParam.type = type;
-    localParam.mask = mask;
-    if (type == MULTIPLE_IP) {
-        localParam.startIp = "192.168.16.7";
-        localParam.endIp = "19.168.1.3";
-    } else {
-        for (int32_t i = 0; i < MAX_IPS; i++) {
-            localParam.address = addressStart + std::to_string(i);
-            localParamList.push_back(localParam);
+    std::string ip;
+    std::stringstream ss;
+    for (int32_t i = 0; i < MAX_IPS; i++) {
+        ss.str("");
+        ss.clear();
+        ss << addressStart << std::hex << std::setw(hexWidth) << std::setfill('0') << (i * gap);
+        inet_pton(AF_INET6, ss.str().c_str(), &localParam.ipv6.startIp);
+        if (type == MULTIPLE_IP) {
+            ss.str("");
+            ss.clear();
+            ss << addressStart << std::hex << std::setw(hexWidth) << std::setfill('0') << (i * gap + gap);
+            inet_pton(AF_INET6, ss.str().c_str(), &localParam.ipv6.endIp);
+        } else {
+            localParam.mask = mask;
         }
+        localParamList.push_back(localParam);
     }
     return localParamList;
 }
@@ -125,9 +135,9 @@ sptr<NetFirewallRule> GetNetFirewallRuleSptr(NetFirewallRuleType ruleType = NetF
     rule->appUid = APPID_TEST01;
     if (ruleType == NetFirewallRuleType::RULE_IP) {
         if (ruleDirection == NetFirewallRuleDirection::RULE_OUT) {
-            rule->localIps = GetIpList("192.168.10.", type);
+            rule->localIps = GetIpList("AA22:BB11:1122:CDEF:1111:AA99:8888:", type);
         } else {
-            rule->remoteIps = GetIpList("192.168.2.", type);
+            rule->remoteIps = GetIpList("AA22:BB11:1122:CDEF:2222:AA99:8888:", type);
         }
         rule->localPorts = GetPortList(LOCAL_START_PORT, LOCAL_END_PORT);
         rule->remotePorts = GetPortList(REMOTE_START_PORT, REMOTE_END_PORT);
@@ -177,7 +187,7 @@ HWTEST_F(NetFirewallClientTest, SetNetFirewallPolicy, TestSize.Level1)
     int32_t ret = -1;
     sptr<NetFirewallPolicy> status = new (std::nothrow) NetFirewallPolicy();
     g_startTimeTest = GetCurrentMilliseconds();
-    for (int32_t i = 0; i < MAX_USER_RULE; i++) {
+    for (int32_t i = 0; i < MAX_TEST_CNT; i++) {
         status->isOpen = true;
         status->inAction = (FirewallRuleAction)(1);
         status->outAction = FirewallRuleAction::RULE_ALLOW;
@@ -185,7 +195,7 @@ HWTEST_F(NetFirewallClientTest, SetNetFirewallPolicy, TestSize.Level1)
         std::cout << "SetNetFirewallPolicy " << i + 1 << " ret " << ret << std::endl;
     }
     g_endTimeTest = GetCurrentMilliseconds();
-    std::cout << "CALL_TEST SetNetFirewallPolicy user " << userId << " call " << MAX_USER_RULE << ", use time : " <<
+    std::cout << "CALL_TEST SetNetFirewallPolicy user " << userId << " call " << MAX_TEST_CNT << ", use time : " <<
         g_endTimeTest - g_startTimeTest << " ms" << std::endl;
     EXPECT_EQ(ret, 0);
 }
@@ -197,12 +207,12 @@ HWTEST_F(NetFirewallClientTest, GetNetFirewallPolicy, TestSize.Level1)
     int32_t ret = -1;
     sptr<NetFirewallPolicy> status = new (std::nothrow) NetFirewallPolicy();
     g_startTimeTest = GetCurrentMilliseconds();
-    for (int32_t i = 0; i < MAX_USER_RULE; i++) {
+    for (int32_t i = 0; i < MAX_TEST_CNT; i++) {
         ret = netfirewallClient_.GetNetFirewallPolicy(userId, status);
         std::cout << "GetNetFirewallPolicy " << i + 1 << " ret " << ret << std::endl;
     }
     g_endTimeTest = GetCurrentMilliseconds();
-    std::cout << "CALL_TEST GetNetFirewallPolicy user " << userId << " call " << MAX_USER_RULE << ", use time : " <<
+    std::cout << "CALL_TEST GetNetFirewallPolicy user " << userId << " call " << MAX_TEST_CNT << ", use time : " <<
         g_endTimeTest - g_startTimeTest << " ms" << std::endl;
     EXPECT_EQ(ret, 0);
 }

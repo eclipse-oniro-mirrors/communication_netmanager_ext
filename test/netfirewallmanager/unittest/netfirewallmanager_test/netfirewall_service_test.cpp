@@ -73,12 +73,10 @@ std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart)
     std::vector<NetFirewallIpParam> localParamList;
     NetFirewallIpParam localParam;
     localParam.family = 1;
-    localParam.type = 0;
+    localParam.type = 1;
     localParam.mask = mask;
-    localParam.startIp = "192.168.16.7";
-    localParam.endIp = "19.168.1.3";
     for (int i = 0; i < MAX_IPS; i++) {
-        localParam.address = addressStart + std::to_string(i);
+        inet_pton(AF_INET, (addressStart + std::to_string(i)).c_str(), &localParam.ipv4.startIp);
         localParamList.push_back(localParam);
     }
     return localParamList;
@@ -655,7 +653,9 @@ HWTEST_F(NetFirewallServiceTest, OnIntercept, TestSize.Level1)
     record->remotePort = destPort;
     record->protocol = 1;
     record->appUid = uid;
+    NetFirewallInterceptRecorder::GetInstance()->RegisterInterceptCallback();
     int32_t ret = NetFirewallInterceptRecorder::GetInstance()->callback_->OnIntercept(record);
+    NetFirewallInterceptRecorder::GetInstance()->UnRegisterInterceptCallback();
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
@@ -966,6 +966,63 @@ HWTEST_F(NetFirewallServiceTest, SendNetFirewallFault001, TestSize.Level1)
     auto _netFileHisysEvent = NetFirewallHisysEvent::GetInstance();
     _netFileHisysEvent.SendNetFirewallFault(event, eventName);
     EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetCurrentNetFirewallPolicy
+ * @tc.desc: Test NetFirewallDbHelper GetCurrentNetFirewallPolicy001.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetCurrentNetFirewallPolicy001, TestSize.Level1)
+{
+    NetFirewallPolicyManager::GetInstance()->currentUserId_ = USER_ID1;
+
+    sptr<NetFirewallPolicy> policy = new (std::nothrow) NetFirewallPolicy();
+    policy->isOpen = true;
+    policy->inAction = (FirewallRuleAction)(1);
+    policy->outAction = FirewallRuleAction::RULE_ALLOW;
+    NetFirewallPolicyManager::GetInstance()->SetCurrentUserFirewallPolicy(policy);
+
+    int ret = NetFirewallPolicyManager::GetInstance()->GetCurrentNetFirewallPolicy(policy);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: ExtractDomainRule
+ * @tc.desc: Test NetFirewallDbHelper ExtractDomainRule001.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, ExtractDomainRule001, TestSize.Level1)
+{
+    NetFirewallRule rule;
+    rule.ruleId = 1;
+    rule.userId = USER_ID1;
+    std::vector<NetFirewallDomainParam> domainList;
+    NetFirewallDomainParam domain;
+    domain.isWildcard = 1;
+    domain.domain = "www.openharmony.cn";
+    for (int i = 0; i < MAX_DOMAINS; i++) {
+        domainList.push_back(domain);
+    }
+    rule.domains = domainList;
+    std::vector<sptr<NetFirewallDomainRule>> domainRules;
+    NetFirewallRuleManager::GetInstance()->ExtractDomainRule(rule, domainRules);
+}
+
+/**
+ * @tc.name: SetFirewallDnsRules
+ * @tc.desc: Test NetFirewallDbHelper SetFirewallDnsRules001.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, SetFirewallDnsRules001, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr();
+    int32_t ruleId = 1;
+    int ret = DelayedSingleton<NetFirewallService>::GetInstance()->AddNetFirewallRule(rule, ruleId);
+    g_rowId = ruleId;
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    ret = NetFirewallRuleManager::GetInstance()->SetRulesToNativeByType(USER_ID1, NetFirewallRuleType::RULE_DNS);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

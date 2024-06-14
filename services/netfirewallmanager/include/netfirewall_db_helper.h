@@ -79,7 +79,6 @@ struct NetFirewallIpRuleData {
     LocationType locationType;
     int32_t family;
     int32_t type;
-    std::string address;
     int32_t mask;
     std::string startIp;
     std::string endIp;
@@ -95,7 +94,6 @@ struct NetFirewallIpRuleInfo {
     int32_t locationTypeIndex;
     int32_t familyIndex;
     int32_t typeIndex;
-    int32_t addressIndex;
     int32_t maskIndex;
     int32_t startIpIndex;
     int32_t endIpIndex;

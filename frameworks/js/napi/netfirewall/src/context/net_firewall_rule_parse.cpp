@@ -45,16 +45,29 @@ void NetFirewallRuleParse::ParseIpList(napi_env env, napi_value params, std::vec
         if (param.type == 0) {
             param.type = SINGLE_IP;
         }
+        std::string startIp;
+        std::string endIp;
         if (param.type == SINGLE_IP) {
             param.mask = static_cast<uint8_t>(NapiUtils::GetUint32Property(env, valAttr, NET_FIREWALL_IP_MASK));
-            param.address = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_ADDRESS);
+            startIp = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_ADDRESS);
             // The default IPv4 mask is 32, The IPv6 prefix is 64
             if (param.mask == 0 && param.type == SINGLE_IP) {
                 param.mask = param.family == FAMILY_IPV4 ? IPV4_MASK_MAX : IPV6_MASK_MAX;
             }
         } else {
-            param.startIp = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_START);
-            param.endIp = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_END);
+            startIp = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_START);
+            endIp = NapiUtils::GetStringPropertyUtf8(env, valAttr, NET_FIREWALL_IP_END);
+        }
+        if (param.family == FAMILY_IPV4) {
+            inet_pton(AF_INET, startIp.c_str(), &param.ipv4.startIp);
+            if (param.type == MULTIPLE_IP) {
+                inet_pton(AF_INET, endIp.c_str(), &param.ipv4.endIp);
+            }
+        } else {
+            inet_pton(AF_INET6, startIp.c_str(), &param.ipv6.startIp);
+            if (param.type == MULTIPLE_IP) {
+                inet_pton(AF_INET6, endIp.c_str(), &param.ipv6.endIp);
+            }
         }
         list.emplace_back(param);
     }
@@ -141,10 +154,10 @@ void NetFirewallRuleParse::SetIpList(napi_env env, napi_value object, const std:
         NapiUtils::SetUint32Property(env, element, NET_FIREWALL_IP_TYPE, static_cast<uint32_t>(iface.type));
         if (iface.type == SINGLE_IP) {
             NapiUtils::SetUint32Property(env, element, NET_FIREWALL_IP_MASK, static_cast<uint32_t>(iface.mask));
-            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_ADDRESS, iface.address);
+            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_ADDRESS, iface.GetStartIp());
         } else {
-            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_START, iface.startIp);
-            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_END, iface.endIp);
+            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_START, iface.GetStartIp());
+            NapiUtils::SetStringPropertyUtf8(env, element, NET_FIREWALL_IP_END, iface.GetEndIp());
         }
         NapiUtils::SetArrayElement(env, ipList, index++, element);
     }

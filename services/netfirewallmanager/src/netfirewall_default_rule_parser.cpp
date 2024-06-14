@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <arpa/inet.h>
 #include <fstream>
 
 #include "netmgr_ext_log_wrapper.h"
@@ -149,32 +150,49 @@ void NetFirewallDefaultRuleParser::ConvertIpParamToConfig(NetFirewallIpParam &ru
     cJSON *family = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_FAMILY.c_str());
     if (family != nullptr && cJSON_IsNumber(family)) {
         rule.family = static_cast<uint8_t>(cJSON_GetNumberValue(family));
-        NETMGR_EXT_LOG_D("family = %{public}d", rule.family);
     }
     cJSON *type = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_TYPE.c_str());
     if (type != nullptr && cJSON_IsNumber(type)) {
         rule.type = static_cast<uint8_t>(cJSON_GetNumberValue(type));
-        NETMGR_EXT_LOG_D("type = %{public}d", rule.type);
     }
-    cJSON *address = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_ADDRESS.c_str());
-    if (address != nullptr && cJSON_IsString(address)) {
-        rule.address = cJSON_GetStringValue(address);
-        NETMGR_EXT_LOG_D("address = %{public}s", rule.address.c_str());
-    }
-    cJSON *mask = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_MASK.c_str());
-    if (mask != nullptr && cJSON_IsNumber(mask)) {
-        rule.mask = static_cast<uint8_t>(cJSON_GetNumberValue(mask));
-        NETMGR_EXT_LOG_D("mask = %{public}d", rule.mask);
+    std::string tmp;
+    if (rule.type == SINGLE_IP) {
+        cJSON *address = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_ADDRESS.c_str());
+        if (address != nullptr && cJSON_IsString(address)) {
+            tmp = cJSON_GetStringValue(address);
+            if (rule.family == FAMILY_IPV4) {
+                inet_pton(AF_INET, tmp.c_str(), &rule.ipv4.startIp);
+            } else {
+                inet_pton(AF_INET6, tmp.c_str(), &rule.ipv6.startIp);
+            }
+            NETMGR_EXT_LOG_D("address = %{public}s", tmp.c_str());
+        }
+        cJSON *mask = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_MASK.c_str());
+        if (mask != nullptr && cJSON_IsNumber(mask)) {
+            rule.mask = static_cast<uint8_t>(cJSON_GetNumberValue(mask));
+            NETMGR_EXT_LOG_D("mask = %{public}d", rule.mask);
+        }
+        return;
     }
     cJSON *startIp = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_START.c_str());
     if (startIp != nullptr && cJSON_IsString(startIp)) {
-        rule.startIp = cJSON_GetStringValue(startIp);
-        NETMGR_EXT_LOG_D("startIp = %{public}s", rule.startIp.c_str());
+        tmp = cJSON_GetStringValue(startIp);
+        if (rule.family == FAMILY_IPV4) {
+            inet_pton(AF_INET, tmp.c_str(), &rule.ipv4.startIp);
+        } else {
+            inet_pton(AF_INET6, tmp.c_str(), &rule.ipv6.startIp);
+        }
+        NETMGR_EXT_LOG_D("startIp = %{public}s", tmp.c_str());
     }
     cJSON *endIp = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_END.c_str());
     if (endIp != nullptr && cJSON_IsString(endIp)) {
-        rule.endIp = cJSON_GetStringValue(endIp);
-        NETMGR_EXT_LOG_D("endIp = %{public}s", rule.endIp.c_str());
+        tmp = cJSON_GetStringValue(endIp);
+        if (rule.family == FAMILY_IPV4) {
+            inet_pton(AF_INET, tmp.c_str(), &rule.ipv4.endIp);
+        } else {
+            inet_pton(AF_INET6, tmp.c_str(), &rule.ipv6.endIp);
+        }
+        NETMGR_EXT_LOG_D("endIp = %{public}s", tmp.c_str());
     }
 }
 

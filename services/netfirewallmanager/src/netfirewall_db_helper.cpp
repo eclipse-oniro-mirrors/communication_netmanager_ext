@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <arpa/inet.h>
 #include <string>
 
 #include "hilog/log.h"
@@ -77,11 +78,10 @@ int32_t NetFirewallDbHelper::FillValuesOfFirewallRule(ValuesBucket &values, cons
     values.PutInt(LOCATION_TYPE, static_cast<int32_t>(rule.locationType));
     values.PutInt(NET_FIREWALL_IP_FAMILY, rule.family);
     values.PutInt(NET_FIREWALL_IP_TYPE, rule.type);
+    values.PutString(NET_FIREWALL_IP_START, rule.startIp);
     if (rule.type == SINGLE_IP) {
-        values.PutString(NET_FIREWALL_IP_ADDRESS, rule.address);
         values.PutInt(NET_FIREWALL_IP_MASK, rule.mask);
     } else {
-        values.PutString(NET_FIREWALL_IP_START, rule.startIp);
         values.PutString(NET_FIREWALL_IP_END, rule.endIp);
     }
 
@@ -190,13 +190,14 @@ int32_t NetFirewallDbHelper::AddFirewallIpRule(NativeRdb::ValuesBucket &values, 
         ruledata.family = static_cast<int32_t>(netFirewallIpParamList[i].family);
         ruledata.type = static_cast<int32_t>(netFirewallIpParamList[i].type);
         ruledata.locationType = locationType;
+        ruledata.startIp = netFirewallIpParamList[i].GetStartIp();
         if (ruledata.type == SINGLE_IP) {
-            ruledata.address = netFirewallIpParamList[i].address;
             ruledata.mask = static_cast<int32_t>(netFirewallIpParamList[i].mask);
         } else {
-            ruledata.startIp = netFirewallIpParamList[i].startIp;
-            ruledata.endIp = netFirewallIpParamList[i].endIp;
+            ruledata.endIp = netFirewallIpParamList[i].GetEndIp();
         }
+        NETMGR_EXT_LOG_D("AddFirewallIpRule ruleId=%{public}d type=%{public}d startIp=%{public}s endIp=%{public}s",
+            ruleId, ruledata.type, ruledata.startIp.c_str(), ruledata.endIp.c_str());
         ret = AddFirewallIpRule(values, ruledata);
         if (ret < FIREWALL_OK) {
             NETMGR_EXT_LOG_E("Insert error: %{public}d", ret);
@@ -263,7 +264,7 @@ int32_t NetFirewallDbHelper::AddFirewallRuleRecord(const NetFirewallRule &rule)
     NetFirewallRule2Data(rule, baseRuleData);
     ret = AddFirewallBaseRule(values, baseRuleData);
     if (ret < FIREWALL_OK) {
-        NETMGR_EXT_LOG_E("Insert error: %{public}d", ret);
+        NETMGR_EXT_LOG_E("AddFirewallBaseRule Insert error: %{public}d", ret);
         (void)firewallDatabase_->RollBack();
         return ret;
     }
@@ -404,12 +405,11 @@ int32_t NetFirewallDbHelper::SubTableAddIpParam4UpdateRule(const NetFirewallRule
         ruledata.family = static_cast<int32_t>(paramList[i].family);
         ruledata.type = static_cast<int32_t>(paramList[i].type);
         ruledata.locationType = locationType;
+        ruledata.startIp = paramList[i].GetStartIp();
         if (ruledata.type == SINGLE_IP) {
-            ruledata.address = paramList[i].address;
             ruledata.mask = static_cast<int32_t>(paramList[i].mask);
         } else {
-            ruledata.startIp = paramList[i].startIp;
-            ruledata.endIp = paramList[i].endIp;
+            ruledata.endIp = paramList[i].GetEndIp();
         }
         ret = AddFirewallIpRule(values, ruledata);
         if (ret < FIREWALL_OK) {
@@ -614,9 +614,6 @@ int32_t NetFirewallDbHelper::GetResultSetIpTableInfo(const std::shared_ptr<OHOS:
         if (columnName == NET_FIREWALL_IP_TYPE) {
             table.typeIndex = i;
         }
-        if (columnName == NET_FIREWALL_IP_ADDRESS) {
-            table.addressIndex = i;
-        }
         if (columnName == NET_FIREWALL_IP_MASK) {
             table.maskIndex = i;
         }
@@ -743,12 +740,10 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
         }
         resultSet->GetInt(table.familyIndex, info.family);
         resultSet->GetInt(table.typeIndex, info.type);
+        resultSet->GetString(table.startIpIndex, info.startIp);
         if (info.type == SINGLE_IP) {
-            resultSet->GetString(table.addressIndex, info.address);
             resultSet->GetInt(table.maskIndex, info.mask);
         } else {
-            resultSet->GetString(table.startIpIndex, info.startIp);
-
             resultSet->GetString(table.endIpIndex, info.endIp);
         }
 
@@ -1018,18 +1013,26 @@ void NetFirewallDbHelper::GetFirewallIpRuleRecord(int32_t ruleId, const std::vec
     std::vector<NetFirewallIpParam> &outIpRules)
 {
     outIpRules.clear();
-    size_t size = inIpRules.size();
-    for (size_t i = 0; i < size; i++) {
-        if (inIpRules[i].ruleId == ruleId) {
-            NetFirewallIpParam param;
-            param.family = static_cast<uint8_t>(inIpRules[i].family);
-            param.type = static_cast<uint8_t>(inIpRules[i].type);
-            param.mask = static_cast<uint8_t>(inIpRules[i].mask);
-            param.address.assign(inIpRules[i].address);
-            param.startIp.assign(inIpRules[i].startIp);
-            param.endIp.assign(inIpRules[i].endIp);
-            outIpRules.emplace_back(std::move(param));
+    for (const NetFirewallIpRuleData &data : inIpRules) {
+        if (data.ruleId != ruleId) {
+            continue;
         }
+        NetFirewallIpParam param;
+        param.family = static_cast<uint8_t>(data.family);
+        param.type = static_cast<uint8_t>(data.type);
+        param.mask = static_cast<uint8_t>(data.mask);
+        if (param.family == FAMILY_IPV4) {
+            inet_pton(AF_INET, data.startIp.c_str(), &param.ipv4.startIp);
+            if (param.type == MULTIPLE_IP) {
+                inet_pton(AF_INET, data.endIp.c_str(), &param.ipv4.endIp);
+            }
+        } else {
+            inet_pton(AF_INET6, data.startIp.c_str(), &param.ipv6.startIp);
+            if (param.type == MULTIPLE_IP) {
+                inet_pton(AF_INET6, data.endIp.c_str(), &param.ipv6.endIp);
+            }
+        }
+        outIpRules.emplace_back(std::move(param));
     }
 }
 void NetFirewallDbHelper::GetFirewallPortRuleRecord(int32_t ruleId,

@@ -30,48 +30,6 @@ public:
     ~NetFirewallRuleNativeHelper();
 
     /**
-     * Add firewall rules to bpf maps
-     *
-     * @param ruleList list of NetFirewallIpRule
-     * @param isFinish transmit finish or not
-     * @return 0 if success or -1 if an error occurred
-     */
-    int32_t AddFirewallIpRules(const std::vector<sptr<NetFirewallIpRule>> &ruleList, bool isFinish);
-
-    /**
-     * Update firewall rules to bpf maps
-     *
-     * @param rule list of NetFirewallIpRule
-     * @return 0 if success or -1 if an error occurred
-     */
-    int32_t UpdateFirewallIpRule(const sptr<NetFirewallIpRule> &rule);
-
-    /**
-     * Add firewall domain rules
-     *
-     * @param ruleList list of NetFirewallDomainRule
-     * @param isFinish transmit finish or not
-     * @return 0 if success or -1 if an error occurred
-     */
-    int32_t AddFirewallDomainRules(const std::vector<sptr<NetFirewallDomainRule>> &ruleList, bool isFinish);
-
-    /**
-     * Update firewall domain rules
-     *
-     * @param rule list of NetFirewallDomainRule
-     * @return 0 if success or -1 if an error occurred
-     */
-    int32_t UpdateFirewallDomainRules(const std::vector<sptr<NetFirewallDomainRule>> &ruleList);
-
-    /**
-     * Delete firewall rules
-     *
-     * @param ruleIds list of NetFirewallRule ids
-     * @return 0 if success or -1 if an error occurred
-     */
-    int32_t DeleteFirewallRules(NetFirewallRuleType type, const std::vector<int32_t> &ruleIds);
-
-    /**
      * Set firewall rules to bpf maps
      *
      * @param ruleList list of NetFirewallIpRule
@@ -121,6 +79,8 @@ public:
     int32_t SetCurrentUserId(int32_t userId);
 
 private:
+    int32_t SetFirewallRulesInner(NetFirewallRuleType type, const std::vector<sptr<NetFirewallBaseRule>> &ruleList,
+                                  uint32_t pageSize);
     std::mutex callNetSysController_;
     static std::shared_ptr<NetFirewallRuleNativeHelper> instance_;
 };

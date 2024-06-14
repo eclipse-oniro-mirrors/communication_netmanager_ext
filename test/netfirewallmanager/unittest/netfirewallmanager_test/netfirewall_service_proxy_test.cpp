@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <arpa/inet.h>
 
 #include "gtest/gtest-message.h"
 #include "gtest/gtest-test-part.h"
@@ -68,14 +69,14 @@ sptr<NetFirewallRule> GetNetFirewallRuleSptr()
     NetFirewallIpParam localParam;
     localParam.family = 1;
     localParam.type = 1;
-    localParam.address = "192.168.10.1";
+    inet_pton(AF_INET, "192.168.10.1", &localParam.ipv4.startIp);
     localParam.mask = MASK;
     rule->localIps.push_back(localParam);
 
     NetFirewallIpParam remoteParam;
     remoteParam.family = FAMILY_IPV6;
     remoteParam.type = 1;
-    remoteParam.address = "fe80::6bec:e9b9:a1df:f69d";
+    inet_pton(AF_INET6, "fe80::6bec:e9b9:a1df:f69d", &localParam.ipv6.startIp);
     remoteParam.mask = MASK;
     rule->remoteIps.push_back(remoteParam);
 

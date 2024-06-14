@@ -70,7 +70,7 @@ int32_t NetFirewallRuleManager::AddNetFirewallRule(const sptr<NetFirewallRule> &
         return FIREWALL_ERR_INTERNAL;
     }
     if (isNotify && rule->isEnabled) {
-        return AddFirewallRuleToNative(*rule, ruleId);
+        return DistributeRulesToNative(rule->ruleType);
     }
     return FIREWALL_SUCCESS;
 }
@@ -123,10 +123,10 @@ int32_t NetFirewallRuleManager::UpdateNetFirewallRule(const sptr<NetFirewallRule
         return FIREWALL_SUCCESS;
     }
     if (oldRule.isEnabled && (rule->ruleType != oldRule.ruleType || !rule->isEnabled)) {
-        ret = DeleteNativeFirewallRule(oldRule);
+        ret = DistributeRulesToNative(oldRule.ruleType);
     }
     if (rule->isEnabled) {
-        ret += UpdateNativeFirewallRule(*rule);
+        ret += DistributeRulesToNative(rule->ruleType);
     }
     return ret;
 }
@@ -154,7 +154,7 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRule(const int32_t userId, cons
     if (oldRule.ruleId <= 0 || !oldRule.isEnabled) {
         return FIREWALL_SUCCESS;
     }
-    return DeleteNativeFirewallRule(oldRule);
+    return DistributeRulesToNative(oldRule.ruleType);
 }
 
 int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByUserId(const int32_t userId)
@@ -187,8 +187,8 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByAppId(const int32_t appUi
         return FIREWALL_ERR_INTERNAL;
     }
 
-    std::vector<int32_t> enabledIpRules;
-    std::vector<int32_t> enabledDomainRules;
+    bool hasEnabledIpRule = false;
+    bool hasEnabledDomainRule = false;
     bool hasEnabledDnsRule = false;
     for (const auto &rule : rules) {
         if (!rule.isEnabled) {
@@ -197,21 +197,19 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByAppId(const int32_t appUi
         if (rule.ruleType == NetFirewallRuleType::RULE_DNS) {
             hasEnabledDnsRule = true;
         } else if (rule.ruleType == NetFirewallRuleType::RULE_DOMAIN) {
-            enabledDomainRules.emplace_back(rule.ruleId);
+            hasEnabledDomainRule = true;
         } else if (rule.ruleType == NetFirewallRuleType::RULE_IP) {
-            enabledIpRules.emplace_back(rule.ruleId);
+            hasEnabledIpRule = true;
         }
     }
     if (hasEnabledDnsRule) {
         ret = DistributeRulesToNative(NetFirewallRuleType::RULE_DNS);
     }
-    if (!enabledDomainRules.empty()) {
-        return NetFirewallRuleNativeHelper::GetInstance()->DeleteFirewallRules(NetFirewallRuleType::RULE_DOMAIN,
-            enabledDomainRules);
+    if (hasEnabledDomainRule) {
+        ret += DistributeRulesToNative(NetFirewallRuleType::RULE_DOMAIN);
     }
-    if (!enabledIpRules.empty()) {
-        return NetFirewallRuleNativeHelper::GetInstance()->DeleteFirewallRules(NetFirewallRuleType::RULE_IP,
-            enabledIpRules);
+    if (hasEnabledIpRule) {
+        ret += DistributeRulesToNative(NetFirewallRuleType::RULE_IP);
     }
     return ret;
 }
@@ -384,37 +382,6 @@ bool NetFirewallRuleManager::CheckAccountExist(int32_t userId)
     return true;
 }
 
-void NetFirewallRuleManager::ExtractDomainRule(const NetFirewallRule &rule,
-    std::vector<sptr<NetFirewallDomainRule>> &outRuleList)
-{
-    for (const auto &domain : rule.domains) {
-        sptr<NetFirewallDomainRule> domainRule = new (std::nothrow) NetFirewallDomainRule();
-        domainRule->userId = rule.userId;
-        domainRule->ruleId = rule.ruleId;
-        domainRule->ruleAction = rule.ruleAction;
-        domainRule->appUid = rule.appUid;
-        domainRule->isWildcard = domain.isWildcard;
-        domainRule->domain = domain.domain;
-        outRuleList.emplace_back(std::move(domainRule));
-    }
-}
-
-const sptr<NetFirewallIpRule> NetFirewallRuleManager::ExtractIpRule(const NetFirewallRule &rule)
-{
-    sptr<NetFirewallIpRule> ipRule = new (std::nothrow) NetFirewallIpRule();
-    ipRule->userId = rule.userId;
-    ipRule->ruleId = rule.ruleId;
-    ipRule->ruleDirection = rule.ruleDirection;
-    ipRule->ruleAction = rule.ruleAction;
-    ipRule->appUid = rule.appUid;
-    ipRule->localIps = rule.localIps;
-    ipRule->remoteIps = rule.remoteIps;
-    ipRule->protocol = rule.protocol;
-    ipRule->localPorts = rule.localPorts;
-    ipRule->remotePorts = rule.remotePorts;
-    return ipRule;
-}
-
 bool NetFirewallRuleManager::ExtractIpRules(const std::vector<NetFirewallRule> &rules)
 {
     if (rules.empty()) {
@@ -429,7 +396,16 @@ bool NetFirewallRuleManager::ExtractIpRules(const std::vector<NetFirewallRule> &
         if (rule.ruleType != NetFirewallRuleType::RULE_IP) {
             continue;
         }
-        sptr<NetFirewallIpRule> ipRule = ExtractIpRule(rule);
+        sptr<NetFirewallIpRule> ipRule = new (std::nothrow) NetFirewallIpRule();
+        ipRule->userId = rule.userId;
+        ipRule->ruleDirection = rule.ruleDirection;
+        ipRule->ruleAction = rule.ruleAction;
+        ipRule->appUid = rule.appUid;
+        ipRule->localIps = rule.localIps;
+        ipRule->remoteIps = rule.remoteIps;
+        ipRule->protocol = rule.protocol;
+        ipRule->localPorts = rule.localPorts;
+        ipRule->remotePorts = rule.remotePorts;
         ipRules_.emplace_back(std::move(ipRule));
     }
     return ipRules_.size() > 0;
@@ -449,16 +425,12 @@ bool NetFirewallRuleManager::ExtractDomainRules(const std::vector<NetFirewallRul
         if (rule.ruleType != NetFirewallRuleType::RULE_DOMAIN) {
             continue;
         }
-        for (const auto &domain : rule.domains) {
-            sptr<NetFirewallDomainRule> pRule = new (std::nothrow) NetFirewallDomainRule();
-            pRule->userId = rule.userId;
-            pRule->ruleId = rule.ruleId;
-            pRule->ruleAction = rule.ruleAction;
-            pRule->appUid = rule.appUid;
-            pRule->isWildcard = domain.isWildcard;
-            pRule->domain = domain.domain;
-            domainRules_.emplace_back(std::move(pRule));
-        }
+        sptr<NetFirewallDomainRule> domainRule = new (std::nothrow) NetFirewallDomainRule();
+        domainRule->userId = rule.userId;
+        domainRule->appUid = rule.appUid;
+        domainRule->ruleAction = rule.ruleAction;
+        domainRule->domains = rule.domains;
+        domainRules_.emplace_back(std::move(domainRule));
     }
     return domainRules_.size() > 0;
 }
@@ -477,12 +449,12 @@ bool NetFirewallRuleManager::ExtractDnsRules(const std::vector<NetFirewallRule> 
         if (rule.ruleType != NetFirewallRuleType::RULE_DNS) {
             continue;
         }
-        sptr<NetFirewallDnsRule> pRule = new (std::nothrow) NetFirewallDnsRule();
-        pRule->userId = rule.userId;
-        pRule->appUid = rule.appUid;
-        pRule->primaryDns = rule.dns.primaryDns;
-        pRule->standbyDns = rule.dns.standbyDns;
-        dnsRules_.emplace_back(std::move(pRule));
+        sptr<NetFirewallDnsRule> dnsRule = new (std::nothrow) NetFirewallDnsRule();
+        dnsRule->userId = rule.userId;
+        dnsRule->appUid = rule.appUid;
+        dnsRule->primaryDns = rule.dns.primaryDns;
+        dnsRule->standbyDns = rule.dns.standbyDns;
+        dnsRules_.emplace_back(std::move(dnsRule));
     }
     return dnsRules_.size() > 0;
 }
@@ -572,6 +544,7 @@ int32_t NetFirewallRuleManager::DistributeRulesToNative(NetFirewallRuleType type
         NetFirewallPolicyManager::GetInstance()->GetFirewallPolicyOutAction());
     int32_t ret = SetRulesToNativeByType(userId, type);
     NetmanagerHiTrace::NetmanagerFinishSyncTrace("DistributeRulesToNative");
+    SetNetFirewallDumpMessage(ret);
     return ret;
 }
 
@@ -603,83 +576,6 @@ int32_t NetFirewallRuleManager::SetRulesToNativeByType(const int32_t userId, con
         default:
             break;
     }
-    return ret;
-}
-
-int32_t NetFirewallRuleManager::AddFirewallRuleToNative(const NetFirewallRule &rule, int32_t ruleId)
-{
-    int32_t ret = FIREWALL_SUCCESS;
-    switch (rule.ruleType) {
-        case NetFirewallRuleType::RULE_IP: {
-            sptr<NetFirewallIpRule> ipRule = ExtractIpRule(rule);
-            ipRule->ruleId = ruleId;
-            std::vector<sptr<NetFirewallIpRule>> ruleList;
-            ruleList.emplace_back(std::move(ipRule));
-            ret = NetFirewallRuleNativeHelper::GetInstance()->AddFirewallIpRules(ruleList, true);
-            break;
-        }
-        case NetFirewallRuleType::RULE_DOMAIN: {
-            std::vector<sptr<NetFirewallDomainRule>> domainRules;
-            ExtractDomainRule(rule, domainRules);
-            for (auto &domainRule : domainRules) {
-                domainRule->ruleId = ruleId;
-            }
-            ret = NetFirewallRuleNativeHelper::GetInstance()->AddFirewallDomainRules(domainRules, true);
-            break;
-        }
-        case NetFirewallRuleType::RULE_DNS:
-            ret = DistributeRulesToNative(rule.ruleType);
-            break;
-        default:
-            break;
-    }
-    SetNetFirewallDumpMessage(ret);
-    return ret;
-}
-
-int32_t NetFirewallRuleManager::UpdateNativeFirewallRule(const NetFirewallRule &rule)
-{
-    int32_t ret = FIREWALL_SUCCESS;
-    switch (rule.ruleType) {
-        case NetFirewallRuleType::RULE_IP: {
-            sptr<NetFirewallIpRule> ipRule = ExtractIpRule(rule);
-            ret = NetFirewallRuleNativeHelper::GetInstance()->UpdateFirewallIpRule(ipRule);
-            break;
-        }
-        case NetFirewallRuleType::RULE_DOMAIN: {
-            std::vector<sptr<NetFirewallDomainRule>> domainRules;
-            ExtractDomainRule(rule, domainRules);
-            ret = NetFirewallRuleNativeHelper::GetInstance()->UpdateFirewallDomainRules(domainRules);
-            break;
-        }
-        case NetFirewallRuleType::RULE_DNS:
-            ret = DistributeRulesToNative(rule.ruleType);
-            break;
-        default:
-            break;
-    }
-    SetNetFirewallDumpMessage(ret);
-    return ret;
-}
-
-int32_t NetFirewallRuleManager::DeleteNativeFirewallRule(const NetFirewallRule &rule)
-{
-    int32_t ret = FIREWALL_SUCCESS;
-    switch (rule.ruleType) {
-        case NetFirewallRuleType::RULE_DOMAIN:
-        case NetFirewallRuleType::RULE_IP: {
-            std::vector<int32_t> ruleIds;
-            ruleIds.emplace_back(rule.ruleId);
-            ret = NetFirewallRuleNativeHelper::GetInstance()->DeleteFirewallRules(rule.ruleType, ruleIds);
-            break;
-        }
-        case NetFirewallRuleType::RULE_DNS:
-            ret = DistributeRulesToNative(rule.ruleType);
-            break;
-        default:
-            break;
-    }
-    SetNetFirewallDumpMessage(ret);
     return ret;
 }
 
