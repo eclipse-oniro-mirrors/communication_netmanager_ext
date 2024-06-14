@@ -1381,17 +1381,18 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
     int32_t changedRows = 0;
     ret = firewallDatabase_->Delete(INTERCEPT_RECORD_TABLE, changedRows, whereClause, whereArgs);
 
-    int64_t rowCount = 0;
+    int64_t currentRows = 0;
     RdbPredicates rdbPredicates(INTERCEPT_RECORD_TABLE);
     rdbPredicates.BeginWrap()->EqualTo(NET_FIREWALL_USER_ID, std::to_string(userId))->EndWrap();
-    firewallDatabase_->Count(rowCount, rdbPredicates);
+    firewallDatabase_->Count(currentRows, rdbPredicates);
     // Aging by number, record up to 1000 pieces of data
     size_t size = records.size();
-    int64_t offset = RECORD_MAX_DATA_NUM - 1 - size;
-    if (rowCount >= offset) {
-        std::string whereClause = { "userId = ?" };
-        std::vector<std::string> whereArgs = { std::to_string(userId),
-            "LIMIT " + std::to_string(rowCount - offset + 1) };
+    int64_t leftRows = RECORD_MAX_DATA_NUM - currentRows;
+    if (leftRows < size) {
+        std::string whereClause("id in (select id from ");
+        whereClause += INTERCEPT_RECORD_TABLE;
+        whereClause += " where userId = ? order by id limit ? )";
+        std::vector<std::string> whereArgs = { std::to_string(userId), std::to_string(size - leftRows) };
         ret = firewallDatabase_->Delete(INTERCEPT_RECORD_TABLE, changedRows, whereClause, whereArgs);
     }
     // New data written to the database
