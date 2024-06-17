@@ -363,7 +363,7 @@ int32_t EthernetService::RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceS
         monitorIfaceCallbacks_.push_back(callback);
         NETMGR_EXT_LOG_D("Register interface callback success");
         ret = NETMANAGER_EXT_SUCCESS;
-    });
+    }, ffrt::task_attr().name("RegisterMonitorIfaceCallbackAsync"));
     ethernetServiceFfrtQueue_->wait(RegisterMonitorIfaceTask);
     return ret;
 }
@@ -386,7 +386,7 @@ int32_t EthernetService::UnregisterMonitorIfaceCallbackAsync(const sptr<Interfac
         }
             NETMGR_EXT_LOG_E("Unregister interface callback is doesnot exist.");
             ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    });
+    }, ffrt::task_attr().name("UnregisterMonitorIfaceCallbackAsync"));
     ethernetServiceFfrtQueue_->wait(UnregisterMonitorIfaceTask);
     return ret;
 }
@@ -399,7 +399,7 @@ void EthernetService::NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction)
     }
     ffrt::task_handle NotifyMonitorIfaceTask_ = ethernetServiceFfrtQueue_->submit_h([this, &onFunction]() {
         std::for_each(monitorIfaceCallbacks_.begin(), monitorIfaceCallbacks_.end(), onFunction);
-    });
+    }, ffrt::task_attr().name("NotifyMonitorIfaceCallbackAsync"));
     ethernetServiceFfrtQueue_->wait(NotifyMonitorIfaceTask_);
 }
 } // namespace NetManagerStandard
