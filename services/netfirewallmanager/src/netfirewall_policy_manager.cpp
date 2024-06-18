@@ -198,9 +198,9 @@ void NetFirewallPolicyManager::RebuildFirewallPolicyCache(const int32_t userId)
 void NetFirewallPolicyManager::LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy)
 {
     preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    policy->isOpen = preferencesHelper_->ObtainBool(NET_FIREWALL_IS_OPEN, true);
+    policy->isOpen = preferencesHelper_->ObtainBool(NET_FIREWALL_IS_OPEN, false);
     policy->inAction = static_cast<FirewallRuleAction>(
-        preferencesHelper_->ObtainInt(NET_FIREWALL_IN_ACTION, static_cast<int>(FirewallRuleAction::RULE_DENY)));
+        preferencesHelper_->ObtainInt(NET_FIREWALL_IN_ACTION, static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
     policy->outAction = static_cast<FirewallRuleAction>(
         preferencesHelper_->ObtainInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
 }
