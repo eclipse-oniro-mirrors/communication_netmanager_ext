@@ -87,8 +87,9 @@ bool NetworkShareService::Init()
     }
 
     AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
+    AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
 
-    return NetworkShareTracker::GetInstance().Init();
+    return true;
 }
 
 void NetworkShareService::GetDumpMessage(std::string &message)
@@ -301,6 +302,9 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
             OnNetSysRestart();
             hasSARemoved_ = false;
         }
+    }
+    if (systemAbilityId == COMM_NET_CONN_MANAGER_SYS_ABILITY_ID) {
+        NetworkShareTracker::GetInstance().Init();
     }
 }
 
