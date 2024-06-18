@@ -60,27 +60,39 @@ constexpr int32_t MAX_PORTS = 1;
 constexpr int32_t MAX_DOMAINS = 1;
 const int32_t MAX_RULE_DESCRITION_LEN = 256;
 
-std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart, uint8_t type)
+std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart, uint8_t type, uint8_t family = FAMILY_IPV6)
 {
     const uint8_t mask = 24;
     const int32_t gap = 10;
     const int32_t hexWidth = 4;
     std::vector<NetFirewallIpParam> localParamList;
     NetFirewallIpParam localParam;
-    localParam.family = FAMILY_IPV6;
+    localParam.family = family;
     localParam.type = type;
     std::string ip;
     std::stringstream ss;
     for (int32_t i = 0; i < MAX_IPS; i++) {
         ss.str("");
         ss.clear();
-        ss << addressStart << std::hex << std::setw(hexWidth) << std::setfill('0') << (i * gap);
-        inet_pton(AF_INET6, ss.str().c_str(), &localParam.ipv6.startIp);
+        ss << addressStart;
+        if (family == FAMILY_IPV4) {
+            ss << (i * gap);
+            inet_pton(AF_INET, ss.str().c_str(), &localParam.ipv4.startIp);
+        } else {
+            ss << std::hex << std::setw(hexWidth) << std::setfill('0') << (i * gap);
+            inet_pton(AF_INET6, ss.str().c_str(), &localParam.ipv6.startIp);
+        }
         if (type == MULTIPLE_IP) {
             ss.str("");
             ss.clear();
-            ss << addressStart << std::hex << std::setw(hexWidth) << std::setfill('0') << (i * gap + gap);
-            inet_pton(AF_INET6, ss.str().c_str(), &localParam.ipv6.endIp);
+            ss << addressStart;
+            if (family == FAMILY_IPV4) {
+                ss << (i * gap);
+                inet_pton(AF_INET, ss.str().c_str(), &localParam.ipv4.endIp);
+            } else {
+                ss << std::hex << std::setw(hexWidth) << std::setfill('0') << (i * gap + gap);
+                inet_pton(AF_INET6, ss.str().c_str(), &localParam.ipv6.endIp);
+            }
         } else {
             localParam.mask = mask;
         }
@@ -154,6 +166,33 @@ sptr<NetFirewallRule> GetNetFirewallRuleSptr(NetFirewallRuleType ruleType = NetF
         rule->dns.primaryDns = "192.168.1.245";
         rule->dns.standbyDns = "192.168.1.1";
     }
+
+    return rule;
+}
+
+sptr<NetFirewallRule> GetNetFirewallIpV4RuleSptr(
+    NetFirewallRuleDirection ruleDirection = NetFirewallRuleDirection::RULE_OUT, uint8_t type = SINGLE_IP)
+{
+    sptr<NetFirewallRule> rule = (std::make_unique<NetFirewallRule>()).release();
+    if (!rule) {
+        return rule;
+    }
+    rule->ruleId = 1;
+    rule->userId = USER_ID1;
+    rule->ruleName = generateRandomString(MAX_RULE_NAME_LEN);
+    rule->ruleDescription = generateRandomString(MAX_RULE_DESCRITION_LEN);
+    rule->ruleDirection = ruleDirection;
+    rule->ruleAction = FirewallRuleAction::RULE_ALLOW;
+    rule->ruleType = NetFirewallRuleType::RULE_IP;
+    rule->isEnabled = true;
+    rule->appUid = APPID_TEST01;
+    if (ruleDirection == NetFirewallRuleDirection::RULE_OUT) {
+        rule->localIps = GetIpList("192.168.1.", type, FAMILY_IPV4);
+    } else {
+        rule->remoteIps = GetIpList("192.168.2.", type, FAMILY_IPV4);
+    }
+    rule->localPorts = GetPortList(LOCAL_START_PORT, LOCAL_START_PORT);
+    rule->remotePorts = GetPortList(REMOTE_START_PORT, REMOTE_START_PORT);
 
     return rule;
 }
@@ -277,6 +316,29 @@ HWTEST_F(NetFirewallClientTest, AddNetFirewallRule003, TestSize.Level1)
     g_rowId = ruleId;
     g_endTimeTest = GetCurrentMilliseconds();
     std::cout << "CALL_TEST DNS AddNetFirewallRule user " << rule->userId << " call " << MAX_USER_RULE <<
+        ", use time : " << g_endTimeTest - g_startTimeTest << " ms" << std::endl;
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallClientTest, AddNetFirewallRule004, TestSize.Level1)
+{
+    int32_t ruleId = 0;
+    int32_t ret = -1;
+    sptr<NetFirewallRule> rule = GetNetFirewallIpV4RuleSptr();
+    g_startTimeTest = GetCurrentMilliseconds();
+    for (int32_t i = 0; i < MAX_USER_RULE; i++) {
+        uint64_t stime = GetCurrentMilliseconds();
+        ret = netfirewallClient_.AddNetFirewallRule(rule, ruleId);
+        std::cout << "AddNetFirewallRule4 IP " << i + 1 << " ruleId " << ruleId << ", use time : " <<
+            GetCurrentMilliseconds() - stime << " ms" << std::endl;
+        if (ret != FIREWALL_SUCCESS) {
+            EXPECT_EQ(ret, FIREWALL_SUCCESS);
+            break;
+        }
+    }
+    g_rowId = ruleId;
+    g_endTimeTest = GetCurrentMilliseconds();
+    std::cout << "CALL_TEST AddNetFirewallRule4 user " << rule->userId << " call " << MAX_USER_RULE <<
         ", use time : " << g_endTimeTest - g_startTimeTest << " ms" << std::endl;
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }

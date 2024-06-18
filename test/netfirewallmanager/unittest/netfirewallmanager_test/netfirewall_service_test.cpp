@@ -988,28 +988,6 @@ HWTEST_F(NetFirewallServiceTest, GetCurrentNetFirewallPolicy001, TestSize.Level1
 }
 
 /**
- * @tc.name: ExtractDomainRule
- * @tc.desc: Test NetFirewallDbHelper ExtractDomainRule001.
- * @tc.type: FUNC
- */
-HWTEST_F(NetFirewallServiceTest, ExtractDomainRule001, TestSize.Level1)
-{
-    NetFirewallRule rule;
-    rule.ruleId = 1;
-    rule.userId = USER_ID1;
-    std::vector<NetFirewallDomainParam> domainList;
-    NetFirewallDomainParam domain;
-    domain.isWildcard = 1;
-    domain.domain = "www.openharmony.cn";
-    for (int i = 0; i < MAX_DOMAINS; i++) {
-        domainList.push_back(domain);
-    }
-    rule.domains = domainList;
-    std::vector<sptr<NetFirewallDomainRule>> domainRules;
-    NetFirewallRuleManager::GetInstance()->ExtractDomainRule(rule, domainRules);
-}
-
-/**
  * @tc.name: SetFirewallDnsRules
  * @tc.desc: Test NetFirewallDbHelper SetFirewallDnsRules001.
  * @tc.type: FUNC
