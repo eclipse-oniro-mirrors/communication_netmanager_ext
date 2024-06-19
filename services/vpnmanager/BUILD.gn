@@ -54,6 +54,9 @@ net_vpn_manager_sources = [
   "$VPNMANAGER_SOURCE_DIR/src/net_vpn_impl.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/networkvpn_hisysevent.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/networkvpn_service.cpp",
+  "$VPN_INNERKITS_SOURCE_DIR/src/ipsecvpn_config.cpp",
+  "$VPN_INNERKITS_SOURCE_DIR/src/l2tpvpn_config.cpp",
+  "$VPN_INNERKITS_SOURCE_DIR/src/sysvpn_config.cpp",
   "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp",
 ]
 

@@ -26,11 +26,17 @@ ohos_shared_library("vpn") {
   branch_protector_ret = "pac_ret"
 
   sources = [
+    "src/context/add_context.cpp",
+    "src/context/delete_context.cpp",
     "src/context/destroy_context.cpp",
+    "src/context/get_connected_context.cpp",
+    "src/context/get_context.cpp",
+    "src/context/get_list_context.cpp",
     "src/context/prepare_context.cpp",
     "src/context/protect_context.cpp",
     "src/context/setup_context.cpp",
     "src/vpn_async_work.cpp",
+    "src/vpn_config_utils.cpp",
     "src/vpn_connection.cpp",
     "src/vpn_exec.cpp",
     "src/vpn_module.cpp",
