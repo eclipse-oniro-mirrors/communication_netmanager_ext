@@ -62,12 +62,7 @@ ohos_source_set("networkvpn_parcel") {
 
   branch_protector_ret = "pac_ret"
 
-  sources = [
-    "$VPN_INNERKITS_SOURCE_DIR/src/ipsecvpn_config.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/l2tpvpn_config.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/sysvpn_config.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp",
-  ]
+  sources = [ "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp" ]
 
   include_dirs = [
     "$BASE_INNERKITS_ROOT/include",

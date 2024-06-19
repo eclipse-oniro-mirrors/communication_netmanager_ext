@@ -151,6 +151,7 @@ int32_t NetworkVpnServiceStub::ReplyDestroyVpn(MessageParcel &data, MessageParce
 
 int32_t NetworkVpnServiceStub::ReplyAddSysVpnConfig(MessageParcel &data, MessageParcel &reply)
 {
+    NETMGR_EXT_LOG_D("ReplyAddSysVpnConfig start");
     sptr<SysVpnConfig> config = SysVpnConfig::Unmarshalling(data);
     if (config == nullptr) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
@@ -164,6 +165,7 @@ int32_t NetworkVpnServiceStub::ReplyAddSysVpnConfig(MessageParcel &data, Message
 
 int32_t NetworkVpnServiceStub::ReplyDeleteSysVpnConfig(MessageParcel &data, MessageParcel &reply)
 {
+    NETMGR_EXT_LOG_D("ReplyDeleteSysVpnConfig start");
     std::string vpnId;
     if (!data.ReadString(vpnId)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
@@ -177,6 +179,7 @@ int32_t NetworkVpnServiceStub::ReplyDeleteSysVpnConfig(MessageParcel &data, Mess
 
 int32_t NetworkVpnServiceStub::ReplyGetSysVpnConfigList(MessageParcel &data, MessageParcel &reply)
 {
+    NETMGR_EXT_LOG_D("ReplyGetSysVpnConfigList start");
     std::vector<SysVpnConfig> vpnList;
     int32_t result = GetSysVpnConfigList(vpnList);
     if (result != NETMANAGER_EXT_SUCCESS) {
@@ -198,6 +201,7 @@ int32_t NetworkVpnServiceStub::ReplyGetSysVpnConfigList(MessageParcel &data, Mes
 
 int32_t NetworkVpnServiceStub::ReplyGetSysVpnConfig(MessageParcel &data, MessageParcel &reply)
 {
+    NETMGR_EXT_LOG_D("ReplyGetSysVpnConfig start");
     std::string vpnId;
     if (!data.ReadString(vpnId)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
@@ -215,6 +219,7 @@ int32_t NetworkVpnServiceStub::ReplyGetSysVpnConfig(MessageParcel &data, Message
 
 int32_t NetworkVpnServiceStub::ReplyGetConnectedSysVpnConfig(MessageParcel &data, MessageParcel &reply)
 {
+    NETMGR_EXT_LOG_D("ReplyGetConnectedSysVpnConfig start");
     sptr<SysVpnConfig> config = nullptr;
     int32_t result = GetConnectedSysVpnConfig(config);
     if (result != NETMANAGER_EXT_SUCCESS) {
