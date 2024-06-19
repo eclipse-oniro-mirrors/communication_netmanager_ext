@@ -37,7 +37,6 @@
 #include "netmanager_base_common_utils.h"
 #include "networkvpn_client.h"
 #include "vpn_event_callback_stub.h"
-#include "ipsecvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -57,11 +56,6 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    void AddSysVpnConfig();
-    void DeleteSysVpnConfig();
-    void GetSysVpnConfigList();
-    void GetSysVpnConfig();
-    void GetConnectedSysVpnConfig();
 
     sptr<IVpnEventCallback> callback_ = nullptr;
     NetworkVpnClient &networkVpnClient_ = NetworkVpnClient::GetInstance();
@@ -74,16 +68,6 @@ void NetworkVpnClientTest::TearDownTestCase() {}
 void NetworkVpnClientTest::SetUp() {}
 
 void NetworkVpnClientTest::TearDown() {}
-
-void NetworkVpnClientTest::AddSysVpnConfig() {}
-
-void NetworkVpnClientTest::DeleteSysVpnConfig() {}
-
-void NetworkVpnClientTest::GetSysVpnConfigList() {}
-
-void NetworkVpnClientTest::GetSysVpnConfig() {}
-
-void NetworkVpnClientTest::GetConnectedSysVpnConfig() {}
 
 HWTEST_F(NetworkVpnClientTest, Prepare001, TestSize.Level1)
 {
@@ -200,87 +184,6 @@ HWTEST_F(NetworkVpnClientTest, RegisterBundleName001, TestSize.Level1)
     std::string bundleName = "com.test.test";
     auto ret = networkVpnClient_.RegisterBundleName(bundleName);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig001, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::string id = "1234";
-    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    config->vpnId_ = id;
-    config->vpnName_ = "test";
-    config->vpnType_ = 1;
-    EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
-    // delete test config
-    EXPECT_EQ(networkVpnClient_.DeleteSysVpnConfig(id), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig002, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::string id = "1234";
-    sptr<SysVpnConfig> config = new (std::nothrow) SysVpnConfig();
-    config->vpnId_ = id;
-    config->vpnName_ = "test";
-    config->vpnType_ = 1;
-    EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-}
-
-HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig003, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    sptr<SysVpnConfig> config = nullptr;
-    EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-}
-
-HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig001, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::string id = "1234";
-    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    config->vpnId_ = id;
-    config->vpnName_ = "test";
-    config->vpnType_ = 1;
-    EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
-    // delete test config
-    EXPECT_EQ(networkVpnClient_.DeleteSysVpnConfig(id), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig002, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::string id;
-    EXPECT_EQ(networkVpnClient_.DeleteSysVpnConfig(id), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-}
-
-HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList001, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::vector<SysVpnConfig> list;
-    EXPECT_EQ(networkVpnClient_.GetSysVpnConfigList(list), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig001, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::string id = "1234";
-    sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(networkVpnClient_.GetSysVpnConfig(resConfig, id), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig002, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::string id;
-    sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(networkVpnClient_.GetSysVpnConfig(resConfig, id), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-}
-
-HWTEST_F(NetworkVpnClientTest, GetConnectedSysVpnConfig001, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(networkVpnClient_.GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

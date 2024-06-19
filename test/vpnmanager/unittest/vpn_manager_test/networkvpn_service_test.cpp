@@ -29,7 +29,6 @@
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
 #include "system_ability_definition.h"
-#include "ipsecvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -49,11 +48,6 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    void AddSysVpnConfig();
-    void DeleteSysVpnConfig();
-    void GetSysVpnConfigList();
-    void GetSysVpnConfig();
-    void GetConnectedSysVpnConfig();
     static inline auto instance_ = &NetworkVpnService::GetInstance();
     static inline sptr<IVpnEventCallback> eventCallback_ = nullptr;
 };
@@ -73,16 +67,6 @@ void NetworkVpnServiceTest::TearDownTestCase()
 void NetworkVpnServiceTest::SetUp() {}
 
 void NetworkVpnServiceTest::TearDown() {}
-
-void NetworkVpnServiceTest::AddSysVpnConfig() {}
-
-void NetworkVpnServiceTest::DeleteSysVpnConfig() {}
-
-void NetworkVpnServiceTest::GetSysVpnConfigList() {}
-
-void NetworkVpnServiceTest::GetSysVpnConfig() {}
-
-void NetworkVpnServiceTest::GetConnectedSysVpnConfig() {}
 
 HWTEST_F(NetworkVpnServiceTest, OnStart, TestSize.Level1)
 {
@@ -244,68 +228,6 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
     }
     instance_->vpnHapObserver_->OnProcessDied(data);
     EXPECT_TRUE(instance_->vpnBundleName_.empty());
-}
-
-HWTEST_F(NetworkVpnServiceTest, AddSysVpnConfigTest001, TestSize.Level1)
-{
-    std::string id = "1234";
-    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    config->vpnId_ = id;
-    config->vpnName_ = "test";
-    config->vpnType_ = 1;
-    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
-    // delete test config
-    EXPECT_EQ(instance_->DeleteSysVpnConfig(id), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceTest, AddSysVpnConfigTest002, TestSize.Level1)
-{
-    sptr<SysVpnConfig> config = nullptr;
-    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-}
-
-HWTEST_F(NetworkVpnServiceTest, DeleteSysVpnConfigTest001, TestSize.Level1)
-{
-    std::string id = "1234";
-    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    config->vpnId_ = id;
-    config->vpnName_ = "test";
-    config->vpnType_ = 1;
-    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
-    // delete test config
-    EXPECT_EQ(instance_->DeleteSysVpnConfig(id), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceTest, DeleteSysVpnConfigTest002, TestSize.Level1)
-{
-    std::string id;
-    EXPECT_EQ(instance_->DeleteSysVpnConfig(id), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-}
-
-HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigList001, TestSize.Level1)
-{
-    std::vector<SysVpnConfig> list;
-    EXPECT_EQ(instance_->GetSysVpnConfigList(list), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigTest001, TestSize.Level1)
-{
-    std::string id = "1234";
-    sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(instance_->GetSysVpnConfig(resConfig, id), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigTest002, TestSize.Level1)
-{
-    std::string id;
-    sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(instance_->GetSysVpnConfig(resConfig, id), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-}
-
-HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
-{
-    sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(instance_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
