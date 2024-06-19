@@ -69,7 +69,10 @@ ohos_source_set("networkshare_parcel") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  external_deps = [ "netmanager_base:net_conn_parcel" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "netmanager_base:net_conn_parcel",
+  ]
 
   external_deps += [ "hilog:libhilog" ]
 
