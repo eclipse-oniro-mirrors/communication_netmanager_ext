@@ -24,21 +24,21 @@ namespace {
 constexpr const char* TEST_SHARED_KEY = "ipsecPreSharedKey_";
 constexpr const char* TEST_IDENRIFIER = "ipsecIdentifier_";
 constexpr const char* TEST_STRONG_SWAN_CONFIG = "strongswanConf_";
-constexpr const char* TEST_CA_CERT_CONFIG= "ipsecCaCertConf_";
-constexpr const char* TEST_PRIVATE_USER_CERT_CONFIG= "ipsecPrivateUserCertConf_";
-constexpr const char* TEST_PUBLIC_USER_CERT_CONFIG= "ipsecPublicUserCertConf_";
-constexpr const char* TEST_PRIVATE_SERVER_CERT_CONFIG= "ipsecPrivateServerCertConf_";
-constexpr const char* TEST_PUBLIC_SERVER_CERT_CONFIG= "ipsecPublicServerCertConf_";
-constexpr const char* TEST_CA_CERT_FILE_PATH= "ipsecCaCertFilePath_";
-constexpr const char* TEST_PRIVATE_USER_CERT_FILE_PATH= "ipsecPrivateUserCertFilePath_";
-constexpr const char* TEST_PUBLIC_USER_CERT_FILE_PATH= "ipsecPublicUserCertFilePath_";
-constexpr const char* TEST_PRIVATE_SERVER_CERT_FILE_PATH= "ipsecPrivateServerCertFilePath_";
-constexpr const char* TEST_PUBLIC_SERVER_CERT_FILE_PATH= "ipsecPublicServerCertFilePath_";
-constexpr const char* TEST_IPSEC_CONFIG ="ipsecConf_";
-constexpr const char* TEST_IPSEC_SECRETS ="ipsecSecrets_";
-constexpr const char* TEST_OPTION_CLIENT ="optionsL2tpdClient_";
-constexpr const char* TEST_XL2TPD_CONFIG ="xl2tpdConf_";
-constexpr const char* TEST_L2TP_SHARED_KEY ="l2tpSharedKey_";
+constexpr const char* TEST_CA_CERT_CONFIG = "ipsecCaCertConf_";
+constexpr const char* TEST_PRIVATE_USER_CERT_CONFIG = "ipsecPrivateUserCertConf_";
+constexpr const char* TEST_PUBLIC_USER_CERT_CONFIG = "ipsecPublicUserCertConf_";
+constexpr const char* TEST_PRIVATE_SERVER_CERT_CONFIG = "ipsecPrivateServerCertConf_";
+constexpr const char* TEST_PUBLIC_SERVER_CERT_CONFIG = "ipsecPublicServerCertConf_";
+constexpr const char* TEST_CA_CERT_FILE_PATH = "ipsecCaCertFilePath_";
+constexpr const char* TEST_PRIVATE_USER_CERT_FILE_PATH = "ipsecPrivateUserCertFilePath_";
+constexpr const char* TEST_PUBLIC_USER_CERT_FILE_PATH = "ipsecPublicUserCertFilePath_";
+constexpr const char* TEST_PRIVATE_SERVER_CERT_FILE_PATH = "ipsecPrivateServerCertFilePath_";
+constexpr const char* TEST_PUBLIC_SERVER_CERT_FILE_PATH = "ipsecPublicServerCertFilePath_";
+constexpr const char* TEST_IPSEC_CONFIG = "ipsecConf_";
+constexpr const char* TEST_IPSEC_SECRETS = "ipsecSecrets_";
+constexpr const char* TEST_OPTION_CLIENT = "optionsL2tpdClient_";
+constexpr const char* TEST_XL2TPD_CONFIG = "xl2tpdConf_";
+constexpr const char* TEST_L2TP_SHARED_KEY = "l2tpSharedKey_";
 
 L2tpVpnConfig GetL2tpVpnConfigData()
 {

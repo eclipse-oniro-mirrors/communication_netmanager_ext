@@ -30,12 +30,12 @@ constexpr const char* TEST_CA_CERT_CONF = "ipsecCaCertConf_";
 constexpr const char* TEST_PRIVATE_USER_CERT_CONF = "ipsecPrivateUserCertConf_";
 constexpr const char* TEST_PUBLIC_USER_CERT_CONF = "ipsecPublicUserCertConf_";
 constexpr const char* TEST_PRIVATE_SERVER_CERT_CONF = "ipsecPrivateServerCertConf_";
-constexpr const char* TEST_PUBLIC_SERVER_CERT_CONF ="ipsecPublicServerCertConf_";
-constexpr const char* TEST_CA_CERT_FILE_PATH ="ipsecCaCertFilePath_";
-constexpr const char* TEST_PRIVATE_USER_CERT_FILE_PATH ="ipsecPrivateUserCertFilePath_";
-constexpr const char* TEST_PUBLIC_USER_CERT_FILE_PATH ="ipsecPublicUserCertFilePath_";
-constexpr const char* TEST_PRIVATE_SERVER_CERT_FILE_PATH ="ipsecPrivateServerCertFilePath_";
-constexpr const char* TEST_PUBLIC_ERVER_CERT_FILE_PATH ="ipsecPublicServerCertFilePath_";
+constexpr const char* TEST_PUBLIC_SERVER_CERT_CONF = "ipsecPublicServerCertConf_";
+constexpr const char* TEST_CA_CERT_FILE_PATH = "ipsecCaCertFilePath_";
+constexpr const char* TEST_PRIVATE_USER_CERT_FILE_PATH = "ipsecPrivateUserCertFilePath_";
+constexpr const char* TEST_PUBLIC_USER_CERT_FILE_PATH = "ipsecPublicUserCertFilePath_";
+constexpr const char* TEST_PRIVATE_SERVER_CERT_FILE_PATH = "ipsecPrivateServerCertFilePath_";
+constexpr const char* TEST_PUBLIC_ERVER_CERT_FILE_PATH = "ipsecPublicServerCertFilePath_";
 
 IpsecVpnConfig GetIpsecVpnConfigData()
 {
