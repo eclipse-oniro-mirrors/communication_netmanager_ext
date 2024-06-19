@@ -14,7 +14,6 @@
  */
 
 #include "sysvpn_config.h"
-#include "openvpn_config.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -57,8 +56,6 @@ sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
         case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
         case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
             return IpsecVpnConfig::Unmarshalling(parcel);
-        case static_cast<int32_t>(VpnType::OPENVPN):
-            return OpenVpnConfig::Unmarshalling(parcel);
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
             return L2tpVpnConfig::Unmarshalling(parcel);

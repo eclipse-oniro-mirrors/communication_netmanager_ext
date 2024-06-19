@@ -43,13 +43,6 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
                 return false;
             }
             break;
-        case static_cast<int32_t>(VpnType::OPENVPN):
-            vpnConfig = new (std::nothrow) OpenVpnConfig();
-            if (!ParseOpenVpnParams(env, params[0], vpnConfig)) {
-                NETMGR_EXT_LOG_E("ParseOpenVpnParams failed");
-                return false;
-            }
-            break;
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
             vpnConfig = new (std::nothrow) L2tpVpnConfig();
@@ -149,36 +142,6 @@ bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &s
     GetStringFromJsOptionItem(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
     GetBoolFromJsOptionItem(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_);
     return true;
-}
-
-bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
-{
-    if (sysVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("sysVpnConfig is null");
-        return false;
-    }
-    if (!ParseSystemVpnParams(env, config, sysVpnConfig)) {
-        NETMGR_EXT_LOG_E("ParseSystemVpnParams failed");
-        return false;
-    }
-
-    sptr<OpenVpnConfig> openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(sysVpnConfig.GetRefPtr()));
-    if (openVpnConfig) {
-        GetStringFromJsOptionItem(env, config, CONFIG_OVPN_PORT, openVpnConfig->ovpnPort_);
-        GetInt32FromJsOptionItem(env, config, CONFIG_OPEN_VPN_PROTOCOL, openVpnConfig->ovpnProtocol_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_CFG, openVpnConfig->ovpnConfig_);
-        GetInt32FromJsOptionItem(env, config, CONFIG_OPEN_VPN_AUTH_TYPE, openVpnConfig->ovpnAuthType_);
-        GetStringFromJsOptionItem(env, config, CONFIG_ASKPASS, openVpnConfig->askpass_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_CFG_FILE_PATH, openVpnConfig->ovpnConfigFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_CA_CERT_FILE_PATH, openVpnConfig->ovpnCaCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_USER_CERT_FILE_PATH,
-            openVpnConfig->ovpnUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPEN_VPN_PRIVATE_KEY_FILE_PATH,
-            openVpnConfig->ovpnPrivateKeyFilePath_);
-        return true;
-    } else {
-        return false;
-    }
 }
 
 bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
@@ -472,8 +435,6 @@ napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
         case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
         case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
             return CreateNapiIpsecVpnConfig(env, sysVpnConfig);
-        case static_cast<int32_t>(VpnType::OPENVPN):
-            return CreateNapiOpenVpnConfig(env, sysVpnConfig);
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
             return CreateNapiL2tpVpnConfig(env, sysVpnConfig);
@@ -515,29 +476,6 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
     NapiUtils::SetBooleanProperty(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_ == 0 ? false : true);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
-    return config;
-}
-
-napi_value CreateNapiOpenVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
-{
-    napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
-    sptr<OpenVpnConfig> openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(sysVpnConfig.GetRefPtr()));
-    if (!openVpnConfig) {
-        return NapiUtils::GetUndefined(env);
-    }
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OVPN_PORT, openVpnConfig->ovpnPort_);
-    NapiUtils::SetInt32Property(env, config, CONFIG_OPEN_VPN_PROTOCOL, openVpnConfig->ovpnProtocol_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CFG, openVpnConfig->ovpnConfig_);
-    NapiUtils::SetInt32Property(env, config, CONFIG_OPEN_VPN_AUTH_TYPE, openVpnConfig->ovpnAuthType_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_ASKPASS, openVpnConfig->askpass_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CFG_FILE_PATH,
-        openVpnConfig->ovpnConfigFilePath_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_CA_CERT_FILE_PATH,
-        openVpnConfig->ovpnCaCertFilePath_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_USER_CERT_FILE_PATH,
-        openVpnConfig->ovpnUserCertFilePath_);
-    NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPEN_VPN_PRIVATE_KEY_FILE_PATH,
-        openVpnConfig->ovpnPrivateKeyFilePath_);
     return config;
 }
 

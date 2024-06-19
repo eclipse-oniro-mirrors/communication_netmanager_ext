@@ -65,7 +65,6 @@ ohos_source_set("networkvpn_parcel") {
   sources = [
     "$VPN_INNERKITS_SOURCE_DIR/src/ipsecvpn_config.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/l2tpvpn_config.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/openvpn_config.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/sysvpn_config.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp",
   ]

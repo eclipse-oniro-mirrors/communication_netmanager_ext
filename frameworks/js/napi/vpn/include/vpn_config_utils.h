@@ -24,7 +24,6 @@
 #include "route.h"
 #include "inet_addr.h"
 #include "vpn_config.h"
-#include "openvpn_config.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 
@@ -98,7 +97,6 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
 bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 
-bool ParseOpenVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 
@@ -116,7 +114,6 @@ void GetInt32FromJsOptionItem(napi_env env, napi_value object, const std::string
 
 napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
-napi_value CreateNapiOpenVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 }

@@ -53,8 +53,7 @@ enum class VpnType {
     L2TP_IPSEC_RSA,
     IPSEC_XAUTH_PSK,
     IPSEC_XAUTH_RSA,
-    IPSEC_HYBRID_RSA,
-    OPENVPN
+    IPSEC_HYBRID_RSA
 };
 
 } // namespace NetManagerStandard
