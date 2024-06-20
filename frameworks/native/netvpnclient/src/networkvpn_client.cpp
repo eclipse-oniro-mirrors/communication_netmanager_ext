@@ -16,6 +16,9 @@
 #include "networkvpn_client.h"
 
 #include <thread>
+#ifdef SUPPORT_SYSVPN
+#include <vector>
+#endif // SUPPORT_SYSVPN
 
 #include "fwmark_client.h"
 #include "iservice_registry.h"
@@ -128,6 +131,70 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
     }
     return proxy->DestroyVpn(isVpnExtCall);
 }
+
+#ifdef SUPPORT_SYSVPN
+int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("AddSysVpnConfig config is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("AddSysVpnConfig proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->AddSysVpnConfig(config);
+}
+
+int32_t NetworkVpnClient::DeleteSysVpnConfig(std::string &vpnId)
+{
+    if (vpnId.empty()) {
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->DeleteSysVpnConfig(vpnId);
+}
+
+int32_t NetworkVpnClient::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnConfigList proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetSysVpnConfigList(vpnList);
+}
+
+int32_t NetworkVpnClient::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
+{
+    if (vpnId.empty()) {
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnConfig proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetSysVpnConfig(config, vpnId);
+}
+
+int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetConnectedSysVpnConfig proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetConnectedSysVpnConfig(config);
+}
+#endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
 {

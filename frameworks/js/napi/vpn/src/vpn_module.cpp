@@ -22,11 +22,29 @@
 #include "netmanager_ext_log.h"
 #include "networkvpn_client.h"
 #include "vpn_connection.h"
+#ifdef SUPPORT_SYSVPN
+#include "vpn_async_work.h"
+#include "vpn_monitor.h"
+#include "add_context.h"
+#include "delete_context.h"
+#include "get_list_context.h"
+#include "get_context.h"
+#include "get_connected_context.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t ARG_NUM_0 = 0;
 constexpr int32_t PARAM_ONE = 1;
+#ifdef SUPPORT_SYSVPN
+constexpr const char *ON = "on";
+constexpr const char *OFF = "off";
+constexpr const char *ADD_SYS_VPN_CONFIG = "addSysVpnConfig";
+constexpr const char *DELETE_SYS_VPN_CONFIG = "deleteSysVpnConfig";
+constexpr const char *GET_SYS_VPN_CONFIG_LIST = "getSysVpnConfigList";
+constexpr const char *GET_SYS_VPN_CONFIG = "getSysVpnConfig";
+constexpr const char *GET_CONNECTED_SYS_VPN_CONFIG = "getConnectedSysVpnConfig";
+#endif // SUPPORT_SYSVPN
 
 static void *MakeData(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
 {
@@ -53,11 +71,62 @@ static napi_value CreateVpnConnection(napi_env env, napi_callback_info info)
     });
 }
 
+#ifdef SUPPORT_SYSVPN
+static napi_value On(napi_env env, napi_callback_info info)
+{
+    return VpnMonitor::GetInstance().On(env, info);
+}
+
+static napi_value Off(napi_env env, napi_callback_info info)
+{
+    return VpnMonitor::GetInstance().Off(env, info);
+}
+
+static napi_value AddSysVpnConfig(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<AddContext>(env, info, ADD_SYS_VPN_CONFIG, nullptr,
+        VpnAsyncWork::ExecAddSysVpnConfig, VpnAsyncWork::AddSysVpnConfigCallback);
+}
+
+static napi_value DeleteSysVpnConfig(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<DeleteContext>(env, info, DELETE_SYS_VPN_CONFIG, nullptr,
+        VpnAsyncWork::ExecDeleteSysVpnConfig, VpnAsyncWork::DeleteSysVpnConfigCallback);
+}
+
+static napi_value GetSysVpnConfigList(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetListContext>(env, info, GET_SYS_VPN_CONFIG_LIST, nullptr,
+        VpnAsyncWork::ExecGetSysVpnConfigList, VpnAsyncWork::GetSysVpnConfigListCallback);
+}
+
+static napi_value GetSysVpnConfig(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetContext>(env, info, GET_SYS_VPN_CONFIG, nullptr,
+        VpnAsyncWork::ExecGetSysVpnConfig, VpnAsyncWork::GetSysVpnConfigCallback);
+}
+
+static napi_value GetConnectedSysVpnConfig(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetConnectedContext>(env, info, GET_CONNECTED_SYS_VPN_CONFIG, nullptr,
+        VpnAsyncWork::ExecGetConnectedSysVpnConfig, VpnAsyncWork::GetConnectedSysVpnConfigCallback);
+}
+#endif // SUPPORT_SYSVPN
+
 napi_value RegisterVpnModule(napi_env env, napi_value exports)
 {
     NapiUtils::DefineProperties(env, exports,
                                 {
                                     DECLARE_NAPI_FUNCTION(CREATE_VPN_CONNECTION, CreateVpnConnection),
+                                    #ifdef SUPPORT_SYSVPN
+                                    DECLARE_NAPI_FUNCTION(ON, On),
+                                    DECLARE_NAPI_FUNCTION(OFF, Off),
+                                    DECLARE_NAPI_FUNCTION(ADD_SYS_VPN_CONFIG, AddSysVpnConfig),
+                                    DECLARE_NAPI_FUNCTION(DELETE_SYS_VPN_CONFIG, DeleteSysVpnConfig),
+                                    DECLARE_NAPI_FUNCTION(GET_SYS_VPN_CONFIG_LIST, GetSysVpnConfigList),
+                                    DECLARE_NAPI_FUNCTION(GET_SYS_VPN_CONFIG, GetSysVpnConfig),
+                                    DECLARE_NAPI_FUNCTION(GET_CONNECTED_SYS_VPN_CONFIG, GetConnectedSysVpnConfig),
+                                    #endif // SUPPORT_SYSVPN
                                 });
     ModuleTemplate::DefineClass(env, exports,
                                 {

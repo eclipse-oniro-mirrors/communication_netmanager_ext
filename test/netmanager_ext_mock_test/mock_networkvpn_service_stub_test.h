@@ -43,6 +43,33 @@ public:
         return 0;
     }
 
+#ifdef SUPPORT_SYSVPN
+    int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override
+    {
+        return 0;
+    }
+
+    int32_t DeleteSysVpnConfig(std::string &vpnId) override
+    {
+        return 0;
+    }
+
+    int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override
+    {
+        return 0;
+    }
+
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override
+    {
+        return 0;
+    }
+
+    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override
+    {
+        return 0;
+    }
+#endif // SUPPORT_SYSVPN
+
     int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) override
     {
         return 0;

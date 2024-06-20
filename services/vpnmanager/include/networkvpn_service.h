@@ -117,6 +117,33 @@ public:
      */
     int32_t DestroyVpn(bool isVpnExtCall = false) override;
 
+#ifdef SUPPORT_SYSVPN
+    /**
+     * save the vpn config
+     */
+    int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;
+
+    /**
+     * get the vpn config list
+     */
+    int32_t DeleteSysVpnConfig(std::string &vpnId) override;
+
+    /**
+     * get the vpn config listGetConnectedSysVpnConfig
+     */
+    int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override;
+
+    /**
+     * get the vpn config
+     */
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override;
+
+    /**
+     * get the vpn connection state
+     */
+    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
+#endif // SUPPORT_SYSVPN
+
     /**
      * register callback
      */

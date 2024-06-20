@@ -25,6 +25,9 @@
 #include "i_vpn_event_callback.h"
 #include "net_manager_ext_constants.h"
 #include "vpn_config.h"
+#ifdef SUPPORT_SYSVPN
+#include "sysvpn_config.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -40,6 +43,13 @@ public:
         CMD_UNREGISTER_EVENT_CALLBACK,
         CMD_CREATE_VPN_CONNECTION,
         CMD_FACTORYRESET_VPN,
+#ifdef SUPPORT_SYSVPN
+        CMD_ADD_SYS_VPN_CONFIG,
+        CMD_DELETE_SYS_VPN_CONFIG,
+        CMD_GET_SYS_VPN_CONFIG_LIST,
+        CMD_GET_SYS_VPN_CONFIG,
+        CMD_GET_CONNECTED_SYS_VPN_CONFIG,
+#endif // SUPPORT_SYSVPN
         CMD_START_VPN_EXT, // for start extension extended vpn
         CMD_PROTECT_EXT,
         CMD_STOP_VPN_EXT,
@@ -57,6 +67,13 @@ public:
     virtual int32_t CreateVpnConnection(bool isVpnExtCall = false) = 0;
     virtual int32_t FactoryResetVpn() = 0;
     virtual int32_t RegisterBundleName(const std::string &bundleName) = 0;
+#ifdef SUPPORT_SYSVPN
+    virtual int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) = 0;
+    virtual int32_t DeleteSysVpnConfig(std::string &vpnId) = 0;
+    virtual int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) = 0;
+    virtual int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) = 0;
+    virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) = 0;
+#endif // SUPPORT_SYSVPN
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");
 };

@@ -44,6 +44,7 @@ struct VpnConfig : public Parcelable {
     bool MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec) const;
 
     static sptr<VpnConfig> Unmarshalling(Parcel &parcel);
+    static bool UnmarshallingVpnConfig(Parcel &parcel, sptr<VpnConfig> config);
     static bool UnmarshallingAddrRoute(Parcel &parcel, sptr<VpnConfig> &config);
     static bool UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec);
 };

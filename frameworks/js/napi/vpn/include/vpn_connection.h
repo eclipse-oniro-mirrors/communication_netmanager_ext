@@ -28,8 +28,6 @@ constexpr const char *PREPARE = "prepare";
 constexpr const char *SET_UP = "setUp";
 constexpr const char *PROTECT = "protect";
 constexpr const char *DESTROY = "destroy";
-constexpr const char *ON = "on";
-constexpr const char *OFF = "off";
 } // namespace
 
 namespace VpnConnection {
@@ -37,8 +35,6 @@ napi_value Prepare(napi_env env, napi_callback_info info);
 napi_value SetUp(napi_env env, napi_callback_info info);
 napi_value Protect(napi_env env, napi_callback_info info);
 napi_value Destroy(napi_env env, napi_callback_info info);
-napi_value On(napi_env env, napi_callback_info info);
-napi_value Off(napi_env env, napi_callback_info info);
 } // namespace VpnConnection
 } // namespace NetManagerStandard
 } // namespace OHOS

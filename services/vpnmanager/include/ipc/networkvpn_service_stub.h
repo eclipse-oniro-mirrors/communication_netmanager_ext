@@ -41,6 +41,13 @@ private:
     int32_t ReplySetUpVpn(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyProtect(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyDestroyVpn(MessageParcel &data, MessageParcel &reply);
+#ifdef SUPPORT_SYSVPN
+    int32_t ReplyAddSysVpnConfig(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyDeleteSysVpnConfig(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetSysVpnConfigList(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetSysVpnConfig(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetConnectedSysVpnConfig(MessageParcel &data, MessageParcel &reply);
+#endif // SUPPORT_SYSVPN
     int32_t ReplyRegisterVpnEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyUnregisterVpnEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyCreateVpnConnection(MessageParcel &data, MessageParcel &reply);

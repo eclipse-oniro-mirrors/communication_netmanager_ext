@@ -21,7 +21,6 @@
 #include "protect_context.h"
 #include "setup_context.h"
 #include "vpn_async_work.h"
-#include "vpn_monitor.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -48,16 +47,6 @@ napi_value Destroy(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<DestroyContext>(env, info, DESTROY, nullptr, VpnAsyncWork::ExecDestroy,
                                                      VpnAsyncWork::DestroyCallback);
-}
-
-napi_value On(napi_env env, napi_callback_info info)
-{
-    return VpnMonitor::GetInstance().On(env, info);
-}
-
-napi_value Off(napi_env env, napi_callback_info info)
-{
-    return VpnMonitor::GetInstance().Off(env, info);
 }
 } // namespace VpnConnection
 } // namespace NetManagerStandard

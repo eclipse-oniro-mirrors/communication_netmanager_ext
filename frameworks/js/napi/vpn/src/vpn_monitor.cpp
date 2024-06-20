@@ -86,6 +86,19 @@ void VpnEventCallback::OnVpnStateChanged(const bool &isConnected)
     manager->EmitByUv(CONNECT, reinterpret_cast<void *>(data), EventConnectCallback);
 }
 
+VpnMonitor::VpnMonitor()
+{
+    manager_ = new EventManager();
+}
+
+VpnMonitor::~VpnMonitor()
+{
+    if (manager_ != nullptr) {
+        delete manager_;
+        manager_ = nullptr;
+    }
+}
+
 VpnMonitor &VpnMonitor::GetInstance()
 {
     static VpnMonitor instance;
@@ -122,9 +135,11 @@ bool VpnMonitor::ParseParams(napi_env env, napi_callback_info info)
     NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &paramsCount, params, &jsObject, nullptr), false);
 
     if (!CheckParamType(env, params, paramsCount)) {
+        NETMANAGER_EXT_LOGE("CheckParamType failed");
         return false;
     }
-    if (!UnwrapManager(env, jsObject)) {
+    if (manager_ == nullptr) {
+        NETMANAGER_EXT_LOGE("manager_ is nullptr");
         return false;
     }
     const std::string event = NapiUtils::GetStringFromValueUtf8(env, params[0]);
@@ -138,44 +153,33 @@ bool VpnMonitor::ParseParams(napi_env env, napi_callback_info info)
     return true;
 }
 
-bool VpnMonitor::UnwrapManager(napi_env env, napi_value jsObject)
-{
-    NAPI_CALL_BASE(env, napi_unwrap(env, jsObject, reinterpret_cast<void **>(&manager_)), false);
-    if (manager_ == nullptr) {
-        return false;
-    }
-    return true;
-}
-
 void VpnMonitor::Register(napi_env env)
 {
-    auto vpnClient = reinterpret_cast<NetworkVpnClient *>(manager_->GetData());
-    if (vpnClient == nullptr) {
-        NETMANAGER_EXT_LOGE("vpnClient is nullptr");
+    if (manager_ == nullptr) {
+        NETMANAGER_EXT_LOGE("manager_ is nullptr");
         return;
     }
     manager_->AddListener(env, CONNECT, callback_, false, false);
 
     if (eventCallback_ != nullptr) {
-        vpnClient->UnregisterVpnEvent(eventCallback_);
+        NetworkVpnClient::GetInstance().UnregisterVpnEvent(eventCallback_);
     }
     eventCallback_ = new (std::nothrow) VpnEventCallback();
     if (nullptr == eventCallback_) {
         NETMANAGER_EXT_LOGE("eventCallback_ is nullptr");
         return;
     }
-    vpnClient->RegisterVpnEvent(eventCallback_);
+    NetworkVpnClient::GetInstance().RegisterVpnEvent(eventCallback_);
 }
 
 void VpnMonitor::Unregister(napi_env env)
 {
-    auto vpnClient = reinterpret_cast<NetworkVpnClient *>(manager_->GetData());
-    if (vpnClient == nullptr) {
-        NETMANAGER_EXT_LOGE("vpnClient is nullptr");
+    if (manager_ == nullptr) {
+        NETMANAGER_EXT_LOGE("manager_ is nullptr");
         return;
     }
     manager_->DeleteListener(CONNECT);
-    vpnClient->UnregisterVpnEvent(eventCallback_);
+    NetworkVpnClient::GetInstance().UnregisterVpnEvent(eventCallback_);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

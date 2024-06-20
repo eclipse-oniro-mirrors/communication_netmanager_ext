@@ -79,6 +79,16 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
+    bool allOK = UnmarshallingVpnConfig(parcel, ptr);
+    return allOK ? ptr : nullptr;
+}
+
+bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, sptr<VpnConfig> ptr)
+{
+    if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("VpnConfig ptr is null");
+        return false;
+    }
     bool allOK = UnmarshallingAddrRoute(parcel, ptr) && parcel.ReadInt32(ptr->mtu_) &&
                  parcel.ReadBool(ptr->isAcceptIPv4_) && parcel.ReadBool(ptr->isAcceptIPv6_) &&
                  parcel.ReadBool(ptr->isLegacy_) && parcel.ReadBool(ptr->isMetered_) &&
@@ -86,7 +96,7 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
                  UnmarshallingVectorString(parcel, ptr->searchDomains_) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_) &&
                  UnmarshallingVectorString(parcel, ptr->refusedApplications_);
-    return allOK ? ptr : nullptr;
+    return allOK;
 }
 
 bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, sptr<VpnConfig> &config)

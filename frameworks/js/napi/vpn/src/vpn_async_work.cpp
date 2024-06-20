@@ -66,6 +66,58 @@ void DestroyCallback(napi_env env, napi_status status, void *data)
 {
     BaseAsyncWork::AsyncWorkCallback<DestroyContext, VpnExec::DestroyCallback>(env, status, data);
 }
+
+#ifdef SUPPORT_SYSVPN
+void ExecAddSysVpnConfig(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<AddContext, VpnExec::ExecAddSysVpnConfig>(env, data);
+}
+
+void AddSysVpnConfigCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<AddContext, VpnExec::AddSysVpnConfigCallback>(env, status, data);
+}
+
+void ExecDeleteSysVpnConfig(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<DeleteContext, VpnExec::ExecDeleteSysVpnConfig>(env, data);
+}
+
+void DeleteSysVpnConfigCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<DeleteContext, VpnExec::DeleteSysVpnConfigCallback>(env, status, data);
+}
+
+void ExecGetSysVpnConfigList(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetListContext, VpnExec::ExecGetSysVpnConfigList>(env, data);
+}
+
+void GetSysVpnConfigListCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetListContext, VpnExec::GetSysVpnConfigListCallback>(env, status, data);
+}
+
+void ExecGetSysVpnConfig(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetContext, VpnExec::ExecGetSysVpnConfig>(env, data);
+}
+
+void GetSysVpnConfigCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetContext, VpnExec::GetSysVpnConfigCallback>(env, status, data);
+}
+
+void ExecGetConnectedSysVpnConfig(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetConnectedContext, VpnExec::ExecGetConnectedSysVpnConfig>(env, data);
+}
+
+void GetConnectedSysVpnConfigCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetConnectedContext, VpnExec::GetConnectedSysVpnConfigCallback>(env, status, data);
+}
+#endif // SUPPORT_SYSVPN
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

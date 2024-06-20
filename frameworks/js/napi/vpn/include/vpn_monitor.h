@@ -32,8 +32,8 @@ public:
 
 class VpnMonitor {
 private:
-    VpnMonitor() = default;
-    ~VpnMonitor() = default;
+    VpnMonitor();
+    ~VpnMonitor();
     VpnMonitor(const VpnMonitor &) = delete;
     VpnMonitor &operator=(const VpnMonitor &) = delete;
 
