@@ -158,7 +158,8 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
                       });
     };
     ffrt::task_handle OnVpnConnStateTask =
-        vpnService_.networkVpnServiceFfrtQueue_->submit_h(OnVpnConnStateChangedFunction);
+        vpnService_.networkVpnServiceFfrtQueue_->submit_h(OnVpnConnStateChangedFunction,
+            ffrt::task_attr().name("OnVpnConnStateChanged"));
     vpnService_.networkVpnServiceFfrtQueue_->wait(OnVpnConnStateTask);
 }
 
@@ -174,7 +175,8 @@ void NetworkVpnService::OnVpnMultiUserSetUp()
                       [](const auto &callback) { callback->OnVpnMultiUserSetUp(); });
     };
     ffrt::task_handle OnVpnMultiUserSetUpTask =
-        networkVpnServiceFfrtQueue_->submit_h(OnVpnMultiUserSetUpFunction);
+        networkVpnServiceFfrtQueue_->submit_h(OnVpnMultiUserSetUpFunction,
+            ffrt::task_attr().name("OnVpnMultiUserSetUp"));
     networkVpnServiceFfrtQueue_->wait(OnVpnMultiUserSetUpTask);
 }
 
@@ -590,7 +592,7 @@ int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> callba
     }
     ffrt::task_handle RegisterVpnEventTask = networkVpnServiceFfrtQueue_->submit_h([this, &callback, &ret]() {
         ret = SyncRegisterVpnEvent(callback);
-    });
+    }, ffrt::task_attr().name("RegisterVpnEvent"));
     networkVpnServiceFfrtQueue_->wait(RegisterVpnEventTask);
     return ret;
 }
@@ -604,7 +606,7 @@ int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> call
     }
     ffrt::task_handle UnregisterVpnEventTask = networkVpnServiceFfrtQueue_->submit_h([this, &callback, &ret]() {
         ret = SyncUnregisterVpnEvent(callback);
-    });
+    }, ffrt::task_attr().name("RegisterVpnEvent"));
     networkVpnServiceFfrtQueue_->wait(UnregisterVpnEventTask);
     return ret;
 }

@@ -332,7 +332,7 @@ void NetFirewallService::InitQueryUserId(int32_t times)
     if (!ret && times > 0) {
         NETMGR_EXT_LOG_I("InitQueryUserId failed");
         ffrtServiceHandler_->submit([this, times]() { InitQueryUserId(times); },
-            ffrt::task_attr().delay(QUERY_USER_ID_DELAY_TIME_MS));
+            ffrt::task_attr().delay(QUERY_USER_ID_DELAY_TIME_MS).name("InitQueryUserId"));
     }
 }
 
