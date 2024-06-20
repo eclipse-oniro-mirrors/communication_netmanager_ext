@@ -249,6 +249,7 @@ private:
     void SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event, int32_t state);
     bool CheckValidShareInterface(const std::string &iface);
     void RecoverSharingType();
+    bool CheckIfUpUsbIface(const std::string &iface);
 
 private:
     ffrt::mutex mutex_;
