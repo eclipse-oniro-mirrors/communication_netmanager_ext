@@ -31,7 +31,7 @@
 #include "system_ability_definition.h"
 #ifdef SUPPORT_SYSVPN
 #include "ipsecvpn_config.h"
-#endif SUPPORT_SYSVPN
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
