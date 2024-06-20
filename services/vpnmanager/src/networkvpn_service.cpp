@@ -545,6 +545,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
         auto regRet =
             Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver_, list);
         NETMGR_EXT_LOG_I("vpnHapOberver RegisterApplicationStateObserver ret = %{public}d", regRet);
+        AddClientDeathRecipient();
     }
     NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
     return ret;
@@ -578,6 +579,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     // remove vpn config
     remove(VPN_CONFIG_FILE);
     vpnBundleName_ = "";
+    RemoveClientDeathRecipient();
 
     NETMGR_EXT_LOG_I("Destroy vpn successfully.");
     return NETMANAGER_EXT_SUCCESS;
@@ -882,6 +884,37 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     vpnService_.vpnObj_ = nullptr;
     vpnService_.vpnBundleName_ = "";
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied");
+}
+
+void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
+{
+    NETMGR_EXT_LOG_I("vpn OnRemoteDied");
+    sptr<IRemoteObject> diedRemoted = remoteObject.promote();
+    if (diedRemoted == nullptr) {
+        NETMGR_EXT_LOG_E("diedRemoted is null");
+        return;
+    }
+    DestroyVpn();
+}
+
+void NetworkVpnService::AddClientDeathRecipient()
+{
+    NETMGR_EXT_LOG_I("vpn AddClientDeathRecipient");
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    if (deathRecipient_ == nullptr) {
+        deathRecipient_ = new (std::nothrow) VpnAppDeathRecipient(*this);
+    }
+    if (deathRecipient_ == nullptr) {
+        NETMGR_EXT_LOG_E("deathRecipient is null");
+        return;
+    }
+}
+
+void NetworkVpnService::RemoveClientDeathRecipient()
+{
+    NETMGR_EXT_LOG_I("vpn RemoveClientDeathRecipient");
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    deathRecipient_ = nullptr;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

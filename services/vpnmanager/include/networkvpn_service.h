@@ -228,6 +228,24 @@ public:
         NetworkVpnService& vpnService_;
     };
 private:
+    class VpnAppDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit VpnAppDeathRecipient(NetworkVpnService &client) : client_(client) {}
+        ~VpnAppDeathRecipient() override = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) override
+        {
+            client_.OnRemoteDied(remote);
+        }
+
+    private:
+        NetworkVpnService &client_;
+    };
+    void OnRemoteDied(const wptr<IRemoteObject> &remoteObject);
+    void AddClientDeathRecipient();
+    void RemoveClientDeathRecipient();
+
+    std::mutex remoteMutex_;
+    sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
     std::string vpnBundleName_ = "";
 };
