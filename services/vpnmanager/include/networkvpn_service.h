@@ -117,6 +117,7 @@ public:
      */
     int32_t DestroyVpn(bool isVpnExtCall = false) override;
 
+#ifdef SUPPORT_SYSVPN
     /**
      * save the vpn config
      */
@@ -141,6 +142,7 @@ public:
      * get the vpn connection state
      */
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
+#endif // SUPPORT_SYSVPN
 
     /**
      * register callback

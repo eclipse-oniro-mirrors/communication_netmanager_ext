@@ -16,7 +16,9 @@
 #include "networkvpn_client.h"
 
 #include <thread>
+#ifdef SUPPORT_SYSVPN
 #include <vector>
+#endif // SUPPORT_SYSVPN
 
 #include "fwmark_client.h"
 #include "iservice_registry.h"
@@ -130,6 +132,7 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
     return proxy->DestroyVpn(isVpnExtCall);
 }
 
+#ifdef SUPPORT_SYSVPN
 int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     if (config == nullptr) {
@@ -191,6 +194,7 @@ int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     }
     return proxy->GetConnectedSysVpnConfig(config);
 }
+#endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
 {

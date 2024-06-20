@@ -45,17 +45,6 @@ enum class VpnConnectState {
     VPN_DISCONNECTED,
 };
 
-enum class VpnType {
-    IKEV2_IPSEC_MSCHAPv2 = 1,
-    IKEV2_IPSEC_PSK,
-    IKEV2_IPSEC_RSA,
-    L2TP_IPSEC_PSK,
-    L2TP_IPSEC_RSA,
-    IPSEC_XAUTH_PSK,
-    IPSEC_XAUTH_RSA,
-    IPSEC_HYBRID_RSA
-};
-
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // NETMANAGER_EXT_CONSTANTS_H

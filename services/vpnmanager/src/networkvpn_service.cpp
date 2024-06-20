@@ -581,6 +581,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     return NETMANAGER_EXT_SUCCESS;
 }
 
+#ifdef SUPPORT_SYSVPN
 int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     if (config == nullptr) {
@@ -691,6 +692,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+#endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {

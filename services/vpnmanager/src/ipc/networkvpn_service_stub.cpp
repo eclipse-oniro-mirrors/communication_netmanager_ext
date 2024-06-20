@@ -31,6 +31,7 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyProtect};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_STOP_VPN] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyDestroyVpn};
+#ifdef SUPPORT_SYSVPN
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyAddSysVpnConfig};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG] = {
@@ -41,6 +42,7 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetSysVpnConfig};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetConnectedSysVpnConfig};
+#endif // SUPPORT_SYSVPN
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyRegisterVpnEvent};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK] = {
@@ -149,6 +151,7 @@ int32_t NetworkVpnServiceStub::ReplyDestroyVpn(MessageParcel &data, MessageParce
     return NETMANAGER_EXT_SUCCESS;
 }
 
+#ifdef SUPPORT_SYSVPN
 int32_t NetworkVpnServiceStub::ReplyAddSysVpnConfig(MessageParcel &data, MessageParcel &reply)
 {
     NETMGR_EXT_LOG_D("ReplyAddSysVpnConfig start");
@@ -230,6 +233,7 @@ int32_t NetworkVpnServiceStub::ReplyGetConnectedSysVpnConfig(MessageParcel &data
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+#endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnServiceStub::ReplyRegisterVpnEvent(MessageParcel &data, MessageParcel &reply)
 {

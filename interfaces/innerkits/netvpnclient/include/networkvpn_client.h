@@ -93,6 +93,7 @@ public:
      */
     int32_t DestroyVpn(bool isVpnExtCall = false);
 
+#ifdef SUPPORT_SYSVPN
     /**
      * save vpn
      *
@@ -143,6 +144,7 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config);
+#endif // SUPPORT_SYSVPN
 
     /**
      * register the vpn state callback

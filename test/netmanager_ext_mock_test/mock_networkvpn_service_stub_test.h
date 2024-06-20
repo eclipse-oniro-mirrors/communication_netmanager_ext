@@ -43,6 +43,7 @@ public:
         return 0;
     }
 
+#ifdef SUPPORT_SYSVPN
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override
     {
         return 0;
@@ -67,6 +68,7 @@ public:
     {
         return 0;
     }
+#endif // SUPPORT_SYSVPN
 
     int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) override
     {

@@ -37,11 +37,13 @@ public:
     int32_t CreateVpnConnection(bool isVpnExtCall = false) override;
     int32_t FactoryResetVpn() override;
     int32_t RegisterBundleName(const std::string &bundleName) override;
+#ifdef SUPPORT_SYSVPN
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;
     int32_t DeleteSysVpnConfig(std::string &vpnId) override;
     int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override;
     int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
+#endif // SUPPORT_SYSVPN
 
 private:
     int32_t WriteTokenAndSendRequest(INetworkVpnService::MessageCode code, MessageParcel &data, MessageParcel &reply);

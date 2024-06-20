@@ -149,6 +149,7 @@ int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
     return result;
 }
 
+#ifdef SUPPORT_SYSVPN
 int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     NETMGR_EXT_LOG_D("AddSysVpnConfig start");
@@ -270,6 +271,7 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+#endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnServiceProxy::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
 {

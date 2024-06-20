@@ -17,7 +17,6 @@
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "net_manager_ext_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

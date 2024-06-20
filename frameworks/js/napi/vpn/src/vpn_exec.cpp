@@ -22,7 +22,9 @@
 #include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 #include "networkvpn_client.h"
+#ifdef SUPPORT_SYSVPN
 #include "vpn_config_utils.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -93,6 +95,7 @@ bool ExecDestroy(DestroyContext *context)
     return true;
 }
 
+#ifdef SUPPORT_SYSVPN
 bool ExecAddSysVpnConfig(AddContext *context)
 {
     int32_t result = NetworkVpnClient::GetInstance().AddSysVpnConfig(context->vpnConfig_);
@@ -142,6 +145,7 @@ bool ExecGetConnectedSysVpnConfig(GetConnectedContext *context)
     }
     return true;
 }
+#endif // SUPPORT_SYSVPN
 
 napi_value PrepareCallback(PrepareContext *context)
 {
@@ -167,6 +171,7 @@ napi_value DestroyCallback(DestroyContext *context)
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
+#ifdef SUPPORT_SYSVPN
 napi_value AddSysVpnConfigCallback(AddContext *context)
 {
     return NapiUtils::GetUndefined(context->GetEnv());
@@ -202,6 +207,7 @@ napi_value GetConnectedSysVpnConfigCallback(GetConnectedContext *context)
 {
     return VpnConfigUtils::CreateNapiVpnConfig(context->GetEnv(), context->vpnConfig_);
 }
+#endif // SUPPORT_SYSVPN
 } // namespace VpnExec
 } // namespace NetManagerStandard
 } // namespace OHOS

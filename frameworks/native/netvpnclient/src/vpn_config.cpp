@@ -156,5 +156,6 @@ bool VpnConfig::UnmarshallingVectorString(Parcel &parcel, std::vector<std::strin
     }
     return true;
 }
+
 } // namespace NetManagerStandard
 } // namespace OHOS

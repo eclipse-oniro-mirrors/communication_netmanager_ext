@@ -37,7 +37,9 @@
 #include "netmanager_base_common_utils.h"
 #include "networkvpn_client.h"
 #include "vpn_event_callback_stub.h"
+#ifdef SUPPORT_SYSVPN
 #include "ipsecvpn_config.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -57,11 +59,13 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+#ifdef SUPPORT_SYSVPN
     void AddSysVpnConfig();
     void DeleteSysVpnConfig();
     void GetSysVpnConfigList();
     void GetSysVpnConfig();
     void GetConnectedSysVpnConfig();
+#endif // SUPPORT_SYSVPN
 
     sptr<IVpnEventCallback> callback_ = nullptr;
     NetworkVpnClient &networkVpnClient_ = NetworkVpnClient::GetInstance();
@@ -75,6 +79,7 @@ void NetworkVpnClientTest::SetUp() {}
 
 void NetworkVpnClientTest::TearDown() {}
 
+#ifdef SUPPORT_SYSVPN
 void NetworkVpnClientTest::AddSysVpnConfig() {}
 
 void NetworkVpnClientTest::DeleteSysVpnConfig() {}
@@ -84,6 +89,7 @@ void NetworkVpnClientTest::GetSysVpnConfigList() {}
 void NetworkVpnClientTest::GetSysVpnConfig() {}
 
 void NetworkVpnClientTest::GetConnectedSysVpnConfig() {}
+#endif // SUPPORT_SYSVPN
 
 HWTEST_F(NetworkVpnClientTest, Prepare001, TestSize.Level1)
 {
@@ -202,6 +208,7 @@ HWTEST_F(NetworkVpnClientTest, RegisterBundleName001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+#ifdef SUPPORT_SYSVPN
 HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
@@ -282,5 +289,6 @@ HWTEST_F(NetworkVpnClientTest, GetConnectedSysVpnConfig001, TestSize.Level1)
     sptr<SysVpnConfig> resConfig = nullptr;
     EXPECT_EQ(networkVpnClient_.GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
+#endif // SUPPORT_SYSVPN
 } // namespace NetManagerStandard
 } // namespace OHOS

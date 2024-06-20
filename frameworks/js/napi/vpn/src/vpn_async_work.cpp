@@ -67,6 +67,7 @@ void DestroyCallback(napi_env env, napi_status status, void *data)
     BaseAsyncWork::AsyncWorkCallback<DestroyContext, VpnExec::DestroyCallback>(env, status, data);
 }
 
+#ifdef SUPPORT_SYSVPN
 void ExecAddSysVpnConfig(napi_env env, void *data)
 {
     BaseAsyncWork::ExecAsyncWork<AddContext, VpnExec::ExecAddSysVpnConfig>(env, data);
@@ -116,6 +117,7 @@ void GetConnectedSysVpnConfigCallback(napi_env env, napi_status status, void *da
 {
     BaseAsyncWork::AsyncWorkCallback<GetConnectedContext, VpnExec::GetConnectedSysVpnConfigCallback>(env, status, data);
 }
+#endif // SUPPORT_SYSVPN
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

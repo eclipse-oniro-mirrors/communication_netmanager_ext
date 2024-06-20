@@ -21,6 +21,17 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+enum class VpnType {
+    IKEV2_IPSEC_MSCHAPv2 = 1,
+    IKEV2_IPSEC_PSK,
+    IKEV2_IPSEC_RSA,
+    L2TP_IPSEC_PSK,
+    L2TP_IPSEC_RSA,
+    IPSEC_XAUTH_PSK,
+    IPSEC_XAUTH_RSA,
+    IPSEC_HYBRID_RSA
+};
+
 struct SysVpnConfig : public VpnConfig {
     std::string vpnId_;
     std::string vpnName_;

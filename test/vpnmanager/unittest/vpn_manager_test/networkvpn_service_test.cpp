@@ -29,7 +29,9 @@
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
 #include "system_ability_definition.h"
+#ifdef SUPPORT_SYSVPN
 #include "ipsecvpn_config.h"
+#endif SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -49,11 +51,13 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+#ifdef SUPPORT_SYSVPN
     void AddSysVpnConfig();
     void DeleteSysVpnConfig();
     void GetSysVpnConfigList();
     void GetSysVpnConfig();
     void GetConnectedSysVpnConfig();
+#endif // SUPPORT_SYSVPN
     static inline auto instance_ = &NetworkVpnService::GetInstance();
     static inline sptr<IVpnEventCallback> eventCallback_ = nullptr;
 };
@@ -74,6 +78,7 @@ void NetworkVpnServiceTest::SetUp() {}
 
 void NetworkVpnServiceTest::TearDown() {}
 
+#ifdef SUPPORT_SYSVPN
 void NetworkVpnServiceTest::AddSysVpnConfig() {}
 
 void NetworkVpnServiceTest::DeleteSysVpnConfig() {}
@@ -83,6 +88,7 @@ void NetworkVpnServiceTest::GetSysVpnConfigList() {}
 void NetworkVpnServiceTest::GetSysVpnConfig() {}
 
 void NetworkVpnServiceTest::GetConnectedSysVpnConfig() {}
+#endif // SUPPORT_SYSVPN
 
 HWTEST_F(NetworkVpnServiceTest, OnStart, TestSize.Level1)
 {
@@ -246,6 +252,7 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
     EXPECT_TRUE(instance_->vpnBundleName_.empty());
 }
 
+#ifdef SUPPORT_SYSVPN
 HWTEST_F(NetworkVpnServiceTest, AddSysVpnConfigTest001, TestSize.Level1)
 {
     std::string id = "1234";
@@ -307,5 +314,6 @@ HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1
     sptr<SysVpnConfig> resConfig = nullptr;
     EXPECT_EQ(instance_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
+#endif // SUPPORT_SYSVPN
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -20,8 +20,6 @@
 #include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "net_manager_ext_constants.h"
-
 
 namespace OHOS {
 namespace NetManagerStandard {
