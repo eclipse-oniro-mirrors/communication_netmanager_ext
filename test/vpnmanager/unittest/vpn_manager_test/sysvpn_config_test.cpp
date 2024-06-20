@@ -24,11 +24,11 @@ namespace {
 constexpr const char* TEST_VPNID = "vpnId_";
 constexpr const char* TEST_VPN_NAME = "vpnName_";
 constexpr int32_t TEST_VPN_TYPE = 1;
-constexpr const char* TEST_USER_NAME= "userName_";
-constexpr const char* TEST_PASSWORD= "password_";
+constexpr const char* TEST_USER_NAME = "userName_";
+constexpr const char* TEST_PASSWOR D= "password_";
 constexpr bool TEST_SAVE_LOGIN = false;
 constexpr int32_t  TEST_USERID = 0;
-constexpr const char* TEST_FORWARD ="forwardingRoutes_";
+constexpr const char* TEST_FORWARD = "forwardingRoutes_";
 
 SysVpnConfig GetSysVpnConfigData()
 {

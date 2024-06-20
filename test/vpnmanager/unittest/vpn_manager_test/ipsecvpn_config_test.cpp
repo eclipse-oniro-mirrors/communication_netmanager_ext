@@ -24,11 +24,11 @@ namespace {
 constexpr const char* TEST_VPNID = "vpnId_";
 constexpr const char* TEST_VPN_NAME = "vpnName_";
 constexpr int32_t TEST_VPN_TYPE = 1;
-constexpr const char* TEST_USER_NAME= "userName_";
-constexpr const char* TEST_PASSWORD= "password_";
+constexpr const char* TEST_USER_NAME = "userName_";
+constexpr const char* TEST_PASSWORD = "password_";
 constexpr bool TEST_SAVE_LOGIN = false;
 constexpr int32_t  TEST_USERID = 0;
-constexpr const char* TEST_FORWARD ="forwardingRoutes_";
+constexpr const char* TEST_FORWARD = "forwardingRoutes_";
 
 constexpr const char* TEST_PRE_SHARED_KEY = "ipsecPreSharedKey_";
 constexpr const char* TEST_IPSEC_IDENTIFIER = "ipsecIdentifier_";
@@ -39,11 +39,11 @@ constexpr const char* TEST_PRIVATE_USER_CERT_CONF = "ipsecPrivateUserCertConf_";
 constexpr const char* TEST_PUBLIC_USER_CERT_CONF = "ipsecPublicUserCertConf_";
 constexpr const char* TEST_PRIVATE_SERVER_CERT_CONF = "ipsecPrivateServerCertConf_";
 constexpr const char* TEST_PUBLIC_SERVER_CERT_CONF ="ipsecPublicServerCertConf_";
-constexpr const char* TEST_CA_CERT_FILE_PATH ="ipsecCaCertFilePath_";
-constexpr const char* TEST_PRIVATE_USER_CERT_FILE_PATH ="ipsecPrivateUserCertFilePath_";
-constexpr const char* TEST_PUBLIC_USER_CERT_FILE_PATH ="ipsecPublicUserCertFilePath_";
-constexpr const char* TEST_PRIVATE_SERVER_CERT_FILE_PATH ="ipsecPrivateServerCertFilePath_";
-constexpr const char* TEST_PUBLIC_ERVER_CERT_FILE_PATH ="ipsecPublicServerCertFilePath_";
+constexpr const char* TEST_CA_CERT_FILE_PATH = "ipsecCaCertFilePath_";
+constexpr const char* TEST_PRIVATE_USER_CERT_FILE_PATH = "ipsecPrivateUserCertFilePath_";
+constexpr const char* TEST_PUBLIC_USER_CERT_FILE_PATH = "ipsecPublicUserCertFilePath_";
+constexpr const char* TEST_PRIVATE_SERVER_CERT_FILE_PATH = "ipsecPrivateServerCertFilePath_";
+constexpr const char* TEST_PUBLIC_ERVER_CERT_FILE_PATH = "ipsecPublicServerCertFilePath_";
 
 IpsecVpnConfig GetIpsecVpnConfigData()
 {
