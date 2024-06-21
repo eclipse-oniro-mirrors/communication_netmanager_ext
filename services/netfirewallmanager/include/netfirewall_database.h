@@ -120,7 +120,8 @@ public:
     std::shared_ptr<OHOS::NativeRdb::ResultSet> Query(const OHOS::NativeRdb::AbsRdbPredicates &predicates,
         const std::vector<std::string> &columns);
 
-    std::shared_ptr<OHOS::NativeRdb::ResultSet> QuerySql(const std::string &sql, const std::vector<std::string> &selectionArgs);
+    std::shared_ptr<OHOS::NativeRdb::ResultSet> QuerySql(const std::string &sql,
+        const std::vector<std::string> &selectionArgs);
 
     int32_t BeginTransaction();
 

@@ -400,6 +400,12 @@ void NetFirewallDbHelper::GetRuleDataFromResultSet(const std::shared_ptr<OHOS::N
         info.isEnabled = static_cast<bool>(isEnabled);
     }
     resultSet->GetInt(table.appUidIndex, info.appUid);
+    GetRuleListParamFromResultSet(resultSet, table, info);
+}
+
+void NetFirewallDbHelper::GetRuleListParamFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
+    const NetFirewallRuleInfo &table, NetFirewallRule &info)
+{
     std::vector<uint8_t> value;
     switch (info.ruleType) {
         case NetFirewallRuleType::RULE_IP: {
@@ -681,8 +687,8 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleAllFuzzyDomainCount()
 
 int32_t NetFirewallDbHelper::QueryFirewallRuleDomainByUserIdCount(int32_t userId)
 {
-    return QuerySql(SQL_SUM + DOMAIN_NUM + SQL_FROM + FIREWALL_TABLE_NAME + " WHERE (" + NET_FIREWALL_USER_ID +
-        " = " + std::to_string(userId) + ")");
+    return QuerySql(SQL_SUM + DOMAIN_NUM + SQL_FROM + FIREWALL_TABLE_NAME + " WHERE (" + NET_FIREWALL_USER_ID + " = " +
+        std::to_string(userId) + ")");
 }
 
 int32_t NetFirewallDbHelper::QueryFirewallRule(const int32_t userId, const sptr<RequestParam> &requestParam,

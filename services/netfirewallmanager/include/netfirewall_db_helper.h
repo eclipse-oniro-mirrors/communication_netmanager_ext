@@ -299,11 +299,14 @@ private:
 
     void GetRuleDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
         const NetFirewallRuleInfo &table, NetFirewallRule &info);
-
-    static bool DomainListToBlob(const std::vector<NetFirewallDomainParam>& vec, std::vector<uint8_t>& blob, uint32_t &fuzzyNum);
-    static bool BlobToDomainList(const std::vector<uint8_t>& blob, std::vector<NetFirewallDomainParam>& vec);
+    void GetRuleListParamFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
+        const NetFirewallRuleInfo &table, NetFirewallRule &info);
+    static bool DomainListToBlob(const std::vector<NetFirewallDomainParam> &vec, std::vector<uint8_t> &blob,
+        uint32_t &fuzzyNum);
+    static bool BlobToDomainList(const std::vector<uint8_t> &blob, std::vector<NetFirewallDomainParam> &vec);
     template <typename T> static bool ListToBlob(const std::vector<T> &vec, std::vector<uint8_t> &blob);
     template <typename T> static bool BlobToList(const std::vector<uint8_t> &blob, std::vector<T> &vec);
+
 private:
     static std::shared_ptr<NetFirewallDbHelper> instance_;
     std::mutex databaseMutex_;
