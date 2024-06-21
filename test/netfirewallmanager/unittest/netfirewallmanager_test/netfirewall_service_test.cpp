@@ -838,10 +838,9 @@ HWTEST_F(NetFirewallServiceTest, SendNetFirewallRuleFault001, TestSize.Level1)
     NetFirewallEvent event;
     event.userId = USER_ID1;
     event.errorType = errorCode;
-    std::string info = "info";
     std::string eventName = "eventName";
     auto _netFileHisysEvent = NetFirewallHisysEvent::GetInstance();
-    _netFileHisysEvent.SendNetFirewallRuleFault(event, info, eventName);
+    _netFileHisysEvent.SendNetFirewallRuleFault(event, eventName);
     EXPECT_TRUE(true);
 }
 
