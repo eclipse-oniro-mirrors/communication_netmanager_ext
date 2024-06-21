@@ -104,6 +104,7 @@ ohos_shared_library("mdns_manager_if") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
