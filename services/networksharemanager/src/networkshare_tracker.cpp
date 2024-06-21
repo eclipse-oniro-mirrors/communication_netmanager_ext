@@ -1149,6 +1149,23 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
     }
 }
 
+bool NetworkShareTracker::CheckIfUpUsbIface(const std::string &iface)
+{
+    if (!configuration_->IsUsbIface(iface)) {
+        NETMGR_EXT_LOG_I("Iface is not usb, no need to up.");
+        return true;
+    }
+    if (NetsysController::GetInstance().InterfaceSetIpAddress(iface, configuration_->GetUsbRndisIpv4Addr()) != 0) {
+        NETMGR_EXT_LOG_E("Failed setting usb ip address");
+        return false;
+    }
+    if (NetsysController::GetInstance().InterfaceSetIffUp(iface) != 0) {
+        NETMGR_EXT_LOG_E("Failed setting usb iface up");
+        return false;
+    }
+    return true;
+}
+
 void NetworkShareTracker::InterfaceAdded(const std::string &iface)
 {
     if (!CheckValidShareInterface(iface)) {
@@ -1159,12 +1176,7 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
         NETMGR_EXT_LOG_E("configuration_ is null");
         return;
     }
-    if (NetsysController::GetInstance().InterfaceSetIpAddress(iface, configuration_->GetUsbRndisIpv4Addr()) != 0) {
-        NETMGR_EXT_LOG_E("Failed setting usb ip address");
-        return;
-    }
-    if (NetsysController::GetInstance().InterfaceSetIffUp(iface) != 0) {
-        NETMGR_EXT_LOG_E("Failed setting usb iface up");
+    if (!CheckIfUpUsbIface(iface)) {
         return;
     }
     if (!isInit) {
