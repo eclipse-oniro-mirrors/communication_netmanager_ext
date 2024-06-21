@@ -171,15 +171,19 @@ int32_t NetFirewallDataBase::Count(int64_t &outValue, const OHOS::NativeRdb::Abs
     return store_->Count(outValue, predicates);
 }
 
+std::shared_ptr<OHOS::NativeRdb::ResultSet> NetFirewallDataBase::QuerySql(const std::string &sql,
+    const std::vector<std::string> &selectionArgs)
+{
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("QuerySql(AbsRdbPredicates) store_ is nullptr");
+        return nullptr;
+    }
+    return store_->QuerySql(sql, selectionArgs);
+}
+
 void NetFirewallDataBaseCallBack::initNetFirewallTableMap()
 {
     netfirewallTableMap_.insert(std::pair<std::string, std::string>(FIREWALL_TABLE_NAME, CREATE_FIREWALL_TABLE));
-    netfirewallTableMap_.insert(
-        std::pair<std::string, std::string>(FIREWALL_TABLE_IP_RULE, CREATE_FIREWALL_IP_RULE_TABLE));
-    netfirewallTableMap_.insert(
-        std::pair<std::string, std::string>(FIREWALL_TABLE_PORT_RULE, CREATE_FIREWALL_PORT_RULE_TABLE));
-    netfirewallTableMap_.insert(
-        std::pair<std::string, std::string>(FIREWALL_TABLE_DOMAIN_RULE, CREATE_FIREWALL_DOMAIN_RULE_TABLE));
     netfirewallTableMap_.insert(std::pair<std::string, std::string>(INTERCEPT_RECORD_TABLE, CREATE_RECORD_TABLE));
 }
 

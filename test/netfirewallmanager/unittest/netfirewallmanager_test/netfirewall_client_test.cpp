@@ -96,7 +96,7 @@ std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart, uint8
         } else {
             localParam.mask = mask;
         }
-        localParamList.push_back(localParam);
+        localParamList.emplace_back(std::move(localParam));
     }
     return localParamList;
 }
@@ -109,7 +109,7 @@ std::vector<NetFirewallPortParam> GetPortList(const uint16_t startPort, const ui
     localPortParam.startPort = startPort;
     localPortParam.endPort = endPort;
     for (int32_t i = 0; i < MAX_PORTS; i++) {
-        localPortParamList.emplace_back(localPortParam);
+        localPortParamList.emplace_back(std::move(localPortParam));
         localPortParam.startPort += offset;
         localPortParam.endPort += offset;
     }
@@ -157,8 +157,9 @@ sptr<NetFirewallRule> GetNetFirewallRuleSptr(NetFirewallRuleType ruleType = NetF
         std::vector<NetFirewallDomainParam> domainList;
         NetFirewallDomainParam domain;
         domain.isWildcard = false;
-        domain.domain = "www.openharmony.cn";
+        const std::string tmp = "www.openharmony.cn";
         for (int32_t i = 0; i < MAX_DOMAINS; i++) {
+            domain.domain = tmp + std::to_string(i);
             domainList.emplace_back(domain);
         }
         rule->domains = domainList;

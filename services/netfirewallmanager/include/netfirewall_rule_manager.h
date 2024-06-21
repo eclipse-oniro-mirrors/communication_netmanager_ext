@@ -128,7 +128,7 @@ private:
 private:
     // Cache the current state
     int64_t allUserRule_ = 0;
-    int64_t allUserDomain_ = 0;
+    int32_t allUserDomain_ = 0;
     int64_t maxDefaultRuleSize_ = 0;
     std::shared_mutex setFirewallRuleMutex_;
     std::map<int32_t, int64_t> userRuleSize_;

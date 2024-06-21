@@ -144,7 +144,7 @@ int32_t NetFirewallStub::OnAddNetFirewallRule(MessageParcel &data, MessageParcel
             ret = NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
-    NetFirewallHisysEvent::SendFirewallConfigReport(rule, ret);
+    NetFirewallHisysEvent::SendFirewallConfigReport(rule->userId, ret);
     return ret;
 }
 
@@ -172,7 +172,7 @@ int32_t NetFirewallStub::OnUpdateNetFirewallRule(MessageParcel &data, MessagePar
     }
 
     int32_t ret = UpdateNetFirewallRule(rule);
-    NetFirewallHisysEvent::SendFirewallConfigReport(rule, ret);
+    NetFirewallHisysEvent::SendFirewallConfigReport(rule->userId, ret);
     return ret;
 }
 
@@ -195,7 +195,7 @@ int32_t NetFirewallStub::OnDeleteNetFirewallRule(MessageParcel &data, MessagePar
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
     int32_t ret = DeleteNetFirewallRule(userId, ruleId);
-    NetFirewallHisysEvent::SendFirewallRequestReport(userId, "ruleId=" + std::to_string(ruleId), ret);
+    NetFirewallHisysEvent::SendFirewallRequestReport(userId, ret);
     return ret;
 }
 
@@ -221,7 +221,7 @@ int32_t NetFirewallStub::OnGetNetFirewallRules(MessageParcel &data, MessageParce
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
-    NetFirewallHisysEvent::SendFirewallRequestReport(userId, param->ToString(), ret);
+    NetFirewallHisysEvent::SendFirewallRequestReport(userId, ret);
     return ret;
 }
 
@@ -243,7 +243,7 @@ int32_t NetFirewallStub::OnGetNetFirewallRule(MessageParcel &data, MessageParcel
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
-    NetFirewallHisysEvent::SendFirewallRequestReport(userId, "ruleId=" + std::to_string(ruleId), ret);
+    NetFirewallHisysEvent::SendFirewallRequestReport(userId, ret);
     return ret;
 }
 

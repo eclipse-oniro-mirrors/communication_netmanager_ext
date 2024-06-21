@@ -30,7 +30,6 @@ constexpr const char *NET_FIREWALL_REQ_BEHAVIOR = "NET_FIREWALL_REQ_BEHAVIOR";
 constexpr const char *NET_FIREWALL_LOG_REQ_BEHAVIOR = "NET_FIREWALL_LOG_REQ_BEHAVIOR";
 
 constexpr const char *EVENT_KEY_FIREWALL_USER_ID = "userId";
-constexpr const char *EVENT_KEY_FIREWALL_RULE_INFO = "ruleInfo";
 constexpr const char *EVENT_KEY_FIREWALL_ERROR_TYPE = "errorType";
 constexpr const char *EVENT_KEY_FIREWALL_ERROR_MSG = "errorMsg";
 }
@@ -41,33 +40,33 @@ NetFirewallHisysEvent &NetFirewallHisysEvent::GetInstance()
     return instance;
 }
 
-void NetFirewallHisysEvent::SendFirewallConfigReport(sptr<NetFirewallRule> rule, int32_t &errorCode)
+void NetFirewallHisysEvent::SendFirewallConfigReport(int32_t userId, int32_t &errorCode)
 {
     NetFirewallHisysEvent instance = GetInstance();
     if (errorCode == FIREWALL_SUCCESS) {
-        instance.SendNetFirewallRuleBehavior(rule->userId, rule->ToString(), NET_FIREWALL_CONF_BEHAVIOR);
-    } else {
-        NetFirewallEvent eventInfo;
-        eventInfo.userId = rule->userId;
-        eventInfo.errorType = errorCode;
-        NetBaseErrorCodeConvertor convertor;
-        eventInfo.errorMsg = convertor.ConvertErrorCode(errorCode);
-        instance.SendNetFirewallRuleFault(eventInfo, rule->ToString(), NET_FIREWALL_CONF_FAULT);
-    }
-}
-
-void NetFirewallHisysEvent::SendFirewallRequestReport(const int32_t userId, const std::string &info, int32_t &errorCode)
-{
-    NetFirewallHisysEvent instance = GetInstance();
-    if (errorCode == FIREWALL_SUCCESS) {
-        instance.SendNetFirewallRuleBehavior(userId, info, NET_FIREWALL_REQ_BEHAVIOR);
+        instance.SendNetFirewallRuleBehavior(userId, NET_FIREWALL_CONF_BEHAVIOR);
     } else {
         NetFirewallEvent eventInfo;
         eventInfo.userId = userId;
         eventInfo.errorType = errorCode;
         NetBaseErrorCodeConvertor convertor;
         eventInfo.errorMsg = convertor.ConvertErrorCode(errorCode);
-        instance.SendNetFirewallRuleFault(eventInfo, info, NET_FIREWALL_REQ_FAULT);
+        instance.SendNetFirewallRuleFault(eventInfo, NET_FIREWALL_CONF_FAULT);
+    }
+}
+
+void NetFirewallHisysEvent::SendFirewallRequestReport(const int32_t userId, int32_t &errorCode)
+{
+    NetFirewallHisysEvent instance = GetInstance();
+    if (errorCode == FIREWALL_SUCCESS) {
+        instance.SendNetFirewallRuleBehavior(userId, NET_FIREWALL_REQ_BEHAVIOR);
+    } else {
+        NetFirewallEvent eventInfo;
+        eventInfo.userId = userId;
+        eventInfo.errorType = errorCode;
+        NetBaseErrorCodeConvertor convertor;
+        eventInfo.errorMsg = convertor.ConvertErrorCode(errorCode);
+        instance.SendNetFirewallRuleFault(eventInfo, NET_FIREWALL_REQ_FAULT);
     }
 }
 
@@ -96,19 +95,17 @@ void NetFirewallHisysEvent::SendInitDefaultRequestReport(const int32_t userId, i
     GetInstance().SendNetFirewallFault(eventInfo, NET_FIREWALL_INIT_FAULT);
 }
 
-void NetFirewallHisysEvent::SendNetFirewallRuleFault(const NetFirewallEvent &event, const std::string &info,
-    const std::string &eventName)
+void NetFirewallHisysEvent::SendNetFirewallRuleFault(const NetFirewallEvent &event, const std::string &eventName)
 {
     HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, eventName, HiSysEvent::EventType::FAULT,
-        EVENT_KEY_FIREWALL_USER_ID, event.userId, EVENT_KEY_FIREWALL_RULE_INFO, info, EVENT_KEY_FIREWALL_ERROR_TYPE,
-        event.errorType, EVENT_KEY_FIREWALL_ERROR_MSG, event.errorMsg);
+        EVENT_KEY_FIREWALL_USER_ID, event.userId, EVENT_KEY_FIREWALL_ERROR_TYPE, event.errorType,
+        EVENT_KEY_FIREWALL_ERROR_MSG, event.errorMsg);
 }
 
-void NetFirewallHisysEvent::SendNetFirewallRuleBehavior(const int32_t userId, const std::string &info,
-    const std::string &eventName)
+void NetFirewallHisysEvent::SendNetFirewallRuleBehavior(const int32_t userId, const std::string &eventName)
 {
     HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, eventName, HiSysEvent::EventType::BEHAVIOR,
-        EVENT_KEY_FIREWALL_USER_ID, userId, EVENT_KEY_FIREWALL_RULE_INFO, info);
+        EVENT_KEY_FIREWALL_USER_ID, userId);
 }
 
 void NetFirewallHisysEvent::SendNetFirewallFault(const NetFirewallEvent &event, const std::string &eventName)

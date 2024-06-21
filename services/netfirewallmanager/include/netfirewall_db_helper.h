@@ -32,25 +32,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-// Firewall rules for storing database usage
-struct NetFirewallRuleData {
-    int32_t ruleId;
-    std::string ruleName;
-    std::string ruleDescription;
-    NetFirewallRuleDirection ruleDirection;
-    FirewallRuleAction ruleAction;
-    NetFirewallRuleType ruleType;
-    bool isEnabled;
-    int32_t appUid;
-    NetworkProtocol protocol;
-    NetFirewallDnsParam dns;
-    int32_t userId;
-};
-
-// The data index of NetFirewallRuleData
+// The data index of NetFirewallRule
 struct NetFirewallRuleInfo {
     int32_t rowCount;
-    int32_t columnCount;
     int32_t ruleIdIndex;
     int32_t ruleNameIndex;
     int32_t ruleDescriptionIndex;
@@ -62,6 +46,11 @@ struct NetFirewallRuleInfo {
     int32_t protocolIndex;
     int32_t primaryDnsIndex;
     int32_t standbyDnsIndex;
+    int32_t localIpsIndex;
+    int32_t remoteIpsIndex;
+    int32_t localPortsIndex;
+    int32_t remotePortsIndex;
+    int32_t domainsIndex;
     int32_t userIdIndex;
 };
 
@@ -69,76 +58,6 @@ struct NetFirewallRuleInfo {
 enum class LocationType {
     SRC_LOCATION = 0,
     DST_LOCATION
-};
-
-// IP parameter data
-struct NetFirewallIpRuleData {
-    int32_t ruleId;
-    int32_t userId;
-    int32_t appUid;
-    LocationType locationType;
-    int32_t family;
-    int32_t type;
-    int32_t mask;
-    std::string startIp;
-    std::string endIp;
-};
-
-struct NetFirewallIpRuleInfo {
-    int32_t rowCount;
-    int32_t columnCount;
-    int32_t idIndex;
-    int32_t ruleIdIndex;
-    int32_t userIdIndex;
-    int32_t appUidIndex;
-    int32_t locationTypeIndex;
-    int32_t familyIndex;
-    int32_t typeIndex;
-    int32_t maskIndex;
-    int32_t startIpIndex;
-    int32_t endIpIndex;
-};
-
-// port parameter data
-struct NetFirewallPortRuleData {
-    int32_t ruleId;
-    int32_t userId;
-    int32_t appUid;
-    LocationType locationType;
-    int32_t startPort;
-    int32_t endPort;
-};
-
-struct NetFirewallPortRuleInfo {
-    int32_t rowCount;
-    int32_t columnCount;
-    int32_t idIndex;
-    int32_t ruleIdIndex;
-    int32_t userIdIndex;
-    int32_t appUidIndex;
-    int32_t locationTypeIndex;
-    int32_t startPortIndex;
-    int32_t endPortIndex;
-};
-
-// Domain parameter data
-struct NetFirewallDomainRuleData {
-    int32_t ruleId;
-    int32_t userId;
-    int32_t appUid;
-    bool isWildcard;
-    std::string domain;
-};
-
-struct NetFirewallDomainRuleInfo {
-    int32_t rowCount;
-    int32_t columnCount;
-    int32_t idIndex;
-    int32_t ruleIdIndex;
-    int32_t userIdIndex;
-    int32_t appUidIndex;
-    int32_t isWildcardIndex;
-    int32_t domainIndex;
 };
 
 // Intercept the structure of records in the database
@@ -156,17 +75,12 @@ struct NetInterceptRecordInfo {
     int32_t domainIndex;
 };
 
-enum class QueryType {
-    QUERY_USER = 0,
-    QUERY_ALL
-};
-
 class NetFirewallDbHelper : public NoCopyable {
 public:
     static std::shared_ptr<NetFirewallDbHelper> GetInstance();
 
     /**
-     * add NetFirewallRuleData record
+     * add NetFirewallRule data record
      *
      * @param rule net firewall rule
      * @return Returns 0 success. Otherwise fail
@@ -231,38 +145,6 @@ public:
         sptr<FirewallRulePage> &info);
 
     /**
-     * Query IP rules
-     *
-     * @param userId User id
-     * @param srcIpRules The source IP list of the firewall
-     * @param dstIpRules The destination IP list of the firewall
-     * @return Returns 0 success. Otherwise fail
-     */
-    int32_t QueryFirewallIpRuleRecord(int32_t userId, std::vector<NetFirewallIpRuleData> &srcIpRules,
-        std::vector<NetFirewallIpRuleData> &dstIpRules, bool isQueryUser = true);
-
-    /**
-     * Query port rules
-     *
-     * @param userId User id
-     * @param srcPortRules The source port list of the firewall
-     * @param dstProtRules The destination port list of the firewall
-     * @return Returns 0 success. Otherwise fail
-     */
-    int32_t QueryFirewallPortRuleRecord(int32_t userId, std::vector<NetFirewallPortRuleData> &srcPortRules,
-        std::vector<NetFirewallPortRuleData> &dstProtRules, bool isQueryUser = true);
-
-    /**
-     * Query domain rules
-     *
-     * @param userId User id
-     * @param domainRules Domain name list for firewall
-     * @return Returns 0 success. Otherwise fail
-     */
-    int32_t QueryFirewallDomainRuleRecord(int32_t userId, std::vector<NetFirewallDomainRuleData> &domainRules,
-        bool isQueryUser = true);
-
-    /**
      * Paging query interception records
      *
      * @param userId User id
@@ -293,27 +175,24 @@ public:
     /**
      * Query the number of all domain rules
      *
-     * @param rowCount Number of queries found
-     * @return Returns 0 success. Otherwise fail
+     * @return Number of queries found
      */
-    int32_t QueryFirewallRuleAllDomainCount(int64_t &rowCount);
+    int32_t QueryFirewallRuleAllDomainCount();
 
     /**
      * Query the number of ambiguous domain names
      *
-     * @param rowCount Number of queries found
-     * @return Returns 0 success. Otherwise fail
+     * @return Number of queries found
      */
-    int32_t QueryFirewallRuleAllFuzzyDomainCount(int64_t &rowCount);
+    int32_t QueryFirewallRuleAllFuzzyDomainCount();
 
     /**
      * Query the number of domain rules by userId
      *
      * @param userId User id
-     * @param rowCount Number of queries found
-     * @return Returns 0 success. Otherwise fail
+     * @return Number of queries found
      */
-    int32_t QueryFirewallRuleDomainByUserIdCount(int32_t userId, int64_t &rowCount);
+    int32_t QueryFirewallRuleDomainByUserIdCount(int32_t userId);
 
     /**
      * Update firewall rule
@@ -381,31 +260,27 @@ public:
      */
     int32_t Count(int64_t &outValue, const OHOS::NativeRdb::AbsRdbPredicates &predicates);
 
+    int32_t QuerySql(const std::string &sql);
+
 private:
     NetFirewallDbHelper();
 
     // Fill in firewall rule data
-    int32_t FillValuesOfFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallRuleData &rule);
-
-    // Fill in ip rule data
-    int32_t FillValuesOfFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallIpRuleData &rule);
-
-    int32_t FillValuesOfFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallPortRuleData &rule);
-
-    int32_t FillValuesOfFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallDomainRuleData &rule);
+    int32_t FillValuesOfFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallRule &rule);
 
     // Check if data needs to be updated
     int32_t CheckIfNeedUpdateEx(const std::string &tableName, bool &isUpdate, int32_t ruleId, NetFirewallRule &oldRule);
 
     int32_t QueryFirewallRuleRecord(const NativeRdb::RdbPredicates &rdbPredicates,
-        const std::vector<std::string> &columns, std::vector<NetFirewallRule> &rules, bool isQuerySub = true,
-        QueryType queryType = QueryType::QUERY_USER);
+        const std::vector<std::string> &columns, std::vector<NetFirewallRule> &rules);
 
     int32_t DeleteAndNoOtherOperation(const std::string &whereClause, const std::vector<std::string> &whereArgs);
 
     template <typename T>
     int32_t QueryAndGetResult(const NativeRdb::RdbPredicates &rdbPredicates, const std::vector<std::string> &columns,
         std::vector<T> &rules);
+
+    void GetParamRuleInfoFormResultSet(std::string &columnName, int32_t index, NetFirewallRuleInfo &table);
 
     int32_t GetResultSetTableInfo(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
         struct NetFirewallRuleInfo &table);
@@ -415,75 +290,20 @@ private:
 
     // Convert query result ResultSet
     int32_t GetResultRightRecordEx(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        std::vector<NetFirewallRuleData> &rules);
-
-    int32_t GetResultRightRecordEx(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        std::vector<NetFirewallDomainRuleData> &rules);
-
-    int32_t GetResultRightRecordEx(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        std::vector<NetFirewallPortRuleData> &rules);
-
-    int32_t GetResultRightRecordEx(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        std::vector<NetFirewallIpRuleData> &rules);
+        std::vector<NetFirewallRule> &rules);
 
     int32_t GetResultRightRecordEx(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
         std::vector<InterceptRecord> &rules);
 
-    int32_t GetResultSetDomainTableInfo(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        struct NetFirewallDomainRuleInfo &table);
-
-    int32_t GetResultSetPortTableInfo(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        struct NetFirewallPortRuleInfo &table);
-
-    int32_t GetResultSetIpTableInfo(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        struct NetFirewallIpRuleInfo &table);
-
-    int32_t AddFirewallBaseRule(NativeRdb::ValuesBucket &values, const NetFirewallRuleData &rule);
-
-    int32_t AddFirewallIpRule(NativeRdb::ValuesBucket &values, const NetFirewallIpRuleData &rule);
-
-    int32_t AddFirewallPortRule(NativeRdb::ValuesBucket &values, const NetFirewallPortRuleData &rule);
-
-    int32_t AddFirewallDomainRule(NativeRdb::ValuesBucket &values, const NetFirewallDomainRuleData &rule);
-
-    int32_t AddFirewallIpRule(NativeRdb::ValuesBucket &values, const NetFirewallRule &rule, int32_t ruleId,
-        LocationType locationType);
-
-    int32_t AddFirewallPortRule(NativeRdb::ValuesBucket &values, const NetFirewallRule &rule, int32_t ruleId,
-        LocationType locationType);
-
-    int32_t AddFirewallDomainRule(NativeRdb::ValuesBucket &values, const NetFirewallRule &rule, int32_t ruleId);
-
-    void NetFirewallRule2Data(const NetFirewallRule &rule, NetFirewallRuleData &baseRuleData);
-
-    void NetFirewallData2Rule(const NetFirewallRuleData &ruleData, NetFirewallRule &rule);
-
-    int32_t SubTableDelete4UpdateRule(int32_t ruleId);
-
-    int32_t SubTableAdd4UpdateRule(const NetFirewallRule &rule, NativeRdb::ValuesBucket &values);
-
-    int32_t SubTableAddIpParam4UpdateRule(const NetFirewallRule &rule, LocationType locationType,
-        NativeRdb::ValuesBucket &values);
-
-    int32_t SubTableAddPortParam4UpdateRule(const NetFirewallRule &rule, LocationType locationType,
-        NativeRdb::ValuesBucket &values);
+    int32_t AddFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallRule &rule);
 
     void GetRuleDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
-        const NetFirewallRuleInfo &table, NetFirewallRuleData &info);
+        const NetFirewallRuleInfo &table, NetFirewallRule &info);
 
-    void GetFirewallIpRuleRecord(int32_t ruleId, const std::vector<NetFirewallIpRuleData> &inIpRules,
-        std::vector<NetFirewallIpParam> &outIpRules);
-
-    void GetFirewallRuleIpSub(const std::vector<NetFirewallIpRuleData> localIps,
-        const std::vector<NetFirewallIpRuleData> remoteIps, const std::vector<NetFirewallPortRuleData> &localPorts,
-        const std::vector<NetFirewallPortRuleData> &remotePorts, NetFirewallRule &rule);
-
-    void GetFirewallPortRuleRecord(int32_t ruleId, const std::vector<NetFirewallPortRuleData> &inPortRules,
-        std::vector<NetFirewallPortParam> &outProtRules);
-
-    void GetFirewallDomainRuleRecord(int32_t ruleId, std::vector<NetFirewallDomainRuleData> &inDomainRules,
-        std::vector<NetFirewallDomainParam> &outDomainRules);
-
+    static bool DomainListToBlob(const std::vector<NetFirewallDomainParam>& vec, std::vector<uint8_t>& blob, uint32_t &fuzzyNum);
+    static bool BlobToDomainList(const std::vector<uint8_t>& blob, std::vector<NetFirewallDomainParam>& vec);
+    template <typename T> static bool ListToBlob(const std::vector<T> &vec, std::vector<uint8_t> &blob);
+    template <typename T> static bool BlobToList(const std::vector<uint8_t> &blob, std::vector<T> &vec);
 private:
     static std::shared_ptr<NetFirewallDbHelper> instance_;
     std::mutex databaseMutex_;

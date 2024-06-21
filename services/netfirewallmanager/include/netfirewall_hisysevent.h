@@ -39,20 +39,19 @@ public:
     /**
      * Send firewall configuration management information
      *
-     * @param rule Firewall configuration information
+     * @param userId User id
      * @param errorCode
      */
-    static void SendFirewallConfigReport(sptr<NetFirewallRule> rule, int32_t &errorCode);
+    static void SendFirewallConfigReport(int32_t userId, int32_t &errorCode);
 
     /**
      * Send and obtain firewall management information
      *
      * @param userId User id
-     * @param info Query input information
      * @param errorCode Errorcode such as FIREWALL_SUCCESS = 0,
      *     FIREWALL_ERR_PERMISSION_DENIED = 201 and so on
      */
-    static void SendFirewallRequestReport(const int32_t userId, const std::string &info, int32_t &errorCode);
+    static void SendFirewallRequestReport(const int32_t userId, int32_t &errorCode);
 
     /**
      * Sending and obtaining interception records and tracking information
@@ -75,9 +74,9 @@ public:
 private:
     NetFirewallHisysEvent() = default;
 
-    void SendNetFirewallRuleFault(const NetFirewallEvent &event, const std::string &info, const std::string &eventName);
+    void SendNetFirewallRuleFault(const NetFirewallEvent &event, const std::string &eventName);
 
-    void SendNetFirewallRuleBehavior(const int32_t userId, const std::string &info, const std::string &eventName);
+    void SendNetFirewallRuleBehavior(const int32_t userId, const std::string &eventName);
 
     void SendNetFirewallFault(const NetFirewallEvent &event, const std::string &eventName);
 
