@@ -801,112 +801,6 @@ HWTEST_F(NetFirewallServiceTest, ConvertDnsParamToConfig001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddFirewallDomainRule
- * @tc.desc: Test NetFirewallDbHelper AddFirewallDomainRule001.
- * @tc.type: FUNC
- */
-HWTEST_F(NetFirewallServiceTest, AddFirewallDomainRule001, TestSize.Level1)
-{
-    auto _netFileDbHelper = NetFirewallDbHelper::GetInstance();
-
-    NativeRdb::ValuesBucket values;
-
-    NetFirewallRule rule;
-    rule.ruleId = 1;
-    rule.userId = USER_ID1;
-    std::vector<NetFirewallDomainParam> domainList;
-    NetFirewallDomainParam domain;
-    domain.isWildcard = 1;
-    domain.domain = "www.openharmony.cn";
-    for (int i = 0; i < MAX_DOMAINS; i++) {
-        domainList.push_back(domain);
-    }
-    rule.domains = domainList;
-
-    int32_t ruleId = _netFileDbHelper->AddFirewallDomainRule(values, rule, USER_ID1);
-    EXPECT_GT(ruleId, 0);
-}
-
-/**
- * @tc.name: AddFirewallPortRule
- * @tc.desc: Test NetFirewallDbHelper AddFirewallPortRule001.
- * @tc.type: FUNC
- */
-HWTEST_F(NetFirewallServiceTest, AddFirewallPortRule001, TestSize.Level1)
-{
-    auto _netFileDbHelper = NetFirewallDbHelper::GetInstance();
-
-    NativeRdb::ValuesBucket values;
-
-    NetFirewallRule rule;
-    int32_t outRowId = 1;
-    rule.ruleId = 1;
-    rule.userId = USER_ID1;
-    rule.appUid = APPID_TEST01;
-
-    rule.localIps = GetIpList("192.168.10.");
-    rule.remoteIps = GetIpList("192.168.2.");
-    std::vector<NetFirewallPortParam> localPortParamList;
-    NetFirewallPortParam localPortParam;
-    localPortParam.startPort = LOCAL_START_PORT;
-    localPortParam.endPort = LOCAL_END_PORT;
-    for (int i = 0; i < MAX_PORTS; i++) {
-        localPortParamList.push_back(localPortParam);
-    }
-    rule.localPorts = localPortParamList;
-    std::vector<NetFirewallPortParam> remotePortParamList;
-    NetFirewallPortParam remotePortParam;
-    remotePortParam.startPort = REMOTE_START_PORT;
-    remotePortParam.endPort = REMOTE_END_PORT;
-    for (int i = 0; i < MAX_PORTS; i++) {
-        remotePortParamList.push_back(remotePortParam);
-    }
-    rule.remotePorts = remotePortParamList;
-
-    int32_t ret = _netFileDbHelper->AddFirewallPortRule(values, rule, USER_ID1, LocationType::SRC_LOCATION);
-    EXPECT_EQ(ret, outRowId);
-}
-
-/**
- * @tc.name: AddFirewallIpRule
- * @tc.desc: Test NetFirewallDbHelper AddFirewallIpRule001.
- * @tc.type: FUNC
- */
-HWTEST_F(NetFirewallServiceTest, AddFirewallIpRule001, TestSize.Level1)
-{
-    auto _netFileDbHelper = NetFirewallDbHelper::GetInstance();
-
-    NativeRdb::ValuesBucket values;
-    int64_t outRowId = 1;
-    NetFirewallRule rule;
-    rule.ruleId = 1;
-    rule.userId = USER_ID1;
-    rule.appUid = APPID_TEST01;
-
-    rule.localIps = GetIpList("192.168.10.");
-    rule.remoteIps = GetIpList("192.168.2.");
-    std::vector<NetFirewallPortParam> localPortParamList;
-    NetFirewallPortParam localPortParam;
-    localPortParam.startPort = LOCAL_START_PORT;
-    localPortParam.endPort = LOCAL_END_PORT;
-    for (int i = 0; i < MAX_PORTS; i++) {
-        localPortParamList.push_back(localPortParam);
-    }
-    rule.localPorts = localPortParamList;
-    std::vector<NetFirewallPortParam> remotePortParamList;
-    NetFirewallPortParam remotePortParam;
-    remotePortParam.startPort = REMOTE_START_PORT;
-    remotePortParam.endPort = REMOTE_END_PORT;
-    for (int i = 0; i < MAX_PORTS; i++) {
-        remotePortParamList.push_back(remotePortParam);
-    }
-    rule.remotePorts = remotePortParamList;
-
-    int32_t ret = _netFileDbHelper->AddFirewallIpRule(values, rule, USER_ID1, LocationType::SRC_LOCATION);
-    EXPECT_EQ(ret, outRowId);
-}
-
-/**
  * @tc.name: QueryAllFirewallRuleRecord
  * @tc.desc: Test NetFirewallDbHelper QueryAllFirewallRuleRecord001.
  * @tc.type: FUNC
@@ -944,10 +838,9 @@ HWTEST_F(NetFirewallServiceTest, SendNetFirewallRuleFault001, TestSize.Level1)
     NetFirewallEvent event;
     event.userId = USER_ID1;
     event.errorType = errorCode;
-    std::string info = "info";
     std::string eventName = "eventName";
     auto _netFileHisysEvent = NetFirewallHisysEvent::GetInstance();
-    _netFileHisysEvent.SendNetFirewallRuleFault(event, info, eventName);
+    _netFileHisysEvent.SendNetFirewallRuleFault(event, eventName);
     EXPECT_TRUE(true);
 }
 

@@ -34,9 +34,6 @@ static std::string FIREWALL_DB_PATH = "/data/service/el1/public/netmanager/";
 
 constexpr const char *FIREWALL_DB_NAME = "netfirewall.db";
 constexpr const char *FIREWALL_TABLE_NAME = "firewallRule";
-constexpr const char *FIREWALL_TABLE_IP_RULE = "firewallIpRule";
-constexpr const char *FIREWALL_TABLE_PORT_RULE = "firewallPortRule";
-constexpr const char *FIREWALL_TABLE_DOMAIN_RULE = "firewallDomainRule";
 constexpr const char *INTERCEPT_RECORD_TABLE = "interceptRecord";
 constexpr int32_t DATABASE_OPEN_VERSION = 1;
 constexpr int32_t DATABASE_NEW_VERSION = 2;
@@ -53,37 +50,14 @@ constexpr const char *CREATE_FIREWALL_TABLE = "CREATE TABLE IF NOT EXISTS [firew
     "[appUid] INTEGER, "
     "[protocol] INTEGER, "
     "[primaryDns] TEXT, "
-    "[standbyDns] TEXT );";
-
-constexpr const char *CREATE_FIREWALL_IP_RULE_TABLE = "CREATE TABLE IF NOT EXISTS [firewallIpRule]("
-    "[id] INTEGER PRIMARY KEY, "
-    "[ruleId] INTEGER NOT NULL, "
-    "[userId] INTEGER NOT NULL, "
-    "[appUid] INTEGER, "
-    "[locationType] INTEGER NOT NULL, "
-    "[family] INTEGER, "
-    "[type] INTEGER, "
-    "[address] TEXT, "
-    "[mask] INTEGER, "
-    "[startIp] TEXT, "
-    "[endIp] TEXT);";
-
-constexpr const char *CREATE_FIREWALL_PORT_RULE_TABLE = "CREATE TABLE IF NOT EXISTS [firewallPortRule]("
-    "[id] INTEGER PRIMARY KEY, "
-    "[ruleId] INTEGER NOT NULL, "
-    "[userId] INTEGER NOT NULL, "
-    "[appUid] INTEGER, "
-    "[locationType] INTEGER NOT NULL, "
-    "[startPort] INTEGER, "
-    "[endPort] INTEGER);";
-
-constexpr const char *CREATE_FIREWALL_DOMAIN_RULE_TABLE = "CREATE TABLE IF NOT EXISTS [firewallDomainRule]("
-    "[id] INTEGER PRIMARY KEY, "
-    "[ruleId] INTEGER NOT NULL, "
-    "[userId] INTEGER NOT NULL, "
-    "[appUid] INTEGER, "
-    "[isWildcard] INTEGER, "
-    "[domain] TEXT);";
+    "[standbyDns] TEXT, "
+    "[localIps] BLOB, "
+    "[remoteIps] BLOB, "
+    "[localPorts] BLOB, "
+    "[remotePorts] BLOB, "
+    "[domainNum] INTEGER, "
+    "[fuzzyDomainNum] INTEGER, "
+    "[domains] BLOB );";
 
 constexpr const char *CREATE_RECORD_TABLE = "CREATE TABLE IF NOT EXISTS [interceptRecord]("
     "[id] INTEGER PRIMARY KEY, "
@@ -145,6 +119,9 @@ public:
      */
     std::shared_ptr<OHOS::NativeRdb::ResultSet> Query(const OHOS::NativeRdb::AbsRdbPredicates &predicates,
         const std::vector<std::string> &columns);
+
+    std::shared_ptr<OHOS::NativeRdb::ResultSet> QuerySql(const std::string &sql,
+        const std::vector<std::string> &selectionArgs);
 
     int32_t BeginTransaction();
 

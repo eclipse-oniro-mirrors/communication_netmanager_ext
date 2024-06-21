@@ -315,7 +315,7 @@ int32_t NetFirewallRuleManager::GetAllRuleConstraint(const int32_t userId)
     helper->QueryFirewallRuleAllCount(allUserRule_);
     int64_t rowCount = 0;
     helper->QueryFirewallRuleByUserIdCount(userId, rowCount);
-    helper->QueryFirewallRuleAllDomainCount(allUserDomain_);
+    allUserDomain_ = helper->QueryFirewallRuleAllDomainCount();
     if (userRuleSize_.count(userId)) {
         userRuleSize_.at(userId) = rowCount;
     } else {
@@ -323,8 +323,7 @@ int32_t NetFirewallRuleManager::GetAllRuleConstraint(const int32_t userId)
     }
     NETMGR_EXT_LOG_I(
         "GetAllRuleConstraint userId=%{public}d rowCount=%{public}d allUserRule=%{public}d allUserDomain=%{public}d",
-        userId, static_cast<int32_t>(rowCount), static_cast<int32_t>(allUserRule_),
-        static_cast<int32_t>(allUserDomain_));
+        userId, static_cast<int32_t>(rowCount), static_cast<int32_t>(allUserRule_), allUserDomain_);
     return FIREWALL_SUCCESS;
 }
 
@@ -345,19 +344,18 @@ int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> 
         NETMGR_EXT_LOG_E("check rule constraint error, rule is large.");
         return FIREWALL_ERR_EXCEED_MAX_RULE;
     }
-    int64_t domainsCount = 0;
     std::shared_ptr<NetFirewallDbHelper> helper = NetFirewallDbHelper::GetInstance();
-    helper->QueryFirewallRuleDomainByUserIdCount(userId, domainsCount);
+    int32_t domainsCount = helper->QueryFirewallRuleDomainByUserIdCount(userId);
     size_t size = rule->domains.size();
     if (domainsCount + size > FIREWALL_SINGLE_USER_MAX_DOMAIN) {
         return FIREWALL_ERR_EXCEED_MAX_DOMAIN;
     }
-    helper->QueryFirewallRuleAllFuzzyDomainCount(domainsCount);
+    domainsCount = helper->QueryFirewallRuleAllFuzzyDomainCount();
     if (allUserDomain_ + size > FIREWALL_ALL_USER_MAX_DOMAIN ||
         domainsCount + size > FIREWALL_ALL_USER_MAX_FUZZY_DOMAIN) {
         NETMGR_EXT_LOG_E(
             "check rule constraint domain number is more than max, all domain=%{public}d all fuzzy=%{public}d",
-            static_cast<int32_t>(allUserDomain_), static_cast<int32_t>(domainsCount));
+            allUserDomain_, static_cast<int32_t>(domainsCount));
         return FIREWALL_ERR_EXCEED_ALL_MAX_DOMAIN;
     }
     // DNS rule check duplicate

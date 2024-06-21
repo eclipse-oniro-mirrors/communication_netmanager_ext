@@ -89,7 +89,7 @@ bool NetFirewallPolicyManager::IsFirewallStatusChange(const sptr<NetFirewallPoli
     NETMGR_EXT_LOG_D("IsFirewallStatusChange");
     std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
     EnsureCurrentFirewallPolicyCached();
-    return (policy->isOpen != currentFirewallPolicy_->isOpen) && currentFirewallPolicy_->isOpen;
+    return (policy->isOpen != currentFirewallPolicy_->isOpen);
 }
 
 bool NetFirewallPolicyManager::IsFirewallActionChange(const sptr<NetFirewallPolicy> &policy)
@@ -97,7 +97,7 @@ bool NetFirewallPolicyManager::IsFirewallActionChange(const sptr<NetFirewallPoli
     NETMGR_EXT_LOG_D("IsFirewallActionChange");
     std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
     EnsureCurrentFirewallPolicyCached();
-    return currentFirewallPolicy_->isOpen && (policy->inAction != currentFirewallPolicy_->inAction ||
+    return policy->isOpen && (policy->inAction != currentFirewallPolicy_->inAction ||
         policy->outAction != currentFirewallPolicy_->outAction);
 }
 
