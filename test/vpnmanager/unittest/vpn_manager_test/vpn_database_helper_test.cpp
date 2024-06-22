@@ -20,6 +20,7 @@
 #ifdef GTEST_API_
 #define private public
 #endif
+
 #include "vpn_database_helper.h"
 #include "net_manager_constants.h"
 
@@ -30,7 +31,8 @@ using namespace testing::ext;
 
 class VpnDatabaseHelperTest : public testing::Test {
 public:
-    static inline std::shared_ptr<VpnDatabaseHelper> vpnDataHelper_ = std::make_shared<VpnDatabaseHelper>("/data");  
+    static inline std::shared_ptr<VpnDatabaseHelper> vpnDataHelper_ =
+      std::make_shared<VpnDatabaseHelper>("/data");
 };
 
 VpnDatabaseHelper::SqlCallback sqlCallback = [](void *notUsed, int argc, char **argv, char **colName) {
@@ -61,18 +63,21 @@ HWTEST_F(VpnDatabaseHelperTest, QueryVpnData001, TestSize.Level1)
     int32_t userId = 100;
     EXPECT_EQ(vpnDataHelper_->QueryVpnData(vpnBean, vpnId, userId), NETMANAGER_SUCCESS);
 }
+
 HWTEST_F(VpnDatabaseHelperTest, QueryAllData001, TestSize.Level1)
 {
     std::vector<SysVpnConfig> list;
     int32_t userId = 100;
     EXPECT_EQ(vpnDataHelper_->QueryAllData(list, userId), NETMANAGER_SUCCESS);
 }
+
 HWTEST_F(VpnDatabaseHelperTest, DeleteVpnData001, TestSize.Level1)
 {
     std::string vpnId = "1234";
     int32_t userId = 100;
     EXPECT_EQ(vpnDataHelper_->DeleteVpnData(vpnId, userId), NETMANAGER_SUCCESS);
 }
+
 HWTEST_F(VpnDatabaseHelperTest, UpdateData001, TestSize.Level1)
 {
     sptr<VpnDataBean> vpnBean = new(std::nothrow) VpnDataBean();

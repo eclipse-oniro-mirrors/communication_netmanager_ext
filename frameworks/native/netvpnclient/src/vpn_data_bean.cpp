@@ -21,7 +21,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 sptr<SysVpnConfig> VpnDataBean::ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &vpnBean)
 {
-    switch (vpnBean->vpnType_){
+    switch (vpnBean->vpnType_) {
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
@@ -44,8 +44,7 @@ sptr<SysVpnConfig> VpnDataBean::ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &
 sptr<OpenVpnConfig> VpnDataBean::ConvertVpnBeanToOpenVpnConfig(sptr<VpnDataBean> &vpnBean)
 {
     sptr<OpenVpnConfig> openVpnConfig = new (std::nothrow) OpenVpnConfig();
-    if (openVpnConfig == nullptr)
-    {
+    if (openVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertVpnBeanToOpenVpnConfig openVpnConfig is null");
         return nullptr;
     }
@@ -80,8 +79,7 @@ sptr<OpenVpnConfig> VpnDataBean::ConvertVpnBeanToOpenVpnConfig(sptr<VpnDataBean>
 sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBean> &vpnBean)
 {
     sptr<IpsecVpnConfig> ipsecVpnConfig = new (std::nothrow) IpsecVpnConfig();
-    if (ipsecVpnConfig == nullptr)
-    {
+    if (ipsecVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig ipsecVpnConfig is null");
         return nullptr;
     }
@@ -121,8 +119,7 @@ sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBea
 sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean> &vpnBean)
 {
     sptr<L2tpVpnConfig> l2tpVpnConfig = new (std::nothrow) L2tpVpnConfig();
-    if (l2tpVpnConfig == nullptr)
-    {
+    if (l2tpVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig l2tpVpnConfig is null");
         return nullptr;
     }
@@ -167,8 +164,7 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
 sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig)
 {
     sptr<VpnDataBean> vpnBean = new(std::nothrow) VpnDataBean();
-    if (vpnBean == nullptr)
-    {
+    if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("ConvertSysVpnConfigToVpnBean vpnBean is null");
         return nullptr;
     }
@@ -176,7 +172,7 @@ sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &
     sptr<OpenVpnConfig> openVpnConfig;
     sptr<IpsecVpnConfig> ipsecVpnConfig;
     sptr<L2tpVpnConfig> l2tpVpnConfig;
-    switch (sysVpnConfig->vpnType_){
+    switch (sysVpnConfig->vpnType_) {
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
@@ -204,8 +200,7 @@ sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &
 
 void VpnDataBean::ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
-    if (vpnBean == nullptr || sysVpnConfig == nullptr)
-    {
+    if (vpnBean == nullptr || sysVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertCommonVpnConfigToVpnBean params is null");
         return;
     }
@@ -213,8 +208,7 @@ void VpnDataBean::ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConf
     vpnBean->vpnName_ = sysVpnConfig->vpnName_;
     vpnBean->vpnType_ = sysVpnConfig->vpnType_;
     std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
-    if (!addresses.empty())
-    {
+    if (!addresses.empty()) {
         vpnBean->vpnAddress_ = addresses[0].address_;
     }
     vpnBean->userName_ = sysVpnConfig->userName_;
@@ -224,21 +218,18 @@ void VpnDataBean::ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConf
     vpnBean->saveLogin_ = sysVpnConfig->saveLogin_ ? 1 : 0;
     vpnBean->forwardingRoutes_ = sysVpnConfig->forwardingRoutes_;
     std::vector<std::string> dnsAddresses = sysVpnConfig->dnsAddresses_;
-    if (!dnsAddresses.empty())
-    {
+    if (!dnsAddresses.empty()) {
         vpnBean->dnsAddresses_ = dnsAddresses[0];
     }
     std::vector<std::string> searchDomains = sysVpnConfig->searchDomains_;
-    if (!searchDomains.empty())
-    {
+    if (!searchDomains.empty()) {
         vpnBean->searchDomains_ = searchDomains[0];
     }
 }
 
 void VpnDataBean::ConvertOpenVpnConfigToVpnBean(sptr<OpenVpnConfig> &openVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
-    if (vpnBean == nullptr || openVpnConfig == nullptr)
-    {
+    if (vpnBean == nullptr || openVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertOpenVpnConfigToVpnBean params is null");
         return;
     }
@@ -255,8 +246,7 @@ void VpnDataBean::ConvertOpenVpnConfigToVpnBean(sptr<OpenVpnConfig> &openVpnConf
 
 void VpnDataBean::ConvertIpsecVpnConfigToVpnBean(sptr<IpsecVpnConfig> &ipsecVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
-    if (vpnBean == nullptr || ipsecVpnConfig == nullptr)
-    {
+    if (vpnBean == nullptr || ipsecVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertIpsecVpnConfigToVpnBean params is null");
         return;
     }
@@ -278,8 +268,7 @@ void VpnDataBean::ConvertIpsecVpnConfigToVpnBean(sptr<IpsecVpnConfig> &ipsecVpnC
 
 void VpnDataBean::ConvertL2tpVpnConfigToVpnBean(sptr<L2tpVpnConfig> &l2tpVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
-    if (vpnBean == nullptr || l2tpVpnConfig == nullptr)
-    {
+    if (vpnBean == nullptr || l2tpVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertL2tpVpnConfigToVpnBean params is null");
         return;
     }

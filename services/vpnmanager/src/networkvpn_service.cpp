@@ -647,7 +647,7 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
     }
 
     NETMGR_EXT_LOG_I("sysvpn service DeleteSysVpnConfig %{public}s", vpnId.c_str());
-	auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
+    auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
     int32_t result = helper->DeleteVpnData(vpnId, userId);
     if (NETMANAGER_EXT_SUCCESS != result) {
         NETMGR_EXT_LOG_E("DeleteSystemVpn failed, code = %{public}d", result);

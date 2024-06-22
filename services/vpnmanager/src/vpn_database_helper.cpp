@@ -126,23 +126,8 @@ bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId, int32_t &userId)
     return exists > 0;
 }
 
-int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &info)
+void VpnDatabaseHelper::bindInsertData(const sptr<VpnDataBean> &info)
 {
-    std::string paramList = VPN_CONFIG_TABLE_PARAM_LIST;
-    std::string params;
-    int32_t paramCount = count(paramList.begin(), paramList.end(), ',') + 1;
-    for (int32_t i = 0; i < paramCount; ++i) {
-        params += "?";
-        if (i != paramCount - 1) {
-            params += ",";
-        }
-    }
-    std::string sql = "INSERT INTO " + std::string(VPN_CONFIG_TABLE)
-        + " (" + paramList + ") " + "VALUES" + " (" + params + ") ";
-    int32_t ret = statement_.Prepare(sqlite_, sql);
-    if (ret != SQLITE_OK) {
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
-    }
     int32_t idx = 1;
     statement_.BindText(idx, info->vpnId_);
     statement_.BindText(++idx, info->vpnName_);
@@ -184,24 +169,10 @@ int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &info)
     statement_.BindText(++idx, info->optionsL2tpdClient_);
     statement_.BindText(++idx, info->xl2tpdConf_);
     statement_.BindText(++idx, info->l2tpSharedKey_);
-    ret = statement_.Step();
-    statement_.ResetStatementAndClearBindings();
-    if (ret != SQLITE_DONE) {
-        NETMGR_EXT_LOG_E("Step failed ret:%{public}d", ret);
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
-    }
-    return NETMANAGER_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &info)
+void VpnDatabaseHelper::bindUpdateData(const sptr<VpnDataBean> &info)
 {
-    std::string sql = "UPDATE " + std::string(VPN_CONFIG_TABLE)
-        + " SET " + std::string(VPN_CONFIG_TABLE_UPDATE_SQL) + " WHERE "
-        + "vpnId = ? AND userId = ?";
-    int32_t ret = statement_.Prepare(sqlite_, sql);
-    if (ret != SQLITE_OK) {
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
-    }
     int32_t idx = 1;
     statement_.BindText(idx, info->vpnName_);
     statement_.BindInt32(++idx, info->vpnType_);
@@ -243,6 +214,46 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &info)
     statement_.BindText(++idx, info->l2tpSharedKey_);
     statement_.BindText(++idx, info->vpnId_);
     statement_.BindInt32(++idx, info->userId_);
+}
+
+
+int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &info)
+{
+    std::string paramList = VPN_CONFIG_TABLE_PARAM_LIST;
+    std::string params;
+    int32_t paramCount = count(paramList.begin(), paramList.end(), ',') + 1;
+    for (int32_t i = 0; i < paramCount; ++i) {
+        params += "?";
+        if (i != paramCount - 1) {
+            params += ",";
+        }
+    }
+    std::string sql = "INSERT INTO " + std::string(VPN_CONFIG_TABLE)
+        + " (" + paramList + ") " + "VALUES" + " (" + params + ") ";
+    int32_t ret = statement_.Prepare(sqlite_, sql);
+    if (ret != SQLITE_OK) {
+        return NETMANAGER_ERR_WRITE_DATA_FAIL;
+    }
+    bindInsertData(info);
+    ret = statement_.Step();
+    statement_.ResetStatementAndClearBindings();
+    if (ret != SQLITE_DONE) {
+        NETMGR_EXT_LOG_E("Step failed ret:%{public}d", ret);
+        return NETMANAGER_ERR_WRITE_DATA_FAIL;
+    }
+    return NETMANAGER_SUCCESS;
+}
+
+int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &info)
+{
+    std::string sql = "UPDATE " + std::string(VPN_CONFIG_TABLE)
+        + " SET " + std::string(VPN_CONFIG_TABLE_UPDATE_SQL) + " WHERE "
+        + "vpnId = ? AND userId = ?";
+    int32_t ret = statement_.Prepare(sqlite_, sql);
+    if (ret != SQLITE_OK) {
+        return NETMANAGER_ERR_WRITE_DATA_FAIL;
+    }
+    bindUpdateData(info);
     ret = statement_.Step();
     statement_.ResetStatementAndClearBindings();
     if (ret != SQLITE_DONE) {
@@ -307,54 +318,59 @@ int32_t VpnDatabaseHelper::Close()
     return ret == SQLITE_OK ? NETMANAGER_SUCCESS : NETMANAGER_ERROR;
 }
 
+void VpnDatabaseHelper::initStatementQuery()
+{
+    int32_t idx = 0;
+    VpnDataBean info;
+    statement_.GetColumnString(idx, info.vpnId_);
+    statement_.GetColumnString(++idx, info.vpnName_);
+    statement_.GetColumnInt(++idx, info.vpnType_);
+    statement_.GetColumnString(++idx, info.vpnAddress_);
+    statement_.GetColumnString(++idx, info.userName_);
+    statement_.GetColumnString(++idx, info.password_);
+    statement_.GetColumnInt(++idx, info.userId_);
+    statement_.GetColumnInt(++idx, info.isLegacy_);
+    statement_.GetColumnInt(++idx, info.saveLogin_);
+    statement_.GetColumnString(++idx, info.forwardingRoutes_);
+    statement_.GetColumnString(++idx, info.dnsAddresses_);
+    statement_.GetColumnString(++idx, info.searchDomains_);
+    statement_.GetColumnString(++idx, info.ovpnPort_);
+    statement_.GetColumnInt(++idx, info.ovpnProtocol_);
+    statement_.GetColumnString(++idx, info.ovpnConfig_);
+    statement_.GetColumnInt(++idx, info.ovpnAuthType_);
+    statement_.GetColumnString(++idx, info.askpass_);
+    statement_.GetColumnString(++idx, info.ovpnConfigFilePath_);
+    statement_.GetColumnString(++idx, info.ovpnCaCertFilePath_);
+    statement_.GetColumnString(++idx, info.ovpnUserCertFilePath_);
+    statement_.GetColumnString(++idx, info.ovpnPrivateKeyFilePath_);
+    statement_.GetColumnString(++idx, info.ipsecPreSharedKey_);
+    statement_.GetColumnString(++idx, info.ipsecIdentifier_);
+    statement_.GetColumnString(++idx, info.swanctlConf_);
+    statement_.GetColumnString(++idx, info.strongswanConf_);
+    statement_.GetColumnString(++idx, info.ipsecCaCertConf_);
+    statement_.GetColumnString(++idx, info.ipsecPrivateUserCertConf_);
+    statement_.GetColumnString(++idx, info.ipsecPublicUserCertConf_);
+    statement_.GetColumnString(++idx, info.ipsecPrivateServerCertConf_);
+    statement_.GetColumnString(++idx, info.ipsecPublicServerCertConf_);
+    statement_.GetColumnString(++idx, info.ipsecCaCertFilePath_);
+    statement_.GetColumnString(++idx, info.ipsecPrivateUserCertFilePath_);
+    statement_.GetColumnString(++idx, info.ipsecPublicUserCertFilePath_);
+    statement_.GetColumnString(++idx, info.ipsecPrivateServerCertFilePath_);
+    statement_.GetColumnString(++idx, info.ipsecPublicServerCertFilePath_);
+    statement_.GetColumnString(++idx, info.ipsecConf_);
+    statement_.GetColumnString(++idx, info.ipsecSecrets_);
+    statement_.GetColumnString(++idx, info.optionsL2tpdClient_);
+    statement_.GetColumnString(++idx, info.xl2tpdConf_);
+    statement_.GetColumnString(++idx, info.l2tpSharedKey_);
+    infos.emplace_back(info);
+}
+
 int32_t VpnDatabaseHelper::Step(std::vector<VpnDataBean> &infos)
 {
     int32_t rc = statement_.Step();
     NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
     while (rc != SQLITE_DONE) {
-        int32_t idx = 0;
-        VpnDataBean info;
-        statement_.GetColumnString(idx, info.vpnId_);
-        statement_.GetColumnString(++idx, info.vpnName_);
-        statement_.GetColumnInt(++idx, info.vpnType_);
-        statement_.GetColumnString(++idx, info.vpnAddress_);
-        statement_.GetColumnString(++idx, info.userName_);
-        statement_.GetColumnString(++idx, info.password_);
-        statement_.GetColumnInt(++idx, info.userId_);
-        statement_.GetColumnInt(++idx, info.isLegacy_);
-        statement_.GetColumnInt(++idx, info.saveLogin_);
-        statement_.GetColumnString(++idx, info.forwardingRoutes_);
-        statement_.GetColumnString(++idx, info.dnsAddresses_);
-        statement_.GetColumnString(++idx, info.searchDomains_);
-        statement_.GetColumnString(++idx, info.ovpnPort_);
-        statement_.GetColumnInt(++idx, info.ovpnProtocol_);
-        statement_.GetColumnString(++idx, info.ovpnConfig_);
-        statement_.GetColumnInt(++idx, info.ovpnAuthType_);
-        statement_.GetColumnString(++idx, info.askpass_);
-        statement_.GetColumnString(++idx, info.ovpnConfigFilePath_);
-        statement_.GetColumnString(++idx, info.ovpnCaCertFilePath_);
-        statement_.GetColumnString(++idx, info.ovpnUserCertFilePath_);
-        statement_.GetColumnString(++idx, info.ovpnPrivateKeyFilePath_);
-        statement_.GetColumnString(++idx, info.ipsecPreSharedKey_);
-        statement_.GetColumnString(++idx, info.ipsecIdentifier_);
-        statement_.GetColumnString(++idx, info.swanctlConf_);
-        statement_.GetColumnString(++idx, info.strongswanConf_);
-        statement_.GetColumnString(++idx, info.ipsecCaCertConf_);
-        statement_.GetColumnString(++idx, info.ipsecPrivateUserCertConf_);
-        statement_.GetColumnString(++idx, info.ipsecPublicUserCertConf_);
-        statement_.GetColumnString(++idx, info.ipsecPrivateServerCertConf_);
-        statement_.GetColumnString(++idx, info.ipsecPublicServerCertConf_);
-        statement_.GetColumnString(++idx, info.ipsecCaCertFilePath_);
-        statement_.GetColumnString(++idx, info.ipsecPrivateUserCertFilePath_);
-        statement_.GetColumnString(++idx, info.ipsecPublicUserCertFilePath_);
-        statement_.GetColumnString(++idx, info.ipsecPrivateServerCertFilePath_);
-        statement_.GetColumnString(++idx, info.ipsecPublicServerCertFilePath_);
-        statement_.GetColumnString(++idx, info.ipsecConf_);
-        statement_.GetColumnString(++idx, info.ipsecSecrets_);
-        statement_.GetColumnString(++idx, info.optionsL2tpdClient_);
-        statement_.GetColumnString(++idx, info.xl2tpdConf_);
-        statement_.GetColumnString(++idx, info.l2tpSharedKey_);
-        infos.emplace_back(info);
+        initStatementQuery();
         rc = statement_.Step();
         NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
     }

@@ -51,6 +51,9 @@ public:
     int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
     int32_t Step(std::vector<VpnDataBean> &vpnBean);
     int32_t ExecSql(const std::string &sql, void *recv, SqlCallback callback);
+    void initStatementQuery();
+    void bindUpdateData(const sptr<VpnDataBean> &info);
+    void bindInsertData(const sptr<VpnDataBean> &info);
 
 private:
     int32_t Open(const std::string &path);

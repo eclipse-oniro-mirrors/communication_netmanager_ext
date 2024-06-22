@@ -19,6 +19,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include <gtest/gtest.h>
 #include "net_stats_constants.h"
+
 #ifndef USE_SQLITE_SYMBOLS
 #include "sqlite3.h"
 #else

@@ -28,7 +28,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct VpnDataBean : public virtual RefBase{
+struct VpnDataBean : public virtual RefBase {
     //common
     std::string vpnId_;
     std::string vpnName_;
