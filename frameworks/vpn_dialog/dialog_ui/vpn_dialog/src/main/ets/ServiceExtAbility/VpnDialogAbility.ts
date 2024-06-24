@@ -56,11 +56,15 @@ export default class VpnDialogAbility extends extension {
   
     globalThis.extensionContext = this.context;
 
-    let abilityName: string = want.parameters.abilityName.toString();
-    let bundleName: string = want.parameters.bundleName.toString();
-    globalThis.abilityName = abilityName;
-    globalThis.bundleName = bundleName;
-
+    if (want?.parameters?.abilityName) {
+      let abilityName: string = want.parameters.abilityName.toString();
+      globalThis.abilityName = abilityName;
+    }
+    if (want?.parameters?.bundleName) {
+      let bundleName: string = want.parameters.bundleName.toString();
+      globalThis.bundleName = bundleName;
+    }
+    
     let dis = display.getDefaultDisplaySync();
     let navigationBarRect: NavigationBarRect = {
       left: 0,
