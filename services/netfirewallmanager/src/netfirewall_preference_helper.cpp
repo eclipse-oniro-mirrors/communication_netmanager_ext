@@ -33,9 +33,6 @@ shared_ptr<NetFirewallPreferenceHelper> NetFirewallPreferenceHelper::GetInstance
 
 bool NetFirewallPreferenceHelper::GetPreference()
 {
-    if (ptr_ != nullptr) {
-        return true;
-    }
     int32_t errCode = -1;
     ptr_ = NativePreferences::PreferencesHelper::GetPreferences(filePath_, errCode);
     if (ptr_ == nullptr) {
@@ -47,9 +44,6 @@ bool NetFirewallPreferenceHelper::GetPreference()
 
 bool NetFirewallPreferenceHelper::GetPreference(const std::string &filePath)
 {
-    if (ptr_ != nullptr) {
-        return true;
-    }
     filePath_ = filePath;
     int32_t errCode = -1;
     ptr_ = NativePreferences::PreferencesHelper::GetPreferences(filePath_, errCode);

@@ -74,6 +74,7 @@ bool NetFirewallDbHelper::DomainListToBlob(const std::vector<NetFirewallDomainPa
 bool NetFirewallDbHelper::BlobToDomainList(const std::vector<uint8_t> &blob, std::vector<NetFirewallDomainParam> &vec)
 {
     vec.clear();
+    vec.shrink_to_fit();
     size_t blobSize = blob.size();
     if (blobSize < 1) {
         return false;
@@ -123,6 +124,7 @@ template <typename T> bool NetFirewallDbHelper::ListToBlob(const std::vector<T> 
 template <typename T> bool NetFirewallDbHelper::BlobToList(const std::vector<uint8_t> &blob, std::vector<T> &vec)
 {
     vec.clear();
+    vec.shrink_to_fit();
     size_t blobSize = blob.size();
     if (blobSize < 1) {
         return false;
@@ -233,6 +235,7 @@ int32_t NetFirewallDbHelper::CheckIfNeedUpdateEx(const std::string &tableName, b
     isUpdate = rowCount > 0 && !rules.empty();
     if (!rules.empty()) {
         oldRule.ruleId = rules[0].ruleId;
+        oldRule.userId = rules[0].userId;
         oldRule.ruleType = rules[0].ruleType;
         oldRule.isEnabled = rules[0].isEnabled;
     }
@@ -415,10 +418,13 @@ void NetFirewallDbHelper::GetRuleListParamFromResultSet(const std::shared_ptr<OH
             }
             resultSet->GetBlob(table.localIpsIndex, value);
             BlobToList(value, info.localIps);
+            value.clear();
             resultSet->GetBlob(table.remoteIpsIndex, value);
             BlobToList(value, info.remoteIps);
+            value.clear();
             resultSet->GetBlob(table.localPortsIndex, value);
             BlobToList(value, info.localPorts);
+            value.clear();
             resultSet->GetBlob(table.remotePortsIndex, value);
             BlobToList(value, info.remotePorts);
             break;
@@ -450,12 +456,12 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     }
 
     bool endFlag = false;
+    NetFirewallRule info;
     for (int32_t i = 0; (i < table.rowCount) && !endFlag; i++) {
         if (resultSet->GoToRow(i) != E_OK) {
             NETMGR_EXT_LOG_E("GoToRow %{public}d", i);
             break;
         }
-        NetFirewallRule info;
         resultSet->GetInt(table.ruleIdIndex, info.ruleId);
         if (info.ruleId > 0) {
             GetRuleDataFromResultSet(resultSet, table, info);
@@ -482,12 +488,12 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     int32_t localPort = 0;
     int32_t remotePort = 0;
     int32_t protocol = 0;
+    InterceptRecord info;
     for (int32_t i = 0; (i < table.rowCount) && !endFlag; i++) {
         if (resultSet->GoToRow(i) != E_OK) {
             NETMGR_EXT_LOG_E("GetResultRightRecordEx GoToRow %{public}d", i);
             break;
         }
-        InterceptRecord info;
         resultSet->GetInt(table.timeIndex, info.time);
         resultSet->GetString(table.localIpIndex, info.localIp);
         resultSet->GetString(table.remoteIpIndex, info.remoteIp);
@@ -824,6 +830,7 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
         ret = firewallDatabase_->Insert(values, INTERCEPT_RECORD_TABLE);
         if (ret < FIREWALL_OK) {
             NETMGR_EXT_LOG_E("AddInterceptRecord error: %{public}d", ret);
+            firewallDatabase_->Commit();
             return -1;
         }
     }
@@ -873,6 +880,16 @@ int32_t NetFirewallDbHelper::QueryInterceptRecord(const int32_t userId, const sp
     }
     rdbPredicates.Limit((requestParam->page - 1) * requestParam->pageSize, requestParam->pageSize)->EndWrap();
     return QueryAndGetResult(rdbPredicates, columns, info->data);
+}
+
+void NetFirewallDbHelper::BeginTransaction()
+{
+    firewallDatabase_->BeginTransaction();
+}
+
+void NetFirewallDbHelper::Commit()
+{
+    firewallDatabase_->Commit();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

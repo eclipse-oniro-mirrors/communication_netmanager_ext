@@ -91,10 +91,14 @@ int32_t NetFirewallService::GetCurrentAccountId()
  */
 int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &policy)
 {
-    NETMGR_EXT_LOG_I("SetNetFirewallPolicy isOpen= %{public}d, inAction=%{public}d", policy->isOpen, policy->inAction);
-
+    NETMGR_EXT_LOG_I("SetNetFirewallPolicy userId=%{public}d isOpen= %{public}d, inAction=%{public}d", userId,
+        policy->isOpen, policy->inAction);
+    int32_t ret = CheckUserExist(userId);
+    if (ret != FIREWALL_SUCCESS) {
+        return ret;
+    }
     std::shared_ptr<NetFirewallPolicyManager> policyManager = NetFirewallPolicyManager::GetInstance();
-    int32_t ret = policyManager->SetNetFirewallPolicy(userId, policy);
+    ret = policyManager->SetNetFirewallPolicy(userId, policy);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -124,6 +128,10 @@ int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const spt
 int32_t NetFirewallService::GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &policy)
 {
     NETMGR_EXT_LOG_I("GetNetFirewallPolicy");
+    int32_t ret = CheckUserExist(userId);
+    if (ret != FIREWALL_SUCCESS) {
+        return ret;
+    }
     NetFirewallPolicyManager::GetInstance()->GetNetFirewallPolicy(userId, policy);
     return FIREWALL_SUCCESS;
 }
@@ -421,7 +429,7 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         NetFirewallRuleManager::GetInstance()->DeleteNetFirewallRuleByUserId(userId);
         NetFirewallPolicyManager::GetInstance()->ClearFirewallPolicy(userId);
         NetFirewallDbHelper::GetInstance()->DeleteInterceptRecord(userId);
-        NetFirewallRuleManager::GetInstance()->ChangeUserRuleSize(userId);
+        NetFirewallRuleManager::GetInstance()->DeleteUserRuleSize(userId);
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {

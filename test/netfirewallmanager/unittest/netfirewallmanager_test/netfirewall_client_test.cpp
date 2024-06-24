@@ -51,6 +51,7 @@ constexpr int32_t MAX_TEST_CNT = 1;
 constexpr int32_t MAX_USER_RULE = 1;
 constexpr uint32_t APPID_TEST01 = 2034;
 constexpr int32_t USER_ID1 = 100;
+constexpr int32_t USER_ID2 = 101;
 const uint16_t LOCAL_START_PORT = 10020;
 const uint16_t LOCAL_END_PORT = 1003;
 const uint16_t REMOTE_START_PORT = 1002;
@@ -265,6 +266,9 @@ HWTEST_F(NetFirewallClientTest, AddNetFirewallRule001, TestSize.Level1)
     sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr();
     g_startTimeTest = GetCurrentMilliseconds();
     for (int32_t i = 0; i < MAX_USER_RULE; i++) {
+        if (i >= FIREWALL_USER_MAX_RULE) {
+            rule->userId = USER_ID2;
+        }
         uint64_t stime = GetCurrentMilliseconds();
         ret = netfirewallClient_.AddNetFirewallRule(rule, ruleId);
         std::cout << "AddNetFirewallRule IP " << i + 1 << " ruleId " << ruleId << ", use time : " <<
