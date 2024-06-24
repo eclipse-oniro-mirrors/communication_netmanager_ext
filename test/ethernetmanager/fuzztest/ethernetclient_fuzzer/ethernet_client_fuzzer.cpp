@@ -222,6 +222,18 @@ void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
     DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(interfaceCallback);
 }
 
+void OnRegisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    MessageParcel parcel;
+    sptr<IRemoteObject> remote;
+    parcel.WriteRemoteObject(remote);
+    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_REGISTER_INTERFACE_CB), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_UNREGISTER_INTERFACE_CB), parcel);
+}
+
 void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
 {
     MessageParcel parcel;
@@ -368,6 +380,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::GetAllActiveIfacesFuzzTest(data, size);
     OHOS::NetManagerStandard::ResetFactoryFuzzTest(data, size);
     OHOS::NetManagerStandard::UnregisterIfacesStateChangedFuzzTest(data, size);
+    OHOS::NetManagerStandard::OnRegisterIfacesStateChangedFuzzTest(data, size);
     OHOS::NetManagerStandard::SetInterfaceUpFuzzTest(data, size);
     OHOS::NetManagerStandard::SetInterfaceDownFuzzTest(data, size);
     OHOS::NetManagerStandard::GetInterfaceConfigFuzzTest(data, size);
