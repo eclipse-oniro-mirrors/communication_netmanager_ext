@@ -84,7 +84,7 @@ public:
 
     int32_t AddDefaultNetFirewallRule(int32_t userId);
 
-    void ChangeUserRuleSize(const int32_t userId);
+    void DeleteUserRuleSize(const int32_t userId);
 
     int32_t OpenOrCloseNativeFirewall(bool isOpen);
 
@@ -125,9 +125,13 @@ private:
 
     void SetNetFirewallDumpMessage(const int32_t result);
 
+    int32_t HandleUpdateRule(const sptr<NetFirewallRule> &rule);
+
+    void UpdateUserRuleSize(const int32_t userId, bool isInc);
+
 private:
     // Cache the current state
-    int64_t allUserRule_ = 0;
+    std::atomic<int64_t> allUserRule_ = 0;
     int32_t allUserDomain_ = 0;
     int64_t maxDefaultRuleSize_ = 0;
     std::shared_mutex setFirewallRuleMutex_;

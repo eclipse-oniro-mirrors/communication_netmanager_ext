@@ -59,20 +59,25 @@ int32_t NetFirewallRuleManager::AddNetFirewallRule(const sptr<NetFirewallRule> &
 int32_t NetFirewallRuleManager::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, bool isNotify, int32_t &ruleId)
 {
     std::lock_guard<std::shared_mutex> locker(setFirewallRuleMutex_);
+    NetFirewallDbHelper::GetInstance()->BeginTransaction();
     int32_t ret = CheckRuleConstraint(rule);
     if (ret != FIREWALL_OK) {
         NETMGR_EXT_LOG_E("addNetFirewallRule error code=%{public}d", ret);
-        return ret;
+    } else {
+        ruleId = NetFirewallDbHelper::GetInstance()->AddFirewallRuleRecord(*rule);
+        NETMGR_EXT_LOG_I("AddNetFirewallRule:: dbRuleId: %{public}d.", ruleId);
+        if (ruleId < 0) {
+            ret = FIREWALL_ERR_INTERNAL;
+        } else {
+            allUserRule_++;
+            UpdateUserRuleSize(rule->userId, true);
+            if (isNotify && rule->isEnabled) {
+                ret = DistributeRulesToNative(rule->ruleType);
+            }
+        }
     }
-    ruleId = NetFirewallDbHelper::GetInstance()->AddFirewallRuleRecord(*rule);
-    NETMGR_EXT_LOG_I("AddNetFirewallRule:: dbRuleId: %{public}d.", ruleId);
-    if (ruleId < 0) {
-        return FIREWALL_ERR_INTERNAL;
-    }
-    if (isNotify && rule->isEnabled) {
-        return DistributeRulesToNative(rule->ruleType);
-    }
-    return FIREWALL_SUCCESS;
+    NetFirewallDbHelper::GetInstance()->Commit();
+    return ret;
 }
 
 int32_t NetFirewallRuleManager::AddDefaultNetFirewallRule(int32_t userId)
@@ -101,15 +106,9 @@ int32_t NetFirewallRuleManager::AddDefaultNetFirewallRule(int32_t userId)
     return DistributeRulesToNative();
 }
 
-int32_t NetFirewallRuleManager::UpdateNetFirewallRule(const sptr<NetFirewallRule> &rule)
+int32_t NetFirewallRuleManager::HandleUpdateRule(const sptr<NetFirewallRule> &rule)
 {
-    NETMGR_EXT_LOG_I("UpdateNetFirewallRule");
-    std::lock_guard<std::shared_mutex> locker(setFirewallRuleMutex_);
     int32_t ret = CheckRuleConstraint(rule);
-    if (ret != FIREWALL_OK) {
-        return ret;
-    }
-    ret = CheckUserExist(rule->userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -128,6 +127,16 @@ int32_t NetFirewallRuleManager::UpdateNetFirewallRule(const sptr<NetFirewallRule
     if (rule->isEnabled) {
         ret += DistributeRulesToNative(rule->ruleType);
     }
+    return ret;
+}
+
+int32_t NetFirewallRuleManager::UpdateNetFirewallRule(const sptr<NetFirewallRule> &rule)
+{
+    NETMGR_EXT_LOG_I("UpdateNetFirewallRule");
+    std::lock_guard<std::shared_mutex> locker(setFirewallRuleMutex_);
+    NetFirewallDbHelper::GetInstance()->BeginTransaction();
+    int32_t ret = HandleUpdateRule(rule);
+    NetFirewallDbHelper::GetInstance()->Commit();
     return ret;
 }
 
@@ -150,7 +159,10 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRule(const int32_t userId, cons
         NETMGR_EXT_LOG_E("DeleteFirewallRuleRecord error");
         return FIREWALL_ERR_INTERNAL;
     }
-
+    allUserRule_--;
+    if (oldRule.ruleId > 0) {
+        UpdateUserRuleSize(userId, false);
+    }
     if (oldRule.ruleId <= 0 || !oldRule.isEnabled) {
         return FIREWALL_SUCCESS;
     }
@@ -166,7 +178,9 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByUserId(const int32_t user
         NETMGR_EXT_LOG_E("DeleteFirewallRuleRecord error");
         return FIREWALL_ERR_INTERNAL;
     }
-
+    // reset
+    allUserRule_ = userRuleSize_.count(userId) ? (allUserRule_ - userRuleSize_.at(userId)) : 0;
+    DeleteUserRuleSize(userId);
     return FIREWALL_SUCCESS;
 }
 
@@ -186,7 +200,8 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByAppId(const int32_t appUi
         NETMGR_EXT_LOG_E("DeleteNetFirewallRuleByAppId error");
         return FIREWALL_ERR_INTERNAL;
     }
-
+    allUserRule_ = 0;
+    userRuleSize_.clear();
     bool hasEnabledIpRule = false;
     bool hasEnabledDomainRule = false;
     bool hasEnabledDnsRule = false;
@@ -312,29 +327,31 @@ int32_t NetFirewallRuleManager::CheckRuleExist(const int32_t ruleId, NetFirewall
 int32_t NetFirewallRuleManager::GetAllRuleConstraint(const int32_t userId)
 {
     std::shared_ptr<NetFirewallDbHelper> helper = NetFirewallDbHelper::GetInstance();
-    helper->QueryFirewallRuleAllCount(allUserRule_);
     int64_t rowCount = 0;
-    helper->QueryFirewallRuleByUserIdCount(userId, rowCount);
-    allUserDomain_ = helper->QueryFirewallRuleAllDomainCount();
-    if (userRuleSize_.count(userId)) {
-        userRuleSize_.at(userId) = rowCount;
-    } else {
+    if (allUserRule_ <= 0) {
+        helper->QueryFirewallRuleAllCount(rowCount);
+        allUserRule_ = rowCount;
+    }
+    if (!userRuleSize_.count(userId)) {
+        rowCount = 0;
+        helper->QueryFirewallRuleByUserIdCount(userId, rowCount);
         userRuleSize_.insert({ userId, rowCount });
     }
+    allUserDomain_ = helper->QueryFirewallRuleAllDomainCount();
     NETMGR_EXT_LOG_I(
         "GetAllRuleConstraint userId=%{public}d rowCount=%{public}d allUserRule=%{public}d allUserDomain=%{public}d",
-        userId, static_cast<int32_t>(rowCount), static_cast<int32_t>(allUserRule_), allUserDomain_);
+        userId, static_cast<int32_t>(userRuleSize_.at(userId)), static_cast<int32_t>(allUserRule_), allUserDomain_);
     return FIREWALL_SUCCESS;
 }
 
 int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> &rule)
 {
+    int32_t ret = CheckUserExist(rule->userId);
+    if (ret != FIREWALL_SUCCESS) {
+        return ret;
+    }
     int32_t userId = rule->userId;
     GetAllRuleConstraint(userId);
-    if (!CheckAccountExist(userId)) {
-        NETMGR_EXT_LOG_E("current accoutn is not exist, userId: %{public}d.", userId);
-        return FIREWALL_ERR_NO_RULE;
-    }
     if (userRuleSize_.at(userId) < maxDefaultRuleSize_) {
         NETMGR_EXT_LOG_I("current user db size is not max than default rule size, ignore check.");
         return FIREWALL_SUCCESS;
@@ -577,7 +594,16 @@ int32_t NetFirewallRuleManager::SetRulesToNativeByType(const int32_t userId, con
     return ret;
 }
 
-void NetFirewallRuleManager::ChangeUserRuleSize(const int32_t userId)
+void NetFirewallRuleManager::UpdateUserRuleSize(const int32_t userId, bool isInc)
+{
+    if (!userRuleSize_.count(userId)) {
+        return;
+    }
+    int64_t old = userRuleSize_.at(userId);
+    userRuleSize_.at(userId) = isInc ? (old + 1) : (old - 1);
+}
+
+void NetFirewallRuleManager::DeleteUserRuleSize(const int32_t userId)
 {
     if (!userRuleSize_.empty() && userRuleSize_.count(userId)) {
         userRuleSize_.erase(userId);

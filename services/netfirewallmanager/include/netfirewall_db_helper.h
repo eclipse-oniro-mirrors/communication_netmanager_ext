@@ -261,6 +261,8 @@ public:
     int32_t Count(int64_t &outValue, const OHOS::NativeRdb::AbsRdbPredicates &predicates);
 
     int32_t QuerySql(const std::string &sql);
+    void BeginTransaction();
+    void Commit();
 
 private:
     NetFirewallDbHelper();
