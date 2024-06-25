@@ -22,7 +22,6 @@
 #include "refbase.h"
 #include "inet_addr.h"
 #include "vpn_config.h"
-#include "openvpn_config.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 
@@ -78,12 +77,10 @@ struct VpnDataBean : public virtual RefBase {
     std::string l2tpSharedKey_;
 
     static sptr<SysVpnConfig> ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &vpnBean);
-    static sptr<OpenVpnConfig> ConvertVpnBeanToOpenVpnConfig(sptr<VpnDataBean> &vpnBean);
     static sptr<IpsecVpnConfig> ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBean> &vpnBean);
     static sptr<L2tpVpnConfig> ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean> &vpnBean);
     static sptr<VpnDataBean> ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig);
     static void ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig, sptr<VpnDataBean> &vpnBean);
-    static void ConvertOpenVpnConfigToVpnBean(sptr<OpenVpnConfig> &openVpnConfig, sptr<VpnDataBean> &vpnBean);
     static void ConvertIpsecVpnConfigToVpnBean(sptr<IpsecVpnConfig> &ipsecVpnConfig, sptr<VpnDataBean> &vpnBean);
     static void ConvertL2tpVpnConfigToVpnBean(sptr<L2tpVpnConfig> &l2tpVpnConfig, sptr<VpnDataBean> &vpnBean);
 };

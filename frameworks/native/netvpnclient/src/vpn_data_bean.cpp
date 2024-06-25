@@ -29,8 +29,6 @@ sptr<SysVpnConfig> VpnDataBean::ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &
         case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
         case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
             return ConvertVpnBeanToIpsecVpnConfig(vpnBean);
-        case static_cast<int32_t>(VpnType::OPENVPN):
-            return ConvertVpnBeanToOpenVpnConfig(vpnBean);
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
             return ConvertVpnBeanToL2tpVpnConfig(vpnBean);
@@ -39,41 +37,6 @@ sptr<SysVpnConfig> VpnDataBean::ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &
                 vpnBean->vpnType_);
             return nullptr;
     }
-}
-
-sptr<OpenVpnConfig> VpnDataBean::ConvertVpnBeanToOpenVpnConfig(sptr<VpnDataBean> &vpnBean)
-{
-    sptr<OpenVpnConfig> openVpnConfig = new (std::nothrow) OpenVpnConfig();
-    if (openVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToOpenVpnConfig openVpnConfig is null");
-        return nullptr;
-    }
-    openVpnConfig->vpnId_ = vpnBean->vpnId_;
-    openVpnConfig->vpnName_ = vpnBean->vpnName_;
-    openVpnConfig->vpnType_ = vpnBean->vpnType_;
-    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
-    netAddr->address_ = vpnBean->vpnAddress_;
-    openVpnConfig->addresses_.push_back(*netAddr);
-    openVpnConfig->userName_ = vpnBean->userName_;
-    openVpnConfig->password_ = vpnBean->password_;
-    openVpnConfig->userId_ = vpnBean->userId_;
-    openVpnConfig->isLegacy_ = (vpnBean->isLegacy_) == 1 ? true : false ;
-    openVpnConfig->saveLogin_ = (vpnBean->saveLogin_) == 1 ? true : false ;
-    openVpnConfig->forwardingRoutes_ = vpnBean->forwardingRoutes_;
-    openVpnConfig->dnsAddresses_.push_back(vpnBean->dnsAddresses_);
-    openVpnConfig->searchDomains_.push_back(vpnBean->searchDomains_);
-
-    openVpnConfig->ovpnPort_ = vpnBean->ovpnPort_;
-    openVpnConfig->ovpnProtocol_ = vpnBean->ovpnProtocol_;
-    openVpnConfig->ovpnConfig_ = vpnBean->ovpnConfig_;
-    openVpnConfig->ovpnAuthType_ = vpnBean->ovpnAuthType_;
-    openVpnConfig->askpass_ = vpnBean->askpass_;
-    openVpnConfig->ovpnConfigFilePath_ = vpnBean->ovpnConfigFilePath_;
-    openVpnConfig->ovpnCaCertFilePath_ = vpnBean->ovpnCaCertFilePath_;
-    openVpnConfig->ovpnUserCertFilePath_ = vpnBean->ovpnUserCertFilePath_;
-    openVpnConfig->ovpnPrivateKeyFilePath_ = vpnBean->ovpnPrivateKeyFilePath_;
-
-    return openVpnConfig;
 }
 
 sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBean> &vpnBean)
@@ -169,7 +132,6 @@ sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &
         return nullptr;
     }
     ConvertCommonVpnConfigToVpnBean(sysVpnConfig, vpnBean);
-    sptr<OpenVpnConfig> openVpnConfig;
     sptr<IpsecVpnConfig> ipsecVpnConfig;
     sptr<L2tpVpnConfig> l2tpVpnConfig;
     switch (sysVpnConfig->vpnType_) {
@@ -181,10 +143,6 @@ sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &
         case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
             ipsecVpnConfig = sptr<IpsecVpnConfig>(static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr()));
             ConvertIpsecVpnConfigToVpnBean(ipsecVpnConfig, vpnBean);
-            break;
-        case static_cast<int32_t>(VpnType::OPENVPN):
-            openVpnConfig = sptr<OpenVpnConfig>(static_cast<OpenVpnConfig*>(sysVpnConfig.GetRefPtr()));
-            ConvertOpenVpnConfigToVpnBean(openVpnConfig, vpnBean);
             break;
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
         case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
@@ -226,24 +184,6 @@ void VpnDataBean::ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConf
         vpnBean->searchDomains_ = searchDomains[0];
     }
 }
-
-void VpnDataBean::ConvertOpenVpnConfigToVpnBean(sptr<OpenVpnConfig> &openVpnConfig, sptr<VpnDataBean> &vpnBean)
-{
-    if (vpnBean == nullptr || openVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertOpenVpnConfigToVpnBean params is null");
-        return;
-    }
-    vpnBean->ovpnPort_ = openVpnConfig->ovpnPort_;
-    vpnBean->ovpnProtocol_ = openVpnConfig->ovpnProtocol_;
-    vpnBean->ovpnConfig_ = openVpnConfig->ovpnConfig_;
-    vpnBean->ovpnAuthType_ = openVpnConfig->ovpnAuthType_;
-    vpnBean->askpass_ = openVpnConfig->askpass_;
-    vpnBean->ovpnConfigFilePath_ = openVpnConfig->ovpnConfigFilePath_;
-    vpnBean->ovpnCaCertFilePath_ = openVpnConfig->ovpnCaCertFilePath_;
-    vpnBean->ovpnUserCertFilePath_ = openVpnConfig->ovpnUserCertFilePath_;
-    vpnBean->ovpnPrivateKeyFilePath_ = openVpnConfig->ovpnPrivateKeyFilePath_;
-}
-
 void VpnDataBean::ConvertIpsecVpnConfigToVpnBean(sptr<IpsecVpnConfig> &ipsecVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr || ipsecVpnConfig == nullptr) {

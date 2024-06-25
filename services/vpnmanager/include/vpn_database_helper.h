@@ -28,7 +28,6 @@
 
 #include "vpn_sqlite_statement.h"
 #include "vpn_data_bean.h"
-#include "openvpn_config.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 
