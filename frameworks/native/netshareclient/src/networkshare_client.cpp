@@ -228,7 +228,7 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
     }
 
     auto remote = callback->GetRemoteObject();
-    if (remote == nullptr || !remote->IsProxyObject()) {
+    if (remote == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
     }
@@ -238,7 +238,7 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         NETMGR_EXT_LOG_E("deathRecipient_ is nullptr");
         return nullptr;
     }
-    if (!remote->AddDeathRecipient(deathRecipient_)) {
+    if (remote->IsProxyObject() && !remote->AddDeathRecipient(deathRecipient_)) {
         NETMGR_EXT_LOG_E("add death recipient failed");
         return nullptr;
     }
