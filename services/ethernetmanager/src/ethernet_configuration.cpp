@@ -83,7 +83,7 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
                                                    std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs,
                                                    const cJSON* const json)
 {
-    for (uint32_t i = 0; i < cJSON_GetArraySize(json); i++) {
+    for (int32_t i = 0; i < cJSON_GetArraySize(json); i++) {
         cJSON *item = cJSON_GetArrayItem(json, i);
         if (item == nullptr) {
             continue;
@@ -101,7 +101,7 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
         }
         cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS.c_str());
         std::set<NetCap> caps;
-        for (uint32_t j = 0; j < cJSON_GetArraySize(capsObj); j++) {
+        for (int32_t j = 0; j < cJSON_GetArraySize(capsObj); j++) {
             cJSON *capsItem = cJSON_GetArrayItem(capsObj, j);
             if (capsItem == nullptr) {
                 continue;

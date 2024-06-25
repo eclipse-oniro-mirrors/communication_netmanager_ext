@@ -198,7 +198,7 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
 {
     cJSON *dnsAddr = cJSON_GetObjectItem(doc, "dnsAddresses");
     if (dnsAddr != nullptr && cJSON_IsArray(dnsAddr)) {
-        for (uint32_t i = 0; i < cJSON_GetArraySize(dnsAddr); i++) {
+        for (int32_t i = 0; i < cJSON_GetArraySize(dnsAddr); i++) {
             cJSON *item = cJSON_GetArrayItem(dnsAddr, i);
             if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
@@ -209,7 +209,7 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *sDomain = cJSON_GetObjectItem(doc, "searchDomains");
     if (sDomain != nullptr && cJSON_IsArray(sDomain)) {
-        for (uint32_t i = 0; i < cJSON_GetArraySize(sDomain); i++) {
+        for (int32_t i = 0; i < cJSON_GetArraySize(sDomain); i++) {
             cJSON *item = cJSON_GetArrayItem(sDomain, i);
             if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
@@ -220,7 +220,7 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *acceptApp = cJSON_GetObjectItem(doc, "acceptedApplications");
     if (acceptApp != nullptr && cJSON_IsArray(acceptApp)) {
-        for (uint32_t i = 0; i < cJSON_GetArraySize(acceptApp); i++) {
+        for (int32_t i = 0; i < cJSON_GetArraySize(acceptApp); i++) {
             cJSON *item = cJSON_GetArrayItem(acceptApp, i);
             if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
@@ -231,7 +231,7 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
     }
     cJSON *refusedApp = cJSON_GetObjectItem(doc, "refusedApplications");
     if (refusedApp != nullptr && cJSON_IsArray(refusedApp)) {
-        for (uint32_t i = 0; i < cJSON_GetArraySize(refusedApp); i++) {
+        for (int32_t i = 0; i < cJSON_GetArraySize(refusedApp); i++) {
             cJSON *item = cJSON_GetArrayItem(refusedApp, i);
             if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
