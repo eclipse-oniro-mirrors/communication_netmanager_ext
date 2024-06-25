@@ -318,7 +318,7 @@ int32_t VpnDatabaseHelper::Close()
     return ret == SQLITE_OK ? NETMANAGER_SUCCESS : NETMANAGER_ERROR;
 }
 
-void VpnDatabaseHelper::initStatementQuery()
+void VpnDatabaseHelper::initStatementQuery(std::vector<VpnDataBean> &infos)
 {
     int32_t idx = 0;
     VpnDataBean info;
@@ -370,7 +370,7 @@ int32_t VpnDatabaseHelper::Step(std::vector<VpnDataBean> &infos)
     int32_t rc = statement_.Step();
     NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
     while (rc != SQLITE_DONE) {
-        initStatementQuery();
+        initStatementQuery(infos);
         rc = statement_.Step();
         NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
     }

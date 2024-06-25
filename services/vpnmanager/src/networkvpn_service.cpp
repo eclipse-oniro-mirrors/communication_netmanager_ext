@@ -623,14 +623,13 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
     auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
     sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
     int32_t result = helper->InsertOrUpdateData(vpnBean);
-    NETMGR_EXT_LOG_E("AddSysVpnConfig ser result= [%{public}d]", result);
     return result;
 }
 
 int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("vpnId is null");
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     std::unique_lock<std::mutex> locker(netVpnMutex_);

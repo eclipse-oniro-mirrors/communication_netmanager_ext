@@ -21,14 +21,14 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr const char* TEST_VPNID = "vpnId_";
-constexpr const char* TEST_VPN_NAME = "vpnName_";
+constexpr const char *TEST_VPNID = "vpnId_";
+constexpr const char *TEST_VPN_NAME = "vpnName_";
 constexpr int32_t TEST_VPN_TYPE = 1;
-constexpr const char* TEST_USER_NAME = "userName_";
-constexpr const char* TEST_PASSWOR D= "password_";
+constexpr const char *TEST_USER_NAME = "userName_";
+constexpr const char *TEST_PASSWORD = "password_";
 constexpr bool TEST_SAVE_LOGIN = false;
-constexpr int32_t  TEST_USERID = 0;
-constexpr const char* TEST_FORWARD = "forwardingRoutes_";
+constexpr int32_t TEST_USERID = 0;
+constexpr const char *TEST_FORWARD = "forwardingRoutes_";
 
 SysVpnConfig GetSysVpnConfigData()
 {
@@ -62,11 +62,6 @@ void SysVpnConfigTest::SetUp() {}
 
 void SysVpnConfigTest::TearDown() {}
 
-/**
-* @tc.name: MarshallingUnmarshallingTest001
-* @tc.desc: Test SysVpnConfig Marshalling and Unmarshalling
-* @tc.type: FUNC
-*/
 HWTEST_F(SysVpnConfigTest, MarshallingUnmarshallingTest001, TestSize.Level1)
 {
     Parcel parcel;
@@ -74,8 +69,7 @@ HWTEST_F(SysVpnConfigTest, MarshallingUnmarshallingTest001, TestSize.Level1)
     EXPECT_TRUE(info.Marshalling(parcel));
     sptr<SysVpnConfig> result = new (std::nothrow) SysVpnConfig();
     SysVpnConfig::Unmarshalling(parcel, result);
-    if (result != nullptr)
-    {
+    if (result != nullptr) {
         EXPECT_EQ(result->vpnId_, info.vpnId_);
         EXPECT_EQ(result->vpnName_, info.vpnName_);
         EXPECT_EQ(result->vpnType_, info.vpnType_);
