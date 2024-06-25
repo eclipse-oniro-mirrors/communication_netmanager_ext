@@ -241,8 +241,9 @@ private:
         NetworkVpnService &client_;
     };
     void OnRemoteDied(const wptr<IRemoteObject> &remoteObject);
-    void AddClientDeathRecipient();
-    void RemoveClientDeathRecipient();
+    void AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback);
+    void RemoveClientDeathRecipient(const sptr<IVpnEventCallback> &callback);
+    void RemoveALLClientDeathRecipient();
 
     std::mutex remoteMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
