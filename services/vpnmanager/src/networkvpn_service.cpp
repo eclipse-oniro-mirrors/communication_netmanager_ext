@@ -918,8 +918,9 @@ void NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &c
         return;
     }
     auto iter =
-        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(), [&callback](const sptr<IVpnEventCallback> &item) {
-            return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
+        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(),
+                     [&callback](const sptr<IVpnEventCallback> &item) {
+                        return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
         });
     if (iter == vpnEventCallbacks_.cend()) {
         vpnEventCallbacks_.emplace_back(callback);
@@ -931,8 +932,9 @@ void NetworkVpnService::RemoveClientDeathRecipient(const sptr<IVpnEventCallback>
     NETMGR_EXT_LOG_I("vpn RemoveClientDeathRecipient");
     std::lock_guard<std::mutex> autoLock(remoteMutex_);
     auto iter =
-        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(), [&callback](const sptr<IVpnEventCallback> &item) {
-            return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
+        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(),
+                     [&callback](const sptr<IVpnEventCallback> &item) {
+                         return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
         });
     if (iter == vpnEventCallbacks_.cend()) {
         return;
