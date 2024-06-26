@@ -57,7 +57,10 @@ const bool REGISTER_LOCAL_RESULT_NETVPN =
     SystemAbility::MakeAndRegisterAbility(&NetworkVpnService::GetInstance());
 
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
-NetworkVpnService::~NetworkVpnService() = default;
+NetworkVpnService::~NetworkVpnService()
+{
+    RemoveALLClientDeathRecipient();
+}
 
 void NetworkVpnService::OnStart()
 {
@@ -788,6 +791,7 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
     }
 
     vpnEventCallbacks_.push_back(callback);
+    AddClientDeathRecipient(callback);
     NETMGR_EXT_LOG_I("Register vpn event callback successfully");
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -797,6 +801,7 @@ int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> 
     for (auto iter = vpnEventCallbacks_.begin(); iter != vpnEventCallbacks_.end(); ++iter) {
         if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
             vpnEventCallbacks_.erase(iter);
+            RemoveClientDeathRecipient(callback);
             NETMGR_EXT_LOG_I("Unregister vpn event successfully.");
             return NETMANAGER_EXT_SUCCESS;
         }
@@ -995,6 +1000,70 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     vpnService_.vpnObj_ = nullptr;
     vpnService_.vpnBundleName_ = "";
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied");
+}
+
+void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
+{
+    NETMGR_EXT_LOG_I("vpn OnRemoteDied");
+    sptr<IRemoteObject> diedRemoted = remoteObject.promote();
+    if (diedRemoted == nullptr) {
+        NETMGR_EXT_LOG_E("diedRemoted is null");
+        return;
+    }
+    sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
+    UnregisterVpnEvent(callback);
+    DestroyVpn();
+}
+
+void NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback)
+{
+    NETMGR_EXT_LOG_I("vpn AddClientDeathRecipient");
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    if (deathRecipient_ == nullptr) {
+        deathRecipient_ = new (std::nothrow) VpnAppDeathRecipient(*this);
+    }
+    if (deathRecipient_ == nullptr) {
+        NETMGR_EXT_LOG_E("deathRecipient is null");
+        return;
+    }
+    if (!callback->AsObject()->AddDeathRecipient(deathRecipient_)) {
+        NETMGR_EXT_LOG_E("AddClientDeathRecipient failed");
+        return;
+    }
+    auto iter =
+        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(),
+                     [&callback](const sptr<IVpnEventCallback> &item) {
+                        return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
+        });
+    if (iter == vpnEventCallbacks_.cend()) {
+        vpnEventCallbacks_.emplace_back(callback);
+    }
+}
+
+void NetworkVpnService::RemoveClientDeathRecipient(const sptr<IVpnEventCallback> &callback)
+{
+    NETMGR_EXT_LOG_I("vpn RemoveClientDeathRecipient");
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    auto iter =
+        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(),
+                     [&callback](const sptr<IVpnEventCallback> &item) {
+                         return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
+        });
+    if (iter == vpnEventCallbacks_.cend()) {
+        return;
+    }
+    callback->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    vpnEventCallbacks_.erase(iter);
+}
+
+void NetworkVpnService::RemoveALLClientDeathRecipient()
+{
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    for (auto &item : vpnEventCallbacks_) {
+        item->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    }
+    vpnEventCallbacks_.clear();
+    deathRecipient_ = nullptr;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
