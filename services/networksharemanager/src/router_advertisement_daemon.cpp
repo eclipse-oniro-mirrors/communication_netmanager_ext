@@ -436,7 +436,7 @@ uint16_t RouterAdvertisementDaemon::PutRaRdnss(uint8_t *raBuf)
     raBuf += sizeof(Icmpv6RdnsOpt);
     uint32_t index = 0;
     for (IpPrefix ipp : raParams_->prefixes_) {
-        if (memcpy_s(raBuf + index * IPV6_ADDR_LEN, IPV6_ADDR_LEN, ipp.prefix.s6_addr, IPV6_ADDR_LEN) != EOK) {
+        if (memcpy_s(raBuf + index * IPV6_ADDR_LEN, IPV6_ADDR_LEN, ipp.address.s6_addr, IPV6_ADDR_LEN) != EOK) {
             return 0;
         }
         index++;
