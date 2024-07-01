@@ -30,7 +30,6 @@ VpnSqliteStatement::~VpnSqliteStatement()
 int32_t VpnSqliteStatement::Prepare(sqlite3 *dbHandle, const std::string &newSql)
 {
     if (sqlCmd_.compare(newSql) == 0) {
-        NETMGR_EXT_LOG_D("%{public}s is already prepared", newSql.c_str());
         return SQLITE_OK;
     }
     sqlite3_stmt *stmt = nullptr;
@@ -79,13 +78,13 @@ void VpnSqliteStatement::ResetStatementAndClearBindings() const
 
     int32_t errCode = sqlite3_reset(stmtHandle_);
     if (sqlite3_reset(stmtHandle_) != SQLITE_OK) {
-        NETMGR_EXT_LOG_E("Reset statement failed. %{public}d", errCode);
+        NETMGR_EXT_LOG_E("Reset statement failed. err = %{public}d", errCode);
         return;
     }
 
     errCode = sqlite3_clear_bindings(stmtHandle_);
     if (errCode != SQLITE_OK) {
-        NETMGR_EXT_LOG_E("Reset clear bindings failed. %{public}d", errCode);
+        NETMGR_EXT_LOG_E("Reset clear bindings failed. err = %{public}d", errCode);
     }
 }
 

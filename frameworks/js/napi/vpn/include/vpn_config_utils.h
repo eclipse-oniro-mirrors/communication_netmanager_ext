@@ -74,23 +74,23 @@ constexpr const char *CONFIG_OPEN_VPN_PRIVATE_KEY_FILE_PATH = "ovpnPrivateKeyFil
 
 constexpr const char *CONFIG_IPSEC_PRE_SHARE_KEY = "ipsecPreSharedKey";
 constexpr const char *CONFIG_IPSEC_IDENTIFIER = "ipsecIdentifier";
-constexpr const char *CONFIG_SWANCTL_CONF = "swanctlConf";
-constexpr const char *CONFIG_STRONGSWAN_CONF = "strongswanConf";
-constexpr const char *CONFIG_IPSEC_CA_CERT_CONF = "ipsecCaCertConf";
-constexpr const char *CONFIG_IPSEC_PRIVATE_USER_CERT_CONF = "ipsecPrivateUserCertConf";
-constexpr const char *CONFIG_IPSEC_PUBLIC_USER_CERT_CONF = "ipsecPublicUserCertConf";
-constexpr const char *CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF = "ipsecPrivateServerCertConf";
-constexpr const char *CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF = "ipsecPublicServerCertConf";
+constexpr const char *CONFIG_SWANCTL_CONF = "swanctlConfig";
+constexpr const char *CONFIG_STRONGSWAN_CONF = "strongSwanConfig";
+constexpr const char *CONFIG_IPSEC_CA_CERT_CONF = "ipsecCaCertConfig";
+constexpr const char *CONFIG_IPSEC_PRIVATE_USER_CERT_CONF = "ipsecPrivateUserCertConfig";
+constexpr const char *CONFIG_IPSEC_PUBLIC_USER_CERT_CONF = "ipsecPublicUserCertConfig";
+constexpr const char *CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF = "ipsecPrivateServerCertConfig";
+constexpr const char *CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF = "ipsecPublicServerCertConfig";
 constexpr const char *CONFIG_IPSEC_CA_CERT_FILE_PATH = "ipsecCaCertFilePath";
 constexpr const char *CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH = "ipsecPrivateUserCertFilePath";
 constexpr const char *CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH = "ipsecPublicUserCertFilePath";
 constexpr const char *CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH = "ipsecPrivateServerCertFilePath";
 constexpr const char *CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH = "ipsecPublicServerCertFilePath";
 
-constexpr const char *CONFIG_IPSEC_CONF = "ipsecConf";
+constexpr const char *CONFIG_IPSEC_CONF = "ipsecConfig";
 constexpr const char *CONFIG_IPSEC_SECRETS = "ipsecSecrets";
 constexpr const char *CONFIG_OPTIONS_L2TPD_CLIENT = "optionsL2tpdClient";
-constexpr const char *CONFIG_XL2TPD_CONF = "xl2tpdConf";
+constexpr const char *CONFIG_XL2TPD_CONF = "xl2tpdConfig";
 constexpr const char *CONFIG_L2TP_SHARED_KEY = "l2tpSharedKey";
 
 bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpnConfig);

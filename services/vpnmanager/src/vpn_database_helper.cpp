@@ -32,7 +32,6 @@ VpnDatabaseHelper::SqlCallback sqlCallback = [](void *notUsed, int argc, char **
     for (int i = 0; i < argc; i++) {
         data.append(colName[i]).append(" = ").append(argv[i] ? argv[i] : "nullptr\n");
     }
-    NETMGR_EXT_LOG_D("Recv data: %{public}s", data.c_str());
     return 0;
 };
 
@@ -42,12 +41,11 @@ bool CheckFilePath(const std::string &fileName)
     const auto pos = fileName.find_last_of('/');
     const auto dir = fileName.substr(0, pos);
     if (!realpath(dir.c_str(), tmpPath)) {
-        NETMGR_EXT_LOG_E("Get realPath failed error: %{public}d, %{public}s", errno, strerror(errno));
+        NETMGR_EXT_LOG_E("Get realPath failed error");
         return false;
     }
     if (strcmp(tmpPath, dir.c_str()) != 0) {
-        NETMGR_EXT_LOG_E("file name is illegal fileName: %{public}s, tmpPath: %{public}s",
-            fileName.c_str(), tmpPath);
+        NETMGR_EXT_LOG_E("file name is illegal fileName");
         return false;
     }
     return true;
@@ -71,7 +69,6 @@ VpnDatabaseHelper::~VpnDatabaseHelper()
 int32_t VpnDatabaseHelper::ExecSql(const std::string &sql, void *recv, SqlCallback callback)
 {
     char *errMsg = nullptr;
-    NETMGR_EXT_LOG_I("ExecSql sql = %{public}s", sql.c_str());
     int32_t ret = sqlite3_exec(sqlite_, sql.c_str(), callback, recv, &errMsg);
     if (errMsg != nullptr) {
         NETMGR_EXT_LOG_E("Exec sql failed err:%{public}s", errMsg);
