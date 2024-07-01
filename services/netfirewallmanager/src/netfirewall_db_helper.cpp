@@ -261,6 +261,10 @@ int32_t NetFirewallDbHelper::UpdateFirewallRuleRecord(const NetFirewallRule &rul
 void NetFirewallDbHelper::GetParamRuleInfoFormResultSet(std::string &columnName, int32_t index,
     NetFirewallRuleInfo &table)
 {
+    if (columnName == NET_FIREWALL_PROTOCOL) {
+        table.protocolIndex = i;
+        return;
+    }
     if (columnName == NET_FIREWALL_LOCAL_IP) {
         table.localIpsIndex = index;
         return;
@@ -303,33 +307,39 @@ int32_t NetFirewallDbHelper::GetResultSetTableInfo(const std::shared_ptr<OHOS::N
         std::string &columnName = columnNames.at(i);
         if (columnName == RULE_ID) {
             table.ruleIdIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_USER_ID) {
             table.userIdIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RULE_NAME) {
             table.ruleNameIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RULE_DESC) {
             table.ruleDescriptionIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RULE_DIR) {
             table.ruleDirectionIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RULE_ACTION) {
             table.ruleActionIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RULE_TYPE) {
             table.ruleTypeIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_IS_ENABLED) {
             table.isEnabledIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_APP_ID) {
             table.appUidIndex = i;
-        }
-        if (columnName == NET_FIREWALL_PROTOCOL) {
-            table.protocolIndex = i;
+            continue;
         }
         GetParamRuleInfoFormResultSet(columnName, i, table);
     }
@@ -340,10 +350,8 @@ int32_t NetFirewallDbHelper::GetResultSetTableInfo(const std::shared_ptr<OHOS::N
     NetInterceptRecordInfo &table)
 {
     int32_t rowCount = 0;
-    int32_t columnCount = 0;
     std::vector<std::string> columnNames;
-    if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GetColumnCount(columnCount) != E_OK ||
-        resultSet->GetAllColumnNames(columnNames) != E_OK) {
+    if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GetAllColumnNames(columnNames) != E_OK) {
         NETMGR_EXT_LOG_E("get table info failed");
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
@@ -352,31 +360,37 @@ int32_t NetFirewallDbHelper::GetResultSetTableInfo(const std::shared_ptr<OHOS::N
         std::string &columnName = columnNames.at(i);
         if (columnName == NET_FIREWALL_RECORD_TIME) {
             table.timeIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RECORD_LOCAL_IP) {
             table.localIpIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RECORD_REMOTE_IP) {
             table.remoteIpIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RECORD_LOCAL_PORT) {
             table.localPortIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RECORD_REMOTE_PORT) {
             table.remotePortIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RECORD_PROTOCOL) {
             table.protocolIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_RECORD_UID) {
             table.appUidIndex = i;
+            continue;
         }
         if (columnName == NET_FIREWALL_DOMAIN) {
             table.domainIndex = i;
         }
     }
     table.rowCount = rowCount;
-    table.columnCount = columnCount;
     return FIREWALL_OK;
 }
 
