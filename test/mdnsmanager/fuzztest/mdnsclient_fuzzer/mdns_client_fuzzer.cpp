@@ -26,6 +26,7 @@
 #include "refbase.h"
 #include "system_ability_definition.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "mdns_protocol_impl.h"
 #define private public
 #include "mdns_client.h"
 #include "mdns_service.h"
@@ -238,8 +239,8 @@ void MdnsRegisterServiceFuzzTest(const uint8_t *data, size_t size)
     }
     MDnsServiceInfo serviceInfo;
     std::string name(reinterpret_cast<const char *>(data), size);
-    serviceInfo.name =name;
-    serviceInfo.port =  static_cast<int32_t>(size % STR_LEN);
+    serviceInfo.name = name;
+    serviceInfo.port = static_cast<int32_t>(size % STR_LEN);
     sptr<IRegistrationCallbackTest> callback = new (std::nothrow) IRegistrationCallbackTest();
     if (callback == nullptr) {
         return;
@@ -278,6 +279,19 @@ void MdnsResolveServiceFuzzTest(const uint8_t *data, size_t size)
     DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(serviceInfo, callback);
     DelayedSingleton<MDnsClient>::GetInstance()->RestartResume();
 }
+
+void ReceivePacketTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    MDnsProtocolImpl imp;
+    std::vector<uint8_t> copy(size);
+    if (memcpy_s(copy.data(), size, data, size) != EOK) {
+        return;
+    }
+    imp.ReceivePacket(0, copy);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -293,5 +307,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::MdnsRegisterServiceFuzzTest(data, size);
     OHOS::NetManagerStandard::MdnsStartDiscoverServiceFuzzTest(data, size);
     OHOS::NetManagerStandard::MdnsResolveServiceFuzzTest(data, size);
+    OHOS::NetManagerStandard::ReceivePacketTest(data, size);
     return 0;
 }
