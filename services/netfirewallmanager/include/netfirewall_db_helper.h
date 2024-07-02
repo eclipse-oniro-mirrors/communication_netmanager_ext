@@ -63,7 +63,6 @@ enum class LocationType {
 // Intercept the structure of records in the database
 struct NetInterceptRecordInfo {
     int32_t rowCount;
-    int32_t columnCount;
     int32_t idIndex;
     int32_t timeIndex;
     int32_t localIpIndex;
