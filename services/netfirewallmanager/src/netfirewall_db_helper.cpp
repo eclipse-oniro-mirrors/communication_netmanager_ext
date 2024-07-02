@@ -262,7 +262,7 @@ void NetFirewallDbHelper::GetParamRuleInfoFormResultSet(std::string &columnName,
     NetFirewallRuleInfo &table)
 {
     if (columnName == NET_FIREWALL_PROTOCOL) {
-        table.protocolIndex = i;
+        table.protocolIndex = index;
         return;
     }
     if (columnName == NET_FIREWALL_LOCAL_IP) {
