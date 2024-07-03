@@ -285,12 +285,12 @@ void ReceivePacketTest(const uint8_t *data, size_t size)
     if (data == nullptr || size == 0) {
         return;
     }
-    MDnsProtocolImpl imp;
     std::vector<uint8_t> copy(size);
     if (memcpy_s(copy.data(), size, data, size) != EOK) {
         return;
     }
-    imp.ReceivePacket(0, copy);
+    MDnsPayloadParser parser;
+    MDnsMessage msg = parser.FromBytes(copy);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
