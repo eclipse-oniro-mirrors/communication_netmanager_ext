@@ -42,8 +42,6 @@
 #include "networkvpn_hisysevent.h"
 #include "net_datashare_utils_iface.h"
 #ifdef SUPPORT_SYSVPN
-#include "vpn_database_defines.h"
-#include "vpn_database_helper.h"
 #include "vpn_data_bean.h"
 #endif // SUPPORT_SYSVPN
 
@@ -130,12 +128,7 @@ bool NetworkVpnService::Init()
     vpnHapObserver_ = new VpnHapObserver(*this);
     RegisterFactoryResetCallback();
 #ifdef SUPPORT_SYSVPN
-    auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
-    auto ret = helper->CreateTable();
-    if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("Create vpn config table failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
+    vpnDbHelper_ = std::make_shared<VpnDatabaseHelper>();
 #endif // SUPPORT_SYSVPN
     return true;
 }
@@ -620,9 +613,8 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         config->vpnId_.c_str(), config->vpnName_.c_str(), config->vpnType_);
 		
     config->userId_ = userId;
-    auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
     sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
-    int32_t result = helper->InsertOrUpdateData(vpnBean);
+    int32_t result = vpnDbHelper_->InsertOrUpdateData(vpnBean);
     return result;
 }
 
@@ -646,8 +638,7 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
     }
 
     NETMGR_EXT_LOG_I("sysvpn service DeleteSysVpnConfig %{public}s", vpnId.c_str());
-    auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
-    int32_t result = helper->DeleteVpnData(vpnId, userId);
+    int32_t result = vpnDbHelper_->DeleteVpnData(vpnId);
     if (NETMANAGER_EXT_SUCCESS != result) {
         NETMGR_EXT_LOG_E("DeleteSystemVpn failed, code = %{public}d", result);
     }
@@ -670,8 +661,7 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
     }
 
     NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfigList");
-    auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
-    int32_t result = helper->QueryAllData(vpnList, userId);
+    int32_t result = vpnDbHelper_->QueryAllData(vpnList, userId);
     NETMGR_EXT_LOG_I("GetSystemVpnList QueryAllData size = %{public}d", vpnList.size());
     if (NETMANAGER_EXT_SUCCESS != result) {
         NETMGR_EXT_LOG_E("GetSystemVpnList QueryAllData failed, code = %{public}d", result);
@@ -699,9 +689,8 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
     }
 
     NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfig id=%{public}s", vpnId.c_str());
-    auto helper = std::make_unique<VpnDatabaseHelper>(VpnDatabaseDefines::VPN_DATABASE_PATH);
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    int32_t result = helper->QueryVpnData(vpnBean, vpnId, userId);
+    int32_t result = vpnDbHelper_->QueryVpnData(vpnBean, vpnId);
     if (NETMANAGER_EXT_SUCCESS != result) {
         NETMGR_EXT_LOG_E("GetSysVpnConfig failed, code = %{public}d", result);
     }

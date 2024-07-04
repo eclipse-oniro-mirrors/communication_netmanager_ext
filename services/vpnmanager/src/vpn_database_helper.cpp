@@ -27,14 +27,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 using namespace VpnDatabaseDefines;
 namespace {
-VpnDatabaseHelper::SqlCallback sqlCallback = [](void *notUsed, int argc, char **argv, char **colName) {
-    std::string data;
-    for (int i = 0; i < argc; i++) {
-        data.append(colName[i]).append(" = ").append(argv[i] ? argv[i] : "nullptr\n");
-    }
-    return 0;
-};
-
 bool CheckFilePath(const std::string &fileName)
 {
     char tmpPath[PATH_MAX] = {0};
@@ -52,327 +44,297 @@ bool CheckFilePath(const std::string &fileName)
 }
 } // namespace
 
-VpnDatabaseHelper::VpnDatabaseHelper(const std::string &path)
+VpnDatabaseHelper::VpnDatabaseHelper()
 {
-    if (!CheckFilePath(path)) {
+    if (!CheckFilePath(VPN_DATABASE_PATH)) {
         return;
     }
-    Open(path);
-}
-
-VpnDatabaseHelper::~VpnDatabaseHelper()
-{
-    Close();
-    sqlite_ = nullptr;
-}
-
-int32_t VpnDatabaseHelper::ExecSql(const std::string &sql, void *recv, SqlCallback callback)
-{
-    char *errMsg = nullptr;
-    int32_t ret = sqlite3_exec(sqlite_, sql.c_str(), callback, recv, &errMsg);
-    if (errMsg != nullptr) {
-        NETMGR_EXT_LOG_E("Exec sql failed err:%{public}s", errMsg);
-        sqlite3_free(errMsg);
+    int32_t errCode = OHOS::NativeRdb::E_OK;
+    OHOS::NativeRdb::RdbStoreConfig config(VPN_DATABASE_PATH);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    VpnDataBaseCallBack sqliteOpenHelperCallback;
+    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
+    if (errCode != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("GetRdbStore errCode :%{public}d", errCode);
+    } else {
+        NETMGR_EXT_LOG_I("GetRdbStore success");
     }
-    return ret == SQLITE_OK ? NETMANAGER_SUCCESS : NETMANAGER_ERROR;
 }
 
-int32_t VpnDatabaseHelper::CreateTable()
+int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
 {
-    std::string sql = "CREATE TABLE IF NOT EXISTS " + std::string(VPN_CONFIG_TABLE)
+    NETMGR_EXT_LOG_I("DB OnCreate Enter");
+    std::string sql = "CREATE TABLE IF NOT EXISTS " + VPN_CONFIG_TABLE
         + "(" + std::string(VPN_CONFIG_TABLE_CREATE_PARAM) + ");";
-    int32_t ret = ExecSql(sql, nullptr, sqlCallback);
-    if (ret != NETMANAGER_EXT_SUCCESS) {
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
-    }
+    int32_t ret = store.ExecuteSql(sql);
+    if (ret != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("Create table failed: %{public}d", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }    
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::Open(const std::string &path)
+int32_t VpnDataBaseCallBack::OnUpgrade(OHOS::NativeRdb::RdbStore &store, int32_t oldVersion, int32_t newVersion)
 {
-    int32_t ret = sqlite3_open_v2(path.c_str(), &sqlite_,
-        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
-    return ret == SQLITE_OK ? NETMANAGER_SUCCESS : NETMANAGER_ERROR;
+    NETMGR_EXT_LOG_I("DB OnUpgrade Enter");
+    return NETMANAGER_EXT_SUCCESS;
 }
+
+int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32_t oldVersion,
+    int32_t newVersion)
+{
+    NETMGR_EXT_LOG_I("DB OnDowngrade Enter");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 
 int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 {
-    if (IsVpnInfoExists(vpnBean->vpnId_, vpnBean->userId_)) {
+    if (IsVpnInfoExists(vpnBean->vpnId_)) {
         return UpdateData(vpnBean);
     }
     return InsertData(vpnBean);
 }
 
 
-bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId, int32_t &userId)
+bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId)
 {
-    std::string sql = "SELECT COUNT(*) FROM " + std::string(VPN_CONFIG_TABLE)
-        + " WHERE " + "vpnId = ? AND userId = ?";
-    int32_t ret = statement_.Prepare(sqlite_, sql);
-    if (ret != SQLITE_OK) {
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
+     if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("Update(whereClause) store_ is nullptr");
+        return false;
     }
-    int exists = 0;
-    int32_t idx = 1;
-    statement_.BindText(idx, vpnId);
-    statement_.BindInt32(++idx, userId);
-    if (statement_.Step() == SQLITE_ROW) {
-        statement_.GetColumnInt(0, exists);
+    std::vector<std::string> columns;
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    rdbPredicate.EqualTo(VPN_ID, vpnId);
+    auto queryResultSet = store_->Query(rdbPredicate, columns);
+    if (queryResultSet == nullptr) {
+        NETMGR_EXT_LOG_E("Query error");
+        return false;
     }
-    statement_.ResetStatementAndClearBindings();
-    return exists > 0;
+    int32_t rowCount = 0;
+    int ret = queryResultSet->GetRowCount(rowCount);
+    if (ret != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("query setting failed, get row count failed, ret:%{public}d", ret);
+        return false;
+    }
+    return rowCount == 1;
 }
 
-void VpnDatabaseHelper::bindInsertData(const sptr<VpnDataBean> &info)
+void VpnDatabaseHelper::bindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info)
 {
-    int32_t idx = 1;
-    statement_.BindText(idx, info->vpnId_);
-    statement_.BindText(++idx, info->vpnName_);
-    statement_.BindInt32(++idx, info->vpnType_);
-    statement_.BindText(++idx, info->vpnAddress_);
-    statement_.BindText(++idx, info->userName_);
-    statement_.BindText(++idx, info->password_);
-    statement_.BindInt32(++idx, info->userId_);
-    statement_.BindInt32(++idx, info->isLegacy_);
-    statement_.BindInt32(++idx, info->saveLogin_);
-    statement_.BindText(++idx, info->forwardingRoutes_);
-    statement_.BindText(++idx, info->dnsAddresses_);
-    statement_.BindText(++idx, info->searchDomains_);
-    statement_.BindText(++idx, info->ovpnPort_);
-    statement_.BindInt32(++idx, info->ovpnProtocol_);
-    statement_.BindText(++idx, info->ovpnConfig_);
-    statement_.BindInt32(++idx, info->ovpnAuthType_);
-    statement_.BindText(++idx, info->askpass_);
-    statement_.BindText(++idx, info->ovpnConfigFilePath_);
-    statement_.BindText(++idx, info->ovpnCaCertFilePath_);
-    statement_.BindText(++idx, info->ovpnUserCertFilePath_);
-    statement_.BindText(++idx, info->ovpnPrivateKeyFilePath_);
-    statement_.BindText(++idx, info->ipsecPreSharedKey_);
-    statement_.BindText(++idx, info->ipsecIdentifier_);
-    statement_.BindText(++idx, info->swanctlConf_);
-    statement_.BindText(++idx, info->strongswanConf_);
-    statement_.BindText(++idx, info->ipsecCaCertConf_);
-    statement_.BindText(++idx, info->ipsecPrivateUserCertConf_);
-    statement_.BindText(++idx, info->ipsecPublicUserCertConf_);
-    statement_.BindText(++idx, info->ipsecPrivateServerCertConf_);
-    statement_.BindText(++idx, info->ipsecPublicServerCertConf_);
-    statement_.BindText(++idx, info->ipsecCaCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPrivateUserCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPublicUserCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPrivateServerCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPublicServerCertFilePath_);
-    statement_.BindText(++idx, info->ipsecConf_);
-    statement_.BindText(++idx, info->ipsecSecrets_);
-    statement_.BindText(++idx, info->optionsL2tpdClient_);
-    statement_.BindText(++idx, info->xl2tpdConf_);
-    statement_.BindText(++idx, info->l2tpSharedKey_);
-}
+    values.PutString(VPN_ID, info->vpnId_);
+    values.PutString(VPN_NAME, info->vpnName_);
+    values.PutInt(VPN_TYPE, info->vpnType_);
+    values.PutString(VPN_ADDRESS, info->vpnAddress_);
+    values.PutString(USER_NAME, info->userName_);
+    values.PutString(PASSWORD, info->password_);
+    values.PutInt(USER_ID, info->userId_);
+    values.PutInt(VPN_IS_LEGACY, info->isLegacy_);
+    values.PutInt(VPN_SAVE_LOGIN, info->saveLogin_);
+    values.PutString(VPN_FORWARDED_ROUTES, info->forwardingRoutes_);
+    values.PutString(VPN_DNS_ADDRESSES, info->dnsAddresses_);
+    values.PutString(VPN_SEARCH_DOMAINS, info->searchDomains_);
 
-void VpnDatabaseHelper::bindUpdateData(const sptr<VpnDataBean> &info)
-{
-    int32_t idx = 1;
-    statement_.BindText(idx, info->vpnName_);
-    statement_.BindInt32(++idx, info->vpnType_);
-    statement_.BindText(++idx, info->vpnAddress_);
-    statement_.BindText(++idx, info->userName_);
-    statement_.BindText(++idx, info->password_);
-    statement_.BindInt32(++idx, info->isLegacy_);
-    statement_.BindInt32(++idx, info->saveLogin_);
-    statement_.BindText(++idx, info->forwardingRoutes_);
-    statement_.BindText(++idx, info->dnsAddresses_);
-    statement_.BindText(++idx, info->searchDomains_);
-    statement_.BindText(++idx, info->ovpnPort_);
-    statement_.BindInt32(++idx, info->ovpnProtocol_);
-    statement_.BindText(++idx, info->ovpnConfig_);
-    statement_.BindInt32(++idx, info->ovpnAuthType_);
-    statement_.BindText(++idx, info->askpass_);
-    statement_.BindText(++idx, info->ovpnConfigFilePath_);
-    statement_.BindText(++idx, info->ovpnCaCertFilePath_);
-    statement_.BindText(++idx, info->ovpnUserCertFilePath_);
-    statement_.BindText(++idx, info->ovpnPrivateKeyFilePath_);
-    statement_.BindText(++idx, info->ipsecPreSharedKey_);
-    statement_.BindText(++idx, info->ipsecIdentifier_);
-    statement_.BindText(++idx, info->swanctlConf_);
-    statement_.BindText(++idx, info->strongswanConf_);
-    statement_.BindText(++idx, info->ipsecCaCertConf_);
-    statement_.BindText(++idx, info->ipsecPrivateUserCertConf_);
-    statement_.BindText(++idx, info->ipsecPublicUserCertConf_);
-    statement_.BindText(++idx, info->ipsecPrivateServerCertConf_);
-    statement_.BindText(++idx, info->ipsecPublicServerCertConf_);
-    statement_.BindText(++idx, info->ipsecCaCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPrivateUserCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPublicUserCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPrivateServerCertFilePath_);
-    statement_.BindText(++idx, info->ipsecPublicServerCertFilePath_);
-    statement_.BindText(++idx, info->ipsecConf_);
-    statement_.BindText(++idx, info->ipsecSecrets_);
-    statement_.BindText(++idx, info->optionsL2tpdClient_);
-    statement_.BindText(++idx, info->xl2tpdConf_);
-    statement_.BindText(++idx, info->l2tpSharedKey_);
-    statement_.BindText(++idx, info->vpnId_);
-    statement_.BindInt32(++idx, info->userId_);
-}
+    values.PutString(OPEN_VPN_PORT, info->ovpnPort_);
+    values.PutInt(OPEN_VPN_PROTOCOL, info->ovpnProtocol_);
+    values.PutString(OPEN_VPN_CFG, info->ovpnConfig_);
+    values.PutInt(OPEN_VPN_AUTH_TYPE, info->ovpnAuthType_);
+    values.PutString(OPEN_VPN_ASKPASS, info->askpass_);
+    values.PutString(OPEN_VPN_CFG_FILE_PATH, info->ovpnConfigFilePath_);
+    values.PutString(OPEN_VPN_CA_CERT_FILE_PATH, info->ovpnCaCertFilePath_);
+    values.PutString(OPEN_VPN_USER_CERT_FILE_PATH, info->ovpnUserCertFilePath_);
+    values.PutString(OPEN_VPN_PRIVATE_KEY_FILE_PATH, info->ovpnPrivateKeyFilePath_);
 
+    values.PutString(IPSEC_PRE_SHARE_KEY, info->ipsecPreSharedKey_);
+    values.PutString(IPSEC_IDENTIFIER, info->ipsecIdentifier_);
+    values.PutString(SWANCTL_CONF, info->swanctlConf_);
+    values.PutString(STRONGSWAN_CONF, info->strongswanConf_);
+    values.PutString(IPSEC_CA_CERT_CONF, info->ipsecCaCertConf_);
+    values.PutString(IPSEC_PRIVATE_USER_CERT_CONF, info->ipsecPrivateUserCertConf_);
+    values.PutString(IPSEC_PUBLIC_USER_CERT_CONF, info->ipsecPublicUserCertConf_);
+    values.PutString(IPSEC_PRIVATE_SERVER_CERT_CONF, info->ipsecPrivateServerCertConf_);
+    values.PutString(IPSEC_PUBLIC_SERVER_CERT_CONF, info->ipsecPublicServerCertConf_);
+    values.PutString(IPSEC_CA_CERT_FILE_PATH, info->ipsecCaCertFilePath_);
+    values.PutString(IPSEC_PRIVATE_USER_CERT_FILE_PATH, info->ipsecPrivateUserCertFilePath_);
+    values.PutString(IPSEC_PUBLIC_USER_CERT_FILE_PATH, info->ipsecPublicUserCertFilePath_);
+    values.PutString(IPSEC_PRIVATE_SERVER_CERT_FILE_PATH, info->ipsecPrivateServerCertFilePath_);
+    values.PutString(IPSEC_PUBLIC_SERVER_CERT_FILE_PATH, info->ipsecPublicServerCertFilePath_);
+    values.PutString(IPSEC_CONF, info->ipsecConf_);
+    values.PutString(IPSEC_SECRETS, info->ipsecSecrets_);
+    values.PutString(OPTIONS_L2TPD_CLIENT, info->optionsL2tpdClient_);
+    values.PutString(XL2TPD_CONF, info->xl2tpdConf_);
+    values.PutString(L2TP_SHARED_KEY, info->l2tpSharedKey_);
+}
 
 int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &info)
 {
-    std::string paramList = VPN_CONFIG_TABLE_PARAM_LIST;
-    std::string params;
-    int32_t paramCount = count(paramList.begin(), paramList.end(), ',') + 1;
-    for (int32_t i = 0; i < paramCount; ++i) {
-        params += "?";
-        if (i != paramCount - 1) {
-            params += ",";
-        }
+    NETMGR_EXT_LOG_I("InsertData");
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("InsertData store_ is nullptr");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    std::string sql = "INSERT INTO " + std::string(VPN_CONFIG_TABLE)
-        + " (" + paramList + ") " + "VALUES" + " (" + params + ") ";
-    int32_t ret = statement_.Prepare(sqlite_, sql);
-    if (ret != SQLITE_OK) {
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
+    NativeRdb::ValuesBucket values;
+    bindVpnData(values, info);
+    int64_t rowId = 0;
+    int ret = store_->Insert(rowId, VPN_CONFIG_TABLE, values);
+    if (ret != NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("InsertData failed, result is %{public}d", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    bindInsertData(info);
-    ret = statement_.Step();
-    statement_.ResetStatementAndClearBindings();
-    if (ret != SQLITE_DONE) {
-        NETMGR_EXT_LOG_E("Step failed ret:%{public}d", ret);
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
-    }
-    return NETMANAGER_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &info)
 {
-    std::string sql = "UPDATE " + std::string(VPN_CONFIG_TABLE)
-        + " SET " + std::string(VPN_CONFIG_TABLE_UPDATE_SQL) + " WHERE "
-        + "vpnId = ? AND userId = ?";
-    int32_t ret = statement_.Prepare(sqlite_, sql);
-    if (ret != SQLITE_OK) {
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
+    NETMGR_EXT_LOG_I("UpdateData");
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("UpdateData store_ is nullptr");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    bindUpdateData(info);
-    ret = statement_.Step();
-    statement_.ResetStatementAndClearBindings();
-    if (ret != SQLITE_DONE) {
-        NETMGR_EXT_LOG_E("Step failed ret:%{public}d", ret);
-        return NETMANAGER_ERR_WRITE_DATA_FAIL;
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    rdbPredicate.EqualTo(VPN_ID, info->vpnId_);
+    NativeRdb::ValuesBucket values;
+    bindVpnData(values, info);
+    int32_t rowId = -1;
+    int32_t ret = store_->Update(rowId, values, rdbPredicate);
+    if (ret != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("UpdateData ret :%{public}d", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    return NETMANAGER_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid, const int32_t userId)
+void VpnDatabaseHelper::getVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
+    sptr<VpnDataBean> &vpnBean)
 {
-    std::string sql = "SELECT * FROM " + std::string(VPN_CONFIG_TABLE) + " WHERE vpnId = '" + vpnUuid + "'"
-        + " AND userId = " + std::to_string(userId);
-    int32_t ret = statement_.Prepare(sqlite_, sql);
-    if (ret != SQLITE_OK) {
-        NETMGR_EXT_LOG_E("Prepare failed ret:%{public}d", ret);
-        return NETMANAGER_ERR_READ_DATA_FAIL;
+    queryResultSet->GetString(INDEX_VPN_ID, vpnBean->vpnId_);
+    queryResultSet->GetString(INDEX_VPN_NAME, vpnBean->vpnName_);
+    queryResultSet->GetInt(INDEX_VPN_TYPE, vpnBean->vpnType_);
+    queryResultSet->GetString(INDEX_VPN_ADDRESS, vpnBean->vpnAddress_);
+    queryResultSet->GetString(INDEX_USER_NAME, vpnBean->userName_);
+    queryResultSet->GetString(INDEX_PASSWORD, vpnBean->password_);
+    queryResultSet->GetInt(INDEX_USER_ID, vpnBean->userId_);
+    queryResultSet->GetInt(INDEX_VPN_IS_LEGACY, vpnBean->isLegacy_);
+    queryResultSet->GetInt(INDEX_VPN_SAVE_LOGIN, vpnBean->saveLogin_);
+    queryResultSet->GetString(INDEX_VPN_FORWARDED_ROUTES, vpnBean->forwardingRoutes_);
+    queryResultSet->GetString(INDEX_VPN_DNS_ADDRESSES, vpnBean->dnsAddresses_);
+    queryResultSet->GetString(INDEX_VPN_SEARCH_DOMAINS, vpnBean->searchDomains_);
+    queryResultSet->GetString(INDEX_OPEN_VPN_PORT, vpnBean->ovpnPort_);
+    queryResultSet->GetInt(INDEX_OPEN_VPN_PROTOCOL, vpnBean->ovpnProtocol_);
+    queryResultSet->GetString(INDEX_OPEN_VPN_CFG, vpnBean->ovpnConfig_);
+    queryResultSet->GetInt(INDEX_OPEN_VPN_AUTH_TYPE, vpnBean->ovpnAuthType_);
+    queryResultSet->GetString(INDEX_OPEN_VPN_ASKPASS, vpnBean->askpass_);
+    queryResultSet->GetString(INDEX_OPEN_VPN_CFG_FILE_PATH, vpnBean->ovpnConfigFilePath_);
+    queryResultSet->GetString(INDEX_OPEN_VPN_CA_CERT_FILE_PATH, vpnBean->ovpnCaCertFilePath_);
+    queryResultSet->GetString(INDEX_OPEN_VPN_USER_CERT_FILE_PATH, vpnBean->ovpnUserCertFilePath_);
+    queryResultSet->GetString(INDEX_OPEN_VPN_PRIVATE_KEY_FILE_PATH, vpnBean->ovpnPrivateKeyFilePath_);
+
+    queryResultSet->GetString(INDEX_IPSEC_PRE_SHARE_KEY, vpnBean->ipsecPreSharedKey_);
+    queryResultSet->GetString(INDEX_IPSEC_IDENTIFIER, vpnBean->ipsecIdentifier_);
+    queryResultSet->GetString(INDEX_SWANCTL_CONF, vpnBean->swanctlConf_);
+    queryResultSet->GetString(INDEX_STRONGSWAN_CONF, vpnBean->strongswanConf_);
+    queryResultSet->GetString(INDEX_IPSEC_CA_CERT_CONF, vpnBean->ipsecCaCertConf_);
+    queryResultSet->GetString(INDEX_IPSEC_PRIVATE_USER_CERT_CONF, vpnBean->ipsecPrivateUserCertConf_);
+    queryResultSet->GetString(INDEX_IPSEC_PUBLIC_USER_CERT_CONF, vpnBean->ipsecPublicUserCertConf_);
+    queryResultSet->GetString(INDEX_IPSEC_PRIVATE_SERVER_CERT_CONF, vpnBean->ipsecPrivateServerCertConf_);
+    queryResultSet->GetString(INDEX_IPSEC_PUBLIC_SERVER_CERT_CONF, vpnBean->ipsecPublicServerCertConf_);
+    queryResultSet->GetString(INDEX_IPSEC_CA_CERT_FILE_PATH, vpnBean->ipsecCaCertFilePath_);
+    queryResultSet->GetString(INDEX_IPSEC_PRIVATE_USER_CERT_FILE_PATH, vpnBean->ipsecPrivateUserCertFilePath_);
+    queryResultSet->GetString(INDEX_IPSEC_PUBLIC_USER_CERT_FILE_PATH, vpnBean->ipsecPublicUserCertFilePath_);
+    queryResultSet->GetString(INDEX_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH, vpnBean->ipsecPrivateServerCertFilePath_);
+    queryResultSet->GetString(INDEX_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH, vpnBean->ipsecPublicServerCertFilePath_);
+    queryResultSet->GetString(INDEX_IPSEC_CONF, vpnBean->ipsecConf_);
+    queryResultSet->GetString(INDEX_IPSEC_SECRETS, vpnBean->ipsecSecrets_);
+    queryResultSet->GetString(INDEX_OPTIONS_L2TPD_CLIENT, vpnBean->optionsL2tpdClient_);
+    queryResultSet->GetString(INDEX_XL2TPD_CONF, vpnBean->xl2tpdConf_);
+    queryResultSet->GetString(INDEX_L2TP_SHARED_KEY, vpnBean->l2tpSharedKey_);
+}
+
+int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid)
+{
+    NETMGR_EXT_LOG_I("QueryVpnData");
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("QueryVpnData store_ is nullptr");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    std::vector<VpnDataBean> infos;
-    Step(infos);
-    if (!infos.empty()) {
-        vpnBean = sptr<VpnDataBean>::MakeSptr(infos[0]);
+    std::vector<std::string> columns;
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    rdbPredicate.EqualTo(VPN_ID, vpnUuid);
+    auto queryResultSet = store_->Query(rdbPredicate, columns);
+    if (queryResultSet == nullptr) {
+        NETMGR_EXT_LOG_E("QueryVpnData error");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    return NETMANAGER_SUCCESS;
+    int32_t rowCount = 0;
+    int ret = queryResultSet->GetRowCount(rowCount);
+    if (ret != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("QueryVpnData failed, get row count failed, ret:%{public}d", ret);
+        return ret;
+    }
+    if (rowCount == 0) {
+        NETMGR_EXT_LOG_E("QueryVpnData result num is 0");
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    while (!queryResultSet->GoToNextRow()) {
+        getVpnDataFromResultSet(queryResultSet, vpnBean);
+        if (vpnBean->vpnId_ == vpnUuid) {
+            return NETMANAGER_SUCCESS;
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId)
 {
+    NETMGR_EXT_LOG_I("QueryAllData");
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("QueryAllData store_ is nullptr");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
     infos.clear();
-    std::string sql = "SELECT vpnId, vpnName FROM " + std::string(VPN_CONFIG_TABLE)
-        + " WHERE userId = " + std::to_string(userId);
-    int32_t ret = statement_.Prepare(sqlite_, sql);
-    if (ret != SQLITE_OK) {
-        NETMGR_EXT_LOG_E("Prepare failed ret:%{public}d", ret);
-        return NETMANAGER_ERR_READ_DATA_FAIL;
+    std::vector<std::string> columns;
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    rdbPredicate.EqualTo(USER_ID, userId);
+    auto queryResultSet = store_->Query(rdbPredicate, columns);
+    if (queryResultSet == nullptr) {
+        NETMGR_EXT_LOG_E("QueryAllData error");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    int32_t rc = statement_.Step();
-    NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
-    while (rc != SQLITE_DONE) {
-        int32_t idx = 0;
+    int32_t rowCount = 0;
+    int ret = queryResultSet->GetRowCount(rowCount);
+    if (ret != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("QueryAllData failed, get row count failed, ret:%{public}d", ret);
+        return ret;
+    }
+    if (rowCount == 0) {
+        NETMGR_EXT_LOG_E("QueryAllData result num is 0");
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    while (!queryResultSet->GoToNextRow()) {
         SysVpnConfig info;
-        statement_.GetColumnString(idx, info.vpnId_);
-        statement_.GetColumnString(++idx, info.vpnName_);
+        queryResultSet->GetString(INDEX_VPN_ID, info.vpnId_);
+        queryResultSet->GetString(INDEX_VPN_NAME, info.vpnName_);
         infos.emplace_back(info);
-        rc = statement_.Step();
-        NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
     }
-    statement_.ResetStatementAndClearBindings();
-    return NETMANAGER_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid, const int32_t userId)
+int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
 {
-    std::string sql = "DELETE FROM " + std::string(VPN_CONFIG_TABLE) + " WHERE vpnId = '"
-        + vpnUuid + "'" + " AND userId = " + std::to_string(userId);
-    return ExecSql(sql, nullptr, sqlCallback);
-}
-
-int32_t VpnDatabaseHelper::Close()
-{
-    int32_t ret = sqlite3_close_v2(sqlite_);
-    return ret == SQLITE_OK ? NETMANAGER_SUCCESS : NETMANAGER_ERROR;
-}
-
-void VpnDatabaseHelper::initStatementQuery(std::vector<VpnDataBean> &infos)
-{
-    int32_t idx = 0;
-    VpnDataBean info;
-    statement_.GetColumnString(idx, info.vpnId_);
-    statement_.GetColumnString(++idx, info.vpnName_);
-    statement_.GetColumnInt(++idx, info.vpnType_);
-    statement_.GetColumnString(++idx, info.vpnAddress_);
-    statement_.GetColumnString(++idx, info.userName_);
-    statement_.GetColumnString(++idx, info.password_);
-    statement_.GetColumnInt(++idx, info.userId_);
-    statement_.GetColumnInt(++idx, info.isLegacy_);
-    statement_.GetColumnInt(++idx, info.saveLogin_);
-    statement_.GetColumnString(++idx, info.forwardingRoutes_);
-    statement_.GetColumnString(++idx, info.dnsAddresses_);
-    statement_.GetColumnString(++idx, info.searchDomains_);
-    statement_.GetColumnString(++idx, info.ovpnPort_);
-    statement_.GetColumnInt(++idx, info.ovpnProtocol_);
-    statement_.GetColumnString(++idx, info.ovpnConfig_);
-    statement_.GetColumnInt(++idx, info.ovpnAuthType_);
-    statement_.GetColumnString(++idx, info.askpass_);
-    statement_.GetColumnString(++idx, info.ovpnConfigFilePath_);
-    statement_.GetColumnString(++idx, info.ovpnCaCertFilePath_);
-    statement_.GetColumnString(++idx, info.ovpnUserCertFilePath_);
-    statement_.GetColumnString(++idx, info.ovpnPrivateKeyFilePath_);
-    statement_.GetColumnString(++idx, info.ipsecPreSharedKey_);
-    statement_.GetColumnString(++idx, info.ipsecIdentifier_);
-    statement_.GetColumnString(++idx, info.swanctlConf_);
-    statement_.GetColumnString(++idx, info.strongswanConf_);
-    statement_.GetColumnString(++idx, info.ipsecCaCertConf_);
-    statement_.GetColumnString(++idx, info.ipsecPrivateUserCertConf_);
-    statement_.GetColumnString(++idx, info.ipsecPublicUserCertConf_);
-    statement_.GetColumnString(++idx, info.ipsecPrivateServerCertConf_);
-    statement_.GetColumnString(++idx, info.ipsecPublicServerCertConf_);
-    statement_.GetColumnString(++idx, info.ipsecCaCertFilePath_);
-    statement_.GetColumnString(++idx, info.ipsecPrivateUserCertFilePath_);
-    statement_.GetColumnString(++idx, info.ipsecPublicUserCertFilePath_);
-    statement_.GetColumnString(++idx, info.ipsecPrivateServerCertFilePath_);
-    statement_.GetColumnString(++idx, info.ipsecPublicServerCertFilePath_);
-    statement_.GetColumnString(++idx, info.ipsecConf_);
-    statement_.GetColumnString(++idx, info.ipsecSecrets_);
-    statement_.GetColumnString(++idx, info.optionsL2tpdClient_);
-    statement_.GetColumnString(++idx, info.xl2tpdConf_);
-    statement_.GetColumnString(++idx, info.l2tpSharedKey_);
-    infos.emplace_back(info);
-}
-
-int32_t VpnDatabaseHelper::Step(std::vector<VpnDataBean> &infos)
-{
-    int32_t rc = statement_.Step();
-    NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
-    while (rc != SQLITE_DONE) {
-        initStatementQuery(infos);
-        rc = statement_.Step();
-        NETMGR_EXT_LOG_I("Step result:%{public}d", rc);
+    NETMGR_EXT_LOG_I("DeleteVpnData");
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("DeleteVpnData store_ is nullptr");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    statement_.ResetStatementAndClearBindings();
-    return NETMANAGER_SUCCESS;
+    int32_t deletedRows = -1;
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    rdbPredicate.EqualTo(VPN_ID, vpnUuid);
+    int32_t result = store_->Delete(deletedRows, rdbPredicate);
+    if (result != NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("DeleteVpnData failed, result is %{public}d", result);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 } // namespace NetManagerStandard

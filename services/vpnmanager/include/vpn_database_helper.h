@@ -20,45 +20,46 @@
 #include <functional>
 #include <string>
 
-#ifndef USE_SQLITE_SYMBOLS
-#include "sqlite3.h"
-#else
-#include "sqlite3sym.h"
-#endif
-
-#include "vpn_sqlite_statement.h"
 #include "vpn_data_bean.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
+#include "rdb_common.h"
+#include "rdb_errno.h"
+#include "rdb_helper.h"
+#include "rdb_open_callback.h"
+#include "rdb_predicates.h"
+#include "rdb_store.h"
+#include "result_set.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class VpnDatabaseHelper {
 public:
-    using SqlCallback = sqlite3_callback;
-    explicit VpnDatabaseHelper(const std::string &path);
-    VpnDatabaseHelper() = delete;
-    ~VpnDatabaseHelper();
+    VpnDatabaseHelper();
+    ~VpnDatabaseHelper() = default;
 
-    int32_t CreateTable();
     int32_t InsertData(const sptr<VpnDataBean> &vpnBean);
     int32_t InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean);
-    bool IsVpnInfoExists(std::string &vpnId, int32_t &userId);
-    int32_t QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid, const int32_t userId);
+    bool IsVpnInfoExists(std::string &vpnId);
+    int32_t QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid);
     int32_t QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId);
-    int32_t DeleteVpnData(const std::string &vpnUuid, const int32_t userId);
+    int32_t DeleteVpnData(const std::string &vpnUuid);
     int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
-    int32_t Step(std::vector<VpnDataBean> &vpnBean);
-    int32_t ExecSql(const std::string &sql, void *recv, SqlCallback callback);
-    void initStatementQuery(std::vector<VpnDataBean> &infos);
-    void bindUpdateData(const sptr<VpnDataBean> &info);
-    void bindInsertData(const sptr<VpnDataBean> &info);
 
 private:
-    int32_t Open(const std::string &path);
-    int32_t Close();
-    sqlite3 *sqlite_ = nullptr;
-    VpnSqliteStatement statement_;
+    void getVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
+        sptr<VpnDataBean> &vpnBean);
+    void bindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info);
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> store_;
+};
+
+class VpnDataBaseCallBack : public OHOS::NativeRdb::RdbOpenCallback {
+public:
+    int32_t OnCreate(OHOS::NativeRdb::RdbStore &rdbStore) override;
+
+    int32_t OnUpgrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t oldVersion, int32_t newVersion) override;
+
+    int32_t OnDowngrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t currentVersion, int32_t targetVersion) override;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
