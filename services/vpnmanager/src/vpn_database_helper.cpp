@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 20224 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,13 +64,13 @@ VpnDatabaseHelper::VpnDatabaseHelper()
 int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
 {
     NETMGR_EXT_LOG_I("DB OnCreate Enter");
-    std::string sql = "CREATE TABLE IF NOT EXISTS " + VPN_CONFIG_TABLE
-        + "(" + std::string(VPN_CONFIG_TABLE_CREATE_PARAM) + ");";
+    std::string sql =
+        "CREATE TABLE IF NOT EXISTS " + VPN_CONFIG_TABLE + "(" + std::string(VPN_CONFIG_TABLE_CREATE_PARAM) + ");";
     int32_t ret = store.ExecuteSql(sql);
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("Create table failed: %{public}d", ret);
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
-    }    
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -80,8 +80,7 @@ int32_t VpnDataBaseCallBack::OnUpgrade(OHOS::NativeRdb::RdbStore &store, int32_t
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32_t oldVersion,
-    int32_t newVersion)
+int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32_t oldVersion, int32_t newVersion)
 {
     NETMGR_EXT_LOG_I("DB OnDowngrade Enter");
     return NETMANAGER_EXT_SUCCESS;
@@ -99,12 +98,12 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 
 bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId)
 {
-     if (store_ == nullptr) {
+    if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("Update(whereClause) store_ is nullptr");
         return false;
     }
     std::vector<std::string> columns;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnId);
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
@@ -191,7 +190,7 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &info)
         NETMGR_EXT_LOG_E("UpdateData store_ is nullptr");
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
-    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, info->vpnId_);
     NativeRdb::ValuesBucket values;
     bindVpnData(values, info);
@@ -258,7 +257,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     std::vector<std::string> columns;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnUuid);
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
@@ -293,7 +292,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const 
     }
     infos.clear();
     std::vector<std::string> columns;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(USER_ID, userId);
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
@@ -327,7 +326,7 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
         return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
     }
     int32_t deletedRows = -1;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate{VPN_CONFIG_TABLE};
+    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnUuid);
     int32_t result = store_->Delete(deletedRows, rdbPredicate);
     if (result != NativeRdb::E_OK) {
@@ -336,6 +335,5 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
     }
     return NETMANAGER_EXT_SUCCESS;
 }
-
 } // namespace NetManagerStandard
 } // namespace OHOS
