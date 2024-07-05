@@ -662,7 +662,6 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
 
     NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfigList");
     int32_t result = vpnDbHelper_->QueryAllData(vpnList, userId);
-    NETMGR_EXT_LOG_I("GetSystemVpnList QueryAllData size = %{public}d", vpnList.size());
     if (NETMANAGER_EXT_SUCCESS != result) {
         NETMGR_EXT_LOG_E("GetSystemVpnList QueryAllData failed, code = %{public}d", result);
     }
