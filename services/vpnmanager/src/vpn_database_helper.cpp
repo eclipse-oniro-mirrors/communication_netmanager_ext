@@ -69,7 +69,7 @@ int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
     int32_t ret = store.ExecuteSql(sql);
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("Create table failed: %{public}d", ret);
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -89,6 +89,10 @@ int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32
 
 int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 {
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("InsertOrUpdateData vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
     if (IsVpnInfoExists(vpnBean->vpnId_)) {
         return UpdateData(vpnBean);
     }
@@ -99,7 +103,7 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId)
 {
     if (store_ == nullptr) {
-        NETMGR_EXT_LOG_E("Update(whereClause) store_ is nullptr");
+        NETMGR_EXT_LOG_E("IsVpnInfoExists store_ is nullptr");
         return false;
     }
     std::vector<std::string> columns;
@@ -121,6 +125,10 @@ bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId)
 
 void VpnDatabaseHelper::bindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info)
 {
+    if (info == nullptr) {
+        NETMGR_EXT_LOG_E("bindVpnData params is nullptr");
+        return;
+    }
     values.PutString(VPN_ID, info->vpnId_);
     values.PutString(VPN_NAME, info->vpnName_);
     values.PutInt(VPN_TYPE, info->vpnType_);
@@ -165,40 +173,48 @@ void VpnDatabaseHelper::bindVpnData(NativeRdb::ValuesBucket &values, const sptr<
     values.PutString(L2TP_SHARED_KEY, info->l2tpSharedKey_);
 }
 
-int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &info)
+int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &vpnBean)
 {
     NETMGR_EXT_LOG_I("InsertData");
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("InsertData store_ is nullptr");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("UpdateData vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     NativeRdb::ValuesBucket values;
-    bindVpnData(values, info);
+    bindVpnData(values, vpnBean);
     int64_t rowId = 0;
     int ret = store_->Insert(rowId, VPN_CONFIG_TABLE, values);
     if (ret != NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("InsertData failed, result is %{public}d", ret);
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &info)
+int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &vpnBean)
 {
-    NETMGR_EXT_LOG_I("UpdateData");
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("UpdateData store_ is nullptr");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("UpdateData vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
+    NETMGR_EXT_LOG_I("UpdateData");
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
-    rdbPredicate.EqualTo(VPN_ID, info->vpnId_);
+    rdbPredicate.EqualTo(VPN_ID, vpnBean->vpnId_);
     NativeRdb::ValuesBucket values;
-    bindVpnData(values, info);
+    bindVpnData(values, vpnBean);
     int32_t rowId = -1;
     int32_t ret = store_->Update(rowId, values, rdbPredicate);
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("UpdateData ret :%{public}d", ret);
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -206,6 +222,10 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &info)
 void VpnDatabaseHelper::getVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
     sptr<VpnDataBean> &vpnBean)
 {
+    if (vpnBean == nullptr || queryResultSet == nullptr) {
+        NETMGR_EXT_LOG_E("getVpnDataFromResultSet params is nullptr");
+        return;
+    }
     queryResultSet->GetString(INDEX_VPN_ID, vpnBean->vpnId_);
     queryResultSet->GetString(INDEX_VPN_NAME, vpnBean->vpnName_);
     queryResultSet->GetInt(INDEX_VPN_TYPE, vpnBean->vpnType_);
@@ -254,7 +274,11 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     NETMGR_EXT_LOG_I("QueryVpnData");
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData store_ is nullptr");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("QueryVpnData vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     std::vector<std::string> columns;
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
@@ -262,7 +286,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData error");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     int32_t rowCount = 0;
     int ret = queryResultSet->GetRowCount(rowCount);
@@ -288,7 +312,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const 
     NETMGR_EXT_LOG_I("QueryAllData");
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryAllData store_ is nullptr");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     infos.clear();
     std::vector<std::string> columns;
@@ -297,7 +321,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const 
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
         NETMGR_EXT_LOG_E("QueryAllData error");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     int32_t rowCount = 0;
     int ret = queryResultSet->GetRowCount(rowCount);
@@ -323,7 +347,7 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
     NETMGR_EXT_LOG_I("DeleteVpnData");
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("DeleteVpnData store_ is nullptr");
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     int32_t deletedRows = -1;
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
@@ -331,7 +355,7 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
     int32_t result = store_->Delete(deletedRows, rdbPredicate);
     if (result != NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("DeleteVpnData failed, result is %{public}d", result);
-        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     return NETMANAGER_EXT_SUCCESS;
 }
