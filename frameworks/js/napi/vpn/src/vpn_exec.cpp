@@ -191,7 +191,6 @@ napi_value GetSysVpnConfigListCallback(GetListContext *context)
 {
     int32_t index = 0;
     auto len = context->vpnList_.size();
-    NETMANAGER_EXT_LOGI("GetSystemVpnListCallBack, len: %{public}d", len);
     napi_value array = NapiUtils::CreateArray(context->GetEnv(), len);
     for (const auto &info : context->vpnList_) {
         napi_value config = NapiUtils::CreateObject(context->GetEnv());

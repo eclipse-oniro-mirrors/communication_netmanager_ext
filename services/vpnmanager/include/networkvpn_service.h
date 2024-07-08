@@ -31,6 +31,9 @@
 #include "app_mgr_client.h"
 #include "cJSON.h"
 #include "ffrt.h"
+#ifdef SUPPORT_SYSVPN
+#include "vpn_database_helper.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -217,6 +220,9 @@ private:
     bool isServicePublished_ = false;
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
+#ifdef SUPPORT_SYSVPN
+    std::shared_ptr<VpnDatabaseHelper> vpnDbHelper_;
+#endif // SUPPORT_SYSVPN
 
     std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
     std::shared_ptr<ffrt::queue> networkVpnServiceFfrtQueue_ = nullptr;

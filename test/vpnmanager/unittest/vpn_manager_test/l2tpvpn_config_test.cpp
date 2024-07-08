@@ -82,11 +82,6 @@ void L2tpVpnConfigTest::SetUp() {}
 
 void L2tpVpnConfigTest::TearDown() {}
 
-/**
-* @tc.name: MarshallingUnmarshallingTest001
-* @tc.desc: Test L2tpVpnConfig Marshalling and Unmarshalling
-* @tc.type: FUNC
-*/
 HWTEST_F(L2tpVpnConfigTest, MarshallingUnmarshallingTest001, TestSize.Level1)
 {
     Parcel parcel;
@@ -94,8 +89,7 @@ HWTEST_F(L2tpVpnConfigTest, MarshallingUnmarshallingTest001, TestSize.Level1)
     EXPECT_TRUE(info.Marshalling(parcel));
     sptr<L2tpVpnConfig> result;
     result = L2tpVpnConfig::Unmarshalling(parcel);
-    if (result != nullptr)
-    {
+    if (result != nullptr) {
         EXPECT_EQ(result->ipsecPreSharedKey_, info.ipsecPreSharedKey_);
         EXPECT_EQ(result->ipsecIdentifier_, info.ipsecIdentifier_);
         EXPECT_EQ(result->strongswanConf_, info.strongswanConf_);
