@@ -62,8 +62,8 @@ sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBea
     ipsecVpnConfig->userName_ = vpnBean->userName_;
     ipsecVpnConfig->password_ = vpnBean->password_;
     ipsecVpnConfig->userId_ = vpnBean->userId_;
-    ipsecVpnConfig->isLegacy_ = (vpnBean->isLegacy_) == 1 ? true : false;
-    ipsecVpnConfig->saveLogin_ = (vpnBean->saveLogin_) == 1 ? true : false;
+    ipsecVpnConfig->isLegacy_ = (vpnBean->isLegacy_) == 1;
+    ipsecVpnConfig->saveLogin_ = (vpnBean->saveLogin_) == 1;
     ipsecVpnConfig->forwardingRoutes_ = vpnBean->forwardingRoutes_;
     ipsecVpnConfig->dnsAddresses_.push_back(vpnBean->dnsAddresses_);
     ipsecVpnConfig->searchDomains_.push_back(vpnBean->searchDomains_);
@@ -106,8 +106,8 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
     l2tpVpnConfig->userName_ = vpnBean->userName_;
     l2tpVpnConfig->password_ = vpnBean->password_;
     l2tpVpnConfig->userId_ = vpnBean->userId_;
-    l2tpVpnConfig->isLegacy_ = (vpnBean->isLegacy_) == 1 ? true : false;
-    l2tpVpnConfig->saveLogin_ = (vpnBean->saveLogin_) == 1 ? true : false;
+    l2tpVpnConfig->isLegacy_ = (vpnBean->isLegacy_) == 1;
+    l2tpVpnConfig->saveLogin_ = (vpnBean->saveLogin_) == 1;
     l2tpVpnConfig->forwardingRoutes_ = vpnBean->forwardingRoutes_;
     l2tpVpnConfig->dnsAddresses_.push_back(vpnBean->dnsAddresses_);
     l2tpVpnConfig->searchDomains_.push_back(vpnBean->searchDomains_);

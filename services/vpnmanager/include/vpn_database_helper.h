@@ -47,9 +47,9 @@ public:
     int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
 
 private:
-    void getVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
+    void GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
         sptr<VpnDataBean> &vpnBean);
-    void bindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info);
+    void BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info);
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_;
 };
 

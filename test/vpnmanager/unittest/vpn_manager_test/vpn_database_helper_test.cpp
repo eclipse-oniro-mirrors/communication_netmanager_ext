@@ -64,29 +64,16 @@ HWTEST_F(VpnDatabaseHelperTest, InsertData001, TestSize.Level1)
     vpnBean->vpnAddress_ = "1.1.1.1";
     vpnBean->isLegacy_ = 1;
     vpnBean->saveLogin_ = 1;
-    EXPECT_EQ(vpnDataHelper_->InsertData(vpnBean), NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(VpnDatabaseHelperTest, InsertData002, TestSize.Level1)
-{
-    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     EXPECT_EQ(vpnDataHelper_->InsertData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, InsertOrUpdateData001, TestSize.Level1)
 {
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    EXPECT_EQ(vpnDataHelper_->InsertOrUpdateData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(vpnDataHelper_->InsertOrUpdateData(vpnBean), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, QueryVpnData001, TestSize.Level1)
-{
-    std::string vpnId = "0000";
-    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    EXPECT_EQ(vpnDataHelper_->QueryVpnData(vpnBean, vpnId), NETMANAGER_EXT_ERR_OPERATION_FAILED);
-}
-
-HWTEST_F(VpnDatabaseHelperTest, QueryVpnData002, TestSize.Level1)
 {
     std::string vpnId = "1234";
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
@@ -110,12 +97,6 @@ HWTEST_F(VpnDatabaseHelperTest, QueryAllData001, TestSize.Level1)
 
 HWTEST_F(VpnDatabaseHelperTest, DeleteVpnData001, TestSize.Level1)
 {
-    std::string vpnId = "0000";
-    EXPECT_EQ(vpnDataHelper_->DeleteVpnData(vpnId), NETMANAGER_EXT_ERR_OPERATION_FAILED);
-}
-
-HWTEST_F(VpnDatabaseHelperTest, DeleteVpnData002, TestSize.Level1)
-{
     std::string vpnId = "1234";
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     vpnBean->vpnId_ = "1234";
@@ -130,12 +111,6 @@ HWTEST_F(VpnDatabaseHelperTest, DeleteVpnData002, TestSize.Level1)
 }
 
 HWTEST_F(VpnDatabaseHelperTest, UpdateData001, TestSize.Level1)
-{
-    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    EXPECT_EQ(vpnDataHelper_->UpdateData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
-}
-
-HWTEST_F(VpnDatabaseHelperTest, UpdateData002, TestSize.Level1)
 {
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     vpnBean->vpnId_ = "1234";

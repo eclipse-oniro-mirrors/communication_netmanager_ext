@@ -129,6 +129,9 @@ bool NetworkVpnService::Init()
     RegisterFactoryResetCallback();
 #ifdef SUPPORT_SYSVPN
     vpnDbHelper_ = std::make_shared<VpnDatabaseHelper>();
+    if (vpnDbHelper_ == nullptr) {
+        NETMGR_EXT_LOG_E("vpnDbHelper_ make_shared failed.");
+    }
 #endif // SUPPORT_SYSVPN
     return true;
 }
@@ -614,8 +617,11 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 		
     config->userId_ = userId;
     sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
-    int32_t result = vpnDbHelper_->InsertOrUpdateData(vpnBean);
-    return result;
+    if (vpnDbHelper_ == nullptr || vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("AddSysVpnConfig failed, vpnDbHelper_ or vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
+    return vpnDbHelper_->InsertOrUpdateData(vpnBean);
 }
 
 int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
@@ -638,9 +644,13 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
     }
 
     NETMGR_EXT_LOG_I("sysvpn service DeleteSysVpnConfig %{public}s", vpnId.c_str());
+    if (vpnDbHelper_ == nullptr) {
+        NETMGR_EXT_LOG_E("AddSysVpnConfig vpnDbHelper is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
     int32_t result = vpnDbHelper_->DeleteVpnData(vpnId);
     if (NETMANAGER_EXT_SUCCESS != result) {
-        NETMGR_EXT_LOG_E("DeleteSystemVpn failed, code = %{public}d", result);
+        NETMGR_EXT_LOG_I("DeleteSystemVpn failed, code = %{public}d", result);
     }
     return result;
 }
@@ -661,9 +671,13 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
     }
 
     NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfigList");
+    if (vpnDbHelper_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnConfigList vpnDbHelper is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
     int32_t result = vpnDbHelper_->QueryAllData(vpnList, userId);
     if (NETMANAGER_EXT_SUCCESS != result) {
-        NETMGR_EXT_LOG_E("GetSystemVpnList QueryAllData failed, code = %{public}d", result);
+        NETMGR_EXT_LOG_I("GetSystemVpnList QueryAllData failed, code = %{public}d", result);
     }
     return result;
 }
@@ -689,9 +703,13 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
 
     NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfig id=%{public}s", vpnId.c_str());
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+    if (vpnDbHelper_ == nullptr || vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnConfig failed, vpnDbHelper or vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
     int32_t result = vpnDbHelper_->QueryVpnData(vpnBean, vpnId);
     if (NETMANAGER_EXT_SUCCESS != result) {
-        NETMGR_EXT_LOG_E("GetSysVpnConfig failed, code = %{public}d", result);
+        NETMGR_EXT_LOG_I("GetSysVpnConfig failed, code = %{public}d", result);
     }
     config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
     return result;

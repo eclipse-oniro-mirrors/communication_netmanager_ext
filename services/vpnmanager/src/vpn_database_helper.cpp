@@ -123,10 +123,10 @@ bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId)
     return rowCount == 1;
 }
 
-void VpnDatabaseHelper::bindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info)
+void VpnDatabaseHelper::BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info)
 {
     if (info == nullptr) {
-        NETMGR_EXT_LOG_E("bindVpnData params is nullptr");
+        NETMGR_EXT_LOG_E("BindVpnData params is nullptr");
         return;
     }
     values.PutString(VPN_ID, info->vpnId_);
@@ -185,7 +185,7 @@ int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &vpnBean)
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     NativeRdb::ValuesBucket values;
-    bindVpnData(values, vpnBean);
+    BindVpnData(values, vpnBean);
     int64_t rowId = 0;
     int ret = store_->Insert(rowId, VPN_CONFIG_TABLE, values);
     if (ret != NativeRdb::E_OK) {
@@ -209,7 +209,7 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &vpnBean)
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnBean->vpnId_);
     NativeRdb::ValuesBucket values;
-    bindVpnData(values, vpnBean);
+    BindVpnData(values, vpnBean);
     int32_t rowId = -1;
     int32_t ret = store_->Update(rowId, values, rdbPredicate);
     if (ret != OHOS::NativeRdb::E_OK) {
@@ -219,11 +219,11 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &vpnBean)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-void VpnDatabaseHelper::getVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
+void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
     sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr || queryResultSet == nullptr) {
-        NETMGR_EXT_LOG_E("getVpnDataFromResultSet params is nullptr");
+        NETMGR_EXT_LOG_E("GetVpnDataFromResultSet params is nullptr");
         return;
     }
     queryResultSet->GetString(INDEX_VPN_ID, vpnBean->vpnId_);
@@ -299,7 +299,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
         return NETMANAGER_EXT_SUCCESS;
     }
     while (!queryResultSet->GoToNextRow()) {
-        getVpnDataFromResultSet(queryResultSet, vpnBean);
+        GetVpnDataFromResultSet(queryResultSet, vpnBean);
         if (vpnBean->vpnId_ == vpnUuid) {
             return NETMANAGER_SUCCESS;
         }
