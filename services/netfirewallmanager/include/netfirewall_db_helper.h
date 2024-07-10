@@ -257,7 +257,7 @@ public:
 
 private:
     NetFirewallDbHelper();
-	~NetFirewallDbHelper();
+    ~NetFirewallDbHelper();
 
     // Fill in firewall rule data
     int32_t FillValuesOfFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallRule &rule);

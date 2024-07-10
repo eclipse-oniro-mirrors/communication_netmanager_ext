@@ -55,22 +55,22 @@ HWTEST_F(NetFirewallRuleNativeHelperTest, SetFirewallRulesInner001, TestSize.Lev
 {
     NetManagerExtAccessToken token;
     std::vector<sptr<NetFirewallBaseRule>> rules;
-    const int32_t USER_ID = 100;
-    const int32_t RULE_NUM = 301;
-    const int32_t MAX_IP_VALUE = 256;
+    const int32_t userId = 100;
+    const int32_t ruleNum = 301;
+    const int32_t maxIp = 256;
     NetFirewallIpParam param;
     param.family = FAMILY_IPV4;
     param.type = SINGLE_IP;
     const std::string tmp = "192.168.";
-    for (int32_t i = 0; i < RULE_NUM; i++) {
+    for (int32_t i = 0; i < ruleNum; i++) {
         sptr<NetFirewallIpRule> rule = new (std::nothrow) NetFirewallIpRule();
         ASSERT_NE(rule, nullptr);
-        rule->userId = USER_ID;
+        rule->userId = userId;
         rule->ruleDirection = NetFirewallRuleDirection::RULE_OUT;
         rule->ruleAction = FirewallRuleAction::RULE_DENY;
         rule->protocol = NetworkProtocol::ICMP;
 
-        inet_pton(AF_INET, (tmp + std::to_string(i / MAX_IP_VALUE) + "." + std::to_string(i % MAX_IP_VALUE)).c_str(),
+        inet_pton(AF_INET, (tmp + std::to_string(i / maxIp) + "." + std::to_string(i % maxIp)).c_str(),
             &param.ipv4.startIp);
         rule->remoteIps.emplace_back(param);
         rules.emplace_back(rule);
