@@ -19,16 +19,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-std::shared_ptr<NetFirewallPolicyManager> NetFirewallPolicyManager::instance_ = nullptr;
-
-std::shared_ptr<NetFirewallPolicyManager> NetFirewallPolicyManager::GetInstance()
+NetFirewallPolicyManager &NetFirewallPolicyManager::GetInstance()
 {
-    static std::mutex instanceMutex;
-    std::lock_guard<std::mutex> guard(instanceMutex);
-    if (instance_ == nullptr) {
-        instance_.reset(new NetFirewallPolicyManager());
-    }
-    return instance_;
+    static NetFirewallPolicyManager instance;
+    return instance;
 }
 
 NetFirewallPolicyManager::NetFirewallPolicyManager()
@@ -55,6 +49,10 @@ void NetFirewallPolicyManager::SetCurrentUserId(int32_t userId)
 
 int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &policy)
 {
+    if (policy == nullptr) {
+        NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed, policy is nullptr.");
+        return FIREWALL_ERR_PARAMETER_ERROR;
+    }
     std::lock_guard<std::shared_mutex> locker(setPolicyMutex_);
     if (preferencesHelper_ == nullptr) {
         NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed, reference is nullptr.");
@@ -71,6 +69,10 @@ int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, con
 
 int32_t NetFirewallPolicyManager::GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &policy)
 {
+    if (policy == nullptr) {
+        NETMGR_EXT_LOG_E("GetNetFirewallPolicy failed, policy is nullptr.");
+        return FIREWALL_ERR_INTERNAL;
+    }
     std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
     if (currentUserId_ == userId) {
         EnsureCurrentFirewallPolicyCached();

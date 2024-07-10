@@ -49,10 +49,17 @@ NetFirewallInterceptRecorder::~NetFirewallInterceptRecorder()
 int32_t NetFirewallInterceptRecorder::GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<InterceptRecordPage> &info)
 {
+    if (requestParam == nullptr) {
+        NETMGR_EXT_LOG_E("GetInterceptRecords requestParam is null");
+        return FIREWALL_ERR_PARAMETER_ERROR;
+    }
+    if (info == nullptr) {
+        NETMGR_EXT_LOG_E("GetInterceptRecords info is null");
+        return FIREWALL_ERR_INTERNAL;
+    }
     std::lock_guard<std::shared_mutex> locker(setRecordMutex_);
     info->pageSize = requestParam->pageSize;
-    std::shared_ptr<NetFirewallDbHelper> helper = NetFirewallDbHelper::GetInstance();
-    int32_t ret = helper->QueryInterceptRecord(userId, requestParam, info);
+    int32_t ret = NetFirewallDbHelper::GetInstance().QueryInterceptRecord(userId, requestParam, info);
     if (ret < 0) {
         NETMGR_EXT_LOG_E("GetInterceptRecords error");
         return FIREWALL_ERR_INTERNAL;
@@ -85,7 +92,7 @@ void NetFirewallInterceptRecorder::SyncRecordCache()
 {
     std::lock_guard<std::shared_mutex> locker(setRecordMutex_);
     if (!recordCache_.empty()) {
-        NetFirewallDbHelper::GetInstance()->AddInterceptRecord(currentUserId_, recordCache_);
+        NetFirewallDbHelper::GetInstance().AddInterceptRecord(currentUserId_, recordCache_);
         recordCache_.clear();
     }
 }

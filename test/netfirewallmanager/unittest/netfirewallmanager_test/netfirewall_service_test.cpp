@@ -302,7 +302,7 @@ HWTEST_F(NetFirewallServiceTest, AddDefaultNetFirewallRule002, TestSize.Level1)
 HWTEST_F(NetFirewallServiceTest, DeleteNetFirewallRuleByUserId001, TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("delete userid id = %{public}d ", instance_->GetCurrentAccountId());
-    int ret = NetFirewallRuleManager::GetInstance()->DeleteNetFirewallRuleByUserId(instance_->GetCurrentAccountId());
+    int ret = NetFirewallRuleManager::GetInstance().DeleteNetFirewallRuleByUserId(instance_->GetCurrentAccountId());
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
@@ -348,7 +348,7 @@ HWTEST_F(NetFirewallServiceTest, SetNetFirewallPolicy002, TestSize.Level1)
 HWTEST_F(NetFirewallServiceTest, ClearCurrentNetFirewallPreferences001, TestSize.Level1)
 {
     int32_t userId = 101;
-    int ret = NetFirewallPolicyManager::GetInstance()->ClearCurrentFirewallPolicy();
+    int ret = NetFirewallPolicyManager::GetInstance().ClearCurrentFirewallPolicy();
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
@@ -389,7 +389,7 @@ HWTEST_F(NetFirewallServiceTest, AddNetFirewallRule001, TestSize.Level1)
 HWTEST_F(NetFirewallServiceTest, DeleteNetFirewallRuleByAppId001, TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("delete appid id = %{public}d ", APPID_TEST01);
-    int ret = NetFirewallRuleManager::GetInstance()->DeleteNetFirewallRuleByAppId(APPID_TEST01);
+    int ret = NetFirewallRuleManager::GetInstance().DeleteNetFirewallRuleByAppId(APPID_TEST01);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
@@ -576,8 +576,8 @@ HWTEST_F(NetFirewallServiceTest, GetNetFirewallRule001, TestSize.Level1)
 {
     int32_t ruleId = 1;
     int32_t userId = USER_ID1;
-    NetFirewallRuleManager::GetInstance()->GetAllRuleConstraint(userId);
-    ruleId = NetFirewallRuleManager::GetInstance()->allUserRule_;
+    NetFirewallRuleManager::GetInstance().GetAllRuleConstraint(userId);
+    ruleId = NetFirewallRuleManager::GetInstance().allUserRule_;
     uint64_t startTime = GetCurrentMilliseconds();
     sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetNetFirewallRule(userId, ruleId, rule);
@@ -752,11 +752,10 @@ HWTEST_F(NetFirewallServiceTest, RollBack001, TestSize.Level1)
  */
 HWTEST_F(NetFirewallServiceTest, QueryEnabledFirewallRules001, TestSize.Level1)
 {
-    auto _netFileDbHelper = NetFirewallDbHelper::GetInstance();
     std::vector<NetFirewallRule> rules;
     int32_t userId = USER_ID1;
     int32_t appUip = APPID_TEST01;
-    int32_t ret = _netFileDbHelper->QueryEnabledFirewallRules(userId, appUip, rules);
+    int32_t ret = NetFirewallDbHelper::GetInstance().QueryEnabledFirewallRules(userId, appUip, rules);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
@@ -807,10 +806,8 @@ HWTEST_F(NetFirewallServiceTest, ConvertDnsParamToConfig001, TestSize.Level1)
  */
 HWTEST_F(NetFirewallServiceTest, QueryAllFirewallRuleRecord001, TestSize.Level1)
 {
-    auto _netFileDbHelper = NetFirewallDbHelper::GetInstance();
-
     std::vector<NetFirewallRule> rules;
-    int32_t ret = _netFileDbHelper->QueryAllFirewallRuleRecord(rules);
+    int32_t ret = NetFirewallDbHelper::GetInstance().QueryAllFirewallRuleRecord(rules);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_GT(rules.size(), 0);
 }
@@ -868,15 +865,15 @@ HWTEST_F(NetFirewallServiceTest, SendNetFirewallFault001, TestSize.Level1)
  */
 HWTEST_F(NetFirewallServiceTest, GetCurrentNetFirewallPolicy001, TestSize.Level1)
 {
-    NetFirewallPolicyManager::GetInstance()->currentUserId_ = USER_ID1;
+    NetFirewallPolicyManager::GetInstance().currentUserId_ = USER_ID1;
 
     sptr<NetFirewallPolicy> policy = new (std::nothrow) NetFirewallPolicy();
     policy->isOpen = true;
     policy->inAction = (FirewallRuleAction)(1);
     policy->outAction = FirewallRuleAction::RULE_ALLOW;
-    NetFirewallPolicyManager::GetInstance()->SetCurrentUserFirewallPolicy(policy);
+    NetFirewallPolicyManager::GetInstance().SetCurrentUserFirewallPolicy(policy);
 
-    int ret = NetFirewallPolicyManager::GetInstance()->GetCurrentNetFirewallPolicy(policy);
+    int ret = NetFirewallPolicyManager::GetInstance().GetCurrentNetFirewallPolicy(policy);
     EXPECT_EQ(ret, 0);
 }
 
@@ -892,7 +889,7 @@ HWTEST_F(NetFirewallServiceTest, SetFirewallDnsRules001, TestSize.Level1)
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->AddNetFirewallRule(rule, ruleId);
     g_rowId = ruleId;
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
-    ret = NetFirewallRuleManager::GetInstance()->SetRulesToNativeByType(USER_ID1, NetFirewallRuleType::RULE_DNS);
+    ret = NetFirewallRuleManager::GetInstance().SetRulesToNativeByType(USER_ID1, NetFirewallRuleType::RULE_DNS);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 } // namespace NetManagerStandard

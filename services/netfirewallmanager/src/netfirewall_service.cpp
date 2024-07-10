@@ -64,10 +64,10 @@ NetFirewallService::~NetFirewallService()
 void NetFirewallService::SetCurrentUserId(int32_t userId)
 {
     currentUserId_ = userId;
-    NetFirewallPolicyManager::GetInstance()->SetCurrentUserId(currentUserId_);
+    NetFirewallPolicyManager::GetInstance().SetCurrentUserId(currentUserId_);
     NetFirewallInterceptRecorder::GetInstance()->SetCurrentUserId(currentUserId_);
     // set current userid to native
-    NetFirewallRuleNativeHelper::GetInstance()->SetCurrentUserId(currentUserId_);
+    NetFirewallRuleNativeHelper::GetInstance().SetCurrentUserId(currentUserId_);
 }
 
 int32_t NetFirewallService::GetCurrentAccountId()
@@ -97,22 +97,21 @@ int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const spt
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
-    std::shared_ptr<NetFirewallPolicyManager> policyManager = NetFirewallPolicyManager::GetInstance();
-    ret = policyManager->SetNetFirewallPolicy(userId, policy);
+    ret = NetFirewallPolicyManager::GetInstance().SetNetFirewallPolicy(userId, policy);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
 
     if (userId == currentUserId_) {
         // If the firewall switch status of the current user has changed, determine whether to issue it
-        if (policyManager->IsFirewallStatusChange(policy)) {
+        if (NetFirewallPolicyManager::GetInstance().IsFirewallStatusChange(policy)) {
             // netfirewall rules to native
-            NetFirewallRuleManager::GetInstance()->OpenOrCloseNativeFirewall(policy->isOpen);
+            NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(policy->isOpen);
         }
-        if (policyManager->IsFirewallActionChange(policy)) {
+        if (NetFirewallPolicyManager::GetInstance().IsFirewallActionChange(policy)) {
             NetsysController::GetInstance().SetFirewallDefaultAction(policy->inAction, policy->outAction);
         }
-        policyManager->SetCurrentUserFirewallPolicy(policy);
+        NetFirewallPolicyManager::GetInstance().SetCurrentUserFirewallPolicy(policy);
     }
 
     return ret;
@@ -132,39 +131,39 @@ int32_t NetFirewallService::GetNetFirewallPolicy(const int32_t userId, sptr<NetF
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
-    NetFirewallPolicyManager::GetInstance()->GetNetFirewallPolicy(userId, policy);
+    NetFirewallPolicyManager::GetInstance().GetNetFirewallPolicy(userId, policy);
     return FIREWALL_SUCCESS;
 }
 
 int32_t NetFirewallService::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &ruleId)
 {
-    return NetFirewallRuleManager::GetInstance()->AddNetFirewallRule(rule, ruleId);
+    return NetFirewallRuleManager::GetInstance().AddNetFirewallRule(rule, ruleId);
 }
 
 int32_t NetFirewallService::AddDefaultNetFirewallRule(int32_t userId)
 {
-    return NetFirewallRuleManager::GetInstance()->AddDefaultNetFirewallRule(userId);
+    return NetFirewallRuleManager::GetInstance().AddDefaultNetFirewallRule(userId);
 }
 
 int32_t NetFirewallService::UpdateNetFirewallRule(const sptr<NetFirewallRule> &rule)
 {
-    return NetFirewallRuleManager::GetInstance()->UpdateNetFirewallRule(rule);
+    return NetFirewallRuleManager::GetInstance().UpdateNetFirewallRule(rule);
 }
 
 int32_t NetFirewallService::DeleteNetFirewallRule(const int32_t userId, const int32_t ruleId)
 {
-    return NetFirewallRuleManager::GetInstance()->DeleteNetFirewallRule(userId, ruleId);
+    return NetFirewallRuleManager::GetInstance().DeleteNetFirewallRule(userId, ruleId);
 }
 
 int32_t NetFirewallService::GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<FirewallRulePage> &info)
 {
-    return NetFirewallRuleManager::GetInstance()->GetNetFirewallRules(userId, requestParam, info);
+    return NetFirewallRuleManager::GetInstance().GetNetFirewallRules(userId, requestParam, info);
 }
 
 int32_t NetFirewallService::GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule)
 {
-    return NetFirewallRuleManager::GetInstance()->GetNetFirewallRule(userId, ruleId, rule);
+    return NetFirewallRuleManager::GetInstance().GetNetFirewallRule(userId, ruleId, rule);
 }
 
 int32_t NetFirewallService::GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
@@ -228,7 +227,7 @@ std::string NetFirewallService::GetServiceState()
 
 std::string NetFirewallService::GetLastRulePushTime()
 {
-    currentSetRuleSecond_ = NetFirewallRuleManager::GetInstance()->GetCurrentSetRuleSecond();
+    currentSetRuleSecond_ = NetFirewallRuleManager::GetInstance().GetCurrentSetRuleSecond();
     if (currentSetRuleSecond_ == 0) {
         return PUSH_RESULT_UNKONW;
     }
@@ -237,7 +236,7 @@ std::string NetFirewallService::GetLastRulePushTime()
 
 std::string NetFirewallService::GetLastRulePushResult()
 {
-    lastRulePushResult_ = NetFirewallRuleManager::GetInstance()->GetLastRulePushResult();
+    lastRulePushResult_ = NetFirewallRuleManager::GetInstance().GetLastRulePushResult();
     if (lastRulePushResult_ == FIREWALL_SUCCESS) {
         return PUSH_RESULT_SUCCESS;
     }
@@ -254,7 +253,7 @@ int32_t NetFirewallService::GetAllUserFirewallState(std::map<int32_t, bool> &fir
     size_t size = osAccountInfos.size();
     for (const auto &info : osAccountInfos) {
         int32_t userId = info.GetLocalId();
-        firewallStateMap[userId] = NetFirewallPolicyManager::GetInstance()->IsNetFirewallOpen(userId);
+        firewallStateMap[userId] = NetFirewallPolicyManager::GetInstance().IsNetFirewallOpen(userId);
     }
     return FIREWALL_SUCCESS;
 }
@@ -306,11 +305,12 @@ void NetFirewallService::OnAddSystemAbility(int32_t systemAbilityId, const std::
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         if (hasSaRemoved_) {
             NETMGR_EXT_LOG_I("native reboot, reset firewall rules.");
-            int32_t ret = NetFirewallRuleManager::GetInstance()->OpenOrCloseNativeFirewall(
-                NetFirewallPolicyManager::GetInstance()->IsCurrentFirewallOpen());
+            int32_t ret = NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+                NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
             if (ret != FIREWALL_SUCCESS) {
                 NETMGR_EXT_LOG_E("native reboot, notifyRuleChang error");
             }
+            NetFirewallInterceptRecorder::GetInstance()->RegisterInterceptCallback();
             hasSaRemoved_ = false;
         }
         // After the universal service is launched, you can register for broadcast monitoring
@@ -346,8 +346,8 @@ void NetFirewallService::InitQueryUserId(int32_t times)
 
 bool NetFirewallService::InitQueryNetFirewallRules()
 {
-    int32_t ret = NetFirewallRuleManager::GetInstance()->OpenOrCloseNativeFirewall(
-        NetFirewallPolicyManager::GetInstance()->IsCurrentFirewallOpen());
+    int32_t ret = NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+        NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("InitQueryNetFirewallRules notifyRuleChanged error");
         return FIREWALL_ERR_INTERNAL;
@@ -426,21 +426,21 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         action.c_str(), data.c_str(), code);
     int32_t userId = code;
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED) {
-        NetFirewallRuleManager::GetInstance()->DeleteNetFirewallRuleByUserId(userId);
-        NetFirewallPolicyManager::GetInstance()->ClearFirewallPolicy(userId);
-        NetFirewallDbHelper::GetInstance()->DeleteInterceptRecord(userId);
-        NetFirewallRuleManager::GetInstance()->DeleteUserRuleSize(userId);
+        NetFirewallRuleManager::GetInstance().DeleteNetFirewallRuleByUserId(userId);
+        NetFirewallPolicyManager::GetInstance().ClearFirewallPolicy(userId);
+        NetFirewallDbHelper::GetInstance().DeleteInterceptRecord(userId);
+        NetFirewallRuleManager::GetInstance().DeleteUserRuleSize(userId);
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         // Old user cache cleaning
         NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
-        NetFirewallPolicyManager::GetInstance()->ClearCurrentFirewallPolicy();
+        NetFirewallPolicyManager::GetInstance().ClearCurrentFirewallPolicy();
         netfirewallService_->SetCurrentUserId(userId);
         // Old user native bpf cleaning
-        NetFirewallRuleNativeHelper::GetInstance()->ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
-        NetFirewallRuleManager::GetInstance()->OpenOrCloseNativeFirewall(
-            NetFirewallPolicyManager::GetInstance()->IsCurrentFirewallOpen());
+        NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
+        NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+            NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
@@ -450,7 +450,7 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         }
         uint32_t deletedUid = static_cast<uint32_t>(eventData.GetWant().GetIntParam(AppExecFwk::Constants::UID, 0));
         NETMGR_EXT_LOG_I("NetFirewallService: deletedUid %{public}d", deletedUid);
-        NetFirewallRuleManager::GetInstance()->DeleteNetFirewallRuleByAppId(deletedUid);
+        NetFirewallRuleManager::GetInstance().DeleteNetFirewallRuleByAppId(deletedUid);
     }
 }
 } // namespace NetManagerStandard

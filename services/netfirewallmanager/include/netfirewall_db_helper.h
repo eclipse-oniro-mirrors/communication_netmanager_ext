@@ -54,12 +54,6 @@ struct NetFirewallRuleInfo {
     int32_t userIdIndex;
 };
 
-// Direction: source or destination
-enum class LocationType {
-    SRC_LOCATION = 0,
-    DST_LOCATION
-};
-
 // Intercept the structure of records in the database
 struct NetInterceptRecordInfo {
     int32_t rowCount;
@@ -76,7 +70,7 @@ struct NetInterceptRecordInfo {
 
 class NetFirewallDbHelper : public NoCopyable {
 public:
-    static std::shared_ptr<NetFirewallDbHelper> GetInstance();
+    static NetFirewallDbHelper &GetInstance();
 
     /**
      * add NetFirewallRule data record
@@ -260,11 +254,10 @@ public:
     int32_t Count(int64_t &outValue, const OHOS::NativeRdb::AbsRdbPredicates &predicates);
 
     int32_t QuerySql(const std::string &sql);
-    void BeginTransaction();
-    void Commit();
 
 private:
     NetFirewallDbHelper();
+	~NetFirewallDbHelper();
 
     // Fill in firewall rule data
     int32_t FillValuesOfFirewallRule(NativeRdb::ValuesBucket &values, const NetFirewallRule &rule);

@@ -181,16 +181,12 @@ std::shared_ptr<OHOS::NativeRdb::ResultSet> NetFirewallDataBase::QuerySql(const 
     return store_->QuerySql(sql, selectionArgs);
 }
 
-void NetFirewallDataBaseCallBack::initNetFirewallTableMap()
-{
-    netfirewallTableMap_.insert(std::pair<std::string, std::string>(FIREWALL_TABLE_NAME, CREATE_FIREWALL_TABLE));
-    netfirewallTableMap_.insert(std::pair<std::string, std::string>(INTERCEPT_RECORD_TABLE, CREATE_RECORD_TABLE));
-}
-
 int32_t NetFirewallDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
 {
-    initNetFirewallTableMap();
-    for (const auto &pair : netfirewallTableMap_) {
+    std::map<std::string, std::string> netfirewallTableMap;
+    netfirewallTableMap.insert(std::pair<std::string, std::string>(FIREWALL_TABLE_NAME, CREATE_FIREWALL_TABLE));
+    netfirewallTableMap.insert(std::pair<std::string, std::string>(INTERCEPT_RECORD_TABLE, CREATE_RECORD_TABLE));
+    for (const auto &pair : netfirewallTableMap) {
         std::string sql = pair.second;
         int32_t ret = store.ExecuteSql(sql);
         if (ret != OHOS::NativeRdb::E_OK) {

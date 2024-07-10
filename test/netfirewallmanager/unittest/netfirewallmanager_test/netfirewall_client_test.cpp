@@ -327,6 +327,7 @@ HWTEST_F(NetFirewallClientTest, AddNetFirewallRule003, TestSize.Level1)
 
 HWTEST_F(NetFirewallClientTest, AddNetFirewallRule004, TestSize.Level1)
 {
+    NetManagerExtAccessToken token;
     int32_t ruleId = 0;
     int32_t ret = -1;
     sptr<NetFirewallRule> rule = GetNetFirewallIpV4RuleSptr();
@@ -432,8 +433,8 @@ HWTEST_F(NetFirewallClientTest, GetNetFirewallRule001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t ruleId = 1;
     int32_t userId = 100;
-    NetFirewallRuleManager::GetInstance()->GetAllRuleConstraint(userId);
-    ruleId = NetFirewallRuleManager::GetInstance()->allUserRule_;
+    NetFirewallRuleManager::GetInstance().GetAllRuleConstraint(userId);
+    ruleId = NetFirewallRuleManager::GetInstance().allUserRule_;
     int32_t ret = -1;
     sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
     rule->ruleId = ruleId;
@@ -494,8 +495,8 @@ HWTEST_F(NetFirewallClientTest, DeleteNetFirewallRule001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t userId = 100;
     int32_t ruleId = 0;
-    NetFirewallRuleManager::GetInstance()->GetAllRuleConstraint(userId);
-    ruleId = NetFirewallRuleManager::GetInstance()->allUserRule_;
+    NetFirewallRuleManager::GetInstance().GetAllRuleConstraint(userId);
+    ruleId = NetFirewallRuleManager::GetInstance().allUserRule_;
     int32_t ret = -1;
     g_startTimeTest = GetCurrentMilliseconds();
     for (int32_t i = 0; i < MAX_USER_RULE; i++) {

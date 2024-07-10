@@ -25,7 +25,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 class NetFirewallRuleNativeHelper {
 public:
-    static std::shared_ptr<NetFirewallRuleNativeHelper> GetInstance();
+    static NetFirewallRuleNativeHelper &GetInstance();
     NetFirewallRuleNativeHelper();
     ~NetFirewallRuleNativeHelper();
 
@@ -82,7 +82,6 @@ private:
     int32_t SetFirewallRulesInner(NetFirewallRuleType type, const std::vector<sptr<NetFirewallBaseRule>> &ruleList,
                                   uint32_t pageSize);
     std::mutex callNetSysController_;
-    static std::shared_ptr<NetFirewallRuleNativeHelper> instance_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
