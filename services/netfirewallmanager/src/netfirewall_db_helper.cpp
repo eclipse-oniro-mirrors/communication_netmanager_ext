@@ -32,21 +32,20 @@ const std::string SQL_FROM = ") FROM ";
 
 namespace OHOS {
 namespace NetManagerStandard {
-std::shared_ptr<NetFirewallDbHelper> NetFirewallDbHelper::instance_;
-
 NetFirewallDbHelper::NetFirewallDbHelper()
 {
     firewallDatabase_ = NetFirewallDataBase::GetInstance();
 }
 
-std::shared_ptr<NetFirewallDbHelper> NetFirewallDbHelper::GetInstance()
+NetFirewallDbHelper::~NetFirewallDbHelper()
 {
-    static std::mutex instanceMutex;
-    std::lock_guard<std::mutex> guard(instanceMutex);
-    if (instance_ == nullptr) {
-        instance_.reset(new NetFirewallDbHelper());
-    }
-    return instance_;
+    firewallDatabase_ = nullptr;
+}
+
+NetFirewallDbHelper &NetFirewallDbHelper::GetInstance()
+{
+    static NetFirewallDbHelper instance;
+    return instance;
 }
 
 bool NetFirewallDbHelper::DomainListToBlob(const std::vector<NetFirewallDomainParam> &vec, std::vector<uint8_t> &blob,
@@ -616,6 +615,7 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleRecord(const NativeRdb::RdbPredica
     }
     size_t size = rules.size();
     if (size <= 0) {
+        NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule empty");
         return FIREWALL_OK;
     }
     NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule size: %{public}zu", size);
@@ -894,16 +894,6 @@ int32_t NetFirewallDbHelper::QueryInterceptRecord(const int32_t userId, const sp
     }
     rdbPredicates.Limit((requestParam->page - 1) * requestParam->pageSize, requestParam->pageSize)->EndWrap();
     return QueryAndGetResult(rdbPredicates, columns, info->data);
-}
-
-void NetFirewallDbHelper::BeginTransaction()
-{
-    firewallDatabase_->BeginTransaction();
-}
-
-void NetFirewallDbHelper::Commit()
-{
-    firewallDatabase_->Commit();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

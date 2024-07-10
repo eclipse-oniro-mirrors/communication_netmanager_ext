@@ -22,16 +22,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-std::shared_ptr<NetFirewallRuleNativeHelper> NetFirewallRuleNativeHelper::instance_ = nullptr;
-
-std::shared_ptr<NetFirewallRuleNativeHelper> NetFirewallRuleNativeHelper::GetInstance()
+NetFirewallRuleNativeHelper &NetFirewallRuleNativeHelper::GetInstance()
 {
-    static std::mutex instanceMutex;
-    std::lock_guard<std::mutex> guard(instanceMutex);
-    if (instance_ == nullptr) {
-        instance_.reset(new NetFirewallRuleNativeHelper());
-    }
-    return instance_;
+    static NetFirewallRuleNativeHelper instance;
+    return instance;
 }
 
 NetFirewallRuleNativeHelper::NetFirewallRuleNativeHelper()
@@ -112,29 +106,10 @@ int32_t NetFirewallRuleNativeHelper::SetFirewallDomainRules(const std::vector<sp
 int32_t NetFirewallRuleNativeHelper::SetFirewallRulesInner(NetFirewallRuleType type,
     const std::vector<sptr<NetFirewallBaseRule>> &ruleList, uint32_t pageSize)
 {
-    NETMGR_EXT_LOG_I("SetFirewallRulesInner: type=%{public}" PRId32 " ruleSize=%{public}zu pageSize=%{public}" PRIu32,
-        type, ruleList.size(), pageSize);
+    NETMGR_EXT_LOG_I("SetFirewallRulesInner: type=%{public}d ruleSize=%{public}zu pageSize=%{public}d", type,
+        ruleList.size(), pageSize);
     std::lock_guard<std::mutex> locker(callNetSysController_);
-    int32_t ret = FIREWALL_SUCCESS;
-    size_t size = ruleList.size();
-    auto start = ruleList.begin();
-    int count = 0;
-    while (size > 0) {
-        size_t offset = (size > pageSize ? pageSize : size);
-        size -= offset;
-        start += offset * count;
-        std::vector<sptr<NetFirewallBaseRule>> subVector;
-        subVector.assign(start, start + offset);
-        bool isFinish = (size <= 0);
-
-        ret += NetsysController::GetInstance().SetFirewallRules(type, subVector, isFinish);
-        if (ret != ERR_NONE) {
-            NETMGR_EXT_LOG_E("SetFirewallRules SendRequest failed");
-            return ret;
-        }
-        count++;
-    }
-    return ret;
+    return NetsysController::GetInstance().SetFirewallRules(type, ruleList, true);
 }
 
 /**

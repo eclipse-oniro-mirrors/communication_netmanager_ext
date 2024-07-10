@@ -25,7 +25,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 class NetFirewallRuleManager {
 public:
-    static std::shared_ptr<NetFirewallRuleManager> GetInstance();
+    static NetFirewallRuleManager &GetInstance();
     NetFirewallRuleManager();
     ~NetFirewallRuleManager();
 
@@ -105,11 +105,12 @@ private:
 
     bool CheckAccountExist(int32_t userId);
 
-    bool ExtractIpRules(const std::vector<NetFirewallRule> &rules);
+    bool ExtractIpRules(const std::vector<NetFirewallRule> &rules, std::vector<sptr<NetFirewallIpRule>> &ipRules);
 
-    bool ExtractDomainRules(const std::vector<NetFirewallRule> &rules);
+    bool ExtractDomainRules(const std::vector<NetFirewallRule> &rules,
+        std::vector<sptr<NetFirewallDomainRule>> &domainRules);
 
-    bool ExtractDnsRules(const std::vector<NetFirewallRule> &rules);
+    bool ExtractDnsRules(const std::vector<NetFirewallRule> &rules, std::vector<sptr<NetFirewallDnsRule>> &dnsRules);
 
     int32_t HandleIpTypeForDistributeRules(std::vector<NetFirewallRule> &rules);
 
@@ -125,8 +126,6 @@ private:
 
     void SetNetFirewallDumpMessage(const int32_t result);
 
-    int32_t HandleUpdateRule(const sptr<NetFirewallRule> &rule);
-
     void UpdateUserRuleSize(const int32_t userId, bool isInc);
 
 private:
@@ -136,12 +135,8 @@ private:
     int64_t maxDefaultRuleSize_ = 0;
     std::shared_mutex setFirewallRuleMutex_;
     std::map<int32_t, int64_t> userRuleSize_;
-    std::vector<sptr<NetFirewallIpRule>> ipRules_;
-    std::vector<sptr<NetFirewallDnsRule>> dnsRules_;
-    std::vector<sptr<NetFirewallDomainRule>> domainRules_;
     std::atomic<uint64_t> currentSetRuleSecond_ = 0;
     std::atomic<int64_t> lastRulePushResult_ = -1;
-    static std::shared_ptr<NetFirewallRuleManager> instance_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

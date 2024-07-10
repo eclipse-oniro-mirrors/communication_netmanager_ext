@@ -30,7 +30,7 @@ const std::string FIREWALL_PREFERENCE_PATH = "/data/service/el1/public/netmanage
 
 class NetFirewallPolicyManager {
 public:
-    static std::shared_ptr<NetFirewallPolicyManager> GetInstance();
+    static NetFirewallPolicyManager &GetInstance();
     NetFirewallPolicyManager();
     ~NetFirewallPolicyManager();
 
@@ -147,7 +147,6 @@ private:
     // Cache the current state
     std::atomic<int32_t> currentUserId_ = 0;
     sptr<NetFirewallPolicy> currentFirewallPolicy_ = nullptr;
-    static std::shared_ptr<NetFirewallPolicyManager> instance_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
