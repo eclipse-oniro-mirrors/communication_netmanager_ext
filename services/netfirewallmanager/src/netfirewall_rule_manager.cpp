@@ -409,6 +409,10 @@ bool NetFirewallRuleManager::ExtractIpRules(const std::vector<NetFirewallRule> &
             continue;
         }
         sptr<NetFirewallIpRule> ipRule = new (std::nothrow) NetFirewallIpRule();
+        if (ipRule == nullptr) {
+            NETMGR_EXT_LOG_E("ExtractIpRules ipRule is null");
+            return false;
+        }
         ipRule->userId = rule.userId;
         ipRule->ruleDirection = rule.ruleDirection;
         ipRule->ruleAction = rule.ruleAction;
@@ -434,6 +438,10 @@ bool NetFirewallRuleManager::ExtractDomainRules(const std::vector<NetFirewallRul
             continue;
         }
         sptr<NetFirewallDomainRule> domainRule = new (std::nothrow) NetFirewallDomainRule();
+        if (domainRule == nullptr) {
+            NETMGR_EXT_LOG_E("ExtractDomainRules domainRule is null");
+            return false;
+        }
         domainRule->userId = rule.userId;
         domainRule->appUid = rule.appUid;
         domainRule->ruleAction = rule.ruleAction;
@@ -454,6 +462,10 @@ bool NetFirewallRuleManager::ExtractDnsRules(const std::vector<NetFirewallRule> 
             continue;
         }
         sptr<NetFirewallDnsRule> dnsRule = new (std::nothrow) NetFirewallDnsRule();
+        if (dnsRule == nullptr) {
+            NETMGR_EXT_LOG_E("ExtractDnsRules dnsRule is null");
+            return false;
+        }
         dnsRule->userId = rule.userId;
         dnsRule->appUid = rule.appUid;
         dnsRule->primaryDns = rule.dns.primaryDns;
