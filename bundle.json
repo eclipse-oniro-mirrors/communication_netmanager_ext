@@ -27,7 +27,7 @@
             "SystemCapability.Communication.NetManager.NetFirewall"
         ],
         "features": [
-            "netmanager_ext_feature_coverage = false",
+            "netmanager_ext_feature_coverage",
             "netmanager_ext_feature_ethernet",
             "netmanager_ext_feature_share",
             "netmanager_ext_feature_mdns",
