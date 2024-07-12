@@ -19,6 +19,7 @@
 #include <any>
 #include <map>
 
+#include "ffrt_inner.h"
 #include "networkshare_hisysevent.h"
 #include "networkshare_sub_statemachine.h"
 #include "networkshare_upstreammonitor.h"
@@ -61,7 +62,7 @@ public:
     /**
      * execute get mutex
      */
-    std::recursive_mutex &GetEventMutex();
+    ffrt::recursive_mutex &GetEventMutex();
 
 private:
     bool TurnOnMainShareSettings();
@@ -91,7 +92,7 @@ private:
         int nextState_;
     };
 
-    std::recursive_mutex mutex_;
+    ffrt::recursive_mutex mutex_;
     std::string netshareRequester_;
     int32_t errorType_ = NETWORKSHARING_SHARING_NO_ERROR;
     bool hasSetForward_ = false;
