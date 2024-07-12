@@ -17,6 +17,7 @@
 #define NETWORKSHARE_SUB_STATEMACHINE_H
 
 #include "dhcp_c_api.h"
+#include "ffrt_inner.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "networkshare_configuration.h"
@@ -120,7 +121,7 @@ private:
     bool GetUsbDestinationAddr(std::string &addrStr);
     bool CheckConfig(std::string &endIp, std::string &mask);
     bool FindDestinationAddr(std::string &destination);
-    std::recursive_mutex &getUsefulMutex();
+    ffrt::recursive_mutex &getUsefulMutex();
     void StartIpv6();
     void StopIpv6();
     std::string MacToEui64Addr(std::string &mac);
@@ -136,7 +137,7 @@ private:
         HandleFunc func_;
         int32_t nextState_;
     };
-    std::recursive_mutex mutex_;
+    ffrt::recursive_mutex mutex_;
     std::string ifaceName_;
     SharingIfaceType netShareType_;
     int32_t lastError_ = NETMANAGER_EXT_SUCCESS;

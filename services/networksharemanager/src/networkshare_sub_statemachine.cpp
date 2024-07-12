@@ -180,7 +180,7 @@ void NetworkShareSubStateMachine::SubSmStateSwitch(int newState)
     }
 }
 
-std::recursive_mutex &NetworkShareSubStateMachine::getUsefulMutex()
+ffrt::recursive_mutex &NetworkShareSubStateMachine::getUsefulMutex()
 {
     auto mainStateMachinePtr = NetworkShareTracker::GetInstance().GetMainStateMachine();
     if (!mainStateMachinePtr) {
@@ -192,7 +192,7 @@ std::recursive_mutex &NetworkShareSubStateMachine::getUsefulMutex()
 
 void NetworkShareSubStateMachine::SubSmEventHandle(int eventId, const std::any &messageObj)
 {
-    std::lock_guard<std::recursive_mutex> lock(getUsefulMutex());
+    std::lock_guard<ffrt::recursive_mutex> lock(getUsefulMutex());
     int nextState = NO_NEXT_STATE;
     int (NetworkShareSubStateMachine::*eventFunc)(const std::any &messageObj) = nullptr;
     for (const auto &iterState : stateTable_) {
