@@ -106,14 +106,14 @@ void NetworkShareMainStateMachine::MainSmStateSwitch(int newState)
     }
 }
 
-std::recursive_mutex &NetworkShareMainStateMachine::GetEventMutex()
+ffrt::recursive_mutex &NetworkShareMainStateMachine::GetEventMutex()
 {
     return mutex_;
 }
 
 void NetworkShareMainStateMachine::MainSmEventHandle(int eventId, const std::any &messageObj)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    std::lock_guard<ffrt::recursive_mutex> lock(mutex_);
     int nextState = NO_NEXT_STATE;
     int (NetworkShareMainStateMachine::*eventActionFun)(const std::any &messageObj) = nullptr;
     for (const auto &iter : stateTable_) {
