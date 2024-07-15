@@ -55,6 +55,8 @@ constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL = 500;
 constexpr uint32_t MAX_RETRY_TIMES = 10;
+constexpr const char *VPNEXT_MODE_URI =
+    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
 
 const bool REGISTER_LOCAL_RESULT_NETVPN =
     SystemAbility::MakeAndRegisterAbility(&NetworkVpnService::GetInstance());
@@ -529,9 +531,17 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
+    std::string vpnExtMode;
+    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
+    NETMGR_EXT_LOG_D("SetUpVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
+    if (ret != 0 || vpnExtMode != "1") {
+        NETMGR_EXT_LOG_E("query datebase fail.");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
-    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
@@ -553,7 +563,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
     }
     ret = vpnObj_->SetUp();
     if (ret == NETMANAGER_EXT_SUCCESS && !vpnBundleName_.empty()) {
-        std::vector<std::string> list = {vpnBundleName_, vpnBundleName_.append(VPN_EXTENSION_LABEL)};
+        std::vector<std::string> list = {vpnBundleName_, vpnBundleName_ + VPN_EXTENSION_LABEL};
         auto regRet =
             Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver_, list);
         NETMGR_EXT_LOG_I("vpnHapOberver RegisterApplicationStateObserver ret = %{public}d", regRet);
@@ -575,9 +585,17 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
+    std::string vpnExtMode;
+    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
+    NETMGR_EXT_LOG_D("DestroyVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
+    if (ret != 0 || vpnExtMode != "1") {
+        NETMGR_EXT_LOG_E("query datebase fail.");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
-    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
@@ -972,6 +990,7 @@ void NetworkVpnService::SubscribeCommonEvent()
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_POWER_SAVE_MODE_CHANGED);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     // 1 means CORE_EVENT_PRIORITY
     subscribeInfo.SetPriority(1);
@@ -988,6 +1007,12 @@ void NetworkVpnService::SubscribeCommonEvent()
     if (!subscribeResult) {
         NETMGR_EXT_LOG_E("SubscribeCommonEvent fail: %{public}d", subscribeResult);
     }
+}
+
+void NetworkVpnService::ReceiveMessage::RegisterBundleName(const std::string &bundleName)
+{
+    vpnBundleName_ = bundleName;
+    NETMGR_EXT_LOG_I("ReceiveMessage RegisterBundleName %{public}s", vpnBundleName_.c_str());
 }
 
 void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
@@ -1008,6 +1033,12 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
         vpnService_.StartAlwaysOnVpn();
     }
+
+    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+        std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
+        NETMGR_EXT_LOG_D("COMMON_EVENT_PACKAGE_REMOVED, BundleName %{public}s", vpnBundleName_.c_str());
+        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, vpnBundleName_);
+    }
 }
 
 int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName)
@@ -1015,6 +1046,7 @@ int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName)
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     NETMGR_EXT_LOG_I("VpnService RegisterBundleName %{public}s", bundleName.c_str());
     vpnBundleName_ = bundleName;
+    subscriber_->RegisterBundleName(bundleName);
     return 0;
 }
 

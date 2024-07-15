@@ -79,9 +79,11 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
             : EventFwk::CommonEventSubscriber(subscriberInfo), vpnService_(vpnService){};
 
         virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
+        void RegisterBundleName(const std::string &bundleName);
 
     private:
         NetworkVpnService &vpnService_;
+        std::string vpnBundleName_ = "";
     };
 
 public:
