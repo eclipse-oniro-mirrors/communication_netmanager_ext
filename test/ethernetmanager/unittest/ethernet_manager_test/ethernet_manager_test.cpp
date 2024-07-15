@@ -808,7 +808,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager031, TestSize.Level1)
     std::string dev = "eth0";
     ethernetManagement.DevInterfaceAdd(dev);
     ethernetManagement.UpdateInterfaceState(dev, true);
-    std::vectorstd::string activeIfaces;
+    std::vector<std::string> activeIfaces;
     int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
