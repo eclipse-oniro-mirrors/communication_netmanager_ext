@@ -73,7 +73,6 @@ bool NetFirewallDbHelper::DomainListToBlob(const std::vector<NetFirewallDomainPa
 bool NetFirewallDbHelper::BlobToDomainList(const std::vector<uint8_t> &blob, std::vector<NetFirewallDomainParam> &vec)
 {
     vec.clear();
-    vec.shrink_to_fit();
     size_t blobSize = blob.size();
     if (blobSize < 1) {
         return false;
@@ -102,51 +101,38 @@ bool NetFirewallDbHelper::BlobToDomainList(const std::vector<uint8_t> &blob, std
     return vec.size() > 0;
 }
 
-template <typename T> bool NetFirewallDbHelper::ListToBlob(const std::vector<T> &vec, std::vector<uint8_t> &blob)
+template <typename T> void NetFirewallDbHelper::ListToBlob(const std::vector<T> &vec, std::vector<uint8_t> &blob)
 {
     blob.clear();
+    size_t size = sizeof(T);
     for (const auto &param : vec) {
-        // 1 store the size of each object
-        uint16_t size = (uint16_t)sizeof(param);
-        uint8_t *sizePtr = (uint8_t *)&size;
-        blob.emplace_back(sizePtr[0]);
-        blob.emplace_back(sizePtr[1]);
-
         const uint8_t *data = reinterpret_cast<const uint8_t *>(&param);
         std::vector<uint8_t> item(data, data + size);
         // 1 store each object
         blob.insert(blob.end(), item.begin(), item.end());
     }
-    return blob.size() > 0;
 }
 
-template <typename T> bool NetFirewallDbHelper::BlobToList(const std::vector<uint8_t> &blob, std::vector<T> &vec)
+template <typename T> void NetFirewallDbHelper::BlobToList(const std::vector<uint8_t> &blob, std::vector<T> &vec)
 {
     vec.clear();
-    vec.shrink_to_fit();
     size_t blobSize = blob.size();
     if (blobSize < 1) {
-        return false;
+        return;
     }
 
     size_t i = 0;
+    size_t size = sizeof(T);
     while (i < blobSize) {
-        // 1 get size
-        const uint8_t *sizePtr = &blob[i];
-        uint16_t size = *((uint16_t *)sizePtr);
-        if (size < 1) {
-            break;
+        if ((blobSize - i) < size) {
+            return;
         }
-        int index = i + sizeof(uint16_t);
-        T *value = new T;
-        memset_s(value, sizeof(T), 0, sizeof(T));
-        memcpy_s(value, size, &blob[index], size);
-        // 2 get object
-        vec.emplace_back(*value);
-        i = index + size;
+        T value;
+        memset_s(&value, size, 0, size);
+        memcpy_s(&value, size, &blob[i], size);
+        vec.emplace_back(value);
+        i += size;
     }
-
-    return vec.size() > 0;
 }
 
 int32_t NetFirewallDbHelper::FillValuesOfFirewallRule(ValuesBucket &values, const NetFirewallRule &rule)
@@ -162,16 +148,25 @@ int32_t NetFirewallDbHelper::FillValuesOfFirewallRule(ValuesBucket &values, cons
     values.PutInt(NET_FIREWALL_IS_ENABLED, rule.isEnabled);
     values.PutInt(NET_FIREWALL_APP_ID, rule.appUid);
     std::vector<uint8_t> blob;
+    std::vector<DataBaseIp> dbIPs;
+    std::vector<DataBasePort> dbPorts;
     switch (rule.ruleType) {
         case NetFirewallRuleType::RULE_IP: {
             values.PutInt(NET_FIREWALL_PROTOCOL, static_cast<int32_t>(rule.protocol));
-            ListToBlob(rule.localIps, blob);
+            FirewallIpToDbIp(rule.localIps, dbIPs);
+            ListToBlob(dbIPs, blob);
             values.PutBlob(NET_FIREWALL_LOCAL_IP, blob);
-            ListToBlob(rule.remoteIps, blob);
+
+            FirewallIpToDbIp(rule.remoteIps, dbIPs);
+            ListToBlob(dbIPs, blob);
             values.PutBlob(NET_FIREWALL_REMOTE_IP, blob);
-            ListToBlob(rule.localPorts, blob);
+
+            FirewallPortToDbPort(rule.localPorts, dbPorts);
+            ListToBlob(dbPorts, blob);
             values.PutBlob(NET_FIREWALL_LOCAL_PORT, blob);
-            ListToBlob(rule.remotePorts, blob);
+
+            FirewallPortToDbPort(rule.remotePorts, dbPorts);
+            ListToBlob(dbPorts, blob);
             values.PutBlob(NET_FIREWALL_REMOTE_PORT, blob);
             break;
         }
@@ -249,7 +244,7 @@ int32_t NetFirewallDbHelper::UpdateFirewallRuleRecord(const NetFirewallRule &rul
     FillValuesOfFirewallRule(values, rule);
     int32_t changedRows = 0;
     int32_t ret = firewallDatabase_->Update(FIREWALL_TABLE_NAME, changedRows, values, "ruleId = ?",
-        std::vector<std::string> { std::to_string(rule.ruleId) });
+        std::vector<std::string>{ std::to_string(rule.ruleId) });
     if (ret < FIREWALL_OK) {
         NETMGR_EXT_LOG_E("Update error: %{public}d", ret);
         (void)firewallDatabase_->RollBack();
@@ -423,6 +418,8 @@ void NetFirewallDbHelper::GetRuleListParamFromResultSet(const std::shared_ptr<OH
     const NetFirewallRuleInfo &table, NetFirewallRule &info)
 {
     std::vector<uint8_t> value;
+    std::vector<DataBaseIp> dbIPs;
+    std::vector<DataBasePort> dbPorts;
     switch (info.ruleType) {
         case NetFirewallRuleType::RULE_IP: {
             int protocol = 0;
@@ -430,16 +427,20 @@ void NetFirewallDbHelper::GetRuleListParamFromResultSet(const std::shared_ptr<OH
                 info.protocol = static_cast<NetworkProtocol>(protocol);
             }
             resultSet->GetBlob(table.localIpsIndex, value);
-            BlobToList(value, info.localIps);
+            BlobToList(value, dbIPs);
+            DbIpToFirewallIp(dbIPs, info.localIps);
             value.clear();
             resultSet->GetBlob(table.remoteIpsIndex, value);
-            BlobToList(value, info.remoteIps);
+            BlobToList(value, dbIPs);
+            DbIpToFirewallIp(dbIPs, info.remoteIps);
             value.clear();
             resultSet->GetBlob(table.localPortsIndex, value);
-            BlobToList(value, info.localPorts);
+            BlobToList(value, dbPorts);
+            DbPortToFirewallPort(dbPorts, info.localPorts);
             value.clear();
             resultSet->GetBlob(table.remotePortsIndex, value);
-            BlobToList(value, info.remotePorts);
+            BlobToList(value, dbPorts);
+            DbPortToFirewallPort(dbPorts, info.remotePorts);
             break;
         }
         case NetFirewallRuleType::RULE_DNS: {
@@ -894,6 +895,66 @@ int32_t NetFirewallDbHelper::QueryInterceptRecord(const int32_t userId, const sp
     }
     rdbPredicates.Limit((requestParam->page - 1) * requestParam->pageSize, requestParam->pageSize)->EndWrap();
     return QueryAndGetResult(rdbPredicates, columns, info->data);
+}
+
+void NetFirewallDbHelper::FirewallIpToDbIp(const std::vector<NetFirewallIpParam> &ips, std::vector<DataBaseIp> &dbips)
+{
+    dbips.clear();
+    DataBaseIp dbip;
+    for (const NetFirewallIpParam &param : ips) {
+        dbip.family = param.family;
+        dbip.mask = param.mask;
+        dbip.type = param.type;
+        if (dbip.family == 1) {
+            memcpy_s(&dbip.ipv4.startIp, sizeof(uint32_t), &param.ipv4.startIp, sizeof(uint32_t));
+            memcpy_s(&dbip.ipv4.endIp, sizeof(uint32_t), &param.ipv4.endIp, sizeof(uint32_t));
+        } else {
+            memcpy_s(&dbip.ipv6.startIp, sizeof(in6_addr), &param.ipv6.startIp, sizeof(in6_addr));
+            memcpy_s(&dbip.ipv6.endIp, sizeof(in6_addr), &param.ipv6.endIp, sizeof(in6_addr));
+        }
+        dbips.emplace_back(std::move(dbip));
+    }
+}
+void NetFirewallDbHelper::DbIpToFirewallIp(const std::vector<DataBaseIp> &dbips, std::vector<NetFirewallIpParam> &ips)
+{
+    ips.clear();
+    NetFirewallIpParam dbip;
+    for (const DataBaseIp &param : dbips) {
+        dbip.family = param.family;
+        dbip.mask = param.mask;
+        dbip.type = param.type;
+        if (dbip.family == 1) {
+            memcpy_s(&dbip.ipv4.startIp, sizeof(uint32_t), &param.ipv4.startIp, sizeof(uint32_t));
+            memcpy_s(&dbip.ipv4.endIp, sizeof(uint32_t), &param.ipv4.endIp, sizeof(uint32_t));
+        } else {
+            memcpy_s(&dbip.ipv6.startIp, sizeof(in6_addr), &param.ipv6.startIp, sizeof(in6_addr));
+            memcpy_s(&dbip.ipv6.endIp, sizeof(in6_addr), &param.ipv6.endIp, sizeof(in6_addr));
+        }
+        ips.emplace_back(std::move(dbip));
+    }
+}
+void NetFirewallDbHelper::FirewallPortToDbPort(const std::vector<NetFirewallPortParam> &ports,
+    std::vector<DataBasePort> &dbports)
+{
+    dbports.clear();
+    DataBasePort dbport;
+    for (const NetFirewallPortParam &param : ports) {
+        dbport.startPort = param.startPort;
+        dbport.endPort = param.endPort;
+        dbports.emplace_back(std::move(dbport));
+    }
+}
+
+void NetFirewallDbHelper::DbPortToFirewallPort(const std::vector<DataBasePort> &dbports,
+    std::vector<NetFirewallPortParam> &ports)
+{
+    ports.clear();
+    NetFirewallPortParam dbport;
+    for (const DataBasePort &param : dbports) {
+        dbport.startPort = param.startPort;
+        dbport.endPort = param.endPort;
+        ports.emplace_back(std::move(dbport));
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
