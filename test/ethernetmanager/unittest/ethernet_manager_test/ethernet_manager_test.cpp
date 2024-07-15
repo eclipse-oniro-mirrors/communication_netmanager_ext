@@ -403,7 +403,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceAddedTest001, TestSize.Level1)
 {
     EthernetManagement ethernetmanagement;
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
-    std::string iface;
+    std::string iface = "eth0";
     int ret = devinterfacestatecallback.OnInterfaceAdded(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -412,7 +412,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceRemovedTest001, TestSize.Level1)
 {
     EthernetManagement ethernetmanagement;
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
-    std::string iface;
+    std::string iface = "eth0";
     int ret = devinterfacestatecallback.OnInterfaceRemoved(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -430,7 +430,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceLinkStateChangedTest001, TestSize.Level
 {
     EthernetManagement ethernetmanagement;
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
-    std::string ifName;
+    std::string ifName = "eth0";;
     int ret = devinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -661,6 +661,194 @@ HWTEST_F(EthernetManagerTest, EthernetManager020, TestSize.Level1)
     int32_t activeStatus = -1;
     int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager021, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    int32_t ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager022, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    std::string iface = "eth0";
+    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_NOT_LINK);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager023, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    ic -> mode_ = LAN_DHCP;
+    std::string iface = "eth0";
+    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result, NETMANAGER_ERR_INVALID_PARAMETER);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager024, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    ic -> mode_ = DHCP;
+    std::string iface = "eth0";
+    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result, ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager025, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    ic -> mode_ = DHCP;
+    std::string iface = "eth0";
+    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager026, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.iface = "eth0";
+    int32_t result = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_NOT_LINK);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager027, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.iface = "eth0";
+    int32_t result = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager028, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(IFACE);
+    ethernetManagement.UpdateInterfaceState(IFACE, false);
+    sptr<InterfaceConfiguration> cfg;
+    int32_t result = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager029, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(IFACE);
+    ethernetManagement.UpdateInterfaceState(IFACE, true);
+    sptr<InterfaceConfiguration> cfg;
+    int32_t result = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager030, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    NetManagerExtAccessToken token;
+    int32_t activeStatus = -1;
+    int32_t ret = ethernetManagement.IsIfaceActive(DEV_NAME, activeStatus);
+    ASSERT_EQ(activeStatus, 1);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager031, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    std::string dev = "eth0";
+    ethernetManagement.DevInterfaceAdd(dev);
+    ethernetManagement.UpdateInterfaceState(dev, true);
+    std::vector<std::string> activeIfaces;
+    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager032, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.StartSetDevUpThd();
+    EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
+    int32_t ret = devCallback.OnInterfaceAdded(IFACE);
+    EXPECT_EQ(ret, RET_ZERO);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager033, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    std::string dev = "eth0";
+    ethernetManagement.DevInterfaceAdd(dev);
+    ethernetManagement.UpdateInterfaceState(dev, true);
+    std::vector<std::string> activeIfaces;
+    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetManager034, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    std::string dev = "eth0";
+    ethernetManagement.DevInterfaceAdd(dev);
+    ethernetManagement.DevInterfaceAdd(dev);
+    std::vector<std::string> activeIfaces;
+    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
