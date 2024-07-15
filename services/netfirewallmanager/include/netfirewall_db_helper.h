@@ -68,6 +68,29 @@ struct NetInterceptRecordInfo {
     int32_t domainIndex;
 };
 
+// save to database @see NetFirewallIpParam
+struct DataBaseIp {
+    uint8_t family;
+    uint8_t type;
+    uint8_t mask;
+    union {
+        struct {
+            in_addr startIp;
+            in_addr endIp;
+        } ipv4;
+        struct {
+            in6_addr startIp;
+            in6_addr endIp;
+        } ipv6;
+    };
+};
+
+// save to database @see NetFirewallPortParam
+struct DataBasePort {
+    uint16_t startPort;
+    uint16_t endPort;
+};
+
 class NetFirewallDbHelper : public NoCopyable {
 public:
     static NetFirewallDbHelper &GetInstance();
@@ -298,8 +321,13 @@ private:
     static bool DomainListToBlob(const std::vector<NetFirewallDomainParam> &vec, std::vector<uint8_t> &blob,
         uint32_t &fuzzyNum);
     static bool BlobToDomainList(const std::vector<uint8_t> &blob, std::vector<NetFirewallDomainParam> &vec);
-    template <typename T> static bool ListToBlob(const std::vector<T> &vec, std::vector<uint8_t> &blob);
-    template <typename T> static bool BlobToList(const std::vector<uint8_t> &blob, std::vector<T> &vec);
+    template <typename T> static void ListToBlob(const std::vector<T> &vec, std::vector<uint8_t> &blob);
+    template <typename T> static void BlobToList(const std::vector<uint8_t> &blob, std::vector<T> &vec);
+
+    void FirewallIpToDbIp(const std::vector<NetFirewallIpParam> &ips, std::vector<DataBaseIp> &dbips);
+    void DbIpToFirewallIp(const std::vector<DataBaseIp> &dbips, std::vector<NetFirewallIpParam> &ips);
+    void FirewallPortToDbPort(const std::vector<NetFirewallPortParam> &ports, std::vector<DataBasePort> &dbports);
+    void DbPortToFirewallPort(const std::vector<DataBasePort> &dbports, std::vector<NetFirewallPortParam> &ports);
 
 private:
     static std::shared_ptr<NetFirewallDbHelper> instance_;
