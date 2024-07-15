@@ -905,7 +905,7 @@ void NetFirewallDbHelper::FirewallIpToDbIp(const std::vector<NetFirewallIpParam>
         dbip.family = param.family;
         dbip.mask = param.mask;
         dbip.type = param.type;
-        if (dbip.family == 1) {
+        if (dbip.family == FAMILY_IPV4) {
             memcpy_s(&dbip.ipv4.startIp, sizeof(uint32_t), &param.ipv4.startIp, sizeof(uint32_t));
             memcpy_s(&dbip.ipv4.endIp, sizeof(uint32_t), &param.ipv4.endIp, sizeof(uint32_t));
         } else {
