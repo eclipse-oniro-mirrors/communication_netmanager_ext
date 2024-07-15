@@ -672,6 +672,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager021, TestSize.Level1)
     ethernetManagement.DevInterfaceAdd(DEV_NAME);
     ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
     ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    int32_t ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager022, TestSize.Level1)
@@ -821,6 +824,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager032, TestSize.Level1)
     EthernetManagement ethernetManagement;
     ethernetManagement.DevInterfaceAdd(DEV_NAME);
     ethernetManagement.StartSetDevUpThd();
+    EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
+    int32_t ret = devCallback.OnInterfaceAdded(IFACE);
+    EXPECT_EQ(ret, RET_ZERO);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager033, TestSize.Level1)
@@ -840,6 +846,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager034, TestSize.Level1)
     std::string dev = "eth0";
     ethernetManagement.DevInterfaceAdd(dev);
     ethernetManagement.DevInterfaceAdd(dev);
+    std::vector<std::string> activeIfaces;
+    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
