@@ -244,7 +244,7 @@ int32_t NetFirewallDbHelper::UpdateFirewallRuleRecord(const NetFirewallRule &rul
     FillValuesOfFirewallRule(values, rule);
     int32_t changedRows = 0;
     int32_t ret = firewallDatabase_->Update(FIREWALL_TABLE_NAME, changedRows, values, "ruleId = ?",
-        std::vector<std::string>{ std::to_string(rule.ruleId) });
+        std::vector<std::string> { std::to_string(rule.ruleId) });
     if (ret < FIREWALL_OK) {
         NETMGR_EXT_LOG_E("Update error: %{public}d", ret);
         (void)firewallDatabase_->RollBack();
@@ -923,7 +923,7 @@ void NetFirewallDbHelper::DbIpToFirewallIp(const std::vector<DataBaseIp> &dbips,
         dbip.family = param.family;
         dbip.mask = param.mask;
         dbip.type = param.type;
-        if (dbip.family == 1) {
+        if (dbip.family == FAMILY_IPV4) {
             memcpy_s(&dbip.ipv4.startIp, sizeof(uint32_t), &param.ipv4.startIp, sizeof(uint32_t));
             memcpy_s(&dbip.ipv4.endIp, sizeof(uint32_t), &param.ipv4.endIp, sizeof(uint32_t));
         } else {
