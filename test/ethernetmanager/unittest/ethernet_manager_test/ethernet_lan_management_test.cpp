@@ -92,6 +92,11 @@ HWTEST_F(EthernetLanManagementTest, EthernetLanManagement001, TestSize.Level1)
     newDevState->SetLinkUp(true);
     ret = ethernetLanManager.UpdateLanLinkInfo(newDevState);
     ASSERT_EQ(ret, (NETMANAGER_ERR_PERMISSION_DENIED + NETMANAGER_ERR_PERMISSION_DENIED));
+
+    sptr<NetLinkInfo> linkInfo = nullptr;
+    newDevState->SetlinkInfo(linkInfo);
+    ret = ethernetLanManager.UpdateLanLinkInfo(newDevState);
+    ASSERT_EQ(ret, NETMANAGER_ERR_INTERNAL);
 }
 
 HWTEST_F(EthernetLanManagementTest, EthernetLanManagement002, TestSize.Level1)
@@ -136,6 +141,12 @@ HWTEST_F(EthernetLanManagementTest, EthernetLanManagementBranchTest001, TestSize
     ethernetLanManager.GetOldLinkInfo(devState);
     ret = ethernetLanManager.ReleaseLanNetLink(devState);
     EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
+
+    sptr<NetLinkInfo> linkInfo = new (std::nothrow) NetLinkInfo();
+    devState->SetlinkInfo(linkInfo);
+    ethernetLanManager.GetOldLinkInfo(devState);
+    ret = ethernetLanManager.ReleaseLanNetLink(devState);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
