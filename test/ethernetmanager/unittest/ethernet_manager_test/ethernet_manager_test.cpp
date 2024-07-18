@@ -883,7 +883,7 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController002, TestSize.Level1)
 HWTEST_F(EthernetManagerTest, EthernetDhcpController003, TestSize.Level1)
 {
     EthernetDhcpController dhcpController;
-    sptr<EthernetManagement> callback;
+    sptr<EthernetDhcpCallback> callback;
     dhcpController.RegisterDhcpCallback(callback);
     const std::string iface = "eth0";
     dhcpController.StartClient(iface, true);
