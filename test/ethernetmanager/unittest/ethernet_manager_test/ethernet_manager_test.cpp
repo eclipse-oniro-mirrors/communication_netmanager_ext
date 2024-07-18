@@ -700,7 +700,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager023, TestSize.Level1)
     ethernetManagement.DevInterfaceAdd(DEV_NAME);
     ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ic -> mode_ = LAN_DHCP;
+    ic->mode_ = LAN_DHCP;
     std::string iface = "eth0";
     int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, NETMANAGER_ERR_INVALID_PARAMETER);
@@ -715,7 +715,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager024, TestSize.Level1)
     ethernetManagement.DevInterfaceAdd(DEV_NAME);
     ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ic -> mode_ = DHCP;
+    ic->mode_ = DHCP;
     std::string iface = "eth0";
     int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL);
@@ -730,7 +730,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager025, TestSize.Level1)
     ethernetManagement.DevInterfaceAdd(DEV_NAME);
     ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ic -> mode_ = DHCP;
+    ic->mode_ = DHCP;
     std::string iface = "eth0";
     int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
