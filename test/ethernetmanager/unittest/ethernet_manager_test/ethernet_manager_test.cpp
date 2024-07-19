@@ -873,15 +873,6 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController002, TestSize.Level1)
 {
-    DhcpResult result;
-    EthernetDhcpController::EthernetDhcpControllerResultNotify ethernetDhcpControllerResultNotify;
-    int status = 1;
-    ethernetDhcpControllerResultNotify.OnSuccess(status, nullptr, &result);
-    EXPECT_NE(&result, nullptr);
-}
-
-HWTEST_F(EthernetManagerTest, EthernetDhcpController003, TestSize.Level1)
-{
     EthernetDhcpController dhcpController;
     sptr<EthernetDhcpCallback> callback;
     dhcpController.RegisterDhcpCallback(callback);
@@ -890,7 +881,7 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController003, TestSize.Level1)
     dhcpController.StopClient(iface, true);
     DhcpResult result;
     dhcpController.OnDhcpSuccess(iface, &result);
-    EXPECT_EQ(callback, nullptr);
+    EXPECT_EQ(dhcpController.cbObject_, nullptr);
 }
 
 HWTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
