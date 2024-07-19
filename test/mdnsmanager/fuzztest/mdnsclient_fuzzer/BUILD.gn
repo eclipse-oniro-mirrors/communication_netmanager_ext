@@ -45,7 +45,8 @@ ohos_fuzztest("MDnsClientFuzzTest") {
       "-fsanitize=cfi",
       "-fsanitize-cfi-cross-dso",
       "-fvisibility=hidden",
-      "-fsanitize-blacklist=" + rebase_path(_cfi_blocklist_path, root_build_dir),
+      "-fsanitize-blacklist=" +
+          rebase_path(_cfi_blocklist_path, root_build_dir),
     ]
   }
   ldflags = []
