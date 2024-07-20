@@ -154,6 +154,8 @@ napi_value MDnsModule::InitMDnsModule(napi_env env, napi_value exports)
     napi_value mdnsErrorValue = NapiUtils::CreateObject(env);
     NapiUtils::DefineProperties(env, mdnsErrorValue, mdnsError);
     NapiUtils::SetNamedProperty(env, exports, MDNS_ERR, mdnsErrorValue);
+    NapiUtils::SetEnvValid(env);
+    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
     return exports;
 }
 
