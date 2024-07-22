@@ -218,7 +218,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration007, TestSize.Level1)
         PROXY_PORT=123456\n\
         PROXY_EXCLUSIONS=\"127.0.0.1\", \"127.0.0.1\", \"127.0.0.1\"\n";
     bool ret = ethernetConfiguration.CreateDir(USER_CONFIG_DIR_TEST);
-    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json", 
+    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json",
         fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
     EXPECT_TRUE(ret);
