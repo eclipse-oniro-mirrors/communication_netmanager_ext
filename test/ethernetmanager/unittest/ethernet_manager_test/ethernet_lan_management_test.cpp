@@ -129,6 +129,30 @@ HWTEST_F(EthernetLanManagementTest, EthernetLanManagement002, TestSize.Level1)
     ASSERT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(EthernetLanManagementTest, EthernetLanManagement003, TestSize.Level1)
+{
+    EthernetLanManagement ethernetLanManager;
+    NetLinkInfo netLinkInfo;
+    int32_t ret = ethernetLanManager.DelIp(netLinkInfo);
+    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
+    ret = ethernetLanManager.SetIp(netLinkInfo);
+    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
+    ret = ethernetLanManager.DelIp(netLinkInfo);
+    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
+}
+
+HWTEST_F(EthernetLanManagementTest, EthernetLanManagement004, TestSize.Level1)
+{
+    EthernetLanManagement ethernetLanManager;
+    NetLinkInfo netLinkInfo;
+    int32_t ret = ethernetLanManager.DelRoute(netLinkInfo);
+    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
+    ret = ethernetLanManager.SetRoute(netLinkInfo);
+    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
+    ret = ethernetLanManager.DelRoute(netLinkInfo);
+    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
+}
+
 HWTEST_F(EthernetLanManagementTest, EthernetLanManagementBranchTest001, TestSize.Level1)
 {
     EthernetLanManagement ethernetLanManager;
