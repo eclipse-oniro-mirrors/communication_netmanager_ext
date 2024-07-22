@@ -198,7 +198,8 @@ napi_value InitNetShareModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
                                     DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
                                 });
-
+    NapiUtils::SetEnvValid(env);
+    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
     return exports;
 }
 
