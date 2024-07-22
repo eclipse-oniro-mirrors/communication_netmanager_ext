@@ -37,6 +37,9 @@ constexpr const char *LAN_STATIC_KEY = "LAN_STATIC";
 constexpr const char *STATIC_KEY = "STATIC";
 constexpr const char *DHCP_KEY = "DHCP";
 constexpr const char *LAN_DHCP_KEY = "LAN_DHCP";
+constexpr const char *USER_CONFIG_DIR_TEST =
+    "/data/service/el1/public/netmanager/ethernet/ethernet_user_interfaces.json";
+constexpr const char *NETWORK_CONFIG_PATH_TEST = "/system/etc/communication/netmanager_ext/ethernet_interfaces.json";
 } // namespace
 
 class EthernetConfigurationTest : public testing::Test {
@@ -144,6 +147,142 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration003, TestSize.Level1)
 
     result = ethernetConfiguration.GetIfaceMode(IPSetMode::DHCP);
     EXPECT_TRUE(result == DHCP_KEY);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration004, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    std::string fileContent = "";
+    bool ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration005, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    bool ret = ethernetConfiguration.CreateDir("/data/service/el1/public/netmanager/ethernet_test");
+    std::string fileContent = "";
+    ret = ethernetConfiguration.WriteFile(
+        "/data/service/el1/public/netmanager/ethernet_test/ethernet_user_interfaces.json", fileContent);
+    ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration006, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    std::string fileContent = "DEVICE=eth0\nBOOTPROTO=LAN_STATIC\n";
+    bool ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    fileContent = "DEVICE=eth0\nBOOTPROTO=LAN_DHCP\n";
+    ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    fileContent = "DEVICE=eth0\nBOOTPROTO=STATIC\n";
+    ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    fileContent = "DEVICE=eth0\nBOOTPROTO=DHCP\n";
+    ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration007, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    std::string fileContent =
+        "DEVICE=eth0\n\
+        BOOTPROTO=STATIC\n\
+        IPADDR=123456\n\
+        NETMASK=123456\n\
+        GATEWAY=123456\n\
+        ROUTE=123456\n\
+        ROUTE_NETMASK=123456\n\
+        DNS=123456\n\
+        PROXY_HOST=123456\n\
+        PROXY_PORT=123456\n\
+        PROXY_EXCLUSIONS=\"127.0.0.1\", \"127.0.0.1\", \"127.0.0.1\"\n";
+    bool ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration008, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "test1";
+    dhcpResult.gateWay = "test2";
+    INetAddr ipv4Addr;
+    ipv4Addr.address_ = "test1";
+    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    config->ipAddrList_.push_back(ipv4Addr);
+    ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+    ipv4Addr.address_ = "test2";
+    config->ipAddrList_.push_back(ipv4Addr);
+    ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration009, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "test1";
+    dhcpResult.gateWay = "test2";
+    dhcpResult.route1 = "test3";
+    dhcpResult.route2 = "test4";
+    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration010, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "test1";
+    dhcpResult.gateWay = "test2";
+    dhcpResult.route1 = "*";
+    dhcpResult.route2 = "test4";
+    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration011, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "test1";
+    dhcpResult.gateWay = "test2";
+    dhcpResult.route1 = "*";
+    dhcpResult.route2 = "*";
+    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration012, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    sptr<InterfaceConfiguration> configSptr = nullptr;
+    sptr<InterfaceConfiguration> devCfg = (std::make_unique<InterfaceConfiguration>()).release();
+    devCfg->mode_ = STATIC;
+    sptr<NetLinkInfo> devLinkInfo = (std::make_unique<NetLinkInfo>()).release();
+    configSptr = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
+    EXPECT_TRUE(configSptr->mode_ == STATIC);
+}
+
+HWTEST_F(EthernetConfigurationTest, EthernetConfiguration013, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    bool ret = ethernetConfiguration.DelDir(DIR_PATH);
+    ret = ethernetConfiguration.CreateDir(DIR_PATH);
+    EXPECT_TRUE(ret);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
