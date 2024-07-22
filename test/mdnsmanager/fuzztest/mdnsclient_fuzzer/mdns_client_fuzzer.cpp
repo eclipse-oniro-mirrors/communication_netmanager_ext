@@ -285,10 +285,8 @@ void ReceivePacketTest(const uint8_t *data, size_t size)
     if (data == nullptr || size == 0) {
         return;
     }
-    std::vector<uint8_t> copy(size);
-    if (memcpy_s(copy.data(), size, data, size) != EOK) {
-        return;
-    }
+    std::string str = GetStringFromData(STR_LEN);
+    std::vector<uint8_t> copy = std::vector<uint8_t>(str.begin(), str.end());
     MDnsPayloadParser parser;
     MDnsMessage msg = parser.FromBytes(copy);
 }
