@@ -37,9 +37,7 @@ constexpr const char *LAN_STATIC_KEY = "LAN_STATIC";
 constexpr const char *STATIC_KEY = "STATIC";
 constexpr const char *DHCP_KEY = "DHCP";
 constexpr const char *LAN_DHCP_KEY = "LAN_DHCP";
-constexpr const char *USER_CONFIG_DIR_TEST =
-    "/data/service/el1/public/netmanager/ethernet/ethernet_user_interfaces.json";
-constexpr const char *NETWORK_CONFIG_PATH_TEST = "/system/etc/communication/netmanager_ext/ethernet_interfaces.json";
+constexpr const char *USER_CONFIG_DIR_TEST = "/data/service/el1/public/netmanager/ethernet";
 } // namespace
 
 class EthernetConfigurationTest : public testing::Test {
@@ -154,8 +152,12 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration004, TestSize.Level1)
     EthernetConfiguration ethernetConfiguration;
     std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
     std::string fileContent = "";
-    bool ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    bool ret = ethernetConfiguration.CreateDir(USER_CONFIG_DIR_TEST);
+    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json",
+        fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+    ret = ethernetConfiguration.DelDir(USER_CONFIG_DIR_TEST);
     EXPECT_TRUE(ret);
 }
 
@@ -163,11 +165,13 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration005, TestSize.Level1)
 {
     EthernetConfiguration ethernetConfiguration;
     std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
-    bool ret = ethernetConfiguration.CreateDir("/data/service/el1/public/netmanager/ethernet_test");
+    std::string path = "/data/service/el1/public/netmanager/ethernet_test";
+    bool ret = ethernetConfiguration.CreateDir(path);
     std::string fileContent = "";
-    ret = ethernetConfiguration.WriteFile(
-        "/data/service/el1/public/netmanager/ethernet_test/ethernet_user_interfaces.json", fileContent);
+    ret = ethernetConfiguration.WriteFile(path + "ethernet_user_interfaces.json", fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+    ret = ethernetConfiguration.DelDir(path);
     EXPECT_TRUE(ret);
 }
 
@@ -176,17 +180,24 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration006, TestSize.Level1)
     EthernetConfiguration ethernetConfiguration;
     std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
     std::string fileContent = "DEVICE=eth0\nBOOTPROTO=LAN_STATIC\n";
-    bool ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    bool ret = ethernetConfiguration.CreateDir(USER_CONFIG_DIR_TEST);
+    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json",
+        fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
     fileContent = "DEVICE=eth0\nBOOTPROTO=LAN_DHCP\n";
-    ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json",
+        fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
     fileContent = "DEVICE=eth0\nBOOTPROTO=STATIC\n";
-    ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json",
+        fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
     fileContent = "DEVICE=eth0\nBOOTPROTO=DHCP\n";
-    ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json",
+        fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+    ret = ethernetConfiguration.DelDir(USER_CONFIG_DIR_TEST);
     EXPECT_TRUE(ret);
 }
 
@@ -206,8 +217,12 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration007, TestSize.Level1)
         PROXY_HOST=123456\n\
         PROXY_PORT=123456\n\
         PROXY_EXCLUSIONS=\"127.0.0.1\", \"127.0.0.1\", \"127.0.0.1\"\n";
-    bool ret = ethernetConfiguration.WriteFile(USER_CONFIG_DIR_TEST, fileContent);
+    bool ret = ethernetConfiguration.CreateDir(USER_CONFIG_DIR_TEST);
+    ret = ethernetConfiguration.WriteFile(std::string(USER_CONFIG_DIR_TEST) + "/ethernet_user_interfaces.json", 
+        fileContent);
     ret = ethernetConfiguration.ReadUserConfiguration(devCfgs);
+    EXPECT_TRUE(ret);
+    ret = ethernetConfiguration.DelDir(USER_CONFIG_DIR_TEST);
     EXPECT_TRUE(ret);
 }
 
@@ -221,10 +236,13 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration008, TestSize.Level1)
     ipv4Addr.address_ = "test1";
     sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
     config->ipAddrList_.push_back(ipv4Addr);
-    ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+    bool ret = ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+    EXPECT_TRUE(ret);
+
     ipv4Addr.address_ = "test2";
-    config->ipAddrList_.push_back(ipv4Addr);
-    ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+    config->gatewayList_.push_back(ipv4Addr);
+    ret = ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
+    EXPECT_FALSE(ret);
 }
 
 HWTEST_F(EthernetConfigurationTest, EthernetConfiguration009, TestSize.Level1)
@@ -275,14 +293,6 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration012, TestSize.Level1)
     sptr<NetLinkInfo> devLinkInfo = (std::make_unique<NetLinkInfo>()).release();
     configSptr = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
     EXPECT_TRUE(configSptr->mode_ == STATIC);
-}
-
-HWTEST_F(EthernetConfigurationTest, EthernetConfiguration013, TestSize.Level1)
-{
-    EthernetConfiguration ethernetConfiguration;
-    bool ret = ethernetConfiguration.DelDir(DIR_PATH);
-    ret = ethernetConfiguration.CreateDir(DIR_PATH);
-    EXPECT_TRUE(ret);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
