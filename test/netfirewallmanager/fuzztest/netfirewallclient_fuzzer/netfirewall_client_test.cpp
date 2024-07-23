@@ -111,6 +111,8 @@ void SetNetFirewallPolicyTest(const uint8_t *data, size_t size)
     if (!status->Marshalling(parcel)) {
         return;
     }
+    int32_t userId = GetData<int32_t>();
+    parcel.WriteInt32(userId);
     OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::SET_NET_FIREWALL_STATUS), parcel);
 }
 } // namespace NetManagerStandard
