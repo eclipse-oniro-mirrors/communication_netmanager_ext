@@ -226,6 +226,66 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyFactoryResetVpnTest001, TestSize.Level1
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnExtTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_START_VPN_EXT);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyProtectExtTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_PROTECT_EXT);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyDestroyVpnExtTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_STOP_VPN_EXT);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterBundleNameVpnTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyDefaultTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t> (INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME) +
+        static_cast<uint32_t> (INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME);
+    int32_t ret = SendRemoteRequest(data, static_cast<INetworkVpnService::MessageCode>(code));
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
 #ifdef SUPPORT_SYSVPN
 HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest001, TestSize.Level1)
 {
