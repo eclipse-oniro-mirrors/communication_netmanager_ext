@@ -85,12 +85,15 @@ bool NetFirewallDbHelper::BlobToDomainList(const std::vector<uint8_t> &blob, std
         param.isWildcard = blob[i] ? true : false;
         // 2 get size
         i++;
+        if (i >= blobSize) {
+            return true;
+        }
         const uint8_t *sizePtr = &blob[i];
         uint16_t size = *((uint16_t *)sizePtr);
-        if (size < 1) {
-            continue;
-        }
         int index = i + sizeof(uint16_t);
+        if (index >= blobSize || (blobSize - index) < size) {
+            return true;
+        }
         // 3 get string
         auto it = blob.begin() + index;
         param.domain = std::string(it, it + size);

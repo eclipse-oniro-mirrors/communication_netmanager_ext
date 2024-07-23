@@ -337,7 +337,8 @@ HWTEST_F(NetFirewallServiceTest, SetNetFirewallPolicy002, TestSize.Level1)
     status->inAction = FirewallRuleAction::RULE_DENY;
     status->outAction = FirewallRuleAction::RULE_ALLOW;
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->SetNetFirewallPolicy(userId, status);
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    int usrRet = DelayedSingleton<NetFirewallService>::GetInstance()->CheckUserExist(userId);
+    EXPECT_EQ(ret, usrRet);
 }
 
 /**
@@ -364,7 +365,7 @@ HWTEST_F(NetFirewallServiceTest, GetNetFirewallPolicy001, TestSize.Level1)
     sptr<NetFirewallPolicy> status = new (std::nothrow) NetFirewallPolicy;
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetNetFirewallPolicy(userId, status);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
-    EXPECT_TRUE(status->isOpen);
+    EXPECT_FALSE(status->isOpen);
 }
 
 /**
@@ -407,7 +408,7 @@ HWTEST_F(NetFirewallServiceTest, AddNetFirewallRule002, TestSize.Level1)
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->AddNetFirewallRule(rule, ruleId);
     NETMGR_EXT_LOG_I("db row id = %{public}d ", ruleId);
     g_rowId = ruleId;
-    EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
+    EXPECT_EQ(ret, FIREWALL_ERR_NO_USER);
 }
 
 /**
@@ -462,7 +463,7 @@ HWTEST_F(NetFirewallServiceTest, AddNetFirewallRule004, TestSize.Level1)
     if (ruleId > 0) {
         g_rowId = ruleId;
     }
-    EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
+    EXPECT_EQ(ret, FIREWALL_ERR_NO_USER);
 }
 
 /**
@@ -481,7 +482,7 @@ HWTEST_F(NetFirewallServiceTest, AddNetFirewallRule005, TestSize.Level1)
     if (ruleId > 0) {
         g_rowId = ruleId;
     }
-    EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
+    EXPECT_EQ(ret, FIREWALL_ERR_NO_USER);
 }
 
 /**

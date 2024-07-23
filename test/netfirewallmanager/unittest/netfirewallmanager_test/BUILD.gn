@@ -21,6 +21,7 @@ ohos_unittest("netfirewallmanager_test") {
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "netfirewall_common_test.cpp",
     "netfirewall_client_test.cpp",
     "netfirewall_rule_native_helper_test.cpp",
     "netfirewall_service_proxy_test.cpp",
