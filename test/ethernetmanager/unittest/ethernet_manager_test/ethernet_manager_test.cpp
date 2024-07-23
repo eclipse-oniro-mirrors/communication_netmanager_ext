@@ -869,6 +869,11 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
     std::string reason;
     ethernetDhcpControllerResultNotify.OnSuccess(status, ifname.c_str(), &result);
     ethernetDhcpControllerResultNotify.OnFailed(status, ifname.c_str(), reason.c_str());
+
+    ethernetDhcpControllerResultNotify.OnSuccess(status, nullptr, &result);
+    ethernetDhcpControllerResultNotify.OnSuccess(status, ifname.c_str(), nullptr);
+    ethernetDhcpControllerResultNotify.SetEthernetDhcpController(nullptr);
+    ethernetDhcpControllerResultNotify.OnSuccess(status, ifname.c_str(), &result);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController002, TestSize.Level1)
