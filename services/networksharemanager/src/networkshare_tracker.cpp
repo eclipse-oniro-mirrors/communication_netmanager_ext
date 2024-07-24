@@ -1134,17 +1134,17 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
         std::string taskName = "InterfaceAdded_task";
         if (configuration_->IsUsbIface(iface)) {
             std::function<void()> sharingUsbFunc =
-                std::bind(&NetworkShareTracker::Sharing, this, iface, SUB_SM_STATE_SHARED);
+                [this, iface]() { Sharing(iface, SUB_SM_STATE_SHARED); };
             networkShareTrackerFfrtQueue_->submit(sharingUsbFunc, ffrt::task_attr().name(taskName.c_str()));
         } else {
             std::function<void()> createSubStateMachineFunc =
-                std::bind(&NetworkShareTracker::CreateSubStateMachine, this, iface, type, false);
+                [this, iface, type]() { CreateSubStateMachine(iface, type, false); };
             networkShareTrackerFfrtQueue_->submit(createSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
         }
     } else {
         std::string taskName = "InterfaceRemoved_task";
         std::function<void()> stopSubStateMachineFunc =
-            std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface, type);
+            [this, iface, type]() { StopSubStateMachine(iface, type); };
         networkShareTrackerFfrtQueue_->submit(stopSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
     }
 }
@@ -1191,7 +1191,7 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
     NETMGR_EXT_LOG_I("iface[%{public}s], type[%{public}d].", iface.c_str(), static_cast<int32_t>(type));
     std::string taskName = "InterfaceAdded_task";
     std::function<void()> createSubStateMachineFunc =
-        std::bind(&NetworkShareTracker::CreateSubStateMachine, this, iface, type, false);
+        [this, iface, type]() { CreateSubStateMachine(iface, type, false); };
     networkShareTrackerFfrtQueue_->submit(createSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
 }
 
@@ -1209,7 +1209,7 @@ void NetworkShareTracker::InterfaceRemoved(const std::string &iface)
     NETMGR_EXT_LOG_I("iface[%{public}s], type[%{public}d].", iface.c_str(), static_cast<int32_t>(type));
     std::string taskName = "InterfaceRemoved_task";
     std::function<void()> stopSubStateMachineFunc =
-        std::bind(&NetworkShareTracker::StopSubStateMachine, this, iface, type);
+        [this, iface, type]() { StopSubStateMachine(iface, type); };
     networkShareTrackerFfrtQueue_->submit(stopSubStateMachineFunc, ffrt::task_attr().name(taskName.c_str()));
 }
 
