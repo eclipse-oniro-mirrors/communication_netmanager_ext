@@ -509,5 +509,46 @@ HWTEST_F(NetFirewallClientTest, DeleteNetFirewallRule001, TestSize.Level1)
         g_endTimeTest - g_startTimeTest << " ms" << std::endl;
     EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
 }
+
+HWTEST_F(NetFirewallClientTest, OnLoadSystemAbility001, TestSize.Level1)
+{
+    int32_t systemAbilityId = 0;
+    DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->OnLoadSystemAbilityFail(systemAbilityId);
+    auto ret = DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->IsFailed();
+    EXPECT_EQ(ret, true);
+}
+
+HWTEST_F(NetFirewallClientTest, OnRemoteDied001, TestSize.Level0)
+{
+    NetManagerExtAccessToken token;
+    wptr<IRemoteObject> remote = nullptr;
+    sptr<NetFirewallPolicy> status = new (std::nothrow) NetFirewallPolicy();
+    int32_t ret = netfirewallClient_.GetNetFirewallPolicy(USER_ID1, status);
+    netfirewallClient_.OnRemoteDied(remote);
+    wptr<IRemoteObject> remote1 = netfirewallClient_.netfirewallService_->AsObject();
+    netfirewallClient_.OnRemoteDied(remote1);
+    sptr<IRemoteObject::DeathRecipient> deathRec =
+        new (std::nothrow) NetFirewallClient::MonitorPcfirewallServiceDead(netfirewallClient_);
+    deathRec->OnRemoteDied(remote1);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallClientTest, GetProxy001, TestSize.Level0)
+{
+    sptr<INetFirewallService> result = netfirewallClient_.GetProxy();
+    EXPECT_NE(result, nullptr);
+}
+
+HWTEST_F(NetFirewallClientTest, RestartNetFirewallManagerSysAbility001, TestSize.Level0)
+{
+    bool result = netfirewallClient_.RestartNetFirewallManagerSysAbility();
+    EXPECT_EQ(result, true);
+}
+
+HWTEST_F(NetFirewallClientTest, LoadSaOnDemand001, TestSize.Level0)
+{
+    sptr<IRemoteObject> result = netfirewallClient_.LoadSaOnDemand();
+    EXPECT_NE(result, nullptr);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

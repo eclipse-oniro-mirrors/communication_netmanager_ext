@@ -87,7 +87,7 @@ private:
 
     sptr<IRemoteObject> LoadSaOnDemand();
 
-    void RestartNetFirewallManagerSysAbility();
+    bool RestartNetFirewallManagerSysAbility();
 
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
 

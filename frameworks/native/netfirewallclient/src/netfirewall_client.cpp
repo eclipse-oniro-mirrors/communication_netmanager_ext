@@ -230,17 +230,18 @@ void NetFirewallClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     std::thread([this]() { this->RestartNetFirewallManagerSysAbility(); }).detach();
 }
 
-void NetFirewallClient::RestartNetFirewallManagerSysAbility()
+bool NetFirewallClient::RestartNetFirewallManagerSysAbility()
 {
     for (uint32_t i = 0; i < MAX_GET_SERVICE_COUNT; ++i) {
         std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
         sptr<INetFirewallService> proxy = GetProxy();
         if (proxy) {
             NETMGR_EXT_LOG_I("Restart NetFirewallManager success.");
-            return;
+            return true;
         }
     }
     NETMGR_EXT_LOG_E("Restart NetFirewallManager failed.");
+    return false;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
