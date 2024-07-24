@@ -40,7 +40,6 @@ void NetFirewallPolicyManager::SetCurrentUserId(int32_t userId)
 {
     std::lock_guard<std::shared_mutex> locker(setPolicyMutex_);
     if (currentFirewallPolicy_) {
-        delete currentFirewallPolicy_;
         currentFirewallPolicy_ = nullptr;
     }
     currentUserId_ = userId;
@@ -148,7 +147,6 @@ int32_t NetFirewallPolicyManager::ClearFirewallPolicy(const int32_t userId)
     preferencesHelper_->Clear(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
 
     if (currentFirewallPolicy_) {
-        delete currentFirewallPolicy_;
         currentFirewallPolicy_ = nullptr;
     }
 
@@ -190,7 +188,6 @@ void NetFirewallPolicyManager::RebuildFirewallPolicyCache(const int32_t userId)
         return;
     }
     if (currentFirewallPolicy_) {
-        delete currentFirewallPolicy_;
         currentFirewallPolicy_ = nullptr;
     }
     currentFirewallPolicy_ = new (std::nothrow) NetFirewallPolicy();
