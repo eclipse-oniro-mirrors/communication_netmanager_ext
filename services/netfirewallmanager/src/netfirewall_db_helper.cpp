@@ -79,18 +79,19 @@ bool NetFirewallDbHelper::BlobToDomainList(const std::vector<uint8_t> &blob, std
     }
 
     size_t i = 0;
+    size_t lenSize = sizeof(uint16_t);
     while (i < blobSize) {
         NetFirewallDomainParam param;
         // 1 get isWildcard
         param.isWildcard = blob[i] ? true : false;
         // 2 get size
         i++;
-        if (i >= blobSize) {
+        if (i >= blobSize || (blobSize - i) < lenSize) {
             return true;
         }
         const uint8_t *sizePtr = &blob[i];
         uint16_t size = *((uint16_t *)sizePtr);
-        int index = i + sizeof(uint16_t);
+        int index = i + lenSize;
         if (index >= blobSize || (blobSize - index) < size) {
             return true;
         }
@@ -98,7 +99,7 @@ bool NetFirewallDbHelper::BlobToDomainList(const std::vector<uint8_t> &blob, std
         auto it = blob.begin() + index;
         param.domain = std::string(it, it + size);
         vec.emplace_back(param);
-        i += size + sizeof(uint16_t);
+        i += size + lenSize;
     }
 
     return vec.size() > 0;
