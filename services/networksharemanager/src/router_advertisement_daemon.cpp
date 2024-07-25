@@ -94,7 +94,7 @@ int32_t RouterAdvertisementDaemon::StartRa()
     }
     pThis = this;
     stopRaThread_ = false;
-    recvRsThread_ = std::thread([this]() { this->RunRecvRsThread(); });
+    recvRsThread_ = std::thread(&RouterAdvertisementDaemon::RunRecvRsThread, this);
     pthread_setname_np(recvRsThread_.native_handle(), "OH_Net_RecvRs");
     recvRsThread_.detach();
     return NETMANAGER_EXT_SUCCESS;

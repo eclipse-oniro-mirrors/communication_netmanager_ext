@@ -58,35 +58,18 @@ int32_t NetworkShareServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &d
         NETMGR_EXT_LOG_E("descriptor checked failed");
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-    switch (code) {
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARING_SUPPORTED):
-            return ReplyIsNetworkSharingSupported(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_IS_SHARING):
-            return ReplyIsSharing(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_START_NETWORKSHARE):
-            return ReplyStartNetworkSharing(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_STOP_NETWORKSHARE):
-            return ReplyStopNetworkSharing(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARABLE_REGEXS):
-            return ReplyGetSharableRegexs(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARING_STATE):
-            return ReplyGetSharingState(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_SHARING_IFACES):
-            return ReplyGetNetSharingIfaces(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_REGISTER_EVENT_CALLBACK):
-            return ReplyRegisterSharingEvent(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_UNREGISTER_EVENT_CALLBACK):
-            return ReplyUnregisterSharingEvent(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_RX_BYTES):
-            return ReplyGetStatsRxBytes(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_TX_BYTES):
-            return ReplyGetStatsTxBytes(data, reply);
-        case static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_TOTAL_BYTES):
-            return ReplyGetStatsTotalBytes(data, reply);
-        default:
-            NETMGR_EXT_LOG_I("stub default case, need check");
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    auto itFunction = memberFuncMap_.find(code);
+    if (itFunction != memberFuncMap_.end()) {
+        auto requestFunc = itFunction->second;
+        if (requestFunc != nullptr) {
+            int32_t ret = (this->*requestFunc)(data, reply);
+            NETMGR_EXT_LOG_D("stub call end, code[%{public}d], ret[%{public}d]", code, ret);
+            return ret;
+        }
     }
+
+    NETMGR_EXT_LOG_I("stub default case, need check");
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int32_t NetworkShareServiceStub::ReplyIsNetworkSharingSupported(MessageParcel &data, MessageParcel &reply)

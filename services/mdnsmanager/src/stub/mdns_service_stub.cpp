@@ -42,21 +42,16 @@ int32_t MDnsServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
 
-    switch (code) {
-        case static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER):
-            return OnStartDiscoverService(data, reply);
-        case static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_DISCOVER):
-            return OnStopDiscoverService(data, reply);
-        case static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_REGISTER):
-            return OnRegisterService(data, reply);
-        case static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_REGISTER):
-            return OnUnRegisterService(data, reply);
-        case static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE):
-            return OnResolveService(data, reply);
-        default:
-            NETMGR_EXT_LOG_D("stub default case, need check");
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    auto itFunc = memberFuncMap_.find(code);
+    if (itFunc != memberFuncMap_.end()) {
+        auto requestFunc = itFunc->second;
+        if (requestFunc != nullptr) {
+            return (this->*requestFunc)(data, reply);
+        }
     }
+
+    NETMGR_EXT_LOG_D("stub default case, need check");
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int32_t MDnsServiceStub::OnRegisterService(MessageParcel &data, MessageParcel &reply)
