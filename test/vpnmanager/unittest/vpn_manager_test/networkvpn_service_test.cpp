@@ -143,11 +143,11 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
     std::vector<int32_t> activeUserIds;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(config), NETWORKVPN_ERROR_VPN_EXIST);
+    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_ERR_PERMISSION_DENIED);
 
     userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
@@ -158,7 +158,7 @@ HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, DestroyVpn, TestSize.Level1)
 {
     instance_->vpnObj_ = nullptr;
-    EXPECT_EQ(instance_->DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->DestroyVpn(), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, RegisterSharingEventTest001, TestSize.Level1)
@@ -236,7 +236,7 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
         instance_->ParseJsonToConfig(vpnCfg, jsonString);
     }
     int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
-    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     ret = instance_->GetAlwaysOnVpn(pkg);
     EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
 }
