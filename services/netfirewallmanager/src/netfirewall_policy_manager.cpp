@@ -39,10 +39,7 @@ NetFirewallPolicyManager::~NetFirewallPolicyManager()
 void NetFirewallPolicyManager::SetCurrentUserId(int32_t userId)
 {
     std::lock_guard<std::shared_mutex> locker(setPolicyMutex_);
-    if (currentFirewallPolicy_) {
-        delete currentFirewallPolicy_;
-        currentFirewallPolicy_ = nullptr;
-    }
+    currentFirewallPolicy_ = nullptr;
     currentUserId_ = userId;
     RebuildFirewallPolicyCache(userId);
 }
@@ -146,12 +143,7 @@ int32_t NetFirewallPolicyManager::ClearFirewallPolicy(const int32_t userId)
         return FIREWALL_ERR_INTERNAL;
     }
     preferencesHelper_->Clear(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-
-    if (currentFirewallPolicy_) {
-        delete currentFirewallPolicy_;
-        currentFirewallPolicy_ = nullptr;
-    }
-
+    currentFirewallPolicy_ = nullptr;
     return FIREWALL_SUCCESS;
 }
 
@@ -189,10 +181,7 @@ void NetFirewallPolicyManager::RebuildFirewallPolicyCache(const int32_t userId)
     if (userId == 0) {
         return;
     }
-    if (currentFirewallPolicy_) {
-        delete currentFirewallPolicy_;
-        currentFirewallPolicy_ = nullptr;
-    }
+    currentFirewallPolicy_ = nullptr;
     currentFirewallPolicy_ = new (std::nothrow) NetFirewallPolicy();
     LoadPolicyFormPreference(userId, currentFirewallPolicy_);
 }
