@@ -61,11 +61,11 @@ std::vector<NetFirewallIpParam> GetIpList(uint8_t num = 1)
 std::vector<NetFirewallPortParam> GetPortList(uint8_t num = 0)
 {
     const int32_t offset = 20;
-    const uint16_t LOCAL_START_PORT = 10020;
+    const uint16_t localStartPort = 10020;
     std::vector<NetFirewallPortParam> localPortParamList;
     NetFirewallPortParam localPortParam;
-    localPortParam.startPort = LOCAL_START_PORT;
-    localPortParam.endPort = LOCAL_START_PORT;
+    localPortParam.startPort = localStartPort;
+    localPortParam.endPort = localStartPort;
     for (int32_t i = 0; i < num; i++) {
         localPortParamList.emplace_back(std::move(localPortParam));
         localPortParam.startPort += offset;
