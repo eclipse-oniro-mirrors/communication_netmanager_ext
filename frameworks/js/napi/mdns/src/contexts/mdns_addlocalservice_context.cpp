@@ -49,6 +49,7 @@ void MDnsAddLocalServiceContext::ParseParams(napi_value *params, size_t paramsCo
         if (regObserver_ == nullptr) {
             NETMANAGER_EXT_LOGE("new MDnsRegistrationObserver failed");
             SetParseOK(false);
+            return;
         }
         registerCallbackMap_[key] = regObserver_;
     } else {
