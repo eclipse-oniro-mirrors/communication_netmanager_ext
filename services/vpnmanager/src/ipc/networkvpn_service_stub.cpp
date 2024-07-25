@@ -83,50 +83,30 @@ int32_t NetworkVpnServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &dat
         NETMGR_EXT_LOG_E("descriptor checked failed");
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-    switch (code) {
-        NETMGR_EXT_LOG_I("enter OnRemoteRequest code %{public}d:", code);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_PREPARE):
-            return ReplyPrepare(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_START_VPN):
-            return ReplySetUpVpn(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_PROTECT):
-            return ReplyProtect(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_STOP_VPN):
-            return ReplyDestroyVpn(data, reply);
-#ifdef SUPPORT_SYSVPN
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG):
-            return ReplyAddSysVpnConfig(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG):
-            return ReplyDeleteSysVpnConfig(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG_LIST):
-            return ReplyGetSysVpnConfigList(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG):
-            return ReplyGetSysVpnConfig(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG):
-            return ReplyGetConnectedSysVpnConfig(data, reply);
-#endif // SUPPORT_SYSVPN
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK):
-            return ReplyRegisterVpnEvent(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK):
-            return ReplyUnregisterVpnEvent(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION):
-            return ReplyCreateVpnConnection(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_FACTORYRESET_VPN):
-            return ReplyFactoryResetVpn(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_CREATE_VPN_CONNECTION_EXT):
-            return ReplyCreateVpnConnection(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_START_VPN_EXT):
-            return ReplySetUpVpn(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_PROTECT_EXT):
-            return ReplyProtect(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_STOP_VPN_EXT):
-            return ReplyDestroyVpn(data, reply);
-        case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME):
-            return ReplyRegisterBundleName(data, reply);
-        default:
-            NETMGR_EXT_LOG_I("stub default case, need check");
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    auto itr = permissionAndFuncMap_.find(static_cast<INetworkVpnService::MessageCode>(code));
+    if (itr != permissionAndFuncMap_.end()) {
+        if (itr->first >= INetworkVpnService::MessageCode::CMD_START_VPN_EXT &&
+                itr->first <= INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME) {
+            NETMGR_EXT_LOG_I("enter OnRemoteRequest code %{public}d:", code);
+            auto serviceFunc = itr->second.serviceFunc;
+            if (serviceFunc != nullptr) {
+                return (this->*serviceFunc)(data, reply);
+            }
+        } else {
+            NETMGR_EXT_LOG_I("enter OnRemoteRequest code %{public}d:", code);
+            int32_t checkResult = CheckVpnPermission(itr->second.strPermission);
+            if (checkResult != NETMANAGER_SUCCESS) {
+                return checkResult;
+            }
+            auto serviceFunc = itr->second.serviceFunc;
+            if (serviceFunc != nullptr) {
+                return (this->*serviceFunc)(data, reply);
+            }
+        }
     }
+
+    NETMGR_EXT_LOG_I("stub default case, need check");
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int32_t NetworkVpnServiceStub::ReplyPrepare(MessageParcel &data, MessageParcel &reply)

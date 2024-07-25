@@ -71,33 +71,14 @@ int32_t EthernetServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         NETMGR_EXT_LOG_E("descriptor checked fail");
         return NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH;
     }
-    switch (code) {
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_IF_CFG):
-            return OnSetIfaceConfig(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG):
-            return OnGetIfaceConfig(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_IS_ACTIVATE):
-            return OnIsIfaceActive(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_ACTIVATE_INTERFACE):
-            return OnGetAllActiveIfaces(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_RESET_FACTORY):
-            return OnResetFactory(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_REGISTER_INTERFACE_CB):
-            return OnRegisterIfacesStateChanged(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_UNREGISTER_INTERFACE_CB):
-            return OnUnregisterIfacesStateChanged(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP):
-            return OnSetInterfaceUp(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN):
-            return OnSetInterfaceDown(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG):
-            return OnGetInterfaceConfig(data, reply);
-        case static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_CONFIG):
-            return OnSetInterfaceConfig(data, reply);
-        default:
-            NETMGR_EXT_LOG_I("stub default case, need check");
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    auto itFunc = memberFuncMap_.find(code);
+    if (itFunc != memberFuncMap_.end()) {
+        auto requestFunc = itFunc->second;
+        if (requestFunc != nullptr) {
+            return (this->*requestFunc)(data, reply);
+        }
     }
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int32_t EthernetServiceStub::OnSetIfaceConfig(MessageParcel &data, MessageParcel &reply)
