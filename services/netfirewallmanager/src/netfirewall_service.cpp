@@ -305,11 +305,8 @@ void NetFirewallService::OnAddSystemAbility(int32_t systemAbilityId, const std::
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         if (hasSaRemoved_) {
             NETMGR_EXT_LOG_I("native reboot, reset firewall rules.");
-            int32_t ret = NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+            NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
                 NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
-            if (ret != FIREWALL_SUCCESS) {
-                NETMGR_EXT_LOG_E("native reboot, notifyRuleChang error");
-            }
             NetFirewallInterceptRecorder::GetInstance()->RegisterInterceptCallback();
             hasSaRemoved_ = false;
         }
@@ -344,15 +341,10 @@ void NetFirewallService::InitQueryUserId(int32_t times)
     }
 }
 
-bool NetFirewallService::InitQueryNetFirewallRules()
+void NetFirewallService::InitQueryNetFirewallRules()
 {
-    int32_t ret = NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+    NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
         NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
-    if (ret != FIREWALL_SUCCESS) {
-        NETMGR_EXT_LOG_E("InitQueryNetFirewallRules notifyRuleChanged error");
-        return FIREWALL_ERR_INTERNAL;
-    }
-    return FIREWALL_SUCCESS;
 }
 
 void NetFirewallService::InitServiceHandler()
