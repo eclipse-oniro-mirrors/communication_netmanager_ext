@@ -168,7 +168,7 @@ private:
 
     void InitServiceHandler();
 
-    bool InitQueryNetFirewallRules();
+    void InitQueryNetFirewallRules();
 
     std::string GetServiceState();
 

@@ -270,6 +270,13 @@ HWTEST_F(NetFirewallServiceTest, OnAddSystemAbility001, TestSize.Level1)
 
     instance_->OnAddSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
     EXPECT_FALSE(instance_->hasSaRemoved_);
+
+    instance_->OnRemoveSystemAbility(COMMON_EVENT_SERVICE_ID, deviceId);
+    EXPECT_EQ(instance_->subscriber_, nullptr);
+
+    instance_->SubscribeCommonEvent();
+    instance_->OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, deviceId);
+    EXPECT_NE(instance_->subscriber_, nullptr);
 }
 
 /**
@@ -322,6 +329,13 @@ HWTEST_F(NetFirewallServiceTest, SetNetFirewallPolicy001, TestSize.Level1)
     status->outAction = FirewallRuleAction::RULE_ALLOW;
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->SetNetFirewallPolicy(userId, status);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    status->isOpen = false;
+    ret = DelayedSingleton<NetFirewallService>::GetInstance()->SetNetFirewallPolicy(userId, status);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    status->isOpen = true;
+    status->inAction = FirewallRuleAction::RULE_ALLOW;
+    ret = DelayedSingleton<NetFirewallService>::GetInstance()->SetNetFirewallPolicy(userId, status);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
 /**
@@ -366,6 +380,9 @@ HWTEST_F(NetFirewallServiceTest, GetNetFirewallPolicy001, TestSize.Level1)
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetNetFirewallPolicy(userId, status);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_FALSE(status->isOpen);
+    userId = USER_ID2;
+    ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetNetFirewallPolicy(userId, status);
+    EXPECT_EQ(ret, FIREWALL_ERR_NO_USER);
 }
 
 /**
@@ -610,10 +627,17 @@ HWTEST_F(NetFirewallServiceTest, OnInit002, TestSize.Level1)
  */
 HWTEST_F(NetFirewallServiceTest, OnReceiveEvent, TestSize.Level1)
 {
-    int32_t ret = PublishChangedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_ADDED, USER_ID1);
+    int32_t ret = PublishChangedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED, USER_ID1);
     EXPECT_EQ(ret, true);
-    ret = PublishChangedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED, USER_ID1);
-    EXPECT_EQ(ret, true);
+    Want want;
+    want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
+    want.SetParam(AppExecFwk::Constants::UID, -1);
+    CommonEventData data;
+    data.SetWant(want);
+    data.SetCode(USER_ID1);
+    if (instance_->subscriber_ != nullptr) {
+        instance_->subscriber_->OnReceiveEvent(data);
+    }
     ret = PublishChangedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED, USER_ID2);
     EXPECT_EQ(ret, true);
     ret = PublishChangedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED, USER_ID1);
@@ -673,8 +697,12 @@ HWTEST_F(NetFirewallServiceTest, GetInterceptRecord001, TestSize.Level1)
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     param->orderField = NetFirewallOrderField::ORDER_BY_RECORD_TIME;
     sptr<InterceptRecordPage> info = new (std::nothrow) InterceptRecordPage();
-    int ret = instance_->GetInterceptRecords(instance_->GetCurrentAccountId(), param, info);
+    int32_t userId = instance_->GetCurrentAccountId();
+    int ret = instance_->GetInterceptRecords(userId, param, info);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    userId += 1;
+    ret = instance_->GetInterceptRecords(userId, param, info);
+    EXPECT_EQ(ret, FIREWALL_ERR_NO_USER);
 }
 
 /**
@@ -892,6 +920,26 @@ HWTEST_F(NetFirewallServiceTest, SetFirewallDnsRules001, TestSize.Level1)
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     ret = NetFirewallRuleManager::GetInstance().SetRulesToNativeByType(USER_ID1, NetFirewallRuleType::RULE_DNS);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceTest, GetLastRulePushTime001, TestSize.Level1)
+{
+    NetFirewallRuleManager::GetInstance().currentSetRuleSecond_ = 0;
+    std::string ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetLastRulePushTime();
+    EXPECT_EQ(ret, "Unkonw");
+    NetFirewallRuleManager::GetInstance().SetNetFirewallDumpMessage(FIREWALL_SUCCESS);
+    ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetLastRulePushTime();
+    EXPECT_NE(ret, "Unkonw");
+}
+
+HWTEST_F(NetFirewallServiceTest, GetLastRulePushResult001, TestSize.Level1)
+{
+    NetFirewallRuleManager::GetInstance().SetNetFirewallDumpMessage(1);
+    std::string ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetLastRulePushResult();
+    EXPECT_EQ(ret, "Faild");
+    NetFirewallRuleManager::GetInstance().SetNetFirewallDumpMessage(-1);
+    ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetLastRulePushResult();
+    EXPECT_EQ(ret, "Unkonw");
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
