@@ -89,7 +89,7 @@ PermissionStateFull manageVpnState = {
 };
 
 PermissionDef getNetFirewallPermDef = {
-    .permissionName = "ohos.permission.MANAGE_NET_STRATEGY",
+    .permissionName = "ohos.permission.GET_NET_FIREWALL",
     .bundleName = "netmanager_ext_test",
     .grantMode = 1,
     .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
@@ -100,7 +100,26 @@ PermissionDef getNetFirewallPermDef = {
 };
 
 PermissionStateFull getNetFirewallState = {
-    .permissionName = "ohos.permission.MANAGE_NET_STRATEGY",
+    .permissionName = "ohos.permission.GET_NET_FIREWALL",
+    .isGeneral = true,
+    .resDeviceID = { "local" },
+    .grantStatus = { PermissionState::PERMISSION_GRANTED },
+    .grantFlags = { 2 },
+};
+
+PermissionDef setNetFirewallPermDef = {
+    .permissionName = "ohos.permission.MANAGE_NET_FIREWALL",
+    .bundleName = "netmanager_ext_test",
+    .grantMode = 1,
+    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test netfirewall maneger info",
+    .descriptionId = 1,
+};
+
+PermissionStateFull setNetFirewallState = {
+    .permissionName = "ohos.permission.MANAGE_NET_FIREWALL",
     .isGeneral = true,
     .resDeviceID = { "local" },
     .grantStatus = { PermissionState::PERMISSION_GRANTED },
@@ -110,8 +129,10 @@ PermissionStateFull getNetFirewallState = {
 HapPolicyParams netManagerExtPolicy = {
     .apl = APL_SYSTEM_BASIC,
     .domain = "test.domain",
-    .permList = { getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef, getNetFirewallPermDef },
-    .permStateList = { getNetworkInfoState, connectivityInternalState, manageVpnState, getNetFirewallState },
+    .permList = { getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef, getNetFirewallPermDef,
+    setNetFirewallPermDef },
+    .permStateList = { getNetworkInfoState, connectivityInternalState, manageVpnState, getNetFirewallState,
+    setNetFirewallState },
 };
 
 PermissionDef testNoPermissionDef = {
