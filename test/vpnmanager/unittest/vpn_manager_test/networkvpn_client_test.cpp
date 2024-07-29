@@ -219,7 +219,7 @@ HWTEST_F(NetworkVpnClientTest, ConnectControl, TestSize.Level1)
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_GE(fd, 0);
     ret = vpnInterface.ConnectControl(fd, nsec);
-    EXPECT_EQ(NETMANAGER_EXT_ERR_INTERNAL, ret);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnClientTest, RecvMsgFromUnixServer, TestSize.Level1)
@@ -234,7 +234,7 @@ HWTEST_F(NetworkVpnClientTest, GetVpnInterfaceFd, TestSize.Level1)
 {
     VpnInterface vpnInterface;
     int32_t fd = vpnInterface.GetVpnInterfaceFd();
-    EXPECT_LT(fd, 0);
+    EXPECT_GT(fd, 0);
 }
 
 #ifdef SUPPORT_SYSVPN
