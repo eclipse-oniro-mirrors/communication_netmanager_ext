@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -619,7 +619,7 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleRecord(const NativeRdb::RdbPredica
         return ret;
     }
     size_t size = rules.size();
-    if (size <= 0) {
+    if (size == 0) {
         NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule empty");
         return FIREWALL_OK;
     }
