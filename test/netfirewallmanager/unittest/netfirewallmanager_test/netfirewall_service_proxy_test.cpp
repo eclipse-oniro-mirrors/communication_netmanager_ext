@@ -155,7 +155,9 @@ public:
                 reply.WriteInt32(PAGE_SIZE);
                 reply.WriteInt32(TOTAL_PAGE);
                 sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr();
-                ruleList.push_back(*rule);
+                if (rule != nullptr) {
+                    ruleList.push_back(*rule);
+                }
                 reply.WriteUint32(ruleList.size());
                 for (auto &rule : ruleList) {
                     rule.Marshalling(reply);

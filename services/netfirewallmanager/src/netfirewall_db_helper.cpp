@@ -619,7 +619,7 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleRecord(const NativeRdb::RdbPredica
         return ret;
     }
     size_t size = rules.size();
-    if (size <= 0) {
+    if (size == 0) {
         NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule empty");
         return FIREWALL_OK;
     }
