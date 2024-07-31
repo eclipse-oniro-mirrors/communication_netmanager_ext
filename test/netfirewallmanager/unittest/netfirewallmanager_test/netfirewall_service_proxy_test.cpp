@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 202 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,7 +155,9 @@ public:
                 reply.WriteInt32(PAGE_SIZE);
                 reply.WriteInt32(TOTAL_PAGE);
                 sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr();
-                ruleList.push_back(*rule);
+                if (rule != nullptr) {
+                    ruleList.push_back(*rule);
+                }
                 reply.WriteUint32(ruleList.size());
                 for (auto &rule : ruleList) {
                     rule.Marshalling(reply);
