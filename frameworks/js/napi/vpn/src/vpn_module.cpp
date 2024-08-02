@@ -22,9 +22,9 @@
 #include "netmanager_ext_log.h"
 #include "networkvpn_client.h"
 #include "vpn_connection.h"
-#include "vpn_async_work.h"
 #include "vpn_monitor.h"
 #ifdef SUPPORT_SYSVPN
+#include "vpn_async_work.h"
 #include "add_context.h"
 #include "delete_context.h"
 #include "get_list_context.h"
