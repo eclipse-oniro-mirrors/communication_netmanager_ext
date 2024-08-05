@@ -61,7 +61,7 @@ HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest, TestSize.Level1)
 {
     RouterAdvertisementDaemon routerAdvertiseDaemon;
     auto ret = routerAdvertiseDaemon.StartRa();
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     EXPECT_TRUE(routerAdvertiseDaemon.IsSocketValid());
     routerAdvertiseDaemon.StopRa();
     EXPECT_FALSE(routerAdvertiseDaemon.IsSocketValid());
