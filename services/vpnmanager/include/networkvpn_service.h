@@ -216,6 +216,9 @@ private:
 
     void StartAlwaysOnVpn();
     void SubscribeCommonEvent();
+    bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
+         bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
+    void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
