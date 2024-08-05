@@ -531,18 +531,19 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
-    std::string vpnExtMode;
-    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
-    NETMGR_EXT_LOG_D("SetUpVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN) &&
-        (ret != 0 || vpnExtMode != "1")) {
-        NETMGR_EXT_LOG_E("query datebase fail.");
-        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
+        std::string vpnExtMode;
+        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
+        NETMGR_EXT_LOG_D("SetUpVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
+        if (ret != 0 || vpnExtMode != "1") {
+            NETMGR_EXT_LOG_E("query datebase fail.");
+            return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+        }
     }
 
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
-    ret = CheckCurrentAccountType(userId, activeUserIds);
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
@@ -586,18 +587,19 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
-    std::string vpnExtMode;
-    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
-    NETMGR_EXT_LOG_D("DestroyVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN) &&
-        (ret != 0 || vpnExtMode != "1")) {
-        NETMGR_EXT_LOG_E("query datebase fail.");
-        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
+        std::string vpnExtMode;
+        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
+        NETMGR_EXT_LOG_D("DestroyVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
+        if (ret != 0 || vpnExtMode != "1") {
+            NETMGR_EXT_LOG_E("query datebase fail.");
+            return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+        }
     }
 
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
-    ret = CheckCurrentAccountType(userId, activeUserIds);
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
