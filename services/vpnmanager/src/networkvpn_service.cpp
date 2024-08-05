@@ -61,6 +61,12 @@ constexpr const char *VPNEXT_MODE_URI =
 const bool REGISTER_LOCAL_RESULT_NETVPN =
     SystemAbility::MakeAndRegisterAbility(&NetworkVpnService::GetInstance());
 
+constexpr const int INVALID_CODE = -1;
+const std::vector<std::string> ACCESS_PERMISSION {"ohos.permission.GET_NETWORK_INFO"};
+constexpr const char *const PARAM_KEY_STATE = "state";
+constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
+    "usual.event.netmanager.vpn.CONNECT_STATUS_VALUE";
+
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
 NetworkVpnService::~NetworkVpnService()
 {
@@ -158,9 +164,39 @@ void NetworkVpnService::GetDumpMessage(std::string &message)
     message.append("\tend.\n");
 }
 
+bool NetworkVpnService::PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
+    bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const
+{
+    OHOS::EventFwk::CommonEventData data;
+    data.SetWant(want);
+    if (eventCode != INVALID_CODE) {
+        data.SetCode(eventCode);
+    }
+    OHOS::EventFwk::CommonEventPublishInfo publishInfo;
+    publishInfo.SetOrdered(isOrdered);
+    // sticky tag: EventFwk would keep last event for later subscriber.
+    publishInfo.SetSticky(isSticky);
+    if (permissions.size() > 0) {
+        publishInfo.SetSubscriberPermissions(permissions);
+    }
+    bool publishResult = OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data, publishInfo);
+    return publishResult;
+}
+
+void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &state) const
+{
+    OHOS::AAFwk::Want want;
+    want.SetAction(COMMON_EVENT_VPN_CONNECT_STATUS_VALUE);
+    want.SetParam(PARAM_KEY_STATE, (state == VpnConnectState::VPN_CONNECTED) ? 1 : 0);
+    if (!PublishEvent(want, INVALID_CODE, false, true, ACCESS_PERMISSION)) {
+        NETMGR_EXT_LOG_I("Publish vpn connection state fail.");
+    }
+}
+
 void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectState &state)
 {
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
+    vpnService_.PublishVpnConnectionStateEvent(state);
     if (!vpnService_.networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
         return;
