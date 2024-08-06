@@ -166,8 +166,8 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
 {
-    if (!EdmParameterUtils::GetInstance().CheckBoolEdmParameter(NETWORK_SHARE_POLICY_PARAM, "true")) {
-        NETMGR_EXT_LOG_E("NetworkSharing start sharing, check EDM param false");
+    if (EdmParameterUtils::GetInstance().CheckBoolEdmParameter(NETWORK_SHARE_POLICY_PARAM, "false")) {
+        NETMGR_EXT_LOG_E("NetworkSharing start sharing, check EDM param true");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     NETMGR_EXT_LOG_I("NetworkSharing start sharing,type is %{public}d", type);
