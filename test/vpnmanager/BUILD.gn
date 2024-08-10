@@ -16,6 +16,7 @@ import("//build/test.gni")
 group("unittest") {
   testonly = true
   deps = [ "unittest/vpn_manager_test:unittest" ]
+  deps += [ "unittest/vpn_manager_ext_test:unittest" ]
 }
 
 group("fuzztest") {
