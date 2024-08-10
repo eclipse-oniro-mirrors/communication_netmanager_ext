@@ -47,6 +47,7 @@ public:
     void GetDumpMessage(std::string &message);
     bool IsAvailableCallback(const sptr<IDiscoveryCallback> &cb);
     bool IsAvailableCallback(const sptr<IResolveCallback> &cb);
+    bool IsSupportIpV6();
 
 private:
     MDnsManager();
