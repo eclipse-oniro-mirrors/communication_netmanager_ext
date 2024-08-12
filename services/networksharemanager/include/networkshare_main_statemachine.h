@@ -83,6 +83,7 @@ private:
     void ChooseUpstreamNetwork();
     void DisableForward();
     int EraseSharedSubSM(const std::any &messageObj);
+    void ProcessListenDefaultNetwork(bool bAction);
 
 private:
     struct MainSmStateTable {

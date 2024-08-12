@@ -72,6 +72,8 @@ constexpr int32_t BYTE_SEVEN = 7;
 constexpr int32_t EUI64_INVERT = 0x02;
 constexpr int32_t EUI64_FF = 0xFF;
 constexpr int32_t EUI64_FE = 0xFE;
+constexpr uint8_t NET_FAMILY_IPV4 = 1;
+constexpr uint8_t NET_FAMILY_IPV6 = 2;
 } // namespace
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
@@ -366,11 +368,6 @@ void NetworkShareSubStateMachine::SharedStateEnter()
         return;
     }
     trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_SHARED, lastError_);
-    if (!ConfigureShareDhcp(true)) {
-        lastError_ = NETWORKSHARE_ERROR_IFACE_CFG_ERROR;
-        NETMGR_EXT_LOG_E("Enter sub StateMachine[%{public}s] Shared State configIpv4 error.", ifaceName_.c_str());
-    }
-    StartIpv6();
 }
 
 void NetworkShareSubStateMachine::SharedStateExit()
@@ -441,20 +438,62 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
                          ifaceName_.c_str());
         return;
     }
-    if (!HasChangeUpstreamIfaceSet(upstreamNetInfo->netLinkPro_->ifaceName_)) {
-        NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] HandleConnectionChanged Upstream Iface no change.",
+    if (HasChangeUpstreamIfaceSet(upstreamNetInfo->netLinkPro_->ifaceName_)) {
+        NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] HandleConnectionChanged Upstream Ifacechange.",
                          ifaceName_.c_str());
-        return;
+        CleanupUpstreamInterface();
+        upstreamIfaceName_ = upstreamNetInfo->netLinkPro_->ifaceName_;
+        HandleConnection();
     }
-
-    CleanupUpstreamInterface();
-    upstreamIfaceName_ = upstreamNetInfo->netLinkPro_->ifaceName_;
-
-    HandleConnection();
-    AddRoutesToLocalNetwork();
-    AddIpv6InfoToLocalNetwork();
+    ConfigureShareIpv4(upstreamNetInfo->netLinkPro_);
+    ConfigureShareIpv6(upstreamNetInfo->netLinkPro_);
 }
 
+void NetworkShareSubStateMachine::ConfigureShareIpv4(const sptr<NetLinkInfo> &upstreamLinkInfo)
+{
+    bool hasIpv4 = false;
+    for (const auto &inetAddr : upstreamLinkInfo->netAddrList_) {
+        auto family = inetAddr.family_;
+        if (family == NET_FAMILY_IPV4) {
+            hasIpv4 = true;
+            NETMGR_EXT_LOG_I("family:[%{public}d], addr:[%{public}s].", family, inetAddr.address_.c_str());
+            break;
+        }
+    }
+    if (hasIpv4) {
+        AddRoutesToLocalNetwork();
+        ConfigureShareDhcp(true);
+    }
+}
+
+void NetworkShareSubStateMachine::ConfigureShareIpv6(const sptr<NetLinkInfo> &upstreamLinkInfo)
+{
+    lastRaParams_.Clear();
+    for (const auto &inetAddr : upstreamLinkInfo->netAddrList_) {
+        auto family = inetAddr.family_;
+        if (family != NET_FAMILY_IPV6) {
+            continue;
+        }
+        IpPrefix ipPrefix;
+        inet_pton(AF_INET6, inetAddr.address_.c_str(), &ipPrefix.address);
+        inet_pton(AF_INET6, inetAddr.address_.c_str(), &ipPrefix.prefix);
+        if (memset_s(ipPrefix.prefix.s6_addr + HALF_IN6ADDR, HALF_IN6ADDR, 0, HALF_IN6ADDR) != EOK) {
+            NETMGR_EXT_LOG_I("Failed memset_s");
+            continue;
+        }
+        ipPrefix.prefixesLength = PREFIX_LEN;
+        lastRaParams_.prefixes_.emplace_back(ipPrefix);
+        NETMGR_EXT_LOG_I("family:[%{public}d], addr:[%{public}s].", family, inetAddr.address_.c_str());
+    }
+    if (lastRaParams_.prefixes_.size() == 0) {
+        NETMGR_EXT_LOG_E("have nothing ipv6 address for iface[%{public}s!", upstreamLinkInfo->ifaceName_.c_str());
+        return;
+    }
+    if (raDaemon_ == nullptr) {
+        AddIpv6InfoToLocalNetwork();
+        StartIpv6();
+    }
+}
 void NetworkShareSubStateMachine::HandleConnection()
 {
     int32_t result = NetsysController::GetInstance().IpfwdAddInterfaceForward(ifaceName_, upstreamIfaceName_);
@@ -502,6 +541,8 @@ void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
             NetworkShareEventErrorType::ERROR_CANCEL_FORWARD, ERROR_MSG_REMOVE_ROUTE_RULE,
             NetworkShareEventType::CANCEL_EVENT);
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Remove Route error[%{public}d].", ifaceName_.c_str(), result);
+    } else {
+        destination_ = "";
     }
 }
 
@@ -512,6 +553,10 @@ void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
         NETMGR_EXT_LOG_E("Get Destination fail");
         return;
     }
+    if (destination_ == destination) {
+        NETMGR_EXT_LOG_I("ipv4 route already Set!");
+        return;
+    }
     int32_t result = NetsysController::GetInstance().NetworkAddRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
     if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
@@ -519,6 +564,8 @@ void NetworkShareSubStateMachine::AddRoutesToLocalNetwork()
             NetworkShareEventErrorType::ERROR_CONFIG_FORWARD, ERROR_MSG_ADD_ROUTE_RULE,
             NetworkShareEventType::SETUP_EVENT);
         NETMGR_EXT_LOG_E("Sub StateMachine[%{public}s] Add Route error[%{public}d].", ifaceName_.c_str(), result);
+    } else {
+        destination_ = destination;
     }
 }
 
@@ -656,7 +703,6 @@ bool NetworkShareSubStateMachine::GetWifiApDestinationAddr(std::string &addrStr)
 
 bool NetworkShareSubStateMachine::GetWifiApDstIpv6Addr()
 {
-    lastRaParams_.Clear();
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = ifaceName_;
     if (NetsysController::GetInstance().GetInterfaceConfig(config) != ERR_NONE) {
@@ -668,10 +714,6 @@ bool NetworkShareSubStateMachine::GetWifiApDstIpv6Addr()
         return false;
     }
     lastRaParams_.macAddr_ = config.hwAddr;
-    if (!GetShareIpv6Prefix(upstreamIfaceName_)) {
-        NETMGR_EXT_LOG_E("Get ipv6 addr for iface[%{public}s fail.", upstreamIfaceName_.c_str());
-        return false;
-    }
     if (lastRaParams_.prefixes_.size() == 0) {
         NETMGR_EXT_LOG_E("have nothing ipv6 address for iface[%{public}s!", upstreamIfaceName_.c_str());
         return false;
