@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <arpa/inet.h>
 #include "net_interface_callback.h"
 #include "mdns_manager.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -38,6 +39,14 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
     std::transform(ifrName.begin(), ifrName.end(), ifrName.begin(), ::tolower);
     if (ifrName.find("p2p") != std::string::npos) {
         NETMGR_EXT_LOG_D("mdns_log Not p2p netcard handle");
+        return NETMANAGER_SUCCESS;
+    }
+
+    in_addr ipAddr;
+    std::string tmpAddr = addr.substr(0, addr.find("/"));
+    int32_t ret = inet_pton(AF_INET6, tmpAddr.c_str(), &ipAddr);
+    if (ret > 0 && !MDnsManager::GetInstance().IsSupportIpV6()) {
+        NETMGR_EXT_LOG_D("mdns_log Not support IpV6");
         return NETMANAGER_SUCCESS;
     }
 

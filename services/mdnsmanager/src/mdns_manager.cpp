@@ -38,6 +38,11 @@ void MDnsManager::RestartMDnsProtocolImpl()
     RestartDiscoverService();
 }
 
+bool MDnsManager::IsSupportIpV6()
+{
+    return impl.GetConfig().ipv6Support;
+}
+
 int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
     NETMGR_EXT_LOG_D("mdns_log RegisterService");
