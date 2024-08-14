@@ -38,7 +38,7 @@ declare namespace ethernet {
    * @throws { BusinessError } 2201005 - Device information does not exist.
    * @syscap SystemCapability.Communication.NetManager.Ethernet
    * @systemapi Hide this for inner system use.
-   * @since 12
+   * @since 13
    */
     function getMacAddress(iface: string, callback: AsyncCallback<MacAddressInfo>): void;
 
@@ -56,7 +56,7 @@ declare namespace ethernet {
      * @throws { BusinessError } 2201005 - Device information does not exist.
      * @syscap SystemCapability.Communication.NetManager.Ethernet
      * @systemapi Hide this for inner system use.
-     * @since 12
+     * @since 13
      */
     function getMacAddress(iface: string): Promise<MacAddressInfo>;
 
@@ -352,7 +352,7 @@ declare namespace ethernet {
      * @type {string}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
      * @systemapi Hide this for inner system use.
-     * @since 12
+     * @since 13
      */
     macAddress: string;
   }

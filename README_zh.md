@@ -127,6 +127,22 @@ foundation/communication/netmanager_ext/
   });
   ```
 
+### 获取以太网MAC地址信息
+
+* 示例
+  ```javascript
+  import ethernet from '@ohos.net.ethernet'
+  ```
+  ```javascript
+  ethernet.getMacAddress("eth0", (error, value) => {
+      if (error) {
+          console.log("getMacAddress  callback error = " + error);
+      } else {
+          console.log("getMacAddress callback mode = " + value.macAddress);
+      }
+  });
+  ```
+
 ### 开始网络共享
 
 * 示例
