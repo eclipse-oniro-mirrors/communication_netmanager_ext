@@ -39,6 +39,7 @@ constexpr const char *DNS_SERVERS = "dnsServers";
 constexpr const char *DOMAIN = "domain";
 constexpr const char *DEFAULT_SEPARATOR = ",";
 constexpr const char *MAC_ADDR = "macAddr";
+constexpr const char *IFACE = "iface";
 
 std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
 {
@@ -50,10 +51,8 @@ std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
 } // namespace
 bool ExecGetMacAddress(GetMacAddressContext *context)
 {
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(
-        context->iface_,
-        context->macAddrInfo_);
-    if (context->macAddrInfo_ == nullptr || result != NETMANAGER_EXT_SUCCESS) {
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(context->macAddrInfo_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
         NETMANAGER_EXT_LOGE("ExecGetMacAddress error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
         return false;
@@ -63,10 +62,17 @@ bool ExecGetMacAddress(GetMacAddressContext *context)
 
 napi_value GetMacAddressCallback(GetMacAddressContext *context)
 {
-    napi_value macAddrInfo = NapiUtils::CreateObject(context->GetEnv());
-    NapiUtils::SetStringPropertyUtf8(
-        context->GetEnv(), macAddrInfo, MAC_ADDR, context->macAddrInfo_->macAddress_);
-    return macAddrInfo;
+    napi_value macAddressLists = NapiUtils::CreateArray(context->GetEnv(), context->macAddrInfo_.size());
+    uint32_t index = 0;
+    for (auto &eachInfo : context->macAddrInfo_) {
+        napi_value macAddrInfo = NapiUtils::CreateObject(context->GetEnv());
+        NapiUtils::SetStringPropertyUtf8(
+            context->GetEnv(), macAddrInfo, IFACE, eachInfo.iface_);
+        NapiUtils::SetStringPropertyUtf8(
+            context->GetEnv(), macAddrInfo, MAC_ADDR, eachInfo.macAddress_);
+        NapiUtils::SetArrayElement(context->GetEnv(), macAddressLists, index++, macAddrInfo);
+    }
+    return macAddressLits;
 }
 
 bool ExecGetIfaceConfig(GetIfaceConfigContext *context)

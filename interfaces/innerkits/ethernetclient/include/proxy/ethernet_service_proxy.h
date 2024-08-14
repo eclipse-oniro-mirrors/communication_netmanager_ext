@@ -29,7 +29,7 @@ public:
     virtual ~EthernetServiceProxy() = default;
     bool WriteInterfaceToken(MessageParcel &data);
 
-    int32_t GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo) override;
+    int32_t GetMacAddress(std::vector<MacAddressInfo> &macAddrList) override;
     int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) override;
     int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig) override;
     int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) override;

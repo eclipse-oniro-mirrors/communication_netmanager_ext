@@ -36,8 +36,7 @@ public:
     void ParseParams(napi_value *params, size_t paramsCount);
 
 public:
-    std::string iface_;
-    sptr<MacAddressInfo> macAddrInfo_ = nullptr;
+    std::vector<MacAddressInfo> macAddrInfo_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

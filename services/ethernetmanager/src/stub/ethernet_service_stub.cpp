@@ -86,19 +86,30 @@ int32_t EthernetServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
 int32_t EthernetServiceStub::OnGetMacAddress(MessageParcel &data, MessageParcel &reply)
 {
-    std::string iface;
-    if (!data.ReadString(iface)) {
+    std::vector<MacAddressInfo> macAddrList;
+    int32_t ret = GetMacAddress(macAddrList);
+    if (ret != NETMANAGER_EXT_SUCCESS || macAddrList.size() == 0) {
+        NETMGR_EXT_LOG_E("get all mac address failed");
+        return ret;
+    }
+    if (macAddrList.size() > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("ifaces size is too large");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    sptr<MacAddressInfo> macAddrInfo = new (std::nothrow) MacAddressInfo();
-    int32_t ret = GetMacAddress(iface, macAddrInfo);
-    if (ret == NETMANAGER_EXT_SUCCESS && macAddrInfo != nullptr) {
-        if (!macAddrInfo->Marshalling(reply)) {
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!reply.WriteUint32(macAddrList.size())) {
+        NETMGR_EXT_LOG_E("iface size write failed");
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    for (auto macAddrInfo : macAddrList) {
+        if (!macAddrInfo.Marshalling(reply)) {
             NETMGR_EXT_LOG_E("proxy Marshalling failed");
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
-    return ret;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetServiceStub::OnSetIfaceConfig(MessageParcel &data, MessageParcel &reply)

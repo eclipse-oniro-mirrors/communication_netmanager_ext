@@ -23,6 +23,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 bool MacAddressInfo::Marshalling(Parcel &parcel) const
 {
+    if (!parcel.WriteString(iface_)) {
+        return false;
+    }
     if (!parcel.WriteString(macAddress_)) {
         return false;
     }
@@ -33,7 +36,10 @@ sptr<MacAddressInfo> MacAddressInfo::Unmarshalling(Parcel &parcel)
 {
     sptr<MacAddressInfo> ptr = new (std::nothrow) MacAddressInfo();
     if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("ptr is null");
+        NETMGR_EXT_LOG_E("create MacAddressInfo failed");
+        return nullptr;
+    }
+    if (!parcel.ReadString(ptr->iface_)) {
         return nullptr;
     }
     if (!parcel.ReadString(ptr->macAddress_)) {

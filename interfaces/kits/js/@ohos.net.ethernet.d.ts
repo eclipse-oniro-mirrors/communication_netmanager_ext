@@ -24,33 +24,13 @@ import { connection } from "./@ohos.net.connection";
  */
 declare namespace ethernet {
   type HttpProxy = connection.HttpProxy;
-  /**
-   * Get the specified ethernet mac address.
-   * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
-   * @param { string } iface - Indicates the network interface name.
-   * @param { AsyncCallback<MacAddressInfo> } callback - the callback of getMacAddress.
-   * @throws { BusinessError } 201 - Permission denied.
-   * @throws { BusinessError } 202 - Non-system applications use system APIs.
-   * @throws { BusinessError } 401 - Parameter error.
-   * @throws { BusinessError } 2200001 - Invalid parameter value.
-   * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
-   * @throws { BusinessError } 2200003 - System internal error.
-   * @throws { BusinessError } 2201005 - Device information does not exist.
-   * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi Hide this for inner system use.
-   * @since 13
-   */
-  function getMacAddress(iface: string, callback: AsyncCallback<MacAddressInfo>): void;
 
   /**
-   * Get the specified ethernet mac address.
+   * Get the ethernet mac address List.
    * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
-   * @param { string } iface Indicates the network interface name.
-   * @returns { Promise<MacAddressInfo> } the promise returned by the function.
+   * @returns { Promise<Array<MacAddressInfo>> } the promise returned by the function.
    * @throws { BusinessError } 201 - Permission denied.
    * @throws { BusinessError } 202 - Non-system applications use system APIs.
-   * @throws { BusinessError } 401 - Parameter error.
-   * @throws { BusinessError } 2200001 - Invalid parameter value.
    * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
    * @throws { BusinessError } 2200003 - System internal error.
    * @throws { BusinessError } 2201005 - Device information does not exist.
@@ -58,7 +38,7 @@ declare namespace ethernet {
    * @systemapi Hide this for inner system use.
    * @since 13
    */
-  function getMacAddress(iface: string): Promise<MacAddressInfo>;
+  function getMacAddress(iface: string): Promise<Array<MacAddressInfo>>;
 
   /**
    * Get the specified network interface information.
@@ -347,6 +327,14 @@ declare namespace ethernet {
    * @since 12
    */
   export interface MacAddressInfo {
+    /**
+     * Ethernet interface name.
+     * @type {string}
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 13
+     */
+    iface: string;
     /**
      * Ethernet specific mac address.
      * @type {string}

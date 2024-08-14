@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <vector>
 
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -37,6 +38,7 @@ constexpr uint32_t INDEX_TWO = 2;
 constexpr uint32_t INDEX_THREE = 3;
 constexpr uint32_t INDEX_FOUR = 4;
 constexpr uint32_t INDEX_FIVE = 5;
+constexpr uint32_t BUFFER_SIZE = 64;
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
@@ -185,23 +187,26 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
     }
 }
 
-int32_t EthernetManagement::GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo)
+int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto fit = devs_.find(iface);
-    if (fit == devs_.end() || fit->second == nullptr) {
-        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
-        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    std::regex re(IFACE_MATCH);
+    std::vector<std::string> ifaceLists = NetsysController::GetInstance().InterfaceGetList();
+    if (ifaceLists.empty()) {
+        NETMGR_EXT_LOG_E("EthernetManagement iface list is empty");
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST
     }
-    lock.unlock();
-
-    auto spMacAddr = GetMacAddr(iface);
-    if (spMacAddr.c_str() == nullptr) {
-        NETMGR_EXT_LOG_E("The iface[%{public}s] device does not find MAC address", iface.c_str());
-        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    fot (const auto &iface : ifaceLists) {
+        if (std::regex_search(iface, re)) {
+            MacAddressInfo macAddressInfo;
+            auto spMacAddr = GetMacAddr(iface);
+            if (spMacAddr.c_str() == nullptr) {
+                NETMGR_EXT_LOG_E("The iface[%{public}s] device does not find MAC address", iface.c_str());
+            }
+            macAddressInfo.iface_ = iface;
+            macAddressInfo.macAddress_ = spMacAddr;
+            macAddrList.push_back(macAddressInfo);
+        }
     }
-    macAddrInfo->macAddress_ = spMacAddr;
-
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -223,15 +228,18 @@ std::string EthernetManagement::GetMacAddr(const std::string &iface)
 
 std::string EthernetManagement::HwAddrToStr(char *hwaddr)
 {
-    char buf[64] = {'\0'};
-    if (hwaddr != nullptr) {
-        errno_t result =
-            sprintf_s(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x", hwaddr[0], hwaddr[INDEX_ONE],
-                hwaddr[INDEX_TWO], hwaddr[INDEX_THREE], hwaddr[INDEX_FOUR],
-                hwaddr[INDEX_FIVE]);
-        if (result != 0) {
-            NETMGR_EXT_LOG_D("[hwAddrToStr]: result %{public}d", result);
-        }
+    char buf[BUFFER_SIZE] = {'\0'};
+    if (hwaddr == nullptr) {
+        NETMGR_EXT_LOG_E("hwaddr is nullptr");
+        return "";
+    }
+    errno_t result =
+        sprintf_s(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x", hwaddr[0], hwaddr[INDEX_ONE],
+            hwaddr[INDEX_TWO], hwaddr[INDEX_THREE], hwaddr[INDEX_FOUR],
+            hwaddr[INDEX_FIVE]);
+    if (result < 0) {
+        NETMGR_EXT_LOG_E("[hwAddrToStr] result error : %{public}d", result);
+        return "";
     }
     return std::string(buf);
 }

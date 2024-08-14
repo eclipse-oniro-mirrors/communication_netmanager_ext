@@ -35,7 +35,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.IEthernetService");
 
 public:
-    virtual int32_t GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo) = 0;
+    virtual int32_t GetMacAddress(std::vector<MacAddressInfo> &macAddrList) = 0;
     virtual int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) = 0;
     virtual int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig) = 0;
     virtual int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) = 0;

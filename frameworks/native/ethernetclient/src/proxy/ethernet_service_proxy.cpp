@@ -44,19 +44,41 @@ bool EthernetServiceProxy::WriteInterfaceToken(MessageParcel &data)
     return true;
 }
 
-int32_t EthernetServiceProxy::GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo)
+int32_t EthernetServiceProxy::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
     MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
     MessageParcel reply;
-    int32_t ret = SendRequest(
-        data, iface, reply, static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO));
+    MessageOption;
+    int32_t ret = remote->SendRequest(
+        static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO), data, reply, option);
     if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("Proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
     }
-    
-    macAddrInfo = MacAddressInfo::Unmarshalling(reply);
-    if (macAddrInfo == nullptr) {
-        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    int32_t result;
+    if (!reply.ReadInt32(result) || result != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("result failed, error code: [%{public}d]", rusult);
+        return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
+    }
+    int32_t size = reply.ReadInt32();
+    if(size > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("size is too large");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL
+    }
+    for (int i = 0; i < size; i++) {
+        auto macAddrInfo = MacAddressInfo::Unmarshalling(reply);
+        if (macAddrInfo == nullptr) {
+            return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
+        }
+        macAddrList.push_back(*macAddrInfo)
     }
     return NETMANAGER_EXT_SUCCESS;
 }

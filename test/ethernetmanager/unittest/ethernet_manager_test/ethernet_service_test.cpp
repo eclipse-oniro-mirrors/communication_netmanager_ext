@@ -43,7 +43,6 @@ namespace {
 using namespace testing::ext;
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *IFACE_NAME = "wlan0";
-constexpr const char *TEST_MAC_ADDRESS = "a0:0b:c1:d0:02:03";
 } // namespace
 
 class EtherNetServiceTest : public testing::Test {
@@ -51,20 +50,9 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     sptr<InterfaceConfiguration> GetIfaceConfig();
-    sptr<MacAddressInfo> GetMacAddress();
     void SetUp();
     void TearDown();
 };
-
-sptr<MacAddressInfo> EtherNetServiceTest::GetMacAddress()
-{
-    sptr<MacAddressInfo> mai = (std::make_unique<MacAddressInfo>()).release();
-    if (!mai) {
-        return mai;
-    }
-    mai->macAddress_ = TEST_MAC_ADDRESS;
-    return mai;
-}
 
 sptr<InterfaceConfiguration> EtherNetServiceTest::GetIfaceConfig()
 {
@@ -220,8 +208,8 @@ HWTEST_F(EtherNetServiceTest, GetMacAddressTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
     std::string iface;
-    sptr<MacAddressInfo> macAddrInfo = GetMacAddress();
-    int ret = ethernetService.GetMacAddress(iface, macAddrInfo);
+    std::vector<MacAddressInfo> macAddrListss;
+    int ret = ethernetService.GetMacAddress(macAddrList);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 

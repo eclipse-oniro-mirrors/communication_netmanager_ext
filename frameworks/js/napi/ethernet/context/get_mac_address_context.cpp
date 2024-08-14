@@ -20,33 +20,13 @@
 #include "net_manager_constants.h"
 
 namespace OHOS {
-namespace NetManagerStandard {
-static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
-{
-    if (paramsCount == PARAM_JUST_OPTIONS || paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        if (NapiUtils::GetValueType(env, params[0]) != napi_string) {
-            return false;
-        }
-    } else {
-        // if paramsCount is not 1 or 2, means count error.
-        return false;
-    }
-    return true;
-}
-
+namespace NetManagerStandard { 
 GetMacAddressContext::GetMacAddressContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
 
 void GetMacAddressContext::ParseParams(napi_value *params, size_t paramsCount)
 {
-    if (!CheckParamsType(GetEnv(), params, paramsCount)) {
-        SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-        SetNeedThrowException(true);
-        return;
-    }
-    iface_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[0]);
-
-    if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        SetParseOK(SetCallback(params[1]) == napi_ok);
+    if (paramsCount == PARAM_JUST_CALLBACK) {
+        SetParseOK(SetCallback(params[0]) == napi_ok);
         return;
     }
     SetParseOK(true);

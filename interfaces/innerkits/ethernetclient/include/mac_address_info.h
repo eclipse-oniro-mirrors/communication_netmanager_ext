@@ -24,6 +24,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 struct MacAddressInfo : public Parcelable {
+    std::string iface_;
     std::string macAddress_;
 
     virtual bool Marshalling(Parcel &parcel) const override;

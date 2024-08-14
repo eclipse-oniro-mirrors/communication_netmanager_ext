@@ -197,7 +197,7 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnBandwidthReachedLimit(c
     return 0;
 }
 
-int32_t EthernetService::GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo)
+int32_t EthernetService::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
     NETMGR_EXT_LOG_D("Get iface: %{public}s has mac address", iface.c_str());
     if (!NetManagerPermission::IsSystemCaller()) {
@@ -209,7 +209,7 @@ int32_t EthernetService::GetMacAddress(const std::string &iface, sptr<MacAddress
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.GetMacAddress(iface, macAddrInfo);
+    return ethManagement_.GetMacAddress(macAddrList);
 }
 
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)

@@ -331,28 +331,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
         return;
     }
     NetManagerExtAccessToken token;
-    sptr<MacAddressInfo> mai;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(DEV_NAME, mai);
-    ASSERT_TRUE(mai != nullptr);
+    std::vector<MacAddressInfo> mai;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(mai);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-/**
- * @tc.name: EthernetManager0051
- * @tc.desc: Test EthernetManager GetMacAddress.
- * @tc.type: FUNC
- */
-HWTEST_F(EthernetManagerTest, EthernetManager0051, TestSize.Level1)
-{
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
-    sptr<MacAddressInfo> mai;
-    const char *DEV_NAME_1 = "eth3";
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(DEV_NAME_1, mai);
-    ASSERT_FALSE(mai != nullptr);
-    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 /**

@@ -33,7 +33,7 @@ class MockEthernetServiceStubTest : public EthernetServiceStub {
 public:
     MockEthernetServiceStubTest() = default;
     ~MockEthernetServiceStubTest() override {}
-    int32_t GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &mai) override
+    int32_t GetMacAddress(std::vector<MacAddressInfo> &mai) override
     {
         return 0;
     }

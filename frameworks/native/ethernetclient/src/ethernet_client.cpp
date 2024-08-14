@@ -40,14 +40,14 @@ EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nu
 
 EthernetClient::~EthernetClient() = default;
 
-int32_t EthernetClient::GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo)
+int32_t EthernetClient::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return IPC_PROXY_ERR;
     }
-    return proxy->GetMacAddress(iface, macAddrInfo);
+    return proxy->GetMacAddress(macAddrList);
 }
 
 int32_t EthernetClient::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)

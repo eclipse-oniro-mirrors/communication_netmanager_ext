@@ -32,13 +32,12 @@ public:
     /**
      *  Get the ethernet MAC address
      *
-     * @param iface interface name
-     * @param macAddrInfo MAC address info
+     * @param macAddrList MAC address info list
      * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
      * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo);
+    int32_t GetMacAddress(std::vector<MacAddressInfo> &macAddrList);
 
     /**
      *  Set the network interface configuration
