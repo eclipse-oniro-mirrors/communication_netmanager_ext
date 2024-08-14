@@ -22,6 +22,7 @@
 #include "gtest/hwext/gtest-tag.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
+#include "mac_address_info.h"
 #include "net_manager_constants.h"
 #include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -42,6 +43,7 @@ namespace {
 using namespace testing::ext;
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *IFACE_NAME = "wlan0";
+constexpr const char *TEST_MAC_ADDRESS = "a0:0b:c1:d0:02:03";
 } // namespace
 
 class EtherNetServiceTest : public testing::Test {
@@ -49,9 +51,20 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     sptr<InterfaceConfiguration> GetIfaceConfig();
+    sptr<MacAddressInfo> GetMacAddress();
     void SetUp();
     void TearDown();
 };
+
+sptr<MacAddressInfo> EtherNetServiceTest::GetMacAddress()
+{
+    sptr<MacAddressInfo> mai = (std::make_unique<MacAddressInfo>()).release();
+    if (!mai) {
+        return mai;
+    }
+    mai->macAddress_ = TEST_MAC_ADDRESS;
+    return mai;
+}
 
 sptr<InterfaceConfiguration> EtherNetServiceTest::GetIfaceConfig()
 {
@@ -203,6 +216,15 @@ HWTEST_F(EtherNetServiceTest, OnBandwidthReachedLimitTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(EtherNetServiceTest, GetMacAddressTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    std::string iface;
+    sptr<MacAddressInfo> macAddrInfo = GetMacAddress();
+    int ret = ethernetService.GetMacAddress(iface, macAddrInfo);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
 HWTEST_F(EtherNetServiceTest, SetIfaceConfigTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
@@ -331,6 +353,11 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
     ethernetService.InitManagement();
 
     std::string iface = "";
+
+    sptr<MacAddressInfo> mai = nullptr;
+    result = ethernetService.GetMacAddress(iface, mai);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
@@ -376,6 +403,11 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     std::string iface = "";
+
+    sptr<MacAddressInfo> mai = nullptr;
+    result = ethernetService.GetMacAddress(IFACE_NAME, mai);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(IFACE_NAME, ic);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
@@ -424,8 +456,12 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     std::string iface = "";
-    sptr<InterfaceConfiguration> ic = nullptr;
+    
+    sptr<MacAddressInfo> mai = nullptr;
+    result = ethernetService.GetMacAddress(iface, mai);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
+    sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 

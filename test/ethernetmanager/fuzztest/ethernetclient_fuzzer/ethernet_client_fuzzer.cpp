@@ -23,6 +23,7 @@
 #include <securec.h>
 #include <string>
 
+#include "mac_address_info.h"
 #include "netmanager_ext_test_security.h"
 #include "refbase.h"
 #include "singleton.h"
@@ -135,6 +136,24 @@ int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
     MessageParcel reply;
     MessageOption option;
     return DelayedSingleton<EthernetService>::GetInstance()->OnRemoteRequest(code, data, reply, option);
+}
+
+void GetMacAddressFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    NetManagerExtAccessToken token;
+    MessageParcel parcel;
+    std::string iface = GetStringFromData(IFACE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteString(iface)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADD_INFO), parcel);
 }
 
 void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
@@ -329,6 +348,9 @@ void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
     ethernetManagement->UpdateInterfaceState(dev, up);
 
     std::string iface = GetStringFromData(IFACE_LEN);
+    sptr<MacAddressInfo> mai;
+    ethernetManagement->GetMacAddress(iface, mai);
+    
     sptr<InterfaceConfiguration> cfg;
     ethernetManagement->UpdateDevInterfaceCfg(iface, cfg);
 

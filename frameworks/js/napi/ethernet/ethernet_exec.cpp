@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <numeric>
 #include <string>
 
+#include "mac_address_info.h"
 #include "ethernet_client.h"
 #include "napi_utils.h"
 #include "net_manager_constants.h"
@@ -37,6 +38,7 @@ constexpr const char *GATEWAY = "gateway";
 constexpr const char *DNS_SERVERS = "dnsServers";
 constexpr const char *DOMAIN = "domain";
 constexpr const char *DEFAULT_SEPARATOR = ",";
+constexpr const char *MAC_ADDR = "macAddr";
 
 std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
 {
@@ -46,6 +48,29 @@ std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
         });
 }
 } // namespace
+bool ExecGetMacAddress(GetMacAddressContext *context)
+{
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(
+        context->iface_,
+        context->macAddrInfo_);
+    if (context->macAddrInfo_ == nullptr || result != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecGetMacAddress error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value GetMacAddressCallback(GetMacAddressContext *context)
+{
+    napi_value macAddrInfo = NapiUtils::CreateObject(context->GetEnv());
+    NapiUtils::SetInt32Property(context->GetEnv(), macAddrInfo, MAC_ADDR, context->macAddrInfo_->macAddress_);
+
+    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DOMAIN,
+                                     context->config_->ipStatic_.domain_);
+    return macAddrInfo;
+}
+
 bool ExecGetIfaceConfig(GetIfaceConfigContext *context)
 {
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(context->iface_, context->config_);

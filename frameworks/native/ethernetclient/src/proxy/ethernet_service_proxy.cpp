@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "refbase.h"
 
 #include "i_ethernet_service.h"
+#include "mac_address_info.h"
 #include "interface_configuration.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
@@ -41,6 +42,22 @@ bool EthernetServiceProxy::WriteInterfaceToken(MessageParcel &data)
         return false;
     }
     return true;
+}
+
+int32_t EthernetServiceProxy::GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = SendRequest(data, iface, reply,
+                              static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADD_INFO));
+    if (ret != ERR_NONE) {
+        return ret;
+    }
+    macAddrInfo = MacAddressInfosss::Unmarshalling(reply);
+    if (macAddrInfo == nullptr) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetServiceProxy::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)

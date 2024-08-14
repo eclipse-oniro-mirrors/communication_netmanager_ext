@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,11 @@ class MockEthernetServiceStubTest : public EthernetServiceStub {
 public:
     MockEthernetServiceStubTest() = default;
     ~MockEthernetServiceStubTest() override {}
+    int32_t GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &mai) override
+    {
+        return 0;
+    }
+
     int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) override
     {
         return 0;
@@ -107,6 +112,27 @@ void EthernetServiceStubTest::TearDownTestCase() {}
 void EthernetServiceStubTest::SetUp() {}
 
 void EthernetServiceStubTest::TearDown() {}
+
+/**
+ * @tc.name: OnGetMacAddressTest001
+ * @tc.desc: Test EthernetServiceStub OnGetMacAddress.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetServiceStubTest, OnGetMacAddressTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteString(TEST_STRING)) {
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADD_INFO),
+                                             data, reply, option);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 
 /**
  * @tc.name: OnSetIfaceConfigTest001

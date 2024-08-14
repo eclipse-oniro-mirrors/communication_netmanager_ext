@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <thread>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -31,6 +32,11 @@ const std::string IFACE_MATCH = "eth\\d";
 constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
 constexpr int SLEEP_TIME_S = 2;
+constexpr uint32_t INDEX_ONE = 1;
+constexpr uint32_t INDEX_TWO = 2;
+constexpr uint32_t INDEX_THREE = 3;
+constexpr uint32_t INDEX_FOUR = 4;
+constexpr uint32_t INDEX_FIVE = 5;
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
@@ -177,6 +183,57 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
         }
         netLinkConfigs_[dev] = nullptr;
     }
+}
+
+int32_t EthernetManagement::GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto fit = devs_.find(iface);
+    if (fit == devs_.end() || fit->second == nullptr) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    lock.unlock();
+
+    auto spMacAddr = GetMacAddr(iface);
+    if (spMacAddr.c_str() == nullptr) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device does not find MAC address", iface.c_str());
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    macAddrInfo->macAddress_ = spMacAddr;
+
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+std::string EthernetManagement::GetMacAddr(const std::string &iface)
+{
+    NETMGR_EXT_LOG_D("GetMacAddr when iface is [%{public}s]", iface.c_str());
+    std::string macAddr;
+
+    int fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    struct ifreq ifr = {};
+    strncpy_s(ifr.ifr_name, IFNAMSIZ, iface.c_str(), iface.length());
+
+    if (ioctl(fd, SIOCGIFHWADDR, &ifr) != -1) {
+        macAddr = HwAddrToStr(ifr.ifr_hwaddr.sa_data);
+    }
+    close(fd);
+    return macAddr;
+}
+
+std::string EthernetManagement::HwAddrToStr(char *hwaddr)
+{
+    char buf[64] = {'\0'};
+    if (hwaddr != nullptr) {
+        errno_t result =
+            sprintf_s(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x", hwaddr[0], hwaddr[INDEX_ONE],
+                hwaddr[INDEX_TWO], hwaddr[INDEX_THREE], hwaddr[INDEX_FOUR],
+                hwaddr[INDEX_FIVE]);
+        if (result != 0) {
+            NETMGR_EXT_LOG_D("[hwAddrToStr]: result [%{public}s]", result);
+        }
+    }
+    return std::string(buf);
 }
 
 int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg)

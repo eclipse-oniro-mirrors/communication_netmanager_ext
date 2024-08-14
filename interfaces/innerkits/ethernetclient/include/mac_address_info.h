@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef ETHERNET_IPC_INTERFACE_CODE_H
-#define ETHERNET_IPC_INTERFACE_CODE_H
+#ifndef ETH_MAC_ADDRESS_INFO_H
+#define ETH_MAC_ADDRESS_INFO_H
 
-/* SAID:1157 */
+#include <string>
+
+#include "parcel.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
-enum class EthernetInterfaceCode {
-    CMD_GET_MAC_ADD_INFO,
-    CMD_SET_IF_CFG,
-    CMD_GET_IF_CFG,
-    CMD_IS_ACTIVATE,
-    CMD_GET_ACTIVATE_INTERFACE,
-    CMD_RESET_FACTORY,
-    CMD_REGISTER_INTERFACE_CB,
-    CMD_UNREGISTER_INTERFACE_CB,
-    CMD_SET_INTERFACE_UP,
-    CMD_SET_INTERFACE_DOWN,
-    CMD_GET_INTERFACE_CONFIG,
-    CMD_SET_INTERFACE_CONFIG,
+
+struct MacAddressInfo : public Parcelable {
+    std::string macAddress_;
+
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static sptr<MacAddressInfo> Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif //ETHERNET_IPC_INTERFACE_CODE_H
+#endif // ETH_MAC_ADDRESS_INFO_H
