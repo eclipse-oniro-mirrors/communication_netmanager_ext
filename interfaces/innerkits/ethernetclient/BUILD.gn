@@ -63,10 +63,10 @@ ohos_source_set("ethernet_parcel") {
 
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/interface_configuration.cpp",
+    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/mac_address_info.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/static_configuration.cpp",
     "$NETCONNMANAGER_INNERKITS_SOURCE_DIR/src/http_proxy.cpp",
     "$NETCONNMANAGER_INNERKITS_SOURCE_DIR/src/inet_addr.cpp",
-    "$NETCONNMANAGER_INNERKITS_SOURCE_DIR/src/mac_address_info.cpp",
   ]
 
   include_dirs = [
