@@ -20,7 +20,7 @@
 #include "net_manager_constants.h"
 
 namespace OHOS {
-namespace NetManagerStandard { 
+namespace NetManagerStandard {
 GetMacAddressContext::GetMacAddressContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
 
 void GetMacAddressContext::ParseParams(napi_value *params, size_t paramsCount)

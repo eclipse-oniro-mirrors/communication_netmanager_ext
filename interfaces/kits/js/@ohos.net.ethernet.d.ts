@@ -324,7 +324,7 @@ declare namespace ethernet {
    * @interface MacAddressInfo
    * @syscap SystemCapability.Communication.NetManager.Ethernet
    * @systemapi Hide this for inner system use.
-   * @since 12
+   * @since 13
    */
   export interface MacAddressInfo {
     /**

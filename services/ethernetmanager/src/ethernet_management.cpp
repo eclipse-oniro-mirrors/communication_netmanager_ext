@@ -201,11 +201,16 @@ int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrLi
             auto spMacAddr = GetMacAddr(iface);
             if (spMacAddr.c_str() == nullptr) {
                 NETMGR_EXT_LOG_E("The iface[%{public}s] device does not find MAC address", iface.c_str());
+                continue;
             }
             macAddressInfo.iface_ = iface;
             macAddressInfo.macAddress_ = spMacAddr;
             macAddrList.push_back(macAddressInfo);
         }
+    }
+    if (macAddrList.size() == 0) {
+        NETMGR_EXT_LOG_E("EthernetManagement mac address list is empty");
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
     return NETMANAGER_EXT_SUCCESS;
 }

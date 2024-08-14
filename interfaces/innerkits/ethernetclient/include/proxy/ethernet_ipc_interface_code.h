@@ -20,7 +20,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 enum class EthernetInterfaceCode {
-    CMD_GET_MAC_ADDR_INFO,
     CMD_SET_IF_CFG,
     CMD_GET_IF_CFG,
     CMD_IS_ACTIVATE,
@@ -32,6 +31,7 @@ enum class EthernetInterfaceCode {
     CMD_SET_INTERFACE_DOWN,
     CMD_GET_INTERFACE_CONFIG,
     CMD_SET_INTERFACE_CONFIG,
+    CMD_GET_MAC_ADDR_INFO,
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

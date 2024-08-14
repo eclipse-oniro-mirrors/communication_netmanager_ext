@@ -88,7 +88,7 @@ int32_t EthernetServiceStub::OnGetMacAddress(MessageParcel &data, MessageParcel 
 {
     std::vector<MacAddressInfo> macAddrList;
     int32_t ret = GetMacAddress(macAddrList);
-    if (ret != NETMANAGER_EXT_SUCCESS || macAddrList.size() == 0) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("get all mac addresses failed");
         return ret;
     }
