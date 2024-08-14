@@ -65,7 +65,7 @@ napi_value GetMacAddressCallback(GetMacAddressContext *context)
 {
     napi_value macAddrInfo = NapiUtils::CreateObject(context->GetEnv());
     NapiUtils::SetStringPropertyUtf8(
-        context->GetEnv(), macAddrInfo, MAC_ADDR,context->macAddrInfo_->macAddress_);
+        context->GetEnv(), macAddrInfo, MAC_ADDR, context->macAddrInfo_->macAddress_);
     return macAddrInfo;
 }
 
