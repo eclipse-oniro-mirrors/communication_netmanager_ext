@@ -136,7 +136,7 @@ foundation/communication/netmanager_ext/
   ```javascript
   ethernet.getMacAddress("eth0", (error, value) => {
       if (error) {
-          console.log("getMacAddress  callback error = " + error);
+          console.log("getMacAddress callback error = " + error);
       } else {
           console.log("getMacAddress callback mode = " + value.macAddress);
       }
