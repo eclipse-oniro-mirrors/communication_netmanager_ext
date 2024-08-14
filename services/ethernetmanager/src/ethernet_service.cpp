@@ -199,7 +199,6 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnBandwidthReachedLimit(c
 
 int32_t EthernetService::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
-    NETMGR_EXT_LOG_D("Get iface: %{public}s has mac address", iface.c_str());
     if (!NetManagerPermission::IsSystemCaller()) {
         NETMGR_EXT_LOG_E("Caller not have sys permission");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;

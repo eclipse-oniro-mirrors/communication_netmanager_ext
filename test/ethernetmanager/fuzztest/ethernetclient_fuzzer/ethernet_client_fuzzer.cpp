@@ -348,7 +348,7 @@ void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
     ethernetManagement->UpdateInterfaceState(dev, up);
 
     std::string iface = GetStringFromData(IFACE_LEN);
-    std::vectorr<MacAddressInfo> mai;
+    std::vector<MacAddressInfo> mai;
     ethernetManagement->GetMacAddress(mai);
     
     sptr<InterfaceConfiguration> cfg;

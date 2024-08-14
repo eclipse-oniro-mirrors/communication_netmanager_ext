@@ -30,7 +30,7 @@ class EthernetClient {
 
 public:
     /**
-     *  Get the ethernet MAC address
+     * Get the ethernet MAC address
      *
      * @param macAddrList MAC address info list
      * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error

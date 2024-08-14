@@ -193,9 +193,9 @@ int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrLi
     std::vector<std::string> ifaceLists = NetsysController::GetInstance().InterfaceGetList();
     if (ifaceLists.empty()) {
         NETMGR_EXT_LOG_E("EthernetManagement iface list is empty");
-        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
-    fot (const auto &iface : ifaceLists) {
+    for (const auto &iface : ifaceLists) {
         if (std::regex_search(iface, re)) {
             MacAddressInfo macAddressInfo;
             auto spMacAddr = GetMacAddr(iface);
@@ -218,7 +218,7 @@ std::string EthernetManagement::GetMacAddr(const std::string &iface)
     int fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
     struct ifreq ifr = {};
     strncpy_s(ifr.ifr_name, IFNAMSIZ, iface.c_str(), iface.length());
-
+    
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) != -1) {
         macAddr = HwAddrToStr(ifr.ifr_hwaddr.sa_data);
     }
@@ -238,7 +238,7 @@ std::string EthernetManagement::HwAddrToStr(char *hwaddr)
             hwaddr[INDEX_TWO], hwaddr[INDEX_THREE], hwaddr[INDEX_FOUR],
             hwaddr[INDEX_FIVE]);
     if (result < 0) {
-        NETMGR_EXT_LOG_E("[hwAddrToStr] result error : %{public}d", result);
+        NETMGR_EXT_LOG_E("[hwAddrToStr] result error : [%{public}d]", result);
         return "";
     }
     return std::string(buf);

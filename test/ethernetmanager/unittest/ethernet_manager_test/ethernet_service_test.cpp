@@ -20,6 +20,7 @@
 #include "gtest/gtest-test-part.h"
 #include "gtest/hwext/gtest-ext.h"
 #include "gtest/hwext/gtest-tag.h"
+#include <vector>
 #include "interface_configuration.h"
 #include "interface_type.h"
 #include "mac_address_info.h"
@@ -208,7 +209,7 @@ HWTEST_F(EtherNetServiceTest, GetMacAddressTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
     std::string iface;
-    std::vector<MacAddressInfo> macAddrListss;
+    std::vector<MacAddressInfo> macAddrList;
     int ret = ethernetService.GetMacAddress(macAddrList);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
@@ -342,8 +343,8 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
 
     std::string iface = "";
 
-    sptr<MacAddressInfo> mai = nullptr;
-    result = ethernetService.GetMacAddress(iface, mai);
+    std::vector<MacAddressInfo> mai;
+    result = ethernetService.GetMacAddress(mai);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 
     sptr<InterfaceConfiguration> ic = nullptr;
@@ -392,8 +393,8 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
 
     std::string iface = "";
 
-    sptr<MacAddressInfo> mai = nullptr;
-    result = ethernetService.GetMacAddress(IFACE_NAME, mai);
+    std::vector<MacAddressInfo> mai;
+    result = ethernetService.GetMacAddress(mai);
     EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     sptr<InterfaceConfiguration> ic = nullptr;
@@ -445,8 +446,8 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
 
     std::string iface = "";
     
-    sptr<MacAddressInfo> mai = nullptr;
-    result = ethernetService.GetMacAddress(iface, mai);
+    std::vector<MacAddressInfo> mai;
+    result = ethernetService.GetMacAddress(mai);
     EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     sptr<InterfaceConfiguration> ic = nullptr;

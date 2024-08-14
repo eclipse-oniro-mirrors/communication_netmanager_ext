@@ -38,7 +38,7 @@ declare namespace ethernet {
    * @systemapi Hide this for inner system use.
    * @since 13
    */
-  function getMacAddress(iface: string): Promise<Array<MacAddressInfo>>;
+  function getMacAddress(): Promise<Array<MacAddressInfo>>;
 
   /**
    * Get the specified network interface information.

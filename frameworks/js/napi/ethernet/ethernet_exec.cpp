@@ -62,7 +62,7 @@ bool ExecGetMacAddress(GetMacAddressContext *context)
 
 napi_value GetMacAddressCallback(GetMacAddressContext *context)
 {
-    napi_value macAddressLists = NapiUtils::CreateArray(context->GetEnv(), context->macAddrInfo_.size());
+    napi_value macAddressList = NapiUtils::CreateArray(context->GetEnv(), context->macAddrInfo_.size());
     uint32_t index = 0;
     for (auto &eachInfo : context->macAddrInfo_) {
         napi_value macAddrInfo = NapiUtils::CreateObject(context->GetEnv());
@@ -70,9 +70,9 @@ napi_value GetMacAddressCallback(GetMacAddressContext *context)
             context->GetEnv(), macAddrInfo, IFACE, eachInfo.iface_);
         NapiUtils::SetStringPropertyUtf8(
             context->GetEnv(), macAddrInfo, MAC_ADDR, eachInfo.macAddress_);
-        NapiUtils::SetArrayElement(context->GetEnv(), macAddressLists, index++, macAddrInfo);
+        NapiUtils::SetArrayElement(context->GetEnv(), macAddressList, index++, macAddrInfo);
     }
-    return macAddressLits;
+    return macAddressList;
 }
 
 bool ExecGetIfaceConfig(GetIfaceConfigContext *context)

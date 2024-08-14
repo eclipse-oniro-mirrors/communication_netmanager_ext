@@ -89,7 +89,7 @@ int32_t EthernetServiceStub::OnGetMacAddress(MessageParcel &data, MessageParcel 
     std::vector<MacAddressInfo> macAddrList;
     int32_t ret = GetMacAddress(macAddrList);
     if (ret != NETMANAGER_EXT_SUCCESS || macAddrList.size() == 0) {
-        NETMGR_EXT_LOG_E("get all mac address failed");
+        NETMGR_EXT_LOG_E("get all mac addresses failed");
         return ret;
     }
     if (macAddrList.size() > MAX_SIZE) {
@@ -97,7 +97,7 @@ int32_t EthernetServiceStub::OnGetMacAddress(MessageParcel &data, MessageParcel 
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     if (!reply.WriteInt32(ret)) {
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     if (!reply.WriteUint32(macAddrList.size())) {
         NETMGR_EXT_LOG_E("iface size write failed");

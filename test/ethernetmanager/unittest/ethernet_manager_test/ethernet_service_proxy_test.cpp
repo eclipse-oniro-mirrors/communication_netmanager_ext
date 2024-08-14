@@ -121,7 +121,7 @@ HWTEST_F(EtherNetServiceProxyTest, GetMacAddressTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     EthernetServiceProxy ethernetServiceProxy(nullptr);
-    std::vectorr<MacAddressInfo> mai;
+    std::vector<MacAddressInfo> mai;
     auto ret = ethernetServiceProxy.GetMacAddress(mai);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
