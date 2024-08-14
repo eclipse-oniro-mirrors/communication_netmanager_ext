@@ -153,7 +153,7 @@ void GetMacAddressFuzzTest(const uint8_t *data, size_t size)
     if (!parcel.WriteString(iface)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADD_INFO), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO), parcel);
 }
 
 void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)

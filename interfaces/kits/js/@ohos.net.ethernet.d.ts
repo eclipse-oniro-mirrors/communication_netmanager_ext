@@ -27,7 +27,7 @@ declare namespace ethernet {
     /**
    * Get the specified ethernet mac address.
    * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
-   * @param { string } iface Indicates the network interface name.
+   * @param { string } iface - Indicates the network interface name.
    * @param { AsyncCallback<MacAddressInfo> } callback - the callback of getMacAddress.
    * @throws { BusinessError } 201 - Permission denied.
    * @throws { BusinessError } 202 - Non-system applications use system APIs.

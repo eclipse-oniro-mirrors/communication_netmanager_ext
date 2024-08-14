@@ -37,7 +37,7 @@ constexpr uint32_t MAX_PRE_LEN = 128;
 
 EthernetServiceStub::EthernetServiceStub()
 {
-    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADD_INFO)] =
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO)] =
         &EthernetServiceStub::OnGetMacAddress;
     memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_IF_CFG)] =
         &EthernetServiceStub::OnSetIfaceConfig;
@@ -94,7 +94,7 @@ int32_t EthernetServiceStub::OnGetMacAddress(MessageParcel &data, MessageParcel 
     int32_t ret = GetMacAddress(iface, macAddrInfo);
     if (ret == NETMANAGER_EXT_SUCCESS && macAddrInfo != nullptr) {
         if (!macAddrInfo->Marshalling(reply)) {
-            NETMGR_EXT_LOG_E("proxy Marshelling failed");
+            NETMGR_EXT_LOG_E("proxy Marshalling failed");
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }

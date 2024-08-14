@@ -48,12 +48,13 @@ int32_t EthernetServiceProxy::GetMacAddress(const std::string &iface, sptr<MacAd
 {
     MessageParcel data;
     MessageParcel reply;
-    int32_t ret = SendRequest(data, iface, reply,
-                              static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADD_INFO));
+    int32_t ret = SendRequest(
+        data, iface, reply, static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO));
     if (ret != ERR_NONE) {
         return ret;
     }
-    macAddrInfo = MacAddressInfosss::Unmarshalling(reply);
+    
+    macAddrInfo = MacAddressInfo::Unmarshalling(reply);
     if (macAddrInfo == nullptr) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }

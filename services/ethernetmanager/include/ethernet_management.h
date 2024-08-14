@@ -65,7 +65,7 @@ public:
     void Init();
     int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
     void UpdateInterfaceState(const std::string &dev, bool up);
-    int32_t GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo)
+    int32_t GetMacAddress(const std::string &iface, sptr<MacAddressInfo> &macAddrInfo);
     int32_t UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg);
     int32_t GetDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig);
     int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus);
@@ -81,7 +81,7 @@ private:
     EthernetManagement(const EthernetManagement&) = delete;
     EthernetManagement& operator=(const EthernetManagement&) = delete;
     std::string GetMacAddr(const std::string &iface);
-    std::string HwAddrToStr(char *hwaddr)
+    std::string HwAddrToStr(char *hwaddr);
     void StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StopDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
     void StartSetDevUpThd();

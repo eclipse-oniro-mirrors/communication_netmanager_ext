@@ -16,7 +16,7 @@
 #include "get_mac_address_context.h"
 
 #include "constant.h"
-#include "napi_util.h"
+#include "napi_utils.h"
 #include "net_manager_constants.h"
 
 namespace OHOS {
@@ -39,8 +39,8 @@ GetMacAddressContext::GetMacAddressContext(napi_env env, EventManager *manager) 
 void GetMacAddressContext::ParseParams(napi_value *params, size_t paramsCount)
 {
     if (!CheckParamsType(GetEnv(), params, paramsCount)) {
-        SetNeedThrowException(true);
         SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+        SetNeedThrowException(true);
         return;
     }
     iface_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[0]);

@@ -129,8 +129,8 @@ HWTEST_F(EthernetServiceStubTest, OnGetMacAddressTest001, TestSize.Level1)
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADD_INFO),
-                                             data, reply, option);
+    int32_t ret = instance_->OnRemoteRequest(
+        static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO), data, reply, option);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 

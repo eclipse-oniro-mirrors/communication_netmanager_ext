@@ -230,7 +230,7 @@ std::string EthernetManagement::HwAddrToStr(char *hwaddr)
                 hwaddr[INDEX_TWO], hwaddr[INDEX_THREE], hwaddr[INDEX_FOUR],
                 hwaddr[INDEX_FIVE]);
         if (result != 0) {
-            NETMGR_EXT_LOG_D("[hwAddrToStr]: result [%{public}s]", result);
+            NETMGR_EXT_LOG_D("[hwAddrToStr]: result %{public}d", result);
         }
     }
     return std::string(buf);

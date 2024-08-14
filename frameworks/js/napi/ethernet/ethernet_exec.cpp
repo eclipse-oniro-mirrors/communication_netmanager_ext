@@ -64,10 +64,8 @@ bool ExecGetMacAddress(GetMacAddressContext *context)
 napi_value GetMacAddressCallback(GetMacAddressContext *context)
 {
     napi_value macAddrInfo = NapiUtils::CreateObject(context->GetEnv());
-    NapiUtils::SetInt32Property(context->GetEnv(), macAddrInfo, MAC_ADDR, context->macAddrInfo_->macAddress_);
-
-    NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DOMAIN,
-                                     context->config_->ipStatic_.domain_);
+    NapiUtils::SetStringPropertyUtf8(
+        context->GetEnv(), macAddrInfo, MAC_ADDR,context->macAddrInfo_->macAddress_);
     return macAddrInfo;
 }
 
