@@ -51,6 +51,10 @@ static void *ParseMDnsDiscoveryParams(napi_env env, size_t argc, napi_value *arg
 {
     std::unique_ptr<MDnsDiscoveryInstance, decltype(&MDnsDiscoveryInstance::DeleteMDnsDiscovery)> mdnsDiscover(
         MDnsDiscoveryInstance::MakeMDnsDiscovery(manager), MDnsDiscoveryInstance::DeleteMDnsDiscovery);
+    if (!mdnsDiscover) {
+        NETMANAGER_EXT_LOGE("mdnsDiscover failed!");
+        return nullptr;
+    }
     if (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) == napi_object &&
         NapiUtils::GetValueType(env, argv[ARG_NUM_1]) == napi_string) {
         mdnsDiscover->context_ = GetContextIdString(env, argv[ARG_NUM_0]);
