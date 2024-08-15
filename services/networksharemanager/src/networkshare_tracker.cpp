@@ -230,7 +230,6 @@ bool NetworkShareTracker::Init()
     std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor =
         DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
     upstreamNetworkMonitor->SetOptionData(EVENT_UPSTREAM_CALLBACK);
-    upstreamNetworkMonitor->ListenDefaultNetwork();
     upstreamNetworkMonitor->RegisterUpstreamChangedCallback(std::make_shared<MainSmUpstreamCallback>());
     mainStateMachine_ = std::make_shared<NetworkShareMainStateMachine>(upstreamNetworkMonitor);
 

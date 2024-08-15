@@ -129,6 +129,8 @@ private:
     bool GetShareIpv6Prefix(const std::string &iface);
     void AddIpv6AddrToLocalNetwork();
     void AddIpv6InfoToLocalNetwork();
+    void ConfigureShareIpv4(const sptr<NetLinkInfo> &upstreamLinkInfo);
+    void ConfigureShareIpv6(const sptr<NetLinkInfo> &upstreamLinkInfo);
 
 private:
     struct SubSmStateTable {
@@ -148,6 +150,7 @@ private:
     std::vector<SubSmStateTable> stateTable_;
     std::shared_ptr<RouterAdvertisementDaemon> raDaemon_ = nullptr;
     RaParams lastRaParams_;
+    std::string destination_ = "";
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

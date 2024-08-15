@@ -85,7 +85,10 @@ NetworkShareUpstreamMonitor::~NetworkShareUpstreamMonitor()
         std::lock_guard lock(networkMapMutex_);
         networkMaps_.clear();
     }
-    NetConnClient::GetInstance().UnregisterNetConnCallback(defaultNetworkCallback_);
+    {
+        std::lock_guard lock(networkCallbackMutex_);
+        NetConnClient::GetInstance().UnregisterNetConnCallback(defaultNetworkCallback_);
+    }
 }
 
 void NetworkShareUpstreamMonitor::SetOptionData(int32_t what)
@@ -95,6 +98,7 @@ void NetworkShareUpstreamMonitor::SetOptionData(int32_t what)
 
 void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
 {
+    std::lock_guard lock(networkCallbackMutex_);
     defaultNetworkCallback_ =
         new (std::nothrow) NetConnectionCallback(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
     int32_t result = NetConnClient::GetInstance().RegisterNetConnCallback(defaultNetworkCallback_);
@@ -102,6 +106,17 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
         NETMGR_EXT_LOG_I("Register defaultNetworkCallback_ successful");
     } else {
         NETMGR_EXT_LOG_E("Register defaultNetworkCallback_ failed");
+    }
+}
+
+void NetworkShareUpstreamMonitor::UnregisterListenDefaultNetwork()
+{
+    std::lock_guard lock(networkCallbackMutex_);
+    int32_t result = NetConnClient::GetInstance().UnregisterNetConnCallback(defaultNetworkCallback_);
+    if (result == NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_I("UnRegister defaultNetworkCallback_ successful");
+    } else {
+        NETMGR_EXT_LOG_E("UnRegister defaultNetworkCallback_ failed");
     }
 }
 
@@ -218,13 +233,13 @@ void NetworkShareUpstreamMonitor::HandleConnectionPropertiesChange(sptr<NetHandl
             if (iter->second != nullptr && (iter->second)->netLinkPro_ != newNetLinkInfo) {
                 currentNetwork = (iter->second);
                 NETMGR_EXT_LOG_I("netHandle[%{public}d] ConnectionProperties Changed.", netHandle->GetNetId());
-                currentNetwork->netLinkPro_->ifaceName_ = newNetLinkInfo->ifaceName_;
+                currentNetwork->netLinkPro_ = newNetLinkInfo;
             }
         }
     }
 
-    if (currentNetwork != nullptr && defaultNetworkId_ != netHandle->GetNetId()) {
-        if (defaultNetworkId_ == INVALID_NETID) {
+    if (currentNetwork != nullptr) {
+        if (defaultNetworkId_ == INVALID_NETID || defaultNetworkId_ == netHandle->GetNetId()) {
             NETMGR_EXT_LOG_I("Send MainSM ON_LINKPROPERTY event with netHandle[%{public}d].", netHandle->GetNetId());
             NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_ON_LINKPROPERTIES, currentNetwork);
         } else {

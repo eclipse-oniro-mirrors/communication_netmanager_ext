@@ -80,7 +80,7 @@ public:
      * set callback to listen default network modify
      */
     void ListenDefaultNetwork();
-
+    void UnregisterListenDefaultNetwork();
     /**
      * get current upstream networ (default network now)
      */
@@ -101,6 +101,7 @@ private:
 
 private:
     int32_t eventId_ = 0;
+    std::mutex networkCallbackMutex_;
     sptr<NetConnectionCallback> defaultNetworkCallback_ = nullptr;
     std::map<int32_t, std::shared_ptr<UpstreamNetworkInfo>> networkMaps_;
     std::mutex networkMapMutex_;

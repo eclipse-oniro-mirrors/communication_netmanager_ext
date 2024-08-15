@@ -30,7 +30,7 @@ constexpr const char *ERROR_MSG_ENABLE_FORWARD = "Enable Forward failed";
 constexpr const char *ERROR_MSG_DISABLE_FORWARD = "Disable Forward failed";
 constexpr const char *FAKE_DOWNSTREAM_IFACENAME = "";
 constexpr const char *EMPTY_UPSTREAM_IFACENAME = "";
-}
+} // namespace
 
 NetworkShareMainStateMachine::NetworkShareMainStateMachine(std::shared_ptr<NetworkShareUpstreamMonitor> &networkmonitor)
     : netshareRequester_("netsharing_requester"), networkMonitor_(networkmonitor)
@@ -138,11 +138,25 @@ void NetworkShareMainStateMachine::MainSmEventHandle(int eventId, const std::any
 void NetworkShareMainStateMachine::InitStateEnter()
 {
     NETMGR_EXT_LOG_I("Enter Init state");
+    std::thread unregListenNetworkThread = std::thread([this]() { this->ProcessListenDefaultNetwork(false); });
+    pthread_setname_np(unregListenNetworkThread.native_handle(), "OH_Net_UnregListenNetwork");
+    unregListenNetworkThread.detach();
 }
 
 void NetworkShareMainStateMachine::InitStateExit()
 {
     NETMGR_EXT_LOG_I("Exit Init state");
+}
+
+void NetworkShareMainStateMachine::ProcessListenDefaultNetwork(bool bAction)
+{
+    std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor =
+        DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+    if (bAction) {
+        upstreamNetworkMonitor->ListenDefaultNetwork();
+    } else {
+        upstreamNetworkMonitor->UnregisterListenDefaultNetwork();
+    }
 }
 
 void NetworkShareMainStateMachine::AliveStateEnter()
@@ -155,6 +169,9 @@ void NetworkShareMainStateMachine::AliveStateEnter()
     if (NetworkShareTracker::GetInstance().UpstreamWanted()) {
         ChooseUpstreamNetwork();
     }
+    std::thread listenNetworkThread = std::thread([this]() { this->ProcessListenDefaultNetwork(true); });
+    pthread_setname_np(listenNetworkThread.native_handle(), "OH_Net_ListenNetwork");
+    listenNetworkThread.detach();
 }
 
 void NetworkShareMainStateMachine::AliveStateExit()
