@@ -324,7 +324,7 @@ void NetworkShareService::OnNetSysRestart()
 
 void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, const char *value, void *context)
 {
-    if (strcmp(value, "true") != 0) {
+    if (strcmp(value, "true") == 0) {
         NETMGR_EXT_LOG_I("DisAllowNetworkShareEventCallback calledstop all network sharing with %{public}s", value);
 
         if (!context) {
