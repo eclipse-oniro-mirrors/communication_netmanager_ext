@@ -179,9 +179,6 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     StaticConfiguration::ExtractNetAddrBySeparator(netmask, config->ipStatic_.netMaskList_);
     StaticConfiguration::ExtractNetAddrBySeparator(dns, config->ipStatic_.dnsServers_);
     std::string routeMask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE_MASK.c_str())->valuestring;
-    NETMGR_EXT_LOG_D("ip:%{public}s, route:%{public}s, gateway:%{public}s, netmask:%{public}s, dns:%{public}s,\
-                     routemask:%{public}s", ip.c_str(), route.c_str(), gateway.c_str(), netmask.c_str(),
-                     dns.c_str(), routeMask.c_str());
     ParserIfaceIpAndRoute(config, routeMask);
     return config;
 }
