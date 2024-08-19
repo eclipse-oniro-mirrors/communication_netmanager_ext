@@ -250,12 +250,12 @@ int32_t EthernetServiceStub::OnSetInterfaceConfig(MessageParcel &data, MessagePa
     }
     cfg.hwAddr = data.ReadString();
     if (cfg.hwAddr.size() > MAX_MAC_ADDR_LEN) {
-        NETMGR_EXT_LOG_E("hwAddr=[%{public}s] is too long", cfg.hwAddr.c_str());
+        NETMGR_EXT_LOG_E("hwAddr is too long");
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     cfg.ipv4Addr = data.ReadString();
     if (cfg.ipv4Addr.size() > MAX_IPV4_ADDR_LEN) {
-        NETMGR_EXT_LOG_E("ipv4Addr=[%{public}s] is too long", cfg.ipv4Addr.c_str());
+        NETMGR_EXT_LOG_E("ipv4Addr is too long");
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     cfg.prefixLength = data.ReadInt32();

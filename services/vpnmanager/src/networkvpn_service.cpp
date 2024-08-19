@@ -252,7 +252,6 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
             cJSON *item = cJSON_GetArrayItem(dnsAddr, i);
             if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
-                NETMGR_EXT_LOG_D("dnsAddr = %{public}s", mem.c_str());
                 vpnCfg->dnsAddresses_.push_back(mem);
             }
         }
@@ -263,7 +262,6 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
             cJSON *item = cJSON_GetArrayItem(sDomain, i);
             if (cJSON_IsString(item)) {
                 std::string mem = cJSON_GetStringValue(item);
-                NETMGR_EXT_LOG_D("sDomain = %{public}s", mem.c_str());
                 vpnCfg->searchDomains_.push_back(mem);
             }
         }
@@ -312,7 +310,6 @@ void NetworkVpnService::ConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const
     cJSON *address = cJSON_GetObjectItem(mem, "address");
     if (address != nullptr && cJSON_IsString(address)) {
         tmp.address_ = cJSON_GetStringValue(address);
-        NETMGR_EXT_LOG_D("address = %{public}s", tmp.address_.c_str());
     }
     cJSON *netMask = cJSON_GetObjectItem(mem, "netMask");
     if (netMask != nullptr && cJSON_IsString(netMask)) {
@@ -322,7 +319,6 @@ void NetworkVpnService::ConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const
     cJSON *hostName = cJSON_GetObjectItem(mem, "hostName");
     if (hostName != nullptr && cJSON_IsString(hostName)) {
         tmp.hostName_ = cJSON_GetStringValue(hostName);
-        NETMGR_EXT_LOG_D("hostName = %{public}s", tmp.hostName_.c_str());
     }
     cJSON *port = cJSON_GetObjectItem(mem, "port");
     if (port != nullptr && cJSON_IsNumber(port)) {

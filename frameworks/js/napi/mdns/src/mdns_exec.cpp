@@ -155,7 +155,7 @@ template <class T> napi_value CreateCallbackParam(T *context)
 {
     napi_env env = context->GetEnv();
     MDnsServiceInfo serviceInfo = context->GetServiceInfo();
-    NETMANAGER_EXT_LOGI("CreateCallbackParam [%{public}s][%{public}s][%{public}d]", serviceInfo.name.c_str(),
+    NETMANAGER_EXT_LOGI("CreateCallbackParam [%{public}s][%{public}d]",
                         serviceInfo.type.c_str(), serviceInfo.port);
 
     napi_value object = NapiUtils::CreateObject(env);
