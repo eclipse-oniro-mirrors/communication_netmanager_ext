@@ -129,10 +129,10 @@ PermissionStateFull setNetFirewallState = {
 HapPolicyParams netManagerExtPolicy = {
     .apl = APL_SYSTEM_BASIC,
     .domain = "test.domain",
-    .permList = { getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef, getNetFirewallPermDef,
-    setNetFirewallPermDef },
-    .permStateList = { getNetworkInfoState, connectivityInternalState, manageVpnState, getNetFirewallState,
-    setNetFirewallState },
+    .permList = {getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef, getNetFirewallPermDef,
+                 setNetFirewallPermDef},
+    .permStateList = {getNetworkInfoState, connectivityInternalState, manageVpnState, getNetFirewallState,
+                      setNetFirewallState},
 };
 
 PermissionDef testNoPermissionDef = {
