@@ -28,6 +28,8 @@ MDnsDiscoveryInstance::MDnsDiscoveryInstance(EventManager *eventManager)
 {
 }
 
+MDnsDiscoveryInstance::MDnsDiscoveryInstance() {}
+
 MDnsDiscoveryInstance *MDnsDiscoveryInstance::MakeMDnsDiscovery(EventManager *eventManager)
 {
     std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
