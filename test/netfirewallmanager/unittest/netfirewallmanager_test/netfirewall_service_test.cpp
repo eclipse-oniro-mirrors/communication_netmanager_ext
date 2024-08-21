@@ -800,6 +800,7 @@ HWTEST_F(NetFirewallServiceTest, ConvertIpParamToConfig001, TestSize.Level1)
         "\"192.168.1.1\",\"endIp\": \"192.168.1.255\"";
     cJSON *mem = cJSON_Parse(jsonString.c_str());
     NetFirewallDefaultRuleParser::ConvertIpParamToConfig(rule, mem);
+    EXPECT_EQ(rule.type, SINGLE_IP);
 }
 
 /**
@@ -813,6 +814,7 @@ HWTEST_F(NetFirewallServiceTest, ConvertDomainParamToConfig001, TestSize.Level1)
     std::string jsonString = "\"isWildcard\": false,\"domain\": \"www.openharmony.cn\"";
     cJSON *mem = cJSON_Parse(jsonString.c_str());
     NetFirewallDefaultRuleParser::ConvertDomainParamToConfig(rule, mem);
+    EXPECT_FALSE(rule.isWildcard);
 }
 
 /**
@@ -823,9 +825,10 @@ HWTEST_F(NetFirewallServiceTest, ConvertDomainParamToConfig001, TestSize.Level1)
 HWTEST_F(NetFirewallServiceTest, ConvertDnsParamToConfig001, TestSize.Level1)
 {
     NetFirewallDnsParam rule;
-    std::string jsonString = "\"primaryDns\": \"192.168.1.1\",\"standbyDns\": \"192.168.1.1\"";
+    std::string jsonString = "\"primaryDns\": \"192.168.1.1\",\"standbyDns\": \"192.168.1.2\"";
     cJSON *mem = cJSON_Parse(jsonString.c_str());
     NetFirewallDefaultRuleParser::ConvertDnsParamToConfig(rule, mem);
+    EXPECT_EQ(rule.primaryDns, "192.168.1.1");
 }
 
 /**
