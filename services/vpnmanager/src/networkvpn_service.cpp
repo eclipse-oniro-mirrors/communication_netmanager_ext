@@ -30,6 +30,7 @@
 #include "ipc_skeleton.h"
 #include "securec.h"
 #include "system_ability_definition.h"
+#include "iservice_registry.h"
 
 #include "extended_vpn_ctl.h"
 #include "net_event_report.h"
@@ -563,10 +564,11 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
+    std::string vpnBundleName = GetBundleName();
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
         std::string vpnExtMode;
-        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
-        NETMGR_EXT_LOG_D("SetUpVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
+        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
+        NETMGR_EXT_LOG_D("SetUpVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
         if (ret != 0 || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -596,8 +598,8 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     ret = vpnObj_->SetUp();
-    if (ret == NETMANAGER_EXT_SUCCESS && !vpnBundleName_.empty()) {
-        std::vector<std::string> list = {vpnBundleName_, vpnBundleName_ + VPN_EXTENSION_LABEL};
+    if (ret == NETMANAGER_EXT_SUCCESS && !vpnBundleName.empty()) {
+        std::vector<std::string> list = {vpnBundleName, vpnBundleName + VPN_EXTENSION_LABEL};
         auto regRet =
             Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver_, list);
         NETMGR_EXT_LOG_I("vpnHapOberver RegisterApplicationStateObserver ret = %{public}d", regRet);
@@ -619,10 +621,11 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     std::unique_lock<std::mutex> locker(netVpnMutex_);
+    std::string vpnBundleName = GetBundleName();
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
         std::string vpnExtMode;
-        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName_, vpnExtMode);
-        NETMGR_EXT_LOG_D("DestroyVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName_.c_str());
+        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
+        NETMGR_EXT_LOG_D("DestroyVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
         if (ret != 0 || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -643,7 +646,6 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     vpnObj_ = nullptr;
     // remove vpn config
     remove(VPN_CONFIG_FILE);
-    vpnBundleName_ = "";
 
     NETMGR_EXT_LOG_I("Destroy vpn successfully.");
     return NETMANAGER_EXT_SUCCESS;
@@ -1045,12 +1047,6 @@ void NetworkVpnService::SubscribeCommonEvent()
     }
 }
 
-void NetworkVpnService::ReceiveMessage::RegisterBundleName(const std::string &bundleName)
-{
-    vpnBundleName_ = bundleName;
-    NETMGR_EXT_LOG_I("ReceiveMessage RegisterBundleName %{public}s", vpnBundleName_.c_str());
-}
-
 void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 {
     const auto &action = eventData.GetWant().GetAction();
@@ -1072,18 +1068,46 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
-        NETMGR_EXT_LOG_D("COMMON_EVENT_PACKAGE_REMOVED, BundleName %{public}s", vpnBundleName_.c_str());
-        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, vpnBundleName_);
+        std::string vpnBundleName = vpnService_.GetBundleName();
+        NETMGR_EXT_LOG_D("COMMON_EVENT_PACKAGE_REMOVED, BundleName %{public}s", vpnBundleName.c_str());
+        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, vpnBundleName);
     }
 }
 
 int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName)
 {
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
-    NETMGR_EXT_LOG_I("VpnService RegisterBundleName %{public}s", bundleName.c_str());
-    vpnBundleName_ = bundleName;
-    subscriber_->RegisterBundleName(bundleName);
     return 0;
+}
+
+std::string NetworkVpnService::GetBundleName()
+{
+    std::string bundleName;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgr == nullptr) {
+       NETMGR_EXT_LOG_E("Get ability manager failed");
+        return bundleName;
+    }
+
+    sptr<IRemoteObject> object = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (object == nullptr) {
+       NETMGR_EXT_LOG_E("object is NULL.");
+        return bundleName;
+    }
+    sptr<OHOS::AppExecFwk::IBundleMgr> bms = iface_cast<OHOS::AppExecFwk::IBundleMgr>(object);
+    if (bms == nullptr) {
+       NETMGR_EXT_LOG_E("bundle manager service is NULL.");
+        return bundleName;
+    }
+
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    auto result = bms->GetNameForUid(uid, bundleName);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
+        return bundleName;
+    }
+    NETMGR_EXT_LOG_I("bundle name is [%{public}s], uid = [%{public}d]", bundleName.c_str(), uid);
+
+    return bundleName;
 }
 
 void NetworkVpnService::VpnHapObserver::OnExtensionStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
@@ -1108,7 +1132,6 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
         NETMGR_EXT_LOG_E("destroy vpn failed");
     }
     vpnService_.vpnObj_ = nullptr;
-    vpnService_.vpnBundleName_ = "";
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied");
 }
 
