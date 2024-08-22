@@ -83,48 +83,42 @@ bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
 
 bool MDnsExec::ExecStartSearchingMDNS(MDnsStartSearchingContext *context)
 {
-    EventManager *manager = context->GetManager();
-    if (manager == nullptr) {
-        NETMANAGER_EXT_LOGE("manager is nullptr");
-        return false;
-    }
-    auto discover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
-    if (discover == nullptr) {
-        NETMANAGER_EXT_LOGE("discover is nullptr");
-        return false;
-    }
+    auto discover = context->GetDiscover();
     auto ret =
-        DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(discover->serviceType_, discover->observer_);
+        DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(discover.serviceType_, discover.observer_);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
         NETMANAGER_EXT_LOGE("StartDiscoverService error, errorCode: %{public}d", ret);
     }
     MDnsServiceInfo info;
-    info.type = discover->serviceType_;
-    discover->GetObserver()->EmitStartDiscover(info, ret);
+    info.type = discover.serviceType_;
+    auto wObserver = context->GetObserver();
+    sptr<MDnsDiscoveryObserver> observer = wObserver.promote();
+    if (observer == nullptr) {
+        NETMANAGER_EXT_LOGE("ExecStartSearchingMDNS GetObserver nullptr");
+        return false;
+    }
+    observer->EmitStartDiscover(info, ret);
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
 bool MDnsExec::ExecStopSearchingMDNS(MDnsStopSearchingContext *context)
 {
-    EventManager *manager = context->GetManager();
-    if (manager == nullptr) {
-        NETMANAGER_EXT_LOGE("manager is nullptr");
-        return false;
-    }
-    auto discover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
-    if (discover == nullptr) {
-        NETMANAGER_EXT_LOGE("discover is nullptr");
-        return false;
-    }
-    auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(discover->observer_);
+    auto discover = context->GetDiscover();
+    auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(discover.observer_);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
         NETMANAGER_EXT_LOGE("StopDiscoverService error, errorCode: %{public}d", ret);
     }
     MDnsServiceInfo info;
-    info.type = discover->serviceType_;
-    discover->GetObserver()->EmitStopDiscover(info, ret);
+    info.type = discover.serviceType_;
+    auto wObserver = context->GetObserver();
+    sptr<MDnsDiscoveryObserver> observer = wObserver.promote();
+    if (observer == nullptr) {
+        NETMANAGER_EXT_LOGE("ExecStopSearchingMDNS GetObserver nullptr");
+        return false;
+    }
+    observer->EmitStopDiscover(info, ret);
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 

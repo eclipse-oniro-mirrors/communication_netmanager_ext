@@ -25,6 +25,8 @@
 namespace OHOS::NetManagerStandard {
 class MDnsDiscoveryInstance final {
 public:
+    MDnsDiscoveryInstance();
+    ~MDnsDiscoveryInstance() = default;
     [[nodiscard]] sptr<MDnsDiscoveryObserver> GetObserver() const;
     [[nodiscard]] EventManager *GetEventManager() const;
 
@@ -39,7 +41,6 @@ public:
 private:
     EventManager *manager_;
     explicit MDnsDiscoveryInstance(EventManager *eventManager);
-    ~MDnsDiscoveryInstance() = default;
 };
 } // namespace OHOS::NetManagerStandard
 #endif /* NETMANAGER_EXT_MDNS_INSTANCES_H */

@@ -20,6 +20,7 @@
 #include <cstdint>
 
 #include "base_context.h"
+#include "mdns_instances.h"
 
 namespace OHOS::NetManagerStandard {
 class MDnsStartSearchingContext final : public BaseContext {
@@ -28,10 +29,14 @@ public:
     MDnsStartSearchingContext() = delete;
     explicit MDnsStartSearchingContext(napi_env env, EventManager *manager);
     void ParseParams(napi_value *params, size_t paramsCount);
+    wptr<MDnsDiscoveryObserver> GetObserver();
+    MDnsDiscoveryInstance GetDiscover();
 
 private:
     bool CheckParamsType(napi_value *params, size_t paramsCount);
     std::string serviceType_;
+    wptr<MDnsDiscoveryObserver> observer_;
+    MDnsDiscoveryInstance discover_;
 };
 using MDnsStopSearchingContext = MDnsStartSearchingContext;
 } // namespace OHOS::NetManagerStandard
