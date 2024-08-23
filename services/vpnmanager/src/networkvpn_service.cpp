@@ -1084,18 +1084,18 @@ std::string NetworkVpnService::GetBundleName()
     std::string bundleName;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
-       NETMGR_EXT_LOG_E("Get ability manager failed");
+        NETMGR_EXT_LOG_E("Get ability manager failed");
         return bundleName;
     }
 
     sptr<IRemoteObject> object = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
     if (object == nullptr) {
-       NETMGR_EXT_LOG_E("object is NULL.");
+        NETMGR_EXT_LOG_E("object is NULL.");
         return bundleName;
     }
     sptr<OHOS::AppExecFwk::IBundleMgr> bms = iface_cast<OHOS::AppExecFwk::IBundleMgr>(object);
     if (bms == nullptr) {
-       NETMGR_EXT_LOG_E("bundle manager service is NULL.");
+        NETMGR_EXT_LOG_E("bundle manager service is NULL.");
         return bundleName;
     }
 
