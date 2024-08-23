@@ -21,14 +21,18 @@
 #include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
+#include "xcollie/xcollie.h"
+#include "xcollie/xcollie_define.h"
 #include "system_ability_definition.h"
 #include "netsys_controller.h"
 #include "edm_parameter_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+const std::string NETWORK_TIMER = "NetworkShare::RegisterSharingEvent";
 const bool REGISTER_LOCAL_RESULT_NETSHARE =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkShareService>::GetInstance().get());
+constexpr int32_t XCOLLIE_TIMEOUT_DURATION = 10;
 constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
@@ -207,13 +211,17 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     NETMGR_EXT_LOG_I("NetworkSharing Register Sharing Event.");
+    int id = HiviewDFX::XCollie::GetInstance().SetTimer(NETWORK_TIMER, XCOLLIE_TIMEOUT_DURATION, nullptr, nullptr,
+                                                        HiviewDFX::XCOLLIE_FLAG_LOG);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
+    auto ret = NetworkShareTracker::GetInstance().RegisterSharingEvent(callback);
+    HiviewDFX::XCollie::GetInstance().CancelTimer(id);
+    return ret;
 }
 
 int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
