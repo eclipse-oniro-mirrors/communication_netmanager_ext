@@ -26,21 +26,6 @@ declare namespace ethernet {
   type HttpProxy = connection.HttpProxy;
 
   /**
-   * Get the ethernet mac address List.
-   * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
-   * @returns { Promise<Array<MacAddressInfo>> } the promise returned by the function.
-   * @throws { BusinessError } 201 - Permission denied.
-   * @throws { BusinessError } 202 - Non-system applications use system APIs.
-   * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
-   * @throws { BusinessError } 2200003 - System internal error.
-   * @throws { BusinessError } 2201005 - Device information does not exist.
-   * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi Hide this for inner system use.
-   * @since 13
-   */
-  function getMacAddress(): Promise<Array<MacAddressInfo>>;
-
-  /**
    * Get the specified network interface information.
    * @permission ohos.permission.GET_NETWORK_INFO
    * @param { string } iface Indicates the network interface name.
@@ -213,6 +198,21 @@ declare namespace ethernet {
    * @since 10
    */
   function off(type: 'interfaceStateChange', callback?: Callback<{ iface: string, active: boolean }>): void;
+
+  /**
+   * Get the ethernet mac address List.
+   * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
+   * @returns { Promise<Array<MacAddressInfo>> } the promise returned by the function.
+   * @throws { BusinessError } 201 - Permission denied.
+   * @throws { BusinessError } 202 - Non-system applications use system APIs.
+   * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
+   * @throws { BusinessError } 2200003 - System internal error.
+   * @throws { BusinessError } 2201005 - Device information does not exist.
+   * @syscap SystemCapability.Communication.NetManager.Ethernet
+   * @systemapi Hide this for inner system use.
+   * @since 13
+   */
+  function getMacAddress(): Promise<Array<MacAddressInfo>>;
 
   /**
    * Defines the network configuration for the Ethernet connection.
