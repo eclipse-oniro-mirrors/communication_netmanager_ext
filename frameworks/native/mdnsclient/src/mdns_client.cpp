@@ -246,21 +246,20 @@ void MDnsClient::RestartResume()
         }
         NETMGR_EXT_LOG_I("resume RegisterService ok");
 
-        uint32_t count = 0;
-        while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
-            std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
-            count++;
-        }
-        auto proxy = GetProxy();
-        NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
-        if (proxy != nullptr) {
-            NETMGR_EXT_LOG_I("resume StartDiscoverService");
-            for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetStartDiscoverServiceMap()) {
+        NETMGR_EXT_LOG_I("resume StartDiscoverService");
+        for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetStartDiscoverServiceMap()) {
+            uint32_t count = 0;
+            while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+                std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
+                count++;
+            }
+            auto proxy = GetProxy();
+            NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
+            if (proxy != nullptr) {
                 StartDiscoverService(value, key);
             }
-
-            NETMGR_EXT_LOG_I("resume StartDiscoverService ok");
         }
+        NETMGR_EXT_LOG_I("resume StartDiscoverService ok");
     });
     std::string threadName = "mdnsGetProxy";
     pthread_setname_np(t.native_handle(), threadName.c_str());
