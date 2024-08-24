@@ -79,11 +79,9 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
             : EventFwk::CommonEventSubscriber(subscriberInfo), vpnService_(vpnService){};
 
         virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
-        void RegisterBundleName(const std::string &bundleName);
 
     private:
         NetworkVpnService &vpnService_;
-        std::string vpnBundleName_ = "";
     };
 
 public:
@@ -219,6 +217,7 @@ private:
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
+    std::string GetBundleName();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -286,7 +285,6 @@ private:
     std::mutex remoteMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
-    std::string vpnBundleName_ = "";
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
