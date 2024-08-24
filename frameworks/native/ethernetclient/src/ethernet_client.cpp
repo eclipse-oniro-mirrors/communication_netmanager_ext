@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 
 #include "i_ethernet_service.h"
 #include "if_system_ability_manager.h"
+#include "mac_address_info.h"
 #include "interface_configuration.h"
 #include "ipc_types.h"
 #include "iremote_broker.h"
@@ -38,6 +39,16 @@ static constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nullptr), callback_(nullptr) {}
 
 EthernetClient::~EthernetClient() = default;
+
+int32_t EthernetClient::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->GetMacAddress(macAddrList);
+}
 
 int32_t EthernetClient::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
 {

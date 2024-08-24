@@ -18,6 +18,7 @@
 #include "ethernet_client.h"
 #include "http_proxy.h"
 #include "inet_addr.h"
+#include "mac_address_info.h"
 #include "interface_configuration.h"
 #include "interface_state_callback_stub.h"
 #include "interface_type.h"
@@ -48,6 +49,7 @@ constexpr const char *DEV_NAME = "eth0";
 constexpr const char *DEV_UP = "up";
 constexpr const char *DEV_DOWN = "down";
 constexpr const char *TEST_PROXY_HOST = "127.0.0.1";
+constexpr const char *TEST_MAC_ADDRESS = "a0:0b:c1:d0:02:03";
 constexpr uint16_t TEST_PROXY_PORT = 8080;
 std::string INFO = "info";
 constexpr const char *IFACE = "iface0";
@@ -316,6 +318,22 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
     std::vector<std::string>::iterator it = std::find(result.begin(), result.end(), DEV_NAME);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     ASSERT_TRUE(it != result.end());
+}
+
+/**
+ * @tc.name: EthernetManager005
+ * @tc.desc: Test EthernetManager GetMacAddress.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
+{
+    if (!CheckIfaceUp(DEV_NAME)) {
+        return;
+    }
+    NetManagerExtAccessToken token;
+    std::vector<MacAddressInfo> mai;
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(mai);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 /**

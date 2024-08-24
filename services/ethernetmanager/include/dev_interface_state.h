@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "http_proxy.h"
+#include "mac_address_info.h"
 #include "interface_configuration.h"
 #include "net_all_capabilities.h"
 #include "net_link_info.h"
@@ -86,6 +87,7 @@ private:
     sptr<NetLinkInfo> linkInfo_ = nullptr;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;
     sptr<InterfaceConfiguration> ifCfg_ = nullptr;
+    sptr<MacAddressInfo> macAddrInfo_ = nullptr;
     std::set<NetCap> netCaps_;
     NetBearType bearerType_ = BEARER_ETHERNET;
 };

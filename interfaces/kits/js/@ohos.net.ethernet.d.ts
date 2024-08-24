@@ -1,5 +1,5 @@
 -/*
- * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@ import { connection } from "./@ohos.net.connection";
  */
 declare namespace ethernet {
   type HttpProxy = connection.HttpProxy;
+
   /**
    * Get the specified network interface information.
    * @permission ohos.permission.GET_NETWORK_INFO
@@ -199,6 +200,21 @@ declare namespace ethernet {
   function off(type: 'interfaceStateChange', callback?: Callback<{ iface: string, active: boolean }>): void;
 
   /**
+   * Get the ethernet mac address List.
+   * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
+   * @returns { Promise<Array<MacAddressInfo>> } the promise returned by the function.
+   * @throws { BusinessError } 201 - Permission denied.
+   * @throws { BusinessError } 202 - Non-system applications use system APIs.
+   * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
+   * @throws { BusinessError } 2200003 - System internal error.
+   * @throws { BusinessError } 2201005 - Device information does not exist.
+   * @syscap SystemCapability.Communication.NetManager.Ethernet
+   * @systemapi Hide this for inner system use.
+   * @since 13
+   */
+  function getMacAddress(): Promise<Array<MacAddressInfo>>;
+
+  /**
    * Defines the network configuration for the Ethernet connection.
    * @interface InterfaceConfiguration
    * @syscap SystemCapability.Communication.NetManager.Ethernet
@@ -301,6 +317,32 @@ declare namespace ethernet {
      * @since 9
      */
     DHCP = 1
+  }
+
+  /**
+   * Defines the mac address info of the Ethernet.
+   * @interface MacAddressInfo
+   * @syscap SystemCapability.Communication.NetManager.Ethernet
+   * @systemapi Hide this for inner system use.
+   * @since 13
+   */
+  export interface MacAddressInfo {
+    /**
+     * Ethernet interface name.
+     * @type {string}
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 13
+     */
+    iface: string;
+    /**
+     * Ethernet specific mac address.
+     * @type {string}
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 13
+     */
+    macAddress: string;
   }
 }
 

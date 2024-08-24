@@ -23,6 +23,7 @@
 #include "http_proxy.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
+#include "mac_address_info.h"
 #include "net_manager_constants.h"
 #include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -43,6 +44,7 @@ namespace {
 using namespace testing::ext;
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *TEST_PROXY_HOST = "127.0.0.1";
+constexpr const char *TEST_MAC_ADDRESS = "a0:0b:c1:d0:02:03";
 constexpr uint16_t TEST_PROXY_PORT = 8080;
 }
 
@@ -114,6 +116,15 @@ void EtherNetServiceProxyTest::TearDownTestCase() {}
 void EtherNetServiceProxyTest::SetUp() {}
 
 void EtherNetServiceProxyTest::TearDown() {}
+
+HWTEST_F(EtherNetServiceProxyTest, GetMacAddressTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    EthernetServiceProxy ethernetServiceProxy(nullptr);
+    std::vector<MacAddressInfo> mai;
+    auto ret = ethernetServiceProxy.GetMacAddress(mai);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
+}
 
 HWTEST_F(EtherNetServiceProxyTest, SetIfaceConfigTest001, TestSize.Level1)
 {

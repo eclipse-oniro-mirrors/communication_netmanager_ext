@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef ETHERNET_IPC_INTERFACE_CODE_H
-#define ETHERNET_IPC_INTERFACE_CODE_H
+#ifndef NET_EXT_NAPI_ETH_GET_MAC_ADDRESS_CONTEXT_H
+#define NET_EXT_NAPI_ETH_GET_MAC_ADDRESS_CONTEXT_H
 
-/* SAID:1157 */
+#include <cstddef>
+#include <string>
+
+#include <napi/native_api.h>
+
+#include "base_context.h"
+#include "event_manager.h"
+#include "mac_address_info.h"
+#include "refbase.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
-enum class EthernetInterfaceCode {
-    CMD_SET_IF_CFG,
-    CMD_GET_IF_CFG,
-    CMD_IS_ACTIVATE,
-    CMD_GET_ACTIVATE_INTERFACE,
-    CMD_RESET_FACTORY,
-    CMD_REGISTER_INTERFACE_CB,
-    CMD_UNREGISTER_INTERFACE_CB,
-    CMD_SET_INTERFACE_UP,
-    CMD_SET_INTERFACE_DOWN,
-    CMD_GET_INTERFACE_CONFIG,
-    CMD_SET_INTERFACE_CONFIG,
-    CMD_GET_MAC_ADDR_INFO,
+class GetMacAddressContext : public BaseContext {
+public:
+    GetMacAddressContext() = delete;
+    explicit GetMacAddressContext(napi_env env, EventManager *manager);
+
+    void ParseParams(napi_value *params, size_t paramsCount);
+
+public:
+    std::vector<MacAddressInfo> macAddrInfo_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif //ETHERNET_IPC_INTERFACE_CODE_H
+#endif // NET_EXT_NAPI_ETH_GET_MAC_ADDRESS_CONTEXT_H
