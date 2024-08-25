@@ -39,7 +39,7 @@ public:
     static std::map<MDnsDiscoveryObserver *, MDnsDiscoveryInstance *> discoverInstanceMap_;
 
 private:
-    EventManager *manager_;
+    EventManager *manager_ = nullptr;
     explicit MDnsDiscoveryInstance(EventManager *eventManager);
 };
 } // namespace OHOS::NetManagerStandard
