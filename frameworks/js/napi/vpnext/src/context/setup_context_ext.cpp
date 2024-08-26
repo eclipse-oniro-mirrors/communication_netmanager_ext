@@ -76,7 +76,6 @@ bool GetStringFromJsMandatoryItem(napi_env env, napi_value object, const std::st
         return false;
     }
     value = NapiUtils::GetStringPropertyUtf8(env, object, key);
-    NETMGR_EXT_LOG_I("%{public}s: %{public}s", key.c_str(), value.c_str());
     return (value.empty()) ? false : true;
 }
 
