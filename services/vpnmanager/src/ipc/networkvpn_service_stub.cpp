@@ -42,6 +42,8 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetSysVpnConfig};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetConnectedSysVpnConfig};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE] = {
+        "", &NetworkVpnServiceStub::ReplyNotifyConnectStage};
 #endif // SUPPORT_SYSVPN
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyRegisterVpnEvent};
@@ -121,12 +123,33 @@ int32_t NetworkVpnServiceStub::ReplyPrepare(MessageParcel &data, MessageParcel &
 
 int32_t NetworkVpnServiceStub::ReplySetUpVpn(MessageParcel &data, MessageParcel &reply)
 {
+    int32_t result = 0;
+#ifdef SUPPORT_SYSVPN
+    bool isSysVpn = false;
+    std::string sysVpnId;
+    if (!data.ReadBool(isSysVpn)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (isSysVpn) {
+        sptr<SysVpnConfig> config = new (std::nothrow) SysVpnConfig();
+        if (!data.ReadString(sysVpnId) || config == nullptr) {
+            return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+        }
+        result = SetUpVpn(config, false, sysVpnId);
+    } else {
+        sptr<VpnConfig> config = VpnConfig::Unmarshalling(data);
+        if (config == nullptr) {
+            return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+        }
+        result = SetUpVpn(config);
+    }
+#else
     sptr<VpnConfig> config = VpnConfig::Unmarshalling(data);
     if (config == nullptr) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-
-    int32_t result = SetUpVpn(config);
+    result = SetUpVpn(config);
+#endif // SUPPORT_SYSVPN
     if (!reply.WriteInt32(result)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
@@ -229,6 +252,24 @@ int32_t NetworkVpnServiceStub::ReplyGetConnectedSysVpnConfig(MessageParcel &data
         return result;
     }
     if (config != nullptr && !config->Marshalling(reply)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyNotifyConnectStage(MessageParcel &data, MessageParcel &reply)
+{
+    NETMGR_EXT_LOG_D("ReplyNotifyConnectStage enter");
+    std::string stage;
+    if (!data.ReadString(stage)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t state;
+    if (!data.ReadInt32(state)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t result = NotifyConnectStage(stage, state);
+    if (!reply.WriteInt32(result)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;

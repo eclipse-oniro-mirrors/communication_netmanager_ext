@@ -31,6 +31,7 @@
             "netmanager_ext_feature_ethernet",
             "netmanager_ext_feature_share",
             "netmanager_ext_feature_mdns",
+            "netmanager_ext_feature_sysvpn",
             "netmanager_ext_feature_vpn",
             "netmanager_ext_feature_vpnext",
             "netmanager_ext_feature_net_firewall"
@@ -86,6 +87,7 @@
                     "//foundation/communication/netmanager_ext:vpn_ext_packages",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager_trust",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager.rc",
+                    "//foundation/communication/netmanager_ext/services/etc/init:vpnmanager.cfg",
                     "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile",
                     "//foundation/communication/netmanager_ext/sa_profile:netfirewall_manager_profile",
                     "//foundation/communication/netmanager_ext:netfirewall_packages"

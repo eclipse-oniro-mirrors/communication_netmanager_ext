@@ -77,17 +77,37 @@ int32_t NetworkVpnServiceProxy::Prepare(bool &isExistVpn, bool &isRun, std::stri
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
+int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall,
+    std::optional<std::string> sysVpnId)
 {
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("SetUpVpn proxy config is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
+
+#ifdef SUPPORT_SYSVPN
+    bool marshallResult = false;
+    // need to write isSysVpn bool first;
+    if (sysVpnId.has_value()) {
+        marshallResult = data.WriteBool(true) && data.WriteString(sysVpnId.value());
+    } else {
+        marshallResult = data.WriteBool(false) && config->Marshalling(data);
+    }
+    if (!marshallResult) {
+        NETMGR_EXT_LOG_E("SetUpVpn proxy Marshalling failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+#else
     if (!config->Marshalling(data)) {
         NETMGR_EXT_LOG_E("SetUpVpn proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
+#endif // SUPPORT_SYSVPN
 
     MessageParcel reply;
     int32_t ret = 0;
@@ -269,6 +289,12 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
     if (config == nullptr) {
         NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig config == nullptr");
     }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceProxy::NotifyConnectStage(std::string &stage, int32_t &state)
+{
+    NETMGR_EXT_LOG_D("NotifyConnectStage start");
     return NETMANAGER_EXT_SUCCESS;
 }
 #endif // SUPPORT_SYSVPN

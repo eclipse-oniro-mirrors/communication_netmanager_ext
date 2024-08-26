@@ -29,6 +29,9 @@
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
+#ifdef SUPPORT_SYSVPN
+#include "sysvpn_config.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -117,8 +120,9 @@ int32_t NetVpnImpl::SetUp()
                                                  "set app uid rule failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
-    NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+    if (!isSysVpnImpl()) {
+        NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+    }
     isVpnConnecting_ = true;
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -154,11 +158,29 @@ int32_t NetVpnImpl::Destroy()
     DelNetLinkInfo(netConnClientIns);
     UpdateNetSupplierInfo(netConnClientIns, false);
     UnregisterNetSupplier(netConnClientIns);
-
-    NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
+    if (!isSysVpnImpl()) {
+        NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
+    }
     isVpnConnecting_ = false;
     return NETMANAGER_EXT_SUCCESS;
 }
+
+bool NetVpnImpl::isSysVpnImpl()
+{
+    return false;
+}
+
+#ifdef SUPPORT_SYSVPN
+int32_t NetVpnImpl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &vpnConfig)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetVpnImpl::NotifyConnectStage(std::string &stage, int32_t &state)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+#endif // SUPPORT_SYSVPN
 
 bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns)
 {

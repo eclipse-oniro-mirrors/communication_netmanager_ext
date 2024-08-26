@@ -26,3 +26,10 @@ ohos_prebuilt_etc("mdnsmanager.rc") {
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }
+
+ohos_prebuilt_etc("vpnmanager.cfg") {
+  source = "vpnmanager.cfg"
+  relative_install_dir = "init"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}

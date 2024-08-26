@@ -108,7 +108,8 @@ public:
     /**
      * This function is called when the three-party vpn application negotiation ends
      */
-    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override;
+    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false,
+        std::optional<std::string> sysVpnId = std::nullopt) override;
 
     /**
      * protect vpn tunnel
@@ -145,6 +146,11 @@ public:
      * get the vpn connection state
      */
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
+
+    /**
+     * notify the vpn connection state change
+     */
+    int32_t NotifyConnectStage(std::string &stage, int32_t &state) override;
 #endif // SUPPORT_SYSVPN
 
     /**
@@ -217,6 +223,10 @@ private:
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
+#ifdef SUPPORT_SYSVPN
+    std::shared_ptr<NetVpnImpl> initSysVpnCtl(std::string &sysVpnId, const std::string &pkg,
+        int32_t userId, std::vector<int32_t> &activeUserIds);
+#endif // SUPPORT_SYSVPN
     std::string GetBundleName();
 
 private:

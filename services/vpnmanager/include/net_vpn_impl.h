@@ -30,6 +30,9 @@
 #include "net_supplier_info.h"
 #include "networkvpn_hisysevent.h"
 #include "vpn_config.h"
+#ifdef SUPPORT_SYSVPN
+#include "sysvpn_config.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -43,7 +46,11 @@ public:
     virtual bool IsInternalVpn() = 0;
     virtual int32_t SetUp() = 0;
     virtual int32_t Destroy() = 0;
-
+    virtual bool isSysVpnImpl();
+#ifdef SUPPORT_SYSVPN
+    virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig);
+    virtual int32_t NotifyConnectStage(std::string &stage, int32_t &state);
+#endif // SUPPORT_SYSVPN
     int32_t RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateCb> callback);
     void NotifyConnectState(const VpnConnectState &state);
 

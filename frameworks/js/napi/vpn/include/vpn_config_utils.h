@@ -97,8 +97,8 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
 bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 
-bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
-bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
+sptr<IpsecVpnConfig> CreateAndParseIpsecVpnConf(napi_env env, napi_value config);
+sptr<L2tpVpnConfig> CreateAndParseL2tpVpnConf(napi_env env, napi_value config);
 
 bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr);
 bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &iNetAddr);

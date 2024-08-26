@@ -78,7 +78,8 @@ int32_t NetworkVpnClient::Protect(int32_t socketFd, bool isVpnExtCall)
     return protectResult;
 }
 
-int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall)
+int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall,
+    std::optional<std::string> sysVpnId)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("SetUpVpn param config is nullptr");
@@ -91,7 +92,7 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool 
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     NETMGR_EXT_LOG_I("enter SetUpVpn 1, %{public}d", isVpnExtCall);
-    int32_t result = proxy->SetUpVpn(config, isVpnExtCall);
+    int32_t result = proxy->SetUpVpn(config, isVpnExtCall, sysVpnId);
     if (result != NETMANAGER_EXT_SUCCESS) {
         tunFd = 0;
         return result;
@@ -99,9 +100,11 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool 
     clientVpnConfig_.first = config;
     clientVpnConfig_.second = isVpnExtCall;
 
-    tunFd = vpnInterface_.GetVpnInterfaceFd();
-    if (tunFd <= 0) {
-        return NETMANAGER_EXT_ERR_INTERNAL;
+    if (!sysVpnId.has_value()) {
+        tunFd = vpnInterface_.GetVpnInterfaceFd();
+        if (tunFd <= 0) {
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
     }
 
     if (vpnEventCallback_ != nullptr) {

@@ -29,23 +29,23 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
     int vpnType = -1;
     GetInt32FromJsOptionItem(env, params[0], CONFIG_VPN_TYPE, vpnType);
     switch (vpnType) {
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_PSK):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
-            vpnConfig = new (std::nothrow) IpsecVpnConfig();
-            if (!ParseIpsecVpnParams(env, params[0], vpnConfig)) {
-                NETMGR_EXT_LOG_E("ParseIpsecVpnParams failed");
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
+            vpnConfig = CreateAndParseIpsecVpnConf(env, params[0]);
+            if (vpnConfig == nullptr) {
+                NETMGR_EXT_LOG_E("CreateAndParseIpsecVpnConf failed, is null.");
                 return false;
             }
             break;
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
-            vpnConfig = new (std::nothrow) L2tpVpnConfig();
-            if (!ParseL2tpVpnParams(env, params[0], vpnConfig)) {
-                NETMGR_EXT_LOG_E("ParseL2tpVpnParams failed");
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
+            vpnConfig = CreateAndParseL2tpVpnConf(env, params[0]);
+            if (vpnConfig == nullptr) {
+                NETMGR_EXT_LOG_E("CreateAndParseL2tpVpnConf failed, is null.");
                 return false;
             }
             break;
@@ -126,7 +126,7 @@ bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &
     return true;
 }
 
-bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
+bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("sysVpnConfig is null");
@@ -142,92 +142,82 @@ bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &s
     return true;
 }
 
-bool ParseIpsecVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
+sptr<IpsecVpnConfig> CreateAndParseIpsecVpnConf(napi_env env, napi_value config)
 {
-    if (sysVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("sysVpnConfig is null");
-        return false;
+    sptr<IpsecVpnConfig> ipsecVpnConfig = new (std::nothrow) IpsecVpnConfig();
+    if (ipsecVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("create ipsecVpnConfig failed, is null.");
+        return nullptr;
     }
-    if (!ParseSystemVpnParams(env, config, sysVpnConfig)) {
+    if (!ParseSystemVpnParams(env, config, ipsecVpnConfig)) {
         NETMGR_EXT_LOG_E("ParseSystemVpnParams failed");
-        return false;
+        return nullptr;
     }
-
-    sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(
-            static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr()));
-    if (ipsecVpnConfig) {
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, ipsecVpnConfig->ipsecPreSharedKey_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, ipsecVpnConfig->ipsecIdentifier_);
-        GetStringFromJsOptionItem(env, config, CONFIG_SWANCTL_CONF, ipsecVpnConfig->swanctlConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_STRONGSWAN_CONF, ipsecVpnConfig->strongswanConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_CONF, ipsecVpnConfig->ipsecCaCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF,
-            ipsecVpnConfig->ipsecPrivateUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF,
-            ipsecVpnConfig->ipsecPublicUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF,
-            ipsecVpnConfig->ipsecPrivateServerCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF,
-            ipsecVpnConfig->ipsecPublicServerCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_FILE_PATH, ipsecVpnConfig->ipsecCaCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH,
-            ipsecVpnConfig->ipsecPrivateUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH,
-            ipsecVpnConfig->ipsecPublicUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH,
-            ipsecVpnConfig->ipsecPrivateServerCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
-            ipsecVpnConfig->ipsecPublicServerCertFilePath_);
-        return true;
-    } else {
-        return false;
-    }
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, ipsecVpnConfig->ipsecPreSharedKey_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, ipsecVpnConfig->ipsecIdentifier_);
+    GetStringFromJsOptionItem(env, config, CONFIG_SWANCTL_CONF, ipsecVpnConfig->swanctlConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_STRONGSWAN_CONF, ipsecVpnConfig->strongswanConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_CONF, ipsecVpnConfig->ipsecCaCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF,
+        ipsecVpnConfig->ipsecPrivateUserCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF,
+        ipsecVpnConfig->ipsecPublicUserCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF,
+        ipsecVpnConfig->ipsecPrivateServerCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF,
+        ipsecVpnConfig->ipsecPublicServerCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_FILE_PATH, ipsecVpnConfig->ipsecCaCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH,
+        ipsecVpnConfig->ipsecPrivateUserCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH,
+        ipsecVpnConfig->ipsecPublicUserCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH,
+        ipsecVpnConfig->ipsecPrivateServerCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
+        ipsecVpnConfig->ipsecPublicServerCertFilePath_);
+    return ipsecVpnConfig;
 }
 
-bool ParseL2tpVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> &sysVpnConfig)
+sptr<L2tpVpnConfig> CreateAndParseL2tpVpnConf(napi_env env, napi_value config)
 {
-    if (sysVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("sysVpnConfig is null");
-        return false;
+    sptr<L2tpVpnConfig> l2tpVpnConfig = new (std::nothrow) L2tpVpnConfig();
+    if (l2tpVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("l2tpVpnConfig is null");
+        return nullptr;
     }
-    if (!ParseSystemVpnParams(env, config, sysVpnConfig)) {
+    if (!ParseSystemVpnParams(env, config, l2tpVpnConfig)) {
         NETMGR_EXT_LOG_E("ParseSystemVpnParams failed");
-        return false;
+        return nullptr;
     }
 
-    sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr()));
-    if (l2tpVpnConfig) {
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, l2tpVpnConfig->ipsecPreSharedKey_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, l2tpVpnConfig->ipsecIdentifier_);
-        GetStringFromJsOptionItem(env, config, CONFIG_STRONGSWAN_CONF, l2tpVpnConfig->strongswanConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_CONF, l2tpVpnConfig->ipsecCaCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF,
-            l2tpVpnConfig->ipsecPrivateUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF,
-            l2tpVpnConfig->ipsecPublicUserCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF,
-            l2tpVpnConfig->ipsecPrivateServerCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF,
-            l2tpVpnConfig->ipsecPublicServerCertConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_FILE_PATH,
-            l2tpVpnConfig->ipsecCaCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH,
-            l2tpVpnConfig->ipsecPrivateUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH,
-            l2tpVpnConfig->ipsecPublicUserCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH,
-            l2tpVpnConfig->ipsecPrivateServerCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
-            l2tpVpnConfig->ipsecPublicServerCertFilePath_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CONF, l2tpVpnConfig->ipsecConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_SECRETS, l2tpVpnConfig->ipsecSecrets_);
-        GetStringFromJsOptionItem(env, config, CONFIG_OPTIONS_L2TPD_CLIENT, l2tpVpnConfig->optionsL2tpdClient_);
-        GetStringFromJsOptionItem(env, config, CONFIG_XL2TPD_CONF, l2tpVpnConfig->xl2tpdConf_);
-        GetStringFromJsOptionItem(env, config, CONFIG_L2TP_SHARED_KEY, l2tpVpnConfig->l2tpSharedKey_);
-        return true;
-    } else {
-        return false;
-    }
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, l2tpVpnConfig->ipsecPreSharedKey_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_IDENTIFIER, l2tpVpnConfig->ipsecIdentifier_);
+    GetStringFromJsOptionItem(env, config, CONFIG_STRONGSWAN_CONF, l2tpVpnConfig->strongswanConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_CONF, l2tpVpnConfig->ipsecCaCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_CONF,
+        l2tpVpnConfig->ipsecPrivateUserCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_CONF,
+        l2tpVpnConfig->ipsecPublicUserCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_CONF,
+        l2tpVpnConfig->ipsecPrivateServerCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_CONF,
+        l2tpVpnConfig->ipsecPublicServerCertConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CA_CERT_FILE_PATH,
+        l2tpVpnConfig->ipsecCaCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_USER_CERT_FILE_PATH,
+        l2tpVpnConfig->ipsecPrivateUserCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_USER_CERT_FILE_PATH,
+        l2tpVpnConfig->ipsecPublicUserCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PRIVATE_SERVER_CERT_FILE_PATH,
+        l2tpVpnConfig->ipsecPrivateServerCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
+        l2tpVpnConfig->ipsecPublicServerCertFilePath_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_CONF, l2tpVpnConfig->ipsecConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_IPSEC_SECRETS, l2tpVpnConfig->ipsecSecrets_);
+    GetStringFromJsOptionItem(env, config, CONFIG_OPTIONS_L2TPD_CLIENT, l2tpVpnConfig->optionsL2tpdClient_);
+    GetStringFromJsOptionItem(env, config, CONFIG_XL2TPD_CONF, l2tpVpnConfig->xl2tpdConf_);
+    GetStringFromJsOptionItem(env, config, CONFIG_L2TP_SHARED_KEY, l2tpVpnConfig->l2tpSharedKey_);
+    return l2tpVpnConfig;
 }
 
 bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
@@ -423,26 +413,32 @@ void GetInt32FromJsOptionItem(napi_env env, napi_value object, const std::string
 napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateNapiVpnConfig failed, param is null.");
         return NapiUtils::GetUndefined(env);
     }
     switch (sysVpnConfig->vpnType_) {
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_PSK):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
             return CreateNapiIpsecVpnConfig(env, sysVpnConfig);
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
             return CreateNapiL2tpVpnConfig(env, sysVpnConfig);
         default:
+            NETMGR_EXT_LOG_E("CreateNapiVpnConfig failed, invalid type %{public}d", sysVpnConfig->vpnType_);
             return NapiUtils::GetUndefined(env);
     }
 }
 
 napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
+    if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateNapiSysVpnConfig failed, param is null.");
+        return NapiUtils::GetUndefined(env);
+    }
     napi_value config = NapiUtils::CreateObject(env);
     std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
     if (!addresses.empty()) {
@@ -479,9 +475,15 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
 
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
+    if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateNapiIpsecVpnConfig failed, param is null.");
+        return NapiUtils::GetUndefined(env);
+    }
     napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
-    sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>(static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr()));
-    if (!ipsecVpnConfig) {
+
+    IpsecVpnConfig* ipsecVpnConfig = static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr());
+    if (ipsecVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateNapiIpsecVpnConfig failed, ipsecVpnConfig is null.");
         return NapiUtils::GetUndefined(env);
     }
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, ipsecVpnConfig->ipsecPreSharedKey_);
@@ -507,14 +509,21 @@ napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConf
         ipsecVpnConfig->ipsecPrivateServerCertFilePath_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PUBLIC_SERVER_CERT_FILE_PATH,
         ipsecVpnConfig->ipsecPublicServerCertFilePath_);
+    ipsecVpnConfig = nullptr;
     return config;
 }
 
 napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
+    if (sysVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateNapiL2tpVpnConfig failed, param is null.");
+        return NapiUtils::GetUndefined(env);
+    }
     napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
-    sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr()));
-    if (!l2tpVpnConfig) {
+
+    L2tpVpnConfig* l2tpVpnConfig = static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr());
+    if (l2tpVpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateNapiL2tpVpnConfig failed, l2tpVpnConfig is null.");
         return NapiUtils::GetUndefined(env);
     }
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, l2tpVpnConfig->ipsecPreSharedKey_);
@@ -544,6 +553,7 @@ napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_OPTIONS_L2TPD_CLIENT, l2tpVpnConfig->optionsL2tpdClient_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_XL2TPD_CONF, l2tpVpnConfig->xl2tpdConf_);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_L2TP_SHARED_KEY, l2tpVpnConfig->l2tpSharedKey_);
+    l2tpVpnConfig = nullptr;
     return config;
 }
 }

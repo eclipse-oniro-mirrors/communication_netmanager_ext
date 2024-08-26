@@ -26,15 +26,15 @@ sptr<SysVpnConfig> VpnDataBean::ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &
         return nullptr;
     }
     switch (vpnBean->vpnType_) {
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_PSK):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
             return ConvertVpnBeanToIpsecVpnConfig(vpnBean);
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
             return ConvertVpnBeanToL2tpVpnConfig(vpnBean);
         default:
             NETMGR_EXT_LOG_E("ConvertVpnBeanToSysVpnConfig failed, invalid type=%{public}d", vpnBean->vpnType_);
@@ -82,7 +82,6 @@ sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBea
     ipsecVpnConfig->ipsecPublicUserCertFilePath_ = vpnBean->ipsecPublicUserCertFilePath_;
     ipsecVpnConfig->ipsecPrivateServerCertFilePath_ = vpnBean->ipsecPrivateServerCertFilePath_;
     ipsecVpnConfig->ipsecPublicServerCertFilePath_ = vpnBean->ipsecPublicServerCertFilePath_;
-
     return ipsecVpnConfig;
 }
 
@@ -131,7 +130,6 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
     l2tpVpnConfig->optionsL2tpdClient_ = vpnBean->optionsL2tpdClient_;
     l2tpVpnConfig->xl2tpdConf_ = vpnBean->xl2tpdConf_;
     l2tpVpnConfig->l2tpSharedKey_ = vpnBean->l2tpSharedKey_;
-
     return l2tpVpnConfig;
 }
 
@@ -150,17 +148,17 @@ sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &
     sptr<IpsecVpnConfig> ipsecVpnConfig;
     sptr<L2tpVpnConfig> l2tpVpnConfig;
     switch (sysVpnConfig->vpnType_) {
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_PSK):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
             ipsecVpnConfig = sptr<IpsecVpnConfig>(static_cast<IpsecVpnConfig *>(sysVpnConfig.GetRefPtr()));
             ConvertIpsecVpnConfigToVpnBean(ipsecVpnConfig, vpnBean);
             break;
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
             l2tpVpnConfig = sptr<L2tpVpnConfig>(static_cast<L2tpVpnConfig *>(sysVpnConfig.GetRefPtr()));
             ConvertL2tpVpnConfigToVpnBean(l2tpVpnConfig, vpnBean);
             break;

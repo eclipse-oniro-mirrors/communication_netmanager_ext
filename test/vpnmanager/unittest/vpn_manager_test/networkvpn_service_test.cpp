@@ -314,6 +314,13 @@ HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1
     sptr<SysVpnConfig> resConfig = nullptr;
     EXPECT_EQ(instance_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnServiceTest, NotifyConnectStageTest001, TestSize.Level1)
+{
+    std::string stage = "connect";
+    int32_t state = 100;
+    EXPECT_EQ(instance_->NotifyConnectStage(stage, state), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
 #endif // SUPPORT_SYSVPN
 } // namespace NetManagerStandard
 } // namespace OHOS

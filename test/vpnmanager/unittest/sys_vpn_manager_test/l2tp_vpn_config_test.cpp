@@ -17,7 +17,6 @@
 
 #include "l2tpvpn_config.h"
 
-
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {

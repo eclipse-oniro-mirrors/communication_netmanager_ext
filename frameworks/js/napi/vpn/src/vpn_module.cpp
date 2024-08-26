@@ -135,6 +135,8 @@ napi_value RegisterVpnModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(DESTROY, VpnConnection::Destroy),
                                 },
                                 VPN_CONNECTION);
+    NapiUtils::SetEnvValid(env);
+    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
     return exports;
 }
 

@@ -385,6 +385,16 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetConnectedSysVpnConfigTest001, TestSi
     int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyReplyNotifyConnectStageTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 #endif // SUPPORT_SYSVPN
 } // namespace NetManagerStandard
 } // namespace OHOS

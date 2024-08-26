@@ -36,6 +36,7 @@ public:
 public:
     sptr<VpnConfig> vpnConfig_ = nullptr;
     int fd_ = -1;
+    std::string sysVpnId_;
 
 private:
     bool ParseVpnConfig(napi_value *params);
