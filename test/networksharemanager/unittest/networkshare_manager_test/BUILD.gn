@@ -96,6 +96,7 @@ ohos_unittest("networkshare_manager_test") {
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "hicollie:libhicollie",
     "ipc:ipc_core",
   ]
 
