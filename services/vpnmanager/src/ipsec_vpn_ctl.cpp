@@ -20,7 +20,6 @@
 #include <iostream>
 #include <filesystem>
 #include <string>
-#include <cstdlib>
 
 #include "base64_utils.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -42,15 +41,15 @@ IpsecVpnCtl::~IpsecVpnCtl()
 
 int32_t IpsecVpnCtl::SetUp()
 {
-    return StartIpsecVpn();
+    return StartSysVpn();
 }
 
 int32_t IpsecVpnCtl::Destroy()
 {
-    return StopIpsecVpn();
+    return StopSysVpn();
 }
 
-int32_t IpsecVpnCtl::StopIpsecVpn()
+int32_t IpsecVpnCtl::StopSysVpn()
 {
     NETMGR_EXT_LOG_I("stop ipsec vpn");
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
@@ -60,7 +59,7 @@ int32_t IpsecVpnCtl::StopIpsecVpn()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t IpsecVpnCtl::StartIpsecVpn()
+int32_t IpsecVpnCtl::StartSysVpn()
 {
     NETMGR_EXT_LOG_I("start ipsec vpn");
     state_ = IpsecVpnStateCode::STATE_INIT;

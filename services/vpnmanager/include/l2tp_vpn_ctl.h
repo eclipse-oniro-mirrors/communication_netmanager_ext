@@ -39,8 +39,8 @@ private:
     static constexpr const char* L2TP_IPSEC_CONFIGURED_TAG = "xl2tpdstart";
     static constexpr const char* L2TP_IPSEC_CONNECTED_TAG = "pppdstart";
 
-    int32_t StartIpsecVpn() override;
-    int32_t StopIpsecVpn() override;
+    int32_t StartSysVpn() override;
+    int32_t StopSysVpn() override;
     int32_t InitConfigFile() override;
 };
 } // namespace NetManagerStandard

@@ -68,8 +68,8 @@ protected:
 
     int32_t state_ = STATE_INIT;
 
-    virtual int32_t StartIpsecVpn();
-    virtual int32_t StopIpsecVpn();
+    virtual int32_t StartSysVpn();
+    virtual int32_t StopSysVpn();
     virtual int32_t InitConfigFile();
     void CleanTempFiles();
     void DeleteTempFile(std::string fileName);

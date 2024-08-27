@@ -16,16 +16,10 @@
 #include "l2tp_vpn_ctl.h"
 
 #include <fstream>
-#include <sys/types.h>
-#include <sys/un.h>
-#include <thread>
 #include <unistd.h>
-
 #include <iostream>
 #include <filesystem>
 #include <string>
-#include <fcntl.h>
-#include <cstdlib>
 
 #include "base64_utils.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -40,7 +34,7 @@ L2tpVpnCtl::L2tpVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t u
 {
 }
 
-int32_t L2tpVpnCtl::StopIpsecVpn()
+int32_t L2tpVpnCtl::StopSysVpn()
 {
     NETMGR_EXT_LOG_I("stop l2tp vpn");
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
@@ -50,7 +44,7 @@ int32_t L2tpVpnCtl::StopIpsecVpn()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t L2tpVpnCtl::StartIpsecVpn()
+int32_t L2tpVpnCtl::StartSysVpn()
 {
     NETMGR_EXT_LOG_I("start l2tp vpn");
     state_ = IpsecVpnStateCode::STATE_INIT;
