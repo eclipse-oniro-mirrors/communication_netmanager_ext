@@ -32,7 +32,7 @@ namespace NetManagerStandard {
 const std::string NETWORK_TIMER = "NetworkShare::RegisterSharingEvent";
 const bool REGISTER_LOCAL_RESULT_NETSHARE =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkShareService>::GetInstance().get());
-constexpr int32_t XCOLLIE_TIMEOUT_DURATION = 10;
+constexpr int32_t XCOLLIE_TIMEOUT_DURATION = 30;
 constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
