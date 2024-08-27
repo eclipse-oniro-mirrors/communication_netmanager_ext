@@ -78,13 +78,11 @@ public:
      *
      * @param config VPN interface parameters
      * @param tunFd the virtual interface fd(out param)
-     * @param sysVpnId the system vpn's uuid
      * @return the interface node's file descriptor(>0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall = false,
-        std::optional<std::string> sysVpnId = std::nullopt);
+    int32_t SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall = false);
 
     /**
      * stop the vpn connection, system will destroy the vpn network.
@@ -96,6 +94,16 @@ public:
     int32_t DestroyVpn(bool isVpnExtCall = false);
 
 #ifdef SUPPORT_SYSVPN
+    /**
+     * setup system vpn.
+     *
+     * @param config system VPN interface parameters
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t SetUpVpn(sptr<SysVpnConfig> &config);
+
     /**
      * save vpn
      *

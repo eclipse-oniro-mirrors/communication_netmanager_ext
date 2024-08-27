@@ -318,8 +318,8 @@ HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1
 HWTEST_F(NetworkVpnServiceTest, NotifyConnectStageTest001, TestSize.Level1)
 {
     std::string stage = "connect";
-    int32_t state = 100;
-    EXPECT_EQ(instance_->NotifyConnectStage(stage, state), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    int32_t errorCode = 100;
+    EXPECT_EQ(instance_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 #endif // SUPPORT_SYSVPN
 } // namespace NetManagerStandard

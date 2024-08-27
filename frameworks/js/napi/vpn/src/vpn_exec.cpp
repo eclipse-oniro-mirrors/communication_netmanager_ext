@@ -57,7 +57,17 @@ bool ExecSetUp(SetUpContext *context)
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
         return false;
     }
-    int32_t result = vpnClient->SetUpVpn(context->vpnConfig_, context->fd_, false, context->sysVpnId_);
+    int32_t result = NETMANAGER_EXT_SUCCESS;
+#ifdef SUPPORT_SYSVPN
+    if (context->sysVpnConfig_ != nullptr) {
+        // is system vpn
+        result = vpnClient->SetUpVpn(context->sysVpnConfig_);
+    } else {
+        result = vpnClient->SetUpVpn(context->vpnConfig_, context->fd_);
+    }
+#else
+    result = vpnClient->SetUpVpn(context->vpnConfig_, context->fd_);
+#endif // SUPPORT_SYSVPN
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
         return false;

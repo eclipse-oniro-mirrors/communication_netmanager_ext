@@ -32,6 +32,7 @@ public:
     ~L2tpVpnCtl() = default;
 
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
+    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override;
     bool isSysVpnImpl() override;
 
 private:
@@ -41,7 +42,6 @@ private:
     int32_t StartIpsecVpn() override;
     int32_t StopIpsecVpn() override;
     int32_t InitConfigFile() override;
-    void ParseIpsecStatus(std::string &content, int32_t &status) override;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

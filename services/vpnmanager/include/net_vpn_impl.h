@@ -49,7 +49,7 @@ public:
     virtual bool isSysVpnImpl();
 #ifdef SUPPORT_SYSVPN
     virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig);
-    virtual int32_t NotifyConnectStage(std::string &stage, int32_t &state);
+    virtual int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode);
 #endif // SUPPORT_SYSVPN
     int32_t RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateCb> callback);
     void NotifyConnectState(const VpnConnectState &state);

@@ -23,6 +23,9 @@
 #include "event_manager.h"
 #include "refbase.h"
 #include "vpn_config.h"
+#ifdef SUPPORT_SYSVPN
+#include "sysvpn_config.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -36,7 +39,9 @@ public:
 public:
     sptr<VpnConfig> vpnConfig_ = nullptr;
     int fd_ = -1;
-    std::string sysVpnId_;
+#ifdef SUPPORT_SYSVPN
+    sptr<SysVpnConfig> sysVpnConfig_ = nullptr;
+#endif // SUPPORT_SYSVPN
 
 private:
     bool ParseVpnConfig(napi_value *params);

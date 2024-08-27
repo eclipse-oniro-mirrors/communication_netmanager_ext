@@ -19,7 +19,6 @@
 #include <cstdint>
 
 #include "net_vpn_impl.h"
-#include "ffrt.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "netsys_controller.h"
@@ -31,9 +30,9 @@ namespace NetManagerStandard {
 using namespace NetsysNative;
 enum IpsecVpnStateCode {
     STATE_INIT = 0,
-    STATE_STARTED,   // ipsec restart compelete
-    STATE_CONFIGED,  // swanctl load files compelete or xl2tpd start
-    STATE_CONNECTED, // ipsec up home or pppd started
+    STATE_STARTED,      // ipsec restart compelete
+    STATE_CONFIGED,     // swanctl load files compelete or xl2tpd start
+    STATE_CONNECTED,    // ipsec up home or pppd started
     STATE_DISCONNECTED, // stop
 };
 
@@ -49,7 +48,7 @@ public:
     int32_t SetUp() override;
     int32_t Destroy() override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
-    int32_t NotifyConnectStage(std::string &stage, int32_t &state) override;
+    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override;
     bool isSysVpnImpl() override;
 
 protected:
@@ -65,17 +64,15 @@ protected:
     static constexpr const char *SWANCTL_START_TAG = "config";
     static constexpr const char *IPSEC_CONNECT_TAG = "connect";
 
-    static constexpr const int32_t SUCCESS = 100;
+    static constexpr const int32_t NOTIFY_CONNECT_STAGE_SUCCESS = 100;
 
     int32_t state_ = STATE_INIT;
-    std::shared_ptr<ffrt::queue> vpnFfrtQueue_ = nullptr;
 
     virtual int32_t StartIpsecVpn();
     virtual int32_t StopIpsecVpn();
     virtual int32_t InitConfigFile();
-    virtual void ParseIpsecStatus(std::string &content, int32_t &status);
-    void DeleteTempFile(std::string fileName);
     void CleanTempFiles();
+    void DeleteTempFile(std::string fileName);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -271,7 +271,7 @@ void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::Nati
 
 int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid)
 {
-    NETMGR_EXT_LOG_I("QueryVpnData");
+    NETMGR_EXT_LOG_I("QueryVpnData vpnUuid=%{public}s", vpnUuid.c_str());
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;

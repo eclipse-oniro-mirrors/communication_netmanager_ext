@@ -77,37 +77,17 @@ int32_t NetworkVpnServiceProxy::Prepare(bool &isExistVpn, bool &isRun, std::stri
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall,
-    std::optional<std::string> sysVpnId)
+int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("SetUpVpn proxy config is null");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
-
-#ifdef SUPPORT_SYSVPN
-    bool marshallResult = false;
-    // need to write isSysVpn bool first;
-    if (sysVpnId.has_value()) {
-        marshallResult = data.WriteBool(true) && data.WriteString(sysVpnId.value());
-    } else {
-        marshallResult = data.WriteBool(false) && config->Marshalling(data);
-    }
-    if (!marshallResult) {
-        NETMGR_EXT_LOG_E("SetUpVpn proxy Marshalling failed");
-        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
-#else
     if (!config->Marshalling(data)) {
         NETMGR_EXT_LOG_E("SetUpVpn proxy Marshalling failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
-#endif // SUPPORT_SYSVPN
 
     MessageParcel reply;
     int32_t ret = 0;
@@ -170,9 +150,40 @@ int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
+int32_t NetworkVpnServiceProxy::SetUpVpn(sptr<SysVpnConfig> &config)
+{
+    NETMGR_EXT_LOG_I("SetUpVpn start");
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("SetUpVpn proxy config is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("write interface token failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+
+    if (!(data.WriteString(config->vpnId_) && data.WriteInt32(config->vpnType_))) {
+        NETMGR_EXT_LOG_E("SetUpVpn proxy Marshalling failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    MessageParcel reply;
+    int32_t ret = 0;
+    ret = SendRequest(INetworkVpnService::MessageCode::CMD_SETUP_SYS_VPN, data, reply);
+    if (ERR_NONE != ret) {
+        NETMGR_EXT_LOG_E("SetUpVpn proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    if (!reply.ReadInt32(result)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return result;
+}
+
 int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
-    NETMGR_EXT_LOG_D("AddSysVpnConfig start");
+    NETMGR_EXT_LOG_I("AddSysVpnConfig start");
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("AddSysVpnConfig write interface token failed");
@@ -196,7 +207,7 @@ int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 
 int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(std::string &vpnId)
 {
-    NETMGR_EXT_LOG_D("DeleteSysVpnConfig start");
+    NETMGR_EXT_LOG_I("DeleteSysVpnConfig start");
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("DeleteSysVpnConfig write interface token failed");
@@ -220,7 +231,7 @@ int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(std::string &vpnId)
 
 int32_t NetworkVpnServiceProxy::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
-    NETMGR_EXT_LOG_D("GetSysVpnConfigList start");
+    NETMGR_EXT_LOG_I("GetSysVpnConfigList start");
     MessageParcel data;
     MessageParcel reply;
     int32_t ret = WriteTokenAndSendRequest(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG_LIST, data, reply);
@@ -249,7 +260,7 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfigList(std::vector<SysVpnConfig> &v
 
 int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
 {
-    NETMGR_EXT_LOG_D("GetSysVpnConfig start");
+    NETMGR_EXT_LOG_I("GetSysVpnConfig start");
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("GetSysVpnConfig write interface token failed");
@@ -276,7 +287,7 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, std:
 
 int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 {
-    NETMGR_EXT_LOG_D("GetConnectedSysVpnConfig start");
+    NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig start");
     MessageParcel data;
     MessageParcel reply;
     int32_t ret = 0;
@@ -292,9 +303,9 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::NotifyConnectStage(std::string &stage, int32_t &state)
+int32_t NetworkVpnServiceProxy::NotifyConnectStage(std::string &stage, int32_t &errorCode)
 {
-    NETMGR_EXT_LOG_D("NotifyConnectStage start");
+    NETMGR_EXT_LOG_I("NotifyConnectStage start");
     return NETMANAGER_EXT_SUCCESS;
 }
 #endif // SUPPORT_SYSVPN

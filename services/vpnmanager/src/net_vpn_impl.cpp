@@ -176,7 +176,7 @@ int32_t NetVpnImpl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &vpnConfig)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetVpnImpl::NotifyConnectStage(std::string &stage, int32_t &state)
+int32_t NetVpnImpl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
 {
     return NETMANAGER_EXT_SUCCESS;
 }

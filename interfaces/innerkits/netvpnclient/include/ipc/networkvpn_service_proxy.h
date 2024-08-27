@@ -29,8 +29,7 @@ public:
     virtual ~NetworkVpnServiceProxy() = default;
 
     int32_t Prepare(bool &isExistVpn, bool &isRun, std::string &pkg) override;
-    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false,
-        std::optional<std::string> sysVpnId = std::nullopt) override;
+    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override;
     int32_t Protect(bool isVpnExtCall = false) override;
     int32_t DestroyVpn(bool isVpnExtCall = false) override;
     int32_t RegisterVpnEvent(sptr<IVpnEventCallback> callback) override;
@@ -39,12 +38,13 @@ public:
     int32_t FactoryResetVpn() override;
     int32_t RegisterBundleName(const std::string &bundleName) override;
 #ifdef SUPPORT_SYSVPN
+    int32_t SetUpVpn(sptr<SysVpnConfig> &config) override;
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;
     int32_t DeleteSysVpnConfig(std::string &vpnId) override;
     int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override;
     int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
-    int32_t NotifyConnectStage(std::string &stage, int32_t &state) override;
+    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override;
 #endif // SUPPORT_SYSVPN
 
 private:

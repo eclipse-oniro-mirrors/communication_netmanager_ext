@@ -50,6 +50,7 @@ public:
         CMD_GET_SYS_VPN_CONFIG,
         CMD_GET_CONNECTED_SYS_VPN_CONFIG,
         CMD_NOTIFY_CONNECT_STAGE,
+        CMD_SETUP_SYS_VPN,
 #endif // SUPPORT_SYSVPN
         CMD_START_VPN_EXT, // for start extension extended vpn
         CMD_PROTECT_EXT,
@@ -60,8 +61,7 @@ public:
 
 public:
     virtual int32_t Prepare(bool &isExistVpn, bool &isRun, std::string &pkg) = 0;
-    virtual int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false,
-        std::optional<std::string> sysVpnId = std::nullopt) = 0;
+    virtual int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) = 0;
     virtual int32_t Protect(bool isVpnExtCall = false) = 0;
     virtual int32_t DestroyVpn(bool isVpnExtCall = false) = 0;
     virtual int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
@@ -70,12 +70,13 @@ public:
     virtual int32_t FactoryResetVpn() = 0;
     virtual int32_t RegisterBundleName(const std::string &bundleName) = 0;
 #ifdef SUPPORT_SYSVPN
+    virtual int32_t SetUpVpn(sptr<SysVpnConfig> &config) = 0;
     virtual int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) = 0;
     virtual int32_t DeleteSysVpnConfig(std::string &vpnId) = 0;
     virtual int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) = 0;
     virtual int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) = 0;
     virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) = 0;
-    virtual int32_t NotifyConnectStage(std::string &stage, int32_t &state) = 0;
+    virtual int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) = 0;
 #endif // SUPPORT_SYSVPN
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");

@@ -28,8 +28,7 @@ public:
         return 0;
     }
 
-    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false,
-        std::optional<std::string> sysVpnId = std::nullopt) override
+    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override
     {
         return 0;
     }
@@ -45,6 +44,11 @@ public:
     }
 
 #ifdef SUPPORT_SYSVPN
+    int32_t SetUpVpn(sptr<SysVpnConfig> &config) override
+    {
+        return 0;
+    }
+
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override
     {
         return 0;
@@ -70,7 +74,7 @@ public:
         return 0;
     }
 
-    int32_t NotifyConnectStage(std::string &stage, int32_t &state) override
+    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override
     {
         return 0;
     }

@@ -33,34 +33,16 @@ namespace NetManagerStandard {
 IpsecVpnCtl::IpsecVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId,
     std::vector<int32_t> &activeUserIds) : NetVpnImpl(config, pkg, userId, activeUserIds)
 {
-    vpnFfrtQueue_ = std::make_shared<ffrt::queue>("IpsecVpnCtl");
-    if (vpnFfrtQueue_ == nullptr) {
-        NETMGR_EXT_LOG_E("Init failed, vpnFfrtQueue_ is null");
-    }
 }
 
 IpsecVpnCtl::~IpsecVpnCtl()
 {
-    if (vpnFfrtQueue_ != nullptr) {
-        vpnFfrtQueue_.reset();
-    }
+    NETMGR_EXT_LOG_I("~IpsecVpnCtl");
 }
 
 int32_t IpsecVpnCtl::SetUp()
 {
-    if (vpnFfrtQueue_ == nullptr) {
-        NETMGR_EXT_LOG_E("SetUp failed, vpnFfrtQueue_ is null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    state_ = IpsecVpnStateCode::STATE_INIT;
-
-#if UNITTEST_FORBID_FFRT // Forbid FFRT for unittest, which will cause crash in destructor process
-    StartIpsecVpn();
-#else
-    std::function<void()> start = std::bind(&IpsecVpnCtl::StartIpsecVpn, this);
-    vpnFfrtQueue_->submit(start);
-#endif // UNITTEST_FORBID_FFRT
-    return NETMANAGER_EXT_SUCCESS;
+    return StartIpsecVpn();
 }
 
 int32_t IpsecVpnCtl::Destroy()
@@ -81,6 +63,7 @@ int32_t IpsecVpnCtl::StopIpsecVpn()
 int32_t IpsecVpnCtl::StartIpsecVpn()
 {
     NETMGR_EXT_LOG_I("start ipsec vpn");
+    state_ = IpsecVpnStateCode::STATE_INIT;
     InitConfigFile();
     NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_RESTART);
     return NETMANAGER_EXT_SUCCESS;
@@ -107,29 +90,14 @@ int32_t IpsecVpnCtl::InitConfigFile()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-void IpsecVpnCtl::ParseIpsecStatus(std::string &content, int32_t &status)
+void IpsecVpnCtl::CleanTempFiles()
 {
-    if (state_ == IpsecVpnStateCode::STATE_INIT && content.compare(IPSEC_START_TAG) == 0 && status == SUCCESS) {
-        // 1. start strongswan
-        NETMGR_EXT_LOG_I("ipsec vpn setup step 1: start strongswan");
-        state_ = IpsecVpnStateCode::STATE_STARTED;
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
-        return;
-    }
-    if (state_ == IpsecVpnStateCode::STATE_STARTED && content.compare(SWANCTL_START_TAG) == 0 && status == SUCCESS) {
-        // 2. start connect
-        NETMGR_EXT_LOG_I("ipsec vpn setup step 2: start connect");
-        state_ = IpsecVpnStateCode::STATE_CONFIGED;
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
-        return;
-    }
-    if (state_ == IpsecVpnStateCode::STATE_CONFIGED && content.compare(IPSEC_CONNECT_TAG) == 0 && status == SUCCESS) {
-        NETMGR_EXT_LOG_I("ipsec vpn setup step 3: is connected");
-        // 3. is connected
-        state_ = IpsecVpnStateCode::STATE_CONNECTED;
-        NotifyConnectState(VpnConnectState::VPN_CONNECTED);
-        return;
-    }
+    DeleteTempFile(SWAN_CTL_FILE);
+    DeleteTempFile(SWAN_CONFIG_FILE);
+    DeleteTempFile(L2TP_CFG);
+    DeleteTempFile(L2TP_IPSEC_CFG);
+    DeleteTempFile(L2TP_IPSEC_SECRETS_CFG);
+    DeleteTempFile(OPTIONS_L2TP_CLIENT);
 }
 
 void IpsecVpnCtl::DeleteTempFile(std::string fileName)
@@ -141,30 +109,42 @@ void IpsecVpnCtl::DeleteTempFile(std::string fileName)
     }
 }
 
-void IpsecVpnCtl::CleanTempFiles()
+int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
 {
-    DeleteTempFile(SWAN_CTL_FILE);
-    DeleteTempFile(SWAN_CONFIG_FILE);
-    DeleteTempFile(L2TP_CFG);
-    DeleteTempFile(L2TP_IPSEC_CFG);
-    DeleteTempFile(L2TP_IPSEC_SECRETS_CFG);
-    DeleteTempFile(OPTIONS_L2TP_CLIENT);
-}
-
-int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &state)
-{
-    NETMGR_EXT_LOG_I("NotifyConnectStage %{public}s %{public}d", stage.c_str(), state);
-    if (vpnFfrtQueue_ == nullptr) {
-        NETMGR_EXT_LOG_E("NotifyConnectStage failed, vpnFfrtQueue_ is null");
+    if (errorCode != NOTIFY_CONNECT_STAGE_SUCCESS) {
+        NETMGR_EXT_LOG_E("invalid vpn stage, stage: %{public}s, error: %{public}d", stage.c_str(), errorCode);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-#if UNITTEST_FORBID_FFRT // Forbid FFRT for unittest, which will cause crash in destructor process
-    ParseIpsecStatus(stage, state);
-#else
-    std::function<void()> notify = std::bind(&IpsecVpnCtl::ParseIpsecStatus, this, stage, state);
-    vpnFfrtQueue_->submit(notify);
-#endif // UNITTEST_FORBID_FFRT
-    return NETMANAGER_EXT_SUCCESS;
+    NETMGR_EXT_LOG_I("parse vpn stage, stage: %{public}s, state_: %{public}d", stage.c_str(), state_);
+    switch (state_) {
+        case IpsecVpnStateCode::STATE_INIT:
+            if (stage.compare(IPSEC_START_TAG) == 0) {
+                // 1. start strongswan
+                NETMGR_EXT_LOG_I("ipsec vpn setup step 1: start strongswan");
+                state_ = IpsecVpnStateCode::STATE_STARTED;
+                NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
+            }
+            return NETMANAGER_EXT_SUCCESS;
+        case IpsecVpnStateCode::STATE_STARTED:
+            if (stage.compare(SWANCTL_START_TAG) == 0) {
+                // 2. start connect
+                NETMGR_EXT_LOG_I("ipsec vpn setup step 2: start connect");
+                state_ = IpsecVpnStateCode::STATE_CONFIGED;
+                NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
+            }
+            return NETMANAGER_EXT_SUCCESS;
+        case IpsecVpnStateCode::STATE_CONFIGED:
+            if (stage.compare(IPSEC_CONNECT_TAG) == 0) {
+                // 3. is connected
+                NETMGR_EXT_LOG_I("ipsec vpn setup step 3: is connected");
+                state_ = IpsecVpnStateCode::STATE_CONNECTED;
+                NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+            }
+            return NETMANAGER_EXT_SUCCESS;
+        default:
+            NETMGR_EXT_LOG_E("invalid state: %{public}d", state_);
+            return NETMANAGER_EXT_ERR_INTERNAL;
+    }
 }
 
 int32_t IpsecVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)

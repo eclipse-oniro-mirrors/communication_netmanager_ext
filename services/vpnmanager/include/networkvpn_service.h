@@ -108,8 +108,7 @@ public:
     /**
      * This function is called when the three-party vpn application negotiation ends
      */
-    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false,
-        std::optional<std::string> sysVpnId = std::nullopt) override;
+    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override;
 
     /**
      * protect vpn tunnel
@@ -122,6 +121,11 @@ public:
     int32_t DestroyVpn(bool isVpnExtCall = false) override;
 
 #ifdef SUPPORT_SYSVPN
+    /**
+     * This function is called when the system vpn application negotiation ends
+     */
+    int32_t SetUpVpn(sptr<SysVpnConfig> &config) override;
+
     /**
      * save the vpn config
      */
@@ -150,7 +154,7 @@ public:
     /**
      * notify the vpn connection state change
      */
-    int32_t NotifyConnectStage(std::string &stage, int32_t &state) override;
+    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override;
 #endif // SUPPORT_SYSVPN
 
     /**
@@ -224,7 +228,7 @@ private:
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
 #ifdef SUPPORT_SYSVPN
-    std::shared_ptr<NetVpnImpl> initSysVpnCtl(std::string &sysVpnId, const std::string &pkg,
+    std::shared_ptr<NetVpnImpl> createSysVpnCtl(sptr<SysVpnConfig> &config,
         int32_t userId, std::vector<int32_t> &activeUserIds);
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();
