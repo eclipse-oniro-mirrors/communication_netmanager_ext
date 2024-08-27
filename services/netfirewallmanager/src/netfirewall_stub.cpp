@@ -29,23 +29,27 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+const std::string PERMISSION_MANAGE_NET_FIREWALL = "ohos.permission.MANAGE_NET_FIREWALL";
+const std::string PERMISSION_GET_NET_FIREWALL = "ohos.permission.GET_NET_FIREWALL";
+}
 NetFirewallStub::NetFirewallStub()
 {
-    memberFuncMap_[static_cast<uint32_t>(SET_NET_FIREWALL_STATUS)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(SET_NET_FIREWALL_STATUS)] = {PERMISSION_MANAGE_NET_FIREWALL,
                                                                       &NetFirewallStub::OnSetNetFirewallPolicy};
-    memberFuncMap_[static_cast<uint32_t>(GET_NET_FIREWALL_STATUS)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(GET_NET_FIREWALL_STATUS)] = {PERMISSION_GET_NET_FIREWALL,
                                                                       &NetFirewallStub::OnGetNetFirewallPolicy};
-    memberFuncMap_[static_cast<uint32_t>(ADD_NET_FIREWALL_RULE)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(ADD_NET_FIREWALL_RULE)] = {PERMISSION_MANAGE_NET_FIREWALL,
                                                                     &NetFirewallStub::OnAddNetFirewallRule};
-    memberFuncMap_[static_cast<uint32_t>(UPDATE_NET_FIREWALL_RULE)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(UPDATE_NET_FIREWALL_RULE)] = {PERMISSION_MANAGE_NET_FIREWALL,
                                                                        &NetFirewallStub::OnUpdateNetFirewallRule};
-    memberFuncMap_[static_cast<uint32_t>(DELETE_NET_FIREWALL_RULE)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(DELETE_NET_FIREWALL_RULE)] = {PERMISSION_MANAGE_NET_FIREWALL,
                                                                        &NetFirewallStub::OnDeleteNetFirewallRule};
-    memberFuncMap_[static_cast<uint32_t>(GET_ALL_NET_FIREWALL_RULES)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(GET_ALL_NET_FIREWALL_RULES)] = {PERMISSION_GET_NET_FIREWALL,
                                                                         &NetFirewallStub::OnGetNetFirewallRules};
-    memberFuncMap_[static_cast<uint32_t>(GET_NET_FIREWALL_RULE)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(GET_NET_FIREWALL_RULE)] = {PERMISSION_GET_NET_FIREWALL,
                                                                     &NetFirewallStub::OnGetNetFirewallRule};
-    memberFuncMap_[static_cast<uint32_t>(GET_ALL_INTERCEPT_RECORDS)] = {Permission::MANAGE_NET_STRATEGY,
+    memberFuncMap_[static_cast<uint32_t>(GET_ALL_INTERCEPT_RECORDS)] = {PERMISSION_GET_NET_FIREWALL,
                                                                        &NetFirewallStub::OnGetInterceptRecords};
 }
 
