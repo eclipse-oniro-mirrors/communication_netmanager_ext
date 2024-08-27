@@ -691,15 +691,10 @@ int32_t NetworkVpnService::SetUpVpn(sptr<SysVpnConfig> &config)
 std::shared_ptr<NetVpnImpl> NetworkVpnService::createSysVpnCtl(
     sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("config is null");
+    if (config == nullptr || vpnDbHelper_ == nullptr) {
+        NETMGR_EXT_LOG_E("createSysVpnCtl failed, param is null");
         return nullptr;
     }
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnDbHelper_ is null");
-        return nullptr;
-    }
-
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
@@ -710,7 +705,6 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::createSysVpnCtl(
         NETMGR_EXT_LOG_E("query vpn data failed");
         return nullptr;
     }
-
     std::shared_ptr<IpsecVpnCtl> sysVpnCtl = nullptr;
     sptr<IpsecVpnConfig> ipsecVpnConfig = nullptr;
     sptr<L2tpVpnConfig> l2tpVpnConfig = nullptr;
