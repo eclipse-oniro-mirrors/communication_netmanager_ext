@@ -144,10 +144,6 @@ bool NetworkVpnService::Init()
     RegisterFactoryResetCallback();
 #ifdef SUPPORT_SYSVPN
     vpnDbHelper_ = std::make_shared<VpnDatabaseHelper>();
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnDbHelper_ make_shared failed.");
-        return false;
-    }
 #endif // SUPPORT_SYSVPN
     return true;
 }
@@ -726,18 +722,22 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::createSysVpnCtl(
         case VpnType::IPSEC_XAUTH_RSA:
         case VpnType::IPSEC_HYBRID_RSA:
             ipsecVpnConfig = VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(vpnBean);
-            sysVpnCtl = std::make_shared<IpsecVpnCtl>(ipsecVpnConfig, "", userId, activeUserIds);
-            if (sysVpnCtl != nullptr) {
-                sysVpnCtl->ipsecVpnConfig_ = ipsecVpnConfig;
+            if (ipsecVpnConfig == nullptr) {
+                NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig failed");
+                return nullptr;
             }
+            sysVpnCtl = std::make_shared<IpsecVpnCtl>(ipsecVpnConfig, "", userId, activeUserIds);
+            sysVpnCtl->ipsecVpnConfig_ = ipsecVpnConfig;
             break;
         case VpnType::L2TP_IPSEC_PSK:
         case VpnType::L2TP_IPSEC_RSA:
             l2tpVpnConfig = VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(vpnBean);
-            sysVpnCtl = std::make_shared<L2tpVpnCtl>(l2tpVpnConfig, "", userId, activeUserIds);
-            if (sysVpnCtl != nullptr) {
-                sysVpnCtl->l2tpVpnConfig_ = l2tpVpnConfig;
+            if (l2tpVpnConfig == nullptr) {
+                NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig failed");
+                return nullptr;
             }
+            sysVpnCtl = std::make_shared<L2tpVpnCtl>(l2tpVpnConfig, "", userId, activeUserIds);
+            sysVpnCtl->l2tpVpnConfig_ = l2tpVpnConfig;
             break;
         default:
             NETMGR_EXT_LOG_E("vpn type is invalid, %{public}d", vpnBean->vpnType_);
