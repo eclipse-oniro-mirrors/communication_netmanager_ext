@@ -41,18 +41,17 @@ interface NavigationBarRect {
 
 export default class VpnDialogAbility extends extension {
   private vpnWin: window.Window | undefined = undefined;
-  // private mContext: common.ServiceExtensionContext | undefined = undefined;
   private windowNum: number = 0;
   /**
    * Lifecycle function, called back when a service extension is started for initialization.
    */
   onCreate(want: Want): void {
-    console.log('onCreate want: ' + JSON.stringify(want));
+    console.log('onCreate is triggered');
     this.windowNum = 0;
   }
 
   onConnect(want: Want): rpc.RemoteObject {
-    console.log('onConnect want : ' + JSON.stringify(want));
+    console.log('onConnect is triggered');
   
     globalThis.extensionContext = this.context;
 
