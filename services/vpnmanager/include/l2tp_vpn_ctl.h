@@ -26,6 +26,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+const std::string L2TP_IPSEC_CONFIGURED_TAG = "xl2tpdstart";
+const std::string L2TP_IPSEC_CONNECTED_TAG = "pppdstart";
+} // namespace
 class L2tpVpnCtl : public IpsecVpnCtl {
 public:
     L2tpVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
@@ -36,8 +40,6 @@ public:
     bool isSysVpnImpl() override;
 
 private:
-    static constexpr const char* L2TP_IPSEC_CONFIGURED_TAG = "xl2tpdstart";
-    static constexpr const char* L2TP_IPSEC_CONNECTED_TAG = "pppdstart";
 
     int32_t StartSysVpn() override;
     int32_t StopSysVpn() override;

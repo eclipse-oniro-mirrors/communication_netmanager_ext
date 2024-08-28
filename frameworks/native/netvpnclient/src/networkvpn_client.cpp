@@ -139,29 +139,13 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("SetUpVpn param config is nullptr");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("SetUpVpn proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    NETMGR_EXT_LOG_I("enter SetUpVpn");
-    int32_t result = proxy->SetUpVpn(config);
-    if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("SetUpVpn failed, result is %{public}d", result);
-        return result;
-    }
-
-    if (vpnEventCallback_ != nullptr) {
-        UnregisterVpnEvent(vpnEventCallback_);
-    }
-    vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
-    if (vpnEventCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnEventCallback_ is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    RegisterVpnEvent(vpnEventCallback_);
-    return NETMANAGER_EXT_SUCCESS;
+    NETMGR_EXT_LOG_I("NetworkVpnClient SetUpVpn id=%{public}s", config->vpnId_.c_str());
+    return proxy->SetUpVpn(config);
 }
 
 int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)

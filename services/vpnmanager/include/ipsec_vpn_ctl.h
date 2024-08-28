@@ -27,6 +27,18 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+const std::string SWAN_CTL_FILE = IPSEC_PIDDIR "/swanctl.conf";
+const std::string SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
+const std::string L2TP_IPSEC_CFG = IPSEC_PIDDIR "/ipsec.conf";
+const std::string L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
+const std::string L2TP_IPSEC_SECRETS_CFG = IPSEC_PIDDIR "/ipsec.secrets.conf";
+const std::string OPTIONS_L2TP_CLIENT = IPSEC_PIDDIR "/options.l2tpd.client.conf";
+const std::string IPSEC_START_TAG = "start";
+const std::string SWANCTL_START_TAG = "config";
+const std::string IPSEC_CONNECT_TAG = "connect";
+const int32_t NOTIFY_CONNECT_STAGE_SUCCESS = 100;
+} // namespace
 using namespace NetsysNative;
 enum IpsecVpnStateCode {
     STATE_INIT = 0,
@@ -52,20 +64,6 @@ public:
     bool isSysVpnImpl() override;
 
 protected:
-    static constexpr const char *SWAN_CTL_FILE = IPSEC_PIDDIR "/swanctl.conf";
-    static constexpr const char *SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
-    static constexpr const char *L2TP_IPSEC_CFG = IPSEC_PIDDIR "/ipsec.conf";
-
-    static constexpr const char *L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
-    static constexpr const char *L2TP_IPSEC_SECRETS_CFG = IPSEC_PIDDIR "/ipsec.secrets.conf";
-    static constexpr const char *OPTIONS_L2TP_CLIENT = IPSEC_PIDDIR "/options.l2tpd.client.conf";
-
-    static constexpr const char *IPSEC_START_TAG = "start";
-    static constexpr const char *SWANCTL_START_TAG = "config";
-    static constexpr const char *IPSEC_CONNECT_TAG = "connect";
-
-    static constexpr const int32_t NOTIFY_CONNECT_STAGE_SUCCESS = 100;
-
     int32_t state_ = STATE_INIT;
 
     virtual int32_t StartSysVpn();
