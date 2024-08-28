@@ -176,6 +176,7 @@ int32_t NetworkVpnServiceProxy::SetUpVpn(sptr<SysVpnConfig> &config)
     }
     int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
     if (!reply.ReadInt32(result)) {
+        NETMGR_EXT_LOG_E("reply ReadInt32 failed");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     return result;
@@ -200,6 +201,7 @@ int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         return ret;
     }
     if (!reply.ReadInt32(ret)) {
+        NETMGR_EXT_LOG_E("reply ReadInt32 failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -224,6 +226,7 @@ int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(std::string &vpnId)
         return ret;
     }
     if (!reply.ReadInt32(ret)) {
+        NETMGR_EXT_LOG_E("reply ReadInt32 failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -280,7 +283,7 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, std:
 
     config = SysVpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
-        NETMGR_EXT_LOG_I("GetSysVpnConfig config == nullptr");
+        NETMGR_EXT_LOG_I("GetSysVpnConfig config is null, invalid vpn id");
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -298,7 +301,7 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
     }
     config = SysVpnConfig::Unmarshalling(reply);
     if (config == nullptr) {
-        NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig config == nullptr");
+        NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig config is null, no connected vpn");
     }
     return NETMANAGER_EXT_SUCCESS;
 }
