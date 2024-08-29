@@ -302,18 +302,20 @@ void NetworkVpnClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         NETMGR_EXT_LOG_E("remote object is nullptr");
         return;
     }
-    std::lock_guard lock(mutex_);
-    if (networkVpnService_ == nullptr) {
-        NETMGR_EXT_LOG_E("networkVpnService_ is nullptr");
-        return;
+    {
+        std::lock_guard lock(mutex_);
+        if (networkVpnService_ == nullptr) {
+            NETMGR_EXT_LOG_E("networkVpnService_ is nullptr");
+            return;
+        }
+        sptr<IRemoteObject> local = networkVpnService_->AsObject();
+        if (local != remote.promote()) {
+            NETMGR_EXT_LOG_E("proxy and stub is not same remote object");
+            return;
+        }
+        local->RemoveDeathRecipient(deathRecipient_);
+        networkVpnService_ = nullptr;
     }
-    sptr<IRemoteObject> local = networkVpnService_->AsObject();
-    if (local != remote.promote()) {
-        NETMGR_EXT_LOG_E("proxy and stub is not same remote object");
-        return;
-    }
-    local->RemoveDeathRecipient(deathRecipient_);
-    networkVpnService_ = nullptr;
 
     if (vpnEventCallback_ != nullptr) {
         NETMGR_EXT_LOG_D("on remote died recover callback");
