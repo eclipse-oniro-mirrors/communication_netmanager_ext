@@ -43,9 +43,9 @@
 #include "networkvpn_hisysevent.h"
 #include "net_datashare_utils_iface.h"
 #ifdef SUPPORT_SYSVPN
-#include "vpn_data_bean.h"
 #include "ipsec_vpn_ctl.h"
 #include "l2tp_vpn_ctl.h"
+#include "vpn_data_bean.h"
 #endif // SUPPORT_SYSVPN
 
 namespace OHOS {

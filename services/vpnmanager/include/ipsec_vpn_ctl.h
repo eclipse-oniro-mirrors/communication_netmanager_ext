@@ -18,9 +18,9 @@
 
 #include <cstdint>
 
-#include "net_vpn_impl.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
+#include "net_vpn_impl.h"
 #include "netsys_controller.h"
 
 #define IPSEC_PIDDIR "/data/service/el1/public/vpn"

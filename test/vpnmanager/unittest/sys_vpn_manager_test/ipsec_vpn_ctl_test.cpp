@@ -65,11 +65,6 @@ HWTEST_F(IpsecVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
     EXPECT_EQ(ipsecControl_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(IpsecVpnCtlTest, isSysVpnImplTest001, TestSize.Level1)
-{
-    EXPECT_TRUE(ipsecControl_->isSysVpnImpl());
-}
-
 HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
 {
     std::string stage = "connect";

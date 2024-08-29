@@ -18,10 +18,10 @@
 
 #include <cstdint>
 
-#include "net_vpn_impl.h"
 #include "ipsecvpn_config.h"
-#include "l2tpvpn_config.h"
 #include "ipsec_vpn_ctl.h"
+#include "l2tpvpn_config.h"
+#include "net_vpn_impl.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

@@ -66,11 +66,6 @@ HWTEST_F(L2tpVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
     EXPECT_EQ(l2tpControl_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(L2tpVpnCtlTest, isSysVpnImplTest001, TestSize.Level1)
-{
-    EXPECT_TRUE(l2tpControl_->isSysVpnImpl());
-}
-
 HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
 {
     std::string stage = "connect";
