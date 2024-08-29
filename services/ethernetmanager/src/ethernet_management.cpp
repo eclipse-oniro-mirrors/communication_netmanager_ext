@@ -392,7 +392,7 @@ int32_t EthernetManagement::ResetFactory()
 
 void EthernetManagement::Init()
 {
-    static const unsigned int SLEEP_TIME = 0;
+    static const unsigned int SLEEP_TIME = 4;
     sleep(SLEEP_TIME);
     std::regex re(IFACE_MATCH);
     std::vector<std::string> ifaces = NetsysController::GetInstance().InterfaceGetList();
