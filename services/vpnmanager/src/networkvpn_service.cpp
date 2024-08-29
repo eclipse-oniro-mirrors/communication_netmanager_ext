@@ -669,26 +669,25 @@ int32_t NetworkVpnService::SetUpVpn(sptr<SysVpnConfig> &config)
     if (vpnObj_ != nullptr) {
         if (vpnObj_->GetUserId() == userId) {
             NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");
-            return NETWORKVPN_ERROR_VPN_EXIST;
         } else {
             NETMGR_EXT_LOG_W("vpn using by other user");
-            return NETWORKVPN_ERROR_VPN_EXIST;
         }
+        return NETWORKVPN_ERROR_VPN_EXIST;
     }
-    vpnObj_ = createSysVpnCtl(config, userId, activeUserIds);
+    vpnObj_ = CreateSysVpnCtl(config, userId, activeUserIds);
     if (vpnObj_ == nullptr || vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("SetUpVpn register internal callback fail.");
+        NETMGR_EXT_LOG_E("SetUpVpn register internal callback failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
     return vpnObj_->SetUp();
 }
 
-std::shared_ptr<NetVpnImpl> NetworkVpnService::createSysVpnCtl(
+std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
     sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
 {
     if (config == nullptr || vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("createSysVpnCtl failed, param is null");
+        NETMGR_EXT_LOG_E("CreateSysVpnCtl failed, param is null");
         return nullptr;
     }
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
@@ -710,7 +709,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::createSysVpnCtl(
         case VpnType::IKEV2_IPSEC_RSA:
         case VpnType::IPSEC_XAUTH_PSK:
         case VpnType::IPSEC_XAUTH_RSA:
-        case VpnType::IPSEC_HYBRID_RSA:
+        case VpnType::IPSEC_HYBRID_RSA: {
             ipsecVpnConfig = VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(vpnBean);
             if (ipsecVpnConfig == nullptr) {
                 NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig failed");
@@ -719,8 +718,9 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::createSysVpnCtl(
             sysVpnCtl = std::make_shared<IpsecVpnCtl>(ipsecVpnConfig, "", userId, activeUserIds);
             sysVpnCtl->ipsecVpnConfig_ = ipsecVpnConfig;
             break;
+        }
         case VpnType::L2TP_IPSEC_PSK:
-        case VpnType::L2TP_IPSEC_RSA:
+        case VpnType::L2TP_IPSEC_RSA: {
             l2tpVpnConfig = VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(vpnBean);
             if (l2tpVpnConfig == nullptr) {
                 NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig failed");
@@ -729,6 +729,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::createSysVpnCtl(
             sysVpnCtl = std::make_shared<L2tpVpnCtl>(l2tpVpnConfig, "", userId, activeUserIds);
             sysVpnCtl->l2tpVpnConfig_ = l2tpVpnConfig;
             break;
+        }
         default:
             NETMGR_EXT_LOG_E("vpn type is invalid, %{public}d", vpnBean->vpnType_);
             break;
@@ -800,10 +801,9 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed!");
+        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
         return ret;
     }
-
     NETMGR_EXT_LOG_I("NetworkVpnService GetSysVpnConfigList");
     return vpnDbHelper_->QueryAllData(vpnList, userId);
 }
@@ -861,7 +861,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     return vpnObj_->GetConnectedSysVpnConfig(config);
 }
 
-int32_t NetworkVpnService::NotifyConnectStage(std::string &stage, int32_t &errorCode)
+int32_t NetworkVpnService::NotifyConnectStage(std::string &stage, int32_t &result)
 {
     uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
     if (callingUid != UID_NET_SYS_NATIVE) {
@@ -874,9 +874,9 @@ int32_t NetworkVpnService::NotifyConnectStage(std::string &stage, int32_t &error
     }
 
     std::unique_lock<std::mutex> locker(netVpnMutex_);
-    NETMGR_EXT_LOG_I("NotifyConnectStage state: %{public}s errorCode: %{public}d",
-        stage.c_str(), errorCode);
-    return vpnObj_->NotifyConnectStage(stage, errorCode);
+    NETMGR_EXT_LOG_I("NotifyConnectStage state: %{public}s result: %{public}d",
+        stage.c_str(), result);
+    return vpnObj_->NotifyConnectStage(stage, result);
 }
 #endif // SUPPORT_SYSVPN
 

@@ -15,15 +15,10 @@
 
 #include "l2tp_vpn_ctl.h"
 
-#include <fstream>
-#include <unistd.h>
-#include <iostream>
-#include <filesystem>
 #include <string>
 
 #include "base64_utils.h"
 #include "netmgr_ext_log_wrapper.h"
-
 #include "netmanager_base_common_utils.h"
 #include "net_manager_ext_constants.h"
 
@@ -62,39 +57,43 @@ int32_t L2tpVpnCtl::InitConfigFile()
     }
     if (!l2tpVpnConfig_->strongswanConf_.empty()) {
         std::string strongswanCfg = Base64::Decode(l2tpVpnConfig_->strongswanConf_);
-        std::ofstream ofs(SWAN_CONFIG_FILE);
-        ofs << strongswanCfg;
+        if (!strongswanCfg.empty()) {
+            CommonUtils::WriteFile(SWAN_CONFIG_FILE, strongswanCfg);
+        }
     }
     if (!l2tpVpnConfig_->xl2tpdConf_.empty()) {
         std::string xl2tpdConf = Base64::Decode(l2tpVpnConfig_->xl2tpdConf_);
-        std::ofstream ofs(L2TP_CFG);
-        ofs << xl2tpdConf;
+        if (!xl2tpdConf.empty()) {
+            CommonUtils::WriteFile(L2TP_CFG, xl2tpdConf);
+        }
     }
     if (!l2tpVpnConfig_->ipsecConf_.empty()) {
         std::string ipsecConf = Base64::Decode(l2tpVpnConfig_->ipsecConf_);
-        std::ofstream ofs(L2TP_IPSEC_CFG);
-        ofs << ipsecConf;
+        if (!ipsecConf.empty()) {
+            CommonUtils::WriteFile(L2TP_IPSEC_CFG, ipsecConf);
+        }
     }
     if (!l2tpVpnConfig_->ipsecSecrets_.empty()) {
         std::string ipsecSecrets = Base64::Decode(l2tpVpnConfig_->ipsecSecrets_);
-        std::ofstream ofs(L2TP_IPSEC_SECRETS_CFG);
-        ofs << ipsecSecrets;
+        if (!ipsecSecrets.empty()) {
+            CommonUtils::WriteFile(L2TP_IPSEC_SECRETS_CFG, ipsecSecrets);
+        }
     }
     if (!l2tpVpnConfig_->optionsL2tpdClient_.empty()) {
         std::string optionsL2tpdClient = Base64::Decode(l2tpVpnConfig_->optionsL2tpdClient_);
-        std::ofstream ofs(OPTIONS_L2TP_CLIENT);
-        ofs << optionsL2tpdClient;
+        if (!optionsL2tpdClient.empty()) {
+            CommonUtils::WriteFile(OPTIONS_L2TP_CLIENT, optionsL2tpdClient);
+        }
     }
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t L2tpVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
+int32_t L2tpVpnCtl::NotifyConnectStage(std::string &stage, int32_t &result)
 {
-    if (errorCode != NOTIFY_CONNECT_STAGE_SUCCESS) {
-        NETMGR_EXT_LOG_E("invalid vpn stage, stage: %{public}s, error: %{public}d", stage.c_str(), errorCode);
+    if (result != NOTIFY_CONNECT_STAGE_SUCCESS) {
+        NETMGR_EXT_LOG_E("l2tpVpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    NETMGR_EXT_LOG_I("parse vpn stage, stage: %{public}s, state_: %{public}d", stage.c_str(), state_);
     switch (state_) {
         case IpsecVpnStateCode::STATE_INIT:
             if (stage.compare(IPSEC_START_TAG) == 0) {
@@ -103,7 +102,7 @@ int32_t L2tpVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
                 state_ = IpsecVpnStateCode::STATE_STARTED;
                 NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_LOAD);
             }
-            return NETMANAGER_EXT_SUCCESS;
+            break;
         case IpsecVpnStateCode::STATE_STARTED:
             if (stage.compare(L2TP_IPSEC_CONFIGURED_TAG) == 0) {
                 // 2. start connect
@@ -111,7 +110,7 @@ int32_t L2tpVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
                 state_ = IpsecVpnStateCode::STATE_CONFIGED;
                 NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
             }
-            return NETMANAGER_EXT_SUCCESS;
+            break;
         case IpsecVpnStateCode::STATE_CONFIGED:
             if (stage.compare(IPSEC_CONNECT_TAG) == 0) {
                 // 3. set stage IPSEC_L2TP_CTL
@@ -123,25 +122,21 @@ int32_t L2tpVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
                 state_ = IpsecVpnStateCode::STATE_CONNECTED;
                 NotifyConnectState(VpnConnectState::VPN_CONNECTED);
             }
-            return NETMANAGER_EXT_SUCCESS;
+            break;
         default:
             NETMGR_EXT_LOG_E("invalid state: %{public}d", state_);
             return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t L2tpVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (state_ == IpsecVpnStateCode::STATE_CONNECTED && l2tpVpnConfig_ != nullptr) {
-        NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig success.");
+        NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig success");
         sysVpnConfig = l2tpVpnConfig_;
     }
     return NETMANAGER_EXT_SUCCESS;
-}
-
-bool L2tpVpnCtl::isSysVpnImpl()
-{
-    return true;
 }
 }
 }

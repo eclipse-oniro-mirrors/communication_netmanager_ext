@@ -120,9 +120,7 @@ int32_t NetVpnImpl::SetUp()
                                                  "set app uid rule failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (!isSysVpnImpl()) {
-        NotifyConnectState(VpnConnectState::VPN_CONNECTED);
-    }
+    NotifyConnectState(VpnConnectState::VPN_CONNECTED);
     isVpnConnecting_ = true;
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -158,16 +156,9 @@ int32_t NetVpnImpl::Destroy()
     DelNetLinkInfo(netConnClientIns);
     UpdateNetSupplierInfo(netConnClientIns, false);
     UnregisterNetSupplier(netConnClientIns);
-    if (!isSysVpnImpl()) {
-        NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
-    }
+    NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
     isVpnConnecting_ = false;
     return NETMANAGER_EXT_SUCCESS;
-}
-
-bool NetVpnImpl::isSysVpnImpl()
-{
-    return false;
 }
 
 #ifdef SUPPORT_SYSVPN
@@ -176,7 +167,7 @@ int32_t NetVpnImpl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &vpnConfig)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetVpnImpl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
+int32_t NetVpnImpl::NotifyConnectStage(std::string &stage, int32_t &result)
 {
     return NETMANAGER_EXT_SUCCESS;
 }

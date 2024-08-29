@@ -76,7 +76,7 @@ public:
     virtual int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) = 0;
     virtual int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) = 0;
     virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) = 0;
-    virtual int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) = 0;
+    virtual int32_t NotifyConnectStage(std::string &stage, int32_t &result) = 0;
 #endif // SUPPORT_SYSVPN
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");

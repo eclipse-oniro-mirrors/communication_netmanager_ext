@@ -34,21 +34,23 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
         case VpnType::IKEV2_IPSEC_RSA:
         case VpnType::IPSEC_XAUTH_PSK:
         case VpnType::IPSEC_XAUTH_RSA:
-        case VpnType::IPSEC_HYBRID_RSA:
+        case VpnType::IPSEC_HYBRID_RSA: {
             vpnConfig = CreateAndParseIpsecVpnConf(env, params[0]);
             if (vpnConfig == nullptr) {
-                NETMGR_EXT_LOG_E("CreateAndParseIpsecVpnConf failed, is null.");
+                NETMGR_EXT_LOG_E("CreateAndParseIpsecVpnConf failed, is null");
                 return false;
             }
             break;
+        }
         case VpnType::L2TP_IPSEC_PSK:
-        case VpnType::L2TP_IPSEC_RSA:
+        case VpnType::L2TP_IPSEC_RSA: {
             vpnConfig = CreateAndParseL2tpVpnConf(env, params[0]);
             if (vpnConfig == nullptr) {
-                NETMGR_EXT_LOG_E("CreateAndParseL2tpVpnConf failed, is null.");
+                NETMGR_EXT_LOG_E("CreateAndParseL2tpVpnConf failed, is null");
                 return false;
             }
             break;
+        }
         default:
             NETMGR_EXT_LOG_E("sysvpn ParseSysVpnConfig failed! invalid type=%{public}d", vpnType);
             return false;
@@ -146,7 +148,7 @@ sptr<IpsecVpnConfig> CreateAndParseIpsecVpnConf(napi_env env, napi_value config)
 {
     sptr<IpsecVpnConfig> ipsecVpnConfig = new (std::nothrow) IpsecVpnConfig();
     if (ipsecVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("create ipsecVpnConfig failed, is null.");
+        NETMGR_EXT_LOG_E("create ipsecVpnConfig failed, is null");
         return nullptr;
     }
     if (!ParseSystemVpnParams(env, config, ipsecVpnConfig)) {
@@ -413,7 +415,7 @@ void GetInt32FromJsOptionItem(napi_env env, napi_value object, const std::string
 napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("CreateNapiVpnConfig failed, param is null.");
+        NETMGR_EXT_LOG_E("CreateNapiVpnConfig failed, param is null");
         return NapiUtils::GetUndefined(env);
     }
     switch (sysVpnConfig->vpnType_) {
@@ -436,7 +438,7 @@ napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("CreateNapiSysVpnConfig failed, param is null.");
+        NETMGR_EXT_LOG_E("CreateNapiSysVpnConfig failed, param is null");
         return NapiUtils::GetUndefined(env);
     }
     napi_value config = NapiUtils::CreateObject(env);
@@ -476,14 +478,14 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("CreateNapiIpsecVpnConfig failed, param is null.");
+        NETMGR_EXT_LOG_E("CreateNapiIpsecVpnConfig failed, param is null");
         return NapiUtils::GetUndefined(env);
     }
     napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
 
     IpsecVpnConfig* ipsecVpnConfig = static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr());
     if (ipsecVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("CreateNapiIpsecVpnConfig failed, ipsecVpnConfig is null.");
+        NETMGR_EXT_LOG_E("CreateNapiIpsecVpnConfig failed, ipsecVpnConfig is null");
         return NapiUtils::GetUndefined(env);
     }
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, ipsecVpnConfig->ipsecPreSharedKey_);
@@ -516,14 +518,14 @@ napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConf
 napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("CreateNapiL2tpVpnConfig failed, param is null.");
+        NETMGR_EXT_LOG_E("CreateNapiL2tpVpnConfig failed, param is null");
         return NapiUtils::GetUndefined(env);
     }
     napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
 
     L2tpVpnConfig* l2tpVpnConfig = static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr());
     if (l2tpVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("CreateNapiL2tpVpnConfig failed, l2tpVpnConfig is null.");
+        NETMGR_EXT_LOG_E("CreateNapiL2tpVpnConfig failed, l2tpVpnConfig is null");
         return NapiUtils::GetUndefined(env);
     }
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_IPSEC_PRE_SHARE_KEY, l2tpVpnConfig->ipsecPreSharedKey_);

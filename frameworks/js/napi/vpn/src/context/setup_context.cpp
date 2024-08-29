@@ -149,7 +149,7 @@ bool SetUpContext::ParseVpnConfig(napi_value *params)
     if (NapiUtils::HasNamedProperty(GetEnv(), params[0], "vpnId")) {
         sysVpnConfig_ = new (std::nothrow) SysVpnConfig();
         if (sysVpnConfig_ == nullptr) {
-            NETMGR_EXT_LOG_E("setup parse sysvpn config failed, config is null.");
+            NETMGR_EXT_LOG_E("setup parse sysvpn config failed, config is null");
             return false;
         }
         sysVpnConfig_->vpnId_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[0], "vpnId");

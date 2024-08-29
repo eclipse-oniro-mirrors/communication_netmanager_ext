@@ -160,7 +160,7 @@ int32_t NetworkVpnServiceStub::ReplySetUpSysVpn(MessageParcel &data, MessageParc
 {
     sptr<SysVpnConfig> config = new (std::nothrow) SysVpnConfig();
     if (config == nullptr) {
-        NETMGR_EXT_LOG_E("ReplySetUpSysVpn failed, config is null.");
+        NETMGR_EXT_LOG_E("ReplySetUpSysVpn failed, config is null");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     if (!(data.ReadString(config->vpnId_) && data.ReadInt32(config->vpnType_))) {
@@ -170,7 +170,7 @@ int32_t NetworkVpnServiceStub::ReplySetUpSysVpn(MessageParcel &data, MessageParc
     NETMGR_EXT_LOG_I("ReplySetUpSysVpn id=%{public}s", config->vpnId_.c_str());
     int32_t result = SetUpVpn(config);
     if (!reply.WriteInt32(result)) {
-        NETMGR_EXT_LOG_E("ReplySetUpSysVpn write reply failed.");
+        NETMGR_EXT_LOG_E("ReplySetUpSysVpn write reply failed");
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -278,13 +278,13 @@ int32_t NetworkVpnServiceStub::ReplyNotifyConnectStage(MessageParcel &data, Mess
         NETMGR_EXT_LOG_E("ReplyNotifyConnectStage read data failed");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    int32_t errorCode;
-    if (!data.ReadInt32(errorCode)) {
+    int32_t result;
+    if (!data.ReadInt32(result)) {
         NETMGR_EXT_LOG_E("ReplyNotifyConnectStage read data failed");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-    int32_t result = NotifyConnectStage(stage, errorCode);
-    if (!reply.WriteInt32(result)) {
+    int32_t ret = NotifyConnectStage(stage, result);
+    if (!reply.WriteInt32(ret)) {
         NETMGR_EXT_LOG_E("ReplyNotifyConnectStage write reply failed");
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }

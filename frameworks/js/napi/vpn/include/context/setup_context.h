@@ -22,10 +22,10 @@
 #include "base_context.h"
 #include "event_manager.h"
 #include "refbase.h"
-#include "vpn_config.h"
 #ifdef SUPPORT_SYSVPN
 #include "sysvpn_config.h"
 #endif // SUPPORT_SYSVPN
+#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

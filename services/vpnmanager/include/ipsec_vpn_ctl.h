@@ -60,8 +60,7 @@ public:
     int32_t SetUp() override;
     int32_t Destroy() override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
-    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override;
-    bool isSysVpnImpl() override;
+    int32_t NotifyConnectStage(std::string &stage, int32_t &result) override;
 
 protected:
     int32_t state_ = STATE_INIT;
@@ -70,7 +69,7 @@ protected:
     virtual int32_t StopSysVpn();
     virtual int32_t InitConfigFile();
     void CleanTempFiles();
-    void DeleteTempFile(std::string fileName);
+    void DeleteTempFile(const std::string &fileName);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

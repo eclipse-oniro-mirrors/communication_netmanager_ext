@@ -152,9 +152,9 @@ public:
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
 
     /**
-     * notify the vpn connection state change
+     * notify the vpn connection stage and result
      */
-    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override;
+    int32_t NotifyConnectStage(std::string &stage, int32_t &result) override;
 #endif // SUPPORT_SYSVPN
 
     /**
@@ -228,7 +228,7 @@ private:
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
 #ifdef SUPPORT_SYSVPN
-    std::shared_ptr<NetVpnImpl> createSysVpnCtl(sptr<SysVpnConfig> &config,
+    std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(sptr<SysVpnConfig> &config,
         int32_t userId, std::vector<int32_t> &activeUserIds);
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();

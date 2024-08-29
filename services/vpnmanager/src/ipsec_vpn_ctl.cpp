@@ -15,15 +15,10 @@
 
 #include "ipsec_vpn_ctl.h"
 
-#include <fstream>
-#include <unistd.h>
-#include <iostream>
-#include <filesystem>
 #include <string>
 
 #include "base64_utils.h"
 #include "netmgr_ext_log_wrapper.h"
-
 #include "netmanager_base_common_utils.h"
 #include "net_manager_ext_constants.h"
 
@@ -78,13 +73,15 @@ int32_t IpsecVpnCtl::InitConfigFile()
 
     if (!ipsecVpnConfig_->swanctlConf_.empty()) {
         std::string swanctlCfg = Base64::Decode(ipsecVpnConfig_->swanctlConf_);
-        std::ofstream ofs(SWAN_CTL_FILE);
-        ofs << swanctlCfg;
+        if (!swanctlCfg.empty()) {
+            CommonUtils::WriteFile(SWAN_CTL_FILE, swanctlCfg);
+        }
     }
     if (!ipsecVpnConfig_->strongswanConf_.empty()) {
         std::string strongswanCfg = Base64::Decode(ipsecVpnConfig_->strongswanConf_);
-        std::ofstream ofs(SWAN_CONFIG_FILE);
-        ofs << strongswanCfg;
+        if (!strongswanCfg.empty()) {
+            CommonUtils::WriteFile(SWAN_CONFIG_FILE, strongswanCfg);
+        }
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -99,7 +96,7 @@ void IpsecVpnCtl::CleanTempFiles()
     DeleteTempFile(OPTIONS_L2TP_CLIENT);
 }
 
-void IpsecVpnCtl::DeleteTempFile(std::string fileName)
+void IpsecVpnCtl::DeleteTempFile(const std::string &fileName)
 {
     if (std::filesystem::exists(fileName)) {
         if (!std::filesystem::remove(fileName)) {
@@ -108,13 +105,12 @@ void IpsecVpnCtl::DeleteTempFile(std::string fileName)
     }
 }
 
-int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
+int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &result)
 {
-    if (errorCode != NOTIFY_CONNECT_STAGE_SUCCESS) {
-        NETMGR_EXT_LOG_E("invalid vpn stage, stage: %{public}s, error: %{public}d", stage.c_str(), errorCode);
+    if (result != NOTIFY_CONNECT_STAGE_SUCCESS) {
+        NETMGR_EXT_LOG_E("vpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    NETMGR_EXT_LOG_I("parse vpn stage, stage: %{public}s, state_: %{public}d", stage.c_str(), state_);
     switch (state_) {
         case IpsecVpnStateCode::STATE_INIT:
             if (stage.compare(IPSEC_START_TAG) == 0) {
@@ -123,7 +119,7 @@ int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
                 state_ = IpsecVpnStateCode::STATE_STARTED;
                 NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
             }
-            return NETMANAGER_EXT_SUCCESS;
+            break;
         case IpsecVpnStateCode::STATE_STARTED:
             if (stage.compare(SWANCTL_START_TAG) == 0) {
                 // 2. start connect
@@ -131,7 +127,7 @@ int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
                 state_ = IpsecVpnStateCode::STATE_CONFIGED;
                 NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
             }
-            return NETMANAGER_EXT_SUCCESS;
+            break;
         case IpsecVpnStateCode::STATE_CONFIGED:
             if (stage.compare(IPSEC_CONNECT_TAG) == 0) {
                 // 3. is connected
@@ -139,25 +135,21 @@ int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &errorCode)
                 state_ = IpsecVpnStateCode::STATE_CONNECTED;
                 NotifyConnectState(VpnConnectState::VPN_CONNECTED);
             }
-            return NETMANAGER_EXT_SUCCESS;
+            break;
         default:
             NETMGR_EXT_LOG_E("invalid state: %{public}d", state_);
             return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t IpsecVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (state_ == IpsecVpnStateCode::STATE_CONNECTED && ipsecVpnConfig_ != nullptr) {
-        NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig success.");
+        NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig success");
         sysVpnConfig = ipsecVpnConfig_;
     }
     return NETMANAGER_EXT_SUCCESS;
-}
-
-bool IpsecVpnCtl::isSysVpnImpl()
-{
-    return true;
 }
 
 bool IpsecVpnCtl::IsInternalVpn()

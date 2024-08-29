@@ -17,7 +17,6 @@
 #define L2TP_VPN_INTERFACE_H
 
 #include <cstdint>
-#include <sys/types.h>
 
 #include "net_vpn_impl.h"
 #include "ipsecvpn_config.h"
@@ -36,8 +35,7 @@ public:
     ~L2tpVpnCtl() = default;
 
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
-    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override;
-    bool isSysVpnImpl() override;
+    int32_t NotifyConnectStage(std::string &stage, int32_t &result) override;
 
 private:
 
