@@ -271,18 +271,20 @@ void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         NETMGR_EXT_LOG_E("remote object is nullptr");
         return;
     }
-    std::lock_guard lock(mutex_);
-    if (networkShareService_ == nullptr) {
-        NETMGR_EXT_LOG_E("networkShareService_ is nullptr");
-        return;
+    {
+        std::lock_guard lock(mutex_);
+        if (networkShareService_ == nullptr) {
+            NETMGR_EXT_LOG_E("networkShareService_ is nullptr");
+            return;
+        }
+        sptr<IRemoteObject> local = networkShareService_->AsObject();
+        if (local != remote.promote()) {
+            NETMGR_EXT_LOG_E("proxy and stub is not same remote object");
+            return;
+        }
+        local->RemoveDeathRecipient(deathRecipient_);
+        networkShareService_ = nullptr;
     }
-    sptr<IRemoteObject> local = networkShareService_->AsObject();
-    if (local != remote.promote()) {
-        NETMGR_EXT_LOG_E("proxy and stub is not same remote object");
-        return;
-    }
-    local->RemoveDeathRecipient(deathRecipient_);
-    networkShareService_ = nullptr;
 
     std::thread([this]() { this->RestartNetTetheringManagerSysAbility(); }).detach();
 
