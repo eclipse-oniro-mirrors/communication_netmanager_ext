@@ -66,7 +66,7 @@ constexpr const int INVALID_CODE = -1;
 const std::vector<std::string> ACCESS_PERMISSION {"ohos.permission.GET_NETWORK_INFO"};
 constexpr const char *const PARAM_KEY_STATE = "state";
 constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
-    "usual.event.netmanager.vpn.CONNECT_STATUS_VALUE";
+    "usual.event.VPN_CONNECTION_STATUS_CHANGED";
 
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
 NetworkVpnService::~NetworkVpnService()
