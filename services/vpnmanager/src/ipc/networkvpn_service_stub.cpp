@@ -223,9 +223,8 @@ int32_t NetworkVpnServiceStub::ReplyGetSysVpnConfigList(MessageParcel &data, Mes
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     for (auto &config : vpnList) {
-        if (!(reply.WriteString(config.vpnId_) &&
-                reply.WriteString(config.vpnName_) &&
-                reply.WriteInt32(config.vpnType_))) {
+        if (!(reply.WriteString(config.vpnId_) && reply.WriteString(config.vpnName_) &&
+            reply.WriteInt32(config.vpnType_))) {
             NETMGR_EXT_LOG_E("ReplyGetSysVpnConfigList write reply failed");
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }

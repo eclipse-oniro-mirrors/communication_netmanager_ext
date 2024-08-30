@@ -24,10 +24,10 @@
 
 #include "i_vpn_event_callback.h"
 #include "net_manager_ext_constants.h"
-#include "vpn_config.h"
 #ifdef SUPPORT_SYSVPN
 #include "sysvpn_config.h"
 #endif // SUPPORT_SYSVPN
+#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

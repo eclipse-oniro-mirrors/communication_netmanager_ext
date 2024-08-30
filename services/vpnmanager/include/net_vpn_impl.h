@@ -29,10 +29,10 @@
 #include "net_specifier.h"
 #include "net_supplier_info.h"
 #include "networkvpn_hisysevent.h"
-#include "vpn_config.h"
 #ifdef SUPPORT_SYSVPN
 #include "sysvpn_config.h"
 #endif // SUPPORT_SYSVPN
+#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
