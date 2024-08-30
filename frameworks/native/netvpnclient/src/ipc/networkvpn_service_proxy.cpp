@@ -168,8 +168,7 @@ int32_t NetworkVpnServiceProxy::SetUpVpn(sptr<SysVpnConfig> &config)
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     MessageParcel reply;
-    int32_t ret = 0;
-    ret = SendRequest(INetworkVpnService::MessageCode::CMD_SETUP_SYS_VPN, data, reply);
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_SETUP_SYS_VPN, data, reply);
     if (ret != ERR_NONE) {
         NETMGR_EXT_LOG_E("SetUpVpn proxy SendRequest failed, error code: [%{public}d]", ret);
         return ret;
