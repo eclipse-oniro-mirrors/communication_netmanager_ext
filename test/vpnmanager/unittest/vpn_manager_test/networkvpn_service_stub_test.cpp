@@ -386,7 +386,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetConnectedSysVpnConfigTest001, TestSi
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(NetworkVpnServiceStubTest, ReplyReplyNotifyConnectStageTest001, TestSize.Level1)
+HWTEST_F(NetworkVpnServiceStubTest, ReplyNotifyConnectStageTest001, TestSize.Level1)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
