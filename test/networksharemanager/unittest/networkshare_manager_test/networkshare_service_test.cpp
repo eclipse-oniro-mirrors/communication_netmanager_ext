@@ -20,8 +20,6 @@
 #endif
 
 #include "net_manager_constants.h"
-#include "xcollie/xcollie.h"
-#include "xcollie/xcollie_define.h"
 #include "netmanager_ext_test_security.h"
 #include "networkshare_constants.h"
 #include "networkshare_service.h"
