@@ -688,6 +688,8 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
         NETMGR_EXT_LOG_E("CreateSysVpnCtl failed, param is null");
         return nullptr;
     }
+
+    std::lock_guard<std::mutex> guard(systemVpnMutex_);
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
@@ -751,6 +753,8 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
     NETMGR_EXT_LOG_I("AddSysVpnConfig id=%{public}s name=%{public}s type=%{public}d",
         config->vpnId_.c_str(), config->vpnName_.c_str(), config->vpnType_);
     config->userId_ = userId;
+
+    std::lock_guard<std::mutex> guard(systemVpnMutex_);
     sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
@@ -807,6 +811,8 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
     }
 
     NETMGR_EXT_LOG_I("GetSysVpnConfig id=%{public}s", vpnId.c_str());
+
+    std::lock_guard<std::mutex> guard(systemVpnMutex_);
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");

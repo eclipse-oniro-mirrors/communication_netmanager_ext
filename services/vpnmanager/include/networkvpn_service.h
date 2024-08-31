@@ -293,6 +293,9 @@ private:
     void RemoveALLClientDeathRecipient();
 
     std::mutex remoteMutex_;
+#ifdef SUPPORT_SYSVPN
+    std::mutex systemVpnMutex_;
+#endif // SUPPORT_SYSVPN
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
 };
