@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace VpnDatabaseDefines {
-constexpr const char *VPN_DATABASE_PATH = "/data/service/el1/public/netmanager/vpn_data.db";
+constexpr const char *VPN_DATABASE_PATH = "/data/service/el1/public/vpn/vpn_data.db";
 constexpr const char *VPN_CONFIG_TABLE_CREATE_PARAM = "vpnId TEXT PRIMARY KEY NOT NULL,"
     "vpnName TEXT NOT NULL,"
     "vpnType INTEGER NOT NULL,"

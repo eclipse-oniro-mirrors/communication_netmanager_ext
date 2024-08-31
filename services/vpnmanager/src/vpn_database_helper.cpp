@@ -19,9 +19,9 @@
 #include <filesystem>
 
 #include "net_manager_constants.h"
+#include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "vpn_database_defines.h"
-#include "net_manager_ext_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -43,6 +43,12 @@ bool CheckFilePath(const std::string &fileName)
     return true;
 }
 } // namespace
+
+VpnDatabaseHelper &VpnDatabaseHelper::GetInstance()
+{
+    static VpnDatabaseHelper instance;
+    return instance;
+}
 
 VpnDatabaseHelper::VpnDatabaseHelper()
 {
@@ -86,9 +92,9 @@ int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32
     return NETMANAGER_EXT_SUCCESS;
 }
 
-
 int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 {
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("InsertOrUpdateData vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
@@ -98,7 +104,6 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
     }
     return InsertData(vpnBean);
 }
-
 
 bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId)
 {
@@ -271,6 +276,7 @@ void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::Nati
 
 int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid)
 {
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     NETMGR_EXT_LOG_I("QueryVpnData vpnUuid=%{public}s", vpnUuid.c_str());
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData store_ is nullptr");
@@ -309,6 +315,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
 
 int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId)
 {
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     NETMGR_EXT_LOG_I("QueryAllData");
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryAllData store_ is nullptr");
@@ -344,6 +351,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const 
 
 int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
 {
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     NETMGR_EXT_LOG_I("DeleteVpnData");
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("DeleteVpnData store_ is nullptr");

@@ -20,7 +20,6 @@
 #include <functional>
 #include <string>
 
-#include "vpn_data_bean.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "rdb_common.h"
@@ -30,35 +29,35 @@
 #include "rdb_predicates.h"
 #include "rdb_store.h"
 #include "result_set.h"
+#include "vpn_data_bean.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class VpnDatabaseHelper {
 public:
-    VpnDatabaseHelper();
-    ~VpnDatabaseHelper() = default;
-
-    int32_t InsertData(const sptr<VpnDataBean> &vpnBean);
+    static VpnDatabaseHelper &GetInstance();
     int32_t InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean);
-    bool IsVpnInfoExists(std::string &vpnId);
     int32_t QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid);
     int32_t QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId);
     int32_t DeleteVpnData(const std::string &vpnUuid);
-    int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
 
 private:
+    VpnDatabaseHelper();
+    ~VpnDatabaseHelper() = default;
+    int32_t InsertData(const sptr<VpnDataBean> &vpnBean);
+    int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
+    bool IsVpnInfoExists(std::string &vpnId);
     void GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
         sptr<VpnDataBean> &vpnBean);
     void BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info);
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_;
+    std::mutex vpnDbMutex_;
 };
 
 class VpnDataBaseCallBack : public OHOS::NativeRdb::RdbOpenCallback {
 public:
     int32_t OnCreate(OHOS::NativeRdb::RdbStore &rdbStore) override;
-
     int32_t OnUpgrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t oldVersion, int32_t newVersion) override;
-
     int32_t OnDowngrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t currentVersion, int32_t targetVersion) override;
 };
 } // namespace NetManagerStandard

@@ -238,10 +238,6 @@ private:
     bool isServicePublished_ = false;
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
-#ifdef SUPPORT_SYSVPN
-    std::shared_ptr<VpnDatabaseHelper> vpnDbHelper_;
-#endif // SUPPORT_SYSVPN
-
     std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
     std::shared_ptr<ffrt::queue> networkVpnServiceFfrtQueue_ = nullptr;
     std::mutex netVpnMutex_;

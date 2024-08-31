@@ -142,9 +142,6 @@ bool NetworkVpnService::Init()
 
     vpnHapObserver_ = new VpnHapObserver(*this);
     RegisterFactoryResetCallback();
-#ifdef SUPPORT_SYSVPN
-    vpnDbHelper_ = std::make_shared<VpnDatabaseHelper>();
-#endif // SUPPORT_SYSVPN
     return true;
 }
 
@@ -687,7 +684,7 @@ int32_t NetworkVpnService::SetUpVpn(sptr<SysVpnConfig> &config)
 std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
     sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
 {
-    if (config == nullptr || vpnDbHelper_ == nullptr) {
+    if (config == nullptr) {
         NETMGR_EXT_LOG_E("CreateSysVpnCtl failed, param is null");
         return nullptr;
     }
@@ -696,7 +693,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return nullptr;
     }
-    int32_t result = vpnDbHelper_->QueryVpnData(vpnBean, config->vpnId_);
+    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, config->vpnId_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("query vpn data failed");
         return nullptr;
@@ -742,10 +739,7 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("config is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnDbHelper_ is null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -762,7 +756,7 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    return vpnDbHelper_->InsertOrUpdateData(vpnBean);
+    return VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
 }
 
 int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
@@ -771,10 +765,7 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
         NETMGR_EXT_LOG_E("vpnId is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnDbHelper is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -784,15 +775,11 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
     }
 
     NETMGR_EXT_LOG_I("DeleteSysVpnConfig id=%{public}s", vpnId.c_str());
-    return vpnDbHelper_->DeleteVpnData(vpnId);
+    return VpnDatabaseHelper::GetInstance().DeleteVpnData(vpnId);
 }
 
 int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnDbHelper is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -801,7 +788,7 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
         return ret;
     }
     NETMGR_EXT_LOG_I("NetworkVpnService GetSysVpnConfigList");
-    return vpnDbHelper_->QueryAllData(vpnList, userId);
+    return VpnDatabaseHelper::GetInstance().QueryAllData(vpnList, userId);
 }
 
 int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
@@ -810,10 +797,7 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
         NETMGR_EXT_LOG_E("vpnId is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnDbHelper_ is null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -828,7 +812,7 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::stri
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    int32_t result = vpnDbHelper_->QueryVpnData(vpnBean, vpnId);
+    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, vpnId);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("QueryVpnData failed, result = %{public}d", result);
         return result;
