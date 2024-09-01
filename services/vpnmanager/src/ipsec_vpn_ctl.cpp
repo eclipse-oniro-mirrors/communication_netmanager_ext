@@ -25,9 +25,9 @@
 namespace OHOS {
 namespace NetManagerStandard {
 IpsecVpnCtl::IpsecVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId,
-    std::vector<int32_t> &activeUserIds) : NetVpnImpl(config, pkg, userId, activeUserIds)
-{
-}
+    std::vector<int32_t> &activeUserIds)
+    : NetVpnImpl(config, pkg, userId, activeUserIds)
+{}
 
 IpsecVpnCtl::~IpsecVpnCtl()
 {
@@ -105,8 +105,12 @@ void IpsecVpnCtl::DeleteTempFile(const std::string &fileName)
     }
 }
 
-int32_t IpsecVpnCtl::NotifyConnectStage(std::string &stage, int32_t &result)
+int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &result)
 {
+    if (stage.empty()) {
+        NETMGR_EXT_LOG_E("stage is empty");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     if (result != NOTIFY_CONNECT_STAGE_SUCCESS) {
         NETMGR_EXT_LOG_E("vpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
         return NETMANAGER_EXT_ERR_INTERNAL;

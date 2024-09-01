@@ -146,6 +146,10 @@ void SetUpContext::ParseParams(napi_value *params, size_t paramsCount)
 bool SetUpContext::ParseVpnConfig(napi_value *params)
 {
 #ifdef SUPPORT_SYSVPN
+    if (params == nullptr) {
+        NETMGR_EXT_LOG_E("params is nullptr");
+        return false;
+    }
     if (NapiUtils::HasNamedProperty(GetEnv(), params[0], "vpnId")) {
         sysVpnConfig_ = new (std::nothrow) SysVpnConfig();
         if (sysVpnConfig_ == nullptr) {

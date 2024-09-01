@@ -60,7 +60,7 @@ public:
     int32_t SetUp() override;
     int32_t Destroy() override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
-    int32_t NotifyConnectStage(std::string &stage, int32_t &result) override;
+    int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
 
 protected:
     int32_t state_ = STATE_INIT;

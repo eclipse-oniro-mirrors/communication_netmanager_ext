@@ -97,7 +97,7 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
     std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("InsertOrUpdateData vpnBean is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     if (IsVpnInfoExists(vpnBean->vpnId_)) {
         return UpdateData(vpnBean);
@@ -105,10 +105,14 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
     return InsertData(vpnBean);
 }
 
-bool VpnDatabaseHelper::IsVpnInfoExists(std::string &vpnId)
+bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)
 {
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("IsVpnInfoExists store_ is nullptr");
+        return false;
+    }
+    if (vpnId.empty()) {
+        NETMGR_EXT_LOG_E("IsVpnInfoExists vpnId is empty");
         return false;
     }
     std::vector<std::string> columns;
@@ -187,7 +191,7 @@ int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &vpnBean)
     }
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("UpdateData vpnBean is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     NativeRdb::ValuesBucket values;
     BindVpnData(values, vpnBean);
@@ -208,7 +212,7 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &vpnBean)
     }
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("UpdateData vpnBean is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     NETMGR_EXT_LOG_I("UpdateData");
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
@@ -284,7 +288,11 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     }
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData vpnBean is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    if (vpnUuid.empty()) {
+        NETMGR_EXT_LOG_E("QueryVpnData vpnUuid is empty");
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     std::vector<std::string> columns;
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
@@ -353,6 +361,10 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
 {
     std::lock_guard<std::mutex> guard(vpnDbMutex_);
     NETMGR_EXT_LOG_I("DeleteVpnData");
+    if (vpnUuid.empty()) {
+        NETMGR_EXT_LOG_E("DeleteVpnData vpnUuid is empty");
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("DeleteVpnData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;

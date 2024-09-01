@@ -649,7 +649,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
-int32_t NetworkVpnService::SetUpVpn(sptr<SysVpnConfig> &config)
+int32_t NetworkVpnService::SetUpVpn(const sptr<SysVpnConfig> &config)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("config is null.");
@@ -682,7 +682,7 @@ int32_t NetworkVpnService::SetUpVpn(sptr<SysVpnConfig> &config)
 }
 
 std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
-    sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
+    const sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("CreateSysVpnCtl failed, param is null");
@@ -763,7 +763,7 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
     return VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
 }
 
-int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
+int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
 {
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("vpnId is null");
@@ -795,7 +795,7 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
     return VpnDatabaseHelper::GetInstance().QueryAllData(vpnList, userId);
 }
 
-int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
+int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
 {
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("vpnId is null");
@@ -846,7 +846,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     return vpnObj_->GetConnectedSysVpnConfig(config);
 }
 
-int32_t NetworkVpnService::NotifyConnectStage(std::string &stage, int32_t &result)
+int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const int32_t &result)
 {
     uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
     if (callingUid != UID_NET_SYS_NATIVE) {

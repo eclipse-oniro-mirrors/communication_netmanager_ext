@@ -102,7 +102,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t SetUpVpn(sptr<SysVpnConfig> &config);
+    int32_t SetUpVpn(const sptr<SysVpnConfig> &config);
 
     /**
      * save vpn
@@ -122,7 +122,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t DeleteSysVpnConfig(std::string &vpnId);
+    int32_t DeleteSysVpnConfig(const std::string &vpnId);
 
     /**
      * get vpn list
@@ -143,7 +143,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId);
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId);
 
     /**
      * get connected vpn

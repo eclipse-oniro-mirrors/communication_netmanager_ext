@@ -26,6 +26,10 @@ namespace NetManagerStandard {
 namespace VpnConfigUtils {
 bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpnConfig)
 {
+    if (params == nullptr) {
+        NETMGR_EXT_LOG_E("ParseSysVpnConfig failed, params is null");
+        return false;
+    }
     int vpnType = -1;
     GetInt32FromJsOptionItem(env, params[0], CONFIG_VPN_TYPE, vpnType);
     switch (vpnType) {

@@ -59,6 +59,10 @@ bool ExecSetUp(SetUpContext *context)
     }
     int32_t result = NETMANAGER_EXT_SUCCESS;
 #ifdef SUPPORT_SYSVPN
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
     if (context->sysVpnConfig_ != nullptr) {
         // is system vpn
         result = vpnClient->SetUpVpn(context->sysVpnConfig_);
@@ -108,6 +112,10 @@ bool ExecDestroy(DestroyContext *context)
 #ifdef SUPPORT_SYSVPN
 bool ExecAddSysVpnConfig(AddContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
     int32_t result = NetworkVpnClient::GetInstance().AddSysVpnConfig(context->vpnConfig_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
@@ -118,6 +126,10 @@ bool ExecAddSysVpnConfig(AddContext *context)
 
 bool ExecDeleteSysVpnConfig(DeleteContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
     int32_t result = NetworkVpnClient::GetInstance().DeleteSysVpnConfig(context->vpnId_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
@@ -128,6 +140,10 @@ bool ExecDeleteSysVpnConfig(DeleteContext *context)
 
 bool ExecGetSysVpnConfigList(GetListContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
     int32_t result = NetworkVpnClient::GetInstance().GetSysVpnConfigList(context->vpnList_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
@@ -138,6 +154,10 @@ bool ExecGetSysVpnConfigList(GetListContext *context)
 
 bool ExecGetSysVpnConfig(GetContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
     int32_t result = NetworkVpnClient::GetInstance().GetSysVpnConfig(context->vpnConfig_, context->vpnId_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
@@ -148,6 +168,10 @@ bool ExecGetSysVpnConfig(GetContext *context)
 
 bool ExecGetConnectedSysVpnConfig(GetConnectedContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
     int32_t result = NetworkVpnClient::GetInstance().GetConnectedSysVpnConfig(context->vpnConfig_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
@@ -184,21 +208,37 @@ napi_value DestroyCallback(DestroyContext *context)
 #ifdef SUPPORT_SYSVPN
 napi_value AddSysVpnConfigCallback(AddContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return nullptr;
+    }
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
 napi_value DeleteSysVpnConfigCallback(DeleteContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return nullptr;
+    }
     return NapiUtils::GetUndefined(context->GetEnv());
 }
 
 napi_value GetSysVpnConfigCallback(GetContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return nullptr;
+    }
     return VpnConfigUtils::CreateNapiVpnConfig(context->GetEnv(), context->vpnConfig_);
 }
 
 napi_value GetSysVpnConfigListCallback(GetListContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return nullptr;
+    }
     int32_t index = 0;
     auto len = context->vpnList_.size();
     napi_value array = NapiUtils::CreateArray(context->GetEnv(), len);
@@ -214,6 +254,10 @@ napi_value GetSysVpnConfigListCallback(GetListContext *context)
 
 napi_value GetConnectedSysVpnConfigCallback(GetConnectedContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return nullptr;
+    }
     return VpnConfigUtils::CreateNapiVpnConfig(context->GetEnv(), context->vpnConfig_);
 }
 #endif // SUPPORT_SYSVPN

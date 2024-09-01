@@ -150,7 +150,7 @@ int32_t NetworkVpnServiceProxy::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
-int32_t NetworkVpnServiceProxy::SetUpVpn(sptr<SysVpnConfig> &config)
+int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<SysVpnConfig> &config)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("SetUpVpn failed, config is null");
@@ -210,7 +210,7 @@ int32_t NetworkVpnServiceProxy::AddSysVpnConfig(sptr<SysVpnConfig> &config)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(std::string &vpnId)
+int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(const std::string &vpnId)
 {
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("DeleteSysVpnConfig failed, vpnId is empty");
@@ -268,7 +268,7 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfigList(std::vector<SysVpnConfig> &v
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
+int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
 {
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("GetSysVpnConfig failed, vpnId is empty");
@@ -317,7 +317,7 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnServiceProxy::NotifyConnectStage(std::string &stage, int32_t &result)
+int32_t NetworkVpnServiceProxy::NotifyConnectStage(const std::string &stage, const int32_t &result)
 {
     NETMGR_EXT_LOG_I("NotifyConnectStage stage=%{public}s result=%{public}d", stage.c_str(), result);
     return NETMANAGER_EXT_SUCCESS;
