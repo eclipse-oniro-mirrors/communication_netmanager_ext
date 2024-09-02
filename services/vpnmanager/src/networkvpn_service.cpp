@@ -677,7 +677,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("SetUpVpn register internal callback failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
+    NETMGR_EXT_LOG_I("SystemVpn SetUp");
     return vpnObj_->SetUp();
 }
 
@@ -753,7 +753,6 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         config->vpnId_.c_str(), config->vpnName_.c_str(), config->vpnType_);
     config->userId_ = userId;
 
-    std::lock_guard<std::mutex> guard(systemVpnMutex_);
     sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
@@ -790,14 +789,14 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
         NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
         return ret;
     }
-    NETMGR_EXT_LOG_I("NetworkVpnService GetSysVpnConfigList");
+    NETMGR_EXT_LOG_I("SystemVpn GetSysVpnConfigList");
     return VpnDatabaseHelper::GetInstance().QueryAllData(vpnList, userId);
 }
 
 int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("vpnId is null");
+        NETMGR_EXT_LOG_E("vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
 
@@ -810,8 +809,6 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std
     }
 
     NETMGR_EXT_LOG_I("GetSysVpnConfig id=%{public}s", vpnId.c_str());
-
-    std::lock_guard<std::mutex> guard(systemVpnMutex_);
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
@@ -841,7 +838,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig is null. maybe not setup yet");
         return NETMANAGER_EXT_SUCCESS;
     }
-    NETMGR_EXT_LOG_I("NetworkVpnService GetConnectedSysVpnConfig");
+    NETMGR_EXT_LOG_I("SystemVpn GetConnectedSysVpnConfig");
     return vpnObj_->GetConnectedSysVpnConfig(config);
 }
 

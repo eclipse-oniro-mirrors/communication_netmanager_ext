@@ -36,7 +36,7 @@ bool AddContext::CheckParamsType(napi_env env, napi_value *params, size_t params
             return (NapiUtils::GetValueType(env, params[0]) == napi_object);
         case PARAM_OPTIONS_AND_CALLBACK:
             return ((NapiUtils::GetValueType(env, params[0]) == napi_object) &&
-                    (NapiUtils::GetValueType(env, params[1]) == napi_function));
+                (NapiUtils::GetValueType(env, params[1]) == napi_function));
         default:
             return false;
     }

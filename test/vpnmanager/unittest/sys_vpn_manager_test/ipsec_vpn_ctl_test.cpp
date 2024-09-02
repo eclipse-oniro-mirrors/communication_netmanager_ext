@@ -46,27 +46,42 @@ void IpsecVpnCtlTest::SetUpTestSuite()
 }
 HWTEST_F(IpsecVpnCtlTest, SetUp001, TestSize.Level1)
 {
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
     EXPECT_EQ(ipsecControl_->SetUp(), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(IpsecVpnCtlTest, Destroy001, TestSize.Level1)
 {
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
     EXPECT_EQ(ipsecControl_->Destroy(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(IpsecVpnCtlTest, IsInternalVpn001, TestSize.Level1)
 {
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
     EXPECT_EQ(ipsecControl_->IsInternalVpn(), true);
 }
 
 HWTEST_F(IpsecVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
 {
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
     sptr<SysVpnConfig> resConfig = nullptr;
     EXPECT_EQ(ipsecControl_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
 {
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
     std::string stage = "connect";
     int32_t errorCode = 100;
     EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);

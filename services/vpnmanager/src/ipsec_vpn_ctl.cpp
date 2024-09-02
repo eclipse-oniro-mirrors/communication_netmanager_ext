@@ -100,7 +100,7 @@ void IpsecVpnCtl::DeleteTempFile(const std::string &fileName)
 {
     if (std::filesystem::exists(fileName)) {
         if (!std::filesystem::remove(fileName)) {
-            NETMGR_EXT_LOG_I("remove %{public}s failed", fileName.c_str());
+            NETMGR_EXT_LOG_E("remove old cache file failed");
         }
     }
 }

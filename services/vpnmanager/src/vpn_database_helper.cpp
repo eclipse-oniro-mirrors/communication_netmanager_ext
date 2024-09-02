@@ -37,7 +37,7 @@ bool CheckFilePath(const std::string &fileName)
         return false;
     }
     if (strcmp(tmpPath, dir.c_str()) != 0) {
-        NETMGR_EXT_LOG_E("file name is illegal fileName");
+        NETMGR_EXT_LOG_E("file name is illegal");
         return false;
     }
     return true;
@@ -61,7 +61,7 @@ VpnDatabaseHelper::VpnDatabaseHelper()
     VpnDataBaseCallBack sqliteOpenHelperCallback;
     store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
     if (errCode != OHOS::NativeRdb::E_OK) {
-        NETMGR_EXT_LOG_E("GetRdbStore errCode :%{public}d", errCode);
+        NETMGR_EXT_LOG_E("GetRdbStore failed. errCode :%{public}d", errCode);
     } else {
         NETMGR_EXT_LOG_I("GetRdbStore success");
     }
@@ -94,11 +94,12 @@ int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32
 
 int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 {
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("InsertOrUpdateData vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
+
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (IsVpnInfoExists(vpnBean->vpnId_)) {
         return UpdateData(vpnBean);
     }
@@ -107,14 +108,15 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 
 bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)
 {
-    if (store_ == nullptr) {
-        NETMGR_EXT_LOG_E("IsVpnInfoExists store_ is nullptr");
-        return false;
-    }
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("IsVpnInfoExists vpnId is empty");
         return false;
     }
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("IsVpnInfoExists store_ is nullptr");
+        return false;
+    }
+
     std::vector<std::string> columns;
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnId);
@@ -123,10 +125,11 @@ bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)
         NETMGR_EXT_LOG_E("Query error");
         return false;
     }
+
     int32_t rowCount = 0;
-    int ret = queryResultSet->GetRowCount(rowCount);
+    int32_t ret = queryResultSet->GetRowCount(rowCount);
     if (ret != OHOS::NativeRdb::E_OK) {
-        NETMGR_EXT_LOG_E("query setting failed, get row count failed, ret:%{public}d", ret);
+        NETMGR_EXT_LOG_E("get row count failed, ret:%{public}d", ret);
         return false;
     }
     return rowCount == 1;
@@ -135,7 +138,7 @@ bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)
 void VpnDatabaseHelper::BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info)
 {
     if (info == nullptr) {
-        NETMGR_EXT_LOG_E("BindVpnData params is nullptr");
+        NETMGR_EXT_LOG_E("BindVpnData info is nullptr");
         return;
     }
     values.PutString(VPN_ID, info->vpnId_);
@@ -185,14 +188,15 @@ void VpnDatabaseHelper::BindVpnData(NativeRdb::ValuesBucket &values, const sptr<
 int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &vpnBean)
 {
     NETMGR_EXT_LOG_I("InsertData");
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("InsertData vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("InsertData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
-    if (vpnBean == nullptr) {
-        NETMGR_EXT_LOG_E("UpdateData vpnBean is nullptr");
-        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
-    }
+
     NativeRdb::ValuesBucket values;
     BindVpnData(values, vpnBean);
     int64_t rowId = 0;
@@ -280,12 +284,6 @@ void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::Nati
 
 int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid)
 {
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
-    NETMGR_EXT_LOG_I("QueryVpnData vpnUuid=%{public}s", vpnUuid.c_str());
-    if (store_ == nullptr) {
-        NETMGR_EXT_LOG_E("QueryVpnData store_ is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    }
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
@@ -294,6 +292,14 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
         NETMGR_EXT_LOG_E("QueryVpnData vpnUuid is empty");
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
+
+    NETMGR_EXT_LOG_I("QueryVpnData vpnUuid=%{public}s", vpnUuid.c_str());
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("QueryVpnData store_ is nullptr");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
+
     std::vector<std::string> columns;
     OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnUuid);
@@ -323,8 +329,8 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
 
 int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId)
 {
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     NETMGR_EXT_LOG_I("QueryAllData");
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryAllData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
@@ -359,12 +365,13 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const 
 
 int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
 {
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     NETMGR_EXT_LOG_I("DeleteVpnData");
     if (vpnUuid.empty()) {
         NETMGR_EXT_LOG_E("DeleteVpnData vpnUuid is empty");
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
+
+    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("DeleteVpnData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;

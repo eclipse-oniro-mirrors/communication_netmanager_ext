@@ -64,7 +64,6 @@ public:
 
 protected:
     int32_t state_ = STATE_INIT;
-
     virtual int32_t StartSysVpn();
     virtual int32_t StopSysVpn();
     virtual int32_t InitConfigFile();

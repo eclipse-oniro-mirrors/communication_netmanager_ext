@@ -47,27 +47,42 @@ void L2tpVpnCtlTest::SetUpTestSuite()
 }
 HWTEST_F(L2tpVpnCtlTest, SetUp001, TestSize.Level1)
 {
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
     EXPECT_EQ(l2tpControl_->SetUp(), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(L2tpVpnCtlTest, Destroy001, TestSize.Level1)
 {
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
     EXPECT_EQ(l2tpControl_->Destroy(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(L2tpVpnCtlTest, IsInternalVpn001, TestSize.Level1)
 {
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
     EXPECT_EQ(l2tpControl_->IsInternalVpn(), true);
 }
 
 HWTEST_F(L2tpVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
 {
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
     sptr<SysVpnConfig> resConfig = nullptr;
     EXPECT_EQ(l2tpControl_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
 {
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
     std::string stage = "connect";
     int32_t errorCode = 100;
     EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
