@@ -689,7 +689,6 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
         return nullptr;
     }
 
-    std::lock_guard<std::mutex> guard(systemVpnMutex_);
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
