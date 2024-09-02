@@ -156,7 +156,7 @@ int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("SetUpVpn failed, config is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    NETMGR_EXT_LOG_I("NetworkVpnServiceProxy SetUpVpn id=%{public}s", config->vpnId_.c_str());
+    NETMGR_EXT_LOG_I("SetUpVpn id=%{public}s", config->vpnId_.c_str());
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("write interface token failed");

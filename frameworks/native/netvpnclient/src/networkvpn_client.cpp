@@ -144,7 +144,7 @@ int32_t NetworkVpnClient::SetUpVpn(const sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("SetUpVpn proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    NETMGR_EXT_LOG_I("NetworkVpnClient SetUpVpn id=%{public}s", config->vpnId_.c_str());
+    NETMGR_EXT_LOG_I("SetUpVpn id=%{public}s", config->vpnId_.c_str());
     return proxy->SetUpVpn(config);
 }
 
