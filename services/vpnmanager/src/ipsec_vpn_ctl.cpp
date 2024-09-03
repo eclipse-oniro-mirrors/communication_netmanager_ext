@@ -50,7 +50,6 @@ int32_t IpsecVpnCtl::StopSysVpn()
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
     NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_DOWN_HOME);
     NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
-    NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -138,6 +137,14 @@ int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t 
                 NETMGR_EXT_LOG_I("ipsec vpn setup step 3: is connected");
                 state_ = IpsecVpnStateCode::STATE_CONNECTED;
                 NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+            }
+            break;
+        case IpsecVpnStateCode::STATE_CONNECTED:
+            if (stage.compare(IPSEC_STOP_TAG) == 0) {
+                // stop system vpn
+                NETMGR_EXT_LOG_I("ipsec vpn stop ");
+                state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
+                NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
             }
             break;
         default:

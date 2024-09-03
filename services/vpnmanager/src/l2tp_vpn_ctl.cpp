@@ -35,7 +35,6 @@ int32_t L2tpVpnCtl::StopSysVpn()
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
     NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_DOWN_HOME);
     NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
-    NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -129,6 +128,14 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
                 NETMGR_EXT_LOG_I("l2tp vpn setup step 4: is connected");
                 state_ = IpsecVpnStateCode::STATE_CONNECTED;
                 NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+            }
+            break;
+        case IpsecVpnStateCode::STATE_CONNECTED:
+            if (stage.compare(IPSEC_STOP_TAG) == 0) {
+                // stop system vpn
+                NETMGR_EXT_LOG_I("l2tp vpn stop ");
+                state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
+                NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
             }
             break;
         default:
