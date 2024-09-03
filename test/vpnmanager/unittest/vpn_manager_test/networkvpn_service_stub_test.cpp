@@ -305,6 +305,9 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest002, TestSize.Level1
         return;
     }
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        retrun;
+    }
     config->vpnId_ = "1234";
     config->vpnName_ = "test";
     config->vpnType_ = 1;

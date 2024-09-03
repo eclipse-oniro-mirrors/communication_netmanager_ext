@@ -57,6 +57,10 @@ sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBea
     ipsecVpnConfig->vpnName_ = vpnBean->vpnName_;
     ipsecVpnConfig->vpnType_ = vpnBean->vpnType_;
     sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    if (netAddr == nullptr) {
+        NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig netAddr is null");
+        return nullptr;
+    }
     netAddr->address_ = vpnBean->vpnAddress_;
     ipsecVpnConfig->addresses_.push_back(*netAddr);
     ipsecVpnConfig->userName_ = vpnBean->userName_;
@@ -100,6 +104,10 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
     l2tpVpnConfig->vpnName_ = vpnBean->vpnName_;
     l2tpVpnConfig->vpnType_ = vpnBean->vpnType_;
     sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    if (netAddr == nullptr) {
+        NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig netAddr is null");
+        return nullptr;
+    }
     netAddr->address_ = vpnBean->vpnAddress_;
     l2tpVpnConfig->addresses_.push_back(*netAddr);
     l2tpVpnConfig->userName_ = vpnBean->userName_;
