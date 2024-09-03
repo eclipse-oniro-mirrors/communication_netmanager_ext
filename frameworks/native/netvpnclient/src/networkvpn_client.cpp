@@ -165,7 +165,7 @@ int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 int32_t NetworkVpnClient::DeleteSysVpnConfig(const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     sptr<INetworkVpnService> proxy = GetProxy();
@@ -189,7 +189,7 @@ int32_t NetworkVpnClient::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList
 int32_t NetworkVpnClient::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     sptr<INetworkVpnService> proxy = GetProxy();

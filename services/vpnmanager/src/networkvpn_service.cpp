@@ -764,7 +764,7 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("vpnId is null");
+        NETMGR_EXT_LOG_E("vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
 
