@@ -51,7 +51,6 @@ private:
         sptr<VpnDataBean> &vpnBean);
     void BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info);
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_;
-    std::mutex vpnDbMutex_;
 };
 
 class VpnDataBaseCallBack : public OHOS::NativeRdb::RdbOpenCallback {

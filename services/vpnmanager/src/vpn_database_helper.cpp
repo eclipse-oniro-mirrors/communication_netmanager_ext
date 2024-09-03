@@ -99,7 +99,6 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
 
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (IsVpnInfoExists(vpnBean->vpnId_)) {
         return UpdateData(vpnBean);
     }
@@ -294,7 +293,6 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     }
 
     NETMGR_EXT_LOG_I("QueryVpnData vpnUuid=%{public}s", vpnUuid.c_str());
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
@@ -330,7 +328,6 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
 int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId)
 {
     NETMGR_EXT_LOG_I("QueryAllData");
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("QueryAllData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
@@ -371,7 +368,6 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
 
-    std::lock_guard<std::mutex> guard(vpnDbMutex_);
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("DeleteVpnData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
