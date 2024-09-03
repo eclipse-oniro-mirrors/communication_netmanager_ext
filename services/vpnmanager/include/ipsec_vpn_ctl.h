@@ -37,7 +37,6 @@ const std::string OPTIONS_L2TP_CLIENT = IPSEC_PIDDIR "/options.l2tpd.client.conf
 const std::string IPSEC_START_TAG = "start";
 const std::string SWANCTL_START_TAG = "config";
 const std::string IPSEC_CONNECT_TAG = "connect";
-const std::string IPSEC_STOP_TAG = "stop";
 const int32_t NOTIFY_CONNECT_STAGE_SUCCESS = 100;
 } // namespace
 using namespace NetsysNative;
