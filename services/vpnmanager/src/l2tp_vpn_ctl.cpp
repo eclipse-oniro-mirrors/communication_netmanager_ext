@@ -119,8 +119,12 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
             if (stage.compare(IPSEC_CONNECT_TAG) == 0) {
                 // 3. set stage IPSEC_L2TP_CTL
                 NETMGR_EXT_LOG_I("l2tp vpn setup step 3: set stage IPSEC_L2TP_CTL");
+                state_ = IpsecVpnStateCode::STATE_CONTROLLED;
                 NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL);
-            } else if (stage.compare(L2TP_IPSEC_CONNECTED_TAG) == 0) {
+            }
+            break;
+        case IpsecVpnStateCode::STATE_CONTROLLED:
+            if (stage.compare(L2TP_IPSEC_CONNECTED_TAG) == 0) {
                 // 4. is connected
                 NETMGR_EXT_LOG_I("l2tp vpn setup step 4: is connected");
                 state_ = IpsecVpnStateCode::STATE_CONNECTED;
@@ -142,5 +146,5 @@ int32_t L2tpVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
     }
     return NETMANAGER_EXT_SUCCESS;
 }
-}
-}
+} // namespace NetManagerStandard
+} // namespace OHOS

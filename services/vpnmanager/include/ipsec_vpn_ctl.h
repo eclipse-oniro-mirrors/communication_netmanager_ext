@@ -44,6 +44,7 @@ enum IpsecVpnStateCode {
     STATE_INIT = 0,
     STATE_STARTED,      // ipsec restart compelete
     STATE_CONFIGED,     // swanctl load files compelete or xl2tpd start
+    STATE_CONTROLLED,   // control pppd startup
     STATE_CONNECTED,    // ipsec up home or pppd started
     STATE_DISCONNECTED, // stop
 };

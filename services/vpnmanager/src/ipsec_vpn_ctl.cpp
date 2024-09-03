@@ -160,5 +160,5 @@ bool IpsecVpnCtl::IsInternalVpn()
 {
     return true;
 }
-}
-}
+} // namespace NetManagerStandard
+} // namespace OHOS
