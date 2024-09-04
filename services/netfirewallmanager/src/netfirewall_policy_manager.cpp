@@ -149,7 +149,9 @@ int32_t NetFirewallPolicyManager::ClearFirewallPolicy(const int32_t userId)
 
 int32_t NetFirewallPolicyManager::ClearCurrentFirewallPolicy()
 {
-    return ClearFirewallPolicy(currentUserId_);
+    std::lock_guard<std::shared_mutex> locker(setPolicyMutex_);
+    currentFirewallPolicy_ = nullptr;
+    return FIREWALL_SUCCESS;
 }
 
 FirewallRuleAction NetFirewallPolicyManager::GetFirewallPolicyInAction()
