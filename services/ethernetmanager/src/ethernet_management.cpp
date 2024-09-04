@@ -124,10 +124,6 @@ EthernetManagement::EthernetManagement()
     }
 
     ethDevInterfaceStateCallback_ = new (std::nothrow) DevInterfaceStateCallback(*this);
-    if (ethDevInterfaceStateCallback_ != nullptr) {
-        NetsysController::GetInstance().RegisterCallback(ethDevInterfaceStateCallback_);
-    }
-
     ethConfiguration_ = std::make_unique<EthernetConfiguration>();
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
     ethLanManageMent_ = std::make_unique<EthernetLanManagement>();
@@ -322,6 +318,11 @@ int32_t EthernetManagement::ResetFactory()
 
 void EthernetManagement::Init()
 {
+    static const unsigned int SLEEP_TIME = 4;
+    std::this_thread::sleep_for(std::chrono::seconds(SLEEP_TIME));
+    if (ethDevInterfaceStateCallback_ != nullptr) {
+        NetsysController::GetInstance().RegisterCallback(ethDevInterfaceStateCallback_);
+    }
     std::regex re(IFACE_MATCH);
     std::vector<std::string> ifaces = NetsysController::GetInstance().InterfaceGetList();
     if (ifaces.empty()) {
