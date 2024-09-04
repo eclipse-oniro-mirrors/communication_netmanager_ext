@@ -17,7 +17,6 @@
 
 #include "sysvpn_config.h"
 
-
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {

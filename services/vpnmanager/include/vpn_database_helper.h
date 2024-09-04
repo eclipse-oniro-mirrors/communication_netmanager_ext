@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@
 #include <functional>
 #include <string>
 
-#include "vpn_data_bean.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "rdb_common.h"
@@ -30,23 +29,24 @@
 #include "rdb_predicates.h"
 #include "rdb_store.h"
 #include "result_set.h"
+#include "vpn_data_bean.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class VpnDatabaseHelper {
 public:
-    VpnDatabaseHelper();
-    ~VpnDatabaseHelper() = default;
-
-    int32_t InsertData(const sptr<VpnDataBean> &vpnBean);
+    static VpnDatabaseHelper &GetInstance();
     int32_t InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean);
-    bool IsVpnInfoExists(std::string &vpnId);
     int32_t QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid);
     int32_t QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId);
     int32_t DeleteVpnData(const std::string &vpnUuid);
-    int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
 
 private:
+    VpnDatabaseHelper();
+    ~VpnDatabaseHelper() = default;
+    int32_t InsertData(const sptr<VpnDataBean> &vpnBean);
+    int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
+    bool IsVpnInfoExists(const std::string &vpnId);
     void GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
         sptr<VpnDataBean> &vpnBean);
     void BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info);
@@ -56,9 +56,7 @@ private:
 class VpnDataBaseCallBack : public OHOS::NativeRdb::RdbOpenCallback {
 public:
     int32_t OnCreate(OHOS::NativeRdb::RdbStore &rdbStore) override;
-
     int32_t OnUpgrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t oldVersion, int32_t newVersion) override;
-
     int32_t OnDowngrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t currentVersion, int32_t targetVersion) override;
 };
 } // namespace NetManagerStandard

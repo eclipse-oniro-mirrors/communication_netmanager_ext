@@ -257,6 +257,9 @@ HWTEST_F(NetworkVpnServiceTest, AddSysVpnConfigTest001, TestSize.Level1)
 {
     std::string id = "1234";
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        retrun;
+    }
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
@@ -275,6 +278,9 @@ HWTEST_F(NetworkVpnServiceTest, DeleteSysVpnConfigTest001, TestSize.Level1)
 {
     std::string id = "1234";
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        retrun;
+    }
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
@@ -313,6 +319,13 @@ HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1
 {
     sptr<SysVpnConfig> resConfig = nullptr;
     EXPECT_EQ(instance_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, NotifyConnectStageTest001, TestSize.Level1)
+{
+    std::string stage = "connect";
+    int32_t errorCode = 100;
+    EXPECT_EQ(instance_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 #endif // SUPPORT_SYSVPN
 } // namespace NetManagerStandard

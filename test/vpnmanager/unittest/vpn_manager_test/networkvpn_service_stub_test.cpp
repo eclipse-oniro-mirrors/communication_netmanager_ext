@@ -305,6 +305,9 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest002, TestSize.Level1
         return;
     }
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        retrun;
+    }
     config->vpnId_ = "1234";
     config->vpnName_ = "test";
     config->vpnType_ = 1;
@@ -383,6 +386,16 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetConnectedSysVpnConfigTest001, TestSi
         return;
     }
     int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyNotifyConnectStageTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 #endif // SUPPORT_SYSVPN

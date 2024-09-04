@@ -25,6 +25,9 @@
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "route.h"
+#ifdef SUPPORT_SYSVPN
+#include "sysvpn_config.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -141,6 +144,25 @@ void SetUpContext::ParseParams(napi_value *params, size_t paramsCount)
 
 bool SetUpContext::ParseVpnConfig(napi_value *params)
 {
+#ifdef SUPPORT_SYSVPN
+    if (params == nullptr) {
+        NETMGR_EXT_LOG_E("params is nullptr");
+        return false;
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), params[0], "vpnId")) {
+        sysVpnConfig_ = new (std::nothrow) SysVpnConfig();
+        if (sysVpnConfig_ == nullptr) {
+            NETMGR_EXT_LOG_E("setup parse sysvpn config failed, config is null");
+            return false;
+        }
+        sysVpnConfig_->vpnId_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[0], "vpnId");
+        sysVpnConfig_->vpnType_ = NapiUtils::GetInt32Property(GetEnv(), params[0], "vpnType");
+        NETMGR_EXT_LOG_I("setup parse sysvpn config, id=%{public}s, type=%{public}d",
+            sysVpnConfig_->vpnId_.c_str(), sysVpnConfig_->vpnType_);
+        return true;
+    }
+#endif // SUPPORT_SYSVPN
+
     vpnConfig_ = new (std::nothrow) VpnConfig();
     if (vpnConfig_ == nullptr) {
         NETMGR_EXT_LOG_E("vpnConfig is nullptr");

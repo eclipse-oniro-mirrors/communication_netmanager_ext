@@ -133,6 +133,21 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
+int32_t NetworkVpnClient::SetUpVpn(const sptr<SysVpnConfig> &config)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("SetUpVpn param config is nullptr");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("SetUpVpn proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    NETMGR_EXT_LOG_I("SetUpVpn id=%{public}s", config->vpnId_.c_str());
+    return proxy->SetUpVpn(config);
+}
+
 int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     if (config == nullptr) {
@@ -147,10 +162,10 @@ int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
     return proxy->AddSysVpnConfig(config);
 }
 
-int32_t NetworkVpnClient::DeleteSysVpnConfig(std::string &vpnId)
+int32_t NetworkVpnClient::DeleteSysVpnConfig(const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     sptr<INetworkVpnService> proxy = GetProxy();
@@ -171,10 +186,10 @@ int32_t NetworkVpnClient::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList
     return proxy->GetSysVpnConfigList(vpnList);
 }
 
-int32_t NetworkVpnClient::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
+int32_t NetworkVpnClient::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
+        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     sptr<INetworkVpnService> proxy = GetProxy();

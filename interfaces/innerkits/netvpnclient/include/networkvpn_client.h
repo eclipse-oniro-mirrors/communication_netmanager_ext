@@ -95,6 +95,16 @@ public:
 
 #ifdef SUPPORT_SYSVPN
     /**
+     * setup system vpn.
+     *
+     * @param config system VPN interface parameters
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t SetUpVpn(const sptr<SysVpnConfig> &config);
+
+    /**
      * save vpn
      *
      * @param config vpn config
@@ -112,7 +122,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t DeleteSysVpnConfig(std::string &vpnId);
+    int32_t DeleteSysVpnConfig(const std::string &vpnId);
 
     /**
      * get vpn list
@@ -133,7 +143,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId);
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId);
 
     /**
      * get connected vpn

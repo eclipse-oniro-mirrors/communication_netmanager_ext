@@ -122,6 +122,11 @@ public:
 
 #ifdef SUPPORT_SYSVPN
     /**
+     * This function is called when the system vpn application negotiation ends
+     */
+    int32_t SetUpVpn(const sptr<SysVpnConfig> &config) override;
+
+    /**
      * save the vpn config
      */
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;
@@ -129,7 +134,7 @@ public:
     /**
      * get the vpn config list
      */
-    int32_t DeleteSysVpnConfig(std::string &vpnId) override;
+    int32_t DeleteSysVpnConfig(const std::string &vpnId) override;
 
     /**
      * get the vpn config listGetConnectedSysVpnConfig
@@ -139,12 +144,17 @@ public:
     /**
      * get the vpn config
      */
-    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override;
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) override;
 
     /**
      * get the vpn connection state
      */
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
+
+    /**
+     * notify the vpn connection stage and result
+     */
+    int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
 #endif // SUPPORT_SYSVPN
 
     /**
@@ -217,6 +227,10 @@ private:
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
+#ifdef SUPPORT_SYSVPN
+    std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
+        std::vector<int32_t> &activeUserIds);
+#endif // SUPPORT_SYSVPN
     std::string GetBundleName();
 
 private:
@@ -224,10 +238,6 @@ private:
     bool isServicePublished_ = false;
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
-#ifdef SUPPORT_SYSVPN
-    std::shared_ptr<VpnDatabaseHelper> vpnDbHelper_;
-#endif // SUPPORT_SYSVPN
-
     std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
     std::shared_ptr<ffrt::queue> networkVpnServiceFfrtQueue_ = nullptr;
     std::mutex netVpnMutex_;

@@ -48,15 +48,15 @@ sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
     parcel.ReadInt32(type);
 
     switch (type) {
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::IKEV2_IPSEC_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_PSK):
-        case static_cast<int32_t>(VpnType::IPSEC_XAUTH_RSA):
-        case static_cast<int32_t>(VpnType::IPSEC_HYBRID_RSA):
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
             return IpsecVpnConfig::Unmarshalling(parcel);
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_PSK):
-        case static_cast<int32_t>(VpnType::L2TP_IPSEC_RSA):
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
             return L2tpVpnConfig::Unmarshalling(parcel);
         default:
             NETMGR_EXT_LOG_E("sysvpn SysVpnConfig Unmarshalling failed, type=%{public}d", type);

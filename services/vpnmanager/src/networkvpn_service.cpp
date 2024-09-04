@@ -43,6 +43,8 @@
 #include "networkvpn_hisysevent.h"
 #include "net_datashare_utils_iface.h"
 #ifdef SUPPORT_SYSVPN
+#include "ipsec_vpn_ctl.h"
+#include "l2tp_vpn_ctl.h"
 #include "vpn_data_bean.h"
 #endif // SUPPORT_SYSVPN
 
@@ -56,6 +58,7 @@ constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL = 500;
 constexpr uint32_t MAX_RETRY_TIMES = 10;
+constexpr uint32_t UID_NET_SYS_NATIVE = 1098;
 constexpr const char *VPNEXT_MODE_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
 
@@ -139,12 +142,6 @@ bool NetworkVpnService::Init()
 
     vpnHapObserver_ = new VpnHapObserver(*this);
     RegisterFactoryResetCallback();
-#ifdef SUPPORT_SYSVPN
-    vpnDbHelper_ = std::make_shared<VpnDatabaseHelper>();
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnDbHelper_ make_shared failed.");
-    }
-#endif // SUPPORT_SYSVPN
     return true;
 }
 
@@ -652,148 +649,215 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
+int32_t NetworkVpnService::SetUpVpn(const sptr<SysVpnConfig> &config)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("config is null.");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
+        return ret;
+    }
+
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    if (vpnObj_ != nullptr) {
+        if (vpnObj_->GetUserId() == userId) {
+            NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");
+        } else {
+            NETMGR_EXT_LOG_W("vpn using by other user");
+        }
+        return NETWORKVPN_ERROR_VPN_EXIST;
+    }
+    vpnObj_ = CreateSysVpnCtl(config, userId, activeUserIds);
+    if (vpnObj_ == nullptr || vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetUpVpn register internal callback failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    NETMGR_EXT_LOG_I("SystemVpn SetUp");
+    return vpnObj_->SetUp();
+}
+
+std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
+    const sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("CreateSysVpnCtl failed, param is null");
+        return nullptr;
+    }
+
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("vpnBean is nullptr");
+        return nullptr;
+    }
+    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, config->vpnId_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("query vpn data failed");
+        return nullptr;
+    }
+    std::shared_ptr<IpsecVpnCtl> sysVpnCtl = nullptr;
+    switch (vpnBean->vpnType_) {
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA: {
+            sptr<IpsecVpnConfig> ipsecVpnConfig = VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(vpnBean);
+            if (ipsecVpnConfig == nullptr) {
+                NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig failed");
+                return nullptr;
+            }
+            sysVpnCtl = std::make_shared<IpsecVpnCtl>(ipsecVpnConfig, "", userId, activeUserIds);
+            sysVpnCtl->ipsecVpnConfig_ = ipsecVpnConfig;
+            break;
+        }
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA: {
+            sptr<L2tpVpnConfig> l2tpVpnConfig = VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(vpnBean);
+            if (l2tpVpnConfig == nullptr) {
+                NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig failed");
+                return nullptr;
+            }
+            sysVpnCtl = std::make_shared<L2tpVpnCtl>(l2tpVpnConfig, "", userId, activeUserIds);
+            sysVpnCtl->l2tpVpnConfig_ = l2tpVpnConfig;
+            break;
+        }
+        default:
+            NETMGR_EXT_LOG_E("vpn type is invalid, %{public}d", vpnBean->vpnType_);
+            break;
+    }
+    return sysVpnCtl;
+}
+
 int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("config is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
-    if (NETMANAGER_EXT_SUCCESS != ret) {
-        NETMGR_EXT_LOG_E("sysvpn service AddSysVpnConfig failed!");
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed!");
         return ret;
     }
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
 
-    NETMGR_EXT_LOG_I("sysvpn service AddSysVpnConfig id=%{public}s name=%{public}s type=%{public}d",
+    NETMGR_EXT_LOG_I("AddSysVpnConfig id=%{public}s name=%{public}s type=%{public}d",
         config->vpnId_.c_str(), config->vpnName_.c_str(), config->vpnType_);
-		
     config->userId_ = userId;
+
     sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
-    if (vpnDbHelper_ == nullptr || vpnBean == nullptr) {
-        NETMGR_EXT_LOG_E("AddSysVpnConfig failed, vpnDbHelper_ or vpnBean is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    return vpnDbHelper_->InsertOrUpdateData(vpnBean);
+    return VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
 }
 
-int32_t NetworkVpnService::DeleteSysVpnConfig(std::string &vpnId)
+int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("DeleteSysVpnConfig vpnId is null");
+        NETMGR_EXT_LOG_E("vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
-    if (NETMANAGER_EXT_SUCCESS != ret) {
-        NETMGR_EXT_LOG_E("sysvpn service DeleteSysVpnConfig failed!");
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
         return ret;
     }
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
 
-    NETMGR_EXT_LOG_I("sysvpn service DeleteSysVpnConfig %{public}s", vpnId.c_str());
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("AddSysVpnConfig vpnDbHelper is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    }
-    int32_t result = vpnDbHelper_->DeleteVpnData(vpnId);
-    if (NETMANAGER_EXT_SUCCESS != result) {
-        NETMGR_EXT_LOG_I("DeleteSystemVpn failed, code = %{public}d", result);
-    }
-    return result;
+    NETMGR_EXT_LOG_I("DeleteSysVpnConfig id=%{public}s", vpnId.c_str());
+    return VpnDatabaseHelper::GetInstance().DeleteVpnData(vpnId);
 }
 
 int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
-    if (NETMANAGER_EXT_SUCCESS != ret) {
-        NETMGR_EXT_LOG_E("sysvpn service GetSysVpnConfigList failed!");
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
         return ret;
     }
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
-
-    NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfigList");
-    if (vpnDbHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("GetSysVpnConfigList vpnDbHelper is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    }
-    int32_t result = vpnDbHelper_->QueryAllData(vpnList, userId);
-    if (NETMANAGER_EXT_SUCCESS != result) {
-        NETMGR_EXT_LOG_I("GetSystemVpnList QueryAllData failed, code = %{public}d", result);
-    }
-    return result;
+    NETMGR_EXT_LOG_I("SystemVpn GetSysVpnConfigList");
+    return VpnDatabaseHelper::GetInstance().QueryAllData(vpnList, userId);
 }
 
-int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId)
+int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
 {
     if (vpnId.empty()) {
-        NETMGR_EXT_LOG_E("vpnId is null");
+        NETMGR_EXT_LOG_E("vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
-    if (NETMANAGER_EXT_SUCCESS != ret) {
-        NETMGR_EXT_LOG_E("sysvpn service GetSysVpnConfig failed!");
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed!");
         return ret;
     }
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
 
-    NETMGR_EXT_LOG_I("sysvpn service GetSysVpnConfig id=%{public}s", vpnId.c_str());
+    NETMGR_EXT_LOG_I("GetSysVpnConfig id=%{public}s", vpnId.c_str());
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    if (vpnDbHelper_ == nullptr || vpnBean == nullptr) {
-        NETMGR_EXT_LOG_E("GetSysVpnConfig failed, vpnDbHelper or vpnBean is nullptr");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("vpnBean is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    int32_t result = vpnDbHelper_->QueryVpnData(vpnBean, vpnId);
-    if (NETMANAGER_EXT_SUCCESS != result) {
-        NETMGR_EXT_LOG_I("GetSysVpnConfig failed, code = %{public}d", result);
+    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, vpnId);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("QueryVpnData failed, result = %{public}d", result);
+        return result;
     }
     config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
-    return result;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 {
-    std::unique_lock<std::mutex> locker(netVpnMutex_);
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
-    if (NETMANAGER_EXT_SUCCESS != ret) {
-        NETMGR_EXT_LOG_E("sysvpn service GetConnectedSysVpnConfig failed!");
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("CheckCurrentAccountType failed!");
         return ret;
     }
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("sysvpn api Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
 
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
     if (vpnObj_ == nullptr) {
         NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig is null. maybe not setup yet");
         return NETMANAGER_EXT_SUCCESS;
     }
-    return NETMANAGER_EXT_SUCCESS;
+    NETMGR_EXT_LOG_I("SystemVpn GetConnectedSysVpnConfig");
+    return vpnObj_->GetConnectedSysVpnConfig(config);
+}
+
+int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const int32_t &result)
+{
+    uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    if (callingUid != UID_NET_SYS_NATIVE) {
+        NETMGR_EXT_LOG_E("NotifyConnectStage failed, invalid callingUid");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    if (vpnObj_ == nullptr) {
+        NETMGR_EXT_LOG_E("NotifyConnectStage failed, vpnObj_ is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    NETMGR_EXT_LOG_I("NotifyConnectStage state: %{public}s result: %{public}d",
+        stage.c_str(), result);
+    return vpnObj_->NotifyConnectStage(stage, result);
 }
 #endif // SUPPORT_SYSVPN
 

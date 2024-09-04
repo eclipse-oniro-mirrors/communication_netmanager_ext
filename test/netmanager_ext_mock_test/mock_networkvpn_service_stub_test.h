@@ -44,6 +44,11 @@ public:
     }
 
 #ifdef SUPPORT_SYSVPN
+    int32_t SetUpVpn(sptr<SysVpnConfig> &config) override
+    {
+        return 0;
+    }
+
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override
     {
         return 0;
@@ -65,6 +70,11 @@ public:
     }
 
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override
+    {
+        return 0;
+    }
+
+    int32_t NotifyConnectStage(std::string &stage, int32_t &errorCode) override
     {
         return 0;
     }
