@@ -51,11 +51,13 @@ MDnsClientResume &MDnsClientResume::GetInstance()
 
 RegisterServiceMap *MDnsClientResume::GetRegisterServiceMap()
 {
+    std::lock_guard<std::recursive_mutex> guard(registerMutex_);
     return &registerMap_;
 }
 
 DiscoverServiceMap *MDnsClientResume::GetStartDiscoverServiceMap()
 {
+    std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
     return &discoveryMap_;
 }
 
