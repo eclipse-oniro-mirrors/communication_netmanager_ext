@@ -104,6 +104,11 @@ ohos_shared_library("net_vpn_manager") {
 
   configs = [ ":net_vpn_manager_config" ]
 
+  defines = []
+  if (netmanager_ext_feature_vpn_for_user0) {
+    defines += [ "ENABLE_VPN_FOR_USER0" ]
+  }
+
   sources = net_vpn_manager_sources
   deps = net_vpn_manager_deps
   external_deps = net_vpn_manager_external_deps
@@ -114,7 +119,10 @@ ohos_shared_library("net_vpn_manager") {
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]
-
+  defines = []
+  if (netmanager_ext_feature_vpn_for_user0) {
+    defines += [ "ENABLE_VPN_FOR_USER0" ]
+  }
   cflags_cc = memory_optimization_cflags_cc
   cflags_cc += [
     "-fstack-protector-strong",

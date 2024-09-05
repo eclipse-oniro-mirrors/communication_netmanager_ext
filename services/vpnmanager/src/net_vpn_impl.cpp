@@ -108,12 +108,7 @@ int32_t NetVpnImpl::SetUp()
     netId_ = *(netIdList.begin());
     NETMGR_EXT_LOG_I("vpn network netid: %{public}d", netId_);
 
-    GenerateUidRanges(userId_, beginUids_, endUids_);
-
-    for (auto &elem : activeUserIds_) {
-        GenerateUidRanges(elem, beginUids_, endUids_);
-    }
-
+    SetAllUidRanges();
     if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_, endUids_)) {
         NETMGR_EXT_LOG_E("vpn set whitelist rule error");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_SET_APP_UID_RULE_ERROR,
@@ -123,6 +118,25 @@ int32_t NetVpnImpl::SetUp()
     NotifyConnectState(VpnConnectState::VPN_CONNECTED);
     isVpnConnecting_ = true;
     return NETMANAGER_EXT_SUCCESS;
+}
+
+void NetVpnImpl::SetAllUidRanges()
+{
+    GenerateUidRanges(userId_, beginUids_, endUids_);
+#ifdef ENABLE_VPN_FOR_USER0
+    bool hasUser0 = userId_ == 0;
+#endif
+    for (auto &elem : activeUserIds_) {
+        GenerateUidRanges(elem, beginUids_, endUids_);
+#ifdef ENABLE_VPN_FOR_USER0
+        hasUser0 = hasUser0 || elem == 0;
+#endif
+    }
+#ifdef ENABLE_VPN_FOR_USER0
+    if (!hasUser0) {
+            GenerateUidRanges(0, beginUids_, endUids_);
+        }
+#endif
 }
 
 int32_t NetVpnImpl::ResumeUids()
