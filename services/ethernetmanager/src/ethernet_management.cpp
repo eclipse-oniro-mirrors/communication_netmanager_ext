@@ -421,7 +421,13 @@ void EthernetManagement::Init()
 void EthernetManagement::StartSetDevUpThd()
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
-    for (auto &dev : devs_) {
+    std::map<std::string, sptr<DevInterfaceState>> tempDevMap;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        tempDevMap = devs_;
+    }
+
+    for (auto &dev : tempDevMap) {
         std::string devName = dev.first;
         if (IsIfaceLinkUp(devName)) {
             continue;
