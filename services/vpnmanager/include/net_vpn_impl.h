@@ -109,6 +109,8 @@ private:
     std::vector<int32_t> endUids_;
     std::shared_ptr<IVpnConnStateCb> connChangedCb_;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;
+
+    void SetAllUidRanges();
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
