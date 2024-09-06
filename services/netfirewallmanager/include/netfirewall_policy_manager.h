@@ -137,8 +137,7 @@ public:
     void SetCurrentUserFirewallPolicy(const sptr<NetFirewallPolicy> &policy);
 
 private:
-    void RebuildFirewallPolicyCache(const int32_t userId);
-    void EnsureCurrentFirewallPolicyCached();
+    sptr<NetFirewallPolicy> GetFirewallPolicyCache(bool isRebuild = false);
     void LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy);
 
 private:
