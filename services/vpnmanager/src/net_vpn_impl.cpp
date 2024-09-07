@@ -134,8 +134,8 @@ void NetVpnImpl::SetAllUidRanges()
     }
 #ifdef ENABLE_VPN_FOR_USER0
     if (!hasUser0) {
-            GenerateUidRanges(0, beginUids_, endUids_);
-        }
+        GenerateUidRanges(0, beginUids_, endUids_);
+    }
 #endif
 }
 
