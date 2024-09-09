@@ -96,7 +96,7 @@ bool NetFirewallPolicyManager::IsFirewallActionChange(const sptr<NetFirewallPoli
 
 void NetFirewallPolicyManager::SetCurrentUserFirewallPolicy(const sptr<NetFirewallPolicy> &policy)
 {
-    std::lock_guard<std::shared_mutex> locker(setPolicyMutex_);
+    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
     if (currentFirewallPolicy_ == nullptr) {
         currentFirewallPolicy_ = new (std::nothrow) NetFirewallPolicy();
     }
@@ -199,7 +199,7 @@ FirewallRuleAction NetFirewallPolicyManager::GetPolicyCacheOutInternal()
 
 void NetFirewallPolicyManager::RebuildFirewallPolicyCache(const int32_t userId)
 {
-    std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
+    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
     currentFirewallPolicy_ = nullptr;
     currentFirewallPolicy_ = new (std::nothrow) NetFirewallPolicy();
     if (currentFirewallPolicy_ != nullptr) {
