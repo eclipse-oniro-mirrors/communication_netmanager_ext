@@ -140,6 +140,10 @@ private:
     void RebuildFirewallPolicyCache(const int32_t userId);
     void EnsureCurrentFirewallPolicyCached();
     void LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy);
+    bool IsPolicyCacheInvalid();
+    bool IsPolicyCacheOpen();
+    FirewallRuleAction GetPolicyCacheInInternal();
+    FirewallRuleAction GetPolicyCacheOutInternal();
 
 private:
     std::shared_mutex setPolicyMutex_;
