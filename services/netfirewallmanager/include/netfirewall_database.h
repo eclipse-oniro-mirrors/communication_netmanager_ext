@@ -33,6 +33,7 @@ namespace NetManagerStandard {
 static std::string FIREWALL_DB_PATH = "/data/service/el1/public/netmanager/";
 
 constexpr const char *FIREWALL_DB_NAME = "netfirewall.db";
+constexpr const char *FIREWALL_BACKUP_DB_NAME = "netfirewall_back.db";
 constexpr const char *FIREWALL_TABLE_NAME = "firewallRule";
 constexpr const char *INTERCEPT_RECORD_TABLE = "interceptRecord";
 constexpr int32_t DATABASE_OPEN_VERSION = 1;
@@ -140,9 +141,13 @@ public:
 
 private:
     NetFirewallDataBase();
+    void BackupDatebase();
+    bool RestoreDatabaseWhenInit();
+    bool RestoreDatabase();
 
     static std::shared_ptr<NetFirewallDataBase> instance_;
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_;
+    std::atomic<bool> backing_ = false;
 };
 
 class NetFirewallDataBaseCallBack : public OHOS::NativeRdb::RdbOpenCallback {
