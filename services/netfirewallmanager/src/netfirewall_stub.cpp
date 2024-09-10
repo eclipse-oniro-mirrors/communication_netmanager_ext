@@ -92,7 +92,10 @@ int32_t NetFirewallStub::OnSetNetFirewallPolicy(MessageParcel &data, MessageParc
     if (!data.ReadInt32(userId)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-
+    if (userId <= 0) {
+        NETMGR_EXT_LOG_E("Parameter error.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     sptr<NetFirewallPolicy> status = NetFirewallPolicy::Unmarshalling(data);
     if (status == nullptr) {
         NETMGR_EXT_LOG_E("status is nullptr.");
@@ -107,6 +110,10 @@ int32_t NetFirewallStub::OnGetNetFirewallPolicy(MessageParcel &data, MessageParc
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (userId <= 0) {
+        NETMGR_EXT_LOG_E("Parameter error.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
     }
     sptr<NetFirewallPolicy> status = new (std::nothrow) NetFirewallPolicy();
     int32_t ret = GetNetFirewallPolicy(userId, status);
@@ -125,7 +132,15 @@ int32_t NetFirewallStub::OnAddNetFirewallRule(MessageParcel &data, MessageParcel
         NETMGR_EXT_LOG_E("rule is nullptr.");
         return FIREWALL_ERR_INTERNAL;
     }
-
+    if (rule->userId <= 0) {
+        NETMGR_EXT_LOG_E("Parameter error.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+    if (rule->ruleName.empty() || rule->ruleName.size() > MAX_RULE_NAME_LEN ||
+        rule->ruleDescription.size() > MAX_RULE_DESCRIPTION_LEN) {
+        NETMANAGER_EXT_LOGE("rule name or description is too long");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     if (rule->localIps.size() > MAX_RULE_IP_COUNT || rule->remoteIps.size() > MAX_RULE_IP_COUNT) {
         NETMGR_EXT_LOG_E("ip invalid, size is too long.");
         return FIREWALL_ERR_EXCEED_MAX_IP;
@@ -159,7 +174,15 @@ int32_t NetFirewallStub::OnUpdateNetFirewallRule(MessageParcel &data, MessagePar
         NETMGR_EXT_LOG_E("rule is nullptr.");
         return FIREWALL_ERR_INTERNAL;
     }
-
+    if (rule->userId <= 0) {
+        NETMGR_EXT_LOG_E("Parameter error.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+    if (rule->ruleName.empty() || rule->ruleName.size() > MAX_RULE_NAME_LEN ||
+        rule->ruleDescription.size() > MAX_RULE_DESCRIPTION_LEN) {
+        NETMANAGER_EXT_LOGE("rule name or description is too long");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     if (rule->localIps.size() > MAX_RULE_IP_COUNT || rule->remoteIps.size() > MAX_RULE_IP_COUNT) {
         NETMGR_EXT_LOG_E("ip invalid, size is too long.");
         return FIREWALL_ERR_EXCEED_MAX_IP;
@@ -218,6 +241,11 @@ int32_t NetFirewallStub::OnGetNetFirewallRules(MessageParcel &data, MessageParce
         NETMGR_EXT_LOG_E("param is nullptr.");
         return FIREWALL_ERR_INTERNAL;
     }
+    if (param->page < 1 || param->page > FIREWALL_USER_MAX_RULE || param->pageSize < 1 ||
+        param->pageSize > MAX_PAGE_SIZE) {
+        NETMANAGER_EXT_LOGE("ParsePageParam page or pageSize is error");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     sptr<FirewallRulePage> info = new (std::nothrow) FirewallRulePage();
     int32_t ret = GetNetFirewallRules(userId, param, info);
     if (ret == FIREWALL_SUCCESS) {
@@ -239,7 +267,10 @@ int32_t NetFirewallStub::OnGetNetFirewallRule(MessageParcel &data, MessageParcel
     if (!data.ReadInt32(ruleId)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-
+    if (userId <= 0 || ruleId <= 0) {
+        NETMGR_EXT_LOG_E("Parameter error.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
     int32_t ret = GetNetFirewallRule(userId, ruleId, rule);
     if (ret == FIREWALL_SUCCESS) {
@@ -257,11 +288,19 @@ int32_t NetFirewallStub::OnGetInterceptRecords(MessageParcel &data, MessageParce
     if (!data.ReadInt32(userId)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
-
+    if (userId <= 0) {
+        NETMGR_EXT_LOG_E("Parameter error.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     sptr<RequestParam> param = RequestParam::Unmarshalling(data);
     if (param == nullptr) {
         NETMGR_EXT_LOG_E("param is nullptr.");
         return FIREWALL_ERR_INTERNAL;
+    }
+    if (param->page < 1 || param->page > FIREWALL_USER_MAX_RULE || param->pageSize < 1 ||
+        param->pageSize > MAX_PAGE_SIZE) {
+        NETMANAGER_EXT_LOGE("ParsePageParam page or pageSize is error");
+        return FIREWALL_ERR_INVALID_PARAMETER;
     }
     sptr<InterceptRecordPage> info = new (std::nothrow) InterceptRecordPage();
     int32_t ret = GetInterceptRecords(userId, param, info);
