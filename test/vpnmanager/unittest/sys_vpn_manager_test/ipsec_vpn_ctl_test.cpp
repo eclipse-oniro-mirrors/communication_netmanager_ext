@@ -36,20 +36,25 @@ public:
 
 void IpsecVpnCtlTest::SetUpTestSuite()
 {
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    if (config == nullptr) {
+    sptr<IpsecVpnConfig> ipsecConfig = new (std::nothrow) IpsecVpnConfig();
+    if (ipsecConfig == nullptr) {
         return;
     }
     int32_t userId = 0;
     std::vector<int32_t> activeUserIds;
-    ipsecControl_ = std::make_unique<IpsecVpnCtl>(config, "pkg", userId, activeUserIds);
+    ipsecControl_ = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    ipsecControl_->ipsecVpnConfig_ = ipsecConfig;
 }
+
 HWTEST_F(IpsecVpnCtlTest, SetUp001, TestSize.Level1)
 {
     if (ipsecControl_ == nullptr) {
         return;
     }
-    EXPECT_EQ(ipsecControl_->SetUp(), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(ipsecControl_->SetUp(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(IpsecVpnCtlTest, Destroy001, TestSize.Level1)
@@ -84,7 +89,7 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     }
     std::string stage = "connect";
     int32_t errorCode = 100;
-    EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 } // namespace NetManagerStandard

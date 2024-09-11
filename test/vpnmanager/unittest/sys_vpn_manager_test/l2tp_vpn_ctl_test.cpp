@@ -26,7 +26,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-
 using namespace testing::ext;
 
 class L2tpVpnCtlTest : public testing::Test {
@@ -37,20 +36,25 @@ public:
 
 void L2tpVpnCtlTest::SetUpTestSuite()
 {
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    if (config == nullptr) {
+    sptr<L2tpVpnConfig> l2tpVpnconfig = new (std::nothrow) L2tpVpnConfig();
+    if (l2tpVpnconfig == nullptr) {
         return;
     }
     int32_t userId = 0;
     std::vector<int32_t> activeUserIds;
-    l2tpControl_ = std::make_unique<L2tpVpnCtl>(config, "pkg", userId, activeUserIds);
+    l2tpControl_ = std::make_unique<L2tpVpnCtl>(l2tpVpnconfig, "pkg", userId, activeUserIds);
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    l2tpControl_->l2tpVpnConfig_ = l2tpVpnconfig;
 }
+
 HWTEST_F(L2tpVpnCtlTest, SetUp001, TestSize.Level1)
 {
     if (l2tpControl_ == nullptr) {
         return;
     }
-    EXPECT_EQ(l2tpControl_->SetUp(), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(l2tpControl_->SetUp(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(L2tpVpnCtlTest, Destroy001, TestSize.Level1)
@@ -85,7 +89,7 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     }
     std::string stage = "connect";
     int32_t errorCode = 100;
-    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
