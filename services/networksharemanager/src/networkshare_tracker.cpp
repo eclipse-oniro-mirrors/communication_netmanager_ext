@@ -42,9 +42,9 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
 #ifdef WIFI_MODOULE
+constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 constexpr const char *ERROR_MSG_ENABLE_WIFI = "Enable Wifi Iface failed";
 constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed";
 #endif
