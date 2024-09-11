@@ -265,8 +265,8 @@ private:
     std::vector<SharingIfaceType> clientRequestsVector_;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
-    int32_t wifiShareCount_ = 0;
 #ifdef WIFI_MODOULE
+    int32_t wifiShareCount_ = 0;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
     WifiEvent g_wifiEvent = {0};
 #endif
