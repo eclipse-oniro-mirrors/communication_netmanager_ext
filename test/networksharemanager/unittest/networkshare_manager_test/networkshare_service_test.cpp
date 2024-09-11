@@ -26,6 +26,7 @@
 #include "networkshare_constants.h"
 #include "networkshare_service.h"
 #include "sharing_event_callback_stub.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
