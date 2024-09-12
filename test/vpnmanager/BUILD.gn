@@ -16,7 +16,7 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 test_list = [
   "unittest/vpn_manager_test:unittest",
-  "unittest/vpn_manager_ext_test:unittest"
+  "unittest/vpn_manager_ext_test:unittest",
 ]
 
 if (netmanager_ext_feature_sysvpn) {
