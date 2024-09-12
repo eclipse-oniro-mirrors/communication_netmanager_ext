@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "net_event_report.h"
+#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -42,19 +43,22 @@ void NetEventReportTest::TearDown() {}
 HWTEST_F(NetEventReportTest, SendSetupFaultEvent, TestSize.Level1)
 {
     EventInfo eventInfo = {};
-    NetEventReport::SendSetupFaultEvent(eventInfo);
+    auto result = NetEventReport::SendSetupFaultEvent(eventInfo);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetEventReportTest, SendCancleFaultEvent, TestSize.Level1)
 {
     EventInfo eventInfo = {};
-    NetEventReport::SendSetupFaultEvent(eventInfo);
+    auto result = NetEventReport::SendCancleFaultEvent(eventInfo);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetEventReportTest, SendVpnConnectEvent, TestSize.Level1)
 {
     VpnEventInfo eventInfo = {};
-    NetEventReport::SendVpnConnectEvent(eventInfo);
+    auto result = NetEventReport::SendVpnConnectEvent(eventInfo);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

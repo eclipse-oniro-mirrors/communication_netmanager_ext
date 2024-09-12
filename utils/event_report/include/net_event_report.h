@@ -97,10 +97,10 @@ enum class VpnEventErrorType {
 
 class NetEventReport {
 public:
-    static void SendSetupFaultEvent(const EventInfo &eventInfo);
-    static void SendCancleFaultEvent(const EventInfo &eventInfo);
-    static void SendTimeBehaviorEvent(const EventInfo &eventInfo);
-    static void SendVpnConnectEvent(const VpnEventInfo &eventInfo);
+    static int32_t SendSetupFaultEvent(const EventInfo &eventInfo);
+    static int32_t SendCancleFaultEvent(const EventInfo &eventInfo);
+    static int32_t SendTimeBehaviorEvent(const EventInfo &eventInfo);
+    static int32_t SendVpnConnectEvent(const VpnEventInfo &eventInfo);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
