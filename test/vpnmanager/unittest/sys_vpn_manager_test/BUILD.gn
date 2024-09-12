@@ -25,16 +25,18 @@ ohos_unittest("sys_vpn_manager_test") {
 
   branch_protector_ret = "pac_ret"
 
-  if (netmanager_ext_feature_sysvpn) {
-    sources = [
-      "ipsec_vpn_config_test.cpp",
-      "ipsec_vpn_ctl_test.cpp",
-      "l2tp_vpn_config_test.cpp",
-      "l2tp_vpn_ctl_test.cpp",
-      "sys_vpn_config_test.cpp",
-      "vpn_database_helper_test.cpp",
-    ]
-  }
+  sources = [
+    "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "ipsec_vpn_config_test.cpp",
+    "ipsec_vpn_ctl_test.cpp",
+    "l2tp_vpn_config_test.cpp",
+    "l2tp_vpn_ctl_test.cpp",
+    "networkvpn_client_test.cpp",
+    "networkvpn_service_stub_test.cpp",
+    "networkvpn_service_test.cpp",
+    "sys_vpn_config_test.cpp",
+    "vpn_database_helper_test.cpp",
+  ]
 
   include_dirs = [
     "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
