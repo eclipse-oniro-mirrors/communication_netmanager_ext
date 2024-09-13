@@ -859,6 +859,21 @@ int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const in
         stage.c_str(), result);
     return vpnObj_->NotifyConnectStage(stage, result);
 }
+
+int32_t NetworkVpnService::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
+{
+    uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    if (callingUid != UID_NET_SYS_NATIVE) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri failed, invalid callingUid");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+    if (vpnObj_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri failed, vpnObj_ is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    return vpnObj_->GetSysVpnCertUri(certType, certUri);
+}
 #endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> callback)

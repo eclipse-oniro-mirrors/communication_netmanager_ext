@@ -136,5 +136,12 @@ HWTEST_F(NetworkVpnServiceTest, NotifyConnectStageTest001, TestSize.Level1)
     int32_t code = 100;
     EXPECT_EQ(instance_->NotifyConnectStage(stage, code), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
+
+HWTEST_F(NetworkVpnServiceTest, GetSysVpnCertUriTest001, TestSize.Level1)
+{
+    std::string certUri;
+    int32_t certType = 0;
+    EXPECT_EQ(instance_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

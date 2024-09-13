@@ -147,6 +147,29 @@ int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t 
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t IpsecVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
+{
+    if (ipsecVpnConfig_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri ipsecVpnConfig is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    switch (certType) {
+        case IpsecVpnCertType::CA_CERT:
+            certUri = ipsecVpnConfig_->ipsecCaCertConf_;
+            break;
+        case IpsecVpnCertType::USER_CERT:
+            certUri = ipsecVpnConfig_->ipsecPublicUserCertConf_;
+            break;
+        case IpsecVpnCertType::SERVER_CERT:
+            certUri = ipsecVpnConfig_->ipsecPublicServerCertConf_;
+            break;
+        default:
+            NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
+            break;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t IpsecVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (state_ == IpsecVpnStateCode::STATE_CONNECTED && ipsecVpnConfig_ != nullptr) {

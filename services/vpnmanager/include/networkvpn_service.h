@@ -155,6 +155,8 @@ public:
      * notify the vpn connection stage and result
      */
     int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
+
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
 #endif // SUPPORT_SYSVPN
 
     /**

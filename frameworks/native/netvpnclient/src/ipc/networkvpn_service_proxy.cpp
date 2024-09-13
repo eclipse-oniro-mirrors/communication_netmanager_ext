@@ -320,6 +320,50 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
 int32_t NetworkVpnServiceProxy::NotifyConnectStage(const std::string &stage, const int32_t &result)
 {
     NETMGR_EXT_LOG_I("NotifyConnectStage stage=%{public}s result=%{public}d", stage.c_str(), result);
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("NotifyConnectStage write interface token failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!(data.WriteString(stage) && data.WriteInt32(result))) {
+        NETMGR_EXT_LOG_E("NotifyConnectStage proxy write data failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    MessageParcel reply;
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("NotifyConnectStage proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    int32_t resultCode = NETMANAGER_EXT_ERR_INTERNAL;
+    if (!reply.ReadInt32(resultCode)) {
+        NETMGR_EXT_LOG_E("NotifyConnectStage reply read data failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return resultCode;
+}
+
+int32_t NetworkVpnServiceProxy::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri write interface token failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteInt32(certType)) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri proxy write data failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    MessageParcel reply;
+    int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CERT_URI, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    if (!reply.ReadString(certUri)) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri proxy read data failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 #endif // SUPPORT_SYSVPN

@@ -92,5 +92,38 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
+HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    config->ipsecCaCertConf_ = "testCaUri";
+    ipsecControl_->ipsecVpnConfig_ = config;
+    std::string certUri;
+    int32_t certType = 0;
+    EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ("testCaUri", certUri);
+}
+
+HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    config->ipsecPublicUserCertConf_ = "testUserUri";
+    ipsecControl_->ipsecVpnConfig_ = config;
+    std::string certUri;
+    int32_t certType = 1;
+    EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ("testUserUri", certUri);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

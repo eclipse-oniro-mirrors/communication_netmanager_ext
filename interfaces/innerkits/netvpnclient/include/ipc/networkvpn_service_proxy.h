@@ -45,6 +45,7 @@ public:
     int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
     int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
 #endif // SUPPORT_SYSVPN
 
 private:

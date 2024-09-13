@@ -91,5 +91,39 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     int32_t errorCode = 100;
     EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
 }
+
+HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    config->ipsecCaCertConf_ = "CaCertUri";
+    l2tpControl_->l2tpVpnConfig_ = config;
+    std::string certUri;
+    int32_t certType = 0;
+    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ("CaCertUri", certUri);
+}
+
+HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    config->ipsecPublicUserCertConf_ = "UserCertUri";
+    l2tpControl_->l2tpVpnConfig_ = config;
+    std::string certUri;
+    int32_t certType = 1;
+    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ("UserCertUri", certUri);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
