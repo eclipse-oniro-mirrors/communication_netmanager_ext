@@ -36,7 +36,7 @@
 #include "usb_srv_support.h"
 #endif
 
-#define IFACENAME_LEN 10
+#define IFACENAME_LEN 20
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -291,6 +291,7 @@ void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
             NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
             NetworkShareTracker::GetInstance().StopSubStateMachine(NetworkShareTracker::GetInstance().mApIfaceName_,
                                                                    SharingIfaceType::SHARING_WIFI);
+            NetworkShareTracker::GetInstance().mApIfaceName_ = "";
             break;
         }
         default:
