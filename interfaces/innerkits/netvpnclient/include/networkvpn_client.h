@@ -154,6 +154,16 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config);
+
+    /**
+     * get system vpn certificate uri
+     *
+     * @param certType the certificate type (ca certificate, user certificate or server certificate)
+     * @param certUri the certificate uri (out param)
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri);
 #endif // SUPPORT_SYSVPN
 
     /**

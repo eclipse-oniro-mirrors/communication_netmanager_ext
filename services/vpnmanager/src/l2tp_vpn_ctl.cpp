@@ -138,6 +138,29 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t L2tpVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
+{
+    if (l2tpVpnConfig_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri l2tpVpnConfig_ is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    switch (certType) {
+        case IpsecVpnCertType::CA_CERT:
+            certUri = l2tpVpnConfig_->ipsecCaCertConf_;
+            break;
+        case IpsecVpnCertType::USER_CERT:
+            certUri = l2tpVpnConfig_->ipsecPublicUserCertConf_;
+            break;
+        case IpsecVpnCertType::SERVER_CERT:
+            certUri = l2tpVpnConfig_->ipsecPublicServerCertConf_;
+            break;
+        default:
+            NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
+            break;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t L2tpVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (state_ == IpsecVpnStateCode::STATE_CONNECTED && l2tpVpnConfig_ != nullptr) {

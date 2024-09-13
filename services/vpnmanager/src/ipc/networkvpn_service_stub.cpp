@@ -46,6 +46,8 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyGetConnectedSysVpnConfig};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE] = {
         "", &NetworkVpnServiceStub::ReplyNotifyConnectStage};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CERT_URI] = {
+        "", &NetworkVpnServiceStub::ReplyGetSysVpnCertUri};
 #endif // SUPPORT_SYSVPN
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK] = {
         Permission::MANAGE_VPN, &NetworkVpnServiceStub::ReplyRegisterVpnEvent};
@@ -285,6 +287,26 @@ int32_t NetworkVpnServiceStub::ReplyNotifyConnectStage(MessageParcel &data, Mess
     int32_t ret = NotifyConnectStage(stage, result);
     if (!reply.WriteInt32(ret)) {
         NETMGR_EXT_LOG_E("ReplyNotifyConnectStage write reply failed");
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplyGetSysVpnCertUri(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t certType;
+    if (!data.ReadInt32(certType)) {
+        NETMGR_EXT_LOG_E("ReplyGetSysVpnCertUri read data failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    std::string certUri;
+    int32_t ret = GetSysVpnCertUri(certType, certUri);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("ReplyGetSysVpnCertUri failed, ret=%{public}d", ret);
+        return ret;
+    }
+    if (!reply.WriteString(certUri)) {
+        NETMGR_EXT_LOG_E("ReplyGetSysVpnCertUri write reply failed");
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;

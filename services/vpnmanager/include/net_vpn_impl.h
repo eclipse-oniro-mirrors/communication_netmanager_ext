@@ -49,6 +49,8 @@ public:
 #ifdef SUPPORT_SYSVPN
     virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig);
     virtual int32_t NotifyConnectStage(const std::string &stage, const int32_t &result);
+    virtual int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri);
+    virtual bool IsSystemVpn();
 #endif // SUPPORT_SYSVPN
     int32_t RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateCb> callback);
     void NotifyConnectState(const VpnConnectState &state);

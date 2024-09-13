@@ -145,5 +145,13 @@ HWTEST_F(NetworkVpnClientTest, GetConnectedSysVpnConfig001, TestSize.Level1)
     sptr<SysVpnConfig> resConfig = nullptr;
     EXPECT_EQ(networkVpnClient_.GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnClientTest, GetSysVpnCertUri001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    int32_t certType = 0;
+    std::string certUri;
+    EXPECT_EQ(networkVpnClient_.GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

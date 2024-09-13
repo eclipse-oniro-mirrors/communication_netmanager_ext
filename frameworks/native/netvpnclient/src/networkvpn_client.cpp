@@ -209,6 +209,16 @@ int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     }
     return proxy->GetConnectedSysVpnConfig(config);
 }
+
+int32_t NetworkVpnClient::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetSysVpnCertUri(certType, certUri);
+}
 #endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)

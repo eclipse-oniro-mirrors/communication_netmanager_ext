@@ -49,6 +49,7 @@ private:
     int32_t ReplyGetSysVpnConfig(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyGetConnectedSysVpnConfig(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyNotifyConnectStage(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetSysVpnCertUri(MessageParcel &data, MessageParcel &reply);
 #endif // SUPPORT_SYSVPN
     int32_t ReplyRegisterVpnEvent(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyUnregisterVpnEvent(MessageParcel &data, MessageParcel &reply);

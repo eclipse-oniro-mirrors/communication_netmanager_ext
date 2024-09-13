@@ -49,6 +49,12 @@ enum IpsecVpnStateCode {
     STATE_DISCONNECTED, // stop
 };
 
+enum IpsecVpnCertType : int32_t {
+    CA_CERT = 0,
+    USER_CERT,
+    SERVER_CERT,
+};
+
 class IpsecVpnCtl : public NetVpnImpl {
 public:
     IpsecVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
@@ -62,6 +68,7 @@ public:
     int32_t Destroy() override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
     int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
 
 protected:
     int32_t state_ = STATE_INIT;

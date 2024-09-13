@@ -51,6 +51,7 @@ public:
         CMD_GET_CONNECTED_SYS_VPN_CONFIG,
         CMD_NOTIFY_CONNECT_STAGE,
         CMD_SETUP_SYS_VPN,
+        CMD_GET_SYS_VPN_CERT_URI,
 #endif // SUPPORT_SYSVPN
         CMD_START_VPN_EXT, // for start extension extended vpn
         CMD_PROTECT_EXT,
@@ -77,6 +78,7 @@ public:
     virtual int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) = 0;
     virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) = 0;
     virtual int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) = 0;
+    virtual int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) = 0;
 #endif // SUPPORT_SYSVPN
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");
