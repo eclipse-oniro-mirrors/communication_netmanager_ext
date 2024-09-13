@@ -560,12 +560,13 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
+    NETMGR_EXT_LOG_I("SetUpVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
         std::string vpnExtMode;
         int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("SetUpVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
+        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
         if (ret != 0 || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -617,12 +618,13 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
+    NETMGR_EXT_LOG_I("DestroyVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
         std::string vpnExtMode;
         int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("DestroyVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
+        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
         if (ret != 0 || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
