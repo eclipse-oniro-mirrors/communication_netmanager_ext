@@ -210,16 +210,6 @@ int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     return proxy->GetConnectedSysVpnConfig(config);
 }
 
-int32_t NetworkVpnClient::NotifyConnectStage(const std::string &stage, const int32_t &result)
-{
-    sptr<INetworkVpnService> proxy = GetProxy();
-    if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("NotifyConnectStage proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
-    }
-    return proxy->NotifyConnectStage(stage, result);
-}
-
 int32_t NetworkVpnClient::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
 {
     sptr<INetworkVpnService> proxy = GetProxy();

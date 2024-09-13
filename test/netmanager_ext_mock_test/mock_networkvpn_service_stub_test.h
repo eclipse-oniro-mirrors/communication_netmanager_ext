@@ -78,6 +78,11 @@ public:
     {
         return 0;
     }
+
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override
+    {
+        return 0;
+    }
 #endif // SUPPORT_SYSVPN
 
     int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) override
