@@ -51,7 +51,7 @@ enum IpsecVpnStateCode {
 
 enum IpsecVpnCertType : int32_t {
     CA_CERT = 0,
-    USER_CERT, 
+    USER_CERT,
     SERVER_CERT,
 };
 
