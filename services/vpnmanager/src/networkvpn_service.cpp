@@ -560,12 +560,13 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
+    NETMGR_EXT_LOG_I("SetUpVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
         std::string vpnExtMode;
         int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("SetUpVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
+        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
         if (ret != 0 || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -594,7 +595,11 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
         NETMGR_EXT_LOG_E("SetUpVpn register internal callback fail.");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+
     ret = vpnObj_->SetUp();
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        hasOpenedVpnUid_ = IPCSkeleton::GetCallingUid();
+    }
     if (ret == NETMANAGER_EXT_SUCCESS && !vpnBundleName.empty()) {
         std::vector<std::string> list = {vpnBundleName, vpnBundleName + VPN_EXTENSION_LABEL};
         auto regRet =
@@ -617,16 +622,22 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
+    NETMGR_EXT_LOG_I("DestroyVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
         std::string vpnExtMode;
         int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("DestroyVpn ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
+        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
         if (ret != 0 || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
         }
+    }
+
+    if (hasOpenedVpnUid_ != IPCSkeleton::GetCallingUid()) {
+        NETMGR_EXT_LOG_E("not same vpn, can't destroy");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
 
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
@@ -1224,7 +1235,11 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
     UnregisterVpnEvent(callback);
-    DestroyVpn();
+    if (vpnObj_ != nullptr && vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("destroy vpn is failed");
+        return;
+    }
+    vpnObj_ = nullptr;
 }
 
 void NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback)

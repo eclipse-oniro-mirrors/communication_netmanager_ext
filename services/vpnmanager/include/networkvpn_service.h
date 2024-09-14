@@ -297,6 +297,7 @@ private:
     std::mutex remoteMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
+    int32_t hasOpenedVpnUid_ = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
