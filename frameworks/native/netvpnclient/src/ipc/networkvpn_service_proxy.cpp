@@ -319,7 +319,6 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
 
 int32_t NetworkVpnServiceProxy::NotifyConnectStage(const std::string &stage, const int32_t &result)
 {
-    NETMGR_EXT_LOG_I("NotifyConnectStage stage=%{public}s result=%{public}d", stage.c_str(), result);
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("NotifyConnectStage write interface token failed");
