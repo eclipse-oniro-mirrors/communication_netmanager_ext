@@ -456,7 +456,7 @@ void NetworkShareSubStateMachine::ConfigureShareIpv4(const sptr<NetLinkInfo> &up
         auto family = inetAddr.family_;
         if (family == NET_FAMILY_IPV4) {
             hasIpv4 = true;
-            NETMGR_EXT_LOG_I("family:[%{public}d], addr:[%{public}s].", family, inetAddr.address_.c_str());
+            NETMGR_EXT_LOG_I("family:%{public}d", family);
             break;
         }
     }
@@ -483,7 +483,7 @@ void NetworkShareSubStateMachine::ConfigureShareIpv6(const sptr<NetLinkInfo> &up
         }
         ipPrefix.prefixesLength = PREFIX_LEN;
         lastRaParams_.prefixes_.emplace_back(ipPrefix);
-        NETMGR_EXT_LOG_I("family:[%{public}d], addr:[%{public}s].", family, inetAddr.address_.c_str());
+        NETMGR_EXT_LOG_I("family:%{public}d", family);
     }
     if (lastRaParams_.prefixes_.size() == 0) {
         NETMGR_EXT_LOG_E("have nothing ipv6 address for iface[%{public}s!", upstreamLinkInfo->ifaceName_.c_str());
