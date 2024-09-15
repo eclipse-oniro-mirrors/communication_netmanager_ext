@@ -241,22 +241,28 @@ void MDnsClient::RestartResume()
     NETMGR_EXT_LOG_I("MDnsClient::RestartResume");
     std::thread t([this]() {
         NETMGR_EXT_LOG_I("resume RegisterService");
-        for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetRegisterServiceMap()) {
-            RegisterService(value, key);
+        {
+            std::lock_guard lock(mutex_);
+            for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetRegisterServiceMap()) {
+                RegisterService(value, key);
+            }
         }
         NETMGR_EXT_LOG_I("resume RegisterService ok");
 
         NETMGR_EXT_LOG_I("resume StartDiscoverService");
-        for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetStartDiscoverServiceMap()) {
-            uint32_t count = 0;
-            while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
-                std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
-                count++;
-            }
-            auto proxy = GetProxy();
-            NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
-            if (proxy != nullptr) {
-                StartDiscoverService(value, key);
+        {
+            std::lock_guard lock(mutex_);
+            for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetStartDiscoverServiceMap()) {
+                uint32_t count = 0;
+                while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+                    std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
+                    count++;
+                }
+                auto proxy = GetProxy();
+                NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
+                if (proxy != nullptr) {
+                    StartDiscoverService(value, key);
+                }
             }
         }
         NETMGR_EXT_LOG_I("resume StartDiscoverService ok");
