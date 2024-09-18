@@ -52,7 +52,7 @@ MDnsClientResume &MDnsClientResume::GetInstance()
     return singleInstance_;
 }
 
-void MDnsClientResume::ReRegisterService() 
+void MDnsClientResume::ReRegisterService()
 {
     std::lock_guard<std::recursive_mutex> guard(registerMutex_);
     for (const auto& [key, value]: registerMap_) {
@@ -63,7 +63,7 @@ void MDnsClientResume::ReRegisterService()
     }
 }
 
-void MDnsClientResume::RestartDiscoverService() 
+void MDnsClientResume::RestartDiscoverService()
 {
     std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
     for (const auto& [key, value]: discoveryMap_) {
