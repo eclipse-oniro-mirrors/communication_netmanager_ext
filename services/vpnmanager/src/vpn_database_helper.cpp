@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,23 +26,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 using namespace VpnDatabaseDefines;
-namespace {
-bool CheckFilePath(const std::string &fileName)
-{
-    char tmpPath[PATH_MAX] = {0};
-    const auto pos = fileName.find_last_of('/');
-    const auto dir = fileName.substr(0, pos);
-    if (!realpath(dir.c_str(), tmpPath)) {
-        NETMGR_EXT_LOG_E("Get realPath failed error");
-        return false;
-    }
-    if (strcmp(tmpPath, dir.c_str()) != 0) {
-        NETMGR_EXT_LOG_E("file name is illegal");
-        return false;
-    }
-    return true;
-}
-} // namespace
 
 VpnDatabaseHelper &VpnDatabaseHelper::GetInstance()
 {
@@ -52,15 +35,22 @@ VpnDatabaseHelper &VpnDatabaseHelper::GetInstance()
 
 VpnDatabaseHelper::VpnDatabaseHelper()
 {
-    if (!CheckFilePath(VPN_DATABASE_PATH)) {
-        return;
+    if (!std::filesystem::exists(VPN_DATABASE_PATH)) {
+        std::error_code ec;
+        if (std::filesystem::create_directories(VPN_DATABASE_PATH, ec)) {
+            NETMGR_EXT_LOG_D("create_directories success :%{public}s", VPN_DATABASE_PATH.c_str());
+        } else {
+            NETMGR_EXT_LOG_E("create_directories error :%{public}s : %s", VPN_DATABASE_PATH.c_str(),
+                ec.message().c_str());
+        }
     }
+    std::string vpnDatabaseName = VPN_DATABASE_PATH + VPN_DB_NAME;
     int32_t errCode = OHOS::NativeRdb::E_OK;
-    OHOS::NativeRdb::RdbStoreConfig config(VPN_DATABASE_PATH);
+    OHOS::NativeRdb::RdbStoreConfig config(vpnDatabaseName);
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     VpnDataBaseCallBack sqliteOpenHelperCallback;
     store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
-    if (errCode != OHOS::NativeRdb::E_OK) {
+    if (errCode != OHOS::NativeRdb::E_OK && errCode != OHOS::NativeRdb::E_SQLITE_CORRUPT) {
         NETMGR_EXT_LOG_E("GetRdbStore failed. errCode :%{public}d", errCode);
     } else {
         NETMGR_EXT_LOG_I("GetRdbStore success");
@@ -117,7 +107,7 @@ bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)
     }
 
     std::vector<std::string> columns;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnId);
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
@@ -218,7 +208,7 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &vpnBean)
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     NETMGR_EXT_LOG_I("UpdateData");
-    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnBean->vpnId_);
     NativeRdb::ValuesBucket values;
     BindVpnData(values, vpnBean);
@@ -234,10 +224,6 @@ int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &vpnBean)
 void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
     sptr<VpnDataBean> &vpnBean)
 {
-    if (vpnBean == nullptr || queryResultSet == nullptr) {
-        NETMGR_EXT_LOG_E("GetVpnDataFromResultSet params is nullptr");
-        return;
-    }
     queryResultSet->GetString(INDEX_VPN_ID, vpnBean->vpnId_);
     queryResultSet->GetString(INDEX_VPN_NAME, vpnBean->vpnName_);
     queryResultSet->GetInt(INDEX_VPN_TYPE, vpnBean->vpnType_);
@@ -299,7 +285,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     }
 
     std::vector<std::string> columns;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnUuid);
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
@@ -334,7 +320,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const 
     }
     infos.clear();
     std::vector<std::string> columns;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(USER_ID, userId);
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
@@ -373,7 +359,7 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     int32_t deletedRows = -1;
-    OHOS::NativeRdb::RdbPredicates rdbPredicate { VPN_CONFIG_TABLE };
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnUuid);
     int32_t result = store_->Delete(deletedRows, rdbPredicate);
     if (result != NativeRdb::E_OK) {

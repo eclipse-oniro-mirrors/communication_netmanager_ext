@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <gtest/gtest.h>
+
+#include "net_manager_constants.h"
 
 #ifdef GTEST_API_
 #define private public
+#define protected public
 #endif
-#include "vpn_config.h"
 #include "l2tp_vpn_ctl.h"
-#include "net_manager_constants.h"
+#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -79,7 +79,11 @@ HWTEST_F(L2tpVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
         return;
     }
     sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(l2tpControl_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
+    int32_t ret = l2tpControl_->GetConnectedSysVpnConfig(resConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_CONNECTED;
+    ret = l2tpControl_->GetConnectedSysVpnConfig(resConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
@@ -87,9 +91,42 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     if (l2tpControl_ == nullptr) {
         return;
     }
-    std::string stage = "connect";
-    int32_t errorCode = 100;
-    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
+    std::string stage;
+    int32_t errorCode = 1;
+    int32_t ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    stage = IPSEC_START_TAG;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    errorCode = NOTIFY_CONNECT_STAGE_SUCCESS;
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_INIT;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    stage = L2TP_IPSEC_CONFIGURED_TAG;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_CONFIGED;
+    stage = IPSEC_CONNECT_TAG;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_CONTROLLED;
+    stage = L2TP_IPSEC_CONNECTED_TAG;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
+    stage = L2TP_IPSEC_DISCONNECTED_TAG;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    l2tpControl_->state_ = -1;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
@@ -102,10 +139,14 @@ HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
         return;
     }
     config->ipsecCaCertConf_ = "CaCertUri";
-    l2tpControl_->l2tpVpnConfig_ = config;
+    l2tpControl_->l2tpVpnConfig_ = nullptr;
     std::string certUri;
     int32_t certType = 0;
-    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    int32_t ret = l2tpControl_->GetSysVpnCertUri(certType, certUri);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    l2tpControl_->l2tpVpnConfig_ = config;
+    ret = l2tpControl_->GetSysVpnCertUri(certType, certUri);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ("CaCertUri", certUri);
 }
 
@@ -124,6 +165,33 @@ HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
     int32_t certType = 1;
     EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ("UserCertUri", certUri);
+    certType = 2;
+    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    certType = -1;
+    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(L2tpVpnCtlTest, InitConfigFile001, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    config->ipsecPublicUserCertConf_ = "testUserUri";
+    config->xl2tpdConf_ = "testXl2tpdConf";
+    config->strongswanConf_ = "testStrongswanConf";
+    config->ipsecConf_ = "ipsecConfTest";
+    config->ipsecSecrets_ = "ipsecSecretsTest";
+    config->optionsL2tpdClient_ = "optionsL2tpdClientTest";
+    l2tpControl_->l2tpVpnConfig_ = nullptr;
+    int32_t ret = l2tpControl_->InitConfigFile();
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    l2tpControl_->l2tpVpnConfig_ = config;
+    ret = l2tpControl_->InitConfigFile();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

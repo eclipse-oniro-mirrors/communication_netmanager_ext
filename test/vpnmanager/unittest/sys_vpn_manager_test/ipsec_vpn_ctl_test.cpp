@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,12 +17,15 @@
 
 #include <gtest/gtest.h>
 
+#include "net_manager_constants.h"
+#include "vpn_config.h"
+
 #ifdef GTEST_API_
 #define private public
+#define protected public
 #endif
-#include "vpn_config.h"
+
 #include "ipsec_vpn_ctl.h"
-#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -79,7 +82,11 @@ HWTEST_F(IpsecVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
         return;
     }
     sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(ipsecControl_->GetConnectedSysVpnConfig(resConfig), NETMANAGER_EXT_SUCCESS);
+    int32_t ret = ipsecControl_->GetConnectedSysVpnConfig(resConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_CONNECTED;
+    ret = ipsecControl_->GetConnectedSysVpnConfig(resConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
@@ -87,9 +94,38 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     if (ipsecControl_ == nullptr) {
         return;
     }
-    std::string stage = "connect";
-    int32_t errorCode = 100;
-    EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
+    std::string stage;
+    int32_t errorCode = 1;
+    int32_t ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+
+    stage = IPSEC_START_TAG;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    errorCode = NOTIFY_CONNECT_STAGE_SUCCESS;
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_INIT;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    stage = SWANCTL_START_TAG;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_CONFIGED;
+    stage = IPSEC_CONNECT_TAG;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
+    stage = IPSEC_DISCONNECT_TAG;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ipsecControl_->state_ = -1;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
@@ -102,9 +138,11 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
         return;
     }
     config->ipsecCaCertConf_ = "testCaUri";
-    ipsecControl_->ipsecVpnConfig_ = config;
-    std::string certUri;
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
     int32_t certType = 0;
+    std::string certUri;
+    EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_ERR_INTERNAL);
+    ipsecControl_->ipsecVpnConfig_ = config;
     EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ("testCaUri", certUri);
 }
@@ -124,6 +162,32 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
     int32_t certType = 1;
     EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ("testUserUri", certUri);
+    certType = 2;
+    EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    certType = -1;
+    EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(IpsecVpnCtlTest, InitConfigFile001, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    config->ipsecPublicUserCertConf_ = "testUserUri";
+    config->swanctlConf_ = "testSwanctlConf";
+    config->strongswanConf_ = "testStrongswanConf";
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
+    std::error_code ec;
+    std::filesystem::create_directories(SWAN_CTL_FILE, ec);
+    int32_t ret = ipsecControl_->InitConfigFile();
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    ipsecControl_->ipsecVpnConfig_ = config;
+    ret = ipsecControl_->InitConfigFile();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

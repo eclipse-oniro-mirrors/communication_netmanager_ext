@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,6 +55,7 @@ int32_t NetworkVpnServiceStubTest::SendRemoteRequest(MessageParcel &data, INetwo
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -67,6 +68,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest001, TestSize.Level1
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest002, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -87,6 +89,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest002, TestSize.Level1
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -99,6 +102,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest001, TestSize.Lev
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest002, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -113,6 +117,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest002, TestSize.Lev
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigListTest001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -123,6 +128,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigListTest001, TestSize.Le
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -135,6 +141,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest001, TestSize.Level1
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest002, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -151,6 +158,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest002, TestSize.Level1
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyGetConnectedSysVpnConfigTest001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
@@ -161,10 +169,13 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetConnectedSysVpnConfigTest001, TestSi
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyNotifyConnectStageTest001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
+    data.WriteString("stop");
+    data.WriteInt32(100);
     int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -172,14 +183,54 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyNotifyConnectStageTest001, TestSize.Lev
 HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnCertUriTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t certType = 0;
-    if (!data.WriteInt32(certType)) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CERT_URI);
+    MessageParcel reply;
+    int32_t ret = instance_->ReplyGetSysVpnCertUri(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+    data.WriteInt32(1);
+    ret = instance_->ReplyGetSysVpnCertUri(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpSysVpn001, TestSize.Level1)
+{
+    MessageParcel data;
+    std::string vpnId = "test1";
+    data.WriteString(vpnId);
+    MessageParcel reply;
+    int32_t ret = instance_->ReplySetUpSysVpn(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+    MessageParcel data1;
+    data1.WriteString(vpnId);
+    data1.WriteInt32(1);
+    ret = instance_->ReplySetUpSysVpn(data1, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyNotifyConnectStage001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->ReplyNotifyConnectStage(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+    std::string stage = "test3";
+    data.WriteString(stage);
+    ret = instance_->ReplyNotifyConnectStage(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+    MessageParcel data1;
+    data1.WriteString(stage);
+    data1.WriteInt32(1);
+    ret = instance_->ReplyNotifyConnectStage(data1, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnCertUri001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->ReplyGetSysVpnCertUri(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+    data.WriteInt32(1);
+    ret = instance_->ReplyGetSysVpnCertUri(data, reply);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
