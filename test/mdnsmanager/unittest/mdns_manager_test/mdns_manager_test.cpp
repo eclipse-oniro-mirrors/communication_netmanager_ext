@@ -277,11 +277,9 @@ HWTEST_F(MDnsClientResumeTest, ResumeTest001, TestSize.Level1)
     ret = MDnsClientResume::GetInstance().RemoveStopDiscoverService(discovery);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 
-    RegisterServiceMap *rsm = MDnsClientResume::GetInstance().GetRegisterServiceMap();
-    ASSERT_NE(rsm, nullptr);
+    MDnsClientResume::GetInstance().ReRegisterService();
 
-    DiscoverServiceMap *dsm = MDnsClientResume::GetInstance().GetStartDiscoverServiceMap();
-    ASSERT_NE(dsm, nullptr);
+    MDnsClientResume::GetInstance().RestartDiscoverService();
 }
 
 /**

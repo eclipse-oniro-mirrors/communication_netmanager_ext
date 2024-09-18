@@ -55,9 +55,9 @@ public:
 
     int32_t RemoveStopDiscoverService(const sptr<IDiscoveryCallback> &cb);
 
-    RegisterServiceMap *GetRegisterServiceMap();
-    DiscoverServiceMap *GetStartDiscoverServiceMap();
+    void ReRegisterService();
 
+    void RestartDiscoverService();
 private:
     MDnsClientResume() = default;
 

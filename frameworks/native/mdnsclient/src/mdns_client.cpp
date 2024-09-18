@@ -34,9 +34,6 @@ namespace NetManagerStandard {
 std::mutex g_loadMutex;
 std::condition_variable g_cv;
 
-static constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
-constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
-
 void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
     NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
@@ -240,32 +237,8 @@ void MDnsClient::RestartResume()
 {
     NETMGR_EXT_LOG_I("MDnsClient::RestartResume");
     std::thread t([this]() {
-        NETMGR_EXT_LOG_I("resume RegisterService");
-        {
-            std::lock_guard lock(mutex_);
-            for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetRegisterServiceMap()) {
-                RegisterService(value, key);
-            }
-        }
-        NETMGR_EXT_LOG_I("resume RegisterService ok");
-
-        NETMGR_EXT_LOG_I("resume StartDiscoverService");
-        {
-            std::lock_guard lock(mutex_);
-            for (const auto& [key, value]: *MDnsClientResume::GetInstance().GetStartDiscoverServiceMap()) {
-                uint32_t count = 0;
-                while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
-                    std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
-                    count++;
-                }
-                auto proxy = GetProxy();
-                NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
-                if (proxy != nullptr) {
-                    StartDiscoverService(value, key);
-                }
-            }
-        }
-        NETMGR_EXT_LOG_I("resume StartDiscoverService ok");
+        MDnsClientResume::GetInstance().ReRegisterService();
+        MDnsClientResume::GetInstance().RestartDiscoverService();
     });
     std::string threadName = "mdnsGetProxy";
     pthread_setname_np(t.native_handle(), threadName.c_str());
