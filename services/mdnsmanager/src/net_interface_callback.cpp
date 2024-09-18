@@ -34,6 +34,10 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
 {
     NETMGR_EXT_LOG_I("OnInterfaceAddressUpdated, iface:[%{public}s], scope:[%{public}d]",
                      ifName.c_str(), scope);
+    if (ifName.empty()) {
+        NETMGR_EXT_LOG_E("mdns_log Invalid interface name");
+        return NETMANAGER_SUCCESS;
+    }
 
     std::string ifrName = ifName;
     std::transform(ifrName.begin(), ifrName.end(), ifrName.begin(), ::tolower);
@@ -44,6 +48,10 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
 
     in_addr ipAddr;
     std::string tmpAddr = addr.substr(0, addr.find("/"));
+    if (tmpAddr.empty()) {
+        NETMGR_EXT_LOG_E("mdns_log Invalid IP address");
+        return NETMANAGER_SUCCESS;
+    }
     int32_t ret = inet_pton(AF_INET6, tmpAddr.c_str(), &ipAddr);
     if (ret > 0 && !MDnsManager::GetInstance().IsSupportIpV6()) {
         NETMGR_EXT_LOG_D("mdns_log Not support IpV6");
