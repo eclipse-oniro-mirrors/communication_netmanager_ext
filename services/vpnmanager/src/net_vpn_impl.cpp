@@ -29,6 +29,9 @@
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
+#ifdef SUPPORT_SYSVPN
+#include "sysvpn_config.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -105,22 +108,41 @@ int32_t NetVpnImpl::SetUp()
     netId_ = *(netIdList.begin());
     NETMGR_EXT_LOG_I("vpn network netid: %{public}d", netId_);
 
-    GenerateUidRanges(userId_, beginUids_, endUids_);
-
-    for (auto &elem : activeUserIds_) {
-        GenerateUidRanges(elem, beginUids_, endUids_);
-    }
-
+    SetAllUidRanges();
     if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_, endUids_)) {
         NETMGR_EXT_LOG_E("vpn set whitelist rule error");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_SET_APP_UID_RULE_ERROR,
                                                  "set app uid rule failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
+#ifdef SUPPORT_SYSVPN
+    if (!IsSystemVpn()) {
+        NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+    }
+#else
     NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+#endif
     isVpnConnecting_ = true;
     return NETMANAGER_EXT_SUCCESS;
+}
+
+void NetVpnImpl::SetAllUidRanges()
+{
+    GenerateUidRanges(userId_, beginUids_, endUids_);
+#ifdef ENABLE_VPN_FOR_USER0
+    bool hasUser0 = userId_ == 0;
+#endif
+    for (auto &elem : activeUserIds_) {
+        GenerateUidRanges(elem, beginUids_, endUids_);
+#ifdef ENABLE_VPN_FOR_USER0
+        hasUser0 = hasUser0 || elem == 0;
+#endif
+    }
+#ifdef ENABLE_VPN_FOR_USER0
+    if (!hasUser0) {
+        GenerateUidRanges(0, beginUids_, endUids_);
+    }
+#endif
 }
 
 int32_t NetVpnImpl::ResumeUids()
@@ -154,11 +176,37 @@ int32_t NetVpnImpl::Destroy()
     DelNetLinkInfo(netConnClientIns);
     UpdateNetSupplierInfo(netConnClientIns, false);
     UnregisterNetSupplier(netConnClientIns);
-
+#ifdef SUPPORT_SYSVPN
+    if (!IsSystemVpn()) {
+        NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
+    }
+#else
     NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
+#endif
     isVpnConnecting_ = false;
     return NETMANAGER_EXT_SUCCESS;
 }
+
+#ifdef SUPPORT_SYSVPN
+int32_t NetVpnImpl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &vpnConfig)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetVpnImpl::NotifyConnectStage(const std::string &stage, const int32_t &result)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetVpnImpl::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+bool NetVpnImpl::IsSystemVpn()
+{
+    return false;
+}
+#endif // SUPPORT_SYSVPN
 
 bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns)
 {

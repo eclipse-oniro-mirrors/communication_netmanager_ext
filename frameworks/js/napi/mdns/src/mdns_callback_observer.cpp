@@ -51,7 +51,7 @@ void MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &serviceInf
 void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (mdnsDisdicover == nullptr) {
+    if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }
@@ -73,7 +73,7 @@ void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo
 void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (mdnsDisdicover == nullptr) {
+    if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }
@@ -94,7 +94,7 @@ void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo,
 void MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (mdnsDisdicover == nullptr) {
+    if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }
@@ -111,7 +111,7 @@ void MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInf
 void MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
-    if (mdnsDisdicover == nullptr) {
+    if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
     }

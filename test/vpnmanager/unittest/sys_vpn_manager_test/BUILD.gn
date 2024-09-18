@@ -1,0 +1,97 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
+EXT_SECURITY_PATH = "../../.."
+
+ohos_unittest("sys_vpn_manager_test") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
+  sources = [
+    "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "ipsec_vpn_config_test.cpp",
+    "ipsec_vpn_ctl_test.cpp",
+    "l2tp_vpn_config_test.cpp",
+    "l2tp_vpn_ctl_test.cpp",
+    "networkvpn_client_test.cpp",
+    "networkvpn_service_stub_test.cpp",
+    "networkvpn_service_test.cpp",
+    "sys_vpn_config_test.cpp",
+    "vpn_database_helper_test.cpp",
+  ]
+
+  include_dirs = [
+    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
+    "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
+    "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
+    "$EXT_INNERKITS_ROOT/netvpnclient/include",
+    "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
+    "$EXT_SECURITY_PATH/security",
+    "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
+    "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
+    "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
+    "$NETSYSCONTROLLER_ROOT_DIR/include",
+  ]
+
+  deps = [
+    "$EXT_INNERKITS_ROOT/netvpnclient:net_vpn_manager_if",
+    "$NETMANAGER_EXT_ROOT/services/vpnmanager:net_vpn_manager_static",
+    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+  ]
+
+  external_deps = [
+    "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_data_share",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:netsys_controller",
+    "os_account:os_account_innerkits",
+  ]
+
+  defines = [
+    "NETMGR_LOG_TAG = \"NetworkVpnManager\"",
+    "LOG_DOMAIN = 0xD0015B0",
+  ]
+
+  if (enable_netmgr_ext_debug) {
+    defines += [ "NETMGR_DEBUG" ]
+  }
+
+  subsystem_name = "communication"
+  part_name = "netmanager_ext"
+  module_out_path = "netmanager_ext/sys_vpn_manager_test"
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":sys_vpn_manager_test" ]
+}

@@ -96,10 +96,14 @@ declare_args() {
   netmanager_ext_feature_share = true
   netmanager_ext_feature_mdns = true
   netmanager_ext_feature_net_firewall = false
+  netmanager_ext_feature_sysvpn = false
   netmanager_ext_feature_vpn = true
+  netmanager_ext_feature_vpn_for_user0 = false
   netmanager_ext_feature_vpnext = true
   usb_manager_enable = false
 }
+
+sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]
 
 memory_optimization_cflags = [
   "-fvisibility=hidden",

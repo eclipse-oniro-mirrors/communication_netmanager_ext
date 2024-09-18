@@ -32,33 +32,38 @@ constexpr const char *EVENT_KEY_ERROR_MSG = "ERROR_MSG";
 constexpr const char *EVENT_KEY_VPN_LEGACY = "VPN_LEGACY";
 constexpr const char *EVENT_KEY_VPN_ERROR_TYPE = "VPN_ERROR_TYPE";
 constexpr const char *EVENT_KEY_VPN_ERROR_MSG = "VPN_ERROR_MSG";
+constexpr int32_t NETMANAGER_EXT_SUCCESS = 0;
 } // namespace
 
-void NetEventReport::SendSetupFaultEvent(const EventInfo &eventInfo)
+int32_t NetEventReport::SendSetupFaultEvent(const EventInfo &eventInfo)
 {
     HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_SHARING_SETUP_FAULT, HiSysEvent::EventType::FAULT,
                     EVENT_KEY_SHARING_TYPE, eventInfo.sharingType, EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
                     EVENT_KEY_ERROR_TYPE, eventInfo.errorType, EVENT_KEY_ERROR_MSG, eventInfo.errorMsg);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-void NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
+int32_t NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
 {
     HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_SHARING_CANCEL_FAULT, HiSysEvent::EventType::FAULT,
                     EVENT_KEY_SHARING_TYPE, eventInfo.sharingType, EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
                     EVENT_KEY_ERROR_TYPE, eventInfo.errorType, EVENT_KEY_ERROR_MSG, eventInfo.errorMsg);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-void NetEventReport::SendTimeBehaviorEvent(const EventInfo &eventInfo)
+int32_t NetEventReport::SendTimeBehaviorEvent(const EventInfo &eventInfo)
 {
     HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_SHARING_TIME_STAT, HiSysEvent::EventType::BEHAVIOR,
                     EVENT_KEY_SHARING_COUNT, eventInfo.sharingCount, EVENT_KEY_SHARING_TYPE, eventInfo.sharingType);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-void NetEventReport::SendVpnConnectEvent(const VpnEventInfo &eventInfo)
+int32_t NetEventReport::SendVpnConnectEvent(const VpnEventInfo &eventInfo)
 {
     HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_VPN_CONNECT_FAULT, HiSysEvent::EventType::FAULT,
                     EVENT_KEY_VPN_LEGACY, eventInfo.legacy, EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
                     EVENT_KEY_VPN_ERROR_TYPE, eventInfo.errorType, EVENT_KEY_VPN_ERROR_MSG, eventInfo.errorMsg);
+    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

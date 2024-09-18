@@ -36,14 +36,14 @@
 #include "usb_srv_support.h"
 #endif
 
-#define IFACENAME_LEN 10
+#define IFACENAME_LEN 20
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
 #ifdef WIFI_MODOULE
+constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 constexpr const char *ERROR_MSG_ENABLE_WIFI = "Enable Wifi Iface failed";
 constexpr const char *ERROR_MSG_DISABLE_WIFI = "Disable Wifi Iface failed";
 #endif
@@ -291,6 +291,7 @@ void NetworkShareTracker::OnWifiHotspotStateChanged(int state)
             NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
             NetworkShareTracker::GetInstance().StopSubStateMachine(NetworkShareTracker::GetInstance().mApIfaceName_,
                                                                    SharingIfaceType::SHARING_WIFI);
+            NetworkShareTracker::GetInstance().mApIfaceName_ = "";
             break;
         }
         default:

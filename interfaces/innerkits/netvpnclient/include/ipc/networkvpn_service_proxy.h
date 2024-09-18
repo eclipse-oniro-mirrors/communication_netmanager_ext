@@ -38,11 +38,14 @@ public:
     int32_t FactoryResetVpn() override;
     int32_t RegisterBundleName(const std::string &bundleName) override;
 #ifdef SUPPORT_SYSVPN
+    int32_t SetUpVpn(const sptr<SysVpnConfig> &config) override;
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;
-    int32_t DeleteSysVpnConfig(std::string &vpnId) override;
+    int32_t DeleteSysVpnConfig(const std::string &vpnId) override;
     int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override;
-    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override;
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
+    int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
 #endif // SUPPORT_SYSVPN
 
 private:

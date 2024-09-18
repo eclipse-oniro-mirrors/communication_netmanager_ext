@@ -44,12 +44,17 @@ public:
     }
 
 #ifdef SUPPORT_SYSVPN
+    int32_t SetUpVpn(const sptr<SysVpnConfig> &config) override
+    {
+        return 0;
+    }
+
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override
     {
         return 0;
     }
 
-    int32_t DeleteSysVpnConfig(std::string &vpnId) override
+    int32_t DeleteSysVpnConfig(const std::string &vpnId) override
     {
         return 0;
     }
@@ -59,12 +64,22 @@ public:
         return 0;
     }
 
-    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) override
     {
         return 0;
     }
 
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override
+    {
+        return 0;
+    }
+
+    int32_t NotifyConnectStage(const std::string &stage, const int32_t &errorCode) override
+    {
+        return 0;
+    }
+
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override
     {
         return 0;
     }

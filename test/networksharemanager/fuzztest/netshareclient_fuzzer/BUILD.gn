@@ -92,6 +92,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "ffrt:libffrt",
+    "hicollie:libhicollie",
     "hilog:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",

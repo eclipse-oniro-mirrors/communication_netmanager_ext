@@ -26,9 +26,6 @@
 #include "net_manager_constants.h"
 #include "networkvpn_service_stub.h"
 #include "netmanager_ext_test_security.h"
-#ifdef SUPPORT_SYSVPN
-#include "ipsecvpn_config.h"
-#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -39,13 +36,6 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-#ifdef SUPPORT_SYSVPN
-    void AddSysVpnConfig();
-    void DeleteSysVpnConfig();
-    void GetSysVpnConfigList();
-    void GetSysVpnConfig();
-    void GetConnectedSysVpnConfig();
-#endif // SUPPORT_SYSVPN
     static inline std::shared_ptr<NetworkVpnServiceStub> instance_ = std::make_shared<MockNetworkVpnServiceStub>();
     static int32_t SendRemoteRequest(MessageParcel &data, INetworkVpnService::MessageCode code);
 };
@@ -57,18 +47,6 @@ void NetworkVpnServiceStubTest::TearDownTestCase() {}
 void NetworkVpnServiceStubTest::SetUp() {}
 
 void NetworkVpnServiceStubTest::TearDown() {}
-
-#ifdef SUPPORT_SYSVPN
-void NetworkVpnServiceStubTest::AddSysVpnConfig() {}
-
-void NetworkVpnServiceStubTest::DeleteSysVpnConfig() {}
-
-void NetworkVpnServiceStubTest::GetSysVpnConfigList() {}
-
-void NetworkVpnServiceStubTest::GetSysVpnConfig() {}
-
-void NetworkVpnServiceStubTest::GetConnectedSysVpnConfig() {}
-#endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnServiceStubTest::SendRemoteRequest(MessageParcel &data, INetworkVpnService::MessageCode code)
 {
@@ -286,105 +264,5 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyDefaultTest001, TestSize.Level1)
     int32_t ret = SendRemoteRequest(data, static_cast<INetworkVpnService::MessageCode>(code));
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
-#ifdef SUPPORT_SYSVPN
-HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG);
-    // config is null
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    config->vpnId_ = "1234";
-    config->vpnName_ = "test";
-    config->vpnType_ = 1;
-    if (!config->Marshalling(data)) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG);
-    // vpnId is null
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    std::string vpnId = "1234";
-    if (!data.WriteString(vpnId)) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigListTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG_LIST);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG);
-    // vpnId is null
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    std::string vpnId = "1234";
-    if (!data.WriteString(vpnId)) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG);
-    // vpnId is null
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyGetConnectedSysVpnConfigTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-#endif // SUPPORT_SYSVPN
 } // namespace NetManagerStandard
 } // namespace OHOS

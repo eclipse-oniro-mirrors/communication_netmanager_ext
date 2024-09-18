@@ -43,6 +43,14 @@ NetFirewallDataBase::NetFirewallDataBase()
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
     store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
+    if (errCode == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
+        if (!RestoreDatabaseWhenInit()) {
+            NETMGR_EXT_LOG_E("Create and restore db error");
+            return;
+        }
+        NETMGR_EXT_LOG_I("Create db error, restore db success");
+        errCode = OHOS::NativeRdb::E_OK;
+    }
     if (errCode != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("GetRdbStore errCode :%{public}d", errCode);
     } else {
@@ -111,9 +119,18 @@ int64_t NetFirewallDataBase::Insert(const OHOS::NativeRdb::ValuesBucket &insertV
     int64_t outRowId = 0;
     int32_t ret = store_->Insert(outRowId, tableName, insertValues);
     NETMGR_EXT_LOG_D("Insert id=%{public}" PRIu64 "", outRowId);
+    if (ret == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
+        NETMGR_EXT_LOG_E("Insert error, restore db");
+        if (RestoreDatabase()) {
+            int32_t ret = store_->Insert(outRowId, tableName, insertValues);
+        }
+    }
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("Insert ret :%{public}d", ret);
         return FIREWALL_RDB_EXECUTE_FAILTURE;
+    }
+    if (tableName == FIREWALL_TABLE_NAME) {
+        BackupDatebase();
     }
     return outRowId;
 }
@@ -128,9 +145,18 @@ int32_t NetFirewallDataBase::Update(const std::string &tableName, int32_t &chang
         return FIREWALL_RDB_NO_INIT;
     }
     int32_t ret = store_->Update(changedRows, tableName, values, whereClause, whereArgs);
+    if (ret == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
+        NETMGR_EXT_LOG_E("Update error, restore db");
+        if (RestoreDatabase()) {
+            int32_t ret = store_->Update(changedRows, tableName, values, whereClause, whereArgs);
+        }
+    }
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("Update(whereClause) ret :%{public}d", ret);
         return FIREWALL_RDB_EXECUTE_FAILTURE;
+    }
+    if (tableName == FIREWALL_TABLE_NAME) {
+        BackupDatebase();
     }
     return FIREWALL_OK;
 }
@@ -144,9 +170,18 @@ int32_t NetFirewallDataBase::Delete(const std::string &tableName, int32_t &chang
         return FIREWALL_RDB_NO_INIT;
     }
     int32_t ret = store_->Delete(changedRows, tableName, whereClause, whereArgs);
+    if (ret == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
+        NETMGR_EXT_LOG_E("Delete error, restore db");
+        if (RestoreDatabase()) {
+            int32_t ret = store_->Delete(changedRows, tableName, whereClause, whereArgs);
+        }
+    }
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("Delete(whereClause) ret :%{public}d", ret);
         return FIREWALL_RDB_EXECUTE_FAILTURE;
+    }
+    if (tableName == FIREWALL_TABLE_NAME) {
+        BackupDatebase();
     }
     return FIREWALL_OK;
 }
@@ -179,6 +214,77 @@ std::shared_ptr<OHOS::NativeRdb::ResultSet> NetFirewallDataBase::QuerySql(const 
         return nullptr;
     }
     return store_->QuerySql(sql, selectionArgs);
+}
+
+void NetFirewallDataBase::BackupDatebase()
+{
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("store_ is null");
+        return;
+    }
+
+    if (backing_.exchange(true)) {
+        NETMGR_EXT_LOG_I("Backup is processing");
+        return;
+    }
+    std::string fileName = FIREWALL_DB_PATH + FIREWALL_BACKUP_DB_NAME;
+    std::thread thread([fileName, rdbStore = store_] {
+        auto errCode = rdbStore->Backup(fileName);
+        NetFirewallDataBase::GetInstance()->backing_ = false;
+        if (errCode != E_OK) {
+            NETMGR_EXT_LOG_E("Backup Datebase error");
+            return;
+        }
+        NETMGR_EXT_LOG_D("Backup Datebase success");
+    });
+    thread.detach();
+}
+
+bool NetFirewallDataBase::RestoreDatabaseWhenInit()
+{
+    std::string backupFile = FIREWALL_DB_PATH + FIREWALL_BACKUP_DB_NAME;
+    if (access(backupFile.c_str(), F_OK) != 0) {
+        NETMGR_EXT_LOG_I("Backup db is not exist");
+        return false;
+    }
+    std::string firewallFile = FIREWALL_DB_PATH + FIREWALL_DB_NAME;
+    if (rename(backupFile.c_str(), firewallFile.c_str()) != 0) {
+        return false;
+    }
+    int32_t errCode = OHOS::NativeRdb::E_OK;
+    OHOS::NativeRdb::RdbStoreConfig config(firewallFile);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
+    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
+    if (errCode != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("Restore GetRdbStore errCode :%{public}d", errCode);
+        return false;
+    } else {
+        NETMGR_EXT_LOG_D("Restore GetRdbStore success");
+    }
+    return true;
+}
+
+bool NetFirewallDataBase::RestoreDatabase()
+{
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("store_ is null");
+        return false;
+    }
+    auto fileName = FIREWALL_DB_PATH + FIREWALL_BACKUP_DB_NAME;
+    if (access(fileName.c_str(), F_OK) != 0) {
+        NETMGR_EXT_LOG_I("Backup db is not exist");
+        return false;
+    }
+    int32_t errCode = store_->Restore(fileName);
+    if (errCode == E_OK) {
+        NETMGR_EXT_LOG_I("Restore db success");
+        return true;
+    }
+
+    // Failed to restore the db. Try to rebuild the db from the backup db.
+    store_ = nullptr;
+    return RestoreDatabaseWhenInit();
 }
 
 int32_t NetFirewallDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)

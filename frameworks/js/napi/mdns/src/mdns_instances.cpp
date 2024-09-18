@@ -36,6 +36,7 @@ MDnsDiscoveryInstance *MDnsDiscoveryInstance::MakeMDnsDiscovery(EventManager *ev
     auto mdnsDiscovery = new MDnsDiscoveryInstance(eventManager);
     if (mdnsDiscovery->observer_ == nullptr) {
         NETMANAGER_EXT_LOGE("mdnsDiscovery->observer_ is nullptr");
+        delete mdnsDiscovery;
         return nullptr;
     }
     discoverInstanceMap_[mdnsDiscovery->observer_.GetRefPtr()] = mdnsDiscovery;

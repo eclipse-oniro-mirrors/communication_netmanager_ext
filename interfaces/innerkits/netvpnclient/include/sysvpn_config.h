@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-enum class VpnType {
+enum VpnType : int32_t {
     IKEV2_IPSEC_MSCHAPv2 = 1,
     IKEV2_IPSEC_PSK,
     IKEV2_IPSEC_RSA,

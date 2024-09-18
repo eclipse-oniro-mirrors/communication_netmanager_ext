@@ -24,12 +24,12 @@
 #include "vpn_connection.h"
 #include "vpn_monitor.h"
 #ifdef SUPPORT_SYSVPN
-#include "vpn_async_work.h"
 #include "add_context.h"
 #include "delete_context.h"
 #include "get_list_context.h"
 #include "get_context.h"
 #include "get_connected_context.h"
+#include "vpn_async_work.h"
 #endif // SUPPORT_SYSVPN
 
 namespace OHOS {
@@ -135,6 +135,8 @@ napi_value RegisterVpnModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(DESTROY, VpnConnection::Destroy),
                                 },
                                 VPN_CONNECTION);
+    NapiUtils::SetEnvValid(env);
+    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
     return exports;
 }
 

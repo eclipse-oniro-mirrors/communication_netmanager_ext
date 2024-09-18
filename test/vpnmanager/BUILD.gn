@@ -12,11 +12,20 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
+test_list = [
+  "unittest/vpn_manager_test:unittest",
+  "unittest/vpn_manager_ext_test:unittest",
+]
+
+if (netmanager_ext_feature_sysvpn) {
+  test_list += [ "unittest/sys_vpn_manager_test:unittest" ]
+}
 
 group("unittest") {
   testonly = true
-  deps = [ "unittest/vpn_manager_test:unittest" ]
-  deps += [ "unittest/vpn_manager_ext_test:unittest" ]
+  deps = test_list
 }
 
 group("fuzztest") {

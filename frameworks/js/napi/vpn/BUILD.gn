@@ -59,6 +59,19 @@ ohos_shared_library("vpn") {
     "-O2",
   ]
 
+  if (netmanager_ext_feature_sysvpn) {
+    cflags += sysvpn_flags
+    cflags_cc += sysvpn_flags
+    sources += [
+      "src/context/add_context.cpp",
+      "src/context/delete_context.cpp",
+      "src/context/get_connected_context.cpp",
+      "src/context/get_context.cpp",
+      "src/context/get_list_context.cpp",
+      "src/vpn_config_utils.cpp",
+    ]
+  }
+
   deps = [
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
