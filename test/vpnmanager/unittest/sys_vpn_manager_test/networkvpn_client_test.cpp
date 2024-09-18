@@ -42,7 +42,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr int NOTIFY_RESULT_SUCCESS = 100;
+constexpr int NOTIFY_RESULT_SUCCESS = 0;
 using namespace testing::ext;
 } // namespace
 class NetworkVpnClientTest : public testing::Test {
