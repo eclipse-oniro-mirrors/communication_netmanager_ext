@@ -34,9 +34,6 @@ namespace NetManagerStandard {
 std::mutex g_loadMutex;
 std::condition_variable g_cv;
 
-static constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
-constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
-
 void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
     NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
