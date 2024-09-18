@@ -30,8 +30,8 @@
       "OHOS::NetManagerStandard::MDnsClient::RestartResume()";
       "OHOS::NetManagerStandard::MDnsServiceInfo::GetAttrMap()";
       "OHOS::NetManagerStandard::MDnsClientResume::GetInstance()";
-      "OHOS::NetManagerStandard::MDnsClientResume::GetRegisterServiceMap()";
-      "OHOS::NetManagerStandard::MDnsClientResume::GetStartDiscoverServiceMap()";
+      "OHOS::NetManagerStandard::MDnsClientResume::ReRegisterService()";
+      "OHOS::NetManagerStandard::MDnsClientResume::RestartDiscoverService()";
       "OHOS::NetManagerStandard::MDnsClientResume::SaveRegisterService(OHOS::NetManagerStandard::MDnsServiceInfo const&, OHOS::sptr<OHOS::NetManagerStandard::IRegistrationCallback> const&)";
       "OHOS::NetManagerStandard::MDnsClientResume::RemoveRegisterService(OHOS::sptr<OHOS::NetManagerStandard::IRegistrationCallback> const&)";
       "OHOS::NetManagerStandard::MDnsClientResume::SaveStartDiscoverService(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::IDiscoveryCallback> const&)";
