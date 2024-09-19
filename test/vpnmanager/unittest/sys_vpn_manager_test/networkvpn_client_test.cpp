@@ -42,7 +42,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr int NOTIFY_RESULT_SUCCESS = 100;
 using namespace testing::ext;
 } // namespace
 class NetworkVpnClientTest : public testing::Test {
@@ -175,7 +174,7 @@ HWTEST_F(NetworkVpnClientTest, NotifyConnectStage001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::string stage = "start";
-    int32_t result = NOTIFY_RESULT_SUCCESS;
+    int32_t result = NETMANAGER_EXT_SUCCESS;
     EXPECT_EQ(networkVpnClient_.NotifyConnectStage(stage, result), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 
@@ -183,7 +182,7 @@ HWTEST_F(NetworkVpnClientTest, NotifyConnectStage002, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::string stage = "config";
-    int32_t result = NOTIFY_RESULT_SUCCESS;
+    int32_t result = NETMANAGER_EXT_SUCCESS;
     EXPECT_EQ(networkVpnClient_.NotifyConnectStage(stage, result), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 
@@ -191,7 +190,7 @@ HWTEST_F(NetworkVpnClientTest, NotifyConnectStage003, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::string stage = "connect";
-    int32_t result = NOTIFY_RESULT_SUCCESS;
+    int32_t result = NETMANAGER_EXT_SUCCESS;
     EXPECT_EQ(networkVpnClient_.NotifyConnectStage(stage, result), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 
@@ -199,7 +198,7 @@ HWTEST_F(NetworkVpnClientTest, NotifyConnectStage004, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::string stage = "xl2tpdstart";
-    int32_t result = NOTIFY_RESULT_SUCCESS;
+    int32_t result = NETMANAGER_EXT_SUCCESS;
     EXPECT_EQ(networkVpnClient_.NotifyConnectStage(stage, result), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 
@@ -207,7 +206,7 @@ HWTEST_F(NetworkVpnClientTest, NotifyConnectStage005, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::string stage = "pppdstart";
-    int32_t result = NOTIFY_RESULT_SUCCESS;
+    int32_t result = NETMANAGER_EXT_SUCCESS;
     EXPECT_EQ(networkVpnClient_.NotifyConnectStage(stage, result), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 

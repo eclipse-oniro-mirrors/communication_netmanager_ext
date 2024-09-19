@@ -94,7 +94,7 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
         NETMGR_EXT_LOG_E("stage is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    if (result != NOTIFY_CONNECT_STAGE_SUCCESS) {
+    if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("l2tpVpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
