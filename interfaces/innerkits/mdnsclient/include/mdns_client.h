@@ -101,6 +101,7 @@ public:
     int32_t ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb);
 
     void RestartResume();
+    sptr<IMDnsService> GetProxy();
 
 private:
     class MDnsDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -117,7 +118,6 @@ private:
     };
 
     sptr<IRemoteObject> LoadSaOnDemand();
-    sptr<IMDnsService> GetProxy();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
 
     std::mutex mutex_;
