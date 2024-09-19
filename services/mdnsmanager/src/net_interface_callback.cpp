@@ -31,8 +31,12 @@ NetInterfaceStateCallback::NetInterfaceStateCallback() {}
 int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &addr, const std::string &ifName,
                                                              int32_t flags, int32_t scope)
 {
-    NETMGR_EXT_LOG_I("OnInterfaceAddressUpdated, addr:[%{public}s], iface:[%{public}s], scope:[%{public}d]",
-                     addr.c_str(), ifName.c_str(), scope);
+    NETMGR_EXT_LOG_I("OnInterfaceAddressUpdated, iface:[%{public}s], scope:[%{public}d]",
+                     ifName.c_str(), scope);
+    if (ifName.empty()) {
+        NETMGR_EXT_LOG_E("mdns_log Invalid interface name");
+        return NETMANAGER_SUCCESS;
+    }
 
     std::string ifrName = ifName;
     std::transform(ifrName.begin(), ifrName.end(), ifrName.begin(), ::tolower);
@@ -49,8 +53,8 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
 int32_t NetInterfaceStateCallback::OnInterfaceAddressRemoved(const std::string &addr, const std::string &ifName,
                                                              int32_t flags, int32_t scope)
 {
-    NETMGR_EXT_LOG_D("OnInterfaceAddressRemoved, addr:[%{public}s], iface:[%{public}s], scope:[%{public}d]",
-                     addr.c_str(), ifName.c_str(), scope);
+    NETMGR_EXT_LOG_D("OnInterfaceAddressRemoved, iface:[%{public}s], scope:[%{public}d]",
+                     ifName.c_str(), scope);
     return NETMANAGER_SUCCESS;
 }
 

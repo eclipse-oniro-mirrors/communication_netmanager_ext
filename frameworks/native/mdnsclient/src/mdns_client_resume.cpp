@@ -24,9 +24,12 @@
 #include "netmgr_ext_log_wrapper.h"
 
 #include "mdns_common.h"
+#include "mdns_client.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+static constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
+constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 void MDnsClientResume::Init()
 {
     NETMGR_EXT_LOG_I("MDnsClientResume Init");
@@ -49,14 +52,35 @@ MDnsClientResume &MDnsClientResume::GetInstance()
     return singleInstance_;
 }
 
-RegisterServiceMap *MDnsClientResume::GetRegisterServiceMap()
+void MDnsClientResume::ReRegisterService()
 {
-    return &registerMap_;
+    std::lock_guard<std::recursive_mutex> guard(registerMutex_);
+    for (const auto& [key, value]: registerMap_) {
+        auto ret = DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(value, key);
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("ReRegisterService error, service name is %{public}s", value.name.c_str());
+        }
+    }
 }
 
-DiscoverServiceMap *MDnsClientResume::GetStartDiscoverServiceMap()
+void MDnsClientResume::RestartDiscoverService()
 {
-    return &discoveryMap_;
+    std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
+    for (const auto& [key, value]: discoveryMap_) {
+        uint32_t count = 0;
+        while (DelayedSingleton<MDnsClient>::GetInstance()->GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+            std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
+            count++;
+        }
+        auto proxy = DelayedSingleton<MDnsClient>::GetInstance()->GetProxy();
+        NETMGR_EXT_LOG_W("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
+        if (proxy != nullptr) {
+            auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(value, key);
+            if (ret != NETMANAGER_EXT_SUCCESS) {
+                NETMGR_EXT_LOG_E("RestartDiscoverService error, errorCode: %{public}d", ret);
+            }
+        }
+    }
 }
 
 int32_t MDnsClientResume::SaveRegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
