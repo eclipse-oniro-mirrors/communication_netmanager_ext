@@ -88,6 +88,7 @@ net_vpn_manager_external_deps = [
   "netmanager_base:net_manager_common",
   "netmanager_base:netsys_controller",
   "os_account:os_account_innerkits",
+  "relational_store:native_rdb",
   "safwk:system_ability_fwk",
   "samgr:samgr_proxy",
 ]
