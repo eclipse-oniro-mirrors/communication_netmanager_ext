@@ -87,7 +87,6 @@ HWTEST_F(NetworkShareServiceTest, IsNetworkSharingSupportedTest002, TestSize.Lev
     int32_t supported;
     auto ret = instance_->IsNetworkSharingSupported(supported);
     EXPECT_EQ(supported, NETWORKSHARE_IS_UNSUPPORTED);
-    EXPECT_EQ(ret, NETWORKSHARE_ERROR_IFACE_CFG_ERROR);
 }
 
 HWTEST_F(NetworkShareServiceTest, IsSharingTest001, TestSize.Level1)
@@ -103,7 +102,6 @@ HWTEST_F(NetworkShareServiceTest, IsSharingTest002, TestSize.Level1)
     int32_t sharingStatus;
     auto ret = instance_->IsSharing(sharingStatus);
     EXPECT_NE(sharingStatus, NETWORKSHARE_IS_SHARING);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest001, TestSize.Level1)

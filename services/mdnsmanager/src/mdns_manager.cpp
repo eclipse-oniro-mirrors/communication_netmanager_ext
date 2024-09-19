@@ -72,6 +72,7 @@ int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
+    std::lock_guard<std::recursive_mutex> guard(registerMutex_);
     auto itr = registerMap_.find(cb);
     if (registerMap_.end() == itr) {
         NETMGR_EXT_LOG_W("mdns_log find registrer map failed");
@@ -80,7 +81,6 @@ int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 
     int32_t err = impl.UnRegister(itr->second);
     if (err == NETMANAGER_EXT_SUCCESS) {
-        std::lock_guard<std::recursive_mutex> guard(registerMutex_);
         registerMap_.erase(itr);
     }
     return err;

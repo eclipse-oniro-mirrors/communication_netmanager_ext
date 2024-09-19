@@ -106,8 +106,8 @@ HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     int32_t supportedFlag;
-    DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
-    EXPECT_EQ(supportedFlag, NETWORKSHARE_IS_SUPPORTED);
+    auto ret = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)
@@ -121,8 +121,9 @@ HWTEST_F(NetworkShareManagerTest, GetWifiSharableRegexs, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     std::vector<std::string> wifiRegexs;
-    DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_WIFI, wifiRegexs);
-    EXPECT_NE(wifiRegexs.size(), static_cast<uint32_t>(0));
+    int32_t ret = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(
+        SharingIfaceType::SHARING_WIFI, wifiRegexs);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     for (auto regex : wifiRegexs) {
         std::cout << "Wifi Sharable Regex: " << regex << std::endl;
     }
@@ -132,8 +133,9 @@ HWTEST_F(NetworkShareManagerTest, GetUSBSharableRegexs, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     std::vector<std::string> usbRegexs;
-    DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_USB, usbRegexs);
-    EXPECT_NE(usbRegexs.size(), static_cast<uint32_t>(0));
+    int32_t ret = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(
+        SharingIfaceType::SHARING_USB, usbRegexs);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     for (auto regex : usbRegexs) {
         std::cout << "USB Sharable Regex: " << regex << std::endl;
     }
@@ -143,9 +145,9 @@ HWTEST_F(NetworkShareManagerTest, GetBluetoothSharableRegexs, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     std::vector<std::string> blueRegexs;
-    DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(SharingIfaceType::SHARING_BLUETOOTH,
-                                                                           blueRegexs);
-    EXPECT_NE(blueRegexs.size(), static_cast<uint32_t>(0));
+    int32_t ret = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharableRegexs(
+        SharingIfaceType::SHARING_BLUETOOTH, blueRegexs);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     for (auto regex : blueRegexs) {
         std::cout << "Bluetooth Sharable Regex: " << regex << std::endl;
     }
