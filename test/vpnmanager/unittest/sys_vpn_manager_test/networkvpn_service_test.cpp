@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,12 @@
 
 #include <gtest/gtest.h>
 
-#include "nativetoken_kit.h"
 #include "accesstoken_kit.h"
+#include "extended_vpn_ctl.h"
+#include "ipsecvpn_config.h"
+#include "nativetoken_kit.h"
+#include "net_manager_constants.h"
+#include "system_ability_definition.h"
 #include "token_setproc.h"
 
 #ifdef GTEST_API_
@@ -24,10 +28,7 @@
 #define protected public
 #endif
 
-#include "ipsecvpn_config.h"
-#include "net_manager_constants.h"
 #include "networkvpn_service.h"
-#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -142,6 +143,34 @@ HWTEST_F(NetworkVpnServiceTest, GetSysVpnCertUriTest001, TestSize.Level1)
     std::string certUri;
     int32_t certType = 0;
     EXPECT_EQ(instance_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = nullptr;
+    int32_t ret = instance_->SetUpVpn(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    config->vpnId_ = "123";
+    ret = instance_->SetUpVpn(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    config->vpnName_ = "testSetUpVpn";
+    config->vpnType_ = 1;
+    ret = instance_->SetUpVpn(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    std::string pkg = "test1";
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    instance_->CheckCurrentAccountType(userId, activeUserIds);
+    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
+    ret = instance_->SetUpVpn(config);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    instance_->vpnObj_ = nullptr;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, 100, activeUserIds);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    instance_->vpnObj_ = tmp;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

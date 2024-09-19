@@ -57,14 +57,34 @@ void NetworkVpnClientTest::SetUpTestCase() {}
 
 void NetworkVpnClientTest::TearDownTestCase() {}
 
+HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = nullptr;
+    int32_t ret = networkVpnClient_.SetUpVpn(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    config->vpnId_ = "123";
+    ret = networkVpnClient_.SetUpVpn(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    config->vpnName_ = "testSetUpVpn";
+    config->vpnType_ = 1;
+    ret = networkVpnClient_.SetUpVpn(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
 HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::string id = "1234";
-    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    if (config == nullptr) {
-        return;
-    }
+    sptr<SysVpnConfig> config = nullptr;
+    int32_t ret = networkVpnClient_.AddSysVpnConfig(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    ret = networkVpnClient_.AddSysVpnConfig(config);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
@@ -107,7 +127,11 @@ HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig001, TestSize.Level1)
     config->vpnType_ = 1;
     EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
     // delete test config
-    EXPECT_EQ(networkVpnClient_.DeleteSysVpnConfig(id), NETMANAGER_EXT_SUCCESS);
+    std::string emptyStr;
+    int32_t ret = networkVpnClient_.DeleteSysVpnConfig(emptyStr);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    ret = networkVpnClient_.DeleteSysVpnConfig(id);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig002, TestSize.Level1)
@@ -121,7 +145,7 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::vector<SysVpnConfig> list;
-    EXPECT_EQ(networkVpnClient_.GetSysVpnConfigList(list), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkVpnClient_.GetSysVpnConfigList(list), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig001, TestSize.Level1)
@@ -129,7 +153,7 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig001, TestSize.Level1)
     NetManagerExtAccessToken access;
     std::string id = "1234";
     sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_EQ(networkVpnClient_.GetSysVpnConfig(resConfig, id), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkVpnClient_.GetSysVpnConfig(resConfig, id), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig002, TestSize.Level1)
@@ -192,7 +216,14 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnCertUri001, TestSize.Level1)
     NetManagerExtAccessToken access;
     int32_t certType = 0;
     std::string certUri;
-    EXPECT_EQ(networkVpnClient_.GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    int32_t ret = networkVpnClient_.GetSysVpnCertUri(certType, certUri);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    certType = 2;
+    ret = networkVpnClient_.GetSysVpnCertUri(certType, certUri);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    certType = -1;
+    ret = networkVpnClient_.GetSysVpnCertUri(certType, certUri);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
