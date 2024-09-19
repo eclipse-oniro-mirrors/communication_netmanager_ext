@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,6 @@ namespace NetManagerStandard {
 namespace {
 const std::string L2TP_IPSEC_CONFIGURED_TAG = "xl2tpdstart";
 const std::string L2TP_IPSEC_CONNECTED_TAG = "pppdstart";
-const std::string L2TP_IPSEC_DISCONNECTED_TAG = "stop";
 } // namespace
 class L2tpVpnCtl : public IpsecVpnCtl {
 public:

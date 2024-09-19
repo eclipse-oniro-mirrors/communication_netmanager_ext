@@ -120,12 +120,6 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 
     l2tpControl_->state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
-    stage = L2TP_IPSEC_DISCONNECTED_TAG;
-    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-
-    l2tpControl_->state_ = -1;
-    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 

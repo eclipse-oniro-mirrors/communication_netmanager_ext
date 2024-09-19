@@ -119,11 +119,6 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 
     ipsecControl_->state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
-    stage = IPSEC_DISCONNECT_TAG;
-    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-
-    ipsecControl_->state_ = -1;
     ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }

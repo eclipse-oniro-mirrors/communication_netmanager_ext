@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -129,14 +129,6 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
                 NETMGR_EXT_LOG_I("l2tp vpn setup step 4: is connected");
                 state_ = IpsecVpnStateCode::STATE_CONNECTED;
                 NotifyConnectState(VpnConnectState::VPN_CONNECTED);
-            }
-            break;
-        case IpsecVpnStateCode::STATE_DISCONNECTED:
-            if (stage.compare(L2TP_IPSEC_DISCONNECTED_TAG) == 0) {
-                // 5. is disconnected
-                NETMGR_EXT_LOG_I("l2tp vpn setup step 5: is disconnected");
-                state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
-                NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
             }
             break;
         default:
