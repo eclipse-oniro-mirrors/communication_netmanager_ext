@@ -233,5 +233,25 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnCertUri001, TestSize.Level1)
     ret = instance_->ReplyGetSysVpnCertUri(data, reply);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnServiceStubTest, CheckVpnPermission001, TestSize.Level1)
+{
+    std::string strPermission = "TEST_PERMISSION";
+    int32_t ret = instance_->CheckVpnPermission(strPermission);
+    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, OnRemoteRequest001, TestSize.Level1)
+{
+    MessageParcel data;
+    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH);
+    MessageParcel data1;
+    if (!data1.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    ret = SendRemoteRequest(data1, INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG);
+    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

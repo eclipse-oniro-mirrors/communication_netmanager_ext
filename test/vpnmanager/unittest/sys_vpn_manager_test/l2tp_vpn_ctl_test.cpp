@@ -99,7 +99,7 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
-    errorCode = NOTIFY_CONNECT_STAGE_SUCCESS;
+    errorCode = NETMANAGER_EXT_SUCCESS;
     l2tpControl_->state_ = IpsecVpnStateCode::STATE_INIT;
     ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);

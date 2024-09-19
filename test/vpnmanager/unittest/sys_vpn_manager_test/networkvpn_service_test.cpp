@@ -104,6 +104,18 @@ HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigList001, TestSize.Level1)
 {
     std::vector<SysVpnConfig> list;
     EXPECT_EQ(instance_->GetSysVpnConfigList(list), NETMANAGER_EXT_SUCCESS);
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    config->vpnId_ = "testId1";
+    config->vpnName_ = "testName1";
+    config->vpnType_ = 1;
+    instance_->AddSysVpnConfig(config);
+    config->vpnId_ = "testId2";
+    config->vpnName_ = "testName2";
+    instance_->AddSysVpnConfig(config);
+    EXPECT_EQ(instance_->GetSysVpnConfigList(list), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->DeleteSysVpnConfig("testId1"), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->DeleteSysVpnConfig("testId2"), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigTest001, TestSize.Level1)
@@ -129,6 +141,10 @@ HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1
 {
     sptr<SysVpnConfig> resultConfig = nullptr;
     EXPECT_EQ(instance_->GetConnectedSysVpnConfig(resultConfig), NETMANAGER_EXT_SUCCESS);
+
+    instance_->AddSysVpnConfig(vpnConfig_);
+    instance_->SetUpVpn(vpnConfig_);
+    EXPECT_EQ(instance_->GetConnectedSysVpnConfig(vpnConfig_), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, NotifyConnectStageTest001, TestSize.Level1)
@@ -153,6 +169,8 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     config->vpnId_ = "123";
+    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
+    instance_->vpnObj_ = nullptr;
     ret = instance_->SetUpVpn(config);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
     config->vpnName_ = "testSetUpVpn";
@@ -163,7 +181,6 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     instance_->CheckCurrentAccountType(userId, activeUserIds);
-    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
     ret = instance_->SetUpVpn(config);
     EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
@@ -171,6 +188,18 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, 100, activeUserIds);
     EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
     instance_->vpnObj_ = tmp;
+}
+
+HWTEST_F(NetworkVpnServiceTest, DumpTest001, TestSize.Level1)
+{
+    int32_t fd = 0;
+    std::vector<std::u16string> args;
+    int32_t ret = instance_->Dump(fd, args);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    fd = 1;
+    ret = instance_->Dump(fd, args);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
