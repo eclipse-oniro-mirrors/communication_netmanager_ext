@@ -44,11 +44,18 @@ namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
 } // namespace
+
+class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
+public:
+    void OnVpnStateChanged(const bool &isConnected) override{};
+    void OnVpnMultiUserSetUp() override{};
+};
+
 class NetworkVpnClientTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
-
+    sptr<IVpnEventCallback> callback_ = nullptr;
     NetworkVpnClient &networkVpnClient_ = NetworkVpnClient::GetInstance();
 };
 
@@ -113,6 +120,21 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig003, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
 }
 
+HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig004, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    config->vpnId_ = "testId0";
+    config->vpnName_ = "test";
+    config->vpnType_ = 0;
+    config->saveLogin_  = false;
+    config->userId_   = 0;
+    EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
 HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
@@ -144,6 +166,19 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::vector<SysVpnConfig> list;
+    EXPECT_EQ(networkVpnClient_.GetSysVpnConfigList(list), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList002, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    std::vector<SysVpnConfig> list;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    config->vpnId_ = "testGetList";
+    config->vpnName_ = "testList";
+    config->vpnType_ = 1;
+    EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(networkVpnClient_.GetSysVpnConfigList(list), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
@@ -223,6 +258,27 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnCertUri001, TestSize.Level1)
     certType = -1;
     ret = networkVpnClient_.GetSysVpnCertUri(certType, certUri);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
+HWTEST_F(NetworkVpnClientTest, OnVpnMultiUserSetUp001, TestSize.Level1)
+{
+    callback_ = new (std::nothrow) IVpnEventCallbackTest();
+    if (callback_ == nullptr) {
+        return;
+    }
+    callback_->OnVpnMultiUserSetUp();
+    EXPECT_EQ(networkVpnClient_.vpnEventCallback_, nullptr);
+}
+
+HWTEST_F(NetworkVpnClientTest, RecoverCallback001, TestSize.Level1)
+{
+    callback_ = new (std::nothrow) IVpnEventCallbackTest();
+    if (callback_ == nullptr) {
+        return;
+    }
+    networkVpnClient_.vpnEventCallback_ = callback_;
+    networkVpnClient_.RecoverCallback();
+    EXPECT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,18 +49,14 @@ sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBea
         return nullptr;
     }
     sptr<IpsecVpnConfig> ipsecVpnConfig = new (std::nothrow) IpsecVpnConfig();
-    if (ipsecVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig ipsecVpnConfig is null");
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    if (ipsecVpnConfig == nullptr || netAddr == nullptr) {
+        NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig ipsecVpnConfig or netAddr is null");
         return nullptr;
     }
     ipsecVpnConfig->vpnId_ = vpnBean->vpnId_;
     ipsecVpnConfig->vpnName_ = vpnBean->vpnName_;
     ipsecVpnConfig->vpnType_ = vpnBean->vpnType_;
-    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
-    if (netAddr == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig netAddr is null");
-        return nullptr;
-    }
     netAddr->address_ = vpnBean->vpnAddress_;
     ipsecVpnConfig->addresses_.push_back(*netAddr);
     ipsecVpnConfig->userName_ = vpnBean->userName_;
@@ -96,18 +92,14 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
         return nullptr;
     }
     sptr<L2tpVpnConfig> l2tpVpnConfig = new (std::nothrow) L2tpVpnConfig();
-    if (l2tpVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig l2tpVpnConfig is null");
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    if (l2tpVpnConfig == nullptr || netAddr == nullptr) {
+        NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig l2tpVpnConfig or netAddr is null");
         return nullptr;
     }
     l2tpVpnConfig->vpnId_ = vpnBean->vpnId_;
     l2tpVpnConfig->vpnName_ = vpnBean->vpnName_;
     l2tpVpnConfig->vpnType_ = vpnBean->vpnType_;
-    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
-    if (netAddr == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig netAddr is null");
-        return nullptr;
-    }
     netAddr->address_ = vpnBean->vpnAddress_;
     l2tpVpnConfig->addresses_.push_back(*netAddr);
     l2tpVpnConfig->userName_ = vpnBean->userName_;

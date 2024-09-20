@@ -103,7 +103,7 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
-    errorCode = NOTIFY_CONNECT_STAGE_SUCCESS;
+    errorCode = NETMANAGER_EXT_SUCCESS;
     ipsecControl_->state_ = IpsecVpnStateCode::STATE_INIT;
     ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);

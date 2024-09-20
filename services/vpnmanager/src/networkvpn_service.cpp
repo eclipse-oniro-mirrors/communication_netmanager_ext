@@ -684,6 +684,9 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<SysVpnConfig> &config)
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
     vpnObj_ = CreateSysVpnCtl(config, userId, activeUserIds);
+    if (!vpnConnCallback_) {
+        vpnConnCallback_ = std::make_shared<VpnConnStateCb>(*this);
+    }
     if (vpnObj_ == nullptr || vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("SetUpVpn register internal callback failed");
         return NETMANAGER_EXT_ERR_INTERNAL;

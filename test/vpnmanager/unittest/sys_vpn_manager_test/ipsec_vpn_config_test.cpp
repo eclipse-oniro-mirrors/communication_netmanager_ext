@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -96,24 +96,24 @@ HWTEST_F(IpsecVpnConfigTest, MarshallingUnmarshallingTest001, TestSize.Level1)
     Parcel parcel;
     IpsecVpnConfig info = GetIpsecVpnConfigData();
     EXPECT_TRUE(info.Marshalling(parcel));
-    sptr<IpsecVpnConfig> result;
-    result = IpsecVpnConfig::Unmarshalling(parcel);
-    if (result != nullptr) {
-        EXPECT_EQ(result->ipsecPreSharedKey_, info.ipsecPreSharedKey_);
-        EXPECT_EQ(result->ipsecIdentifier_, info.ipsecIdentifier_);
-        EXPECT_EQ(result->swanctlConf_, info.swanctlConf_);
-        EXPECT_EQ(result->strongswanConf_, info.strongswanConf_);
-        EXPECT_EQ(result->ipsecCaCertConf_, info.ipsecCaCertConf_);
-        EXPECT_EQ(result->ipsecPrivateUserCertConf_, info.ipsecPrivateUserCertConf_);
-        EXPECT_EQ(result->ipsecPublicUserCertConf_, info.ipsecPublicUserCertConf_);
-        EXPECT_EQ(result->ipsecPrivateServerCertConf_, info.ipsecPrivateServerCertConf_);
-        EXPECT_EQ(result->ipsecPublicServerCertConf_, info.ipsecPublicServerCertConf_);
-        EXPECT_EQ(result->ipsecCaCertFilePath_, info.ipsecCaCertFilePath_);
-        EXPECT_EQ(result->ipsecPrivateUserCertFilePath_, info.ipsecPrivateUserCertFilePath_);
-        EXPECT_EQ(result->ipsecPublicUserCertFilePath_, info.ipsecPublicUserCertFilePath_);
-        EXPECT_EQ(result->ipsecPrivateServerCertFilePath_, info.ipsecPrivateServerCertFilePath_);
-        EXPECT_EQ(result->ipsecPublicServerCertFilePath_, info.ipsecPublicServerCertFilePath_);
-    }
+    int32_t type;
+    parcel.ReadInt32(type);
+    sptr<IpsecVpnConfig> result = IpsecVpnConfig::Unmarshalling(parcel);
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_EQ(result->ipsecPreSharedKey_, info.ipsecPreSharedKey_);
+    EXPECT_EQ(result->ipsecIdentifier_, info.ipsecIdentifier_);
+    EXPECT_EQ(result->swanctlConf_, info.swanctlConf_);
+    EXPECT_EQ(result->strongswanConf_, info.strongswanConf_);
+    EXPECT_EQ(result->ipsecCaCertConf_, info.ipsecCaCertConf_);
+    EXPECT_EQ(result->ipsecPrivateUserCertConf_, info.ipsecPrivateUserCertConf_);
+    EXPECT_EQ(result->ipsecPublicUserCertConf_, info.ipsecPublicUserCertConf_);
+    EXPECT_EQ(result->ipsecPrivateServerCertConf_, info.ipsecPrivateServerCertConf_);
+    EXPECT_EQ(result->ipsecPublicServerCertConf_, info.ipsecPublicServerCertConf_);
+    EXPECT_EQ(result->ipsecCaCertFilePath_, info.ipsecCaCertFilePath_);
+    EXPECT_EQ(result->ipsecPrivateUserCertFilePath_, info.ipsecPrivateUserCertFilePath_);
+    EXPECT_EQ(result->ipsecPublicUserCertFilePath_, info.ipsecPublicUserCertFilePath_);
+    EXPECT_EQ(result->ipsecPrivateServerCertFilePath_, info.ipsecPrivateServerCertFilePath_);
+    EXPECT_EQ(result->ipsecPublicServerCertFilePath_, info.ipsecPublicServerCertFilePath_);
 }
 }
 }

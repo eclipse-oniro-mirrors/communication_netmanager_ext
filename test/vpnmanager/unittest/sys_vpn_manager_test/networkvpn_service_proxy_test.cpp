@@ -216,5 +216,12 @@ HWTEST_F(NetworkVpnServiceProxyTest, NotifyConnectStage001, TestSize.Level1)
     auto ret = instance_->NotifyConnectStage(stage, result);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_WRITE_DATA_FAIL);
 }
+
+HWTEST_F(NetworkVpnServiceProxyTest, FactoryResetVpn001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto ret = instance_->FactoryResetVpn();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

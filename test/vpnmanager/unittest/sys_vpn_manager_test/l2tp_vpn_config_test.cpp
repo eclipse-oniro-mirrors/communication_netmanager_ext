@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,28 +20,46 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr const char* TEST_SHARED_KEY = "ipsecPreSharedKey_";
-constexpr const char* TEST_IDENRIFIER = "ipsecIdentifier_";
-constexpr const char* TEST_STRONG_SWAN_CONFIG = "strongswanConf_";
-constexpr const char* TEST_CA_CERT_CONFIG = "ipsecCaCertConf_";
-constexpr const char* TEST_PRIVATE_USER_CERT_CONFIG = "ipsecPrivateUserCertConf_";
-constexpr const char* TEST_PUBLIC_USER_CERT_CONFIG = "ipsecPublicUserCertConf_";
-constexpr const char* TEST_PRIVATE_SERVER_CERT_CONFIG = "ipsecPrivateServerCertConf_";
-constexpr const char* TEST_PUBLIC_SERVER_CERT_CONFIG = "ipsecPublicServerCertConf_";
-constexpr const char* TEST_CA_CERT_FILE_PATH = "ipsecCaCertFilePath_";
-constexpr const char* TEST_PRIVATE_USER_CERT_FILE_PATH = "ipsecPrivateUserCertFilePath_";
-constexpr const char* TEST_PUBLIC_USER_CERT_FILE_PATH = "ipsecPublicUserCertFilePath_";
-constexpr const char* TEST_PRIVATE_SERVER_CERT_FILE_PATH = "ipsecPrivateServerCertFilePath_";
-constexpr const char* TEST_PUBLIC_SERVER_CERT_FILE_PATH = "ipsecPublicServerCertFilePath_";
-constexpr const char* TEST_IPSEC_CONFIG = "ipsecConf_";
-constexpr const char* TEST_IPSEC_SECRETS = "ipsecSecrets_";
-constexpr const char* TEST_OPTION_CLIENT = "optionsL2tpdClient_";
-constexpr const char* TEST_XL2TPD_CONFIG = "xl2tpdConf_";
-constexpr const char* TEST_L2TP_SHARED_KEY = "l2tpSharedKey_";
+constexpr const char *TEST_VPNID = "vpnId_";
+constexpr const char *TEST_VPN_NAME = "vpnName_";
+constexpr const char *TEST_USER_NAME = "userName_";
+constexpr const char *TEST_PASSWORD = "password_";
+constexpr bool TEST_SAVE_LOGIN = false;
+constexpr int32_t TEST_USERID = 0;
+constexpr const char *TEST_FORWARD = "forwardingRoutes_";
+
+constexpr const char *TEST_SHARED_KEY = "ipsecPreSharedKey_";
+constexpr const char *TEST_IDENRIFIER = "ipsecIdentifier_";
+constexpr const char *TEST_STRONG_SWAN_CONFIG = "strongswanConf_";
+constexpr const char *TEST_CA_CERT_CONFIG = "ipsecCaCertConf_";
+constexpr const char *TEST_PRIVATE_USER_CERT_CONFIG = "ipsecPrivateUserCertConf_";
+constexpr const char *TEST_PUBLIC_USER_CERT_CONFIG = "ipsecPublicUserCertConf_";
+constexpr const char *TEST_PRIVATE_SERVER_CERT_CONFIG = "ipsecPrivateServerCertConf_";
+constexpr const char *TEST_PUBLIC_SERVER_CERT_CONFIG = "ipsecPublicServerCertConf_";
+constexpr const char *TEST_CA_CERT_FILE_PATH = "ipsecCaCertFilePath_";
+constexpr const char *TEST_PRIVATE_USER_CERT_FILE_PATH = "ipsecPrivateUserCertFilePath_";
+constexpr const char *TEST_PUBLIC_USER_CERT_FILE_PATH = "ipsecPublicUserCertFilePath_";
+constexpr const char *TEST_PRIVATE_SERVER_CERT_FILE_PATH = "ipsecPrivateServerCertFilePath_";
+constexpr const char *TEST_PUBLIC_SERVER_CERT_FILE_PATH = "ipsecPublicServerCertFilePath_";
+constexpr const char *TEST_IPSEC_CONFIG = "ipsecConf_";
+constexpr const char *TEST_IPSEC_SECRETS = "ipsecSecrets_";
+constexpr const char *TEST_OPTION_CLIENT = "optionsL2tpdClient_";
+constexpr const char *TEST_XL2TPD_CONFIG = "xl2tpdConf_";
+constexpr const char *TEST_L2TP_SHARED_KEY = "l2tpSharedKey_";
 
 L2tpVpnConfig GetL2tpVpnConfigData()
 {
     L2tpVpnConfig infoSequence;
+
+    infoSequence.vpnId_ = TEST_VPNID;
+    infoSequence.vpnName_ = TEST_VPN_NAME;
+    infoSequence.vpnType_ = VpnType::L2TP_IPSEC_PSK;
+    infoSequence.userName_ = TEST_USER_NAME;
+    infoSequence.password_ = TEST_PASSWORD;
+    infoSequence.saveLogin_ = TEST_SAVE_LOGIN;
+    infoSequence.userId_ = TEST_USERID;
+    infoSequence.forwardingRoutes_ = TEST_FORWARD;
+    
     infoSequence.ipsecPreSharedKey_ = TEST_SHARED_KEY;
     infoSequence.ipsecIdentifier_ = TEST_IDENRIFIER;
     infoSequence.strongswanConf_ = TEST_STRONG_SWAN_CONFIG;
@@ -86,28 +104,28 @@ HWTEST_F(L2tpVpnConfigTest, MarshallingUnmarshallingTest001, TestSize.Level1)
     Parcel parcel;
     L2tpVpnConfig info = GetL2tpVpnConfigData();
     EXPECT_TRUE(info.Marshalling(parcel));
-    sptr<L2tpVpnConfig> result;
-    result = L2tpVpnConfig::Unmarshalling(parcel);
-    if (result != nullptr) {
-        EXPECT_EQ(result->ipsecPreSharedKey_, info.ipsecPreSharedKey_);
-        EXPECT_EQ(result->ipsecIdentifier_, info.ipsecIdentifier_);
-        EXPECT_EQ(result->strongswanConf_, info.strongswanConf_);
-        EXPECT_EQ(result->ipsecCaCertConf_, info.ipsecCaCertConf_);
-        EXPECT_EQ(result->ipsecPrivateUserCertConf_, info.ipsecPrivateUserCertConf_);
-        EXPECT_EQ(result->ipsecPublicUserCertConf_, info.ipsecPublicUserCertConf_);
-        EXPECT_EQ(result->ipsecPrivateServerCertConf_, info.ipsecPrivateServerCertConf_);
-        EXPECT_EQ(result->ipsecPublicServerCertConf_, info.ipsecPublicServerCertConf_);
-        EXPECT_EQ(result->ipsecCaCertFilePath_, info.ipsecCaCertFilePath_);
-        EXPECT_EQ(result->ipsecPrivateUserCertFilePath_, info.ipsecPrivateUserCertFilePath_);
-        EXPECT_EQ(result->ipsecPublicUserCertFilePath_, info.ipsecPublicUserCertFilePath_);
-        EXPECT_EQ(result->ipsecPrivateServerCertFilePath_, info.ipsecPrivateServerCertFilePath_);
-        EXPECT_EQ(result->ipsecPublicServerCertFilePath_, info.ipsecPublicServerCertFilePath_);
-        EXPECT_EQ(result->ipsecConf_, info.ipsecConf_);
-        EXPECT_EQ(result->ipsecSecrets_, info.ipsecSecrets_);
-        EXPECT_EQ(result->optionsL2tpdClient_, info.optionsL2tpdClient_);
-        EXPECT_EQ(result->xl2tpdConf_, info.xl2tpdConf_);
-        EXPECT_EQ(result->l2tpSharedKey_, info.l2tpSharedKey_);
-    }
+    int32_t type;
+    parcel.ReadInt32(type);
+    sptr<L2tpVpnConfig> result = L2tpVpnConfig::Unmarshalling(parcel);
+    ASSERT_TRUE(result != nullptr);
+    EXPECT_EQ(result->ipsecPreSharedKey_, info.ipsecPreSharedKey_);
+    EXPECT_EQ(result->ipsecIdentifier_, info.ipsecIdentifier_);
+    EXPECT_EQ(result->strongswanConf_, info.strongswanConf_);
+    EXPECT_EQ(result->ipsecCaCertConf_, info.ipsecCaCertConf_);
+    EXPECT_EQ(result->ipsecPrivateUserCertConf_, info.ipsecPrivateUserCertConf_);
+    EXPECT_EQ(result->ipsecPublicUserCertConf_, info.ipsecPublicUserCertConf_);
+    EXPECT_EQ(result->ipsecPrivateServerCertConf_, info.ipsecPrivateServerCertConf_);
+    EXPECT_EQ(result->ipsecPublicServerCertConf_, info.ipsecPublicServerCertConf_);
+    EXPECT_EQ(result->ipsecCaCertFilePath_, info.ipsecCaCertFilePath_);
+    EXPECT_EQ(result->ipsecPrivateUserCertFilePath_, info.ipsecPrivateUserCertFilePath_);
+    EXPECT_EQ(result->ipsecPublicUserCertFilePath_, info.ipsecPublicUserCertFilePath_);
+    EXPECT_EQ(result->ipsecPrivateServerCertFilePath_, info.ipsecPrivateServerCertFilePath_);
+    EXPECT_EQ(result->ipsecPublicServerCertFilePath_, info.ipsecPublicServerCertFilePath_);
+    EXPECT_EQ(result->ipsecConf_, info.ipsecConf_);
+    EXPECT_EQ(result->ipsecSecrets_, info.ipsecSecrets_);
+    EXPECT_EQ(result->optionsL2tpdClient_, info.optionsL2tpdClient_);
+    EXPECT_EQ(result->xl2tpdConf_, info.xl2tpdConf_);
+    EXPECT_EQ(result->l2tpSharedKey_, info.l2tpSharedKey_);
 }
 }
 }
