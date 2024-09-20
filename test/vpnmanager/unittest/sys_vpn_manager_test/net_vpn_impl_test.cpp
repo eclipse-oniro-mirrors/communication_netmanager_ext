@@ -110,10 +110,55 @@ HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo001, TestSize.Level1)
     netVpnImpl_->vpnConfig_ = nullptr;
     EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), false);
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_TRUE(netVpnImpl_->vpnConfig_ != nullptr);
     netVpnImpl_->vpnConfig_->isAcceptIPv6_ = true;
     EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
     netVpnImpl_->vpnConfig_->isAcceptIPv6_ = false;
     EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    netVpnImpl_->SetAllUidRanges();
+    netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
+    netVpnImpl_->vpnConfig_->isAcceptIPv6_ = true;
+    std::string dnsServer = "fe80::ea68:19ff:fe63:98bc%7";
+    netVpnImpl_->vpnConfig_->dnsAddresses_.push_back(dnsServer);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
 }
+
+HWTEST_F(NetVpnImplTest, DelNetLinkInfo001, TestSize.Level1)
+{
+    auto& netConnClientIns = NetConnClient::GetInstance();
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_TRUE(netVpnImpl_->vpnConfig_ != nullptr);
+    Route route1;
+    netVpnImpl_->vpnConfig_->routes_.push_back(route1);
+    netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
+    netVpnImpl_->AdjustRouteInfo(route1);
+    route1.iface_ = "ifaceTest";
+    netVpnImpl_->AdjustRouteInfo(route1);
+    netVpnImpl_->DelNetLinkInfo(netConnClientIns);
+    EXPECT_TRUE(netVpnImpl_->vpnConfig_ != nullptr);
+}
+
+HWTEST_F(NetVpnImplTest, GenerateUidRangesByAcceptedApps001, TestSize.Level1)
+{
+    std::set<int32_t> uids = {1, 2, 5};
+    std::vector<int32_t> beginUids;
+    std::vector<int32_t> endUids;
+    netVpnImpl_->GenerateUidRangesByAcceptedApps(uids, beginUids, endUids);
+    EXPECT_FALSE(beginUids.empty());
+}
+
+HWTEST_F(NetVpnImplTest, GenerateUidRanges001, TestSize.Level1)
+{
+    std::vector<int32_t> beginUids;
+    std::vector<int32_t> endUids;
+    netVpnImpl_->userId_ = AppExecFwk::Constants::INVALID_USERID;
+    int32_t userId = AppExecFwk::Constants::INVALID_USERID;
+    int32_t result = netVpnImpl_->GenerateUidRanges(userId, beginUids, endUids);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    netVpnImpl_->vpnConfig_->refusedApplications_ = {"com.openharmony.test"};
+    result = netVpnImpl_->GenerateUidRanges(userId, beginUids, endUids);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

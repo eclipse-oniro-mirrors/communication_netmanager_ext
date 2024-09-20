@@ -223,5 +223,24 @@ HWTEST_F(NetworkVpnServiceProxyTest, FactoryResetVpn001, TestSize.Level1)
     auto ret = instance_->FactoryResetVpn();
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnServiceProxyTest, Protect001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto ret = instance_->Protect(true);
+    EXPECT_NE(ret, ERR_NONE);
+}
+
+HWTEST_F(NetworkVpnServiceProxyTest, DestroyVpn001, TestSize.Level1)
+{
+    auto ret = instance_->DestroyVpn(true);
+    EXPECT_NE(ret, ERR_NONE);
+}
+
+HWTEST_F(NetworkVpnServiceProxyTest, CreateVpnConnection001, TestSize.Level1)
+{
+    auto ret = instance_->CreateVpnConnection(true);
+    EXPECT_NE(ret, ERR_NONE);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

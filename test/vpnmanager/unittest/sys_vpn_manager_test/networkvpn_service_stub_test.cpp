@@ -236,9 +236,18 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnCertUri001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceStubTest, CheckVpnPermission001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     std::string strPermission = "TEST_PERMISSION";
     int32_t ret = instance_->CheckVpnPermission(strPermission);
     EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnServiceStubTest, CheckVpnPermission002, TestSize.Level1)
+{
+    NetManagerExtNotSystemAccessToken token;
+    std::string strPermission = "TEST_PERMISSION";
+    int32_t ret = instance_->CheckVpnPermission(strPermission);
+    EXPECT_EQ(ret, NETMANAGER_ERR_NOT_SYSTEM_CALL);
 }
 
 HWTEST_F(NetworkVpnServiceStubTest, OnRemoteRequest001, TestSize.Level1)

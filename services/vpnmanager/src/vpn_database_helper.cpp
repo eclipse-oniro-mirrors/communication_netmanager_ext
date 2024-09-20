@@ -126,10 +126,6 @@ bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)
 
 void VpnDatabaseHelper::BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info)
 {
-    if (info == nullptr) {
-        NETMGR_EXT_LOG_E("BindVpnData info is nullptr");
-        return;
-    }
     values.PutString(VPN_ID, info->vpnId_);
     values.PutString(VPN_NAME, info->vpnName_);
     values.PutInt(VPN_TYPE, info->vpnType_);

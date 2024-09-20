@@ -120,10 +120,10 @@ HWTEST_F(VpnDatabaseHelperTest, InsertData001, TestSize.Level1)
 
 HWTEST_F(VpnDatabaseHelperTest, InsertOrUpdateData001, TestSize.Level1)
 {
-    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    if (vpnBean == nullptr) {
-        return;
-    }
+    sptr<VpnDataBean> vpnBean = nullptr;
+    EXPECT_EQ(vpnDataHelper_.InsertOrUpdateData(vpnBean), NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
     EXPECT_EQ(vpnDataHelper_.InsertOrUpdateData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
@@ -201,6 +201,28 @@ HWTEST_F(VpnDatabaseHelperTest, UpdateData001, TestSize.Level1)
     vpnBean->isLegacy_ = 1;
     vpnBean->saveLogin_ = 1;
     EXPECT_EQ(vpnDataHelper_.UpdateData(vpnBean), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(VpnDatabaseHelperTest, NoStore001, TestSize.Level1)
+{
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> tmp = vpnDataHelper_.store_;
+    vpnDataHelper_.store_ = nullptr;
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    vpnBean->vpnId_ = "1234";
+    vpnBean->userId_ = 100;
+    vpnBean->vpnType_ = 1;
+    vpnBean->vpnName_ = "name";
+    vpnBean->vpnAddress_ = "1.1.1.1";
+    vpnBean->isLegacy_ = 1;
+    vpnBean->saveLogin_ = 1;
+    EXPECT_EQ(vpnDataHelper_.InsertData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(vpnDataHelper_.UpdateData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(vpnDataHelper_.QueryVpnData(vpnBean, vpnBean->vpnId_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    std::vector<SysVpnConfig> list;
+    EXPECT_EQ(vpnDataHelper_.QueryAllData(list, vpnBean->userId_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(vpnDataHelper_.DeleteVpnData(vpnBean->vpnId_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    vpnDataHelper_.store_ = tmp;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

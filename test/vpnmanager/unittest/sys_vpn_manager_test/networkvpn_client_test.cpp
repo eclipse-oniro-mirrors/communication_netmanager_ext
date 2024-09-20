@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,12 +44,6 @@ namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
 } // namespace
-
-class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
-public:
-    void OnVpnStateChanged(const bool &isConnected) override{};
-    void OnVpnMultiUserSetUp() override{};
-};
 
 class NetworkVpnClientTest : public testing::Test {
 public:
@@ -130,8 +124,8 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig004, TestSize.Level1)
     config->vpnId_ = "testId0";
     config->vpnName_ = "test";
     config->vpnType_ = 0;
-    config->saveLogin_  = false;
-    config->userId_   = 0;
+    config->saveLogin_ = false;
+    config->userId_ = 0;
     EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_ERR_READ_DATA_FAIL);
 }
 
@@ -262,23 +256,44 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnCertUri001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, OnVpnMultiUserSetUp001, TestSize.Level1)
 {
-    callback_ = new (std::nothrow) IVpnEventCallbackTest();
-    if (callback_ == nullptr) {
-        return;
-    }
-    callback_->OnVpnMultiUserSetUp();
+    networkVpnClient_.vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
+    ASSERT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
+    bool isConnected = false;
+    networkVpnClient_.vpnEventCallback_->OnVpnStateChanged(isConnected);
+    networkVpnClient_.vpnEventCallback_->OnVpnMultiUserSetUp();
     EXPECT_EQ(networkVpnClient_.vpnEventCallback_, nullptr);
 }
 
 HWTEST_F(NetworkVpnClientTest, RecoverCallback001, TestSize.Level1)
 {
-    callback_ = new (std::nothrow) IVpnEventCallbackTest();
-    if (callback_ == nullptr) {
-        return;
-    }
-    networkVpnClient_.vpnEventCallback_ = callback_;
+    sptr<VpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    networkVpnClient_.clientVpnConfig_.first = config;
+    networkVpnClient_.clientVpnConfig_.second = true;
     networkVpnClient_.RecoverCallback();
-    EXPECT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
+    EXPECT_NE(networkVpnClient_.clientVpnConfig_.first, nullptr);
+}
+
+HWTEST_F(NetworkVpnClientTest, OnRemoteDied001, TestSize.Level1)
+{
+    sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> remote = sam->CheckSystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID);
+    networkVpnClient_.networkVpnService_ = iface_cast<INetworkVpnService>(remote);
+    networkVpnClient_.vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
+    ASSERT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
+    networkVpnClient_.deathRecipient_ = new (std::nothrow) NetworkVpnClient::MonitorVpnServiceDead(networkVpnClient_);
+    ASSERT_NE(networkVpnClient_.deathRecipient_, nullptr);
+    networkVpnClient_.deathRecipient_->OnRemoteDied(remote);
+    networkVpnClient_.OnRemoteDied(remote);
+    EXPECT_TRUE(networkVpnClient_.networkVpnService_ == nullptr);
+}
+
+HWTEST_F(NetworkVpnClientTest, multiUserSetUpEvent001, TestSize.Level1)
+{
+    networkVpnClient_.vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
+    ASSERT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
+    networkVpnClient_.multiUserSetUpEvent();
+    EXPECT_TRUE(networkVpnClient_.vpnEventCallback_ == nullptr);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
