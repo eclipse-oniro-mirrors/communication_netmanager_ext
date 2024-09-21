@@ -259,7 +259,7 @@ HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl001, TestSize.Level1)
     std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
     sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds);
     EXPECT_TRUE(sysVpnCtl == nullptr);
- 
+
     config->vpnId_ = "1234";
     config->vpnName_ = "test001";
     config->vpnType_ = 1;
@@ -297,7 +297,7 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
     NetManagerExtAccessToken access;
     ret = instance_->DestroyVpn(isVpnExtCall);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS); 
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, RegisterVpnEvent001, TestSize.Level1)
@@ -319,7 +319,7 @@ HWTEST_F(NetworkVpnServiceTest, CreateVpnConnection001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, CheckCurrentAccountType001, TestSize.Level1)
 {
-    int32_t userId = 1 ;
+    int32_t userId = 1;
     std::vector<int32_t> activeUserIds;
     EXPECT_EQ(instance_->CheckCurrentAccountType(userId, activeUserIds), NETMANAGER_EXT_SUCCESS);
 }
@@ -327,10 +327,10 @@ HWTEST_F(NetworkVpnServiceTest, CheckCurrentAccountType001, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, SyncRegisterVpnEvent001, TestSize.Level1)
 {
     sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
-    
+
     int32_t ret = instance_->SyncRegisterVpnEvent(callback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    
+
     instance_->vpnEventCallbacks_.push_back(callback);
     ret = instance_->SyncRegisterVpnEvent(callback);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
@@ -454,6 +454,5 @@ HWTEST_F(NetworkVpnServiceTest, OnReceiveEvent001, TestSize.Level1)
     instance_->subscriber_->OnReceiveEvent(eventData);
     EXPECT_TRUE(instance_->subscriber_ != nullptr);
 }
-
 } // namespace NetManagerStandard
 } // namespace OHOS
