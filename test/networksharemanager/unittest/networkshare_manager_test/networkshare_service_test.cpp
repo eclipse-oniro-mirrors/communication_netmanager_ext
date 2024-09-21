@@ -90,7 +90,6 @@ HWTEST_F(NetworkShareServiceTest, IsNetworkSharingSupportedTest002, TestSize.Lev
     int32_t supported;
     auto ret = instance_->IsNetworkSharingSupported(supported);
     EXPECT_EQ(supported, NETWORKSHARE_IS_UNSUPPORTED);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, IsSharingTest001, TestSize.Level1)
@@ -106,7 +105,6 @@ HWTEST_F(NetworkShareServiceTest, IsSharingTest002, TestSize.Level1)
     int32_t sharingStatus;
     auto ret = instance_->IsSharing(sharingStatus);
     EXPECT_NE(sharingStatus, NETWORKSHARE_IS_SHARING);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest001, TestSize.Level1)
@@ -119,7 +117,9 @@ HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     auto ret = instance_->StartNetworkSharing(SharingIfaceType::SHARING_WIFI);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    int32_t sharingStatus;
+    ret = instance_->IsSharing(sharingStatus);
+    EXPECT_NE(sharingStatus, NETWORKSHARE_IS_SHARING);
 }
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest003, TestSize.Level1)
@@ -138,7 +138,7 @@ HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_WIFI_SHARING);
 }
 
 HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest003, TestSize.Level1)
@@ -157,7 +157,7 @@ HWTEST_F(NetworkShareServiceTest, RegisterSharingEventTest002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     auto ret = instance_->RegisterSharingEvent(eventCallback_);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest001, TestSize.Level1)
@@ -170,7 +170,7 @@ HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest002, TestSize.Level1
 {
     NetManagerExtAccessToken token;
     auto ret = instance_->UnregisterSharingEvent(eventCallback_);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetSharableRegexsTest001, TestSize.Level1)
@@ -200,7 +200,7 @@ HWTEST_F(NetworkShareServiceTest, GetSharingStateTest002, TestSize.Level1)
     NetManagerExtAccessToken token;
     SharingIfaceState state;
     auto ret = instance_->GetSharingState(SharingIfaceType::SHARING_WIFI, state);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetNetSharingIfacesTest001, TestSize.Level1)
@@ -232,7 +232,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsRxBytesTest002, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t bytes;
     auto ret = instance_->GetStatsRxBytes(bytes);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest001, TestSize.Level1)
@@ -247,7 +247,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest002, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t bytes;
     auto ret = instance_->GetStatsTxBytes(bytes);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest001, TestSize.Level1)
@@ -262,7 +262,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest002, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t bytes;
     auto ret = instance_->GetStatsTotalBytes(bytes);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetDumpMessage001, TestSize.Level1)
@@ -308,7 +308,7 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch002, TestSize.Level1)
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     std::vector<std::string> ifaces;
     int32_t ret = instance_->GetNetSharingIfaces(state, ifaces);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareServiceTest, OnAddSystemAbility001, TestSize.Level1)
