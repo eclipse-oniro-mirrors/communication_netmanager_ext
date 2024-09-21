@@ -692,7 +692,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<SysVpnConfig> &config)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     NETMGR_EXT_LOG_I("SystemVpn SetUp");
-    int32_t ret = vpnObj_->SetUp();
+    ret = vpnObj_->SetUp();
     if (ret == NETMANAGER_EXT_SUCCESS) {
         hasOpenedVpnUid_ = IPCSkeleton::GetCallingUid();
     }
