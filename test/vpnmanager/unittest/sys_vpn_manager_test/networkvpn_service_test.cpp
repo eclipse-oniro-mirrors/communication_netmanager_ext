@@ -35,6 +35,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
+    constexpr int32_t TEST_USERID = 0;
 } // namespace
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
@@ -182,6 +183,32 @@ HWTEST_F(NetworkVpnServiceTest, GetSysVpnCertUriTest001, TestSize.Level1)
     std::string certUri;
     int32_t certType = 0;
     EXPECT_EQ(instance_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
+HWTEST_F(NetworkVpnServiceTest, QueryVpnData001, TestSize.Level1)
+{
+    sptr<SysVpnConfig> openvpnConfig = nullptr;
+    sptr<VpnDataBean> vpnBean = nullptr;
+    EXPECT_EQ(instance_->QueryVpnData(openvpnConfig, vpnBean), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    openvpnConfig = new (std::nothrow) OpenvpnConfig();
+    EXPECT_EQ(instance_->QueryVpnData(openvpnConfig, vpnBean), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(openvpnConfig, nullptr);
+    ASSERT_NE(vpnBean, nullptr);
+    EXPECT_EQ(instance_->QueryVpnData(openvpnConfig, vpnBean), NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    openvpnConfig->vpnId_ = "test001";
+    EXPECT_EQ(instance_->QueryVpnData(openvpnConfig, vpnBean), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CreateOpenvpnCtl001, TestSize.Level1)
+{
+    std::vector<int32_t> activeUserIds;
+    int32_t userId = TEST_USERID;
+    sptr<VpnDataBean> vpnBean = nullptr;
+    EXPECT_EQ(instance_->CreateOpenvpnCtl(vpnBean, TEST_USERID, activeUserIds), nullptr);
+    vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    ASSERT_NE(instance_->CreateOpenvpnCtl(vpnBean, userId, activeUserIds), nullptr);
 }
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)

@@ -143,9 +143,8 @@ HWTEST_F(NetVpnImplTest, UpdateNetSupplierInfo, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo001, TestSize.Level1)
 {
-    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->vpnConfig_ = nullptr;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), false);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), false);
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
     Route route1, toute2;
     netVpnImpl_->vpnConfig_->routes_.push_back(route1);
@@ -158,23 +157,22 @@ HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo001, TestSize.Level1)
     std::string domain2 = "changhong.com";
     netVpnImpl_->vpnConfig_->searchDomains_.push_back(domain1);
     netVpnImpl_->vpnConfig_->searchDomains_.push_back(domain2);
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), true);
 }
 
 HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo002, TestSize.Level1)
 {
-    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->vpnConfig_ = nullptr;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), false);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), false);
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
     netVpnImpl_->vpnConfig_->isAcceptIPv4_ = true;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), true);
     netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
     netVpnImpl_->vpnConfig_->isAcceptIPv4_ = true;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), true);
     netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
     netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), true);
 }
 
 HWTEST_F(NetVpnImplTest, GenerateUidRangesByAcceptedApps, TestSize.Level1)

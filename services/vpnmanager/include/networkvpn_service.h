@@ -232,6 +232,9 @@ private:
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
+    std::shared_ptr<NetVpnImpl> CreateOpenvpnCtl(sptr<VpnDataBean> &vpnBean, int32_t userId,
+        std::vector<int32_t> &activeUserIds);
+    int32_t QueryVpnData(const sptr<SysVpnConfig> &config, sptr<VpnDataBean> &vpnBean);
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();
     std::string GetCurrentVpnBundleName();
