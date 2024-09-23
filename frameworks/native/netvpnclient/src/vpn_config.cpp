@@ -20,7 +20,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr uint32_t MAX_SIZE = 64;
-constexpr uint32_t Route_MAX_SIZE = 1024;
+constexpr uint32_t ROUTE_MAX_SIZE = 1024;
 }
 bool VpnConfig::Marshalling(Parcel &parcel) const
 {
@@ -123,7 +123,7 @@ bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, sptr<VpnConfig> &config)
     if (!parcel.ReadInt32(routeSize)) {
         return false;
     }
-    if (static_cast<uint32_t>(routeSize) > Route_MAX_SIZE) {
+    if (static_cast<uint32_t>(routeSize) > ROUTE_MAX_SIZE) {
         NETMGR_EXT_LOG_E("routeSize=[%{public}d] is too large", routeSize);
         return false;
     }
