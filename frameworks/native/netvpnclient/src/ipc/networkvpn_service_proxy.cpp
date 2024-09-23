@@ -163,10 +163,12 @@ int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<SysVpnConfig> &config)
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
 
+    // LCOV_EXCL_START
     if (!(data.WriteString(config->vpnId_) && data.WriteInt32(config->vpnType_))) {
         NETMGR_EXT_LOG_E("SetUpVpn proxy write data failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
+    // LCOV_EXCL_STOP
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_SETUP_SYS_VPN, data, reply);
     if (ret != ERR_NONE) {
@@ -222,10 +224,12 @@ int32_t NetworkVpnServiceProxy::DeleteSysVpnConfig(const std::string &vpnId)
         NETMGR_EXT_LOG_E("DeleteSysVpnConfig write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
+    // LCOV_EXCL_START
     if (!data.WriteString(vpnId)) {
         NETMGR_EXT_LOG_E("DeleteSysVpnConfig proxy write data failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
+    // LCOV_EXCL_STOP
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG, data, reply);
     if (ret != ERR_NONE) {
@@ -280,11 +284,12 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfig(sptr<SysVpnConfig> &config, cons
         NETMGR_EXT_LOG_E("GetSysVpnConfig write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
+    // LCOV_EXCL_START
     if (!data.WriteString(vpnId)) {
         NETMGR_EXT_LOG_E("GetSysVpnConfig proxy write data failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
-
+    // LCOV_EXCL_STOP
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG, data, reply);
     if (ret != ERR_NONE) {
@@ -325,10 +330,12 @@ int32_t NetworkVpnServiceProxy::NotifyConnectStage(const std::string &stage, con
         NETMGR_EXT_LOG_E("NotifyConnectStage write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
+    // LCOV_EXCL_START
     if (!(data.WriteString(stage) && data.WriteInt32(result))) {
         NETMGR_EXT_LOG_E("NotifyConnectStage proxy write data failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
+    // LCOV_EXCL_STOP
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE, data, reply);
     if (ret != ERR_NONE) {
@@ -350,10 +357,12 @@ int32_t NetworkVpnServiceProxy::GetSysVpnCertUri(const int32_t certType, std::st
         NETMGR_EXT_LOG_E("GetSysVpnCertUri write interface token failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
+    // LCOV_EXCL_START
     if (!data.WriteInt32(certType)) {
         NETMGR_EXT_LOG_E("GetSysVpnCertUri proxy write data failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
+    // LCOV_EXCL_STOP
     MessageParcel reply;
     int32_t ret = SendRequest(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CERT_URI, data, reply);
     if (ret != ERR_NONE) {

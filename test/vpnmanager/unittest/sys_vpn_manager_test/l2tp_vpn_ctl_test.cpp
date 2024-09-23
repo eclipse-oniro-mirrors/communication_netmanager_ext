@@ -84,6 +84,11 @@ HWTEST_F(L2tpVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
     l2tpControl_->state_ = IpsecVpnStateCode::STATE_CONNECTED;
     ret = l2tpControl_->GetConnectedSysVpnConfig(resConfig);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    sptr<L2tpVpnConfig> tmp = l2tpControl_->l2tpVpnConfig_;
+    l2tpControl_->l2tpVpnConfig_ = nullptr;
+    ret = l2tpControl_->GetConnectedSysVpnConfig(resConfig);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    l2tpControl_->l2tpVpnConfig_ = tmp;
 }
 
 HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
@@ -122,6 +127,16 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     l2tpControl_->state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
     ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    stage = "stageTest";
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_INIT;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_CONFIGED;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_CONTROLLED;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)

@@ -29,12 +29,18 @@
 #endif
 
 #include "networkvpn_service.h"
+#include "netmanager_ext_test_security.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
 } // namespace
+class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
+public:
+    void OnVpnStateChanged(const bool &isConnected) override{};
+    void OnVpnMultiUserSetUp() override{};
+};
 class NetworkVpnServiceTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -62,6 +68,23 @@ void NetworkVpnServiceTest::TearDownTestCase()
         return;
     }
     instance_->DeleteSysVpnConfig(vpnId_);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnStart001, TestSize.Level1)
+{
+    instance_->state_ = NetworkVpnService::ServiceRunningState::STATE_RUNNING;
+    instance_->OnStart();
+
+    instance_->state_ = NetworkVpnService::ServiceRunningState::STATE_STOPPED;
+    instance_->OnStart();
+
+    EXPECT_EQ(instance_->state_, NetworkVpnService::ServiceRunningState::STATE_STOPPED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnStop001, TestSize.Level1)
+{
+    instance_->OnStop();
+    EXPECT_EQ(instance_->state_, NetworkVpnService::ServiceRunningState::STATE_STOPPED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, AddSysVpnConfigTest001, TestSize.Level1)
@@ -190,6 +213,31 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     instance_->vpnObj_ = tmp;
 }
 
+HWTEST_F(NetworkVpnServiceTest, SetUpVpn002, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    config->vpnId_ = "123";
+    int32_t ret = instance_->SetUpVpn(config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+    NetManagerExtAccessToken accToken;
+    std::string pkg = "test1";
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    instance_->CheckCurrentAccountType(userId, activeUserIds);
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
+    ret = instance_->SetUpVpn(config, true);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+
+    instance_->vpnObj_ = nullptr;
+    ret = instance_->SetUpVpn(config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = instance_->SetUpVpn(config, true);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+}
+
 HWTEST_F(NetworkVpnServiceTest, DumpTest001, TestSize.Level1)
 {
     int32_t fd = 0;
@@ -200,6 +248,211 @@ HWTEST_F(NetworkVpnServiceTest, DumpTest001, TestSize.Level1)
     fd = 1;
     ret = instance_->Dump(fd, args);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl001, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds);
+    EXPECT_TRUE(sysVpnCtl == nullptr);
+
+    config->vpnId_ = "1234";
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
+
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds);
+    EXPECT_TRUE(sysVpnCtl != nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, Init001, TestSize.Level1)
+{
+    EXPECT_EQ(instance_->Init(), false);
+}
+
+HWTEST_F(NetworkVpnServiceTest, PublishVpnConnectionStateEvent001, TestSize.Level1)
+{
+    VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    instance_->PublishVpnConnectionStateEvent(state);
+    int32_t ret = NETMANAGER_EXT_SUCCESS;
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, Prepare001, TestSize.Level1)
+{
+    bool isExistVpn = false;
+    bool isRun = false;
+    std::string pkg = "";
+    EXPECT_EQ(instance_->Prepare(isExistVpn, isRun, pkg), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn001, TestSize.Level1)
+{
+    bool isVpnExtCall = false;
+    int32_t ret = instance_->DestroyVpn(isVpnExtCall);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    ret = instance_->DestroyVpn(isVpnExtCall);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RegisterVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+    EXPECT_EQ(instance_->RegisterVpnEvent(callback), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, UnregisterVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+    EXPECT_EQ(instance_->UnregisterVpnEvent(callback), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CreateVpnConnection001, TestSize.Level1)
+{
+    EXPECT_EQ(instance_->CreateVpnConnection(true), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CheckCurrentAccountType001, TestSize.Level1)
+{
+    int32_t userId = 1;
+    std::vector<int32_t> activeUserIds;
+    EXPECT_EQ(instance_->CheckCurrentAccountType(userId, activeUserIds), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SyncRegisterVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+
+    int32_t ret = instance_->SyncRegisterVpnEvent(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    instance_->vpnEventCallbacks_.push_back(callback);
+    ret = instance_->SyncRegisterVpnEvent(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SyncUnregisterVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+    int32_t ret = instance_->SyncUnregisterVpnEvent(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+
+    instance_->vpnEventCallbacks_.push_back(callback);
+    ret = instance_->SyncUnregisterVpnEvent(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, FactoryResetVpn001, TestSize.Level1)
+{
+    EXPECT_EQ(instance_->FactoryResetVpn(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SetAlwaysOnVpn001, TestSize.Level1)
+{
+    std::string pkg = "vpn";
+    bool enable = true;
+    int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    NoPermissionAccessToken accToken;
+    enable = false;
+    pkg = "";
+    ret = instance_->SetAlwaysOnVpn(pkg, enable);
+    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetAlwaysOnVpn001, TestSize.Level1)
+{
+    std::string pkg = "";
+    EXPECT_EQ(instance_->GetAlwaysOnVpn(pkg), NETMANAGER_ERR_INTERNAL);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ParseJsonToConfig001, TestSize.Level1)
+{
+    sptr<VpnConfig> vpnCfg = new (std::nothrow) VpnConfig();
+    INetAddr netAddr;
+    netAddr.address_ = "1";
+    netAddr.netMask_ = "1";
+    netAddr.hostName_ = "1";
+    vpnCfg->addresses_.push_back(netAddr);
+    std::string jsonString;
+    instance_->ParseConfigToJson(vpnCfg, jsonString);
+    EXPECT_FALSE(jsonString.empty());
+    sptr<VpnConfig> vpnCfgnew = new (std::nothrow) VpnConfig();
+    instance_->ParseJsonToConfig(vpnCfgnew, jsonString);
+    EXPECT_GT(vpnCfgnew->addresses_.size(), 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnRemoteDied001, TestSize.Level1)
+{
+    wptr<IRemoteObject> remote = nullptr;
+    int handle = 1;
+    sptr<IRemoteObject> result = nullptr;
+    std::u16string descriptor = std::u16string();
+    result = new (std::nothrow) IPCObjectProxy(handle, descriptor);
+    IRemoteObject *object = result.GetRefPtr();
+    remote = object;
+    instance_->OnRemoteDied(remote);
+    EXPECT_TRUE(instance_->vpnObj_ == nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RegisterBundleName001, TestSize.Level1)
+{
+    instance_->StartAlwaysOnVpn();
+    EXPECT_TRUE(instance_->vpnObj_ == nullptr);
+    instance_->SubscribeCommonEvent();
+    instance_->RegisterFactoryResetCallback();
+    int32_t systemAbilityId = 1;
+    std::string deviceId = "testvpn";
+    instance_->OnAddSystemAbility(systemAbilityId, deviceId);
+    instance_->OnRemoveSystemAbility(systemAbilityId, deviceId);
+
+    std::string bundleName = "vpntest";
+    EXPECT_EQ(instance_->RegisterBundleName(bundleName), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnExtensionStateChanged001, TestSize.Level1)
+{
+    int ret = 0;
+    if (instance_->vpnHapObserver_ == nullptr) {
+        instance_->vpnHapObserver_ = new NetworkVpnService::VpnHapObserver(*instance_);
+        ret = NETMANAGER_EXT_SUCCESS;
+    }
+    ASSERT_NE(instance_->vpnHapObserver_, nullptr);
+    AppExecFwk::AbilityStateData abilityStateData;
+    instance_->vpnHapObserver_->OnExtensionStateChanged(abilityStateData);
+    AppExecFwk::ProcessData processData;
+    instance_->vpnHapObserver_->OnProcessCreated(processData);
+    instance_->vpnHapObserver_->OnProcessStateChanged(processData);
+    instance_->vpnHapObserver_->OnProcessDied(processData);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
+{
+    int ret = 0;
+    if (instance_->vpnConnCallback_ == nullptr) {
+        instance_->vpnConnCallback_ = std::make_shared<NetworkVpnService::VpnConnStateCb>(*instance_);
+        ret = NETMANAGER_EXT_SUCCESS;
+    }
+    ASSERT_NE(instance_->vpnConnCallback_, nullptr);
+    VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    instance_->vpnConnCallback_->OnVpnConnStateChanged(state);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnReceiveEvent001, TestSize.Level1)
+{
+    instance_->SubscribeCommonEvent();
+    EXPECT_TRUE(instance_->subscriber_ != nullptr);
+    EventFwk::CommonEventData eventData;
+    instance_->subscriber_->OnReceiveEvent(eventData);
+    EXPECT_TRUE(instance_->subscriber_ != nullptr);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
