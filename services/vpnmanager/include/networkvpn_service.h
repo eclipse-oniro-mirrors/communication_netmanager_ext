@@ -234,6 +234,7 @@ private:
         std::vector<int32_t> &activeUserIds);
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();
+    std::string GetCurrentVpnBundleName();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -298,6 +299,7 @@ private:
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
     int32_t hasOpenedVpnUid_ = 0;
+    std::string currentVpnBundleName_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
