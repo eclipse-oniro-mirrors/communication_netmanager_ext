@@ -32,6 +32,7 @@
 #include "system_ability_definition.h"
 #include "iservice_registry.h"
 
+#include "ability_manager_client.h"
 #include "extended_vpn_ctl.h"
 #include "net_event_report.h"
 #include "net_manager_center.h"
@@ -607,6 +608,9 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
         NETMGR_EXT_LOG_I("vpnHapOberver RegisterApplicationStateObserver ret = %{public}d", regRet);
     }
     NETMGR_EXT_LOG_I("NetworkVpnService SetUp");
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        currentVpnBundleName_ = vpnBundleName;
+    }
     return ret;
 }
 
@@ -656,6 +660,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     remove(VPN_CONFIG_FILE);
 
     NETMGR_EXT_LOG_I("Destroy vpn successfully.");
+    currentVpnBundleName_.clear();
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -1217,14 +1222,26 @@ void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessStateChanged");
 }
 
+std::string NetworkVpnService::GetCurrentVpnBundleName()
+{
+    return currentVpnBundleName_;
+}
+
 void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
 {
     std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
+    auto extensionBundleName = vpnService_.GetCurrentVpnBundleName();
     if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
         NETMGR_EXT_LOG_E("destroy vpn failed");
     }
     vpnService_.vpnObj_ = nullptr;
-    NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied");
+    AAFwk::Want want;
+    AppExecFwk::ElementName elem;
+    elem.SetBundleName(extensionBundleName);
+    want.SetElement(elem);
+    auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+        want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+    NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
 }
 
 void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
