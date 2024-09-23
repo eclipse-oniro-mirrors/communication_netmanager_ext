@@ -162,7 +162,7 @@ FirewallRuleAction NetFirewallPolicyManager::GetFirewallPolicyOutAction()
 
 void NetFirewallPolicyManager::EnsureCurrentFirewallPolicyCached()
 {
-    if (!IsPolicyCacheInvalid()) {
+    if (IsPolicyCacheInvalid()) {
         RebuildFirewallPolicyCache(currentUserId_);
     }
 }
