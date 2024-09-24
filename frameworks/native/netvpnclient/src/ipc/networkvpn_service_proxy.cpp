@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <memory>
+
 #include "networkvpn_service_proxy.h"
 
 #include "ipc_types.h"
@@ -75,6 +77,26 @@ int32_t NetworkVpnServiceProxy::Prepare(bool &isExistVpn, bool &isRun, std::stri
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     return result;
+}
+
+int32_t NetworkVpnServiceProxy::GetSelfAppName(std::string &selfAppName)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("write interface token failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    MessageParcel reply;
+    auto ret = SendRequest(INetworkVpnService::MessageCode::CMD_GET_SELF_APP_NAME, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("SendRequest failed %{public}d", ret);
+        return ret;
+    }
+    if (!reply.ReadString(selfAppName)) {
+        NETMGR_EXT_LOG_E("IPC ReadString failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return ERR_NONE;
 }
 
 int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)

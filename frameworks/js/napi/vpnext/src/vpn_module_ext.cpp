@@ -182,7 +182,11 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
         int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
         if (!g_started || ret != 0 || vpnExtMode != "1") {
             g_started = true;
-            VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName);
+            std::string selfAppName;
+            auto getAppNameRes = NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName);
+            NETMANAGER_EXT_LOGI("StartVpnExtensionAbility SelfAppName = %{public}s %{public}d", selfAppName.c_str(),
+                                getAppNameRes);
+            VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
             NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
             return CreateObserveDataSharePromise(env, bundleName);
         }

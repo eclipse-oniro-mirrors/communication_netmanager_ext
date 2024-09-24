@@ -197,6 +197,8 @@ public:
     */
     int32_t GetAlwaysOnVpn(std::string &pkg);
 
+    int32_t GetSelfAppName(std::string &selfAppName) override;
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
