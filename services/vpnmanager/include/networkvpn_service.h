@@ -235,7 +235,7 @@ private:
         std::vector<int32_t> &activeUserIds);
     std::shared_ptr<NetVpnImpl> CreateOpenvpnCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
         std::vector<int32_t> &activeUserIds);
-    std::shared_ptr<IpsecVpnCtl> CreateIpsecVpnCtl(sptr<VpnDataBean> vpnBean,int32_t userId,
+    std::shared_ptr<IpsecVpnCtl> CreateIpsecVpnCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
         std::vector<int32_t> &activeUserIds);
     int32_t QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean);
     std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
