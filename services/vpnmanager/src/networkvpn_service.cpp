@@ -710,7 +710,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
 {
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
-        NETMGR_EXT_LOG_E("QueryVpnData failed, param is null");
+        NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return nullptr;
     }
     int32_t result = QueryVpnData(config, vpnBean);
