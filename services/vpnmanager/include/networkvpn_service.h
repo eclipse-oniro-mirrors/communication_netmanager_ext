@@ -17,6 +17,7 @@
 #define NETWORK_VPN_SERVICE_H
 
 #include <memory>
+#include <string>
 #include "event_handler.h"
 #include "i_vpn_conn_state_cb.h"
 #include "net_vpn_impl.h"
@@ -237,6 +238,7 @@ private:
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();
     std::string GetCurrentVpnBundleName();
+    std::vector<std::string> GetCurrentVpnAbilityName();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -302,6 +304,7 @@ private:
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
     int32_t hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
+    std::vector<std::string> currentVpnAbilityName_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
