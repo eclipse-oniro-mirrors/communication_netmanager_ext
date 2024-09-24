@@ -21,11 +21,12 @@
 #include <string>
 #include <vector>
 
-#include "route.h"
 #include "inet_addr.h"
-#include "vpn_config.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
+#include "openvpn_config.h"
+#include "route.h"
+#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -63,14 +64,14 @@ constexpr const char *CONFIG_SAVE_LOGIN = "saveLogin";
 constexpr const char *CONFIG_FORWARDED_ROUTES = "forwardingRoutes";
 
 constexpr const char *CONFIG_OVPN_PORT = "ovpnPort";
-constexpr const char *CONFIG_OPEN_VPN_PROTOCOL = "ovpnProtocol";
-constexpr const char *CONFIG_OPEN_VPN_CFG = "ovpnConfig";
-constexpr const char *CONFIG_OPEN_VPN_AUTH_TYPE = "ovpnAuthType";
+constexpr const char *CONFIG_OPENVPN_PROTOCOL = "ovpnProtocol";
+constexpr const char *CONFIG_OPENVPN_CFG = "ovpnConfig";
+constexpr const char *CONFIG_OPENVPN_AUTH_TYPE = "ovpnAuthType";
 constexpr const char *CONFIG_ASKPASS = "askpass";
-constexpr const char *CONFIG_OPEN_VPN_CFG_FILE_PATH = "ovpnConfigFilePath";
-constexpr const char *CONFIG_OPEN_VPN_CA_CERT_FILE_PATH = "ovpnCaCertFilePath";
-constexpr const char *CONFIG_OPEN_VPN_USER_CERT_FILE_PATH = "ovpnUserCertFilePath";
-constexpr const char *CONFIG_OPEN_VPN_PRIVATE_KEY_FILE_PATH = "ovpnPrivateKeyFilePath";
+constexpr const char *CONFIG_OPENVPN_CFG_FILE_PATH = "ovpnConfigFilePath";
+constexpr const char *CONFIG_OPENVPN_CA_CERT_FILE_PATH = "ovpnCaCertFilePath";
+constexpr const char *CONFIG_OPENVPN_USER_CERT_FILE_PATH = "ovpnUserCertFilePath";
+constexpr const char *CONFIG_OPENVPN_PRIVATE_KEY_FILE_PATH = "ovpnPrivateKeyFilePath";
 
 constexpr const char *CONFIG_IPSEC_PRE_SHARE_KEY = "ipsecPreSharedKey";
 constexpr const char *CONFIG_IPSEC_IDENTIFIER = "ipsecIdentifier";
@@ -97,6 +98,7 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
 bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 
+sptr<OpenvpnConfig> CreateAndParseOpenvpnConf(napi_env env, napi_value config);
 sptr<IpsecVpnConfig> CreateAndParseIpsecVpnConf(napi_env env, napi_value config);
 sptr<L2tpVpnConfig> CreateAndParseL2tpVpnConf(napi_env env, napi_value config);
 
@@ -114,6 +116,7 @@ void GetInt32FromJsOptionItem(napi_env env, napi_value object, const std::string
 
 napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
+napi_value CreateNapiOpenvpnConfig(napi_env env, sptr<SysVpnConfig> sysVpnConfig);
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 }

@@ -106,21 +106,19 @@ HWTEST_F(NetVpnImplTest, GetSysVpnCertUri001, TestSize.Level1)
 
 HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo001, TestSize.Level1)
 {
-    auto& netConnClientIns = NetConnClient::GetInstance();
     netVpnImpl_->vpnConfig_ = nullptr;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), false);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), false);
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
-    ASSERT_TRUE(netVpnImpl_->vpnConfig_ != nullptr);
     netVpnImpl_->vpnConfig_->isAcceptIPv6_ = true;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), true);
     netVpnImpl_->vpnConfig_->isAcceptIPv6_ = false;
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), true);
     netVpnImpl_->SetAllUidRanges();
     netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
     netVpnImpl_->vpnConfig_->isAcceptIPv6_ = true;
     std::string dnsServer = "fe80::ea68:19ff:fe63:98bc%7";
     netVpnImpl_->vpnConfig_->dnsAddresses_.push_back(dnsServer);
-    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(netConnClientIns), true);
+    EXPECT_EQ(netVpnImpl_->UpdateNetLinkInfo(), true);
 }
 
 HWTEST_F(NetVpnImplTest, DelNetLinkInfo001, TestSize.Level1)

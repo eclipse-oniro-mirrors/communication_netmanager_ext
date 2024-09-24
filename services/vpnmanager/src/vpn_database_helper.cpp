@@ -143,15 +143,15 @@ void VpnDatabaseHelper::BindVpnData(NativeRdb::ValuesBucket &values, const sptr<
     values.PutString(VPN_DNS_ADDRESSES, info->dnsAddresses_);
     values.PutString(VPN_SEARCH_DOMAINS, info->searchDomains_);
 
-    values.PutString(OPEN_VPN_PORT, info->ovpnPort_);
-    values.PutInt(OPEN_VPN_PROTOCOL, info->ovpnProtocol_);
-    values.PutString(OPEN_VPN_CFG, info->ovpnConfig_);
-    values.PutInt(OPEN_VPN_AUTH_TYPE, info->ovpnAuthType_);
-    values.PutString(OPEN_VPN_ASKPASS, info->askpass_);
-    values.PutString(OPEN_VPN_CFG_FILE_PATH, info->ovpnConfigFilePath_);
-    values.PutString(OPEN_VPN_CA_CERT_FILE_PATH, info->ovpnCaCertFilePath_);
-    values.PutString(OPEN_VPN_USER_CERT_FILE_PATH, info->ovpnUserCertFilePath_);
-    values.PutString(OPEN_VPN_PRIVATE_KEY_FILE_PATH, info->ovpnPrivateKeyFilePath_);
+    values.PutString(OPENVPN_PORT, info->ovpnPort_);
+    values.PutInt(OPENVPN_PROTOCOL, info->ovpnProtocol_);
+    values.PutString(OPENVPN_CFG, info->ovpnConfig_);
+    values.PutInt(OPENVPN_AUTH_TYPE, info->ovpnAuthType_);
+    values.PutString(OPENVPN_ASKPASS, info->askpass_);
+    values.PutString(OPENVPN_CFG_FILE_PATH, info->ovpnConfigFilePath_);
+    values.PutString(OPENVPN_CA_CERT_FILE_PATH, info->ovpnCaCertFilePath_);
+    values.PutString(OPENVPN_USER_CERT_FILE_PATH, info->ovpnUserCertFilePath_);
+    values.PutString(OPENVPN_PRIVATE_KEY_FILE_PATH, info->ovpnPrivateKeyFilePath_);
 
     values.PutString(IPSEC_PRE_SHARE_KEY, info->ipsecPreSharedKey_);
     values.PutString(IPSEC_IDENTIFIER, info->ipsecIdentifier_);
@@ -236,15 +236,15 @@ void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::Nati
     queryResultSet->GetString(INDEX_VPN_FORWARDED_ROUTES, vpnBean->forwardingRoutes_);
     queryResultSet->GetString(INDEX_VPN_DNS_ADDRESSES, vpnBean->dnsAddresses_);
     queryResultSet->GetString(INDEX_VPN_SEARCH_DOMAINS, vpnBean->searchDomains_);
-    queryResultSet->GetString(INDEX_OPEN_VPN_PORT, vpnBean->ovpnPort_);
-    queryResultSet->GetInt(INDEX_OPEN_VPN_PROTOCOL, vpnBean->ovpnProtocol_);
-    queryResultSet->GetString(INDEX_OPEN_VPN_CFG, vpnBean->ovpnConfig_);
-    queryResultSet->GetInt(INDEX_OPEN_VPN_AUTH_TYPE, vpnBean->ovpnAuthType_);
-    queryResultSet->GetString(INDEX_OPEN_VPN_ASKPASS, vpnBean->askpass_);
-    queryResultSet->GetString(INDEX_OPEN_VPN_CFG_FILE_PATH, vpnBean->ovpnConfigFilePath_);
-    queryResultSet->GetString(INDEX_OPEN_VPN_CA_CERT_FILE_PATH, vpnBean->ovpnCaCertFilePath_);
-    queryResultSet->GetString(INDEX_OPEN_VPN_USER_CERT_FILE_PATH, vpnBean->ovpnUserCertFilePath_);
-    queryResultSet->GetString(INDEX_OPEN_VPN_PRIVATE_KEY_FILE_PATH, vpnBean->ovpnPrivateKeyFilePath_);
+    queryResultSet->GetString(INDEX_OPENVPN_PORT, vpnBean->ovpnPort_);
+    queryResultSet->GetInt(INDEX_OPENVPN_PROTOCOL, vpnBean->ovpnProtocol_);
+    queryResultSet->GetString(INDEX_OPENVPN_CFG, vpnBean->ovpnConfig_);
+    queryResultSet->GetInt(INDEX_OPENVPN_AUTH_TYPE, vpnBean->ovpnAuthType_);
+    queryResultSet->GetString(INDEX_OPENVPN_ASKPASS, vpnBean->askpass_);
+    queryResultSet->GetString(INDEX_OPENVPN_CFG_FILE_PATH, vpnBean->ovpnConfigFilePath_);
+    queryResultSet->GetString(INDEX_OPENVPN_CA_CERT_FILE_PATH, vpnBean->ovpnCaCertFilePath_);
+    queryResultSet->GetString(INDEX_OPENVPN_USER_CERT_FILE_PATH, vpnBean->ovpnUserCertFilePath_);
+    queryResultSet->GetString(INDEX_OPENVPN_PRIVATE_KEY_FILE_PATH, vpnBean->ovpnPrivateKeyFilePath_);
 
     queryResultSet->GetString(INDEX_IPSEC_PRE_SHARE_KEY, vpnBean->ipsecPreSharedKey_);
     queryResultSet->GetString(INDEX_IPSEC_IDENTIFIER, vpnBean->ipsecIdentifier_);

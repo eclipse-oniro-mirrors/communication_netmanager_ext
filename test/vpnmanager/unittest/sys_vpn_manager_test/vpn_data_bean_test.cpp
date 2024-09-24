@@ -49,6 +49,24 @@ HWTEST_F(VpnDataBeanTest, ConvertVpnBeanToSysVpnConfig001, TestSize.Level1)
     EXPECT_EQ(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
     bean->vpnType_ = VpnType::L2TP_IPSEC_RSA;
     EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::IKEV2_IPSEC_MSCHAPv2;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::IKEV2_IPSEC_PSK;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::IPSEC_XAUTH_PSK;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::IPSEC_XAUTH_RSA;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::IPSEC_HYBRID_RSA;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::OPENVPN;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::L2TP_IPSEC_PSK;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::IKEV2_IPSEC_RSA;
+    EXPECT_NE(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
+    bean->vpnType_ = -1;
+    EXPECT_EQ(VpnDataBean::ConvertVpnBeanToSysVpnConfig(bean), nullptr);
 }
 
 HWTEST_F(VpnDataBeanTest, ConvertVpnBeanToIpsecVpnConfig001, TestSize.Level1)
@@ -154,6 +172,39 @@ HWTEST_F(VpnDataBeanTest, ConvertL2tpVpnConfigToVpnBean001, TestSize.Level1)
     config->ipsecPreSharedKey_ = "ipsecPreSharedKeyTest";
     VpnDataBean::ConvertL2tpVpnConfigToVpnBean(config, bean);
     EXPECT_EQ(bean->ipsecPreSharedKey_, config->ipsecPreSharedKey_);
+}
+
+HWTEST_F(VpnDataBeanTest, ConvertVpnBeanToOpenvpnConfig001, TestSize.Level1)
+{
+    sptr<VpnDataBean> bean = nullptr;
+    EXPECT_EQ(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
+    bean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(bean, nullptr);
+    bean->vpnType_ = -1;
+    ASSERT_NE(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
+    bean->vpnType_ = VpnType::OPENVPN;
+    ASSERT_NE(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
+}
+
+HWTEST_F(VpnDataBeanTest, ConvertOpenvpnConfigToVpnBean001, TestSize.Level1)
+{
+    sptr<VpnDataBean> bean = nullptr;
+    sptr<OpenvpnConfig> config = nullptr;
+    VpnDataBean::ConvertOpenvpnConfigToVpnBean(config, bean);
+    bean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(bean, nullptr);
+    std::string testId = "ConvertVpnBeanToOpenvpnConfig";
+    bean->vpnId_ = testId;
+    VpnDataBean::ConvertOpenvpnConfigToVpnBean(config, bean);
+    EXPECT_EQ(bean->vpnId_, testId);
+
+    config = new (std::nothrow) OpenvpnConfig();
+    ASSERT_NE(config, nullptr);
+    config->vpnId_ = "ConverOpenvpnConfigToVpnBean1";
+    config->vpnType_ = VpnType::OPENVPN;
+    config->askpass_  = "askpassTest";
+    VpnDataBean::ConvertOpenvpnConfigToVpnBean(config, bean);
+    EXPECT_EQ(bean->askpass_, config->askpass_);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -92,7 +92,7 @@ int32_t NetVpnImpl::SetUp()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    if (!UpdateNetLinkInfo(netConnClientIns)) {
+    if (!UpdateNetLinkInfo()) {
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_UPDATE_NETLINK_INFO_ERROR,
                                                  "update link info failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -253,7 +253,7 @@ bool NetVpnImpl::UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isA
     return true;
 }
 
-bool NetVpnImpl::UpdateNetLinkInfo(NetConnClient &netConnClientIns)
+bool NetVpnImpl::UpdateNetLinkInfo()
 {
     if (vpnConfig_ == nullptr) {
         NETMGR_EXT_LOG_E("vpnConfig_ is nullptr");
@@ -301,7 +301,7 @@ bool NetVpnImpl::UpdateNetLinkInfo(NetConnClient &netConnClientIns)
         linkInfo->domain_.append(domain).append(" ");
     }
     linkInfo->mtu_ = vpnConfig_->mtu_;
-    netConnClientIns.UpdateNetLinkInfo(netSupplierId_, linkInfo);
+    NetConnClient::GetInstance().UpdateNetLinkInfo(netSupplierId_, linkInfo);
     return true;
 }
 

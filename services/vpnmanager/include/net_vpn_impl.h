@@ -79,11 +79,14 @@ public:
 
     int32_t ResumeUids();
 
+protected:
+    bool UpdateNetLinkInfo();
+
 private:
     bool RegisterNetSupplier(NetConnClient &netConnClientIns);
     void UnregisterNetSupplier(NetConnClient &netConnClientIns);
     bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);
-    bool UpdateNetLinkInfo(NetConnClient &netConnClientIns);
+
     void DelNetLinkInfo(NetConnClient &netConnClientIns);
     void AdjustRouteInfo(Route &route);
     void SetIpv4DefaultRoute(Route &ipv4DefaultRoute);

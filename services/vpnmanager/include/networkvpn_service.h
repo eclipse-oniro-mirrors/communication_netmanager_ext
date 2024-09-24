@@ -32,6 +32,7 @@
 #include "cJSON.h"
 #include "ffrt.h"
 #ifdef SUPPORT_SYSVPN
+#include "ipsec_vpn_ctl.h"
 #include "vpn_database_helper.h"
 #endif // SUPPORT_SYSVPN
 
@@ -233,6 +234,13 @@ private:
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
+        std::vector<int32_t> &activeUserIds);
+    std::shared_ptr<NetVpnImpl> CreateOpenvpnCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
+        std::vector<int32_t> &activeUserIds);
+    std::shared_ptr<IpsecVpnCtl> CreateIpsecVpnCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
+        std::vector<int32_t> &activeUserIds);
+    int32_t QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean);
+    std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
         std::vector<int32_t> &activeUserIds);
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();

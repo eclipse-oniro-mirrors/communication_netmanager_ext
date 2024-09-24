@@ -17,6 +17,7 @@
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "openvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -55,6 +56,8 @@ sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
         case VpnType::IPSEC_XAUTH_RSA:
         case VpnType::IPSEC_HYBRID_RSA:
             return IpsecVpnConfig::Unmarshalling(parcel);
+        case VpnType::OPENVPN:
+            return OpenvpnConfig::Unmarshalling(parcel);
         case VpnType::L2TP_IPSEC_PSK:
         case VpnType::L2TP_IPSEC_RSA:
             return L2tpVpnConfig::Unmarshalling(parcel);

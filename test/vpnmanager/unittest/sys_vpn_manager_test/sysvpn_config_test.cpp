@@ -17,6 +17,7 @@
 
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
+#include "openvpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -49,6 +50,20 @@ IpsecVpnConfig GetIpsecVpnConfigData()
 L2tpVpnConfig GetL2tpVpnConfigData()
 {
     L2tpVpnConfig infoSequence;
+    infoSequence.vpnId_ = TEST_VPNID;
+    infoSequence.vpnName_ = TEST_VPN_NAME;
+    infoSequence.vpnType_ = VpnType::L2TP_IPSEC_PSK;
+    infoSequence.userName_ = TEST_USER_NAME;
+    infoSequence.password_ = TEST_PASSWORD;
+    infoSequence.saveLogin_ = TEST_SAVE_LOGIN;
+    infoSequence.userId_ = TEST_USERID;
+    infoSequence.forwardingRoutes_ = TEST_FORWARD;
+    return infoSequence;
+}
+
+OpenvpnConfig GetOpenvpnConfigData()
+{
+    OpenvpnConfig infoSequence;
     infoSequence.vpnId_ = TEST_VPNID;
     infoSequence.vpnName_ = TEST_VPN_NAME;
     infoSequence.vpnType_ = VpnType::L2TP_IPSEC_PSK;
@@ -165,6 +180,16 @@ HWTEST_F(SysVpnConfigTest, Unmarshalling009, TestSize.Level1)
     EXPECT_TRUE(info.Marshalling(parcel));
     sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
     EXPECT_TRUE(result == nullptr);
+}
+
+HWTEST_F(SysVpnConfigTest, Unmarshalling010, TestSize.Level1)
+{
+    Parcel parcel;
+    OpenvpnConfig info = GetOpenvpnConfigData();
+    info.vpnType_ = VpnType::OPENVPN;
+    EXPECT_TRUE(info.Marshalling(parcel));
+    sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
+    EXPECT_TRUE(result != nullptr);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
