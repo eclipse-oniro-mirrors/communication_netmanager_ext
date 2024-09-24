@@ -521,7 +521,7 @@ napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConf
     }
     napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
 
-    IpsecVpnConfig* ipsecVpnConfig = static_cast<IpsecVpnConfig*>(sysVpnConfig.GetRefPtr());
+    IpsecVpnConfig *ipsecVpnConfig = static_cast<IpsecVpnConfig *>(sysVpnConfig.GetRefPtr());
     if (ipsecVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("CreateNapiIpsecVpnConfig failed, ipsecVpnConfig is null");
         return NapiUtils::GetUndefined(env);
@@ -561,7 +561,7 @@ napi_value CreateNapiL2tpVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfi
     }
     napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
 
-    L2tpVpnConfig* l2tpVpnConfig = static_cast<L2tpVpnConfig*>(sysVpnConfig.GetRefPtr());
+    L2tpVpnConfig *l2tpVpnConfig = static_cast<L2tpVpnConfig *>(sysVpnConfig.GetRefPtr());
     if (l2tpVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("CreateNapiL2tpVpnConfig failed, l2tpVpnConfig is null");
         return NapiUtils::GetUndefined(env);
@@ -605,7 +605,7 @@ napi_value CreateNapiOpenvpnConfig(napi_env env, sptr<SysVpnConfig> sysVpnConfig
     }
     napi_value config = CreateNapiSysVpnConfig(env, sysVpnConfig);
 
-    OpenvpnConfig* openvpnConfig = static_cast<OpenvpnConfig*>(sysVpnConfig.GetRefPtr());
+    OpenvpnConfig *openvpnConfig = static_cast<OpenvpnConfig *>(sysVpnConfig.GetRefPtr());
     if (openvpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("CreateNapiOpenvpnConfig failed, openvpnConfig is null");
         return NapiUtils::GetUndefined(env);

@@ -27,6 +27,15 @@ namespace OHOS {
 namespace NetManagerStandard {
 using namespace NetsysNative;
 
+constexpr const char *OPENVPN_NODE_ROOT = "openvpn";
+constexpr const char *OPENVPN_NODE_MTU = "mtu";
+constexpr const char *OPENVPN_NODE_ADDRESS = "address";
+constexpr const char *OPENVPN_NODE_NETMASK = "netmask";
+constexpr const char *OPENVPN_NODE_CONFIG = "config";
+constexpr const char *OPENVPN_NODE_STATE = "state";
+constexpr const char *OPENVPN_NODE_UPDATE_STATE = "updateState";
+constexpr const char *OPENVPN_MASK_TAG = "***";
+
 enum OpenvpnStateCode : int32_t {
     OPENVPN_STATE_UNKNOWN = 1,
     OPENVPN_STATE_SETUP,
@@ -59,6 +68,7 @@ private:
     int32_t openvpnState_ = OPENVPN_STATE_UNKNOWN;
     void UpdateOpenvpnState(const int32_t state);
     int32_t StartOpenvpn();
+    std::string MaskOpenvpnMessage(const std::string &msg);
     void HandleClientMessage(const std::string &msg);
     void UpdateConfig(cJSON* jConfig);
     void UpdateState(cJSON* state);

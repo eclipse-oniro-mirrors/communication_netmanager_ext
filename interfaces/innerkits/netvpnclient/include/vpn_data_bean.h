@@ -78,7 +78,7 @@ struct VpnDataBean : public virtual RefBase {
     std::string l2tpSharedKey_;
 
     static sptr<SysVpnConfig> ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &vpnBean);
-    static sptr<OpenvpnConfig> ConvertVpnBeanToOpenvpnConfig(sptr<VpnDataBean> &vpnBean);
+    static sptr<OpenvpnConfig> ConvertVpnBeanToOpenvpnConfig(sptr<VpnDataBean> vpnBean);
     static sptr<IpsecVpnConfig> ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBean> &vpnBean);
     static sptr<L2tpVpnConfig> ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean> &vpnBean);
     static sptr<VpnDataBean> ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig);

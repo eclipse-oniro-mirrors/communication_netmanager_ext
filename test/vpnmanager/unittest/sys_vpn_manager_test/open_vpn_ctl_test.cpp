@@ -30,6 +30,7 @@ namespace NetManagerStandard {
 using namespace testing::ext;
 constexpr const char *OPENVPN_CONFIG =
     "openvpn{\"config\":{\"address\":\"10.8.0.3\", \"netmask\":\"255.255.255.0\", \"mtu\":1500}}";
+constexpr const char *OPENVPN_CONFIG_MASK = "openvpn{\"config***";
 constexpr const char *OPENVPN_UPDATE = "openvpn{\"updateState\":{\"state\":4}}";
 constexpr const char *OPENVPN_UPDATE2 = "openvpn{\"updateState\":{\"state\":203}}";
 
@@ -209,6 +210,13 @@ HWTEST_F(OpenvpnCtlTest, IsSystemVpn001, TestSize.Level1)
 {
     ASSERT_NE(openvpnControl_, nullptr);
     EXPECT_EQ(openvpnControl_->IsSystemVpn(), true);
+}
+
+HWTEST_F(OpenvpnCtlTest, MaskOpenvpnMessage001, TestSize.Level1)
+{
+    ASSERT_NE(openvpnControl_, nullptr);
+    EXPECT_EQ(openvpnControl_->MaskOpenvpnMessage(OPENVPN_UPDATE), OPENVPN_UPDATE);
+    EXPECT_EQ(openvpnControl_->MaskOpenvpnMessage(OPENVPN_CONFIG), OPENVPN_CONFIG_MASK);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

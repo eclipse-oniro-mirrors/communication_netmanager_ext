@@ -211,6 +211,28 @@ HWTEST_F(NetworkVpnServiceTest, CreateOpenvpnCtl001, TestSize.Level1)
     ASSERT_NE(instance_->CreateOpenvpnCtl(vpnBean, userId, activeUserIds), nullptr);
 }
 
+HWTEST_F(NetworkVpnServiceTest, CreateL2tpCtl001, TestSize.Level1)
+{
+    std::vector<int32_t> activeUserIds;
+    int32_t userId = TEST_USERID;
+    sptr<VpnDataBean> vpnBean = nullptr;
+    EXPECT_EQ(instance_->CreateL2tpCtl(vpnBean, TEST_USERID, activeUserIds), nullptr);
+    vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    ASSERT_NE(instance_->CreateL2tpCtl(vpnBean, userId, activeUserIds), nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CreateIpsecVpnCtl001, TestSize.Level1)
+{
+    std::vector<int32_t> activeUserIds;
+    int32_t userId = TEST_USERID;
+    sptr<VpnDataBean> vpnBean = nullptr;
+    EXPECT_EQ(instance_->CreateIpsecVpnCtl(vpnBean, TEST_USERID, activeUserIds), nullptr);
+    vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    ASSERT_NE(instance_->CreateIpsecVpnCtl(vpnBean, userId, activeUserIds), nullptr);
+}
+
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
 {
     sptr<SysVpnConfig> config = nullptr;

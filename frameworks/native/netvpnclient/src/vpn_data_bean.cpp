@@ -44,7 +44,7 @@ sptr<SysVpnConfig> VpnDataBean::ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &
     }
 }
 
-sptr<OpenvpnConfig> VpnDataBean::ConvertVpnBeanToOpenvpnConfig(sptr<VpnDataBean> &vpnBean)
+sptr<OpenvpnConfig> VpnDataBean::ConvertVpnBeanToOpenvpnConfig(sptr<VpnDataBean> vpnBean)
 {
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("ConvertVpnBeanToOpenvpnConfig vpnBean is null");

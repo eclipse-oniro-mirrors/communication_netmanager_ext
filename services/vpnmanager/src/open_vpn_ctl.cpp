@@ -78,7 +78,7 @@ int32_t OpenvpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("vpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
+        NETMGR_EXT_LOG_E("vpn stage failed, result: %{public}d", result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     HandleClientMessage(stage);
@@ -91,8 +91,8 @@ void OpenvpnCtl::HandleClientMessage(const std::string &msg)
         NETMGR_EXT_LOG_E("msg is empty");
         return;
     }
-    NETMGR_EXT_LOG_I("Process Request  message:  %{public}s", msg.c_str());
-    if (strstr(msg.c_str(), "openvpn") != 0) {
+    NETMGR_EXT_LOG_I("Process Request  message:  %{public}s", MaskOpenvpnMessage(msg).c_str());
+    if (strstr(msg.c_str(), OPENVPN_NODE_ROOT) != 0) {
         const char *ret = strstr(msg.c_str(), "{");
         if (ret == nullptr) {
             NETMGR_EXT_LOG_E("client message format error");
@@ -103,11 +103,11 @@ void OpenvpnCtl::HandleClientMessage(const std::string &msg)
             NETMGR_EXT_LOG_E("not json string");
             return;
         }
-        cJSON* config = cJSON_GetObjectItem(message, "config");
+        cJSON* config = cJSON_GetObjectItem(message, OPENVPN_NODE_CONFIG);
         if (config != nullptr && cJSON_IsObject(config)) {
             UpdateConfig(config);
         }
-        cJSON* updateState = cJSON_GetObjectItem(message, "updateState");
+        cJSON* updateState = cJSON_GetObjectItem(message, OPENVPN_NODE_UPDATE_STATE);
         if (updateState != nullptr && cJSON_IsObject(updateState)) {
             UpdateState(updateState);
         }
@@ -117,7 +117,7 @@ void OpenvpnCtl::HandleClientMessage(const std::string &msg)
 
 void OpenvpnCtl::UpdateState(cJSON* state)
 {
-    cJSON* updateState = cJSON_GetObjectItem(state, "state");
+    cJSON* updateState = cJSON_GetObjectItem(state, OPENVPN_NODE_STATE);
     if (updateState != nullptr && cJSON_IsNumber(updateState)) {
         int32_t openVpnState = static_cast<int32_t>(cJSON_GetNumberValue(updateState));
         UpdateOpenvpnState(openVpnState);
@@ -134,7 +134,7 @@ void OpenvpnCtl::UpdateConfig(cJSON *jConfig)
         NETMGR_EXT_LOG_E("UpdateConfig vpnConfig_ is null");
         return;
     }
-    cJSON *mtu = cJSON_GetObjectItem(jConfig, "mtu");
+    cJSON *mtu = cJSON_GetObjectItem(jConfig, OPENVPN_NODE_MTU);
     if (mtu != nullptr && cJSON_IsNumber(mtu)) {
         int32_t openVpnMtu = static_cast<int32_t>(cJSON_GetNumberValue(mtu));
         vpnConfig_->mtu_ = openVpnMtu;
@@ -144,14 +144,14 @@ void OpenvpnCtl::UpdateConfig(cJSON *jConfig)
     INetAddr destination;
     INetAddr gateway;
     Route iRoute;
-    cJSON *address = cJSON_GetObjectItem(jConfig, "address");
+    cJSON *address = cJSON_GetObjectItem(jConfig, OPENVPN_NODE_ADDRESS);
     if (address != nullptr && cJSON_IsString(address)) {
         std::string openVpnAddress = cJSON_GetStringValue(address);
         iNetAddr.address_ = openVpnAddress;
         gateway.address_ = openVpnAddress;
         destination.address_ = openVpnAddress;
     }
-    cJSON *netmask = cJSON_GetObjectItem(jConfig, "netmask");
+    cJSON *netmask = cJSON_GetObjectItem(jConfig, OPENVPN_NODE_NETMASK);
     if (netmask != nullptr && cJSON_IsString(netmask)) {
         std::string openVpnNetmask = cJSON_GetStringValue(netmask);
         iNetAddr.netMask_ = openVpnNetmask;
@@ -160,7 +160,7 @@ void OpenvpnCtl::UpdateConfig(cJSON *jConfig)
     }
     vpnConfig_->addresses_.emplace_back(iNetAddr);
 
-    iRoute.iface_ = "vpn-tun";
+    iRoute.iface_ = TUN_CARD_NAME;
     iRoute.isDefaultRoute_ = true;
     iRoute.destination_ = destination;
     iRoute.gateway_ = gateway;
@@ -200,9 +200,7 @@ int32_t OpenvpnCtl::Destroy()
 {
     StopOpenvpn();
     int result = NetVpnImpl::Destroy();
-    if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("openvpn Destroy failed");
-    }
+    NETMGR_EXT_LOG_I("openvpn Destroy result %{public}d}", result);
     return result;
 }
 
@@ -223,6 +221,26 @@ int32_t OpenvpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 bool OpenvpnCtl::IsInternalVpn()
 {
     return true;
+}
+
+std::string OpenvpnCtl::MaskOpenvpnMessage(const std::string &msg)
+{
+    if (msg.empty()) {
+        NETMGR_EXT_LOG_E("msg is empty");
+        return "";
+    }
+    std::string result = msg;
+    size_t addressPos = result.find(OPENVPN_NODE_CONFIG);
+    if (addressPos != std::string::npos) {
+        size_t pos = addressPos + strlen(OPENVPN_NODE_CONFIG);
+        size_t replaceLen = result.size() - pos;
+        if (replaceLen > 0) {
+            result.replace(pos, replaceLen, OPENVPN_MASK_TAG);
+        }
+        return result;
+    }
+
+    return msg;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
