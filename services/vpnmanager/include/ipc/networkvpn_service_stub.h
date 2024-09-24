@@ -56,6 +56,7 @@ private:
     int32_t ReplyCreateVpnConnection(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyFactoryResetVpn(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyRegisterBundleName(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplyGetSelfAppName(MessageParcel &data, MessageParcel &reply);
 
     int32_t CheckVpnPermission(std::string &strPermission);
 

@@ -1176,6 +1176,48 @@ int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName)
     return 0;
 }
 
+int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName)
+{
+    std::string bundleName;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgr == nullptr) {
+        NETMGR_EXT_LOG_E("Get ability manager failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    auto object = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (object == nullptr) {
+        NETMGR_EXT_LOG_E("object is NULL.");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    auto bms = iface_cast<OHOS::AppExecFwk::IBundleMgr>(object);
+    if (bms == nullptr) {
+        NETMGR_EXT_LOG_E("bundle manager service is NULL.");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    auto result = bms->GetNameForUid(uid, bundleName);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    auto bundleResourceProxy = bms->GetBundleResourceProxy();
+    if (bundleResourceProxy == nullptr) {
+        NETMGR_EXT_LOG_E("Error get bundleResourceProxy fail");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    AppExecFwk::BundleResourceInfo bundleResourceInfo;
+    auto errCode = bundleResourceProxy->GetBundleResourceInfo(
+        bundleName, static_cast<uint32_t>(OHOS::AppExecFwk::ResourceFlag::GET_RESOURCE_INFO_ALL), bundleResourceInfo);
+    if (errCode != ERR_OK) {
+        NETMGR_EXT_LOG_E("Error call GetBundleResourceInfo fail %{public}d", static_cast<int>(errCode));
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    NETMGR_EXT_LOG_I("StartVpnExtensionAbility bundleResourceInfo.label %{public}s", bundleResourceInfo.label.c_str());
+    selfAppName = bundleResourceInfo.label;
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 std::string NetworkVpnService::GetBundleName()
 {
     std::string bundleName;

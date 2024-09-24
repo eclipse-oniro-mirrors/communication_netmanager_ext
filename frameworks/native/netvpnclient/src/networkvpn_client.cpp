@@ -371,5 +371,15 @@ void NetworkVpnClient::multiUserSetUpEvent()
         vpnEventCallback_ = nullptr;
     }
 }
+
+int32_t NetworkVpnClient::GetSelfAppName(std::string &selfAppName)
+{
+    auto proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetSelfAppName proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetSelfAppName(selfAppName);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

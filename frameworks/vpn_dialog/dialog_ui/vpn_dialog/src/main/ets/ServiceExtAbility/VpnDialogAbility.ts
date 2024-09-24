@@ -46,7 +46,11 @@ export default class VpnDialogAbility extends extension {
    * Lifecycle function, called back when a service extension is started for initialization.
    */
   onCreate(want: Want): void {
-    console.log('onCreate is triggered');
+    console.info('onCreate is triggered ' + JSON.stringify(want));
+    if (want && want.parameters && want.parameters.appName) {
+      console.info('onCreate is triggered calling bundleName' + want.parameters.appName);
+      globalThis.vpnCallingAppName = want.parameters.appName;
+    }
     this.windowNum = 0;
   }
 
