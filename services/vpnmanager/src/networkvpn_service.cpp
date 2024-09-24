@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,6 +52,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr int32_t USER_ID_DIVIDOR  = 200000;
 constexpr int32_t MAX_CALLBACK_COUNT = 128;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 constexpr const char* VPN_CONFIG_FILE = "/data/service/el1/public/netmanager/vpn_config.json";
@@ -1301,6 +1302,24 @@ std::string NetworkVpnService::GetBundleName()
     }
     NETMGR_EXT_LOG_I("bundle name is [%{public}s], uid = [%{public}d]", bundleName.c_str(), uid);
 
+    AppExecFwk::BundleInfo bundleInfo;
+    auto res = bms->GetBundleInfoV9(
+        bundleName,
+        static_cast<int32_t>(
+            static_cast<uint32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
+            static_cast<uint32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY)),
+        bundleInfo, uid / USER_ID_DIVIDOR);
+    if (res != 0) {
+        NETMGR_EXT_LOG_E("Error GetBundleInfoV9 %{public}d", res);
+    }
+    for (const auto &hap : bundleInfo.hapModuleInfos) {
+        for (const auto &ext : hap.extensionInfos) {
+            if (ext.type == AppExecFwk::ExtensionAbilityType::VPN) {
+                currentVpnAbilityName_.emplace_back(ext.name);
+            }
+        }
+    }
+
     return bundleName;
 }
 
@@ -1324,21 +1343,30 @@ std::string NetworkVpnService::GetCurrentVpnBundleName()
     return currentVpnBundleName_;
 }
 
+std::vector<std::string> NetworkVpnService::GetCurrentVpnAbilityName()
+{
+    return currentVpnAbilityName_;
+}
+
 void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
 {
     std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
     auto extensionBundleName = vpnService_.GetCurrentVpnBundleName();
+    auto extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
     if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
         NETMGR_EXT_LOG_E("destroy vpn failed");
     }
     vpnService_.vpnObj_ = nullptr;
-    AAFwk::Want want;
-    AppExecFwk::ElementName elem;
-    elem.SetBundleName(extensionBundleName);
-    want.SetElement(elem);
-    auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
-        want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
-    NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
+    for (const auto &name : extensionAbilityName) {
+        AAFwk::Want want;
+        AppExecFwk::ElementName elem;
+        elem.SetBundleName(extensionBundleName);
+        elem.SetAbilityName(name);
+        want.SetElement(elem);
+        auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+            want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+        NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
+    }
 }
 
 void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
