@@ -543,7 +543,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
 
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
-    ret = CheckCurrentAccountType(userId, activeUserIds);
+    auto ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
@@ -603,7 +603,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
-    ret = CheckCurrentAccountType(userId, activeUserIds);
+    auto ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
