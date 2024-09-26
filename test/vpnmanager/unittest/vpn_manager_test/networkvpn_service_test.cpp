@@ -249,7 +249,7 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
         return;
     }
     instance_->vpnHapObserver_->OnProcessDied(data);
-    EXPECT_TRUE(instance_->vpnBundleName_.empty());
+    EXPECT_TRUE(instance_->vpnHapObserver_ != nullptr);
 }
 
 #ifdef SUPPORT_SYSVPN

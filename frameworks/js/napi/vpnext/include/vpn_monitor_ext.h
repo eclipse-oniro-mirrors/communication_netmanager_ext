@@ -52,7 +52,7 @@ public:
 public:
     napi_value On(napi_env env, napi_callback_info info);
     napi_value Off(napi_env env, napi_callback_info info);
-    bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName);
+    bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName, const std::string &appName);
 
     EventManager inline *GetManager() const
     {

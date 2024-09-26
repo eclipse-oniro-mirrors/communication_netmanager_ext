@@ -181,6 +181,8 @@ public:
     void multiUserSetUpEvent();
     int32_t RegisterBundleName(const std::string &bundleName);
 
+    int32_t GetSelfAppName(std::string &selfAppName);
+
 private:
     class MonitorVpnServiceDead : public IRemoteObject::DeathRecipient {
     public:
