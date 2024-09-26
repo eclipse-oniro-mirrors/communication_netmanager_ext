@@ -14,26 +14,104 @@
  */
 
 #include <cstdint>
+#include <memory>
+#include <mutex>
 
+#include "ability_manager_client.h"
 #include "errorcode_convertor.h"
+#include "extension_ability_info.h"
 #include "module_template.h"
+#include "napi/native_node_api.h"
+#include "napi_common_want.h"
 #include "napi_utils.h"
+#include "net_datashare_utils_iface.h"
 #include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
 #include "networkvpn_client.h"
 #include "vpn_connection_ext.h"
-#include "want.h"
-#include "ability_manager_client.h"
-#include "extension_ability_info.h"
-#include "napi_common_want.h"
 #include "vpn_extension_context.h"
 #include "vpn_monitor_ext.h"
-#include "net_datashare_utils_iface.h"
+#include "want.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t ARG_NUM_0 = 0;
 constexpr int32_t PARAM_ONE = 1;
+
+static napi_value CreateResolvedPromise(napi_env env)
+{
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    if (napi_create_promise(env, &deferred, &promise) != napi_ok) {
+        return NapiUtils::GetUndefined(env);
+    }
+    napi_resolve_deferred(env, deferred, NapiUtils::GetUndefined(env));
+    return promise;
+}
+
+static napi_value CreateRejectedPromise(napi_env env)
+{
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    if (napi_create_promise(env, &deferred, &promise) != napi_ok) {
+        return NapiUtils::GetUndefined(env);
+    }
+    napi_reject_deferred(env, deferred, NapiUtils::GetUndefined(env));
+    return promise;
+}
+
+static void ResolvePromiseInIpcThread(napi_env env, napi_deferred deferred)
+{
+    napi_send_event(
+        env, [env, deferred]() { napi_resolve_deferred(env, deferred, NapiUtils::GetUndefined(env)); },
+        napi_eprio_high);
+}
+
+static void RejectPromiseInIpcThread(napi_env env, napi_deferred deferred)
+{
+    napi_send_event(
+        env, [env, deferred]() { napi_reject_deferred(env, deferred, NapiUtils::GetUndefined(env)); }, napi_eprio_high);
+}
+
+static napi_value CreateObserveDataSharePromise(napi_env env, const std::string &bundleName)
+{
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    if (napi_create_promise(env, &deferred, &promise) != napi_ok) {
+        return NapiUtils::GetUndefined(env);
+    }
+
+    auto once = std::make_shared<std::once_flag>();
+    auto callbackId = std::make_shared<int32_t>();
+    auto deferWrapper = std::make_shared<napi_deferred>();
+    *deferWrapper = deferred;
+    auto onChange = [env, deferWrapper, bundleName, once, callbackId]() {
+        if (!once) {
+            return;
+        }
+        std::call_once(*once, [env, deferWrapper, bundleName, callbackId]() {
+            bool vpnDialogSelect = false;
+            std::string vpnExtMode = std::to_string(vpnDialogSelect);
+            int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+            NETMANAGER_EXT_LOGI("query vpn state after dialog: %{public}d %{public}s", ret, vpnExtMode.c_str());
+            if (callbackId) {
+                NetDataShareHelperUtilsIface::UnregisterObserver(VPNEXT_MODE_URI, *callbackId);
+            }
+            if (deferWrapper && *deferWrapper) {
+                auto deferred = *deferWrapper;
+                *deferWrapper = nullptr;
+                if (vpnExtMode == "1") {
+                    ResolvePromiseInIpcThread(env, deferred);
+                } else {
+                    RejectPromiseInIpcThread(env, deferred);
+                }
+            }
+        });
+    };
+
+    *callbackId = NetDataShareHelperUtilsIface::RegisterObserver(VPNEXT_MODE_URI, onChange);
+    return promise;
+}
 
 static void *MakeDataExt(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
 {
@@ -84,14 +162,14 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     if ((argc != PARAM_ONE) || (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) != napi_object)) {
         NETMANAGER_EXT_LOGE("funciton prameter error");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parameter error");
-        return NapiUtils::GetUndefined(env);
+        return CreateRejectedPromise(env);
     }
     AAFwk::Want want;
     int32_t accountId = -1;
     if (!AppExecFwk::UnwrapWant(env, argv[0], want)) {
         NETMANAGER_EXT_LOGE("Failed to parse want");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parse want error");
-        return NapiUtils::GetUndefined(env);
+        return CreateRejectedPromise(env);
     }
 
     std::string bundleName = want.GetElement().GetBundleName();
@@ -104,9 +182,13 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
         int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
         if (!g_started || ret != 0 || vpnExtMode != "1") {
             g_started = true;
-            VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName);
+            std::string selfAppName;
+            auto getAppNameRes = NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName);
+            NETMANAGER_EXT_LOGI("StartVpnExtensionAbility SelfAppName = %{public}s %{public}d", selfAppName.c_str(),
+                                getAppNameRes);
+            VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
             NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
-            return NapiUtils::GetUndefined(env);
+            return CreateObserveDataSharePromise(env, bundleName);
         }
     }
     auto elem = want.GetElement();
@@ -115,7 +197,7 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
-    return NapiUtils::GetUndefined(env);
+    return CreateResolvedPromise(env);
 }
 
 napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
@@ -128,20 +210,20 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
     if ((argc != PARAM_ONE) || (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) != napi_object)) {
         NETMANAGER_EXT_LOGE("funciton prameter error");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parameter error");
-        return NapiUtils::GetUndefined(env);
+        return CreateRejectedPromise(env);
     }
     AAFwk::Want want;
     int32_t accountId = -1;
     if (!AppExecFwk::UnwrapWant(env, argv[0], want)) {
         NETMANAGER_EXT_LOGE("Failed to parse want");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parse want error");
-        return NapiUtils::GetUndefined(env);
+        return CreateRejectedPromise(env);
     }
 
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
         want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StopExtensionAbility result: %{public}d", err);
-    return NapiUtils::GetUndefined(env);
+    return CreateResolvedPromise(env);
 }
 
 static napi_value CreateVpnConnection(napi_env env, napi_callback_info info)
@@ -163,7 +245,7 @@ static napi_value UpdateVpnAuthorize(napi_env env, napi_callback_info info)
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parameter error");
         return nullptr;
     }
-    std::string bundleName  = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_0]);
+    std::string bundleName = NapiUtils::GetStringFromValueUtf8(env, argv[ARG_NUM_0]);
 
     bool vpnDialogSelect = true;
     if (bundleName.find(VPN_DIALOG_POSTFIX) != std::string::npos) {
