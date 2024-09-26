@@ -65,7 +65,7 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
-    "hilog:libhilog",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
     "netmanager_base:net_native_manager_if",

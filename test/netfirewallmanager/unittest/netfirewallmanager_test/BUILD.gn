@@ -65,7 +65,6 @@ ohos_unittest("netfirewallmanager_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hilog:libhilog",
     "ipc:ipc_core",
     "netmanager_base:net_native_manager_if",
     "os_account:os_account_innerkits",
