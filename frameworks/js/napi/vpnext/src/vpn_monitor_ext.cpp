@@ -181,7 +181,8 @@ void VpnMonitor::Unregister(napi_env env)
     vpnClient->UnregisterVpnEvent(eventCallback_);
 }
 
-bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string &abilityName)
+bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string &abilityName,
+                               const std::string &appName)
 {
     auto abmc = AAFwk::AbilityManagerClient::GetInstance();
     if (abmc == nullptr) {
@@ -193,6 +194,7 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
     want.SetElementName("com.ohos.vpndialog", "VpnServiceExtAbility");
     want.SetParam("bundleName", bundleName);
     want.SetParam("abilityName", abilityName + VPN_DIALOG_POSTFIX);
+    want.SetParam("appName", appName);
 
     sptr<VpnMonitor::VpnAbilityConn> vpnAbilityConn_ = new (std::nothrow) VpnMonitor::VpnAbilityConn();
     auto ret = abmc->ConnectAbility(want, vpnAbilityConn_, -1);

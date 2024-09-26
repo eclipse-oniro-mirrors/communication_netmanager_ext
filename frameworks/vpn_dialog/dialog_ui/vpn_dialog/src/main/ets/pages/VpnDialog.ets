@@ -73,6 +73,7 @@ export default struct ConfirmDialog {
   build() {
     Column() {
       this.TipTextStyle(this.content, 20);
+      Text(globalThis.vpnCallingAppName ?? '').controlText();
       Text($r('app.string.title')).controlText();
       Text($r('app.string.warning')).fontSize(16).margin({ top: 0, bottom: 8, left: 24, right: 24 });
       Flex({ justifyContent: FlexAlign.SpaceAround }) {

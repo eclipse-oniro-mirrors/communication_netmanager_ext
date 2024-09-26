@@ -99,6 +99,11 @@ public:
     {
         return 0;
     }
+
+    int32_t GetSelfAppName(std::string &selfAppName) override
+    {
+        return 0;
+    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

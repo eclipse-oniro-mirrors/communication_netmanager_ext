@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <memory>
+
 #include "networkvpn_service_stub.h"
 #include "net_manager_constants.h"
 #include "netmanager_base_permission.h"
@@ -61,6 +63,8 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         "", &NetworkVpnServiceStub::ReplyDestroyVpn};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME] = {
         "", &NetworkVpnServiceStub::ReplyRegisterBundleName};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_SELF_APP_NAME] = {
+        "", &NetworkVpnServiceStub::ReplyGetSelfAppName};
 }
 
 int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
@@ -86,7 +90,7 @@ int32_t NetworkVpnServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &dat
     auto itr = permissionAndFuncMap_.find(static_cast<INetworkVpnService::MessageCode>(code));
     if (itr != permissionAndFuncMap_.end()) {
         if (itr->first >= INetworkVpnService::MessageCode::CMD_START_VPN_EXT &&
-                itr->first <= INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME) {
+                itr->first <= INetworkVpnService::MessageCode::CMD_GET_SELF_APP_NAME) {
             NETMGR_EXT_LOG_I("enter OnRemoteRequest code %{public}d:", code);
             auto serviceFunc = itr->second.serviceFunc;
             if (serviceFunc != nullptr) {
@@ -281,13 +285,18 @@ int32_t NetworkVpnServiceStub::ReplyFactoryResetVpn(MessageParcel &data, Message
 
 int32_t NetworkVpnServiceStub::ReplyRegisterBundleName(MessageParcel &data, MessageParcel &reply)
 {
-    std::string bundleName;
-    if (!data.ReadString(bundleName)) {
-        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
-    }
+    return NETMANAGER_EXT_SUCCESS;
+}
 
-    int32_t result = RegisterBundleName(bundleName);
-    if (!reply.WriteInt32(result)) {
+int32_t NetworkVpnServiceStub::ReplyGetSelfAppName(MessageParcel &data, MessageParcel &reply)
+{
+    std::string selfAppName;
+    int32_t result = GetSelfAppName(selfAppName);
+    if (result != ERR_NONE) {
+        NETMGR_EXT_LOG_E("GetSelfAppName failed on service");
+        return result;
+    }
+    if (!reply.WriteString(selfAppName)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;

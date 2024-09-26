@@ -17,6 +17,7 @@
 #define NETWORK_VPN_SERVICE_H
 
 #include <memory>
+#include <string>
 #include "event_handler.h"
 #include "i_vpn_conn_state_cb.h"
 #include "net_vpn_impl.h"
@@ -79,11 +80,9 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
             : EventFwk::CommonEventSubscriber(subscriberInfo), vpnService_(vpnService){};
 
         virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
-        void RegisterBundleName(const std::string &bundleName);
 
     private:
         NetworkVpnService &vpnService_;
-        std::string vpnBundleName_ = "";
     };
 
 public:
@@ -187,6 +186,8 @@ public:
     */
     int32_t GetAlwaysOnVpn(std::string &pkg);
 
+    int32_t GetSelfAppName(std::string &selfAppName) override;
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -216,6 +217,9 @@ private:
 
     void StartAlwaysOnVpn();
     void SubscribeCommonEvent();
+    std::string GetBundleName();
+    std::string GetCurrentVpnBundleName();
+    std::vector<std::string> GetCurrentVpnAbilityName();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -283,7 +287,8 @@ private:
     std::mutex remoteMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
-    std::string vpnBundleName_ = "";
+    std::string currentVpnBundleName_;
+    std::vector<std::string> currentVpnAbilityName_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
