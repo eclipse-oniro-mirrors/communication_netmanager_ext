@@ -44,6 +44,7 @@ public:
     int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
 #endif // SUPPORT_SYSVPN
+    int32_t GetSelfAppName(std::string &selfAppName) override;
 
 private:
     int32_t WriteTokenAndSendRequest(INetworkVpnService::MessageCode code, MessageParcel &data, MessageParcel &reply);

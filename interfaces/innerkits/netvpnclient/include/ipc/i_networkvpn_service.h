@@ -54,7 +54,8 @@ public:
         CMD_PROTECT_EXT,
         CMD_STOP_VPN_EXT,
         CMD_CREATE_VPN_CONNECTION_EXT,
-        CMD_REGISTER_BUNDLENAME
+        CMD_REGISTER_BUNDLENAME,
+        CMD_GET_SELF_APP_NAME,
     };
 
 public:
@@ -74,6 +75,7 @@ public:
     virtual int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, std::string &vpnId) = 0;
     virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) = 0;
 #endif // SUPPORT_SYSVPN
+    virtual int32_t GetSelfAppName(std::string &selfAppName) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkVpnService");
 };
