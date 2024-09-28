@@ -333,7 +333,6 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
                 NETMGR_EXT_LOG_D("mdns_log HandleServiceLost");
                 cb->HandleServiceLost(ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
                 if (cacheMap_.find(fullName) != cacheMap_.end()) {
-                    res.state = State::ADD;
                     cacheMap_.erase(fullName);
                 }
             }
