@@ -46,12 +46,16 @@ int32_t NetInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &
         return NETMANAGER_SUCCESS;
     }
 
-    in_addr ipAddr;
-    std::string tmpAddr = addr.substr(0, addr.find("/"));
+    size_t pos = addr.find("/");
+    if (pos == std::string::npos) {
+        pos = addr.length();
+    }
+    std::string tmpAddr = addr.substr(0, pos);
     if (tmpAddr.empty()) {
         NETMGR_EXT_LOG_E("mdns_log Invalid IP address");
         return NETMANAGER_SUCCESS;
     }
+    in6_addr ipAddr;
     int32_t ret = inet_pton(AF_INET6, tmpAddr.c_str(), &ipAddr);
     if (ret > 0 && !MDnsManager::GetInstance().IsSupportIpV6()) {
         NETMGR_EXT_LOG_D("mdns_log Not support IpV6");
