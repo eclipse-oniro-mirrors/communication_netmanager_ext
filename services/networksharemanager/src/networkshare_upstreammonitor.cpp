@@ -34,35 +34,43 @@ NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionCallback(
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetAvailable(sptr<NetHandle> &netHandle)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleNetAvailable(netHandle);
-    }
+    ffrtQueue.submit([this, netHandle]() mutable {
+        if (NetworkMonitor_) {
+            NetworkMonitor_->HandleNetAvailable(netHandle);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetCapabilitiesChange(sptr<NetHandle> &netHandle,
     const sptr<NetAllCapabilities> &netAllCap)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleNetCapabilitiesChange(netHandle, netAllCap);
-    }
+    ffrtQueue.submit([this, netHandle, netAllCap]() mutable {
+        if (NetworkMonitor_) {
+            NetworkMonitor_->HandleNetCapabilitiesChange(netHandle, netAllCap);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionPropertiesChange(sptr<NetHandle> &netHandle,
                                                                                           const sptr<NetLinkInfo> &info)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleConnectionPropertiesChange(netHandle, info);
-    }
+    ffrtQueue.submit([this, netHandle, info]() mutable {
+        if (NetworkMonitor_) {
+            NetworkMonitor_->HandleConnectionPropertiesChange(netHandle, info);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetLost(sptr<NetHandle> &netHandle)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleNetLost(netHandle);
-    }
+    ffrtQueue.submit([this, netHandle]() mutable {
+        if (NetworkMonitor_) {
+            NetworkMonitor_->HandleNetLost(netHandle);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
