@@ -34,35 +34,47 @@ NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionCallback(
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetAvailable(sptr<NetHandle> &netHandle)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleNetAvailable(netHandle);
-    }
+    ffrtQueue.submit([weakMonitor = std::weak_ptr(this->NetworkMonitor_), netHandle]() mutable {
+        auto networkMonitor = weakMonitor.lock();
+        if (networkMonitor) {
+            networkMonitor->HandleNetAvailable(netHandle);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetCapabilitiesChange(sptr<NetHandle> &netHandle,
     const sptr<NetAllCapabilities> &netAllCap)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleNetCapabilitiesChange(netHandle, netAllCap);
-    }
+    ffrtQueue.submit([weakMonitor = std::weak_ptr(this->NetworkMonitor_), netHandle, netAllCap]() mutable {
+        auto networkMonitor = weakMonitor.lock();
+        if (networkMonitor) {
+            networkMonitor->HandleNetCapabilitiesChange(netHandle, netAllCap);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetConnectionPropertiesChange(sptr<NetHandle> &netHandle,
                                                                                           const sptr<NetLinkInfo> &info)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleConnectionPropertiesChange(netHandle, info);
-    }
+    ffrtQueue.submit([weakMonitor = std::weak_ptr(this->NetworkMonitor_), netHandle, info]() mutable {
+        auto networkMonitor = weakMonitor.lock();
+        if (networkMonitor) {
+            networkMonitor->HandleConnectionPropertiesChange(netHandle, info);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetLost(sptr<NetHandle> &netHandle)
 {
-    if (NetworkMonitor_) {
-        NetworkMonitor_->HandleNetLost(netHandle);
-    }
+    ffrtQueue.submit([weakMonitor = std::weak_ptr(this->NetworkMonitor_), netHandle]() mutable {
+        auto networkMonitor = weakMonitor.lock();
+        if (networkMonitor) {
+            networkMonitor->HandleNetLost(netHandle);
+        }
+    });
     return NETMANAGER_EXT_SUCCESS;
 }
 
