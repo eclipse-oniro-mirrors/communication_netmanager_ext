@@ -23,10 +23,12 @@
 namespace OHOS::NetManagerStandard {
 MDnsStartSearchingContext::MDnsStartSearchingContext(napi_env env, EventManager *manager) : BaseContext(env, manager)
 {
-    auto discover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
-    if (discover) {
-        observer_ = discover->GetObserver();
-        discover_ = *discover;
+    if (manager) {
+        auto discover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
+        if (discover) {
+            observer_ = discover->GetObserver();
+            discover_ = *discover;
+        }
     }
 }
 
