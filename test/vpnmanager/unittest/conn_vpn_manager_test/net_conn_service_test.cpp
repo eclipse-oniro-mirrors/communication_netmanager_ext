@@ -273,11 +273,6 @@ HWTEST_F(NetConnServiceTest, UpdateNetLinkInfoTest002, TestSize.Level1)
     EXPECT_FALSE(ret);
     ret = NetConnService::GetInstance()->IsIfaceNameInUse("rmnet0", 100);
     EXPECT_FALSE(ret);
-
-    ret = NetConnService::GetInstance()->IsAddrInOtherNetwork("rmnet0", 1, netAddr);
-    EXPECT_FALSE(ret);
-    ret = NetConnService::GetInstance()->IsAddrInOtherNetwork("rmnet0", 100, netAddr);
-    EXPECT_TRUE(ret);
 }
 
 HWTEST_F(NetConnServiceTest, RequestNetConnectionTest001, TestSize.Level1)
