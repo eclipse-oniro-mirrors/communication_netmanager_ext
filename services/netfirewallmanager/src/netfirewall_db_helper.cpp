@@ -91,7 +91,7 @@ bool NetFirewallDbHelper::BlobToDomainList(const std::vector<uint8_t> &blob, std
         }
         const uint8_t *sizePtr = &blob[i];
         uint16_t size = *((uint16_t *)sizePtr);
-        int index = i + lenSize;
+        size_t index = i + lenSize;
         if (index >= blobSize || (blobSize - index) < size) {
             return true;
         }
@@ -824,7 +824,7 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
     firewallDatabase_->Count(currentRows, rdbPredicates);
     // Aging by number, record up to 1000 pieces of data
     size_t size = records.size();
-    int64_t leftRows = RECORD_MAX_DATA_NUM - currentRows;
+    size_t leftRows = static_cast<size_t>(RECORD_MAX_DATA_NUM - currentRows);
     if (leftRows < size) {
         std::string whereClause("id in (select id from ");
         whereClause += INTERCEPT_RECORD_TABLE;

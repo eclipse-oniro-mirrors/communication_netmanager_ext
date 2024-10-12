@@ -125,6 +125,7 @@ bool FirewallRulePage::Marshalling(Parcel &parcel) const
         return false;
     }
     uint32_t size = data.size();
+    size = std::min(size, MAX_PAGE_SIZE);
     if (!parcel.WriteUint32(size)) {
         return false;
     }
@@ -156,6 +157,7 @@ sptr<FirewallRulePage> FirewallRulePage::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadUint32(size)) {
         return nullptr;
     }
+    size = std::min(size, MAX_PAGE_SIZE);
     for (uint32_t i = 0; i < size; i++) {
         auto value = NetFirewallRule::Unmarshalling(parcel);
         if (value == nullptr) {

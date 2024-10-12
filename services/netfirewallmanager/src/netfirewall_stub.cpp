@@ -242,7 +242,7 @@ int32_t NetFirewallStub::OnGetNetFirewallRules(MessageParcel &data, MessageParce
         return FIREWALL_ERR_INTERNAL;
     }
     if (param->page < 1 || param->page > FIREWALL_USER_MAX_RULE || param->pageSize < 1 ||
-        param->pageSize > MAX_PAGE_SIZE) {
+        param->pageSize > static_cast<int32_t>(MAX_PAGE_SIZE)) {
         NETMANAGER_EXT_LOGE("ParsePageParam page or pageSize is error");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
@@ -298,7 +298,7 @@ int32_t NetFirewallStub::OnGetInterceptRecords(MessageParcel &data, MessageParce
         return FIREWALL_ERR_INTERNAL;
     }
     if (param->page < 1 || param->page > FIREWALL_USER_MAX_RULE || param->pageSize < 1 ||
-        param->pageSize > MAX_PAGE_SIZE) {
+        param->pageSize > static_cast<int32_t>(MAX_PAGE_SIZE)) {
         NETMANAGER_EXT_LOGE("ParsePageParam page or pageSize is error");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }

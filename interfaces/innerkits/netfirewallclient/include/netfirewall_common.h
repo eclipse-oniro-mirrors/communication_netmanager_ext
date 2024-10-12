@@ -29,7 +29,7 @@ namespace {
 // Maximum number of rules per user
 constexpr int32_t FIREWALL_USER_MAX_RULE = 1000;
 // Maximum number of pages per page during pagination queries
-constexpr int32_t MAX_PAGE_SIZE = 50;
+constexpr uint32_t MAX_PAGE_SIZE = 50;
 // Maximum number of rules for all users
 constexpr int32_t FIREWALL_ALL_USER_MAX_RULE = 2000;
 // Maximum number of domain for per users
@@ -49,9 +49,9 @@ constexpr int32_t MAX_RULE_PORT_COUNT = 10;
 // Maximum number of domain per rule
 constexpr int32_t MAX_RULE_DOMAIN_COUNT = 100;
 // Maximum exact domain name length
-constexpr int32_t MAX_EXACT_DOMAIN_NAME_LEN = 253;
+constexpr size_t MAX_EXACT_DOMAIN_NAME_LEN = 253;
 // Maximum fuzzy domain name length
-constexpr int32_t MAX_FUZZY_DOMAIN_NAME_LEN = 63;
+constexpr size_t MAX_FUZZY_DOMAIN_NAME_LEN = 63;
 // Intercept log aging: maximum save time
 constexpr int32_t RECORD_MAX_SAVE_TIME = 8 * 24 * 60 * 60;
 // Intercept log aging: Save maximum number of entries

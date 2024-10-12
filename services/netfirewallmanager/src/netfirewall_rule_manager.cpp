@@ -87,7 +87,7 @@ int32_t NetFirewallRuleManager::AddDefaultNetFirewallRule(int32_t userId)
     if (rules.empty()) {
         return FIREWALL_SUCCESS;
     }
-    maxDefaultRuleSize_ = rules.size();
+    maxDefaultRuleSize_ = static_cast<int64_t>(rules.size());
 
     int32_t ret = FIREWALL_OK;
     int32_t ruleId = 0;
@@ -364,7 +364,7 @@ int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> 
         return FIREWALL_ERR_EXCEED_MAX_RULE;
     }
     int32_t domainsCount = NetFirewallDbHelper::GetInstance().QueryFirewallRuleDomainByUserIdCount(userId);
-    size_t size = rule->domains.size();
+    int32_t size = static_cast<int32_t>(rule->domains.size());
     if (domainsCount + size > FIREWALL_SINGLE_USER_MAX_DOMAIN) {
         return FIREWALL_ERR_EXCEED_MAX_DOMAIN;
     }
