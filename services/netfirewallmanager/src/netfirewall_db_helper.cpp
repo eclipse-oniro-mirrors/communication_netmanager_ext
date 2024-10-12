@@ -823,8 +823,8 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
     rdbPredicates.BeginWrap()->EqualTo(NET_FIREWALL_USER_ID, std::to_string(userId))->EndWrap();
     firewallDatabase_->Count(currentRows, rdbPredicates);
     // Aging by number, record up to 1000 pieces of data
-    int64_t size = static_cast<int64_t>(records.size());
-    int64_t leftRows = RECORD_MAX_DATA_NUM - currentRows;
+    size_t size = records.size();
+    size_t leftRows = static_cast<size_t>(RECORD_MAX_DATA_NUM - currentRows);
     if (leftRows < size) {
         std::string whereClause("id in (select id from ");
         whereClause += INTERCEPT_RECORD_TABLE;
