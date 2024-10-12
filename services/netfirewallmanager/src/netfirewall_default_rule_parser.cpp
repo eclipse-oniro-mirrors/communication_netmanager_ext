@@ -88,8 +88,8 @@ void NetFirewallDefaultRuleParser::ParseIpList(std::vector<NetFirewallIpParam> &
 {
     cJSON *ips = cJSON_GetObjectItem(mem, jsonKey.c_str());
     if (ips != nullptr && cJSON_IsArray(ips)) {
-        uint32_t itemSize = cJSON_GetArraySize(ips);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        int itemSize = cJSON_GetArraySize(ips);
+        for (int i = 0; i < itemSize; i++) {
             cJSON *item = cJSON_GetArrayItem(ips, i);
             if (cJSON_IsObject(item)) {
                 NetFirewallIpParam ipParam;
@@ -105,8 +105,8 @@ void NetFirewallDefaultRuleParser::ParsePortList(std::vector<NetFirewallPortPara
 {
     cJSON *prot = cJSON_GetObjectItem(mem, jsonKey.c_str());
     if (prot != nullptr && cJSON_IsArray(prot)) {
-        uint32_t itemSize = cJSON_GetArraySize(prot);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        int itemSize = cJSON_GetArraySize(prot);
+        for (int i = 0; i < itemSize; i++) {
             cJSON *item = cJSON_GetArrayItem(prot, i);
             if (cJSON_IsObject(item)) {
                 NetFirewallPortParam portParam;
@@ -122,8 +122,8 @@ void NetFirewallDefaultRuleParser::ParseDomainList(std::vector<NetFirewallDomain
 {
     cJSON *domain = cJSON_GetObjectItem(mem, jsonKey.c_str());
     if (domain != nullptr && cJSON_IsArray(domain)) {
-        uint32_t itemSize = cJSON_GetArraySize(domain);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        int itemSize = cJSON_GetArraySize(domain);
+        for (int i = 0; i < itemSize; i++) {
             cJSON *item = cJSON_GetArrayItem(domain, i);
             if (cJSON_IsObject(item)) {
                 NetFirewallDomainParam domainParam;
@@ -250,8 +250,8 @@ bool NetFirewallDefaultRuleParser::GetDefaultRules(std::vector<sptr<NetFirewallR
     cJSON *doc = cJSON_Parse(jsonString.c_str());
     cJSON *defaultRules = cJSON_GetObjectItem(doc, DEFAULT_RULES);
     if (defaultRules != nullptr && cJSON_IsArray(defaultRules)) {
-        uint32_t itemSize = cJSON_GetArraySize(defaultRules);
-        for (uint32_t i = 0; i < itemSize; i++) {
+        int itemSize = cJSON_GetArraySize(defaultRules);
+        for (int i = 0; i < itemSize; i++) {
             cJSON *item = cJSON_GetArrayItem(defaultRules, i);
             if (cJSON_IsObject(item)) {
                 sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
@@ -270,14 +270,19 @@ bool NetFirewallDefaultRuleParser::GetDefaultRules(std::vector<sptr<NetFirewallR
 
 std::string NetFirewallDefaultRuleParser::ReadJsonFile(const std::string &filePath)
 {
-    std::ifstream infile;
-    std::string strLine;
     std::string strAll;
-    infile.open(filePath);
+    std::error_code error;
+    auto path = std::filesystem::absolute(filePath, error);
+    if (error) {
+        NETMGR_EXT_LOG_E("Failed to obtain the absolute path: %{public}s", error.message().c_str());
+        return strAll;
+    }
+    std::ifstream infile(path);
     if (!infile.is_open()) {
         NETMGR_EXT_LOG_E("ReadJsonFile filePath failed");
         return strAll;
     }
+    std::string strLine;
     while (getline(infile, strLine)) {
         strAll.append(strLine);
     }

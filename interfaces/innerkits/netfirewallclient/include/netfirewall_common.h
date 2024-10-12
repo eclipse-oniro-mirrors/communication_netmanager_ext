@@ -29,7 +29,7 @@ namespace {
 // Maximum number of rules per user
 constexpr int32_t FIREWALL_USER_MAX_RULE = 1000;
 // Maximum number of pages per page during pagination queries
-constexpr int32_t MAX_PAGE_SIZE = 50;
+constexpr uint32_t MAX_PAGE_SIZE = 50;
 // Maximum number of rules for all users
 constexpr int32_t FIREWALL_ALL_USER_MAX_RULE = 2000;
 // Maximum number of domain for per users
