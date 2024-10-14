@@ -78,6 +78,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
     "netmanager_base:netsys_controller",
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
+    "relational_store:native_rdb",
   ]
 
   defines = [
