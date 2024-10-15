@@ -68,7 +68,9 @@ ohos_unittest("vpn_manager_test") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "netmanager_base:net_manager_common",
+    "netmanager_base:netsys_controller",
     "os_account:os_account_innerkits",
+    "relational_store:native_rdb",
   ]
 
   defines = [
