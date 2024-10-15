@@ -20,6 +20,7 @@
 #include <map>
 
 #include "event_handler.h"
+#include "ffrt.h"
 #include "net_conn_callback_stub.h"
 #include "net_conn_client.h"
 #include "networkshare_hisysevent.h"
@@ -51,6 +52,7 @@ public:
 
     private:
         std::shared_ptr<NetworkShareUpstreamMonitor> NetworkMonitor_;
+        ffrt::queue ffrtQueue{"NetworkShareUpstreamMonitorCallback"};
     };
 
 public:
