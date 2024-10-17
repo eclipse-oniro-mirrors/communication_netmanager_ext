@@ -393,9 +393,9 @@ int32_t NetFirewallParamCheck::CheckDomainList(napi_env env, napi_value object)
             return FIREWALL_ERR_PARAMETER_ERROR;
         }
         domain = NapiUtils::GetStringFromValueUtf8(env, NapiUtils::GetNamedProperty(env, valAttr, NET_FIREWALL_DOMAIN));
-        int32_t maxSize = isWildCard ? MAX_FUZZY_DOMAIN_NAME_LEN : MAX_EXACT_DOMAIN_NAME_LEN;
+        size_t maxSize = isWildCard ? MAX_FUZZY_DOMAIN_NAME_LEN : MAX_EXACT_DOMAIN_NAME_LEN;
         if (domain.empty() || domain.size() > maxSize) {
-            NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}d", maxSize);
+            NETMANAGER_EXT_LOGE("domain is empty or length more than %{public}zu", maxSize);
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
         std::regex pattern = isWildCard ? WILDCARD_DOMAIN_PATTERN : DOMAIN_PATTERN;

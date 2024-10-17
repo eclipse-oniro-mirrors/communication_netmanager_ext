@@ -182,6 +182,7 @@ bool InterceptRecordPage::Marshalling(Parcel &parcel) const
         return false;
     }
     uint32_t size = data.size();
+    size = std::min(size, MAX_PAGE_SIZE);
     if (!parcel.WriteUint32(size)) {
         return false;
     }
@@ -213,6 +214,7 @@ sptr<InterceptRecordPage> InterceptRecordPage::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadUint32(size)) {
         return nullptr;
     }
+    size = std::min(size, MAX_PAGE_SIZE);
     for (uint32_t i = 0; i < size; i++) {
         auto value = InterceptRecord::Unmarshalling(parcel);
         if (value == nullptr) {
