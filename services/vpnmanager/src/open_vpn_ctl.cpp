@@ -93,22 +93,22 @@ int32_t OpenvpnCtl::SetUpVpnTun()
 
 int32_t OpenvpnCtl::HandleClientMessage(const std::string &msg)
 {
+    int result = NETMANAGER_EXT_SUCCESS;
     if (msg.empty()) {
         NETMGR_EXT_LOG_E("msg is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     NETMGR_EXT_LOG_I("Process Request  message:  %{public}s", MaskOpenvpnMessage(msg).c_str());
-    int result = NETMANAGER_EXT_SUCCESS;
     if (strstr(msg.c_str(), OPENVPN_NODE_ROOT) != 0) {
         const char *ret = strstr(msg.c_str(), "{");
         if (ret == nullptr) {
             NETMGR_EXT_LOG_E("client message format error");
-            result = NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+            return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
         }
         cJSON* message = cJSON_Parse(ret);
         if (message == nullptr) {
             NETMGR_EXT_LOG_E("not json string");
-            result = NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+            return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
         }
         cJSON* config = cJSON_GetObjectItem(message, OPENVPN_NODE_CONFIG);
         if (config != nullptr && cJSON_IsObject(config)) {
