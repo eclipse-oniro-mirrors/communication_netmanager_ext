@@ -159,7 +159,10 @@ sptr<FirewallRulePage> FirewallRulePage::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadUint32(size)) {
         return nullptr;
     }
-    size = std::min(size, MAX_PAGE_SIZE);
+    if (size > MAX_PAGE_SIZE) {
+        NETMGR_EXT_LOG_E("InterceptRecordPage read list size is too large");
+        return nullptr;
+    }
     for (uint32_t i = 0; i < size; i++) {
         auto value = NetFirewallRule::Unmarshalling(parcel);
         if (value == nullptr) {
@@ -218,7 +221,10 @@ sptr<InterceptRecordPage> InterceptRecordPage::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadUint32(size)) {
         return nullptr;
     }
-    size = std::min(size, MAX_PAGE_SIZE);
+    if (size > MAX_PAGE_SIZE) {
+        NETMGR_EXT_LOG_E("InterceptRecordPage read list size is too large");
+        return nullptr;
+    }
     for (uint32_t i = 0; i < size; i++) {
         auto value = InterceptRecord::Unmarshalling(parcel);
         if (value == nullptr) {
