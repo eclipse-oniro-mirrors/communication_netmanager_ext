@@ -125,7 +125,9 @@ bool FirewallRulePage::Marshalling(Parcel &parcel) const
         return false;
     }
     uint32_t size = data.size();
-    size = std::min(size, MAX_PAGE_SIZE);
+    if (size > MAX_PAGE_SIZE) {
+        return false;
+    }
     if (!parcel.WriteUint32(size)) {
         return false;
     }
@@ -157,7 +159,10 @@ sptr<FirewallRulePage> FirewallRulePage::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadUint32(size)) {
         return nullptr;
     }
-    size = std::min(size, MAX_PAGE_SIZE);
+    if (size > MAX_PAGE_SIZE) {
+        NETMGR_EXT_LOG_E("InterceptRecordPage read list size is too large");
+        return nullptr;
+    }
     for (uint32_t i = 0; i < size; i++) {
         auto value = NetFirewallRule::Unmarshalling(parcel);
         if (value == nullptr) {
@@ -182,6 +187,9 @@ bool InterceptRecordPage::Marshalling(Parcel &parcel) const
         return false;
     }
     uint32_t size = data.size();
+    if (size > MAX_PAGE_SIZE) {
+        return false;
+    }
     if (!parcel.WriteUint32(size)) {
         return false;
     }
@@ -211,6 +219,10 @@ sptr<InterceptRecordPage> InterceptRecordPage::Unmarshalling(Parcel &parcel)
     }
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
+        return nullptr;
+    }
+    if (size > MAX_PAGE_SIZE) {
+        NETMGR_EXT_LOG_E("InterceptRecordPage read list size is too large");
         return nullptr;
     }
     for (uint32_t i = 0; i < size; i++) {
