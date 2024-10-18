@@ -110,16 +110,19 @@ int32_t OpenvpnCtl::HandleClientMessage(const std::string &msg)
             NETMGR_EXT_LOG_E("not json string");
             return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
         }
+        // is config message
         cJSON* config = cJSON_GetObjectItem(message, OPENVPN_NODE_CONFIG);
         if (config != nullptr && cJSON_IsObject(config)) {
             UpdateConfig(config);
         }
-        cJSON* updateState = cJSON_GetObjectItem(message, OPENVPN_NODE_UPDATE_STATE);
-        if (updateState != nullptr && cJSON_IsObject(updateState)) {
-            UpdateState(updateState);
+        // is state message
+        cJSON* state = cJSON_GetObjectItem(message, OPENVPN_NODE_UPDATE_STATE);
+        if (state != nullptr && cJSON_IsObject(state)) {
+            UpdateState(state);
         }
-        cJSON* setupVpnTun = cJSON_GetObjectItem(message, OPENVPN_NODE_SETUP_VPN_TUN);
-        if (setupVpnTun != nullptr && cJSON_IsObject(setupVpnTun)) {
+        // is setup message
+        cJSON* vpnSetUp = cJSON_GetObjectItem(message, OPENVPN_NODE_SETUP_VPN_TUN);
+        if (vpnSetUp != nullptr && cJSON_IsObject(vpnSetUp)) {
             result = SetUpVpnTun();
         }
         cJSON_Delete(message);
