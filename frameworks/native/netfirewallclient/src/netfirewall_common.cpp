@@ -125,7 +125,9 @@ bool FirewallRulePage::Marshalling(Parcel &parcel) const
         return false;
     }
     uint32_t size = data.size();
-    size = std::min(size, MAX_PAGE_SIZE);
+    if (size > MAX_PAGE_SIZE) {
+        return false;
+    }
     if (!parcel.WriteUint32(size)) {
         return false;
     }
@@ -182,7 +184,9 @@ bool InterceptRecordPage::Marshalling(Parcel &parcel) const
         return false;
     }
     uint32_t size = data.size();
-    size = std::min(size, MAX_PAGE_SIZE);
+    if (size > MAX_PAGE_SIZE) {
+        return false;
+    }
     if (!parcel.WriteUint32(size)) {
         return false;
     }
