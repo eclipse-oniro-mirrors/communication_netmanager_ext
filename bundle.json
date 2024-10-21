@@ -24,8 +24,7 @@
             "SystemCapability.Communication.NetManager.NetSharing",
             "SystemCapability.Communication.NetManager.MDNS",
             "SystemCapability.Communication.NetManager.Vpn",
-            "SystemCapability.Communication.NetManager.NetFirewall",
-            "SystemCapability.Communication.NetManager.WearableDistributedNet"
+            "SystemCapability.Communication.NetManager.NetFirewall"
         ],
         "features": [
             "netmanager_ext_feature_coverage",
@@ -95,7 +94,6 @@
                     "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile",
                     "//foundation/communication/netmanager_ext/sa_profile:netfirewall_manager_profile",
                     "//foundation/communication/netmanager_ext:netfirewall_packages",
-                    "//foundation/communication/netmanager_ext/sa_profile:wearable_distributed_net_manager_profile",
                     "//foundation/communication/netmanager_ext:wearable_distributed_net_packages"
                 ]
             },
