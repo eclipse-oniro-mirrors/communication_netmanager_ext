@@ -1,0 +1,119 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
+config("wearable_distributed_net_manager_config") {
+  include_dirs = [
+    "include",
+    "$EXT_INNERKITS_ROOT/include",
+    "$NETMANAGER_EXT_ROOT/utils/log/include",
+    "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/include",
+    "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
+    "${target_gen_dir}",
+  ]
+
+  defines = [
+    "NETMGR_LOG_TAG = \"WearableDistributedNetManager\"",
+    "LOG_DOMAIN = 0xD0015B0",
+    "WEARABLE_DISTRIBUTED_NET_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/wearable_distributed_net_link_info.json\"",
+  ]
+
+  if (enable_netmgr_ext_debug) {
+    defines += [ "NETMGR_DEBUG" ]
+  }
+}
+
+wearable_distributed_net_manager_sources = [
+  "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_config_forward.cpp",
+  "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_link_info.cpp",
+  "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_supplier_info.cpp",
+]
+
+wearable_distributed_net_manager_deps = [
+  "$NETMANAGER_EXT_ROOT/utils:net_event_report",
+]
+
+wearable_distributed_net_manager_external_deps = [
+  "ability_base:want",
+  "ability_base:zuri",
+  "ability_runtime:app_manager",
+  "bundle_framework:appexecfwk_base",
+  "bundle_framework:appexecfwk_core",
+  "cJSON:cjson",
+  "c_utils:utils",
+  "common_event_service:cesfwk_innerkits",
+  "eventhandler:libeventhandler",
+  "ffrt:libffrt",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "hitrace:hitrace_meter",
+  "ipc:ipc_core",
+  "netmanager_base:net_conn_manager_if",
+  "netmanager_base:net_conn_parcel",
+  "netmanager_base:net_data_share",
+  "netmanager_base:net_manager_common",
+  "netmanager_base:net_native_manager_if",
+  "netmanager_base:net_service_common",
+  "netmanager_base:netsys_client",
+  "netmanager_base:netsys_controller",
+  "netmanager_base:socket_permission",
+  "safwk:system_ability_fwk",
+  "samgr:samgr_proxy",
+]
+
+ohos_shared_library("wearable_distributed_net_manager") {
+  if (netmanager_ext_feature_wearable_distributed_net) {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
+
+    branch_protector_ret = "pac_ret"
+
+    configs = [ ":wearable_distributed_net_manager_config" ]
+
+    sources = wearable_distributed_net_manager_sources
+    deps = wearable_distributed_net_manager_deps
+    external_deps = wearable_distributed_net_manager_external_deps
+
+    cflags = memory_optimization_cflags
+    cflags += [
+      "-fstack-protector-strong",
+      "-D_FORTIFY_SOURCE=2",
+      "-O2",
+    ]
+
+    cflags_cc = memory_optimization_cflags_cc
+    cflags_cc += [
+      "-fstack-protector-strong",
+      "-D_FORTIFY_SOURCE=2",
+      "-O2",
+    ]
+
+    ldflags = memory_optimization_ldflags
+
+    part_name = "netmanager_ext"
+    subsystem_name = "communication"
+  }
+}
+
+ohos_prebuilt_etc("wearable_distributed_net_link_info") {
+  source = "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager/config/wearable_distributed_net_link_info.json"
+  install_enable = true
+  relative_install_dir = "communication/netmanager_ext"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}

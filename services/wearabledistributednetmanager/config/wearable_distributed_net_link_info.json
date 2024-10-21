@@ -1,0 +1,11 @@
+{
+  "dnslistsfirst": "114.114.114.114",
+  "dnslistssecond": "114.114.115.115",
+  "ifacename": "lo",
+  "defaultnetmask": "255.255.255.0",
+  "netifaceaddress": "127.0.0.1",
+  "ipv4defaultrouteaddr": "127.0.0.2",
+  "dummyaddress": "192.168.167.239",
+  "ipv4addrnetmask": "255.255.255.0",
+  "routedestinationaddr": "0.0.0.0"
+}
