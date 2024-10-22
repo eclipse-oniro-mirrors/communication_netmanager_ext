@@ -43,33 +43,33 @@ void WearableDistributedNetSupplierInfoTest::TearDown() {}
 HWTEST_F(WearableDistributedNetSupplierInfoTest, SetAvailable, TestSize.Level1)
 {
     WearableDistributedNetSupplierInfo info;
-    sptr<NetSupplierInfo> supplierInfo = new (std::nothrow) NetSupplierInfo();
+    NetSupplierInfo supplierInfo;
     info.SetAvailable(supplierInfo);
-    EXPECT_EQ(supplierInfo->isAvailable_, CONSTANTS::AVALIABLE);
+    EXPECT_EQ(supplierInfo.isAvailable_, CONSTANTS::AVALIABLE);
 }
 
 HWTEST_F(WearableDistributedNetSupplierInfoTest, SetRoamingStatus, TestSize.Level1)
 {
     WearableDistributedNetSupplierInfo info;
-    sptr<NetSupplierInfo> supplierInfo = new (std::nothrow) NetSupplierInfo();
+    NetSupplierInfo supplierInfo;
     info.SetRoamingStatus(supplierInfo);
-    EXPECT_EQ(supplierInfo->isRoaming_, CONSTANTS::ROAMING_STATUS);
+    EXPECT_EQ(supplierInfo.isRoaming_, CONSTANTS::ROAMING_STATUS);
 }
 
 HWTEST_F(WearableDistributedNetSupplierInfoTest, SetLinkUpBandwidthKbps, TestSize.Level1)
 {
     WearableDistributedNetSupplierInfo info;
-    sptr<NetSupplierInfo> supplierInfo = new (std::nothrow) NetSupplierInfo();
+    NetSupplierInfo supplierInfo;
     info.SetLinkUpBandwidthKbps(supplierInfo);
-    EXPECT_EQ(supplierInfo->linkUpBandwidthKbps_, CONSTANTS::LINKUP_BAND_WIDTH_KBPS);
+    EXPECT_EQ(supplierInfo.linkUpBandwidthKbps_, CONSTANTS::LINKUP_BAND_WIDTH_KBPS);
 }
 
 HWTEST_F(WearableDistributedNetSupplierInfoTest, SetLinkDownBandwidthKbps, TestSize.Level1)
 {
     WearableDistributedNetSupplierInfo info;
-    sptr<NetSupplierInfo> supplierInfo = new (std::nothrow) NetSupplierInfo();
+    NetSupplierInfo supplierInfo;
     info.SetLinkDownBandwidthKbps(supplierInfo);
-    EXPECT_EQ(supplierInfo->linkDownBandwidthKbps_, CONSTANTS::LINKDOWN_BAND_WIDTH_KBPS);
+    EXPECT_EQ(supplierInfo.linkDownBandwidthKbps_, CONSTANTS::LINKDOWN_BAND_WIDTH_KBPS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

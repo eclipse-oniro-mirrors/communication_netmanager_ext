@@ -48,9 +48,9 @@ std::string WearableDistributedNetLinkInfo::GetSecondDnsLists()
     return secondDnsLists_;
 }
 
-std::string WearableDistributedNetLinkInfo::GetDefalutNetMask()
+std::string WearableDistributedNetLinkInfo::GetDefaultNetMask()
 {
-    return defalutNetMask_;
+    return defaultNetMask_;
 }
 
 std::string WearableDistributedNetLinkInfo::GetNetIfaceAddress()
@@ -102,14 +102,14 @@ bool WearableDistributedNetLinkInfo::ParseIfaceName(const cJSON &json)
     return true;
 }
 
-bool WearableDistributedNetLinkInfo::ParseDefalutNetMask(const cJSON &json)
+bool WearableDistributedNetLinkInfo::ParseDefaultNetMask(const cJSON &json)
 {
     cJSON *defaultNetmaskItem = cJSON_GetObjectItemCaseSensitive(&json, DEFAULT_NET_MASK.c_str());
     if (defaultNetmaskItem == nullptr) {
-        NETMGR_EXT_LOG_E("Failed to find defalutnetmask information!");
+        NETMGR_EXT_LOG_E("Failed to find defaultNetMask information!");
         return false;
     }
-    defalutNetMask_ = cJSON_GetStringValue(defaultNetmaskItem);
+    defaultNetMask_ = cJSON_GetStringValue(defaultNetmaskItem);
     return true;
 }
 
@@ -195,8 +195,8 @@ bool WearableDistributedNetLinkInfo::ReadNetlinkinfoInterfaces(const cJSON &json
         NETMGR_EXT_LOG_E("ParseIfaceName failed");
         return false;
     }
-    if (!ParseDefalutNetMask(json)) {
-        NETMGR_EXT_LOG_E("ParseDefalutNetMask failed");
+    if (!ParseDefaultNetMask(json)) {
+        NETMGR_EXT_LOG_E("ParseDefaultNetMask failed");
         return false;
     }
     if (!ParseNetIfaceAddress(json)) {
@@ -244,63 +244,57 @@ bool WearableDistributedNetLinkInfo::ReadSystemNetlinkinfoConfiguration()
     return true;
 }
 
-void WearableDistributedNetLinkInfo::SetInterFaceName(sptr<NetLinkInfo> &linkInfo)
+void WearableDistributedNetLinkInfo::SetInterFaceName(NetLinkInfo &linkInfo)
 {
     if (!GetIfaceName().empty()) {
-        linkInfo->ifaceName_ = GetIfaceName();
+        linkInfo.ifaceName_ = GetIfaceName();
     }
 }
 
-int32_t WearableDistributedNetLinkInfo::SetDnsLists(sptr<NetLinkInfo> &linkInfo)
+int32_t WearableDistributedNetLinkInfo::SetDnsLists(NetLinkInfo &linkInfo)
 {
     INetAddr dnsFirst;
     INetAddr dnsSecond;
     dnsFirst.type_ = INetAddr::IPV4;
     dnsFirst.family_ = AF_INET;
     dnsFirst.address_ = GetPrimaryDnsLists();
-    linkInfo->dnsList_.push_back(dnsFirst);
+    linkInfo.dnsList_.push_back(dnsFirst);
 
     dnsSecond.address_ = GetSecondDnsLists();
-    linkInfo->dnsList_.push_back(dnsSecond);
+    linkInfo.dnsList_.push_back(dnsSecond);
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t WearableDistributedNetLinkInfo::SetNetLinkIPInfo(sptr<NetLinkInfo> &linkInfo)
+int32_t WearableDistributedNetLinkInfo::SetNetLinkIPInfo(NetLinkInfo &linkInfo)
 {
-    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
-    if (netAddr == nullptr) {
-        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
-    }
-    netAddr->type_ = INetAddr::IPV4;
-    netAddr->family_ = AF_INET;
-    netAddr->address_ = GetIpv4DeRouteAddr();
-    netAddr->netMask_ = GetDefalutNetMask();
-    netAddr->prefixlen_ = CommonUtils::GetMaskLength(GetDefalutNetMask());
+    INetAddr netAddr;
+    netAddr.type_ = INetAddr::IPV4;
+    netAddr.family_ = AF_INET;
+    netAddr.address_ = GetIpv4DeRouteAddr();
+    netAddr.netMask_ = GetDefaultNetMask();
+    netAddr.prefixlen_ = CommonUtils::GetMaskLength(GetDefaultNetMask());
 
-    linkInfo->netAddrList_.push_back(*netAddr);
+    linkInfo.netAddrList_.push_back(*netAddr);
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t WearableDistributedNetLinkInfo::SetNetLinkRouteInfo(sptr<NetLinkInfo> &linkInfo)
+int32_t WearableDistributedNetLinkInfo::SetNetLinkRouteInfo(NetLinkInfo &linkInfo)
 {
-    sptr<Route> route = new (std::nothrow) Route();
-    if (route == nullptr) {
-        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
-    }
-    route->iface_ = GetIfaceName();
-    route->destination_.type_ = INetAddr::IPV4;
-    route->destination_.family_ = AF_INET;
-    route->destination_.address_ = GetRouteEstinationAddr();
-    route->gateway_.address_ = GetNetIfaceAddress();
-    route->gateway_.family_ = AF_INET;
+    Route route;
+    route.iface_ = GetIfaceName();
+    route.destination_.type_ = INetAddr::IPV4;
+    route.destination_.family_ = AF_INET;
+    route.destination_.address_ = GetRouteEstinationAddr();
+    route.gateway_.address_ = GetNetIfaceAddress();
+    route.gateway_.family_ = AF_INET;
 
-    linkInfo->routeList_.push_back(*route);
+    linkInfo.routeList_.push_back(*route);
     return NETMANAGER_EXT_SUCCESS;
 }
 
-void WearableDistributedNetLinkInfo::SetMtu(sptr<NetLinkInfo> &linkInfo)
+void WearableDistributedNetLinkInfo::SetMtu(NetLinkInfo &linkInfo)
 {
-    linkInfo->mtu_ = CONSTANTS::WEARABLE_DISTRIBUTED_NET_MTU;
+    linkInfo.mtu_ = CONSTANTS::WEARABLE_DISTRIBUTED_NET_MTU;
 }
 
 int32_t SetInterfaceDummyDown()
@@ -328,7 +322,7 @@ int32_t WearableDistributedNetLinkInfo::SetInterfaceDummyUp()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t CreateNetLinkInfo(sptr<NetLinkInfo> &linkInfo)
+int32_t CreateNetLinkInfo(NetLinkInfo &linkInfo)
 {
     WearableDistributedNetLinkInfo info;
     if (!info.ReadSystemNetlinkinfoConfiguration()) {

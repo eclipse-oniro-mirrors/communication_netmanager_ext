@@ -29,18 +29,18 @@ namespace NetManagerStandard {
 class WearableDistributedNetLinkInfo {
 public:
     bool ReadSystemNetlinkinfoConfiguration();
-    void SetInterFaceName(sptr<NetLinkInfo> &linkInfo);
-    int32_t SetNetLinkIPInfo(sptr<NetLinkInfo> &linkInfo);
-    int32_t SetNetLinkRouteInfo(sptr<NetLinkInfo> &linkInfo);
-    int32_t SetDnsLists(sptr<NetLinkInfo> &linkInfo);
-    void SetMtu(sptr<NetLinkInfo> &linkInfo);
+    void SetInterFaceName(NetLinkInfo &linkInfo);
+    int32_t SetNetLinkIPInfo(NetLinkInfo &linkInfo);
+    int32_t SetNetLinkRouteInfo(NetLinkInfo &linkInfo);
+    int32_t SetDnsLists(NetLinkInfo &linkInfo);
+    void SetMtu(NetLinkInfo &linkInfo);
     int32_t SetInterfaceDummyUp();
 
 private:
     std::string GetPrimaryDnsLists();
     std::string GetSecondDnsLists();
     std::string GetIfaceName();
-    std::string GetDefalutNetMask();
+    std::string GetDefaultNetMask();
     std::string GetNetIfaceAddress();
     std::string GetIpv4DeRouteAddr();
     std::string GetDummyAddress();
@@ -49,7 +49,7 @@ private:
 
     bool ParseDnsLists(const cJSON &json);
     bool ParseIfaceName(const cJSON &json);
-    bool ParseDefalutNetMask(const cJSON &json);
+    bool ParseDefaultNetMask(const cJSON &json);
     bool ParseNetIfaceAddress(const cJSON &json);
     bool ParseIpv4DeRouteAddr(const cJSON &json);
     bool ParseDummyAddress(const cJSON &json);
@@ -63,7 +63,7 @@ private:
     std::string primaryDnsLists_;
     std::string secondDnsLists_;
     std::string ifaceName_;
-    std::string defalutNetMask_;
+    std::string defaultNetMask_;
     std::string netIfaceAddress_;
     std::string ipv4DeRouteAddr_;
     std::string dummyAddress_;
@@ -72,7 +72,7 @@ private:
     std::string configPath_ = WEARABLE_DISTRIBUTED_NET_CONFIG_PATH;
 };
 
-int32_t CreateNetLinkInfo(sptr<NetLinkInfo> &linkInfo);
+int32_t CreateNetLinkInfo(NetLinkInfo &linkInfo);
 int32_t SetInterfaceDummyDown();
 } // namespace NetManagerStandard
 } // namespace OHOS

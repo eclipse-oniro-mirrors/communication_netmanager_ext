@@ -23,13 +23,13 @@ namespace OHOS {
 namespace NetManagerStandard {
 class WearableDistributedNetSupplierInfo {
 public:
-    void SetAvailable(sptr<NetSupplierInfo> &supplierInfo);
-    void SetRoamingStatus(sptr<NetSupplierInfo> &supplierInfo);
-    void SetLinkUpBandwidthKbps(sptr<NetSupplierInfo> &supplierInfo);
-    void SetLinkDownBandwidthKbps(sptr<NetSupplierInfo> &supplierInfo);
+    void SetAvailable(NetSupplierInfo &supplierInfo);
+    void SetRoamingStatus(NetSupplierInfo &supplierInfo);
+    void SetLinkUpBandwidthKbps(NetSupplierInfo &supplierInfo);
+    void SetLinkDownBandwidthKbps(NetSupplierInfo &supplierInfo);
 };
 
-void SetNetSupplierInfo(sptr<NetSupplierInfo> &supplierInfo);
+void SetNetSupplierInfo(NetSupplierInfo &supplierInfo);
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // WEARABLE_DISTRIBUTED_NET_SUPPLIER_INFO_H
