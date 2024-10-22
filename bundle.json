@@ -172,7 +172,7 @@
                 "//foundation/communication/netmanager_ext/test/vpnmanager:fuzztest",
                 "//foundation/communication/netmanager_ext/test/netfirewallmanager:unittest",
                 "//foundation/communication/netmanager_ext/test/netfirewallmanager:fuzztest",
-				"//foundation/communication/netmanager_ext/test/wearabledistributednetmanager:unittest"
+                "//foundation/communication/netmanager_ext/test/wearabledistributednetmanager:unittest"
             ]
         }
     }
