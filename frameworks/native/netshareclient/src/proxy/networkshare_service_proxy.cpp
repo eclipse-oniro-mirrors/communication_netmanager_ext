@@ -23,6 +23,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+constexpr int32_t MAX_SIZE = 1024;
+}
 NetworkShareServiceProxy::NetworkShareServiceProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<INetworkShareService>(impl)
 {
@@ -139,6 +142,11 @@ int32_t NetworkShareServiceProxy::GetSharableRegexs(SharingIfaceType type, std::
     }
 
     int32_t size = reply.ReadInt32();
+    if (size > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("proxy GetSharableRegexs read size exceeds the maximum limit, size: [%{public}d]", size);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+
     for (int i = 0; i < size; i++) {
         ifaceRegexs.push_back(reply.ReadString());
     }
@@ -184,6 +192,11 @@ int32_t NetworkShareServiceProxy::GetNetSharingIfaces(const SharingIfaceState &s
     }
 
     int32_t size = reply.ReadInt32();
+    if (size > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("proxy GetNetSharingIfaces size exceeds the maximum limit, size: [%{public}d]", size);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+
     for (int i = 0; i < size; i++) {
         ifaces.push_back(reply.ReadString());
     }
