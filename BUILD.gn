@@ -94,7 +94,7 @@ group("vpn_ext_packages") {
 }
 
 group("wearable_distributed_net_packages") {
-  if (netmanager_base_enable_feature_wearable_distributed_net) {
+  if (netmanager_ext_feature_wearable_distributed_net) {
     deps = [
       "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager:wearable_distributed_net_link_info",
       "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager:wearable_distributed_net_manager",
