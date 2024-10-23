@@ -103,7 +103,7 @@ declare_args() {
   netmanager_ext_feature_vpn_for_user0 = false
   netmanager_ext_feature_vpnext = true
   usb_manager_enable = false
-  netmanager_base_enable_feature_wearable_distributed_net = false
+  netmanager_ext_feature_wearable_distributed_net = false
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]
