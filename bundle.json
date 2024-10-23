@@ -35,6 +35,7 @@
             "netmanager_ext_feature_vpn",
             "netmanager_ext_feature_vpnext",
             "netmanager_ext_feature_net_firewall",
+            "netmanager_ext_feature_wearable_distributed_net",
             "netmanager_ext_feature_vpn_for_user0"
         ],
         "adapted_system_type": [
@@ -92,7 +93,8 @@
                     "//foundation/communication/netmanager_ext/services/etc/init:vpnmanager.cfg",
                     "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile",
                     "//foundation/communication/netmanager_ext/sa_profile:netfirewall_manager_profile",
-                    "//foundation/communication/netmanager_ext:netfirewall_packages"
+                    "//foundation/communication/netmanager_ext:netfirewall_packages",
+                    "//foundation/communication/netmanager_ext:wearable_distributed_net_packages"
                 ]
             },
             "inner_kits": [
@@ -169,7 +171,8 @@
                 "//foundation/communication/netmanager_ext/test/vpnmanager:unittest",
                 "//foundation/communication/netmanager_ext/test/vpnmanager:fuzztest",
                 "//foundation/communication/netmanager_ext/test/netfirewallmanager:unittest",
-                "//foundation/communication/netmanager_ext/test/netfirewallmanager:fuzztest"
+                "//foundation/communication/netmanager_ext/test/netfirewallmanager:fuzztest",
+                "//foundation/communication/netmanager_ext/test/wearabledistributednetmanager:unittest"
             ]
         }
     }
