@@ -76,7 +76,7 @@ wearable_distributed_net_manager_external_deps = [
 ]
 
 ohos_shared_library("wearable_distributed_net_manager") {
-  if (netmanager_base_enable_feature_wearable_distributed_net) {
+  if (netmanager_ext_feature_wearable_distributed_net) {
     sanitize = {
       cfi = true
       cfi_cross_dso = true
