@@ -165,7 +165,6 @@ void NetFirewallDefaultRuleParser::ConvertIpParamToConfig(NetFirewallIpParam &ru
             } else {
                 inet_pton(AF_INET6, tmp.c_str(), &rule.ipv6.startIp);
             }
-            NETMGR_EXT_LOG_D("address = %{public}s", tmp.c_str());
         }
         cJSON *mask = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_MASK.c_str());
         if (mask != nullptr && cJSON_IsNumber(mask)) {
@@ -182,7 +181,6 @@ void NetFirewallDefaultRuleParser::ConvertIpParamToConfig(NetFirewallIpParam &ru
         } else {
             inet_pton(AF_INET6, tmp.c_str(), &rule.ipv6.startIp);
         }
-        NETMGR_EXT_LOG_D("startIp = %{public}s", tmp.c_str());
     }
     cJSON *endIp = cJSON_GetObjectItem(mem, NET_FIREWALL_IP_END.c_str());
     if (endIp != nullptr && cJSON_IsString(endIp)) {
@@ -192,7 +190,6 @@ void NetFirewallDefaultRuleParser::ConvertIpParamToConfig(NetFirewallIpParam &ru
         } else {
             inet_pton(AF_INET6, tmp.c_str(), &rule.ipv6.endIp);
         }
-        NETMGR_EXT_LOG_D("endIp = %{public}s", tmp.c_str());
     }
 }
 
@@ -229,12 +226,10 @@ void NetFirewallDefaultRuleParser::ConvertDnsParamToConfig(NetFirewallDnsParam &
     cJSON *primaryDns = cJSON_GetObjectItem(mem, NET_FIREWALL_DNS_PRIMARY.c_str());
     if (primaryDns != nullptr && cJSON_IsString(primaryDns)) {
         rule.primaryDns = cJSON_GetStringValue(primaryDns);
-        NETMGR_EXT_LOG_D("primaryDns = %{public}s", rule.primaryDns.c_str());
     }
     cJSON *standbyDns = cJSON_GetObjectItem(mem, NET_FIREWALL_DNS_STANDY.c_str());
     if (standbyDns != nullptr && cJSON_IsString(standbyDns)) {
         rule.standbyDns = cJSON_GetStringValue(standbyDns);
-        NETMGR_EXT_LOG_D("standbyDns = %{public}s", rule.standbyDns.c_str());
     }
 }
 
