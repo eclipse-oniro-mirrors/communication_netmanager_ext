@@ -16,7 +16,7 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 group("unittest") {
   testonly = true
-  if (netmanager_ext_feature_wearable_distributed_net) {
+  if (netmanager_base_enable_feature_wearable_distributed_net) {
     deps = [ "unittest/wearable_distributed_net_manager_test:unittest" ]
   }
 }

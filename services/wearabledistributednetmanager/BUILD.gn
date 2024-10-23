@@ -35,8 +35,12 @@ config("wearable_distributed_net_manager_config") {
 }
 
 wearable_distributed_net_manager_sources = [
+  "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_agent.cpp",
   "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_config_forward.cpp",
   "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_link_info.cpp",
+  "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_management.cpp",
+  "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_service.cpp",
+  "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_static_configuration.cpp",
   "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_supplier_info.cpp",
 ]
 
@@ -72,7 +76,7 @@ wearable_distributed_net_manager_external_deps = [
 ]
 
 ohos_shared_library("wearable_distributed_net_manager") {
-  if (netmanager_ext_feature_wearable_distributed_net) {
+  if (netmanager_base_enable_feature_wearable_distributed_net) {
     sanitize = {
       cfi = true
       cfi_cross_dso = true

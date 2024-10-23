@@ -35,7 +35,7 @@
             "netmanager_ext_feature_vpn",
             "netmanager_ext_feature_vpnext",
             "netmanager_ext_feature_net_firewall",
-            "netmanager_ext_feature_wearable_distributed_net",
+            "netmanager_base_enable_feature_wearable_distributed_net",
             "netmanager_ext_feature_vpn_for_user0"
         ],
         "adapted_system_type": [

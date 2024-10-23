@@ -29,7 +29,10 @@ ohos_unittest("wearable_distributed_net_manager_test") {
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "wearable_distributed_net_agent_test.cpp",
     "wearable_distributed_net_config_forward_test.cpp",
+    "wearable_distributed_net_management_test.cpp",
+    "wearable_distributed_net_service_test.cpp",
     "wearable_distributed_net_supplier_info_test.cpp",
   ]
 
