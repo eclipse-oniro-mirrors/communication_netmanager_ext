@@ -237,7 +237,7 @@ int32_t NetFirewallRuleParse::ParsePageParam(napi_env env, napi_value object, co
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
     param->pageSize = NapiUtils::GetInt32Property(env, object, NET_FIREWALL_PAGE_SIZE);
-    if (param->pageSize < 1 || param->pageSize > MAX_PAGE_SIZE) {
+    if (param->pageSize < 1 || param->pageSize > static_cast<int32_t>(MAX_PAGE_SIZE)) {
         NETMANAGER_EXT_LOGE("ParsePageParam pageSize[%{public}d] is error", param->pageSize);
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
