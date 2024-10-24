@@ -28,9 +28,9 @@ class WearableDistributedNetService : public SystemAbility,
                                       public std::enable_shared_from_this<WearableDistributedNetService> {
     DECLARE_SYSTEM_ABILITY(WearableDistributedNetService)
 
-public:
     WearableDistributedNetService();
     ~WearableDistributedNetService();
+public:
     static WearableDistributedNetService &GetInstance();
     void OnStart() override;
     void OnStop() override;
@@ -45,8 +45,6 @@ private:
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;
-    WearableDistributedNetManagement &wearableDistributedNetManagement_ =
-        WearableDistributedNetManagement::GetInstance();
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

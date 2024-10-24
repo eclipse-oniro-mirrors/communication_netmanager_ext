@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#define private public
-
 #include <gtest/gtest.h>
 #include "net_manager_constants.h"
+
+#define private public
 #include "wearable_distributed_net_service.h"
 
 namespace OHOS {

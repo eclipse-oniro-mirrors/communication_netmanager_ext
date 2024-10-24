@@ -38,15 +38,17 @@ private:
     int32_t UpdateNetSupplierInfo(const bool isAvailable);
     int32_t UpdateNetLinkInfo();
     void ObtainNetCaps(const bool isMetered);
-    void GetNetSupplierInfo(NetSupplierInfo &networkSupplierInfo);
-    int32_t GetNetLinkInfo(NetLinkInfo &networkLinkInfo);
+    void SetNetSupplierInfo(NetSupplierInfo &networkSupplierInfo);
+    int32_t SetNetLinkInfo(NetLinkInfo &networkLinkInfo);
     int32_t DisableWearableDistributedNetForward();
     int32_t EnableWearableDistributedNetForward(const int32_t tcpPortId, const int32_t udpPortId);
+    int32_t ClearWearableDistributedNetForwardConfig();
 private:
     uint32_t netSupplierId_ = 0;
     std::set<NetCap> netCaps_;
     WearableDistributedNetStaticConfiguration staticConfiguration_;
-    NetConnClient &netConnClient_ = NetConnClient::GetInstance();
+    NetSupplierInfo netSupplierInfo_;
+    NetLinkInfo netLinkInfo_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

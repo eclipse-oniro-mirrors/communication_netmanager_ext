@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#define private public
-
 #include <gtest/gtest.h>
 #include <arpa/inet.h>
 #include "net_manager_constants.h"
+
+#define private public
 #include "wearable_distributed_net_agent.h"
 
 namespace OHOS {
@@ -78,14 +78,7 @@ HWTEST_F(WearableDistributedNetAgentTest, ObtainNetCaps, TestSize.Level1)
     EXPECT_EQ(agentInstance.netCaps_, capsMetered);
 }
 
-HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo001, TestSize.Level1)
-{
-    NetSupplierInfo getSupplierInfo;
-    int32_t ret = agentInstance.GetNetSupplierInfo(getSupplierInfo);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo002, TestSize.Level1)
+HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo, TestSize.Level1)
 {
     NetSupplierInfo supplierInfo;
     supplierInfo.isAvailable_ = true;
@@ -94,7 +87,7 @@ HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo002, TestSize.Level1
     supplierInfo.linkDownBandwidthKbps_ = 220;
 
     NetSupplierInfo getSupplierInfo;
-    agentInstance.GetNetSupplierInfo(getSupplierInfo);
+    agentInstance.SetNetSupplierInfo(getSupplierInfo);
     EXPECT_EQ(supplierInfo.isAvailable_, getSupplierInfo.isAvailable_);
     EXPECT_EQ(supplierInfo.isRoaming_, getSupplierInfo.isRoaming_);
     EXPECT_EQ(supplierInfo.linkUpBandwidthKbps_, getSupplierInfo.linkUpBandwidthKbps_);
@@ -104,14 +97,14 @@ HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo002, TestSize.Level1
 HWTEST_F(WearableDistributedNetAgentTest, GetNetLinkInfo001, TestSize.Level1)
 {
     NetLinkInfo getLinkInfo;
-    int32_t ret = agentInstance.GetNetLinkInfo(getLinkInfo);
+    int32_t ret = agentInstance.SetNetLinkInfo(getLinkInfo);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, GetNetLinkInfo002, TestSize.Level1)
 {
     NetLinkInfo getLinkInfo;
-    agentInstance.GetNetLinkInfo(getLinkInfo);
+    agentInstance.SetNetLinkInfo(getLinkInfo);
     EXPECT_EQ(getLinkInfo.ifaceName_, "lo");
     EXPECT_EQ(getLinkInfo.dnsList_.front().address_, "114.114.114.114");
     EXPECT_EQ(getLinkInfo.dnsList_.front().type_, INetAddr::IPV4);
@@ -176,8 +169,8 @@ HWTEST_F(WearableDistributedNetAgentTest, RegisterNetSupplier002, TestSize.Level
 HWTEST_F(WearableDistributedNetAgentTest, UnregisterNetSupplier001, TestSize.Level1)
 {
     agentInstance.netSupplierId_ = 0;
-    agentInstance.UnregisterNetSupplier();
-    EXPECT_EQ(agentInstance.netSupplierId_, 0);
+    int32_t result = agentInstance.UnregisterNetSupplier();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UnregisterNetSupplier002, TestSize.Level1)
@@ -185,8 +178,8 @@ HWTEST_F(WearableDistributedNetAgentTest, UnregisterNetSupplier002, TestSize.Lev
     bool isMetered = true;
     agentInstance.netSupplierId_ = 0;
     agentInstance.RegisterNetSupplier(isMetered);
-    agentInstance.UnregisterNetSupplier();
-    EXPECT_EQ(agentInstance.netSupplierId_, 0);
+    int32_t result = agentInstance.UnregisterNetSupplier();
+    EXPECT_EQ(result, NETMANAGER_SUCCESS);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UnregisterNetSupplier003, TestSize.Level1)

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "netmgr_ext_log_wrapper.h"
 #include "wearable_distributed_net_management.h"
 
@@ -27,13 +28,13 @@ int32_t WearableDistributedNetManagement::StartWearableDistributedNetwork(const 
                                                                           const int32_t udpPortId, const bool isMetered)
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net Management Start Network");
-    return wearableDistributedNetAgent_.SetupWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
+    return WearableDistributedNetAgent::GetInstance().SetupWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
 }
 
 int32_t WearableDistributedNetManagement::StopWearableDistributedNetwork()
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net Management Stop Network");
-    return wearableDistributedNetAgent_.TearDownWearableDistributedNetwork();
+    return WearableDistributedNetAgent::GetInstance().TearDownWearableDistributedNetwork();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

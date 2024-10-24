@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
-#include "wearable_distributed_net_service.h"
-#include "system_ability_definition.h"
+#include "if_system_ability_manager.h"
+#include "iservice_registry.h"
 #include "netmanager_base_permission.h"
+#include "system_ability_definition.h"
+#include "system_ability_load_callback_stub.h"
+#include "wearable_distributed_net_service.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -63,7 +66,8 @@ int32_t WearableDistributedNetService::SetupWearableDistributedNet(int32_t tcpPo
         NETMGR_EXT_LOG_E("Wearable Distributed Net Service Setup Net no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return wearableDistributedNetManagement_.StartWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
+    return WearableDistributedNetManagement::GetInstance()
+        .StartWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
 }
 
 int32_t WearableDistributedNetService::TearDownWearableDistributedNet()
@@ -73,12 +77,25 @@ int32_t WearableDistributedNetService::TearDownWearableDistributedNet()
         NETMGR_EXT_LOG_E("Wearable Distributed Net Service TearDown Net no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return wearableDistributedNetManagement_.StopWearableDistributedNetwork();
+    return WearableDistributedNetManagement::GetInstance().StopWearableDistributedNetwork();
 }
 
 bool WearableDistributedNetService::Init()
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net Service Init");
+
+    sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (sam == nullptr) {
+        NETMGR_EXT_LOG_E("GetProxy(), get SystemAbilityManager failed");
+        return false;
+    }
+
+    sptr<IRemoteObject> remote = sam->CheckSystemAbility(NET_MANAGER_SYS_ABILITY_ID);
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("get Remote service failed");
+        return false;
+    }
+
     if (!REGISTER_LOCAL_RESULT) {
         NETMGR_EXT_LOG_E("Wearable Distributed Net Service Register to local sa manager failed");
         return false;
