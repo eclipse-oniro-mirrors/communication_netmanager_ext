@@ -46,7 +46,7 @@ enum class VpnConnectState {
 };
 
 #ifdef SUPPORT_SYSVPN
-constexpr int32_t SYSVPN_MAX_SIZE = 50;
+constexpr int32_t SYSVPN_MAX_SIZE = 1024;
 #endif // SUPPORT_SYSVPN
 
 } // namespace NetManagerStandard
