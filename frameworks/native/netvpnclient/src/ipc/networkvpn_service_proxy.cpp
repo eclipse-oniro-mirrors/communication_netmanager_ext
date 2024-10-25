@@ -280,6 +280,10 @@ int32_t NetworkVpnServiceProxy::GetSysVpnConfigList(std::vector<SysVpnConfig> &v
         NETMGR_EXT_LOG_E("GetSysVpnConfigList read data size failed");
         return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
     }
+    if (vpnListSize > SYSVPN_MAX_SIZE) {
+        NETMGR_EXT_LOG_E("GetSysVpnConfigList failed, size=%{public}d is too large", vpnListSize);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     for (int32_t idx = 0; idx < vpnListSize; idx++) {
         sptr<SysVpnConfig> vpnConfig = new (std::nothrow) SysVpnConfig();
         if (vpnConfig == nullptr) {
@@ -346,7 +350,6 @@ int32_t NetworkVpnServiceProxy::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &con
 
 int32_t NetworkVpnServiceProxy::NotifyConnectStage(const std::string &stage, const int32_t &result)
 {
-    NETMGR_EXT_LOG_I("NotifyConnectStage stage=%{public}s result=%{public}d", stage.c_str(), result);
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
         NETMGR_EXT_LOG_E("NotifyConnectStage write interface token failed");

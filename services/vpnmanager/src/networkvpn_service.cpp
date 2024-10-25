@@ -929,8 +929,6 @@ int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const in
         NETMGR_EXT_LOG_E("NotifyConnectStage failed, vpnObj_ is null");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    NETMGR_EXT_LOG_I("NotifyConnectStage state: %{public}s result: %{public}d",
-        stage.c_str(), result);
     return vpnObj_->NotifyConnectStage(stage, result);
 }
 
