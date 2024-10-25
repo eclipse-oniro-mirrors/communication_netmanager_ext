@@ -83,24 +83,12 @@ int32_t WearableDistributedNetService::TearDownWearableDistributedNet()
 bool WearableDistributedNetService::Init()
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net Service Init");
-
-    sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (sam == nullptr) {
-        NETMGR_EXT_LOG_E("GetProxy(), get SystemAbilityManager failed");
-        return false;
-    }
-
-    sptr<IRemoteObject> remote = sam->CheckSystemAbility(NET_MANAGER_SYS_ABILITY_ID);
-    if (remote == nullptr) {
-        NETMGR_EXT_LOG_E("get Remote service failed");
-        return false;
-    }
-
     if (!REGISTER_LOCAL_RESULT) {
         NETMGR_EXT_LOG_E("Wearable Distributed Net Service Register to local sa manager failed");
         return false;
     }
 
+    AddSystemAbilityListener(NET_MANAGER_SYS_ABILITY_ID);
     if (!registerToService_) {
         if (!Publish(DelayedSingleton<WearableDistributedNetService>::GetInstance().get())) {
             NETMGR_EXT_LOG_E("Wearable Distributed Net Service Register to sa manager failed");
