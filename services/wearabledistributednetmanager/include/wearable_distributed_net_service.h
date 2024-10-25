@@ -24,18 +24,17 @@
 namespace OHOS {
 namespace NetManagerStandard {
 class WearableDistributedNetService : public SystemAbility,
-                                      public WearableDistributedNetStub,
-                                      public std::enable_shared_from_this<WearableDistributedNetService> {
+                                      public WearableDistributedNetStub {
     DECLARE_SYSTEM_ABILITY(WearableDistributedNetService)
 
-    WearableDistributedNetService();
-    ~WearableDistributedNetService();
 public:
-    static WearableDistributedNetService &GetInstance();
+    WearableDistributedNetService(int32_t saId, bool runOnCreate = true);
+    ~WearableDistributedNetService();
     void OnStart() override;
     void OnStop() override;
     int32_t SetupWearableDistributedNet(int32_t tcpPortId, int32_t udpPortId, bool isMetered) override;
     int32_t TearDownWearableDistributedNet() override;
+
 private:
     enum ServiceRunningState {
         STATE_STOPPED = 0,

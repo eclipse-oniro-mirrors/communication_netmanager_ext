@@ -19,6 +19,7 @@
 
 #define private public
 #include "wearable_distributed_net_agent.h"
+#undef private
 
 namespace OHOS {
 namespace NetManagerStandard {

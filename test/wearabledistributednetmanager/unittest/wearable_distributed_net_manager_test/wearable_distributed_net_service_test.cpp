@@ -18,6 +18,7 @@
 
 #define private public
 #include "wearable_distributed_net_service.h"
+#undef private
 
 namespace OHOS {
 namespace NetManagerStandard {

@@ -22,21 +22,12 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-namespace {
-const bool REGISTER_LOCAL_RESULT =
-    SystemAbility::MakeAndRegisterAbility(&WearableDistributedNetService::GetInstance());
-} // namespace
+REGISTER_SYSTEM_ABILITY_BY_ID(WearableDistributedNetService, COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID, true);
 
-WearableDistributedNetService::WearableDistributedNetService()
-    : SystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID, true) {}
+WearableDistributedNetService::WearableDistributedNetService(int32_t saId, bool runOnCreate)
+    : SystemAbility(saId, runOnCreate) {}
 
 WearableDistributedNetService::~WearableDistributedNetService() = default;
-
-WearableDistributedNetService &WearableDistributedNetService::GetInstance()
-{
-    static WearableDistributedNetService instance;
-    return instance;
-}
 
 void WearableDistributedNetService::OnStart()
 {
@@ -83,14 +74,9 @@ int32_t WearableDistributedNetService::TearDownWearableDistributedNet()
 bool WearableDistributedNetService::Init()
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net Service Init");
-    if (!REGISTER_LOCAL_RESULT) {
-        NETMGR_EXT_LOG_E("Wearable Distributed Net Service Register to local sa manager failed");
-        return false;
-    }
-
     AddSystemAbilityListener(NET_MANAGER_SYS_ABILITY_ID);
     if (!registerToService_) {
-        if (!Publish(DelayedSingleton<WearableDistributedNetService>::GetInstance().get())) {
+        if (!Publish(this)) {
             NETMGR_EXT_LOG_E("Wearable Distributed Net Service Register to sa manager failed");
             return false;
         }
