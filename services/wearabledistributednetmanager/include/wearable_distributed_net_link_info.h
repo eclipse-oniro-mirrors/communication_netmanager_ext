@@ -74,6 +74,7 @@ private:
 
 int32_t CreateNetLinkInfo(NetLinkInfo &linkInfo);
 int32_t SetInterfaceDummyDown();
+int32_t SetInterfaceDummyUp();
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // WEARABLE_DISTRIBUTED_NET_LINK_INFO_H

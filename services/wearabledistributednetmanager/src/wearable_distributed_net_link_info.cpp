@@ -274,7 +274,7 @@ int32_t WearableDistributedNetLinkInfo::SetNetLinkIPInfo(NetLinkInfo &linkInfo)
     netAddr.netMask_ = GetDefaultNetMask();
     netAddr.prefixlen_ = CommonUtils::GetMaskLength(GetDefaultNetMask());
 
-    linkInfo.netAddrList_.push_back(*netAddr);
+    linkInfo.netAddrList_.push_back(netAddr);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -288,7 +288,7 @@ int32_t WearableDistributedNetLinkInfo::SetNetLinkRouteInfo(NetLinkInfo &linkInf
     route.gateway_.address_ = GetNetIfaceAddress();
     route.gateway_.family_ = AF_INET;
 
-    linkInfo.routeList_.push_back(*route);
+    linkInfo.routeList_.push_back(route);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -334,12 +334,21 @@ int32_t CreateNetLinkInfo(NetLinkInfo &linkInfo)
     info.SetDnsLists(linkInfo);
     info.SetNetLinkRouteInfo(linkInfo);
     info.SetMtu(linkInfo);
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t SetInterfaceDummyUp()
+{
+    WearableDistributedNetLinkInfo info;
+    if (!info.ReadSystemNetlinkinfoConfiguration()) {
+        NETMGR_EXT_LOG_E("ReadSystemNetlinkinfoConfiguration failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
     int32_t result = info.SetInterfaceDummyUp();
     if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("CreateNetLinkInfo SetInterfaceDummyUp failed, result: [%{public}d]", result);
+        NETMGR_EXT_LOG_E("SetInterfaceDummyUp failed, result: [%{public}d]", result);
     }
     return result;
 }
-
 } // namespace NetManagerStandard
 } // namespace OHOS
