@@ -45,6 +45,10 @@ enum class VpnConnectState {
     VPN_DISCONNECTED,
 };
 
+#ifdef SUPPORT_SYSVPN
+constexpr int32_t SYSVPN_MAX_SIZE = 1024;
+#endif // SUPPORT_SYSVPN
+
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // NETMANAGER_EXT_CONSTANTS_H

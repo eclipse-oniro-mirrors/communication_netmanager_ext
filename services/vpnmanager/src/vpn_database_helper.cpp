@@ -89,10 +89,41 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
 
+    if (getVpnDataSize(vpnBean) >= SYSVPN_MAX_SIZE) {
+        NETMGR_EXT_LOG_E("InsertOrUpdateData failed, exceeded the size limit %{public}d", SYSVPN_MAX_SIZE);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     if (IsVpnInfoExists(vpnBean->vpnId_)) {
         return UpdateData(vpnBean);
     }
     return InsertData(vpnBean);
+}
+
+int32_t VpnDatabaseHelper::getVpnDataSize(const sptr<VpnDataBean> &vpnBean)
+{
+    int32_t size = 0;
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("getVpnDataSize failed, vpnBean is nullptr");
+        return size;
+    }
+    if (store_ == nullptr) {
+        NETMGR_EXT_LOG_E("getVpnDataSize failed, store_ is nullptr");
+        return size;
+    }
+    std::vector<std::string> columns;
+    OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
+    auto queryResultSet = store_->Query(rdbPredicate, columns);
+    if (queryResultSet == nullptr) {
+        NETMGR_EXT_LOG_E("getVpnDataSize failed, queryResultSet == nullptr");
+        return size;
+    }
+    int32_t ret = queryResultSet->GetRowCount(size);
+    if (ret != OHOS::NativeRdb::E_OK) {
+        NETMGR_EXT_LOG_E("getVpnDataSize failed, get row count failed, ret:%{public}d", ret);
+        return size;
+    }
+    NETMGR_EXT_LOG_I("getVpnDataSize size=%{public}d", size);
+    return size;
 }
 
 bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)

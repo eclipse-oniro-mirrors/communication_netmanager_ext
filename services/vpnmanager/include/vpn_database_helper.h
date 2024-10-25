@@ -50,6 +50,7 @@ private:
     void GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
         sptr<VpnDataBean> &vpnBean);
     void BindVpnData(NativeRdb::ValuesBucket &values, const sptr<VpnDataBean> &info);
+    int32_t getVpnDataSize(const sptr<VpnDataBean> &vpnBean);
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ = nullptr;
 };
 
