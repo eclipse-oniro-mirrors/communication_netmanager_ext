@@ -35,6 +35,7 @@ public:
 private:
     std::atomic_bool loadSAFailed_ = false;
     sptr<IRemoteObject> remoteObject_ = nullptr;
+    std::mutex loadMutex_;
 };
 
 class WearableDistributedNetClient {
@@ -87,6 +88,7 @@ private:
     std::mutex mutex_;
     sptr<IWearableDistributedNet> wearableDistributedNetService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
+    std::mutex loadSaMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

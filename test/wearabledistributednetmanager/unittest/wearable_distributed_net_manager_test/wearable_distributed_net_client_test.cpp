@@ -14,7 +14,10 @@
  */
 
 #include <gtest/gtest.h>
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "net_manager_constants.h"
+#include "token_setproc.h"
 
 #define private public
 #include "wearable_distributed_net_client.h"
@@ -63,6 +66,29 @@ HWTEST_F(WearableDistributedNetClientTest, SetUpWearableDistributedNet002, TestS
     ret = wearableDistributedNetClient.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, true);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
     wearableDistributedNetClient.TearDownWearableDistributedNet();
+}
+
+HWTEST_F(WearableDistributedNetClientTest, WearableDistributedNetPermission, TestSize.Level1)
+{
+    NativeTokenInfoParams infoInstance = {
+        .aclsNum = 0,
+        .dcapsNum = 0,
+        .permsNum = 0,
+        .dcaps = nullptr,
+        .acls = nullptr,
+        .perms = nullptr,
+        .aplStr = "system_basic",
+        .processName = "netmanager",
+    };
+    OHOS::Security::AccessToken::AccessTokenID tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    auto ret = wearableDistributedNetClient.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    ret = wearableDistributedNetClient.TearDownWearableDistributedNet();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(WearableDistributedNetClientTest, TearDownWearableDistributedNet001, TestSize.Level1)

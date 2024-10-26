@@ -23,8 +23,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-std::mutex g_loadMutex;
-std::condition_variable g_cv;
+static std::condition_variable g_cv;
 static constexpr uint32_t WAIT_REMOTE_TIME_SEC = 10;
 static constexpr uint32_t GET_SERVICE_MAX_TIMES = 5;
 static constexpr uint32_t WAIT_FOR_SERVICE_TIME_SEC = 10;
@@ -33,7 +32,7 @@ void WearableDistributedNetLoadCallback::OnLoadSystemAbilitySuccess(int32_t syst
                                                                     const sptr<IRemoteObject> &remoteObject)
 {
     NETMGR_EXT_LOG_I("Loading system ability succeeded");
-    std::unique_lock<std::mutex> lock(g_loadMutex);
+    std::unique_lock<std::mutex> lock(loadMutex_);
     remoteObject_ = remoteObject;
     g_cv.notify_one();
 }
@@ -135,7 +134,7 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
         return nullptr;
     }
     {
-        std::unique_lock<std::mutex> uniqueLock(g_loadMutex);
+        std::unique_lock<std::mutex> uniqueLock(loadSaMutex_);
         g_cv.wait_for(uniqueLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
             [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
     }
@@ -165,13 +164,17 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
 
 WearableDistributedNetClient::~WearableDistributedNetClient()
 {
-    sptr<WearableDistributedNetLoadCallback> callback = new (std::nothrow) WearableDistributedNetLoadCallback;
-    auto remote = callback->GetRemoteObject();
+    auto proxy = GetProxy();
+    if (proxy == nullptr) {
+        return;
+    }
+
+    auto remote = proxy->AsObject();
     if (remote == nullptr) {
         return;
     }
+
     remote->RemoveDeathRecipient(deathRecipient_);
-    remote = nullptr;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

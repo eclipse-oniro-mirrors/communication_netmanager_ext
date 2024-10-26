@@ -13,11 +13,7 @@
  * limitations under the License.
  */
 
-#include "if_system_ability_manager.h"
-#include "iservice_registry.h"
 #include "netmanager_base_permission.h"
-#include "system_ability_definition.h"
-#include "system_ability_load_callback_stub.h"
 #include "wearable_distributed_net_service.h"
 
 namespace OHOS {
