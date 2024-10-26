@@ -18,9 +18,11 @@ config("wearable_distributed_net_manager_config") {
   include_dirs = [
     "include",
     "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/wearabledistributednetclient/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
+    "${target_gen_dir}",
   ]
 
   defines = [
@@ -42,10 +44,14 @@ wearable_distributed_net_manager_sources = [
   "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_service.cpp",
   "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_static_configuration.cpp",
   "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/src/wearable_distributed_net_supplier_info.cpp",
+  "${target_gen_dir}/../../interfaces/innerkits/wearabledistributednetclient/wearable_distributed_net_stub.cpp",
 ]
 
-wearable_distributed_net_manager_deps =
-    [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
+wearable_distributed_net_manager_deps = [
+  "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_manager_if",
+  "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_service",
+  "$NETMANAGER_EXT_ROOT/utils:net_event_report",
+]
 
 wearable_distributed_net_manager_external_deps = [
   "ability_base:want",
