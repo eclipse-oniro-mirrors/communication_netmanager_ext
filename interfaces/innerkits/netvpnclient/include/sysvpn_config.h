@@ -21,6 +21,8 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr int32_t SYSVPN_MAX_SIZE = 1024;
+
 enum VpnType : int32_t {
     IKEV2_IPSEC_MSCHAPv2 = 1,
     IKEV2_IPSEC_PSK,
