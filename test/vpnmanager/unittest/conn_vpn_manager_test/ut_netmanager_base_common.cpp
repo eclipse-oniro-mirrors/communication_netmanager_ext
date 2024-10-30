@@ -23,8 +23,6 @@ namespace {
 using namespace testing::ext;
 constexpr const char *TEST_TEXT = "adfsjfjkfk^#$ajf!@!#$#kjd nck?fgnf<kdjnf>kjask?.fcnvdkjfn kjdkj.,.vd";
 constexpr const char *SPLIT = "?";
-constexpr const char *TEST_IP = "155.153.144.154";
-constexpr const char *TEST_IPV4 = "534/6::45/144.15:4::44";
 constexpr const char *TEST_DOMAIN1 = "123445";
 constexpr const char *TEST_DOMAIN2 = ".com";
 constexpr const char *TEST_DOMAIN3 = "test.com";
