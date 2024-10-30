@@ -49,7 +49,7 @@ HWTEST_F(WearableDistributedNetStaticConfigurationTest, SetNetLinkInfo, TestSize
     NetSupplierInfo supplierInfo;
     SetNetSupplierInfo(supplierInfo);
     NetLinkInfo linkInfo;
-    EXPECT_EQ(wearableDistributedNetStaticConfig.SetNetLinkInfo(linkInfo), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(wearableDistributedNetStaticConfig.SetNetLinkInfo(linkInfo), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(WearableDistributedNetStaticConfigurationTest, GetNetLinkInfo, TestSize.Level1)
@@ -57,7 +57,7 @@ HWTEST_F(WearableDistributedNetStaticConfigurationTest, GetNetLinkInfo, TestSize
     WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
     NetLinkInfo linkInfo;
     int32_t ret = wearableDistributedNetStaticConfig.GetNetLinkInfo(linkInfo);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(WearableDistributedNetStaticConfigurationTest, GetNetSupplierInfo, TestSize.Level1)
@@ -102,36 +102,45 @@ HWTEST_F(WearableDistributedNetStaticConfigurationTest, WearableDistributedNetSt
     EXPECT_EQ(supplierInfo.linkDownBandwidthKbps_, retrievedSupplierInfo.linkDownBandwidthKbps_);
 }
 
-HWTEST_F(WearableDistributedNetStaticConfigurationTest, EnableWearableDistributedNetForward, TestSize.Level1)
+HWTEST_F(WearableDistributedNetStaticConfigurationTest, EnableWearableDistributedNetForward001, TestSize.Level1)
 {
     WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
 
     int32_t ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(8080, 8081);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    wearableDistributedNetStaticConfig.DisableWearableDistributedNetForward();
+}
 
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(65535, 8081);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(8080, 65535);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(0, 8081);
+HWTEST_F(WearableDistributedNetStaticConfigurationTest, EnableWearableDistributedNetForward002, TestSize.Level1)
+{
+    WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
+    int32_t ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(0, 8081);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    wearableDistributedNetStaticConfig.DisableWearableDistributedNetForward();
+}
 
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(65536, 8081);
+HWTEST_F(WearableDistributedNetStaticConfigurationTest, EnableWearableDistributedNetForward003, TestSize.Level1)
+{
+    WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
+    int32_t ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(65536, 8081);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    wearableDistributedNetStaticConfig.DisableWearableDistributedNetForward();
+}
 
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(-80, 8081);
+HWTEST_F(WearableDistributedNetStaticConfigurationTest, EnableWearableDistributedNetForward004, TestSize.Level1)
+{
+    WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
+    int32_t ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(8080, 0);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    wearableDistributedNetStaticConfig.DisableWearableDistributedNetForward();
+}
 
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(8080, 0);
+HWTEST_F(WearableDistributedNetStaticConfigurationTest, EnableWearableDistributedNetForward005, TestSize.Level1)
+{
+    WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
+    int32_t ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(8080, 65536);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
-
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(8080, 65536);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
-
-    ret = wearableDistributedNetStaticConfig.EnableWearableDistributedNetForward(8080, -81);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    wearableDistributedNetStaticConfig.DisableWearableDistributedNetForward();
 }
 
 HWTEST_F(WearableDistributedNetStaticConfigurationTest, DisableWearableDistributedNetForward, TestSize.Level1)

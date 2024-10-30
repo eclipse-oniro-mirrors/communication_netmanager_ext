@@ -168,7 +168,7 @@ int32_t WearableDistributedNetAgent::UpdateNetSupplierInfo(const bool isAvailabl
     }
 
     SetNetSupplierInfo(netSupplierInfo_);
-    auto networkSupplierInfo = sptr<NetSupplierInfo>(&netSupplierInfo_);
+    auto networkSupplierInfo = sptr<NetSupplierInfo>::MakeSptr(netSupplierInfo_);
     if (networkSupplierInfo == nullptr) {
         NETMGR_EXT_LOG_E("NetSupplierInfo new failed, networkSupplierInfo is nullptr");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
@@ -189,7 +189,7 @@ int32_t WearableDistributedNetAgent::UpdateNetLinkInfo()
         NETMGR_EXT_LOG_E("Wearable Distributed Net Agent GetNetLinkInfo error, result:[%{public}d]", result);
         return result;
     }
-    auto networkLinkInfo = sptr<NetLinkInfo>(&netLinkInfo_);
+    auto networkLinkInfo = sptr<NetLinkInfo>::MakeSptr(netLinkInfo_);
     if (networkLinkInfo == nullptr) {
         NETMGR_EXT_LOG_E("NetLinkInfo new failed, networkLinkInfo is nullptr");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;

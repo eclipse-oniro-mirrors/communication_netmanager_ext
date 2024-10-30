@@ -32,7 +32,6 @@ public:
 
     void SetUp();
     void TearDown();
-    WearableDistributedNetForward config;
 };
 
 void WearableDistributedNetConfigForwardTest::SetUpTestCase() {}
@@ -45,6 +44,7 @@ void WearableDistributedNetConfigForwardTest::TearDown() {}
 
 HWTEST_F(WearableDistributedNetConfigForwardTest, EnableWearableDistributedNetForward, TestSize.Level1)
 {
+    WearableDistributedNetForward config;
     int32_t ret = config.EnableWearableDistributedNetForward(TCP_PORT_ID, UDP_PORT_ID);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 
@@ -75,6 +75,7 @@ HWTEST_F(WearableDistributedNetConfigForwardTest, EnableWearableDistributedNetFo
 
 HWTEST_F(WearableDistributedNetConfigForwardTest, DisableWearableDistributedNetForward, TestSize.Level1)
 {
+    WearableDistributedNetForward config;
     int32_t result = config.DisableWearableDistributedNetForward();
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }

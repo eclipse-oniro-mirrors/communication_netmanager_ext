@@ -260,6 +260,8 @@ int32_t WearableDistributedNetLinkInfo::SetDnsLists(NetLinkInfo &linkInfo)
     dnsFirst.address_ = GetPrimaryDnsLists();
     linkInfo.dnsList_.push_back(dnsFirst);
 
+    dnsSecond.type_ = INetAddr::IPV4;
+    dnsSecond.family_ = AF_INET;
     dnsSecond.address_ = GetSecondDnsLists();
     linkInfo.dnsList_.push_back(dnsSecond);
     return NETMANAGER_EXT_SUCCESS;

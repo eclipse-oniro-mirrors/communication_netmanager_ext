@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <sys/socket.h>
 #include "cJSON.h"
 #include "net_manager_constants.h"
 
@@ -92,7 +93,7 @@ HWTEST_F(WearableDistributedNetLinkInfoTest, SetNetLinkIPInfo, TestSize.Level1)
     info.SetNetLinkIPInfo(linkInfo);
     const auto &netAddr = linkInfo.netAddrList_.front();
     EXPECT_EQ(netAddr.type_, INetAddr::IPV4);
-    EXPECT_EQ(netAddr.family_, INetAddr::IPV4);
+    EXPECT_EQ(netAddr.family_, AF_INET);
     EXPECT_EQ(netAddr.address_, info.GetIpv4DeRouteAddr());
     EXPECT_EQ(netAddr.netMask_, info.GetDefaultNetMask());
 }
@@ -105,10 +106,10 @@ HWTEST_F(WearableDistributedNetLinkInfoTest, SetNetLinkRouteInfo, TestSize.Level
     const auto &route = linkInfo.routeList_.front();
     EXPECT_EQ(route.iface_, info.GetIfaceName());
     EXPECT_EQ(route.destination_.type_, INetAddr::IPV4);
-    EXPECT_EQ(route.destination_.family_, INetAddr::IPV4);
+    EXPECT_EQ(route.destination_.family_, AF_INET);
     EXPECT_EQ(route.destination_.address_, "");
     EXPECT_EQ(route.gateway_.address_, info.GetNetIfaceAddress());
-    EXPECT_EQ(route.gateway_.family_, INetAddr::IPV4);
+    EXPECT_EQ(route.gateway_.family_, AF_INET);
 }
 
 HWTEST_F(WearableDistributedNetLinkInfoTest, SetMtu, TestSize.Level1)

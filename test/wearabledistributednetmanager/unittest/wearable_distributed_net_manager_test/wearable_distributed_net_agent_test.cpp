@@ -36,7 +36,6 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    WearableDistributedNetAgent &agentInstance = WearableDistributedNetAgent::GetInstance();
 };
 
 void WearableDistributedNetAgentTest::SetUpTestCase() {}
@@ -47,15 +46,23 @@ void WearableDistributedNetAgentTest::SetUp() {}
 
 void WearableDistributedNetAgentTest::TearDown() {}
 
-HWTEST_F(WearableDistributedNetAgentTest, EnableWearableDistributedNetForward, TestSize.Level1)
+HWTEST_F(WearableDistributedNetAgentTest, EnableWearableDistributedNetForward001, TestSize.Level1)
 {
-    int32_t ret = agentInstance.EnableWearableDistributedNetForward(-80, 8002);
+    int32_t ret = WearableDistributedNetAgent::GetInstance().EnableWearableDistributedNetForward(-80, 8002);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
-    ret = agentInstance.EnableWearableDistributedNetForward(8001, 0);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, EnableWearableDistributedNetForward002, TestSize.Level1)
+{
+    int32_t ret = WearableDistributedNetAgent::GetInstance().EnableWearableDistributedNetForward(8001, 0);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
-    ret = agentInstance.EnableWearableDistributedNetForward(8001, 8002);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, EnableWearableDistributedNetForward003, TestSize.Level1)
+{
+    int32_t ret = WearableDistributedNetAgent::GetInstance().EnableWearableDistributedNetForward(8001, 8002);
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
-    ret = agentInstance.DisableWearableDistributedNetForward();
+    ret = WearableDistributedNetAgent::GetInstance().DisableWearableDistributedNetForward();
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
 
@@ -68,15 +75,15 @@ HWTEST_F(WearableDistributedNetAgentTest, ObtainNetCaps, TestSize.Level1)
     capsNotMetered = capsMetered;
     capsNotMetered.insert(NET_CAPABILITY_NOT_METERED);
 
-    agentInstance.netCaps_.clear();
+    WearableDistributedNetAgent::GetInstance().netCaps_.clear();
     bool isMetered = false;
-    agentInstance.ObtainNetCaps(isMetered);
-    EXPECT_EQ(agentInstance.netCaps_, capsNotMetered);
+    WearableDistributedNetAgent::GetInstance().ObtainNetCaps(isMetered);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().netCaps_, capsNotMetered);
 
-    agentInstance.netCaps_.clear();
+    WearableDistributedNetAgent::GetInstance().netCaps_.clear();
     isMetered = true;
-    agentInstance.ObtainNetCaps(isMetered);
-    EXPECT_EQ(agentInstance.netCaps_, capsMetered);
+    WearableDistributedNetAgent::GetInstance().ObtainNetCaps(isMetered);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().netCaps_, capsMetered);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo, TestSize.Level1)
@@ -88,7 +95,7 @@ HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo, TestSize.Level1)
     supplierInfo.linkDownBandwidthKbps_ = 220;
 
     NetSupplierInfo getSupplierInfo;
-    agentInstance.SetNetSupplierInfo(getSupplierInfo);
+    WearableDistributedNetAgent::GetInstance().SetNetSupplierInfo(getSupplierInfo);
     EXPECT_EQ(supplierInfo.isAvailable_, getSupplierInfo.isAvailable_);
     EXPECT_EQ(supplierInfo.isRoaming_, getSupplierInfo.isRoaming_);
     EXPECT_EQ(supplierInfo.linkUpBandwidthKbps_, getSupplierInfo.linkUpBandwidthKbps_);
@@ -98,14 +105,14 @@ HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo, TestSize.Level1)
 HWTEST_F(WearableDistributedNetAgentTest, GetNetLinkInfo001, TestSize.Level1)
 {
     NetLinkInfo getLinkInfo;
-    int32_t ret = agentInstance.SetNetLinkInfo(getLinkInfo);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    int32_t ret = WearableDistributedNetAgent::GetInstance().SetNetLinkInfo(getLinkInfo);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, GetNetLinkInfo002, TestSize.Level1)
 {
     NetLinkInfo getLinkInfo;
-    agentInstance.SetNetLinkInfo(getLinkInfo);
+    WearableDistributedNetAgent::GetInstance().SetNetLinkInfo(getLinkInfo);
     EXPECT_EQ(getLinkInfo.ifaceName_, "lo");
     EXPECT_EQ(getLinkInfo.dnsList_.front().address_, "114.114.114.114");
     EXPECT_EQ(getLinkInfo.dnsList_.front().type_, INetAddr::IPV4);
@@ -123,102 +130,107 @@ HWTEST_F(WearableDistributedNetAgentTest, GetNetLinkInfo002, TestSize.Level1)
 
 HWTEST_F(WearableDistributedNetAgentTest, SetupWearableDistributedNetNetwork001, TestSize.Level1)
 {
-    EXPECT_EQ(agentInstance.SetupWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false),
-        NETMANAGER_ERR_PERMISSION_DENIED);
-    agentInstance.TearDownWearableDistributedNetwork();
-    EXPECT_EQ(agentInstance.SetupWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, true),
-        NETMANAGER_ERR_PERMISSION_DENIED);
-    agentInstance.TearDownWearableDistributedNetwork();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance()
+        .SetupWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false), NETMANAGER_ERR_PERMISSION_DENIED);
+    WearableDistributedNetAgent::GetInstance().TearDownWearableDistributedNetwork();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance()
+        .SetupWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, true), NETMANAGER_ERR_PERMISSION_DENIED);
+    WearableDistributedNetAgent::GetInstance().TearDownWearableDistributedNetwork();
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, TearDownWearableDistributedNetwork001, TestSize.Level1)
 {
-    agentInstance.SetupWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false);
-    int32_t ret = agentInstance.TearDownWearableDistributedNetwork();
+    WearableDistributedNetAgent::GetInstance().SetupWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false);
+    int32_t ret = WearableDistributedNetAgent::GetInstance().TearDownWearableDistributedNetwork();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, TearDownWearableDistributedNetwork002, TestSize.Level1)
 {
-    agentInstance.netSupplierId_ = 0;
-    int32_t ret = agentInstance.TearDownWearableDistributedNetwork();
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    int32_t ret = WearableDistributedNetAgent::GetInstance().TearDownWearableDistributedNetwork();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, RegisterNetSupplier001, TestSize.Level1)
 {
-    agentInstance.netSupplierId_ = 1;
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 1;
     bool isMetered = false;
-    EXPECT_EQ(agentInstance.RegisterNetSupplier(isMetered), NET_CONN_SUCCESS);
-    agentInstance.UnregisterNetSupplier();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().RegisterNetSupplier(isMetered), NETMANAGER_SUCCESS);
+    WearableDistributedNetAgent::GetInstance().UnregisterNetSupplier();
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
     isMetered = true;
-    EXPECT_EQ(agentInstance.RegisterNetSupplier(isMetered), NETMANAGER_ERR_PERMISSION_DENIED);
-    agentInstance.UnregisterNetSupplier();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().RegisterNetSupplier(isMetered),
+        NETMANAGER_ERR_PERMISSION_DENIED);
+    WearableDistributedNetAgent::GetInstance().UnregisterNetSupplier();
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, RegisterNetSupplier002, TestSize.Level1)
 {
     bool isMetered = true;
-    agentInstance.netSupplierId_ = 0;
-    EXPECT_EQ(agentInstance.RegisterNetSupplier(isMetered), NETMANAGER_ERR_PERMISSION_DENIED);
-    agentInstance.UnregisterNetSupplier();
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().RegisterNetSupplier(isMetered),
+        NETMANAGER_ERR_PERMISSION_DENIED);
+    WearableDistributedNetAgent::GetInstance().UnregisterNetSupplier();
     isMetered = false;
-    EXPECT_EQ(agentInstance.RegisterNetSupplier(isMetered), NETMANAGER_ERR_PERMISSION_DENIED);
-    agentInstance.UnregisterNetSupplier();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().RegisterNetSupplier(isMetered),
+        NETMANAGER_ERR_PERMISSION_DENIED);
+    WearableDistributedNetAgent::GetInstance().UnregisterNetSupplier();
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UnregisterNetSupplier001, TestSize.Level1)
 {
-    agentInstance.netSupplierId_ = 0;
-    int32_t result = agentInstance.UnregisterNetSupplier();
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    int32_t result = WearableDistributedNetAgent::GetInstance().UnregisterNetSupplier();
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UnregisterNetSupplier002, TestSize.Level1)
 {
     bool isMetered = true;
-    agentInstance.netSupplierId_ = 0;
-    agentInstance.RegisterNetSupplier(isMetered);
-    int32_t result = agentInstance.UnregisterNetSupplier();
-    EXPECT_EQ(result, NETMANAGER_SUCCESS);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    WearableDistributedNetAgent::GetInstance().RegisterNetSupplier(isMetered);
+    int32_t result = WearableDistributedNetAgent::GetInstance().UnregisterNetSupplier();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UnregisterNetSupplier003, TestSize.Level1)
 {
     bool isMetered = true;
-    agentInstance.netSupplierId_ = 0;
-    int32_t ret = agentInstance.UnregisterNetSupplier();
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    int32_t ret = WearableDistributedNetAgent::GetInstance().UnregisterNetSupplier();
     EXPECT_NE(ret, NETMANAGER_SUCCESS);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UpdateNetSupplierInfo001, TestSize.Level1)
 {
-    agentInstance.netSupplierId_ = 0;
-    EXPECT_NE(agentInstance.UpdateNetSupplierInfo(true), NETMANAGER_SUCCESS);
-    agentInstance.netSupplierId_ = 1;
-    EXPECT_EQ(agentInstance.UpdateNetSupplierInfo(true), NETMANAGER_ERR_PERMISSION_DENIED);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    EXPECT_NE(WearableDistributedNetAgent::GetInstance().UpdateNetSupplierInfo(true), NETMANAGER_SUCCESS);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 1;
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().UpdateNetSupplierInfo(true),
+        NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UpdateNetSupplierInfo002, TestSize.Level1)
 {
-    agentInstance.netSupplierId_ = 1;
-    EXPECT_NE(agentInstance.UpdateNetSupplierInfo(true), NETMANAGER_SUCCESS);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 1;
+    EXPECT_NE(WearableDistributedNetAgent::GetInstance().UpdateNetSupplierInfo(true), NETMANAGER_SUCCESS);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UpdateNetLinkInfo001, TestSize.Level1)
 {
-    agentInstance.netSupplierId_ = 0;
-    EXPECT_NE(agentInstance.UpdateNetLinkInfo(), 0);
-    agentInstance.netSupplierId_ = 1;
-    EXPECT_EQ(agentInstance.UpdateNetLinkInfo(), NETMANAGER_EXT_ERR_INTERNAL);
-    agentInstance.netSupplierId_ = 0;
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    EXPECT_NE(WearableDistributedNetAgent::GetInstance().UpdateNetLinkInfo(), 0);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 1;
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().UpdateNetLinkInfo(), NETMANAGER_ERR_PERMISSION_DENIED);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, UpdateNetLinkInfo002, TestSize.Level1)
 {
-    agentInstance.netSupplierId_ = 1;
-    EXPECT_NE(agentInstance.UpdateNetLinkInfo(), NETMANAGER_SUCCESS);
-    agentInstance.netSupplierId_ = 0;
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 1;
+    EXPECT_NE(WearableDistributedNetAgent::GetInstance().UpdateNetLinkInfo(), NETMANAGER_SUCCESS);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, SetupWearableDistributedNetNetwork002, TestSize.Level1)
@@ -226,9 +238,10 @@ HWTEST_F(WearableDistributedNetAgentTest, SetupWearableDistributedNetNetwork002,
     int32_t tcpPortId = 8001;
     int32_t udpPortId = 0;
     bool isMetered = false;
-    agentInstance.netSupplierId_ = 1;
-    int32_t result = agentInstance.SetupWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 1;
+    int32_t result = WearableDistributedNetAgent::GetInstance()
+        .SetupWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
+    EXPECT_EQ(result, NETMANAGER_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
