@@ -120,7 +120,7 @@ HWTEST_F(WearableDistributedNetLinkInfoTest, SetMtu, TestSize.Level1)
     EXPECT_EQ(linkInfo.mtu_, CONSTANTS::WEARABLE_DISTRIBUTED_NET_MTU);
 }
 
-HWTEST_F(WearableDistributedNetLinkInfoTest, SetInterfaceDummyUp, TestSize.Level1)
+HWTEST_F(WearableDistributedNetLinkInfoTest, SetInterfaceDummyUp001, TestSize.Level1)
 {
     WearableDistributedNetLinkInfo info;
     int32_t result = info.SetInterfaceDummyUp();
@@ -298,6 +298,19 @@ HWTEST_F(WearableDistributedNetLinkInfoTest, ReadSystemNetlinkinfoConfiguration0
     info.configPath_ = "";
     int32_t result = info.ReadSystemNetlinkinfoConfiguration();
     EXPECT_FALSE(result);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, SetInterfaceDummyUp002, TestSize.Level1)
+{
+    int32_t result = SetInterfaceDummyUp();
+    EXPECT_EQ(NETMANAGER_EXT_ERR_INTERNAL, result);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, CreateNetLinkInfo, TestSize.Level1)
+{
+    NetLinkInfo linkInfo;
+    int32_t result = CreateNetLinkInfo(linkInfo);
+    EXPECT_EQ(NETMANAGER_EXT_SUCCESS, result);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

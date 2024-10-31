@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
+#include "netmanager_ext_test_security.h"
 #include "net_manager_constants.h"
 #include "token_setproc.h"
 
@@ -37,7 +38,6 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    uint64_t tokenId_ = 0;
 };
 
 void WearableDistributedNetClientTest::SetUpTestCase() {}
@@ -60,11 +60,12 @@ HWTEST_F(WearableDistributedNetClientTest, SetUpWearableDistributedNet001, TestS
 
 HWTEST_F(WearableDistributedNetClientTest, SetUpWearableDistributedNet002, TestSize.Level1)
 {
+    NetManagerExtAccessToken token;
     auto ret = WearableDistributedNetClient::GetInstance().SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     WearableDistributedNetClient::GetInstance().TearDownWearableDistributedNet();
     ret = WearableDistributedNetClient::GetInstance().SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, true);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     WearableDistributedNetClient::GetInstance().TearDownWearableDistributedNet();
 }
 
@@ -111,36 +112,5 @@ HWTEST_F(WearableDistributedNetClientTest, OnRemoteDied, TestSize.Level1)
     WearableDistributedNetClient::GetInstance().OnRemoteDied(remote);
     EXPECT_EQ(WearableDistributedNetClient::GetInstance().wearableDistributedNetService_, nullptr);
 }
-
-// HWTEST_F(WearableDistributedNetClientTest, WearableDistributedNetPermission, TestSize.Level1)
-// {
-//     const char* perms[] = {
-//         "ohos.permission.CONNECTIVITY_INTERNAL",
-//     };
-//     NativeTokenInfoParams infoInstance = {
-//         .aclsNum = 0,
-//         .dcapsNum = 0,
-//         .permsNum = 1,
-//         .dcaps = nullptr,
-//         .acls = nullptr,
-//         .perms = perms,
-//         .aplStr = "system_basic",
-//         .processName = "netmanager",
-//     };
-//     tokenId_ = GetAccessTokenId(&infoInstance);
-//     SetSelfTokenID(tokenId_);
-//     OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-//     OHOS::Security::AccessToken::AccessTokenKit::GrantPermissionForSpecifiedTime(tokenId_, perms[0], 2);
-
-//     auto ret = WearableDistributedNetClient::GetInstance()
-//         .SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
-//     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-
-//     ret = WearableDistributedNetClient::GetInstance().TearDownWearableDistributedNet();
-//     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-
-//     OHOS::Security::AccessToken::AccessTokenKit::DeleteToken(tokenId_);
-//     OHOS::Security::AccessToken::AccessTokenKit::ClearUserPolicy();
-// }
 } // namespace NetManagerStandard
 } // namespace OHOS

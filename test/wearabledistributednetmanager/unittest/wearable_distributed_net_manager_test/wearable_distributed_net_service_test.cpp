@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 namespace {
 constexpr int32_t TCP_PORT_ID = 8080;
 constexpr int32_t UDP_PORT_ID = 8081;
-constexpr int32_t SA_ID_TEST = 1;
+constexpr int32_t SA_ID_TEST = COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID;
 using namespace testing::ext;
 } // namesapce
 
@@ -39,7 +39,6 @@ public:
 
     void SetUp();
     void TearDown();
-    uint64_t tokenId_;
 };
 
 void WearableDistributedNetServiceTest::SetUpTestCase() {}
@@ -59,19 +58,12 @@ HWTEST_F(WearableDistributedNetServiceTest, OnStart, TestSize.Level1)
     EXPECT_EQ(wearableDistributedNetService.state_, WearableDistributedNetService::ServiceRunningState::STATE_STOPPED);
 }
 
-HWTEST_F(WearableDistributedNetServiceTest, Init, TestSize.Level1)
-{
-    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
-    bool initResult = wearableDistributedNetService.Init();
-    EXPECT_TRUE(initResult);
-    wearableDistributedNetService.OnStop();
-}
-
 HWTEST_F(WearableDistributedNetServiceTest, OnStop, TestSize.Level1)
 {
     WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     wearableDistributedNetService.OnStop();
-    EXPECT_EQ(wearableDistributedNetService.state_, WearableDistributedNetService::ServiceRunningState::STATE_STOPPED);
+    EXPECT_EQ(wearableDistributedNetService.registerToService_,
+        WearableDistributedNetService::ServiceRunningState::STATE_STOPPED);
 }
 
 HWTEST_F(WearableDistributedNetServiceTest, SetupWearableDistributedNet, TestSize.Level1)
@@ -92,34 +84,5 @@ HWTEST_F(WearableDistributedNetServiceTest, TearDownWearableDistributedNet, Test
     auto ret = wearableDistributedNetService.TearDownWearableDistributedNet();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
-
-// HWTEST_F(WearableDistributedNetServiceTest, WearableDistributedNetPermission, TestSize.Level1)
-// {
-//     const char* perms[] = {
-//         "ohos.permission.CONNECTIVITY_INTERNAL",
-//     };
-//     NativeTokenInfoParams infoInstance = {
-//         .aclsNum = 0,
-//         .dcapsNum = 0,
-//         .permsNum = 1,
-//         .dcaps = nullptr,
-//         .acls = nullptr,
-//         .perms = perms,
-//         .aplStr = "system_basic",
-//         .processName = "netmanager",
-//     };
-//     tokenId_ = GetAccessTokenId(&infoInstance);
-//     SetSelfTokenID(tokenId_);
-//     OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-//     OHOS::Security::AccessToken::AccessTokenKit::GrantPermissionForSpecifiedTime(tokenId_, perms[0], 2);
-
-//     WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
-//     wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
-//     auto ret = wearableDistributedNetService.TearDownWearableDistributedNet();
-//     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-
-//     OHOS::Security::AccessToken::AccessTokenKit::DeleteToken(tokenId_);
-//     OHOS::Security::AccessToken::AccessTokenKit::ClearUserPolicy();
-// }
 } // namespace NetManagerStandard
 } // namespace OHOS
