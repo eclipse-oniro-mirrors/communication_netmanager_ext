@@ -384,7 +384,7 @@ HWTEST_F(NetFirewallClientTest, GetAllNetFirewallRule001, TestSize.Level1)
     int32_t ret = -1;
     std::vector<NetFirewallRule> ruleList;
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     sptr<FirewallRulePage> info = new (std::nothrow) FirewallRulePage();
@@ -394,7 +394,7 @@ HWTEST_F(NetFirewallClientTest, GetAllNetFirewallRule001, TestSize.Level1)
         std::cout << "GetAllNetFirewallRule " << i + 1 << " page=" << param->page << std::endl;
         info->data.clear();
         if (param->page >= info->totalPage) {
-            param->page = 0;
+            param->page = 1;
         } else {
             param->page += 1;
         }
@@ -414,7 +414,7 @@ HWTEST_F(NetFirewallClientTest, GetAllNetFirewallRule002, TestSize.Level1)
 {
     int32_t userId = 102;
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_DESC;
     sptr<FirewallRulePage> info = new (std::nothrow) FirewallRulePage();
@@ -464,7 +464,7 @@ HWTEST_F(NetFirewallClientTest, GetInterceptRecord001, TestSize.Level1)
     int32_t userId = 100;
     int32_t ret = -1;
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     sptr<InterceptRecordPage> info = new (std::nothrow) InterceptRecordPage();
@@ -474,7 +474,7 @@ HWTEST_F(NetFirewallClientTest, GetInterceptRecord001, TestSize.Level1)
         std::cout << "GetInterceptRecord " << i + 1 << " page=" << param->page << std::endl;
         info->data.clear();
         if (param->page >= info->totalPage) {
-            param->page = 0;
+            param->page = 1;
         } else {
             param->page += 1;
         }

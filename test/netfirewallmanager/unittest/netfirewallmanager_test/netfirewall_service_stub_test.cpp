@@ -268,7 +268,7 @@ HWTEST_F(NetFirewallServiceStubTest, GetAllNetFirewallRule001, TestSize.Level1)
         return;
     }
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     if (!param->Marshalling(data)) {
@@ -311,7 +311,7 @@ HWTEST_F(NetFirewallServiceStubTest, GetInterceptRecord001, TestSize.Level1)
     }
 
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     if (!param->Marshalling(data)) {

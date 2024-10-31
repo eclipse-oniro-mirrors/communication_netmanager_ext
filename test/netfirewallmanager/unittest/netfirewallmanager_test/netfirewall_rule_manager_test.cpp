@@ -145,7 +145,7 @@ HWTEST_F(NetFirewallRuleManagerTest, GetNetFirewallRules001, TestSize.Level1)
     int32_t ret = instance_->GetNetFirewallRules(userId, param, info);
     EXPECT_EQ(ret, FIREWALL_ERR_PARAMETER_ERROR);
     param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     param->orderField = NetFirewallOrderField::ORDER_BY_RULE_NAME;

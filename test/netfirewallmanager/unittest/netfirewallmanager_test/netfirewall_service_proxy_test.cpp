@@ -297,7 +297,7 @@ HWTEST_F(NetFirewallServiceProxyTest, GetAllNetFirewallRule001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t userId = USER_ID;
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderField = NetFirewallOrderField::ORDER_BY_RULE_NAME;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
@@ -330,7 +330,7 @@ HWTEST_F(NetFirewallServiceProxyTest, GetInterceptRecord001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t userId = USER_ID;
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderField = NetFirewallOrderField::ORDER_BY_RECORD_TIME;
     param->orderType = NetFirewallOrderType::ORDER_ASC;

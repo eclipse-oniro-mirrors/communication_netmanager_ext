@@ -554,7 +554,7 @@ HWTEST_F(NetFirewallServiceTest, GetAllNetFirewallRule001, TestSize.Level1)
 {
     int32_t userId = USER_ID1;
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     param->orderField = NetFirewallOrderField::ORDER_BY_RULE_NAME;
@@ -575,7 +575,7 @@ HWTEST_F(NetFirewallServiceTest, GetAllNetFirewallRule002, TestSize.Level1)
 {
     int32_t userId = 102;
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     param->orderField = NetFirewallOrderField::ORDER_BY_RULE_NAME;
@@ -692,7 +692,7 @@ HWTEST_F(NetFirewallServiceTest, OnIntercept, TestSize.Level1)
 HWTEST_F(NetFirewallServiceTest, GetInterceptRecord001, TestSize.Level1)
 {
     sptr<RequestParam> param = new (std::nothrow) RequestParam();
-    param->page = 0;
+    param->page = 1;
     param->pageSize = 5;
     param->orderType = NetFirewallOrderType::ORDER_ASC;
     param->orderField = NetFirewallOrderField::ORDER_BY_RECORD_TIME;

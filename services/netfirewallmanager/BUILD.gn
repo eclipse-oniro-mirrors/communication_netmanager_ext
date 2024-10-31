@@ -80,6 +80,12 @@ netfirewall_manager_external_deps = [
 ]
 
 ohos_shared_library("netfirewall_manager") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   configs = [
     ":netfirewall_manager_config",
     "$NETMANAGER_EXT_ROOT/resource:coverage_flags",
@@ -112,6 +118,12 @@ ohos_shared_library("netfirewall_manager") {
 }
 
 ohos_static_library("netfirewall_manager_static") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   configs = [
     ":netfirewall_manager_config",
     "$NETMANAGER_EXT_ROOT/resource:coverage_flags",
