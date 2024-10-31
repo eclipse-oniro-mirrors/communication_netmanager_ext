@@ -17,7 +17,9 @@
 #define WEARABLE_DISTRIBUTED_NET_SERVICE_H
 
 #include <cstdint>
+#include "iservice_registry.h"
 #include "system_ability.h"
+#include "system_ability_definition.h"
 #include "wearable_distributed_net_stub.h"
 #include "wearable_distributed_net_management.h"
 

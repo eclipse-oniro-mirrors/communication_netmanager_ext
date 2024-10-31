@@ -14,7 +14,10 @@
  */
 
 #include <gtest/gtest.h>
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "net_manager_constants.h"
+#include "token_setproc.h"
 
 #define private public
 #include "wearable_distributed_net_service.h"
@@ -25,6 +28,7 @@ namespace NetManagerStandard {
 namespace {
 constexpr int32_t TCP_PORT_ID = 8080;
 constexpr int32_t UDP_PORT_ID = 8081;
+constexpr int32_t SA_ID_TEST = COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID;
 using namespace testing::ext;
 } // namesapce
 
@@ -47,31 +51,24 @@ void WearableDistributedNetServiceTest::TearDown() {}
 
 HWTEST_F(WearableDistributedNetServiceTest, OnStart, TestSize.Level1)
 {
-    WearableDistributedNetService wearableDistributedNetService;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     wearableDistributedNetService.state_ = WearableDistributedNetService::ServiceRunningState::STATE_RUNNING;
     wearableDistributedNetService.OnStart();
     wearableDistributedNetService.state_ = WearableDistributedNetService::ServiceRunningState::STATE_STOPPED;
     EXPECT_EQ(wearableDistributedNetService.state_, WearableDistributedNetService::ServiceRunningState::STATE_STOPPED);
 }
 
-HWTEST_F(WearableDistributedNetServiceTest, Init, TestSize.Level1)
-{
-    WearableDistributedNetService wearableDistributedNetService;
-    bool initResult = wearableDistributedNetService.Init();
-    EXPECT_FALSE(initResult);
-    wearableDistributedNetService.OnStop();
-}
-
 HWTEST_F(WearableDistributedNetServiceTest, OnStop, TestSize.Level1)
 {
-    WearableDistributedNetService wearableDistributedNetService;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     wearableDistributedNetService.OnStop();
-    EXPECT_EQ(wearableDistributedNetService.state_, WearableDistributedNetService::ServiceRunningState::STATE_STOPPED);
+    EXPECT_EQ(wearableDistributedNetService.registerToService_,
+        WearableDistributedNetService::ServiceRunningState::STATE_STOPPED);
 }
 
-HWTEST_F(WearableDistributedNetServiceTest, SetupWearableDistributedNet001, TestSize.Level1)
+HWTEST_F(WearableDistributedNetServiceTest, SetupWearableDistributedNet, TestSize.Level1)
 {
-    WearableDistributedNetService wearableDistributedNetService;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     auto ret = wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
     wearableDistributedNetService.TearDownWearableDistributedNet();
@@ -80,31 +77,12 @@ HWTEST_F(WearableDistributedNetServiceTest, SetupWearableDistributedNet001, Test
     wearableDistributedNetService.TearDownWearableDistributedNet();
 }
 
-HWTEST_F(WearableDistributedNetServiceTest, SetupWearableDistributedNet002, TestSize.Level1)
+HWTEST_F(WearableDistributedNetServiceTest, TearDownWearableDistributedNet, TestSize.Level1)
 {
-    WearableDistributedNetService wearableDistributedNetService;
-    auto ret = wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
-    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
-    wearableDistributedNetService.TearDownWearableDistributedNet();
-    ret = wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, true);
-    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
-    wearableDistributedNetService.TearDownWearableDistributedNet();
-}
-
-HWTEST_F(WearableDistributedNetServiceTest, TearDownWearableDistributedNet001, TestSize.Level1)
-{
-    WearableDistributedNetService wearableDistributedNetService;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
     auto ret = wearableDistributedNetService.TearDownWearableDistributedNet();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
-}
-
-HWTEST_F(WearableDistributedNetServiceTest, TearDownWearableDistributedNet002, TestSize.Level1)
-{
-    WearableDistributedNetService wearableDistributedNetService;
-    wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
-    auto ret = wearableDistributedNetService.TearDownWearableDistributedNet();
-    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

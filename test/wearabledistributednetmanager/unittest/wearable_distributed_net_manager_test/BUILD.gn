@@ -30,14 +30,18 @@ ohos_unittest("wearable_distributed_net_manager_test") {
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
     "wearable_distributed_net_agent_test.cpp",
+    "wearable_distributed_net_client_test.cpp",
     "wearable_distributed_net_config_forward_test.cpp",
+    "wearable_distributed_net_link_info_test.cpp",
     "wearable_distributed_net_management_test.cpp",
     "wearable_distributed_net_service_test.cpp",
+    "wearable_distributed_net_static_configuration_test.cpp",
     "wearable_distributed_net_supplier_info_test.cpp",
   ]
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/wearabledistributednetclient/include",
     "$EXT_SECURITY_PATH/security",
     "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/include",
     "$BASE_INNERKITS_ROOT/netconnclient/include",
@@ -47,6 +51,8 @@ ohos_unittest("wearable_distributed_net_manager_test") {
 
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
+    "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_manager_if",
+    "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_service",
     "$NETCONNMANAGER_COMMON_DIR:net_service_common",
     "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager:wearable_distributed_net_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",

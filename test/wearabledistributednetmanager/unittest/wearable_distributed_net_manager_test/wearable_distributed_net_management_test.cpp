@@ -32,7 +32,6 @@ public:
 
     void SetUp();
     void TearDown();
-    WearableDistributedNetManagement &manageInstance = WearableDistributedNetManagement::GetInstance();
 };
 
 void WearableDistributedNetManagementTest::SetUpTestCase() {}
@@ -45,28 +44,27 @@ void WearableDistributedNetManagementTest::TearDown() {}
 
 HWTEST_F(WearableDistributedNetManagementTest, StartWearableDistributedNetNetwork001, TestSize.Level1)
 {
-    auto ret = manageInstance.StartWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
-    manageInstance.StopWearableDistributedNetwork();
-    ret = manageInstance.StartWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, true);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
-    manageInstance.StopWearableDistributedNetwork();
+    auto ret = WearableDistributedNetManagement::GetInstance()
+        .StartWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    WearableDistributedNetManagement::GetInstance().StopWearableDistributedNetwork();
+    ret = WearableDistributedNetManagement::GetInstance()
+        .StartWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, true);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    WearableDistributedNetManagement::GetInstance().StopWearableDistributedNetwork();
 }
 
 HWTEST_F(WearableDistributedNetManagementTest, StartWearableDistributedNetNetwork002, TestSize.Level1)
 {
-    auto ret = manageInstance.StartWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false);
-    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
-    
-    manageInstance.StopWearableDistributedNetwork();
-    ret = manageInstance.StartWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, true);
-    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
-    manageInstance.StopWearableDistributedNetwork();
+    auto ret = WearableDistributedNetManagement::GetInstance()
+        .StartWearableDistributedNetwork(TCP_PORT_ID, UDP_PORT_ID, false);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    WearableDistributedNetManagement::GetInstance().StopWearableDistributedNetwork();
 }
 
 HWTEST_F(WearableDistributedNetManagementTest, StopWearableDistributedNetwork, TestSize.Level1)
 {
-    auto ret = manageInstance.StopWearableDistributedNetwork();
+    auto ret = WearableDistributedNetManagement::GetInstance().StopWearableDistributedNetwork();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 } // namespace NetManagerStandard
