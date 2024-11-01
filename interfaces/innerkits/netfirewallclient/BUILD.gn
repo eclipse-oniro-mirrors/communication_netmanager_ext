@@ -50,6 +50,12 @@ config("net_conn_manager_if_config") {
 }
 
 ohos_source_set("netfirewall_parcel") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [ "$NETFIREWALL_EXTENSION_SOURCE_DIR/src/netfirewall_common.cpp" ]
 
   include_dirs = [
@@ -70,6 +76,12 @@ ohos_source_set("netfirewall_parcel") {
 }
 
 ohos_shared_library("netfirewall_manager_if") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   if (netmanager_ext_feature_net_firewall) {
     sources = [
       "$NETFIREWALL_EXTENSION_SOURCE_DIR/src/netfirewall_client.cpp",

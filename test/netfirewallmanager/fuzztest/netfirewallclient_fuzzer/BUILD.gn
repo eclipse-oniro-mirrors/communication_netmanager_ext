@@ -40,6 +40,16 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-flto",
+    "-fsanitize=cfi",
+    "-fsanitize-cfi-cross-dso",
+    "-fvisibility=hidden",
+  ]
+
+  ldflags = [
+    "-flto",
+    "-fsanitize=cfi",
+    "-fsanitize-cfi-cross-dso",
   ]
 
   sources = [ "netfirewall_client_test.cpp" ]
