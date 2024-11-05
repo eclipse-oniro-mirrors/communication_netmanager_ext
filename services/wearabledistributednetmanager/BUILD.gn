@@ -57,6 +57,7 @@ wearable_distributed_net_manager_external_deps = [
   "ability_base:want",
   "ability_base:zuri",
   "ability_runtime:app_manager",
+  "battery_manager:batterysrv_client",
   "bundle_framework:appexecfwk_base",
   "bundle_framework:appexecfwk_core",
   "cJSON:cjson",

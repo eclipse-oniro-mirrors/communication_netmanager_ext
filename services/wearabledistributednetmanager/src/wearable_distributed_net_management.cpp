@@ -36,5 +36,10 @@ int32_t WearableDistributedNetManagement::StopWearableDistributedNetwork()
     NETMGR_EXT_LOG_I("Wearable Distributed Net Management Stop Network");
     return WearableDistributedNetAgent::GetInstance().TearDownWearableDistributedNetwork();
 }
+
+void WearableDistributedNetManagement::UpdateNetScore(const bool isCharging)
+{
+    WearableDistributedNetAgent::GetInstance().UpdateNetScore(isCharging);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

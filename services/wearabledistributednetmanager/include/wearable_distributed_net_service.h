@@ -17,6 +17,9 @@
 #define WEARABLE_DISTRIBUTED_NET_SERVICE_H
 
 #include <cstdint>
+#include "common_event_manager.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
 #include "iservice_registry.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -25,6 +28,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+    using ChargeState = OHOS::PowerMgr::BatteryChargeState;
+    using Event = EventFwk::CommonEventSupport;
+}
 class WearableDistributedNetService : public SystemAbility,
                                       public WearableDistributedNetStub {
     DECLARE_SYSTEM_ABILITY(WearableDistributedNetService)
@@ -38,14 +45,31 @@ public:
     int32_t TearDownWearableDistributedNet() override;
 
 private:
+    class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
+    public:
+        explicit ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
+            WearableDistributedNetService &WearableDistributedNetService)
+            : EventFwk::CommonEventSubscriber(subscriberInfo),
+              WearableDistributedNetService_(WearableDistributedNetService) {};
+ 
+        void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
+ 
+    private:
+        WearableDistributedNetService &WearableDistributedNetService_;
+    };
+
     enum ServiceRunningState {
         STATE_STOPPED = 0,
         STATE_RUNNING,
     };
     bool Init();
+    void UpdateNetScore(const bool isCharging);
+    bool SubscribeCommonEvent();
+
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;
+    std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

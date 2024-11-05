@@ -83,12 +83,17 @@ private:
     sptr<IWearableDistributedNet> GetProxy();
     void RestartWearableDistributedNetManagerSysAbility();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    int32_t UpdateNetCaps(const int32_t tcpPortId, const int32_t udpPortId, const bool isMetered);
 
 private:
     std::mutex mutex_;
     sptr<IWearableDistributedNet> wearableDistributedNetService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     std::mutex loadSaMutex_;
+    int32_t tcpPortId_ = 0;
+    int32_t udpPortId_ = 0;
+    bool isMetered_ = false;
+    bool firstStart_ = true;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

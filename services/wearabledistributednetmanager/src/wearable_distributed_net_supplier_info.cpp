@@ -16,11 +16,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-void WearableDistributedNetSupplierInfo::SetAvailable(NetSupplierInfo &supplierInfo)
-{
-    supplierInfo.isAvailable_ = CONSTANTS::AVALIABLE;
-}
-
 void WearableDistributedNetSupplierInfo::SetRoamingStatus(NetSupplierInfo &supplierInfo)
 {
     supplierInfo.isRoaming_ = CONSTANTS::ROAMING_STATUS;
@@ -39,7 +34,6 @@ void WearableDistributedNetSupplierInfo::SetLinkDownBandwidthKbps(NetSupplierInf
 void SetNetSupplierInfo(NetSupplierInfo &supplierInfo)
 {
     WearableDistributedNetSupplierInfo info;
-    info.SetAvailable(supplierInfo);
     info.SetRoamingStatus(supplierInfo);
     info.SetLinkUpBandwidthKbps(supplierInfo);
     info.SetLinkDownBandwidthKbps(supplierInfo);

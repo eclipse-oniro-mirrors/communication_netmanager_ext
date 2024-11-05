@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "battery_srv_client.h"
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "wearable_distributed_net_agent.h"
@@ -20,7 +21,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-const std::string WEARABLE_DISTRIBUTED_NET_NAME = "wearabledistributednet";
+static const std::string WEARABLE_DISTRIBUTED_NET_NAME = "wearabledistributednet";
+static constexpr int32_t NET_SCORE_WITH_CHARGE_STATE = 50;
+static constexpr int32_t NET_SCORE_WITH_UNCHARGE_STATE = 80;
 
 WearableDistributedNetAgent &WearableDistributedNetAgent::GetInstance()
 {
@@ -75,6 +78,9 @@ int32_t WearableDistributedNetAgent::SetupWearableDistributedNetwork(const int32
                                                                      const bool isMetered)
 {
     NETMGR_EXT_LOG_I("SetupWearableDistributedNetwork isMetered:[%{public}s]", isMetered ? "true" : "false");
+    if (!firstStart_) {
+        return UpdateNetCaps(isMetered);
+    }
     int32_t result = RegisterNetSupplier(isMetered);
     if (result != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("WearableDistributedNetAgent RegisterNetSupplier failed, result:[%{public}d]", result);
@@ -101,6 +107,8 @@ int32_t WearableDistributedNetAgent::SetupWearableDistributedNetwork(const int32
         NETMGR_EXT_LOG_E("Wearable Distributed Net Agent SetInterfaceDummyUp failed, result:[%{public}d]", result);
         return ClearWearableDistributedNetForwardConfig();
     }
+    isMetered_ = isMetered;
+    firstStart_ = false;
     return NETMANAGER_SUCCESS;
 }
 
@@ -159,6 +167,28 @@ int32_t WearableDistributedNetAgent::UnregisterNetSupplier()
     return NETMANAGER_SUCCESS;
 }
 
+void WearableDistributedNetAgent::SetInitNetScore()
+{
+    auto chargeState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
+    if (chargeState == OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_ENABLE) {
+        score_ = NET_SCORE_WITH_CHARGE_STATE;
+    } else if (chargeState == OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_DISABLE) {
+        score_ = NET_SCORE_WITH_UNCHARGE_STATE;
+    }
+}
+
+void WearableDistributedNetAgent::SetScoreBaseNetStatus(const bool isAvailable)
+{
+    if (!isAvailable) {
+        netSupplierInfo_.score_ = 0;
+    }
+
+    if (isAvailable) {
+        SetInitNetScore();
+        netSupplierInfo_.score_ = score_;
+    }
+}
+
 int32_t WearableDistributedNetAgent::UpdateNetSupplierInfo(const bool isAvailable)
 {
     NETMGR_EXT_LOG_I("WearableDistributedNetAgent UpdateNetSupplierInfo");
@@ -168,6 +198,8 @@ int32_t WearableDistributedNetAgent::UpdateNetSupplierInfo(const bool isAvailabl
     }
 
     SetNetSupplierInfo(netSupplierInfo_);
+    netSupplierInfo_.isAvailable_ = isAvailable;
+    SetScoreBaseNetStatus(isAvailable);
     auto networkSupplierInfo = sptr<NetSupplierInfo>::MakeSptr(netSupplierInfo_);
     if (networkSupplierInfo == nullptr) {
         NETMGR_EXT_LOG_E("NetSupplierInfo new failed, networkSupplierInfo is nullptr");
@@ -196,5 +228,36 @@ int32_t WearableDistributedNetAgent::UpdateNetLinkInfo()
     }
     return NetConnClient::GetInstance().UpdateNetLinkInfo(netSupplierId_, networkLinkInfo);
 }
+
+int32_t WearableDistributedNetAgent::UpdateNetCaps(const bool isMetered)
+{
+    if (isMetered_ == isMetered) {
+        return NETMANAGER_SUCCESS;
+    }
+    isMetered_ = isMetered;
+    ObtainNetCaps(isMetered);
+    return NetConnClient::GetInstance().UpdateNetCaps(netCaps_, netSupplierId_);
+}
+
+int32_t WearableDistributedNetAgent::UpdateNetScore(const bool isCharging)
+{
+    SetScoreBaseChargeStatus(isCharging);
+    netSupplierInfo_.score_ = score_;
+    if (netSupplierId_ == 0) {
+        NETMGR_EXT_LOG_E("WearableDistributedNetAgent UpdateNetScore error, netSupplierId is zero");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    auto networkSupplierInfo = sptr<NetSupplierInfo>::MakeSptr(netSupplierInfo_);
+    if (networkSupplierInfo == nullptr) {
+        NETMGR_EXT_LOG_E("NetSupplierInfo new failed, networkSupplierInfo is nullptr");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    return NetConnClient::GetInstance().UpdateNetSupplierInfo(netSupplierId_, networkSupplierInfo);
+}
+
+void WearableDistributedNetAgent::SetScoreBaseChargeStatus(const bool isCharging)
+{
+    score_ = isCharging ? NET_SCORE_WITH_CHARGE_STATE : NET_SCORE_WITH_UNCHARGE_STATE;
+}
 } // namespace NetManagerStandard
-}  // namespace OHOS
+} // namespace OHOS

@@ -44,6 +44,10 @@ void WearableDistributedNetService::OnStop()
 {
     state_ = STATE_STOPPED;
     registerToService_ = false;
+    if (subscriber_ != nullptr) {
+        OHOS::EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+        subscriber_ = nullptr;
+    }
 }
 
 int32_t WearableDistributedNetService::SetupWearableDistributedNet(int32_t tcpPortId, int32_t udpPortId, bool isMetered)
@@ -78,7 +82,60 @@ bool WearableDistributedNetService::Init()
         }
         registerToService_ = true;
     }
+    AddSystemAbilityListener(POWER_MANAGER_BATT_SERVICE_ID);
+    AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
+    if (!SubscribeCommonEvent()) {
+        return false;
+    }
     return true;
+}
+
+void WearableDistributedNetService::UpdateNetScore(const bool isCharging)
+{
+    WearableDistributedNetManagement::GetInstance().UpdateNetScore(isCharging);
+}
+
+bool WearableDistributedNetService::SubscribeCommonEvent()
+{
+    NETMGR_EXT_LOG_I("Wearable Distributed Net subscribe power event.");
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(Event::COMMON_EVENT_POWER_CONNECTED);
+    matchingSkills.AddEvent(Event::COMMON_EVENT_POWER_DISCONNECTED);
+    matchingSkills.AddEvent(Event::COMMON_EVENT_BATTERY_CHANGED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+
+    // 1 means CORE_EVENT_PRIORITY
+    subscribeInfo.SetPriority(1);
+    subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
+    if (subscriber_ == nullptr) {
+        return false;
+    }
+    return EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
+}
+
+void WearableDistributedNetService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
+{
+    NETMGR_EXT_LOG_I("Wearable Distributed Net receive power message");
+    const auto &action = eventData.GetWant().GetAction();
+    if (action == Event::COMMON_EVENT_POWER_CONNECTED) {
+        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power connected message");
+        WearableDistributedNetService_.UpdateNetScore(true);
+    }
+ 
+    if (action == Event::COMMON_EVENT_BATTERY_CHANGED) {
+        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power change message");
+        auto chargingState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
+        if (chargingState == ChargeState::CHARGE_STATE_DISABLE) {
+            WearableDistributedNetService_.UpdateNetScore(false);
+        } else {
+            WearableDistributedNetService_.UpdateNetScore(true);
+        }
+    }
+
+    if (action == Event::COMMON_EVENT_POWER_DISCONNECTED) {
+        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power disconnected message");
+        WearableDistributedNetService_.UpdateNetScore(false);
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -26,6 +26,7 @@ public:
     static WearableDistributedNetManagement &GetInstance();
     int32_t StartWearableDistributedNetwork(const int32_t tcpPortId, const int32_t udpPortId, const bool isMetered);
     int32_t StopWearableDistributedNetwork();
+    void UpdateNetScore(const bool isCharging);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
