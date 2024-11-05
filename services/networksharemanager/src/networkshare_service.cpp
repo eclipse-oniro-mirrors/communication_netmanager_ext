@@ -26,6 +26,7 @@
 #include "system_ability_definition.h"
 #include "netsys_controller.h"
 #include "edm_parameter_utils.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -63,6 +64,7 @@ void NetworkShareService::OnStop()
     NetworkShareTracker::GetInstance().Uninit();
     state_ = STATE_STOPPED;
     registerToService_ = false;
+    EdmParameterUtils::GetInstance().UnRegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM);
     NETMGR_EXT_LOG_I("OnStop successful");
 }
 
@@ -90,6 +92,9 @@ bool NetworkShareService::Init()
         registerToService_ = true;
     }
 
+    EdmParameterUtils::GetInstance().RegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM,
+        DisAllowNetworkShareEventCallback, this);
+  
     AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
     AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
 
@@ -346,14 +351,31 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
         servicePtr->GetSharingType(SharingIfaceType::SHARING_USB, "usb;", sharingType);
         servicePtr->GetSharingType(SharingIfaceType::SHARING_BLUETOOTH, "bluetooth;", sharingType);
         if (sharingType.find("wifi") != std::string::npos) {
-            servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
+            std::function<void()> StopNetworkSharingWifi =
+                [servicePtr]() { servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_WIFI); };
+            ffrt::task_handle wifiHandle = ffrt::submit_h(StopNetworkSharingWifi,
+                ffrt::task_attr().name("StopNetworkSharingWifi_task"));
+            ffrt::wait({wifiHandle});
+            NETMGR_EXT_LOG_D("DisAllowNetworkShareEventCallback stop wifi end");
         }
         if (sharingType.find("usb") != std::string::npos) {
-            servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_USB);
+            std::function<void()> StopNetworkSharingUsb =
+                [servicePtr]() { servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_USB); };
+            ffrt::task_handle usbHandle = ffrt::submit_h(StopNetworkSharingUsb,
+                ffrt::task_attr().name("StopNetworkSharingUsb_task"));
+            ffrt::wait({usbHandle});
+            NETMGR_EXT_LOG_D("DisAllowNetworkShareEventCallback stop usb end");
         }
         if (sharingType.find("bluetooth") != std::string::npos) {
-            servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_BLUETOOTH);
+            std::function<void()> StopNetworkSharingBluetooth =
+                [servicePtr]() { servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_BLUETOOTH); };
+            ffrt::task_handle bluetoothHandle = ffrt::submit_h(StopNetworkSharingBluetooth,
+                ffrt::task_attr().name("StopNetworkSharingBluetooth_task"));
+            ffrt::wait({bluetoothHandle});
+            NETMGR_EXT_LOG_D("DisAllowNetworkShareEventCallback stop bluetooth end");
         }
+        NETMGR_EXT_LOG_D("DisAllowNetworkShareEventCallback all end");
+        return;
     }
 }
 } // namespace NetManagerStandard
