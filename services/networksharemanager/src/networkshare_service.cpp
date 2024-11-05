@@ -188,8 +188,6 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        EdmParameterUtils::GetInstance().RegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM,
-            DisAllowNetworkShareEventCallback, this);
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
     }
     return ret;
@@ -206,7 +204,6 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     }
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        EdmParameterUtils::GetInstance().UnRegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM);
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
     }
 
