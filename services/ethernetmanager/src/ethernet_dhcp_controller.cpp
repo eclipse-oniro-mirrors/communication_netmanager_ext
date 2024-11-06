@@ -64,7 +64,10 @@ void EthernetDhcpController::StartClient(const std::string &iface, bool bIpv6)
         return;
     }
     NETMGR_EXT_LOG_I("Start dhcp client iface[%{public}s] ipv6[%{public}d]", iface.c_str(), bIpv6);
-    if (StartDhcpClient(iface.c_str(), bIpv6) != DHCP_SUCCESS) {
+    RouterConfig config;
+    config.bIpv6 = bIpv6;
+    strncpy(config.ifname, iface.c_str(), INTERFACE_MAX_LEN);
+    if (StartDhcpClient(config) != DHCP_SUCCESS) {
         NETMGR_EXT_LOG_E("StartDhcpClient failed.");
     }
 }
