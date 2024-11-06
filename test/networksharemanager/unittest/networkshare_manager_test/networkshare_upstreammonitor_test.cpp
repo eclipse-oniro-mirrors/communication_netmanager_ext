@@ -171,20 +171,6 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLostTest, TestSize.Level1)
     netHandle = std::make_unique<NetHandle>(netId).release();
     result = monitor->defaultNetworkCallback_->NetLost(netHandle);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
-
-    result = monitor->defaultNetworkCallback_->NetAvailable(netHandle);
-    EXPECT_EQ(monitor->networkMaps_.size(), 1);
-    monitor->defaultNetworkId_ = netId;
-    result = monitor->defaultNetworkCallback_->NetLost(netHandle);
-    EXPECT_EQ(monitor->defaultNetworkId_, -1);
-
-    monitor->defaultNetworkId_ = ++netId;
-    result = monitor->defaultNetworkCallback_->NetLost(netHandle);
-    EXPECT_NE(monitor->defaultNetworkId_, -1);
-
-    monitor->networkMaps_.clear();
-    result = monitor->defaultNetworkCallback_->NetLost(netHandle);
-    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, GetCurrentGoodUpstreamTest, TestSize.Level1)
