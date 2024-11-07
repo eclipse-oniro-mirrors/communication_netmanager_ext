@@ -500,10 +500,9 @@ int32_t NetFirewallRuleManager::HandleDnsTypeForDistributeRules(std::vector<NetF
 int32_t NetFirewallRuleManager::HandleDomainTypeForDistributeRules(std::vector<NetFirewallRule> &rules)
 {
     std::vector<sptr<NetFirewallDomainRule>> domainRules;
+    NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_DOMAIN);
     if (ExtractDomainRules(rules, domainRules)) {
         NetFirewallRuleNativeHelper::GetInstance().SetFirewallDomainRules(domainRules);
-    } else {
-        NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_DOMAIN);
     }
     return FIREWALL_SUCCESS;
 }
