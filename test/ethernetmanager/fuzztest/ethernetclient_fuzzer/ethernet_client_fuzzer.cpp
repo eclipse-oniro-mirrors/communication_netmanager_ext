@@ -207,7 +207,7 @@ void IsIfaceActiveFuzzTest(const uint8_t *data, size_t size)
 
 void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
+    if (data == nullptr) {
         return;
     }
     NetManagerExtAccessToken token;
@@ -218,7 +218,7 @@ void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
 
 void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
+    if (data == nullptr) {
         return;
     }
     NetManagerExtAccessToken token;
@@ -243,7 +243,7 @@ void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
 
 void OnRegisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
+    if (data == nullptr) {
         return;
     }
     MessageParcel parcel;
@@ -282,7 +282,7 @@ void GetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
 
 void SetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
+    if (data == nullptr) {
         return;
     }
     NetManagerExtAccessToken token;

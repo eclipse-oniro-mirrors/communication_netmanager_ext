@@ -31,6 +31,9 @@ namespace NetManagerStandard {
 namespace VpnExec {
 template <typename ContextT> static inline NetworkVpnClient *GetVpnConnectionInstance(ContextT *context)
 {
+    if (context == nullptr) {
+        return nullptr;
+    }
     auto manager = context->GetManager();
     return (manager == nullptr) ? nullptr : reinterpret_cast<NetworkVpnClient *>(manager->GetData());
 }
