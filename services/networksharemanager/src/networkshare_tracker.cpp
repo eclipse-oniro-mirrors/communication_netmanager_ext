@@ -259,6 +259,7 @@ void NetworkShareTracker::OnChangeSharingState(const SharingIfaceType &type, boo
     if (!state && fit != clientRequestsVector_.end()) {
         clientRequestsVector_.erase(fit);
     }
+    SendGlobalSharingStateChange();
     NETMGR_EXT_LOG_I("Hotspot OnChangeSharing, clientRequestsVector_ [%{public}zu]", clientRequestsVector_.size());
 }
 
@@ -405,7 +406,6 @@ void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<
             return;
     }
     SendMainSMEvent(who, which, state);
-    SendGlobalSharingStateChange();
 }
 
 void NetworkShareTracker::SendMainSMEvent(const std::shared_ptr<NetworkShareSubStateMachine> &subSM, int32_t event,
