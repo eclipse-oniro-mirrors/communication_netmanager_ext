@@ -53,13 +53,8 @@ const sptr<IRemoteObject> &WearableDistributedNetLoadCallback::GetRemoteObject()
     return remoteObject_;
 }
 
-int32_t WearableDistributedNetClient::UpdateNetCaps(const int32_t tcpPortId, const int32_t udpPortId,
-                                                    const bool isMetered)
+int32_t WearableDistributedNetClient::UpdateMeteredStatus(const bool isMetered)
 {
-    if ((tcpPortId_ != tcpPortId) || (udpPortId_ != udpPortId)) {
-        NETMGR_EXT_LOG_E("WearableDistributedNet port configuration has changed, Please verify");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
     if (isMetered_ == isMetered) {
         return NETMANAGER_EXT_SUCCESS;
     }
@@ -78,14 +73,14 @@ int32_t WearableDistributedNetClient::SetupWearableDistributedNet(const int32_t 
 {
     NETMGR_EXT_LOG_I("set up for WearableDistributedNet, isMetered:%{public}s", isMetered ? "true" : "false");
     if (!firstStart_) {
-        return UpdateNetCaps(tcpPortId, udpPortId, isMetered);
+        return UpdateMeteredStatus(isMetered);
     }
-
     sptr<IWearableDistributedNet> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("SetupWearableDistributedNet fail, proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
+
     tcpPortId_ = tcpPortId;
     udpPortId_ = udpPortId;
     isMetered_ = isMetered;

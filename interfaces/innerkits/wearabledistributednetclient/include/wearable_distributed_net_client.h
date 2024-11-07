@@ -83,7 +83,7 @@ private:
     sptr<IWearableDistributedNet> GetProxy();
     void RestartWearableDistributedNetManagerSysAbility();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
-    int32_t UpdateNetCaps(const int32_t tcpPortId, const int32_t udpPortId, const bool isMetered);
+    int32_t UpdateMeteredStatus(const bool isMetered);
 
 private:
     std::mutex mutex_;

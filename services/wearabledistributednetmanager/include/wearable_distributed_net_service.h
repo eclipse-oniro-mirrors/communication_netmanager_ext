@@ -47,7 +47,7 @@ public:
 private:
     class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
     public:
-        explicit ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
+        ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
             WearableDistributedNetService &WearableDistributedNetService)
             : EventFwk::CommonEventSubscriber(subscriberInfo),
               WearableDistributedNetService_(WearableDistributedNetService) {};
@@ -56,6 +56,16 @@ private:
  
     private:
         WearableDistributedNetService &WearableDistributedNetService_;
+        enum ConnectEvent {
+            POWER_CONNECTED = 0,
+            POWER_DISCONNECTED,
+            BATTERY_CHANGED
+        };
+        std::map<std::string, ConnectEvent> eventMap_ = {
+            { Event::COMMON_EVENT_POWER_CONNECTED, POWER_CONNECTED },
+            { Event::COMMON_EVENT_POWER_DISCONNECTED, POWER_DISCONNECTED },
+            { Event::COMMON_EVENT_BATTERY_CHANGED, BATTERY_CHANGED }
+        };
     };
 
     enum ServiceRunningState {

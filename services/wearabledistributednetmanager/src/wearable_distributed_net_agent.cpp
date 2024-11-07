@@ -21,9 +21,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-static const std::string WEARABLE_DISTRIBUTED_NET_NAME = "wearabledistributednet";
-static constexpr int32_t NET_SCORE_WITH_CHARGE_STATE = 50;
-static constexpr int32_t NET_SCORE_WITH_UNCHARGE_STATE = 80;
+const std::string WEARABLE_DISTRIBUTED_NET_NAME = "wearabledistributednet";
 
 WearableDistributedNetAgent &WearableDistributedNetAgent::GetInstance()
 {
@@ -167,13 +165,20 @@ int32_t WearableDistributedNetAgent::UnregisterNetSupplier()
     return NETMANAGER_SUCCESS;
 }
 
-void WearableDistributedNetAgent::SetInitNetScore()
+void WearableDistributedNetAgent::SetInitNetScore(OHOS::PowerMgr::BatteryChargeState chargeState)
 {
-    auto chargeState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
-    if (chargeState == OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_ENABLE) {
-        score_ = NET_SCORE_WITH_CHARGE_STATE;
-    } else if (chargeState == OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_DISABLE) {
-        score_ = NET_SCORE_WITH_UNCHARGE_STATE;
+    switch (chargeState) {
+        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_ENABLE :
+            score_ = NET_SCORE_WITH_CHARGE_STATE;
+            break;
+        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_FULL :
+            score_ = NET_SCORE_WITH_CHARGE_STATE;
+            break;
+        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_DISABLE :
+            score_ = NET_SCORE_WITH_UNCHARGE_STATE;
+            break;
+        default:
+            break;
     }
 }
 
@@ -184,7 +189,8 @@ void WearableDistributedNetAgent::SetScoreBaseNetStatus(const bool isAvailable)
     }
 
     if (isAvailable) {
-        SetInitNetScore();
+        auto chargeState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
+        SetInitNetScore(chargeState);
         netSupplierInfo_.score_ = score_;
     }
 }
