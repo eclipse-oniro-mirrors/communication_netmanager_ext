@@ -25,7 +25,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 class WearableDistributedNetConstant final {
     public:
-        static constexpr bool AVALIABLE = true;
         static constexpr bool ROAMING_STATUS = false;
         static constexpr uint16_t WEARABLE_DISTRIBUTED_NET_MTU = 1500;
         static constexpr uint32_t LINKUP_BAND_WIDTH_KBPS = 220;

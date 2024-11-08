@@ -74,7 +74,8 @@
                 "preferences",
                 "ffrt",
                 "hicollie",
-                "init"
+                "init",
+                "battery_manager"
             ]
         },
         "build": {

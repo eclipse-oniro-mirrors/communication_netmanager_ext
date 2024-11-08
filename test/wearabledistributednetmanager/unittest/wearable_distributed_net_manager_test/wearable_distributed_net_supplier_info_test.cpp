@@ -40,14 +40,6 @@ void WearableDistributedNetSupplierInfoTest::SetUp() {}
 
 void WearableDistributedNetSupplierInfoTest::TearDown() {}
 
-HWTEST_F(WearableDistributedNetSupplierInfoTest, SetAvailable, TestSize.Level1)
-{
-    WearableDistributedNetSupplierInfo info;
-    NetSupplierInfo supplierInfo;
-    info.SetAvailable(supplierInfo);
-    EXPECT_EQ(supplierInfo.isAvailable_, CONSTANTS::AVALIABLE);
-}
-
 HWTEST_F(WearableDistributedNetSupplierInfoTest, SetRoamingStatus, TestSize.Level1)
 {
     WearableDistributedNetSupplierInfo info;

@@ -23,7 +23,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 class WearableDistributedNetSupplierInfo {
 public:
-    void SetAvailable(NetSupplierInfo &supplierInfo);
     void SetRoamingStatus(NetSupplierInfo &supplierInfo);
     void SetLinkUpBandwidthKbps(NetSupplierInfo &supplierInfo);
     void SetLinkDownBandwidthKbps(NetSupplierInfo &supplierInfo);

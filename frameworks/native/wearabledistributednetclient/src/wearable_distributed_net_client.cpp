@@ -57,13 +57,11 @@ int32_t WearableDistributedNetClient::SetupWearableDistributedNet(const int32_t 
                                                                   const bool isMetered)
 {
     NETMGR_EXT_LOG_I("set up for WearableDistributedNet, isMetered:%{public}s", isMetered ? "true" : "false");
-
     sptr<IWearableDistributedNet> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("SetupWearableDistributedNet fail, proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-
     return proxy->SetupWearableDistributedNet(tcpPortId, udpPortId, isMetered);
 }
 

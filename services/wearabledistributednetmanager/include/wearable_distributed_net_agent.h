@@ -17,6 +17,7 @@
 #define WEARABLE_DISTRIBUTED_NET_AGENT_H
 
 #include <cstdint>
+#include "battery_srv_client.h"
 #include "net_all_capabilities.h"
 #include "net_conn_client.h"
 #include "net_link_info.h"
@@ -26,11 +27,17 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr int32_t NET_SCORE_WITH_CHARGE_STATE = 50;
+constexpr int32_t NET_SCORE_WITH_UNCHARGE_STATE = 80;
+namespace {
+    using ChargeState = OHOS::PowerMgr::BatteryChargeState;
+}
 class WearableDistributedNetAgent : public std::enable_shared_from_this<WearableDistributedNetAgent> {
 public:
     static WearableDistributedNetAgent &GetInstance();
     int32_t SetupWearableDistributedNetwork(const int32_t tcpPortId, const int32_t udpPortId, const bool isMetered);
     int32_t TearDownWearableDistributedNetwork();
+    int32_t UpdateNetScore(const bool isCharging);
 
 private:
     int32_t RegisterNetSupplier(const bool isMetered);
@@ -43,12 +50,20 @@ private:
     int32_t DisableWearableDistributedNetForward();
     int32_t EnableWearableDistributedNetForward(const int32_t tcpPortId, const int32_t udpPortId);
     int32_t ClearWearableDistributedNetForwardConfig();
+    void SetInitNetScore(OHOS::PowerMgr::BatteryChargeState chargeState);
+    void SetScoreBaseNetStatus(const bool isAvailable);
+    void SetScoreBaseChargeStatus(const bool isCharging);
+    int32_t UpdateNetCaps(const bool isMetered);
+
 private:
     uint32_t netSupplierId_ = 0;
     std::set<NetCap> netCaps_;
     WearableDistributedNetStaticConfiguration staticConfiguration_;
     NetSupplierInfo netSupplierInfo_;
     NetLinkInfo netLinkInfo_;
+    bool firstStart_ = true;
+    bool isMetered_ = false;
+    int32_t score_ = NET_SCORE_WITH_UNCHARGE_STATE;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
