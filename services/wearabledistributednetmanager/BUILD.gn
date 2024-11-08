@@ -83,40 +83,38 @@ wearable_distributed_net_manager_external_deps = [
 ]
 
 ohos_shared_library("wearable_distributed_net_manager") {
-  if (netmanager_ext_feature_wearable_distributed_net) {
-    sanitize = {
-      cfi = true
-      cfi_cross_dso = true
-      debug = false
-    }
-
-    branch_protector_ret = "pac_ret"
-
-    configs = [ ":wearable_distributed_net_manager_config" ]
-
-    sources = wearable_distributed_net_manager_sources
-    deps = wearable_distributed_net_manager_deps
-    external_deps = wearable_distributed_net_manager_external_deps
-
-    cflags = memory_optimization_cflags
-    cflags += [
-      "-fstack-protector-strong",
-      "-D_FORTIFY_SOURCE=2",
-      "-O2",
-    ]
-
-    cflags_cc = memory_optimization_cflags_cc
-    cflags_cc += [
-      "-fstack-protector-strong",
-      "-D_FORTIFY_SOURCE=2",
-      "-O2",
-    ]
-
-    ldflags = memory_optimization_ldflags
-
-    part_name = "netmanager_ext"
-    subsystem_name = "communication"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
   }
+
+  branch_protector_ret = "pac_ret"
+
+  configs = [ ":wearable_distributed_net_manager_config" ]
+
+  sources = wearable_distributed_net_manager_sources
+  deps = wearable_distributed_net_manager_deps
+  external_deps = wearable_distributed_net_manager_external_deps
+
+  cflags = memory_optimization_cflags
+  cflags += [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-O2",
+  ]
+
+  cflags_cc = memory_optimization_cflags_cc
+  cflags_cc += [
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-O2",
+  ]
+
+  ldflags = memory_optimization_ldflags
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
 }
 
 ohos_prebuilt_etc("wearable_distributed_net_link_info") {

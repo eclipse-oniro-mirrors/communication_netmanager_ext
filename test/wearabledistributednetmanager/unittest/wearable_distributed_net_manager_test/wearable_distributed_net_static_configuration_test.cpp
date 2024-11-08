@@ -65,7 +65,7 @@ HWTEST_F(WearableDistributedNetStaticConfigurationTest, GetNetSupplierInfo, Test
     WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
     NetSupplierInfo supplierInfo;
     wearableDistributedNetStaticConfig.GetNetSupplierInfo(supplierInfo);
-    EXPECT_EQ(supplierInfo.isAvailable_, CONSTANTS::AVALIABLE);
+    EXPECT_EQ(supplierInfo.isRoaming_, CONSTANTS::ROAMING_STATUS);
 }
 
 HWTEST_F(WearableDistributedNetStaticConfigurationTest, WearableDistributedNetStaticConfiguration001, TestSize.Level1)
@@ -96,7 +96,6 @@ HWTEST_F(WearableDistributedNetStaticConfigurationTest, WearableDistributedNetSt
     NetSupplierInfo retrievedSupplierInfo;
     wearableDistributedNetStaticConfig.GetNetSupplierInfo(retrievedSupplierInfo);
 
-    EXPECT_EQ(supplierInfo.isAvailable_, retrievedSupplierInfo.isAvailable_);
     EXPECT_EQ(supplierInfo.isRoaming_, retrievedSupplierInfo.isRoaming_);
     EXPECT_EQ(supplierInfo.linkUpBandwidthKbps_, retrievedSupplierInfo.linkUpBandwidthKbps_);
     EXPECT_EQ(supplierInfo.linkDownBandwidthKbps_, retrievedSupplierInfo.linkDownBandwidthKbps_);

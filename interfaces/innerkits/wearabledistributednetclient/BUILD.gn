@@ -73,37 +73,35 @@ idl_gen_interface("wearable_distributed_net_service") {
 }
 
 ohos_shared_library("wearable_distributed_net_manager_if") {
-  if (netmanager_ext_feature_wearable_distributed_net) {
-    sanitize = {
-      cfi = true
-      cfi_cross_dso = true
-      debug = false
-    }
-
-    branch_protector_ret = "pac_ret"
-
-    sources = [
-      "$WEARABLE_DISTRIBUTED_NET_INNERKITS_SOURCE_DIR/src/wearable_distributed_net_client.cpp",
-      "${target_gen_dir}/wearable_distributed_net_proxy.cpp",
-    ]
-
-    version_script = "libwearable_distributed_net_kits.map"
-
-    public_configs = [ ":net_conn_manager_if_config" ]
-    deps = [ ":wearable_distributed_net_service" ]
-    external_deps = [
-      "bounds_checking_function:libsec_shared",
-      "c_utils:utils",
-      "hilog:libhilog",
-      "hitrace:hitrace_meter",
-      "ipc:ipc_core",
-      "ipc:ipc_single",
-      "netmanager_base:net_manager_common",
-      "samgr:samgr_proxy",
-    ]
-
-    innerapi_tags = [ "platformsdk" ]
-    part_name = "netmanager_ext"
-    subsystem_name = "communication"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
   }
+
+  branch_protector_ret = "pac_ret"
+
+  sources = [
+    "$WEARABLE_DISTRIBUTED_NET_INNERKITS_SOURCE_DIR/src/wearable_distributed_net_client.cpp",
+    "${target_gen_dir}/wearable_distributed_net_proxy.cpp",
+  ]
+
+  version_script = "libwearable_distributed_net_kits.map"
+
+  public_configs = [ ":net_conn_manager_if_config" ]
+  deps = [ ":wearable_distributed_net_service" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "ipc:ipc_single",
+    "netmanager_base:net_manager_common",
+    "samgr:samgr_proxy",
+  ]
+
+  innerapi_tags = [ "platformsdk" ]
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
 }

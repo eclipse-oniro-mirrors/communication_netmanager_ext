@@ -168,13 +168,11 @@ int32_t WearableDistributedNetAgent::UnregisterNetSupplier()
 void WearableDistributedNetAgent::SetInitNetScore(OHOS::PowerMgr::BatteryChargeState chargeState)
 {
     switch (chargeState) {
-        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_ENABLE :
+        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_ENABLE:
+        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_FULL:
             score_ = NET_SCORE_WITH_CHARGE_STATE;
             break;
-        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_FULL :
-            score_ = NET_SCORE_WITH_CHARGE_STATE;
-            break;
-        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_DISABLE :
+        case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_DISABLE:
             score_ = NET_SCORE_WITH_UNCHARGE_STATE;
             break;
         default:
@@ -184,14 +182,12 @@ void WearableDistributedNetAgent::SetInitNetScore(OHOS::PowerMgr::BatteryChargeS
 
 void WearableDistributedNetAgent::SetScoreBaseNetStatus(const bool isAvailable)
 {
-    if (!isAvailable) {
-        netSupplierInfo_.score_ = 0;
-    }
-
     if (isAvailable) {
         auto chargeState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
         SetInitNetScore(chargeState);
         netSupplierInfo_.score_ = score_;
+    } else {
+        netSupplierInfo_.score_ = 0;
     }
 }
 
@@ -240,9 +236,14 @@ int32_t WearableDistributedNetAgent::UpdateNetCaps(const bool isMetered)
     if (isMetered_ == isMetered) {
         return NETMANAGER_SUCCESS;
     }
-    isMetered_ = isMetered;
+    
     ObtainNetCaps(isMetered);
-    return NetConnClient::GetInstance().UpdateNetCaps(netCaps_, netSupplierId_);
+    int32_t result = NetConnClient::GetInstance().UpdateNetCaps(netCaps_, netSupplierId_);
+    if (result != NETMANAGER_SUCCESS) {
+        return result;
+    }
+    isMetered_ = isMetered;
+    return NETMANAGER_SUCCESS;
 }
 
 int32_t WearableDistributedNetAgent::UpdateNetScore(const bool isCharging)

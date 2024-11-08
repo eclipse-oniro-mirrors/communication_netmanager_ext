@@ -15,7 +15,11 @@
 
 #include <gtest/gtest.h>
 #include "net_manager_constants.h"
+
+#define private public
+#include "wearable_distributed_net_agent.h"
 #include "wearable_distributed_net_management.h"
+#undef private
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -66,6 +70,13 @@ HWTEST_F(WearableDistributedNetManagementTest, StopWearableDistributedNetwork, T
 {
     auto ret = WearableDistributedNetManagement::GetInstance().StopWearableDistributedNetwork();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(WearableDistributedNetManagementTest, UpdateNetScore, TestSize.Level1)
+{
+    bool isCharging = true;
+    WearableDistributedNetManagement::GetInstance().UpdateNetScore(isCharging);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

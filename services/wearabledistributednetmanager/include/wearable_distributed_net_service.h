@@ -48,30 +48,21 @@ private:
     class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
     public:
         ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
-            WearableDistributedNetService &WearableDistributedNetService)
-            : EventFwk::CommonEventSubscriber(subscriberInfo),
-              WearableDistributedNetService_(WearableDistributedNetService) {};
+            WearableDistributedNetService &WearableDistributedNetService) :
+            EventFwk::CommonEventSubscriber(subscriberInfo),
+            WearableDistributedNetService_(WearableDistributedNetService) {};
  
         void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
  
     private:
         WearableDistributedNetService &WearableDistributedNetService_;
-        enum ConnectEvent {
-            POWER_CONNECTED = 0,
-            POWER_DISCONNECTED,
-            BATTERY_CHANGED
-        };
-        std::map<std::string, ConnectEvent> eventMap_ = {
-            { Event::COMMON_EVENT_POWER_CONNECTED, POWER_CONNECTED },
-            { Event::COMMON_EVENT_POWER_DISCONNECTED, POWER_DISCONNECTED },
-            { Event::COMMON_EVENT_BATTERY_CHANGED, BATTERY_CHANGED }
-        };
     };
 
     enum ServiceRunningState {
         STATE_STOPPED = 0,
         STATE_RUNNING,
     };
+
     bool Init();
     void UpdateNetScore(const bool isCharging);
     bool SubscribeCommonEvent();

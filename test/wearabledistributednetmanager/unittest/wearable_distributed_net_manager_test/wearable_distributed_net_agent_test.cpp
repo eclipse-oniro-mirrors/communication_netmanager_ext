@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <arpa/inet.h>
+#include "battery_srv_client.h"
 #include "net_manager_constants.h"
 
 #define private public
@@ -96,7 +97,6 @@ HWTEST_F(WearableDistributedNetAgentTest, GetNetSupplierInfo, TestSize.Level1)
 
     NetSupplierInfo getSupplierInfo;
     WearableDistributedNetAgent::GetInstance().SetNetSupplierInfo(getSupplierInfo);
-    EXPECT_EQ(supplierInfo.isAvailable_, getSupplierInfo.isAvailable_);
     EXPECT_EQ(supplierInfo.isRoaming_, getSupplierInfo.isRoaming_);
     EXPECT_EQ(supplierInfo.linkUpBandwidthKbps_, getSupplierInfo.linkUpBandwidthKbps_);
     EXPECT_EQ(supplierInfo.linkDownBandwidthKbps_, getSupplierInfo.linkDownBandwidthKbps_);
@@ -242,6 +242,57 @@ HWTEST_F(WearableDistributedNetAgentTest, SetupWearableDistributedNetNetwork002,
     int32_t result = WearableDistributedNetAgent::GetInstance()
         .SetupWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
     EXPECT_EQ(result, NETMANAGER_SUCCESS);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetInitNetScore001, TestSize.Level1)
+{
+    OHOS::PowerMgr::BatteryChargeState chargeState = OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_FULL;
+    WearableDistributedNetAgent::GetInstance().SetInitNetScore(chargeState);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetInitNetScore002, TestSize.Level1)
+{
+    OHOS::PowerMgr::BatteryChargeState chargeState = OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_DISABLE;
+    WearableDistributedNetAgent::GetInstance().SetInitNetScore(chargeState);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetInitNetScore003, TestSize.Level1)
+{
+    OHOS::PowerMgr::BatteryChargeState chargeState = OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_NONE;
+    WearableDistributedNetAgent::GetInstance().SetInitNetScore(chargeState);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseNetStatus001, TestSize.Level1)
+{
+    bool isAvailable = true;
+    WearableDistributedNetAgent::GetInstance().SetScoreBaseNetStatus(isAvailable);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().netSupplierInfo_.score_, NET_SCORE_WITH_CHARGE_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseNetStatus002, TestSize.Level1)
+{
+    bool isAvailable = false;
+    WearableDistributedNetAgent::GetInstance().SetScoreBaseNetStatus(isAvailable);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().netSupplierInfo_.score_, 0);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, UpdateNetScore001, TestSize.Level1)
+{
+    bool isCharging = true;
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 0;
+    int32_t result = WearableDistributedNetAgent::GetInstance().UpdateNetScore(isCharging);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, UpdateNetScore002, TestSize.Level1)
+{
+    bool isCharging = false;
+    WearableDistributedNetAgent::GetInstance().netSupplierId_ = 1;
+    int32_t result = WearableDistributedNetAgent::GetInstance().UpdateNetScore(isCharging);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

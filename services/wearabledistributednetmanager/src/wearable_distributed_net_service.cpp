@@ -117,28 +117,24 @@ void WearableDistributedNetService::ReceiveMessage::OnReceiveEvent(const EventFw
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net receive power message");
     const auto &action = eventData.GetWant().GetAction();
-    auto it = eventMap_.find(action);
-    if (it == eventMap_.end()) {
-        return;
+    if (action == Event::COMMON_EVENT_POWER_CONNECTED) {
+        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power connected message");
+        WearableDistributedNetService_.UpdateNetScore(true);
+    }
+ 
+    if (action == Event::COMMON_EVENT_BATTERY_CHANGED) {
+        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power change message");
+        auto chargingState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
+        if (chargingState == ChargeState::CHARGE_STATE_DISABLE) {
+            WearableDistributedNetService_.UpdateNetScore(false);
+        } else {
+            WearableDistributedNetService_.UpdateNetScore(true);
+        }
     }
 
-    ChargeState chargingState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
-    bool isCharge = chargingState == ChargeState::CHARGE_STATE_ENABLE ||
-        chargingState == ChargeState::CHARGE_STATE_FULL;
-
-    switch (eventMap_[action]) {
-        case POWER_CONNECTED :
-            NETMGR_EXT_LOG_D("Wearable Distributed Net receive power connected message");
-            WearableDistributedNetService_.UpdateNetScore(true);
-            break;
-        case POWER_DISCONNECTED :
-            NETMGR_EXT_LOG_D("Wearable Distributed Net receive power disconnected message");
-            WearableDistributedNetService_.UpdateNetScore(false);
-            break;
-        case BATTERY_CHANGED :
-            NETMGR_EXT_LOG_D("Wearable Distributed Net receive power change message");
-            WearableDistributedNetService_.UpdateNetScore(isCharge);
-            break;
+    if (action == Event::COMMON_EVENT_POWER_DISCONNECTED) {
+        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power disconnected message");
+        WearableDistributedNetService_.UpdateNetScore(false);
     }
 }
 } // namespace NetManagerStandard

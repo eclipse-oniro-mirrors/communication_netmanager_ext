@@ -53,38 +53,15 @@ const sptr<IRemoteObject> &WearableDistributedNetLoadCallback::GetRemoteObject()
     return remoteObject_;
 }
 
-int32_t WearableDistributedNetClient::UpdateMeteredStatus(const bool isMetered)
-{
-    if (isMetered_ == isMetered) {
-        return NETMANAGER_EXT_SUCCESS;
-    }
-    sptr<IWearableDistributedNet> proxy = GetProxy();
-    if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("SetupWearableDistributedNet fail, proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
-    }
-    isMetered_ = isMetered;
-
-    return proxy->SetupWearableDistributedNet(tcpPortId_, udpPortId_, isMetered);
-}
-
 int32_t WearableDistributedNetClient::SetupWearableDistributedNet(const int32_t tcpPortId, const int32_t udpPortId,
                                                                   const bool isMetered)
 {
     NETMGR_EXT_LOG_I("set up for WearableDistributedNet, isMetered:%{public}s", isMetered ? "true" : "false");
-    if (!firstStart_) {
-        return UpdateMeteredStatus(isMetered);
-    }
     sptr<IWearableDistributedNet> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("SetupWearableDistributedNet fail, proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-
-    tcpPortId_ = tcpPortId;
-    udpPortId_ = udpPortId;
-    isMetered_ = isMetered;
-    firstStart_ = false;
     return proxy->SetupWearableDistributedNet(tcpPortId, udpPortId, isMetered);
 }
 
