@@ -48,9 +48,9 @@ private:
     class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
     public:
         ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
-            WearableDistributedNetService &WearableDistributedNetService) :
-            EventFwk::CommonEventSubscriber(subscriberInfo),
-            WearableDistributedNetService_(WearableDistributedNetService) {};
+            WearableDistributedNetService &WearableDistributedNetService)
+            : EventFwk::CommonEventSubscriber(subscriberInfo),
+              WearableDistributedNetService_(WearableDistributedNetService) {};
  
         void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
  
