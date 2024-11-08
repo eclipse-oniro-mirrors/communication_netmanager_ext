@@ -34,6 +34,11 @@ IpsecVpnCtl::~IpsecVpnCtl()
     NETMGR_EXT_LOG_I("~IpsecVpnCtl");
 }
 
+bool IpsecVpnCtl::IsSystemVpn()
+{
+    return true;
+}
+
 int32_t IpsecVpnCtl::SetUp()
 {
     return StartSysVpn();
