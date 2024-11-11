@@ -199,10 +199,6 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnBandwidthReachedLimit(c
 
 int32_t EthernetService::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_ETHERNET_LOCAL_MAC)) {
         NETMGR_EXT_LOG_E("EthernetService GetMacAddress no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
