@@ -38,7 +38,7 @@ constexpr const char *GATEWAY = "gateway";
 constexpr const char *DNS_SERVERS = "dnsServers";
 constexpr const char *DOMAIN = "domain";
 constexpr const char *DEFAULT_SEPARATOR = ",";
-constexpr const char *MAC_ADDR = "macAddr";
+constexpr const char *MAC_ADDR = "macAddress";
 constexpr const char *IFACE = "iface";
 
 std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)

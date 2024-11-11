@@ -204,11 +204,9 @@ declare namespace ethernet {
    * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
    * @returns { Promise<Array<MacAddressInfo>> } the promise returned by the function.
    * @throws { BusinessError } 201 - Permission denied.
-   * @throws { BusinessError } 202 - Non-system applications use system APIs.
    * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
    * @throws { BusinessError } 2201005 - Device information does not exist.
    * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi Hide this for inner system use.
    * @since 13
    */
   function getMacAddress(): Promise<Array<MacAddressInfo>>;
