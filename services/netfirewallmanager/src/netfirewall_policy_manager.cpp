@@ -44,6 +44,7 @@ void NetFirewallPolicyManager::SetCurrentUserId(int32_t userId)
 
 int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &policy)
 {
+    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
     if (policy == nullptr) {
         NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed, policy is nullptr.");
         return FIREWALL_ERR_PARAMETER_ERROR;
