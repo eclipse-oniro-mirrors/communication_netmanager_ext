@@ -1377,6 +1377,12 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
     UnregisterVpnEvent(callback);
+#ifdef SUPPORT_SYSVPN
+    if (vpnObj_ != nullptr && vpnObj_->IsSystemVpn()) {
+        NETMGR_EXT_LOG_W("system vpn client died");
+        return;
+    }
+#endif // SUPPORT_SYSVPN
     if (vpnObj_ != nullptr && vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("destroy vpn is failed");
         return;
