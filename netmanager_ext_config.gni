@@ -89,6 +89,8 @@ ABILITY_RUNTIME_SERVICES_PATH = "$ABILITY_RUNTIME_PATH/services"
 ABILITY_RUNTIME_NAPI_PATH = "$ABILITY_RUNTIME_PATH/frameworks/js/napi"
 ABILITY_RUNTIME_NATIVE_PATH = "$ABILITY_RUNTIME_PATH/frameworks/native"
 ABILITY_DISPLAY_MANAGER = "//foundation/window/window_manager"
+BATTERY_MANAER_PATH = "//base/powermgr/battery_manager"
+BATTERY_INNER_API = "$BATTERY_MANAER_PATH/interfaces/inner_api"
 
 use_js_debug = false
 declare_args() {
