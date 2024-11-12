@@ -282,7 +282,11 @@ void MdnsResolveServiceFuzzTest(const uint8_t *data, size_t size)
 
 void ReceivePacketTest(const uint8_t *data, size_t size)
 {
-    if (data == nullptr || size == 0) {
+    if (data == nullptr) {
+        return;
+    }
+    MessageParcel dataParcel;
+    if (!GetMessageParcel(data, size, dataParcel)) {
         return;
     }
     std::string str = GetStringFromData(STR_LEN);
