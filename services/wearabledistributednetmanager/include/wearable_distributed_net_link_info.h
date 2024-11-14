@@ -35,6 +35,7 @@ public:
     int32_t SetDnsLists(NetLinkInfo &linkInfo);
     void SetMtu(NetLinkInfo &linkInfo);
     int32_t SetInterfaceDummyUp();
+    int32_t SetInterfaceDummyDown();
 
 private:
     std::string GetPrimaryDnsLists();
