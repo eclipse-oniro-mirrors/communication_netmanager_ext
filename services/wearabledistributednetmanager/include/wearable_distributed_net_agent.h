@@ -54,7 +54,6 @@ private:
     void SetScoreBaseNetStatus(const bool isAvailable);
     void SetScoreBaseChargeStatus(const bool isCharging);
     int32_t UpdateNetCaps(const bool isMetered);
-    bool IsPortIdUnchanged(const int32_t tcpPortId, const int32_t udpPortId);
 
 private:
     uint32_t netSupplierId_ = 0;
@@ -65,8 +64,6 @@ private:
     bool firstStart_ = true;
     bool isMetered_ = false;
     int32_t score_ = NET_SCORE_WITH_UNCHARGE_STATE;
-    int32_t tcpPortId_ = 0;
-    int32_t udpPortId_ = 0;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

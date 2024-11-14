@@ -72,19 +72,11 @@ int32_t WearableDistributedNetAgent::ClearWearableDistributedNetForwardConfig()
     return ret;
 }
 
-bool WearableDistributedNetAgent::IsPortIdUnchanged(const int32_t tcpPortId, const int32_t udpPortId)
-{
-    if (tcpPortId_ == tcpPortId && udpPortId_ == udpPortId) {
-        return true;
-    }
-    return false;
-}
-
 int32_t WearableDistributedNetAgent::SetupWearableDistributedNetwork(const int32_t tcpPortId, const int32_t udpPortId,
                                                                      const bool isMetered)
 {
     NETMGR_EXT_LOG_I("SetupWearableDistributedNetwork isMetered:[%{public}s]", isMetered ? "true" : "false");
-    if (!firstStart_ && IsPortIdUnchanged(tcpPortId, udpPortId)) {
+    if (!firstStart_) {
         return UpdateNetCaps(isMetered);
     }
     int32_t result = RegisterNetSupplier(isMetered);

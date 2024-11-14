@@ -307,10 +307,6 @@ int32_t WearableDistributedNetLinkInfo::SetInterfaceDummyDown()
         NETMGR_EXT_LOG_E("Failed delete dummy0 address");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (NetsysController::GetInstance().SetInterfaceDown(INTERFACE_DUMMY.c_str()) != 0) {
-        NETMGR_EXT_LOG_E("Failed set dummy0 interface down");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
