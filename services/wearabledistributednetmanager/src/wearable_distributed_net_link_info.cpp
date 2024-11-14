@@ -299,13 +299,33 @@ void WearableDistributedNetLinkInfo::SetMtu(NetLinkInfo &linkInfo)
     linkInfo.mtu_ = CONSTANTS::WEARABLE_DISTRIBUTED_NET_MTU;
 }
 
-int32_t SetInterfaceDummyDown()
+int32_t WearableDistributedNetLinkInfo::SetInterfaceDummyDown()
 {
+    std::string addr = GetDummyAddress();
+    auto prefixLen = CommonUtils::GetMaskLength(GetIpv4AddrNetMask());
+    if (NetsysController::GetInstance().DelInterfaceAddress(INTERFACE_DUMMY.c_str(), addr, prefixLen) != 0) {
+        NETMGR_EXT_LOG_E("Failed delete dummy0 address");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     if (NetsysController::GetInstance().SetInterfaceDown(INTERFACE_DUMMY.c_str()) != 0) {
-        NETMGR_EXT_LOG_E("Failed setting dummy0 interface down");
+        NETMGR_EXT_LOG_E("Failed set dummy0 interface down");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t SetInterfaceDummyDown()
+{
+    WearableDistributedNetLinkInfo info;
+    if (!info.ReadSystemNetlinkinfoConfiguration()) {
+        NETMGR_EXT_LOG_E("ReadSystemNetlinkinfoConfiguration failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t result = info.SetInterfaceDummyDown();
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetInterfaceDummyDown failed, result: [%{public}d]", result);
+    }
+    return result;
 }
 
 // Add and pull up interface dummy0
