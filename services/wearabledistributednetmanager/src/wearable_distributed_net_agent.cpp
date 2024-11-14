@@ -107,8 +107,6 @@ int32_t WearableDistributedNetAgent::SetupWearableDistributedNetwork(const int32
     }
     isMetered_ = isMetered;
     firstStart_ = false;
-    tcpPortId_ = tcpPortId;
-    udpPortId_ = udpPortId;
     return NETMANAGER_SUCCESS;
 }
 
