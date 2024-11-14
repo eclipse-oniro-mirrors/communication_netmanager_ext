@@ -61,6 +61,15 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t TearDownWearableDistributedNet();
+
+    /**
+     * @brief update wearable distributed net metered status
+     *
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t UpdateWearableDistributedNetMeteredStatus(const bool isMetered);
     static WearableDistributedNetClient &GetInstance()
     {
         static WearableDistributedNetClient ins;

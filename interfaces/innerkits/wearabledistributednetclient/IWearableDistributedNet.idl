@@ -16,4 +16,5 @@
 interface OHOS.NetManagerStandard.IWearableDistributedNet {
     void SetupWearableDistributedNet([in] int tcpPortId, [in] int udpPortId, [in] boolean isMetered);
     void TearDownWearableDistributedNet();
+    void UpdateMeteredStatus([in] boolean isMetered);
 }

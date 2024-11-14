@@ -41,5 +41,11 @@ void WearableDistributedNetManagement::UpdateNetScore(const bool isCharging)
 {
     WearableDistributedNetAgent::GetInstance().UpdateNetScore(isCharging);
 }
+
+int32_t WearableDistributedNetManagement::UpdateMeteredStatus(const bool isMetered)
+{
+    NETMGR_EXT_LOG_I("Update wearable distributed net metered status");
+    return WearableDistributedNetAgent::GetInstance().UpdateMeteredStatus(isMetered);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
