@@ -81,7 +81,7 @@ int32_t WearableDistributedNetClient::UpdateWearableDistributedNetMeteredStatus(
     NETMGR_EXT_LOG_I("update wearable distributed net metered status:%{public}s", isMetered ? "true" : "false");
     sptr<IWearableDistributedNet> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("SetupWearableDistributedNet fail, proxy is nullptr");
+        NETMGR_EXT_LOG_E("UpdateWearableDistributedNetMeteredStatus fail, proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     return proxy->UpdateMeteredStatus(isMetered);
