@@ -15,6 +15,7 @@
 
 #include "ethernet_dhcp_controller.h"
 #include <string>
+#include <string.h>
 #include "ethernet_dhcp_callback.h"
 #include "netmgr_ext_log_wrapper.h"
 
