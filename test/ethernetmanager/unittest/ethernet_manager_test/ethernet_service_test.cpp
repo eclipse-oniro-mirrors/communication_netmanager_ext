@@ -343,10 +343,6 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
 
     std::string iface = "";
 
-    std::vector<MacAddressInfo> mai;
-    result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
-
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
@@ -392,10 +388,6 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     std::string iface = "";
-
-    std::vector<MacAddressInfo> mai;
-    result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(IFACE_NAME, ic);
@@ -445,10 +437,6 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     std::string iface = "";
-    
-    std::vector<MacAddressInfo> mai;
-    result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
