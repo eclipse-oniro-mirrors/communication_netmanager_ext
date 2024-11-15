@@ -71,6 +71,16 @@ int32_t WearableDistributedNetService::TearDownWearableDistributedNet()
     return WearableDistributedNetManagement::GetInstance().StopWearableDistributedNetwork();
 }
 
+int32_t WearableDistributedNetService::UpdateMeteredStatus(bool isMetered)
+{
+    NETMGR_EXT_LOG_I("Update wearable distributed net metered status");
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        NETMGR_EXT_LOG_E("Update wearable distributed net metered status no permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    return WearableDistributedNetManagement::GetInstance().UpdateMeteredStatus(isMetered);
+}
+
 bool WearableDistributedNetService::Init()
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net Service Init");

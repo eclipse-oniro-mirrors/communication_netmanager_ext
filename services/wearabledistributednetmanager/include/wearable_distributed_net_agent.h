@@ -38,6 +38,7 @@ public:
     int32_t SetupWearableDistributedNetwork(const int32_t tcpPortId, const int32_t udpPortId, const bool isMetered);
     int32_t TearDownWearableDistributedNetwork();
     int32_t UpdateNetScore(const bool isCharging);
+    int32_t UpdateMeteredStatus(const bool isMetered);
 
 private:
     int32_t RegisterNetSupplier(const bool isMetered);
@@ -61,7 +62,6 @@ private:
     WearableDistributedNetStaticConfiguration staticConfiguration_;
     NetSupplierInfo netSupplierInfo_;
     NetLinkInfo netLinkInfo_;
-    bool firstStart_ = true;
     bool isMetered_ = false;
     int32_t score_ = NET_SCORE_WITH_UNCHARGE_STATE;
 };

@@ -17,6 +17,7 @@
       "OHOS::NetManagerStandard::WearableDistributedNetClient::GetInstance()";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::SetupWearableDistributedNet(int, int, bool)";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::TearDownWearableDistributedNet()";
+      "OHOS::NetManagerStandard::WearableDistributedNetClient::UpdateWearableDistributedNetMeteredStatus(bool)";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::GetProxy()";
       "OHOS::NetManagerStandard::WearableDistributedNetLoadCallback::GetRemoteObject() const";
       VTT?for?OHOS::NetManagerStandard::WearableDistributedNetLoadCallback;
