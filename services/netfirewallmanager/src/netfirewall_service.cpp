@@ -413,6 +413,7 @@ void NetFirewallService::RegisterSubscribeCommonEvent()
 void NetFirewallService::UserChangeEvent(int32_t userId)
 {
     ffrtServiceHandler_->submit([this, userId]() {
+            // Old user cache cleaning
             NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
             NetFirewallPolicyManager::GetInstance().ClearCurrentFirewallPolicy();
             SetCurrentUserId(userId);
@@ -440,7 +441,6 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
-        // Old user cache cleaning
         netfirewallService_->UserChangeEvent(userId);
         return;
     }
