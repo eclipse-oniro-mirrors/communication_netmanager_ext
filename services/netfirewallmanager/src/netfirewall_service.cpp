@@ -39,6 +39,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int64_t QUERY_USER_ID_DELAY_TIME_MS = 300L;
 constexpr int32_t QUERY_USER_MAX_RETRY_TIMES = 100;
+constexpr int64_t SET_POLICY_DELAY_TIME_MS = 500000L;
 
 namespace {
 const std::string PUSH_RESULT_SUCCESS = "Success";
@@ -409,6 +410,21 @@ void NetFirewallService::RegisterSubscribeCommonEvent()
     }
 }
 
+void NetFirewallService::UserChangeEvent(int32_t userId)
+{
+    ffrtServiceHandler_->submit([this, userId]() {
+            // Old user cache cleaning
+            NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
+            NetFirewallPolicyManager::GetInstance().ClearCurrentFirewallPolicy();
+            SetCurrentUserId(userId);
+            // Old user native bpf cleaning
+            NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
+            NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+                NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
+    },
+        ffrt::task_attr().delay(SET_POLICY_DELAY_TIME_MS).name("UserChangeEvent"));
+}
+
 void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 {
     const auto &action = eventData.GetWant().GetAction();
@@ -425,14 +441,7 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
-        // Old user cache cleaning
-        NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
-        NetFirewallPolicyManager::GetInstance().ClearCurrentFirewallPolicy();
-        netfirewallService_->SetCurrentUserId(userId);
-        // Old user native bpf cleaning
-        NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
-        NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
-            NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
+        netfirewallService_->UserChangeEvent(userId);
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
