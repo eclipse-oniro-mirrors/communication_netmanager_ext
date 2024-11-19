@@ -420,9 +420,8 @@ void NetFirewallService::UserChangeEvent(int32_t userId)
             NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
             NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
                 NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
-    }, ffrt::task_attr()
-        .delay(SET_POLICY_DELAY_TIME_MS)
-        .name("UserChangeEvent"));
+    },
+        ffrt::task_attr().delay(SET_POLICY_DELAY_TIME_MS).name("UserChangeEvent"));
 }
 
 void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
