@@ -65,6 +65,7 @@ ohos_shared_library("sharing") {
     "napi:ace_napi",
     "netmanager_base:napi_utils",
     "netmanager_base:net_manager_common",
+    "samgr:samgr_proxy",
   ]
 
   configs = [ ":sharing_config" ]

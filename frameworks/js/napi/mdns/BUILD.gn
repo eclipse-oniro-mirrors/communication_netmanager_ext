@@ -73,6 +73,7 @@ ohos_shared_library("mdns") {
     "napi:ace_napi",
     "netmanager_base:napi_utils",
     "netmanager_base:net_manager_common",
+    "samgr:samgr_proxy",
   ]
 
   configs = [ ":mdns_config" ]
