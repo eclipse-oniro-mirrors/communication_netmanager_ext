@@ -65,7 +65,6 @@ NetFirewallService::~NetFirewallService()
 void NetFirewallService::SetCurrentUserId(int32_t userId)
 {
     currentUserId_ = userId;
-    NetFirewallPolicyManager::GetInstance().SetCurrentUserId(currentUserId_);
     NetFirewallInterceptRecorder::GetInstance()->SetCurrentUserId(currentUserId_);
     // set current userid to native
     NetFirewallRuleNativeHelper::GetInstance().SetCurrentUserId(currentUserId_);
@@ -103,18 +102,16 @@ int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const spt
         return ret;
     }
 
-    if (userId == currentUserId_) {
-        // If the firewall switch status of the current user has changed, determine whether to issue it
-        if (NetFirewallPolicyManager::GetInstance().IsFirewallStatusChange(policy)) {
-            // netfirewall rules to native
-            NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(policy->isOpen);
-        }
-        if (NetFirewallPolicyManager::GetInstance().IsFirewallActionChange(policy)) {
-            NetsysController::GetInstance().SetFirewallDefaultAction(policy->inAction, policy->outAction);
-        }
-        NetFirewallPolicyManager::GetInstance().SetCurrentUserFirewallPolicy(policy);
+    // save default action to bpf
+    if (policy->isOpen) {
+        NetsysController::GetInstance().SetFirewallDefaultAction(userId, policy->inAction, policy->outAction);
+    } else {
+        NetFirewallPolicyManager::GetInstance().InitNetfirewallPolicy();
     }
 
+    // update rules
+    NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+        NetFirewallPolicyManager::GetInstance().IsFirewallOpen());
     return ret;
 }
 
@@ -307,7 +304,7 @@ void NetFirewallService::OnAddSystemAbility(int32_t systemAbilityId, const std::
         if (hasSaRemoved_) {
             NETMGR_EXT_LOG_I("native reboot, reset firewall rules.");
             NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
-                NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
+                NetFirewallPolicyManager::GetInstance().IsFirewallOpen());
             NetFirewallInterceptRecorder::GetInstance()->RegisterInterceptCallback();
             hasSaRemoved_ = false;
         }
@@ -345,7 +342,7 @@ void NetFirewallService::InitQueryUserId(int32_t times)
 void NetFirewallService::InitQueryNetFirewallRules()
 {
     NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
-        NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
+        NetFirewallPolicyManager::GetInstance().IsFirewallOpen());
 }
 
 void NetFirewallService::InitServiceHandler()
@@ -410,21 +407,6 @@ void NetFirewallService::RegisterSubscribeCommonEvent()
     }
 }
 
-void NetFirewallService::UserChangeEvent(int32_t userId)
-{
-    ffrtServiceHandler_->submit([this, userId]() {
-            // Old user cache cleaning
-            NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
-            NetFirewallPolicyManager::GetInstance().ClearCurrentFirewallPolicy();
-            SetCurrentUserId(userId);
-            // Old user native bpf cleaning
-            NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
-            NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
-                NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen());
-    },
-        ffrt::task_attr().delay(SET_POLICY_DELAY_TIME_MS).name("UserChangeEvent"));
-}
-
 void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 {
     const auto &action = eventData.GetWant().GetAction();
@@ -441,7 +423,9 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
-        netfirewallService_->UserChangeEvent(userId);
+        // Old user cache cleaning
+        NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
+        netfirewallService_->SetCurrentUserId(userId);
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {

@@ -41,15 +41,16 @@ NetFirewallRuleNativeHelper::~NetFirewallRuleNativeHelper()
 /**
  * Set firewall default action
  *
+ * @param userId user id
  * @param inDefault  Default action of NetFirewallRuleDirection:RULE_IN
  * @param outDefault Default action of NetFirewallRuleDirection:RULE_OUT
  * @return 0 if success or -1 if an error occurred
  */
-int32_t NetFirewallRuleNativeHelper::SetFirewallDefaultAction(FirewallRuleAction inDefault,
+int32_t NetFirewallRuleNativeHelper::SetFirewallDefaultAction(int32_t userId, FirewallRuleAction inDefault,
     FirewallRuleAction outDefault)
 {
     std::lock_guard<std::mutex> locker(callNetSysController_);
-    return NetsysController::GetInstance().SetFirewallDefaultAction(inDefault, outDefault);
+    return NetsysController::GetInstance().SetFirewallDefaultAction(userId, inDefault, outDefault);
 }
 
 /**

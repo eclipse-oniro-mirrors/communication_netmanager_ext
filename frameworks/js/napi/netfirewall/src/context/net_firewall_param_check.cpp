@@ -341,7 +341,7 @@ int32_t NetFirewallParamCheck::CheckPortList(napi_env env, napi_value object)
                 return FIREWALL_ERR_PARAMETER_ERROR;
             }
             startPort = NapiUtils::GetInt32Property(env, valAttr, NET_FIREWALL_PORT_START);
-            if (startPort > MAX_RULE_PORT || startPort < 0) {
+            if (startPort > MAX_RULE_PORT || startPort <= 0) {
                 NETMANAGER_EXT_LOGE("start port is more then %{public}d", MAX_RULE_PORT);
                 return FIREWALL_ERR_INVALID_PARAMETER;
             }

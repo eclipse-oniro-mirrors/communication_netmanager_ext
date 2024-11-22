@@ -35,13 +35,6 @@ public:
     ~NetFirewallPolicyManager();
 
     /**
-     * Set current forground user Id
-     *
-     * @param userId User id
-     */
-    void SetCurrentUserId(int32_t userId);
-
-    /**
      * Turn on or off the firewall
      *
      * @param userId User id
@@ -60,13 +53,11 @@ public:
     int32_t GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &policy);
 
     /**
-     * Query current user firewall policy
+     * true or false firewall status
      *
-     * @param userId User id
-     * @param policy Return to firewall policy
-     * @return Returns 0 success. Otherwise fail
+     * @return Returns true is open, Otherwise close
      */
-    int32_t GetCurrentNetFirewallPolicy(sptr<NetFirewallPolicy> &policy);
+    bool IsFirewallOpen();
 
     /**
      * Get user firewall open policy
@@ -77,14 +68,6 @@ public:
     bool IsNetFirewallOpen(const int32_t userId);
 
     /**
-     * Get current user firewall open policy
-     *
-     * @param userId User id
-     * @return Returns true is open, Otherwise close
-     */
-    bool IsCurrentFirewallOpen();
-
-    /**
      * Clear user firewall policy
      *
      * @param userId Input User id
@@ -93,64 +76,17 @@ public:
     int32_t ClearFirewallPolicy(const int32_t userId);
 
     /**
-     * Clear current user firewall policy
-     *
-     * @return Returns true is open, Otherwise close
+     * Init netfirewall policy
      */
-    int32_t ClearCurrentFirewallPolicy();
-
-    /**
-     * Get firewall policy inAction
-     *
-     * @return Returns FirewallRuleAction
-     */
-    FirewallRuleAction GetFirewallPolicyInAction();
-
-    /**
-     * Get firewall policy inAction
-     *
-     * @return Returns FirewallRuleAction
-     */
-    FirewallRuleAction GetFirewallPolicyOutAction();
-
-    /**
-     * Is firewall status change
-     *
-     * @param policy input policy status
-     * @return Returns true is change, Otherwise not change
-     */
-    bool IsFirewallStatusChange(const sptr<NetFirewallPolicy> &policy);
-
-    /**
-     * Is firewall default action change
-     *
-     * @param policy input policy status
-     * @return Returns true is change, Otherwise not change
-     */
-    bool IsFirewallActionChange(const sptr<NetFirewallPolicy> &policy);
-
-    /**
-     * Get firewall policy inAction
-     *
-     * @param policy input to firewall policy
-     */
-    void SetCurrentUserFirewallPolicy(const sptr<NetFirewallPolicy> &policy);
+    int32_t InitNetfirewallPolicy();
 
 private:
-    void RebuildFirewallPolicyCache(const int32_t userId);
-    void EnsureCurrentFirewallPolicyCached();
     void LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy);
-    bool IsPolicyCacheInvalid();
-    bool IsPolicyCacheOpen();
-    FirewallRuleAction GetPolicyCacheInInternal();
-    FirewallRuleAction GetPolicyCacheOutInternal();
+    void GetAllUserId(std::vector<int32_t> &accountIds);
 
 private:
     std::shared_mutex setPolicyMutex_;
     std::shared_ptr<NetFirewallPreferenceHelper> preferencesHelper_ = nullptr;
-    // Cache the current state
-    std::atomic<int32_t> currentUserId_ = 0;
-    sptr<NetFirewallPolicy> currentFirewallPolicy_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

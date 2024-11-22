@@ -221,15 +221,11 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByAppId(const int32_t appUi
     return ret;
 }
 
-int32_t NetFirewallRuleManager::GetEnabledNetFirewallRules(const int32_t userId, std::vector<NetFirewallRule> &ruleList,
+int32_t NetFirewallRuleManager::GetEnabledNetFirewallRules(std::vector<NetFirewallRule> &ruleList,
     NetFirewallRuleType type)
 {
     NETMGR_EXT_LOG_I("GetEnabledNetFirewallRules:: type=%{public}d", static_cast<int32_t>(type));
-    int32_t ret = CheckUserExist(userId);
-    if (ret != FIREWALL_SUCCESS) {
-        return ret;
-    }
-    ret = NetFirewallDbHelper::GetInstance().QueryAllUserEnabledFirewallRules(ruleList, type);
+    int32_t ret = NetFirewallDbHelper::GetInstance().QueryAllUserEnabledFirewallRules(ruleList, type);
     if (ret < 0) {
         NETMGR_EXT_LOG_E("GetEnabledNetFirewallRules error");
         return FIREWALL_ERR_INTERNAL;
@@ -523,19 +519,13 @@ int32_t NetFirewallRuleManager::OpenOrCloseNativeFirewall(bool isOpen)
     std::lock_guard<std::shared_mutex> locker(setFirewallRuleMutex_);
     NETMGR_EXT_LOG_I("OpenOrCloseNativeFirewall: isOpen=%{public}d", isOpen);
     NetmanagerHiTrace::NetmanagerStartSyncTrace("OpenOrCloseNativeFirewall");
-    auto userId = GetCurrentAccountId();
     if (!isOpen) {
-        NETMGR_EXT_LOG_I("OpenOrCloseNativeFirewall: current userid %{public}d firewall disabled", userId);
-        NetFirewallRuleNativeHelper::GetInstance().SetFirewallDefaultAction(FirewallRuleAction::RULE_ALLOW,
-            FirewallRuleAction::RULE_ALLOW);
+        NETMGR_EXT_LOG_I("OpenOrCloseNativeFirewall: firewall disabled");
         NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
         return FIREWALL_SUCCESS;
     }
-
-    NetFirewallRuleNativeHelper::GetInstance().SetFirewallDefaultAction(
-        NetFirewallPolicyManager::GetInstance().GetFirewallPolicyInAction(),
-        NetFirewallPolicyManager::GetInstance().GetFirewallPolicyOutAction());
-    int32_t ret = SetRulesToNativeByType(userId, NetFirewallRuleType::RULE_ALL);
+    NetFirewallPolicyManager::GetInstance().InitNetfirewallPolicy();
+    int32_t ret = SetRulesToNativeByType(NetFirewallRuleType::RULE_ALL);
     SetNetFirewallDumpMessage(ret);
     NetmanagerHiTrace::NetmanagerFinishSyncTrace("OpenOrCloseNativeFirewall");
     return ret;
@@ -545,29 +535,23 @@ int32_t NetFirewallRuleManager::DistributeRulesToNative(NetFirewallRuleType type
 {
     NETMGR_EXT_LOG_I("DistributeRulesToNative: type=%{public}d", (int)type);
     NetmanagerHiTrace::NetmanagerStartSyncTrace("DistributeRulesToNative");
-    auto userId = GetCurrentAccountId();
-    if (!NetFirewallPolicyManager::GetInstance().IsCurrentFirewallOpen()) {
-        NETMGR_EXT_LOG_I("DistributeRulesToNative: current userid %{public}d firewall disabled", userId);
-        NetFirewallRuleNativeHelper::GetInstance().SetFirewallDefaultAction(FirewallRuleAction::RULE_ALLOW,
-            FirewallRuleAction::RULE_ALLOW);
+    if (!NetFirewallPolicyManager::GetInstance().IsFirewallOpen()) {
+        NETMGR_EXT_LOG_I("DistributeRulesToNative: firewall disabled");
         NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
         return FIREWALL_SUCCESS;
     }
 
-    NetFirewallRuleNativeHelper::GetInstance().SetFirewallDefaultAction(
-        NetFirewallPolicyManager::GetInstance().GetFirewallPolicyInAction(),
-        NetFirewallPolicyManager::GetInstance().GetFirewallPolicyOutAction());
-    int32_t ret = SetRulesToNativeByType(userId, type);
+    int32_t ret = SetRulesToNativeByType(type);
     NetmanagerHiTrace::NetmanagerFinishSyncTrace("DistributeRulesToNative");
     SetNetFirewallDumpMessage(ret);
     return ret;
 }
 
-int32_t NetFirewallRuleManager::SetRulesToNativeByType(const int32_t userId, const NetFirewallRuleType type)
+int32_t NetFirewallRuleManager::SetRulesToNativeByType(const NetFirewallRuleType type)
 {
     int32_t ret = FIREWALL_SUCCESS;
     std::vector<NetFirewallRule> rules;
-    GetEnabledNetFirewallRules(userId, rules, type);
+    GetEnabledNetFirewallRules(rules, type);
     switch (type) {
         case NetFirewallRuleType::RULE_IP:
             ret = HandleIpTypeForDistributeRules(rules);
@@ -583,6 +567,8 @@ int32_t NetFirewallRuleManager::SetRulesToNativeByType(const int32_t userId, con
                 break;
             }
             NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_ALL);
+            // set default action to bpf map
+            NetFirewallPolicyManager::GetInstance().InitNetfirewallPolicy();
             ret = HandleIpTypeForDistributeRules(rules);
             ret += HandleDnsTypeForDistributeRules(rules);
             ret += HandleDomainTypeForDistributeRules(rules);
