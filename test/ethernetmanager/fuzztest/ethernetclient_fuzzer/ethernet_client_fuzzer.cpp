@@ -212,6 +212,9 @@ void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
     }
     NetManagerExtAccessToken token;
     MessageParcel parcel;
+    if (!IsDataAndWriteVaild(data, size, parcel)) {
+        return;
+    }
     WriteInterfaceToken(parcel);
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_ACTIVATE_INTERFACE), parcel);
 }
@@ -223,6 +226,9 @@ void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
     }
     NetManagerExtAccessToken token;
     MessageParcel parcel;
+    if (!IsDataAndWriteVaild(data, size, parcel)) {
+        return;
+    }
     WriteInterfaceToken(parcel);
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_RESET_FACTORY), parcel);
 }
@@ -247,6 +253,9 @@ void OnRegisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     MessageParcel parcel;
+    if (!IsDataAndWriteVaild(data, size, parcel)) {
+        return;
+    }
     sptr<IRemoteObject> remote;
     parcel.WriteRemoteObject(remote);
     OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_REGISTER_INTERFACE_CB), parcel);
