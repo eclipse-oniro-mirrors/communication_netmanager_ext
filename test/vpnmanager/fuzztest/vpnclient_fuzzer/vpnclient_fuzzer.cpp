@@ -111,9 +111,16 @@ __attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(INetworkVpnService::
 
 void PrepareFuzzTest(const uint8_t *data, size_t size)
 {
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
     NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t num = GetData<int32_t>();
+    if (!dataParcel.WriteInt32(num)) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PREPARE, dataParcel);
@@ -121,9 +128,16 @@ void PrepareFuzzTest(const uint8_t *data, size_t size)
 
 void ProtectFuzzTest(const uint8_t *data, size_t size)
 {
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
     NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t num = GetData<int32_t>();
+    if (!dataParcel.WriteInt32(num)) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PROTECT, dataParcel);
@@ -161,9 +175,16 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
 
 void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
 {
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
     NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t num = GetData<int32_t>();
+    if (!dataParcel.WriteInt32(num)) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_STOP_VPN, dataParcel);
@@ -171,6 +192,9 @@ void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
 
 void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 {
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
     NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
@@ -179,6 +203,10 @@ void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 
     sptr<IVpnEventCallback> callback = new (std::nothrow) VpnEventCallbackTest();
     if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
+        return;
+    }
+    int32_t num = GetData<int32_t>();
+    if (!dataParcel.WriteInt32(num)) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK, dataParcel);
@@ -186,6 +214,9 @@ void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 
 void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 {
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
     NetManagerExtAccessToken token;
     MessageParcel dataParcel;
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
@@ -194,6 +225,10 @@ void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
 
     sptr<IVpnEventCallback> callback = new (std::nothrow) VpnEventCallbackTest();
     if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
+        return;
+    }
+    int32_t num = GetData<int32_t>();
+    if (!dataParcel.WriteInt32(num)) {
         return;
     }
     OnRemoteRequest(INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK, dataParcel);
