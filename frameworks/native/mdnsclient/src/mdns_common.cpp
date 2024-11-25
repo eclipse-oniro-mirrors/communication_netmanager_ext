@@ -52,7 +52,7 @@ std::vector<std::string_view> Split(const std::string_view &s, char seperator)
     std::string::size_type prev = 0;
     std::string::size_type pos = 0;
     while ((pos = s.find(seperator, pos)) != std::string::npos) {
-        if (pos - prev > 0) {
+        if (pos > prev) {
             output.push_back(s.substr(prev, pos - prev));
         }
         prev = ++pos;
