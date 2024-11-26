@@ -70,7 +70,7 @@ bool NetFirewallPolicyManager::IsFirewallOpen()
     std::vector<int32_t> accountIds;
     GetAllUserId(accountIds);
     for (auto &accountId : accountIds) {
-        if(IsNetFirewallOpen(accountId)) {
+        if (IsNetFirewallOpen(accountId)) {
             return true;
         }
     }
