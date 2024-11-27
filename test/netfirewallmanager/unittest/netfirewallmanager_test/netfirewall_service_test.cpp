@@ -363,7 +363,7 @@ HWTEST_F(NetFirewallServiceTest, SetNetFirewallPolicy002, TestSize.Level1)
 HWTEST_F(NetFirewallServiceTest, ClearCurrentNetFirewallPreferences001, TestSize.Level1)
 {
     int32_t userId = 101;
-    int ret = NetFirewallPolicyManager::GetInstance().ClearCurrentFirewallPolicy();
+    int ret = NetFirewallPolicyManager::GetInstance().ClearFirewallPolicy(userId);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
@@ -891,25 +891,6 @@ HWTEST_F(NetFirewallServiceTest, SendNetFirewallFault001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCurrentNetFirewallPolicy
- * @tc.desc: Test NetFirewallDbHelper GetCurrentNetFirewallPolicy001.
- * @tc.type: FUNC
- */
-HWTEST_F(NetFirewallServiceTest, GetCurrentNetFirewallPolicy001, TestSize.Level1)
-{
-    NetFirewallPolicyManager::GetInstance().currentUserId_ = USER_ID1;
-
-    sptr<NetFirewallPolicy> policy = new (std::nothrow) NetFirewallPolicy();
-    policy->isOpen = true;
-    policy->inAction = (FirewallRuleAction)(1);
-    policy->outAction = FirewallRuleAction::RULE_ALLOW;
-    NetFirewallPolicyManager::GetInstance().SetCurrentUserFirewallPolicy(policy);
-
-    int ret = NetFirewallPolicyManager::GetInstance().GetCurrentNetFirewallPolicy(policy);
-    EXPECT_EQ(ret, 0);
-}
-
-/**
  * @tc.name: SetFirewallDnsRules
  * @tc.desc: Test NetFirewallDbHelper SetFirewallDnsRules001.
  * @tc.type: FUNC
@@ -921,7 +902,7 @@ HWTEST_F(NetFirewallServiceTest, SetFirewallDnsRules001, TestSize.Level1)
     int ret = DelayedSingleton<NetFirewallService>::GetInstance()->AddNetFirewallRule(rule, ruleId);
     g_rowId = ruleId;
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
-    ret = NetFirewallRuleManager::GetInstance().SetRulesToNativeByType(USER_ID1, NetFirewallRuleType::RULE_DNS);
+    ret = NetFirewallRuleManager::GetInstance().SetRulesToNativeByType(NetFirewallRuleType::RULE_DNS);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
@@ -943,6 +924,40 @@ HWTEST_F(NetFirewallServiceTest, GetLastRulePushResult001, TestSize.Level1)
     NetFirewallRuleManager::GetInstance().SetNetFirewallDumpMessage(-1);
     ret = DelayedSingleton<NetFirewallService>::GetInstance()->GetLastRulePushResult();
     EXPECT_EQ(ret, "Unkonw");
+}
+
+HWTEST_F(NetFirewallServiceTest, IsFirewallOpen001, TestSize.Level1)
+{
+    sptr<NetFirewallPolicy> policy = new (std::nothrow) NetFirewallPolicy();
+    policy->isOpen = true;
+    policy->inAction = (FirewallRuleAction)(1);
+    policy->outAction = FirewallRuleAction::RULE_ALLOW;
+    NetFirewallPolicyManager::GetInstance().SetNetFirewallPolicy(USER_ID1, policy);
+    bool isFirewallOpen = NetFirewallPolicyManager::GetInstance().IsFirewallOpen();
+    EXPECT_TRUE(isFirewallOpen);
+}
+
+HWTEST_F(NetFirewallServiceTest, IsNetFirewallOpen001, TestSize.Level1)
+{
+    sptr<NetFirewallPolicy> policy = new (std::nothrow) NetFirewallPolicy();
+    policy->isOpen = true;
+    policy->inAction = (FirewallRuleAction)(1);
+    policy->outAction = FirewallRuleAction::RULE_ALLOW;
+    NetFirewallPolicyManager::GetInstance().SetNetFirewallPolicy(USER_ID1, policy);
+    bool isFirewallOpen = NetFirewallPolicyManager::GetInstance().IsNetFirewallOpen(USER_ID1);
+    EXPECT_TRUE(isFirewallOpen);
+}
+
+HWTEST_F(NetFirewallServiceTest, ClearFirewallPolicy001, TestSize.Level1)
+{
+    int32_t ret = NetFirewallPolicyManager::GetInstance().ClearFirewallPolicy(USER_ID1);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceTest, InitNetfirewallPolicy001, TestSize.Level1)
+{
+    int32_t ret = NetFirewallPolicyManager::GetInstance().InitNetfirewallPolicy();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

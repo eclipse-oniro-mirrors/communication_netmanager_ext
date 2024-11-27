@@ -132,8 +132,7 @@ HWTEST_F(NetFirewallRuleManagerTest, DeleteNetFirewallRule001, TestSize.Level1)
 HWTEST_F(NetFirewallRuleManagerTest, GetEnabledNetFirewallRules001, TestSize.Level1)
 {
     std::vector<NetFirewallRule> list;
-    int32_t userId = USER_ID + 1;
-    int32_t ret = instance_->GetEnabledNetFirewallRules(userId, list);
+    int32_t ret = instance_->GetEnabledNetFirewallRules(list);
     EXPECT_EQ(ret, FIREWALL_ERR_NO_USER);
 }
 

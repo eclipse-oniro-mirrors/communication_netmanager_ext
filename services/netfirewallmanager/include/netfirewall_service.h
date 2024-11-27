@@ -184,8 +184,6 @@ private:
 
     void RegisterSubscribeCommonEvent();
 
-    void UserChangeEvent(int32_t userId);
-
 private:
     static std::shared_ptr<ffrt::queue> ffrtServiceHandler_;
     std::atomic<uint64_t> currentSetRuleSecond_ = 0;

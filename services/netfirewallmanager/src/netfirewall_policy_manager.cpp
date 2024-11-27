@@ -15,7 +15,11 @@
 #include "netfirewall_policy_manager.h"
 
 #include "net_manager_constants.h"
+#include "netfirewall_rule_manager.h"
+#include "netfirewall_rule_native_helper.h"
 #include "netmanager_base_common_utils.h"
+#include "netsys_controller.h"
+#include "os_account_manager.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -36,12 +40,6 @@ NetFirewallPolicyManager::~NetFirewallPolicyManager()
     NETMGR_EXT_LOG_I("~NetFirewallPolicyManager()");
 }
 
-void NetFirewallPolicyManager::SetCurrentUserId(int32_t userId)
-{
-    currentUserId_ = userId;
-    RebuildFirewallPolicyCache(userId);
-}
-
 int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &policy)
 {
     std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
@@ -53,12 +51,65 @@ int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, con
         NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed, reference is nullptr.");
         return FIREWALL_ERR_INTERNAL;
     }
+    bool ret = true;
+    ret &= preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
+    ret &= preferencesHelper_->SaveBool(NET_FIREWALL_IS_OPEN, policy->isOpen);
+    ret &= preferencesHelper_->SaveInt(NET_FIREWALL_IN_ACTION, static_cast<int>(policy->inAction));
+    ret &= preferencesHelper_->SaveInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(policy->outAction));
+    if (!ret) {
+        NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed");
+        return FIREWALL_ERR_INTERNAL;
+    }
 
-    preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    preferencesHelper_->SaveBool(NET_FIREWALL_IS_OPEN, policy->isOpen);
-    preferencesHelper_->SaveInt(NET_FIREWALL_IN_ACTION, static_cast<int>(policy->inAction));
-    preferencesHelper_->SaveInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(policy->outAction));
+    return FIREWALL_SUCCESS;
+}
 
+bool NetFirewallPolicyManager::IsFirewallOpen()
+{
+    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
+    std::vector<int32_t> accountIds;
+    GetAllUserId(accountIds);
+    for (auto &accountId : accountIds) {
+        if (IsNetFirewallOpen(accountId)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void NetFirewallPolicyManager::GetAllUserId(std::vector<int32_t> &accountIds)
+{
+    std::vector<AccountSA::OsAccountInfo> osAccountInfos;
+    int32_t ret = AccountSA::OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
+    if (ret != ERR_OK || osAccountInfos.empty()) {
+        NETMGR_EXT_LOG_W("query user failed errCode=%{public}d", ret);
+    }
+    for (const auto &info : osAccountInfos) {
+        accountIds.push_back(info.GetLocalId());
+    }
+}
+
+int32_t NetFirewallPolicyManager::InitNetfirewallPolicy()
+{
+    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
+    std::vector<int32_t> accountIds;
+    GetAllUserId(accountIds);
+    NETMGR_EXT_LOG_I("InitNetfirewallPolicy accountIds size =%{public}zu", accountIds.size());
+    sptr<NetFirewallPolicy> netfirewallPolicy = new (std::nothrow) NetFirewallPolicy();
+    if (netfirewallPolicy == nullptr) {
+        NETMGR_EXT_LOG_E("InitNetfirewallPolicy error");
+        return FIREWALL_ERR_INTERNAL;
+    }
+    NetFirewallRuleNativeHelper::GetInstance().ClearFirewallRules(NetFirewallRuleType::RULE_DEFAULT_ACTION);
+    for (auto &accountId : accountIds) {
+        NETMGR_EXT_LOG_I("InitNetfirewallPolicy accountId=%{public}d", accountId);
+        LoadPolicyFormPreference(accountId, netfirewallPolicy);
+        // set policy is open to bpf map
+        if (netfirewallPolicy->isOpen) {
+            NetFirewallRuleNativeHelper::GetInstance().SetFirewallDefaultAction(accountId,
+                netfirewallPolicy->inAction, netfirewallPolicy->outAction);
+        }
+    }
     return FIREWALL_SUCCESS;
 }
 
@@ -68,66 +119,15 @@ int32_t NetFirewallPolicyManager::GetNetFirewallPolicy(const int32_t userId, spt
         NETMGR_EXT_LOG_E("GetNetFirewallPolicy failed, policy is nullptr.");
         return FIREWALL_ERR_INTERNAL;
     }
-    if (currentUserId_ == userId) {
-        EnsureCurrentFirewallPolicyCached();
-        policy->isOpen = IsPolicyCacheOpen();
-        policy->inAction = GetPolicyCacheInInternal();
-        policy->outAction = GetPolicyCacheOutInternal();
-    } else {
-        LoadPolicyFormPreference(userId, policy);
-    }
-
+    LoadPolicyFormPreference(userId, policy);
     return FIREWALL_SUCCESS;
-}
-
-bool NetFirewallPolicyManager::IsFirewallStatusChange(const sptr<NetFirewallPolicy> &policy)
-{
-    NETMGR_EXT_LOG_D("IsFirewallStatusChange");
-    EnsureCurrentFirewallPolicyCached();
-    return (policy->isOpen != IsPolicyCacheOpen());
-}
-
-bool NetFirewallPolicyManager::IsFirewallActionChange(const sptr<NetFirewallPolicy> &policy)
-{
-    NETMGR_EXT_LOG_D("IsFirewallActionChange");
-    EnsureCurrentFirewallPolicyCached();
-    return policy->isOpen &&
-        (policy->inAction != GetPolicyCacheInInternal() || policy->outAction != GetPolicyCacheOutInternal());
-}
-
-void NetFirewallPolicyManager::SetCurrentUserFirewallPolicy(const sptr<NetFirewallPolicy> &policy)
-{
-    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
-    if (currentFirewallPolicy_ == nullptr) {
-        currentFirewallPolicy_ = new (std::nothrow) NetFirewallPolicy();
-    }
-    if (currentFirewallPolicy_ != nullptr) {
-        currentFirewallPolicy_->isOpen = policy->isOpen;
-        currentFirewallPolicy_->inAction = policy->inAction;
-        currentFirewallPolicy_->outAction = policy->outAction;
-    }
-}
-
-int32_t NetFirewallPolicyManager::GetCurrentNetFirewallPolicy(sptr<NetFirewallPolicy> &policy)
-{
-    return GetNetFirewallPolicy(currentUserId_, policy);
 }
 
 bool NetFirewallPolicyManager::IsNetFirewallOpen(const int32_t userId)
 {
     NETMGR_EXT_LOG_D("IsNetFirewallOpen");
-    // Current user fetching cache
-    if (userId == currentUserId_) {
-        EnsureCurrentFirewallPolicyCached();
-        return IsPolicyCacheOpen();
-    }
     preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
     return preferencesHelper_->ObtainBool("isOpen", true);
-}
-
-bool NetFirewallPolicyManager::IsCurrentFirewallOpen()
-{
-    return IsNetFirewallOpen(currentUserId_);
 }
 
 int32_t NetFirewallPolicyManager::ClearFirewallPolicy(const int32_t userId)
@@ -137,75 +137,8 @@ int32_t NetFirewallPolicyManager::ClearFirewallPolicy(const int32_t userId)
         return FIREWALL_ERR_INTERNAL;
     }
     preferencesHelper_->Clear(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    return ClearCurrentFirewallPolicy();
-}
-
-int32_t NetFirewallPolicyManager::ClearCurrentFirewallPolicy()
-{
-    std::lock_guard<std::shared_mutex> locker(setPolicyMutex_);
-    currentFirewallPolicy_ = nullptr;
+    InitNetfirewallPolicy();
     return FIREWALL_SUCCESS;
-}
-
-FirewallRuleAction NetFirewallPolicyManager::GetFirewallPolicyInAction()
-{
-    NETMGR_EXT_LOG_D("GetCurrentNetFirewallPolicyInAction");
-    EnsureCurrentFirewallPolicyCached();
-    return GetPolicyCacheInInternal();
-}
-
-FirewallRuleAction NetFirewallPolicyManager::GetFirewallPolicyOutAction()
-{
-    NETMGR_EXT_LOG_D("GetCurrentFirewallOutAction");
-    EnsureCurrentFirewallPolicyCached();
-    return GetPolicyCacheOutInternal();
-}
-
-void NetFirewallPolicyManager::EnsureCurrentFirewallPolicyCached()
-{
-    if (IsPolicyCacheInvalid()) {
-        RebuildFirewallPolicyCache(currentUserId_);
-    }
-}
-
-bool NetFirewallPolicyManager::IsPolicyCacheInvalid()
-{
-    std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
-    return currentFirewallPolicy_ == nullptr;
-}
-
-bool NetFirewallPolicyManager::IsPolicyCacheOpen()
-{
-    std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
-    return currentFirewallPolicy_ != nullptr && currentFirewallPolicy_->isOpen;
-}
-
-FirewallRuleAction NetFirewallPolicyManager::GetPolicyCacheInInternal()
-{
-    std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
-    if (currentFirewallPolicy_ == nullptr) {
-        return FirewallRuleAction::RULE_ALLOW;
-    }
-    return currentFirewallPolicy_->inAction;
-}
-
-FirewallRuleAction NetFirewallPolicyManager::GetPolicyCacheOutInternal()
-{
-    std::shared_lock<std::shared_mutex> locker(setPolicyMutex_);
-    if (currentFirewallPolicy_ == nullptr) {
-        return FirewallRuleAction::RULE_ALLOW;
-    }
-    return currentFirewallPolicy_->outAction;
-}
-
-void NetFirewallPolicyManager::RebuildFirewallPolicyCache(const int32_t userId)
-{
-    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
-    currentFirewallPolicy_ = nullptr;
-    currentFirewallPolicy_ = new (std::nothrow) NetFirewallPolicy();
-    if (currentFirewallPolicy_ != nullptr) {
-        LoadPolicyFormPreference(userId, currentFirewallPolicy_);
-    }
 }
 
 void NetFirewallPolicyManager::LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy)

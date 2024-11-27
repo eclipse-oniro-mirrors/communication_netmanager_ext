@@ -79,7 +79,7 @@ public:
 
     int32_t DeleteNetFirewallRuleByAppId(const int32_t appUid);
 
-    int32_t GetEnabledNetFirewallRules(const int32_t userId, std::vector<NetFirewallRule> &ruleList,
+    int32_t GetEnabledNetFirewallRules(std::vector<NetFirewallRule> &ruleList,
         NetFirewallRuleType type = NetFirewallRuleType::RULE_ALL);
 
     int32_t AddDefaultNetFirewallRule(int32_t userId);
@@ -120,7 +120,7 @@ private:
 
     int32_t GetCurrentAccountId();
 
-    int32_t SetRulesToNativeByType(const int32_t userId, const NetFirewallRuleType type);
+    int32_t SetRulesToNativeByType(const NetFirewallRuleType type);
 
     int32_t DistributeRulesToNative(NetFirewallRuleType type = NetFirewallRuleType::RULE_ALL);
 
