@@ -125,27 +125,20 @@ bool WearableDistributedNetService::SubscribeCommonEvent()
 
 void WearableDistributedNetService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 {
-    NETMGR_EXT_LOG_I("Wearable Distributed Net receive power message");
-    const auto &action = eventData.GetWant().GetAction();
-    if (action == Event::COMMON_EVENT_POWER_CONNECTED) {
-        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power connected message");
-        WearableDistributedNetService_.UpdateNetScore(true);
-    }
- 
-    if (action == Event::COMMON_EVENT_BATTERY_CHANGED) {
-        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power change message");
-        auto chargingState = OHOS::PowerMgr::BatterySrvClient::GetInstance().GetChargingStatus();
-        if (chargingState == ChargeState::CHARGE_STATE_DISABLE) {
-            WearableDistributedNetService_.UpdateNetScore(false);
-        } else {
-            WearableDistributedNetService_.UpdateNetScore(true);
-        }
-    }
+    const auto &want = eventData.GetWant();
+    const auto &chargingState = want.GetIntParam(PowerMgr::BatteryInfo::COMMON_EVENT_KEY_CHARGE_STATE,
+                                                 static_cast<int32_t>(ChargeState::CHARGE_STATE_BUTT));
 
-    if (action == Event::COMMON_EVENT_POWER_DISCONNECTED) {
-        NETMGR_EXT_LOG_D("Wearable Distributed Net receive power disconnected message");
-        WearableDistributedNetService_.UpdateNetScore(false);
-    }
+	NETMGR_EXT_LOG_I("Wearable Distributed Net receive power message: chargingState = %{public}d", chargingState);
+	if (chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_DISABLE) ||
+        chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_FULL) ||
+		chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_NONE)) {
+        NETMGR_EXT_LOG_I("Wearable Distributed Net receive power disconnected message");
+		WearableDistributedNetService_.UpdateNetScore(false);
+	} else if (chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_ENABLE)) {
+        NETMGR_EXT_LOG_I("Wearable Distributed Net receive power connected message");
+		WearableDistributedNetService_.UpdateNetScore(true);
+	}
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
