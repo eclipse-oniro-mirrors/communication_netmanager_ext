@@ -94,8 +94,11 @@ napi_value AttachVpnExtensionContext(napi_env env, void *value, void *)
         return nullptr;
     }
     napi_value object = CreateJsVpnExtensionContext(env, ptr);
-    auto contextObj = JsRuntime::LoadSystemModuleByEngine(env,
-        "application.VpnExtensionContext", &object, 1)->GetNapiValue();
+    auto result = JsRuntime::LoadSystemModuleByEngine(env, "application.VpnExtensionContext", &object, 1);
+    if (result == nullptr) {
+        return nullptr;
+    }
+    auto contextObj = result->GetNapiValue();
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachVpnExtensionContext, value, nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<VpnExtensionContext>(ptr);
