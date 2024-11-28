@@ -58,6 +58,7 @@ public:
         CMD_STOP_VPN_EXT,
         CMD_CREATE_VPN_CONNECTION_EXT,
         CMD_REGISTER_BUNDLENAME,
+        CMD_SET_SELF_VPN_PID,
         CMD_GET_SELF_APP_NAME,
     };
 
@@ -72,6 +73,7 @@ public:
     virtual int32_t FactoryResetVpn() = 0;
     virtual int32_t RegisterBundleName(const std::string &bundleName) = 0;
     virtual int32_t GetSelfAppName(std::string &selfAppName) = 0;
+    virtual int32_t SetSelfVpnPid() = 0;
 #ifdef SUPPORT_SYSVPN
     virtual int32_t SetUpVpn(const sptr<SysVpnConfig> &config) = 0;
     virtual int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) = 0;

@@ -381,5 +381,15 @@ int32_t NetworkVpnClient::GetSelfAppName(std::string &selfAppName)
     }
     return proxy->GetSelfAppName(selfAppName);
 }
+
+int32_t NetworkVpnClient::SetSelfVpnPid()
+{
+    auto proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("SetSelfVpnPid proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->SetSelfVpnPid();
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

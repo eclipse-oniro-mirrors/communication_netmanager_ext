@@ -99,6 +99,27 @@ int32_t NetworkVpnServiceProxy::GetSelfAppName(std::string &selfAppName)
     return ERR_NONE;
 }
 
+int32_t NetworkVpnServiceProxy::SetSelfVpnPid()
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("write interface token failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    MessageParcel reply;
+    auto ret = SendRequest(INetworkVpnService::MessageCode::CMD_SET_SELF_VPN_PID, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("SendRequest failed %{public}d", ret);
+        return ret;
+    }
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    if (!reply.ReadInt32(result)) {
+        NETMGR_EXT_LOG_E("IPC ReadInt32 failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return ERR_NONE;
+}
+
 int32_t NetworkVpnServiceProxy::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
     MessageParcel data;

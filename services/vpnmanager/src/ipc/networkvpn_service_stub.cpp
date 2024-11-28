@@ -71,6 +71,8 @@ NetworkVpnServiceStub::NetworkVpnServiceStub()
         "", &NetworkVpnServiceStub::ReplyRegisterBundleName};
     permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_GET_SELF_APP_NAME] = {
         "", &NetworkVpnServiceStub::ReplyGetSelfAppName};
+    permissionAndFuncMap_[INetworkVpnService::MessageCode::CMD_SET_SELF_VPN_PID] = {
+        "", &NetworkVpnServiceStub::ReplySetSelfVpnPid};
 }
 
 int32_t NetworkVpnServiceStub::CheckVpnPermission(std::string &strPermission)
@@ -375,6 +377,15 @@ int32_t NetworkVpnServiceStub::ReplyGetSelfAppName(MessageParcel &data, MessageP
         return result;
     }
     if (!reply.WriteString(selfAppName)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnServiceStub::ReplySetSelfVpnPid(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t result = SetSelfVpnPid();
+    if (!reply.WriteInt32(result)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;

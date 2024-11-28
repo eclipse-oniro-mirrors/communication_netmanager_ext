@@ -201,6 +201,8 @@ public:
 
     int32_t GetSelfAppName(std::string &selfAppName) override;
 
+    int32_t SetSelfVpnPid() override;
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -247,6 +249,9 @@ private:
     std::string GetBundleName();
     std::string GetCurrentVpnBundleName();
     std::vector<std::string> GetCurrentVpnAbilityName();
+    void ClearCurrentVpnUserInfo();
+    void UnregVpnHpObserver();
+    bool IsCurrentVpnPid(int32_t uid, int32_t pid);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -312,6 +317,7 @@ private:
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
     int32_t hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
+    std::map<int32_t, int32_t> setVpnPidMap_;
     std::vector<std::string> currentVpnAbilityName_;
 };
 } // namespace NetManagerStandard

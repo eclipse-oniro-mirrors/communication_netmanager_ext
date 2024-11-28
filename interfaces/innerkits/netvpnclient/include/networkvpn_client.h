@@ -213,6 +213,8 @@ public:
 
     int32_t GetSelfAppName(std::string &selfAppName);
 
+    int32_t SetSelfVpnPid();
+
 private:
     class MonitorVpnServiceDead : public IRemoteObject::DeathRecipient {
     public:
