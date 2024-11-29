@@ -131,11 +131,11 @@ void WearableDistributedNetService::ReceiveMessage::OnReceiveEvent(const EventFw
 
     NETMGR_EXT_LOG_I("Wearable Distributed Net receive power message: chargingState = %{public}d", chargingState);
     if (chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_DISABLE) ||
-        chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_FULL) ||
         chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_NONE)) {
         NETMGR_EXT_LOG_I("Wearable Distributed Net receive power disconnected message");
         WearableDistributedNetService_.UpdateNetScore(false);
-    } else if (chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_ENABLE)) {
+    } else if (chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_ENABLE) ||
+        chargingState == static_cast<int32_t>(ChargeState::CHARGE_STATE_FULL)) {
         NETMGR_EXT_LOG_I("Wearable Distributed Net receive power connected message");
         WearableDistributedNetService_.UpdateNetScore(true);
     }
