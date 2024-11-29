@@ -38,6 +38,7 @@ public:
     int32_t FactoryResetVpn() override;
     int32_t RegisterBundleName(const std::string &bundleName) override;
     int32_t GetSelfAppName(std::string &selfAppName) override;
+    int32_t SetSelfVpnPid() override;
 #ifdef SUPPORT_SYSVPN
     int32_t SetUpVpn(const sptr<SysVpnConfig> &config) override;
     int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;

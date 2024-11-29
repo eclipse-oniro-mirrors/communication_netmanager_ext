@@ -662,7 +662,8 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     remove(VPN_CONFIG_FILE);
 
     NETMGR_EXT_LOG_I("Destroy vpn successfully.");
-    currentVpnBundleName_.clear();
+    ClearCurrentVpnUserInfo();
+    UnregVpnHpObserver();
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -999,7 +1000,7 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<
     }
 
     if (userId >= 0 && userId <= userId_Max) {
-       return NETMANAGER_EXT_SUCCESS;
+        return NETMANAGER_EXT_SUCCESS;
     }
 
     auto itr = std::find_if(activeUserIds.begin(), activeUserIds.end(),
@@ -1272,6 +1273,15 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName)
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t NetworkVpnService::SetSelfVpnPid()
+{
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    setVpnPidMap_.emplace(uid, pid);
+    NETMGR_EXT_LOG_I("SetSelfVpnPid uid: %{public}d, pid: %{public}d", uid, pid);
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 std::string NetworkVpnService::GetBundleName()
 {
     std::string bundleName;
@@ -1341,9 +1351,32 @@ std::string NetworkVpnService::GetCurrentVpnBundleName()
     return currentVpnBundleName_;
 }
 
+bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid)
+{
+    auto it = setVpnPidMap_.find(uid);
+    if (it != setVpnPidMap_.end() && it->second == pid) {
+        return true;
+    }
+    return false;
+}
+
+void NetworkVpnService::UnregVpnHpObserver()
+{
+    auto unRegRet =
+        Singleton<AppExecFwk::AppMgrClient>::GetInstance().UnregisterApplicationStateObserver(vpnHapObserver_);
+    NETMGR_EXT_LOG_I("UnregisterApplicationStateObserver ret = %{public}d", unRegRet);
+}
+
 std::vector<std::string> NetworkVpnService::GetCurrentVpnAbilityName()
 {
     return currentVpnAbilityName_;
+}
+
+void NetworkVpnService::ClearCurrentVpnUserInfo()
+{
+    currentVpnBundleName_ = "";
+    currentVpnAbilityName_.clear();
+    setVpnPidMap_.clear();
 }
 
 void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
@@ -1351,6 +1384,11 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
     auto extensionBundleName = vpnService_.GetCurrentVpnBundleName();
     auto extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
+    NETMGR_EXT_LOG_I("vpn OnProcessDied %{public}d, %{public}d", processData.uid, processData.pid);
+    if (!vpnService_.IsCurrentVpnPid(processData.uid, processData.pid)) {
+        NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
+        return;
+    }
     if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
         NETMGR_EXT_LOG_E("destroy vpn failed");
     }
@@ -1365,6 +1403,8 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
             want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
         NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
     }
+    vpnService_.UnregVpnHpObserver();
+    vpnService_.ClearCurrentVpnUserInfo();
 }
 
 void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)

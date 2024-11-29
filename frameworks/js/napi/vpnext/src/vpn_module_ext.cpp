@@ -177,6 +177,8 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
     std::string abilityName = want.GetElement().GetAbilityName();
     if (abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
+        NetworkVpnClient::GetInstance().SetSelfVpnPid();
+
         bool vpnDialogSelect = false;
         std::string vpnExtMode = std::to_string(vpnDialogSelect);
         int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);

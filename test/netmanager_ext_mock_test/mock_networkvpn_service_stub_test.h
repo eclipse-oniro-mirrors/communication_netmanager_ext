@@ -119,6 +119,11 @@ public:
     {
         return 0;
     }
+
+    int32_t SetSelfVpnPid() override
+    {
+        return 0;
+    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
