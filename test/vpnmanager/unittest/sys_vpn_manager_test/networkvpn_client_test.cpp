@@ -167,16 +167,13 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList001, TestSize.Level1)
 HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList002, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
+    std::vector<SysVpnConfig> list;
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     config->vpnId_ = "testGetList";
     config->vpnName_ = "testList";
     config->vpnType_ = 1;
-    int32_t ret = networkVpnClient_.AddSysVpnConfig(config);
-    if (ret != NETMANAGER_EXT_SUCCESS) {
-        return;
-    }
-    std::vector<SysVpnConfig> list;
+    EXPECT_EQ(networkVpnClient_.AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(networkVpnClient_.GetSysVpnConfigList(list), NETMANAGER_EXT_SUCCESS);
     ASSERT_TRUE(list.size() > 0);
 }
