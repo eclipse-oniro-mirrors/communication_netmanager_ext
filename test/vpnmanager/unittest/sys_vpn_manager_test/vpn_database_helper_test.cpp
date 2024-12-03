@@ -106,7 +106,11 @@ HWTEST_F(VpnDatabaseHelperTest, InsertData001, TestSize.Level1)
 {
     sptr<VpnDataBean> vpnBean = nullptr;
     EXPECT_EQ(vpnDataHelper_.InsertData(vpnBean), NETMANAGER_EXT_ERR_INVALID_PARAMETER);
-    vpnBean = new (std::nothrow) VpnDataBean();
+}
+
+HWTEST_F(VpnDatabaseHelperTest, InsertData002, TestSize.Level1)
+{
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     ASSERT_NE(vpnBean, nullptr);
     vpnBean->vpnId_ = "1234";
     vpnBean->userId_ = 100;
@@ -115,16 +119,28 @@ HWTEST_F(VpnDatabaseHelperTest, InsertData001, TestSize.Level1)
     vpnBean->vpnAddress_ = "1.1.1.1";
     vpnBean->isLegacy_ = 1;
     vpnBean->saveLogin_ = 1;
-    EXPECT_EQ(vpnDataHelper_.InsertData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    vpnDataHelper_.DeleteVpnData("1234");
+    EXPECT_EQ(vpnDataHelper_.InsertData(vpnBean), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, InsertOrUpdateData001, TestSize.Level1)
 {
     sptr<VpnDataBean> vpnBean = nullptr;
     EXPECT_EQ(vpnDataHelper_.InsertOrUpdateData(vpnBean), NETMANAGER_EXT_ERR_INVALID_PARAMETER);
-    vpnBean = new (std::nothrow) VpnDataBean();
+}
+
+HWTEST_F(VpnDatabaseHelperTest, InsertOrUpdateData002, TestSize.Level1)
+{
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     ASSERT_NE(vpnBean, nullptr);
-    EXPECT_EQ(vpnDataHelper_.InsertOrUpdateData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    vpnBean->vpnId_ = "1234";
+    vpnBean->userId_ = 100;
+    vpnBean->vpnType_ = 1;
+    vpnBean->vpnName_ = "name";
+    vpnBean->vpnAddress_ = "1.1.1.1";
+    vpnBean->isLegacy_ = 1;
+    vpnBean->saveLogin_ = 1;
+    EXPECT_EQ(vpnDataHelper_.InsertOrUpdateData(vpnBean), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, QueryVpnData001, TestSize.Level1)
