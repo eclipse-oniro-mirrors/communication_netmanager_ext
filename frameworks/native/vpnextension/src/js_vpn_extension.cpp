@@ -232,7 +232,7 @@ void JsVpnExtension::BindContext(napi_env env, napi_value obj)
     if (shellContextRef_ == nullptr) {
         NETMGR_EXT_LOG_E("Failed to get context");
         return;
-    }    
+    }
     contextObj = shellContextRef_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
         NETMGR_EXT_LOG_E("Failed to get context native object");
