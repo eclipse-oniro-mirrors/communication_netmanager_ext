@@ -229,6 +229,10 @@ void JsVpnExtension::BindContext(napi_env env, napi_value obj)
     napi_value contextObj = CreateJsVpnExtensionContext(env, context);
     shellContextRef_ = JsRuntime::LoadSystemModuleByEngine(env, "application.VpnExtensionContext",
         &contextObj, ARGC_ONE);
+    if (shellContextRef_ == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get context");
+        return;
+    }
     contextObj = shellContextRef_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
         NETMGR_EXT_LOG_E("Failed to get context native object");
