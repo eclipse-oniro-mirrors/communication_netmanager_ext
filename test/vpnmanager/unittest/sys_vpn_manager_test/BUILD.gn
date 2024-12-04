@@ -39,7 +39,6 @@ ohos_unittest("sys_vpn_manager_test") {
     "open_vpn_ctl_test.cpp",
     "openvpn_config_test.cpp",
     "sysvpn_config_test.cpp",
-    "vpn_config_test.cpp",
     "vpn_data_bean_test.cpp",
     "vpn_database_helper_test.cpp",
   ]

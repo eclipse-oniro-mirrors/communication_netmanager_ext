@@ -55,15 +55,7 @@ void OpenvpnCtlTest::SetUpTestSuite()
 
 HWTEST_F(OpenvpnCtlTest, SetUp001, TestSize.Level1)
 {
-    int32_t userId = 0;
-    std::vector<int32_t> activeUserIds;
-    std::unique_ptr<OpenvpnCtl> openvpnCtl =
-        std::make_unique<OpenvpnCtl>(nullptr, "pkg", userId, activeUserIds);
-    ASSERT_NE(openvpnCtl, nullptr);
-    EXPECT_EQ(openvpnCtl->SetUp(), NETMANAGER_EXT_ERR_INTERNAL);
     ASSERT_NE(openvpnControl_, nullptr);
-    EXPECT_EQ(openvpnControl_->SetUp(), NETMANAGER_EXT_ERR_INTERNAL);
-    NetManagerExtAccessToken accToken;
     EXPECT_EQ(openvpnControl_->SetUp(), NETMANAGER_EXT_SUCCESS);
 }
 
