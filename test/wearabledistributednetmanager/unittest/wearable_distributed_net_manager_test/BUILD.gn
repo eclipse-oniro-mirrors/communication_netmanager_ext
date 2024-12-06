@@ -51,7 +51,6 @@ ohos_unittest("wearable_distributed_net_manager_test") {
 
   deps = [
     "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
-    "$BATTERY_INNER_API:batterysrv_client",
     "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_manager_if",
     "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_service",
     "$NETCONNMANAGER_COMMON_DIR:net_service_common",
@@ -86,6 +85,11 @@ ohos_unittest("wearable_distributed_net_manager_test") {
 
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
+  }
+
+  if (battery_manager_switch_enable) {
+    include_dirs += [ "$BATTERY_INNER_API/native/include" ]
+    external_deps += [ "battery_manager:batterysrv_client" ]
   }
 
   part_name = "netmanager_ext"

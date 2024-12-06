@@ -34,6 +34,10 @@ config("wearable_distributed_net_manager_config") {
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
   }
+
+  if (battery_manager_switch_enable) {
+    include_dirs += [ "$BATTERY_INNER_API/native/include" ]
+  }
 }
 
 wearable_distributed_net_manager_sources = [
@@ -57,7 +61,6 @@ wearable_distributed_net_manager_external_deps = [
   "ability_base:want",
   "ability_base:zuri",
   "ability_runtime:app_manager",
-  "battery_manager:batterysrv_client",
   "bundle_framework:appexecfwk_base",
   "bundle_framework:appexecfwk_core",
   "cJSON:cjson",
@@ -103,6 +106,10 @@ ohos_shared_library("wearable_distributed_net_manager") {
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]
+
+  if (battery_manager_switch_enable) {
+    external_deps += [ "battery_manager:batterysrv_client" ]
+  }
 
   cflags_cc = memory_optimization_cflags_cc
   cflags_cc += [

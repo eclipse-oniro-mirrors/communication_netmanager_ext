@@ -108,6 +108,7 @@ declare_args() {
   netmanager_ext_feature_vpnext = true
   usb_manager_enable = false
   netmanager_ext_feature_wearable_distributed_net = false
+  battery_manager_switch_enable = false
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]
@@ -144,6 +145,12 @@ if (defined(global_parts_info) &&
 if (defined(global_parts_info) && defined(global_parts_info.usb_usb_manager) &&
     global_parts_info.usb_usb_manager) {
   usb_manager_enable = true
+}
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.powermgr_battery_manager) &&
+    global_parts_info.powermgr_battery_manager) {
+  battery_manager_switch_enable = true
 }
 
 fuzz_test_path = "netmanager_ext/netmanager_ext"
