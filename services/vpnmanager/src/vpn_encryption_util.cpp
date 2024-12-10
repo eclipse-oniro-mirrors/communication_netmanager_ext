@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 struct HksParam g_genParam[] = {
+    { .tag = HKS_TAG_SPECIFIC_USER_ID, .int32Param = 0 },
     { .tag = HKS_TAG_KEY_STORAGE_FLAG, .uint32Param = HKS_STORAGE_PERSISTENT },
     { .tag = HKS_TAG_ALGORITHM, .uint32Param = HKS_ALG_AES },
     { .tag = HKS_TAG_KEY_SIZE, .uint32Param = HKS_AES_KEY_SIZE_256 },
@@ -30,27 +31,8 @@ struct HksParam g_genParam[] = {
     { .tag = HKS_TAG_IS_KEY_ALIAS, .boolParam = true },
     { .tag = HKS_TAG_KEY_GENERATE_TYPE, .uint32Param = HKS_KEY_GENERATE_TYPE_DEFAULT },
     { .tag = HKS_TAG_BLOCK_MODE, .uint32Param = HKS_MODE_GCM },
-    { .tag = HKS_TAG_AUTH_STORAGE_LEVEL, .uint32Param = HKS_AUTH_STORAGE_LEVEL_DE },
+    { .tag = HKS_TAG_AUTH_STORAGE_LEVEL, .uint32Param = HKS_AUTH_STORAGE_LEVEL_CE },
     { .tag = HKS_TAG_ASSOCIATED_DATA, .blob = { .size = AAD_SIZE, .data = (uint8_t *)AAD } },
-};
-
-struct HksParam g_genAes256Param[] = {
-    { .tag = HKS_TAG_ALGORITHM, .uint32Param = HKS_ALG_AES },
-    { .tag = HKS_TAG_KEY_SIZE, .uint32Param = HKS_AES_KEY_SIZE_256 },
-    { .tag = HKS_TAG_DIGEST, .uint32Param = HKS_DIGEST_NONE },
-    { .tag = HKS_TAG_PADDING, .uint32Param = HKS_PADDING_NONE },
-    { .tag = HKS_TAG_IS_KEY_ALIAS, .boolParam = true },
-    { .tag = HKS_TAG_KEY_GENERATE_TYPE, .uint32Param = HKS_KEY_GENERATE_TYPE_DEFAULT },
-    { .tag = HKS_TAG_BLOCK_MODE, .uint32Param = HKS_MODE_GCM },
-    { .tag = HKS_TAG_AUTH_STORAGE_LEVEL, .uint32Param = HKS_AUTH_STORAGE_LEVEL_DE },
-};
-
-static struct HksParam g_genHmacParams[] = {
-    { .tag = HKS_TAG_ALGORITHM, .uint32Param = HKS_ALG_HMAC },
-    { .tag = HKS_TAG_PURPOSE, .uint32Param = HKS_KEY_PURPOSE_MAC },
-    { .tag = HKS_TAG_KEY_SIZE, .uint32Param = HKS_AES_KEY_SIZE_256 },
-    { .tag = HKS_TAG_DIGEST, .uint32Param = HKS_DIGEST_SHA256 },
-    { .tag = HKS_TAG_AUTH_STORAGE_LEVEL, .uint32Param = HKS_AUTH_STORAGE_LEVEL_DE },
 };
 
 static char ConvertArrayChar(uint8_t ch)
@@ -176,6 +158,7 @@ int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::str
     struct HksParam IVParam[] = {
         { .tag = HKS_TAG_NONCE, .blob = { .size = NONCE_SIZE, .data = nonce } },
     };
+    g_genParam[0].int32Param = vpnEncryptionInfo.userId;
 
     struct HksParamSet *encryParamSet = nullptr;
     HksInitParamSet(&encryParamSet);
@@ -230,6 +213,7 @@ int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const Encrypte
     struct HksParam IVParam[] = {
         { .tag = HKS_TAG_NONCE, .blob = { .size = NONCE_SIZE, .data = nonce } },
     };
+    g_genParam[0].int32Param = vpnEncryptionInfo.userId;
 
     struct HksBlob cipherData = { length, cipherBuf };
     struct HksParamSet *decryParamSet = nullptr;

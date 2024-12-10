@@ -93,7 +93,7 @@ int32_t VpnDatabaseHelper::EncryptData(const sptr<VpnDataBean> &vpnBean)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     VpnEncryptionInfo vpnEncryptionInfo;
-    vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME);
+    vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME, vpnBean->userId_);
 
     if (!vpnBean->userName_.empty()) {
         EncryptedData encryName;
@@ -124,7 +124,7 @@ int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     VpnEncryptionInfo vpnEncryptionInfo;
-    vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME);
+    vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME, vpnBean->userId_);
 
     if (!vpnBean->userName_.empty()) {
         const std::vector<std::string> encryedNameStrs = CommonUtils::Split(vpnBean->userName_, ENCRYT_SPLIT_SEP);

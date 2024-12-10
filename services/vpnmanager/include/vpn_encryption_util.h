@@ -48,17 +48,19 @@ public:
 
 class VpnEncryptionInfo {
 public:
+    int32_t userId;
     std::string fileName;
     static constexpr char SYSVPN_ENCRY_KEY[] = "EncryHksAes";
     struct HksBlob keyAlias;
-    void SetFile(const std::string file)
+    void SetFile(const std::string file, int32_t id)
     {
         fileName = SYSVPN_ENCRY_KEY + file;
         keyAlias = { fileName.length(), (uint8_t *)&fileName[0] };
+        userId = id;
     }
-    explicit VpnEncryptionInfo(const std::string file)
+    explicit VpnEncryptionInfo(const std::string file, int32_t id)
     {
-        SetFile(file);
+        SetFile(file, id);
     }
     VpnEncryptionInfo() {}
     ~VpnEncryptionInfo() {}
