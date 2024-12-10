@@ -139,6 +139,39 @@ int32_t GetKeyByAlias(struct HksBlob *keyAlias, const struct HksParamSet *genPar
     return keyExist;
 }
 
+int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId)
+{
+    uint8_t nonce[NONCE_SIZE] = {0};
+    struct HksParam IVParam[] = {
+        { .tag = HKS_TAG_NONCE, .blob = { .size = NONCE_SIZE, .data = nonce } },
+    };
+    g_genParam[0].int32Param = userId;
+    int32_t ret = HksInitParamSet(paramSet);
+    if (ret != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("HksInitParamSet failed");
+        return ret;
+    }
+    ret = HksAddParams(*paramSet, g_genParam, sizeof(g_genParam) / sizeof(HksParam));
+    if (ret != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("HksAddParams g_genParam failed");
+        HksFreeParamSet(paramSet);
+        return ret;
+    }
+    ret = HksAddParams(*paramSet, IVParam, sizeof(IVParam) / sizeof(HksParam));
+    if (ret != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("HksAddParams IVParam failed");
+        HksFreeParamSet(paramSet);
+        return ret;
+    }
+    ret = HksBuildParamSet(paramSet);
+    if (ret != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("HksBuildParamSet failed");
+        HksFreeParamSet(paramSet);
+        return ret;
+    }
+    return ret;
+}
+
 int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::string &inputString,
     EncryptedData &encryptedData)
 {
@@ -155,33 +188,11 @@ int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::str
         NETMGR_EXT_LOG_E("vpn encryption generate IV failed");
         return ret;
     }
-    struct HksParam IVParam[] = {
-        { .tag = HKS_TAG_NONCE, .blob = { .size = NONCE_SIZE, .data = nonce } },
-    };
-    g_genParam[0].int32Param = vpnEncryptionInfo.userId;
 
     struct HksParamSet *encryParamSet = nullptr;
-    ret = HksInitParamSet(&encryParamSet);
-    if (ret != HksErrorCode::HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksInitParamSet failed");
-        return ret;
-    }
-    ret = HksAddParams(encryParamSet, g_genParam, sizeof(g_genParam) / sizeof(HksParam));
+    ret = VpnBuildHksParamSet(&encryParamSet, vpnEncryptionInfo.userId);
     if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksAddParams g_genParam failed");
-        HksFreeParamSet(&encryParamSet);
-        return ret;
-    }
-    ret = HksAddParams(encryParamSet, IVParam, sizeof(IVParam) / sizeof(HksParam));
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksAddParams IVParam failed");
-        HksFreeParamSet(&encryParamSet);
-        return ret;
-    }
-    ret = HksBuildParamSet(&encryParamSet);
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksBuildParamSet failed");
-        HksFreeParamSet(&encryParamSet);
+        NETMGR_EXT_LOG_E("VpnBuildHksParamSet failed");
         return ret;
     }
 
@@ -231,35 +242,12 @@ int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const Encrypte
     if (retStrToArrat != 0) {
         return HKS_FAILURE;
     }
-    struct HksParam IVParam[] = {
-        { .tag = HKS_TAG_NONCE, .blob = { .size = NONCE_SIZE, .data = nonce } },
-    };
-    g_genParam[0].int32Param = vpnEncryptionInfo.userId;
 
     struct HksBlob cipherData = { length, cipherBuf };
     struct HksParamSet *decryParamSet = nullptr;
-
-    int32_t ret = HksInitParamSet(&decryParamSet);
+    int32_t ret = VpnBuildHksParamSet(&decryParamSet, vpnEncryptionInfo.userId);
     if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksInitParamSet failed");
-        return ret;
-    }
-    ret = HksAddParams(decryParamSet, g_genParam, sizeof(g_genParam) / sizeof(HksParam));
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksInitParamSet failed");
-        HksFreeParamSet(&decryParamSet);
-        return ret;
-    }
-    ret = HksAddParams(decryParamSet, IVParam, sizeof(IVParam) / sizeof(HksParam));
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksInitParamSet failed");
-        HksFreeParamSet(&decryParamSet);
-        return ret;
-    }
-    ret = HksBuildParamSet(&decryParamSet);
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("HksInitParamSet failed");
-        HksFreeParamSet(&decryParamSet);
+        NETMGR_EXT_LOG_E("BuildHksParamSet failed");
         return ret;
     }
 
