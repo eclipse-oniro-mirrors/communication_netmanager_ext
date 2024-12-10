@@ -46,6 +46,8 @@ private:
     ~VpnDatabaseHelper() = default;
     int32_t InsertData(const sptr<VpnDataBean> &vpnBean);
     int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
+    int32_t EncryptData(const sptr<VpnDataBean> &vpnBean);
+    int32_t DecryptData(const sptr<VpnDataBean> &vpnBean);
     bool IsVpnInfoExists(const std::string &vpnId);
     void GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
         sptr<VpnDataBean> &vpnBean);

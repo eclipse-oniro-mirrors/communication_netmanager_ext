@@ -18,10 +18,12 @@
 #include <cstdlib>
 #include <filesystem>
 
+#include "netmanager_base_common_utils.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "vpn_database_defines.h"
+#include "vpn_encryption_util.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -55,6 +57,8 @@ VpnDatabaseHelper::VpnDatabaseHelper()
     } else {
         NETMGR_EXT_LOG_I("GetRdbStore success");
     }
+
+    SetUpHks();
 }
 
 int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
@@ -82,6 +86,82 @@ int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t VpnDatabaseHelper::EncryptData(const sptr<VpnDataBean> &vpnBean)
+{
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("EncryptData failed, vpnBean is empty");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    VpnEncryptionInfo vpnEncryptionInfo;
+    vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME);
+
+    if (!vpnBean->userName_.empty()) {
+        EncryptedData encryName;
+        if (VpnEncryption(vpnEncryptionInfo, vpnBean->userName_, encryName) == NETMANAGER_EXT_SUCCESS) {
+            vpnBean->userName_ = encryName.encryptedData + ENCRYT_SPLIT_SEP + encryName.IV;
+        } else {
+            NETMGR_EXT_LOG_E("VpnEncryption name failed");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+    }
+
+    if (!vpnBean->password_.empty()) {
+        EncryptedData encryPwd;
+        if (VpnEncryption(vpnEncryptionInfo, vpnBean->password_, encryPwd) == NETMANAGER_EXT_SUCCESS) {
+            vpnBean->password_ = encryPwd.encryptedData + ENCRYT_SPLIT_SEP + encryPwd.IV;
+        } else {
+            NETMGR_EXT_LOG_E("VpnEncryption failed");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
+{
+    if (vpnBean == nullptr) {
+        NETMGR_EXT_LOG_E("DecryptData failed, vpnBean is empty");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    VpnEncryptionInfo vpnEncryptionInfo;
+    vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME);
+
+    if (!vpnBean->userName_.empty()) {
+        const std::vector<std::string> encryedNameStrs = CommonUtils::Split(vpnBean->userName_, ENCRYT_SPLIT_SEP);
+        if (encryedNameStrs.size() > 1) {
+            EncryptedData *encryName = new EncryptedData(encryedNameStrs[0], encryedNameStrs[1]);
+            std::string decryName = "";
+            if (VpnDecryption(vpnEncryptionInfo, *encryName, decryName) == HKS_SUCCESS) {
+                vpnBean->userName_ = decryName;
+            } else {
+                NETMGR_EXT_LOG_E("VpnDecryption name failed");
+            }
+            delete encryName;
+            encryName = nullptr;
+        } else {
+            NETMGR_EXT_LOG_E("DecryptData name split failed");
+        }
+    }
+
+    if (!vpnBean->password_.empty()) {
+        const std::vector<std::string> encryedPwdStrs = CommonUtils::Split(vpnBean->password_, ENCRYT_SPLIT_SEP);
+        if (encryedPwdStrs.size() > 1) {
+            EncryptedData *encryPwd = new EncryptedData(encryedPwdStrs[0], encryedPwdStrs[1]);
+            std::string decryPwd = "";
+            if (VpnDecryption(vpnEncryptionInfo, *encryPwd, decryPwd) == HKS_SUCCESS) {
+                vpnBean->password_ = decryPwd;
+            } else {
+                NETMGR_EXT_LOG_E("VpnDecryption pwd failed");
+            }
+            delete encryPwd;
+            encryPwd = nullptr;
+        } else {
+            NETMGR_EXT_LOG_E("DecryptData pwd split failed");
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr) {
@@ -93,6 +173,12 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
         NETMGR_EXT_LOG_E("InsertOrUpdateData failed, exceeded the size limit %{public}d", SYSVPN_MAX_SIZE);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+
+    if (EncryptData(vpnBean) != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
     if (IsVpnInfoExists(vpnBean->vpnId_)) {
         return UpdateData(vpnBean);
     }
@@ -336,6 +422,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     while (!queryResultSet->GoToNextRow()) {
         GetVpnDataFromResultSet(queryResultSet, vpnBean);
         if (vpnBean->vpnId_ == vpnUuid) {
+            DecryptData(vpnBean);
             return NETMANAGER_SUCCESS;
         }
     }
