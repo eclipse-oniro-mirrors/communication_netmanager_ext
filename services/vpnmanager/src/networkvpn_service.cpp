@@ -824,8 +824,8 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         return ret;
     }
 
-    NETMGR_EXT_LOG_I("AddSysVpnConfig id=%{public}s name=%{public}s type=%{public}d",
-        config->vpnId_.c_str(), config->vpnName_.c_str(), config->vpnType_);
+    NETMGR_EXT_LOG_I("AddSysVpnConfig id=%{public}s type=%{public}d",
+        config->vpnId_.c_str(), config->vpnType_);
     config->userId_ = userId;
 
     sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
