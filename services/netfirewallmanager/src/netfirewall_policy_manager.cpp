@@ -127,7 +127,7 @@ bool NetFirewallPolicyManager::IsNetFirewallOpen(const int32_t userId)
 {
     NETMGR_EXT_LOG_D("IsNetFirewallOpen");
     preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    return preferencesHelper_->ObtainBool("isOpen", true);
+    return preferencesHelper_->ObtainBool(NET_FIREWALL_IS_OPEN, false);
 }
 
 int32_t NetFirewallPolicyManager::ClearFirewallPolicy(const int32_t userId)
