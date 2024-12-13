@@ -594,7 +594,8 @@ int32_t NetFirewallParamCheck::CheckRuleNumberParam(napi_env env, napi_value obj
     if (propertyName == NET_FIREWALL_PROTOCOL) {
         NetworkProtocol ruleProtocol = static_cast<NetworkProtocol>(value);
         if (ruleProtocol != NetworkProtocol::ICMP && ruleProtocol != NetworkProtocol::TCP &&
-            ruleProtocol != NetworkProtocol::UDP && ruleProtocol != NetworkProtocol::ICMPV6) {
+            ruleProtocol != NetworkProtocol::UDP && ruleProtocol != NetworkProtocol::ICMPV6 &&
+            ruleProtocol != NetworkProtocol::SAT_EXPAK) {
             NETMANAGER_EXT_LOGE("params protocol invalid");
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
