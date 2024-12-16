@@ -290,8 +290,10 @@ bool NetVpnImpl::UpdateNetLinkInfo()
         INetAddr dns;
         if (vpnConfig_->isAcceptIPv4_ == true) {
             dns.type_ = INetAddr::IpType::IPV4;
+            dns.family_ = INetAddr::IpType::IPV4;
         } else {
             dns.type_ = INetAddr::IpType::IPV6;
+            dns.family_ = INetAddr::IpType::IPV6;
         }
         dns.address_ = dnsServer;
         linkInfo->dnsList_.emplace_back(dns);
