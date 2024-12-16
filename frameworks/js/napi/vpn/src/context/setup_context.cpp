@@ -178,15 +178,11 @@ static bool ParseAddressFamily(napi_env env, napi_value netAddress, uint8_t &fam
 {
     // The value is 1 for IPv4 and 2 for IPv6. The default value is 1.
     if (!NapiUtils::HasNamedProperty(env, netAddress, NET_FAMILY)) {
-        family = AF_INET;
+        family = NET_FAMILY_IPV4;
         return true;
     }
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, family);
-    if (family == NET_FAMILY_IPV4) {
-        family = AF_INET;
-        return true;
-    } else if (family == NET_FAMILY_IPV6) {
-        family = AF_INET6;
+    if (family == NET_FAMILY_IPV4 || family == NET_FAMILY_IPV6) {
         return true;
     } else {
         NETMGR_EXT_LOG_E("family %{public}u is mismatch", family);
