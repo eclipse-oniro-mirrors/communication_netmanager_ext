@@ -28,7 +28,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-const std::string SWAN_CTL_FILE = IPSEC_PIDDIR "/swanctl.conf";
 const std::string SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
 const std::string L2TP_IPSEC_CFG = IPSEC_PIDDIR "/ipsec.conf";
 const std::string L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
@@ -52,6 +51,7 @@ enum IpsecVpnCertType : int32_t {
     CA_CERT = 0,
     USER_CERT,
     SERVER_CERT,
+    SWAN_CTL_CONF,
 };
 
 class IpsecVpnCtl : public NetVpnImpl {

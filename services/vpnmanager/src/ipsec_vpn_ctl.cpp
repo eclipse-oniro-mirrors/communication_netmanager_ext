@@ -75,13 +75,6 @@ int32_t IpsecVpnCtl::InitConfigFile()
         NETMGR_EXT_LOG_E("InitConfigFile ipsecVpnConfig is null");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
-    if (!ipsecVpnConfig_->swanctlConf_.empty()) {
-        std::string swanctlCfg = Base64::Decode(ipsecVpnConfig_->swanctlConf_);
-        if (!swanctlCfg.empty()) {
-            CommonUtils::WriteFile(SWAN_CTL_FILE, swanctlCfg);
-        }
-    }
     if (!ipsecVpnConfig_->strongswanConf_.empty()) {
         std::string strongswanCfg = Base64::Decode(ipsecVpnConfig_->strongswanConf_);
         if (!strongswanCfg.empty()) {
@@ -93,7 +86,6 @@ int32_t IpsecVpnCtl::InitConfigFile()
 
 void IpsecVpnCtl::CleanTempFiles()
 {
-    DeleteTempFile(SWAN_CTL_FILE);
     DeleteTempFile(SWAN_CONFIG_FILE);
     DeleteTempFile(L2TP_CFG);
     DeleteTempFile(L2TP_IPSEC_CFG);
@@ -167,6 +159,9 @@ int32_t IpsecVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certU
             break;
         case IpsecVpnCertType::SERVER_CERT:
             certUri = ipsecVpnConfig_->ipsecPublicServerCertConf_;
+            break;
+        case IpsecVpnCertType::SWAN_CTL_CONF:
+            certUri = Base64::Decode(ipsecVpnConfig_->swanctlConf_);
             break;
         default:
             NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
