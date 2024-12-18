@@ -24,7 +24,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr const char *ENCRYT_KEY_FILENAME = "SysVpn";
 constexpr const char *ENCRYT_SPLIT_SEP = ",";
-constexpr uint32_t AES_COMMON_SIZE = 2048 + 16;
+constexpr uint32_t AES_COMMON_SIZE = 2048 + 16; // 2048 for AES-256, 16 for IV
 constexpr uint32_t AAD_SIZE = 16;
 constexpr uint32_t NONCE_SIZE = 16;
 constexpr uint32_t AEAD_SIZE = 16;
@@ -35,12 +35,12 @@ const uint8_t AAD[AAD_SIZE] = {0};
 
 class EncryptedData final {
 public:
-    std::string encryptedData = "";
-    std::string IV = "";
-    EncryptedData(const std::string data, const std::string inputIV)
+    std::string encryptedData_ = "";
+    std::string iv_ = "";
+    EncryptedData(const std::string data, const std::string inputIv)
     {
-        encryptedData = data;
-        IV = inputIV;
+        encryptedData_ = data;
+        iv_ = inputIv;
     }
     EncryptedData() {}
     ~EncryptedData() {}
@@ -68,6 +68,7 @@ public:
 
 /**
  * @Description  Set up Huks service
+ * @return HKS_SUCCESS - setup success, others - setup failed
  */
 int32_t SetUpHks();
 
