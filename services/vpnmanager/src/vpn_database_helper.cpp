@@ -57,7 +57,9 @@ VpnDatabaseHelper::VpnDatabaseHelper()
         NETMGR_EXT_LOG_I("GetRdbStore success");
     }
 
-    SetUpHks();
+    if (SetUpHks() != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetUpHks failed");
+    }
 }
 
 int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
@@ -149,7 +151,7 @@ int32_t VpnDatabaseHelper::EncryptData(VpnEncryptionInfo vpnEncryptionInfo, std:
             NETMGR_EXT_LOG_E("VpnEncryption failed");
             return NETMANAGER_EXT_ERR_INTERNAL;
         }
-        data = encryptedData.encryptedData + ENCRYT_SPLIT_SEP + encryptedData.IV;
+        data = encryptedData.encryptedData_ + ENCRYT_SPLIT_SEP + encryptedData.iv_;
     }
     return NETMANAGER_EXT_SUCCESS;
 }

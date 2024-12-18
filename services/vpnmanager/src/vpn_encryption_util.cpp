@@ -128,10 +128,8 @@ int32_t GetKeyByAlias(struct HksBlob *keyAlias, const struct HksParamSet *genPar
         int32_t ret = HksGenerateKey(keyAlias, genParamSet, nullptr);
         if (ret != HKS_SUCCESS) {
             NETMGR_EXT_LOG_E("%{public}s generate key failed:%{public}d", __func__, keyExist);
-            return ret;
-        } else {
-            return ret;
         }
+        return ret;
     } else if (keyExist != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("%{public}s search key failed:%{public}d", __func__, keyExist);
         return keyExist;
@@ -216,8 +214,8 @@ int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::str
         return ret;
     }
 
-    encryptedData.encryptedData = ConvertArrayToHex(cipherBuf, cipherData.size);
-    encryptedData.IV = ConvertArrayToHex(nonce, NONCE_SIZE);
+    encryptedData.encryptedData_ = ConvertArrayToHex(cipherBuf, cipherData.size);
+    encryptedData.iv_ = ConvertArrayToHex(nonce, NONCE_SIZE);
     HksFreeParamSet(&encryParamSet);
     return ret;
 }
@@ -225,20 +223,20 @@ int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::str
 int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const EncryptedData &encryptedData,
     std::string &decryptedData)
 {
-    if (encryptedData.encryptedData.size() == 0) {
+    if (encryptedData.encryptedData_.size() == 0) {
         return HKS_SUCCESS;
     }
     struct HksBlob authId = vpnEncryptionInfo.keyAlias;
     uint8_t cipherBuf[AES_COMMON_SIZE] = {0};
     uint32_t length = AES_COMMON_SIZE;
-    int32_t retStrToArrat = HexStringToVec(encryptedData.encryptedData, cipherBuf, AES_COMMON_SIZE, length);
+    int32_t retStrToArrat = HexStringToVec(encryptedData.encryptedData_, cipherBuf, AES_COMMON_SIZE, length);
     if (retStrToArrat != 0) {
         return HKS_FAILURE;
     }
 
     uint8_t nonce[NONCE_SIZE] = {0};
     uint32_t lengthIV = NONCE_SIZE;
-    retStrToArrat = HexStringToVec(encryptedData.IV, nonce, NONCE_SIZE, lengthIV);
+    retStrToArrat = HexStringToVec(encryptedData.iv_, nonce, NONCE_SIZE, lengthIV);
     if (retStrToArrat != 0) {
         return HKS_FAILURE;
     }
