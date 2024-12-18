@@ -143,7 +143,7 @@ int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::EncryptData(VpnEncryptionInfo vpnEncryptionInfo, std::string &data)
+int32_t VpnDatabaseHelper::EncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
 {
     if (!data.empty()) {
         EncryptedData encryptedData;
@@ -156,7 +156,7 @@ int32_t VpnDatabaseHelper::EncryptData(VpnEncryptionInfo vpnEncryptionInfo, std:
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::DecryptData(VpnEncryptionInfo vpnEncryptionInfo, std::string &data)
+int32_t VpnDatabaseHelper::DecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
 {
     if (!data.empty()) {
         const std::vector<std::string> encryedDataStrs = CommonUtils::Split(data, ENCRYT_SPLIT_SEP);

@@ -49,8 +49,8 @@ private:
     int32_t UpdateData(const sptr<VpnDataBean> &vpnBean);
     int32_t EncryptData(const sptr<VpnDataBean> &vpnBean);
     int32_t DecryptData(const sptr<VpnDataBean> &vpnBean);
-    int32_t EncryptData(VpnEncryptionInfo vpnEncryptionInfo, std::string &data);
-    int32_t DecryptData(VpnEncryptionInfo vpnEncryptionInfo, std::string &data);
+    int32_t EncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data);
+    int32_t DecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data);
     bool IsVpnInfoExists(const std::string &vpnId);
     void GetVpnDataFromResultSet(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &queryResultSet,
         sptr<VpnDataBean> &vpnBean);
