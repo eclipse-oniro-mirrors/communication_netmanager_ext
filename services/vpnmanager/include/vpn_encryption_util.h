@@ -104,7 +104,7 @@ int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const Encrypte
  * @Description  Encrypt string using GCM-AES based on input encryptionInfo
  * @param VpnEncryptionInfo  - keyAlias info
  * @param data - Encrypt string
- * @return HKS_SUCCESS - decryption success, others - decryption failed
+ * @return HKS_SUCCESS - encryption success, others - encryption failed
  */
 int32_t VpnEncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data);
 
