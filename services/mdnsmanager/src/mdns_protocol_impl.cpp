@@ -34,7 +34,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 constexpr uint32_t DEFAULT_INTEVAL_MS = 2000;
-constexpr uint32_t DEFAULT_LOST_MS = 10000;
+constexpr uint32_t DEFAULT_LOST_MS = 20000;
 constexpr uint32_t DEFAULT_TTL = 120;
 constexpr uint16_t MDNS_FLUSH_CACHE_BIT = 0x8000;
 
