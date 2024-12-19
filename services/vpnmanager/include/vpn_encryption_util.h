@@ -48,7 +48,7 @@ public:
 
 class VpnEncryptionInfo {
 public:
-    int32_t userId;
+    int32_t userId = -1;
     std::string fileName;
     static constexpr char SYSVPN_ENCRY_KEY[] = "EncryHksAes";
     struct HksBlob keyAlias;
