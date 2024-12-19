@@ -13,10 +13,14 @@
  * limitations under the License.
  */
 #include "vpn_encryption_util.h"
+
 #include <iterator>
 #include <securec.h>
 #include <sstream>
+
 #include "netmgr_ext_log_wrapper.h"
+#include "netmanager_base_common_utils.h"
+#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -168,6 +172,40 @@ int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId)
         return ret;
     }
     return ret;
+}
+
+int32_t VpnEncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
+{
+    if (!data.empty()) {
+        EncryptedData encryptedData;
+        if (VpnEncryption(vpnEncryptionInfo, data, encryptedData) != HKS_SUCCESS) {
+            NETMGR_EXT_LOG_E("VpnEncryption failed");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        data = encryptedData.encryptedData_ + ENCRYT_SPLIT_SEP + encryptedData.iv_;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t VpnDecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
+{
+    if (!data.empty()) {
+        const std::vector<std::string> encryedDataStrs = CommonUtils::Split(data, ENCRYT_SPLIT_SEP);
+        if (encryedDataStrs.size() > 1) {
+            EncryptedData *encryptedData = new EncryptedData(encryedDataStrs[0], encryedDataStrs[1]);
+            std::string decryptedData = "";
+            if (VpnDecryption(vpnEncryptionInfo, *encryptedData, decryptedData) != HKS_SUCCESS) {
+                NETMGR_EXT_LOG_E("VpnDecryption failed");
+                delete encryptedData;
+                encryptedData = nullptr;
+                return NETMANAGER_EXT_ERR_INTERNAL;
+            }
+            data = decryptedData;
+            delete encryptedData;
+            encryptedData = nullptr;
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::string &inputString,

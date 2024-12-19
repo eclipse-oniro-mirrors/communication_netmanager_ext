@@ -100,6 +100,22 @@ int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::str
 int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const EncryptedData &encryptedData,
     std::string &decryptedData);
 
+/**
+ * @Description  Encrypt string using GCM-AES based on input encryptionInfo
+ * @param VpnEncryptionInfo  - keyAlias info
+ * @param data - Encrypt string
+ * @return HKS_SUCCESS - decryption success, others - decryption failed
+ */
+int32_t VpnEncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data);
+
+/**
+ * @Description  Decrypt string using GCM-AES based on input encryptionInfo
+ * @param VpnEncryptionInfo  - keyAlias info
+ * @param data - Decrypt string
+ * @return HKS_SUCCESS - decryption success, others - decryption failed
+ */
+int32_t VpnDecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data);
+
 } // namespace NetManagerStandard
 } // namespace OHOS
 
