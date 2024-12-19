@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,10 +20,12 @@
 #include <numeric>
 #include <string>
 
+#include "mac_address_info.h"
 #include "ethernet_client.h"
 #include "napi_utils.h"
 #include "net_manager_constants.h"
 #include "netmanager_ext_log.h"
+#include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -37,6 +39,8 @@ constexpr const char *GATEWAY = "gateway";
 constexpr const char *DNS_SERVERS = "dnsServers";
 constexpr const char *DOMAIN = "domain";
 constexpr const char *DEFAULT_SEPARATOR = ",";
+constexpr const char *MAC_ADDR = "macAddress";
+constexpr const char *IFACE = "iface";
 
 std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
 {
@@ -46,6 +50,32 @@ std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
         });
 }
 } // namespace
+bool ExecGetMacAddress(GetMacAddressContext *context)
+{
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(context->macAddrInfo_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecGetMacAddress error, errorCode: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+
+napi_value GetMacAddressCallback(GetMacAddressContext *context)
+{
+    napi_value macAddressList = NapiUtils::CreateArray(context->GetEnv(), context->macAddrInfo_.size());
+    uint32_t index = 0;
+    for (auto &eachInfo : context->macAddrInfo_) {
+        napi_value macAddrInfo = NapiUtils::CreateObject(context->GetEnv());
+        NapiUtils::SetStringPropertyUtf8(
+            context->GetEnv(), macAddrInfo, IFACE, eachInfo.iface_);
+        NapiUtils::SetStringPropertyUtf8(
+            context->GetEnv(), macAddrInfo, MAC_ADDR, eachInfo.macAddress_);
+        NapiUtils::SetArrayElement(context->GetEnv(), macAddressList, index++, macAddrInfo);
+    }
+    return macAddressList;
+}
+
 bool ExecGetIfaceConfig(GetIfaceConfigContext *context)
 {
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(context->iface_, context->config_);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "ethernet_service_stub.h"
 
 #include "i_ethernet_service.h"
+#include "mac_address_info.h"
 #include "interface_configuration.h"
 #include "interface_type.h"
 #include "ipc_object_stub.h"
@@ -36,6 +37,8 @@ constexpr uint32_t MAX_PRE_LEN = 128;
 
 EthernetServiceStub::EthernetServiceStub()
 {
+    memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO)] =
+        &EthernetServiceStub::OnGetMacAddress;
     memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_IF_CFG)] =
         &EthernetServiceStub::OnSetIfaceConfig;
     memberFuncMap_[static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG)] =
@@ -79,6 +82,34 @@ int32_t EthernetServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         }
     }
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+}
+
+int32_t EthernetServiceStub::OnGetMacAddress(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<MacAddressInfo> macAddrList;
+    int32_t ret = GetMacAddress(macAddrList);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("get all mac addresses failed");
+        return ret;
+    }
+    if (macAddrList.size() > MAX_SIZE) {
+        NETMGR_EXT_LOG_E("ifaces size is too large");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    if (!reply.WriteUint32(macAddrList.size())) {
+        NETMGR_EXT_LOG_E("iface size write failed");
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    for (auto macAddrInfo : macAddrList) {
+        if (!macAddrInfo.Marshalling(reply)) {
+            NETMGR_EXT_LOG_E("proxy Marshalling failed");
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t EthernetServiceStub::OnSetIfaceConfig(MessageParcel &data, MessageParcel &reply)
