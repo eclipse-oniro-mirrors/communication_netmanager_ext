@@ -111,6 +111,22 @@ int HexStringToVec(const std::string &str, uint8_t plainText[], uint32_t plainLe
     return 0;
 }
 
+std::vector<std::string> Split(const std::string &str, const std::string &sep)
+{
+    std::string s = str;
+    std::vector<std::string> res;
+    while (!s.empty()) {
+        size_t pos = s.find(sep);
+        if (pos == std::string::npos) {
+            res.emplace_back(s);
+            break;
+        }
+        res.emplace_back(s.substr(0, pos));
+        s = s.substr(pos + sep.size());
+    }
+    return res;
+}
+
 int32_t SetUpHks()
 {
     int32_t ret = HksInitialize();
