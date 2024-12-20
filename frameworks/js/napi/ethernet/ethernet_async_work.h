@@ -21,6 +21,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace EthernetAsyncWork {
+void ExecGetMacAddress(napi_env env, void *data);
+void GetMacAddressCallback(napi_env env, napi_status status, void *data);
 void ExecGetIfaceConfig(napi_env env, void *data);
 void GetIfaceConfigCallback(napi_env env, napi_status status, void *data);
 

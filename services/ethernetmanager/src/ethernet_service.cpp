@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <sys/time.h>
 
 #include "ethernet_management.h"
+#include "mac_address_info.h"
 #include "interface_configuration.h"
 #include "iremote_object.h"
 #include "net_ethernet_base_service.h"
@@ -194,6 +195,17 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnBandwidthReachedLimit(c
                                                                                const std::string &iface)
 {
     return 0;
+}
+
+int32_t EthernetService::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
+{
+    NETMGR_EXT_LOG_I("EthernetService GetMacAddress enter");
+    if (!NetManagerPermission::CheckPermission(Permission::GET_ETHERNET_LOCAL_MAC)) {
+        NETMGR_EXT_LOG_E("EthernetService GetMacAddress no js permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    
+    return ethManagement_.GetMacAddress(macAddrList);
 }
 
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)

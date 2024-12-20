@@ -20,11 +20,22 @@
 #include "get_all_active_ifaces_context.h"
 #include "get_iface_config_context.h"
 #include "is_iface_active_context.h"
+#include "netmgr_ext_log_wrapper.h"
 #include "set_iface_config_context.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace EthernetAsyncWork {
+void ExecGetMacAddress(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetMacAddressContext, EthernetExec::ExecGetMacAddress>(env, data);
+}
+
+void GetMacAddressCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetMacAddressContext, EthernetExec::GetMacAddressCallback>(env, status, data);
+}
+
 void ExecGetIfaceConfig(napi_env env, void *data)
 {
     BaseAsyncWork::ExecAsyncWork<GetIfaceConfigContext, EthernetExec::ExecGetIfaceConfig>(env, data);

@@ -34,6 +34,7 @@ ohos_shared_library("ethernet") {
   sources = [
     "context/get_all_active_ifaces_context.cpp",
     "context/get_iface_config_context.cpp",
+    "context/get_mac_address_context.cpp",
     "context/is_iface_active_context.cpp",
     "context/set_iface_config_context.cpp",
     "ethernet_async_work.cpp",

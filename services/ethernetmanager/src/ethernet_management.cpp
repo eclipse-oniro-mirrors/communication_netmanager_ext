@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,8 @@
 #include <thread>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <vector>
 
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -31,6 +33,12 @@ const std::string IFACE_MATCH = "eth\\d";
 constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
 constexpr int SLEEP_TIME_S = 2;
+constexpr uint32_t INDEX_ONE = 1;
+constexpr uint32_t INDEX_TWO = 2;
+constexpr uint32_t INDEX_THREE = 3;
+constexpr uint32_t INDEX_FOUR = 4;
+constexpr uint32_t INDEX_FIVE = 5;
+constexpr uint32_t BUFFER_SIZE = 64;
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
@@ -173,6 +181,67 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
         }
         netLinkConfigs_[dev] = nullptr;
     }
+}
+
+int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
+{
+    std::regex re(IFACE_MATCH);
+    std::vector<std::string> ifaceLists = NetsysController::GetInstance().InterfaceGetList();
+    if (ifaceLists.empty()) {
+        NETMGR_EXT_LOG_E("EthernetManagement iface list is empty");
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    for (const auto &iface : ifaceLists) {
+        if (std::regex_search(iface, re)) {
+            MacAddressInfo macAddressInfo;
+            auto spMacAddr = GetMacAddr(iface);
+            if (spMacAddr.c_str() == nullptr) {
+                NETMGR_EXT_LOG_E("The iface[%{public}s] device does not find MAC address", iface.c_str());
+                continue;
+            }
+            macAddressInfo.iface_ = iface;
+            macAddressInfo.macAddress_ = spMacAddr;
+            macAddrList.push_back(macAddressInfo);
+        }
+    }
+    if (macAddrList.size() == 0) {
+        NETMGR_EXT_LOG_E("EthernetManagement mac address list is empty");
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+std::string EthernetManagement::GetMacAddr(const std::string &iface)
+{
+    std::string macAddr;
+
+    int fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    struct ifreq ifr = {};
+    strncpy_s(ifr.ifr_name, IFNAMSIZ, iface.c_str(), iface.length());
+    
+    if (ioctl(fd, SIOCGIFHWADDR, &ifr) != -1) {
+        macAddr = HwAddrToStr(ifr.ifr_hwaddr.sa_data);
+    }
+    close(fd);
+    return macAddr;
+}
+
+std::string EthernetManagement::HwAddrToStr(char *hwaddr)
+{
+    char buf[BUFFER_SIZE] = {'\0'};
+    if (hwaddr == nullptr) {
+        NETMGR_EXT_LOG_E("hwaddr is nullptr");
+        return "";
+    }
+    errno_t result =
+        sprintf_s(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x", hwaddr[0], hwaddr[INDEX_ONE],
+            hwaddr[INDEX_TWO], hwaddr[INDEX_THREE], hwaddr[INDEX_FOUR],
+            hwaddr[INDEX_FIVE]);
+    if (result < 0) {
+        NETMGR_EXT_LOG_E("[hwAddrToStr] result error : [%{public}d]", result);
+        return "";
+    }
+    return std::string(buf);
 }
 
 int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg)

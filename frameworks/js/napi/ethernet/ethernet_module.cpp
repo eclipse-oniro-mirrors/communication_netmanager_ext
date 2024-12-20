@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,10 +18,13 @@
 
 #include "ethernet_async_work.h"
 #include "get_all_active_ifaces_context.h"
+#include "get_mac_address_context.h"
 #include "get_iface_config_context.h"
+#include "mac_address_info.h"
 #include "interface_configuration.h"
 #include "interface_state_observer_wrapper.h"
 #include "is_iface_active_context.h"
+#include "netmgr_ext_log_wrapper.h"
 #include "set_iface_config_context.h"
 #include "module_template.h"
 #include "napi_utils.h"
@@ -31,6 +34,7 @@ static constexpr const char *EVENT_STATS_CHANGE = "interfaceStateChange";
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+constexpr const char *GET_MAC_ADDR = "getMacAddress";
 constexpr const char *GET_IFACE = "getIfaceConfig";
 constexpr const char *SET_IFACE = "setIfaceConfig";
 constexpr const char *IS_IFACE = "isIfaceActive";
@@ -40,6 +44,12 @@ constexpr const char *DHCP_NAME = "DHCP";
 constexpr const char *IP_SET_MODE = "IPSetMode";
 constexpr const char *FUNCTION_ON = "on";
 constexpr const char *FUNCTION_OFF = "off";
+
+napi_value GetMacAddress(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetMacAddressContext>(env, info, GET_MAC_ADDR, nullptr,
+        EthernetAsyncWork::ExecGetMacAddress, EthernetAsyncWork::GetMacAddressCallback);
+}
 
 napi_value GetIfaceConfig(napi_env env, napi_callback_info info)
 {
@@ -88,6 +98,7 @@ napi_value Off(napi_env env, napi_callback_info info)
 static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
 {
     NapiUtils::DefineProperties(env, exports, {
+        DECLARE_NAPI_FUNCTION(GET_MAC_ADDR, GetMacAddress),
         DECLARE_NAPI_FUNCTION(GET_IFACE, GetIfaceConfig),
         DECLARE_NAPI_FUNCTION(SET_IFACE, SetIfaceConfig),
         DECLARE_NAPI_FUNCTION(IS_IFACE, IsIfaceActive),

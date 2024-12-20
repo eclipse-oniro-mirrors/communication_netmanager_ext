@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,16 @@ class EthernetClient {
     DECLARE_DELAYED_SINGLETON(EthernetClient)
 
 public:
+    /**
+     * Get the ethernet MAC address
+     *
+     * @param macAddrList MAC address info list
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.GET_ETHERNET_LOCAL_MAC
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t GetMacAddress(std::vector<MacAddressInfo> &macAddrList);
+    
     /**
      *  Set the network interface configuration
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 
 #include "ethernet_ipc_interface_code.h"
 #include "interface_configuration.h"
+#include "mac_address_info.h"
 #include "interface_state_callback.h"
 #include "interface_type.h"
 #include "iremote_broker.h"
@@ -34,6 +35,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.IEthernetService");
 
 public:
+    virtual int32_t GetMacAddress(std::vector<MacAddressInfo> &macAddrList) = 0;
     virtual int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) = 0;
     virtual int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig) = 0;
     virtual int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) = 0;

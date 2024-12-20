@@ -69,6 +69,25 @@ PermissionStateFull getNetworkInfoState = {
     .grantFlags = { 2 },
 };
 
+PermissionDef getMacAddressInfoPermDef = {
+    .permissionName = "ohos.permission.GET_ETHERNET_LOCAL_MAC",
+    .bundleName = "netmanager_ext_test",
+    .grantMode = 1,
+    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test ethernet mac address info",
+    .descriptionId = 1,
+};
+
+PermissionStateFull getMacAddressInfoState = {
+    .permissionName = "ohos.permission.GET_ETHERNET_LOCAL_MAC",
+    .isGeneral = true,
+    .resDeviceID = { "local" },
+    .grantStatus = { PermissionState::PERMISSION_GRANTED },
+    .grantFlags = { 2 },
+};
+
 PermissionDef manageVpnPermDef = {
     .permissionName = "ohos.permission.MANAGE_VPN",
     .bundleName = "netmanager_ext_test",
