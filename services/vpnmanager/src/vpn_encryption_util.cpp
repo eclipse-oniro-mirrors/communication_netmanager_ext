@@ -13,10 +13,13 @@
  * limitations under the License.
  */
 #include "vpn_encryption_util.h"
+
 #include <iterator>
 #include <securec.h>
 #include <sstream>
+
 #include "netmgr_ext_log_wrapper.h"
+#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -108,6 +111,22 @@ int HexStringToVec(const std::string &str, uint8_t plainText[], uint32_t plainLe
     return 0;
 }
 
+std::vector<std::string> Split(const std::string &str, const std::string &sep)
+{
+    std::string s = str;
+    std::vector<std::string> res;
+    while (!s.empty()) {
+        size_t pos = s.find(sep);
+        if (pos == std::string::npos) {
+            res.emplace_back(s);
+            break;
+        }
+        res.emplace_back(s.substr(0, pos));
+        s = s.substr(pos + sep.size());
+    }
+    return res;
+}
+
 int32_t SetUpHks()
 {
     int32_t ret = HksInitialize();
@@ -168,6 +187,44 @@ int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId)
         return ret;
     }
     return ret;
+}
+
+int32_t VpnEncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
+{
+    if (!data.empty()) {
+        EncryptedData encryptedData;
+        if (VpnEncryption(vpnEncryptionInfo, data, encryptedData) != HKS_SUCCESS) {
+            NETMGR_EXT_LOG_E("VpnEncryption failed");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        data = encryptedData.encryptedData_ + ENCRYT_SPLIT_SEP + encryptedData.iv_;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t VpnDecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
+{
+    if (!data.empty()) {
+        const std::vector<std::string> encryedDataStrs = Split(data, ENCRYT_SPLIT_SEP);
+        if (encryedDataStrs.size() > 1) {
+            EncryptedData *encryptedData = new (std::nothrow) EncryptedData(encryedDataStrs[0], encryedDataStrs[1]);
+            if (encryptedData == nullptr) {
+                NETMGR_EXT_LOG_E("new EncryptedData failed");
+                return NETMANAGER_EXT_ERR_INTERNAL;
+            }
+            std::string decryptedData = "";
+            if (VpnDecryption(vpnEncryptionInfo, *encryptedData, decryptedData) != HKS_SUCCESS) {
+                NETMGR_EXT_LOG_E("VpnDecryption failed");
+                delete encryptedData;
+                encryptedData = nullptr;
+                return NETMANAGER_EXT_ERR_INTERNAL;
+            }
+            data = decryptedData;
+            delete encryptedData;
+            encryptedData = nullptr;
+        }
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::string &inputString,

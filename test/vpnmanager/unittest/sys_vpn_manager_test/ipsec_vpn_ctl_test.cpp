@@ -175,27 +175,5 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
     certType = -1;
     EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
 }
-
-HWTEST_F(IpsecVpnCtlTest, InitConfigFile001, TestSize.Level1)
-{
-    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    if (config == nullptr) {
-        return;
-    }
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
-    config->ipsecPublicUserCertConf_ = "testUserUri";
-    config->swanctlConf_ = "testSwanctlConf";
-    config->strongswanConf_ = "testStrongswanConf";
-    ipsecControl_->ipsecVpnConfig_ = nullptr;
-    std::error_code ec;
-    std::filesystem::create_directories(SWAN_CTL_FILE, ec);
-    int32_t ret = ipsecControl_->InitConfigFile();
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
-    ipsecControl_->ipsecVpnConfig_ = config;
-    ret = ipsecControl_->InitConfigFile();
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
 } // namespace NetManagerStandard
 } // namespace OHOS

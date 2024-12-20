@@ -18,11 +18,11 @@
 #include <cstdlib>
 #include <filesystem>
 
-#include "netmanager_base_common_utils.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "vpn_database_defines.h"
+#include "vpn_encryption_util.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -96,19 +96,19 @@ int32_t VpnDatabaseHelper::EncryptData(const sptr<VpnDataBean> &vpnBean)
     VpnEncryptionInfo vpnEncryptionInfo;
     vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME, vpnBean->userId_);
 
-    if (EncryptData(vpnEncryptionInfo, vpnBean->userName_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->userName_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("EncryptData userName_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (EncryptData(vpnEncryptionInfo, vpnBean->password_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->password_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("EncryptData password_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (EncryptData(vpnEncryptionInfo, vpnBean->ipsecPreSharedKey_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->ipsecPreSharedKey_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("EncryptData ipsecPreSharedKey_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (EncryptData(vpnEncryptionInfo, vpnBean->l2tpSharedKey_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->l2tpSharedKey_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("EncryptData l2tpSharedKey_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
@@ -124,55 +124,21 @@ int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
     VpnEncryptionInfo vpnEncryptionInfo;
     vpnEncryptionInfo.SetFile(ENCRYT_KEY_FILENAME, vpnBean->userId_);
 
-    if (DecryptData(vpnEncryptionInfo, vpnBean->userName_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->userName_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("DecryptData userName_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (DecryptData(vpnEncryptionInfo, vpnBean->password_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->password_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("DecryptData password_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (DecryptData(vpnEncryptionInfo, vpnBean->ipsecPreSharedKey_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->ipsecPreSharedKey_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("DecryptData ipsecPreSharedKey_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (DecryptData(vpnEncryptionInfo, vpnBean->l2tpSharedKey_) != NETMANAGER_EXT_SUCCESS) {
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->l2tpSharedKey_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("DecryptData l2tpSharedKey_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    return NETMANAGER_EXT_SUCCESS;
-}
-
-int32_t VpnDatabaseHelper::EncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
-{
-    if (!data.empty()) {
-        EncryptedData encryptedData;
-        if (VpnEncryption(vpnEncryptionInfo, data, encryptedData) != HKS_SUCCESS) {
-            NETMGR_EXT_LOG_E("VpnEncryption failed");
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        }
-        data = encryptedData.encryptedData_ + ENCRYT_SPLIT_SEP + encryptedData.iv_;
-    }
-    return NETMANAGER_EXT_SUCCESS;
-}
-
-int32_t VpnDatabaseHelper::DecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
-{
-    if (!data.empty()) {
-        const std::vector<std::string> encryedDataStrs = CommonUtils::Split(data, ENCRYT_SPLIT_SEP);
-        if (encryedDataStrs.size() > 1) {
-            EncryptedData *encryptedData = new EncryptedData(encryedDataStrs[0], encryedDataStrs[1]);
-            std::string decryptedData = "";
-            if (VpnDecryption(vpnEncryptionInfo, *encryptedData, decryptedData) != HKS_SUCCESS) {
-                NETMGR_EXT_LOG_E("VpnDecryption failed");
-                delete encryptedData;
-                encryptedData = nullptr;
-                return NETMANAGER_EXT_ERR_INTERNAL;
-            }
-            data = decryptedData;
-            delete encryptedData;
-            encryptedData = nullptr;
-        }
     }
     return NETMANAGER_EXT_SUCCESS;
 }
