@@ -51,7 +51,7 @@ public:
     int32_t userId = -1;
     std::string fileName;
     static constexpr char SYSVPN_ENCRY_KEY[] = "EncryHksAes";
-    struct HksBlob keyAlias;
+    struct HksBlob keyAlias = { fileName.length(), (uint8_t *)&fileName[0] };
     void SetFile(const std::string file, int32_t id)
     {
         fileName = SYSVPN_ENCRY_KEY + file;
@@ -67,54 +67,70 @@ public:
 };
 
 /**
- * @Description  Set up Huks service
- * @return HKS_SUCCESS - setup success, others - setup failed
+ * @Description Set up Huks service
+ * @return HKS_SUCCESS setup success, others setup failed
  */
 int32_t SetUpHks();
 
 /**
- * @Description  Generate new or get existed GCM-AES key based on input encryptionInfo and genParamSet
- * @param keyAlias  - keyAlias info
- * @param genParamSet - generate params
- * @return HKS_SUCCESS - find key, others - find key failed
+ * @Description Generate new or get existed GCM-AES key based on input encryptionInfo and genParamSet
+ * @param keyAlias keyAlias info
+ * @param genParamSet generate params
+ * @return HKS_SUCCESS find key, others find key failed
  */
 int32_t GetKeyByAlias(struct HksBlob *keyAlias, const struct HksParamSet *genParamSet);
 
 /**
- * @Description  Encrypt inputString using GCM-AES based on input encryptionInfo
- * @param VpnEncryptionInfo  - keyAlias info
- * @param inputString - plaint string that needs to be encrypted
- * @param encryptedData - encrypted result with encrypted string and IV value
- * @return HKS_SUCCESS - encryption success, others - encryption failed
+ * @Description Encrypt inputString using GCM-AES based on input encryptionInfo
+ * @param VpnEncryptionInfo keyAlias info
+ * @param inputString plaint string that needs to be encrypted
+ * @param encryptedData encrypted result with encrypted string and IV value
+ * @return HKS_SUCCESS encryption success, others encryption failed
  */
 int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::string &inputString,
     EncryptedData &encryptedData);
 
 /**
- * @Description  Decrypt encryptedData using GCM-AES based on input encryptionInfo
- * @param VpnEncryptionInfo  - keyAlias info
- * @param encryptedData - encrypted result with encrypted string and IV value
- * @param decryptedData - string after decryption
- * @return HKS_SUCCESS - decryption success, others - decryption failed
+ * @Description Decrypt encryptedData using GCM-AES based on input encryptionInfo
+ * @param VpnEncryptionInfo keyAlias info
+ * @param encryptedData encrypted result with encrypted string and IV value
+ * @param decryptedData string after decryption
+ * @return HKS_SUCCESS decryption success, others decryption failed
  */
 int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const EncryptedData &encryptedData,
     std::string &decryptedData);
 
 /**
- * @Description  Encrypt string using GCM-AES based on input encryptionInfo
- * @param VpnEncryptionInfo  - keyAlias info
- * @param data - Encrypt string
- * @return HKS_SUCCESS - encryption success, others - encryption failed
+ * @Description Encrypt string using GCM-AES based on input encryptionInfo
+ * @param VpnEncryptionInfo keyAlias info
+ * @param data Encrypt string
+ * @return HKS_SUCCESS encryption success, others - encryption failed
  */
 int32_t VpnEncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data);
 
 /**
- * @Description  Decrypt string using GCM-AES based on input encryptionInfo
- * @param VpnEncryptionInfo  - keyAlias info
- * @param data - Decrypt string
- * @return HKS_SUCCESS - decryption success, others - decryption failed
+ * @Description Decrypt string using GCM-AES based on input encryptionInfo
+ * @param VpnEncryptionInfo keyAlias info
+ * @param data Decrypt string
+ * @return HKS_SUCCESS decryption success, others decryption failed
  */
 int32_t VpnDecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data);
+
+inline std::vector<std::string> Split(const std::string &str, const std::string &sep)
+{
+    std::string s = str;
+    std::vector<std::string> res;
+    while (!s.empty()) {
+        size_t pos = s.find(sep);
+        if (pos == std::string::npos) {
+            res.emplace_back(s);
+            break;
+        }
+        res.emplace_back(s.substr(0, pos));
+        s = s.substr(pos + sep.size());
+    }
+    return res;
+}
 
 } // namespace NetManagerStandard
 } // namespace OHOS

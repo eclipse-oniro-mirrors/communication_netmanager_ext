@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "netmgr_ext_log_wrapper.h"
-#include "netmanager_base_common_utils.h"
 #include "net_manager_constants.h"
 
 namespace OHOS {
@@ -190,9 +189,13 @@ int32_t VpnEncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &
 int32_t VpnDecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &data)
 {
     if (!data.empty()) {
-        const std::vector<std::string> encryedDataStrs = CommonUtils::Split(data, ENCRYT_SPLIT_SEP);
+        const std::vector<std::string> encryedDataStrs = Split(data, ENCRYT_SPLIT_SEP);
         if (encryedDataStrs.size() > 1) {
-            EncryptedData *encryptedData = new EncryptedData(encryedDataStrs[0], encryedDataStrs[1]);
+            EncryptedData *encryptedData = new (std::nothrow) EncryptedData(encryedDataStrs[0], encryedDataStrs[1]);
+            if (encryptedData == nullptr) {
+                NETMGR_EXT_LOG_E("new EncryptedData failed");
+                return NETMANAGER_EXT_ERR_INTERNAL;
+            }
             std::string decryptedData = "";
             if (VpnDecryption(vpnEncryptionInfo, *encryptedData, decryptedData) != HKS_SUCCESS) {
                 NETMGR_EXT_LOG_E("VpnDecryption failed");
