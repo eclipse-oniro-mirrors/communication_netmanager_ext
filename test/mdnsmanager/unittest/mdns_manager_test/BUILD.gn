@@ -34,9 +34,6 @@ ohos_unittest("mdns_manager_test") {
   ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include/",
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
@@ -57,6 +54,8 @@ ohos_unittest("mdns_manager_test") {
     "access_token:libtoken_setproc",
     "bounds_checking_function:libsec_shared",
     "ipc:ipc_core",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_conn_manager_if",
   ]
 
   defines = [

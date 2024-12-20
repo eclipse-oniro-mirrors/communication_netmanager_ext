@@ -30,10 +30,6 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
-    "$BASE_INNERKITS_ROOT/netmanagernative/include",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/dnsresolverclient/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$NETCONNMANAGER_COMMON_DIR/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include/stub",
@@ -77,6 +73,8 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "dhcp:dhcp_sdk",
     "ffrt:libffrt",
     "ipc:ipc_core",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
   ]
   external_deps += [ "hilog:libhilog" ]
 

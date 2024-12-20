@@ -29,7 +29,6 @@ ohos_unittest("mdns_protocol_test") {
   sources = [ "mdns_protocol_test.cpp" ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
@@ -44,7 +43,10 @@ ohos_unittest("mdns_protocol_test") {
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "ipc:ipc_core",
+    "netmanager_base:net_manager_common",
+  ]
 
   defines = [
     "NETMGR_LOG_TAG = \"MDnsManager\"",

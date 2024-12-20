@@ -18,7 +18,6 @@ config("sharing_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "$NETMANAGER_BASE_ROOT/utils/log/include",
   ]
 
   cflags = [

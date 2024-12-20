@@ -17,7 +17,6 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 config("net_mdns_manager_if_config") {
   # header file path
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
   ]
@@ -107,6 +106,10 @@ ohos_shared_library("mdns_manager_if") {
     "bounds_checking_function:libsec_shared",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
+  ]
+
+  public_external_deps = [
+    "netmanager_base:net_manager_common",
   ]
 
   defines = [

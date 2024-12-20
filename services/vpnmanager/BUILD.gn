@@ -16,8 +16,6 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("net_vpn_manager_config") {
   include_dirs = [
-    "$UTILS_ROOT/native/base/include",
-    "$UTILS_ROOT/system/safwk/native/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
@@ -26,14 +24,8 @@ config("net_vpn_manager_config") {
     "$VPNMANAGER_SOURCE_DIR/include",
     "$VPNMANAGER_SOURCE_DIR/include/ipc",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netsyscontroller/include",
-    "$BASE_INNERKITS_ROOT/netmanagernative/include",
     "$NETMANAGERNATIVE_ROOT/include/netsys",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
-    "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
     "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpnext/include",
   ]
 
@@ -91,6 +83,7 @@ net_vpn_manager_external_deps = [
   "netmanager_base:net_data_share",
   "netmanager_base:net_manager_common",
   "netmanager_base:netsys_controller",
+  "netmanager_base:net_native_manager_if",
   "os_account:os_account_innerkits",
   "relational_store:native_rdb",
   "safwk:system_ability_fwk",

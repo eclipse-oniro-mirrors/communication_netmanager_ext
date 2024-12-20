@@ -51,7 +51,10 @@ ohos_shared_library("net_manager_ext_common") {
 
   public_configs = [
     ":netmgr_ext_common_config",
-    "$C_UTILS_ROOT/base:utils_config",
+  ]
+
+  public_external_deps = [
+    "c_utils:utils",
   ]
 
   cflags = [

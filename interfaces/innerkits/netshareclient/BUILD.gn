@@ -19,8 +19,6 @@ config("net_conn_manager_if_config") {
     "include",
     "include/proxy",
     "include/proxy/ipccallback",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$EXT_INNERKITS_ROOT/include",
   ]
 
@@ -63,7 +61,6 @@ ohos_source_set("networkshare_parcel") {
   sources = [ "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/network_share_request_parcel.cpp" ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
@@ -72,6 +69,7 @@ ohos_source_set("networkshare_parcel") {
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "netmanager_base:net_conn_parcel",
+    "netmanager_base:net_manager_common",
   ]
 
   external_deps += [ "hilog:libhilog" ]
@@ -110,6 +108,10 @@ ohos_shared_library("net_tether_manager_if") {
     "c_utils:utils",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
+  ]
+
+  public_external_deps = [
+    "netmanager_base:net_manager_common",
   ]
 
   defines = [
