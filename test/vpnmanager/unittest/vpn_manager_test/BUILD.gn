@@ -36,7 +36,6 @@ ohos_unittest("vpn_manager_test") {
   ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
@@ -69,6 +68,7 @@ ohos_unittest("vpn_manager_test") {
     "ipc:ipc_core",
     "netmanager_base:net_manager_common",
     "netmanager_base:netsys_controller",
+    "netmanager_base:net_conn_manager_if",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
   ]
