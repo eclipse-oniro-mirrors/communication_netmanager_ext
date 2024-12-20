@@ -80,6 +80,14 @@ public:
      */
     int32_t InitNetfirewallPolicy();
 
+    /**
+     * Get user firewall open policy
+     *
+     * @param userId User id
+     * @return Returns true is open, Otherwise close
+     */
+    bool GetNetFirewallStatus(const int32_t userId);
+
 private:
     void LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy);
     void GetAllUserId(std::vector<int32_t> &accountIds);
