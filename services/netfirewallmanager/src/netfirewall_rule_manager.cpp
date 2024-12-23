@@ -401,6 +401,9 @@ bool NetFirewallRuleManager::ExtractIpRules(const std::vector<NetFirewallRule> &
         return false;
     }
     for (const auto &rule : rules) {
+        if (!NetFirewallPolicyManager::GetInstance().GetNetFirewallStatus(rule.userId)) {
+            continue;
+        }
         if (rule.ruleType != NetFirewallRuleType::RULE_IP) {
             continue;
         }
@@ -430,6 +433,9 @@ bool NetFirewallRuleManager::ExtractDomainRules(const std::vector<NetFirewallRul
         return false;
     }
     for (const auto &rule : rules) {
+        if (!NetFirewallPolicyManager::GetInstance().GetNetFirewallStatus(rule.userId)) {
+            continue;
+        }
         if (rule.ruleType != NetFirewallRuleType::RULE_DOMAIN) {
             continue;
         }
@@ -454,6 +460,9 @@ bool NetFirewallRuleManager::ExtractDnsRules(const std::vector<NetFirewallRule> 
         return false;
     }
     for (const auto &rule : rules) {
+        if (!NetFirewallPolicyManager::GetInstance().GetNetFirewallStatus(rule.userId)) {
+            continue;
+        }
         if (rule.ruleType != NetFirewallRuleType::RULE_DNS) {
             continue;
         }

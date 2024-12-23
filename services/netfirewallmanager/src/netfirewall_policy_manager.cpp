@@ -123,6 +123,12 @@ int32_t NetFirewallPolicyManager::GetNetFirewallPolicy(const int32_t userId, spt
     return FIREWALL_SUCCESS;
 }
 
+bool NetFirewallPolicyManager::GetNetFirewallStatus(const int32_t userId)
+{
+    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
+    return IsNetFirewallOpen(userId);
+}
+
 bool NetFirewallPolicyManager::IsNetFirewallOpen(const int32_t userId)
 {
     NETMGR_EXT_LOG_D("IsNetFirewallOpen");

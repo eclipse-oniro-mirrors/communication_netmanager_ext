@@ -309,8 +309,8 @@ void NetFirewallService::OnAddSystemAbility(int32_t systemAbilityId, const std::
             hasSaRemoved_ = false;
         }
         // After the universal service is launched, you can register for broadcast monitoring
-    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID && subscriber_ != nullptr) {
-        RegisterSubscribeCommonEvent();
+    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID && subscriber_ == nullptr) {
+        SubscribeCommonEvent();
     }
 }
 
@@ -379,7 +379,7 @@ void NetFirewallService::OnRemoveSystemAbility(int32_t systemAbilityId, const st
     NETMGR_EXT_LOG_I("OnRemoveSystemAbility systemAbilityId:%{public}d removed!", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         hasSaRemoved_ = true;
-    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID) {
+    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID && subscriber_ != nullptr) {
         OHOS::EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
         subscriber_ = nullptr;
     }
@@ -401,6 +401,10 @@ void NetFirewallService::SubscribeCommonEvent()
 void NetFirewallService::RegisterSubscribeCommonEvent()
 {
     // If the universal service has not been loaded yet, registering for broadcasting will fail
+    if (subscriber_ == nullptr) {
+        NETMGR_EXT_LOG_E("subscriber is nullptr");
+        return;
+    }
     if (!EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_)) {
         NETMGR_EXT_LOG_E("SubscribeCommonEvent fail");
         subscriber_ = nullptr;
