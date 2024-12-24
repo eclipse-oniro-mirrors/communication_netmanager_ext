@@ -96,7 +96,7 @@ ohos_unittest("networkshare_manager_test") {
     "netmanager_base:net_manager_common",
     "openssl:libcrypto_shared",
     "openssl:libssl_shared",
-    "usb_manager:usbservice",
+    "usb_manager:usbsrv_client",
   ]
 
   if (communication_wifi_switch_enable) {
