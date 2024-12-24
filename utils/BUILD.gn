@@ -49,13 +49,9 @@ ohos_shared_library("net_manager_ext_common") {
     defines += [ "STANDARD_SYSTEM_ENABLE" ]
   }
 
-  public_configs = [
-    ":netmgr_ext_common_config",
-  ]
+  public_configs = [ ":netmgr_ext_common_config" ]
 
-  public_external_deps = [
-    "c_utils:utils",
-  ]
+  public_external_deps = [ "c_utils:utils" ]
 
   cflags = [
     "-fstack-protector-strong",
