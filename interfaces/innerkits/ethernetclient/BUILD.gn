@@ -110,8 +110,8 @@ ohos_shared_library("ethernet_manager_if") {
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "ipc:ipc_single",
-    "samgr:samgr_proxy",
     "netmanager_base:net_manager_common",
+    "samgr:samgr_proxy",
   ]
 
   public_external_deps = [
