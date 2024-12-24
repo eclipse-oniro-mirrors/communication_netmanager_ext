@@ -69,12 +69,12 @@ ohos_shared_library("ethernet_manager") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "ipc:ipc_core",
-    "netmanager_base:netsys_controller",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "netmanager_base:net_service_common",
     "netmanager_base:net_stats_manager_if",
+    "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
