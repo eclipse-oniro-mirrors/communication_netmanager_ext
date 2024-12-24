@@ -212,7 +212,7 @@ ohos_static_library("net_tether_manager_static") {
     defines += [ "USB_MODOULE" ]
     external_deps += [
       "drivers_interface_usb:usb_idl_headers",
-      "usb_manager:usbsrv_client", 
+      "usb_manager:usbsrv_client",
     ]
   }
 
