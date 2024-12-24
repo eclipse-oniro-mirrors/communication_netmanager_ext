@@ -89,6 +89,7 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
+    "bluetooth:btframework",
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
@@ -97,17 +98,16 @@ ohos_shared_library("net_tether_manager") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "netmanager_base:netsys_controller",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
-    "netmanager_base:net_manager_common",
-    "netmanager_base:netsys_controller",
+    "netmanager_base:net_manager_common",  
     "netmanager_base:net_native_manager_if",
     "netmanager_base:net_stats_manager_if",
-    "safwk:system_ability_fwk",
     "openssl:libcrypto_shared",
     "openssl:libssl_shared",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "bluetooth:btframework",
   ]
 
   defines = []
@@ -121,8 +121,8 @@ ohos_shared_library("net_tether_manager") {
     defines += [ "USB_MODOULE" ]
     external_deps += [
       "drivers_interface_usb:usb_idl_headers",
-      "usb_manager:usbsrv_client",
       "usb_manager:usbservice",
+      "usb_manager:usbsrv_client",
     ]
   }
 
@@ -182,6 +182,7 @@ ohos_static_library("net_tether_manager_static") {
   ]
 
   external_deps = [
+    "bluetooth:btframework",
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
@@ -190,16 +191,15 @@ ohos_static_library("net_tether_manager_static") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
-    "openssl:libcrypto_shared",
-    "openssl:libssl_shared",
-    "samgr:samgr_proxy",
-    "bluetooth:btframework",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "netmanager_base:net_stats_manager_if",
+    "openssl:libcrypto_shared",
+    "openssl:libssl_shared",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 
   defines = []
@@ -213,8 +213,8 @@ ohos_static_library("net_tether_manager_static") {
     defines += [ "USB_MODOULE" ]
     external_deps += [
       "drivers_interface_usb:usb_idl_headers",
-      "usb_manager:usbsrv_client",
       "usb_manager:usbservice",
+      "usb_manager:usbsrv_client", 
     ]
   }
 
