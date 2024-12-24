@@ -16,9 +16,7 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("sharing_config") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "include",
-  ]
+  include_dirs = [ "include" ]
 
   cflags = [
     "-fstack-protector-strong",
