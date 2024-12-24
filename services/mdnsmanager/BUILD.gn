@@ -78,8 +78,8 @@ ohos_shared_library("mdns_manager") {
     "bounds_checking_function:libsec_shared",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
-    "netmanager_base:net_manager_common",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -131,8 +131,8 @@ ohos_static_library("mdns_manager_static") {
     "bounds_checking_function:libsec_shared",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
-    "netmanager_base:net_manager_common",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
