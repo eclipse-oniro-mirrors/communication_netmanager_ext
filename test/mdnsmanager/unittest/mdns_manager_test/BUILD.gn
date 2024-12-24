@@ -54,8 +54,8 @@ ohos_unittest("mdns_manager_test") {
     "access_token:libtoken_setproc",
     "bounds_checking_function:libsec_shared",
     "ipc:ipc_core",
-    "netmanager_base:net_manager_common",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
   ]
 
   defines = [
