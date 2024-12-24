@@ -115,8 +115,8 @@ ohos_shared_library("ethernet_manager_if") {
   ]
 
   public_external_deps = [
-    "netmanager_base:net_native_manager_if",
     "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
   ]
 
   defines = [
