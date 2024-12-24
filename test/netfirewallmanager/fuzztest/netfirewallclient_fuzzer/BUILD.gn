@@ -72,12 +72,12 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "netmanager_base:net_conn_parcel",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
     "netmanager_base:net_native_manager_if",
     "os_account:os_account_innerkits",
-    "netmanager_base:net_manager_common",
-    "netmanager_base:net_conn_parcel",
-    "netmanager_base:net_native_manager_if",
-    "json:nlohmann_json_static",
   ]
 
   defines = [
