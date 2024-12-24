@@ -90,7 +90,6 @@ void IpsecVpnCtl::CleanTempFiles()
     DeleteTempFile(L2TP_CFG);
     DeleteTempFile(L2TP_IPSEC_CFG);
     DeleteTempFile(L2TP_IPSEC_SECRETS_CFG);
-    DeleteTempFile(OPTIONS_L2TP_CLIENT);
 }
 
 void IpsecVpnCtl::DeleteTempFile(const std::string &fileName)

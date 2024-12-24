@@ -79,12 +79,6 @@ int32_t L2tpVpnCtl::InitConfigFile()
             CommonUtils::WriteFile(L2TP_IPSEC_SECRETS_CFG, ipsecSecrets);
         }
     }
-    if (!l2tpVpnConfig_->optionsL2tpdClient_.empty()) {
-        std::string optionsL2tpdClient = Base64::Decode(l2tpVpnConfig_->optionsL2tpdClient_);
-        if (!optionsL2tpdClient.empty()) {
-            CommonUtils::WriteFile(OPTIONS_L2TP_CLIENT, optionsL2tpdClient);
-        }
-    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -153,6 +147,12 @@ int32_t L2tpVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUr
             break;
         case IpsecVpnCertType::SERVER_CERT:
             certUri = l2tpVpnConfig_->ipsecPublicServerCertConf_;
+            break;
+        case IpsecVpnCertType::OPTIONS_L2TP_CLIENT_CONF:
+            certUri = Base64::Decode(l2tpVpnConfig_->optionsL2tpdClient_);
+            break;
+        case IpsecVpnCertType::L2TP_IPSEC_SECRETS_CONF:
+            certUri = Base64::Decode(l2tpVpnConfig_->ipsecSecrets_);
             break;
         default:
             NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);

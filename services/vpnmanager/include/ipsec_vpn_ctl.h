@@ -32,7 +32,6 @@ const std::string SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
 const std::string L2TP_IPSEC_CFG = IPSEC_PIDDIR "/ipsec.conf";
 const std::string L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
 const std::string L2TP_IPSEC_SECRETS_CFG = IPSEC_PIDDIR "/ipsec.secrets.conf";
-const std::string OPTIONS_L2TP_CLIENT = IPSEC_PIDDIR "/options.l2tpd.client.conf";
 const std::string IPSEC_START_TAG = "start";
 const std::string SWANCTL_START_TAG = "config";
 const std::string IPSEC_CONNECT_TAG = "connect";
@@ -52,6 +51,8 @@ enum IpsecVpnCertType : int32_t {
     USER_CERT,
     SERVER_CERT,
     SWAN_CTL_CONF,
+    OPTIONS_L2TP_CLIENT_CONF,
+    L2TP_IPSEC_SECRETS_CONF,
 };
 
 class IpsecVpnCtl : public NetVpnImpl {
