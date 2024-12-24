@@ -100,7 +100,7 @@ ohos_shared_library("net_tether_manager") {
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
-    "netmanager_base:net_manager_common",  
+    "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "netmanager_base:net_stats_manager_if",
     "netmanager_base:netsys_controller",
