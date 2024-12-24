@@ -110,9 +110,7 @@ ohos_shared_library("net_tether_manager_if") {
     "samgr:samgr_proxy",
   ]
 
-  public_external_deps = [
-    "netmanager_base:net_manager_common",
-  ]
+  public_external_deps = [ "netmanager_base:net_manager_common" ]
 
   defines = [
     "NETMGR_LOG_TAG = \"NetworkShareManager\"",
