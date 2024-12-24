@@ -64,8 +64,8 @@ ohos_shared_library("ethernet") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
-    "netmanager_base:net_manager_common",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
   ]
 
