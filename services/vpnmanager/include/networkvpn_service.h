@@ -262,7 +262,7 @@ private:
     std::shared_ptr<ffrt::queue> networkVpnServiceFfrtQueue_ = nullptr;
     std::mutex netVpnMutex_;
     bool hasSARemoved_ = false;
-    int32_t userId_ = 0;
+    int32_t userId_ = -1;
 
     std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
 
