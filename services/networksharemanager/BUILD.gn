@@ -29,9 +29,7 @@ config("net_tether_manager_config") {
     "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
   if (communication_wifi_switch_enable) {
-    include_dirs += [
-      "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-    ]
+    include_dirs += [ "$WIFI_MANAGER_ROOT/interfaces/kits/c" ]
   }
 }
 
