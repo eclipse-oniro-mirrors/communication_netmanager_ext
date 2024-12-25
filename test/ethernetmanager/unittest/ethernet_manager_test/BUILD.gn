@@ -67,8 +67,8 @@ ohos_unittest("ethernet_manager_test") {
     "dhcp:dhcp_sdk",
     "ffrt:libffrt",
     "ipc:ipc_core",
-    "netmanager_base:net_conn_parcel",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_conn_parcel",
   ]
 
   defines = [
