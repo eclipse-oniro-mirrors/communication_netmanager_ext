@@ -97,12 +97,14 @@ HWTEST_F(WearableDistributedNetServiceTest, OnReceiveEvent001, TestSize.Level1)
     WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     EventFwk::CommonEventData eventData;
     AAFwk::Want want = eventData.GetWant();
-    std::string action = EventFwk::CommonEventSupport::COMMON_EVENT_POWER_CONNECTED;
-    want.SetAction(action);
+    want.SetParam(PowerMgr::BatteryInfo::COMMON_EVENT_KEY_CHARGE_STATE,
+        static_cast<int32_t>(ChargeState::CHARGE_STATE_DISABLE));
+    want.SetParam(PowerMgr::BatteryInfo::COMMON_EVENT_KEY_CHARGE_STATE,
+        static_cast<int32_t>(ChargeState::CHARGE_STATE_NONE));
     eventData.SetWant(want);
     wearableDistributedNetService.SubscribeCommonEvent();
     wearableDistributedNetService.subscriber_->OnReceiveEvent(eventData);
-    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
 }
 
 HWTEST_F(WearableDistributedNetServiceTest, OnReceiveEvent002, TestSize.Level1)
@@ -110,8 +112,10 @@ HWTEST_F(WearableDistributedNetServiceTest, OnReceiveEvent002, TestSize.Level1)
     WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     EventFwk::CommonEventData eventData;
     AAFwk::Want want = eventData.GetWant();
-    std::string action = EventFwk::CommonEventSupport::COMMON_EVENT_BATTERY_CHANGED;
-    want.SetAction(action);
+    want.SetParam(PowerMgr::BatteryInfo::COMMON_EVENT_KEY_CHARGE_STATE,
+        static_cast<int32_t>(ChargeState::CHARGE_STATE_ENABLE));
+    want.SetParam(PowerMgr::BatteryInfo::COMMON_EVENT_KEY_CHARGE_STATE,
+        static_cast<int32_t>(ChargeState::CHARGE_STATE_FULL));
     eventData.SetWant(want);
     wearableDistributedNetService.SubscribeCommonEvent();
     wearableDistributedNetService.subscriber_->OnReceiveEvent(eventData);
@@ -123,12 +127,50 @@ HWTEST_F(WearableDistributedNetServiceTest, OnReceiveEvent003, TestSize.Level1)
     WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
     EventFwk::CommonEventData eventData;
     AAFwk::Want want = eventData.GetWant();
-    std::string action = EventFwk::CommonEventSupport::COMMON_EVENT_POWER_DISCONNECTED;
-    want.SetAction(action);
     eventData.SetWant(want);
     wearableDistributedNetService.SubscribeCommonEvent();
     wearableDistributedNetService.subscriber_->OnReceiveEvent(eventData);
-    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE);
+}
+
+HWTEST_F(WearableDistributedNetServiceTest, UpdateMeteredStatus001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    bool isMetered = false;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
+    wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
+    auto ret = wearableDistributedNetService.UpdateMeteredStatus(isMetered);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(WearableDistributedNetServiceTest, UpdateMeteredStatus002, TestSize.Level1)
+{
+    bool isMetered = false;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
+    auto ret = wearableDistributedNetService.UpdateMeteredStatus(isMetered);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(WearableDistributedNetServiceTest, OnStop002, TestSize.Level1)
+{
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
+    wearableDistributedNetService.SubscribeCommonEvent();
+    wearableDistributedNetService.state_ = WearableDistributedNetService::ServiceRunningState::STATE_RUNNING;
+    wearableDistributedNetService.OnStop();
+    wearableDistributedNetService.state_ = WearableDistributedNetService::ServiceRunningState::STATE_STOPPED;
+    EXPECT_EQ(wearableDistributedNetService.state_, WearableDistributedNetService::ServiceRunningState::STATE_STOPPED);
+}
+
+HWTEST_F(WearableDistributedNetServiceTest, SetupWearableDistributedNet002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
+    auto ret = wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    wearableDistributedNetService.TearDownWearableDistributedNet();
+    ret = wearableDistributedNetService.SetupWearableDistributedNet(TCP_PORT_ID, UDP_PORT_ID, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    wearableDistributedNetService.TearDownWearableDistributedNet();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

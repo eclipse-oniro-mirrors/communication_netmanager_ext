@@ -165,5 +165,21 @@ HWTEST_F(WearableDistributedNetStaticConfigurationTest, GetNetCaps, TestSize.Lev
     getNetCaps = wearableDistributedNetStaticConfig.GetNetCaps(true);
     EXPECT_EQ(getNetCaps, capsMetered);
 }
+
+HWTEST_F(WearableDistributedNetStaticConfigurationTest, SetNetLinkInfo001, TestSize.Level1)
+{
+    NetLinkInfo linkInfo;
+    WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
+    int32_t ret = wearableDistributedNetStaticConfig.SetNetLinkInfo(linkInfo);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(WearableDistributedNetStaticConfigurationTest, GetNetLinkInfo001, TestSize.Level1)
+{
+    NetLinkInfo linkInfo;
+    WearableDistributedNetStaticConfiguration wearableDistributedNetStaticConfig;
+    int32_t ret = wearableDistributedNetStaticConfig.GetNetLinkInfo(linkInfo);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -25,6 +25,7 @@
       "OHOS::NetManagerStandard::WearableDistributedNetLoadCallback::IsFailed()";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::OnRemoteDied(OHOS::wptr<OHOS::IRemoteObject> const&)";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::~WearableDistributedNetClient()";
+      "OHOS::NetManagerStandard::WearableDistributedNetClient::RestartWearableDistributedNetManagerSysAbility()";
     };
   local:
    *;
