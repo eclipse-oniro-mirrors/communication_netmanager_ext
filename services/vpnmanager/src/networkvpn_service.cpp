@@ -186,6 +186,10 @@ bool NetworkVpnService::PublishEvent(const OHOS::AAFwk::Want &want, int eventCod
 
 void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &state) const
 {
+    if (userId_ == 0) {
+        NETMGR_EXT_LOG_D("sys user0 do not notify vpn status.");
+        return;
+    }
     OHOS::AAFwk::Want want;
     want.SetAction(COMMON_EVENT_VPN_CONNECT_STATUS_VALUE);
     want.SetParam(PARAM_KEY_STATE, (state == VpnConnectState::VPN_CONNECTED) ? 1 : 0);
@@ -579,6 +583,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
+    userId_ = userId;
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
