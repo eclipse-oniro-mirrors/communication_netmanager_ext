@@ -89,7 +89,6 @@ void IpsecVpnCtl::CleanTempFiles()
     DeleteTempFile(SWAN_CONFIG_FILE);
     DeleteTempFile(L2TP_CFG);
     DeleteTempFile(L2TP_IPSEC_CFG);
-    DeleteTempFile(L2TP_IPSEC_SECRETS_CFG);
 }
 
 void IpsecVpnCtl::DeleteTempFile(const std::string &fileName)

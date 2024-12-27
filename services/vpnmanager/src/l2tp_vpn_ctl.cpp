@@ -73,12 +73,6 @@ int32_t L2tpVpnCtl::InitConfigFile()
             CommonUtils::WriteFile(L2TP_IPSEC_CFG, ipsecConf);
         }
     }
-    if (!l2tpVpnConfig_->ipsecSecrets_.empty()) {
-        std::string ipsecSecrets = Base64::Decode(l2tpVpnConfig_->ipsecSecrets_);
-        if (!ipsecSecrets.empty()) {
-            CommonUtils::WriteFile(L2TP_IPSEC_SECRETS_CFG, ipsecSecrets);
-        }
-    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
