@@ -75,6 +75,7 @@ ohos_shared_library("net_tether_manager") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_notification.cpp", 
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
@@ -83,6 +84,7 @@ ohos_shared_library("net_tether_manager") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
   ]
 
   configs = [ ":net_tether_manager_config" ]
@@ -113,7 +115,12 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "ability_runtime:ability_manager",
+    "ability_runtime:extension_manager",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -126,6 +133,8 @@ ohos_shared_library("net_tether_manager") {
     "netmanager_base:net_manager_common",
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "time_service:time_client",
   ]
 
   defines = []
@@ -133,6 +142,11 @@ ohos_shared_library("net_tether_manager") {
   if (communication_wifi_switch_enable) {
     defines += [ "WIFI_MODOULE" ]
     external_deps += [ "wifi:wifi_sdk" ]
+  }
+
+  if (battery_manager_switch_enable) {
+    defines += [ "SUPPORT_BATTERY_MANAGER" ]
+    external_deps += [ "battery_manager:batterysrv_client" ]
   }
 
   if (usb_manager_enable) {
@@ -181,6 +195,7 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_notification.cpp", 
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
@@ -189,6 +204,7 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
   ]
 
   configs = [ ":net_tether_manager_config" ]
@@ -202,7 +218,12 @@ ohos_static_library("net_tether_manager_static") {
   ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "ability_runtime:ability_manager",
+    "ability_runtime:extension_manager",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -211,6 +232,8 @@ ohos_static_library("net_tether_manager_static") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "time_service:time_client",
   ]
 
   defines = []
@@ -218,6 +241,11 @@ ohos_static_library("net_tether_manager_static") {
   if (communication_wifi_switch_enable) {
     defines += [ "WIFI_MODOULE" ]
     external_deps += [ "wifi:wifi_sdk" ]
+  }
+
+  if (battery_manager_switch_enable) {
+    defines += [ "SUPPORT_BATTERY_MANAGER" ]
+    external_deps += [ "battery_manager:batterysrv_client" ]
   }
 
   if (usb_manager_enable) {

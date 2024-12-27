@@ -41,6 +41,7 @@
 #ifdef WIFI_MODOULE
 #include "wifi_ap_msg.h"
 #include "wifi_hotspot.h"
+#include "wifi_device_config.h"
 #endif
 
 namespace OHOS {
@@ -207,6 +208,16 @@ public:
 
     void RestartResume();
 
+    /**
+     * notify power disconnect
+     */
+    void OnPowerDisConnected();
+
+    /**
+     * notify power connect
+     */
+    void OnPowerConnected();
+
 private:
     NetworkShareTracker() = default;
 
@@ -238,10 +249,16 @@ private:
     SharingIfaceState SubSmStateToExportState(int32_t state);
     void OnChangeSharingState(const SharingIfaceType &type, bool state);
     static void OnWifiHotspotStateChanged(int state);
+    static void OnWifiHotspotStaLeave(StationInfo *info);
+    static void OnWifiHotspotStaJoin(StationInfo *info);
     void RegisterWifiApCallback();
     void RegisterBtPanCallback();
 #ifdef WIFI_MODOULE
     void SetWifiState(const Wifi::ApState &state);
+    void StopIdleApStopTimer();
+    void StartIdleApStopTimer();
+    bool IsPowerConnected();
+    unsigned int GetStationListSize();
 #endif
 #ifdef BLUETOOTH_MODOULE
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
@@ -269,6 +286,8 @@ private:
     int32_t wifiShareCount_ = 0;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
     WifiEvent g_wifiEvent = {0};
+    uint64_t idleApStopTimerId_ = 0;
+    ffrt::mutex apStopTimerMutex_;
 #endif
 #ifdef BLUETOOTH_MODOULE
     std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;

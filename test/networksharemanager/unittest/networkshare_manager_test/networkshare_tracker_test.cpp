@@ -768,5 +768,33 @@ HWTEST_F(NetworkShareTrackerTest, NetworkShareTrackerBranchTest01, TestSize.Leve
     observer->OnConnectionStateChanged(device, invalidValue, cause);
 #endif
 }
+
+#ifdef WIFI_MODOULE
+HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer01, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().StartIdleApStopTimer();
+    NetworkShareTracker::GetInstance().StopIdleApStopTimer();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer02, TestSize.Level1)
+{
+    StationInfo sta{};
+    NetworkShareTracker::GetInstance().OnWifiHotspotStaJoin(&sta);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer03, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(5);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer03, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().OnPowerConnected();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+#endif
 } // namespace NetManagerStandard
 } // namespace OHOS

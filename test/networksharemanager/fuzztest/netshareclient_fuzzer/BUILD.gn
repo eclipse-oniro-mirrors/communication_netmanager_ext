@@ -90,6 +90,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "dhcp:dhcp_sdk",
     "ffrt:libffrt",
     "hicollie:libhicollie",
