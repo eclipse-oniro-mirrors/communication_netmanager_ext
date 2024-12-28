@@ -19,9 +19,6 @@ config("net_vpn_extension_if_config") {
   include_dirs = [
     "include",
     "include/ipc",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netmanagernative/include",
     "$NETMANAGERNATIVE_ROOT/fwmarkclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
@@ -32,7 +29,6 @@ config("net_vpn_extension_if_config") {
     "$ABILITY_RUNTIME_KITS_PATH/native/appkit/ability_runtime",
     "$ABILITY_RUNTIME_KITS_PATH/native/ability/ability_runtime",
     "$ABILITY_RUNTIME_KITS_PATH/native/ability/native",
-    "$ABILITY_DISPLAY_MANAGER/interfaces/innerkits/dm",
   ]
 
   defines = []
@@ -70,13 +66,9 @@ ohos_shared_library("vpn_extension") {
   public_configs = [ ":net_vpn_extension_if_config" ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
-    "$BASE_INNERKITS_ROOT/netvpnclient/include",
     "${ABILITY_RUNTIME_PATH}/interfaces/kits/native/ability/native",
-    "$NETMANAGER_BASE_ROOT/utils/napi_utils/include",
   ]
 
   deps = [
@@ -111,10 +103,16 @@ ohos_shared_library("vpn_extension") {
     "netmanager_base:napi_utils",
     "netmanager_base:net_conn_parcel",
     "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libdm",
     "window_manager:libwm",
+  ]
+
+  public_external_deps = [
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
   ]
 
   defines = [
@@ -159,6 +157,14 @@ ohos_shared_library("vpn_extension_module") {
     "c_utils:utils",
     "hilog:libhilog",
     "napi:ace_napi",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
+    "window_manager:libdm",
+  ]
+
+  public_external_deps = [
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
   ]
 
   relative_install_dir = "extensionability/"

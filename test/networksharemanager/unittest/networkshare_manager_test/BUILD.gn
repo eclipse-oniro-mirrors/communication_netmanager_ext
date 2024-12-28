@@ -50,9 +50,6 @@ ohos_unittest("networkshare_manager_test") {
   ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
-    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
-    "$BLUETOOTH_ROOT/interfaces/inner_api/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
@@ -63,9 +60,6 @@ ohos_unittest("networkshare_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/stub",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$THIRD_PARTY_ROOT/openssl/include",
-    "$USB_MANAGER_ROOT/utils/native/include",
-    "$USB_MANAGER_ROOT/services/zidl/include",
   ]
 
   defines = []
@@ -86,18 +80,23 @@ ohos_unittest("networkshare_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "$THIRD_PARTY_ROOT/googletest:gmock_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bluetooth:btframework",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hicollie:libhicollie",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
+    "openssl:libcrypto_shared",
+    "openssl:libssl_shared",
+    "usb_manager:usbsrv_client",
   ]
 
   if (communication_wifi_switch_enable) {

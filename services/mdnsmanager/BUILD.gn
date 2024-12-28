@@ -16,13 +16,9 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("mdns_manager_config") {
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/mdnsclient/include",
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
-    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
     "include",
     "include/stub",
   ]
@@ -83,6 +79,7 @@ ohos_shared_library("mdns_manager") {
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -135,6 +132,7 @@ ohos_static_library("mdns_manager_static") {
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

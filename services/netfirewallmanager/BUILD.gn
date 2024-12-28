@@ -24,7 +24,6 @@ config("netfirewall_manager_config") {
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$NETCONNMANAGER_UTILS_DIR/common_utils/include",
-    "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
   ]
 
   defines = [

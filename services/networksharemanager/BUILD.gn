@@ -16,14 +16,6 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("net_tether_manager_config") {
   include_dirs = [
-    "$UTILS_ROOT/native/base/include",
-    "$UTILS_ROOT/system/safwk/native/include",
-    "$THIRD_PARTY_ROOT/openssl/include",
-    "$BASE_INNERKITS_ROOT/netshareclient/include",
-    "$BASE_INNERKITS_ROOT/netshareclient/include/proxy",
-    "$BASE_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
-    "$BASE_INNERKITS_ROOT/ethernetclient/include/proxy",
-    "$BASE_INNERKITS_ROOT/netstatsclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
@@ -34,28 +26,10 @@ config("net_tether_manager_config") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/utils",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netmanagernative/include",
-    "$BASE_INNERKITS_ROOT/dnsresolverclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$BLUETOOTH_ROOT/interfaces/inner_api/include",
-    "$NETMANAGER_BASE_ROOT/services/netmanagernative/include/netsys",
-    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
-    "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
   ]
   if (communication_wifi_switch_enable) {
-    include_dirs += [
-      "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-      "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
-    ]
-  }
-  if (usb_manager_enable) {
-    include_dirs += [
-      "$USB_MANAGER_ROOT/interfaces/innerkits/native/include",
-      "$USB_MANAGER_ROOT/services/zidl/include",
-      "$USB_MANAGER_ROOT/utils/native/include",
-    ]
+    include_dirs += [ "$WIFI_MANAGER_ROOT/interfaces/kits/c" ]
   }
 }
 
@@ -113,6 +87,7 @@ ohos_shared_library("net_tether_manager") {
   ]
 
   external_deps = [
+    "bluetooth:btframework",
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
@@ -124,8 +99,13 @@ ohos_shared_library("net_tether_manager") {
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
     "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
+    "netmanager_base:net_stats_manager_if",
     "netmanager_base:netsys_controller",
+    "openssl:libcrypto_shared",
+    "openssl:libssl_shared",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 
   defines = []
@@ -194,14 +174,12 @@ ohos_static_library("net_tether_manager_static") {
   configs = [ ":net_tether_manager_config" ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_manager_if",
-    "$NETMANAGER_BASE_ROOT/utils:net_data_share",
-    "$NETMANAGER_BASE_ROOT/utils:net_manager_common",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
 
   external_deps = [
+    "bluetooth:btframework",
     "c_utils:utils",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
@@ -210,7 +188,15 @@ ohos_static_library("net_tether_manager_static") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_data_share",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
+    "netmanager_base:net_stats_manager_if",
+    "openssl:libcrypto_shared",
+    "openssl:libssl_shared",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 
   defines = []
