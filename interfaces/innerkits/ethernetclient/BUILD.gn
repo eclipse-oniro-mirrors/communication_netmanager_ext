@@ -19,10 +19,7 @@ config("net_conn_manager_if_config") {
   include_dirs = [
     "include",
     "include/proxy",
-    "$BASE_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$EXT_INNERKITS_ROOT/include",
-    "$BASE_INNERKITS_ROOT/netmanagernative/include",
   ]
 
   cflags = []
@@ -70,7 +67,6 @@ ohos_source_set("ethernet_parcel") {
   ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
@@ -114,7 +110,13 @@ ohos_shared_library("ethernet_manager_if") {
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "ipc:ipc_single",
+    "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
+  ]
+
+  public_external_deps = [
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
   ]
 
   defines = [
@@ -127,8 +129,6 @@ ohos_shared_library("ethernet_manager_if") {
   }
 
   external_deps += [ "hilog:libhilog" ]
-
-  external_deps += [ "netmanager_base:net_manager_common" ]
 
   innerapi_tags = [ "platformsdk" ]
   part_name = "netmanager_ext"

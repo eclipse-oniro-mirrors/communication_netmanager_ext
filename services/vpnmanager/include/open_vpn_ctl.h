@@ -49,6 +49,10 @@ enum OpenvpnStateCode : int32_t {
     OPENVPN_STATE_ERROR_TIME_OUT,
 };
 
+enum OpenVpnConfigType : int32_t {
+    OPENVPN_ASKPASS = 0,
+};
+
 class OpenvpnCtl : public NetVpnImpl {
 public:
     OpenvpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
@@ -59,6 +63,7 @@ public:
     int32_t Destroy() override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
     int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
+    int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
     bool IsSystemVpn() override;
     sptr<OpenvpnConfig> openvpnConfig_;
 

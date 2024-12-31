@@ -45,15 +45,12 @@ ohos_unittest("ethernet_manager_test") {
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
     "$EXT_SECURITY_PATH/security",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include/stub",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$NETCONNMANAGER_COMMON_DIR/include",
   ]
 
   deps = [
-    "$BASE_INNERKITS_ROOT/netconnclient:net_conn_parcel",
     "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
     "$NETCONNMANAGER_COMMON_DIR:net_service_common",
@@ -70,6 +67,8 @@ ohos_unittest("ethernet_manager_test") {
     "dhcp:dhcp_sdk",
     "ffrt:libffrt",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_conn_parcel",
   ]
 
   defines = [

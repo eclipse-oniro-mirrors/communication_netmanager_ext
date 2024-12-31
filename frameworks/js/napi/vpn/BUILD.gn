@@ -40,11 +40,6 @@ ohos_shared_library("vpn") {
   include_dirs = [
     "$NETMANAGER_EXT_NAPI_ROOT/vpn/include",
     "$NETMANAGER_EXT_NAPI_ROOT/vpn/include/context",
-    "$NETMANAGER_BASE_ROOT/utils/common_utils/include",
-    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
-    "$NETMANAGER_BASE_ROOT/utils/napi_utils/include",
-    "$BASE_INNERKITS_ROOT/netvpnclient/include",
-    "$BASE_INNERKITS_ROOT/netvpnclient/include/ipc",
   ]
 
   cflags = [

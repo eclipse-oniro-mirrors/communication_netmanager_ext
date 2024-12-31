@@ -770,29 +770,83 @@ HWTEST_F(NetworkShareTrackerTest, NetworkShareTrackerBranchTest01, TestSize.Leve
 }
 
 #ifdef WIFI_MODOULE
-HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer01, TestSize.Level1)
+HWTEST_F(NetworkShareTrackerTest, StartIdleApStopTimerTest, TestSize.Level1)
 {
     NetworkShareTracker::GetInstance().StartIdleApStopTimer();
+    EXPECT_NE(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+    NetworkShareTracker::GetInstance().StartIdleApStopTimer();
+    EXPECT_NE(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimerTest, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().StopIdleApStopTimer();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
     NetworkShareTracker::GetInstance().StopIdleApStopTimer();
     EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
 }
 
-HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer02, TestSize.Level1)
+HWTEST_F(NetworkShareTrackerTest, HandleIdleApStopTimerTest, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().powerConnected_ = false;
+    NetworkShareTracker::GetInstance().staConnected_ = false;
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_STARTED;
+    NetworkShareTracker::GetInstance().HandleIdleApStopTimer();
+    EXPECT_NE(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+    NetworkShareTracker::GetInstance().powerConnected_ = true;
+    NetworkShareTracker::GetInstance().HandleIdleApStopTimer();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStaJoinTest, TestSize.Level1)
 {
     StationInfo sta{};
     NetworkShareTracker::GetInstance().OnWifiHotspotStaJoin(&sta);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().staConnected_, true);
     EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
 }
 
-HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer03, TestSize.Level1)
+HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStaLeaveTest, TestSize.Level1)
 {
-    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(5);
+    StationInfo sta{};
+    NetworkShareTracker::GetInstance().powerConnected_ = true;
+    NetworkShareTracker::GetInstance().staConnected_ = true;
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_STARTED;
+    NetworkShareTracker::GetInstance().OnWifiHotspotStaLeave(&sta);
     EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
 }
 
-HWTEST_F(NetworkShareTrackerTest, StopIdleApStopTimer03, TestSize.Level1)
+HWTEST_F(NetworkShareTrackerTest, OnPowerConnectedTest, TestSize.Level1)
 {
     NetworkShareTracker::GetInstance().OnPowerConnected();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().powerConnected_, true);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, OnPowerDisConnectedTest, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().staConnected_ = false;
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_STARTED;
+    NetworkShareTracker::GetInstance().OnPowerDisConnected();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().powerConnected_, false);
+    EXPECT_NE(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+    NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_CLOSED;
+    NetworkShareTracker::GetInstance().OnPowerDisConnected();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().powerConnected_, false);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, HandleHotSpotStartedTest, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().HandleHotSpotStarted();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().staConnected_, false);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, HandleHotSpotClosedTest, TestSize.Level1)
+{
+    NetworkShareTracker::GetInstance().HandleHotSpotClosed();
+    EXPECT_EQ(NetworkShareTracker::GetInstance().staConnected_, false);
     EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
 }
 #endif

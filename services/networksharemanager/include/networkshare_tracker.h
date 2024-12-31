@@ -255,10 +255,14 @@ private:
     void RegisterBtPanCallback();
 #ifdef WIFI_MODOULE
     void SetWifiState(const Wifi::ApState &state);
+    void HandleHotSpotStarted();
+    void HandleHotSpotClosed();
+    void HandleHotSpotStaJoin();
+    void HandleHotSpotStaLeave();
+    void HandleIdleApStopTimer();
     void StopIdleApStopTimer();
     void StartIdleApStopTimer();
-    bool IsPowerConnected();
-    unsigned int GetStationListSize();
+    void GetPowerConnected();
 #endif
 #ifdef BLUETOOTH_MODOULE
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
@@ -286,8 +290,10 @@ private:
     int32_t wifiShareCount_ = 0;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
     WifiEvent g_wifiEvent = {0};
-    uint64_t idleApStopTimerId_ = 0;
+    uint32_t idleApStopTimerId_ = 0;
     ffrt::mutex apStopTimerMutex_;
+    bool powerConnected_ = false;
+    bool staConnected_ = false;
 #endif
 #ifdef BLUETOOTH_MODOULE
     std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;

@@ -297,6 +297,7 @@ bool NetVpnImpl::UpdateNetLinkInfo()
         }
         dns.address_ = dnsServer;
         linkInfo->dnsList_.emplace_back(dns);
+        linkInfo->isUserDefinedDnsServer_ = true;
     }
 
     for (auto domain : vpnConfig_->searchDomains_) {

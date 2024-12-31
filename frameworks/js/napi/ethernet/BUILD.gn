@@ -25,9 +25,7 @@ ohos_shared_library("ethernet") {
 
   include_dirs = [
     "context",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
-    "$SAMGR_MANAGER_ROOT/interfaces/innerkits/samgr_proxy/include",
     "$NETCONNMANAGER_UTILS_DIR/common_utils/include",
   ]
 
@@ -66,7 +64,9 @@ ohos_shared_library("ethernet") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
+    "samgr:samgr_proxy",
   ]
 
   relative_install_dir = "module/net"

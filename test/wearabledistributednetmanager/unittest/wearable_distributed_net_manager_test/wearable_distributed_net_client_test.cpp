@@ -112,5 +112,13 @@ HWTEST_F(WearableDistributedNetClientTest, OnRemoteDied, TestSize.Level1)
     WearableDistributedNetClient::GetInstance().OnRemoteDied(remote);
     EXPECT_EQ(WearableDistributedNetClient::GetInstance().wearableDistributedNetService_, nullptr);
 }
+
+HWTEST_F(WearableDistributedNetClientTest, UpdateWearableDistributedNetMeteredStatus, TestSize.Level1)
+{
+    bool isMetered = true;
+    WearableDistributedNetClient::GetInstance().RestartWearableDistributedNetManagerSysAbility();
+    auto ret = WearableDistributedNetClient::GetInstance().UpdateWearableDistributedNetMeteredStatus(isMetered);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

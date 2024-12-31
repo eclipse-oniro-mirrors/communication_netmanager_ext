@@ -35,7 +35,7 @@ const bool REGISTER_LOCAL_RESULT_NETSHARE =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkShareService>::GetInstance().get());
 constexpr int32_t XCOLLIE_TIMEOUT_DURATION = 30;
 constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
-inline const std::string IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notification.hotspot.TAP_NOTIFICATION_CLOSE";
+inline const std::string IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notification.wifi.TAP_ENABLE_HOTSPOT";
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
 
@@ -99,6 +99,9 @@ bool NetworkShareService::Init()
     AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
     AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
     SubscribeCommonEvent();
+#ifdef SHARE_NOTIFICATION_ENABLE
+    SubscribeWifiShareNtfEvent();
+#endif
     return true;
 }
 
@@ -397,6 +400,18 @@ void NetworkShareService::SubscribeCommonEvent()
     }
 }
 
+void NetworkShareService::CommonEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
+{
+    const auto &action = eventData.GetWant().GetAction();
+    NETMGR_EXT_LOG_I("NetworkShareService::OnReceiveEvent: %{public}s.", action.c_str());
+    if (action == OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_CONNECTED) {
+        NetworkShareTracker::GetInstance().OnPowerConnected();
+    } else if (action == OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_DISCONNECTED) {
+        NetworkShareTracker::GetInstance().OnPowerDisConnected();
+    }
+}
+
+#ifdef SHARE_NOTIFICATION_ENABLE
 void NetworkShareService::SubscribeWifiShareNtfEvent()
 {
     EventFwk::MatchingSkills matchingSkills;
@@ -417,17 +432,6 @@ void NetworkShareService::SubscribeWifiShareNtfEvent()
     }
 }
 
-void NetworkShareService::CommonEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
-{
-    const auto &action = eventData.GetWant().GetAction();
-    NETMGR_EXT_LOG_I("NetworkShareService::OnReceiveEvent: %{public}s.", action.c_str());
-    if (action == OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_CONNECTED) {
-        NetworkShareTracker::GetInstance().OnPowerConnected();
-    } else if (action == OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_DISCONNECTED) {
-        NetworkShareTracker::GetInstance().OnPowerDisConnected();
-    }
-}
-
 void NetworkShareService::WifiShareNtfSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 {
     const auto &action = eventData.GetWant().GetAction();
@@ -436,5 +440,6 @@ void NetworkShareService::WifiShareNtfSubscriber::OnReceiveEvent(const EventFwk:
         NetworkShareTracker::GetInstance().StartNetworkSharing(SharingIfaceType::SHARING_WIFI);
     }
 }
+#endif
 } // namespace NetManagerStandard
 } // namespace OHOS

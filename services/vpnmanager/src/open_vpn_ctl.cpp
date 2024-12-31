@@ -54,12 +54,6 @@ int32_t OpenvpnCtl::StartOpenvpn()
     }
     ofs << cfg;
     if (!openvpnConfig_->askpass_.empty()) {
-        std::ofstream askpassOfs(OPENVPN_ASKPASS_FILE, std::ios::out | std::ios::trunc);
-        if (!askpassOfs.is_open()) {
-            NETMGR_EXT_LOG_E("StartOpenvpn askpass file open failed");
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        }
-        askpassOfs << openvpnConfig_->askpass_ << std::endl;
         ofs << OPENVPN_ASKPASS_PARAM << std::endl;
     }
     NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_OPENVPN_RESTART);
@@ -200,6 +194,23 @@ void OpenvpnCtl::UpdateOpenvpnState(const int32_t state)
             break;
     }
     openvpnState_ = state;
+}
+
+int32_t OpenvpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
+{
+    if (openvpnConfig_ == nullptr) {
+        NETMGR_EXT_LOG_E("StartOpenvpn openvpnConfig_ is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    switch (certType) {
+        case OpenVpnConfigType::OPENVPN_ASKPASS:
+            certUri = openvpnConfig_->askpass_;
+            break;
+        default:
+            NETMGR_EXT_LOG_E("unknown openvpn config type: %{public}d", certType);
+            break;
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 bool OpenvpnCtl::IsSystemVpn()

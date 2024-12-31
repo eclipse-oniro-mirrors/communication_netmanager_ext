@@ -47,12 +47,10 @@ ohos_unittest("networkshare_manager_test") {
     "sharing_event_callback_proxy_test.cpp",
     "sharing_event_callback_stub_test.cpp",
     "static_configuration_test.cpp",
+    "sys_timer_test.cpp",
   ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
-    "$NETMANAGER_BASE_ROOT/utils/errorcode_utils/include",
-    "$BLUETOOTH_ROOT/interfaces/inner_api/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
@@ -61,11 +59,9 @@ ohos_unittest("networkshare_manager_test") {
     "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/stub",
+    "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/utils",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
     "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$THIRD_PARTY_ROOT/openssl/include",
-    "$USB_MANAGER_ROOT/utils/native/include",
-    "$USB_MANAGER_ROOT/services/zidl/include",
   ]
 
   defines = []
@@ -86,19 +82,30 @@ ohos_unittest("networkshare_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "$THIRD_PARTY_ROOT/googletest:gmock_main",
   ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "ability_runtime:ability_manager",
+    "ability_runtime:extension_manager",
+    "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bluetooth:btframework",
     "common_event_service:cesfwk_innerkits",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hicollie:libhicollie",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
+    "openssl:libcrypto_shared",
+    "openssl:libssl_shared",
+    "time_service:time_client",
+    "usb_manager:usbsrv_client",
   ]
 
   if (communication_wifi_switch_enable) {
@@ -112,6 +119,11 @@ ohos_unittest("networkshare_manager_test") {
       "drivers_interface_usb:usb_idl_headers",
       "usb_manager:usbsrv_client",
     ]
+  }
+
+  if (netmanager_ext_share_notification_enable) {
+    defines += [ "SHARE_NOTIFICATION_ENABLE" ]
+    sources += [ "networkshare_notification_test.cpp" ]
   }
 
   defines += [

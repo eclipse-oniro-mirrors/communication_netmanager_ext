@@ -29,8 +29,6 @@ ohos_fuzztest("MDnsClientFuzzTest") {
     "$NETMANAGER_EXT_ROOT/services/mdnsmanager/include/stub",
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
   ]
   cflags = [
     "-g",

@@ -32,8 +32,6 @@ ohos_fuzztest("VpnClientFuzzTest") {
     "$NETMANAGER_EXT_ROOT/utils/event_report/include",
     "$VPNMANAGER_SOURCE_DIR/include",
     "$VPNMANAGER_SOURCE_DIR/include/ipc",
-    "$BASE_INNERKITS_ROOT/netconnclient/include",
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
   ]
 
   cflags = [
@@ -74,6 +72,7 @@ ohos_fuzztest("VpnClientFuzzTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "netmanager_base:netsys_controller",
     "os_account:os_account_innerkits",
