@@ -46,16 +46,6 @@ int32_t OpenvpnCtl::StartOpenvpn()
         NETMGR_EXT_LOG_E("StartOpenvpn config dir check error.");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    std::string cfg = Base64::Decode(openvpnConfig_->ovpnConfig_);
-    std::ofstream ofs(OPENVPN_CONFIG_FILE, std::ios::out | std::ios::trunc);
-    if (!ofs.is_open()) {
-        NETMGR_EXT_LOG_E("StartOpenvpn config file open failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    ofs << cfg;
-    if (!openvpnConfig_->askpass_.empty()) {
-        ofs << OPENVPN_ASKPASS_PARAM << std::endl;
-    }
     NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_OPENVPN_RESTART);
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -205,6 +195,12 @@ int32_t OpenvpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUr
     switch (certType) {
         case OpenVpnConfigType::OPENVPN_ASKPASS:
             certUri = openvpnConfig_->askpass_;
+            break;
+        case OpenVpnConfigType::OPENVPN_CONF:
+            certUri = Base64::Decode(openvpnConfig_->ovpnConfig_);
+            if (!certUri.empty() && !openvpnConfig_->askpass_.empty()) {
+                certUri.append(OPENVPN_ASKPASS_PARAM);
+            }
             break;
         default:
             NETMGR_EXT_LOG_E("unknown openvpn config type: %{public}d", certType);
