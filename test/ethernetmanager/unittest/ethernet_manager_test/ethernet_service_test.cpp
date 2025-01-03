@@ -345,18 +345,18 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
     
     std::vector<MacAddressInfo> mai;
     result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     result = ethernetService.GetIfaceConfig(iface, ic);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     int32_t activeStatus = 0;
     result = ethernetService.IsIfaceActive(iface, activeStatus);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     std::vector<std::string> activeIfaces;
     result = ethernetService.GetAllActiveIfaces(activeIfaces);
@@ -395,18 +395,18 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     
     std::vector<MacAddressInfo> mai;
     result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(IFACE_NAME, ic);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     result = ethernetService.GetIfaceConfig(IFACE_NAME, ic);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     int32_t activeStatus = 0;
     result = ethernetService.IsIfaceActive(iface, activeStatus);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     result = ethernetService.SetInterfaceDown(IFACE_NAME);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
@@ -448,18 +448,18 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
 
     std::vector<MacAddressInfo> mai;
     result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     result = ethernetService.GetIfaceConfig(iface, ic);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     int32_t activeStatus = 0;
     result = ethernetService.IsIfaceActive(iface, activeStatus);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     std::vector<std::string> activeIfaces;
     result = ethernetService.GetAllActiveIfaces(activeIfaces);
