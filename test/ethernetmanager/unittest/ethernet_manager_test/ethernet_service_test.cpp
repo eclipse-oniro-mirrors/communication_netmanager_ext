@@ -345,7 +345,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
     
     std::vector<MacAddressInfo> mai;
     result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
@@ -395,7 +395,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     
     std::vector<MacAddressInfo> mai;
     result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(IFACE_NAME, ic);
@@ -448,7 +448,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
 
     std::vector<MacAddressInfo> mai;
     result = ethernetService.GetMacAddress(mai);
-    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
     sptr<InterfaceConfiguration> ic = nullptr;
     result = ethernetService.SetIfaceConfig(iface, ic);
