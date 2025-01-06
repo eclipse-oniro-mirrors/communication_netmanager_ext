@@ -252,6 +252,7 @@ private:
     void ClearCurrentVpnUserInfo();
     void UnregVpnHpObserver();
     bool IsCurrentVpnPid(int32_t uid, int32_t pid);
+    bool CheckVpnPermission(const std::string bundleName);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -319,6 +320,7 @@ private:
     int32_t hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
     std::map<int32_t, int32_t> setVpnPidMap_;
+    int32_t currSetUpVpnPid_ = 0;
     std::vector<std::string> currentVpnAbilityName_;
 };
 } // namespace NetManagerStandard

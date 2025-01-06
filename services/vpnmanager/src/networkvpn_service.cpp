@@ -565,19 +565,27 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
     ofs << jsonString;
 }
 
+bool NetworkVpnService::CheckVpnPermission(const std::string bundleName)
+{
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
+        std::string vpnExtMode;
+        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, bundleName.c_str());
+        if (ret != 0 || vpnExtMode != "1") {
+            NETMGR_EXT_LOG_E("query datebase fail.");
+            return false;
+        }
+    }
+    return true;
+}
+
 int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
-        std::string vpnExtMode;
-        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
-        if (ret != 0 || vpnExtMode != "1") {
-            NETMGR_EXT_LOG_E("query datebase fail.");
-            return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-        }
+    if (!CheckVpnPermission(vpnBundleName)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
@@ -607,6 +615,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
     ret = vpnObj_->SetUp();
     if (ret == NETMANAGER_EXT_SUCCESS) {
         hasOpenedVpnUid_ = IPCSkeleton::GetCallingUid();
+        currSetUpVpnPid_ = IPCSkeleton::GetCallingPid();
     }
     if (ret == NETMANAGER_EXT_SUCCESS && !vpnBundleName.empty()) {
         std::vector<std::string> list = {vpnBundleName, vpnBundleName + VPN_EXTENSION_LABEL};
@@ -636,14 +645,8 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     NETMGR_EXT_LOG_I("DestroyVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
-        std::string vpnExtMode;
-        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, vpnBundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, vpnBundleName.c_str());
-        if (ret != 0 || vpnExtMode != "1") {
-            NETMGR_EXT_LOG_E("query datebase fail.");
-            return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-        }
+    if (!CheckVpnPermission(vpnBundleName)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
     if (hasOpenedVpnUid_ != IPCSkeleton::GetCallingUid()) {
@@ -1362,6 +1365,10 @@ bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid)
     if (it != setVpnPidMap_.end() && it->second == pid) {
         return true;
     }
+
+    if (pid == currSetUpVpnPid_) {
+        return true;
+    }
     return false;
 }
 
@@ -1382,6 +1389,7 @@ void NetworkVpnService::ClearCurrentVpnUserInfo()
     currentVpnBundleName_ = "";
     currentVpnAbilityName_.clear();
     setVpnPidMap_.clear();
+    currSetUpVpnPid_ = 0;
 }
 
 void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
