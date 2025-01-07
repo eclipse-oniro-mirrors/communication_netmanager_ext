@@ -112,6 +112,10 @@ int32_t VpnDatabaseHelper::EncryptData(const sptr<VpnDataBean> &vpnBean)
         NETMGR_EXT_LOG_E("EncryptData l2tpSharedKey_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->askpass_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData askpass_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -138,6 +142,10 @@ int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
     }
     if (VpnDecryptData(vpnEncryptionInfo, vpnBean->l2tpSharedKey_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("DecryptData l2tpSharedKey_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->askpass_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData askpass_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;

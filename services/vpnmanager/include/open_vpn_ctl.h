@@ -51,6 +51,7 @@ enum OpenvpnStateCode : int32_t {
 
 enum OpenVpnConfigType : int32_t {
     OPENVPN_ASKPASS = 0,
+    OPENVPN_CONF,
 };
 
 class OpenvpnCtl : public NetVpnImpl {
@@ -68,7 +69,6 @@ public:
     sptr<OpenvpnConfig> openvpnConfig_;
 
 private:
-    const std::string  OPENVPN_CONFIG_FILE = VPN_PIDDIR "/config.ovpn";
     const std::string  OPENVPN_ASKPASS_FILE = VPN_PIDDIR "/askpass";
     const std::string  OPENVPN_ASKPASS_PARAM = "askpass " + std::string(OPENVPN_ASKPASS_FILE);
     int32_t openvpnState_ = OPENVPN_STATE_UNKNOWN;
