@@ -109,6 +109,7 @@ declare_args() {
   usb_manager_enable = false
   netmanager_ext_feature_wearable_distributed_net = false
   battery_manager_switch_enable = false
+  netmanager_ext_share_notification_enable = false
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]

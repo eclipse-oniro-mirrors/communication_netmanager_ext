@@ -16,6 +16,10 @@
 #ifndef NETWORKSHARE_SERVICE_H
 #define NETWORKSHARE_SERVICE_H
 
+#include "common_event.h"
+#include "common_event_data.h"
+#include "common_event_manager.h"
+#include "common_event_support.h"
 #include "singleton.h"
 #include "system_ability.h"
 
@@ -36,6 +40,21 @@ class NetworkShareService : public SystemAbility,
         STATE_RUNNING,
     };
 
+    class CommonEventSubscriber : public OHOS::EventFwk::CommonEventSubscriber {
+    public:
+        explicit CommonEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+            : OHOS::EventFwk::CommonEventSubscriber(subscribeInfo) {};
+        virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
+    };
+
+#ifdef SHARE_NOTIFICATION_ENABLE
+    class WifiShareNtfSubscriber : public OHOS::EventFwk::CommonEventSubscriber {
+    public:
+        explicit WifiShareNtfSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+            : OHOS::EventFwk::CommonEventSubscriber(subscribeInfo) {};
+        virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
+    };
+#endif
 public:
     /**
      * service start
@@ -124,11 +143,18 @@ private:
 
     void OnNetSysRestart();
     static void DisAllowNetworkShareEventCallback(const char *key, const char *value, void *context);
-	
+    void SubscribeCommonEvent();
+#ifdef SHARE_NOTIFICATION_ENABLE
+    void SubscribeWifiShareNtfEvent();
+#endif
+
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;
-
+    std::shared_ptr<CommonEventSubscriber> commonEventSubscriber_ = nullptr;
+#ifdef SHARE_NOTIFICATION_ENABLE
+    std::shared_ptr<WifiShareNtfSubscriber> wifiShareNtfSubscriber_ = nullptr;
+#endif
     bool hasSARemoved_ = false;
 };
 } // namespace NetManagerStandard

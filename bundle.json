@@ -77,7 +77,8 @@
                 "hicollie",
                 "init",
                 "battery_manager",
-                "openssl"
+                "openssl",
+                "time_service"
             ]
         },
         "build": {
