@@ -365,18 +365,37 @@ int32_t NetworkVpnServiceStub::ReplyFactoryResetVpn(MessageParcel &data, Message
 
 int32_t NetworkVpnServiceStub::ReplyRegisterBundleName(MessageParcel &data, MessageParcel &reply)
 {
+    std::string bundleName;
+    if (!data.ReadString(bundleName)) {
+        NETMGR_EXT_LOG_E("ReplyRegisterBundleName read data failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    std::string abilityName;
+    if (!data.ReadString(abilityName)) {
+        NETMGR_EXT_LOG_E("ReplyRegisterBundleName read data failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    int32_t result = RegisterBundleName(bundleName, abilityName);
+    if (!reply.WriteInt32(result)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkVpnServiceStub::ReplyGetSelfAppName(MessageParcel &data, MessageParcel &reply)
 {
     std::string selfAppName;
-    int32_t result = GetSelfAppName(selfAppName);
+    std::string selfBundleName;
+    int32_t result = GetSelfAppName(selfAppName, selfBundleName);
     if (result != ERR_NONE) {
         NETMGR_EXT_LOG_E("GetSelfAppName failed on service");
         return result;
     }
     if (!reply.WriteString(selfAppName)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    if (!reply.WriteString(selfBundleName)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
     return NETMANAGER_EXT_SUCCESS;

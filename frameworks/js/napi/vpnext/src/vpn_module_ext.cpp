@@ -152,6 +152,31 @@ static std::string Replace(std::string s)
     return s;
 }
 
+
+napi_value ProcessPermissionRequests(napi_env env, const std::string bundleName, const std::string abilityName)
+{
+    std::string selfAppName;
+    std::string selfBundleName;
+    auto getAppNameRes = NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName, selfBundleName);
+    NETMANAGER_EXT_LOGI("StartVpnExtensionAbility SelfAppName = %{public}s %{public}d", selfAppName.c_str(),
+        getAppNameRes);
+    if (bundleName != selfBundleName) {
+        NETMANAGER_EXT_LOGE("Not allowed to start other bundleName vpn!");
+        return CreateRejectedPromise(env);
+    }
+
+    bool vpnDialogSelect = false;
+    std::string vpnExtMode = std::to_string(vpnDialogSelect);
+    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+    if (!g_started || ret != 0 || vpnExtMode != "1") {
+        g_started = true;
+        VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
+        NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
+        return CreateObserveDataSharePromise(env, bundleName);
+    }
+    return nullptr;
+}
+
 napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
 {
     napi_value thisVal = nullptr;
@@ -173,24 +198,12 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     }
 
     std::string bundleName = want.GetElement().GetBundleName();
-    int32_t rst = NetworkVpnClient::GetInstance().RegisterBundleName(bundleName);
-    NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
     std::string abilityName = want.GetElement().GetAbilityName();
     if (abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
         NetworkVpnClient::GetInstance().SetSelfVpnPid();
-
-        bool vpnDialogSelect = false;
-        std::string vpnExtMode = std::to_string(vpnDialogSelect);
-        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-        if (!g_started || ret != 0 || vpnExtMode != "1") {
-            g_started = true;
-            std::string selfAppName;
-            auto getAppNameRes = NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName);
-            NETMANAGER_EXT_LOGI("StartVpnExtensionAbility SelfAppName = %{public}s %{public}d", selfAppName.c_str(),
-                                getAppNameRes);
-            VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
-            NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
-            return CreateObserveDataSharePromise(env, bundleName);
+        napi_value retVal = ProcessPermissionRequests(env, bundleName, abilityName);
+        if (retVal != nullptr) {
+            return retVal;
         }
     }
     auto elem = want.GetElement();
@@ -199,6 +212,10 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
+    if (err == 0) {
+        int32_t rst = NetworkVpnClient::GetInstance().RegisterBundleName(bundleName, Replace(abilityName));
+        NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
+    }
     return CreateResolvedPromise(env);
 }
 
@@ -219,6 +236,24 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
     if (!AppExecFwk::UnwrapWant(env, argv[0], want)) {
         NETMANAGER_EXT_LOGE("Failed to parse want");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parse want error");
+        return CreateRejectedPromise(env);
+    }
+
+    std::string bundleName = want.GetElement().GetBundleName();
+    std::string selfAppName;
+    std::string selfBundleName;
+    auto getAppNameRes = NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName, selfBundleName);
+    NETMANAGER_EXT_LOGI("StopVpnExtensionAbility SelfAppName = %{public}s %{public}d", selfAppName.c_str(),
+        getAppNameRes);
+    if (bundleName != selfBundleName) {
+        NETMANAGER_EXT_LOGE("Not allowed to stop other bundleName vpn!");
+        return CreateRejectedPromise(env);
+    }
+    bool vpnDialogSelect = false;
+    std::string vpnExtMode = std::to_string(vpnDialogSelect);
+    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+    if (ret != 0 || vpnExtMode != "1") {
+        NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         return CreateRejectedPromise(env);
     }
 
