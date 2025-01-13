@@ -209,9 +209,9 @@ public:
      * close the tunfd of vpn interface and unregister VpnEvent.
      */
     void multiUserSetUpEvent();
-    int32_t RegisterBundleName(const std::string &bundleName);
+    int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName);
 
-    int32_t GetSelfAppName(std::string &selfAppName);
+    int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName);
 
     int32_t SetSelfVpnPid();
 

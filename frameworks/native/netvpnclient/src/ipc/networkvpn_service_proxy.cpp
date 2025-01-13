@@ -79,7 +79,7 @@ int32_t NetworkVpnServiceProxy::Prepare(bool &isExistVpn, bool &isRun, std::stri
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::GetSelfAppName(std::string &selfAppName)
+int32_t NetworkVpnServiceProxy::GetSelfAppName(std::string &selfAppName, std::string &selfBundleName)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
@@ -93,7 +93,11 @@ int32_t NetworkVpnServiceProxy::GetSelfAppName(std::string &selfAppName)
         return ret;
     }
     if (!reply.ReadString(selfAppName)) {
-        NETMGR_EXT_LOG_E("IPC ReadString failed");
+        NETMGR_EXT_LOG_E("IPC ReadString selfAppName failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (!reply.ReadString(selfBundleName)) {
+        NETMGR_EXT_LOG_E("IPC ReadString selfBundleName failed");
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     return ERR_NONE;
@@ -494,9 +498,32 @@ int32_t NetworkVpnServiceProxy::CreateVpnConnection(bool isVpnExtCall)
     return result;
 }
 
-int32_t NetworkVpnServiceProxy::RegisterBundleName(const std::string &bundleName)
+int32_t NetworkVpnServiceProxy::RegisterBundleName(const std::string &bundleName, const std::string &abilityName)
 {
-    return NETMANAGER_EXT_SUCCESS;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkVpnServiceProxy::GetDescriptor())) {
+        NETMGR_EXT_LOG_E("write interface token failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(bundleName)) {
+        NETMGR_EXT_LOG_E("RegisterBundleName write bundleName failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteString(abilityName)) {
+        NETMGR_EXT_LOG_E("RegisterBundleName write abilityName failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    MessageParcel reply;
+    auto ret = SendRequest(INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("SendRequest failed %{public}d", ret);
+        return ret;
+    }
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    if (!reply.ReadInt32(result)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return result;
 }
 
 int32_t NetworkVpnServiceProxy::FactoryResetVpn()

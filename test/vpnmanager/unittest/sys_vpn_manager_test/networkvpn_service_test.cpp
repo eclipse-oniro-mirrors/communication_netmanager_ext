@@ -462,7 +462,8 @@ HWTEST_F(NetworkVpnServiceTest, RegisterBundleName001, TestSize.Level1)
     instance_->OnRemoveSystemAbility(systemAbilityId, deviceId);
 
     std::string bundleName = "vpntest";
-    EXPECT_EQ(instance_->RegisterBundleName(bundleName), NETMANAGER_EXT_SUCCESS);
+    std::string abilityName = "vpnAbility";
+    EXPECT_EQ(instance_->RegisterBundleName(bundleName, abilityName), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnExtensionStateChanged001, TestSize.Level1)

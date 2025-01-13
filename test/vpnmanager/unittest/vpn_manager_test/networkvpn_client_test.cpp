@@ -181,7 +181,8 @@ HWTEST_F(NetworkVpnClientTest, NetworkVpnClientBranch001, TestSize.Level1)
 HWTEST_F(NetworkVpnClientTest, RegisterBundleName001, TestSize.Level1)
 {
     std::string bundleName = "com.test.test";
-    auto ret = networkVpnClient_.RegisterBundleName(bundleName);
+    std::string abilityName = "vpnAbility";
+    auto ret = networkVpnClient_.RegisterBundleName(bundleName, abilityName);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 

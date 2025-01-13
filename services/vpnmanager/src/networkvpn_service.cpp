@@ -1227,19 +1227,29 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
     }
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
-        std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
-        std::string vpnBundleName = vpnService_.GetBundleName();
-        NETMGR_EXT_LOG_D("COMMON_EVENT_PACKAGE_REMOVED, BundleName %{public}s", vpnBundleName.c_str());
-        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, vpnBundleName);
+        std::string bundleName = eventData.GetWant().GetElement().GetBundleName();
+        NETMGR_EXT_LOG_D("COMMON_EVENT_PACKAGE_REMOVED, BundleName %{public}s", bundleName.c_str());
+        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName);
     }
 }
 
-int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName)
+int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName, const std::string &abilityName)
 {
-    return 0;
+    if (bundleName.empty() || abilityName.empty()) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+
+    std::vector<std::string> list = {bundleName, bundleName + VPN_EXTENSION_LABEL};
+    auto regRet =
+        Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver_, list);
+    NETMGR_EXT_LOG_I("RegisterBundleName RegisterApplicationStateObserver ret = %{public}d", regRet);
+
+    currentVpnBundleName_ = bundleName;
+    currentVpnAbilityName_.emplace_back(abilityName);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName)
+int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string &selfBundleName)
 {
     std::string bundleName;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -1278,6 +1288,7 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName)
     }
     NETMGR_EXT_LOG_I("StartVpnExtensionAbility bundleResourceInfo.label %{public}s", bundleResourceInfo.label.c_str());
     selfAppName = bundleResourceInfo.label;
+    selfBundleName = bundleName;
     return NETMANAGER_EXT_SUCCESS;
 }
 

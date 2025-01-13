@@ -269,7 +269,7 @@ int32_t NetworkVpnClient::CreateVpnConnection(bool isVpnExtCall)
     return proxy->CreateVpnConnection(isVpnExtCall);
 }
 
-int32_t NetworkVpnClient::RegisterBundleName(const std::string &bundleName)
+int32_t NetworkVpnClient::RegisterBundleName(const std::string &bundleName, const std::string &abilityName)
 {
     NETMGR_EXT_LOG_D("VpnClient::RegisterBundleName is %{public}s", bundleName.c_str());
     sptr<INetworkVpnService> proxy = GetProxy();
@@ -277,7 +277,7 @@ int32_t NetworkVpnClient::RegisterBundleName(const std::string &bundleName)
         NETMGR_EXT_LOG_E("CreateVpnConnection proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->RegisterBundleName(bundleName);
+    return proxy->RegisterBundleName(bundleName, abilityName);
 }
 
 sptr<INetworkVpnService> NetworkVpnClient::GetProxy()
@@ -372,14 +372,14 @@ void NetworkVpnClient::multiUserSetUpEvent()
     }
 }
 
-int32_t NetworkVpnClient::GetSelfAppName(std::string &selfAppName)
+int32_t NetworkVpnClient::GetSelfAppName(std::string &selfAppName, std::string &selfBundleName)
 {
     auto proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetSelfAppName proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetSelfAppName(selfAppName);
+    return proxy->GetSelfAppName(selfAppName, selfBundleName);
 }
 
 int32_t NetworkVpnClient::SetSelfVpnPid()

@@ -36,8 +36,8 @@ public:
     int32_t UnregisterVpnEvent(sptr<IVpnEventCallback> callback) override;
     int32_t CreateVpnConnection(bool isVpnExtCall = false) override;
     int32_t FactoryResetVpn() override;
-    int32_t RegisterBundleName(const std::string &bundleName) override;
-    int32_t GetSelfAppName(std::string &selfAppName) override;
+    int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName) override;
+    int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName) override;
     int32_t SetSelfVpnPid() override;
 #ifdef SUPPORT_SYSVPN
     int32_t SetUpVpn(const sptr<SysVpnConfig> &config) override;

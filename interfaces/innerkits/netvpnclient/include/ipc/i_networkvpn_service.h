@@ -71,8 +71,8 @@ public:
     virtual int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) = 0;
     virtual int32_t CreateVpnConnection(bool isVpnExtCall = false) = 0;
     virtual int32_t FactoryResetVpn() = 0;
-    virtual int32_t RegisterBundleName(const std::string &bundleName) = 0;
-    virtual int32_t GetSelfAppName(std::string &selfAppName) = 0;
+    virtual int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName) = 0;
+    virtual int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName) = 0;
     virtual int32_t SetSelfVpnPid() = 0;
 #ifdef SUPPORT_SYSVPN
     virtual int32_t SetUpVpn(const sptr<SysVpnConfig> &config) = 0;
