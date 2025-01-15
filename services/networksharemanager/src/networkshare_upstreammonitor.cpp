@@ -111,8 +111,10 @@ void NetworkShareUpstreamMonitor::SetOptionData(int32_t what)
 void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
 {
     std::lock_guard lock(networkCallbackMutex_);
-    defaultNetworkCallback_ =
-        new (std::nothrow) NetConnectionCallback(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
+    if (defaultNetworkCallback_ == nullptr) {
+        defaultNetworkCallback_ =
+            new (std::nothrow) NetConnectionCallback(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
+    }
     int32_t result = NetConnClient::GetInstance().RegisterNetConnCallback(defaultNetworkCallback_);
     if (result == NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_I("Register defaultNetworkCallback_ successful");
