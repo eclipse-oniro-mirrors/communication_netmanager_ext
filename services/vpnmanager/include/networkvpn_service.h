@@ -310,7 +310,7 @@ private:
         NetworkVpnService &client_;
     };
     void OnRemoteDied(const wptr<IRemoteObject> &remoteObject);
-    void AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback);
+    bool AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback);
     void RemoveClientDeathRecipient(const sptr<IVpnEventCallback> &callback);
     void RemoveALLClientDeathRecipient();
 
