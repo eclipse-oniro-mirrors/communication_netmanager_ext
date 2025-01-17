@@ -1036,6 +1036,7 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<
 
 int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
     for (auto iterCb = vpnEventCallbacks_.begin(); iterCb != vpnEventCallbacks_.end(); iterCb++) {
         if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
             NETMGR_EXT_LOG_E("Register vpn event callback failed, callback already exists");
@@ -1047,19 +1048,21 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
         NETMGR_EXT_LOG_E("callback above max count, return error.");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-
+    if (!AddClientDeathRecipient(callback)) {
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
     vpnEventCallbacks_.push_back(callback);
-    AddClientDeathRecipient(callback);
     NETMGR_EXT_LOG_I("Register vpn event callback successfully");
     return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
     for (auto iter = vpnEventCallbacks_.begin(); iter != vpnEventCallbacks_.end(); ++iter) {
         if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
-            vpnEventCallbacks_.erase(iter);
             RemoveClientDeathRecipient(callback);
+            vpnEventCallbacks_.erase(iter);
             NETMGR_EXT_LOG_I("Unregister vpn event successfully.");
             return NETMANAGER_EXT_SUCCESS;
         }
@@ -1454,45 +1457,31 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     vpnObj_ = nullptr;
 }
 
-void NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback)
+bool NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback)
 {
     NETMGR_EXT_LOG_I("vpn AddClientDeathRecipient");
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
     if (deathRecipient_ == nullptr) {
         deathRecipient_ = new (std::nothrow) VpnAppDeathRecipient(*this);
     }
     if (deathRecipient_ == nullptr) {
         NETMGR_EXT_LOG_E("deathRecipient is null");
-        return;
+        return false;
     }
     if (!callback->AsObject()->AddDeathRecipient(deathRecipient_)) {
         NETMGR_EXT_LOG_E("AddClientDeathRecipient failed");
-        return;
+        return false;
     }
-    auto iter =
-        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(),
-                     [&callback](const sptr<IVpnEventCallback> &item) {
-                        return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
-        });
-    if (iter == vpnEventCallbacks_.cend()) {
-        vpnEventCallbacks_.emplace_back(callback);
-    }
+    return true;
 }
 
 void NetworkVpnService::RemoveClientDeathRecipient(const sptr<IVpnEventCallback> &callback)
 {
     NETMGR_EXT_LOG_I("vpn RemoveClientDeathRecipient");
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
-    auto iter =
-        std::find_if(vpnEventCallbacks_.cbegin(), vpnEventCallbacks_.cend(),
-                     [&callback](const sptr<IVpnEventCallback> &item) {
-                         return item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr();
-        });
-    if (iter == vpnEventCallbacks_.cend()) {
+    if (deathRecipient_ == nullptr) {
+        NETMGR_EXT_LOG_E("vpn deathRecipient_ is null");
         return;
     }
     callback->AsObject()->RemoveDeathRecipient(deathRecipient_);
-    vpnEventCallbacks_.erase(iter);
 }
 
 void NetworkVpnService::RemoveALLClientDeathRecipient()
