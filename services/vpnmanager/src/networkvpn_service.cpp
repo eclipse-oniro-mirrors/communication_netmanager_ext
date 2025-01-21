@@ -1021,13 +1021,12 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<
 
     activeUserIds.clear();
 
-    AccountSA::OsAccountInfo accountInfo;
-    if (AccountSA::OsAccountManager::QueryOsAccountById(userId, accountInfo) != ERR_OK) {
-        NETMGR_EXT_LOG_E("QueryOsAccountById error, userId: %{public}d.", userId);
+    AccountSA::OsAccountType accountType;
+    if (AccountSA::OsAccountManager::GetOsAccountType(userId, accountType) != ERR_OK) {
+        NETMGR_EXT_LOG_E("GetOsAccountType error, userId: %{public}d.", userId);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
-    if (accountInfo.GetType() == AccountSA::OsAccountType::GUEST) {
+    if (accountType == AccountSA::OsAccountType::GUEST) {
         NETMGR_EXT_LOG_E("The guest user cannot execute the VPN interface.");
         return NETWORKVPN_ERROR_REFUSE_CREATE_VPN;
     }
