@@ -59,8 +59,6 @@ constexpr const char* VPN_CONFIG_FILE = "/data/service/el1/public/netmanager/vpn
 constexpr const char* VPN_EXTENSION_LABEL = ":vpn";
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
-constexpr uint32_t AGAIN_REGISTER_CALLBACK_INTERVAL = 500;
-constexpr uint32_t MAX_RETRY_TIMES = 10;
 constexpr uint32_t UID_NET_SYS_NATIVE = 1098;
 constexpr const char *VPNEXT_MODE_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
@@ -137,6 +135,7 @@ bool NetworkVpnService::Init()
     }
 
     AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
+    AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
 
     SubscribeCommonEvent();
     if (!vpnConnCallback_) {
@@ -565,7 +564,7 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
     ofs << jsonString;
 }
 
-bool NetworkVpnService::CheckVpnPermission(const std::string bundleName)
+bool NetworkVpnService::CheckVpnPermission(const std::string &bundleName)
 {
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
         std::string vpnExtMode;
@@ -1078,6 +1077,8 @@ void NetworkVpnService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
             OnNetSysRestart();
             hasSARemoved_ = false;
         }
+    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID && !registeredCommonEvent_) {
+        SubscribeCommonEvent();
     }
 }
 
@@ -1086,6 +1087,8 @@ void NetworkVpnService::OnRemoveSystemAbility(int32_t systemAbilityId, const std
     NETMGR_EXT_LOG_D("NetworkVpnService::OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         hasSARemoved_ = true;
+    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID) {
+        registeredCommonEvent_ = false;
     }
 }
 
@@ -1187,25 +1190,22 @@ void NetworkVpnService::StartAlwaysOnVpn()
 
 void NetworkVpnService::SubscribeCommonEvent()
 {
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
-    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_POWER_SAVE_MODE_CHANGED);
-    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
-    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-    // 1 means CORE_EVENT_PRIORITY
-    subscribeInfo.SetPriority(1);
-    subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
-    uint32_t tryCount = 0;
-    bool subscribeResult = false;
-    while (!subscribeResult && tryCount <= MAX_RETRY_TIMES) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(AGAIN_REGISTER_CALLBACK_INTERVAL));
-        subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
-        tryCount++;
-        NETMGR_EXT_LOG_E("SubscribeCommonEvent try  %{public}d", tryCount);
+    if (subscriber_ == nullptr) {
+        EventFwk::MatchingSkills matchingSkills;
+        matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
+        matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_POWER_SAVE_MODE_CHANGED);
+        matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
+        EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+        // 1 means CORE_EVENT_PRIORITY
+        subscribeInfo.SetPriority(1);
+        subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
     }
-
-    if (!subscribeResult) {
-        NETMGR_EXT_LOG_E("SubscribeCommonEvent fail: %{public}d", subscribeResult);
+    bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
+    if (!ret) {
+        NETMGR_EXT_LOG_E("SubscribeCommonEvent fail: %{public}d", ret);
+        registeredCommonEvent_ = false;
+    } else {
+        registeredCommonEvent_ = true;
     }
 }
 
