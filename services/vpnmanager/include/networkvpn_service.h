@@ -252,7 +252,7 @@ private:
     void ClearCurrentVpnUserInfo();
     void UnregVpnHpObserver();
     bool IsCurrentVpnPid(int32_t uid, int32_t pid);
-    bool CheckVpnPermission(const std::string bundleName);
+    bool CheckVpnPermission(const std::string &bundleName);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -317,6 +317,7 @@ private:
     std::mutex remoteMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
+    bool registeredCommonEvent_ = false;
     int32_t hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
     std::map<int32_t, int32_t> setVpnPidMap_;

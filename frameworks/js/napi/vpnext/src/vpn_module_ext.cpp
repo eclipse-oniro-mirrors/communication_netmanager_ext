@@ -139,8 +139,6 @@ static void *MakeDataExt(napi_env env, size_t argc, napi_value *argv, EventManag
     return reinterpret_cast<void *>(&NetworkVpnClient::GetInstance());
 }
 
-static bool g_started = false;
-
 static std::string Replace(std::string s)
 {
     std::string tmp = VPN_DIALOG_POSTFIX;
@@ -152,8 +150,7 @@ static std::string Replace(std::string s)
     return s;
 }
 
-
-napi_value ProcessPermissionRequests(napi_env env, const std::string bundleName, const std::string abilityName)
+napi_value ProcessPermissionRequests(napi_env env, const std::string &bundleName, const std::string &abilityName)
 {
     std::string selfAppName;
     std::string selfBundleName;
@@ -168,10 +165,9 @@ napi_value ProcessPermissionRequests(napi_env env, const std::string bundleName,
     bool vpnDialogSelect = false;
     std::string vpnExtMode = std::to_string(vpnDialogSelect);
     int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-    if (!g_started || ret != 0 || vpnExtMode != "1") {
-        g_started = true;
-        VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
+    if (ret != 0 || vpnExtMode != "1") {
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
+        VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
         return CreateObserveDataSharePromise(env, bundleName);
     }
     return nullptr;
