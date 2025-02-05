@@ -892,6 +892,7 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
     ethernetDhcpControllerResultNotify.OnSuccess(status, ifname.c_str(), nullptr);
     ethernetDhcpControllerResultNotify.SetEthernetDhcpController(nullptr);
     ethernetDhcpControllerResultNotify.OnSuccess(status, ifname.c_str(), &result);
+    EXPECT_EQ(status, 1);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController002, TestSize.Level1)
