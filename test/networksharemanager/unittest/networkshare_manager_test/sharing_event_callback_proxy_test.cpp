@@ -50,6 +50,7 @@ HWTEST_F(SharingEventCallbackProxyTest, InterfaceTest, TestSize.Level1)
     instance_->OnInterfaceSharingStateChanged(type, iface, state);
 
     instance_->OnSharingUpstreamChanged(nullptr);
+    EXPECT_TRUE(instance_ != nullptr);
 }
 
 } // namespace NetManagerStandard

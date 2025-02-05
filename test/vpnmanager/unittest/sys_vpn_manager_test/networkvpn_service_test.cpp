@@ -326,9 +326,8 @@ HWTEST_F(NetworkVpnServiceTest, Init001, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, PublishVpnConnectionStateEvent001, TestSize.Level1)
 {
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    EXPECT_NE(instance_, nullptr);
     instance_->PublishVpnConnectionStateEvent(state);
-    int32_t ret = NETMANAGER_EXT_SUCCESS;
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Prepare001, TestSize.Level1)
@@ -480,7 +479,6 @@ HWTEST_F(NetworkVpnServiceTest, OnExtensionStateChanged001, TestSize.Level1)
     instance_->vpnHapObserver_->OnProcessCreated(processData);
     instance_->vpnHapObserver_->OnProcessStateChanged(processData);
     instance_->vpnHapObserver_->OnProcessDied(processData);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
@@ -493,7 +491,6 @@ HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
     ASSERT_NE(instance_->vpnConnCallback_, nullptr);
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
     instance_->vpnConnCallback_->OnVpnConnStateChanged(state);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnReceiveEvent001, TestSize.Level1)
