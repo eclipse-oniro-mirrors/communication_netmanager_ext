@@ -104,6 +104,7 @@ void RouterAdvertisementDaemon::StopRa()
 {
     NETMGR_EXT_LOG_I("StopRa");
     HupRaThread();
+    CloseRaSocket();
 
     // close timer
     itimerval value = {};
