@@ -105,7 +105,6 @@ void RouterAdvertisementDaemon::StopRa()
     NETMGR_EXT_LOG_I("StopRa");
     HupRaThread();
     CloseRaSocket();
-    raParams_ = nullptr;
 
     // close timer
     itimerval value = {};
@@ -223,6 +222,7 @@ void RouterAdvertisementDaemon::RunRecvRsThread()
         }
     }
     CloseRaSocket();
+    raParams_ = nullptr;
 }
 
 RaParams RouterAdvertisementDaemon::GetDeprecatedRaParams(RaParams &oldRa, RaParams &newRa)
