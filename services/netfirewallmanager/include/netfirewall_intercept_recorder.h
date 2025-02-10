@@ -109,6 +109,7 @@ public:
 
 private:
     std::shared_mutex setRecordMutex_;
+    std::shared_mutex callbackMutex_;
     std::atomic<int32_t> currentUserId_ = 0;
     std::vector<sptr<InterceptRecord>> recordCache_;
     sptr<OHOS::NetsysNative::INetFirewallCallback> callback_ = nullptr;
