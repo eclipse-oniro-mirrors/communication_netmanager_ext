@@ -100,9 +100,11 @@ void NetFirewallInterceptRecorder::SyncRecordCache()
 int32_t NetFirewallInterceptRecorder::RegisterInterceptCallback()
 {
     NETMGR_EXT_LOG_I("RegisterInterceptCallback");
+    std::unique_lock<std::shared_mutex> locker(callbackMutex_);
     if (callback_ == nullptr) {
         callback_ = new (std::nothrow) FirewallCallback(shared_from_this());
     }
+    locker.unlock();
     return NetsysController::GetInstance().RegisterNetFirewallCallback(callback_);
 }
 
