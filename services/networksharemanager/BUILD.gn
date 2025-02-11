@@ -62,8 +62,7 @@ ohos_shared_library("net_tether_manager") {
 
   configs = [ ":net_tether_manager_config" ]
 
-  deps = ["$NETMANAGER_EXT_ROOT/utils:net_event_report",
-  ]
+  deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
 
   cflags = [
     "-fvisibility=hidden",
@@ -109,7 +108,6 @@ ohos_shared_library("net_tether_manager") {
     "netmanager_base:net_native_manager_if",
     "netmanager_base:net_stats_manager_if",
     "netmanager_base:netsys_controller",
-    "netmanager_base:net_stats_manager_if",
     "openssl:libcrypto_shared",
     "openssl:libssl_shared",
     "safwk:system_ability_fwk",
@@ -149,11 +147,11 @@ ohos_shared_library("net_tether_manager") {
   }
 
   if (netmanager_ext_share_traffic_limit_enable) {
-    external_deps += [ 
-      "data_share:datashare_consumer",
-      "core_service:tel_core_service_api",
+    external_deps += [
       "cellular_data:tel_cellular_data_api",
-    ]
+      "core_service:tel_core_service_api",
+      "data_share:datashare_consumer",
+     ]
     defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
     sources +=
         [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_trafficlimit.cpp" ]
@@ -269,10 +267,10 @@ ohos_static_library("net_tether_manager_static") {
   }
 
   if (netmanager_ext_share_traffic_limit_enable) {
-    external_deps += [ 
-      "data_share:datashare_consumer",
-      "core_service:tel_core_service_api",
+    external_deps += [
       "cellular_data:tel_cellular_data_api",
+      "core_service:tel_core_service_api",
+      "data_share:datashare_consumer",
     ]
     defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
     sources +=

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cinttypes>
 #include "networkshare_trafficlimit.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "net_datashare_utils.h"
@@ -25,7 +26,6 @@
 #include "cellular_data_client.h"
 #include "networkshare_sub_statemachine.h"
 #include "core_service_client.h"
-
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -168,8 +168,8 @@ void TetherSingleValueObserver::OnChange()
     if (!value.empty() && EdmParameterUtils::ConvertToInt64(value, tetherTmp)) {
         tetherInt = tetherTmp;
     }
-    NETMGR_EXT_LOG_E("TetherSingleValueObserver OnChanged. dataString: %{public}s, TrafficInt: %{public}lu",
-        value.c_str(), tetherInt);
+    NETMGR_EXT_LOG_E("TetherSingleValueObserver OnChanged. dataString: %{public}s, TrafficInt: %{public}" PRId64,
+         value.c_str(), tetherInt);
     NetworkShareTrafficLimit::GetInstance().UpdataSharingSettingdata(tetherInt);
     int32_t sharingStatus;
     NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
@@ -224,7 +224,7 @@ void NetworkShareTrafficLimit::CheckSharingStatsData()
         }
         eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
         sendMsgDelayed(SHARING_LIMIT_TASK_NAME, updateDelay);
-        NETMGR_EXT_LOG_I("keep update when mIsDataConnAvailable, UpdateDelay=[%{public}ld]", updateDelay);
+        NETMGR_EXT_LOG_I("keep update when mIsDataConnAvailable, UpdateDelay=%{public}" PRId64, updateDelay);
     }
 }
 
@@ -265,7 +265,7 @@ void NetworkShareTrafficLimit::UpdataSharingTrafficStats()
     nmd::NetworkSharingTraffic traffic;
     std::string ifaceName;
     int32_t ret = NetsysController::GetInstance().GetNetworkCellularSharingTraffic(traffic, ifaceName);
-    int64_t tetherStats = static_cast<int64_t>(traffic.receive + traffic.send);//bytes
+    int64_t tetherStats = static_cast<int64_t>(traffic.receive + traffic.send);
     if (ret != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("GetTrafficBytes err, ret[%{public}d].", ret);
         return;
@@ -346,7 +346,7 @@ void NetworkShareTrafficLimit::SaveSharingTrafficToCachedData(nmd::NetworkSharin
 }
 
 void NetworkShareTrafficLimit::SendSharingTrafficToCachedData(const nmd::NetworkSharingTraffic &traffic,
-                                                                const std::string &upIface)
+    const std::string &upIface)
 {
     NETMGR_EXT_LOG_I("NetworkShareSubStateMachine SendSharingTrafficToCachedData enter");
     NetStatsInfo infos;
@@ -359,4 +359,4 @@ void NetworkShareTrafficLimit::SendSharingTrafficToCachedData(const nmd::Network
     }
 }
 } // namespace NetManagerStandard
-} // namespace OHOS
+} // namespace OHOS

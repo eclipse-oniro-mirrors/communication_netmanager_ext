@@ -110,13 +110,9 @@ class TrafficEventHandler : public AppExecFwk::EventHandler {
 public:
     explicit TrafficEventHandler(const std::shared_ptr<AppExecFwk::EventRunner>& runner);
     ~TrafficEventHandler() override;
-
     bool HandlePostTask(const Callback &callback, int64_t delayTime = 0);
-
     bool HandlePostTask(const Callback &callback, const std::string &name = std::string(), int64_t delayTime = 0);
-
     void HandleRemoveTask(const std::string &name);
-
 };
 
 inline int64_t GetCurrentMilliseconds()
