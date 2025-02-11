@@ -31,7 +31,7 @@ namespace {
 using namespace testing::ext;
 static constexpr const char *WIFI_AP_DEFAULT_IFACE_NAME = "wlan0";
 static constexpr const char *USB_AP_DEFAULT_IFACE_NAME = "usb0";
-static constexpr const char *USB_AP_RNDIS_IFACE_NAME = "rndis0";
+static constexpr const char *USB_AP_RNDIS_IFACE_NAME = "ncm0";
 static constexpr const char *BLUETOOTH_DEFAULT_IFACE_NAME = "bt-pan";
 static constexpr const char *TEST_IFACE_NAME = "testIface";
 static constexpr int32_t MAX_CALLBACK_COUNT = 100;
