@@ -78,7 +78,10 @@
                 "init",
                 "battery_manager",
                 "openssl",
-                "time_service"
+                "time_service",
+                "data_share",
+                "core_service",
+                "cellular_data"
             ]
         },
         "build": {
