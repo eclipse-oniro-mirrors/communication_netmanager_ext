@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 group("common_ext_packages") {
