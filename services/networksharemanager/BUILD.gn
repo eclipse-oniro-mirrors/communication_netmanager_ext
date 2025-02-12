@@ -42,7 +42,7 @@ ohos_shared_library("net_tether_manager") {
   }
 
   branch_protector_ret = "pac_ret"
- 
+
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
@@ -151,7 +151,7 @@ ohos_shared_library("net_tether_manager") {
       "cellular_data:tel_cellular_data_api",
       "core_service:tel_core_service_api",
       "data_share:datashare_consumer",
-     ]
+    ]
     defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
     sources +=
         [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_trafficlimit.cpp" ]
@@ -259,7 +259,7 @@ ohos_static_library("net_tether_manager_static") {
     defines += [ "BLUETOOTH_MODOULE=1" ]
     external_deps += [ "bluetooth:btframework" ]
   }
- 
+
   if (netmanager_ext_share_notification_enable) {
     defines += [ "SHARE_NOTIFICATION_ENABLE" ]
     sources +=
