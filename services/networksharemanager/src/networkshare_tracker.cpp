@@ -762,15 +762,13 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
 #ifdef USB_MODOULE
     auto &usbSrvClient = USB::UsbSrvClient::GetInstance();
     if (enable) {
-        int32_t funcs = 0;
         curUsbState_ = UsbShareState::USB_SHARING;
-        int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
+        int32_t ret = usbSrvClient.GetCurrentFunctions(previousFuncs_);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("GetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        uint32_t tmpData = USB::UsbSrvSupport::FUNCTION_NCM | static_cast<uint32_t>(funcs);
-        ret = usbSrvClient.SetCurrentFunctions(tmpData);
+        ret = usbSrvClient.SetCurrentFunctions(USB::UsbSrvSupport::FUNCTION_NCM);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
@@ -780,15 +778,11 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
         }
         NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_, SharingIfaceType::SHARING_USB);
     } else {
-        curUsbState_ = UsbShareState::USB_CLOSING;
-        int32_t funcs = 0;
-        int32_t ret = usbSrvClient.GetCurrentFunctions(funcs);
-        if (ret != USB::UEC_OK) {
-            NETMGR_EXT_LOG_E("usb GetCurrentFunctions error[%{public}d].", ret);
-            return NETWORKSHARE_ERROR_USB_SHARING;
+        if (curUsbState_ == UsbShareState::USB_NONE) {
+            return NETMANAGER_EXT_SUCCESS;
         }
-        uint32_t tmpData = static_cast<uint32_t>(funcs) & (~USB::UsbSrvSupport::FUNCTION_NCM);
-        ret = usbSrvClient.SetCurrentFunctions(tmpData);
+        curUsbState_ = UsbShareState::USB_CLOSING;
+        int32_t ret = usbSrvClient.SetCurrentFunctions(previousFuncs_);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("usb SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
@@ -1170,7 +1164,7 @@ bool NetworkShareTracker::CheckIfUpUsbIface(const std::string &iface)
         NETMGR_EXT_LOG_E("Failed setting usb ip address");
         return false;
     }
-    if (NetsysController::GetInstance().InterfaceSetIffUp(iface) != 0) {
+    if (NetsysController::GetInstance().SetInterfaceUp(iface) != 0) {
         NETMGR_EXT_LOG_E("Failed setting usb iface up");
         return false;
     }
@@ -1187,9 +1181,6 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
         NETMGR_EXT_LOG_E("configuration_ is null");
         return;
     }
-    if (!CheckIfUpUsbIface(iface)) {
-        return;
-    }
     if (!isInit) {
         NETMGR_EXT_LOG_E("eventHandler is null.");
         return;
@@ -1200,6 +1191,9 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
         return;
     }
     NETMGR_EXT_LOG_I("iface[%{public}s], type[%{public}d].", iface.c_str(), static_cast<int32_t>(type));
+    if (!CheckIfUpUsbIface(iface)) {
+        return;
+    }
     std::string taskName = "InterfaceAdded_task";
     std::function<void()> createSubStateMachineFunc =
         [this, iface, type]() { CreateSubStateMachine(iface, type, false); };

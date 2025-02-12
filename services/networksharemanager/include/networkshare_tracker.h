@@ -303,6 +303,7 @@ private:
 #ifdef USB_MODOULE
     int32_t usbShareCount_ = 0;
     UsbShareState curUsbState_ = UsbShareState::USB_NONE;
+    int32_t previousFuncs_ = 512;
 #endif
     std::atomic_bool isInit = false;
     int32_t netId_;
