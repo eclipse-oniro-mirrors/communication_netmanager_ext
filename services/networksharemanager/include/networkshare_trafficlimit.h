@@ -26,10 +26,10 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 constexpr int64_t NO_LIMIT = -1;
-constexpr int64_t DEFAULT_INTERVAL_MINIMUM = 500; //100ms->500ms
+constexpr int64_t DEFAULT_INTERVAL_MINIMUM = 500;
 constexpr int64_t STATS_INTERVAL_MINIMUM = DEFAULT_INTERVAL_MINIMUM;
-constexpr int64_t STATS_INTERVAL_MAXIMUM = 30000; //30s
-constexpr int64_t STATS_INTERVAL_DEFAULT = 5000; //5s->10s?
+constexpr int64_t STATS_INTERVAL_MAXIMUM = 30000;
+constexpr int64_t STATS_INTERVAL_DEFAULT = 5000;
 constexpr int64_t KB_IN_BYTES = 1024;
 constexpr int64_t MB_IN_BYTES = KB_IN_BYTES * 1024;
 
@@ -51,7 +51,6 @@ enum class NetworkSpeed {
 };
 
 class TrafficEventHandler;
-// 单次热点流量限额
 class NetworkShareTrafficLimit {
 public:
     NetworkShareTrafficLimit();
@@ -93,7 +92,6 @@ public:
     void OnChange() override;
 };
 
-// 注册数据库
 class SharingTrafficDataObserver {
 public:
     SharingTrafficDataObserver();
@@ -124,4 +122,4 @@ inline int64_t GetCurrentMilliseconds()
 } // namespace NetManagerStandard
 } // namespace OHOS
 
-#endif
+#endif
