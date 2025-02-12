@@ -248,14 +248,14 @@ int64_t NetworkShareTrafficLimit::GetNextUpdataDelay()
     int64_t maxDelay = STATS_INTERVAL_MAXIMUM;
     if (tetherTrafficInfos.mMaxSpeed > 0) {
         maxDelay = tetherTrafficInfos.mRemainSize * SECOND_IN_MILLIS / tetherTrafficInfos.mMaxSpeed;
-        maxDelay = EdmParameterUtils::constrain(maxDelay, STATS_INTERVAL_MINIMUM, STATS_INTERVAL_MAXIMUM);
+        maxDelay = EdmParameterUtils::Constrain(maxDelay, STATS_INTERVAL_MINIMUM, STATS_INTERVAL_MAXIMUM);
     }
     int64_t delay;
     if (tetherTrafficInfos.mNetSpeed == 0) {
         delay = maxDelay;
     } else {
         delay = tetherTrafficInfos.mRemainSize / tetherTrafficInfos.mNetSpeed / NUMBER_THREE;
-        delay = EdmParameterUtils::constrain(delay, STATS_INTERVAL_MINIMUM, maxDelay);
+        delay = EdmParameterUtils::Constrain(delay, STATS_INTERVAL_MINIMUM, maxDelay);
     }
     return delay;
 }
