@@ -32,7 +32,7 @@ public:
     void RegisterEdmParameterChangeEvent(const char *key, ParameterChgPtr callback, void *context);
     void UnRegisterEdmParameterChangeEvent(const char *key);
     static bool ConvertToInt64(const std::string &str, int64_t &value);
-    static uint64_t constrain(int amount, int low, int high);
+    static uint64_t Constrain(int amount, int low, int high);
 
 private:
     EdmParameterUtils() = default;
