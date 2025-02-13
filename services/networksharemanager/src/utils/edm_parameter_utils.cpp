@@ -63,5 +63,40 @@ void EdmParameterUtils::UnRegisterEdmParameterChangeEvent(const char *key)
     }
 }
 
+bool EdmParameterUtils::ConvertToInt64(const std::string &str, int64_t &value)
+{
+    char* end;
+    errno = 0; // 清除 errno
+    if (str.empty()) {
+        NETMGR_EXT_LOG_E("string error. str: %{public}s", str.c_str());
+        return false;
+    }
+
+    value = std::strtoll(str.c_str(), &end, 10);  // 10:十进制
+
+    // 检查错误:
+    // 1. 若没有数字被转换
+    if (end == str.c_str()) {
+        NETMGR_EXT_LOG_E("string error. str: %{public}s", str.c_str());
+        return false;
+    }
+    // 2. 若存在范围错误（过大或过小）
+    if (errno == ERANGE && (value == HUGE_VAL || value == HUGE_VALF || value == HUGE_VALL)) {
+        NETMGR_EXT_LOG_E("string error. str: %{public}s", str.c_str());
+        return false;
+    }
+    // 3. 若字符串包含非数字字符
+    if (*end != '\0') {
+        NETMGR_EXT_LOG_E("string error. str: %{public}s", str.c_str());
+        return false;
+    }
+
+    return true;
+}
+
+uint64_t EdmParameterUtils::Constrain(int amount, int low, int high)
+{
+    return (amount < low) ? low : (amount > high) ? high : amount;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

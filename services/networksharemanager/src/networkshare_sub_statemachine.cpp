@@ -25,7 +25,9 @@
 #include <random>
 #include <regex>
 #include <sys/types.h>
-
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+#include "networkshare_trafficlimit.h"
+#endif
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
@@ -74,6 +76,7 @@ constexpr int32_t EUI64_FF = 0xFF;
 constexpr int32_t EUI64_FE = 0xFE;
 constexpr uint8_t NET_FAMILY_IPV4 = 1;
 constexpr uint8_t NET_FAMILY_IPV6 = 2;
+const std::string CELLULAR_IFACE_NAME = "rmnet";
 } // namespace
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
@@ -373,6 +376,12 @@ void NetworkShareSubStateMachine::SharedStateEnter()
 void NetworkShareSubStateMachine::SharedStateExit()
 {
     NETMGR_EXT_LOG_I("Exit Sub StateMachine[%{public}s] Shared State.", ifaceName_.c_str());
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
+        nmd::NetworkSharingTraffic traffic;
+        NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
+    }
+#endif
     CleanupUpstreamInterface();
     ConfigureShareDhcp(false);
     StopIpv6();
@@ -396,6 +405,13 @@ int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &me
         std::any_cast<std::shared_ptr<UpstreamNetworkInfo>>(messageObj);
     if (upstreamNetInfo == nullptr) {
         NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] upstreamNetInfo is null, need clean.", ifaceName_.c_str());
+    #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+        if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
+            nmd::NetworkSharingTraffic traffic;
+            NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
+            NetworkShareTrafficLimit::GetInstance().AddSharingTrafficBeforeConnChanged(traffic);
+        }
+    #endif
         CleanupUpstreamInterface();
         upstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
         return NETMANAGER_EXT_SUCCESS;

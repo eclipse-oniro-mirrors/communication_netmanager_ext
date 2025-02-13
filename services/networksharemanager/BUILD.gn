@@ -146,6 +146,17 @@ ohos_shared_library("net_tether_manager") {
         [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_notification.cpp" ]
   }
 
+  if (netmanager_ext_share_traffic_limit_enable) {
+    external_deps += [
+      "cellular_data:tel_cellular_data_api",
+      "core_service:tel_core_service_api",
+      "data_share:datashare_consumer",
+    ]
+    defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
+    sources +=
+        [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_trafficlimit.cpp" ]
+  }
+
   defines += [
     "NETMGR_LOG_TAG = \"NetworkShareManager\"",
     "LOG_DOMAIN = 0xD0015B0",
@@ -253,6 +264,17 @@ ohos_static_library("net_tether_manager_static") {
     defines += [ "SHARE_NOTIFICATION_ENABLE" ]
     sources +=
         [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_notification.cpp" ]
+  }
+
+  if (netmanager_ext_share_traffic_limit_enable) {
+    external_deps += [
+      "cellular_data:tel_cellular_data_api",
+      "core_service:tel_core_service_api",
+      "data_share:datashare_consumer",
+    ]
+    defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
+    sources +=
+        [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_trafficlimit.cpp" ]
   }
 
   defines += [
