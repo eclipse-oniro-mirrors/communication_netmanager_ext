@@ -54,6 +54,16 @@ public:
     int32_t SetupWearableDistributedNet(const int32_t tcpPortId, const int32_t udpPortId, const bool isMetered);
 
     /**
+     * @brief Enable wearable distributed net
+     *
+     * @param enableFlag is enable or disable
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t EnableWearableDistributedNet(bool enableFlag);
+
+    /**
      * @brief Teardown wearable distributed net
      *
      * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error

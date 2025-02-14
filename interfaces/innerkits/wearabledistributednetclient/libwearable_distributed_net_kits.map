@@ -16,6 +16,7 @@
     extern "C++" {
       "OHOS::NetManagerStandard::WearableDistributedNetClient::GetInstance()";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::SetupWearableDistributedNet(int, int, bool)";
+      "OHOS::NetManagerStandard::WearableDistributedNetClient::EnableWearableDistributedNet(bool)";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::TearDownWearableDistributedNet()";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::UpdateWearableDistributedNetMeteredStatus(bool)";
       "OHOS::NetManagerStandard::WearableDistributedNetClient::GetProxy()";

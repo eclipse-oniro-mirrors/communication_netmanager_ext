@@ -92,22 +92,33 @@ int32_t WearableDistributedNetAgent::SetupWearableDistributedNetwork(const int32
         NETMGR_EXT_LOG_E("Wearable Distributed NetAgent Enable Forward failed, ret:[%{public}d]", result);
         return ClearWearableDistributedNetForwardConfig();
     }
-    result = UpdateNetSupplierInfo(true);
-    if (result != NETMANAGER_SUCCESS) {
-        NETMGR_EXT_LOG_E("Wearable Distributed Net Agent UpdateNetSupplierInfo failed, result:[%{public}d]", result);
-        return ClearWearableDistributedNetForwardConfig();
-    }
-    result = UpdateNetLinkInfo();
-    if (result != NETMANAGER_SUCCESS) {
-        NETMGR_EXT_LOG_E("Wearable Distributed Net Agent UpdateNetLinkInfo failed, result:[%{public}d]", result);
-        return ClearWearableDistributedNetForwardConfig();
-    }
+
     result = SetInterfaceDummyUp();
     if (result != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("Wearable Distributed Net Agent SetInterfaceDummyUp failed, result:[%{public}d]", result);
         return ClearWearableDistributedNetForwardConfig();
     }
     isMetered_ = isMetered;
+    return NETMANAGER_SUCCESS;
+}
+
+int32_t WearableDistributedNetAgent::EnableWearableDistributedNetwork(bool enableFlag)
+{
+    NETMGR_EXT_LOG_I("EnableWearableDistributedNetwork : %{public}u", enableFlag);
+    int32_t result = UpdateNetSupplierInfo(enableFlag);
+    if (result != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("Wearable Distributed Net Agent UpdateNetSupplierInfo failed, result:[%{public}d]", result);
+        return ClearWearableDistributedNetForwardConfig();
+    }
+    
+    if (enableFlag) {
+        result = UpdateNetLinkInfo();
+        if (result != NETMANAGER_SUCCESS) {
+            NETMGR_EXT_LOG_E("Wearable Distributed Net Agent UpdateNetLinkInfo failed, result:[%{public}d]", result);
+            return ClearWearableDistributedNetForwardConfig();
+        }
+    }
+    
     return NETMANAGER_SUCCESS;
 }
 

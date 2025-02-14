@@ -36,6 +36,7 @@ class WearableDistributedNetAgent : public std::enable_shared_from_this<Wearable
 public:
     static WearableDistributedNetAgent &GetInstance();
     int32_t SetupWearableDistributedNetwork(const int32_t tcpPortId, const int32_t udpPortId, const bool isMetered);
+    int32_t EnableWearableDistributedNetwork(bool enableFlag);
     int32_t TearDownWearableDistributedNetwork();
     int32_t UpdateNetScore(const bool isCharging);
     int32_t UpdateMeteredStatus(const bool isMetered);

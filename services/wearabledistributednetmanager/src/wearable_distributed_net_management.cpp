@@ -24,11 +24,17 @@ WearableDistributedNetManagement &WearableDistributedNetManagement::GetInstance(
     return instance;
 }
 
-int32_t WearableDistributedNetManagement::StartWearableDistributedNetwork(const int32_t tcpPortId,
+int32_t WearableDistributedNetManagement::SetupWearableDistributedNetwork(const int32_t tcpPortId,
                                                                           const int32_t udpPortId, const bool isMetered)
 {
-    NETMGR_EXT_LOG_I("Wearable Distributed Net Management Start Network");
+    NETMGR_EXT_LOG_I("Wearable Distributed Net Management Setup Network");
     return WearableDistributedNetAgent::GetInstance().SetupWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
+}
+
+int32_t WearableDistributedNetManagement::EnableWearableDistributedNetwork(bool enableFlag)
+{
+    NETMGR_EXT_LOG_I("Wearable Distributed Net Management Start Network : %{public}u", enableFlag);
+    return WearableDistributedNetAgent::GetInstance().EnableWearableDistributedNetwork(enableFlag);
 }
 
 int32_t WearableDistributedNetManagement::StopWearableDistributedNetwork()
