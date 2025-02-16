@@ -109,6 +109,7 @@ private:
     std::mutex networkMapMutex_;
     int32_t defaultNetworkId_ = INVALID_NETID;
     std::shared_ptr<NotifyUpstreamCallback> notifyUpstreamCallback_ = nullptr;
+    sptr<NetSpecifier> netSpecifier_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
