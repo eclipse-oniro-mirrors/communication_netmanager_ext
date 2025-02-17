@@ -15,6 +15,9 @@
 
 #include "networkshare_upstreammonitor.h"
 
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+#include "cellular_data_client.h"
+#endif
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
@@ -115,7 +118,20 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
         defaultNetworkCallback_ =
             new (std::nothrow) NetConnectionCallback(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
     }
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    netSpecifier_ = (std::make_unique<NetSpecifier>()).release();
+    bool isSupportDun = false;
+    Telephony::CellularDataClient::GetInstance().GetIfSupportDunApn(isSupportDun);
+    NETMGR_EXT_LOG_I("isSupportDun=%{public}d", isSupportDun);
+    if (isSupportDun) {
+        netSpecifier_->netCapabilities_.netCaps_ = {NET_CAPABILITY_DUN, NET_CAPABILITY_NOT_VPN};
+    } else {
+        netSpecifier_->netCapabilities_.netCaps_ = {NET_CAPABILITY_INTERNET, NET_CAPABILITY_NOT_VPN};
+    }
+    int32_t result = NetConnClient::GetInstance().RegisterNetConnCallback(netSpecifier_, defaultNetworkCallback_, 0);
+#else
     int32_t result = NetConnClient::GetInstance().RegisterNetConnCallback(defaultNetworkCallback_);
+#endif
     if (result == NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_I("Register defaultNetworkCallback_ successful");
     } else {
