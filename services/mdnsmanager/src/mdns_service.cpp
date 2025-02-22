@@ -123,7 +123,7 @@ bool MDnsService::Init()
     int32_t err = NetConnClient::GetInstance().RegisterNetInterfaceCallback(netStateCallback_);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("mdns_log Failed to register the NetInterfaceCallback, error code: [%{public}d]", err);
-        return err;
+        return false;
     }
 
     if (deathRecipient_ == nullptr) {
