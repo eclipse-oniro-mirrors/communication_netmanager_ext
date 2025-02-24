@@ -776,7 +776,7 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("GetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        ret = usbSrvClient.SetCurrentFunctions(USB::UsbSrvSupport::FUNCTION_NCM);
+        ret = usbSrvClient.SetCurrentFunctions(USB::UsbSrvSupport::FUNCTION_RNDIS);
         if (ret != USB::UEC_OK) {
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
