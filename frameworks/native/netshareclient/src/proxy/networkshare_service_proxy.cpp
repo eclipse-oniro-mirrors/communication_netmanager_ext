@@ -298,5 +298,23 @@ int32_t NetworkShareServiceProxy::GetStatsTotalBytes(int32_t &bytes)
     bytes = reply.ReadInt32();
     return reply.ReadInt32();
 }
+
+int32_t NetworkShareServiceProxy::SetConfigureForShare(bool enabled)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteBool(enabled)) {
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    MessageParcel reply;
+    int32_t ret = SendRequest(TetheringInterfaceCode::CMD_SET_CONFIG, data, reply);
+    if (ret != ERR_NONE) {
+        NETMGR_EXT_LOG_E("SetConfigureForShare proxy SendRequest failed, error code: [%{public}d]", ret);
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    return reply.ReadInt32();
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

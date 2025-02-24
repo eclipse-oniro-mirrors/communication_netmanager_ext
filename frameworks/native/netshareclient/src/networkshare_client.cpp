@@ -206,6 +206,17 @@ int32_t NetworkShareClient::GetStatsTotalBytes(int32_t &bytes)
     return proxy->GetStatsTotalBytes(bytes);
 }
 
+int32_t NetworkShareClient::SetConfigureForShare(bool enabled)
+{
+    NETMGR_EXT_LOG_I("SetConfigureForShare NetworkShare.");
+    sptr<INetworkShareService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("SetConfigureForShare proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->SetConfigureForShare(enabled);
+}
+
 sptr<INetworkShareService> NetworkShareClient::GetProxy()
 {
     std::lock_guard locker(mutex_);

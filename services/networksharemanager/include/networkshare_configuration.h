@@ -19,7 +19,10 @@
 #include <fstream>
 #include <map>
 #include <vector>
-
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "networkshare_configuration.h"
 
 namespace OHOS {
@@ -119,6 +122,11 @@ public:
      */
     std::string &GetDhcpEndIP();
 
+    /**
+     * set tethering sys ctl prop
+     */
+    void SetConfigureForShare(bool enabled);
+
 private:
     int32_t LoadConfigData();
     bool MatchesDownstreamRegexs(const std::string &, std::vector<std::string> &regexs);
@@ -161,6 +169,7 @@ private:
     std::string defaultMask_;
     std::string dhcpEndIP_;
     std::map<std::string, Config_Value> configMap_;
+    static constexpr const char kTcpBeLiberal_[] = "/proc/sys/net/netfilter/nf_conntrack_tcp_be_liberal";
 
 private:
     void ParseConfigData(Config_Value cfgValue, std::string &strKey, std::string &strVal);

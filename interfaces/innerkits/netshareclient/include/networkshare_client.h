@@ -167,6 +167,16 @@ public:
      */
     int32_t GetStatsTotalBytes(int32_t &bytes);
 
+    /**
+     * Set sysctl prop when start or stop sharing network.
+     *
+     * @param enabled set sharing network enabled or not
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t SetConfigureForShare(bool enabled);
+
 private:
     void RestartNetTetheringManagerSysAbility();
 

@@ -211,5 +211,16 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyGetStatsTotalBytesTest001, TestSize.L
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_GET_TOTAL_BYTES);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkShareServiceStubTest, ReplySetConfigureForShareTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_SET_CONFIG);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
