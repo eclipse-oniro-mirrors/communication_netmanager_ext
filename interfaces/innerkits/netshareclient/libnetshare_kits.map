@@ -26,6 +26,7 @@
       "OHOS::NetManagerStandard::NetworkShareClient::GetStatsRxBytes(int&)";
       "OHOS::NetManagerStandard::NetworkShareClient::GetStatsTxBytes(int&)";
       "OHOS::NetManagerStandard::NetworkShareClient::GetStatsTotalBytes(int&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::SetConfigureForShare(bool)";
       "OHOS::NetManagerStandard::NetworkShareClient::~NetworkShareClient()";
       "OHOS::NetManagerStandard::NetworkShareClient::RegisterSharingEvent(OHOS::sptr<OHOS::NetManagerStandard::ISharingEventCallback>)";
       "OHOS::NetManagerStandard::NetworkShareClient::UnregisterSharingEvent(OHOS::sptr<OHOS::NetManagerStandard::ISharingEventCallback>)";

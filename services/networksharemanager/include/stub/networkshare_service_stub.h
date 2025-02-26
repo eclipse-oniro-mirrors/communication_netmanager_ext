@@ -44,6 +44,7 @@ private:
     int32_t ReplyGetStatsRxBytes(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyGetStatsTxBytes(MessageParcel &data, MessageParcel &reply);
     int32_t ReplyGetStatsTotalBytes(MessageParcel &data, MessageParcel &reply);
+    int32_t ReplySetConfigureForShare(MessageParcel &data, MessageParcel &reply);
 
 private:
     std::map<uint32_t, NetworkShareServiceFunc> memberFuncMap_;

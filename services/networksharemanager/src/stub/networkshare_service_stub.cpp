@@ -46,6 +46,8 @@ NetworkShareServiceStub::NetworkShareServiceStub()
         &NetworkShareServiceStub::ReplyGetStatsTxBytes;
     memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_GET_TOTAL_BYTES)] =
         &NetworkShareServiceStub::ReplyGetStatsTotalBytes;
+    memberFuncMap_[static_cast<uint32_t>(TetheringInterfaceCode::CMD_SET_CONFIG)] =
+        &NetworkShareServiceStub::ReplySetConfigureForShare;
 }
 
 int32_t NetworkShareServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
@@ -256,6 +258,19 @@ int32_t NetworkShareServiceStub::ReplyGetStatsTotalBytes(MessageParcel &data, Me
     if (!reply.WriteInt32(bytes)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }
+    if (!reply.WriteInt32(ret)) {
+        return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkShareServiceStub::ReplySetConfigureForShare(MessageParcel &data, MessageParcel &reply)
+{
+    bool enabled;
+    if (!data.ReadBool(enabled)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t ret = SetConfigureForShare(enabled);
     if (!reply.WriteInt32(ret)) {
         return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
     }

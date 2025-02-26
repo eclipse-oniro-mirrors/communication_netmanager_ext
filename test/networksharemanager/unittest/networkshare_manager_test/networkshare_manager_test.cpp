@@ -266,6 +266,29 @@ HWTEST_F(NetworkShareManagerTest, GetStatsTotalBytes02, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetworkShareManagerTest, SetConfigureForShare01, TestSize.Level1)
+{
+    bool enabled = true;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->SetConfigureForShare(enabled);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareManagerTest, SetConfigureForShare02, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    bool enabled = true;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->SetConfigureForShare(enabled);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, SetConfigureForShare03, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    bool enabled = false;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->SetConfigureForShare(enabled);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkShareManagerTest, OnRemoteDied, TestSize.Level1)
 {
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->StartSharing(SharingIfaceType::SHARING_WIFI);

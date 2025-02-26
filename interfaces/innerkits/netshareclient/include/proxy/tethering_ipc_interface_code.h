@@ -33,6 +33,7 @@ enum class TetheringInterfaceCode {
     CMD_GET_RX_BYTES,
     CMD_GET_TX_BYTES,
     CMD_GET_TOTAL_BYTES,
+    CMD_SET_CONFIG,
 };
 
 enum class TetheringEventInterfaceCode {

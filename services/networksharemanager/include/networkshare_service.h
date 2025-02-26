@@ -16,16 +16,17 @@
 #ifndef NETWORKSHARE_SERVICE_H
 #define NETWORKSHARE_SERVICE_H
 
+#include <memory>
 #include "common_event.h"
 #include "common_event_data.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
 #include "singleton.h"
 #include "system_ability.h"
-
 #include "errorcode_convertor.h"
 #include "networkshare_service_stub.h"
 #include "networkshare_tracker.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -131,6 +132,11 @@ public:
      */
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
+    /**
+     * set sysctl prop
+     */
+    int32_t SetConfigureForShare(bool enabled) override;
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -156,6 +162,9 @@ private:
     std::shared_ptr<WifiShareNtfSubscriber> wifiShareNtfSubscriber_ = nullptr;
 #endif
     bool hasSARemoved_ = false;
+    int32_t setConfigTimes_ = 0;
+    ffrt::mutex setConfigureMutex_;
+    ffrt::mutex openFileMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

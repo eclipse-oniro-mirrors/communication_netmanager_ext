@@ -41,6 +41,7 @@ public:
     int32_t GetStatsRxBytes(int32_t &bytes) override;
     int32_t GetStatsTxBytes(int32_t &bytes) override;
     int32_t GetStatsTotalBytes(int32_t &bytes) override;
+    int32_t SetConfigureForShare(bool enabled) override;
 
 private:
     int32_t SendRequest(TetheringInterfaceCode code, MessageParcel &data, MessageParcel &reply);

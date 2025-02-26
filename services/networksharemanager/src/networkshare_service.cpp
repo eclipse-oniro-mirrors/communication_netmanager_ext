@@ -194,11 +194,13 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     if (ret == NETMANAGER_EXT_SUCCESS) {
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
     }
+    SetConfigureForShare(true);
     return ret;
 }
 
 int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
 {
+    SetConfigureForShare(false);
     NETMGR_EXT_LOG_I("NetworkSharing stop sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
@@ -306,6 +308,41 @@ int32_t NetworkShareService::GetStatsTotalBytes(int32_t &bytes)
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return NetworkShareTracker::GetInstance().GetSharedSubSMTraffic(TrafficType::TRAFFIC_ALL, bytes);
+}
+
+int32_t NetworkShareService::SetConfigureForShare(bool enabled)
+{
+    NETMGR_EXT_LOG_I("SetConfigureForShare begin, %{public}d", enabled);
+    std::lock_guard<ffrt::mutex> lock(setConfigureMutex_);
+    if (enabled) {
+        setConfigTimes_++;
+
+        if (setConfigTimes_ > 1) {
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    } else {
+        setConfigTimes_ = setConfigTimes_ > 0 ? --setConfigTimes_ : setConfigTimes_;
+        if (setConfigTimes_ > 0) {
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
+    std::shared_ptr<ffrt::queue> networkShareFfrtQueue = std::make_shared<ffrt::queue>("NetworkShare");
+    if (!networkShareFfrtQueue) {
+        NETMGR_EXT_LOG_E("SetConfigureForShare error, FFRT Init Fail");
+        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
+    auto ffrtSetConfig = [setConfigSharedPtr = std::make_shared<NetworkShareConfiguration>(), enabled,
+            shareServiceWeakPtr = std::weak_ptr<NetworkShareService>(shared_from_this())]() {
+        auto shareServiceSharedPtr = shareServiceWeakPtr.lock();
+        if (!shareServiceSharedPtr) {
+            NETMGR_EXT_LOG_E("SetConfigureForShare error, NetworkShareService instance is invalid");
+            return;
+        }
+        std::lock_guard<ffrt::mutex> lock(shareServiceSharedPtr->openFileMutex_);
+        setConfigSharedPtr->SetConfigureForShare(enabled);
+    };
+    networkShareFfrtQueue->submit(ffrtSetConfig);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)

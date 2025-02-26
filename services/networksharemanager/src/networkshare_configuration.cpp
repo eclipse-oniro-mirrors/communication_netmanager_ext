@@ -278,5 +278,24 @@ int32_t NetworkShareConfiguration::LoadConfigData()
     });
     return NETMANAGER_EXT_SUCCESS;
 }
+
+void NetworkShareConfiguration::SetConfigureForShare(bool enabled)
+{
+    const char* value = enabled ? "1" : "0";
+    int fd = open(kTcpBeLiberal_, O_WRONLY | O_CLOEXEC);
+    if (fd < 0) {
+        NETMGR_EXT_LOG_E("SetConfigureForShare Failed to write %s to %s", value, kTcpBeLiberal_);
+        return;
+    }
+
+    const ssize_t len = strlen(value);
+    if (write(fd, value, len) != len) {
+        NETMGR_EXT_LOG_E("SetConfigureForShare Failed to write %s to %s", value, kTcpBeLiberal_);
+        close(fd);
+        return;
+    }
+    NETMGR_EXT_LOG_I("SetConfigureForShare success to write %s to %s", value, kTcpBeLiberal_);
+    close(fd);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

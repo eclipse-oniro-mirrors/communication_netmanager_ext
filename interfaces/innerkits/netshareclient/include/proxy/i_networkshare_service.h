@@ -43,6 +43,7 @@ public:
     virtual int32_t GetStatsRxBytes(int32_t &bytes) = 0;
     virtual int32_t GetStatsTxBytes(int32_t &bytes) = 0;
     virtual int32_t GetStatsTotalBytes(int32_t &bytes) = 0;
+    virtual int32_t SetConfigureForShare(bool enabled) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetworkShareService");
 };
