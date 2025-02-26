@@ -163,7 +163,8 @@ private:
 #endif
     bool hasSARemoved_ = false;
     int32_t setConfigTimes_ = 0;
-    ffrt::mutex mutex_;
+    ffrt::mutex setConfigureMutex_;
+    ffrt::mutex openFileMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
