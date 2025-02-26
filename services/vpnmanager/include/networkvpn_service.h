@@ -46,11 +46,10 @@ constexpr const char *KEY_ALWAYS_ON_VPN = "settings.netmanager.always_on_vpn";
 
 } // namespace
 using namespace OHOS::EventFwk;
-class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, protected NoCopyable {
+class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, protected NoCopyable,
+    public std::enable_shared_from_this<NetworkVpnService> {
+    DECLARE_DELAYED_SINGLETON(NetworkVpnService)
     DECLARE_SYSTEM_ABILITY(NetworkVpnService)
-
-    NetworkVpnService();
-    virtual ~NetworkVpnService();
 
     enum ServiceRunningState {
         STATE_STOPPED = 0,
@@ -77,21 +76,17 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
 
     class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
     public:
-        explicit ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo, NetworkVpnService &vpnService)
+        ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
+            std::weak_ptr<NetworkVpnService> vpnService)
             : EventFwk::CommonEventSubscriber(subscriberInfo), vpnService_(vpnService){};
 
         virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
 
     private:
-        NetworkVpnService &vpnService_;
+        std::weak_ptr<NetworkVpnService> vpnService_;
     };
 
 public:
-    static NetworkVpnService &GetInstance()
-    {
-        static NetworkVpnService instance;
-        return instance;
-    }
     /**
      * service start
      */
@@ -315,6 +310,7 @@ private:
     void RemoveALLClientDeathRecipient();
 
     std::mutex remoteMutex_;
+    std::mutex cesMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
     bool registeredCommonEvent_ = false;

@@ -47,7 +47,7 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
 
-    static inline auto instance_ = &NetworkVpnService::GetInstance();
+    static inline auto instance_ = DelayedSingleton<NetworkVpnService>::GetInstance();
     static inline sptr<SysVpnConfig> vpnConfig_ = nullptr;
     static inline std::string vpnId_ = "test001";
 };
