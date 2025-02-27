@@ -39,6 +39,22 @@ static constexpr const char *FUNCTION_DELETE_NET_FIREWALL_RULE = "removeNetFirew
 static constexpr const char *FUNCTION_GET_NET_FIREWALL_RULES = "getNetFirewallRules";
 static constexpr const char *FUNCTION_GET_NET_FIREWALL_RULE = "getNetFirewallRule";
 static constexpr const char *FUNCTION_GET_INTERCEPT_RECORDS = "getInterceptRecords";
+static constexpr const char *ENUM_NETFIREWALLRULEDIRECTION = "NetFirewallRuleDirection";
+static constexpr const char *NETFIREWALLRULEDIRECTION_RULE_IN = "RULE_IN";
+static constexpr const char *NETFIREWALLRULEDIRECTION_RULE_OUT = "RULE_OUT";
+static constexpr const char *ENUM_FIREWALLRULEACTION = "FirewallRuleAction";
+static constexpr const char *FIREWALLRULEACTION_RULE_ALLOW = "RULE_ALLOW";
+static constexpr const char *FIREWALLRULEACTION_RULE_DENY = "RULE_DENY";
+static constexpr const char *ENUM_NETFIREWALLRULETYPE = "NetFirewallRuleType";
+static constexpr const char *NETFIREWALLRULETYPE_RULE_IP = "RULE_IP";
+static constexpr const char *NETFIREWALLRULETYPE_RULE_DOMAIN = "RULE_DOMAIN";
+static constexpr const char *NETFIREWALLRULETYPE_RULE_DNS = "RULE_DNS";
+static constexpr const char *ENUM_NETFIREWALLORDERFIELD = "NetFirewallOrderField";
+static constexpr const char *NETFIREWALLORDERFIELD_ORDER_BY_RULE_NAME = "ORDER_BY_RULE_NAME";
+static constexpr const char *NETFIREWALLORDERFIELD_ORDER_BY_RECORD_TIME = "ORDER_BY_RECORD_TIME";
+static constexpr const char *ENUM_NETFIREWALLORDERTYPE = "NetFirewallOrderType";
+static constexpr const char *NETFIREWALLORDERTYPE_ORDER_ASC = "ORDER_ASC";
+static constexpr const char *NETFIREWALLORDERTYPE_ORDER_DESC = "ORDER_DESC";
 
 napi_value SetNetFirewallPolicy(napi_env env, napi_callback_info info)
 {
@@ -91,7 +107,7 @@ napi_value GetInterceptRecords(napi_env env, napi_callback_info info)
 }
 } // namespace
 
-napi_value DeclareNetFirewallInterface(napi_env env, napi_value exports)
+void DeclareNetFirewallInterface(napi_env env, napi_value exports)
 {
     NapiUtils::DefineProperties(env, exports,
         {
@@ -107,11 +123,136 @@ napi_value DeclareNetFirewallInterface(napi_env env, napi_value exports)
     return exports;
 }
 
+void InitNetFirewallRuleDirection(napi_env env, napi_value exports)
+{
+    NapiUtils::DefineProperties(env, exports, {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULEDIRECTION_RULE_IN,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleDirection::RULE_IN))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULEDIRECTION_RULE_OUT,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleDirection::RULE_OUT))),
+    });
+
+    std::initializer_list<napi_property_descriptor> properties = {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULEDIRECTION_RULE_IN,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleDirection::RULE_IN))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULEDIRECTION_RULE_OUT,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleDirection::RULE_OUT))),
+    };
+
+    napi_value netFirewallRuleDirection = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, netFirewallRuleDirection, properties);
+    NapiUtils::SetNamedProperty(env, exports, ENUM_NETFIREWALLRULEDIRECTION, netFirewallRuleDirection);
+}
+
+void InitFirewallRuleAction(napi_env env, napi_value exports)
+{
+    NapiUtils::DefineProperties(env, exports, {
+        DECLARE_NAPI_STATIC_PROPERTY(FIREWALLRULEACTION_RULE_ALLOW,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(FirewallRuleAction::RULE_ALLOW))),
+        DECLARE_NAPI_STATIC_PROPERTY(FIREWALLRULEACTION_RULE_DENY,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(FirewallRuleAction::RULE_DENY))),
+    });
+
+    std::initializer_list<napi_property_descriptor> properties = {
+        DECLARE_NAPI_STATIC_PROPERTY(FIREWALLRULEACTION_RULE_ALLOW,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(FirewallRuleAction::RULE_ALLOW))),
+        DECLARE_NAPI_STATIC_PROPERTY(FIREWALLRULEACTION_RULE_DENY,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(FirewallRuleAction::RULE_DENY))),
+    };
+
+    napi_value firewallRuleAction = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, firewallRuleAction, properties);
+    NapiUtils::SetNamedProperty(env, exports, ENUM_FIREWALLRULEACTION, firewallRuleAction);
+}
+
+void InitNetFirewallRuleType(napi_env env, napi_value exports)
+{
+    NapiUtils::DefineProperties(env, exports, {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULETYPE_RULE_IP,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleType::RULE_IP))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULETYPE_RULE_DOMAIN,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleType::RULE_DOMAIN))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULETYPE_RULE_DNS,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleType::RULE_DNS))),
+    });
+
+    std::initializer_list<napi_property_descriptor> properties = {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULETYPE_RULE_IP,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleType::RULE_IP))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULETYPE_RULE_DOMAIN,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleType::RULE_DOMAIN))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLRULETYPE_RULE_DNS,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallRuleType::RULE_DNS))),
+    };
+
+    napi_value netFirewallRuleType = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, netFirewallRuleType, properties);
+    NapiUtils::SetNamedProperty(env, exports, ENUM_NETFIREWALLRULETYPE, netFirewallRuleType);
+}
+
+void InitNetFirewallOrderField(napi_env env, napi_value exports)
+{
+    NapiUtils::DefineProperties(env, exports, {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERFIELD_ORDER_BY_RULE_NAME,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderField::ORDER_BY_RULE_NAME))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERFIELD_ORDER_BY_RECORD_TIME,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderField::ORDER_BY_RECORD_TIME))),
+    });
+
+    std::initializer_list<napi_property_descriptor> properties = {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERFIELD_ORDER_BY_RULE_NAME,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderField::ORDER_BY_RULE_NAME))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERFIELD_ORDER_BY_RECORD_TIME,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderField::ORDER_BY_RECORD_TIME))),
+    };
+
+    napi_value netFirewallOrderField = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, netFirewallOrderField, properties);
+    NapiUtils::SetNamedProperty(env, exports, ENUM_NETFIREWALLORDERFIELD, netFirewallOrderField);
+}
+
+void InitNetFirewallOrderType(napi_env env, napi_value exports)
+{
+    NapiUtils::DefineProperties(env, exports, {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERTYPE_ORDER_ASC,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderType::ORDER_ASC))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERTYPE_ORDER_DESC,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderType::ORDER_DESC))),
+    });
+    
+    std::initializer_list<napi_property_descriptor> properties = {
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERTYPE_ORDER_ASC,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderType::ORDER_ASC))),
+        DECLARE_NAPI_STATIC_PROPERTY(NETFIREWALLORDERTYPE_ORDER_DESC,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(NetFirewallOrderType::ORDER_DESC))),
+    };
+
+    napi_value netFirewallOrderType = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, netFirewallOrderType, properties);
+    NapiUtils::SetNamedProperty(env, exports, ENUM_NETFIREWALLORDERTYPE, netFirewallOrderType);
+}
+
+void DeclareNetFirewallProperties(napi_env env, napi_value exports)
+{
+    InitNetFirewallRuleDirection(env, exports);
+    InitFirewallRuleAction(env, exports);
+    InitNetFirewallRuleType(env, exports);
+    InitNetFirewallOrderField(env, exports);
+    InitNetFirewallOrderType(env, exports);
+}
+
+napi_value DeclareNetFirewallModule(napi_env env, napi_value exports)
+{
+    DeclareNetFirewallInterface(env, exports);
+    DeclareNetFirewallProperties(env, exports);
+    return exports;
+}
+
 static napi_module g_netfirewallModule = {
     .nm_version = 1,
     .nm_flags = 0,
     .nm_filename = nullptr,
-    .nm_register_func = DeclareNetFirewallInterface,
+    .nm_register_func = DeclareNetFirewallModule,
     .nm_modname = "net.netfirewall",
     .nm_priv = (0),
     .reserved = { 0 },
