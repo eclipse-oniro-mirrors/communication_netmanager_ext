@@ -13,7 +13,7 @@
  * limitations under the License.
  */
  
-#include "networkshare_utils.h" 
+#include "networkshare_utils.h"
 #include "netmgr_ext_log_wrapper.h"
  
 namespace OHOS {
