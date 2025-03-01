@@ -16,7 +16,7 @@
 #include "networkshare_trafficlimit.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "net_datashare_utils.h"
-#include "edm_parameter_utils.h"
+#include "networkshare_utils.h"
 #include "net_manager_constants.h"
 #include "net_stats_constants.h"
 #include "netsys_controller.h"
@@ -150,7 +150,7 @@ void SharingTrafficDataObserver::ReadTetherTrafficSetting()
     dataShareHelperUtils->Query(mLimitUri, SHARE_LIMIT, value);
     int64_t tetherInt = -1;
     int64_t tetherTmp = -1;
-    if (!value.empty() && EdmParameterUtils::ConvertToInt64(value, tetherTmp)) {
+    if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
         tetherInt = tetherTmp;
     }
     NETMGR_EXT_LOG_D("tether limit value=[%{public}s].", std::to_string(tetherInt).c_str());
@@ -165,7 +165,7 @@ void TetherSingleValueObserver::OnChange()
     dataShareHelperUtils->Query(uriTether, SHARE_LIMIT, value);
     int64_t tetherInt = -1;
     int64_t tetherTmp = -1;
-    if (!value.empty() && EdmParameterUtils::ConvertToInt64(value, tetherTmp)) {
+    if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
         tetherInt = tetherTmp;
     }
     NETMGR_EXT_LOG_E("TetherSingleValueObserver OnChanged. dataString: %{public}s, TrafficInt: %{public}" PRId64,
@@ -248,14 +248,14 @@ int64_t NetworkShareTrafficLimit::GetNextUpdataDelay()
     int64_t maxDelay = STATS_INTERVAL_MAXIMUM;
     if (tetherTrafficInfos.mMaxSpeed > 0) {
         maxDelay = tetherTrafficInfos.mRemainSize * SECOND_IN_MILLIS / tetherTrafficInfos.mMaxSpeed;
-        maxDelay = EdmParameterUtils::Constrain(maxDelay, STATS_INTERVAL_MINIMUM, STATS_INTERVAL_MAXIMUM);
+        maxDelay = NetworkShareUtils::Constrain(maxDelay, STATS_INTERVAL_MINIMUM, STATS_INTERVAL_MAXIMUM);
     }
     int64_t delay;
     if (tetherTrafficInfos.mNetSpeed == 0) {
         delay = maxDelay;
     } else {
         delay = tetherTrafficInfos.mRemainSize / tetherTrafficInfos.mNetSpeed / NUMBER_THREE;
-        delay = EdmParameterUtils::Constrain(delay, STATS_INTERVAL_MINIMUM, maxDelay);
+        delay = NetworkShareUtils::Constrain(delay, STATS_INTERVAL_MINIMUM, maxDelay);
     }
     return delay;
 }
@@ -350,8 +350,8 @@ void NetworkShareTrafficLimit::SendSharingTrafficToCachedData(const nmd::Network
 {
     NETMGR_EXT_LOG_I("NetworkShareSubStateMachine SendSharingTrafficToCachedData enter");
     NetStatsInfo infos;
-    infos.txBytes_ = static_cast<int64_t>(traffic.send);
-    infos.rxBytes_ = static_cast<int64_t>(traffic.receive);
+    infos.txBytes_ = static_cast<uint64_t>(traffic.send);
+    infos.rxBytes_ = static_cast<uint64_t>(traffic.receive);
     infos.iface_ = upIface;
     auto ret = DelayedSingleton<NetStatsClient>::GetInstance()->SaveSharingTraffic(infos);
     if (ret != 0) {
