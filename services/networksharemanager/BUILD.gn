@@ -57,6 +57,7 @@ ohos_shared_library("net_tether_manager") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/networkshare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
   ]
 
@@ -199,6 +200,7 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
+    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/networkshare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
   ]
 
