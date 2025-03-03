@@ -32,8 +32,7 @@ namespace {
  */
 constexpr uint32_t MAX_URGENT_RTR_ADVERTISEMENTS = 10;
 constexpr uint32_t RECV_RS_TIMEOUT = 1;
-constexpr uint32_t SEND_RA_INTERVAL = 3;
-constexpr uint32_t SEND_RA_DELAY = 1;
+constexpr uint32_t SEND_RA_INTERVAL = 3000;
 constexpr size_t RA_HEADER_SIZE = 16;
 
 /**
@@ -54,7 +53,6 @@ constexpr uint32_t DEFAULT_HOP_LIMIT = 255;
 constexpr const char *DST_IPV6 = "ff02::1";
 } // namespace
 
-RouterAdvertisementDaemon *RouterAdvertisementDaemon::pThis = nullptr;
 RouterAdvertisementDaemon::RouterAdvertisementDaemon()
 {
     raParams_ = std::make_shared<RaParams>();
@@ -92,23 +90,23 @@ int32_t RouterAdvertisementDaemon::StartRa()
         NETMGR_EXT_LOG_E("StartRa fail due to socket");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    pThis = this;
     stopRaThread_ = false;
-    recvRsThread_ = std::thread([this]() { this->RunRecvRsThread(); });
+    auto sp = shared_from_this();
+    recvRsThread_ = std::thread([sp]() { sp->RunRecvRsThread(); });
     pthread_setname_np(recvRsThread_.native_handle(), "OH_Net_RecvRs");
     recvRsThread_.detach();
+    ffrtTimer_.Start(SEND_RA_INTERVAL, [sp]() { sp->ProcessSendRaPacket(); });
     return NETMANAGER_EXT_SUCCESS;
 }
 
 void RouterAdvertisementDaemon::StopRa()
 {
     NETMGR_EXT_LOG_I("StopRa");
+    // close timer
+    ffrtTimer_.Stop();
+
     HupRaThread();
     CloseRaSocket();
-
-    // close timer
-    itimerval value = {};
-    setitimer(ITIMER_REAL, &value, nullptr);
 }
 
 bool RouterAdvertisementDaemon::CreateRASocket()
@@ -172,35 +170,21 @@ bool RouterAdvertisementDaemon::MaybeSendRa(sockaddr_in6 &dest)
     return true;
 }
 
-void RouterAdvertisementDaemon::ProcessSendRaPacket(int inputSignal)
+void RouterAdvertisementDaemon::ProcessSendRaPacket()
 {
-    if (pThis == nullptr) {
-        NETMGR_EXT_LOG_E("pThis is nullptr!");
-        return;
-    }
-    if (!pThis->IsSocketValid() || pThis->stopRaThread_) {
+    if (!IsSocketValid() || stopRaThread_) {
         NETMGR_EXT_LOG_E("socket closed or stopRaThread!");
         return;
     }
-    if (pThis->AssembleRaLocked()) {
-        pThis->MaybeSendRa(pThis->dstIpv6Addr_);
+    if (AssembleRaLocked()) {
+        MaybeSendRa(dstIpv6Addr_);
     }
-    pThis->ResetRaRetryInterval();
+    ResetRaRetryInterval();
 }
 
 void RouterAdvertisementDaemon::RunRecvRsThread()
 {
     NETMGR_EXT_LOG_I("Start to receive Rs thread, socket[%{public}d]", socket_);
-    if (signal(SIGALRM, ProcessSendRaPacket) == SIG_ERR) {
-        NETMGR_EXT_LOG_E("signal error!");
-        CloseRaSocket();
-        return;
-    }
-    itimerval setvalue = {};
-    setvalue.it_interval.tv_sec = SEND_RA_INTERVAL;
-    setvalue.it_value.tv_sec = SEND_RA_DELAY;
-    setitimer(ITIMER_REAL, &setvalue, nullptr);
-
     sockaddr_in6 solicitor = {};
     uint8_t solicitation[IPV6_MIN_MTU] = {};
     socklen_t sendLen = sizeof(solicitation);
