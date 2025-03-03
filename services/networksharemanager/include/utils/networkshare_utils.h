@@ -15,9 +15,7 @@
  
 #ifndef NETWORKSHARE_UTILS_H
 #define NETWORKSHARE_UTILS_H
- 
-#include <mutex>
- 
+
 namespace OHOS {
 namespace NetManagerStandard {
 class NetworkShareUtils {
