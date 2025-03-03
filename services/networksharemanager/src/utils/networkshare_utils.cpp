@@ -52,7 +52,7 @@ bool NetworkShareUtils::ConvertToInt64(const std::string &str, int64_t &value)
     return true;
 }
 
-uint64_t NetworkShareUtils::Constrain(int amount, int low, int high)
+int64_t NetworkShareUtils::Constrain(int amount, int low, int high)
 {
     return (amount < low) ? low : (amount > high) ? high : amount;
 }
