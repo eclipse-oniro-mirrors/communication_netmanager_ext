@@ -22,7 +22,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 class NetworkShareUtils {
 public:
-    static NetworkShareUtils &GetInstance();
     NetworkShareUtils() = default;
     ~NetworkShareUtils() = default;
     static bool ConvertToInt64(const std::string &str, int64_t &value);
