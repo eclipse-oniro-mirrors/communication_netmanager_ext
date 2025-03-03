@@ -21,7 +21,7 @@ namespace NetManagerStandard {
  
 constexpr int32_t TEN = 10;
 
-bool EdmParameterUtils::ConvertToInt64(const std::string &str, int64_t &value)
+bool NetworkShareUtils::ConvertToInt64(const std::string &str, int64_t &value)
 {
     char* end;
     errno = 0; // 清除 errno
@@ -52,7 +52,7 @@ bool EdmParameterUtils::ConvertToInt64(const std::string &str, int64_t &value)
     return true;
 }
 
-uint64_t EdmParameterUtils::Constrain(int amount, int low, int high)
+uint64_t NetworkShareUtils::Constrain(int amount, int low, int high)
 {
     return (amount < low) ? low : (amount > high) ? high : amount;
 }
