@@ -36,6 +36,7 @@
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
+#include "ffrt_timer.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -69,10 +70,6 @@ constexpr uint8_t ND_OPTION_SLLA_TYPE = 1;
 constexpr uint8_t ND_OPTION_PIO_TYPE = 3;
 constexpr uint8_t ND_OPTION_MTU_TYPE = 5;
 constexpr uint8_t ND_OPTION_RDNSS_TYPE = 25;
-struct DeprecatedInfoTracker {
-    std::vector<IpPrefix> deprecatedPrefixes;
-    std::vector<in6_addr> deprecatedDnses;
-};
 
 #pragma pack(1)
 struct Icmpv6HeadSt {
@@ -114,17 +111,16 @@ struct Icmpv6RdnsOpt {
     uint8_t dnsServer[0] = {};
 };
 #pragma pack()
-class RouterAdvertisementDaemon {
+class RouterAdvertisementDaemon : public std::enable_shared_from_this<RouterAdvertisementDaemon> {
 public:
     RouterAdvertisementDaemon();
     ~RouterAdvertisementDaemon() = default;
     int32_t Init(const std::string &ifaceName);
     int32_t StartRa();
     void StopRa();
-    static void ProcessSendRaPacket(int inputSignal);
+    void ProcessSendRaPacket();
     RaParams GetDeprecatedRaParams(RaParams &oldRa, RaParams &newRa);
     void BuildNewRa(const RaParams &newRa);
-    static RouterAdvertisementDaemon *pThis;
 
 private:
     bool IsSocketValid();
@@ -151,7 +147,7 @@ private:
     uint8_t raPacket_[IPV6_MIN_MTU] = {};
     uint16_t raPacketLength_ = 0;
     std::shared_ptr<RaParams> raParams_;
-    DeprecatedInfoTracker deprecatedInfoTracker_;
+    FfrtTimer ffrtTimer_;
 };
 
 } // namespace NetManagerStandard
