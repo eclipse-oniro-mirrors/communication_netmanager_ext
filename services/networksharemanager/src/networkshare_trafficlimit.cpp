@@ -150,13 +150,16 @@ void SharingTrafficDataObserver::ReadTetherTrafficSetting()
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     Uri mLimitUri(SHARE_SETTING_URI + SHARE_LIMIT);
     std::string value = "";
-    dataShareHelperUtils->Query(mLimitUri, SHARE_LIMIT, value);
+    int32_t ret = dataShareHelperUtils->Query(mLimitUri, SHARE_LIMIT, value);
+    if (ret != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("Query error.");
+    }
     int64_t tetherInt = -1;
     int64_t tetherTmp = -1;
     if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
         tetherInt = tetherTmp;
     }
-    NETMGR_EXT_LOG_D("tether limit value=[%{public}s].", std::to_string(tetherInt).c_str());
+    NETMGR_EXT_LOG_D("tether limit value=%{public}" PRId64, tetherInt);
     NetworkShareTrafficLimit::GetInstance().UpdataSharingSettingdata(tetherInt);
 }
 
@@ -165,7 +168,10 @@ void TetherSingleValueObserver::OnChange()
     Uri uriTether(SHARE_SETTING_URI + SHARE_LIMIT);
     std::string value = "";
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
-    dataShareHelperUtils->Query(uriTether, SHARE_LIMIT, value);
+    int32_t ret = dataShareHelperUtils->Query(uriTether, SHARE_LIMIT, value);
+    if (ret != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("Query error.");
+    }
     int64_t tetherInt = -1;
     int64_t tetherTmp = -1;
     if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
