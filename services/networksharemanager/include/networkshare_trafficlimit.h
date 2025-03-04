@@ -15,6 +15,7 @@
 #ifndef NETWORKSHARE_TRAFFICLIMIT_H
 #define NETWORKSHARE_TRAFFICLIMIT_H
 
+#include "ffrt.h"
 #include "singleton.h"
 #include "data_ability_observer_stub.h"
 #include "network_sharing.h"
@@ -32,6 +33,7 @@ constexpr int64_t STATS_INTERVAL_MAXIMUM = 30000;
 constexpr int64_t STATS_INTERVAL_DEFAULT = 5000;
 constexpr int64_t KB_IN_BYTES = 1024;
 constexpr int64_t MB_IN_BYTES = KB_IN_BYTES * 1024;
+constexpr int64_t WIFI_AP_STATS_DEFAULT_VALUE = 0;
 
 struct TetherTrafficInfos {
     int64_t mStartSize = 0;
@@ -66,6 +68,7 @@ public:
     void EndHandleSharingLimitEvent();
     void AddSharingTrafficBeforeConnChanged(nmd::NetworkSharingTraffic &traffic);
     bool IsCellularDataConnection();
+    void SaveSharingTrafficToSettingsDB(nmd::NetworkSharingTraffic &traffic);
     std::shared_ptr<TrafficEventHandler> eventHandler_ = nullptr;
 
 private:
@@ -76,13 +79,15 @@ private:
     void sendMsgDelayed(const std::string &name, int64_t delayTime);
     int32_t GetDefaultSlotId();
     bool IsValidSlotId(int32_t slotId);
-    // get event handler
+    void WriteSharingTrafficToDB(const int64_t &traffic);
     void InitEventHandler();
 
 private:
     TetherTrafficInfos tetherTrafficInfos;
     std::unique_ptr<Telephony::NetworkState> networkState_ = nullptr;
     bool flag = false;
+    int64_t lastSharingStatsSize = 0;
+    ffrt::mutex lock_;
 };
 
 class TetherSingleValueObserver : public AAFwk::DataAbilityObserverStub {
