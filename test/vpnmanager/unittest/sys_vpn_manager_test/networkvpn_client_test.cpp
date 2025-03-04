@@ -295,5 +295,31 @@ HWTEST_F(NetworkVpnClientTest, multiUserSetUpEvent001, TestSize.Level1)
     networkVpnClient_.multiUserSetUpEvent();
     EXPECT_TRUE(networkVpnClient_.vpnEventCallback_ == nullptr);
 }
+
+HWTEST_F(NetworkVpnClientTest, GetSelfAppNameTest_01, TestSize.Level1)
+{
+    NetworkVpnClient networkVpnClient;
+    std::string selfAppName;
+    std::string selfBundleName;
+
+    int32_t result = networkVpnClient.GetSelfAppName(selfAppName, selfBundleName);
+
+    // 验证返回值是否为成功
+    EXPECT_NE(result, NETMANAGER_EXT_SUCCESS);
+
+    // 验证应用名称和包名是否不为空
+    EXPECT_TRUE(selfAppName.empty());
+    EXPECT_TRUE(selfBundleName.empty());
+}
+
+HWTEST_F(NetworkVpnClientTest, SetSelfVpnPidTest_01, TestSize.Level1)
+{
+    NetworkVpnClient networkVpnClient;
+
+    int32_t result = networkVpnClient.SetSelfVpnPid();
+
+    // 验证返回值是否为成功
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

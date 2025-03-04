@@ -550,5 +550,15 @@ HWTEST_F(NetFirewallClientTest, LoadSaOnDemand001, TestSize.Level0)
     sptr<IRemoteObject> result = netfirewallClient_.LoadSaOnDemand();
     EXPECT_NE(result, nullptr);
 }
+
+HWTEST_F(NetFirewallClientTest, OnLoadSystemAbilitySuccessTest001, TestSize.Level1)
+{
+    int32_t systemAbilityId = 0;
+    sptr<IRemoteObject> remoteObject;
+    DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->OnLoadSystemAbilitySuccess(systemAbilityId,
+        remoteObject);
+    auto ret = DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->GetRemoteObject();
+    EXPECT_EQ(ret, nullptr);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
