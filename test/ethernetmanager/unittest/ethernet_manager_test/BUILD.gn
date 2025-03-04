@@ -31,7 +31,7 @@ ohos_unittest("ethernet_manager_test") {
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
     "dev_interface_state_test.cpp",
-    ethernet_client_test.cpp
+    "ethernet_client_test.cpp",
     "ethernet_configuration_test.cpp",
     "ethernet_lan_management_test.cpp",
     "ethernet_manager_test.cpp",
