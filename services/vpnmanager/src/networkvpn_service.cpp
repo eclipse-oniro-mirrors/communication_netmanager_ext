@@ -64,7 +64,7 @@ constexpr const char *VPNEXT_MODE_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
 
 const bool REGISTER_LOCAL_RESULT_NETVPN =
-    SystemAbility::MakeAndRegisterAbility(&NetworkVpnService::GetInstance());
+    SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkVpnService>::GetInstance().get());
 
 constexpr const int INVALID_CODE = -1;
 const std::vector<std::string> ACCESS_PERMISSION {"ohos.permission.GET_NETWORK_INFO"};
@@ -75,6 +75,12 @@ constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
 NetworkVpnService::~NetworkVpnService()
 {
+    {
+        std::lock_guard<std::mutex> autoLock(cesMutex_);
+        if (subscriber_ != nullptr) {
+            EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+        }
+    }
     RemoveALLClientDeathRecipient();
 }
 
@@ -127,7 +133,7 @@ bool NetworkVpnService::Init()
         return false;
     }
     if (!isServicePublished_) {
-        if (!Publish(&NetworkVpnService::GetInstance())) {
+        if (!Publish(DelayedSingleton<NetworkVpnService>::GetInstance().get())) {
             NETMGR_EXT_LOG_E("Register to sa manager failed");
             return false;
         }
@@ -1190,6 +1196,7 @@ void NetworkVpnService::StartAlwaysOnVpn()
 
 void NetworkVpnService::SubscribeCommonEvent()
 {
+    std::lock_guard<std::mutex> autoLock(cesMutex_);
     if (subscriber_ == nullptr) {
         EventFwk::MatchingSkills matchingSkills;
         matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
@@ -1198,7 +1205,7 @@ void NetworkVpnService::SubscribeCommonEvent()
         EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
         // 1 means CORE_EVENT_PRIORITY
         subscribeInfo.SetPriority(1);
-        subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, *this);
+        subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, shared_from_this());
     }
     bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
     if (!ret) {
@@ -1211,6 +1218,11 @@ void NetworkVpnService::SubscribeCommonEvent()
 
 void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 {
+    auto vpnService = vpnService_.lock();
+    if (vpnService == nullptr) {
+        NETMGR_EXT_LOG_E("vpnService_ null");
+        return;
+    }
     const auto &action = eventData.GetWant().GetAction();
     const auto &data = eventData.GetData();
     const auto &code = eventData.GetCode();
@@ -1219,13 +1231,13 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_POWER_SAVE_MODE_CHANGED) {
         bool isPowerSave = (code == SAVE_MODE || code == LOWPOWER_MODE);
         if (isPowerSave) {
-            vpnService_.StartAlwaysOnVpn();
+            vpnService->StartAlwaysOnVpn();
         }
         return;
     }
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
-        vpnService_.StartAlwaysOnVpn();
+        vpnService->StartAlwaysOnVpn();
     }
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {

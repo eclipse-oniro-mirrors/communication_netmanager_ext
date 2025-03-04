@@ -46,7 +46,7 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    static inline auto instance_ = &NetworkVpnService::GetInstance();
+    static inline auto instance_ = DelayedSingleton<NetworkVpnService>::GetInstance();
 };
 
 void NetworkVpnServiceExtTest::SetUpTestCase()

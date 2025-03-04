@@ -106,7 +106,8 @@ __attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(INetworkVpnService::
 {
     MessageParcel reply;
     MessageOption option;
-    return NetworkVpnService::GetInstance().OnRemoteRequest(static_cast<uint32_t>(code), data, reply, option);
+    return DelayedSingleton<NetworkVpnService>::GetInstance()->OnRemoteRequest(static_cast<uint32_t>(code), data,
+        reply, option);
 }
 
 void PrepareFuzzTest(const uint8_t *data, size_t size)
