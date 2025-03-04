@@ -160,3 +160,19 @@ foundation/communication/netmanager_ext/
 [communication_netmanager_base](https://gitee.com/openharmony/communication_netmanager_base)
 
 [communication_netstack](https://gitee.com/openharmony/communication_netstack)
+
+---------------------
+/**
+
+@tc.name: GetMacAddressTest001
+@tc.desc: Test GetMacAddress.
+@tc.type: FUNC
+*/
+HWTEST_F(EthernetClientTest, GetMacAddressTest001, TestSize.Level1)
+{
+auto ethernetClient = DelayedSingleton::GetInstance();
+std::vector macAddrList;
+int32_t ret = ethernetClient->GetMacAddress(macAddrList);
+EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+/**
