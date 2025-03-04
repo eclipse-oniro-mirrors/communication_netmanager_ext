@@ -200,6 +200,7 @@ void NetworkShareTrafficLimit::CheckSharingStatsData()
     UpdataSharingTrafficStats();
     if (tetherTrafficInfos.mLimitSize < 0 && eventHandler_ != nullptr) {
         eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+        sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_MAXIMUM);
         return;
     }
 
@@ -213,7 +214,7 @@ void NetworkShareTrafficLimit::CheckSharingStatsData()
     }
 
     if (eventHandler_ != nullptr) {
-        int64_t updateDelay = STATS_INTERVAL_MAXIMUM;;
+        int64_t updateDelay = STATS_INTERVAL_MAXIMUM;
         if (IsCellularDataConnection()) {
             updateDelay = GetNextUpdataDelay();
         }
