@@ -103,20 +103,20 @@ int64_t NetworkShareTrafficLimit::GetNetSpeedForRadioTech(int32_t radioTech)
 void NetworkShareTrafficLimit::StartHandleSharingLimitEvent()
 {
     NETMGR_EXT_LOG_I("StartHandleSharingLimitEvent");
-        std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
-        observer->ReadTetherTrafficSetting();
-        observer->RegisterTetherDataSettingObserver();
-        InitTetherStatsInfo();
-        eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
-        sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_DEFAULT);
+    std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
+    observer->ReadTetherTrafficSetting();
+    observer->RegisterTetherDataSettingObserver();
+    InitTetherStatsInfo();
+    eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+    sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_DEFAULT);
 }
 
 void NetworkShareTrafficLimit::EndHandleSharingLimitEvent()
 {
     NETMGR_EXT_LOG_I("EndHandleSharingLimitEvent");
-        std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
-        observer->UnregisterTetherDataSettingObserver();
-        eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+    std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
+    observer->UnregisterTetherDataSettingObserver();
+    eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
 }
 
 SharingTrafficDataObserver::SharingTrafficDataObserver()
