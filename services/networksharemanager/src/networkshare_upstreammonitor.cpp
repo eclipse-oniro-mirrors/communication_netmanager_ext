@@ -96,14 +96,8 @@ NetworkShareUpstreamMonitor::NetworkShareUpstreamMonitor() : defaultNetworkId_(I
 
 NetworkShareUpstreamMonitor::~NetworkShareUpstreamMonitor()
 {
-    {
-        std::lock_guard lock(networkMapMutex_);
-        networkMaps_.clear();
-    }
-    {
-        std::lock_guard lock(networkCallbackMutex_);
-        NetConnClient::GetInstance().UnregisterNetConnCallback(defaultNetworkCallback_);
-    }
+    std::lock_guard lock(networkMapMutex_);
+    networkMaps_.clear();
 }
 
 void NetworkShareUpstreamMonitor::SetOptionData(int32_t what)

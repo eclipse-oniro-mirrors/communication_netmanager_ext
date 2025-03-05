@@ -182,17 +182,7 @@
                 }
             ],
             "test": [
-                "//foundation/communication/netmanager_ext/test/ethernetmanager:unittest",
-                "//foundation/communication/netmanager_ext/test/ethernetmanager:fuzztest",
-                "//foundation/communication/netmanager_ext/test/networksharemanager:fuzztest",
-                "//foundation/communication/netmanager_ext/test/networksharemanager:unittest",
-                "//foundation/communication/netmanager_ext/test/mdnsmanager:fuzztest",
-                "//foundation/communication/netmanager_ext/test/mdnsmanager:unittest",
-                "//foundation/communication/netmanager_ext/test/vpnmanager:unittest",
-                "//foundation/communication/netmanager_ext/test/vpnmanager:fuzztest",
-                "//foundation/communication/netmanager_ext/test/netfirewallmanager:unittest",
-                "//foundation/communication/netmanager_ext/test/netfirewallmanager:fuzztest",
-                "//foundation/communication/netmanager_ext/test/wearabledistributednetmanager:unittest"
+                "//foundation/communication/netmanager_ext/test:netmanager_ext_test"
             ]
         }
     }
