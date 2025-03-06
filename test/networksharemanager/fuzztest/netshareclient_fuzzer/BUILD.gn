@@ -93,6 +93,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "ffrt:libffrt",
     "hicollie:libhicollie",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
