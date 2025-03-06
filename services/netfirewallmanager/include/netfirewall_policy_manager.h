@@ -88,8 +88,15 @@ public:
      */
     bool GetNetFirewallStatus(const int32_t userId);
 
-private:
+    /**
+     * Load firewall policy from preference
+     *
+     * @param userId User id
+     * @param policy Return to firewall policy
+     */
     void LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy);
+
+private:
     void GetAllUserId(std::vector<int32_t> &accountIds);
 
 private:

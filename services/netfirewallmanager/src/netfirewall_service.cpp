@@ -82,6 +82,14 @@ int32_t NetFirewallService::GetCurrentAccountId()
     return currentUserId_;
 }
 
+bool NetFirewallService::IsSameNetFirewallPolicy(const sptr<NetFirewallPolicy> &inPolicy,
+    const sptr<NetFirewallPolicy> &outPolicy)
+{
+    return (inPolicy->isOpen == outPolicy->isOpen &&
+        inPolicy->inAction == outPolicy->inAction &&
+        inPolicy->outAction == outPolicy->outAction);
+}
+
 /**
  * Turn on or off the firewall
  *
@@ -97,6 +105,14 @@ int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const spt
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
+
+    sptr<NetFirewallPolicy> policyTemp = sptr<NetFirewallPolicy>::MakeSptr();
+    NetFirewallPolicyManager::GetInstance().LoadPolicyFormPreference(userId, policyTemp);
+    if (IsSameNetFirewallPolicy(policy, policyTemp)) {
+        NETMGR_EXT_LOG_W("SetNetFirewallPolicy is same userId=%{public}d, ignore.", userId);
+        return FIREWALL_SUCCESS;
+    }
+
     ret = NetFirewallPolicyManager::GetInstance().SetNetFirewallPolicy(userId, policy);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
@@ -110,8 +126,10 @@ int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const spt
     }
 
     // update rules
-    NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
-        NetFirewallPolicyManager::GetInstance().IsFirewallOpen());
+    if (NetFirewallPolicyManager::GetInstance().IsNetFirewallOpen(userId) != policy->isOpen) {
+        NetFirewallRuleManager::GetInstance().OpenOrCloseNativeFirewall(
+            NetFirewallPolicyManager::GetInstance().IsFirewallOpen());
+    }
     return ret;
 }
 
