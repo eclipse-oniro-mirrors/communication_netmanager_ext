@@ -184,6 +184,8 @@ private:
 
     void RegisterSubscribeCommonEvent();
 
+    bool IsSameNetFirewallPolicy(const sptr<NetFirewallPolicy> &inPolicy, const sptr<NetFirewallPolicy> &outPolicy);
+
 private:
     static std::shared_ptr<ffrt::queue> ffrtServiceHandler_;
     std::atomic<uint64_t> currentSetRuleSecond_ = 0;
