@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import("//build/ohos.gni")
 
 ohos_prebuilt_etc("mdnsmanager_trust") {
@@ -20,6 +21,7 @@ ohos_prebuilt_etc("mdnsmanager_trust") {
 }
 
 ## Install mdnsmanager.rc/mdnsmanager.rc to /system/etc/init
+
 ohos_prebuilt_etc("mdnsmanager.rc") {
   source = "mdnsmanager.cfg"
   relative_install_dir = "init"
@@ -30,6 +32,20 @@ ohos_prebuilt_etc("mdnsmanager.rc") {
 ohos_prebuilt_etc("vpnmanager.cfg") {
   source = "vpnmanager.cfg"
   relative_install_dir = "init"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+ohos_prebuilt_etc("UrspConfig_xml") {
+  source = "UrspConfig1.xml"
+  module_install_dir = "profile"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+ohos_prebuilt_etc("reportUrsp") {
+  source = "reportUrsp.json"
+  module_install_dir = "profile"
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }

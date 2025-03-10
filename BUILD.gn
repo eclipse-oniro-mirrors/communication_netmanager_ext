@@ -102,3 +102,12 @@ group("wearable_distributed_net_packages") {
     ]
   }
 }
+
+group("networkslice_packages") {
+  if (netmanager_ext_feature_networkslice) {
+    deps = [
+      "$NETMANAGER_EXT_ROOT/interfaces/innerkits/networksliceclient:networkslice_manager_if",
+      "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager",
+    ]
+  }
+}

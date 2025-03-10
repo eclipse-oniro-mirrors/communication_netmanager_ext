@@ -39,3 +39,9 @@ ohos_sa_profile("wearable_distributed_net_manager_profile") {
 
   part_name = "netmanager_ext"
 }
+
+ohos_sa_profile("networkslice_manager_profile") {
+  sources = [ "8301.json" ]
+
+  part_name = "netmanager_ext"
+}
