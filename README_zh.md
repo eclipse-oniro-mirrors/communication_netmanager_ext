@@ -160,3 +160,47 @@ foundation/communication/netmanager_ext/
 [communication_netmanager_base](https://gitee.com/openharmony/communication_netmanager_base)
 
 [communication_netstack](https://gitee.com/openharmony/communication_netstack)
+
+----------------------------------------
+foundation/communication/netmanager_ext/test/vpnmanager/unittest/vpn_manager_test/networkvpn_service_test.cpp：
+
+HWTEST_F(NetworkVpnServiceTest, SyncRegisterVpnEvent, TestSize.Level1)
+{
+    instance_->vpnEventCallbacks_.push_back(eventCallback_);
+    EXPECT_EQ(instance_->SyncRegisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    instance_->vpnEventCallbacks_.clear();
+    sptr<IVpnEventCallback> eventCallback_1 = new (std::nothrow) VpnEventTestCallback();
+    instance_->vpnEventCallbacks_.push_back(eventCallback_1);
+    sptr<IVpnEventCallback> eventCallback_2 = new (std::nothrow) VpnEventTestCallback();
+    instance_->vpnEventCallbacks_.push_back(eventCallback_2);
+    EXPECT_EQ(instance_->SyncRegisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SyncUnregisterVpnEvent, TestSize.Level1)
+{
+    EXPECT_EQ(instance_->SyncUnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    instance_->vpnEventCallbacks_.clear();
+    EXPECT_EQ(instance_->SyncUnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
+{
+    instance_->RecoverVpnConfig();
+    instance_->RegisterFactoryResetCallback();
+    instance_->StartAlwaysOnVpn();
+    instance_->SubscribeCommonEvent();
+    std::string pkg = "";
+    bool enable = false;
+    sptr<VpnConfig> vpnCfg = new (std::nothrow) VpnConfig();
+    ASSERT_TRUE(vpnCfg != nullptr);
+    if (vpnCfg != nullptr) {
+        instance_->SetAlwaysOnVpn(pkg, enable);
+        std::string jsonString = "";
+        instance_->ParseConfigToJson(vpnCfg, jsonString);
+        instance_->ParseJsonToConfig(vpnCfg, jsonString);
+    }
+    int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ret = instance_->GetAlwaysOnVpn(pkg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
