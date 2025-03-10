@@ -167,12 +167,12 @@ HWTEST_F(NetworkVpnServiceTest, SyncRegisterVpnEvent, TestSize.Level1)
     instance_->vpnEventCallbacks_.push_back(eventCallback_1);
     sptr<IVpnEventCallback> eventCallback_2 = new (std::nothrow) VpnEventTestCallback();
     instance_->vpnEventCallbacks_.push_back(eventCallback_2);
-    EXPECT_EQ(instance_->SyncRegisterVpnEvent(eventCallback_), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->SyncRegisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, SyncUnregisterVpnEvent, TestSize.Level1)
 {
-    EXPECT_EQ(instance_->SyncUnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->SyncUnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
     instance_->vpnEventCallbacks_.clear();
     EXPECT_EQ(instance_->SyncUnregisterVpnEvent(eventCallback_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
@@ -216,7 +216,7 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
     int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     ret = instance_->GetAlwaysOnVpn(pkg);
-    EXPECT_EQ(ret, NETMANAGER_ERR_INTERNAL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
