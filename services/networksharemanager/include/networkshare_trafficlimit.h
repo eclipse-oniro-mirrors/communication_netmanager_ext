@@ -27,10 +27,11 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 constexpr int64_t NO_LIMIT = -1;
-constexpr int64_t DEFAULT_INTERVAL_MINIMUM = 500;
-constexpr int64_t STATS_INTERVAL_MINIMUM = DEFAULT_INTERVAL_MINIMUM;
+constexpr int64_t DEFAULT_INTERVAL_MINIMUM = 100;
+constexpr int64_t STATS_INTERVAL_MINIMUM = 500;
 constexpr int64_t STATS_INTERVAL_MAXIMUM = 30000;
 constexpr int64_t STATS_INTERVAL_DEFAULT = 5000;
+constexpr int64_t WRITE_DB_INTERVAL_MINIMUM = 2000;
 constexpr int64_t KB_IN_BYTES = 1024;
 constexpr int64_t MB_IN_BYTES = KB_IN_BYTES * 1024;
 constexpr int64_t WIFI_AP_STATS_DEFAULT_VALUE = 0;
@@ -85,8 +86,8 @@ private:
 private:
     TetherTrafficInfos tetherTrafficInfos;
     std::unique_ptr<Telephony::NetworkState> networkState_ = nullptr;
-    bool flag = false;
     int64_t lastSharingStatsSize = 0;
+    int64_t tmpMills = 0;
     ffrt::mutex lock_;
 };
 
