@@ -62,6 +62,7 @@ void NetworkShareTrafficLimit::InitTetherStatsInfo()
     tetherTrafficInfos.mNetSpeed = 0;
     tetherTrafficInfos.SharingTrafficValue = 0;
     lastSharingStatsSize = 0;
+    tmpMills = tetherTrafficInfos.mLastStatsMills;
     WriteSharingTrafficToDB(WIFI_AP_STATS_DEFAULT_VALUE);
 }
 
@@ -210,7 +211,7 @@ void NetworkShareTrafficLimit::CheckSharingStatsData()
         return;
     }
 
-    if (tetherTrafficInfos.mRemainSize < tetherTrafficInfos.mNetSpeed * STATS_INTERVAL_MINIMUM) {
+    if (tetherTrafficInfos.mRemainSize < tetherTrafficInfos.mNetSpeed * DEFAULT_INTERVAL_MINIMUM) {
         NETMGR_EXT_LOG_I("sharing taffic limit, shut down AP");
         int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
         if (ret != NETWORKSHARE_ERROR_WIFI_SHARING) {
@@ -295,14 +296,19 @@ void NetworkShareTrafficLimit::UpdataSharingTrafficStats()
     }
     int64_t sharingStatsSize = statsSize + tetherTrafficInfos.SharingTrafficValue;
     if (IsCellularDataConnection() && (lastSharingStatsSize < sharingStatsSize)) {
-        WriteSharingTrafficToDB(sharingStatsSize);
-        lastSharingStatsSize = sharingStatsSize;
+        if (elapsedMills >= WRITE_DB_INTERVAL_MINIMUM
+            || (statsMills - tmpMills) >= WRITE_DB_INTERVAL_MINIMUM) {
+            tmpMills = statsMills;
+            WriteSharingTrafficToDB(sharingStatsSize);
+            lastSharingStatsSize = sharingStatsSize;
+        }
     }
 }
 
 void NetworkShareTrafficLimit::WriteSharingTrafficToDB(const int64_t &traffic)
 {
     std::lock_guard<ffrt::mutex> lock(lock_);
+    NETMGR_EXT_LOG_I("enter WriteSharingTrafficToDB");
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     Uri mLimitUri(SHARE_SETTING_URI + WIFI_AP_STATS);
     std::string value = std::to_string(traffic);
