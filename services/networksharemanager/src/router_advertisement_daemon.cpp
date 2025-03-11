@@ -241,7 +241,6 @@ void RouterAdvertisementDaemon::ResetRaRetryInterval()
         itimerval oldvalue = {};
         setvalue.it_interval.tv_sec = DEFAULT_RTR_INTERVAL_SEC;
         setvalue.it_value.tv_sec = 1;
-        setitimer(ITIMER_REAL, &setvalue, &oldvalue);
         sendRaTimes_++;
         return;
     }
