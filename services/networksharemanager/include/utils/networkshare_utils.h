@@ -16,7 +16,6 @@
 #ifndef NETWORKSHARE_UTILS_H
 #define NETWORKSHARE_UTILS_H
 
-#include <cstdint>
 #include <string>
 
 namespace OHOS {
