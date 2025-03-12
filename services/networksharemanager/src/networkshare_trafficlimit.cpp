@@ -33,6 +33,7 @@ namespace NetManagerStandard {
 static constexpr const char *SHARE_SETTING_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA_SECURE_100?Proxy=true&key=";
 const std::string SHARE_LIMIT = "wifiap_one_usage_limit";
+const std::string WIFI_AP_STATS = "wifiap_one_usage_stats";
 const std::string SHARING_LIMIT_TASK_NAME = "networkshare_traffic_limit";
 constexpr int64_t SECOND_IN_MILLIS = 1000;
 constexpr int32_t NUMBER_THREE = 3;
@@ -60,6 +61,9 @@ void NetworkShareTrafficLimit::InitTetherStatsInfo()
     tetherTrafficInfos.mRemainSize = tetherTrafficInfos.mLimitSize;
     tetherTrafficInfos.mNetSpeed = 0;
     tetherTrafficInfos.SharingTrafficValue = 0;
+    lastSharingStatsSize = 0;
+    tmpMills = tetherTrafficInfos.mLastStatsMills;
+    WriteSharingTrafficToDB(WIFI_AP_STATS_DEFAULT_VALUE);
 }
 
 int64_t NetworkShareTrafficLimit::GetMaxNetworkSpeed()
@@ -100,20 +104,20 @@ int64_t NetworkShareTrafficLimit::GetNetSpeedForRadioTech(int32_t radioTech)
 void NetworkShareTrafficLimit::StartHandleSharingLimitEvent()
 {
     NETMGR_EXT_LOG_I("StartHandleSharingLimitEvent");
-        std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
-        observer->ReadTetherTrafficSetting();
-        observer->RegisterTetherDataSettingObserver();
-        InitTetherStatsInfo();
-        eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
-        sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_DEFAULT);
+    std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
+    observer->ReadTetherTrafficSetting();
+    observer->RegisterTetherDataSettingObserver();
+    InitTetherStatsInfo();
+    eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+    sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_DEFAULT);
 }
 
 void NetworkShareTrafficLimit::EndHandleSharingLimitEvent()
 {
     NETMGR_EXT_LOG_I("EndHandleSharingLimitEvent");
-        std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
-        observer->UnregisterTetherDataSettingObserver();
-        eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+    std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
+    observer->UnregisterTetherDataSettingObserver();
+    eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
 }
 
 SharingTrafficDataObserver::SharingTrafficDataObserver()
@@ -147,13 +151,16 @@ void SharingTrafficDataObserver::ReadTetherTrafficSetting()
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     Uri mLimitUri(SHARE_SETTING_URI + SHARE_LIMIT);
     std::string value = "";
-    dataShareHelperUtils->Query(mLimitUri, SHARE_LIMIT, value);
+    int32_t ret = dataShareHelperUtils->Query(mLimitUri, SHARE_LIMIT, value);
+    if (ret != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("Query error.");
+    }
     int64_t tetherInt = -1;
     int64_t tetherTmp = -1;
     if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
         tetherInt = tetherTmp;
     }
-    NETMGR_EXT_LOG_D("tether limit value=[%{public}s].", std::to_string(tetherInt).c_str());
+    NETMGR_EXT_LOG_D("tether limit value=%{public}" PRId64, tetherInt);
     NetworkShareTrafficLimit::GetInstance().UpdataSharingSettingdata(tetherInt);
 }
 
@@ -162,7 +169,10 @@ void TetherSingleValueObserver::OnChange()
     Uri uriTether(SHARE_SETTING_URI + SHARE_LIMIT);
     std::string value = "";
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
-    dataShareHelperUtils->Query(uriTether, SHARE_LIMIT, value);
+    int32_t ret = dataShareHelperUtils->Query(uriTether, SHARE_LIMIT, value);
+    if (ret != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("Query error.");
+    }
     int64_t tetherInt = -1;
     int64_t tetherTmp = -1;
     if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
@@ -195,20 +205,13 @@ void NetworkShareTrafficLimit::SetTetherLimit(int64_t &tetherInt)
 void NetworkShareTrafficLimit::CheckSharingStatsData()
 {
     UpdataSharingTrafficStats();
-    if (tetherTrafficInfos.mLimitSize < 0) {
-        flag = true;
+    if (tetherTrafficInfos.mLimitSize < 0 && eventHandler_ != nullptr) {
         eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+        sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_MAXIMUM);
         return;
     }
 
-    if (flag == true && eventHandler_ != nullptr) {
-        eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
-        sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_MINIMUM);
-        flag = false;
-        return;
-    }
-
-    if (tetherTrafficInfos.mRemainSize < tetherTrafficInfos.mNetSpeed * STATS_INTERVAL_MINIMUM) {
+    if (tetherTrafficInfos.mRemainSize < tetherTrafficInfos.mNetSpeed * DEFAULT_INTERVAL_MINIMUM) {
         NETMGR_EXT_LOG_I("sharing taffic limit, shut down AP");
         int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
         if (ret != NETWORKSHARE_ERROR_WIFI_SHARING) {
@@ -218,7 +221,7 @@ void NetworkShareTrafficLimit::CheckSharingStatsData()
     }
 
     if (eventHandler_ != nullptr) {
-        int64_t updateDelay = STATS_INTERVAL_DEFAULT;
+        int64_t updateDelay = STATS_INTERVAL_MAXIMUM;
         if (IsCellularDataConnection()) {
             updateDelay = GetNextUpdataDelay();
         }
@@ -291,6 +294,36 @@ void NetworkShareTrafficLimit::UpdataSharingTrafficStats()
     } else {
         tetherTrafficInfos.mRemainSize = -1;
     }
+    int64_t sharingStatsSize = statsSize + tetherTrafficInfos.SharingTrafficValue;
+    if (IsCellularDataConnection() && (lastSharingStatsSize < sharingStatsSize)) {
+        if (elapsedMills >= WRITE_DB_INTERVAL_MINIMUM
+            || (statsMills - tmpMills) >= WRITE_DB_INTERVAL_MINIMUM) {
+            tmpMills = statsMills;
+            WriteSharingTrafficToDB(sharingStatsSize);
+            lastSharingStatsSize = sharingStatsSize;
+        }
+    }
+}
+
+void NetworkShareTrafficLimit::WriteSharingTrafficToDB(const int64_t &traffic)
+{
+    std::lock_guard<ffrt::mutex> lock(lock_);
+    NETMGR_EXT_LOG_I("enter WriteSharingTrafficToDB");
+    auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
+    Uri mLimitUri(SHARE_SETTING_URI + WIFI_AP_STATS);
+    std::string value = std::to_string(traffic);
+    int32_t ret = dataShareHelperUtils->Update(mLimitUri, WIFI_AP_STATS, value);
+    if (ret != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("WriteSharingTrafficToDB err, ret[%{public}d].", ret);
+        return;
+    }
+}
+
+void NetworkShareTrafficLimit::SaveSharingTrafficToSettingsDB(nmd::NetworkSharingTraffic &traffic)
+{
+    NETMGR_EXT_LOG_I("enter SaveSharingTrafficToSettingsDB .");
+    int64_t tetherStats = static_cast<int64_t>(traffic.receive + traffic.send) + tetherTrafficInfos.SharingTrafficValue;
+    WriteSharingTrafficToDB(tetherStats);
 }
 
 void NetworkShareTrafficLimit::AddSharingTrafficBeforeConnChanged(nmd::NetworkSharingTraffic &traffic)
@@ -331,7 +364,6 @@ void TrafficEventHandler::HandleRemoveTask(const std::string &name)
     AppExecFwk::EventHandler::RemoveTask(name);
 }
 
-// 写数据库
 void NetworkShareTrafficLimit::SaveSharingTrafficToCachedData(nmd::NetworkSharingTraffic &traffic)
 {
     NETMGR_EXT_LOG_I("SaveSharingTrafficToCachedData enter");

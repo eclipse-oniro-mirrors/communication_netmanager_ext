@@ -380,6 +380,7 @@ void NetworkShareSubStateMachine::SharedStateExit()
     if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
         nmd::NetworkSharingTraffic traffic;
         NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
+        NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToSettingsDB(traffic);
     }
 #endif
     CleanupUpstreamInterface();
