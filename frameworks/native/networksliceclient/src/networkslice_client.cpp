@@ -169,19 +169,19 @@ void NetworkSliceClient::DlCloseRemoveDeathRecipient()
     sptr<INetworkSliceService> proxy = GetProxy();
     if (proxy == nullptr)
     {
-        NETMGR_LOG_E("proxy is nullptr");
+        NETMGR_EXT_LOG_E("proxy is nullptr");
         return;
     }
 
     auto serviceRemote = proxy->AsObject();
     if (serviceRemote == nullptr)
     {
-        NETMGR_LOG_E("serviceRemote is nullptr");
+        NETMGR_EXT_LOG_E("serviceRemote is nullptr");
         return;
     }
 
     serviceRemote->RemoveDeathRecipient(deathRecipient_);
-    NETMGR_LOG_I("RemoveDeathRecipient success");
+    NETMGR_EXT_LOG_I("RemoveDeathRecipient success");
 }
 
 } // namespace NetManagerStandard
