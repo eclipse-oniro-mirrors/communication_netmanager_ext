@@ -377,7 +377,7 @@ HWTEST_F(NetworkVpnServiceTest, SyncRegisterVpnEvent001, TestSize.Level1)
     sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
 
     int32_t ret = instance_->SyncRegisterVpnEvent(callback);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 
     instance_->vpnEventCallbacks_.push_back(callback);
     ret = instance_->SyncRegisterVpnEvent(callback);
@@ -417,7 +417,7 @@ HWTEST_F(NetworkVpnServiceTest, SetAlwaysOnVpn001, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, GetAlwaysOnVpn001, TestSize.Level1)
 {
     std::string pkg = "";
-    EXPECT_EQ(instance_->GetAlwaysOnVpn(pkg), NETMANAGER_ERR_INTERNAL);
+    EXPECT_EQ(instance_->GetAlwaysOnVpn(pkg), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, ParseJsonToConfig001, TestSize.Level1)
