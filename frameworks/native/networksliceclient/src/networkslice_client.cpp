@@ -167,15 +167,13 @@ void NetworkSliceClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 void NetworkSliceClient::DlCloseRemoveDeathRecipient()
 {
     sptr<INetworkSliceService> proxy = GetProxy();
-    if (proxy == nullptr)
-    {
+    if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return;
     }
 
     auto serviceRemote = proxy->AsObject();
-    if (serviceRemote == nullptr)
-    {
+    if (serviceRemote == nullptr) {
         NETMGR_EXT_LOG_E("serviceRemote is nullptr");
         return;
     }
