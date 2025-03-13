@@ -60,6 +60,7 @@ ohos_shared_library("networkslice_manager") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
     "libxml2:libxml2",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
@@ -99,7 +100,6 @@ ohos_shared_library("networkslice_manager") {
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
   }
-  public_external_deps = [ "json:nlohmann_json_static" ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
