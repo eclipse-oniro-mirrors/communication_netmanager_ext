@@ -84,7 +84,8 @@
                 "data_share",
                 "core_service",
                 "cellular_data",
-                "libxml2"
+                "libxml2",
+                "json"
             ]
         },
         "build": {
