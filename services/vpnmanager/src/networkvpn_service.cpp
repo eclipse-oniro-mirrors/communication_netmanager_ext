@@ -1259,7 +1259,7 @@ int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName, con
     NETMGR_EXT_LOG_I("RegisterBundleName RegisterApplicationStateObserver ret = %{public}d", regRet);
 
     currentVpnBundleName_ = bundleName;
-    std::lock_guardstd::mutex autoLock(vpnNameMutex_);
+    std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     currentVpnAbilityName_.emplace_back(abilityName);
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -1354,7 +1354,7 @@ std::string NetworkVpnService::GetBundleName()
     if (res != 0) {
         NETMGR_EXT_LOG_E("Error GetBundleInfoV9 %{public}d", res);
     }
-    std::lock_guardstd::mutex autoLock(vpnNameMutex_);
+    std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     for (const auto &hap : bundleInfo.hapModuleInfos) {
         for (const auto &ext : hap.extensionInfos) {
             if (ext.type == AppExecFwk::ExtensionAbilityType::VPN) {
@@ -1408,13 +1408,13 @@ void NetworkVpnService::UnregVpnHpObserver()
 
 std::vector<std::string> NetworkVpnService::GetCurrentVpnAbilityName()
 {
-    std::lock_guardstd::mutex autoLock(vpnNameMutex_);
+    std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     return currentVpnAbilityName_;
 }
 
 void NetworkVpnService::ClearCurrentVpnUserInfo()
 {
-    std::lock_guardstd::mutex autoLock(vpnNameMutex_);
+    std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     currentVpnBundleName_ = "";
     currentVpnAbilityName_.clear();
     setVpnPidMap_.clear();
@@ -1459,7 +1459,7 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
     UnregisterVpnEvent(callback);
-    std::lock_guardstd::mutex autoLock(remoteMutex_);
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
 #ifdef SUPPORT_SYSVPN
     if (vpnObj_ != nullptr && vpnObj_->IsSystemVpn()) {
         NETMGR_EXT_LOG_W("system vpn client died");
