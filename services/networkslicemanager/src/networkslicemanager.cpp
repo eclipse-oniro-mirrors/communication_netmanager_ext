@@ -1209,18 +1209,6 @@ void NetworkSliceManager::GetRouteSelectionDescriptorByDNN(const std::string dnn
 void NetworkSliceManager::DumpAppDescriptor(AppDescriptor appDescriptor)
 {
     NETMGR_EXT_LOG_I("dump AppDescriptor");
-    uint32_t ipv4Addr = appDescriptor.getIpv4Addr();
-    std::array<uint8_t, NetworkSliceCommConfig::LEN_IPV6ADDR> ipv6Addr = appDescriptor.getIpv6Addr();
-    NETMGR_EXT_LOG_I("mAppDescriptor.mUid = %{public}d", appDescriptor.getUid());
-    NETMGR_EXT_LOG_I("mAppDescriptor.mOsAppId.mAppId = %{public}s", appDescriptor.getOsAppId().getAppId().c_str());
-    NETMGR_EXT_LOG_I("mAppDescriptor.mOsAppId.mOsId = %{public}s", appDescriptor.getOsAppId().getOsId().c_str());
-    std::string ipv6 = transIpv6AddrToStr(appDescriptor.getIpv6Addr());
-    NETMGR_EXT_LOG_I("mAppDescriptor.mIpv4Addr = %{public}d, mAppDescriptor.mIpv6Addr = %{public}s",
-        appDescriptor.getIpv4Addr(), ipv6.c_str());
-    NETMGR_EXT_LOG_I("mAppDescriptor.mProtocolId = %{public}d", appDescriptor.getProtocolId());
-    NETMGR_EXT_LOG_I("mAppDescriptor.mRemotePort = %{public}d", appDescriptor.getRemotePort());
-    NETMGR_EXT_LOG_I("mAppDescriptor.mDnn = %{public}s", appDescriptor.getDnn().c_str());
-    NETMGR_EXT_LOG_I("mAppDescriptor.mFqdn = %{public}s", appDescriptor.getFqdn().c_str());
 }
 void NetworkSliceManager::DumpSelectedRouteDescriptor(SelectedRouteDescriptor routeRule)
 {
