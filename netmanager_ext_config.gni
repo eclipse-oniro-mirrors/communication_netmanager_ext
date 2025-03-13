@@ -114,7 +114,7 @@ declare_args() {
   battery_manager_switch_enable = false
   netmanager_ext_share_notification_enable = false
   netmanager_ext_share_traffic_limit_enable = false
-  netmanager_ext_feature_networkslice = true
+  netmanager_ext_feature_networkslice = false
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]
