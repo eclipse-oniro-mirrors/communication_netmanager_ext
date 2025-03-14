@@ -675,8 +675,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     remove(VPN_CONFIG_FILE);
 
     NETMGR_EXT_LOG_I("Destroy vpn successfully.");
-    ClearCurrentVpnUserInfo();
-    UnregVpnHpObserver();
+    currSetUpVpnPid_ = 0;
     return NETMANAGER_EXT_SUCCESS;
 }
 
