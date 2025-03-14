@@ -218,5 +218,69 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, NotifyMainStateMachineTest, TestSize.L
     monitor->NotifyMainStateMachine(which, nullptr);
     monitor->NotifyMainStateMachine(which);
 }
+
+HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetAvailable01, TestSize.Level1)
+{
+    sptr<NetHandle> netHandle = nullptr;
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetAvailable(netHandle);
+    int32_t netId = 0;
+    netHandle = std::make_unique<NetHandle>(netId).release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetAvailable(netHandle);
+    EXPECT_NE(netHandle, nullptr);
+}
+ 
+HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetCapabilitiesChange01, TestSize.Level1)
+{
+    sptr<NetHandle> netHandle = nullptr;
+    sptr<NetAllCapabilities> newNetAllCap = nullptr;
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetCapabilitiesChange(netHandle, newNetAllCap);
+    int32_t netId = 0;
+    netHandle = std::make_unique<NetHandle>(netId).release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetCapabilitiesChange(netHandle, newNetAllCap);
+    EXPECT_NE(netHandle, nullptr);
+}
+ 
+HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetCapabilitiesChange02, TestSize.Level1)
+{
+    sptr<NetHandle> netHandle = nullptr;
+    sptr<NetAllCapabilities> newNetAllCap = std::make_unique<NetAllCapabilities>().release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetCapabilitiesChange(netHandle, newNetAllCap);
+    int32_t netId = 0;
+    netHandle = std::make_unique<NetHandle>(netId).release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetCapabilitiesChange(netHandle, newNetAllCap);
+    EXPECT_NE(netHandle, nullptr);
+}
+ 
+HWTEST_F(NetworkShareUpstreamMonitorTest, HandleConnectionPropertiesChange01, TestSize.Level1)
+{
+    sptr<NetHandle> netHandle = nullptr;
+    sptr<NetLinkInfo> newNetLinkInfo = nullptr;
+    NetworkShareUpstreamMonitor::GetInstance()->HandleConnectionPropertiesChange(netHandle, newNetLinkInfo);
+    int32_t netId = 0;
+    netHandle = std::make_unique<NetHandle>(netId).release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleConnectionPropertiesChange(netHandle, newNetLinkInfo);
+    EXPECT_NE(netHandle, nullptr);
+}
+ 
+HWTEST_F(NetworkShareUpstreamMonitorTest, HandleConnectionPropertiesChange02, TestSize.Level1)
+{
+    sptr<NetHandle> netHandle = nullptr;
+    sptr<NetLinkInfo> newNetLinkInfo = std::make_unique<NetLinkInfo>().release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleConnectionPropertiesChange(netHandle, newNetLinkInfo);
+    int32_t netId = 0;
+    netHandle = std::make_unique<NetHandle>(netId).release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleConnectionPropertiesChange(netHandle, newNetLinkInfo);
+    EXPECT_NE(netHandle, nullptr);
+}
+ 
+HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLost01, TestSize.Level1)
+{
+    sptr<NetHandle> netHandle = nullptr;
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetLost(netHandle);
+    int32_t netId = 0;
+    netHandle = std::make_unique<NetHandle>(netId).release();
+    NetworkShareUpstreamMonitor::GetInstance()->HandleNetLost(netHandle);
+    EXPECT_NE(netHandle, nullptr);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

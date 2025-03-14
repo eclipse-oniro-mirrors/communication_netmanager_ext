@@ -30,7 +30,8 @@ enum {
 
 // for network sharing
 enum class SharingIfaceType {
-    SHARING_WIFI = 0,
+    SHARING_NONE = -1,
+    SHARING_WIFI,
     SHARING_USB,
     SHARING_BLUETOOTH,
 };

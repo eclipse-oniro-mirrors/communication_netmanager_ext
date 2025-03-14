@@ -850,5 +850,121 @@ HWTEST_F(NetworkShareTrackerTest, HandleHotSpotClosedTest, TestSize.Level1)
     EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
 }
 #endif
+
+HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing02, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    networksharetracker.clientRequestsVector_ = {
+        SharingIfaceType::SHARING_NONE,
+        SharingIfaceType::SHARING_WIFI,
+    };
+    SharingIfaceType type = SharingIfaceType::SHARING_NONE;
+    int32_t ret = networksharetracker.StartNetworkSharing(type);
+    type = SharingIfaceType::SHARING_WIFI;
+    ret = networksharetracker.StartNetworkSharing(type);
+    EXPECT_EQ(ret, NETWORKSHARE_ERROR_WIFI_SHARING);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, InterfaceStatusChanged01, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    networksharetracker.isInit = true;
+    std::string iface;
+    networksharetracker.InterfaceStatusChanged(iface, true);
+    EXPECT_TRUE(networksharetracker.isInit);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, CheckIfUpUsbIface01, TestSize.Level1)
+{
+    std::string iface;
+    EXPECT_TRUE(NetworkShareTracker::GetInstance().CheckIfUpUsbIface(iface));
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, InterfaceRemoved01, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    networksharetracker.isInit = true;
+    std::string iface = "";
+    networksharetracker.InterfaceRemoved(iface);
+    EXPECT_TRUE(networksharetracker.isInit);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, SendGlobalSharingStateChange01, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    sptr<ISharingEventCallback> callback;
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    networksharetracker.subStateMachineMap_.emplace("key1",
+        std::shared_ptr<NetworkShareTracker::NetSharingSubSmState>());
+    networksharetracker.SendGlobalSharingStateChange();
+    ASSERT_EQ(networksharetracker.sharingEventCallback_.back(), nullptr);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, SendGlobalSharingStateChange02, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    sptr<ISharingEventCallback> callback;
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    networksharetracker.SendGlobalSharingStateChange();
+    ASSERT_EQ(networksharetracker.sharingEventCallback_.back(), nullptr);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, SendGlobalSharingStateChange03, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    sptr<ISharingEventCallback> callback;
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    networksharetracker.isNetworkSharing_ = true;
+    networksharetracker.SendGlobalSharingStateChange();
+    ASSERT_EQ(networksharetracker.sharingEventCallback_.back(), nullptr);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, SendIfaceSharingStateChange01, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    sptr<ISharingEventCallback> callback;
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    SharingIfaceType type = SharingIfaceType::SHARING_NONE;
+    std::string iface;
+    SharingIfaceState state = SharingIfaceState::SHARING_NIC_ERROR;
+    networksharetracker.SendIfaceSharingStateChange(type, iface, state);
+    ASSERT_EQ(networksharetracker.sharingEventCallback_.back(), nullptr);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, SendSharingUpstreamChange02, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    sptr<ISharingEventCallback> callback;
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    NetHandle myNetHandle;
+    sptr<NetHandle> netHandle = new NetHandle(myNetHandle);
+    networksharetracker.SendSharingUpstreamChange(netHandle);
+    ASSERT_EQ(networksharetracker.sharingEventCallback_.back(), nullptr);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, RestartResume01, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    SharingIfaceType type = SharingIfaceType::SHARING_NONE;
+    networksharetracker.clientRequestsVector_.push_back(type);
+    networksharetracker.isStartDnsProxy_ = true;
+    networksharetracker.RestartResume();
+    ASSERT_EQ(networksharetracker.clientRequestsVector_.size(), 1);
+}
+ 
+HWTEST_F(NetworkShareTrackerTest, RestartResume02, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    SharingIfaceType type = SharingIfaceType::SHARING_NONE;
+    networksharetracker.clientRequestsVector_.push_back(type);
+    std::string ifaceName = "123";
+    SharingIfaceType interfaceType = SharingIfaceType::SHARING_NONE;
+    std::shared_ptr<NetworkShareConfiguration> configuration;
+    std::shared_ptr<NetworkShareSubStateMachine> test =
+        std::make_shared<NetworkShareSubStateMachine>(ifaceName, interfaceType, configuration);
+    networksharetracker.sharedSubSM_.push_back(test);
+    networksharetracker.RestartResume();
+    ASSERT_EQ(networksharetracker.clientRequestsVector_.size(), 1);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
