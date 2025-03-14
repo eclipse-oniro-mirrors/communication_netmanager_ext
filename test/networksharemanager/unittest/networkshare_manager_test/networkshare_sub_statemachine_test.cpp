@@ -517,5 +517,297 @@ HWTEST_F(NetworkShareSubStateMachineTest, NetworkShareSubStateMachineBranch002, 
     result = networkShareWifiSubStateMachine->RequestIpv4Address(netAddr);
     ASSERT_FALSE(result);
 }
+
+HWTEST_F(NetworkShareSubStateMachineTest, GetShareIpv6Prefix001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::string iface = "123";
+    EXPECT_TRUE(networkShareSubStateMachine->GetShareIpv6Prefix(iface));
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetShareIpv6Prefix002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::string iface;
+    EXPECT_TRUE(networkShareSubStateMachine->GetShareIpv6Prefix(iface));
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetShareIpv6Prefix003, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::string iface = "-1";
+    EXPECT_TRUE(networkShareSubStateMachine->GetShareIpv6Prefix(iface));
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, MacToEui64Addr001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::string mac = "123";
+    EXPECT_NE(networkShareSubStateMachine->MacToEui64Addr(mac), "");
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, MacToEui64Addr002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::string mac;
+    EXPECT_NE(networkShareSubStateMachine->MacToEui64Addr(mac), "");
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, StartIpv6001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    networkShareSubStateMachine->StartIpv6();
+    IpPrefix ipprefix;
+    ipprefix.prefixesLength = 123;
+    networkShareSubStateMachine->lastRaParams_.prefixes_.push_back(ipprefix);
+    networkShareSubStateMachine->StartIpv6();
+    networkShareSubStateMachine->raDaemon_ = std::make_shared<RouterAdvertisementDaemon>();
+    networkShareSubStateMachine->StartIpv6();
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, StopIpv6001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    networkShareSubStateMachine->raDaemon_ = std::make_shared<RouterAdvertisementDaemon>();
+    networkShareSubStateMachine->StopIpv6();
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareIpv4001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    NetLinkInfo netlinkinfo;
+    INetAddr inetaddr;
+    inetaddr.family_ = 1;
+    netlinkinfo.netAddrList_.push_back(inetaddr);
+    auto upstreamLinkInfo = new NetLinkInfo(netlinkinfo);
+    networkShareSubStateMachine->ConfigureShareIpv4(upstreamLinkInfo);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareIpv4002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    NetLinkInfo netlinkinfo;
+    INetAddr inetaddr;
+    inetaddr.family_ = 2;
+    netlinkinfo.netAddrList_.push_back(inetaddr);
+    auto upstreamLinkInfo = new NetLinkInfo(netlinkinfo);
+    networkShareSubStateMachine->ConfigureShareIpv4(upstreamLinkInfo);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareIpv6001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    NetLinkInfo netlinkinfo;
+    INetAddr inetaddr;
+    inetaddr.family_ = 2;
+    netlinkinfo.netAddrList_.push_back(inetaddr);
+    auto upstreamLinkInfo = new NetLinkInfo(netlinkinfo);
+    networkShareSubStateMachine->ConfigureShareIpv6(upstreamLinkInfo);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareIpv6002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    NetLinkInfo netlinkinfo;
+    INetAddr inetaddr;
+    inetaddr.family_ = 1;
+    netlinkinfo.netAddrList_.push_back(inetaddr);
+    auto upstreamLinkInfo = new NetLinkInfo(netlinkinfo);
+    networkShareSubStateMachine->ConfigureShareIpv6(upstreamLinkInfo);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, AddIpv6AddrToLocalNetwork001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    networkShareSubStateMachine->AddIpv6AddrToLocalNetwork();
+    IpPrefix ipprefix;
+    ipprefix.prefixesLength = 123;
+    networkShareSubStateMachine->lastRaParams_.prefixes_.push_back(ipprefix);
+    networkShareSubStateMachine->AddIpv6AddrToLocalNetwork();
+    networkShareSubStateMachine->ifaceName_ = "wlan0";
+    networkShareSubStateMachine->AddIpv6AddrToLocalNetwork();
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, AddIpv6InfoToLocalNetwork001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    networkShareSubStateMachine->AddIpv6InfoToLocalNetwork();
+    EXPECT_FALSE(networkShareSubStateMachine->GetWifiApDstIpv6Addr());
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, FindDestinationAddr001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_NONE, configuration);
+    std::string destination = "";
+    EXPECT_FALSE(networkShareSubStateMachine->FindDestinationAddr(destination));
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetWifiHotspotDhcpFlag001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    EXPECT_EQ(networkShareSubStateMachine->GetWifiHotspotDhcpFlag(), false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetBtDestinationAddr002, TestSize.Level1)
+{
+    std::string addrStr;
+    NetworkShareConfiguration networkshareconfiguration;
+    networkshareconfiguration.btPanIpv4Str_ = "";
+    auto configuration = std::make_shared<NetworkShareConfiguration>(networkshareconfiguration);
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    EXPECT_EQ(networkShareSubStateMachine->GetBtDestinationAddr(addrStr), false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetBtDestinationAddr003, TestSize.Level1)
+{
+    std::string addrStr;
+    NetworkShareConfiguration networkshareconfiguration;
+    networkshareconfiguration.routeSuffix_ = "";
+    auto configuration = std::make_shared<NetworkShareConfiguration>(networkshareconfiguration);
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    EXPECT_EQ(networkShareSubStateMachine->GetBtDestinationAddr(addrStr), false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetWifiApDestinationAddr002, TestSize.Level1)
+{
+    std::string addrStr;
+    NetworkShareConfiguration networkshareconfiguration;
+    networkshareconfiguration.wifiIpv4Str_ = "";
+    auto configuration = std::make_shared<NetworkShareConfiguration>(networkshareconfiguration);
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    EXPECT_EQ(networkShareSubStateMachine->GetWifiApDestinationAddr(addrStr), false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetWifiApDestinationAddr003, TestSize.Level1)
+{
+    std::string addrStr;
+    NetworkShareConfiguration networkshareconfiguration;
+    networkshareconfiguration.routeSuffix_ = "";
+    auto configuration = std::make_shared<NetworkShareConfiguration>(networkshareconfiguration);
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    EXPECT_EQ(networkShareSubStateMachine->GetWifiApDestinationAddr(addrStr), false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetUsbDestinationAddr002, TestSize.Level1)
+{
+    std::string addrStr;
+    NetworkShareConfiguration networkshareconfiguration;
+    networkshareconfiguration.usbIpv4Str_ = "";
+    auto configuration = std::make_shared<NetworkShareConfiguration>(networkshareconfiguration);
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    EXPECT_EQ(networkShareSubStateMachine->GetUsbDestinationAddr(addrStr), false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, GetUsbDestinationAddr003, TestSize.Level1)
+{
+    std::string addrStr;
+    NetworkShareConfiguration networkshareconfiguration;
+    networkshareconfiguration.routeSuffix_ = "";
+    auto configuration = std::make_shared<NetworkShareConfiguration>(networkshareconfiguration);
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    EXPECT_EQ(networkShareSubStateMachine->GetUsbDestinationAddr(addrStr), false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, StopDhcp001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
+    EXPECT_TRUE(networkShareSubStateMachine->StopDhcp());
+    networkShareSubStateMachine->ifaceName_ = "123";
+    EXPECT_TRUE(networkShareSubStateMachine->StopDhcp());
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareDhcp001, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    bool ret = networkShareSubStateMachine->ConfigureShareDhcp(true);
+    EXPECT_EQ(ret, true);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareDhcp002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_NONE, configuration);
+    bool ret = networkShareSubStateMachine->ConfigureShareDhcp(true);
+    EXPECT_EQ(ret, false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareDhcp003, TestSize.Level1)
+{
+    auto configuration = nullptr;
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    bool ret = networkShareSubStateMachine->ConfigureShareDhcp(true);
+    EXPECT_EQ(ret, false);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareDhcp004, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
+    bool ret = networkShareSubStateMachine->ConfigureShareDhcp(true);
+    EXPECT_EQ(ret, true);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, RequestIpv4Address002, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    std::shared_ptr<INetAddr> ipv4Address = nullptr;
+    bool ret = networkShareSubStateMachine->RequestIpv4Address(ipv4Address);
+    EXPECT_EQ(ret, true);
+}
+ 
+HWTEST_F(NetworkShareSubStateMachineTest, RequestIpv4Address003, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_NONE, configuration);
+    std::shared_ptr<INetAddr> ipv4Address = nullptr;
+    bool ret = networkShareSubStateMachine->RequestIpv4Address(ipv4Address);
+    EXPECT_NE(ret, true);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
