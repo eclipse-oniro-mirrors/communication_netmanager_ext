@@ -117,6 +117,7 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
     bool isSupportDun = false;
     Telephony::CellularDataClient::GetInstance().GetIfSupportDunApn(isSupportDun);
     NETMGR_EXT_LOG_I("isSupportDun=%{public}d", isSupportDun);
+    isSupportDun = false;
     if (isSupportDun) {
         netSpecifier_->netCapabilities_.netCaps_ = {NET_CAPABILITY_DUN, NET_CAPABILITY_NOT_VPN};
     } else {
