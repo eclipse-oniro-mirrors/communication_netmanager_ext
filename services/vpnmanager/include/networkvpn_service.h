@@ -309,6 +309,7 @@ private:
     void RemoveClientDeathRecipient(const sptr<IVpnEventCallback> &callback);
     void RemoveALLClientDeathRecipient();
 
+    std::mutex vpnNameMutex_;
     std::mutex remoteMutex_;
     std::mutex cesMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
