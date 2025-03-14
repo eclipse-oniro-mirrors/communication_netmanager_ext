@@ -57,6 +57,7 @@ ohos_unittest("vpn_manager_ext_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "netmanager_base:net_manager_common",
     "os_account:os_account_innerkits",
   ]
