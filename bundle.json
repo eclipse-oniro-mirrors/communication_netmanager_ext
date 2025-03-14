@@ -84,7 +84,8 @@
                 "data_share",
                 "core_service",
                 "cellular_data",
-                "libxml2"
+                "libxml2",
+                "json"
             ]
         },
         "build": {
@@ -106,7 +107,11 @@
                     "//foundation/communication/netmanager_ext/sa_profile:netfirewall_manager_profile",
                     "//foundation/communication/netmanager_ext:netfirewall_packages",
                     "//foundation/communication/netmanager_ext/sa_profile:wearable_distributed_net_manager_profile",
-                    "//foundation/communication/netmanager_ext:wearable_distributed_net_packages"
+                    "//foundation/communication/netmanager_ext:wearable_distributed_net_packages",
+                    "//foundation/communication/netmanager_ext/sa_profile:networkslice_manager_profile",
+                    "//foundation/communication/netmanager_ext:networkslice_packages",
+                    "//foundation/communication/netmanager_ext/services/etc/init:UrspConfig_xml",
+                    "//foundation/communication/netmanager_ext/services/etc/init:reportUrsp"
                 ]
             },
             "inner_kits": [
@@ -178,6 +183,17 @@
                     "header": {
                         "header_files": [
                             "wearabledistributednetclient/include/wearable_distributed_net_client.h"
+                        ],
+                        "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
+                    }
+                },
+                {
+                    "type": "so",
+                    "name": "//foundation/communication/netmanager_ext/interfaces/innerkits/networksliceclient:networkslice_manager_if",
+                    "header": {
+                        "header_files": [
+                            "networksliceclient/include/networkslice_client.h"
+
                         ],
                         "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
                     }

@@ -1,0 +1,12 @@
+{
+    "process": "netmanager",
+    "systemability": [
+        {
+            "name": 8301,
+            "libpath": "libnetworkslice_manager.z.so",
+            "run-on-create": true,
+            "distributed": false,
+            "dump_level": 1
+        }
+    ]
+}

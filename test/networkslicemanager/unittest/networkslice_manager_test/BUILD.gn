@@ -1,0 +1,84 @@
+# Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
+ohos_unittest("networkslice_manager_test") {
+  module_out_path = "netmanager_ext/networkslice_manager_test"
+
+  sources = [
+    "hwnetworkslicemanager_test.cpp",
+    "networkslice_manager_test.cpp",
+    "networkslice_stub_test.cpp",
+    "urspconfig_test.cpp",
+  ]
+
+  include_dirs = [ "$NETMANAGER_EXT_ROOT/services/networkslicemanager/include" ]
+
+  deps = [
+    "$EXT_INNERKITS_ROOT/networksliceclient:networkslice_manager_if",
+    "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
+    "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager",
+    "$NETMANAGER_EXT_ROOT/utils:net_event_report",
+    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
+  ]
+
+  external_deps = [
+    "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
+    "cellular_data:tel_cellular_data_api",
+    "core_service:tel_core_service_api",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "dhcp:dhcp_sdk",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
+    "netmanager_base:netsys_controller",
+    "os_account:os_account_innerkits",
+    "relational_store:native_rdb",
+    "samgr:samgr_proxy",
+  ]
+
+  defines = [
+    "NETMGR_LOG_TAG = \"NetworkSliceManagerTest\"",
+    "LOG_DOMAIN = 0xD0015B0",
+    "private = public",
+    "protected = public",
+  ]
+
+  if (enable_netmgr_ext_debug) {
+    defines += [ "NETMGR_DEBUG" ]
+  }
+
+  configs = [ "$NETMANAGER_EXT_ROOT/resource:coverage_flags" ]
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":networkslice_manager_test" ]
+}

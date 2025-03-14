@@ -27,6 +27,8 @@ NETFIREWALL_EXTENSION_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/frameworks/native/netfirewallclient"
 WEARABLE_DISTRIBUTED_NET_INNERKITS_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/frameworks/native/wearabledistributednetclient"
+NETWORKSLICE_INNERKITS_SOURCE_DIR =
+    "$NETMANAGER_EXT_ROOT/frameworks/native/networksliceclient"
 
 # args of interfaces
 INTERFACES_INCLUDE =
@@ -46,6 +48,7 @@ NETFIREWALLMANAGER_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/services/netfirewallmanager"
 WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR =
     "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager"
+NETWORKSLICE_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/networkslicemanager"
 
 # args of uitls
 NETWORKSHAREMANAGER_UTILS_DIR = "$NETMANAGER_EXT_ROOT/utils"
