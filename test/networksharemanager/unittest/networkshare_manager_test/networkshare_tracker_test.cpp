@@ -894,7 +894,8 @@ HWTEST_F(NetworkShareTrackerTest, SendGlobalSharingStateChange01, TestSize.Level
     NetworkShareTracker networksharetracker;
     sptr<ISharingEventCallback> callback;
     networksharetracker.sharingEventCallback_.push_back(callback);
-    networksharetracker.subStateMachineMap_.emplace("key1", std::shared_ptr<NetworkShareTracker::NetSharingSubSmState>());
+    networksharetracker.subStateMachineMap_.emplace("key1",
+        std::shared_ptr<NetworkShareTracker::NetSharingSubSmState>());
     networksharetracker.SendGlobalSharingStateChange();
     ASSERT_EQ(networksharetracker.sharingEventCallback_.back(), nullptr);
 }
