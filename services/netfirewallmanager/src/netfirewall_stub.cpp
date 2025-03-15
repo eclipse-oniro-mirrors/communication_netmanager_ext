@@ -30,8 +30,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-const std::string PERMISSION_MANAGE_NET_FIREWALL = "ohos.permission.MANAGE_NET_FIREWALL";
-const std::string PERMISSION_GET_NET_FIREWALL = "ohos.permission.GET_NET_FIREWALL";
+static constexpr const char *PERMISSION_MANAGE_NET_FIREWALL = "ohos.permission.MANAGE_NET_FIREWALL";
+static constexpr const char *PERMISSION_GET_NET_FIREWALL = "ohos.permission.GET_NET_FIREWALL";
 }
 NetFirewallStub::NetFirewallStub()
 {
