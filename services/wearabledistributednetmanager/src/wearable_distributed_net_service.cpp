@@ -58,7 +58,17 @@ int32_t WearableDistributedNetService::SetupWearableDistributedNet(int32_t tcpPo
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return WearableDistributedNetManagement::GetInstance()
-        .StartWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
+        .SetupWearableDistributedNetwork(tcpPortId, udpPortId, isMetered);
+}
+
+int32_t WearableDistributedNetService::EnableWearableDistributedNet(bool enableFlag)
+{
+    NETMGR_EXT_LOG_I("Wearable Distributed Net Service Enable Net : %{public}u", enableFlag);
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        NETMGR_EXT_LOG_E("Wearable Distributed Net Service Setup Net no permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    return WearableDistributedNetManagement::GetInstance().EnableWearableDistributedNetwork(enableFlag);
 }
 
 int32_t WearableDistributedNetService::TearDownWearableDistributedNet()

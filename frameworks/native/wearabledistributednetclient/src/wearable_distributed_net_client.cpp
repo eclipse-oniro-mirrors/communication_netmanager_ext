@@ -65,6 +65,17 @@ int32_t WearableDistributedNetClient::SetupWearableDistributedNet(const int32_t 
     return proxy->SetupWearableDistributedNet(tcpPortId, udpPortId, isMetered);
 }
 
+int32_t WearableDistributedNetClient::EnableWearableDistributedNet(bool enableFlag)
+{
+    NETMGR_EXT_LOG_I("enable WearableDistributedNet : %{public}u", enableFlag);
+    sptr<IWearableDistributedNet> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("SetupWearableDistributedNet fail, proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->EnableWearableDistributedNet(enableFlag);
+}
+
 int32_t WearableDistributedNetClient::TearDownWearableDistributedNet()
 {
     NETMGR_EXT_LOG_I("Wearable Distributed Net Client tear down");

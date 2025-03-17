@@ -42,6 +42,7 @@ public:
     void OnStart() override;
     void OnStop() override;
     int32_t SetupWearableDistributedNet(int32_t tcpPortId, int32_t udpPortId, bool isMetered) override;
+    int32_t EnableWearableDistributedNet(bool enableFlag) override;
     int32_t TearDownWearableDistributedNet() override;
     int32_t UpdateMeteredStatus(const bool isMetered) override;
 
