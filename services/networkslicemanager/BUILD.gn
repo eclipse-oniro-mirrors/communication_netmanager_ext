@@ -58,6 +58,7 @@ ohos_shared_library("networkslice_manager") {
     "ffrt:libffrt",
     "hicollie:libhicollie",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
