@@ -38,7 +38,22 @@ static constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 
 EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nullptr), callback_(nullptr) {}
 
-EthernetClient::~EthernetClient() = default;
+EthernetClient::~EthernetClient()
+{
+    NETMGR_EXT_LOG_I("~EthernetClient : Destroy EthernetClient");
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        return;
+    }
+ 
+    auto serviceRemote = proxy->AsObject();
+    if (serviceRemote == nullptr) {
+        return;
+    }
+    if (deathRecipient_) {
+        serviceRemote->RemoveDeathRecipient(deathRecipient_);
+    }
+}
 
 int32_t EthernetClient::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
