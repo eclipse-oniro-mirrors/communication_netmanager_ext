@@ -60,7 +60,22 @@ const sptr<IRemoteObject> &NetworkShareLoadCallback::GetRemoteObject() const
 NetworkShareClient::NetworkShareClient()
     : networkShareService_(nullptr), deathRecipient_(nullptr), callback_(nullptr) {}
 
-NetworkShareClient::~NetworkShareClient() {}
+NetworkShareClient::~NetworkShareClient()
+{
+    NETMGR_LOG_I("~NetworkShareClient : Destroy NetworkShareClient");
+    sptr<INetworkShareService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        return;
+    }
+ 
+    auto serviceRemote = proxy->AsObject();
+    if (serviceRemote == nullptr) {
+        return;
+    }
+    if (deathRecipient_) {
+        serviceRemote->RemoveDeathRecipient(deathRecipient_);
+    }
+}
 
 int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
 {
