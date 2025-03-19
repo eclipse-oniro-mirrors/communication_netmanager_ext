@@ -312,6 +312,12 @@ int32_t NetworkShareService::GetStatsTotalBytes(int32_t &bytes)
 
 int32_t NetworkShareService::SetConfigureForShare(bool enabled)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_I("SetConfigureForShare begin, %{public}d", enabled);
     std::lock_guard<ffrt::mutex> lock(setConfigureMutex_);
     if (enabled) {
