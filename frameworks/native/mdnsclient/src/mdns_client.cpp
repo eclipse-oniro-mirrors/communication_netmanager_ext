@@ -56,7 +56,22 @@ const sptr<IRemoteObject> &OnDemandLoadCallback::GetRemoteObject() const
 
 MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr) {}
 
-MDnsClient::~MDnsClient() = default;
+MDnsClient::~MDnsClient()
+{
+    NETMGR_EXT_LOG_E("~MDnsClient : Destroy MDnsClient");
+    sptr<IMDnsService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        return;
+    }
+ 
+    auto serviceRemote = proxy->AsObject();
+    if (serviceRemote == nullptr) {
+        return;
+    }
+    if (deathRecipient_) {
+        serviceRemote->RemoveDeathRecipient(deathRecipient_);
+    }
+}
 
 int32_t MDnsClient::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
