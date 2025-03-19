@@ -40,7 +40,7 @@ EthernetClient::EthernetClient() : ethernetService_(nullptr), deathRecipient_(nu
 
 EthernetClient::~EthernetClient()
 {
-    NETMGR_LOG_I("~EthernetClient : Destroy EthernetClient");
+    NETMGR_EXT_LOG_I("~EthernetClient : Destroy EthernetClient");
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         return;
