@@ -62,7 +62,7 @@ NetworkShareClient::NetworkShareClient()
 
 NetworkShareClient::~NetworkShareClient()
 {
-    NETMGR_LOG_I("~NetworkShareClient : Destroy NetworkShareClient");
+    NETMGR_EXT_LOG_I("~NetworkShareClient : Destroy NetworkShareClient");
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         return;
