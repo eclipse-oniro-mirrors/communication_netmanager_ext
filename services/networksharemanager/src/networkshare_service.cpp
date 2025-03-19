@@ -39,7 +39,10 @@ inline const std::string IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notific
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
 
-NetworkShareService::~NetworkShareService(){};
+NetworkShareService::~NetworkShareService()
+{
+
+}
 
 void NetworkShareService::OnStart()
 {
