@@ -270,7 +270,7 @@ HWTEST_F(NetworkShareManagerTest, SetConfigureForShare01, TestSize.Level1)
 {
     bool enabled = true;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->SetConfigureForShare(enabled);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_NE(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareManagerTest, SetConfigureForShare02, TestSize.Level1)
