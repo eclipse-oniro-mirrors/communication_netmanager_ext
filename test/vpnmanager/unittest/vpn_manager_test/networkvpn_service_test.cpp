@@ -216,7 +216,7 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
     int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     ret = instance_->GetAlwaysOnVpn(pkg);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)

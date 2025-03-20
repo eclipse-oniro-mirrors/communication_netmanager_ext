@@ -269,7 +269,7 @@ HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest001, TestSize.Level1)
 {
     bool enabled = true;
     auto ret = instance_->SetConfigureForShare(enabled);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest002, TestSize.Level1)

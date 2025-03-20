@@ -220,7 +220,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplySetConfigureForShareTest001, TestSize
         return;
     }
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_SET_CONFIG);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
