@@ -152,6 +152,4 @@ extern std::shared_ptr<AllowedNssaiConfig> sAllowedNssaiConfig_;
 
 } // namespace NetManagerStandard
 } // namespace OHOS
-
-
 #endif  // ALLOWEDNSSAICONFIG_H

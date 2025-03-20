@@ -101,9 +101,6 @@ void NetworkSliceManager::ProcessEvent(const AppExecFwk::InnerEvent::Pointer& ev
         case EVENT_HANDLE_UE_POLICY:
             HandleUrspFromUnsolData(event->GetSharedObject<std::vector<uint8_t>>());
             break;
-        case EVENT_HANDLE_NETWORK_ACTIVATE_RESULT:
-            HandleNetworkActivateResult(event->GetSharedObject<std::map<std::string, std::any>>());
-            break;
         case EVENT_KERNEL_IP_ADDR_REPORT:
             HandleIpRpt(event->GetSharedObject<std::vector<uint8_t>>());
             break;
@@ -170,9 +167,6 @@ void NetworkSliceManager::ProcessEventEx(const AppExecFwk::InnerEvent::Pointer& 
             break;
         case EVENT_URSP_CHANGED:
             HandleUrspChanged(event->GetSharedObject<std::map<std::string, std::string>>());
-            break;
-        case EVENT_NETWORK_PARA_FORBIDDEN_TIMEOUT:
-            ProcessNetworkParaForbiddenTimeOut();
             break;
     }
 }
@@ -253,32 +247,17 @@ void NetworkSliceManager::SendUrspUpdateMsg()
 {
     if ((!mIsUrspFirstReported) && isSaState()) {
         if (sNrUnsolicitedMsgParser_ != nullptr) {
+            sNrUnsolicitedMsgParser_->SendUrspUpdate();
         }
         mIsUrspFirstReported = true;
     }
-}
-
-void NetworkSliceManager::ProcessNetworkParaForbiddenTimeOut()
-{
-    if (mNormalForbiddenRules.size() == 1) {
-        mNormalForbiddenRules.erase(mNormalForbiddenRules.begin());
-    } else {
-        int64_t timeMillies = mNormalForbiddenRules[1].getCurrentTimeMillies()
-            - mNormalForbiddenRules[0].getCurrentTimeMillies();
-        StartNetworkParaForbiddenTimer(timeMillies);
-        mNormalForbiddenRules.erase(mNormalForbiddenRules.begin());
-    }
-}
-
-void NetworkSliceManager::StartNetworkParaForbiddenTimer(int64_t timeMillies)
-{
-    return;
 }
 
 void NetworkSliceManager::HandleSimStateChanged()
 {
     NETMGR_EXT_LOG_I("NetworkSliceManager::HandleSimStateChanged");
     if (sNrUnsolicitedMsgParser_ != nullptr) {
+        sNrUnsolicitedMsgParser_->HandleSimStateChanged();
     }
     if (mApnStartflag == false) {
         DelayedSingleton<NetworkSliceService>::GetInstance()->UpdateNetworkSliceApn();
@@ -301,6 +280,7 @@ void NetworkSliceManager::HandleAllowedNssaiFromUnsolData(const std::shared_ptr<
         return;
     }
     if (sNrUnsolicitedMsgParser_ != nullptr) {
+        sNrUnsolicitedMsgParser_->GetAllowedNssaiFromUnsolData(buffer);
     }
     return;
 }
@@ -324,50 +304,9 @@ void NetworkSliceManager::HandleUrspFromUnsolData(const std::shared_ptr<std::vec
         return;
     }
     if (sNrUnsolicitedMsgParser_ != nullptr) {
+        sNrUnsolicitedMsgParser_->GetUrspFromUnsolData(buffer);
     }
     return;
-}
-
-void NetworkSliceManager::HandleNetworkActivateResult(std::shared_ptr<std::map<std::string, std::any>> data)
-{
-    if (data->empty()) {
-        return;
-    }
-    auto resultIt = data->find("result");
-    if (resultIt == data->end() || std::any_cast<int>(resultIt->second) != NETWORK_ACTIVATE_RESULT_SUCCESS) {
-        return;
-    }
-    std::shared_ptr<ForbiddenRouteDescriptor> forbiddenRouteDescriptor =
-        std::make_shared<ForbiddenRouteDescriptor>();
-    auto dnnIt = data->find("dnn");
-    if (dnnIt != data->end()) {
-        forbiddenRouteDescriptor->setDnn(std::any_cast<std::string>(dnnIt->second));
-    }
-
-    auto snssaiIt = data->find("snssai");
-    if (snssaiIt != data->end()) {
-        forbiddenRouteDescriptor->setSnssai(std::any_cast<std::string>(snssaiIt->second));
-    }
-
-    auto pduSessionTypeIt = data->find("pduSessionType");
-    if (pduSessionTypeIt != data->end()) {
-        forbiddenRouteDescriptor->setPduSessionType(std::any_cast<int>(pduSessionTypeIt->second));
-    }
-
-    auto sscModeIt = data->find("sscMode");
-    if (sscModeIt != data->end()) {
-        forbiddenRouteDescriptor->setSscMode(std::any_cast<uint8_t>(sscModeIt->second));
-    }
-
-    if (std::any_cast<int>(resultIt->second) != NETWORK_ACTIVATE_RESULT_NORMAL_FAIL) {
-        return;
-    }
-
-    forbiddenRouteDescriptor->setCurrentTimeMillies(StateUtils::GetCurrentSysTimeMs());
-    if (mNormalForbiddenRules.empty()) {
-        StartNetworkParaForbiddenTimer(NETWORK_SLICE_PARA_FORBIDDEN_MS);
-    }
-    mNormalForbiddenRules.push_back(*forbiddenRouteDescriptor);
 }
 
 void NetworkSliceManager::HandleEhplmnFromUnsolData(const std::shared_ptr<std::vector<uint8_t>>& msg)
@@ -384,6 +323,7 @@ void NetworkSliceManager::HandleEhplmnFromUnsolData(const std::shared_ptr<std::v
         return;
     }
     if (sNrUnsolicitedMsgParser_ != nullptr) {
+        sNrUnsolicitedMsgParser_->GetEhplmnFromUnsolData(buffer);
     }
     return;
 }
@@ -425,16 +365,14 @@ void NetworkSliceManager::HandleIpRpt(const std::shared_ptr<std::vector<uint8_t>
     appDescriptor.setUid(GetInt(startIndex, buffer, true));
     std::map<std::string, std::string> bundle;
     bundle["uid"] = appDescriptor.getUid();
-
-    /* ipv4 addr total len is 15, ipv6 addr total len is 27 */
     if (len == IPV4ADDRTOTALLEN) {
-        HandleIpv4Rpt(startIndex, buffer, bundle, appDescriptor);
     } else if (len == IPV6ADDRTOTALLEN) {
         HandleIpv6Rpt(startIndex, buffer, bundle, appDescriptor);
     } else {
         NETMGR_EXT_LOG_E("ip report len is invalid ");
     }
 }
+
 void NetworkSliceManager::onUrspAvailableStateChanged()
 {
     IpParaReportControl();
@@ -1108,7 +1046,7 @@ bool NetworkSliceManager::hasAvailableUrspRule()
     if (sUrspConfig_ == nullptr) {
         return false;
     }
-    return false;
+    return sUrspConfig_->hasAvailableUrspRule();
 }
 
 bool NetworkSliceManager::isSaState()
@@ -1209,7 +1147,20 @@ void NetworkSliceManager::GetRouteSelectionDescriptorByDNN(const std::string dnn
 void NetworkSliceManager::DumpAppDescriptor(AppDescriptor appDescriptor)
 {
     NETMGR_EXT_LOG_I("dump AppDescriptor");
+    uint32_t ipv4Addr = appDescriptor.getIpv4Addr();
+    std::array<uint8_t, NetworkSliceCommConfig::LEN_IPV6ADDR> ipv6Addr = appDescriptor.getIpv6Addr();
+    NETMGR_EXT_LOG_I("mAppDescriptor.mUid = %{public}d", appDescriptor.getUid());
+    NETMGR_EXT_LOG_I("mAppDescriptor.mOsAppId.mAppId = %{public}s", appDescriptor.getOsAppId().getAppId().c_str());
+    NETMGR_EXT_LOG_I("mAppDescriptor.mOsAppId.mOsId = %{public}s", appDescriptor.getOsAppId().getOsId().c_str());
+    std::string ipv6 = transIpv6AddrToStr(appDescriptor.getIpv6Addr());
+    NETMGR_EXT_LOG_I("mAppDescriptor.mIpv4Addr = %{public}d, mAppDescriptor.mIpv6Addr = %{public}s",
+        appDescriptor.getIpv4Addr(), ipv6.c_str());
+    NETMGR_EXT_LOG_I("mAppDescriptor.mProtocolId = %{public}d", appDescriptor.getProtocolId());
+    NETMGR_EXT_LOG_I("mAppDescriptor.mRemotePort = %{public}d", appDescriptor.getRemotePort());
+    NETMGR_EXT_LOG_I("mAppDescriptor.mDnn = %{public}s", appDescriptor.getDnn().c_str());
+    NETMGR_EXT_LOG_I("mAppDescriptor.mFqdn = %{public}s", appDescriptor.getFqdn().c_str());
 }
+
 void NetworkSliceManager::DumpSelectedRouteDescriptor(SelectedRouteDescriptor routeRule)
 {
     NETMGR_EXT_LOG_I("dump SelectedRouteDescriptor");
@@ -1221,3 +1172,4 @@ void NetworkSliceManager::DumpSelectedRouteDescriptor(SelectedRouteDescriptor ro
 
 }
 }
+

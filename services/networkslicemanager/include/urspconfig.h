@@ -262,13 +262,127 @@ class UrspConfig {
 public:
     static UrspConfig& GetInstance();
     ~UrspConfig() = default;
+    std::unordered_map<std::string, std::vector<UrspRule>> mPreConfigUrspMap;
+    std::unordered_map<std::string, std::vector<UrspRule>> mUePolicyMap;
+    int mUrspVersion;
+    short sSuccUrspVersion = 0;
+    std::unordered_map<int, std::vector<RouteSelectionDescriptor>> mImsRsdsMap;
+    bool mIsTrafficDescriptorIncludeIms;
+    void ParseConfig();
+    void ParseAllUePolicy(xmlDocPtr doc);
+    void ParseUePolicy(xmlNodePtr curNode);
+    UrspRule ParsePreConfigUrsp(xmlNodePtr node);
+    void ParseTrafficDescriptor(xmlNodePtr node, TrafficDescriptor &trafficDescriptor);
+    void ParseTrafficDescriptorEx(xmlNodePtr node, TrafficDescriptor &trafficDescriptor, std::string attrValue);
+    void ParseRouteSelectionDescriptor(xmlNodePtr node,
+        std::vector<RouteSelectionDescriptor> &routeSelectionDescriptors);
+    void ParseRouteRule(xmlNodePtr node, RouteSelectionDescriptor &routeSelectionDescriptors);
+    bool ParseOsAppId(xmlNodePtr node, TrafficDescriptor& trafficDescriptor);
+    bool ParseIpv4Addr(xmlNodePtr node, TrafficDescriptor& trafficDescriptor);
+    bool ParseIpv6Addr(xmlNodePtr node, TrafficDescriptor& trafficDescriptor);
+    bool ParseRemotePortRange(xmlNodePtr node, TrafficDescriptor& trafficDescriptor);
+    bool ParseConnectionCapabilities(xmlNodePtr node, TrafficDescriptor& trafficDescriptor);
+    void setUrspRules(const std::string& plmn, std::vector<UrspRule>& urspRules);
+    void ClearUrspRules();
+    void UrspRuleSort(std::vector<UrspRule>& urspRules);
+    void SaveTrafficDescriptorWhiteListToDb();
+    void FillTrafficDescriptorWhiteList(std::shared_ptr<TrafficDescriptorWhiteList>& whiteList,
+        const std::vector<UrspRule>& urspRules);
+    void SetUrspVersion(int urspVersion);
+    bool DecodeUrspRules(int inputLen, int& startIndex, std::vector<uint8_t> buffer, std::vector<UrspRule>& urspRules);
+    short GetSuccUrspVersion();
+    bool DecodeUrspByVersion(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        std::vector<UrspRule>& urspRules, short version);
+    int GetSubLenByversion(int& startIndex, std::vector<uint8_t> buffer, short version);
+    int GetLenBytesByversion(short version);
+    bool DecodeUrspRule(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        std::vector<UrspRule>& urspRules, short version);
+    bool DecodeUrspRuleExtra(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        UrspRule& urspRule, std::vector<UrspRule>& urspRules, short version);
+    int DecodeTrafficDescriptor(int inputLen, int& startIndex,
+        std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor);
+    int DecodeRouteRuleList(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        UrspRule& urspRule, short version);
+    int DecodeRouteRule(int& startIndex, int inputLen,
+        std::vector<uint8_t> buffer, RouteSelectionDescriptor& routeRule);
+    int DecodeOsIdOsAppId(int& startIndex, std::vector<uint8_t> buffer,
+        TrafficDescriptor& trafficDescriptor, bool isAppIdOnly);
+    int DecodeIpv4Addr(int& startIndex, std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor);
+    int DecodeIpv6Addr(int& startIndex, std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor);
+    int DecodeProtocolId(int& startIndex, std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor);
+    void ResetImsRsdsMap();
+    int DecodeTrafficDescriptorExtra(int inputLen, int& startIndex, int type,
+        std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor, int initBufferRemaining);
+    int DecodeSingleRemotePort(int& startIndex, std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor);
+    int DecodeRemotePortRange(int& startIndex, std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor);
+    int DecodeTrafficDescriptorDnn(int& startIndex, std::vector<uint8_t> buffer,
+        TrafficDescriptor& trafficDescriptor);
+    int DecodeFqdn(int& startIndex, std::vector<uint8_t> buffer, TrafficDescriptor& trafficDescriptor);
+    int DecodeConnectionCapabilities(int& startIndex, std::vector<uint8_t> buffer,
+        TrafficDescriptor& trafficDescriptor);
+    std::string DecodeSubDnns(int& startIndex, std::vector<uint8_t> buffer, uint8_t stringLen);
+    int DecodeSscMode(int& startIndex, std::vector<uint8_t> buffer, RouteSelectionDescriptor &routeRule);
+    int DecodeSnssai(int& startIndex, std::vector<uint8_t> buffer, RouteSelectionDescriptor &routeRule);
+    int DecodeDnn(int& startIndex, std::vector<uint8_t> buffer, RouteSelectionDescriptor &routeRule);
+    int DecodePduSessionType(int& startIndex, std::vector<uint8_t> buffer, RouteSelectionDescriptor &routeRule);
+    int TransferPduSessionTypeToHal(int pduSessionType);
+    int DecodePreferredAccessType(int& startIndex, std::vector<uint8_t> buffer, RouteSelectionDescriptor &routeRule);
+    void SndPreImsRsdList();
+    std::vector<uint8_t> GetImsRsdList();
+    std::vector<RouteSelectionDescriptor> SortRsdsMap(
+        std::unordered_map<int, std::vector<RouteSelectionDescriptor>> rsdsMap);
+    std::vector<uint8_t> ConvertRsdList2BufferArray(
+        std::unordered_map<int, std::vector<RouteSelectionDescriptor>> rsdsMap);
+    void PutRsdListInfo(std::vector<uint8_t>& buffer, std::vector<RouteSelectionDescriptor> rsdList);
+    void PutDnnsInfo(std::vector<uint8_t>& buffer, RouteSelectionDescriptor rsd);
+    void PutNssaisInfo(std::vector<uint8_t>& buffer, RouteSelectionDescriptor rsd);
+    int ConvertPduTypeFromHal2Imsa(int halPduType);
+    std::vector<uint8_t> NotifyImsaDelRsdInfo();
+    void PutInvalidValue (std::vector<uint8_t>& buffer, int num);
+    short CalculateRsdListLen();
+    short CalculateRsdLen();
+    int SetBitOpt(int num, int position);
+    bool hasAvailableUrspRule();
     bool SliceNetworkSelection(SelectedRouteDescriptor& routeRule, std::string plmn, AppDescriptor appDescriptor);
+    void FillTrafficDescriptor(TrafficDescriptor urspTrafficDescriptor,
+        AppDescriptor appDescriptor, SelectedRouteDescriptor& routeRule);
+    bool FindAvailableRouteRule(
+        const std::vector<RouteSelectionDescriptor>& routeSelectionDescriptors, SelectedRouteDescriptor& routeRule);
+    bool FindAvailableSnssaiAndDnn(const RouteSelectionDescriptor& routeSelectionDescriptor,
+                               SelectedRouteDescriptor& routeRule);
+    bool FindAvailableSnssai(const RouteSelectionDescriptor& routeSelectionDescriptor,
+                        SelectedRouteDescriptor& routeRule);
+    bool FindAvailableDnn(const RouteSelectionDescriptor& routeSelectionDescriptor,
+                      SelectedRouteDescriptor& routeRule);
+    void FillOsAppIds(TrafficDescriptor urspTrafficDescriptor,
+                   SelectedRouteDescriptor& routeRule);
+    void FillIpv4Addrs(TrafficDescriptor urspTrafficDescriptor,
+                    SelectedRouteDescriptor& routeRule);
+    void FillIpv6Addrs(TrafficDescriptor urspTrafficDescriptor,
+                   SelectedRouteDescriptor& routeRule);
+    void FillProtocolIds(TrafficDescriptor urspTrafficDescriptor,
+                   SelectedRouteDescriptor& routeRule);
+    void FillRemotePorts(TrafficDescriptor urspTrafficDescriptor,
+                   SelectedRouteDescriptor& routeRule);
+    bool isTrafficDescriptorMatch(TrafficDescriptor urspTrafficDescriptor,
+        AppDescriptor appDescriptor);
+    bool isIpThreeTuplesInTrafficDescriptor(TrafficDescriptor urspTrafficDescriptor,
+        AppDescriptor appDescriptor);
     bool isIpThreeTuplesInWhiteList(std::string plmn, AppDescriptor appDescriptor);
+    bool isOsAppIdMatch(TrafficDescriptor urspTrafficDescriptor, AppDescriptor appDescriptor);
+    bool isIpv4AddrMatch(TrafficDescriptor urspTrafficDescriptor, AppDescriptor appDescriptor);
+    bool isIpv6AddrMatch(TrafficDescriptor urspTrafficDescriptor, AppDescriptor appDescriptor);
+    bool isRemotePortMatch(TrafficDescriptor urspTrafficDescriptor, AppDescriptor appDescriptor);
+    SelectedRouteDescriptor GetMatchAllUrspRule(const std::string& plmn);
+    void DumpUePolicyMap();
+    void DumpPreConfigUrspMap();
+    void DumptrafficDescriptor(const TrafficDescriptor& trafficDescriptor);
+    void DumpRouteSelectionDescriptors(const std::vector<RouteSelectionDescriptor>& routeSelectionDescriptors);
 private:
     UrspConfig();
 };
 
-
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif  // URSPCONFIG_H
+

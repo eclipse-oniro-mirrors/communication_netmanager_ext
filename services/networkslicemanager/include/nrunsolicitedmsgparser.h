@@ -175,14 +175,48 @@ class NrUnsolicitedMsgParser {
 public:
     static NrUnsolicitedMsgParser& GetInstance();
     ~NrUnsolicitedMsgParser() = default;
+    void GetAllowedNssaiFromUnsolData(std::vector<uint8_t> buffer);
+    void GetUrspFromUnsolData(std::vector<uint8_t> buffer);
+    void GetEhplmnFromUnsolData(std::vector<uint8_t> buffer);
     std::string GetHplmn();
+    void HandleSimStateChanged();
+    void SendUrspUpdate();
 private:
     NrUnsolicitedMsgParser();
+    bool isAllowedNssaiSync = false;
+    std::string mSubscriberId;
+    std::unordered_map<std::string, UePolicy> uePolicyMap;
+    std::unordered_map<uint8_t, MultipleBuffer> mMultipleBufferMap;
     std::vector<std::string> mEhplmns;
+    void GetSubscriberIdAndUrspFromFile();
+    void SyncSubscriberId();
+    void DecodeUrspFromUnsolData(int& startIndex, std::vector<uint8_t> buffer);
+    std::unordered_map<std::string, UePolicy> ReadObjectFromJsonFile(const std::string& fileName);
+    void WriteObjectToJsonFile(const std::string& fileName, std::unordered_map<std::string, UePolicy>& obj);
+    void UpdateUrspRules();
+    void HandleDecodeResult(uint8_t pti, std::unordered_map<std::string, UePolicy>& decodeUePolicyMap);
+    bool isUePolicyLegal(std::unordered_map<std::string, UePolicy>& decodeUePolicyMap,
+        UePolicyRejectMsg& uePolicyRejectMsg);
+    bool isPlmnInHplmn(std::string plmn);
+    void SndManageUePolicyComplete(uint8_t pti);
+    void SndManageUePolicyCommandReject(uint8_t pti, UePolicyRejectMsg uePolicyRejectMsg);
+    void SendUePolicySectionIdentifier();
+    void AddNewUePolicy(std::unordered_map<std::string, UePolicy>& decodeUePolicyMap);
+    bool DecodePolicySectionList(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        std::unordered_map<std::string, UePolicy>& decodeUePolicyMap);
+    bool DecodePolicySection(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        std::unordered_map<std::string, UePolicy>& decodeUePolicyMap);
+    bool DecodeInstruction(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        UePolicy& uePolicy, short instructionOrder);
+    bool DecodeUePolicyPart(int inputLen, int& startIndex, std::vector<uint8_t> buffer,
+        PolicyInstruction& policyInstruction);
+    std::string PlmnToString(const std::vector<uint8_t>& plmns);
+    void SendImsRsdList();
+    void GetNetworkSliceAllowedNssai();
+    void GetNetworkSliceEhplmn();
 };
 
 } // namespace NetManagerStandard
 } // namespace OHOS
-
 
 #endif  // NRUNSOLICITEDMSGPARSER_H

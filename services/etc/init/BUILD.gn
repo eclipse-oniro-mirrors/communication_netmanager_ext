@@ -43,6 +43,13 @@ ohos_prebuilt_etc("UrspConfig_xml") {
   subsystem_name = "communication"
 }
 
+ohos_prebuilt_etc("UrspConfig2_xml") {
+  source = "UrspConfig2.xml"
+  module_install_dir = "profile"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
 ohos_prebuilt_etc("reportUrsp") {
   source = "reportUrsp.json"
   module_install_dir = "profile"

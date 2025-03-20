@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #include "dns_result_callback.h"
 #include "net_conn_client.h"
 #include "networksliceutil.h"
