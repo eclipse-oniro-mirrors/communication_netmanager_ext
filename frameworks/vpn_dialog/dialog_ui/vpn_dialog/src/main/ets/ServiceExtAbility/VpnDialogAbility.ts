@@ -71,7 +71,7 @@ export default class VpnDialogAbility extends extension {
     try {
       let dis = display.getDefaultDisplaySync();
     } catch (err) {
-      console.error('getDefaultDisplaySync failed!, code=%{err?.code}, message=%{err?.message}');
+      console.error('getDefaultDisplaySync failed!');
     }
     let navigationBarRect: NavigationBarRect = {
       left: 0,
