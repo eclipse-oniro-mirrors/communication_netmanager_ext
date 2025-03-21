@@ -142,12 +142,15 @@ EthernetManagement::~EthernetManagement() = default;
 void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
 {
     NETMGR_EXT_LOG_D("EthernetManagement UpdateInterfaceState dev[%{public}s] up[%{public}d]", dev.c_str(), up);
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto fit = devs_.find(dev);
-    if (fit == devs_.end()) {
-        return;
+    sptr<DevInterfaceState> devState = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        auto fit = devs_.find(dev);
+        if (fit == devs_.end()) {
+            return;
+        }
+        devState = fit->second;
     }
-    sptr<DevInterfaceState> devState = fit->second;
     if (devState == nullptr) {
         NETMGR_EXT_LOG_E("devState is nullptr");
         return;
