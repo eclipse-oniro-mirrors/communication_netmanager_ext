@@ -16,7 +16,6 @@
 #include "networkslice_service.h"
 #include "networkslicemsgcenter.h"
 #include <sys/time.h>
-#include "hisysevent.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
 #include <map>
@@ -193,4 +192,4 @@ HWTEST_F(NetworkSliceServiceTest, DelBindToNetwork001, testing::ext::TestSize.Le
 }
 
 }
-}
+}
