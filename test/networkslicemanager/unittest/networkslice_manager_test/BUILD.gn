@@ -16,15 +16,24 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 ohos_unittest("networkslice_manager_test") {
   module_out_path = "netmanager_ext/networkslice_manager_test"
-
+  use_exceptions = true
   sources = [
+    "allowednssaiconfig_test.cpp",
+    "broadcast_proxy_test.cpp",
+    "dns_result_callback_test.cpp",
     "hwnetworkslicemanager_test.cpp",
+    "networkslice_kernel_proxy_test.cpp",
     "networkslice_manager_test.cpp",
+    "networkslice_service_test.cpp",
     "networkslice_stub_test.cpp",
+    "nrunsolicitedmsgparser_test.cpp",
     "urspconfig_test.cpp",
   ]
 
-  include_dirs = [ "$NETMANAGER_EXT_ROOT/services/networkslicemanager/include" ]
+  include_dirs = [
+    "$NETMANAGER_EXT_ROOT/services/networkslicemanager/include",
+    "$NETMANAGER_EXT_ROOT/test/networkslicemanager/unittest/networkslice_manager_test",
+  ]
 
   deps = [
     "$EXT_INNERKITS_ROOT/networksliceclient:networkslice_manager_if",
@@ -52,6 +61,7 @@ ohos_unittest("networkslice_manager_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "libxml2:libxml2",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",

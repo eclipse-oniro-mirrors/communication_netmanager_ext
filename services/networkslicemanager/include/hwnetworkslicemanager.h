@@ -93,7 +93,7 @@ public:
     bool isNeedToRequestSliceForFqdnAuto(std::string fqdn, int uid);
     bool isNeedToRequestSliceForDnnAuto(std::string dnn, int uid);
     bool isCooperativeApp(std::string packageName);
-    bool isCooperativeApp(int uid);
+    bool isCooperativeAppByUid(int uid);
     void ReadAppIdWhiteList(TrafficDescriptorWhiteList whiteList);
     void ReadFqdnWhiteList(TrafficDescriptorWhiteList whiteList);
     void ReadCctWhiteList(TrafficDescriptorWhiteList whiteList);

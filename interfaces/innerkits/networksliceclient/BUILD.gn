@@ -18,6 +18,7 @@ config("net_conn_manager_if_config") {
   include_dirs = [
     "include",
     "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/networksliceclient/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 

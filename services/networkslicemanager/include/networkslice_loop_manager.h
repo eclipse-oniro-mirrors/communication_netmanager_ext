@@ -45,4 +45,4 @@ private:
 } // namespace NetManagerStandard
 } // namespace OHOS
 
-#endif  // NETWORKSLICE_LOOP_MANAGER
+#endif // NETWORKSLICE_LOOP_MANAGER

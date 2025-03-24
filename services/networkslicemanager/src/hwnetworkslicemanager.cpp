@@ -896,7 +896,7 @@ bool HwNetworkSliceManager::isNeedToRequestSliceForAppIdAuto(std::string appId)
 
 bool HwNetworkSliceManager::isNeedToRequestSliceForFqdnAuto(std::string fqdn, int uid)
 {
-    if (isCooperativeApp(uid)) {
+    if (isCooperativeAppByUid(uid)) {
         return false;
     }
     return std::find(mWhiteListForFqdn.begin(), mWhiteListForFqdn.end(), fqdn)
@@ -905,14 +905,14 @@ bool HwNetworkSliceManager::isNeedToRequestSliceForFqdnAuto(std::string fqdn, in
 
 bool HwNetworkSliceManager::isNeedToRequestSliceForDnnAuto(std::string dnn, int uid)
 {
-    if (isCooperativeApp(uid)) {
+    if (isCooperativeAppByUid(uid)) {
         return false;
     }
     return std::find(mWhiteListForDnn.begin(), mWhiteListForDnn.end(), dnn)
         != mWhiteListForDnn.end();
 }
 
-bool HwNetworkSliceManager::isCooperativeApp(int uid)
+bool HwNetworkSliceManager::isCooperativeAppByUid(int uid)
 {
     std::string packageName;
     int ret = DelayedSingleton<NetworkSliceService>::GetInstance()->GetBundleNameForUid(uid, packageName);

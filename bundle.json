@@ -111,6 +111,7 @@
                     "//foundation/communication/netmanager_ext/sa_profile:networkslice_manager_profile",
                     "//foundation/communication/netmanager_ext:networkslice_packages",
                     "//foundation/communication/netmanager_ext/services/etc/init:UrspConfig_xml",
+                    "//foundation/communication/netmanager_ext/services/etc/init:UrspConfig2_xml",
                     "//foundation/communication/netmanager_ext/services/etc/init:reportUrsp"
                 ]
             },

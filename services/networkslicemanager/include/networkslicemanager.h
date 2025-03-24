@@ -86,9 +86,6 @@ public:
     void CloseTcpSocketsForUid(int uid);
     void SendIpPara(AppDescriptor appDescriptor, std::map<std::string, std::string> bundle);
     void onUrspAvailableStateChanged();
-    void ProcessNetworkParaForbiddenTimeOut();
-    void StartNetworkParaForbiddenTimer(int64_t timeMillies);
-    void HandleNetworkActivateResult(std::shared_ptr<std::map<std::string, std::any>> data);
     int32_t BindUidProcessToNetworkForDns(int netid, int uid);
     bool isCanRequestNetwork();
     void HandleAirModeChanged(int32_t mode);
