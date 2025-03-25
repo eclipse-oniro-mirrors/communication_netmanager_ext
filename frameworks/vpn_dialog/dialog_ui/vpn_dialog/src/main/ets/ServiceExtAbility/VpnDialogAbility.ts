@@ -68,8 +68,9 @@ export default class VpnDialogAbility extends extension {
       globalThis.bundleName = bundleName;
     }
     
+    let dis;
     try {
-      let dis = display.getDefaultDisplaySync();
+      dis = display.getDefaultDisplaySync();
     } catch (err) {
       console.error('getDefaultDisplaySync failed!');
     }
