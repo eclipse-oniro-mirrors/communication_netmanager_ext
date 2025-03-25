@@ -161,15 +161,4 @@ foundation/communication/netmanager_ext/
 
 [communication_netstack](https://gitee.com/openharmony/communication_netstack)
 
-------------------
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/ethernetmanager/unittest/ethernet_manager_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/mdnsmanager/unittest/mdns_manager_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/mdnsmanager/unittest/mdns_protocol_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/netfirewallmanager/unittest/netfirewallmanager_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/networksharemanager/unittest/networkshare_manager_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/networkslicemanager/unittest/networkslice_manager_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/vpnmanager/unittest/sys_vpn_manager_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/vpnmanager/unittest/vpn_manager_test/BUILD.gn
-/home/h00800620/workspace/TDD_dev_code/system_code/foundation/communication/netmanager_ext/test/wearabledistributednetmanager/unittest/wearable_distributed_net_manager_test/BUILD.gn
-
 
