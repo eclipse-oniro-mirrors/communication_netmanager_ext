@@ -160,5 +160,3 @@ foundation/communication/netmanager_ext/
 [communication_netmanager_base](https://gitee.com/openharmony/communication_netmanager_base)
 
 [communication_netstack](https://gitee.com/openharmony/communication_netstack)
-
-
