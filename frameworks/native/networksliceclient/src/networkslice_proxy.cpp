@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-
+constexpr int32_t BUFFER_MAX = 65538;
 NetworkSliceProxy::NetworkSliceProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<INetworkSliceService>(impl) {}
 
 NetworkSliceProxy::~NetworkSliceProxy() = default;
@@ -39,6 +39,10 @@ int32_t NetworkSliceProxy::SetNetworkSliceUePolicy(std::vector<uint8_t> buffer)
     }
     int32_t buffersize = (int)buffer.size();
     NETMGR_EXT_LOG_I("Proxy::SetNetworkSliceUePolicy:buffersize = %{public}d", buffersize);
+    if (buffersize <= 0 || buffersize > BUFFER_MAX) {
+        NETMGR_EXT_LOG_E("buffer length is invalid: %{public}d", buffersize);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     data.WriteInt32(buffersize);
     for (int i = 0; i < (int)buffer.size(); ++i) {
         data.WriteUint8(buffer[i]);
@@ -67,6 +71,10 @@ int32_t NetworkSliceProxy::NetworkSliceAllowedNssaiRpt(std::vector<uint8_t> buff
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     int32_t buffersize = (int)buffer.size();
+    if (buffersize <= 0 || buffersize > BUFFER_MAX) {
+        NETMGR_EXT_LOG_E("buffer length is invalid: %{public}d", buffersize);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     data.WriteInt32(buffersize);
     for (int i = 0; i < (int)buffer.size(); ++i) {
         data.WriteUint8(buffer[i]);
@@ -95,6 +103,10 @@ int32_t NetworkSliceProxy::NetworkSliceEhplmnRpt(std::vector<uint8_t> buffer)
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     int32_t buffersize = (int)buffer.size();
+    if (buffersize <= 0 || buffersize > BUFFER_MAX) {
+        NETMGR_EXT_LOG_E("buffer length is invalid: %{public}d", buffersize);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     data.WriteInt32(buffersize);
     for (int i = 0; i < (int)buffer.size(); ++i) {
         data.WriteUint8(buffer[i]);
