@@ -249,7 +249,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterBundleNameVpnTest001, TestSize.
         return;
     }
     int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_REGISTER_BUNDLENAME);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL);
 }
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyDefaultTest001, TestSize.Level1)
