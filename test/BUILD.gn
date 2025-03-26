@@ -22,7 +22,6 @@ group("netmanager_ext_test") {
     "netfirewallmanager:unittest",
     "networksharemanager:fuzztest",
     "networksharemanager:unittest",
-    "networkslicemanager:unittest",
     "vpnmanager:fuzztest",
     "vpnmanager:unittest",
     "wearabledistributednetmanager:unittest",
