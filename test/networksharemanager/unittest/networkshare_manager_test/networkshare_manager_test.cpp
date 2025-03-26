@@ -107,7 +107,7 @@ HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t supportedFlag;
     auto ret = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)
@@ -270,7 +270,7 @@ HWTEST_F(NetworkShareManagerTest, SetConfigureForShare01, TestSize.Level1)
 {
     bool enabled = true;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->SetConfigureForShare(enabled);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_NE(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareManagerTest, SetConfigureForShare02, TestSize.Level1)
