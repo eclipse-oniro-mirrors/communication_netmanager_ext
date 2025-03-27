@@ -23,7 +23,7 @@ ohos_unittest("netfirewallmanager_test") {
     debug = false
   }
 
-  module_out_path = "netmanager_ext/netfirewallmanager_test"
+  module_out_path = "netmanager_ext/netmanager_ext/netfirewallmanager_test"
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",

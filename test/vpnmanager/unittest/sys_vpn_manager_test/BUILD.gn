@@ -93,7 +93,7 @@ ohos_unittest("sys_vpn_manager_test") {
 
   subsystem_name = "communication"
   part_name = "netmanager_ext"
-  module_out_path = "netmanager_ext/sys_vpn_manager_test"
+  module_out_path = "netmanager_ext/netmanager_ext/sys_vpn_manager_test"
 }
 
 group("unittest") {

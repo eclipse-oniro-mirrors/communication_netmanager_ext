@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 ohos_unittest("networkslice_manager_test") {
-  module_out_path = "netmanager_ext/networkslice_manager_test"
+  module_out_path = "netmanager_ext/netmanager_ext/networkslice_manager_test"
   use_exceptions = true
   sources = [
     "allowednssaiconfig_test.cpp",
