@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-
+constexpr int32_t BUFFER_MAX = 65535;
 NetworkSliceStub::NetworkSliceStub()
 {
     memberFuncMap_[static_cast<uint32_t>(NetworkSliceInterfaceCode::SET_NETWORKSLICE_UEPOLICY)] =
@@ -71,6 +71,10 @@ int32_t NetworkSliceStub::OnSetNetworkSlicePolicy(MessageParcel &data, MessagePa
 {
     NETMGR_EXT_LOG_I("NetworkSliceStub::OnSetNetworkSlicePolicy");
     int32_t buffersize = data.ReadInt32();
+    if (buffersize <= 0 || buffersize > BUFFER_MAX) {
+        NETMGR_EXT_LOG_E("buffer length is invalid: %{public}d", buffersize);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     std::vector<uint8_t> buffer;
     for (int32_t i = 0; i < buffersize; ++i) {
         buffer.push_back(data.ReadUint8());
@@ -83,6 +87,10 @@ int32_t NetworkSliceStub::OnNetworkSliceAllowedNssaiRpt(MessageParcel &data, Mes
 {
     NETMGR_EXT_LOG_I("NetworkSliceStub::OnNetworkSliceAllowedNssaiRpt");
     int32_t buffersize = data.ReadInt32();
+    if (buffersize <= 0 || buffersize > BUFFER_MAX) {
+        NETMGR_EXT_LOG_E("buffer length is invalid: %{public}d", buffersize);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     std::vector<uint8_t> buffer;
     for (int i = 0; i < buffersize; ++i) {
         buffer.push_back(data.ReadUint8());
@@ -95,6 +103,10 @@ int32_t NetworkSliceStub::OnNetworkSliceEhplmnRpt(MessageParcel &data, MessagePa
 {
     NETMGR_EXT_LOG_I("NetworkSliceStub::OnNetworkSliceEhplmnRpt");
     int32_t buffersize = data.ReadInt32();
+    if (buffersize <= 0 || buffersize > BUFFER_MAX) {
+        NETMGR_EXT_LOG_E("buffer length is invalid: %{public}d", buffersize);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     std::vector<uint8_t> buffer;
     for (int i = 0; i < buffersize; ++i) {
         buffer.push_back(data.ReadUint8());
