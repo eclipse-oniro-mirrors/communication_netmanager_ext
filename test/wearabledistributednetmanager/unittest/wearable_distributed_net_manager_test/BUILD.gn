@@ -25,7 +25,8 @@ ohos_unittest("wearable_distributed_net_manager_test") {
 
   branch_protector_ret = "pac_ret"
 
-  module_out_path = "netmanager_ext/netmanager_ext/wearable_distributed_net_manager_test"
+  module_out_path =
+      "netmanager_ext/netmanager_ext/wearable_distributed_net_manager_test"
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
