@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t BUFFER_MAX = 65538;
+constexpr int32_t BUFFER_MAX = 65535;
 NetworkSliceProxy::NetworkSliceProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<INetworkSliceService>(impl) {}
 
 NetworkSliceProxy::~NetworkSliceProxy() = default;
