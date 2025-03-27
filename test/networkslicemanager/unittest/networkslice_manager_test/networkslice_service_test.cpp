@@ -191,5 +191,11 @@ HWTEST_F(NetworkSliceServiceTest, DelBindToNetwork001, testing::ext::TestSize.Le
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetworkSliceServiceTest, UpdateNetworkSliceApn001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("UpdateNetworkSliceApn001");
+    EXPECT_EQ(false, NetworkSliceService::GetInstance().UpdateNetworkSliceApn());
+}
+ 
 }
 }

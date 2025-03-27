@@ -117,10 +117,26 @@ HWTEST_F(NetworkSliceStubTest, OnSetNetworkSlicePolicy001, TestSize.Level1)
     if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
         return;
     }
+    data.WriteInt32(buffersize);
+    data.WriteUint8(buffer);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::SET_NETWORKSLICE_UEPOLICY);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
- 
+
+HWTEST_F(NetworkSliceStubTest, OnSetNetworkSlicePolicy002, TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("OnSetNetworkSlicePolicy002");
+    MessageParcel data;
+    int32_t buffersize = 0;
+    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()))
+    {
+        return;
+    }
+    data.WriteInt32(buffersize);
+    int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::SET_NETWORKSLICE_UEPOLICY);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+}
+
 HWTEST_F(NetworkSliceStubTest, OnNetworkSliceAllowedNssaiRpt001, TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("OnNetworkSliceAllowedNssaiRpt001");
@@ -130,23 +146,53 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceAllowedNssaiRpt001, TestSize.Level1
     if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
         return;
     }
+    data.WriteInt32(buffersize);
+    data.WriteUint8(buffer);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_ALLOWEDNSSAI_RPT);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
- 
-HWTEST_F(NetworkSliceStubTest, OnGetNetworkSliceEhplmnResponse001, TestSize.Level1)
+
+HWTEST_F(NetworkSliceStubTest, OnNetworkSliceAllowedNssaiRpt002, TestSize.Level1)
 {
-    NETMGR_EXT_LOG_I("OnGetNetworkSliceEhplmnResponse001");
+    NETMGR_EXT_LOG_I("OnNetworkSliceAllowedNssaiRpt002");
+    MessageParcel data;
+    int32_t buffersize = 0;
+    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()))
+    {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_ALLOWEDNSSAI_RPT);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkSliceStubTest, OnNetworkSliceEhplmnRpt001, TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("OnNetworkSliceEhplmnRpt001");
     MessageParcel data;
     int32_t buffersize = 1;
     uint8_t buffer = 0;
     if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
         return;
     }
+    data.WriteInt32(buffersize);
+    data.WriteUint8(buffer);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_EHPLMN_RPT);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
- 
+
+HWTEST_F(NetworkSliceStubTest, OnNetworkSliceEhplmnRpt002, TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("OnNetworkSliceEhplmnRpt002");
+    MessageParcel data;
+    int32_t buffersize = 0;
+    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()))
+    {
+        return;
+    }
+    int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_EHPLMN_RPT);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkSliceStubTest, OnNetworkSliceInitUePolicy001, TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("OnNetworkSliceInitUePolicy001");
@@ -192,4 +238,4 @@ HWTEST_F(NetworkSliceStubTest, OnSetSaState001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 }
-}
+}

@@ -666,7 +666,7 @@ void NetworkSliceManager::DeleteNetworkBindByFullPara(std::shared_ptr<std::map<s
     }
     std::string precedences;
     if (data.find("urspPrecedence") != data.end()) {
-        precedences = std::stoi(data["urspPrecedence"]);
+        precedences = data["urspPrecedence"];
     }
     std::vector<int> precedenceArray = GetPrecedenceArray(precedences);
     int precedenceNum = 0;
@@ -797,7 +797,7 @@ void NetworkSliceManager::HandleIpv4Rpt(int& startIndex, const std::vector<uint8
     appDescriptor.setIpv4Addr(vectorToUint32(ipv4Addr_vec));
     bundle["ip"] = std::to_string(appDescriptor.getIpv4Addr());
 
-    if (buffer.size() < NetworkSliceCommConfig::LEN_THREE_BYTE) {
+    if ((buffer.size() - startIndex) < NetworkSliceCommConfig::LEN_THREE_BYTE) {
         NETMGR_EXT_LOG_E("get len, buffer.size() < NetworkSliceCommConfig::LEN_THREE_BYTE");
         return;
     }
@@ -829,7 +829,7 @@ void NetworkSliceManager::HandleIpv6Rpt(int& startIndex, const std::vector<uint8
     appDescriptor.setIpv6Addr(ipv6Addr_vec);
     bundle["ip"] = transIpv6AddrToStr(appDescriptor.getIpv6Addr());
 
-    if (buffer.size() < NetworkSliceCommConfig::LEN_THREE_BYTE) {
+    if ((buffer.size() - startIndex) < NetworkSliceCommConfig::LEN_THREE_BYTE) {
         NETMGR_EXT_LOG_E("get len, buffer.size() < NetworkSliceCommConfig::LEN_THREE_BYTE");
         return;
     }
