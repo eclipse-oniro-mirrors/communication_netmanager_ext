@@ -361,7 +361,28 @@ HWTEST_F(HwNetworkSliceManagerTest, FillIpBindParasForFqdn001, testing::ext::Tes
     newFqdnIps.setIpv6AddrAndPrefix();
     DelayedSingleton<HwNetworkSliceManager>::GetInstance()->FillIpBindParasForFqdn(bindParas, newFqdnIps);
 }
- 
+
+HWTEST_F(HwNetworkSliceManagerTest, FillIpBindParasForFqdn002, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("FillIpBindParasForFqdn001");
+    std::map<std::string, std::string> bindParas;
+    bindParas["key"] = "value";
+    FqdnIps newFqdnIps;
+    INetAddr ipv4;
+    ipv4.address_ = "0.0.0.0";
+    std::set<INetAddr> ipv4Addr;
+    ipv4Addr.insert(ipv4);
+    newFqdnIps.setIpv4Addr(ipv4Addr);
+    INetAddr ipv6;
+    ipv6.address_ = "2000:0:0:0:0:0:0:1";
+    std::set<INetAddr> ipv6Addr;
+    ipv6Addr.insert(ipv6);
+    newFqdnIps.setIpv6Addr(ipv6Addr);
+    newFqdnIps.setIpv4AddrAndMask();
+    newFqdnIps.setIpv6AddrAndPrefix();
+    DelayedSingleton<HwNetworkSliceManager>::GetInstance()->FillIpBindParasForFqdn(bindParas, newFqdnIps);
+}
+
 HWTEST_F(HwNetworkSliceManagerTest, FillIpBindParasForIpTriad001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("FillIpBindParasForIpTriad001");

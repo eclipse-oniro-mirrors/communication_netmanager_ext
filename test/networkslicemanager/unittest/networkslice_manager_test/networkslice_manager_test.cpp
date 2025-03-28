@@ -41,6 +41,41 @@ public:
     void TearDown() {};
 };
 
+HWTEST_F(NetworkSliceManagerTest, ProcessEvent001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("ProcessEvent001");
+    auto networkSliceManager = DelayedSingleton<NetworkSliceManager>::GetInstance();
+    std::shared_ptr<GetSlicePara> getSlicePara = std::make_shared<GetSlicePara>();
+    getSlicePara->data["appId"] = "123";
+    std::vector<uint8_t> buffer1 = {0x01};
+    std::map<std::string, std::string> buffer2;
+    buffer2["uids"] = "123";
+    std::shared_ptr<std::vector<uint8_t>> msg1 = std::make_shared<std::vector<uint8_t>>(buffer1);
+    std::shared_ptr<std::map<std::string, std::string>> msg2 =
+        std::make_shared<std::map<std::string, std::string>>(buffer2);
+    AppExecFwk::InnerEvent::Pointer event1 = AppExecFwk::InnerEvent::Get(
+        NetworkSliceEvent::EVENT_GET_SLICE_PARA, getSlicePara);
+    AppExecFwk::InnerEvent::Pointer event2 = AppExecFwk::InnerEvent::Get(
+        NetworkSliceEvent::EVENT_HANDLE_ALLOWED_NSSAI, msg1);
+    AppExecFwk::InnerEvent::Pointer event3 = AppExecFwk::InnerEvent::Get(
+        NetworkSliceEvent::EVENT_HANDLE_UE_POLICY, msg1);
+    AppExecFwk::InnerEvent::Pointer event4 = AppExecFwk::InnerEvent::Get(
+        NetworkSliceEvent::EVENT_KERNEL_IP_ADDR_REPORT, msg1);
+    AppExecFwk::InnerEvent::Pointer event5 = AppExecFwk::InnerEvent::Get(
+        NetworkSliceEvent::EVENT_BIND_TO_NETWORK, msg2);
+    AppExecFwk::InnerEvent::Pointer event6 = AppExecFwk::InnerEvent::Get(
+        NetworkSliceEvent::EVENT_DEL_BIND_TO_NETWORK, msg2);
+    AppExecFwk::InnerEvent::Pointer event7 = AppExecFwk::InnerEvent::Get(
+        NetworkSliceEvent::EVENT_HANDLE_EHPLMN, msg1);
+    networkSliceManager->ProcessEvent(event1);
+    networkSliceManager->ProcessEvent(event2);
+    networkSliceManager->ProcessEvent(event3);
+    networkSliceManager->ProcessEvent(event4);
+    networkSliceManager->ProcessEvent(event5);
+    networkSliceManager->ProcessEvent(event6);
+    networkSliceManager->ProcessEvent(event7);
+}
+
 HWTEST_F(NetworkSliceManagerTest, ProcessEvent002, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("ProcessEvent002");
@@ -457,7 +492,27 @@ HWTEST_F(NetworkSliceManagerTest, HandleIpv4Rpt001, testing::ext::TestSize.Level
     AppDescriptor appDescriptor;
     DelayedSingleton<NetworkSliceManager>::GetInstance()->HandleIpv4Rpt(startIndex, buffer, bundle, appDescriptor);
 }
+
+HWTEST_F(NetworkSliceManagerTest, HandleIpv4Rpt002, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("HandleIpv4Rpt002");
+    int startIndex = 0;
+    std::vector<uint8_t> buffer = {0x01, 0x02, 0x03, 0x04};
+    std::map<std::string, std::string> bundle;
+    AppDescriptor appDescriptor;
+    DelayedSingleton<NetworkSliceManager>::GetInstance()->HandleIpv4Rpt(startIndex, buffer, bundle, appDescriptor);
+}
  
+HWTEST_F(NetworkSliceManagerTest, HandleIpv4Rpt003, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("HandleIpv4Rpt003");
+    int startIndex = 0;
+    std::vector<uint8_t> buffer = {0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03};
+    std::map<std::string, std::string> bundle;
+    AppDescriptor appDescriptor;
+    DelayedSingleton<NetworkSliceManager>::GetInstance()->HandleIpv4Rpt(startIndex, buffer, bundle, appDescriptor);
+}
+
 HWTEST_F(NetworkSliceManagerTest, HandleIpv6Rpt001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("HandleIpv6Rpt001");
@@ -468,7 +523,18 @@ HWTEST_F(NetworkSliceManagerTest, HandleIpv6Rpt001, testing::ext::TestSize.Level
     AppDescriptor appDescriptor;
     DelayedSingleton<NetworkSliceManager>::GetInstance()->HandleIpv6Rpt(startIndex, buffer, bundle, appDescriptor);
 }
- 
+
+HWTEST_F(NetworkSliceManagerTest, HandleIpv6Rpt002, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("HandleIpv6Rpt001");
+    int startIndex = 123;
+    std::vector<uint8_t> buffer = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
+    std::map<std::string, std::string> bundle;
+    AppDescriptor appDescriptor;
+    DelayedSingleton<NetworkSliceManager>::GetInstance()->HandleIpv6Rpt(startIndex, buffer, bundle, appDescriptor);
+}
+
 HWTEST_F(NetworkSliceManagerTest, SetAppId001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("SetAppId001");
@@ -540,6 +606,87 @@ HWTEST_F(NetworkSliceManagerTest, FillRouteSelectionDescriptor002, testing::ext:
     routeRule.setIpv4Num(0);
     routeRule.setIpv6Num(0);
     DelayedSingleton<NetworkSliceManager>::GetInstance()->FillRouteSelectionDescriptor(ret, routeRule);
+}
+
+HWTEST_F(NetworkSliceManagerTest, FillRoutePara001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("FillRoutePara001");
+    AddRoutePara addRoutePara;
+    addRoutePara.netId = 0;
+    addRoutePara.uidNum = 1;
+    addRoutePara.protocolIdNum = 1;
+    addRoutePara.remotePortNum = 1;
+    addRoutePara.remotePortRangeNum = 1;
+    addRoutePara.singleRemotePortNum = 1;
+    addRoutePara.len = 0;
+    addRoutePara.urspPrecedence = 0;
+    addRoutePara.ipv4Num = 1;
+    addRoutePara.ipv6Num = 1;
+    addRoutePara.uidArrays.push_back(1234);
+    addRoutePara.protocolIdArrays.push_back("1");
+    addRoutePara.remotePortsArrays.push_back("80");
+    addRoutePara.ipv4AddrAndMasks.push_back(24);
+    addRoutePara.ipv6AddrAndPrefixs.push_back(64);
+    std::vector<uint8_t> buffer;
+    EXPECT_TRUE(DelayedSingleton<NetworkSliceManager>::GetInstance()->FillRoutePara(buffer, addRoutePara));
+}
+
+HWTEST_F(NetworkSliceManagerTest, FillRoutePara002, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("FillRoutePara002");
+    AddRoutePara addRoutePara;
+    addRoutePara.netId = 0;
+    addRoutePara.uidNum = 1;
+    addRoutePara.protocolIdNum = 1;
+    addRoutePara.remotePortNum = 1;
+    addRoutePara.remotePortRangeNum = 1;
+    addRoutePara.singleRemotePortNum = 1;
+    addRoutePara.len = 0;
+    addRoutePara.urspPrecedence = 0;
+    addRoutePara.ipv4Num = 1;
+    addRoutePara.ipv6Num = 1;
+    addRoutePara.uidArrays.push_back(1234);
+    addRoutePara.protocolIdArrays.push_back("1");
+    addRoutePara.remotePortsArrays.push_back("80-90");
+    addRoutePara.ipv4AddrAndMasks.push_back(24);
+    addRoutePara.ipv6AddrAndPrefixs.push_back(64);
+    std::vector<uint8_t> buffer;
+    EXPECT_TRUE(DelayedSingleton<NetworkSliceManager>::GetInstance()->FillRoutePara(buffer, addRoutePara));
+}
+
+HWTEST_F(NetworkSliceManagerTest, isWifiConnected001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("isWifiConnected");
+    EXPECT_FALSE(DelayedSingleton<NetworkSliceManager>::GetInstance()->isWifiConnected());
+}
+
+HWTEST_F(NetworkSliceManagerTest, isAirPlaneModeOn001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("isAirPlaneModeOn001");
+    EXPECT_TRUE(DelayedSingleton<NetworkSliceManager>::GetInstance()->isAirPlaneModeOn());
+}
+
+HWTEST_F(NetworkSliceManagerTest, isInVpnMode001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("isInVpnMode001");
+    EXPECT_TRUE(DelayedSingleton<NetworkSliceManager>::GetInstance()->isInVpnMode());
+}
+
+HWTEST_F(NetworkSliceManagerTest, isDefaultDataOnMainCard001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("isDefaultDataOnMainCard001");
+    EXPECT_TRUE(DelayedSingleton<NetworkSliceManager>::GetInstance()->isDefaultDataOnMainCard());
+}
+ 
+HWTEST_F(NetworkSliceManagerTest, DumpSelectedRouteDescriptor001, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("DumpSelectedRouteDescriptor001");
+    SelectedRouteDescriptor routeRule;
+    routeRule.mSscMode = 0;
+    routeRule.mPduSessionType = -1;
+    routeRule.mSnssai = "110011";
+    routeRule.mDnn = "test";
+    DelayedSingleton<NetworkSliceManager>::GetInstance()->DumpSelectedRouteDescriptor(routeRule);
 }
 
 }

@@ -14,23 +14,30 @@
 import("//build/test.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
+EXT_SECURITY_PATH = "../../.."
+
 ohos_unittest("networkslice_manager_test") {
   module_out_path = "netmanager_ext/netmanager_ext/networkslice_manager_test"
   use_exceptions = true
   sources = [
+    "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
     "allowednssaiconfig_test.cpp",
     "broadcast_proxy_test.cpp",
     "dns_result_callback_test.cpp",
     "hwnetworkslicemanager_test.cpp",
+    "networkslice_client_test.cpp",
     "networkslice_kernel_proxy_test.cpp",
     "networkslice_manager_test.cpp",
+    "networkslice_proxy_test.cpp",
     "networkslice_service_test.cpp",
     "networkslice_stub_test.cpp",
     "nrunsolicitedmsgparser_test.cpp",
+    "state_utils_test.cpp",
     "urspconfig_test.cpp",
   ]
 
   include_dirs = [
+    "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/services/networkslicemanager/include",
     "$NETMANAGER_EXT_ROOT/test/networkslicemanager/unittest/networkslice_manager_test",
   ]
