@@ -32,8 +32,8 @@ ohos_unittest("networkslice_manager_test") {
     "networkslice_service_test.cpp",
     "networkslice_stub_test.cpp",
     "nrunsolicitedmsgparser_test.cpp",
-    "urspconfig_test.cpp",
     "state_utils_test.cpp",
+    "urspconfig_test.cpp",
   ]
 
   include_dirs = [
