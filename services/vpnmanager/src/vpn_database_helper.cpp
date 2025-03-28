@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <filesystem>
 
+#include "base64_utils.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -116,6 +117,18 @@ int32_t VpnDatabaseHelper::EncryptData(const sptr<VpnDataBean> &vpnBean)
         NETMGR_EXT_LOG_E("EncryptData askpass_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->swanctlConf_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData swanctlConf_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->optionsL2tpdClient_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData optionsL2tpdClient_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->ipsecSecrets_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData ipsecSecrets_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -146,6 +159,18 @@ int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
     }
     if (VpnDecryptData(vpnEncryptionInfo, vpnBean->askpass_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("EncryptData askpass_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->swanctlConf_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData swanctlConf_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->optionsL2tpdClient_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData optionsL2tpdClient_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->ipsecSecrets_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData ipsecSecrets_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;
