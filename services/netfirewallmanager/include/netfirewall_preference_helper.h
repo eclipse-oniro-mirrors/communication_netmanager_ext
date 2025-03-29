@@ -27,8 +27,6 @@ public:
     NetFirewallPreferenceHelper() = default;
     ~NetFirewallPreferenceHelper() = default;
 
-    static std::shared_ptr<NetFirewallPreferenceHelper> GetInstance();
-
     /**
      * Save int data using preferences
      *
@@ -74,20 +72,18 @@ public:
      * @return If there is a preference file and get preferences not null, and delete preferences success,
      * it will return to true, otherwise it will be false
      */
-    bool Clear(const std::string &filePath);
+    static bool Clear(const std::string &filePath);
 
     /**
      * Get Object Handle
      *
      * @param filePath File path
-     * @return If there is a preference file and get preferences not null, it will return to true,
-     * otherwise it will be false
+     * @return If there is a preference file and get preferences not null,
+     * it will return instance of NetFirewallPreferenceHelper, otherwise it will be nullptr
      */
-    bool GetPreference(const std::string &filePath);
+    static std::shared_ptr<NetFirewallPreferenceHelper> CreateInstance(const std::string &filePath);
 
 private:
-    bool GetPreference();
-
     bool RefreshSync();
 
     template <typename T> bool Save(const std::string &key, const T &defValue);
@@ -103,8 +99,7 @@ private:
 
     bool ObtainInner(std::shared_ptr<NativePreferences::Preferences> ptr, const std::string &key, const bool &defValue);
 
-    std::shared_ptr<NativePreferences::Preferences> ptr_ = nullptr;
-    std::string filePath_;
+    std::shared_ptr<NativePreferences::Preferences> ptr_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
