@@ -98,10 +98,9 @@ public:
 
 private:
     void GetAllUserId(std::vector<int32_t> &accountIds);
-
+    std::string FirewallPreferencePathOfUser(int32_t userId);
 private:
     std::shared_mutex setPolicyMutex_;
-    std::shared_ptr<NetFirewallPreferenceHelper> preferencesHelper_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
