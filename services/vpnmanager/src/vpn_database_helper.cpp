@@ -18,7 +18,6 @@
 #include <cstdlib>
 #include <filesystem>
 
-#include "base64_utils.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
