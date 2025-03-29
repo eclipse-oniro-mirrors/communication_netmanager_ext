@@ -31,7 +31,6 @@ NetFirewallPolicyManager &NetFirewallPolicyManager::GetInstance()
 
 NetFirewallPolicyManager::NetFirewallPolicyManager()
 {
-    preferencesHelper_ = NetFirewallPreferenceHelper::GetInstance();
     NETMGR_EXT_LOG_I("NetFirewallPolicyManager()");
 }
 
@@ -47,15 +46,15 @@ int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, con
         NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed, policy is nullptr.");
         return FIREWALL_ERR_PARAMETER_ERROR;
     }
-    if (preferencesHelper_ == nullptr) {
+    auto helper = NetFirewallPreferenceHelper::CreateInstance(FirewallPreferencePathOfUser(userId));
+    if (helper == nullptr) {
         NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed, reference is nullptr.");
         return FIREWALL_ERR_INTERNAL;
     }
     bool ret = true;
-    ret &= preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    ret &= preferencesHelper_->SaveBool(NET_FIREWALL_IS_OPEN, policy->isOpen);
-    ret &= preferencesHelper_->SaveInt(NET_FIREWALL_IN_ACTION, static_cast<int>(policy->inAction));
-    ret &= preferencesHelper_->SaveInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(policy->outAction));
+    ret &= helper->SaveBool(NET_FIREWALL_IS_OPEN, policy->isOpen);
+    ret &= helper->SaveInt(NET_FIREWALL_IN_ACTION, static_cast<int>(policy->inAction));
+    ret &= helper->SaveInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(policy->outAction));
     if (!ret) {
         NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed");
         return FIREWALL_ERR_INTERNAL;
@@ -87,6 +86,11 @@ void NetFirewallPolicyManager::GetAllUserId(std::vector<int32_t> &accountIds)
     for (const auto &info : osAccountInfos) {
         accountIds.push_back(info.GetLocalId());
     }
+}
+
+std::string NetFirewallPolicyManager::FirewallPreferencePathOfUser(int32_t userId)
+{
+    return FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml";
 }
 
 int32_t NetFirewallPolicyManager::InitNetfirewallPolicy()
@@ -132,29 +136,34 @@ bool NetFirewallPolicyManager::GetNetFirewallStatus(const int32_t userId)
 bool NetFirewallPolicyManager::IsNetFirewallOpen(const int32_t userId)
 {
     NETMGR_EXT_LOG_D("IsNetFirewallOpen");
-    preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    return preferencesHelper_->ObtainBool(NET_FIREWALL_IS_OPEN, false);
+    bool defVal = false;
+    auto helper = NetFirewallPreferenceHelper::CreateInstance(FirewallPreferencePathOfUser(userId));
+    if (helper == nullptr) {
+        NETMGR_EXT_LOG_E("IsNetFirewallOpen failed, reference is nullptr.");
+        return defVal;
+    }
+    return helper->ObtainBool(NET_FIREWALL_IS_OPEN, defVal);
 }
 
 int32_t NetFirewallPolicyManager::ClearFirewallPolicy(const int32_t userId)
 {
-    if (preferencesHelper_ == nullptr) {
-        NETMGR_EXT_LOG_E("ClearFirewallPolicy failed");
-        return FIREWALL_ERR_INTERNAL;
-    }
-    preferencesHelper_->Clear(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
+    NetFirewallPreferenceHelper::Clear(FirewallPreferencePathOfUser(userId));
     InitNetfirewallPolicy();
     return FIREWALL_SUCCESS;
 }
 
 void NetFirewallPolicyManager::LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy)
 {
-    preferencesHelper_->GetPreference(FIREWALL_PREFERENCE_PATH + std::to_string(userId) + ".xml");
-    policy->isOpen = preferencesHelper_->ObtainBool(NET_FIREWALL_IS_OPEN, false);
+    auto helper = NetFirewallPreferenceHelper::CreateInstance(FirewallPreferencePathOfUser(userId));
+    if (helper == nullptr) {
+        NETMGR_EXT_LOG_E("LoadPolicyFormPreference failed, reference is nullptr.");
+        return;
+    }
+    policy->isOpen = helper->ObtainBool(NET_FIREWALL_IS_OPEN, false);
     policy->inAction = static_cast<FirewallRuleAction>(
-        preferencesHelper_->ObtainInt(NET_FIREWALL_IN_ACTION, static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
+        helper->ObtainInt(NET_FIREWALL_IN_ACTION, static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
     policy->outAction = static_cast<FirewallRuleAction>(
-        preferencesHelper_->ObtainInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
+        helper->ObtainInt(NET_FIREWALL_OUT_ACTION, static_cast<int>(FirewallRuleAction::RULE_ALLOW)));
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
