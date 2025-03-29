@@ -25,33 +25,18 @@ using namespace std;
 
 namespace OHOS {
 namespace NetManagerStandard {
-shared_ptr<NetFirewallPreferenceHelper> NetFirewallPreferenceHelper::GetInstance()
+std::shared_ptr<NetFirewallPreferenceHelper> NetFirewallPreferenceHelper::CreateInstance(
+    const std::string &filePath)
 {
-    static std::shared_ptr<NetFirewallPreferenceHelper> instance = make_shared<NetFirewallPreferenceHelper>();
+    int32_t errCode = -1;
+    auto ptr = NativePreferences::PreferencesHelper::GetPreferences(filePath, errCode);
+    if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("GetPreference error code is %{public}d", errCode);
+        return nullptr;
+    }
+    auto instance = std::make_shared<NetFirewallPreferenceHelper>();
+    instance->ptr_ = ptr;
     return instance;
-}
-
-bool NetFirewallPreferenceHelper::GetPreference()
-{
-    int32_t errCode = -1;
-    ptr_ = NativePreferences::PreferencesHelper::GetPreferences(filePath_, errCode);
-    if (ptr_ == nullptr) {
-        NETMGR_EXT_LOG_E("GetPreference error code is %{public}d", errCode);
-        return false;
-    }
-    return true;
-}
-
-bool NetFirewallPreferenceHelper::GetPreference(const std::string &filePath)
-{
-    filePath_ = filePath;
-    int32_t errCode = -1;
-    ptr_ = NativePreferences::PreferencesHelper::GetPreferences(filePath_, errCode);
-    if (ptr_ == nullptr) {
-        NETMGR_EXT_LOG_E("GetPreference error code is %{public}d", errCode);
-        return false;
-    }
-    return true;
 }
 
 bool NetFirewallPreferenceHelper::SaveInt(const std::string &key, int32_t value)
@@ -66,9 +51,6 @@ bool NetFirewallPreferenceHelper::SaveBool(const std::string &key, bool value)
 
 template <typename T> bool NetFirewallPreferenceHelper::Save(const std::string &key, const T &value)
 {
-    if (!GetPreference()) {
-        return false;
-    }
     if (!SaveInner(ptr_, key, value)) {
         NETMGR_EXT_LOG_E("SaveInner error");
         return false;
@@ -79,20 +61,12 @@ template <typename T> bool NetFirewallPreferenceHelper::Save(const std::string &
 bool NetFirewallPreferenceHelper::SaveInner(std::shared_ptr<NativePreferences::Preferences> ptr, const std::string &key,
     const int32_t &value)
 {
-    if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("ptr is nullptr");
-        return false;
-    }
     return ptr->PutInt(key, value) == NativePreferences::E_OK;
 }
 
 bool NetFirewallPreferenceHelper::SaveInner(std::shared_ptr<NativePreferences::Preferences> ptr, const std::string &key,
     const bool &value)
 {
-    if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("ptr is nullptr");
-        return false;
-    }
     return ptr->PutBool(key, value) == NativePreferences::E_OK;
 }
 
@@ -108,10 +82,6 @@ bool NetFirewallPreferenceHelper::ObtainBool(const std::string &key, bool defVal
 
 template <typename T> T NetFirewallPreferenceHelper::Obtain(const std::string &key, const T &defValue)
 {
-    if (!GetPreference()) {
-        NETMGR_EXT_LOG_I("Obtain GetPreference failed");
-        return defValue;
-    }
     return ObtainInner(ptr_, key, defValue);
 }
 
@@ -129,14 +99,6 @@ bool NetFirewallPreferenceHelper::ObtainInner(std::shared_ptr<NativePreferences:
 
 bool NetFirewallPreferenceHelper::RefreshSync()
 {
-    if (!GetPreference()) {
-        NETMGR_EXT_LOG_I("RefreshSync GetPreference failed");
-        return false;
-    }
-    if (ptr_ == nullptr) {
-        NETMGR_EXT_LOG_E("ptr_ is nullptr");
-        return false;
-    }
     if (ptr_->FlushSync() != NativePreferences::E_OK) {
         NETMGR_EXT_LOG_E("RefreshSync error");
         return false;
@@ -146,19 +108,10 @@ bool NetFirewallPreferenceHelper::RefreshSync()
 
 bool NetFirewallPreferenceHelper::Clear(const std::string &filePath)
 {
-    if (!GetPreference(filePath)) {
-        NETMGR_EXT_LOG_I("Clear GetPreference failed");
-        return false;
-    }
-    if (ptr_ == nullptr) {
-        NETMGR_EXT_LOG_E("ptr_ is nullptr");
-        return false;
-    }
     int ret = NativePreferences::PreferencesHelper::DeletePreferences(filePath);
     if (ret) {
-        NETMGR_EXT_LOG_E("ptr_ is nullptr");
+        NETMGR_EXT_LOG_E("Preferences not exist");
     }
-    ptr_ = nullptr;
     return true;
 }
 } // namespace NetManagerStandard
