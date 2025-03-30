@@ -786,7 +786,7 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
         }
         NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_, SharingIfaceType::SHARING_USB);
     } else {
-        if (curUsbState_ == UsbShareState::USB_NONE) {
+        if (curUsbState_ != UsbShareState::USB_SHARING) {
             return NETMANAGER_EXT_SUCCESS;
         }
         curUsbState_ = UsbShareState::USB_CLOSING;
