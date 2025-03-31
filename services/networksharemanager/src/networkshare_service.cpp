@@ -27,6 +27,9 @@
 #include "netsys_controller.h"
 #include "edm_parameter_utils.h"
 #include "ffrt.h"
+#ifdef USB_MODOULE
+#include "usb_srv_support.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -428,6 +431,9 @@ void NetworkShareService::SubscribeCommonEvent()
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_CONNECTED);
     matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_DISCONNECTED);
+#ifdef USB_MODOULE
+    matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USB_STATE);
+#endif
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
 
     // 1 means CORE_EVENT_PRIORITY
@@ -451,6 +457,15 @@ void NetworkShareService::CommonEventSubscriber::OnReceiveEvent(const EventFwk::
         NetworkShareTracker::GetInstance().OnPowerConnected();
     } else if (action == OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_DISCONNECTED) {
         NetworkShareTracker::GetInstance().OnPowerDisConnected();
+#ifdef USB_MODOULE
+    } else if (action == OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USB_STATE) {
+        auto want = eventData.GetWant();
+        auto connected = want.GetBoolParam(std::string {USB::UsbSrvSupport::CONNECTED}, false);
+        NETMGR_EXT_LOG_I("UsbSrvSupport::CONNECTED: %{public}d.", connected);
+        if (!connected) {
+            NetworkShareTracker::GetInstance().StopNetworkSharing(SharingIfaceType::SHARING_USB);
+        }
+#endif
     }
 }
 
