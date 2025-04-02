@@ -28,6 +28,11 @@
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
 #include "networkshare_trafficlimit.h"
 #endif
+#ifdef WIFI_MODOULE
+#include "wifi_ap_msg.h"
+#include "wifi_hotspot.h"
+#endif
+
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
@@ -460,7 +465,16 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
                          ifaceName_.c_str());
         CleanupUpstreamInterface();
         upstreamIfaceName_ = upstreamNetInfo->netLinkPro_->ifaceName_;
+#ifdef WIFI_MODOULE
+        int mode = static_cast<int>(Wifi::HotspotMode::NONE);
+        int32_t ret = GetHotspotMode(mode);
+        if (mode != static_cast<int>(Wifi::HotspotMode::LOCAL_ONLY_SOFTAP)) {
+            NETMGR_EXT_LOG_I("HandleConnection");
+            HandleConnection();
+        }
+#else
         HandleConnection();
+#endif
     }
     ConfigureShareIpv4(upstreamNetInfo->netLinkPro_);
     ConfigureShareIpv6(upstreamNetInfo->netLinkPro_);
