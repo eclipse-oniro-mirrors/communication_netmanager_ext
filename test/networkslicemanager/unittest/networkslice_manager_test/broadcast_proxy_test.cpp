@@ -376,7 +376,9 @@ HWTEST_F(VpnEventObserverTest, VpnEventObserverTest_001, TestSize.Level1)
     bool isConnected = true;
     broadcast_proxy::VpnEventObserver observer;
     observer.OnVpnStateChanged(isConnected);
+    broadcast_proxy proxy_instance;
+    EXPECT_TRUE(proxy_instance.subscriber_ == nullptr);
 }
 
 }
-}
+}

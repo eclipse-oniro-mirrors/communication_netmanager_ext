@@ -1228,6 +1228,7 @@ HWTEST_F(UrspconfigTest, GetImsRsdList001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetImsRsdList001");
     UrspConfig::GetInstance().GetImsRsdList();
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, ConvertRsdList2BufferArray001, testing::ext::TestSize.Level1)
@@ -1235,6 +1236,7 @@ HWTEST_F(UrspconfigTest, ConvertRsdList2BufferArray001, testing::ext::TestSize.L
     NETMGR_EXT_LOG_I("ConvertRsdList2BufferArray001");
     std::unordered_map<int, std::vector<RouteSelectionDescriptor>> rsdsMap;
     UrspConfig::GetInstance().ConvertRsdList2BufferArray(rsdsMap);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, ConvertRsdList2BufferArray002, testing::ext::TestSize.Level1)
@@ -1245,6 +1247,7 @@ HWTEST_F(UrspconfigTest, ConvertRsdList2BufferArray002, testing::ext::TestSize.L
     map1.routePrecedence = 1;
     rsdsMap[1].push_back(map1);
     UrspConfig::GetInstance().ConvertRsdList2BufferArray(rsdsMap);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, PutRsdListInfo001, testing::ext::TestSize.Level1)
@@ -1253,6 +1256,7 @@ HWTEST_F(UrspconfigTest, PutRsdListInfo001, testing::ext::TestSize.Level1)
     std::vector<uint8_t> buffer;
     std::vector<RouteSelectionDescriptor> rsdList;
     UrspConfig::GetInstance().PutRsdListInfo(buffer, rsdList);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, PutDnnsInfo001, testing::ext::TestSize.Level1)
@@ -1261,6 +1265,7 @@ HWTEST_F(UrspconfigTest, PutDnnsInfo001, testing::ext::TestSize.Level1)
     std::vector<uint8_t> buffer;
     RouteSelectionDescriptor rsd;
     UrspConfig::GetInstance().PutDnnsInfo(buffer, rsd);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, PutDnnsInfo002, testing::ext::TestSize.Level1)
@@ -1270,6 +1275,7 @@ HWTEST_F(UrspconfigTest, PutDnnsInfo002, testing::ext::TestSize.Level1)
     RouteSelectionDescriptor rsd;
     rsd.dnns = {"01", "02", "03"};
     UrspConfig::GetInstance().PutDnnsInfo(buffer, rsd);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, PutNssaisInfo001, testing::ext::TestSize.Level1)
@@ -1278,6 +1284,7 @@ HWTEST_F(UrspconfigTest, PutNssaisInfo001, testing::ext::TestSize.Level1)
     std::vector<uint8_t> buffer;
     RouteSelectionDescriptor rsd;
     UrspConfig::GetInstance().PutNssaisInfo(buffer, rsd);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, PutNssaisInfo002, testing::ext::TestSize.Level1)
@@ -1289,6 +1296,7 @@ HWTEST_F(UrspconfigTest, PutNssaisInfo002, testing::ext::TestSize.Level1)
     snssai1.setSd(1);
     rsd.snssais.push_back(snssai1);
     UrspConfig::GetInstance().PutNssaisInfo(buffer, rsd);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, SetBitOpt001, testing::ext::TestSize.Level1)
@@ -1297,12 +1305,14 @@ HWTEST_F(UrspconfigTest, SetBitOpt001, testing::ext::TestSize.Level1)
     int num = 0;
     int position = 0;
     UrspConfig::GetInstance().SetBitOpt(num, position);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, NotifyImsaDelRsdInfo001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("NotifyImsaDelRsdInfo001");
     UrspConfig::GetInstance().NotifyImsaDelRsdInfo();
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, FindAvailableRouteRule001, testing::ext::TestSize.Level1)
@@ -1432,6 +1442,7 @@ HWTEST_F(UrspconfigTest, FillIpv4Addrs001, testing::ext::TestSize.Level1)
     TrafficDescriptor urspTrafficDescriptor;
     SelectedRouteDescriptor routeRule;
     UrspConfig::GetInstance().FillIpv4Addrs(urspTrafficDescriptor, routeRule);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, FillIpv6Addrs001, testing::ext::TestSize.Level1)
@@ -1440,6 +1451,7 @@ HWTEST_F(UrspconfigTest, FillIpv6Addrs001, testing::ext::TestSize.Level1)
     TrafficDescriptor urspTrafficDescriptor;
     SelectedRouteDescriptor routeRule;
     UrspConfig::GetInstance().FillIpv6Addrs(urspTrafficDescriptor, routeRule);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, FillRemotePorts001, testing::ext::TestSize.Level1)
@@ -1456,6 +1468,7 @@ HWTEST_F(UrspconfigTest, FillRemotePorts001, testing::ext::TestSize.Level1)
     appDescriptor.mRemotePort = 5654;
     SelectedRouteDescriptor routeRule;
     UrspConfig::GetInstance().FillRemotePorts(urspTrafficDescriptor, routeRule);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, isTrafficDescriptorMatch001, testing::ext::TestSize.Level1)
@@ -1812,6 +1825,7 @@ HWTEST_F(UrspconfigTest, DumpUePolicyMap001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("DumpUePolicyMap001");
     UrspConfig::GetInstance().DumpUePolicyMap();
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
 
 HWTEST_F(UrspconfigTest, ParseTrafficDescriptor001, testing::ext::TestSize.Level1)
@@ -1932,6 +1946,7 @@ HWTEST_F(UrspconfigTest, ParseTrafficDescriptor010, testing::ext::TestSize.Level
     xmlSetProp(trafficDescriptorNode, reinterpret_cast<const xmlChar *>(ATTR_TRAFFICDESCRIPTORTYPE.c_str()),
         reinterpret_cast<const xmlChar *>("3"));
     UrspConfig::GetInstance().ParseTrafficDescriptor(trafficDescriptorNode, trafficDescriptor);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(UrspconfigTest, FillTrafficDescriptorWhiteList001, testing::ext::TestSize.Level1)

@@ -350,7 +350,7 @@ void NrUnsolicitedMsgParser::DecodeUrspFromUnsolData(int& startIndex, std::vecto
         NETMGR_EXT_LOG_E("inputLen < NetworkSliceCommConfig::LEN_SHORT");
         return;
     }
-    short version = GetShort(startIndex, buffer);
+    short version = GetShort(startIndex, buffer, true);
     NETMGR_EXT_LOG_I("ursp version = [%{public}d]", version);
     if (version == NetworkSliceCommConfig::URSP_VERSION_1510
         || version == NetworkSliceCommConfig::URSP_VERSION_1520) {

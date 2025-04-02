@@ -55,6 +55,7 @@ void NetworkSliceProxyTest::TearDown() {}
 
 HWTEST_F(NetworkSliceProxyTest, SetNetworkSliceUePolicy001, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:SetNetworkSliceUePolicy001");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
     std::vector<uint8_t> buffer = {0};
@@ -64,15 +65,17 @@ HWTEST_F(NetworkSliceProxyTest, SetNetworkSliceUePolicy001, TestSize.Level1)
 
 HWTEST_F(NetworkSliceProxyTest, SetNetworkSliceUePolicy002, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:SetNetworkSliceUePolicy002");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
-    std::vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer = {};
     auto ret = networkSliceProxy.SetNetworkSliceUePolicy(buffer);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkSliceProxyTest, NetworkSliceAllowedNssaiRpt001, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:NetworkSliceAllowedNssaiRpt001");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
     std::vector<uint8_t> buffer = {0};
@@ -82,15 +85,17 @@ HWTEST_F(NetworkSliceProxyTest, NetworkSliceAllowedNssaiRpt001, TestSize.Level1)
 
 HWTEST_F(NetworkSliceProxyTest, NetworkSliceAllowedNssaiRpt002, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:NetworkSliceAllowedNssaiRpt002");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
-    std::vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer = {};
     auto ret = networkSliceProxy.NetworkSliceAllowedNssaiRpt(buffer);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkSliceProxyTest, NetworkSliceEhplmnRpt001, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:NetworkSliceEhplmnRpt001");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
     std::vector<uint8_t> buffer = {0};
@@ -100,15 +105,17 @@ HWTEST_F(NetworkSliceProxyTest, NetworkSliceEhplmnRpt001, TestSize.Level1)
 
 HWTEST_F(NetworkSliceProxyTest, NetworkSliceEhplmnRpt002, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:NetworkSliceEhplmnRpt002");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
-    std::vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer = {};
     auto ret = networkSliceProxy.NetworkSliceEhplmnRpt(buffer);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkSliceProxyTest, NetworkSliceInitUePolicy001, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:NetworkSliceInitUePolicy001");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
     auto ret = networkSliceProxy.NetworkSliceInitUePolicy();
@@ -117,6 +124,7 @@ HWTEST_F(NetworkSliceProxyTest, NetworkSliceInitUePolicy001, TestSize.Level1)
 
 HWTEST_F(NetworkSliceProxyTest, GetRouteSelectionDescriptorByDNN001, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:GetRouteSelectionDescriptorByDNN001");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
     std::string dnn = "dnn";
@@ -128,6 +136,7 @@ HWTEST_F(NetworkSliceProxyTest, GetRouteSelectionDescriptorByDNN001, TestSize.Le
 
 HWTEST_F(NetworkSliceProxyTest, GetRSDByNetCap001, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:GetRSDByNetCap001");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
     int32_t netcap = 1;
@@ -138,6 +147,7 @@ HWTEST_F(NetworkSliceProxyTest, GetRSDByNetCap001, TestSize.Level1)
 
 HWTEST_F(NetworkSliceProxyTest, SetSaState001, TestSize.Level1)
 {
+    NETMGR_EXT_LOG_I("NetworkSliceProxyTest:SetSaState001");
     NetManagerExtAccessToken token;
     NetworkSliceProxy networkSliceProxy(nullptr);
     bool isSaState = false;
