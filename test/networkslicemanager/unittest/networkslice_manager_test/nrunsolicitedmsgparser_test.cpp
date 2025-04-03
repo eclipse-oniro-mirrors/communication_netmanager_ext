@@ -55,36 +55,42 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetInstance001, testing::ext::TestSize.Leve
 {
     NETMGR_EXT_LOG_I("GetInstance001");
     NrUnsolicitedMsgParser::GetInstance();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetSubscriberIdAndUrspFromFile002, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetSubscriberIdAndUrspFromFile002");
     NrUnsolicitedMsgParser::GetInstance().GetSubscriberIdAndUrspFromFile();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, HandleSimStateChanged002, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("HandleSimStateChanged002");
     NrUnsolicitedMsgParser::GetInstance().HandleSimStateChanged();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, SyncSubscriberId001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("SyncSubscriberId001");
     NrUnsolicitedMsgParser::GetInstance().SyncSubscriberId();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetNetworkSliceAllowedNssai001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetNetworkSliceAllowedNssai001");
     NrUnsolicitedMsgParser::GetInstance().GetNetworkSliceAllowedNssai();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetNetworkSliceEhplmn001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetNetworkSliceEhplmn001");
     NrUnsolicitedMsgParser::GetInstance().GetNetworkSliceEhplmn();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, WriteObjectToJsonFile001, testing::ext::TestSize.Level1)
@@ -93,6 +99,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, WriteObjectToJsonFile001, testing::ext::Tes
     const std::string fileName;
     std::unordered_map<std::string, UePolicy> obj;
     NrUnsolicitedMsgParser::GetInstance().WriteObjectToJsonFile(fileName, obj);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, ReadObjectFromJsonFile002, testing::ext::TestSize.Level1)
@@ -108,6 +115,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetHplmn001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetHplmn001");
     NrUnsolicitedMsgParser::GetInstance().GetHplmn();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetAllowedNssaiFromUnsolData001, testing::ext::TestSize.Level1)
@@ -115,6 +123,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetAllowedNssaiFromUnsolData001, testing::e
     NETMGR_EXT_LOG_I("GetAllowedNssaiFromUnsolData001");
     std::vector<uint8_t> buffer = {};
     NrUnsolicitedMsgParser::GetInstance().GetAllowedNssaiFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetEhplmnFromUnsolData001, testing::ext::TestSize.Level1)
@@ -122,6 +131,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetEhplmnFromUnsolData001, testing::ext::Te
     NETMGR_EXT_LOG_I("GetEhplmnFromUnsolData001");
     std::vector<uint8_t> buffer = {};
     NrUnsolicitedMsgParser::GetInstance().GetEhplmnFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData001, testing::ext::TestSize.Level1)
@@ -129,6 +139,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData001, testing::ext::Test
     NETMGR_EXT_LOG_I("GetUrspFromUnsolData001");
     std::vector<uint8_t> buffer = {};
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData002, testing::ext::TestSize.Level1)
@@ -136,6 +147,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData002, testing::ext::Test
     NETMGR_EXT_LOG_I("GetUrspFromUnsolData002");
     std::vector<uint8_t> buffer = {0x01};
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData003, testing::ext::TestSize.Level1)
@@ -143,6 +155,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData003, testing::ext::Test
     NETMGR_EXT_LOG_I("GetUrspFromUnsolData003");
     std::vector<uint8_t> buffer = {0x01, 0x00, 0x01};
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData004, testing::ext::TestSize.Level1)
@@ -150,45 +163,50 @@ HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData004, testing::ext::Test
     NETMGR_EXT_LOG_I("GetUrspFromUnsolData004");
     std::vector<uint8_t> buffer = {0x01, 0x01, 0x01};
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData005, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetUrspFromUnsolData005");
-    std::vector<uint8_t> buffer = {0x01, 0x02, 0x03, 0x05, 0xE6, 0x01, 0x01, 0x00, 0x1A,
+    std::vector<uint8_t> buffer = {0x01, 0x02, 0x03, 0xE6, 0x05, 0x01, 0x01, 0x00, 0x1A,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData006, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetUrspFromUnsolData006");
-    std::vector<uint8_t> buffer = {0x02, 0x03, 0x02, 0x05, 0xE6, 0x01, 0x01, 0x00, 0x1A,
+    std::vector<uint8_t> buffer = {0x02, 0x03, 0x02, 0xE6, 0x05, 0x01, 0x01, 0x00, 0x1A,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, GetUrspFromUnsolData007, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("GetUrspFromUnsolData007");
-    std::vector<uint8_t> buffer = {0x02, 0x04, 0x02, 0x05, 0xE6, 0x01, 0x01, 0x00, 0x1A,
+    std::vector<uint8_t> buffer = {0x02, 0x04, 0x02, 0xE6, 0x05, 0x01, 0x01, 0x00, 0x1A,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     NrUnsolicitedMsgParser::GetInstance().GetUrspFromUnsolData(buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData000, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("DecodeUrspFromUnsolData000");
-    std::vector<uint8_t> buffer = {0x05, 0xE6, 0x01, 0x01, 0x00, 0x1A,
+    std::vector<uint8_t> buffer = {0xE6, 0x05, 0x01, 0x01, 0x00, 0x1A,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     int startIndex = 0;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData002, testing::ext::TestSize.Level1)
@@ -197,16 +215,18 @@ HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData002, testing::ext::T
     std::vector<uint8_t> buffer = {};
     int startIndex = 0;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData003, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("DecodeUrspFromUnsolData003");
-    std::vector<uint8_t> buffer = {0x05, 0xE6, 0x01, 0x01, 0x00, 0x1A,
+    std::vector<uint8_t> buffer = {0xE6, 0x05, 0x01, 0x01, 0x00, 0x1A,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     int startIndex = 32;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData004, testing::ext::TestSize.Level1)
@@ -217,36 +237,40 @@ HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData004, testing::ext::T
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     int startIndex = 0;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData005, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("DecodeUrspFromUnsolData005");
-    std::vector<uint8_t> buffer = {0x05, 0xE6, 0x01, 0x01, 0x00, 0x1A,
+    std::vector<uint8_t> buffer = {0xE6, 0x05, 0x01, 0x01, 0x00, 0x1A,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
-        0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x05, 0xE6};
+        0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0xE6, 0x05};
     int startIndex = 30;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData006, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("DecodeUrspFromUnsolData006");
-    std::vector<uint8_t> buffer = {0x05, 0xE6, 0x01, 0x02, 0x00, 0x1A,
+    std::vector<uint8_t> buffer = {0xE6, 0x05, 0x01, 0x02, 0x00, 0x1A,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     int startIndex = 0;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData007, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("DecodeUrspFromUnsolData007");
-    std::vector<uint8_t> buffer = {0x05, 0xE6, 0x01, 0x01, 0x00, 0x19,
+    std::vector<uint8_t> buffer = {0xE6, 0x05, 0x01, 0x01, 0x00, 0x19,
         0x00, 0x18, 0x00, 0x01, 0x01, 0x00, 0x13, 0x03, 0x09, 0x00, 0x0F, 0x01, 0x0D, 0x02, 0x00, 0X02, 0x30, 0x16,
         0x00, 0x06, 0x05, 0x03, 0x00, 0x02, 0x01, 0x03};
     int startIndex = 0;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, HandleDecodeResult002, testing::ext::TestSize.Level1)
@@ -256,6 +280,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, HandleDecodeResult002, testing::ext::TestSi
     std::string plmn = {};
     std::unordered_map<std::string, UePolicy> decodeUePolicyMap;
     NrUnsolicitedMsgParser::GetInstance().HandleDecodeResult(pti, decodeUePolicyMap);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, SndManageUePolicyComplete001, testing::ext::TestSize.Level1)
@@ -263,6 +288,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, SndManageUePolicyComplete001, testing::ext:
     NETMGR_EXT_LOG_I("SndManageUePolicyComplete001");
     uint8_t pti = 0;
     NrUnsolicitedMsgParser::GetInstance().SndManageUePolicyComplete(pti);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, AddNewUePolicy001, testing::ext::TestSize.Level1)
@@ -270,6 +296,7 @@ HWTEST_F(NrunsolicitedmsgparserTest, AddNewUePolicy001, testing::ext::TestSize.L
     NETMGR_EXT_LOG_I("AddNewUePolicy001");
     std::unordered_map<std::string, UePolicy> decodeUePolicyMap;
     NrUnsolicitedMsgParser::GetInstance().AddNewUePolicy(decodeUePolicyMap);
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, isUePolicyLegal001, testing::ext::TestSize.Level1)
@@ -552,38 +579,43 @@ HWTEST_F(NrunsolicitedmsgparserTest, SendUePolicySectionIdentifier002, testing::
 {
     NETMGR_EXT_LOG_I("SendUePolicySectionIdentifier002");
     NrUnsolicitedMsgParser::GetInstance().SendUePolicySectionIdentifier();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, SendImsRsdList002, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("SndImsRsdList002");
     NrUnsolicitedMsgParser::GetInstance().SendImsRsdList();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, SendUrspUpdate002, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("SendUrspUpdate002");
     NrUnsolicitedMsgParser::GetInstance().SendUrspUpdate();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, UpdateUrspRules002, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("UpdateUrspRules002");
     NrUnsolicitedMsgParser::GetInstance().UpdateUrspRules();
+    EXPECT_NE(sUrspConfig_, nullptr);
 }
- 
-// extern std::shared_ptr<UrspConfig> sUrspConfig_;
+
 HWTEST_F(NrunsolicitedmsgparserTest, UpdateUrspRules001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("UpdateUrspRules001");
     sUrspConfig_.reset();
     NrUnsolicitedMsgParser::GetInstance().UpdateUrspRules();
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, SendUrspUpdate001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("SendUrspUpdate001");
     NrUnsolicitedMsgParser::GetInstance().SendUrspUpdate();
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData001, testing::ext::TestSize.Level1)
@@ -592,18 +624,21 @@ HWTEST_F(NrunsolicitedmsgparserTest, DecodeUrspFromUnsolData001, testing::ext::T
     std::vector<uint8_t> buffer = {};
     int startIndex = 0;
     NrUnsolicitedMsgParser::GetInstance().DecodeUrspFromUnsolData(startIndex, buffer);
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, SendUePolicySectionIdentifier001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("SendUePolicySectionIdentifier001");
     NrUnsolicitedMsgParser::GetInstance().SendUePolicySectionIdentifier();
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, SendImsRsdList001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("SendImsRsdList001");
     NrUnsolicitedMsgParser::GetInstance().SendImsRsdList();
+    EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
 HWTEST_F(NrunsolicitedmsgparserTest, DecodeUePolicyPart004, testing::ext::TestSize.Level1)
@@ -620,4 +655,4 @@ HWTEST_F(NrunsolicitedmsgparserTest, DecodeUePolicyPart004, testing::ext::TestSi
 }
  
 }
-}
+}

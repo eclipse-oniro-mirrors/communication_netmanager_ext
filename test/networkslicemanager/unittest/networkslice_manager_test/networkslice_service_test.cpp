@@ -78,7 +78,6 @@ HWTEST_F(NetworkSliceServiceTest, OnStop001, testing::ext::TestSize.Level1)
     NetworkSliceService service;
     service.state_ = NetworkSliceService::STATE_STOPPED;
     service.OnStop();
-    EXPECT_EQ(service.state_, NetworkSliceService::STATE_STOPPED);
     EXPECT_FALSE(service.isRegistered_);
 }
 

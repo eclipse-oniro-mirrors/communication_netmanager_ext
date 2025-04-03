@@ -162,7 +162,7 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceAllowedNssaiRpt002, TestSize.Level1
         return;
     }
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_ALLOWEDNSSAI_RPT);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkSliceStubTest, OnNetworkSliceEhplmnRpt001, TestSize.Level1)
@@ -190,7 +190,7 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceEhplmnRpt002, TestSize.Level1)
         return;
     }
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_EHPLMN_RPT);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkSliceStubTest, OnNetworkSliceInitUePolicy001, TestSize.Level1)

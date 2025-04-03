@@ -55,6 +55,7 @@ HWTEST_F(AllowedNssaiConfigTest, DecodeAllowedNssai001, testing::ext::TestSize.L
     NETMGR_EXT_LOG_I("DecodeAllowedNssai001");
     std::vector<uint8_t> buffer = {0x41, 0x2E, 0x42, 0x3A, 0x43, 0x2E, 0x44}; // A.B:C.D
     AllowedNssaiConfig::GetInstance().DecodeAllowedNssai(buffer);
+    EXPECT_NE(sAllowedNssaiConfig_, nullptr);
 }
  
 HWTEST_F(AllowedNssaiConfigTest, DecodeAllowedNssai002, testing::ext::TestSize.Level1)
@@ -62,6 +63,7 @@ HWTEST_F(AllowedNssaiConfigTest, DecodeAllowedNssai002, testing::ext::TestSize.L
     NETMGR_EXT_LOG_I("DecodeAllowedNssai002");
     std::vector<uint8_t> buffer = {};
     AllowedNssaiConfig::GetInstance().DecodeAllowedNssai(buffer);
+    EXPECT_NE(sAllowedNssaiConfig_, nullptr);
 }
  
 HWTEST_F(AllowedNssaiConfigTest, DecodeAllowedNssai003, testing::ext::TestSize.Level1)
@@ -69,6 +71,7 @@ HWTEST_F(AllowedNssaiConfigTest, DecodeAllowedNssai003, testing::ext::TestSize.L
     NETMGR_EXT_LOG_I("DecodeAllowedNssai003");
     std::vector<uint8_t> buffer = {0x41, 0x2E, 0x42, 0x2E, 0x43, 0x2E, 0x44}; // A.B.C.D
     AllowedNssaiConfig::GetInstance().DecodeAllowedNssai(buffer);
+    EXPECT_NE(sAllowedNssaiConfig_, nullptr);
 }
  
 HWTEST_F(AllowedNssaiConfigTest, ParseSnssai002, testing::ext::TestSize.Level1)
@@ -222,4 +225,4 @@ HWTEST_F(AllowedNssaiConfigTest, isSnssaiInAllowedNssai003, testing::ext::TestSi
 }
  
 }
-}
+}
