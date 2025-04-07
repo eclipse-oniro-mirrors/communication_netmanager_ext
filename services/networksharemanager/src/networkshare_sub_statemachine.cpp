@@ -467,9 +467,9 @@ void NetworkShareSubStateMachine::HandleConnectionChanged(const std::shared_ptr<
         upstreamIfaceName_ = upstreamNetInfo->netLinkPro_->ifaceName_;
 #ifdef WIFI_MODOULE
         int mode = static_cast<int>(Wifi::HotspotMode::NONE);
-        int32_t ret = GetHotspotMode(mode);
+        int32_t ret = GetHotspotMode(&mode);
+        NETMGR_EXT_LOG_I("get hotspot mode, mode=%{public}d", mode);
         if (mode != static_cast<int>(Wifi::HotspotMode::LOCAL_ONLY_SOFTAP)) {
-            NETMGR_EXT_LOG_I("HandleConnection");
             HandleConnection();
         }
 #else
