@@ -193,39 +193,6 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyFactoryResetVpnTest001, TestSize.Level1
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnExtTest001, TestSize.Level1)
-{
-    NetManagerExtAccessToken token;
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::CMD_START_VPN_EXT);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyProtectExtTest001, TestSize.Level1)
-{
-    NetManagerExtAccessToken token;
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::CMD_PROTECT_EXT);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyDestroyVpnExtTest001, TestSize.Level1)
-{
-    NetManagerExtAccessToken token;
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::CMD_STOP_VPN_EXT);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
 HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterBundleNameVpnTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
@@ -237,7 +204,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterBundleNameVpnTest001, TestSize.
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::CMD_REGISTER_BUNDLENAME);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_REGISTER_BUNDLE_NAME);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL);
 }
 
@@ -248,8 +215,8 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyDefaultTest001, TestSize.Level1)
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(INetworkVpnServiceIpcCode::CMD_REGISTER_BUNDLENAME) +
-                    static_cast<uint32_t>(INetworkVpnServiceIpcCode::CMD_REGISTER_BUNDLENAME);
+    uint32_t code = static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_REGISTER_BUNDLE_NAME) +
+                    static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_REGISTER_BUNDLE_NAME);
     int32_t ret = SendRemoteRequest(data, static_cast<INetworkVpnServiceIpcCode>(code));
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
