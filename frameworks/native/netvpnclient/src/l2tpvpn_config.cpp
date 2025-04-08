@@ -42,9 +42,9 @@ bool L2tpVpnConfig::Marshalling(Parcel &parcel) const
     return allOK;
 }
 
-sptr<L2tpVpnConfig> L2tpVpnConfig::Unmarshalling(Parcel &parcel)
+L2tpVpnConfig* L2tpVpnConfig::Unmarshalling(Parcel &parcel)
 {
-    sptr<L2tpVpnConfig> ptr = new (std::nothrow) L2tpVpnConfig();
+    L2tpVpnConfig* ptr = new (std::nothrow) L2tpVpnConfig();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("L2tpVpnConfig ptr is null");
         return nullptr;

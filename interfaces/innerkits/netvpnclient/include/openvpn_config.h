@@ -33,7 +33,7 @@ struct OpenvpnConfig : SysVpnConfig {
     std::string ovpnPrivateKeyFilePath_;
 
     bool Marshalling(Parcel &parcel) const override;
-    static sptr<OpenvpnConfig> Unmarshalling(Parcel &parcel);
+    static OpenvpnConfig* Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

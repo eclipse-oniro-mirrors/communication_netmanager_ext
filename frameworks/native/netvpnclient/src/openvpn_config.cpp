@@ -63,9 +63,9 @@ bool OpenvpnConfig::Marshalling(Parcel &parcel) const
     return true;
 }
 
-sptr<OpenvpnConfig> OpenvpnConfig::Unmarshalling(Parcel &parcel)
+OpenvpnConfig* OpenvpnConfig::Unmarshalling(Parcel &parcel)
 {
-    sptr<OpenvpnConfig> ptr = new (std::nothrow) OpenvpnConfig();
+    OpenvpnConfig* ptr = new (std::nothrow) OpenvpnConfig();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("OpenvpnConfig ptr is null");
         return nullptr;

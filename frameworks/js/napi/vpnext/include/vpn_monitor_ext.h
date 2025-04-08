@@ -35,8 +35,8 @@ namespace NetManagerStandard {
 static constexpr const char *VPN_DIALOG_POSTFIX = "**vpndialog**";
 class VpnEventCallback : public VpnEventCallbackStub {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override;
-    void OnVpnMultiUserSetUp() override{};
+    int32_t OnVpnStateChanged(bool &isConnected) override;
+    int32_t OnVpnMultiUserSetUp() override{ return ERR_OK; };
 };
 
 class VpnMonitor {

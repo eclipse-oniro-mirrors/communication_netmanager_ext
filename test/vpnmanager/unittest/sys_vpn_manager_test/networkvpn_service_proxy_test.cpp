@@ -17,7 +17,7 @@
 
 #include "ipsecvpn_config.h"
 #include "netmanager_ext_test_security.h"
-#include "networkvpn_service_proxy.h"
+#include "network_vpn_service_proxy.h"
 #include "net_manager_constants.h"
 
 namespace OHOS {
@@ -39,10 +39,10 @@ public:
     int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
     {
         switch (code) {
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG):
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_DELETE_SYS_VPN_CONFIG):
                 reply.WriteString("test1");
                 break;
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG): {
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_GET_SYS_VPN_CONFIG): {
                 sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
                 if (config == nullptr) {
                     return eCode;
@@ -54,11 +54,11 @@ public:
                 reply.WriteString("test1");
                 break;
             }
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG):
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG):
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_START_VPN):
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_SETUP_SYS_VPN):
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG_LIST): {
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_GET_CONNECTED_SYS_VPN_CONFIG):
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_ADD_SYS_VPN_CONFIG):
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN):
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN_IN_SYSVPNCONFIG):
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_GET_SYS_VPN_CONFIG_LIST): {
                 sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
                 if (config == nullptr) {
                     return eCode;
@@ -69,12 +69,12 @@ public:
                 config->Marshalling(reply);
                 break;
             }
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE): {
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_NOTIFY_CONNECT_STAGE): {
                 reply.WriteString("stop");
                 reply.WriteInt32(1);
                 break;
             }
-            case static_cast<uint32_t>(INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CERT_URI):
+            case static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_GET_SYS_VPN_CERT_URI):
                 reply.WriteInt32(1);
                 break;
             default:
@@ -158,12 +158,12 @@ HWTEST_F(NetworkVpnServiceProxyTest, SetUpVpn001, TestSize.Level1)
     NetManagerExtAccessToken token;
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
-    auto ret = instance_->SetUpVpn(config, true);
+    auto ret = instance_->SetUpVpn(*config, true);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
     config->vpnId_ = "test4";
     config->vpnName_ = "SetUpVpn001";
     config->vpnType_ = 1;
-    ret = instance_->SetUpVpn(config, true);
+    ret = instance_->SetUpVpn(*config, true);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -171,11 +171,11 @@ HWTEST_F(NetworkVpnServiceProxyTest, SetUpVpn002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     sptr<SysVpnConfig> config = nullptr;
-    auto ret = instance_->SetUpVpn(config);
+    auto ret = instance_->SetUpVpn(*config);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
-    ret = instance_->SetUpVpn(config);
+    ret = instance_->SetUpVpn(*config);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -183,11 +183,11 @@ HWTEST_F(NetworkVpnServiceProxyTest, AddSysVpnConfig001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     sptr<SysVpnConfig> config = nullptr;
-    auto ret = instance_->AddSysVpnConfig(config);
+    auto ret = instance_->AddSysVpnConfig(*config);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
-    ret = instance_->AddSysVpnConfig(config);
+    ret = instance_->AddSysVpnConfig(*config);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -203,9 +203,9 @@ HWTEST_F(NetworkVpnServiceProxyTest, GetSysVpnConfig001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     std::string vpnId;
-    sptr<SysVpnConfig> resConfig = nullptr;
-    auto ret = instance_->GetSysVpnConfig(resConfig, vpnId);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    sptr<SysVpnConfig> resConfig = new (std::nothrow) IpsecVpnConfig();
+    auto ret = instance_->GetSysVpnConfig(*resConfig, vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceProxyTest, NotifyConnectStage001, TestSize.Level1)

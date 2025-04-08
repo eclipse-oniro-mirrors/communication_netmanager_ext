@@ -25,8 +25,8 @@
 #include <refbase.h>
 #include <unistd.h>
 
-#include "i_networkvpn_service.h"
-#include "i_vpn_event_callback.h"
+#include "inetwork_vpn_service.h"
+#include "ivpn_event_callback.h"
 #include "vpn_event_callback_stub.h"
 #include "vpn_interface.h"
 
@@ -35,8 +35,8 @@ namespace NetManagerStandard {
 
 class VpnSetUpEventCallback : public VpnEventCallbackStub {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override{};
-    void OnVpnMultiUserSetUp() override;
+    int32_t OnVpnStateChanged(bool &isConnected) override{ return ERR_OK; };
+    int32_t OnVpnMultiUserSetUp() override;
 };
 
 class NetworkVpnClient {

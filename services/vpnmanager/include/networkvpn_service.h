@@ -21,7 +21,7 @@
 #include "event_handler.h"
 #include "i_vpn_conn_state_cb.h"
 #include "net_vpn_impl.h"
-#include "networkvpn_service_stub.h"
+#include "network_vpn_service_stub.h"
 #include "os_account_manager.h"
 #include "singleton.h"
 #include "system_ability.h"
@@ -105,7 +105,7 @@ public:
     /**
      * This function is called when the three-party vpn application negotiation ends
      */
-    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override;
+    int32_t SetUpVpn(const VpnConfig &config, bool isVpnExtCall = false) override;
 
     /**
      * protect vpn tunnel
@@ -121,12 +121,12 @@ public:
     /**
      * This function is called when the system vpn application negotiation ends
      */
-    int32_t SetUpVpn(const sptr<SysVpnConfig> &config) override;
+    int32_t SetUpVpn(const SysVpnConfig &config) override;
 
     /**
      * save the vpn config
      */
-    int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override;
+    int32_t AddSysVpnConfig(SysVpnConfig &config) override;
 
     /**
      * get the vpn config list
@@ -141,17 +141,17 @@ public:
     /**
      * get the vpn config
      */
-    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) override;
+    int32_t GetSysVpnConfig(SysVpnConfig &config, const std::string &vpnId) override;
 
     /**
      * get the vpn connection state
      */
-    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
+    int32_t GetConnectedSysVpnConfig(SysVpnConfig &config) override;
 
     /**
      * notify the vpn connection stage and result
      */
-    int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
+    int32_t NotifyConnectStage(const std::string &stage, const int32_t result) override;
 
     int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
 #endif // SUPPORT_SYSVPN
@@ -159,12 +159,12 @@ public:
     /**
      * register callback
      */
-    int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) override;
+    int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> &callback) override;
 
     /**
      * unregister callback
      */
-    int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) override;
+    int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> &callback) override;
 
     /**
      * create the vpn connection

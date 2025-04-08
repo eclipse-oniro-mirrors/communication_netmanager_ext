@@ -24,7 +24,7 @@
 #include "mock_networkvpn_service_stub_test.h"
 #include "mock_vpn_event_callback_test.h"
 #include "net_manager_constants.h"
-#include "networkvpn_service_stub.h"
+#include "network_vpn_service_stub.h"
 #include "netmanager_ext_test_security.h"
 #include "sharing_event_callback_stub.h"
 
@@ -36,14 +36,14 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     static inline std::shared_ptr<NetworkVpnServiceStub> instance_ = std::make_shared<MockNetworkVpnServiceStub>();
-    static int32_t SendRemoteRequest(MessageParcel &data, INetworkVpnService::MessageCode code);
+    static int32_t SendRemoteRequest(MessageParcel &data, INetworkVpnServiceIpcCode code);
 };
 
 void NetworkVpnServiceStubTest::SetUpTestCase() {}
 
 void NetworkVpnServiceStubTest::TearDownTestCase() {}
 
-int32_t NetworkVpnServiceStubTest::SendRemoteRequest(MessageParcel &data, INetworkVpnService::MessageCode code)
+int32_t NetworkVpnServiceStubTest::SendRemoteRequest(MessageParcel &data, INetworkVpnServiceIpcCode code)
 {
     if (instance_ == nullptr) {
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -60,7 +60,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest001, TestSize.Level1
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_ADD_SYS_VPN_CONFIG);
 
     // config is null
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
@@ -83,7 +83,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyAddSysVpnConfigTest002, TestSize.Level1
     if (!config->Marshalling(data)) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_ADD_SYS_VPN_CONFIG);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -94,7 +94,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest001, TestSize.Lev
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_DELETE_SYS_VPN_CONFIG);
 
     // vpnId is null
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
@@ -111,7 +111,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyDeleteSysVpnConfigTest002, TestSize.Lev
     if (!data.WriteString(vpnId)) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_DELETE_SYS_VPN_CONFIG);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_DELETE_SYS_VPN_CONFIG);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -122,7 +122,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigListTest001, TestSize.Le
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG_LIST);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_GET_SYS_VPN_CONFIG_LIST);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -133,7 +133,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest001, TestSize.Level1
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_GET_SYS_VPN_CONFIG);
 
     // vpnId is null
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
@@ -150,7 +150,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnConfigTest002, TestSize.Level1
     if (!data.WriteString(vpnId)) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_SYS_VPN_CONFIG);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_GET_SYS_VPN_CONFIG);
 
     // vpnId is null
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -163,7 +163,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyGetConnectedSysVpnConfigTest001, TestSi
     if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_GET_CONNECTED_SYS_VPN_CONFIG);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_GET_CONNECTED_SYS_VPN_CONFIG);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -176,90 +176,20 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyNotifyConnectStageTest001, TestSize.Lev
     }
     data.WriteString("stop");
     data.WriteInt32(100);
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_NOTIFY_CONNECT_STAGE);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnCertUriTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    int32_t ret = instance_->ReplyGetSysVpnCertUri(data, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-    data.WriteInt32(1);
-    ret = instance_->ReplyGetSysVpnCertUri(data, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpSysVpn001, TestSize.Level1)
-{
-    MessageParcel data;
-    std::string vpnId = "test1";
-    data.WriteString(vpnId);
-    MessageParcel reply;
-    int32_t ret = instance_->ReplySetUpSysVpn(data, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-    MessageParcel data1;
-    data1.WriteString(vpnId);
-    data1.WriteInt32(1);
-    ret = instance_->ReplySetUpSysVpn(data1, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyNotifyConnectStage001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    int32_t ret = instance_->ReplyNotifyConnectStage(data, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-    std::string stage = "test3";
-    data.WriteString(stage);
-    ret = instance_->ReplyNotifyConnectStage(data, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-    MessageParcel data1;
-    data1.WriteString(stage);
-    data1.WriteInt32(1);
-    ret = instance_->ReplyNotifyConnectStage(data1, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyGetSysVpnCertUri001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    int32_t ret = instance_->ReplyGetSysVpnCertUri(data, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
-    data.WriteInt32(1);
-    ret = instance_->ReplyGetSysVpnCertUri(data, reply);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, CheckVpnPermission001, TestSize.Level1)
-{
-    NetManagerExtAccessToken access;
-    std::string strPermission = "TEST_PERMISSION";
-    int32_t ret = instance_->CheckVpnPermission(strPermission);
-    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, CheckVpnPermission002, TestSize.Level1)
-{
-    NetManagerExtNotSystemAccessToken token;
-    std::string strPermission = "TEST_PERMISSION";
-    int32_t ret = instance_->CheckVpnPermission(strPermission);
-    EXPECT_EQ(ret, NETMANAGER_ERR_NOT_SYSTEM_CALL);
 }
 
 HWTEST_F(NetworkVpnServiceStubTest, OnRemoteRequest001, TestSize.Level1)
 {
     MessageParcel data;
-    int32_t ret = SendRemoteRequest(data, INetworkVpnService::MessageCode::CMD_NOTIFY_CONNECT_STAGE);
+    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_NOTIFY_CONNECT_STAGE);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_DESCRIPTOR_MISMATCH);
     MessageParcel data1;
     if (!data1.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    ret = SendRemoteRequest(data1, INetworkVpnService::MessageCode::CMD_ADD_SYS_VPN_CONFIG);
+    ret = SendRemoteRequest(data1, INetworkVpnServiceIpcCode::COMMAND_ADD_SYS_VPN_CONFIG);
     EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
 }
 } // namespace NetManagerStandard

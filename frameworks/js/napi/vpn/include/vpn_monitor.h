@@ -26,8 +26,8 @@ namespace OHOS {
 namespace NetManagerStandard {
 class VpnEventCallback : public VpnEventCallbackStub {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override;
-    void OnVpnMultiUserSetUp() override{};
+    int32_t OnVpnStateChanged(bool &isConnected) override;
+    int32_t OnVpnMultiUserSetUp() override{ return ERR_OK; };
 };
 
 class VpnMonitor {

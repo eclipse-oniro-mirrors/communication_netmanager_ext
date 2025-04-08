@@ -16,8 +16,8 @@
 #ifndef MOCK_NETWORKVPN_SERVICE_STUB_TEST_H
 #define MOCK_NETWORKVPN_SERVICE_STUB_TEST_H
 
-#include "i_networkvpn_service.h"
-#include "networkvpn_service_stub.h"
+#include "inetwork_vpn_service.h"
+#include "network_vpn_service_stub.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -28,7 +28,7 @@ public:
         return 0;
     }
 
-    int32_t SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall = false) override
+    int32_t SetUpVpn(const VpnConfig &config, bool isVpnExtCall = false) override
     {
         return 0;
     }
@@ -44,12 +44,12 @@ public:
     }
 
 #ifdef SUPPORT_SYSVPN
-    int32_t SetUpVpn(const sptr<SysVpnConfig> &config) override
+    int32_t SetUpVpn(const SysVpnConfig &config) override
     {
         return 0;
     }
 
-    int32_t AddSysVpnConfig(sptr<SysVpnConfig> &config) override
+    int32_t AddSysVpnConfig(SysVpnConfig &config) override
     {
         return 0;
     }
@@ -64,17 +64,17 @@ public:
         return 0;
     }
 
-    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) override
+    int32_t GetSysVpnConfig(SysVpnConfig &config, const std::string &vpnId) override
     {
         return 0;
     }
 
-    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override
+    int32_t GetConnectedSysVpnConfig(SysVpnConfig &config) override
     {
         return 0;
     }
 
-    int32_t NotifyConnectStage(const std::string &stage, const int32_t &errorCode) override
+    int32_t NotifyConnectStage(const std::string &stage, const int32_t errorCode) override
     {
         return 0;
     }
@@ -85,12 +85,12 @@ public:
     }
 #endif // SUPPORT_SYSVPN
 
-    int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> callback) override
+    int32_t RegisterVpnEvent(const sptr<IVpnEventCallback>& callback) override
     {
         return 0;
     }
 
-    int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback> callback) override
+    int32_t UnregisterVpnEvent(const sptr<IVpnEventCallback>& callback) override
     {
         return 0;
     }

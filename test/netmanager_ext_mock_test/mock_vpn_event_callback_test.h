@@ -16,15 +16,15 @@
 #ifndef MOCK_VPN_EVENT_CALLBACK_TEST_H
 #define MOCK_VPN_EVENT_CALLBACK_TEST_H
 
-#include "i_vpn_event_callback.h"
+#include "ivpn_event_callback.h"
 #include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class MockIVpnEventCallback : public IRemoteStub<IVpnEventCallback> {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override {};
-    void OnVpnMultiUserSetUp() override {};
+    int32_t OnVpnStateChanged(bool &isConnected) override { return 0; };
+    int32_t OnVpnMultiUserSetUp() override { return 0; };
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

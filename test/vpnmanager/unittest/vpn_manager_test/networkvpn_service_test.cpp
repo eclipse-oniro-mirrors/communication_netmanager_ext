@@ -37,8 +37,8 @@ using namespace testing::ext;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 class VpnEventTestCallback : public VpnEventCallbackStub {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override{};
-    void OnVpnMultiUserSetUp() override{};
+    int32_t OnVpnStateChanged(bool &isConnected) override{ return 0; };
+    int32_t OnVpnMultiUserSetUp() override{ return 0; };
 };
 } // namespace
 
@@ -121,11 +121,11 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
     std::vector<int32_t> activeUserIds;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(instance_->SetUpVpn(*config), NETMANAGER_ERR_PERMISSION_DENIED);
 
     userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(config), NETMANAGER_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(instance_->SetUpVpn(*config), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)

@@ -50,6 +50,7 @@ ohos_unittest("vpn_manager_test") {
 
   deps = [
     "$EXT_INNERKITS_ROOT/netvpnclient:net_vpn_manager_if",
+    "$EXT_INNERKITS_ROOT/netvpnclient:networkvpn_interface_stub",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager:net_vpn_manager_static",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]

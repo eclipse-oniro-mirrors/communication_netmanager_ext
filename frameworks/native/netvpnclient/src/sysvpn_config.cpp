@@ -42,7 +42,7 @@ bool SysVpnConfig::Marshalling(Parcel &parcel) const
     return allOK;
 }
 
-sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
+SysVpnConfig* SysVpnConfig::Unmarshalling(Parcel &parcel)
 {
     // get vpnType first
     int32_t type = -1;
@@ -67,7 +67,7 @@ sptr<SysVpnConfig> SysVpnConfig::Unmarshalling(Parcel &parcel)
     }
 }
 
-bool SysVpnConfig::Unmarshalling(Parcel &parcel, sptr<SysVpnConfig> ptr)
+bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
 {
     bool allOK = VpnConfig::UnmarshallingVpnConfig(parcel, ptr) &&
                  parcel.ReadString(ptr->vpnId_) &&

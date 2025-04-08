@@ -46,8 +46,8 @@ using namespace testing::ext;
 
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override{};
-    void OnVpnMultiUserSetUp() override{};
+    int32_t OnVpnStateChanged(bool &isConnected) override{ return 0; };
+    int32_t OnVpnMultiUserSetUp() override{ return 0; };
 };
 
 class NetworkVpnClientTest : public testing::Test {

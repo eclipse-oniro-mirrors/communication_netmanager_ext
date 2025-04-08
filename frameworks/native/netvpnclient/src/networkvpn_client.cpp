@@ -25,6 +25,7 @@
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
+#include "network_vpn_service_proxy.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -32,10 +33,11 @@ namespace NetManagerStandard {
 static constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
 static constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 
-void VpnSetUpEventCallback::OnVpnMultiUserSetUp()
+int32_t VpnSetUpEventCallback::OnVpnMultiUserSetUp()
 {
     NETMGR_EXT_LOG_I("vpn multiple user setup event.");
     NetworkVpnClient::GetInstance().multiUserSetUpEvent();
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 NetworkVpnClient &NetworkVpnClient::GetInstance()
@@ -91,7 +93,7 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool 
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     NETMGR_EXT_LOG_I("enter SetUpVpn 1, %{public}d", isVpnExtCall);
-    int32_t result = proxy->SetUpVpn(config, isVpnExtCall);
+    int32_t result = proxy->SetUpVpn(*config, isVpnExtCall);
     if (result != NETMANAGER_EXT_SUCCESS) {
         tunFd = 0;
         return result;
@@ -145,7 +147,7 @@ int32_t NetworkVpnClient::SetUpVpn(const sptr<SysVpnConfig> &config)
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     NETMGR_EXT_LOG_I("SetUpVpn id=%{public}s", config->vpnId_.c_str());
-    return proxy->SetUpVpn(config);
+    return proxy->SetUpVpn(*config);
 }
 
 int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
@@ -159,7 +161,7 @@ int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("AddSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->AddSysVpnConfig(config);
+    return proxy->AddSysVpnConfig(*config);
 }
 
 int32_t NetworkVpnClient::DeleteSysVpnConfig(const std::string &vpnId)
@@ -197,7 +199,7 @@ int32_t NetworkVpnClient::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std:
         NETMGR_EXT_LOG_E("GetSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetSysVpnConfig(config, vpnId);
+    return proxy->GetSysVpnConfig(*config, vpnId);
 }
 
 int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
@@ -207,7 +209,7 @@ int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("GetConnectedSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetConnectedSysVpnConfig(config);
+    return proxy->GetConnectedSysVpnConfig(*config);
 }
 
 int32_t NetworkVpnClient::NotifyConnectStage(const std::string &stage, const int32_t &result)
@@ -322,7 +324,7 @@ void NetworkVpnClient::RecoverCallback()
     }
     auto proxy = GetProxy();
     if (proxy != nullptr && clientVpnConfig_.first != nullptr) {
-        proxy->SetUpVpn(clientVpnConfig_.first, clientVpnConfig_.second);
+        proxy->SetUpVpn(*clientVpnConfig_.first, clientVpnConfig_.second);
     }
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
     if (proxy != nullptr && vpnEventCallback_ != nullptr) {
