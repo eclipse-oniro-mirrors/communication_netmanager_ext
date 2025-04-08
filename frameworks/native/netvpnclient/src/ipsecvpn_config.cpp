@@ -38,9 +38,9 @@ bool IpsecVpnConfig::Marshalling(Parcel &parcel) const
     return allOK;
 }
 
-sptr<IpsecVpnConfig> IpsecVpnConfig::Unmarshalling(Parcel &parcel)
+IpsecVpnConfig* IpsecVpnConfig::Unmarshalling(Parcel &parcel)
 {
-    sptr<IpsecVpnConfig> ptr = new (std::nothrow) IpsecVpnConfig();
+    IpsecVpnConfig* ptr = new (std::nothrow) IpsecVpnConfig();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("IpsecVpnConfig ptr is null");
         return nullptr;

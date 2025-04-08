@@ -72,9 +72,9 @@ bool VpnConfig::MarshallingVectorString(Parcel &parcel, const std::vector<std::s
     return true;
 }
 
-sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
+VpnConfig* VpnConfig::Unmarshalling(Parcel &parcel)
 {
-    sptr<VpnConfig> ptr = new (std::nothrow) VpnConfig();
+    VpnConfig* ptr = new (std::nothrow) VpnConfig();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;
@@ -84,7 +84,7 @@ sptr<VpnConfig> VpnConfig::Unmarshalling(Parcel &parcel)
     return allOK ? ptr : nullptr;
 }
 
-bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, sptr<VpnConfig> ptr)
+bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, VpnConfig* ptr)
 {
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("VpnConfig ptr is null");
@@ -100,7 +100,7 @@ bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, sptr<VpnConfig> ptr)
     return allOK;
 }
 
-bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, sptr<VpnConfig> &config)
+bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, VpnConfig* config)
 {
     int32_t addrSize = 0;
     if (!parcel.ReadInt32(addrSize)) {
@@ -157,6 +157,5 @@ bool VpnConfig::UnmarshallingVectorString(Parcel &parcel, std::vector<std::strin
     }
     return true;
 }
-
 } // namespace NetManagerStandard
 } // namespace OHOS

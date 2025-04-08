@@ -79,11 +79,12 @@ bool CheckParamType(napi_env env, napi_value *params, size_t paramsCount)
 }
 } // namespace
 
-void VpnEventCallback::OnVpnStateChanged(const bool &isConnected)
+int32_t VpnEventCallback::OnVpnStateChanged(bool &isConnected)
 {
     auto manager = VpnMonitor::GetInstance().GetManager();
     bool *data = new bool(isConnected);
     manager->EmitByUv(CONNECT, reinterpret_cast<void *>(data), EventConnectCallback);
+    return ERR_OK;
 }
 
 VpnMonitor::VpnMonitor()

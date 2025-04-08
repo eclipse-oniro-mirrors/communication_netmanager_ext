@@ -43,7 +43,7 @@ struct L2tpVpnConfig : SysVpnConfig {
     std::string l2tpSharedKey_;
 
     bool Marshalling(Parcel &parcel) const override;
-    static sptr<L2tpVpnConfig> Unmarshalling(Parcel &parcel);
+    static L2tpVpnConfig* Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

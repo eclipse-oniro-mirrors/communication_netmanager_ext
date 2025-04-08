@@ -214,7 +214,8 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
     std::function<void()> OnVpnConnStateChangedFunction = [this, &state]() {
         std::for_each(vpnService_.vpnEventCallbacks_.begin(), vpnService_.vpnEventCallbacks_.end(),
                       [&state](const auto &callback) {
-                          callback->OnVpnStateChanged((VpnConnectState::VPN_CONNECTED == state) ? true : false);
+                          bool isConnected = (VpnConnectState::VPN_CONNECTED == state) ? true : false;
+                          callback->OnVpnStateChanged(isConnected);
                       });
     };
     ffrt::task_handle OnVpnConnStateTask =
@@ -240,8 +241,24 @@ void NetworkVpnService::OnVpnMultiUserSetUp()
     networkVpnServiceFfrtQueue_->wait(OnVpnMultiUserSetUpTask);
 }
 
+int32_t NetworkVpnService::CheckIpcPermission(const std::string &strPermission)
+{
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("is not system call");
+        return NETMANAGER_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!strPermission.empty() && !NetManagerPermission::CheckPermission(strPermission)) {
+        NETMGR_EXT_LOG_E("Permission denied permission: %{public}s", strPermission.c_str());
+        return NETMANAGER_ERR_PERMISSION_DENIED;
+    }
+    return NETMANAGER_SUCCESS;
+}
+
 int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
 {
+    int32_t ret = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (ret != NETMANAGER_SUCCESS)
+        return ret;
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     isRun = false;
     isExistVpn = false;
@@ -473,7 +490,7 @@ void NetworkVpnService::RecoverVpnConfig()
     std::string jsonString;
     std::getline(ifs, jsonString);
     ParseJsonToConfig(vpnCfg, jsonString);
-    SetUpVpn(vpnCfg);
+    SetUpVpn(*vpnCfg);
 }
 
 void NetworkVpnService::ConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr)
@@ -584,15 +601,19 @@ bool NetworkVpnService::CheckVpnPermission(const std::string &bundleName)
     return true;
 }
 
-int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExtCall)
+int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
+    std::string isExtPermission = isVpnExtCall ? "" : std::string(Permission::MANAGE_VPN);
+    int32_t checkPermission = CheckIpcPermission(isExtPermission);
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
     std::unique_lock<std::mutex> locker(netVpnMutex_);
+    sptr<VpnConfig> configPtr = sptr<VpnConfig>::MakeSptr(config);
     std::string vpnBundleName = GetBundleName();
     if (!CheckVpnPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -600,7 +621,6 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
-
     if (vpnObj_ != nullptr) {
         if (vpnObj_->GetUserId() == userId) {
             NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");
@@ -610,13 +630,11 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<VpnConfig> &config, bool isVpnExt
             return NETWORKVPN_ERROR_VPN_EXIST;
         }
     }
-
-    vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    vpnObj_ = std::make_shared<ExtendedVpnCtl>(configPtr, "", userId, activeUserIds);
     if (vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("SetUpVpn register internal callback fail.");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
     ret = vpnObj_->SetUp();
     if (ret == NETMANAGER_EXT_SUCCESS) {
         hasOpenedVpnUid_ = IPCSkeleton::GetCallingUid();
@@ -641,6 +659,11 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
      * Only permission verification is performed and
      * the protected socket implements fwmark_service in the netsys process.
      */
+    std::string isExtPermission = isVpnExtCall ?  "" : std::string(Permission::MANAGE_VPN);
+    int32_t checkPermission = CheckIpcPermission(isExtPermission);
+    if (checkPermission  != NETMANAGER_SUCCESS) {
+        return checkPermission;
+    }
     NETMGR_EXT_LOG_I("Protect vpn tunnel successfully.");
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -648,6 +671,11 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("DestroyVpn in");
+    std::string isExtPermission = isVpnExtCall ?  "" : std::string(Permission::MANAGE_VPN);
+    int32_t checkPermission = CheckIpcPermission(isExtPermission);
+    if (checkPermission  != NETMANAGER_SUCCESS) {
+        return checkPermission;
+    }
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!CheckVpnPermission(vpnBundleName)) {
@@ -680,12 +708,8 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
-int32_t NetworkVpnService::SetUpVpn(const sptr<SysVpnConfig> &config)
+int32_t NetworkVpnService::SetUpVpn(const SysVpnConfig &config)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("config is null.");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -720,7 +744,7 @@ int32_t NetworkVpnService::SetUpVpn(const sptr<SysVpnConfig> &config)
 }
 
 std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
-    const sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
+    const SysVpnConfig &config, int32_t userId, std::vector<int32_t> &activeUserIds)
 {
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
@@ -773,17 +797,13 @@ std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateL2tpCtl(sptr<VpnDataBean> 
     return sysVpnCtl;
 }
 
-int32_t NetworkVpnService::QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean)
+int32_t NetworkVpnService::QueryVpnData(const SysVpnConfig config, sptr<VpnDataBean> &vpnBean)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("QueryVpnData failed, param is null");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, config->vpnId_);
+    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, config.vpnId_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("query vpn data failed");
     }
@@ -821,9 +841,13 @@ std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtl(sptr<VpnDataBe
     return sysVpnCtl;
 }
 
-int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
+int32_t NetworkVpnService::AddSysVpnConfig(SysVpnConfig &config)
 {
-    if (config == nullptr) {
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
+    sptr<SysVpnConfig> configPtr = sptr<SysVpnConfig>::MakeSptr(config);
+    if (configPtr == nullptr) {
         NETMGR_EXT_LOG_E("config is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
@@ -837,19 +861,24 @@ int32_t NetworkVpnService::AddSysVpnConfig(sptr<SysVpnConfig> &config)
     }
 
     NETMGR_EXT_LOG_I("AddSysVpnConfig id=%{public}s type=%{public}d",
-        config->vpnId_.c_str(), config->vpnType_);
-    config->userId_ = userId;
+        configPtr->vpnId_.c_str(), configPtr->vpnType_);
+    configPtr->userId_ = userId;
 
-    sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
+    sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(configPtr);
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    return VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
+    ret = VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
+    config = *configPtr;
+    return ret;
 }
 
 int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
 {
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
@@ -869,6 +898,9 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
 
 int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
 {
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -880,8 +912,11 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
     return VpnDatabaseHelper::GetInstance().QueryAllData(vpnList, userId);
 }
 
-int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
+int32_t NetworkVpnService::GetSysVpnConfig(SysVpnConfig &config, const std::string &vpnId)
 {
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("vpnId is empty");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
@@ -906,12 +941,16 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std
         NETMGR_EXT_LOG_E("QueryVpnData failed, result = %{public}d", result);
         return result;
     }
-    config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
+    config = *VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
+int32_t NetworkVpnService::GetConnectedSysVpnConfig(SysVpnConfig &config)
 {
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
+    sptr<SysVpnConfig> configPtr = new (std::nothrow) SysVpnConfig();
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -926,10 +965,12 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
         return NETMANAGER_EXT_SUCCESS;
     }
     NETMGR_EXT_LOG_I("SystemVpn GetConnectedSysVpnConfig");
-    return vpnObj_->GetConnectedSysVpnConfig(config);
+    ret = vpnObj_->GetConnectedSysVpnConfig(configPtr);
+    config = *configPtr;
+    return ret;
 }
 
-int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const int32_t &result)
+int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const int32_t result)
 {
     uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
     if (callingUid != UID_NET_SYS_NATIVE) {
@@ -961,8 +1002,11 @@ int32_t NetworkVpnService::GetSysVpnCertUri(const int32_t certType, std::string 
 }
 #endif // SUPPORT_SYSVPN
 
-int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> callback)
+int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callback)
 {
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
@@ -975,8 +1019,11 @@ int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> callba
     return ret;
 }
 
-int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> callback)
+int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> &callback)
 {
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS)
+        return checkPermission;
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");

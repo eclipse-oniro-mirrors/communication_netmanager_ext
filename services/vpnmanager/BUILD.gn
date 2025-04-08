@@ -41,8 +41,6 @@ config("net_vpn_manager_config") {
 
 net_vpn_manager_sources = [
   "$VPNMANAGER_SOURCE_DIR/src/extended_vpn_ctl.cpp",
-  "$VPNMANAGER_SOURCE_DIR/src/ipc/networkvpn_service_stub.cpp",
-  "$VPNMANAGER_SOURCE_DIR/src/ipc/vpn_event_callback_proxy.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/net_vpn_impl.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/networkvpn_hisysevent.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/networkvpn_service.cpp",
@@ -109,6 +107,7 @@ ohos_shared_library("net_vpn_manager") {
 
   sources = net_vpn_manager_sources
   deps = net_vpn_manager_deps
+  deps += [ "$EXT_INNERKITS_ROOT/netvpnclient:networkvpn_interface_stub" ]
   external_deps = net_vpn_manager_external_deps
 
   cflags = memory_optimization_cflags
@@ -169,6 +168,7 @@ ohos_static_library("net_vpn_manager_static") {
   }
 
   deps = net_vpn_manager_deps
+  deps += [ "$EXT_INNERKITS_ROOT/netvpnclient:networkvpn_interface_stub" ]
   external_deps = net_vpn_manager_external_deps
 
   part_name = "netmanager_ext"

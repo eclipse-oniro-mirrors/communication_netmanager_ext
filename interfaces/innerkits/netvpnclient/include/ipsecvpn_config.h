@@ -38,7 +38,7 @@ struct IpsecVpnConfig : SysVpnConfig {
     std::string ipsecPublicServerCertFilePath_;
 
     bool Marshalling(Parcel &parcel) const override;
-    static sptr<IpsecVpnConfig> Unmarshalling(Parcel &parcel);
+    static IpsecVpnConfig* Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

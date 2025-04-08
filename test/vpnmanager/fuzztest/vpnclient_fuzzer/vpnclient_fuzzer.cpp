@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "i_vpn_event_callback.h"
+#include "ivpn_event_callback.h"
 #include "netmanager_ext_test_security.h"
 #include "networkvpn_service.h"
 #include "refbase.h"
@@ -98,11 +98,12 @@ Route GetRouteData()
 
 class VpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    void OnVpnStateChanged(const bool &isConnected) override{};
-    void OnVpnMultiUserSetUp() override{};
+    int32_t OnVpnStateChanged(bool &isConnected) override { return 0; };
+    int32_t OnVpnMultiUserSetUp()override { return 0; };
 };
 
-__attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(INetworkVpnService::MessageCode code, MessageParcel &data)
+__attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(INetworkVpnServiceIpcCode code,
+    MessageParcel &data)
 {
     MessageParcel reply;
     MessageOption option;
@@ -124,7 +125,7 @@ void PrepareFuzzTest(const uint8_t *data, size_t size)
     if (!dataParcel.WriteInt32(num)) {
         return;
     }
-    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PREPARE, dataParcel);
+    OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_PREPARE, dataParcel);
 }
 
 void ProtectFuzzTest(const uint8_t *data, size_t size)
@@ -141,7 +142,7 @@ void ProtectFuzzTest(const uint8_t *data, size_t size)
     if (!dataParcel.WriteInt32(num)) {
         return;
     }
-    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_PROTECT, dataParcel);
+    OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_PROTECT, dataParcel);
 }
 
 void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
@@ -155,7 +156,7 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    VpnConfig* config = new (std::nothrow) VpnConfig();
     config->addresses_.emplace_back(GetAddressData());
     config->routes_.emplace_back(GetRouteData());
     config->mtu_ = GetData<int32_t>();
@@ -171,7 +172,7 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
     if (!config->Marshalling(dataParcel)) {
         return;
     }
-    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_START_VPN, dataParcel);
+    OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN, dataParcel);
 }
 
 void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
@@ -188,7 +189,7 @@ void DestroyVpnFuzzTest(const uint8_t *data, size_t size)
     if (!dataParcel.WriteInt32(num)) {
         return;
     }
-    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_STOP_VPN, dataParcel);
+    OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_DESTROY_VPN, dataParcel);
 }
 
 void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
@@ -210,7 +211,7 @@ void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
     if (!dataParcel.WriteInt32(num)) {
         return;
     }
-    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_REGISTER_EVENT_CALLBACK, dataParcel);
+    OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_REGISTER_VPN_EVENT, dataParcel);
 }
 
 void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
@@ -232,7 +233,7 @@ void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
     if (!dataParcel.WriteInt32(num)) {
         return;
     }
-    OnRemoteRequest(INetworkVpnService::MessageCode::CMD_UNREGISTER_EVENT_CALLBACK, dataParcel);
+    OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_UNREGISTER_VPN_EVENT, dataParcel);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

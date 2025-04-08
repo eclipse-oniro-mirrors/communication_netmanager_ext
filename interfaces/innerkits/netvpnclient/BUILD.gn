@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
@@ -18,6 +19,7 @@ config("net_conn_manager_if_config") {
   include_dirs = [
     "include",
     "include/ipc",
+    "${target_gen_dir}",
     "$NETMANAGERNATIVE_ROOT/fwmarkclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
@@ -93,6 +95,39 @@ ohos_source_set("networkvpn_parcel") {
   subsystem_name = "communication"
 }
 
+idl_gen_interface("networkvpn_interface") {
+  sources = [ "INetworkVpnService.idl" ]
+  sources_callback = [ "IVpnEventCallback.idl" ]
+}
+
+config("networkvpn_interface_stub_config") {
+  include_dirs = [
+    "include",
+    "${target_gen_dir}",
+  ]
+}
+
+ohos_source_set("networkvpn_interface_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":networkvpn_interface_stub_config" ]
+  output_values = get_target_outputs(":networkvpn_interface")
+  sources = []
+  sources += filter_include(output_values, [ "*ice_stub.cpp" ])
+  sources += filter_include(output_values, [ "*ack_proxy.cpp" ])
+  deps = [ ":networkvpn_interface" ]
+  external_deps = [
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+    "netmanager_base:net_native_manager_if",
+  ]
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
 ohos_shared_library("net_vpn_manager_if") {
   sanitize = {
     cfi = true
@@ -103,15 +138,18 @@ ohos_shared_library("net_vpn_manager_if") {
   branch_protector_ret = "pac_ret"
 
   sources = [
-    "$VPN_INNERKITS_SOURCE_DIR/src/ipc/networkvpn_service_proxy.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/ipc/vpn_event_callback_stub.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/networkvpn_client.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/vpn_interface.cpp",
   ]
 
+  output_values = get_target_outputs(":networkvpn_interface")
+  sources += filter_include(output_values, [ "*ice_proxy.cpp" ])
+  sources += filter_include(output_values, [ "*ack_stub.cpp" ])
+
   public_configs = [ ":net_conn_manager_if_config" ]
 
   deps = [ ":networkvpn_parcel" ]
+  deps += [ ":networkvpn_interface" ]
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
