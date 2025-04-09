@@ -180,8 +180,9 @@ int32_t NetworkShareService::IsSharing(int32_t &sharingStatus)
     return NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
 }
 
-int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
+int32_t NetworkShareService::StartNetworkSharing(int32_t typeInt)
 {
+    SharingIfaceType type = SharingIfaceType(typeInt);
     if (EdmParameterUtils::GetInstance().CheckBoolEdmParameter(NETWORK_SHARE_POLICY_PARAM, "false")) {
         NETMGR_EXT_LOG_E("NetworkSharing start sharing, check EDM param true");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -201,8 +202,9 @@ int32_t NetworkShareService::StartNetworkSharing(const SharingIfaceType &type)
     return ret;
 }
 
-int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
+int32_t NetworkShareService::StopNetworkSharing(int32_t typeInt)
 {
+    SharingIfaceType type = SharingIfaceType(typeInt);
     SetConfigureForShare(false);
     NETMGR_EXT_LOG_I("NetworkSharing stop sharing,type is %{public}d", type);
     if (!NetManagerPermission::IsSystemCaller()) {
@@ -219,7 +221,7 @@ int32_t NetworkShareService::StopNetworkSharing(const SharingIfaceType &type)
     return ret;
 }
 
-int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
+int32_t NetworkShareService::RegisterSharingEvent(const sptr<ISharingEventCallback>& callback)
 {
     NETMGR_EXT_LOG_I("NetworkSharing Register Sharing Event.");
     int id = HiviewDFX::XCollie::GetInstance().SetTimer(NETWORK_TIMER, XCOLLIE_TIMEOUT_DURATION, nullptr, nullptr,
@@ -235,7 +237,7 @@ int32_t NetworkShareService::RegisterSharingEvent(sptr<ISharingEventCallback> ca
     return ret;
 }
 
-int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
+int32_t NetworkShareService::UnregisterSharingEvent(const sptr<ISharingEventCallback>& callback)
 {
     NETMGR_EXT_LOG_I("NetworkSharing UnRegister Sharing Event.");
     if (!NetManagerPermission::IsSystemCaller()) {
@@ -247,8 +249,9 @@ int32_t NetworkShareService::UnregisterSharingEvent(sptr<ISharingEventCallback> 
     return NetworkShareTracker::GetInstance().UnregisterSharingEvent(callback);
 }
 
-int32_t NetworkShareService::GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs)
+int32_t NetworkShareService::GetSharableRegexs(int32_t typeInt, std::vector<std::string> &ifaceRegexs)
 {
+    SharingIfaceType type = SharingIfaceType(typeInt);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -258,19 +261,24 @@ int32_t NetworkShareService::GetSharableRegexs(SharingIfaceType type, std::vecto
     return NetworkShareTracker::GetInstance().GetSharableRegexs(type, ifaceRegexs);
 }
 
-int32_t NetworkShareService::GetSharingState(SharingIfaceType type, SharingIfaceState &state)
+int32_t NetworkShareService::GetSharingState(int32_t typeInt, int32_t &stateInt)
 {
+    SharingIfaceType type = SharingIfaceType(typeInt);
+    SharingIfaceState state = SharingIfaceState(stateInt);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return NetworkShareTracker::GetInstance().GetSharingState(type, state);
+    int32_t ret = NetworkShareTracker::GetInstance().GetSharingState(type, state);
+    stateInt = static_cast<int32_t>(state);
+    return ret;
 }
 
-int32_t NetworkShareService::GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
+int32_t NetworkShareService::GetNetSharingIfaces(int32_t stateInt, std::vector<std::string> &ifaces)
 {
+    SharingIfaceState state = SharingIfaceState(stateInt);
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -399,7 +407,10 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
         servicePtr->GetSharingType(SharingIfaceType::SHARING_BLUETOOTH, "bluetooth;", sharingType);
         if (sharingType.find("wifi") != std::string::npos) {
             std::function<void()> StopNetworkSharingWifi =
-                [servicePtr]() { servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_WIFI); };
+                [servicePtr]() {
+                    servicePtr->StopNetworkSharing(
+                        static_cast<int32_t>(SharingIfaceType::SHARING_WIFI));
+                };
             ffrt::task_handle wifiHandle = ffrt::submit_h(StopNetworkSharingWifi,
                 ffrt::task_attr().name("StopNetworkSharingWifi_task"));
             ffrt::wait({wifiHandle});
@@ -407,7 +418,10 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
         }
         if (sharingType.find("usb") != std::string::npos) {
             std::function<void()> StopNetworkSharingUsb =
-                [servicePtr]() { servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_USB); };
+                [servicePtr]() {
+                    servicePtr->StopNetworkSharing(
+                        static_cast<int32_t>(SharingIfaceType::SHARING_USB));
+                };
             ffrt::task_handle usbHandle = ffrt::submit_h(StopNetworkSharingUsb,
                 ffrt::task_attr().name("StopNetworkSharingUsb_task"));
             ffrt::wait({usbHandle});
@@ -415,7 +429,10 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
         }
         if (sharingType.find("bluetooth") != std::string::npos) {
             std::function<void()> StopNetworkSharingBluetooth =
-                [servicePtr]() { servicePtr->StopNetworkSharing(SharingIfaceType::SHARING_BLUETOOTH); };
+                [servicePtr]() {
+                    servicePtr->StopNetworkSharing(
+                        static_cast<int32_t>(SharingIfaceType::SHARING_BLUETOOTH));
+                };
             ffrt::task_handle bluetoothHandle = ffrt::submit_h(StopNetworkSharingBluetooth,
                 ffrt::task_attr().name("StopNetworkSharingBluetooth_task"));
             ffrt::wait({bluetoothHandle});

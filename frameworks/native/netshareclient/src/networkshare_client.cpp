@@ -21,6 +21,7 @@
 #include "system_ability_definition.h"
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "network_share_service_proxy.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -85,7 +86,7 @@ int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
         NETMGR_EXT_LOG_E("StartSharing proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->StartNetworkSharing(type);
+    return proxy->StartNetworkSharing(static_cast<int32_t>(type));
 }
 
 int32_t NetworkShareClient::StopSharing(const SharingIfaceType &type)
@@ -96,7 +97,7 @@ int32_t NetworkShareClient::StopSharing(const SharingIfaceType &type)
         NETMGR_EXT_LOG_E("StopSharing proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->StopNetworkSharing(type);
+    return proxy->StopNetworkSharing(static_cast<int32_t>(type));
 }
 
 int32_t NetworkShareClient::IsSharingSupported(int32_t &supported)
@@ -163,7 +164,7 @@ int32_t NetworkShareClient::GetSharableRegexs(const SharingIfaceType &type, std:
         NETMGR_EXT_LOG_E("GetSharableRegexs proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetSharableRegexs(type, ifaceRegexs);
+    return proxy->GetSharableRegexs(static_cast<int32_t>(type), ifaceRegexs);
 }
 
 int32_t NetworkShareClient::GetSharingState(const SharingIfaceType &type, SharingIfaceState &state)
@@ -174,7 +175,10 @@ int32_t NetworkShareClient::GetSharingState(const SharingIfaceType &type, Sharin
         NETMGR_EXT_LOG_E("GetSharingState proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetSharingState(type, state);
+    int32_t stateInt = static_cast<int32_t>(state);
+    int32_t ret = proxy->GetSharingState(static_cast<int32_t>(type), stateInt);
+    state = SharingIfaceState(stateInt);
+    return ret;
 }
 
 int32_t NetworkShareClient::GetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
@@ -185,7 +189,7 @@ int32_t NetworkShareClient::GetSharingIfaces(const SharingIfaceState &state, std
         NETMGR_EXT_LOG_E("GetSharingIfaces proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetNetSharingIfaces(state, ifaces);
+    return proxy->GetNetSharingIfaces(static_cast<int32_t>(state), ifaces);
 }
 
 int32_t NetworkShareClient::GetStatsRxBytes(int32_t &bytes)

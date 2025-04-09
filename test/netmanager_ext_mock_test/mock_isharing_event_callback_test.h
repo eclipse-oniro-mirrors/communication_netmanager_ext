@@ -16,7 +16,7 @@
 #ifndef COMMON_I_SHARING_EVENT_CALLBACK_TEST_H
 #define COMMON_I_SHARING_EVENT_CALLBACK_TEST_H
 
-#include "i_sharing_event_callback.h"
+#include "isharing_event_callback.h"
 #include "iremote_object.h"
 #include "networkshare_service.h"
 

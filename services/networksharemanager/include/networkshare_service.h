@@ -24,7 +24,7 @@
 #include "singleton.h"
 #include "system_ability.h"
 #include "errorcode_convertor.h"
-#include "networkshare_service_stub.h"
+#include "network_share_service_stub.h"
 #include "networkshare_tracker.h"
 #include "ffrt.h"
 
@@ -80,37 +80,37 @@ public:
     /**
      * start network by type
      */
-    int32_t StartNetworkSharing(const SharingIfaceType &type) override;
+    int32_t StartNetworkSharing(int32_t type) override;
 
     /**
      * stop network by type
      */
-    int32_t StopNetworkSharing(const SharingIfaceType &type) override;
+    int32_t StopNetworkSharing(int32_t type) override;
 
     /**
      * get sharable regex
      */
-    int32_t GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs) override;
+    int32_t GetSharableRegexs(int32_t type, std::vector<std::string> &ifaceRegexs) override;
 
     /**
      * get sharing type
      */
-    int32_t GetSharingState(SharingIfaceType type, SharingIfaceState &state) override;
+    int32_t GetSharingState(int32_t type, int32_t &state) override;
 
     /**
      * get sharing ifaces
      */
-    int32_t GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces) override;
+    int32_t GetNetSharingIfaces(int32_t state, std::vector<std::string> &ifaces) override;
 
     /**
      * register callback
      */
-    int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback) override;
+    int32_t RegisterSharingEvent(const sptr<ISharingEventCallback>& callback) override;
 
     /**
      * unregister callback
      */
-    int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback) override;
+    int32_t UnregisterSharingEvent(const sptr<ISharingEventCallback>& callback) override;
 
     /**
      * get downlink data bytes
