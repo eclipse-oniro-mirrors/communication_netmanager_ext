@@ -416,8 +416,10 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
         }
         if (sharingType.find("usb") != std::string::npos) {
             std::function<void()> StopNetworkSharingUsb =
-                [servicePtr]() { servicePtr->StopNetworkSharing(
-                    static_cast<int32_t>(SharingIfaceType::SHARING_USB)); };
+                [servicePtr]() {
+                    servicePtr->StopNetworkSharing(
+                        static_cast<int32_t>(SharingfaceType::SHARING_USB));
+                };
             ffrt::task_handle usbHandle = ffrt::submit_h(StopNetworkSharingUsb,
                 ffrt::task_attr().name("StopNetworkSharingUsb_task"));
             ffrt::wait({usbHandle});
