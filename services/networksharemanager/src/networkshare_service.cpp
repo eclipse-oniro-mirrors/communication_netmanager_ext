@@ -407,8 +407,10 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
         servicePtr->GetSharingType(SharingIfaceType::SHARING_BLUETOOTH, "bluetooth;", sharingType);
         if (sharingType.find("wifi") != std::string::npos) {
             std::function<void()> StopNetworkSharingWifi =
-                [servicePtr]() { servicePtr->StopNetworkSharing(
-                    static_cast<int32_t>(SharingIfaceType::SHARING_WIFI)); };
+                [servicePtr]() {
+                    servicePtr->StopNetworkSharing(
+                        static_cast<int32_t>(SharingIfaceType::SHARING_WIFI));
+                };
             ffrt::task_handle wifiHandle = ffrt::submit_h(StopNetworkSharingWifi,
                 ffrt::task_attr().name("StopNetworkSharingWifi_task"));
             ffrt::wait({wifiHandle});
@@ -427,8 +429,10 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
         }
         if (sharingType.find("bluetooth") != std::string::npos) {
             std::function<void()> StopNetworkSharingBluetooth =
-                [servicePtr]() { servicePtr->StopNetworkSharing(
-                    static_cast<int32_t>(SharingIfaceType::SHARING_BLUETOOTH)); };
+                [servicePtr]() {
+                    servicePtr->StopNetworkSharing(
+                        static_cast<int32_t>(SharingIfaceType::SHARING_BLUETOOTH));
+                };
             ffrt::task_handle bluetoothHandle = ffrt::submit_h(StopNetworkSharingBluetooth,
                 ffrt::task_attr().name("StopNetworkSharingBluetooth_task"));
             ffrt::wait({bluetoothHandle});
