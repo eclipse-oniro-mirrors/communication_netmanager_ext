@@ -109,14 +109,14 @@ HWTEST_F(NetworkShareServiceTest, IsSharingTest002, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest001, TestSize.Level1)
 {
-    auto ret = instance_->StartNetworkSharing(SharingIfaceType::SHARING_WIFI);
+    auto ret = instance_->StartNetworkSharing(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI));
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
-    auto ret = instance_->StartNetworkSharing(SharingIfaceType::SHARING_WIFI);
+    auto ret = instance_->StartNetworkSharing(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI));
     int32_t sharingStatus;
     ret = instance_->IsSharing(sharingStatus);
     EXPECT_NE(sharingStatus, NETWORKSHARE_IS_SHARING);
@@ -124,26 +124,26 @@ HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest002, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, StartNetworkSharingTest003, TestSize.Level1)
 {
-    auto ret = instance_->StartNetworkSharing(SharingIfaceType::SHARING_USB);
+    auto ret = instance_->StartNetworkSharing(static_cast<int32_t>(SharingIfaceType::SHARING_USB));
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest001, TestSize.Level1)
 {
-    auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
+    auto ret = instance_->StopNetworkSharing(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI));
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
-    auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
+    auto ret = instance_->StopNetworkSharing(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI));
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_WIFI_SHARING);
 }
 
 HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest003, TestSize.Level1)
 {
-    auto ret = instance_->StopNetworkSharing(SharingIfaceType::SHARING_USB);
+    auto ret = instance_->StopNetworkSharing(static_cast<int32_t>(SharingIfaceType::SHARING_USB));
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
@@ -176,7 +176,7 @@ HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest002, TestSize.Level1
 HWTEST_F(NetworkShareServiceTest, GetSharableRegexsTest001, TestSize.Level1)
 {
     std::vector<std::string> ifaceRegexs;
-    instance_->GetSharableRegexs(SharingIfaceType::SHARING_WIFI, ifaceRegexs);
+    instance_->GetSharableRegexs(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI), ifaceRegexs);
     EXPECT_TRUE(ifaceRegexs.empty());
 }
 
@@ -184,22 +184,22 @@ HWTEST_F(NetworkShareServiceTest, GetSharableRegexsTest002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     std::vector<std::string> ifaceRegexs;
-    instance_->GetSharableRegexs(SharingIfaceType::SHARING_WIFI, ifaceRegexs);
+    instance_->GetSharableRegexs(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI), ifaceRegexs);
     EXPECT_TRUE(ifaceRegexs.empty());
 }
 
 HWTEST_F(NetworkShareServiceTest, GetSharingStateTest001, TestSize.Level1)
 {
-    SharingIfaceState state;
-    auto ret = instance_->GetSharingState(SharingIfaceType::SHARING_WIFI, state);
+    int32_t state;
+    auto ret = instance_->GetSharingState(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI), state);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetSharingStateTest002, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
-    SharingIfaceState state;
-    auto ret = instance_->GetSharingState(SharingIfaceType::SHARING_WIFI, state);
+    int32_t state;
+    auto ret = instance_->GetSharingState(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI), state);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -207,7 +207,7 @@ HWTEST_F(NetworkShareServiceTest, GetNetSharingIfacesTest001, TestSize.Level1)
 {
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
     std::vector<std::string> ifaceRegexs;
-    instance_->GetSharableRegexs(type, ifaceRegexs);
+    instance_->GetSharableRegexs(static_cast<int32_t>(type), ifaceRegexs);
     EXPECT_TRUE(ifaceRegexs.empty());
 }
 
@@ -216,7 +216,7 @@ HWTEST_F(NetworkShareServiceTest, GetNetSharingIfacesTest002, TestSize.Level1)
     NetManagerExtAccessToken token;
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
     std::vector<std::string> ifaceRegexs;
-    instance_->GetSharableRegexs(type, ifaceRegexs);
+    instance_->GetSharableRegexs(static_cast<int32_t>(type), ifaceRegexs);
     EXPECT_TRUE(ifaceRegexs.empty());
 }
 
@@ -321,7 +321,7 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch001, TestSize.Level1)
 
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     std::vector<std::string> ifaces;
-    ret = instance_->GetNetSharingIfaces(state, ifaces);
+    ret = instance_->GetNetSharingIfaces(static_cast<int32_t>(state), ifaces);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -330,7 +330,7 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch002, TestSize.Level1)
     NetManagerExtAccessToken token;
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     std::vector<std::string> ifaces;
-    int32_t ret = instance_->GetNetSharingIfaces(state, ifaces);
+    int32_t ret = instance_->GetNetSharingIfaces(static_cast<int32_t>(state), ifaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 

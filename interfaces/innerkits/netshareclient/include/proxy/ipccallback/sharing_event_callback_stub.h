@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "i_sharing_event_callback.h"
+#include "isharing_event_callback.h"
 #include "iremote_stub.h"
 
 namespace OHOS {

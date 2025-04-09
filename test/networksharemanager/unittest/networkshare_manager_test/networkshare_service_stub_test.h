@@ -23,8 +23,8 @@
 #define protected public
 #endif
 
-#include "i_networkshare_service.h"
-#include "networkshare_service_stub.h"
+#include "inetwork_share_service.h"
+#include "network_share_service_stub.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -43,37 +43,37 @@ public:
         return 0;
     }
 
-    int32_t StartNetworkSharing(const SharingIfaceType &type) override
+    int32_t StartNetworkSharing(int32_t type) override
     {
         return 0;
     }
 
-    int32_t StopNetworkSharing(const SharingIfaceType &type) override
+    int32_t StopNetworkSharing(int32_t type) override
     {
         return 0;
     }
 
-    int32_t GetSharableRegexs(SharingIfaceType type, std::vector<std::string> &ifaceRegexs) override
+    int32_t GetSharableRegexs(int32_t type, std::vector<std::string> &ifaceRegexs) override
     {
         return 0;
     }
 
-    int32_t GetSharingState(SharingIfaceType type, SharingIfaceState &state) override
+    int32_t GetSharingState(int32_t type, int32_t &state) override
     {
         return 0;
     }
 
-    int32_t GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces) override
+    int32_t GetNetSharingIfaces(int32_t state, std::vector<std::string> &ifaces) override
     {
         return 0;
     }
 
-    int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback) override
+    int32_t RegisterSharingEvent(const sptr<ISharingEventCallback>& callback) override
     {
         return 0;
     }
 
-    int32_t UnregisterSharingEvent(sptr<ISharingEventCallback> callback) override
+    int32_t UnregisterSharingEvent(const sptr<ISharingEventCallback>& callback) override
     {
         return 0;
     }

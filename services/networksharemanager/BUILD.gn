@@ -55,7 +55,6 @@ ohos_shared_library("net_tether_manager") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/networkshare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
@@ -64,6 +63,7 @@ ohos_shared_library("net_tether_manager") {
   configs = [ ":net_tether_manager_config" ]
 
   deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
+  deps += [ "$EXT_INNERKITS_ROOT/netshareclient:netshare_service_interface_stub" ]
 
   cflags = [
     "-fvisibility=hidden",
@@ -198,7 +198,6 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/stub/networkshare_service_stub.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/networkshare_utils.cpp",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
@@ -210,6 +209,7 @@ ohos_static_library("net_tether_manager_static") {
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
+  deps += [ "$EXT_INNERKITS_ROOT/netshareclient:netshare_service_interface_stub" ]
 
   external_deps = [
     "ability_base:want",

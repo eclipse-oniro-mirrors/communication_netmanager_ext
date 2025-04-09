@@ -30,7 +30,7 @@
 #include "wifi_ap_msg.h"
 #endif
 
-#include "i_networkshare_service.h"
+#include "inetwork_share_service.h"
 #include "interface_configuration.h"
 #include "net_manager_ext_constants.h"
 #include "netmanager_ext_test_security.h"

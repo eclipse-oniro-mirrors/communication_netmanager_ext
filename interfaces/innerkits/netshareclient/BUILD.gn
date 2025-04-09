@@ -11,11 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("net_conn_manager_if_config") {
   include_dirs = [
+    "${target_gen_dir}",
     "include",
     "include/proxy",
     "include/proxy/ipccallback",
@@ -78,6 +80,41 @@ ohos_source_set("networkshare_parcel") {
   subsystem_name = "communication"
 }
 
+idl_gen_interface("netshare_service_interface") {
+  sources = [ "INetworkShareService.idl" ]
+}
+ 
+config("netshare_service_interface_stub_config") {
+  include_dirs = [
+    "${target_gen_dir}",
+    "include",
+    "include/proxy",
+    "include/proxy/ipccallback",
+    "$EXT_INNERKITS_ROOT/include",
+  ]
+}
+ 
+ohos_source_set("netshare_service_interface_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":netshare_service_interface_stub_config" ]
+  output_values = get_target_outputs(":netshare_service_interface")
+  sources = []
+  sources += filter_include(output_values, [ "*ice_stub.cpp" ])
+  sources += filter_include(output_values, [ "*ack_proxy.cpp" ])
+  deps = [ ":netshare_service_interface" ]
+  external_deps = [
+    "hilog:libhilog",
+    "netmanager_base:net_manager_common",
+    "samgr:samgr_proxy",
+  ]
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
 ohos_shared_library("net_tether_manager_if") {
   sanitize = {
     cfi = true
@@ -95,14 +132,18 @@ ohos_shared_library("net_tether_manager_if") {
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/netshare_result_callback_stub.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/networkshare_service_proxy.cpp",
   ]
+
+  output_values = get_target_outputs(":netshare_service_interface")
+  sources += filter_include(output_values, [ "*ice_proxy.cpp" ])
+  sources += filter_include(output_values, [ "*ack_stub.cpp" ])
 
   version_script = "libnetshare_kits.map"
 
   public_configs = [ ":net_conn_manager_if_config" ]
 
   deps = [ ":networkshare_parcel" ]
+  deps += [ ":netshare_service_interface" ]
 
   external_deps = [
     "c_utils:utils",
