@@ -24,7 +24,7 @@
             "SystemCapability.Communication.NetManager.NetSharing",
             "SystemCapability.Communication.NetManager.MDNS",
             "SystemCapability.Communication.NetManager.Vpn",
-            "SystemCapability.Communication.NetManager.NetFirewall",
+            "SystemCapability.Communication.NetManager.NetFirewall = false",
             "SystemCapability.Communication.NetManager.WearableDistributedNet"
         ],
         "features": [
