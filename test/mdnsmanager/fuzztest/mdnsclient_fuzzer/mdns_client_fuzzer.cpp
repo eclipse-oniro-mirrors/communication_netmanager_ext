@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "i_mdns_event.h"
+#include "imdns_service.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
 #include "net_manager_ext_constants.h"
@@ -37,22 +37,22 @@ namespace NetManagerStandard {
 
 class IRegistrationCallbackTest : public IRemoteStub<IRegistrationCallback> {
 public:
-    void HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
+    int32_t HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
 };
 
 class IDiscoveryCallbackTest : public IRemoteStub<IDiscoveryCallback> {
 public:
-    void HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
+    int32_t HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
 };
 
 class IResolveCallbackTest : public IRemoteStub<IResolveCallback> {
 public:
-    void HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
+    int32_t HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
 };
 
 static const uint8_t *g_baseFuzzData = nullptr;
@@ -100,7 +100,7 @@ std::string GetStringFromData(int strlen)
 
 bool WriteInterfaceToken(MessageParcel &data)
 {
-    return data.WriteInterfaceToken(IMDnsService::GetDescriptor());
+    return data.WriteInterfaceToken(IMdnsService::GetDescriptor());
 }
 
 __attribute__((no_sanitize("cfi"))) bool GetMessageParcel(const uint8_t *data, size_t size, MessageParcel &dataParcel)
@@ -161,7 +161,7 @@ void RegisterServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_REGISTER), dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_REGISTER_SERVICE), dataParcel);
 }
 
 void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
@@ -178,7 +178,7 @@ void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_REGISTER), dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_UN_REGISTER_SERVICE), dataParcel);
 }
 
 void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
@@ -195,7 +195,7 @@ void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER), dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_START_DISCOVER_SERVICE), dataParcel);
 }
 
 void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
@@ -212,7 +212,7 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_STOP_DISCOVER), dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_STOP_DISCOVER_SERVICE), dataParcel);
 }
 
 void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
@@ -229,7 +229,7 @@ void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
     }
     dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
 
-    OnRemoteRequest(static_cast<uint32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE), dataParcel);
+    OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_RESOLVE_SERVICE), dataParcel);
 }
 
 void MdnsRegisterServiceFuzzTest(const uint8_t *data, size_t size)

@@ -26,7 +26,7 @@
 #include "singleton.h"
 #include "system_ability.h"
 
-#include "i_mdns_event.h"
+#include "imdns_service.h"
 #include "mdns_service_stub.h"
 #include "mdns_manager.h"
 #include "net_interface_callback.h"
@@ -34,7 +34,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-class MDnsService : public SystemAbility, public MDnsServiceStub {
+class MDnsService : public SystemAbility, public MdnsServiceStub {
     DECLARE_DELAYED_SINGLETON(MDnsService)
     DECLARE_SYSTEM_ABILITY(MDnsService)
 

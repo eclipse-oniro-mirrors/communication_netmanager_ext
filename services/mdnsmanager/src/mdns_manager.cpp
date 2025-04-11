@@ -17,7 +17,9 @@
 
 #include <unistd.h>
 
-#include "mdns_event_proxy.h"
+#include "discovery_callback_proxy.h"
+#include "registration_callback_proxy.h"
+#include "resolve_callback_proxy.h"
 #include "netmgr_ext_log_wrapper.h"
 
 namespace OHOS {

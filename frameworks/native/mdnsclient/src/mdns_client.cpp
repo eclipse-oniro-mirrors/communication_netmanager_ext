@@ -24,6 +24,7 @@
 #include "iservice_registry.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
+#include "mdns_service_proxy.h"
 
 #include "mdns_common.h"
 #include "mdns_client_resume.h"
@@ -84,7 +85,7 @@ int32_t MDnsClient::RegisterService(const MDnsServiceInfo &serviceInfo, const sp
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
-    sptr<IMDnsService> proxy = GetProxy();
+    sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
@@ -105,7 +106,7 @@ int32_t MDnsClient::UnRegisterService(const sptr<IRegistrationCallback> &cb)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
-    sptr<IMDnsService> proxy = GetProxy();
+    sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("MDnsClient::RemoveLocalService proxy is nullptr");
         return IPC_PROXY_ERR;
@@ -130,7 +131,7 @@ int32_t MDnsClient::StartDiscoverService(const std::string &serviceType, const s
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
-    sptr<IMDnsService> proxy = GetProxy();
+    sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("MDnsClient::StartDiscoverService proxy is nullptr");
         return IPC_PROXY_ERR;
@@ -151,7 +152,7 @@ int32_t MDnsClient::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
-    sptr<IMDnsService> proxy = GetProxy();
+    sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("MDnsClient::StopSearchingMDNS proxy is nullptr");
         return IPC_PROXY_ERR;
@@ -176,7 +177,7 @@ int32_t MDnsClient::ResolveService(const MDnsServiceInfo &serviceInfo, const spt
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
 
-    sptr<IMDnsService> proxy = GetProxy();
+    sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("MDnsClient::ResolveService proxy is nullptr");
         return IPC_PROXY_ERR;
@@ -214,7 +215,7 @@ sptr<IRemoteObject> MDnsClient::LoadSaOnDemand()
     return loadCallback_->GetRemoteObject();
 }
 
-sptr<IMDnsService> MDnsClient::GetProxy()
+sptr<IMdnsService> MDnsClient::GetProxy()
 {
     std::lock_guard lock(mutex_);
     if (mdnsService_ != nullptr) {
@@ -240,7 +241,7 @@ sptr<IMDnsService> MDnsClient::GetProxy()
         NETMGR_EXT_LOG_E("add death recipient failed");
         return nullptr;
     }
-    mdnsService_ = iface_cast<IMDnsService>(remote);
+    mdnsService_ = iface_cast<IMdnsService>(remote);
     if (mdnsService_ == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service proxy failed");
         return nullptr;

@@ -22,7 +22,7 @@
 
 #include "parcel.h"
 
-#include "i_mdns_event.h"
+#include "imdns_service.h"
 #include "mdns_common.h"
 #include "mdns_protocol_impl.h"
 #include "mdns_service_info.h"

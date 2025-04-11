@@ -16,17 +16,17 @@
 #ifndef MOCK_VPN_EVENT_CALLBACK_TEST_H
 #define MOCK_VPN_EVENT_CALLBACK_TEST_H
 
-#include "i_mdns_event.h"
+#include "imdns_service.h"
 #include "refbase.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class MockIDiscoveryCallbackTest : public IRemoteStub<IDiscoveryCallback> {
 public:
-    void HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
-    void HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override {}
+    int32_t HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
+    int32_t HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override { return 0; }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

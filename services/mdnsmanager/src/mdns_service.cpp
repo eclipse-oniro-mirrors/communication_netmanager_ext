@@ -140,7 +140,7 @@ int32_t MDnsService::RegisterService(const MDnsServiceInfo &serviceInfo, const s
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_REGISTER);
+    eventInfo.type = static_cast<int32_t>(IMdnsServiceIpcCode::COMMAND_REGISTER_SERVICE);
     eventInfo.data = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type + MDNS_HOSTPORT_SPLITER_STR +
                      std::to_string(serviceInfo.port);
     eventInfo.errorType = err;
@@ -155,7 +155,7 @@ int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_STOP_REGISTER);
+    eventInfo.type = static_cast<int32_t>(IMdnsServiceIpcCode::COMMAND_UN_REGISTER_SERVICE);
     eventInfo.data = EVENT_DATA_CALLBACK;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
@@ -242,7 +242,7 @@ int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const 
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_DISCOVER);
+    eventInfo.type = static_cast<int32_t>(IMdnsServiceIpcCode::COMMAND_START_DISCOVER_SERVICE);
     eventInfo.data = serviceType;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
@@ -257,7 +257,7 @@ int32_t MDnsService::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_STOP_DISCOVER);
+    eventInfo.type = static_cast<int32_t>(IMdnsServiceIpcCode::COMMAND_STOP_DISCOVER_SERVICE);
     eventInfo.data = EVENT_DATA_CALLBACK;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
@@ -272,7 +272,7 @@ int32_t MDnsService::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
     }
     EventInfo eventInfo;
-    eventInfo.type = static_cast<int32_t>(MdnsServiceInterfaceCode::CMD_RESOLVE);
+    eventInfo.type = static_cast<int32_t>(IMdnsServiceIpcCode::COMMAND_RESOLVE_SERVICE);
     eventInfo.data = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);

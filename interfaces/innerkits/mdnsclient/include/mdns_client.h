@@ -23,8 +23,8 @@
 #include "singleton.h"
 #include "system_ability_load_callback_stub.h"
 
-#include "i_mdns_event.h"
-#include "i_mdns_service.h"
+#include "imdns_service.h"
+#include "imdns_service.h"
 #include "mdns_service_info.h"
 
 namespace OHOS {
@@ -101,7 +101,7 @@ public:
     int32_t ResolveService(const MDnsServiceInfo &serviceInfo, const sptr<IResolveCallback> &cb);
 
     void RestartResume();
-    sptr<IMDnsService> GetProxy();
+    sptr<IMdnsService> GetProxy();
 
 private:
     class MDnsDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -121,7 +121,7 @@ private:
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
 
     std::mutex mutex_;
-    sptr<IMDnsService> mdnsService_ = nullptr;
+    sptr<IMdnsService> mdnsService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<OnDemandLoadCallback> loadCallback_ = nullptr;
 };

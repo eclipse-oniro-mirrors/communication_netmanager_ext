@@ -41,7 +41,7 @@ struct MDnsServiceInfo final: public Parcelable {
 
     bool Marshalling(Parcel &parcel) const override;
     static bool Marshalling(Parcel &data, const sptr<MDnsServiceInfo> &obj);
-    static sptr<MDnsServiceInfo> Unmarshalling(Parcel &parcel);
+    static MDnsServiceInfo* Unmarshalling(Parcel &parcel);
 
     bool IsKeyValueVaild(const ::std::string &key, const std::vector<uint8_t> &value);
     TxtRecord GetAttrMap();
