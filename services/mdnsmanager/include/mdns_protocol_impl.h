@@ -25,6 +25,10 @@
 #include "mdns_common.h"
 #include "mdns_packet_parser.h"
 #include "mdns_socket_listener.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
+#include "common_event_manager.h"
+#include "iservice_registry.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -68,6 +72,7 @@ public:
         int32_t err = NETMANAGER_EXT_SUCCESS;
     };
 
+    static void SetScreenState(bool isOn);
     void SetConfig(const MDnsConfig &config);
     bool Browse();
     const MDnsConfig &GetConfig() const;
@@ -117,6 +122,13 @@ public:
     std::string GetHostDomain();
 
 private:
+    class MdnsSubscriber : public OHOS::EventFwk::CommonEventSubscriber {
+    public:
+        explicit MdnsSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+            : OHOS::EventFwk::CommonEventSubscriber(subscribeInfo) {};
+        virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
+    };
+    void SubscribeCes();
     void handleOfflineService(const std::string &key, std::vector<Result> &res);
     void KillBrowseCache(const std::string &key, std::vector<Result>::iterator &it);
 
@@ -136,6 +148,7 @@ private:
     std::list<Task> taskQueue_;
     std::map<std::string, std::list<Task>> taskOnChange_;
     std::map<std::string, sptr<IDiscoveryCallback>> nameCbMap_;
+    std::shared_ptr<MdnsSubscriber> subscriber_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
