@@ -93,7 +93,11 @@ ohos_shared_library("mdns_manager") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
-  external_deps += [ "hilog:libhilog" ]
+  external_deps += [ 
+    "hilog:libhilog",
+    "common_event_service:cesfwk_innerkits",
+    "samgr:samgr_proxy",
+  ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
