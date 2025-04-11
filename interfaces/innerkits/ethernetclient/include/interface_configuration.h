@@ -33,7 +33,7 @@ struct InterfaceConfiguration : public Parcelable {
     HttpProxy httpProxy_;
 
     virtual bool Marshalling(Parcel &parcel) const override;
-    static sptr<InterfaceConfiguration> Unmarshalling(Parcel &parcel);
+    static InterfaceConfiguration* Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

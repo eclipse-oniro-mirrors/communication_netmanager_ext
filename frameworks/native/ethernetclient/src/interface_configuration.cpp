@@ -38,9 +38,9 @@ bool InterfaceConfiguration::Marshalling(Parcel &parcel) const
     return true;
 }
 
-sptr<InterfaceConfiguration> InterfaceConfiguration::Unmarshalling(Parcel &parcel)
+InterfaceConfiguration* InterfaceConfiguration::Unmarshalling(Parcel &parcel)
 {
-    sptr<InterfaceConfiguration> ptr = new (std::nothrow) InterfaceConfiguration();
+    InterfaceConfiguration* ptr = new (std::nothrow) InterfaceConfiguration();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;

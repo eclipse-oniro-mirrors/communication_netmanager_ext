@@ -29,6 +29,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "static_configuration.h"
+#include "configuration_parcel_ipc.h"
 
 #define private public
 #define protected public
@@ -177,7 +178,7 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceUpTest001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t ret = ethernetServiceProxy.SetInterfaceUp(DEV_NAME);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
-    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    ConfigurationParcelIpc cfg;
     ret = ethernetServiceProxy.GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
@@ -194,13 +195,13 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceConfigTest001, TestSize.Level1)
 {
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     NetManagerExtAccessToken token;
-    OHOS::nmd::InterfaceConfigurationParcel config;
-    config.ifName = "eth0";
-    config.hwAddr = "";
-    config.ipv4Addr = "172.17.5.234";
-    config.prefixLength = 24;
-    config.flags.push_back("up");
-    config.flags.push_back("broadcast");
+    ConfigurationParcelIpc config;
+    config.ifName_ = "eth0";
+    config.hwAddr_ = "";
+    config.ipv4Addr_ = "172.17.5.234";
+    config.prefixLength_ = 24;
+    config.flags_.push_back("up");
+    config.flags_.push_back("broadcast");
     int32_t ret = ethernetServiceProxy.SetInterfaceConfig(DEV_NAME, config);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }

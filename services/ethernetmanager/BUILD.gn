@@ -33,7 +33,6 @@ ohos_shared_library("ethernet_manager") {
     "src/ethernet_management.cpp",
     "src/ethernet_service.cpp",
     "src/ethernet_service_common.cpp",
-    "src/stub/ethernet_service_stub.cpp",
   ]
 
   include_dirs = [
@@ -61,6 +60,7 @@ ohos_shared_library("ethernet_manager") {
   ]
 
   deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel" ]
+  deps += [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_service_interface_stub" ]
 
   external_deps = [
     "bounds_checking_function:libsec_shared",

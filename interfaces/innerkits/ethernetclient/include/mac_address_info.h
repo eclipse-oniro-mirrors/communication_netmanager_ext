@@ -28,7 +28,7 @@ struct MacAddressInfo : public Parcelable {
     std::string macAddress_;
 
     virtual bool Marshalling(Parcel &parcel) const override;
-    static sptr<MacAddressInfo> Unmarshalling(Parcel &parcel);
+    static MacAddressInfo* Unmarshalling(Parcel &parcel);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

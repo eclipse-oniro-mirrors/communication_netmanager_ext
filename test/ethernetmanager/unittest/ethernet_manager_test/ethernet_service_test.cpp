@@ -287,7 +287,7 @@ HWTEST_F(EtherNetServiceTest, SetInterfaceDownTest001, TestSize.Level1)
 HWTEST_F(EtherNetServiceTest, GetInterfaceConfigTest001, TestSize.Level1)
 {
     EthernetService ethernetService;
-    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    ConfigurationParcelIpc cfg;
     int32_t ret = ethernetService.GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -301,13 +301,13 @@ HWTEST_F(EtherNetServiceTest, SetInterfaceConfigTest001, TestSize.Level1)
     ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, deviceId);
     ethernetService.OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, deviceId);
 
-    OHOS::nmd::InterfaceConfigurationParcel config;
-    config.ifName = "eth0";
-    config.hwAddr = "";
-    config.ipv4Addr = "172.17.5.234";
-    config.prefixLength = 24;
-    config.flags.push_back("up");
-    config.flags.push_back("broadcast");
+    ConfigurationParcelIpc config;
+    config.ifName_ = "eth0";
+    config.hwAddr_ = "";
+    config.ipv4Addr_ = "172.17.5.234";
+    config.prefixLength_ = 24;
+    config.flags_.push_back("up");
+    config.flags_.push_back("broadcast");
     int32_t ret = ethernetService.SetInterfaceConfig(DEV_NAME, config);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -375,7 +375,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     result = ethernetService.UnregisterMonitorIfaceCallbackAsync(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 
-    OHOS::nmd::InterfaceConfigurationParcel config;
+    ConfigurationParcelIpc config;
     result = ethernetService.SetInterfaceConfig(IFACE_NAME, config);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
@@ -403,7 +403,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     result = ethernetService.SetInterfaceDown(IFACE_NAME);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
-    OHOS::nmd::InterfaceConfigurationParcel cfg;
+    ConfigurationParcelIpc cfg;
     result = ethernetService.SetInterfaceConfig(IFACE_NAME, config);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 

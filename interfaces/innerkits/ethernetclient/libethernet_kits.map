@@ -40,14 +40,14 @@
       "OHOS::NetManagerStandard::EthernetClient::SetInterfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::nmd::InterfaceConfigurationParcel&)";
       VTT?for?OHOS::NetManagerStandard::EthernetServiceProxy;
       vtable?for?OHOS::NetManagerStandard::EthernetServiceProxy;
-      "OHOS::NetManagerStandard::EthernetServiceProxy::SetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration>&)";
+      "OHOS::NetManagerStandard::EthernetServiceProxy::SetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration> const&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::IsIfaceActive(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::GetAllActiveIfaces(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::ResetFactory()";
       "OHOS::NetManagerStandard::EthernetServiceProxy::SetInterfaceUp(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-      "OHOS::NetManagerStandard::EthernetServiceProxy::GetInterfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::nmd::InterfaceConfigurationParcel&)";
+      "OHOS::NetManagerStandard::EthernetServiceProxy::GetInterfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::NetManagerStandard::ConfigurationParcelIpc&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::SetInterfaceDown(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-      "OHOS::NetManagerStandard::EthernetServiceProxy::SetInterfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::nmd::InterfaceConfigurationParcel&)";
+      "OHOS::NetManagerStandard::EthernetServiceProxy::SetInterfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::NetManagerStandard::ConfigurationParcelIpc const&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::GetMacAddress(std::__h::vector<OHOS::NetManagerStandard::MacAddressInfo, std::__h::allocator<OHOS::NetManagerStandard::MacAddressInfo>>&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::GetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration>&)";
       "OHOS::NetManagerStandard::HttpProxy::HttpProxy()";
