@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr size_t WAIT_REMOTE_TIME_SEC = 15;
+constexpr size_t WAIT_REMOTE_TIME_SEC = 5;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
