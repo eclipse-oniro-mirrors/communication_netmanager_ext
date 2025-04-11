@@ -343,5 +343,23 @@ HWTEST_F(NetworkShareServiceTest, OnAddSystemAbility001, TestSize.Level1)
     instance_->OnAddSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, deviceId);
     EXPECT_FALSE(instance_->hasSARemoved_);
 }
+
+HWTEST_F(NetworkShareServiceTest, DisAllowNetworkShareEventCallback001, TestSize.Level1)
+{
+    const char *value = "true";
+    instance_->DisAllowNetworkShareEventCallback("key", value, instance_.get());
+    EXPECT_FALSE(instance_->hasSARemoved_);
+    instance_->DisAllowNetworkShareEventCallback("key", value, nullptr);
+    EXPECT_FALSE(instance_->hasSARemoved_);
+    value = "false";
+    instance_->DisAllowNetworkShareEventCallback("key", value, instance_.get());
+    EXPECT_NE(instance_.get(), nullptr);
+}
+
+HWTEST_F(NetworkShareServiceTest, SubscribeCommonEvent001, TestSize.Level1)
+{
+    instance_->SubscribeCommonEvent();
+    EXPECT_NE(instance_->commonEventSubscriber_, nullptr);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

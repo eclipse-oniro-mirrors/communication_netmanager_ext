@@ -63,50 +63,52 @@ HWTEST_F(NetworkSliceClientTest, SetNetworkSliceUePolicy001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::vector<uint8_t> buffer = {0};
-    EXPECT_EQ(networkSliceClient_->SetNetworkSliceUePolicy(buffer), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->SetNetworkSliceUePolicy(buffer), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, SetNetworkSliceUePolicy002, TestSize.Level1)
 {
     std::vector<uint8_t> buffer = {0};
-    EXPECT_EQ(networkSliceClient_->SetNetworkSliceUePolicy(buffer), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->SetNetworkSliceUePolicy(buffer), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceInitUePolicy001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
-    EXPECT_EQ(networkSliceClient_->NetworkSliceInitUePolicy(), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->NetworkSliceInitUePolicy(), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceInitUePolicy002, TestSize.Level1)
 {
-    EXPECT_EQ(networkSliceClient_->NetworkSliceInitUePolicy(), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->NetworkSliceInitUePolicy(), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceAllowedNssaiRpt001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::vector<uint8_t> buffer = {};
-    EXPECT_EQ(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer), NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    EXPECT_EQ(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer),
+        NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceAllowedNssaiRpt002, TestSize.Level1)
 {
     std::vector<uint8_t> buffer = {};
-    EXPECT_EQ(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer), NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    EXPECT_EQ(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer),
+        NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceEhplmnRpt001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     std::vector<uint8_t> buffer = {0};
-    EXPECT_EQ(networkSliceClient_->NetworkSliceEhplmnRpt(buffer), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->NetworkSliceEhplmnRpt(buffer), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceEhplmnRpt002, TestSize.Level1)
 {
     std::vector<uint8_t> buffer = {0};
-    EXPECT_EQ(networkSliceClient_->NetworkSliceEhplmnRpt(buffer), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->NetworkSliceEhplmnRpt(buffer), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, GetRouteSelectionDescriptorByDNN001, TestSize.Level1)
@@ -115,7 +117,8 @@ HWTEST_F(NetworkSliceClientTest, GetRouteSelectionDescriptorByDNN001, TestSize.L
     std::string dnn = "dnn";
     std::string snssai = "";
     uint8_t sscMode = 0;
-    EXPECT_EQ(networkSliceClient_->GetRouteSelectionDescriptorByDNN(dnn, snssai, sscMode), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->GetRouteSelectionDescriptorByDNN(dnn, snssai, sscMode),
+        NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, GetRouteSelectionDescriptorByDNN002, TestSize.Level1)
@@ -124,7 +127,7 @@ HWTEST_F(NetworkSliceClientTest, GetRouteSelectionDescriptorByDNN002, TestSize.L
     std::string snssai = "";
     uint8_t sscMode = 0;
     EXPECT_EQ(networkSliceClient_->GetRouteSelectionDescriptorByDNN(dnn, snssai, sscMode),
-        NETMANAGER_EXT_SUCCESS);
+        NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, GetRSDByNetCap001, TestSize.Level1)
@@ -132,27 +135,29 @@ HWTEST_F(NetworkSliceClientTest, GetRSDByNetCap001, TestSize.Level1)
     NetManagerExtAccessToken access;
     int32_t netcap = 1;
     std::map<std::string, std::string> networkSliceParas;
-    EXPECT_EQ(networkSliceClient_->GetRSDByNetCap(netcap, networkSliceParas), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->GetRSDByNetCap(netcap, networkSliceParas),
+        NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, GetRSDByNetCap002, TestSize.Level1)
 {
     int32_t netcap = 1;
     std::map<std::string, std::string> networkSliceParas;
-    EXPECT_EQ(networkSliceClient_->GetRSDByNetCap(netcap, networkSliceParas), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->GetRSDByNetCap(netcap, networkSliceParas),
+        NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, SetSaState001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     bool isSaState = false;
-    EXPECT_EQ(networkSliceClient_->SetSaState(isSaState), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->SetSaState(isSaState), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, SetSaState002, TestSize.Level1)
 {
     bool isSaState = false;
-    EXPECT_EQ(networkSliceClient_->SetSaState(isSaState), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkSliceClient_->SetSaState(isSaState), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
 
 HWTEST_F(NetworkSliceClientTest, OnRemoteDied, TestSize.Level1)

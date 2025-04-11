@@ -200,6 +200,9 @@ HWTEST_F(RouterAdvertisementDaemonTest, ResetRaRetryIntervalTest, TestSize.Level
     routerAdvertiseDaemon->sendRaTimes_ = 12;
     routerAdvertiseDaemon->ResetRaRetryInterval();
     EXPECT_EQ(routerAdvertiseDaemon->sendRaTimes_, 12);
+    routerAdvertiseDaemon->sendRaTimes_ = 10;
+    routerAdvertiseDaemon->ResetRaRetryInterval();
+    EXPECT_NE(routerAdvertiseDaemon->sendRaTimes_, 12);
 }
 
 /**
@@ -316,5 +319,143 @@ HWTEST_F(RouterAdvertisementDaemonTest, PutRaPioTest, TestSize.Level1)
     }
 }
 
+/**
+ * @tc.name: PutRaRdnssTest
+ * @tc.desc: Test RouterAdvertisementDaemon PutRaRdnssTest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, PutRaRdnssTest, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    uint8_t raBuf[TEST_BUF] = {};
+    size_t raRdnsNum = 1;
+
+    struct IpPrefix ipp;
+    ipp.address = IN6ADDR_LOOPBACK_INIT;
+    routerAdvertiseDaemon->raParams_->prefixes_.push_back(ipp);
+
+    uint16_t rdnsLen = routerAdvertiseDaemon->PutRaRdnss(raBuf);
+    EXPECT_EQ(rdnsLen, sizeof(Icmpv6RdnsOpt) + raRdnsNum * IPV6_ADDR_LEN);
+
+    EXPECT_EQ(raBuf[0], ND_OPTION_RDNSS_TYPE);
+    EXPECT_EQ(raBuf[1], (sizeof(Icmpv6RdnsOpt) + raRdnsNum * IPV6_ADDR_LEN) / UNITS_OF_OCTETS);
+    EXPECT_EQ(raBuf[2], 0);
+    EXPECT_EQ(raBuf[3], 0);
+
+    uint32_t expectedLifetime = htonl(DEFAULT_LIFETIME);
+    EXPECT_NE((raBuf[4] << 24) | (raBuf[5] << 16) | (raBuf[6] << 8) | raBuf[7], expectedLifetime);
+
+    routerAdvertiseDaemon->raParams_->prefixes_.clear();
+    uint16_t rdnsLenEmpty = routerAdvertiseDaemon->PutRaRdnss(raBuf);
+    EXPECT_NE(rdnsLenEmpty, 0);
+}
+
+/**
+ * @tc.name: AssembleRaLockedTest
+ * @tc.desc: Test RouterAdvertisementDaemon AssembleRaLockedTest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, AssembleRaLockedTest, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    bool ret = routerAdvertiseDaemon->AssembleRaLocked();
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: ProcessSendRaPacketTest001
+ * @tc.desc: Test RouterAdvertisementDaemon ProcessSendRaPacketTest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, ProcessSendRaPacketTest001, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    routerAdvertiseDaemon->socket_ = -1;
+    routerAdvertiseDaemon->stopRaThread_ = true;
+    routerAdvertiseDaemon->ProcessSendRaPacket();
+    EXPECT_EQ(routerAdvertiseDaemon->sendRaTimes_, 1);
+}
+
+/**
+ * @tc.name: ProcessSendRaPacketTest002
+ * @tc.desc: Test RouterAdvertisementDaemon ProcessSendRaPacketTest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, ProcessSendRaPacketTest002, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    routerAdvertiseDaemon->socket_ = 1;
+    routerAdvertiseDaemon->stopRaThread_ = false;
+    routerAdvertiseDaemon->ProcessSendRaPacket();
+    EXPECT_NE(routerAdvertiseDaemon->sendRaTimes_, 1);
+}
+
+/**
+ * @tc.name: ProcessSendRaPacketTest003
+ * @tc.desc: Test RouterAdvertisementDaemon ProcessSendRaPacketTest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, ProcessSendRaPacketTest003, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    routerAdvertiseDaemon->socket_ = 1;
+    routerAdvertiseDaemon->stopRaThread_ = true;
+    routerAdvertiseDaemon->ProcessSendRaPacket();
+    EXPECT_EQ(routerAdvertiseDaemon->sendRaTimes_, 1);
+}
+
+/**
+ * @tc.name: ProcessSendRaPacketTest004
+ * @tc.desc: Test RouterAdvertisementDaemon ProcessSendRaPacketTest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, ProcessSendRaPacketTest004, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    routerAdvertiseDaemon->socket_ = -1;
+    routerAdvertiseDaemon->stopRaThread_ = false;
+    routerAdvertiseDaemon->ProcessSendRaPacket();
+    EXPECT_EQ(routerAdvertiseDaemon->sendRaTimes_, 1);
+}
+
+/**
+ * @tc.name: MaybeSendRaTest002
+ * @tc.desc: Test RouterAdvertisementDaemon MaybeSendRa.Test sending RA
+ * messages.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, MaybeSendRaTest002, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    sockaddr_in6 dest;
+    dest.sin6_port = htons(0);
+    dest.sin6_family = AF_INET6;
+    dest.sin6_scope_id = 0;
+    inet_pton(AF_INET6, "ff02::1", &dest.sin6_addr);
+    routerAdvertiseDaemon->raPacketLength_ = RA_HEADER_SIZE + 1;
+    routerAdvertiseDaemon->socket_ = 1;
+    auto ret = routerAdvertiseDaemon->MaybeSendRa(dest);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: MaybeSendRaTest003
+ * @tc.desc: Test RouterAdvertisementDaemon MaybeSendRa.Test sending RA
+ * messages.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, MaybeSendRaTest003, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    sockaddr_in6 dest;
+    dest.sin6_port = htons(0);
+    dest.sin6_family = AF_INET6;
+    dest.sin6_scope_id = 0;
+    inet_pton(AF_INET6, "ff02::1", &dest.sin6_addr);
+    routerAdvertiseDaemon->raPacketLength_ = RA_HEADER_SIZE + 1;
+    routerAdvertiseDaemon->socket_ = -1;
+    auto ret = routerAdvertiseDaemon->MaybeSendRa(dest);
+    EXPECT_FALSE(ret);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
