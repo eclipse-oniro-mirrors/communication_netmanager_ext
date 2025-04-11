@@ -78,7 +78,7 @@ ConfigurationParcelIpc* ConfigurationParcelIpc::Unmarshalling(Parcel &parcel)
 }
 
 void ConfigurationParcelIpc::ConvertEtherConfigParcelToNmd(const ConfigurationParcelIpc &ipc,
-        OHOS::nmd::InterfaceConfigurationParcel &cfg)
+    OHOS::nmd::InterfaceConfigurationParcel &cfg)
 {
     cfg.ifName = ipc.ifName_;
     cfg.hwAddr = ipc.hwAddr_;
@@ -88,7 +88,7 @@ void ConfigurationParcelIpc::ConvertEtherConfigParcelToNmd(const ConfigurationPa
 }
 
 void ConfigurationParcelIpc::ConvertNmdToEtherConfigParcel(ConfigurationParcelIpc &ipc,
-        const OHOS::nmd::InterfaceConfigurationParcel &cfg)
+    const OHOS::nmd::InterfaceConfigurationParcel &cfg)
 {
     ipc.ifName_ = cfg.ifName;
     ipc.hwAddr_ = cfg.hwAddr;
@@ -97,4 +97,4 @@ void ConfigurationParcelIpc::ConvertNmdToEtherConfigParcel(ConfigurationParcelIp
     ipc.flags_ = cfg.flags;
 }
 }
-}
+}
