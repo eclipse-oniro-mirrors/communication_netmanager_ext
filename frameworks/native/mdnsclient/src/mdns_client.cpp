@@ -60,7 +60,7 @@ MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr) {}
 MDnsClient::~MDnsClient()
 {
     NETMGR_EXT_LOG_E("~MDnsClient : Destroy MDnsClient");
-    sptr<IMDnsService> proxy = GetProxy();
+    sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
         return;
     }
