@@ -21,7 +21,6 @@ config("mdns_manager_config") {
     "$EXT_INNERKITS_ROOT/include",
     "include",
     "include/stub",
-    "$COMMON_EVENT_SERVICE_INNER_API_PATH",
   ]
 }
 
