@@ -41,7 +41,7 @@ constexpr uint16_t MDNS_FLUSH_CACHE_BIT = 0x8000;
 constexpr int PHASE_PTR = 1;
 constexpr int PHASE_SRV = 2;
 constexpr int PHASE_DOMAIN = 3;
-static bool IS_SCREEN_ON = true;
+static bool g_isScreenOn = true;
 
 std::string AddrToString(const std::any &addr)
 {
@@ -129,12 +129,12 @@ void MDnsProtocolImpl::MdnsSubscriber::OnReceiveEvent(const EventFwk::CommonEven
 void MDnsProtocolImpl::SetScreenState(bool isOn)
 {
     NETMGR_EXT_LOG_I("Mdns SetScreenState isOn[%{public}d]", isOn);
-    IS_SCREEN_ON = isOn;
+    g_isScreenOn = isOn;
 }
 
 bool MDnsProtocolImpl::Browse()
 {
-    if (lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS || !IS_SCREEN_ON) {
+    if ((lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS) || !g_isScreenOn) {
         return false;
     }
     lastRunTime = MilliSecondsSinceEpoch();
