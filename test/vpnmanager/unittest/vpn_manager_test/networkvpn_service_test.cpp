@@ -229,5 +229,281 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
     instance_->vpnHapObserver_->OnProcessDied(data);
     EXPECT_TRUE(instance_->vpnHapObserver_ != nullptr);
 }
+
+HWTEST_F(NetworkVpnServiceTest, PublishEventTest001, TestSize.Level1)
+{
+    OHOS::AAFwk::Want want;
+    int eventCode = 100;
+    bool isOrdered = true;
+    bool isSticky = true;
+    std::vector<std::string> permissions = {};
+    EXPECT_FALSE(instance_->PublishEvent(want, eventCode, isOrdered, isSticky, permissions));
+    std::vector<std::string> permissions2 = {"1", "2", "3"};
+    EXPECT_FALSE(instance_->PublishEvent(want, eventCode, isOrdered, isSticky, permissions));
+}
+
+HWTEST_F(NetworkVpnServiceTest, PublishVpnConnectionStateEventTest001, TestSize.Level1)
+{
+    VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    instance_->PublishVpnConnectionStateEvent(state);
+    state = VpnConnectState::VPN_DISCONNECTED;
+    instance_->PublishVpnConnectionStateEvent(state);
+    EXPECT_EQ(state, VpnConnectState::VPN_DISCONNECTED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnVpnMultiUserSetUpTest001, TestSize.Level1)
+{
+    instance_->OnVpnMultiUserSetUp();
+    instance_->networkVpnServiceFfrtQueue_ = std::make_shared<ffrt::queue>("queue");
+    instance_->OnVpnMultiUserSetUp();
+    EXPECT_NE(instance_->networkVpnServiceFfrtQueue_, nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, PrepareTest001, TestSize.Level1)
+{
+    bool isExistVpn = true;
+    bool isRun = true;
+    std::string pkg = "123";
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    instance_->Prepare(isExistVpn, isRun, pkg);
+    EXPECT_NE(instance_->vpnObj_, nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest001, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.iface_, "");
+    cJSON_AddStringToObject(json, "iface", "123");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.iface_, "123");
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest002, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, "iface", 123);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.iface_, "");
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest003, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, "rtnType", 123);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.rtnType_, 123);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest004, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddTrueToObject(json, "rtnType");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.rtnType_, 1);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest005, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, "mtu", 123);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.mtu_, 123);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest006, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddTrueToObject(json, "mtu");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.mtu_, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest007, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddTrueToObject(json, "isHost");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.isHost_, true);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest008, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON *isHost = cJSON_CreateObject();
+    cJSON_AddItemToObject(json, "isHost", isHost);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.isHost_, false);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest009, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddTrueToObject(json, "hasGateway");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.hasGateway_, true);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest010, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON *hasGateway = cJSON_CreateObject();
+    cJSON_AddItemToObject(json, "hasGateway", hasGateway);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.hasGateway_, true);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest011, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddTrueToObject(json, "isDefaultRoute");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.isDefaultRoute_, true);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest012, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON *isDefaultRoute = cJSON_CreateObject();
+    cJSON_AddItemToObject(json, "isDefaultRoute", isDefaultRoute);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.isDefaultRoute_, false);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest013, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON *destination = cJSON_CreateObject();
+    cJSON_AddItemToObject(json, "destination", destination);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.destination_.port_, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest014, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddTrueToObject(json, "destination");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.destination_.port_, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest015, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON *gateway = cJSON_CreateObject();
+    cJSON_AddItemToObject(json, "gateway", gateway);
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.destination_.port_, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ConvertRouteToConfigTest016, TestSize.Level1)
+{
+    Route tmp;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddTrueToObject(json, "gateway");
+    instance_->ConvertRouteToConfig(tmp, json);
+    EXPECT_EQ(tmp.destination_.port_, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ParseJsonToConfigTest001, TestSize.Level1)
+{
+    sptr<VpnConfig> vpnCfg;
+    std::string jsonString = "";
+    instance_->ParseJsonToConfig(vpnCfg, jsonString);
+    EXPECT_EQ(jsonString, "");
+}
+
+HWTEST_F(NetworkVpnServiceTest, CheckCurrentAccountTypeTest001, TestSize.Level1)
+{
+    int32_t userId = 1;
+    std::vector<int32_t> activeUserIds = {};
+    instance_->CheckCurrentAccountType(userId, activeUserIds);
+    EXPECT_EQ(userId, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnAddSystemAbilityTest001, TestSize.Level1)
+{
+    int32_t systemAbilityId = COMM_NETSYS_NATIVE_SYS_ABILITY_ID;
+    std::string deviceId = "123";
+    instance_->OnAddSystemAbility(systemAbilityId, deviceId);
+    EXPECT_NE(systemAbilityId, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnNetSysRestartTest001, TestSize.Level1)
+{
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    instance_->OnNetSysRestart();
+    EXPECT_NE(instance_->vpnObj_, nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SubscribeCommonEventTest001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscriberInfo;
+    std::weak_ptr<NetworkVpnService> vpnService;
+    instance_->subscriber_ = std::make_shared<NetworkVpnService::ReceiveMessage>(subscriberInfo, vpnService);
+    instance_->SubscribeCommonEvent();
+    EXPECT_NE(instance_->subscriber_, nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RegisterBundleNameTest001, TestSize.Level1)
+{
+    std::string bundleName = "";
+    std::string abilityName = "";
+    instance_->RegisterBundleName(bundleName, abilityName);
+    bundleName = "123";
+    instance_->RegisterBundleName(bundleName, abilityName);
+    EXPECT_NE(instance_->subscriber_, nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RegisterBundleNameTest002, TestSize.Level1)
+{
+    std::string bundleName = "";
+    std::string abilityName = "123";
+    instance_->RegisterBundleName(bundleName, abilityName);
+    bundleName = "123";
+    instance_->RegisterBundleName(bundleName, abilityName);
+    EXPECT_NE(instance_->subscriber_, nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetSelfAppNameTest001, TestSize.Level1)
+{
+    std::string selfAppName = "";
+    std::string selfBundleName = "";
+    instance_->GetSelfAppName(selfAppName, selfBundleName);
+    EXPECT_NE(instance_->subscriber_, nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest001, TestSize.Level1)
+{
+    int32_t uid = 1;
+    int32_t pid = 2;
+    instance_->setVpnPidMap_ = {
+        {1, 2},
+        {3, 4}};
+    EXPECT_TRUE(instance_->IsCurrentVpnPid(uid, pid));
+    pid = 1;
+    EXPECT_FALSE(instance_->IsCurrentVpnPid(uid, pid));
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

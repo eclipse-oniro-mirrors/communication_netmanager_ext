@@ -1,4 +1,4 @@
-# Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+# Copyright (c) 2025-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,34 +21,45 @@ ohos_unittest("networkslice_manager_test") {
   use_exceptions = true
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
-    "allowednssaiconfig_test.cpp",
-    "broadcast_proxy_test.cpp",
-    "dns_result_callback_test.cpp",
-    "hwnetworkslicemanager_test.cpp",
     "networkslice_client_test.cpp",
-    "networkslice_kernel_proxy_test.cpp",
-    "networkslice_manager_test.cpp",
     "networkslice_proxy_test.cpp",
-    "networkslice_service_test.cpp",
-    "networkslice_stub_test.cpp",
-    "nrunsolicitedmsgparser_test.cpp",
-    "state_utils_test.cpp",
-    "urspconfig_test.cpp",
   ]
 
   include_dirs = [
     "$EXT_SECURITY_PATH/security",
-    "$NETMANAGER_EXT_ROOT/services/networkslicemanager/include",
     "$NETMANAGER_EXT_ROOT/test/networkslicemanager/unittest/networkslice_manager_test",
   ]
 
   deps = [
     "$EXT_INNERKITS_ROOT/networksliceclient:networkslice_manager_if",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
-    "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
+
+  if (netmanager_ext_feature_networkslice) {
+    sources += [
+      "allowednssaiconfig_test.cpp",
+      "broadcast_proxy_test.cpp",
+      "dns_result_callback_test.cpp",
+      "hwnetworkslicemanager_test.cpp",
+      "networkslice_kernel_proxy_test.cpp",
+      "networkslice_manager_test.cpp",
+      "networkslice_manager_test_mock.cpp",
+      "networkslice_service_test.cpp",
+      "networkslice_stub_test.cpp",
+      "nrunsolicitedmsgparser_test.cpp",
+      "state_utils_test.cpp",
+      "urspconfig_test.cpp",
+    ]
+
+    include_dirs +=
+        [ "$NETMANAGER_EXT_ROOT/services/networkslicemanager/include" ]
+
+    deps += [
+      "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager",
+    ]
+  }
 
   external_deps = [
     "ability_runtime:app_manager",

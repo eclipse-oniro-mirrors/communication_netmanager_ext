@@ -219,5 +219,22 @@ HWTEST_F(NetVpnImplTest, ResumeUids001, TestSize.Level1)
     int32_t result = netVpnImpl_->ResumeUids();
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
 }
+
+HWTEST_F(NetVpnImplTest, ResumeUids002, TestSize.Level1)
+{
+    netVpnImpl_->isVpnConnecting_ = true;
+    int32_t result = netVpnImpl_->ResumeUids();
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(NetVpnImplTest, GenerateUidRangesByRefusedApps001, TestSize.Level1)
+{
+    std::set<int32_t> uids = {65535};
+    std::vector<int32_t> beginUids;
+    std::vector<int32_t> endUids;
+    int32_t userId = 0;
+    netVpnImpl_->GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);
+    EXPECT_EQ(beginUids.empty(), false);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

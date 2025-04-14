@@ -155,5 +155,30 @@ HWTEST_F(NetworkShareMainStateMachineTest, NetworkShareMainStateMachineBranchTes
     auto result = instance_->TurnOffMainShareSettings();
     EXPECT_EQ(result, true);
 }
+
+HWTEST_F(NetworkShareMainStateMachineTest, TurnOnMainShareSettingsTest001, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    instance_->hasSetForward_ = true;
+    auto ret = instance_->TurnOnMainShareSettings();
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(NetworkShareMainStateMachineTest, ChooseUpstreamNetworkTest, TestSize.Level1)
+{
+    ASSERT_NE(instance_, nullptr);
+    auto mockNetworkMonitor = std::make_shared<NetworkShareUpstreamMonitor>();
+    instance_->networkMonitor_ = mockNetworkMonitor;
+
+    sptr<NetHandle> pNetHandle = new (std::nothrow) NetHandle();
+    sptr<NetAllCapabilities> pNetCapabilities = new (std::nothrow) NetAllCapabilities();
+    sptr<NetLinkInfo> pNetLinkInfo = new (std::nothrow) NetLinkInfo();
+    std::shared_ptr<UpstreamNetworkInfo> netInfoPtr =
+        std::make_shared<UpstreamNetworkInfo>(pNetHandle, pNetCapabilities, pNetLinkInfo);
+    netInfoPtr->netLinkPro_->ifaceName_ = "test_iface";
+
+    EXPECT_TRUE(instance_->upstreamIfaceName_.empty());
+    EXPECT_EQ(instance_->upstreamIfaceName_, "");
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

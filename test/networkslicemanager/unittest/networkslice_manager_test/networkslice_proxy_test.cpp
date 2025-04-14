@@ -29,7 +29,6 @@
 
 #include "networkslice_client.h"
 #include "networkslice_proxy.h"
-#include "networkslice_service.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
