@@ -21,7 +21,7 @@
 
 #include "singleton.h"
 
-#include "i_mdns_event.h"
+#include "imdns_service.h"
 #include "mdns_service_info.h"
 
 namespace OHOS {

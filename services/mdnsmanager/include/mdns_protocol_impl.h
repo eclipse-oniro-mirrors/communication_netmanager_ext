@@ -21,7 +21,7 @@
 #include <set>
 #include <string>
 
-#include "i_mdns_event.h"
+#include "imdns_service.h"
 #include "mdns_common.h"
 #include "mdns_packet_parser.h"
 #include "mdns_socket_listener.h"

@@ -38,9 +38,9 @@ bool MDnsServiceInfo::Marshalling(Parcel &data, const sptr<MDnsServiceInfo> &obj
     return (obj != nullptr) && obj->Marshalling(data);
 }
 
-sptr<MDnsServiceInfo> MDnsServiceInfo::Unmarshalling(Parcel &parcel)
+MDnsServiceInfo* MDnsServiceInfo::Unmarshalling(Parcel &parcel)
 {
-    sptr<MDnsServiceInfo> ptr = new (std::nothrow) MDnsServiceInfo;
+    MDnsServiceInfo* ptr = new (std::nothrow) MDnsServiceInfo;
     if (ptr == nullptr) {
         return nullptr;
     }

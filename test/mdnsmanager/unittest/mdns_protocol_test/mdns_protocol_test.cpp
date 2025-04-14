@@ -20,7 +20,9 @@
 
 #include "mdns_client.h"
 #include "mdns_common.h"
-#include "mdns_event_stub.h"
+#include "discovery_callback_stub.h"
+#include "registration_callback_stub.h"
+#include "resolve_callback_stub.h"
 #include "mdns_packet_parser.h"
 
 namespace OHOS {

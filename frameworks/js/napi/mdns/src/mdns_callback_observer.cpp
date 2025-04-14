@@ -38,15 +38,30 @@ static int32_t ErrorCodeTrans(int32_t retCode)
     }
 }
 
-void MDnsRegistrationObserver::HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
+int32_t MDnsRegistrationObserver::HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
 
-void MDnsRegistrationObserver::HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
+int32_t MDnsRegistrationObserver::HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
 
-void MDnsRegistrationObserver::HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
+int32_t MDnsRegistrationObserver::HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
 
-void MDnsDiscoveryObserver::HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
+int32_t MDnsDiscoveryObserver::HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
 
-void MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) {}
+int32_t MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
 
 void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
@@ -91,38 +106,40 @@ void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo,
     mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICESTOP, pair, ServiceCallbackWithError);
 }
 
-void MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+int32_t MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
-        return;
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
     if (!mdnsDisdicover->GetEventManager()->HasEventListener(EVENT_SERVICEFOUND)) {
         NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICEFOUND);
-        return;
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
     mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICEFOUND, new MDnsServiceInfo(serviceInfo),
                                                 ServiceCallback);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-void MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+int32_t MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
-        return;
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
     if (!mdnsDisdicover->GetEventManager()->HasEventListener(EVENT_SERVICELOST)) {
         NETMANAGER_EXT_LOGE("no event listener find %{public}s", EVENT_SERVICELOST);
-        return;
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
     mdnsDisdicover->GetEventManager()->EmitByUv(EVENT_SERVICELOST, new MDnsServiceInfo(serviceInfo),
                                                 ServiceCallback);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 napi_value CreateCallbackParam(const MDnsServiceInfo &serviceInfo, napi_env env)
@@ -173,7 +190,7 @@ void MDnsDiscoveryObserver::ServiceCallback(uv_work_t *work, int32_t status)
     CallbackTemplate<CreateService>(work, status);
 }
 
-void MDnsResolveObserver::HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode)
+int32_t MDnsResolveObserver::HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
     NETMANAGER_EXT_LOGI("HandleResolveResult [%{public}s][%{public}s][%{public}d]", serviceInfo.name.c_str(),
                         serviceInfo.type.c_str(), serviceInfo.port);
@@ -183,6 +200,7 @@ void MDnsResolveObserver::HandleResolveResult(const MDnsServiceInfo &serviceInfo
     resolved_ = true;
     mutex_.unlock();
     cv_.notify_one();
+    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

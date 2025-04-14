@@ -26,8 +26,10 @@
 #include "napi/native_node_api.h"
 #include "napi_utils.h"
 
-#include "i_mdns_event.h"
-#include "mdns_event_stub.h"
+#include "imdns_service.h"
+#include "discovery_callback_stub.h"
+#include "registration_callback_stub.h"
+#include "resolve_callback_stub.h"
 #include "mdns_service_info.h"
 
 namespace OHOS {
@@ -37,19 +39,19 @@ class MDnsRegistrationObserver : public RegistrationCallbackStub {
 public:
     MDnsRegistrationObserver() = default;
     ~MDnsRegistrationObserver() = default;
-    void HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    void HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    void HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 };
 
 class MDnsDiscoveryObserver : public DiscoveryCallbackStub {
 public:
     MDnsDiscoveryObserver() = default;
     ~MDnsDiscoveryObserver() = default;
-    void HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    void HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    void HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    void HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 
     void EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode);
     void EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode);
@@ -87,7 +89,7 @@ class MDnsResolveObserver : public ResolveCallbackStub {
 public:
     MDnsResolveObserver() = default;
     ~MDnsResolveObserver() = default;
-    void HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 
     std::mutex mutex_;
     std::condition_variable cv_;

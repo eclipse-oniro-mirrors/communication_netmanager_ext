@@ -24,7 +24,9 @@
 #include "mdns_client.h"
 #include "mdns_client_resume.h"
 #include "mdns_common.h"
-#include "mdns_event_stub.h"
+#include "discovery_callback_stub.h"
+#include "registration_callback_stub.h"
+#include "resolve_callback_stub.h"
 #include "mock_i_discovery_callback_test.h"
 #include "net_conn_client.h"
 #include "netmanager_ext_test_security.h"
@@ -66,9 +68,9 @@ class MDnsTestRegistrationCallback : public RegistrationCallbackStub {
 public:
     explicit MDnsTestRegistrationCallback(const MDnsServiceInfo &info) : expected_(info) {}
     virtual ~MDnsTestRegistrationCallback() = default;
-    void HandleRegister(const MDnsServiceInfo &info, int32_t retCode) override {}
-    void HandleUnRegister(const MDnsServiceInfo &info, int32_t retCode) override {}
-    void HandleRegisterResult(const MDnsServiceInfo &info, int32_t retCode) override
+    int32_t HandleRegister(const MDnsServiceInfo &info, int32_t retCode) override { return 0; }
+    int32_t HandleUnRegister(const MDnsServiceInfo &info, int32_t retCode) override { return 0; }
+    int32_t HandleRegisterResult(const MDnsServiceInfo &info, int32_t retCode) override
     {
         g_mtx.lock();
         EXPECT_EQ(retCode, NETMANAGER_EXT_SUCCESS);
@@ -79,6 +81,7 @@ public:
         g_register++;
         g_mtx.unlock();
         g_cv.notify_one();
+        return NETMANAGER_EXT_SUCCESS;
     }
     MDnsServiceInfo expected_;
 };
@@ -87,9 +90,9 @@ class MDnsTestDiscoveryCallback : public DiscoveryCallbackStub {
 public:
     explicit MDnsTestDiscoveryCallback(const std::vector<MDnsServiceInfo> &info) : expected_(info) {}
     virtual ~MDnsTestDiscoveryCallback() = default;
-    void HandleStartDiscover(const MDnsServiceInfo &info, int32_t retCode) override {}
-    void HandleStopDiscover(const MDnsServiceInfo &info, int32_t retCode) override {}
-    void HandleServiceFound(const MDnsServiceInfo &info, int32_t retCode) override
+    int32_t HandleStartDiscover(const MDnsServiceInfo &info, int32_t retCode) override { return 0; }
+    int32_t HandleStopDiscover(const MDnsServiceInfo &info, int32_t retCode) override { return 0; }
+    int32_t HandleServiceFound(const MDnsServiceInfo &info, int32_t retCode) override
     {
         g_mtx.lock();
         EXPECT_EQ(retCode, NETMANAGER_EXT_SUCCESS);
@@ -101,9 +104,10 @@ public:
         g_found++;
         g_mtx.unlock();
         g_cv.notify_one();
+        return NETMANAGER_EXT_SUCCESS;
     }
 
-    void HandleServiceLost(const MDnsServiceInfo &info, int32_t retCode) override
+    int32_t HandleServiceLost(const MDnsServiceInfo &info, int32_t retCode) override
     {
         g_mtx.lock();
         EXPECT_EQ(retCode, NETMANAGER_EXT_SUCCESS);
@@ -115,6 +119,7 @@ public:
         g_lost++;
         g_mtx.unlock();
         g_cv.notify_one();
+        return NETMANAGER_EXT_SUCCESS;
     }
     std::vector<MDnsServiceInfo> expected_;
 };
@@ -123,7 +128,7 @@ class MDnsTestResolveCallback : public ResolveCallbackStub {
 public:
     explicit MDnsTestResolveCallback(const MDnsServiceInfo &info) : expected_(info) {}
     virtual ~MDnsTestResolveCallback() = default;
-    void HandleResolveResult(const MDnsServiceInfo &info, int32_t retCode) override
+    int32_t HandleResolveResult(const MDnsServiceInfo &info, int32_t retCode) override
     {
         g_mtx.lock();
         EXPECT_EQ(retCode, NETMANAGER_EXT_SUCCESS);
@@ -135,6 +140,7 @@ public:
         g_resolve++;
         g_mtx.unlock();
         g_cv.notify_one();
+        return NETMANAGER_EXT_SUCCESS;
     }
     MDnsServiceInfo expected_;
 };
