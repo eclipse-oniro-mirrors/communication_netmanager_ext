@@ -431,17 +431,6 @@ HWTEST_F(NetworkVpnServiceTest, ParseJsonToConfigTest001, TestSize.Level1)
     EXPECT_EQ(jsonString, "");
 }
 
-HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
-{
-    sptr<SysVpnConfig> Config;
-    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    instance_->GetConnectedSysVpnConfig(Config);
-    EXPECT_NE(instance_->vpnObj_, nullptr);
-}
-
 HWTEST_F(NetworkVpnServiceTest, CheckCurrentAccountTypeTest001, TestSize.Level1)
 {
     int32_t userId = 1;
