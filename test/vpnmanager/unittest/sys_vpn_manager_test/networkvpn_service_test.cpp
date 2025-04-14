@@ -232,15 +232,12 @@ HWTEST_F(NetworkVpnServiceTest, CreateIpsecVpnCtl001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
 {
-    sptr<SysVpnConfig> config = nullptr;
-    int32_t ret = instance_->SetUpVpn(*config);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-    config = new (std::nothrow) IpsecVpnConfig();
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     config->vpnId_ = "123";
     std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
     instance_->vpnObj_ = nullptr;
-    ret = instance_->SetUpVpn(*config);
+    int32_t ret = instance_->SetUpVpn(*config);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
     config->vpnName_ = "testSetUpVpn";
     config->vpnType_ = 1;
