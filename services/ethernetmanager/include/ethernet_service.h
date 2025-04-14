@@ -67,7 +67,7 @@ public:
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
     int32_t GetMacAddress(std::vector<MacAddressInfo> &macAddrList) override;
-    int32_t SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic) override;
+    int32_t SetIfaceConfig(const std::string &iface, const sptr<InterfaceConfiguration> &ic) override;
     int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig) override;
     int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) override;
     int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces) override;
@@ -76,8 +76,8 @@ public:
     int32_t UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) override;
     int32_t SetInterfaceUp(const std::string &iface) override;
     int32_t SetInterfaceDown(const std::string &iface) override;
-    int32_t GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &config) override;
-    int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg) override;
+    int32_t GetInterfaceConfig(const std::string &iface, ConfigurationParcelIpc &cfgIpc) override;
+    int32_t SetInterfaceConfig(const std::string &iface, const ConfigurationParcelIpc &cfgIpc) override;
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;

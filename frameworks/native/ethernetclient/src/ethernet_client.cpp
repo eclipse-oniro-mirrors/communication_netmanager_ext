@@ -17,7 +17,7 @@
 
 #include <thread>
 
-#include "i_ethernet_service.h"
+#include "iethernet_service.h"
 #include "if_system_ability_manager.h"
 #include "mac_address_info.h"
 #include "interface_configuration.h"
@@ -258,7 +258,10 @@ int32_t EthernetClient::GetInterfaceConfig(const std::string &iface, OHOS::nmd::
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return IPC_PROXY_ERR;
     }
-    return proxy->GetInterfaceConfig(iface, cfg);
+    ConfigurationParcelIpc configIpc;
+    int32_t ret = proxy->GetInterfaceConfig(iface, configIpc);
+    ConfigurationParcelIpc::ConvertEtherConfigParcelToNmd(configIpc, cfg);
+    return ret;
 }
 
 int32_t EthernetClient::SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
@@ -268,7 +271,9 @@ int32_t EthernetClient::SetInterfaceConfig(const std::string &iface, OHOS::nmd::
         NETMGR_EXT_LOG_E("proxy is nullptr");
         return IPC_PROXY_ERR;
     }
-    return proxy->SetInterfaceConfig(iface, cfg);
+    ConfigurationParcelIpc configIpc;
+    ConfigurationParcelIpc::ConvertNmdToEtherConfigParcel(configIpc, cfg);
+    return proxy->SetInterfaceConfig(iface, configIpc);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

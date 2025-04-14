@@ -153,7 +153,7 @@ void GetMacAddressFuzzTest(const uint8_t *data, size_t size)
     if (!parcel.WriteString(iface)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_MAC_ADDR_INFO), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_MAC_ADDRESS), parcel);
 }
 
 void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
@@ -166,7 +166,7 @@ void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
     if (!ic->Marshalling(parcel)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_IF_CFG), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_SET_IFACE_CONFIG), parcel);
 }
 
 void GetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
@@ -184,7 +184,7 @@ void GetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
     if (!parcel.WriteString(iface)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_IF_CFG), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_IFACE_CONFIG), parcel);
 }
 
 void IsIfaceActiveFuzzTest(const uint8_t *data, size_t size)
@@ -202,7 +202,7 @@ void IsIfaceActiveFuzzTest(const uint8_t *data, size_t size)
     if (!parcel.WriteString(iface)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_IS_ACTIVATE), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_IS_IFACE_ACTIVE), parcel);
 }
 
 void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
@@ -216,7 +216,7 @@ void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     WriteInterfaceToken(parcel);
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_ACTIVATE_INTERFACE), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_ALL_ACTIVE_IFACES), parcel);
 }
 
 void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
@@ -230,7 +230,7 @@ void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     WriteInterfaceToken(parcel);
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_RESET_FACTORY), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_RESET_FACTORY), parcel);
 }
 
 void UnregisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
@@ -258,8 +258,8 @@ void OnRegisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
     }
     sptr<IRemoteObject> remote;
     parcel.WriteRemoteObject(remote);
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_REGISTER_INTERFACE_CB), parcel);
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_UNREGISTER_INTERFACE_CB), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_REGISTER_IFACES_STATE_CHANGED), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_UNREGISTER_IFACES_STATE_CHANGED), parcel);
 }
 
 void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
@@ -268,7 +268,7 @@ void SetInterfaceUpFuzzTest(const uint8_t *data, size_t size)
     if (!IsDataAndWriteVaild(data, size, parcel)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_UP), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_SET_INTERFACE_UP), parcel);
 }
 
 void SetInterfaceDownFuzzTest(const uint8_t *data, size_t size)
@@ -277,7 +277,7 @@ void SetInterfaceDownFuzzTest(const uint8_t *data, size_t size)
     if (!IsDataAndWriteVaild(data, size, parcel)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_DOWN), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_SET_INTERFACE_DOWN), parcel);
 }
 
 void GetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
@@ -286,7 +286,7 @@ void GetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
     if (!IsDataAndWriteVaild(data, size, parcel)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_GET_INTERFACE_CONFIG), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_INTERFACE_CONFIG), parcel);
 }
 
 void SetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
@@ -322,7 +322,7 @@ void SetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
     if (!parcel.WriteString(randStr)) {
         return;
     }
-    OnRemoteRequest(static_cast<uint32_t>(EthernetInterfaceCode::CMD_SET_INTERFACE_CONFIG), parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_SET_INTERFACE_CONFIG), parcel);
 }
 
 void EthernetServiceCommonFuzzTest(const uint8_t *data, size_t size)

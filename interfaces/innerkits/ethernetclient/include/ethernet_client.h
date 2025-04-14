@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "i_ethernet_service.h"
+#include "iethernet_service.h"
 #include "interface_state_callback.h"
 #include "parcel.h"
 #include "singleton.h"

@@ -11,12 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 config("net_conn_manager_if_config") {
   # header file path
   include_dirs = [
+    "${target_gen_dir}",
     "include",
     "include/proxy",
     "$EXT_INNERKITS_ROOT/include",
@@ -59,6 +61,7 @@ ohos_source_set("ethernet_parcel") {
   branch_protector_ret = "pac_ret"
 
   sources = [
+    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/configuration_parcel_ipc.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/interface_configuration.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/mac_address_info.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/static_configuration.cpp",
@@ -75,10 +78,45 @@ ohos_source_set("ethernet_parcel") {
   external_deps = [
     "c_utils:utils",
     "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
   ]
 
   external_deps += [ "hilog:libhilog" ]
 
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+idl_gen_interface("ethernet_service_interface") {
+  sources = [ "IEthernetService.idl" ]
+}
+ 
+config("ethernet_service_interface_stub_config") {
+  include_dirs = [
+    "${target_gen_dir}",
+    "include",
+    "include/proxy",
+    "$EXT_INNERKITS_ROOT/include",
+  ]
+}
+ 
+ohos_source_set("ethernet_service_interface_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":ethernet_service_interface_stub_config" ]
+  output_values = get_target_outputs(":ethernet_service_interface")
+  sources = []
+  sources += filter_include(output_values, [ "*ice_stub.cpp" ])
+  deps = [ ":ethernet_service_interface" ]
+  external_deps = [
+    "hilog:libhilog",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
+    "samgr:samgr_proxy",
+  ]
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }
@@ -96,16 +134,19 @@ ohos_shared_library("ethernet_manager_if") {
 
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/ethernet_client.cpp",
-    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ethernet_service_proxy.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_proxy.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_stub.cpp",
   ]
+
+  output_values = get_target_outputs(":ethernet_service_interface")
+  sources += filter_include(output_values, [ "*ice_proxy.cpp" ])
 
   version_script = "libethernet_kits.map"
 
   public_configs = [ ":net_conn_manager_if_config" ]
 
   deps = [ ":ethernet_parcel" ]
+  deps += [ ":ethernet_service_interface" ]
 
   external_deps = [
     "bounds_checking_function:libsec_shared",

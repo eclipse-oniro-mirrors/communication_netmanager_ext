@@ -32,9 +32,9 @@ bool MacAddressInfo::Marshalling(Parcel &parcel) const
     return true;
 }
 
-sptr<MacAddressInfo> MacAddressInfo::Unmarshalling(Parcel &parcel)
+MacAddressInfo* MacAddressInfo::Unmarshalling(Parcel &parcel)
 {
-    sptr<MacAddressInfo> ptr = new (std::nothrow) MacAddressInfo();
+    MacAddressInfo* ptr = new (std::nothrow) MacAddressInfo();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("create MacAddressInfo failed");
         return nullptr;

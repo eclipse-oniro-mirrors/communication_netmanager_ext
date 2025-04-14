@@ -207,7 +207,7 @@ int32_t EthernetService::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
     return ethManagement_.GetMacAddress(macAddrList);
 }
 
-int32_t EthernetService::SetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ic)
+int32_t EthernetService::SetIfaceConfig(const std::string &iface, const sptr<InterfaceConfiguration> &ic)
 {
     NETMGR_EXT_LOG_D("Set iface: %{public}s config", iface.c_str());
     if (!NetManagerPermission::IsSystemCaller()) {
@@ -334,26 +334,31 @@ int32_t EthernetService::SetInterfaceDown(const std::string &iface)
     return NetsysController::GetInstance().SetInterfaceDown(iface);
 }
 
-int32_t EthernetService::GetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &config)
+int32_t EthernetService::GetInterfaceConfig(const std::string &iface, ConfigurationParcelIpc &cfgIpc)
 {
     NETMGR_EXT_LOG_D("Get interface: %{public}s config", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService GetInterfaceConfig no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
+    OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = iface;
-    return NetsysController::GetInstance().GetInterfaceConfig(config);
+    int32_t ret = NetsysController::GetInstance().GetInterfaceConfig(config);
+    ConfigurationParcelIpc::ConvertNmdToEtherConfigParcel(cfgIpc, config);
+    return ret;
 }
 
-int32_t EthernetService::SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg)
+int32_t EthernetService::SetInterfaceConfig(const std::string &iface, const ConfigurationParcelIpc &cfgIpc)
 {
     NETMGR_EXT_LOG_D("Set interface: %{public}s config", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService SetInterfaceConfig no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    cfg.ifName = iface;
-    return NetsysController::GetInstance().SetInterfaceConfig(cfg);
+    OHOS::nmd::InterfaceConfigurationParcel config;
+    ConfigurationParcelIpc::ConvertEtherConfigParcelToNmd(cfgIpc, config);
+    config.ifName = iface;
+    return NetsysController::GetInstance().SetInterfaceConfig(config);
 }
 
 int32_t EthernetService::RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback)
