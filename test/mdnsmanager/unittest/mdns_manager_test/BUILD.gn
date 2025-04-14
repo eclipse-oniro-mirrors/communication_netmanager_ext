@@ -39,6 +39,7 @@ ohos_unittest("mdns_manager_test") {
     "$EXT_INNERKITS_ROOT/mdnsclient/include/proxy",
     "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
+    "$MDNSMANAGER_SOURCE_DIR/include",
   ]
 
   deps = [
@@ -67,7 +68,11 @@ ohos_unittest("mdns_manager_test") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
-  external_deps += [ "hilog:libhilog" ]
+  external_deps += [ 
+    "hilog:libhilog",
+    "common_event_service:cesfwk_innerkits",
+    "samgr:samgr_proxy",
+  ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
