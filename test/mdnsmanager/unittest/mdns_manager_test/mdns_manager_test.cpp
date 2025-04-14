@@ -30,6 +30,7 @@
 #include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
+#include "mdns_protocol_impl.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -186,6 +187,22 @@ void MDnsServerTest::TearDownTestCase() {}
 void MDnsServerTest::SetUp() {}
 
 void MDnsServerTest::TearDown() {}
+
+class MDnsProtocolImplTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void MDnsProtocolImplTest::SetUpTestCase() {}
+
+void MDnsProtocolImplTest::TearDownTestCase() {}
+
+void MDnsProtocolImplTest::SetUp() {}
+
+void MDnsProtocolImplTest::TearDown() {}
 
 
 struct MdnsClientTestParams {
@@ -451,6 +468,46 @@ HWTEST_F(MDnsServerTest, MDnsServerBranchTest001, TestSize.Level1)
 
     ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(callback);
     EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
+
+/**
+ * @tc.name: MDnsProtocolImplCesTest001
+ * @tc.desc: Test SetScreenState
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsProtocolImplTest, MDnsProtocolImplCesTest001, TestSize.Level1)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    mDnsProtocolImpl.SubscribeCes();
+
+    EXPECT_NE(mDnsProtocolImpl.subscriber_, nullptr);
+
+    mDnsProtocolImpl.SubscribeCes();
+    mDnsProtocolImpl.SetScreenState(true);
+    mDnsProtocolImpl.SetScreenState(false);
+}
+
+/**
+ * @tc.name: MDnsProtocolImplCesTest002
+ * @tc.desc: Test OnReceiveEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsProtocolImplTest, MDnsProtocolImplCesTest002, TestSize.Level1)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    mDnsProtocolImpl.SubscribeCes();
+
+    EventFwk::CommonEventData eventData;
+    EventFwk::Want want;
+    want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_ON);
+    eventData.SetWant(want);
+    mDnsProtocolImpl.subscriber_->OnReceiveEvent(eventData);
+
+    want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_OFF);
+    eventData.SetWant(want);
+    mDnsProtocolImpl.subscriber_->OnReceiveEvent(eventData);
+
+    EXPECT_NE(mDnsProtocolImpl.subscriber_, nullptr);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
