@@ -254,17 +254,21 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("cfg is nullptr");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto fit = devs_.find(iface);
-    if (fit == devs_.end() || fit->second == nullptr) {
-        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
-        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    sptr<DevInterfaceState> devState = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        auto fit = devs_.find(iface);
+        if (fit == devs_.end() || fit->second == nullptr) {
+            NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
+            return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+        }
+        devState = fit->second;
     }
-    if (!fit->second->GetLinkUp()) {
+    if (!devState->GetLinkUp()) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is unlink", iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
-    if (!ModeInputCheck(fit->second->GetIfcfg()->mode_, cfg->mode_)) {
+    if (!ModeInputCheck(devState->GetIfcfg()->mode_, cfg->mode_)) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device can not exchange between WAN and LAN", iface.c_str());
         return NETMANAGER_ERR_INVALID_PARAMETER;
     }
@@ -272,22 +276,22 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
         return ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL;
     }
-    if (fit->second->GetIfcfg()->mode_ != cfg->mode_) {
+    if (devState->GetIfcfg()->mode_ != cfg->mode_) {
         if (cfg->mode_ == DHCP || cfg->mode_ == LAN_DHCP) {
-            StartDhcpClient(iface, fit->second);
+            StartDhcpClient(iface, devState);
         } else {
-            StopDhcpClient(iface, fit->second);
+            StopDhcpClient(iface, devState);
             netLinkConfigs_[iface] = nullptr;
         }
     } else if (cfg->mode_ == DHCP) {
-        fit->second->UpdateNetHttpProxy(cfg->httpProxy_);
+        devState->UpdateNetHttpProxy(cfg->httpProxy_);
     }
-    if (fit->second->IsLanIface()) {
-        ethLanManageMent_->GetOldLinkInfo(fit->second);
-        fit->second->SetLancfg(cfg);
-        ethLanManageMent_->UpdateLanLinkInfo(fit->second);
+    if (devState->IsLanIface()) {
+        ethLanManageMent_->GetOldLinkInfo(devState);
+        devState->SetLancfg(cfg);
+        ethLanManageMent_->UpdateLanLinkInfo(devState);
     } else {
-        fit->second->SetIfcfg(cfg);
+        devState->SetIfcfg(cfg);
     }
     devCfgs_[iface] = cfg;
     return NETMANAGER_EXT_SUCCESS;
