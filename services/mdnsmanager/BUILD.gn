@@ -76,6 +76,7 @@ ohos_shared_library("mdns_manager") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "common_event_service:cesfwk_innerkits",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
@@ -93,11 +94,7 @@ ohos_shared_library("mdns_manager") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
-  external_deps += [
-    "common_event_service:cesfwk_innerkits",
-    "hilog:libhilog",
-    "samgr:samgr_proxy",
-  ]
+  external_deps += [ "hilog:libhilog" ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
@@ -133,6 +130,7 @@ ohos_static_library("mdns_manager_static") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "common_event_service:cesfwk_innerkits",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
@@ -150,11 +148,7 @@ ohos_static_library("mdns_manager_static") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
-  external_deps += [
-    "common_event_service:cesfwk_innerkits",
-    "hilog:libhilog",
-    "samgr:samgr_proxy",
-  ]
+  external_deps += [ "hilog:libhilog" ]
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
