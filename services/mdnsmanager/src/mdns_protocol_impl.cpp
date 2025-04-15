@@ -41,6 +41,7 @@ constexpr uint16_t MDNS_FLUSH_CACHE_BIT = 0x8000;
 constexpr int PHASE_PTR = 1;
 constexpr int PHASE_SRV = 2;
 constexpr int PHASE_DOMAIN = 3;
+static bool g_isScreenOn = true;
 
 std::string AddrToString(const std::any &addr)
 {
@@ -90,11 +91,50 @@ void MDnsProtocolImpl::Init()
     taskQueue_.clear();
     taskOnChange_.clear();
     AddTask([this]() { return Browse(); }, false);
+
+    SubscribeCes();
+}
+
+void MDnsProtocolImpl::SubscribeCes()
+{
+    int32_t COMMON_EVENT_SERVICE_ID = 3299;
+    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrClient == nullptr || samgrClient->CheckSystemAbility(COMMON_EVENT_SERVICE_ID) == nullptr) {
+        NETMGR_EXT_LOG_E("Subscribe:CES SA not ready, wait for the SA Added callback.");
+        return;
+    }
+    EventFwk::MatchingSkills matchSkills;
+    matchSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_ON);
+    matchSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_OFF);
+
+    EventFwk::CommonEventSubscribeInfo subcriberInfo(matchSkills);
+    if (subscriber_ == nullptr) {
+        subscriber_ = std::make_shared<MdnsSubscriber>(subcriberInfo);
+    }
+    if (!EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_)) {
+        NETMGR_EXT_LOG_E("system event register fail.");
+    }
+}
+
+void MDnsProtocolImpl::MdnsSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
+{
+    auto eventName = data.GetWant().GetAction();
+    if (eventName == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_ON) {
+        MDnsProtocolImpl::SetScreenState(true);
+    } else {
+        MDnsProtocolImpl::SetScreenState(false);
+    }
+}
+
+void MDnsProtocolImpl::SetScreenState(bool isOn)
+{
+    NETMGR_EXT_LOG_I("Mdns SetScreenState isOn[%{public}d]", isOn);
+    g_isScreenOn = isOn;
 }
 
 bool MDnsProtocolImpl::Browse()
 {
-    if (lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS) {
+    if ((lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS) || !g_isScreenOn) {
         return false;
     }
     lastRunTime = MilliSecondsSinceEpoch();
