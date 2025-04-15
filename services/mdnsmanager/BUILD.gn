@@ -153,3 +153,4 @@ ohos_static_library("mdns_manager_static") {
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }
+
