@@ -46,6 +46,7 @@ ohos_unittest("mdns_protocol_test") {
   external_deps = [
     "ipc:ipc_core",
     "netmanager_base:net_manager_common",
+    "samgr:samgr_proxy",
   ]
 
   defines = [
