@@ -172,5 +172,98 @@ HWTEST_F(EthernetLanManagementTest, EthernetLanManagementBranchTest001, TestSize
     ret = ethernetLanManager.ReleaseLanNetLink(devState);
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
+
+HWTEST_F(EthernetLanManagementTest, ReleaseLanNetLinkTest001, TestSize.Level1)
+{
+    EthernetLanManagement ethernetLanManager;
+    sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
+    sptr<NetLinkInfo> linkInfo = new (std::nothrow) NetLinkInfo();
+    INetAddr addr;
+    addr.address_ = "192.168.1.1";
+    addr.prefixlen_ = 24;
+    linkInfo->netAddrList_.push_back(addr);
+
+    Route route;
+    route.destination_.address_ = "192.168.1.0";
+    route.destination_.prefixlen_ = 24;
+    route.gateway_.address_ = "192.168.1.254";
+    linkInfo->routeList_.push_back(route);
+
+    devState->SetlinkInfo(linkInfo);
+    int32_t ret = ethernetLanManager.ReleaseLanNetLink(devState);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+}
+
+HWTEST_F(EthernetLanManagementTest, SetIpTest, TestSize.Level1)
+{
+    EthernetLanManagement ethernetLanManager;
+
+    NetLinkInfo newNetLinkInfo;
+    INetAddr existingAddr;
+    existingAddr.address_ = "192.168.1.1";
+    existingAddr.prefixlen_ = 24;
+    newNetLinkInfo.netAddrList_.push_back(existingAddr);
+
+    INetAddr addr;
+    addr.address_ = "192.168.1.1";
+    addr.prefixlen_ = 24;
+    ethernetLanManager.netLinkInfo_.netAddrList_.push_back(addr);
+
+    int32_t ret = ethernetLanManager.SetIp(newNetLinkInfo);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
+
+HWTEST_F(EthernetLanManagementTest, DelIpTest, TestSize.Level1)
+{
+    EthernetLanManagement ethernetLanManager;
+
+    NetLinkInfo newNetLinkInfo;
+    INetAddr existingAddr;
+    existingAddr.address_ = "192.168.1.1";
+    existingAddr.prefixlen_ = 24;
+    newNetLinkInfo.netAddrList_.push_back(existingAddr);
+    INetAddr addr;
+    addr.address_ = "192.168.1.1";
+    addr.prefixlen_ = 24;
+    ethernetLanManager.netLinkInfo_.netAddrList_.push_back(addr);
+    int32_t ret = ethernetLanManager.DelIp(newNetLinkInfo);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+
+    INetAddr newAddr;
+    newAddr.address_ = "192.168.1.2";
+    newAddr.prefixlen_ = 24;
+    newNetLinkInfo.netAddrList_.push_back(newAddr);
+    ret = ethernetLanManager.DelIp(newNetLinkInfo);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
+
+HWTEST_F(EthernetLanManagementTest, SetAndDelRouteTest, TestSize.Level1)
+{
+    EthernetLanManagement ethernetLanManager;
+    NetLinkInfo newNetLinkInfo;
+    Route existingRoute;
+    existingRoute.destination_.address_ = "192.168.1.0";
+    existingRoute.destination_.prefixlen_ = 24;
+    existingRoute.gateway_.address_ = "192.168.1.254";
+    newNetLinkInfo.routeList_.push_back(existingRoute);
+    Route route;
+    route.destination_.address_ = "192.168.1.0";
+    route.destination_.prefixlen_ = 24;
+    route.gateway_.address_ = "192.168.1.254";
+    ethernetLanManager.netLinkInfo_.routeList_.push_back(route);
+
+    int32_t ret = ethernetLanManager.SetRoute(newNetLinkInfo);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    ret = ethernetLanManager.DelRoute(newNetLinkInfo);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+
+    Route newRoute;
+    newRoute.destination_.address_ = "192.168.2.0";
+    newRoute.destination_.prefixlen_ = 24;
+    newRoute.gateway_.address_ = "192.168.2.254";
+    newNetLinkInfo.routeList_.push_back(newRoute);
+    ret = ethernetLanManager.DelRoute(newNetLinkInfo);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

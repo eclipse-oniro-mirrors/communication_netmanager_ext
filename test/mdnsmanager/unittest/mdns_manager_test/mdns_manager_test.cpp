@@ -515,5 +515,51 @@ HWTEST_F(MDnsProtocolImplTest, MDnsProtocolImplCesTest002, TestSize.Level1)
 
     EXPECT_NE(mDnsProtocolImpl.subscriber_, nullptr);
 }
+
+HWTEST_F(MDnsClientTest, RegisterServiceTest001, TestSize.Level1)
+{
+    MDnsClient mdnsclient;
+    MDnsServiceInfo serviceInfo;
+    serviceInfo.name = "1234";
+    serviceInfo.type = "_xyz._udp";
+    serviceInfo.port = 123;
+    sptr<IRegistrationCallback> cb;
+    EXPECT_EQ(mdnsclient.RegisterService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+    serviceInfo.name = "12.34";
+    EXPECT_EQ(mdnsclient.RegisterService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
+
+HWTEST_F(MDnsClientTest, UnRegisterServiceTest001, TestSize.Level1)
+{
+    MDnsClient mdnsclient;
+    sptr<IRegistrationCallback> cb;
+    EXPECT_EQ(mdnsclient.UnRegisterService(cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
+
+HWTEST_F(MDnsClientTest, StartDiscoverServiceTest001, TestSize.Level1)
+{
+    std::string serviceType = "_xyz._udp";
+    MDnsClient mdnsclient;
+    sptr<IDiscoveryCallback> cb;
+    EXPECT_EQ(mdnsclient.StartDiscoverService(serviceType, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
+
+HWTEST_F(MDnsClientTest, ResolveServiceTest001, TestSize.Level1)
+{
+    MDnsClient mdnsclient;
+    MDnsServiceInfo serviceInfo;
+    serviceInfo.name = "1234";
+    serviceInfo.type = "_xyz.udp";
+    serviceInfo.port = 123;
+    sptr<IResolveCallback> cb;
+    EXPECT_EQ(mdnsclient.ResolveService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+    serviceInfo.name = "12.34";
+    EXPECT_EQ(mdnsclient.ResolveService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+    serviceInfo.name = "1234";
+    serviceInfo.type = "_xyz._udp";
+    EXPECT_EQ(mdnsclient.ResolveService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+    serviceInfo.name = "12.34";
+    EXPECT_EQ(mdnsclient.ResolveService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
