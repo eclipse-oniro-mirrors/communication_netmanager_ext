@@ -408,16 +408,16 @@ HWTEST_F(MDnsServerTest, MDnsCommonTest002, TestSize.Level1)
     std::vector<std::tuple<std::string, bool, bool, bool, bool>> test = {
         {"abbcccddddcccbba", true,  false, false, true },
         {"",                 false, false, false, true },
-        {"a.b",              false, false, false, true },
-        {"_xxx.tcp",         false, false, false, true },
-        {"xxx._tcp",         false, false, false, true },
-        {"xxx.yyy",          false, false, false, true },
-        {"xxx.yyy",          false, false, false, true },
-        {"_xxx._yyy",        false, false, false, true },
-        {"hello._ipp._tcp",  false, false, true,  true },
-        {"_x._y._tcp",       false, false, true,  true },
-        {"_ipp._tcp",        false, true,  false, true },
-        {"_http._tcp",       false, true,  false, true },
+        {"a.b",              true,  false, false, true },
+        {"_xxx.tcp",         true,  false, false, true },
+        {"xxx._tcp",         true,  false, false, true },
+        {"xxx.yyy",          true,  false, false, true },
+        {"xxx.yyy",          true,  false, false, true },
+        {"_xxx._yyy",        true,  false, false, true },
+        {"hello._ipp._tcp",  true,  false, true,  true },
+        {"_x._y._tcp",       true,  false, true,  true },
+        {"_ipp._tcp",        true,  true,  false, true },
+        {"_http._tcp",       true,  true,  false, true },
     };
 
     for (auto line : test) {
