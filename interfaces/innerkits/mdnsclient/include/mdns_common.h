@@ -42,6 +42,7 @@ static constexpr char MDNS_DOMAIN_SPLITER = '.';
 bool EndsWith(const std::string_view &str, const std::string_view &pat);
 bool StartsWith(const std::string_view &str, const std::string_view &pat);
 std::vector<std::string_view> Split(const std::string_view &s, char seperator);
+int32_t GetMDNSTypeIndex(const std::vector<std::string_view> &views);
 
 bool IsNameValid(const std::string &name);
 bool IsTypeValid(const std::string &type);
