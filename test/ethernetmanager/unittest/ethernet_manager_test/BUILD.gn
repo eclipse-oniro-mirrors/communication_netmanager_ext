@@ -70,6 +70,7 @@ ohos_unittest("ethernet_manager_test") {
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_conn_parcel",
+    "samgr:samgr_proxy",
   ]
 
   defines = [

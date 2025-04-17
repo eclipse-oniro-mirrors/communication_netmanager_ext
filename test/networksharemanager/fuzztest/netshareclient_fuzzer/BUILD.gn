@@ -81,7 +81,8 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
     "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
-  deps += [ "$EXT_INNERKITS_ROOT/netshareclient:netshare_service_interface_stub" ]
+  deps +=
+      [ "$EXT_INNERKITS_ROOT/netshareclient:netshare_service_interface_stub" ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
@@ -99,6 +100,8 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "netmanager_base:net_manager_common",
     "safwk:system_ability_fwk",
   ]
+
+  external_deps += [ "samgr:samgr_proxy" ]
 
   defines = []
 
