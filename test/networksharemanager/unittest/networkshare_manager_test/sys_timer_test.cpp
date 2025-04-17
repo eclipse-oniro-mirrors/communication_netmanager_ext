@@ -91,5 +91,28 @@ HWTEST_F(SysTimerTest, SysTimerTest, TestSize.Level1)
 
     EXPECT_EQ(SysTimer.interval, interval);
 }
+
+HWTEST_F(SysTimerTest, SysTimerTest001, TestSize.Level1)
+{
+    bool repeat = true;
+    uint64_t interval = 5000;
+    bool isNoWakeUp = true;
+    bool isIdle = true;
+    SysTimer SysTimer(repeat, interval, isNoWakeUp, isIdle);
+
+    EXPECT_EQ(SysTimer.interval, interval);
+}
+
+HWTEST_F(SysTimerTest, SetCallbackInfoTest001, TestSize.Level1)
+{
+    bool callbackCalled = false;
+    timer_->SetCallbackInfo([&callbackCalled]()
+                            { callbackCalled = true; });
+
+    timer_->callBack_ = nullptr;
+    timer_->OnTrigger();
+
+    EXPECT_FALSE(callbackCalled);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
