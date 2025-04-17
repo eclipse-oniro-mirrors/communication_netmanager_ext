@@ -66,12 +66,13 @@ std::vector<std::string_view> Split(const std::string_view &s, char seperator)
 
 int32_t GetMDNSTypeIndex(const std::vector<std::string_view> &views)
 {
+    int32_t index = -1;
     for (size_t i = 0; i < views.size(); ++i) {
         if (views[i] == MDNS_TYPE_TCP || views[i] == MDNS_TYPE_UDP) {
-            return static_cast<int32_t>(i);
+            index = static_cast<int32_t>(i);
         }
     }
-    return -1;
+    return index;
 }
 
 bool IsNameValid(const std::string &name)
