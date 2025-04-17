@@ -98,8 +98,9 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
+
+  external_deps += [ "samgr:samgr_proxy" ]
 
   defines = []
 
