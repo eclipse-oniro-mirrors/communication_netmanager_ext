@@ -76,6 +76,7 @@ ohos_unittest("ethernet_manager_test") {
   defines = [
     "NETMGR_LOG_TAG = \"EthernetManager\"",
     "LOG_DOMAIN = 0xD0015B0",
+    "private = public",
   ]
 
   if (enable_netmgr_ext_debug) {
