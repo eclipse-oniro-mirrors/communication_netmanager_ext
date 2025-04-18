@@ -42,8 +42,8 @@ struct TetherTrafficInfos {
     int64_t mLastStatsSize = 0;
     int64_t mLimitSize = NO_LIMIT;
     int64_t mRemainSize = NO_LIMIT;
-    int64_t mMaxSpeed = 0;
-    int64_t mNetSpeed = 0;
+    int64_t mMaxSpeed = -1;
+    int64_t mNetSpeed = -1;
     int64_t SharingTrafficValue = 0;
 };
 
