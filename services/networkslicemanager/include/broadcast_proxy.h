@@ -112,7 +112,7 @@ private:
     public:
         VpnEventObserver() = default;
         ~VpnEventObserver() = default;
-        int32_t OnVpnStateChanged(bool &isConnected) override;
+        int32_t OnVpnStateChanged(bool isConnected) override;
     };
 
     class SystemAbilityListener : public SystemAbilityStatusChangeStub {
