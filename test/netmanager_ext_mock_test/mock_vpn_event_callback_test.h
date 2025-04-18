@@ -23,7 +23,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 class MockIVpnEventCallback : public IRemoteStub<IVpnEventCallback> {
 public:
-    int32_t OnVpnStateChanged(bool &isConnected) override { return 0; };
+    int32_t OnVpnStateChanged(bool isConnected) override { return 0; };
     int32_t OnVpnMultiUserSetUp() override { return 0; };
 };
 } // namespace NetManagerStandard
