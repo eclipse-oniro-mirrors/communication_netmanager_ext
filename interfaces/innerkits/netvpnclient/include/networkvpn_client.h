@@ -35,7 +35,7 @@ namespace NetManagerStandard {
 
 class VpnSetUpEventCallback : public VpnEventCallbackStub {
 public:
-    int32_t OnVpnStateChanged(bool &isConnected) override{ return ERR_OK; };
+    int32_t OnVpnStateChanged(bool isConnected) override{ return ERR_OK; };
     int32_t OnVpnMultiUserSetUp() override;
 };
 
