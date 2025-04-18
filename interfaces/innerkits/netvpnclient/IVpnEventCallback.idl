@@ -15,6 +15,6 @@
 
 package OHOS.NetManagerStandard;
 [callback] interface IVpnEventCallback{
-    void OnVpnStateChanged([out] boolean isConnected);
+    void OnVpnStateChanged([in] boolean isConnected);
     void OnVpnMultiUserSetUp();
 }
