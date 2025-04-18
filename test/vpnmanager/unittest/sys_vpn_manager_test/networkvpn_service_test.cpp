@@ -39,7 +39,7 @@ using namespace testing::ext;
 } // namespace
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    int32_t OnVpnStateChanged(bool &isConnected) override{ return 0; };
+    int32_t OnVpnStateChanged(bool isConnected) override{ return 0; };
     int32_t OnVpnMultiUserSetUp() override{ return 0; };
 };
 class NetworkVpnServiceTest : public testing::Test {
