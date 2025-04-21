@@ -27,6 +27,7 @@ constexpr size_t MDNS_INSTANCE_SEGMENT = 3;
 constexpr size_t MDNS_NAME_IDX = 0;
 constexpr size_t MDNS_TYPE1_IDX = 1;
 constexpr size_t MDNS_TYPE2_IDX = 2;
+constexpr int32_t TYPE_SIZE = 2;
 
 } // namespace
 
@@ -63,10 +64,20 @@ std::vector<std::string_view> Split(const std::string_view &s, char seperator)
     return output;
 }
 
+int32_t GetMDNSTypeIndex(const std::vector<std::string_view> &views)
+{
+    int32_t index = -1;
+    for (size_t i = 0; i < views.size(); ++i) {
+        if (views[i] == MDNS_TYPE_TCP || views[i] == MDNS_TYPE_UDP) {
+            index = static_cast<int32_t>(i);
+        }
+    }
+    return index;
+}
+
 bool IsNameValid(const std::string &name)
 {
-    return 0 < name.size() && name.size() <= MDNS_MAX_DOMAIN_LABEL &&
-           name.find(MDNS_DOMAIN_SPLITER) == std::string::npos;
+    return 0 < name.size() && name.size() <= MDNS_MAX_DOMAIN_LABEL;
 }
 
 bool IsTypeValid(const std::string &type)
@@ -84,10 +95,23 @@ bool IsPortValid(int port)
 bool IsInstanceValid(const std::string &instance)
 {
     auto views = Split(instance, MDNS_DOMAIN_SPLITER);
-    return views.size() == MDNS_INSTANCE_SEGMENT && views[MDNS_NAME_IDX].size() <= MDNS_MAX_DOMAIN_LABEL &&
+    if (views.size() == MDNS_INSTANCE_SEGMENT) {
+        return views[MDNS_NAME_IDX].size() <= MDNS_MAX_DOMAIN_LABEL &&
            views[MDNS_TYPE1_IDX].size() <= MDNS_MAX_DOMAIN_LABEL &&
            StartsWith(views[MDNS_TYPE1_IDX], MDNS_TYPE_PREFIX) &&
            (views[MDNS_TYPE2_IDX] == MDNS_TYPE_UDP || views[MDNS_TYPE2_IDX] == MDNS_TYPE_TCP);
+    } else if (views.size() > MDNS_INSTANCE_SEGMENT) {
+        int32_t typeIndex = GetMDNSTypeIndex(views);
+        if (typeIndex <= TYPE_SIZE) {
+            return false;
+        }
+        std::string name = std::string(views[MDNS_NAME_IDX].begin(), views[typeIndex - TYPE_SIZE].end());
+        return name.size() <= MDNS_MAX_DOMAIN_LABEL &&
+           views[typeIndex - 1].size() <= MDNS_MAX_DOMAIN_LABEL &&
+           StartsWith(views[typeIndex - 1], MDNS_TYPE_PREFIX) &&
+           (views[typeIndex] == MDNS_TYPE_UDP || views[typeIndex] == MDNS_TYPE_TCP);
+    }
+    return false;
 }
 
 bool IsDomainValid(const std::string &domain)
@@ -98,9 +122,13 @@ bool IsDomainValid(const std::string &domain)
 void ExtractNameAndType(const std::string &instance, std::string &name, std::string &type)
 {
     auto views = Split(instance, MDNS_DOMAIN_SPLITER);
+    int32_t typeIndex = GetMDNSTypeIndex(views);
     if (views.size() == MDNS_INSTANCE_SEGMENT || views.size() == MDNS_INSTANCE_SEGMENT + 1) {
         name = std::string(views[MDNS_NAME_IDX].begin(), views[MDNS_NAME_IDX].end());
         type = std::string(views[MDNS_TYPE1_IDX].begin(), views[MDNS_TYPE2_IDX].end());
+    } else if (typeIndex > TYPE_SIZE) {
+        name = std::string(views[MDNS_NAME_IDX].begin(), views[typeIndex - TYPE_SIZE].end());
+        type = std::string(views[typeIndex - 1].begin(), views[typeIndex].end());
     }
 }
 
