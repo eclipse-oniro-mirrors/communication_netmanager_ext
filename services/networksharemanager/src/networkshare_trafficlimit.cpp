@@ -59,7 +59,7 @@ void NetworkShareTrafficLimit::InitTetherStatsInfo()
     tetherTrafficInfos.mLastStatsMills = GetCurrentMilliseconds();
     tetherTrafficInfos.mLastStatsSize = 0;
     tetherTrafficInfos.mRemainSize = tetherTrafficInfos.mLimitSize;
-    tetherTrafficInfos.mNetSpeed = 0;
+    tetherTrafficInfos.mNetSpeed = -1;
     tetherTrafficInfos.SharingTrafficValue = 0;
     lastSharingStatsSize = 0;
     tmpMills = tetherTrafficInfos.mLastStatsMills;
@@ -127,7 +127,7 @@ SharingTrafficDataObserver::SharingTrafficDataObserver()
 
 void SharingTrafficDataObserver::RegisterTetherDataSettingObserver()
 {
-    NETMGR_EXT_LOG_E("RegisterTetherDataSettingObserver start.");
+    NETMGR_EXT_LOG_I("RegisterTetherDataSettingObserver start.");
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     Uri uriTether(SHARE_SETTING_URI + SHARE_LIMIT);
     if (dataShareHelperUtils->RegisterSettingsObserver(uriTether, mTetherSingleValueObserver_) != NETSYS_SUCCESS) {
@@ -137,7 +137,7 @@ void SharingTrafficDataObserver::RegisterTetherDataSettingObserver()
 
 void SharingTrafficDataObserver::UnregisterTetherDataSettingObserver()
 {
-    NETMGR_EXT_LOG_E("UnregisterTetherDataSettingObserver start.");
+    NETMGR_EXT_LOG_I("UnregisterTetherDataSettingObserver start.");
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     Uri uriTether(SHARE_SETTING_URI + SHARE_LIMIT);
     if (dataShareHelperUtils->UnRegisterSettingsObserver(uriTether, mTetherSingleValueObserver_) != NETSYS_SUCCESS) {
@@ -147,7 +147,7 @@ void SharingTrafficDataObserver::UnregisterTetherDataSettingObserver()
 
 void SharingTrafficDataObserver::ReadTetherTrafficSetting()
 {
-    NETMGR_EXT_LOG_E("ReadTetherTrafficSetting start.");
+    NETMGR_EXT_LOG_I("ReadTetherTrafficSetting start.");
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
     Uri mLimitUri(SHARE_SETTING_URI + SHARE_LIMIT);
     std::string value = "";
@@ -166,6 +166,7 @@ void SharingTrafficDataObserver::ReadTetherTrafficSetting()
 
 void TetherSingleValueObserver::OnChange()
 {
+    NETMGR_EXT_LOG_I("trafficlimit OnChange.");
     Uri uriTether(SHARE_SETTING_URI + SHARE_LIMIT);
     std::string value = "";
     auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
@@ -178,7 +179,7 @@ void TetherSingleValueObserver::OnChange()
     if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
         tetherInt = tetherTmp;
     }
-    NETMGR_EXT_LOG_E("TetherSingleValueObserver OnChanged. dataString: %{public}s, TrafficInt: %{public}" PRId64,
+    NETMGR_EXT_LOG_I("TetherSingleValueObserver OnChanged. dataString: %{public}s, TrafficInt: %{public}" PRId64,
          value.c_str(), tetherInt);
     NetworkShareTrafficLimit::GetInstance().UpdataSharingSettingdata(tetherInt);
     int32_t sharingStatus;
@@ -254,7 +255,7 @@ int64_t NetworkShareTrafficLimit::GetNextUpdataDelay()
         maxDelay = NetworkShareUtils::Constrain(maxDelay, STATS_INTERVAL_MINIMUM, STATS_INTERVAL_MAXIMUM);
     }
     int64_t delay;
-    if (tetherTrafficInfos.mNetSpeed == 0) {
+    if (tetherTrafficInfos.mNetSpeed <= 0) {
         delay = maxDelay;
     } else {
         delay = tetherTrafficInfos.mRemainSize / tetherTrafficInfos.mNetSpeed / NUMBER_THREE;
@@ -268,12 +269,13 @@ void NetworkShareTrafficLimit::UpdataSharingTrafficStats()
     nmd::NetworkSharingTraffic traffic;
     std::string ifaceName;
     int32_t ret = NetsysController::GetInstance().GetNetworkCellularSharingTraffic(traffic, ifaceName);
-    int64_t tetherStats = static_cast<int64_t>(traffic.receive + traffic.send);
     if (ret != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("GetTrafficBytes err, ret[%{public}d].", ret);
         return;
     }
 
+    int64_t tetherStats = static_cast<int64_t>(traffic.receive + traffic.send);
+    NETMGR_EXT_LOG_I("Stats=%{public}" PRId64, tetherStats);
     int64_t statsMills = GetCurrentMilliseconds();
     if (tetherStats < tetherTrafficInfos.mStartSize) {
         NETMGR_EXT_LOG_E("updata tether traffic error");
@@ -328,7 +330,7 @@ void NetworkShareTrafficLimit::SaveSharingTrafficToSettingsDB(nmd::NetworkSharin
 
 void NetworkShareTrafficLimit::AddSharingTrafficBeforeConnChanged(nmd::NetworkSharingTraffic &traffic)
 {
-    NETMGR_EXT_LOG_E("AddSharingTrafficBeforeConnChanged enter");
+    NETMGR_EXT_LOG_I("AddSharingTrafficBeforeConnChanged enter");
     tetherTrafficInfos.SharingTrafficValue += traffic.receive;
     tetherTrafficInfos.SharingTrafficValue += traffic.send;
 }
@@ -387,7 +389,7 @@ void NetworkShareTrafficLimit::SendSharingTrafficToCachedData(const nmd::Network
     infos.iface_ = upIface;
     auto ret = DelayedSingleton<NetStatsClient>::GetInstance()->SaveSharingTraffic(infos);
     if (ret != 0) {
-        NETMGR_EXT_LOG_E("SaveSharingTraffic ERROR");
+        NETMGR_EXT_LOG_E("SaveSharingTraffic error");
     }
 }
 } // namespace NetManagerStandard
