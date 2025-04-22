@@ -37,7 +37,7 @@ using namespace testing::ext;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 class VpnEventTestCallback : public VpnEventCallbackStub {
 public:
-    int32_t OnVpnStateChanged(bool &isConnected) override{ return 0; };
+    int32_t OnVpnStateChanged(bool isConnected) override{ return 0; };
     int32_t OnVpnMultiUserSetUp() override{ return 0; };
 };
 } // namespace

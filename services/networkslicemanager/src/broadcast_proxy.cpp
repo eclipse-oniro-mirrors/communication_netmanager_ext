@@ -174,7 +174,7 @@ void broadcast_proxy::SystemAbilityListener::RegisterDnsResultCallback()
     NETMGR_EXT_LOG_E("RegisterVpnEventCallback success.");
 }
 
-int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool &isConnected)
+int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool isConnected)
 {
     NETMGR_EXT_LOG_E("vpn state changed. cur state: %{public}d", isConnected);
     Singleton<NetworkSliceMsgCenter>::GetInstance().Publish(EVENT_VPN_MODE_CHANGED, isConnected);
