@@ -37,13 +37,11 @@ config("net_conn_manager_if_config") {
   }
 
   cflags = [
-    "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]
 
   cflags_cc = [
-    "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]
@@ -55,6 +53,8 @@ ohos_source_set("networkslice_parcel") {
     cfi_cross_dso = true
     debug = false
   }
+
+  branch_protector_ret = "pac_ret"
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
