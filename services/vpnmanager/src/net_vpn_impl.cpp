@@ -340,12 +340,7 @@ void NetVpnImpl::AdjustRouteInfo(Route &route)
     if (route.iface_.empty()) {
         route.iface_ = TUN_CARD_NAME;
     }
-    if (vpnConfig_->isAcceptIPv4_ == true && route.destination_.family_ == INetAddr::IpType::IPV4) {
-        uint32_t maskUint = (0xFFFFFFFF << (IPV4_NET_MASK_MAX_LENGTH - route.destination_.prefixlen_));
-        uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(route.destination_.address_);
-        uint32_t subNetAddress = ipAddrUint & maskUint;
-        route.destination_.address_ = CommonUtils::ConvertIpv4Address(subNetAddress);
-    } else if (vpnConfig_->isAcceptIPv6_ == true && route.destination_.family_ == INetAddr::IpType::IPV6) {
+    if (vpnConfig_->isAcceptIPv6_ == true && route.destination_.family_ == INetAddr::IpType::IPV6) {
         route.destination_.address_ = CommonUtils::GetIpv6Prefix(route.destination_.address_,
             route.destination_.prefixlen_);
     } else {
