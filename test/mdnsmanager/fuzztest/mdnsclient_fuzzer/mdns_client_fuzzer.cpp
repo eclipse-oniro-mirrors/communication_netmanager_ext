@@ -159,7 +159,7 @@ void RegisterServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject();
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_REGISTER_SERVICE), dataParcel);
 }
