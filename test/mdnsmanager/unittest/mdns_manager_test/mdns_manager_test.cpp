@@ -890,5 +890,61 @@ HWTEST_F(MDnsProtocolImplTest, ResolveInstanceTest001, TestSize.Level1) {
     ret = mDnsProtocolImpl.ResolveInstance(instance, mockCallback);
     EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
 }
+HWTEST_F(MDnsServerTest, MDnsCommonTest004, TestSize.Level1)
+{
+    std::string str = "abc";
+    std::string pat = "abcd";
+    EXPECT_FALSE(StartsWith(str, pat));
+
+    std::string instance = "1.2.3";
+    std::string name = "";
+    std::string type = "";
+    ExtractNameAndType(instance, name, type);
+    EXPECT_NE(name, "");
+
+    instance = "1.2.3.4.5";
+    name = "";
+    ExtractNameAndType(instance, name, type);
+    EXPECT_EQ(name, "");
+
+    instance = "1.2.3._tcp.4";
+    ExtractNameAndType(instance, name, type);
+    EXPECT_NE(name, "");
+}
+
+HWTEST_F(MDnsClientTest, IsKeyValueVaildTest001, TestSize.Level1)
+{
+    MDnsServiceInfo serviceInfo;
+    std::string key = "";
+    std::vector<uint8_t> value;
+    EXPECT_FALSE(serviceInfo.IsKeyValueVaild(key, value));
+    key = "1234567890";
+    EXPECT_TRUE(serviceInfo.IsKeyValueVaild(key, value));
+    key = "\tdef";
+    EXPECT_FALSE(serviceInfo.IsKeyValueVaild(key, value));
+    key = "\x80";
+    EXPECT_FALSE(serviceInfo.IsKeyValueVaild(key, value));
+    key = "=";
+    EXPECT_FALSE(serviceInfo.IsKeyValueVaild(key, value));
+    key = "abc";
+    EXPECT_TRUE(serviceInfo.IsKeyValueVaild(key, value));
+}
+
+HWTEST_F(MDnsClientTest, GetAttrMapTest001, TestSize.Level1)
+{
+    MDnsServiceInfo serviceInfo;
+    serviceInfo.txtRecord = {0};
+    auto result = serviceInfo.GetAttrMap();
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST_F(MDnsClientTest, SetAttrMapTest001, TestSize.Level1)
+{
+    MDnsServiceInfo serviceInfo;
+    TxtRecord map;
+    map["abc=def"] = {};
+    serviceInfo.SetAttrMap(map);
+    EXPECT_FALSE(map.empty());
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
