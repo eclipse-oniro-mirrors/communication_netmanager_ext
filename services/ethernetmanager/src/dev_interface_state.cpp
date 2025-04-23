@@ -348,6 +348,9 @@ void DevInterfaceState::UpdateLinkInfo(const sptr<StaticConfiguration> &config)
 
 void DevInterfaceState::UpdateSupplierAvailable()
 {
+    if (netSupplierInfo_ == nullptr) {
+        return;
+    }
     netSupplierInfo_->isAvailable_ = linkUp_;
     connLinkState_ = linkUp_ ? LINK_AVAILABLE : LINK_UNAVAILABLE;
 }
