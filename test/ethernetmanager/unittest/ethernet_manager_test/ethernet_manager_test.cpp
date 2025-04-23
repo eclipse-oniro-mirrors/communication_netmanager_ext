@@ -1254,5 +1254,50 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpControllerOnSuccessTest004, TestSize.L
     ethernetDhcpControllerResultNotify.OnSuccess(status, ifname, &result);
     EXPECT_EQ(status, 1);
 }
+
+class MyEthernetDhcpCallback : public EthernetDhcpCallback {
+public:
+    int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override {
+        std::cout << "DHCP Success: " << dhcpResult.ipAddr << std::endl;
+        return 0;
+    }
+};
+
+HWTEST_F(EthernetManagerTest, EthernetDhcpController003, TestSize.Level1)
+{
+    EthernetDhcpController dhcpController;
+    sptr<EthernetDhcpCallback> callback = new MyEthernetDhcpCallback();
+    dhcpController.RegisterDhcpCallback(callback);
+    const std::string iface = "eth0";
+    dhcpController.StartClient(iface, true);
+    dhcpController.StopClient(iface, true);
+    DhcpResult result;
+    dhcpController.OnDhcpSuccess(iface, &result);
+    EXPECT_NE(dhcpController.cbObject_, nullptr);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetDhcpController004, TestSize.Level1)
+{
+    EthernetDhcpController dhcpController;
+    EthernetDhcpController::EthernetDhcpControllerResultNotify ethernetDhcpControllerResultNotify;
+    DhcpResult result;
+    char *ifname;
+    std::string ifname1;
+    ethernetDhcpControllerResultNotify.OnSuccess(1, ifname, &result);
+    EthernetDhcpController *ethDhcpController;
+    ethDhcpController = nullptr;
+    ethernetDhcpControllerResultNotify.SetEthernetDhcpController(ethDhcpController);
+    ethernetDhcpControllerResultNotify.OnSuccess(1, ifname1.c_str(), &result);
+    EXPECT_EQ(dhcpController.cbObject_, nullptr);
+}
+
+HWTEST_F(EthernetManagerTest, OnStartTest001, TestSize.Level1)
+{
+    EthernetService ethernetservice;
+    ethernetservice.state_ = EthernetService::ServiceRunningState::STATE_RUNNING;
+    ethernetservice.OnStart();
+    ethernetservice.OnStart();
+    EXPECT_EQ(ethernetservice.state_, EthernetService::ServiceRunningState::STATE_RUNNING);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
