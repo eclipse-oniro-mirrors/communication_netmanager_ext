@@ -203,5 +203,46 @@ HWTEST_F(L2tpVpnCtlTest, InitConfigFile001, TestSize.Level1)
     ret = l2tpControl_->InitConfigFile();
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(L2tpVpnCtlTest, InitConfigFile002, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    config->ipsecPublicUserCertConf_ = "testUserUri";
+    config->xl2tpdConf_ = "INVALID_BASE64";
+    config->strongswanConf_ = "INVALID_BASE64";
+    config->ipsecConf_ = "INVALID_BASE64";
+    config->ipsecSecrets_ = "ipsecSecretsTest";
+    config->optionsL2tpdClient_ = "optionsL2tpdClientTest";
+    l2tpControl_->l2tpVpnConfig_ = config;
+    int32_t ret = l2tpControl_->InitConfigFile();
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest003, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    config->ipsecPublicUserCertConf_ = "UserCertUri";
+    l2tpControl_->l2tpVpnConfig_ = config;
+    std::string certUri;
+    int32_t certType = 1;
+    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ("UserCertUri", certUri);
+    certType = 4;
+    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    certType = 5;
+    EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
