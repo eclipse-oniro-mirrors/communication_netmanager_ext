@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <thread>
 
 #ifdef GTEST_API_
@@ -44,11 +45,18 @@ constexpr int TIME_ONE_MS = 1;
 constexpr int TIME_TWO_MS = 2;
 constexpr int TIME_FOUR_MS = 4;
 constexpr int TIME_FIVE_MS = 5;
+constexpr uint32_t DEFAULT_LOST_MS = 20000;
 constexpr const char *DEMO_NAME = "ala";
 constexpr const char *DEMO_NAME1 = "ala1";
 constexpr const char *DEMO_TYPE = "_hellomdns._tcp";
 
 static const TxtRecord g_txt{{"key", {'v', 'a', 'l', 'u', 'e'}}, {"null", {'\0'}}};
+
+int64_t MilliSecondsSinceEpochTest()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+        .count();
+}
 
 enum class EventType {
     UNKNOWN,
@@ -560,6 +568,327 @@ HWTEST_F(MDnsClientTest, ResolveServiceTest001, TestSize.Level1)
     EXPECT_EQ(mdnsclient.ResolveService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
     serviceInfo.name = "12.34";
     EXPECT_EQ(mdnsclient.ResolveService(serviceInfo, cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
+
+HWTEST_F(MDnsProtocolImplTest, InitTest001, TestSize.Level0)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    mDnsProtocolImpl.config_.configAllIface = false;
+    mDnsProtocolImpl.Init();
+    EXPECT_EQ(mDnsProtocolImpl.listener_.runningFlag_, true);
+}
+
+HWTEST_F(MDnsProtocolImplTest, BrowseTest001, TestSize.Level1)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    mDnsProtocolImpl.lastRunTime = -1;
+    bool g_isScreenOn = true;
+    bool ret = mDnsProtocolImpl.Browse();
+    EXPECT_EQ(ret, false);
+    g_isScreenOn = false;
+    ret = mDnsProtocolImpl.Browse();
+    EXPECT_EQ(ret, false);
+
+    mDnsProtocolImpl.lastRunTime = 1;
+    g_isScreenOn = true;
+    ret = mDnsProtocolImpl.Browse();
+    EXPECT_EQ(ret, false);
+    g_isScreenOn = false;
+    ret = mDnsProtocolImpl.Browse();
+    EXPECT_EQ(ret, false);
+}
+
+HWTEST_F(MDnsProtocolImplTest, ConnectControlTest001, TestSize.Level1)
+{
+    int32_t sockfd = 0;
+    sockaddr serverAddr;
+    MDnsProtocolImpl mDnsProtocolImpl;
+    int32_t result = mDnsProtocolImpl.ConnectControl(sockfd, &serverAddr);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(MDnsProtocolImplTest, IsConnectivityTest001, TestSize.Level1)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    bool result = mDnsProtocolImpl.IsConnectivity("", 1234);
+    EXPECT_FALSE(result);
+
+    result = mDnsProtocolImpl.IsConnectivity("192.168.1.1", 1234);
+    EXPECT_FALSE(result);
+}
+
+HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest001, TestSize.Level1)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::vector<MDnsProtocolImpl::Result> res;
+    mDnsProtocolImpl.handleOfflineService("test_key", res);
+
+    MDnsProtocolImpl::Result result;
+    result.state = MDnsProtocolImpl::State::LIVE;
+    result.refrehTime = mDnsProtocolImpl.lastRunTime - DEFAULT_LOST_MS + 1;
+    res.push_back(result);
+    mDnsProtocolImpl.handleOfflineService("test_key", res);
+    EXPECT_EQ(mDnsProtocolImpl.lastRunTime, -1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, RegisterAndUnregisterTest001, TestSize.Level1)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    MDnsProtocolImpl::Result info;
+    info.serviceName = "test_service";
+    info.serviceType = "_test._tcp";
+    info.port = 1234;
+
+    std::vector<uint8_t> txtData;
+    std::string txtStr = "test_txt";
+    for (char c : txtStr) {
+        txtData.push_back(static_cast<uint8_t>(c));
+    }
+    info.txt = txtData;
+
+    EXPECT_EQ(mDnsProtocolImpl.Register(info), NETMANAGER_EXT_SUCCESS);
+    std::string name = mDnsProtocolImpl.Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
+    EXPECT_NE(mDnsProtocolImpl.srvMap_.find(name), mDnsProtocolImpl.srvMap_.end());
+    EXPECT_EQ(mDnsProtocolImpl.Register(info), NET_MDNS_ERR_SERVICE_INSTANCE_DUPLICATE);
+
+    EXPECT_EQ(mDnsProtocolImpl.UnRegister(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType),
+        NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(mDnsProtocolImpl.srvMap_.find(name), mDnsProtocolImpl.srvMap_.end());
+    EXPECT_EQ(mDnsProtocolImpl.UnRegister(info.serviceName), NET_MDNS_ERR_SERVICE_INSTANCE_NOT_FOUND);
+}
+
+HWTEST_F(MDnsProtocolImplTest, RegisterTest001, TestSize.Level1)
+{
+    MDnsProtocolImpl mDnsProtocolImpl;
+    MDnsProtocolImpl::Result info;
+
+    info.serviceName = "";
+    info.serviceType = "_test._tcp";
+    info.port = 1234;
+    EXPECT_EQ(mDnsProtocolImpl.Register(info), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+
+    info.serviceName = "test_service";
+    info.serviceType = "_test";
+    EXPECT_EQ(mDnsProtocolImpl.Register(info), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+
+    info.serviceType = "_test._tcp";
+    info.port = -1;
+    EXPECT_EQ(mDnsProtocolImpl.Register(info), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
+
+HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string serviceType = "_test._tcp";
+    std::string topDomain = "local";
+    mDnsProtocolImpl.config_.topDomain = topDomain;
+
+    std::string decoratedName = serviceType + topDomain;
+    MDnsProtocolImpl::Result result;
+    result.state = MDnsProtocolImpl::State::LIVE;
+    mDnsProtocolImpl.browserMap_[decoratedName].push_back(result);
+
+    class MockIDiscoveryCallback : public sptr<IDiscoveryCallback> {
+    public:
+        MockIDiscoveryCallback() = default;
+        ~MockIDiscoveryCallback() = default;
+
+        void HandleServiceFound(const MDnsServiceInfo &info, int32_t code) {
+            EXPECT_EQ(code, NETMANAGER_EXT_SUCCESS);
+        }
+    };
+    MockIDiscoveryCallback mockCallback;
+    bool ret = mDnsProtocolImpl.DiscoveryFromCache(serviceType, mockCallback);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(mDnsProtocolImpl.browserMap_[decoratedName].empty());
+
+    result.state = MDnsProtocolImpl::State::REMOVE;
+    mDnsProtocolImpl.browserMap_[decoratedName].push_back(result);
+    ret = mDnsProtocolImpl.DiscoveryFromCache(serviceType, mockCallback);
+    EXPECT_TRUE(ret);
+
+    result.state = MDnsProtocolImpl::State::DEAD;
+    mDnsProtocolImpl.browserMap_[decoratedName].push_back(result);
+    ret = mDnsProtocolImpl.DiscoveryFromCache(serviceType, mockCallback);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string serviceType = "nonexistent_service";
+    std::string topDomain = "local";
+    mDnsProtocolImpl.config_.topDomain = topDomain;
+
+    mDnsProtocolImpl.browserMap_.clear();
+    class MockIDiscoveryCallback : public sptr<IDiscoveryCallback> {
+    public:
+        MockIDiscoveryCallback() = default;
+        ~MockIDiscoveryCallback() = default;
+
+        void HandleServiceFound(const MDnsServiceInfo &info, int32_t code) {
+            FAIL() << "Callback should not be called";
+        }
+    };
+    MockIDiscoveryCallback mockCallback;
+    bool ret = mDnsProtocolImpl.DiscoveryFromCache(serviceType, mockCallback);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(mDnsProtocolImpl.browserMap_.empty());
+}
+
+HWTEST_F(MDnsProtocolImplTest, DiscoveryFromNetTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string serviceType = "_test._tcp";
+    std::string topDomain = "local";
+    mDnsProtocolImpl.config_.topDomain = topDomain;
+
+    mDnsProtocolImpl.browserMap_.clear();
+    mDnsProtocolImpl.taskOnChange_.clear();
+    mDnsProtocolImpl.cacheMap_.clear();
+
+    class MockIDiscoveryCallback : public sptr<IDiscoveryCallback> {
+    public:
+        MockIDiscoveryCallback() = default;
+        ~MockIDiscoveryCallback() = default;
+
+        void HandleServiceFound(const MDnsServiceInfo &info, int32_t code) {
+            EXPECT_EQ(code, NETMANAGER_EXT_SUCCESS);
+        }
+
+        void HandleServiceLost(const MDnsServiceInfo &info, int32_t code) {
+            EXPECT_EQ(code, NETMANAGER_EXT_SUCCESS);
+        }
+    };
+    MockIDiscoveryCallback mockCallback;
+    bool ret = mDnsProtocolImpl.DiscoveryFromNet(serviceType, mockCallback);
+    EXPECT_TRUE(ret);
+    std::string decoratedName = serviceType + topDomain;
+    EXPECT_FALSE(mDnsProtocolImpl.browserMap_.find(decoratedName) == mDnsProtocolImpl.browserMap_.end());
+    EXPECT_FALSE(mDnsProtocolImpl.nameCbMap_.find(decoratedName) == mDnsProtocolImpl.nameCbMap_.end());
+}
+
+HWTEST_F(MDnsProtocolImplTest, ResolveInstanceFromCacheTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string instanceName = "test_instance.local";
+    std::string domain = "test_domain.local";
+    std::string topDomain = "local";
+    mDnsProtocolImpl.config_.topDomain = topDomain;
+
+    class MockIResolveCallback : public sptr<IResolveCallback> {
+    public:
+        MockIResolveCallback() = default;
+        ~MockIResolveCallback() = default;
+
+        bool handleResolveResultCalled = false;
+
+        void HandleResolveResult(const MDnsServiceInfo &info, int32_t code) {
+            handleResolveResultCalled = true;
+        }
+    };
+    MockIResolveCallback mockCallback;
+
+    MDnsProtocolImpl::Result result;
+    result.domain = domain;
+    result.addr = "192.168.1.1";
+    result.ipv6 = false;
+    result.ttl = 100;
+    result.refrehTime = MilliSecondsSinceEpochTest() - 50000;
+    mDnsProtocolImpl.cacheMap_[instanceName] = result;
+    bool ret = mDnsProtocolImpl.ResolveInstanceFromCache(instanceName, mockCallback);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(mDnsProtocolImpl.taskQueue_.empty());
+    auto task = mDnsProtocolImpl.taskQueue_.front();
+    task();
+
+    mockCallback.handleResolveResultCalled = false;
+    mDnsProtocolImpl.taskQueue_.clear();
+    mDnsProtocolImpl.cacheMap_.clear();
+
+    result.domain = domain;
+    result.addr = "";
+    result.ipv6 = false;
+    result.ttl = 100;
+    result.refrehTime = MilliSecondsSinceEpochTest() - 50000;
+
+    mDnsProtocolImpl.cacheMap_[instanceName] = result;
+    ret = mDnsProtocolImpl.ResolveInstanceFromCache(instanceName, mockCallback);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(mDnsProtocolImpl.taskOnChange_[domain].empty());
+    auto eventTask = mDnsProtocolImpl.taskOnChange_[domain].front();
+    eventTask();
+
+    mockCallback.handleResolveResultCalled = false;
+    mDnsProtocolImpl.taskQueue_.clear();
+    mDnsProtocolImpl.taskOnChange_.clear();
+    mDnsProtocolImpl.cacheMap_.clear();
+
+    ret = mDnsProtocolImpl.ResolveInstanceFromCache(instanceName, mockCallback);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(mDnsProtocolImpl.taskQueue_.empty());
+    EXPECT_TRUE(mDnsProtocolImpl.taskOnChange_.empty());
+}
+
+HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string domain = "nonexistent_domain";
+    mDnsProtocolImpl.browserMap_.clear();
+    class MockIResolveCallback : public sptr<IResolveCallback> {
+    public:
+        MockIResolveCallback() = default;
+        ~MockIResolveCallback() = default;
+
+        void HandleResolveResult(const MDnsServiceInfo &info, int32_t code) {
+            FAIL() << "Callback should not be called";
+        }
+    };
+    MockIResolveCallback mockCallback;
+    bool ret = mDnsProtocolImpl.ResolveFromCache(domain, mockCallback);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(mDnsProtocolImpl.browserMap_.empty());
+}
+
+HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string domain = "valid_domain";
+    mDnsProtocolImpl.cacheMap_[domain].addr = "127.0.0.1";
+    mDnsProtocolImpl.cacheMap_[domain].ttl = 1000;
+    mDnsProtocolImpl.cacheMap_[domain].refrehTime = MilliSecondsSinceEpochTest() - 500;
+    mDnsProtocolImpl.browserMap_.clear();
+    class MockIResolveCallback : public sptr<IResolveCallback> {
+    public:
+        MockIResolveCallback() = default;
+        ~MockIResolveCallback() = default;
+
+        void HandleResolveResult(const MDnsServiceInfo &info, int32_t code) {
+            FAIL() << "Callback should not be called";
+        }
+    };
+    MockIResolveCallback mockCallback;
+    bool ret = mDnsProtocolImpl.ResolveFromCache(domain, mockCallback);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(MDnsProtocolImplTest, ResolveInstanceTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string instance = "valid._instance._udp";
+    class MockIResolveCallback : public sptr<IResolveCallback> {
+    public:
+        MockIResolveCallback() = default;
+        ~MockIResolveCallback() = default;
+
+        void HandleResolveResult(const MDnsServiceInfo &info, int32_t code) {
+            FAIL() << "Callback should not be called";
+        }
+    };
+    MockIResolveCallback mockCallback;
+    int32_t ret = mDnsProtocolImpl.ResolveInstance(instance, mockCallback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    instance = "";
+    ret = mDnsProtocolImpl.ResolveInstance(instance, mockCallback);
+    EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+
+    instance = "invalid_domain";
+    ret = mDnsProtocolImpl.ResolveInstance(instance, mockCallback);
+    EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
