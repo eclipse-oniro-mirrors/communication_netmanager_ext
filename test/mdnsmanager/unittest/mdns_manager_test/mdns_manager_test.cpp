@@ -14,7 +14,6 @@
  */
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <thread>
 
 #ifdef GTEST_API_
