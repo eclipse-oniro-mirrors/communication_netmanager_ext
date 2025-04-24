@@ -48,6 +48,7 @@ constexpr uint32_t DEFAULT_LOST_MS = 20000;
 constexpr const char *DEMO_NAME = "ala";
 constexpr const char *DEMO_NAME1 = "ala1";
 constexpr const char *DEMO_TYPE = "_hellomdns._tcp";
+bool g_isScreenOn = true;
 
 static const TxtRecord g_txt{{"key", {'v', 'a', 'l', 'u', 'e'}}, {"null", {'\0'}}};
 
@@ -581,7 +582,7 @@ HWTEST_F(MDnsProtocolImplTest, BrowseTest001, TestSize.Level1)
 {
     MDnsProtocolImpl mDnsProtocolImpl;
     mDnsProtocolImpl.lastRunTime = -1;
-    bool g_isScreenOn = true;
+    g_isScreenOn = true;
     bool ret = mDnsProtocolImpl.Browse();
     EXPECT_EQ(ret, false);
     g_isScreenOn = false;
