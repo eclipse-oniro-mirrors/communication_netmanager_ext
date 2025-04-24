@@ -578,7 +578,7 @@ HWTEST_F(MDnsProtocolImplTest, InitTest001, TestSize.Level0)
     EXPECT_EQ(mDnsProtocolImpl.listener_.runningFlag_, true);
 }
 
-HWTEST_F(MDnsProtocolImplTest, BrowseTest001, TestSize.Level1)
+HWTEST_F(MDnsProtocolImplTest, BrowseTest001, TestSize.Level0)
 {
     MDnsProtocolImpl mDnsProtocolImpl;
     mDnsProtocolImpl.lastRunTime = -1;
@@ -598,7 +598,7 @@ HWTEST_F(MDnsProtocolImplTest, BrowseTest001, TestSize.Level1)
     EXPECT_EQ(ret, false);
 }
 
-HWTEST_F(MDnsProtocolImplTest, ConnectControlTest001, TestSize.Level1)
+HWTEST_F(MDnsProtocolImplTest, ConnectControlTest001, TestSize.Level0)
 {
     int32_t sockfd = 0;
     sockaddr serverAddr;
@@ -607,7 +607,7 @@ HWTEST_F(MDnsProtocolImplTest, ConnectControlTest001, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
-HWTEST_F(MDnsProtocolImplTest, IsConnectivityTest001, TestSize.Level1)
+HWTEST_F(MDnsProtocolImplTest, IsConnectivityTest001, TestSize.Level0)
 {
     MDnsProtocolImpl mDnsProtocolImpl;
     bool result = mDnsProtocolImpl.IsConnectivity("", 1234);
@@ -617,7 +617,7 @@ HWTEST_F(MDnsProtocolImplTest, IsConnectivityTest001, TestSize.Level1)
     EXPECT_FALSE(result);
 }
 
-HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest001, TestSize.Level1)
+HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest001, TestSize.Level0)
 {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::vector<MDnsProtocolImpl::Result> res;
@@ -631,7 +631,7 @@ HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest001, TestSize.Level1)
     EXPECT_EQ(mDnsProtocolImpl.lastRunTime, -1);
 }
 
-HWTEST_F(MDnsProtocolImplTest, RegisterAndUnregisterTest001, TestSize.Level1)
+HWTEST_F(MDnsProtocolImplTest, RegisterAndUnregisterTest001, TestSize.Level0)
 {
     MDnsProtocolImpl mDnsProtocolImpl;
     MDnsProtocolImpl::Result info;
@@ -657,7 +657,7 @@ HWTEST_F(MDnsProtocolImplTest, RegisterAndUnregisterTest001, TestSize.Level1)
     EXPECT_EQ(mDnsProtocolImpl.UnRegister(info.serviceName), NET_MDNS_ERR_SERVICE_INSTANCE_NOT_FOUND);
 }
 
-HWTEST_F(MDnsProtocolImplTest, RegisterTest001, TestSize.Level1)
+HWTEST_F(MDnsProtocolImplTest, RegisterTest001, TestSize.Level0)
 {
     MDnsProtocolImpl mDnsProtocolImpl;
     MDnsProtocolImpl::Result info;
@@ -676,7 +676,7 @@ HWTEST_F(MDnsProtocolImplTest, RegisterTest001, TestSize.Level1)
     EXPECT_EQ(mDnsProtocolImpl.Register(info), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
 }
 
-HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest001, TestSize.Level1) {
+HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest001, TestSize.Level0) {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::string serviceType = "_test._tcp";
     std::string topDomain = "local";
@@ -712,7 +712,7 @@ HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest001, TestSize.Level1) {
     EXPECT_TRUE(ret);
 }
 
-HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest002, TestSize.Level1) {
+HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest002, TestSize.Level0) {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::string serviceType = "nonexistent_service";
     std::string topDomain = "local";
@@ -734,7 +734,7 @@ HWTEST_F(MDnsProtocolImplTest, DiscoveryFromCacheTest002, TestSize.Level1) {
     EXPECT_TRUE(mDnsProtocolImpl.browserMap_.empty());
 }
 
-HWTEST_F(MDnsProtocolImplTest, DiscoveryFromNetTest001, TestSize.Level1) {
+HWTEST_F(MDnsProtocolImplTest, DiscoveryFromNetTest001, TestSize.Level0) {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::string serviceType = "_test._tcp";
     std::string topDomain = "local";
@@ -765,7 +765,7 @@ HWTEST_F(MDnsProtocolImplTest, DiscoveryFromNetTest001, TestSize.Level1) {
     EXPECT_FALSE(mDnsProtocolImpl.nameCbMap_.find(decoratedName) == mDnsProtocolImpl.nameCbMap_.end());
 }
 
-HWTEST_F(MDnsProtocolImplTest, ResolveInstanceFromCacheTest001, TestSize.Level1) {
+HWTEST_F(MDnsProtocolImplTest, ResolveInstanceFromCacheTest001, TestSize.Level0) {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::string instanceName = "test_instance.local";
     std::string domain = "test_domain.local";
@@ -826,7 +826,7 @@ HWTEST_F(MDnsProtocolImplTest, ResolveInstanceFromCacheTest001, TestSize.Level1)
     EXPECT_TRUE(mDnsProtocolImpl.taskOnChange_.empty());
 }
 
-HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest001, TestSize.Level1) {
+HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest001, TestSize.Level0) {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::string domain = "nonexistent_domain";
     mDnsProtocolImpl.browserMap_.clear();
@@ -845,7 +845,7 @@ HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest001, TestSize.Level1) {
     EXPECT_TRUE(mDnsProtocolImpl.browserMap_.empty());
 }
 
-HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest002, TestSize.Level1) {
+HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest002, TestSize.Level0) {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::string domain = "valid_domain";
     mDnsProtocolImpl.cacheMap_[domain].addr = "127.0.0.1";
@@ -866,7 +866,7 @@ HWTEST_F(MDnsProtocolImplTest, ResolveFromCacheTest002, TestSize.Level1) {
     EXPECT_TRUE(ret);
 }
 
-HWTEST_F(MDnsProtocolImplTest, ResolveInstanceTest001, TestSize.Level1) {
+HWTEST_F(MDnsProtocolImplTest, ResolveInstanceTest001, TestSize.Level0) {
     MDnsProtocolImpl mDnsProtocolImpl;
     std::string instance = "valid._instance._udp";
     class MockIResolveCallback : public sptr<IResolveCallback> {
@@ -890,7 +890,8 @@ HWTEST_F(MDnsProtocolImplTest, ResolveInstanceTest001, TestSize.Level1) {
     ret = mDnsProtocolImpl.ResolveInstance(instance, mockCallback);
     EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
 }
-HWTEST_F(MDnsServerTest, MDnsCommonTest004, TestSize.Level1)
+
+HWTEST_F(MDnsServerTest, MDnsCommonTest004, TestSize.Level0)
 {
     std::string str = "abc";
     std::string pat = "abcd";
@@ -912,7 +913,7 @@ HWTEST_F(MDnsServerTest, MDnsCommonTest004, TestSize.Level1)
     EXPECT_NE(name, "");
 }
 
-HWTEST_F(MDnsClientTest, IsKeyValueVaildTest001, TestSize.Level1)
+HWTEST_F(MDnsClientTest, IsKeyValueVaildTest001, TestSize.Level0)
 {
     MDnsServiceInfo serviceInfo;
     std::string key = "";
@@ -930,7 +931,7 @@ HWTEST_F(MDnsClientTest, IsKeyValueVaildTest001, TestSize.Level1)
     EXPECT_TRUE(serviceInfo.IsKeyValueVaild(key, value));
 }
 
-HWTEST_F(MDnsClientTest, GetAttrMapTest001, TestSize.Level1)
+HWTEST_F(MDnsClientTest, GetAttrMapTest001, TestSize.Level0)
 {
     MDnsServiceInfo serviceInfo;
     serviceInfo.txtRecord = {0};
@@ -938,7 +939,7 @@ HWTEST_F(MDnsClientTest, GetAttrMapTest001, TestSize.Level1)
     EXPECT_TRUE(result.empty());
 }
 
-HWTEST_F(MDnsClientTest, SetAttrMapTest001, TestSize.Level1)
+HWTEST_F(MDnsClientTest, SetAttrMapTest001, TestSize.Level0)
 {
     MDnsServiceInfo serviceInfo;
     TxtRecord map;
