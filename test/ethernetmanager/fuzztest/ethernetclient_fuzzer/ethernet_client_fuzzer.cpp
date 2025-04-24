@@ -117,15 +117,14 @@ bool IsDataAndWriteVaild(const uint8_t *data, size_t size, MessageParcel &parcel
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
 
-    std::string iface = GetStringFromData(IFACE_LEN);
+    std::u16string iface = Str8ToStr16(GetStringFromData(IFACE_LEN));
     WriteInterfaceToken(parcel);
-    if (!parcel.WriteString(iface)) {
+    if (!parcel.WriteString16(iface)) {
         return false;
     }
 
     return true;
 }
-
 
 int32_t OnRemoteRequest(uint32_t code, MessageParcel &data)
 {
@@ -162,8 +161,8 @@ void SetIfaceConfigFuzzTest(const uint8_t *data, size_t size)
     if (!IsDataAndWriteVaild(data, size, parcel)) {
         return;
     }
-    auto ic = std::make_unique<InterfaceConfiguration>();
-    if (!ic->Marshalling(parcel)) {
+    sptr<InterfaceConfiguration> ic = new (std::nothrow) InterfaceConfiguration();
+    if (!parcel.WriteParcelable(ic)) {
         return;
     }
     OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_SET_IFACE_CONFIG), parcel);
@@ -253,11 +252,11 @@ void OnRegisterIfacesStateChangedFuzzTest(const uint8_t *data, size_t size)
         return;
     }
     MessageParcel parcel;
-    if (!IsDataAndWriteVaild(data, size, parcel)) {
+    if (WriteInterfaceToken(parcel)) {
         return;
     }
-    sptr<IRemoteObject> remote;
-    parcel.WriteRemoteObject(remote);
+    sptr<InterfaceStateCallback> remote = new (std::nothrow) MonitorInterfaceStateCallback();
+    parcel.WriteRemoteObject(remote->AsObject());
     OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_REGISTER_IFACES_STATE_CHANGED), parcel);
     OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_UNREGISTER_IFACES_STATE_CHANGED), parcel);
 }
@@ -299,27 +298,14 @@ void SetInterfaceConfigFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string randStr = GetStringFromData(IFACE_LEN);
-    WriteInterfaceToken(parcel);
-    if (!parcel.WriteString(randStr)) {
+    if (!IsDataAndWriteVaild(data, size, parcel)) {
         return;
     }
-    if (!parcel.WriteString(randStr)) {
-        return;
-    }
-    if (!parcel.WriteString(randStr)) {
-        return;
-    }
-    if (!parcel.WriteString(randStr)) {
-        return;
-    }
-    if (!parcel.WriteInt32(GetData<int32_t>())) {
-        return;
-    }
-    if (!parcel.WriteInt32(1)) {
-        return;
-    }
-    if (!parcel.WriteString(randStr)) {
+    ConfigurationParcelIpc randObj;
+    randObj.ifName_ = GetStringFromData(IFACE_LEN);
+    randObj.hwAddr_ = GetStringFromData(IFACE_LEN);
+    randObj.ipv4Addr_ = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteParcelable(&randObj)) {
         return;
     }
     OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_SET_INTERFACE_CONFIG), parcel);
