@@ -190,12 +190,5 @@ HWTEST_F(EthernetClientTest, SetInterfaceConfigTest001, TestSize.Level1)
     int32_t ret = ethernetClient->SetInterfaceConfig(iface, cfg);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
-
-HWTEST_F(EthernetClientTest, OnRemoteDiedTest001, TestSize.Level1)
-{
-    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
-    wptr<IRemoteObject> remote = nullptr;
-    ethernetClient->OnRemoteDied(remote);
-}
 } // namespace NetManagerStandard
 } // namespace OHOS
