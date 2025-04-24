@@ -185,6 +185,167 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest002, TestSize.Level1)
     devInterfaceState.SetLancfg(ifCfg);
     ret = devInterfaceState.IsLanIface();
     EXPECT_TRUE(ret);
+
+    ifCfg->mode_ = LAN_DHCP;
+    devInterfaceState.SetLancfg(ifCfg);
+    ret = devInterfaceState.IsLanIface();
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(DevInterfaceStateTest, IsLanIfaceTest001, TestSize.Level1)
+{
+    DevInterfaceState devInterfaceState;
+    devInterfaceState.ifCfg_ = nullptr;
+    bool ret = devInterfaceState.IsLanIface();
+    EXPECT_FALSE(ret);
+}
+
+HWTEST_F(DevInterfaceStateTest, RemoteRegisterNetSupplierTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    devInterfaceState.RemoteRegisterNetSupplier();
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+    devInterfaceState.RemoteUnregisterNetSupplier();
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+}
+
+HWTEST_F(DevInterfaceStateTest, RemoteRegisterAndUnregisterNetSupplierTest, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    devInterfaceState.netCaps_.clear();
+    EXPECT_TRUE(devInterfaceState.netCaps_.empty());
+
+    devInterfaceState.connLinkState_ = DevInterfaceState::ConnLinkState::UNREGISTERED;
+    devInterfaceState.RemoteRegisterNetSupplier();
+
+    std::set<NetCap> getNetCaps = devInterfaceState.GetNetCaps();
+    EXPECT_FALSE(getNetCaps.empty());
+    EXPECT_TRUE(getNetCaps.find(NET_CAPABILITY_INTERNET) != getNetCaps.end());
+    devInterfaceState.RemoteUnregisterNetSupplier();
+}
+
+HWTEST_F(DevInterfaceStateTest, RemoteUpdateNetLinkInfoTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    devInterfaceState.SetlinkInfo(linkInfo);
+    devInterfaceState.RemoteUpdateNetLinkInfo();
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+    sptr<NetLinkInfo> linkInfo1 = new NetLinkInfo();
+    INetAddr ipv6Addr;
+    ipv6Addr.family_ = 2;
+    linkInfo1->netAddrList_.push_back(ipv6Addr);
+    devInterfaceState.SetlinkInfo(linkInfo1);
+    devInterfaceState.RemoteUpdateNetLinkInfo();
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+}
+
+HWTEST_F(DevInterfaceStateTest, UpdateNetHttpProxyTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->httpProxy_.SetUserId(123);
+    devInterfaceState.SetIfcfg(ifCfg);
+    HttpProxy httpProxy;
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    devInterfaceState.SetlinkInfo(linkInfo);
+    httpProxy.SetUserId(1234);
+    httpProxy.SetPort(8710);
+    devInterfaceState.UpdateNetHttpProxy(httpProxy);
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+
+    ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->httpProxy_.SetUserId(123);
+    devInterfaceState.SetIfcfg(ifCfg);
+    devInterfaceState.connLinkState_ = DevInterfaceState::ConnLinkState::LINK_AVAILABLE;
+    devInterfaceState.UpdateNetHttpProxy(httpProxy);
+    EXPECT_NE(devInterfaceState.linkInfo_, nullptr);
+
+    ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->httpProxy_.SetUserId(123);
+    devInterfaceState.SetIfcfg(ifCfg);
+    sptr<NetLinkInfo> linkInfo1 = nullptr;
+    devInterfaceState.SetlinkInfo(linkInfo1);
+    devInterfaceState.UpdateNetHttpProxy(httpProxy);
+    EXPECT_EQ(devInterfaceState.linkInfo_, nullptr);
+}
+
+HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->mode_ = DHCP;
+    devInterfaceState.SetIfcfg(ifCfg);
+    devInterfaceState.UpdateLinkInfo();
+    EXPECT_NE(devInterfaceState.ifCfg_->mode_, STATIC);
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+}
+
+HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    devInterfaceState.ifCfg_ = nullptr;
+    bool ret = devInterfaceState.IsLanIface();
+    EXPECT_FALSE(ret);
+    devInterfaceState.UpdateLanLinkInfo();
+
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->mode_ = DHCP;
+    devInterfaceState.SetIfcfg(ifCfg);
+    devInterfaceState.UpdateLanLinkInfo();
+    EXPECT_NE(devInterfaceState.ifCfg_->mode_, STATIC);
+}
+
+HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest002, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<StaticConfiguration> config = new StaticConfiguration();
+    devInterfaceState.linkInfo_ = nullptr;
+    devInterfaceState.UpdateLanLinkInfo(config);
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+}
+
+HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest002, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<StaticConfiguration> config = new StaticConfiguration();
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    devInterfaceState.SetlinkInfo(linkInfo);
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->httpProxy_.SetUserId(123);
+    devInterfaceState.SetIfcfg(ifCfg);
+    devInterfaceState.UpdateLinkInfo(config);
+    EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+}
+
+HWTEST_F(DevInterfaceStateTest, GetRoutePrefixlenTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    std::string bySrcAddr = "123";
+    INetAddr inetaddr;
+    inetaddr.address_ = "192.168.1.1";
+    std::vector<INetAddr> fromAddrList = {inetaddr};
+    INetAddr targetNetAddr;
+    devInterfaceState.GetRoutePrefixlen(bySrcAddr, fromAddrList, targetNetAddr);
+    bySrcAddr = "192.168.1.1";
+    devInterfaceState.GetRoutePrefixlen(bySrcAddr, fromAddrList, targetNetAddr);
+    EXPECT_NE(targetNetAddr.prefixlen_, 0);
+}
+
+HWTEST_F(DevInterfaceStateTest, GetDumpInfoTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    devInterfaceState.SetlinkInfo(linkInfo);
+    devInterfaceState.netSupplierInfo_ = nullptr;
+    devInterfaceState.ifCfg_ = nullptr;
+    std::string info = "";
+    devInterfaceState.GetDumpInfo(info);
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->mode_ = DHCP;
+    devInterfaceState.SetIfcfg(ifCfg);
+    devInterfaceState.GetDumpInfo(info);
+    EXPECT_NE(info, "");
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

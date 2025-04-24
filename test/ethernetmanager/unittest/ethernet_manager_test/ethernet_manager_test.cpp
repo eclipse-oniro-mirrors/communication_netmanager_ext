@@ -1254,5 +1254,121 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpControllerOnSuccessTest004, TestSize.L
     ethernetDhcpControllerResultNotify.OnSuccess(status, ifname, &result);
     EXPECT_EQ(status, 1);
 }
+
+class MyEthernetDhcpCallback : public EthernetDhcpCallback {
+public:
+    int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override
+    {
+        std::cout << "DHCP Success: " << dhcpResult.ipAddr << std::endl;
+        return 0;
+    }
+};
+
+HWTEST_F(EthernetManagerTest, EthernetDhcpController003, TestSize.Level1)
+{
+    EthernetDhcpController dhcpController;
+    sptr<EthernetDhcpCallback> callback = new MyEthernetDhcpCallback();
+    dhcpController.RegisterDhcpCallback(callback);
+    const std::string iface = "eth0";
+    dhcpController.StartClient(iface, true);
+    dhcpController.StopClient(iface, true);
+    DhcpResult result;
+    dhcpController.OnDhcpSuccess(iface, &result);
+    EXPECT_NE(dhcpController.cbObject_, nullptr);
+}
+
+HWTEST_F(EthernetManagerTest, EthernetDhcpController004, TestSize.Level1)
+{
+    EthernetDhcpController dhcpController;
+    EthernetDhcpController::EthernetDhcpControllerResultNotify ethernetDhcpControllerResultNotify;
+    DhcpResult result;
+    char *ifname;
+    std::string ifname1;
+    ethernetDhcpControllerResultNotify.OnSuccess(1, ifname, &result);
+    EthernetDhcpController *ethDhcpController;
+    ethDhcpController = nullptr;
+    ethernetDhcpControllerResultNotify.SetEthernetDhcpController(ethDhcpController);
+    ethernetDhcpControllerResultNotify.OnSuccess(1, ifname1.c_str(), &result);
+    EXPECT_EQ(dhcpController.cbObject_, nullptr);
+}
+
+HWTEST_F(EthernetManagerTest, OnStartTest001, TestSize.Level1)
+{
+    EthernetService ethernetservice;
+    ethernetservice.state_ = EthernetService::ServiceRunningState::STATE_RUNNING;
+    ethernetservice.OnStart();
+    ethernetservice.OnStart();
+    EXPECT_EQ(ethernetservice.state_, EthernetService::ServiceRunningState::STATE_RUNNING);
+}
+
+HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest005, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    std::string dev = "";
+    ethernetmanagement.UpdateInterfaceState(dev, true);
+    ethernetmanagement.UpdateInterfaceState(dev, false);
+    EXPECT_EQ(dev, "");
+}
+
+HWTEST_F(EthernetManagerTest, GetMacAddressTest002, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    std::vector<MacAddressInfo> macAddrList = {};
+    EXPECT_NE(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
+    MacAddressInfo macaddressinfo;
+    macaddressinfo.iface_ = "123";
+    macaddressinfo.macAddress_ = "123";
+    macAddrList = {macaddressinfo};
+    EXPECT_EQ(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfgTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    std::string iface = "123";
+    sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
+    ethernetmanagement.DevInterfaceAdd(iface);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceCfg(iface, cfg), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement.UpdateInterfaceState(iface, true);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceCfg(iface, cfg), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, UpdateDevInterfaceLinkInfoTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.iface = "123";
+    ethernetmanagement.DevInterfaceAdd(dhcpResult.iface);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
+    dhcpResult.iface = "1";
+    ethernetmanagement.DevInterfaceAdd(dhcpResult.iface);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement.UpdateInterfaceState(dhcpResult.iface, true);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL);
+}
+
+HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    std::string iface = "123";
+    sptr<InterfaceConfiguration> ifaceConfig = new InterfaceConfiguration();
+    EXPECT_EQ(ethernetmanagement.GetDevInterfaceCfg(iface, ifaceConfig), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    std::string iface = "123";
+    int32_t activeStatus = 123;
+    EXPECT_EQ(ethernetmanagement.IsIfaceActive(iface, activeStatus), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest003, TestSize.Level1)
+{
+    EthernetManagement ethernetmanagement;
+    std::string devName = "123";
+    ethernetmanagement.DevInterfaceRemove(devName);
+    EXPECT_EQ(devName, "123");
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
