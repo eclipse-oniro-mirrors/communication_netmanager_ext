@@ -121,7 +121,7 @@ __attribute__((no_sanitize("cfi"))) bool GetMessageParcel(const uint8_t *data, s
     info->port = GetData<int32_t>();
     std::string str = GetStringFromData(STR_LEN);
     info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
-    if (!data.WriteParcelable(info)) {
+    if (!dataParcel.WriteParcelable(info)) {
         return false;
     }
 
@@ -186,11 +186,11 @@ void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     NETMGR_EXT_LOG_D("StartDiscoverServiceFuzzTest enter");
     MessageParcel dataParcel;
     if (!InitGlobalData(data, size)) {
-        return false;
+        return;
     }
 
     if (!WriteInterfaceToken(dataParcel)) {
-        return false;
+        return;
     }
     std::string serviceType = GetStringFromData(STR_LEN);
     if (!data.WriteString16(Str8ToStr16(serviceType))) {
@@ -210,11 +210,11 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     NETMGR_EXT_LOG_D("StopDiscoverServiceFuzzTest enter");
     MessageParcel dataParcel;
     if (!InitGlobalData(data, size)) {
-        return false;
+        return;
     }
 
     if (!WriteInterfaceToken(dataParcel)) {
-        return false;
+        return;
     }
     std::string serviceType = GetStringFromData(STR_LEN);
     if (!data.WriteString16(Str8ToStr16(serviceType))) {
