@@ -159,7 +159,7 @@ void RegisterServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_REGISTER_SERVICE), dataParcel);
 }
@@ -176,7 +176,7 @@ void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_UN_REGISTER_SERVICE), dataParcel);
 }
@@ -193,7 +193,7 @@ void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_START_DISCOVER_SERVICE), dataParcel);
 }
@@ -210,7 +210,7 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_STOP_DISCOVER_SERVICE), dataParcel);
 }
@@ -227,7 +227,7 @@ void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_RESOLVE_SERVICE), dataParcel);
 }
