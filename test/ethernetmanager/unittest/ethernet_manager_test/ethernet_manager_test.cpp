@@ -1363,7 +1363,7 @@ HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)
     EXPECT_EQ(ethernetmanagement.IsIfaceActive(iface, activeStatus), NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest001, TestSize.Level1)
+HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest003, TestSize.Level1)
 {
     EthernetManagement ethernetmanagement;
     std::string devName = "123";
