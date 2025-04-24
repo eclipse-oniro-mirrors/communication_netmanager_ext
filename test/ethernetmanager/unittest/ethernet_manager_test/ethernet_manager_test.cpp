@@ -1301,7 +1301,7 @@ HWTEST_F(EthernetManagerTest, OnStartTest001, TestSize.Level1)
     EXPECT_EQ(ethernetservice.state_, EthernetService::ServiceRunningState::STATE_RUNNING);
 }
 
-HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest001, TestSize.Level1)
+HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest005, TestSize.Level1)
 {
     std::string dev = "";
     ethManagement.UpdateInterfaceState(dev, true);
