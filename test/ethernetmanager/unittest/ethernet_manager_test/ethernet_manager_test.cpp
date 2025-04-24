@@ -1257,7 +1257,8 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpControllerOnSuccessTest004, TestSize.L
 
 class MyEthernetDhcpCallback : public EthernetDhcpCallback {
 public:
-    int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override {
+    int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override
+    {
         std::cout << "DHCP Success: " << dhcpResult.ipAddr << std::endl;
         return 0;
     }
