@@ -270,7 +270,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateNetHttpProxyTest001, TestSize.Level1)
     EXPECT_EQ(devInterfaceState.linkInfo_, nullptr);
 }
 
-HWTEST_F(DevInterfaceStateTest,UpdateLinkInfoTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest001, TestSize.Level1)
 {
     DevInterfaceState devInterfaceState;
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
