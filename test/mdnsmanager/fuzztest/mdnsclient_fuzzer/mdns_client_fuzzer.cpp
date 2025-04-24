@@ -194,7 +194,7 @@ void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     }
     std::string serviceType = GetStringFromData(STR_LEN);
     if (!data.WriteString16(Str8ToStr16(serviceType))) {
-        return ERR_INVALID_DATA;
+        return;
     }
     sptr<IDiscoveryCallbackTest> callback = new (std::nothrow) IDiscoveryCallbackTest();
     if (callback == nullptr) {
@@ -218,7 +218,7 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     }
     std::string serviceType = GetStringFromData(STR_LEN);
     if (!data.WriteString16(Str8ToStr16(serviceType))) {
-        return ERR_INVALID_DATA;
+        return;
     }
     sptr<IDiscoveryCallbackTest> callback = new (std::nothrow) IDiscoveryCallbackTest();
     if (callback == nullptr) {
