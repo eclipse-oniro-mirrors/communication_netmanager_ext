@@ -1310,7 +1310,7 @@ HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest005, TestSize.Level1)
     EXPECT_EQ(dev, "");
 }
 
-HWTEST_F(EthernetManagerTest, GetMacAddressTest001, TestSize.Level1)
+HWTEST_F(EthernetManagerTest, GetMacAddressTest002, TestSize.Level1)
 {
     EthernetManagement ethernetmanagement;
     std::vector<MacAddressInfo> macAddrList = {};
