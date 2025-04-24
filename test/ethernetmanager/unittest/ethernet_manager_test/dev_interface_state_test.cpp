@@ -200,7 +200,7 @@ HWTEST_F(DevInterfaceStateTest, IsLanIfaceTest001, TestSize.Level1)
     EXPECT_FALSE(ret);
 }
 
-HWTEST_F(DevInterfaceStateTest, RemoteRegisterNetSupplierTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, RemoteRegisterNetSupplierTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     devInterfaceState.RemoteRegisterNetSupplier();
@@ -209,7 +209,7 @@ HWTEST_F(DevInterfaceStateTest, RemoteRegisterNetSupplierTest001, TestSize.Level
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
 }
 
-HWTEST_F(DevInterfaceStateTest, RemoteRegisterAndUnregisterNetSupplierTest, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, RemoteRegisterAndUnregisterNetSupplierTest, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     devInterfaceState.netCaps_.clear();
@@ -224,7 +224,7 @@ HWTEST_F(DevInterfaceStateTest, RemoteRegisterAndUnregisterNetSupplierTest, Test
     devInterfaceState.RemoteUnregisterNetSupplier();
 }
 
-HWTEST_F(DevInterfaceStateTest, RemoteUpdateNetLinkInfoTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, RemoteUpdateNetLinkInfoTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
@@ -240,7 +240,7 @@ HWTEST_F(DevInterfaceStateTest, RemoteUpdateNetLinkInfoTest001, TestSize.Level1)
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
 }
 
-HWTEST_F(DevInterfaceStateTest, UpdateNetHttpProxyTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, UpdateNetHttpProxyTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
@@ -270,7 +270,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateNetHttpProxyTest001, TestSize.Level1)
     EXPECT_EQ(devInterfaceState.linkInfo_, nullptr);
 }
 
-HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
@@ -281,7 +281,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest001, TestSize.Level1)
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
 }
 
-HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     devInterfaceState.ifCfg_ = nullptr;
@@ -296,7 +296,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest001, TestSize.Level1)
     EXPECT_NE(devInterfaceState.ifCfg_->mode_, STATIC);
 }
 
-HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest002, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest002, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     sptr<StaticConfiguration> config = new StaticConfiguration();
@@ -305,7 +305,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest002, TestSize.Level1)
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
 }
 
-HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest002, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest002, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     sptr<StaticConfiguration> config = new StaticConfiguration();
@@ -318,7 +318,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest002, TestSize.Level1)
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
 }
 
-HWTEST_F(DevInterfaceStateTest, GetRoutePrefixlenTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, GetRoutePrefixlenTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     std::string bySrcAddr = "123";
@@ -332,7 +332,7 @@ HWTEST_F(DevInterfaceStateTest, GetRoutePrefixlenTest001, TestSize.Level1)
     EXPECT_NE(targetNetAddr.prefixlen_, 0);
 }
 
-HWTEST_F(DevInterfaceStateTest, GetDumpInfoTest001, TestSize.Level1)
+HWTEST_F(DevInterfaceStateTest, GetDumpInfoTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
     sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
