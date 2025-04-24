@@ -1303,64 +1303,71 @@ HWTEST_F(EthernetManagerTest, OnStartTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest005, TestSize.Level1)
 {
+    EthernetManagement ethernetmanagement;
     std::string dev = "";
-    ethManagement.UpdateInterfaceState(dev, true);
-    ethManagement.UpdateInterfaceState(dev, false);
+    ethernetmanagement.UpdateInterfaceState(dev, true);
+    ethernetmanagement.UpdateInterfaceState(dev, false);
     EXPECT_EQ(dev, "");
 }
 
 HWTEST_F(EthernetManagerTest, GetMacAddressTest001, TestSize.Level1)
 {
+    EthernetManagement ethernetmanagement;
     std::vector<MacAddressInfo> macAddrList = {};
-    EXPECT_NE(ethManagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
     MacAddressInfo macaddressinfo;
     macaddressinfo.iface_ = "123";
     macaddressinfo.macAddress_ = "123";
     macAddrList = {macaddressinfo};
-    EXPECT_EQ(ethManagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfgTest001, TestSize.Level1)
 {
+    EthernetManagement ethernetmanagement;
     std::string iface = "123";
     sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
-    ethManagement.DevInterfaceAdd(iface);
-    EXPECT_EQ(ethManagement.UpdateDevInterfaceCfg(iface, cfg), ETHERNET_ERR_DEVICE_NOT_LINK);
-    ethManagement.UpdateInterfaceState(iface, true);
-    EXPECT_EQ(ethManagement.UpdateDevInterfaceCfg(iface, cfg), NETMANAGER_EXT_SUCCESS);
+    ethernetmanagement.DevInterfaceAdd(iface);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceCfg(iface, cfg), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement.UpdateInterfaceState(iface, true);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceCfg(iface, cfg), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateDevInterfaceLinkInfoTest001, TestSize.Level1)
 {
+    EthernetManagement ethernetmanagement;
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.iface = "123";
-    ethManagement.DevInterfaceAdd(dhcpResult.iface);
-    EXPECT_EQ(ethManagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement.DevInterfaceAdd(dhcpResult.iface);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
     dhcpResult.iface = "1";
-    ethManagement.DevInterfaceAdd(dhcpResult.iface);
-    EXPECT_EQ(ethManagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
-    ethManagement.UpdateInterfaceState(dhcpResult.iface, true);
-    EXPECT_EQ(ethManagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL);
+    ethernetmanagement.DevInterfaceAdd(dhcpResult.iface);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement.UpdateInterfaceState(dhcpResult.iface, true);
+    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL);
 }
 
 HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgTest001, TestSize.Level1)
 {
+    EthernetManagement ethernetmanagement;
     std::string iface = "123";
     sptr<InterfaceConfiguration> ifaceConfig = new InterfaceConfiguration();
-    EXPECT_EQ(ethManagement.GetDevInterfaceCfg(iface, ifaceConfig), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ethernetmanagement.GetDevInterfaceCfg(iface, ifaceConfig), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)
 {
+    EthernetManagement ethernetmanagement;
     std::string iface = "123";
     int32_t activeStatus = 123;
-    EXPECT_EQ(ethManagement.IsIfaceActive(iface, activeStatus), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ethernetmanagement.IsIfaceActive(iface, activeStatus), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest001, TestSize.Level1)
 {
+    EthernetManagement ethernetmanagement;
     std::string devName = "123";
-    ethManagement.DevInterfaceRemove(devName);
+    ethernetmanagement.DevInterfaceRemove(devName);
     EXPECT_EQ(devName, "123");
 }
 } // namespace NetManagerStandard
