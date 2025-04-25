@@ -227,9 +227,9 @@ public:
     {
         std::shared_ptr<SliceRouteInfo> sri = getSliceRouteInfo(tds);
         if (sri != nullptr) {
-            return true;
+            return sri->getUsedUids().empty();
         }
-        return sri->getUsedUids().empty();
+        return true;
     }
 
     void addUsedUids(const std::set<int>& uids, const TrafficDescriptorsInfo& tds)
@@ -381,7 +381,7 @@ public:
     std::vector<int> getSignedUids(const TrafficDescriptorsInfo& tds) const
     {
         std::shared_ptr<SliceRouteInfo> sri = getSliceRouteInfo(tds);
-        if (sri == nullptr) {
+        if (sri != nullptr) {
             return sri->getSignedUids();
         }
         return std::vector<int>();
