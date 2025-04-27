@@ -168,7 +168,11 @@ void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("UnRegisterServiceFuzzTest enter");
     MessageParcel dataParcel;
-    if (!GetMessageParcel(data, size, dataParcel)) {
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    if (!WriteInterfaceToken(dataParcel)) {
         return;
     }
 
@@ -214,10 +218,6 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
     }
 
     if (!WriteInterfaceToken(dataParcel)) {
-        return;
-    }
-    std::string serviceType = GetStringFromData(STR_LEN);
-    if (!dataParcel.WriteString16(Str8ToStr16(serviceType))) {
         return;
     }
     sptr<IDiscoveryCallbackTest> callback = new (std::nothrow) IDiscoveryCallbackTest();
