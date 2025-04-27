@@ -106,6 +106,7 @@ ohos_unittest("networkshare_manager_test") {
     "netmanager_base:net_manager_common",
     "openssl:libcrypto_shared",
     "openssl:libssl_shared",
+    "safwk:system_ability_fwk",
     "time_service:time_client",
     "usb_manager:usbsrv_client",
   ]
