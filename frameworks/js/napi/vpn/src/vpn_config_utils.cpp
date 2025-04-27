@@ -274,8 +274,9 @@ bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
     bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
     if (!isIpv6) {
         if (!CommonUtils::IsValidIPV4(iNetAddr.address_)) {
-            NETMGR_EXT_LOG_E("invalid ip address");
-            return false;
+            NETMGR_EXT_LOG_W("invalid ip address, might be a domain");
+            GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
+            return true;
         }
     }
 
