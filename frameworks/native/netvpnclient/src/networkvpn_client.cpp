@@ -209,7 +209,7 @@ int32_t NetworkVpnClient::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("GetConnectedSysVpnConfig proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->GetConnectedSysVpnConfig(*config);
+    return proxy->GetConnectedSysVpnConfig(config);
 }
 
 int32_t NetworkVpnClient::NotifyConnectStage(const std::string &stage, const int32_t &result)
