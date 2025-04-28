@@ -168,7 +168,7 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
     return l2tpVpnConfig;
 }
 
-sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig)
+sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(const sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (sysVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertSysVpnConfigToVpnBean sysVpnConfig is null");
@@ -203,7 +203,7 @@ sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &
     return vpnBean;
 }
 
-void VpnDataBean::ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig, sptr<VpnDataBean> &vpnBean)
+void VpnDataBean::ConvertCommonVpnConfigToVpnBean(const sptr<SysVpnConfig> &sysVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr || sysVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertCommonVpnConfigToVpnBean params is null");
@@ -232,7 +232,7 @@ void VpnDataBean::ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConf
     }
 }
 
-void VpnDataBean::ConvertOpenvpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean)
+void VpnDataBean::ConvertOpenvpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr || sysVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertOpenvpnConfigToVpnBean params is null");
@@ -255,7 +255,7 @@ void VpnDataBean::ConvertOpenvpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig,
     openvpnConfig = nullptr;
 }
 
-void VpnDataBean::ConvertIpsecVpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean)
+void VpnDataBean::ConvertIpsecVpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr || sysVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertIpsecVpnConfigToVpnBean params is null");
@@ -283,7 +283,7 @@ void VpnDataBean::ConvertIpsecVpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig
     ipsecVpnConfig = nullptr;
 }
 
-void VpnDataBean::ConvertL2tpVpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean)
+void VpnDataBean::ConvertL2tpVpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr || sysVpnConfig == nullptr) {
         NETMGR_EXT_LOG_E("ConvertL2tpVpnConfigToVpnBean params is null");
