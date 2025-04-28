@@ -74,14 +74,14 @@ bool VpnConfig::MarshallingVectorString(Parcel &parcel, const std::vector<std::s
 
 VpnConfig* VpnConfig::Unmarshalling(Parcel &parcel)
 {
-    VpnConfig* ptr = new (std::nothrow) VpnConfig();
+    std::unique_ptr<VpnConfig> ptr = new VpnConfig();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;
     }
 
-    bool allOK = UnmarshallingVpnConfig(parcel, ptr);
-    return allOK ? ptr : nullptr;
+    bool allOK = UnmarshallingVpnConfig(parcel, ptr.get());
+    return allOK ? ptr.release() : nullptr;
 }
 
 bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, VpnConfig* ptr)
