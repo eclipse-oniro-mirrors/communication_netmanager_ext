@@ -74,7 +74,7 @@ bool VpnConfig::MarshallingVectorString(Parcel &parcel, const std::vector<std::s
 
 VpnConfig* VpnConfig::Unmarshalling(Parcel &parcel)
 {
-    std::unique_ptr<VpnConfig> ptr = new VpnConfig();
+    std::unique_ptr<VpnConfig> ptr = std::make_unique<VpnConfig>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;

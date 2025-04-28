@@ -40,7 +40,7 @@ bool InterfaceConfiguration::Marshalling(Parcel &parcel) const
 
 InterfaceConfiguration* InterfaceConfiguration::Unmarshalling(Parcel &parcel)
 {
-    InterfaceConfiguration* ptr = new (std::nothrow) InterfaceConfiguration();
+    std::unique_ptr<InterfaceConfiguration> ptr = std::make_unique<InterfaceConfiguration>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;
@@ -60,7 +60,7 @@ InterfaceConfiguration* InterfaceConfiguration::Unmarshalling(Parcel &parcel)
         NETMGR_EXT_LOG_E("Unmarshalling HttpProxy failed.");
         return nullptr;
     }
-    return ptr;
+    return ptr.release();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

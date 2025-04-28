@@ -44,7 +44,7 @@ bool L2tpVpnConfig::Marshalling(Parcel &parcel) const
 
 L2tpVpnConfig* L2tpVpnConfig::Unmarshalling(Parcel &parcel)
 {
-    std::unique_ptr<L2tpVpnConfig> ptr = new (std::nothrow) L2tpVpnConfig();
+    std::unique_ptr<L2tpVpnConfig> ptr = std::make_unique<L2tpVpnConfig>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("L2tpVpnConfig ptr is null");
         return nullptr;

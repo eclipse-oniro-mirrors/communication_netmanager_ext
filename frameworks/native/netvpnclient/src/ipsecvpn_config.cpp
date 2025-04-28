@@ -40,7 +40,7 @@ bool IpsecVpnConfig::Marshalling(Parcel &parcel) const
 
 IpsecVpnConfig* IpsecVpnConfig::Unmarshalling(Parcel &parcel)
 {
-    std::unique_ptr<IpsecVpnConfig> ptr = new (std::nothrow) IpsecVpnConfig();
+    std::unique_ptr<IpsecVpnConfig> ptr = std::make_unique<IpsecVpnConfig>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("IpsecVpnConfig ptr is null");
         return nullptr;

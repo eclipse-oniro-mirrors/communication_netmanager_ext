@@ -40,13 +40,13 @@ bool MDnsServiceInfo::Marshalling(Parcel &data, const sptr<MDnsServiceInfo> &obj
 
 MDnsServiceInfo* MDnsServiceInfo::Unmarshalling(Parcel &parcel)
 {
-    MDnsServiceInfo* ptr = new (std::nothrow) MDnsServiceInfo;
+    std::unique_ptr<MDnsServiceInfo> ptr = std::make_unique<MDnsServiceInfo>();
     if (ptr == nullptr) {
         return nullptr;
     }
     bool allOK = parcel.ReadString(ptr->name) && parcel.ReadString(ptr->type) && parcel.ReadInt32(ptr->family) &&
                  parcel.ReadString(ptr->addr) && parcel.ReadInt32(ptr->port) && parcel.ReadUInt8Vector(&ptr->txtRecord);
-    return allOK ? ptr : nullptr;
+    return allOK ? ptr.release() : nullptr;
 }
 
 bool MDnsServiceInfo::IsKeyValueVaild(const ::std::string &key, const std::vector<uint8_t> &value)

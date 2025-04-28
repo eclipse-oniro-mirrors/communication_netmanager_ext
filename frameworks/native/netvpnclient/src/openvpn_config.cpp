@@ -65,7 +65,7 @@ bool OpenvpnConfig::Marshalling(Parcel &parcel) const
 
 OpenvpnConfig* OpenvpnConfig::Unmarshalling(Parcel &parcel)
 {
-    std::unique_ptr<OpenvpnConfig> ptr = new (std::nothrow) OpenvpnConfig();
+    std::unique_ptr<OpenvpnConfig> ptr = std::make_unique<OpenvpnConfig>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("OpenvpnConfig ptr is null");
         return nullptr;
