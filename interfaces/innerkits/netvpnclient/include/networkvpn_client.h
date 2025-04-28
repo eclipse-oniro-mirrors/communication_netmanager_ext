@@ -132,7 +132,7 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList);
+    int32_t GetSysVpnConfigList(std::vector<sptr<SysVpnConfig>> &vpnList);
 
     /**
      * get vpn detail
