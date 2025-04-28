@@ -44,13 +44,13 @@ bool L2tpVpnConfig::Marshalling(Parcel &parcel) const
 
 L2tpVpnConfig* L2tpVpnConfig::Unmarshalling(Parcel &parcel)
 {
-    L2tpVpnConfig* ptr = new (std::nothrow) L2tpVpnConfig();
+    std::unique_ptr<L2tpVpnConfig> ptr = new (std::nothrow) L2tpVpnConfig();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("L2tpVpnConfig ptr is null");
         return nullptr;
     }
 
-    bool allOK = SysVpnConfig::Unmarshalling(parcel, ptr) &&
+    bool allOK = SysVpnConfig::Unmarshalling(parcel, ptr.get()) &&
                  parcel.ReadString(ptr->ipsecConf_) &&
                  parcel.ReadString(ptr->ipsecSecrets_) &&
                  parcel.ReadString(ptr->optionsL2tpdClient_) &&
@@ -69,7 +69,7 @@ L2tpVpnConfig* L2tpVpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadString(ptr->ipsecPublicUserCertFilePath_) &&
                  parcel.ReadString(ptr->ipsecPrivateServerCertFilePath_) &&
                  parcel.ReadString(ptr->ipsecPublicServerCertFilePath_);
-    return allOK ? ptr : nullptr;
+    return allOK ? ptr.release() : nullptr;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
