@@ -33,7 +33,7 @@ public:
 
     void ParseParams(napi_value *params, size_t paramsCount);
 
-    std::vector<SysVpnConfig> vpnList_;
+    std::vector<sptr<SysVpnConfig>> vpnList_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

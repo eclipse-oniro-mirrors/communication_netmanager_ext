@@ -81,11 +81,11 @@ struct VpnDataBean : public virtual RefBase {
     static sptr<OpenvpnConfig> ConvertVpnBeanToOpenvpnConfig(sptr<VpnDataBean> vpnBean);
     static sptr<IpsecVpnConfig> ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBean> &vpnBean);
     static sptr<L2tpVpnConfig> ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean> &vpnBean);
-    static sptr<VpnDataBean> ConvertSysVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig);
-    static void ConvertCommonVpnConfigToVpnBean(sptr<SysVpnConfig> &sysVpnConfig, sptr<VpnDataBean> &vpnBean);
-    static void ConvertOpenvpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean);
-    static void ConvertIpsecVpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean);
-    static void ConvertL2tpVpnConfigToVpnBean(sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean);
+    static sptr<VpnDataBean> ConvertSysVpnConfigToVpnBean(const sptr<SysVpnConfig> &sysVpnConfig);
+    static void ConvertCommonVpnConfigToVpnBean(const sptr<SysVpnConfig> &sysVpnConfig, sptr<VpnDataBean> &vpnBean);
+    static void ConvertOpenvpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean);
+    static void ConvertIpsecVpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean);
+    static void ConvertL2tpVpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnConfig, sptr<VpnDataBean> &vpnBean);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -38,7 +38,7 @@ public:
     static VpnDatabaseHelper &GetInstance();
     int32_t InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean);
     int32_t QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid);
-    int32_t QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId);
+    int32_t QueryAllData(std::vector<sptr<SysVpnConfig>> &infos, const int32_t userId);
     int32_t DeleteVpnData(const std::string &vpnUuid);
 
 private:

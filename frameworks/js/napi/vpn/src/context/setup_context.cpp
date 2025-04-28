@@ -27,6 +27,7 @@
 #include "route.h"
 #ifdef SUPPORT_SYSVPN
 #include "sysvpn_config.h"
+#include "vpn_config_utils.h"
 #endif // SUPPORT_SYSVPN
 
 namespace OHOS {
@@ -150,13 +151,10 @@ bool SetUpContext::ParseVpnConfig(napi_value *params)
         return false;
     }
     if (NapiUtils::HasNamedProperty(GetEnv(), params[0], "vpnId")) {
-        sysVpnConfig_ = new (std::nothrow) SysVpnConfig();
-        if (sysVpnConfig_ == nullptr) {
-            NETMGR_EXT_LOG_E("setup parse sysvpn config failed, config is null");
+        if (!VpnConfigUtils::ParseSysVpnConfig(GetEnv(), params, sysVpnConfig_)) {
+            NETMGR_EXT_LOG_E("ParseSysVpnConfig failed");
             return false;
         }
-        sysVpnConfig_->vpnId_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[0], "vpnId");
-        sysVpnConfig_->vpnType_ = NapiUtils::GetInt32Property(GetEnv(), params[0], "vpnType");
         NETMGR_EXT_LOG_I("setup parse sysvpn config, id=%{public}s, type=%{public}d",
             sysVpnConfig_->vpnId_.c_str(), sysVpnConfig_->vpnType_);
         return true;

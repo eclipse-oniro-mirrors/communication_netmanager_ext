@@ -121,12 +121,12 @@ public:
     /**
      * This function is called when the system vpn application negotiation ends
      */
-    int32_t SetUpVpn(const SysVpnConfig &config) override;
+    int32_t SetUpSysVpn(const sptr<SysVpnConfig> &config) override;
 
     /**
      * save the vpn config
      */
-    int32_t AddSysVpnConfig(SysVpnConfig &config) override;
+    int32_t AddSysVpnConfig(const sptr<SysVpnConfig> &config) override;
 
     /**
      * get the vpn config list
@@ -136,17 +136,17 @@ public:
     /**
      * get the vpn config listGetConnectedSysVpnConfig
      */
-    int32_t GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList) override;
+    int32_t GetSysVpnConfigList(std::vector<sptr<SysVpnConfig>> &vpnList) override;
 
     /**
      * get the vpn config
      */
-    int32_t GetSysVpnConfig(SysVpnConfig &config, const std::string &vpnId) override;
+    int32_t GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId) override;
 
     /**
      * get the vpn connection state
      */
-    int32_t GetConnectedSysVpnConfig(SysVpnConfig &config) override;
+    int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config) override;
 
     /**
      * notify the vpn connection stage and result
@@ -232,13 +232,13 @@ private:
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
 #ifdef SUPPORT_SYSVPN
-    std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const SysVpnConfig &config, int32_t userId,
+    std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
     std::shared_ptr<NetVpnImpl> CreateOpenvpnCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
         std::vector<int32_t> &activeUserIds);
     std::shared_ptr<IpsecVpnCtl> CreateIpsecVpnCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
         std::vector<int32_t> &activeUserIds);
-    int32_t QueryVpnData(const SysVpnConfig config, sptr<VpnDataBean> &vpnBean);
+    int32_t QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean);
     std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
         std::vector<int32_t> &activeUserIds);
 #endif // SUPPORT_SYSVPN

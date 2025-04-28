@@ -442,7 +442,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const int32_t userId)
+int32_t VpnDatabaseHelper::QueryAllData(std::vector<sptr<SysVpnConfig>> &infos, const int32_t userId)
 {
     NETMGR_EXT_LOG_I("QueryAllData");
     if (store_ == nullptr) {
@@ -469,10 +469,19 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<SysVpnConfig> &infos, const 
         return NETMANAGER_EXT_SUCCESS;
     }
     while (!queryResultSet->GoToNextRow()) {
-        SysVpnConfig info;
-        queryResultSet->GetString(INDEX_VPN_ID, info.vpnId_);
-        queryResultSet->GetString(INDEX_VPN_NAME, info.vpnName_);
-        infos.emplace_back(info);
+        sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+        if (vpnBean == nullptr) {
+            NETMGR_EXT_LOG_E("vpnBean is nullptr");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        GetVpnDataFromResultSet(queryResultSet, vpnBean);
+        DecryptData(vpnBean);
+        sptr<SysVpnConfig> config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
+        if (config == nullptr) {
+            NETMGR_EXT_LOG_E("config is nullptr");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        infos.emplace_back(config);
     }
     return NETMANAGER_EXT_SUCCESS;
 }

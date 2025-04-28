@@ -708,8 +708,12 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
-int32_t NetworkVpnService::SetUpVpn(const SysVpnConfig &config)
+int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config)
 {
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("config is null.");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -732,7 +736,7 @@ int32_t NetworkVpnService::SetUpVpn(const SysVpnConfig &config)
         vpnConnCallback_ = std::make_shared<VpnConnStateCb>(*this);
     }
     if (vpnObj_ == nullptr || vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("SetUpVpn register internal callback failed");
+        NETMGR_EXT_LOG_E("SetUpSysVpn register internal callback failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     NETMGR_EXT_LOG_I("SystemVpn SetUp");
@@ -744,7 +748,7 @@ int32_t NetworkVpnService::SetUpVpn(const SysVpnConfig &config)
 }
 
 std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
-    const SysVpnConfig &config, int32_t userId, std::vector<int32_t> &activeUserIds)
+    const sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
 {
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     if (vpnBean == nullptr) {
@@ -797,13 +801,17 @@ std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateL2tpCtl(sptr<VpnDataBean> 
     return sysVpnCtl;
 }
 
-int32_t NetworkVpnService::QueryVpnData(const SysVpnConfig config, sptr<VpnDataBean> &vpnBean)
+int32_t NetworkVpnService::QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean)
 {
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("QueryVpnData failed, param is null");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, config.vpnId_);
+    int32_t result = VpnDatabaseHelper::GetInstance().QueryVpnData(vpnBean, config->vpnId_);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("query vpn data failed");
     }
@@ -841,13 +849,12 @@ std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtl(sptr<VpnDataBe
     return sysVpnCtl;
 }
 
-int32_t NetworkVpnService::AddSysVpnConfig(SysVpnConfig &config)
+int32_t NetworkVpnService::AddSysVpnConfig(const sptr<SysVpnConfig> &config)
 {
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
     if (checkPermission != NETMANAGER_SUCCESS)
         return checkPermission;
-    sptr<SysVpnConfig> configPtr = sptr<SysVpnConfig>::MakeSptr(config);
-    if (configPtr == nullptr) {
+    if (config == nullptr) {
         NETMGR_EXT_LOG_E("config is null");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
@@ -861,17 +868,15 @@ int32_t NetworkVpnService::AddSysVpnConfig(SysVpnConfig &config)
     }
 
     NETMGR_EXT_LOG_I("AddSysVpnConfig id=%{public}s type=%{public}d",
-        configPtr->vpnId_.c_str(), configPtr->vpnType_);
-    configPtr->userId_ = userId;
+        config->vpnId_.c_str(), config->vpnType_);
+    config->userId_ = userId;
 
-    sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(configPtr);
+    sptr<VpnDataBean> vpnBean = VpnDataBean::ConvertSysVpnConfigToVpnBean(config);
     if (vpnBean == nullptr) {
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    ret = VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
-    config = *configPtr;
-    return ret;
+    return VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
 }
 
 int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
@@ -896,7 +901,7 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
     return VpnDatabaseHelper::GetInstance().DeleteVpnData(vpnId);
 }
 
-int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnList)
+int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<sptr<SysVpnConfig>> &vpnList)
 {
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
     if (checkPermission != NETMANAGER_SUCCESS)
@@ -912,7 +917,7 @@ int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<SysVpnConfig> &vpnLis
     return VpnDatabaseHelper::GetInstance().QueryAllData(vpnList, userId);
 }
 
-int32_t NetworkVpnService::GetSysVpnConfig(SysVpnConfig &config, const std::string &vpnId)
+int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std::string &vpnId)
 {
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
     if (checkPermission != NETMANAGER_SUCCESS)
@@ -941,11 +946,11 @@ int32_t NetworkVpnService::GetSysVpnConfig(SysVpnConfig &config, const std::stri
         NETMGR_EXT_LOG_E("QueryVpnData failed, result = %{public}d", result);
         return result;
     }
-    config = *VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
+    config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::GetConnectedSysVpnConfig(SysVpnConfig &config)
+int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 {
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
     if (checkPermission != NETMANAGER_SUCCESS)
@@ -965,9 +970,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(SysVpnConfig &config)
         return NETMANAGER_EXT_SUCCESS;
     }
     NETMGR_EXT_LOG_I("SystemVpn GetConnectedSysVpnConfig");
-    ret = vpnObj_->GetConnectedSysVpnConfig(configPtr);
-    config = *configPtr;
-    return ret;
+    return vpnObj_->GetConnectedSysVpnConfig(config);
 }
 
 int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const int32_t result)
