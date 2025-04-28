@@ -165,7 +165,7 @@ HWTEST_F(VpnDatabaseHelperTest, QueryVpnData001, TestSize.Level1)
 
 HWTEST_F(VpnDatabaseHelperTest, QueryAllData001, TestSize.Level1)
 {
-    std::vector<SysVpnConfig> list;
+    std::vector<sptr<SysVpnConfig>> list;
     int32_t userId = 100;
     EXPECT_EQ(vpnDataHelper_.QueryAllData(list, userId), NETMANAGER_EXT_SUCCESS);
 }
@@ -235,7 +235,7 @@ HWTEST_F(VpnDatabaseHelperTest, NoStore001, TestSize.Level1)
     EXPECT_EQ(vpnDataHelper_.InsertData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
     EXPECT_EQ(vpnDataHelper_.UpdateData(vpnBean), NETMANAGER_EXT_ERR_OPERATION_FAILED);
     EXPECT_EQ(vpnDataHelper_.QueryVpnData(vpnBean, vpnBean->vpnId_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
-    std::vector<SysVpnConfig> list;
+    std::vector<sptr<SysVpnConfig>> list;
     EXPECT_EQ(vpnDataHelper_.QueryAllData(list, vpnBean->userId_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
     EXPECT_EQ(vpnDataHelper_.DeleteVpnData(vpnBean->vpnId_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
     vpnDataHelper_.store_ = tmp;
