@@ -148,6 +148,10 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
         return nullptr;
     }
     sptr<WearableDistributedNetLoadCallback> callback = new (std::nothrow) WearableDistributedNetLoadCallback;
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to create WearableDistributedNetLoadCallback instance");
+        return nullptr;
+    }
     int32_t result = sam->LoadSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID, callback);
     if (result != ERR_OK) {
         NETMGR_EXT_LOG_E("LoadSystemAbility failed : [%{public}d]", result);
