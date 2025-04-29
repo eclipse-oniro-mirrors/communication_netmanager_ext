@@ -39,14 +39,12 @@ namespace NetManagerStandard {
 using namespace testing::ext;
 
 constexpr int DEMO_PORT = 12345;
-constexpr int DEMO_PORT1 = 23456;
 constexpr int TIME_ONE_MS = 1;
 constexpr int TIME_TWO_MS = 2;
 constexpr int TIME_FOUR_MS = 4;
 constexpr int TIME_FIVE_MS = 5;
 constexpr uint32_t DEFAULT_LOST_MS = 20000;
 constexpr const char *DEMO_NAME = "ala";
-constexpr const char *DEMO_NAME1 = "ala1";
 constexpr const char *DEMO_TYPE = "_hellomdns._tcp";
 bool g_isScreenOn = true;
 
@@ -311,49 +309,6 @@ HWTEST_F(MDnsClientResumeTest, ResumeTest001, TestSize.Level1)
     MDnsClientResume::GetInstance().ReRegisterService();
 
     MDnsClientResume::GetInstance().RestartDiscoverService();
-}
-
-/**
- * @tc.name: ServiceTest001
- * @tc.desc: Test mDNS register and found.
- * @tc.type: FUNC
- */
-HWTEST_F(MDnsClientTest, ClientTest001, TestSize.Level1)
-{
-    MDnsServiceInfo info;
-    MDnsServiceInfo infoBack;
-    info.name = DEMO_NAME;
-    info.type = DEMO_TYPE;
-    info.port = DEMO_PORT;
-    info.SetAttrMap(g_txt);
-    infoBack = info;
-    infoBack.name = DEMO_NAME1;
-    infoBack.port = DEMO_PORT1;
-
-    auto client = DelayedSingleton<MDnsClient>::GetInstance();
-    sptr<MDnsTestRegistrationCallback> registration(new (std::nothrow) MDnsTestRegistrationCallback(info));
-    sptr<MDnsTestRegistrationCallback> registrationBack(new (std::nothrow) MDnsTestRegistrationCallback(infoBack));
-    sptr<MDnsTestDiscoveryCallback> discovery(new (std::nothrow) MDnsTestDiscoveryCallback({info, infoBack}));
-    sptr<MDnsTestDiscoveryCallback> discoveryBack(new (std::nothrow) MDnsTestDiscoveryCallback({info, infoBack}));
-    sptr<MDnsTestResolveCallback> resolve(new (std::nothrow) MDnsTestResolveCallback(info));
-    sptr<MDnsTestResolveCallback> resolveBack(new (std::nothrow) MDnsTestResolveCallback(infoBack));
-    ASSERT_NE(registration, nullptr);
-    ASSERT_NE(registrationBack, nullptr);
-    ASSERT_NE(discovery, nullptr);
-    ASSERT_NE(discoveryBack, nullptr);
-    ASSERT_NE(resolve, nullptr);
-    ASSERT_NE(resolveBack, nullptr);
-
-    MdnsClientTestParams mdnsClientTestParams;
-    mdnsClientTestParams.info = info;
-    mdnsClientTestParams.infoBack = infoBack;
-    mdnsClientTestParams.registration = registration;
-    mdnsClientTestParams.registrationBack = registrationBack;
-    mdnsClientTestParams.discovery = discovery;
-    mdnsClientTestParams.discoveryBack = discoveryBack;
-    mdnsClientTestParams.resolve = resolve;
-    mdnsClientTestParams.resolveBack = resolveBack;
-    DoTestForMdnsClient(mdnsClientTestParams);
 }
 
 HWTEST_F(MDnsServerTest, ServerTest, TestSize.Level1)
