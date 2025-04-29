@@ -47,6 +47,8 @@ constexpr uint32_t DEFAULT_LOST_MS = 20000;
 constexpr const char *DEMO_NAME = "ala";
 constexpr const char *DEMO_TYPE = "_hellomdns._tcp";
 bool g_isScreenOn = true;
+constexpr int PHASE_PTR = 1;
+constexpr int PHASE_DOMAIN = 3;
 
 static const TxtRecord g_txt{{"key", {'v', 'a', 'l', 'u', 'e'}}, {"null", {'\0'}}};
 
@@ -901,6 +903,482 @@ HWTEST_F(MDnsClientTest, SetAttrMapTest001, TestSize.Level0)
     map["abc=def"] = {};
     serviceInfo.SetAttrMap(map);
     EXPECT_FALSE(map.empty());
+}
+
+HWTEST_F(MDnsProtocolImplTest, ReceivePacketTest, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    int sock = 0;
+    MDnsPayload payload;
+    mDnsProtocolImpl.ReceivePacket(sock, payload);
+    payload = {0x00, 0x00, 0x00, 0x00};
+    mDnsProtocolImpl.ReceivePacket(sock, payload);
+    payload = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    mDnsProtocolImpl.ReceivePacket(sock, payload);
+    EXPECT_EQ(mDnsProtocolImpl.lastRunTime, -1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, ProcessQuestionTest, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    int sock = 0;
+    MDnsMessage msg;
+    mDnsProtocolImpl.ProcessQuestion(sock, msg);
+    mDnsProtocolImpl.ProcessAnswer(sock, msg);
+    EXPECT_EQ(mDnsProtocolImpl.lastRunTime, -1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, ProcessQuestionRecordTest, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    MDnsMessage msg;
+    std::string serviceName = "test_service";
+    MDnsProtocolImpl::Result result;
+    result.port = 1234;
+    const char* txtData = "test_txt";
+    size_t txtLength = strlen(txtData);
+    result.txt = std::vector<unsigned char>(txtData, txtData + txtLength);
+    mDnsProtocolImpl.srvMap_[serviceName] = result;
+
+    DNSProto::Question qu;
+    qu.name = "example.local";
+    qu.qtype = DNSProto::RRTYPE_ANY;
+
+    std::any anyAddr = in_addr_t{INADDR_ANY};
+    DNSProto::RRType anyAddrType = DNSProto::RRTYPE_A;
+    int phase = 0;
+    MDnsMessage response;
+
+    mDnsProtocolImpl.ProcessQuestionRecord(anyAddr, anyAddrType, qu, phase, response);
+    EXPECT_GE(phase, PHASE_PTR);
+
+    qu.qtype = DNSProto::RRTYPE_PTR;
+    mDnsProtocolImpl.ProcessQuestionRecord(anyAddr, anyAddrType, qu, phase, response);
+    EXPECT_GE(phase, PHASE_PTR);
+
+    qu.name = "service1";
+    qu.qtype = DNSProto::RRTYPE_SRV;
+    mDnsProtocolImpl.ProcessQuestionRecord(anyAddr, anyAddrType, qu, phase, response);
+    EXPECT_EQ(phase, 1);
+
+    qu.name = "service1";
+    qu.qtype = DNSProto::RRTYPE_TXT;
+    mDnsProtocolImpl.ProcessQuestionRecord(anyAddr, anyAddrType, qu, phase, response);
+    EXPECT_EQ(phase, 1);
+
+    qu.name = mDnsProtocolImpl.GetHostDomain();
+    qu.qtype = DNSProto::RRTYPE_A;
+    in_addr_t ipv4Addr = INADDR_ANY;
+    anyAddr = ipv4Addr;
+    mDnsProtocolImpl.ProcessQuestionRecord(anyAddr, anyAddrType, qu, phase, response);
+    EXPECT_GE(phase, PHASE_DOMAIN);
+
+    qu.name = mDnsProtocolImpl.GetHostDomain();
+    qu.qtype = DNSProto::RRTYPE_AAAA;
+    in6_addr ipv6Addr = in6_addr();
+    anyAddr = ipv6Addr;
+    anyAddrType = DNSProto::RRTYPE_AAAA;
+    mDnsProtocolImpl.ProcessQuestionRecord(anyAddr, anyAddrType, qu, phase, response);
+    EXPECT_GE(phase, PHASE_DOMAIN);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdatePtrTest_RdataNull, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = std::any();
+    std::set<std::string> changed;
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+    rr.rdata = std::string("srv.example.com");
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdatePtrTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = std::string("srv.example.com");
+    std::set<std::string> changed;
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+
+    rr.rdata = std::string("");
+    mDnsProtocolImpl.browserMap_["test"] = std::vector<MDnsProtocolImpl::Result>();
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test"].size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdatePtrTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = std::string("srv.example.com");
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.browserMap_["test"] = std::vector<MDnsProtocolImpl::Result>();
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test"].size(), 1);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+
+    mDnsProtocolImpl.browserMap_.clear();
+    mDnsProtocolImpl.browserMap_["test1"] = std::vector<MDnsProtocolImpl::Result>
+        {MDnsProtocolImpl::Result{.serviceName = "srv", .state = MDnsProtocolImpl::State::ADD}};
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test1"].size(), 1);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test1"), 0);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test1"][0].state, MDnsProtocolImpl::State::ADD);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdatePtrTest003, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = std::string("srv.example.com");
+    std::set<std::string> changed;
+    mDnsProtocolImpl.browserMap_["test"] = std::vector<MDnsProtocolImpl::Result>
+        {MDnsProtocolImpl::Result{.serviceName = "srv", .state = MDnsProtocolImpl::State::DEAD}};
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test"].size(), 1);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test"][0].state, MDnsProtocolImpl::State::REFRESH);
+
+    rr.ttl = 0;
+    mDnsProtocolImpl.browserMap_["test"] = std::vector<MDnsProtocolImpl::Result>
+        {MDnsProtocolImpl::Result{.serviceName = "srv", .state = MDnsProtocolImpl::State::ADD}};
+    mDnsProtocolImpl.UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test"].size(), 1);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_["test"][0].state, MDnsProtocolImpl::State::REMOVE);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateSrvTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = std::string("invalid");
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.UpdateSrv(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateSrvTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    DNSProto::RDataSrv srv;
+    srv.name = "srv.example.com";
+    srv.port = 1234;
+    rr.rdata = srv;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.UpdateSrv(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 1);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::ADD);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateSrvTest003, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    DNSProto::RDataSrv srv;
+    srv.name = "srv.example.com";
+    srv.port = 1234;
+    rr.rdata = srv;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result {
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .domain = "old.example.com",
+        .port = 5678,
+        .state = MDnsProtocolImpl::State::LIVE
+    };
+
+    mDnsProtocolImpl.UpdateSrv(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].domain, "srv.example.com");
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].port, 1234);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::REFRESH);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateSrvTest004, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 0;
+    rr.length = 0;
+    DNSProto::RDataSrv srv;
+    srv.name = "srv.example.com";
+    srv.port = 1234;
+    rr.rdata = srv;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result {
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .domain = "srv.example.com",
+        .port = 1234,
+        .state = MDnsProtocolImpl::State::LIVE
+    };
+
+    mDnsProtocolImpl.UpdateSrv(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::REMOVE);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateSrvTest005, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    DNSProto::RDataSrv srv;
+    srv.name = "srv.example.com";
+    srv.port = 1234;
+    rr.rdata = srv;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result {
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .domain = "old.example.com",
+        .port = 5678,
+        .state = MDnsProtocolImpl::State::DEAD
+    };
+
+    mDnsProtocolImpl.UpdateSrv(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].domain, "srv.example.com");
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].port, 1234);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::REFRESH);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateSrvTest006, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    DNSProto::RDataSrv srv;
+    srv.name = "srv.example.com";
+    srv.port = 1234;
+    rr.rdata = srv;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result {
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .domain = "srv.example.com",
+        .port = 1234,
+        .state = MDnsProtocolImpl::State::LIVE
+    };
+
+    mDnsProtocolImpl.UpdateSrv(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::LIVE);
+    EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateTxtTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = std::string("invalid");
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.UpdateTxt(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateTxtTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    TxtRecordEncoded txt;
+    txt = {0x6B, 0x65, 0x79, 0x00, 0x76, 0x61, 0x6C, 0x75, 0x65};
+    rr.rdata = txt;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.UpdateTxt(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 1);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::ADD);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateTxtTest003, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    TxtRecordEncoded txt;
+    txt = {0x6B, 0x65, 0x79, 0x00, 0x76, 0x61, 0x6C, 0x75, 0x65};
+    rr.rdata = txt;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result{
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .txt = {0x6F, 0x6C, 0x64, 0x5F, 0x6B, 0x65, 0x79, 0x00, 0x6F,
+            0x6C, 0x64, 0x5F, 0x76, 0x61, 0x6C, 0x75, 0x65},
+        .state = MDnsProtocolImpl::State::LIVE
+    };
+
+    mDnsProtocolImpl.UpdateTxt(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].txt.size(), 9);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::REFRESH);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateTxtTest004, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 0;
+    rr.length = 0;
+    TxtRecordEncoded txt;
+    txt = {0x6B, 0x65, 0x79, 0x00, 0x76, 0x61, 0x6C, 0x75, 0x65};
+    rr.rdata = txt;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result{
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .txt = {0x6B, 0x65, 0x79, 0x00, 0x76, 0x61, 0x6C, 0x75, 0x65},
+        .state = MDnsProtocolImpl::State::LIVE
+    };
+
+    mDnsProtocolImpl.UpdateTxt(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::REMOVE);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateTxtTest005, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    TxtRecordEncoded txt = {0x6B, 0x65, 0x79, 0x00, 0x76, 0x61, 0x6C, 0x75, 0x65};
+    rr.rdata = txt;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result{
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .txt = {0x6F, 0x6C, 0x64, 0x5F, 0x6B, 0x65, 0x79, 0x00, 0x6F,
+            0x6C, 0x64, 0x5F, 0x76, 0x61, 0x6C, 0x75, 0x65},
+        .state = MDnsProtocolImpl::State::DEAD
+    };
+
+    mDnsProtocolImpl.UpdateTxt(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::REFRESH);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_EQ(changed.count("test"), 1);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateTxtTest006, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.ttl = 100;
+    rr.length = 0;
+    TxtRecordEncoded txt = {0x6B, 0x65, 0x79, 0x00, 0x76, 0x61, 0x6C, 0x75, 0x65};
+    rr.rdata = txt;
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result {
+        .serviceName = "srv",
+        .serviceType = "_srv._tcp",
+        .txt = {0x6B, 0x65, 0x79, 0x00, 0x76, 0x61, 0x6C, 0x75, 0x65},
+        .state = MDnsProtocolImpl::State::LIVE
+    };
+
+    mDnsProtocolImpl.UpdateTxt(false, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_["test"].state, MDnsProtocolImpl::State::LIVE);
+    EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateAddrTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.rtype = DNSProto::RRTYPE_A;
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = "192.168.1.1";
+
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateAddrTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.rtype = DNSProto::RRTYPE_AAAA;
+    rr.ttl = 100;
+    rr.length = 0;
+    rr.rdata = "";
+
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
