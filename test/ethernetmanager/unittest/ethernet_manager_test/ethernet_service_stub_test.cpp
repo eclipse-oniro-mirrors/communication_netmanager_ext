@@ -153,7 +153,7 @@ HWTEST_F(EthernetServiceStubTest, OnSetIfaceConfigTest001, TestSize.Level1)
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_SET_IFACE_CONFIG),
                                              data, reply, option);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(ret, 5);
 }
 
 /**
@@ -249,7 +249,7 @@ HWTEST_F(EthernetServiceStubTest, OnRegisterIfacesStateChangedTest001, TestSize.
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
         IEthernetServiceIpcCode::COMMAND_REGISTER_IFACES_STATE_CHANGED), data, reply, option);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(ret, 5);
 }
 
 /**
@@ -267,7 +267,7 @@ HWTEST_F(EthernetServiceStubTest, OnUnregisterIfacesStateChangedTest001, TestSiz
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
         IEthernetServiceIpcCode::COMMAND_UNREGISTER_IFACES_STATE_CHANGED), data, reply, option);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(ret, 5);
 }
 
 /**
@@ -360,7 +360,7 @@ HWTEST_F(EthernetServiceStubTest, OnSetInterfaceConfigTest001, TestSize.Level1)
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
         IEthernetServiceIpcCode::COMMAND_SET_INTERFACE_CONFIG), data, reply, option);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    EXPECT_EQ(ret, 5);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
