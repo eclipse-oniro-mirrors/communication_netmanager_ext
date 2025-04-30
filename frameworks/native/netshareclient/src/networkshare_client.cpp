@@ -248,6 +248,10 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         return nullptr;
     }
     sptr<NetworkShareLoadCallback> callback = new (std::nothrow) NetworkShareLoadCallback;
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to create NetworkShareLoadCallback instance.");
+        return nullptr;
+    }
     if (sam->LoadSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, callback) != 0) {
         return nullptr;
     }
