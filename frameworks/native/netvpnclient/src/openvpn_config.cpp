@@ -65,12 +65,12 @@ bool OpenvpnConfig::Marshalling(Parcel &parcel) const
 
 OpenvpnConfig* OpenvpnConfig::Unmarshalling(Parcel &parcel)
 {
-    OpenvpnConfig* ptr = new (std::nothrow) OpenvpnConfig();
+    std::unique_ptr<OpenvpnConfig> ptr = std::make_unique<OpenvpnConfig>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("OpenvpnConfig ptr is null");
         return nullptr;
     }
-    if (!SysVpnConfig::Unmarshalling(parcel, ptr)) {
+    if (!SysVpnConfig::Unmarshalling(parcel, ptr.get())) {
         NETMGR_EXT_LOG_E("OpenvpnConfig Unmarshalling failed");
         return nullptr;
     }
@@ -109,7 +109,7 @@ OpenvpnConfig* OpenvpnConfig::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadString(ptr->ovpnPrivateKeyFilePath_)) {
         return nullptr;
     }
-    return ptr;
+    return ptr.release();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

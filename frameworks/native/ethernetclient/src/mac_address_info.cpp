@@ -34,7 +34,7 @@ bool MacAddressInfo::Marshalling(Parcel &parcel) const
 
 MacAddressInfo* MacAddressInfo::Unmarshalling(Parcel &parcel)
 {
-    MacAddressInfo* ptr = new (std::nothrow) MacAddressInfo();
+    std::unique_ptr<MacAddressInfo> ptr = std::make_unique<MacAddressInfo>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("create MacAddressInfo failed");
         return nullptr;
@@ -45,7 +45,7 @@ MacAddressInfo* MacAddressInfo::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadString(ptr->macAddress_)) {
         return nullptr;
     }
-    return ptr;
+    return ptr.release();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
