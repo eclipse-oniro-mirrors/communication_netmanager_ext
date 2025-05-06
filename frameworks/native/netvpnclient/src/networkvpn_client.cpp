@@ -135,7 +135,7 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
-int32_t NetworkVpnClient::SetUpVpn(const sptr<SysVpnConfig> &config)
+int32_t NetworkVpnClient::SetUpVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("SetUpVpn param config is nullptr");
@@ -147,7 +147,7 @@ int32_t NetworkVpnClient::SetUpVpn(const sptr<SysVpnConfig> &config)
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     NETMGR_EXT_LOG_I("SetUpVpn id=%{public}s", config->vpnId_.c_str());
-    return proxy->SetUpSysVpn(config);
+    return proxy->SetUpSysVpn(config, isVpnExtCall);
 }
 
 int32_t NetworkVpnClient::AddSysVpnConfig(sptr<SysVpnConfig> &config)

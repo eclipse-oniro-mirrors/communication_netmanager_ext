@@ -48,6 +48,7 @@
 #include "l2tp_vpn_ctl.h"
 #include "open_vpn_ctl.h"
 #include "vpn_data_bean.h"
+#include "vpn_template_processor.h"
 #endif // SUPPORT_SYSVPN
 
 namespace OHOS {
@@ -591,13 +592,34 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 bool NetworkVpnService::CheckVpnPermission(const std::string &bundleName)
 {
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
+        int32_t ret = NETMANAGER_EXT_SUCCESS;
         std::string vpnExtMode;
-        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+#ifdef SUPPORT_SYSVPN
+        int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+        std::vector<int32_t> activeUserIds;
+        ret = CheckCurrentAccountType(userId, activeUserIds);
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
+            return ret;
+        }
+        ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName + std::to_string(userId), vpnExtMode);
+        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s] userId = [%{public}d]",
+            ret, bundleName.c_str(), userId);
+        if (ret != 0 || vpnExtMode != "1") {
+            ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+            if (ret != 0 || vpnExtMode != "1") {
+                NETMGR_EXT_LOG_E("query datebase fail.");
+                return false;
+            }
+        }
+#else
+        ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
         NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, bundleName.c_str());
         if (ret != 0 || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return false;
         }
+#endif // SUPPORT_SYSVPN
     }
     return true;
 }
@@ -699,11 +721,16 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
-int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config)
+int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("config is null.");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    std::string vpnBundleName = GetBundleName();
+    if (!CheckVpnPermission(vpnBundleName)) {
+        NETMGR_EXT_LOG_E("permission is error.");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
@@ -712,7 +739,6 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
         return ret;
     }
-
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     if (vpnObj_ != nullptr) {
         if (vpnObj_->GetUserId() == userId) {
@@ -722,7 +748,7 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config)
         }
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
-    vpnObj_ = CreateSysVpnCtl(config, userId, activeUserIds);
+    vpnObj_ = CreateSysVpnCtl(config, userId, activeUserIds, isVpnExtCall);
     if (!vpnConnCallback_) {
         vpnConnCallback_ = std::make_shared<VpnConnStateCb>(*this);
     }
@@ -739,56 +765,82 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config)
 }
 
 std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
-    const sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds)
+    const sptr<SysVpnConfig> &config, int32_t userId, std::vector<int32_t> &activeUserIds, bool isVpnExtCall)
 {
-    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    if (vpnBean == nullptr) {
-        NETMGR_EXT_LOG_E("vpnBean is nullptr");
-        return nullptr;
+    sptr<VpnDataBean> vpnBean = nullptr;
+    int32_t type = 0;
+    if (isVpnExtCall) {
+        type = config->vpnType_;
+    } else {
+        vpnBean = new (std::nothrow) VpnDataBean();
+        int32_t result = QueryVpnData(config, vpnBean);
+        if (result != NETMANAGER_EXT_SUCCESS) {
+            return nullptr;
+        }
+        type = vpnBean->vpnType_;
     }
-    int32_t result = QueryVpnData(config, vpnBean);
-    if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("query vpn data failed");
-        return nullptr;
-    }
-    std::shared_ptr<IpsecVpnCtl> sysVpnCtl = nullptr;
-    switch (vpnBean->vpnType_) {
+    switch (type) {
         case VpnType::IKEV2_IPSEC_MSCHAPv2:
         case VpnType::IKEV2_IPSEC_PSK:
         case VpnType::IKEV2_IPSEC_RSA:
         case VpnType::IPSEC_XAUTH_PSK:
         case VpnType::IPSEC_XAUTH_RSA:
-        case VpnType::IPSEC_HYBRID_RSA: {
-            sysVpnCtl = CreateIpsecVpnCtl(vpnBean, userId, activeUserIds);
-            break;
-        }
+        case VpnType::IPSEC_HYBRID_RSA:
+            if (isVpnExtCall) {
+                return CreateIpsecVpnCtl(config, userId, activeUserIds);
+            } else {
+                return CreateIpsecVpnCtl(VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(vpnBean), userId,
+                    activeUserIds);
+            }
+        case VpnType::L2TP:
         case VpnType::L2TP_IPSEC_PSK:
-        case VpnType::L2TP_IPSEC_RSA: {
-            sysVpnCtl = CreateL2tpCtl(vpnBean, userId, activeUserIds);
-            break;
-        }
-        case VpnType::OPENVPN: {
-            return CreateOpenvpnCtl(vpnBean, userId, activeUserIds);
-        }
+        case VpnType::L2TP_IPSEC_RSA:
+            if (isVpnExtCall) {
+                return CreateL2tpCtl(config, userId, activeUserIds);
+            } else {
+                return CreateL2tpCtl(VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(vpnBean), userId, activeUserIds);
+            }
+        case VpnType::OPENVPN:
+            if (isVpnExtCall) {
+                return CreateOpenvpnCtl(config, userId, activeUserIds);
+            } else {
+                return CreateOpenvpnCtl(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(vpnBean), userId, activeUserIds);
+            }
         default:
             NETMGR_EXT_LOG_E("vpn type is invalid, %{public}d", vpnBean->vpnType_);
-            break;
+            return nullptr;
     }
-    return sysVpnCtl;
 }
 
-std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateL2tpCtl(sptr<VpnDataBean> vpnBean, int32_t userId,
+std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateL2tpCtl(const sptr<SysVpnConfig> &config, int32_t userId,
     std::vector<int32_t> &activeUserIds)
 {
-    sptr<L2tpVpnConfig> l2tpVpnConfig = VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(vpnBean);
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("CreateL2tpCtl failed, config is error");
+        return nullptr;
+    }
+    L2tpVpnConfig *vpnConfig = static_cast<L2tpVpnConfig *>(config.GetRefPtr());
+    if (vpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateL2tpCtl, vpnConfig is error");
+        return nullptr;
+    }
+    sptr<L2tpVpnConfig> l2tpVpnConfig = sptr<L2tpVpnConfig>::MakeSptr(*vpnConfig);
     if (l2tpVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToL2tpVpnConfig failed");
+        NETMGR_EXT_LOG_E("CreateL2tpCtl failed, l2tpVpnConfig is error");
+        vpnConfig = nullptr;
+        return nullptr;
+    }
+    VpnTemplateProcessor processor;
+    if (processor.BuildConfig(l2tpVpnConfig) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("BuildConfig l2tpVpnConfig failed");
+        vpnConfig = nullptr;
         return nullptr;
     }
     std::shared_ptr<IpsecVpnCtl> sysVpnCtl = std::make_shared<L2tpVpnCtl>(l2tpVpnConfig, "", userId, activeUserIds);
     if (sysVpnCtl != nullptr) {
         sysVpnCtl->l2tpVpnConfig_ = l2tpVpnConfig;
     }
+    vpnConfig = nullptr;
     return sysVpnCtl;
 }
 
@@ -809,12 +861,22 @@ int32_t NetworkVpnService::QueryVpnData(const sptr<SysVpnConfig> config, sptr<Vp
     return result;
 }
 
-std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateOpenvpnCtl(sptr<VpnDataBean> vpnBean,
+std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateOpenvpnCtl(const sptr<SysVpnConfig> &config,
     int32_t userId, std::vector<int32_t> &activeUserIds)
 {
-    sptr<OpenvpnConfig> openVpnConfig = VpnDataBean::ConvertVpnBeanToOpenvpnConfig(vpnBean);
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("CreateOpenvpnCtl failed, config is error");
+        return nullptr;
+    }
+    OpenvpnConfig *vpnConfig = static_cast<OpenvpnConfig *>(config.GetRefPtr());
+    if (vpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateOpenvpnCtl, vpnConfig is error");
+        return nullptr;
+    }
+    sptr<OpenvpnConfig> openVpnConfig = sptr<OpenvpnConfig>::MakeSptr(*vpnConfig);
     if (openVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToOpenvpnConfig failed");
+        NETMGR_EXT_LOG_E("CreateOpenvpnCtl failed, openVpnConfig is error");
+        vpnConfig = nullptr;
         return nullptr;
     }
     std::shared_ptr<OpenvpnCtl> openVpnCtl =
@@ -822,21 +884,39 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateOpenvpnCtl(sptr<VpnDataBean
     if (openVpnCtl != nullptr) {
         openVpnCtl->openvpnConfig_ = openVpnConfig;
     }
+    vpnConfig = nullptr;
     return openVpnCtl;
 }
 
-std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtl(sptr<VpnDataBean> vpnBean,
+std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtl(const sptr<SysVpnConfig> &config,
     int32_t userId, std::vector<int32_t> &activeUserIds)
 {
-    sptr<IpsecVpnConfig> ipsecVpnConfig = VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(vpnBean);
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("CreateIpsecVpnCtl failed, config is error");
+        return nullptr;
+    }
+    IpsecVpnConfig *vpnConfig = static_cast<IpsecVpnConfig *>(config.GetRefPtr());
+    if (vpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateIpsecVpnCtl, vpnConfig is error");
+        return nullptr;
+    }
+    sptr<IpsecVpnConfig> ipsecVpnConfig = sptr<IpsecVpnConfig>::MakeSptr(*vpnConfig);
     if (ipsecVpnConfig == nullptr) {
-        NETMGR_EXT_LOG_E("ConvertVpnBeanToIpsecVpnConfig failed");
+        NETMGR_EXT_LOG_E("CreateIpsecVpnCtl failed, ipsecVpnConfig is error");
+        vpnConfig = nullptr;
+        return nullptr;
+    }
+    VpnTemplateProcessor processor;
+    if (processor.BuildConfig(ipsecVpnConfig) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("BuildConfig ipsecVpnConfig failed");
+        vpnConfig = nullptr;
         return nullptr;
     }
     std::shared_ptr<IpsecVpnCtl> sysVpnCtl = std::make_shared<IpsecVpnCtl>(ipsecVpnConfig, "", userId, activeUserIds);
     if (sysVpnCtl != nullptr) {
         sysVpnCtl->ipsecVpnConfig_ = ipsecVpnConfig;
     }
+    vpnConfig = nullptr;
     return sysVpnCtl;
 }
 

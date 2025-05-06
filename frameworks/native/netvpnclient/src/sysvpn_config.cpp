@@ -58,6 +58,7 @@ SysVpnConfig* SysVpnConfig::Unmarshalling(Parcel &parcel)
             return IpsecVpnConfig::Unmarshalling(parcel);
         case VpnType::OPENVPN:
             return OpenvpnConfig::Unmarshalling(parcel);
+        case VpnType::L2TP:
         case VpnType::L2TP_IPSEC_PSK:
         case VpnType::L2TP_IPSEC_RSA:
             return L2tpVpnConfig::Unmarshalling(parcel);

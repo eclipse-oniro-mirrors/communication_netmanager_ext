@@ -37,6 +37,12 @@ ohos_shared_library("vpnextension") {
     "src/vpn_monitor_ext.cpp",
   ]
 
+  if (netmanager_ext_feature_sysvpn) {
+    sources += [
+      "src/vpn_config_utils_ext.cpp",
+    ]
+  }
+
   configs = [ "$ABILITY_RUNTIME_SERVICES_PATH/abilitymgr:abilityms_config" ]
   include_dirs = [
     "$NETMANAGER_EXT_NAPI_ROOT/vpnext/include",
@@ -68,6 +74,7 @@ ohos_shared_library("vpnextension") {
     "netmanager_base:net_data_share",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
+    "os_account:os_account_innerkits",
   ]
 
   relative_install_dir = "module/net"

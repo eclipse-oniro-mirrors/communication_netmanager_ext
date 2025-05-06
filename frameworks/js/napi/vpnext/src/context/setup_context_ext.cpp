@@ -141,6 +141,21 @@ void SetUpContext::ParseParams(napi_value *params, size_t paramsCount)
 
 bool SetUpContext::ParseVpnConfig(napi_value *params)
 {
+#ifdef SUPPORT_SYSVPN
+    if (params == nullptr) {
+        NETMGR_EXT_LOG_E("params is nullptr");
+        return false;
+    }
+    if (NapiUtils::HasNamedProperty(GetEnv(), params[0], "vpnId")) {
+        if (!VpnConfigUtilsExt::ParseSysVpnConfig(GetEnv(), params, sysVpnConfig_)) {
+            NETMGR_EXT_LOG_E("ParsesysVpnconfig is failed");
+            return false;
+        }
+        NETMGR_EXT_LOG_I("setup parse sysvpn config, id=%{public}s, type=%{public}d",
+            sysVpnConfig_->vpnId_.c_str(), sysVpnConfig_->vpnType_);
+        return true;
+    }
+#endif // SUPPORT_SYSVPN
     vpnConfig_ = new (std::nothrow) VpnConfig();
     if (vpnConfig_ == nullptr) {
         NETMGR_EXT_LOG_E("vpnConfig is nullptr");

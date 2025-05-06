@@ -18,6 +18,8 @@
 #include "accesstoken_kit.h"
 #include "extended_vpn_ctl.h"
 #include "ipsecvpn_config.h"
+#include "openvpn_config.h"
+#include "l2tpvpn_config.h"
 #include "nativetoken_kit.h"
 #include "net_manager_constants.h"
 #include "system_ability_definition.h"
@@ -126,7 +128,7 @@ HWTEST_F(NetworkVpnServiceTest, DeleteSysVpnConfigTest002, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigList001, TestSize.Level1)
 {
-    std::vector<SysVpnConfig> list;
+    std::vector<sptr<SysVpnConfig>> list;
     EXPECT_EQ(instance_->GetSysVpnConfigList(list), NETMANAGER_EXT_SUCCESS);
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
@@ -200,66 +202,75 @@ HWTEST_F(NetworkVpnServiceTest, QueryVpnData001, TestSize.Level1)
     EXPECT_EQ(instance_->QueryVpnData(openvpnConfig, vpnBean), NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(NetworkVpnServiceTest, CreateOpenvpnCtl001, TestSize.Level1)
+HWTEST_F(NetworkVpnServiceTest, SetUpSysVpn001, TestSize.Level1)
 {
-    std::vector<int32_t> activeUserIds;
-    int32_t userId = TEST_USERID;
-    sptr<VpnDataBean> vpnBean = nullptr;
-    EXPECT_EQ(instance_->CreateOpenvpnCtl(vpnBean, TEST_USERID, activeUserIds), nullptr);
-    vpnBean = new (std::nothrow) VpnDataBean();
-    ASSERT_NE(vpnBean, nullptr);
-    ASSERT_NE(instance_->CreateOpenvpnCtl(vpnBean, userId, activeUserIds), nullptr);
-}
+    sptr<SysVpnConfig> config = nullptr;
+    int32_t ret = instance_->SetUpSysVpn(config, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
 
-HWTEST_F(NetworkVpnServiceTest, CreateL2tpCtl001, TestSize.Level1)
-{
-    std::vector<int32_t> activeUserIds;
-    int32_t userId = TEST_USERID;
-    sptr<VpnDataBean> vpnBean = nullptr;
-    EXPECT_EQ(instance_->CreateL2tpCtl(vpnBean, TEST_USERID, activeUserIds), nullptr);
-    vpnBean = new (std::nothrow) VpnDataBean();
-    ASSERT_NE(vpnBean, nullptr);
-    ASSERT_NE(instance_->CreateL2tpCtl(vpnBean, userId, activeUserIds), nullptr);
-}
-
-HWTEST_F(NetworkVpnServiceTest, CreateIpsecVpnCtl001, TestSize.Level1)
-{
-    std::vector<int32_t> activeUserIds;
-    int32_t userId = TEST_USERID;
-    sptr<VpnDataBean> vpnBean = nullptr;
-    EXPECT_EQ(instance_->CreateIpsecVpnCtl(vpnBean, TEST_USERID, activeUserIds), nullptr);
-    vpnBean = new (std::nothrow) VpnDataBean();
-    ASSERT_NE(vpnBean, nullptr);
-    ASSERT_NE(instance_->CreateIpsecVpnCtl(vpnBean, userId, activeUserIds), nullptr);
-}
-
-HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
-{
-    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     config->vpnId_ = "123";
-    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
-    instance_->vpnObj_ = nullptr;
-    int32_t ret = instance_->SetUpSysVpn(config);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
     config->vpnName_ = "testSetUpVpn";
     config->vpnType_ = 1;
-    ret = instance_->SetUpSysVpn(config);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    ret = instance_->SetUpSysVpn(config, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+    NetManagerExtAccessToken access;
+    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
+    instance_->vpnObj_ = nullptr;
     std::string pkg = "test1";
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     instance_->CheckCurrentAccountType(userId, activeUserIds);
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
-    ret = instance_->SetUpSysVpn(config);
+    ret = instance_->SetUpSysVpn(config, false);
     EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
     instance_->vpnObj_ = nullptr;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, 100, activeUserIds);
+    ret = instance_->SetUpSysVpn(config, false);
     EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
     instance_->vpnObj_ = tmp;
 }
 
-HWTEST_F(NetworkVpnServiceTest, SetUpVpn002, TestSize.Level1)
+HWTEST_F(NetworkVpnServiceTest, SetUpSysVpn002, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = nullptr;
+    int32_t ret = instance_->SetUpSysVpn(config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+
+    config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = "123";
+    config->vpnName_ = "testSetUpVpn";
+    config->vpnType_ = 1;
+    ret = instance_->SetUpSysVpn(config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+    NetManagerExtAccessToken access;
+    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
+    instance_->vpnObj_ = nullptr;
+    std::string pkg = "test1";
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    instance_->CheckCurrentAccountType(userId, activeUserIds);
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
+    ret = instance_->SetUpSysVpn(config, true);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    instance_->vpnObj_ = nullptr;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, 100, activeUserIds);
+    ret = instance_->SetUpSysVpn(config, true);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    instance_->vpnObj_ = tmp;
+}
+
+HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
 {
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
@@ -298,22 +309,115 @@ HWTEST_F(NetworkVpnServiceTest, DumpTest001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     int32_t userId = 0;
     std::vector<int32_t> activeUserIds;
     std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
-    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds);
-    EXPECT_TRUE(sysVpnCtl == nullptr);
-
     config->vpnId_ = "1234";
     config->vpnName_ = "test001";
     config->vpnType_ = 1;
     EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
-
-    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds);
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
     EXPECT_TRUE(sysVpnCtl != nullptr);
 }
+
+
+HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl002, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = "1234";
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    EXPECT_TRUE(sysVpnCtl != nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl003, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = "l2tp_1234";
+    config->vpnName_ = "test001";
+    config->vpnType_ = 4;
+    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
+    EXPECT_TRUE(sysVpnCtl != nullptr);
+}
+
+
+HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl004, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = "1234";
+    config->vpnName_ = "test001";
+    config->vpnType_ = 4;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    EXPECT_TRUE(sysVpnCtl != nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl005, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) OpenvpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = "openvpn_1234";
+    config->vpnName_ = "test001";
+    config->vpnType_ = 9;
+    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
+    EXPECT_TRUE(sysVpnCtl != nullptr);
+}
+
+
+HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl006, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = new (std::nothrow) OpenvpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = "1234";
+    config->vpnName_ = "test001";
+    config->vpnType_ = 9;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    EXPECT_TRUE(sysVpnCtl != nullptr);
+}
+
 
 HWTEST_F(NetworkVpnServiceTest, Init001, TestSize.Level1)
 {

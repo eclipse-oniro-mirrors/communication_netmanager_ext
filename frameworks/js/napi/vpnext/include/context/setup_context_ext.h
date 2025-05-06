@@ -22,6 +22,10 @@
 #include "base_context.h"
 #include "event_manager.h"
 #include "refbase.h"
+#ifdef SUPPORT_SYSVPN
+#include "sysvpn_config.h"
+#include "vpn_config_utils_ext.h"
+#endif // SUPPORT_SYSVPN
 #include "vpn_config.h"
 
 namespace OHOS {
@@ -36,6 +40,9 @@ public:
 public:
     sptr<VpnConfig> vpnConfig_ = nullptr;
     int fd_ = -1;
+#ifdef SUPPORT_SYSVPN
+    sptr<SysVpnConfig> sysVpnConfig_ = nullptr;
+#endif // SUPPORT_SYSVPN
 
 private:
     bool ParseVpnConfig(napi_value *params);

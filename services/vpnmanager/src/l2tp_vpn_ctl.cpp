@@ -33,8 +33,12 @@ int32_t L2tpVpnCtl::StopSysVpn()
 {
     NETMGR_EXT_LOG_I("stop l2tp vpn");
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
-    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_DOWN_HOME);
-    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
+    if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
+    } else {
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_DOWN_HOME);
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
+    }
     NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -44,7 +48,12 @@ int32_t L2tpVpnCtl::StartSysVpn()
     NETMGR_EXT_LOG_I("start l2tp vpn");
     state_ = IpsecVpnStateCode::STATE_INIT;
     InitConfigFile();
-    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_RESTART);
+    if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
+        state_ = IpsecVpnStateCode::STATE_STARTED;
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_LOAD);
+    } else {
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_RESTART);
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -99,8 +108,13 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
             if (stage.compare(L2TP_IPSEC_CONFIGURED_TAG) == 0) {
                 // 2. start connect
                 NETMGR_EXT_LOG_I("l2tp vpn setup step 2: start connect");
-                state_ = IpsecVpnStateCode::STATE_CONFIGED;
-                NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
+                if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
+                    state_ = IpsecVpnStateCode::STATE_CONTROLLED;
+                    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL);
+                } else {
+                    state_ = IpsecVpnStateCode::STATE_CONFIGED;
+                    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
+                }
             }
             break;
         case IpsecVpnStateCode::STATE_CONFIGED:
