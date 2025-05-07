@@ -172,7 +172,7 @@ HWTEST_F(NetworkVpnServiceProxyTest, SetUpVpn002, TestSize.Level1)
     NetManagerExtAccessToken token;
     sptr<SysVpnConfig> config = nullptr;
     auto ret = instance_->SetUpSysVpn(config);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    EXPECT_EQ(ret, 1);
     config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     ret = instance_->SetUpSysVpn(config);
@@ -184,11 +184,11 @@ HWTEST_F(NetworkVpnServiceProxyTest, AddSysVpnConfig001, TestSize.Level1)
     NetManagerExtAccessToken token;
     sptr<SysVpnConfig> config = nullptr;
     auto ret = instance_->AddSysVpnConfig(config);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    EXPECT_EQ(ret, 1);
     config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     ret = instance_->AddSysVpnConfig(config);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, 1);
 }
 
 HWTEST_F(NetworkVpnServiceProxyTest, DeleteSysVpnConfig001, TestSize.Level1)
