@@ -724,6 +724,10 @@ int32_t NetFirewallDbHelper::QueryFirewallRule(const int32_t userId, const sptr<
     RdbPredicates rdbPredicates(FIREWALL_TABLE_NAME);
     rdbPredicates.BeginWrap()->EqualTo(NET_FIREWALL_USER_ID, std::to_string(userId))->EndWrap();
     firewallDatabase_->Count(rowCount, rdbPredicates);
+    if (rowCount == 0) {
+        NETMGR_EXT_LOG_I("QueryFirewallRule: no rule found");
+        return FIREWALL_OK;
+    }
     info->totalPage = rowCount / requestParam->pageSize;
     int32_t remainder = rowCount % requestParam->pageSize;
     if (remainder > 0) {
