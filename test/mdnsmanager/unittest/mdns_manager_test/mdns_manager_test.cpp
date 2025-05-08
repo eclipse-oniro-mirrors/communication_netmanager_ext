@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <thread>
+#include <arpa/inet.h>
 
 #ifdef GTEST_API_
 #define private public
