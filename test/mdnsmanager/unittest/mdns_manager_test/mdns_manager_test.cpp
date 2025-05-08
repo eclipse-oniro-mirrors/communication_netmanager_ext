@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <thread>
+#include <arpa/inet.h>
 
 #ifdef GTEST_API_
 #define private public
@@ -1379,6 +1380,180 @@ HWTEST_F(MDnsProtocolImplTest, UpdateAddrTest002, TestSize.Level1) {
 
     EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 0);
     EXPECT_EQ(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateAddrTest003, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "testnew";
+    rr.rtype = DNSProto::RRTYPE_AAAA;
+    rr.ttl = 100;
+    rr.length = 0;
+
+    in6_addr ipv6Addr;
+    inet_pton(AF_INET6, "2001:0db8:85a3:0000:0000:8a2e:0370:7334", &ipv6Addr);
+    rr.rdata = std::any(ipv6Addr);
+
+    mDnsProtocolImpl.cacheMap_.clear();
+    std::set<std::string> changed;
+
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 1);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_NE(changed.find("testnew"), changed.end());
+
+    const auto& result = mDnsProtocolImpl.cacheMap_.at("testnew");
+    EXPECT_EQ(result.state, MDnsProtocolImpl::State::ADD);
+    EXPECT_EQ(result.ipv6, true);
+    EXPECT_EQ(result.addr, "2001:db8:85a3::8a2e:370:7334");
+    EXPECT_EQ(result.ttl, 100);
+    EXPECT_GT(result.refrehTime, 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateAddrTest004, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "testupdate";
+    rr.rtype = DNSProto::RRTYPE_AAAA;
+    rr.ttl = 100;
+    rr.length = 0;
+
+    in6_addr oldIpv6Addr;
+    inet_pton(AF_INET6, "2001:0db8:85a3:0000:0000:8a2e:0370:7334", &oldIpv6Addr);
+    rr.rdata = std::any(oldIpv6Addr);
+
+    mDnsProtocolImpl.cacheMap_.clear();
+    mDnsProtocolImpl.cacheMap_["testupdate"].addr = "2001:db8:85a3::8a2e:370:7334";
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = true;
+    mDnsProtocolImpl.cacheMap_["testupdate"].state = MDnsProtocolImpl::State::DEAD;
+
+    std::set<std::string> changed;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_.size(), 1);
+    EXPECT_EQ(changed.size(), 1);
+    EXPECT_NE(changed.find("testupdate"), changed.end());
+
+    const auto& result = mDnsProtocolImpl.cacheMap_.at("testupdate");
+    EXPECT_EQ(result.state, MDnsProtocolImpl::State::REFRESH);
+    EXPECT_EQ(result.ipv6, true);
+    EXPECT_EQ(result.addr, "2001:db8:85a3::8a2e:370:7334");
+    EXPECT_EQ(result.ttl, 100);
+    EXPECT_GT(result.refrehTime, 0);
+
+    mDnsProtocolImpl.cacheMap_["testupdate"].addr = "2001:db8:85a3::8a2e:370:7334";
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = false;
+    mDnsProtocolImpl.cacheMap_["testupdate"].state = MDnsProtocolImpl::State::ADD;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+    EXPECT_EQ(result.ipv6, true);
+
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = false;
+    mDnsProtocolImpl.cacheMap_["testupdate"].state = MDnsProtocolImpl::State::DEAD;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+    EXPECT_EQ(result.ipv6, true);
+
+    mDnsProtocolImpl.cacheMap_["testupdate"].addr = "2001:db8:85a3::8a2e:370:7335";
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = true;
+    mDnsProtocolImpl.cacheMap_["testupdate"].state = MDnsProtocolImpl::State::DEAD;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+    EXPECT_EQ(result.addr, "2001:db8:85a3::8a2e:370:7334");
+
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = false;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+    EXPECT_EQ(result.ipv6, true);
+
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = true;
+    mDnsProtocolImpl.cacheMap_["testupdate"].state = MDnsProtocolImpl::State::ADD;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = false;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+    EXPECT_EQ(result.ipv6, true);
+}
+
+HWTEST_F(MDnsProtocolImplTest, UpdateAddrTest005, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "testupdate";
+    rr.rtype = DNSProto::RRTYPE_AAAA;
+    rr.ttl = 100;
+    rr.length = 0;
+
+    in6_addr oldIpv6Addr;
+    inet_pton(AF_INET6, "2001:0db8:85a3:0000:0000:8a2e:0370:7334", &oldIpv6Addr);
+    rr.rdata = std::any(oldIpv6Addr);
+
+    mDnsProtocolImpl.cacheMap_.clear();
+    mDnsProtocolImpl.cacheMap_["testupdate"].addr = "2001:db8:85a3::8a2e:370:7335";
+    mDnsProtocolImpl.cacheMap_["testupdate"].ipv6 = false;
+    mDnsProtocolImpl.cacheMap_["testupdate"].state = MDnsProtocolImpl::State::ADD;
+    std::set<std::string> changed;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+
+    rr.ttl = 0;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+    const auto& result = mDnsProtocolImpl.cacheMap_.at("testupdate");
+    EXPECT_EQ(result.state, MDnsProtocolImpl::State::REMOVE);
+
+    mDnsProtocolImpl.cacheMap_["testupdate"].state = MDnsProtocolImpl::State::LIVE;
+    mDnsProtocolImpl.UpdateAddr(true, rr, changed);
+}
+
+HWTEST_F(MDnsProtocolImplTest, ProcessAnswerRecordTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.rtype = DNSProto::RRTYPE_SRV;
+    mDnsProtocolImpl.srvMap_["test"] = MDnsProtocolImpl::Result{};
+    std::set<std::string> changed;
+    mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
+    EXPECT_TRUE(changed.empty());
+}
+
+HWTEST_F(MDnsProtocolImplTest, ProcessAnswerRecordTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.rtype = DNSProto::RRTYPE_PTR;
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result{};
+    std::set<std::string> changed;
+    mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
+    EXPECT_GE(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, ProcessAnswerRecordTest003, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.rtype = DNSProto::RRTYPE_SRV;
+    mDnsProtocolImpl.browserMap_["test"] = std::vector<MDnsProtocolImpl::Result>();
+    std::set<std::string> changed;
+    mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
+    EXPECT_GE(changed.size(), 0);
+
+    rr.rtype = DNSProto::RRTYPE_TXT;
+    mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
+    EXPECT_GE(changed.size(), 0);
+
+    rr.rtype = DNSProto::RRTYPE_A;
+    mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
+    EXPECT_GE(changed.size(), 0);
+
+    rr.rtype = DNSProto::RRTYPE_AAAA;
+    mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
+    EXPECT_GE(changed.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, ProcessAnswerRecordTest004, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    DNSProto::ResourceRecord rr;
+    rr.name = "test";
+    rr.rtype = static_cast<DNSProto::RRType>(999);
+    mDnsProtocolImpl.cacheMap_["test"] = MDnsProtocolImpl::Result{};
+    std::set<std::string> changed;
+    mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
+    EXPECT_TRUE(changed.empty());
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
