@@ -41,6 +41,7 @@ ohos_unittest("sys_vpn_manager_test") {
     "sysvpn_config_test.cpp",
     "vpn_data_bean_test.cpp",
     "vpn_database_helper_test.cpp",
+    "vpn_ut_config_test.cpp",
   ]
 
   include_dirs = [
@@ -53,7 +54,6 @@ ohos_unittest("sys_vpn_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
 
   deps = [

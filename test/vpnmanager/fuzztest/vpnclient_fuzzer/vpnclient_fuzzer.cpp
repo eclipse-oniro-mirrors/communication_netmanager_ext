@@ -98,7 +98,7 @@ Route GetRouteData()
 
 class VpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    int32_t OnVpnStateChanged(bool &isConnected) override { return 0; };
+    int32_t OnVpnStateChanged(bool isConnected) override { return 0; };
     int32_t OnVpnMultiUserSetUp()override { return 0; };
 };
 
@@ -204,7 +204,7 @@ void RegisterVpnEventFuzzTest(const uint8_t *data, size_t size)
     }
 
     sptr<IVpnEventCallback> callback = new (std::nothrow) VpnEventCallbackTest();
-    if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
+    if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject())) {
         return;
     }
     int32_t num = GetData<int32_t>();
@@ -226,7 +226,7 @@ void UnregisterVpnEventFuzzTest(const uint8_t *data, size_t size)
     }
 
     sptr<IVpnEventCallback> callback = new (std::nothrow) VpnEventCallbackTest();
-    if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
+    if (callback == nullptr || !dataParcel.WriteRemoteObject(callback->AsObject())) {
         return;
     }
     int32_t num = GetData<int32_t>();

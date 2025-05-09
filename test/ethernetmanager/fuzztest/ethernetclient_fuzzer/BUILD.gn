@@ -75,6 +75,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "ipc:ipc_core",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
   external_deps += [ "hilog:libhilog" ]

@@ -247,8 +247,8 @@ napi_value GetSysVpnConfigListCallback(GetListContext *context)
     napi_value array = NapiUtils::CreateArray(context->GetEnv(), len);
     for (const auto &info : context->vpnList_) {
         napi_value config = NapiUtils::CreateObject(context->GetEnv());
-        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), config, VpnConfigUtils::CONFIG_VPN_ID, info.vpnId_);
-        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), config, VpnConfigUtils::CONFIG_VPN_NAME, info.vpnName_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), config, VpnConfigUtils::CONFIG_VPN_ID, info->vpnId_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), config, VpnConfigUtils::CONFIG_VPN_NAME, info->vpnName_);
         NapiUtils::SetArrayElement(context->GetEnv(), array, index, config);
         ++index;
     }

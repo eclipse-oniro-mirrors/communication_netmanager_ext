@@ -216,7 +216,7 @@ HWTEST_F(TestNetStatsServiceStub, RegisterNetStatsCallbackTest001, TestSize.Leve
         return;
     }
     sptr<INetStatsCallback> callback = new (std::nothrow) NetStatsCallbackTestCb();
-    if (!data.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
+    if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
     }
     MessageParcel reply;
@@ -239,7 +239,7 @@ HWTEST_F(TestNetStatsServiceStub, UnregisterNetStatsCallbackTest001, TestSize.Le
         return;
     }
     sptr<INetStatsCallback> callback = new (std::nothrow) NetStatsCallbackTestCb();
-    if (!data.WriteRemoteObject(callback->AsObject().GetRefPtr())) {
+    if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
     }
     MessageParcel reply;

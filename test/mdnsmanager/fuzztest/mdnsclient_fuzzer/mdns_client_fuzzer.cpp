@@ -113,7 +113,7 @@ __attribute__((no_sanitize("cfi"))) bool GetMessageParcel(const uint8_t *data, s
         return false;
     }
 
-    sptr<MDnsServiceInfo> info = new (std::nothrow) MDnsServiceInfo();
+    MDnsServiceInfo* info = new (std::nothrow) MDnsServiceInfo();
     info->name = GetStringFromData(STR_LEN);
     info->type = GetStringFromData(STR_LEN);
     info->family = GetData<int32_t>();
@@ -121,7 +121,7 @@ __attribute__((no_sanitize("cfi"))) bool GetMessageParcel(const uint8_t *data, s
     info->port = GetData<int32_t>();
     std::string str = GetStringFromData(STR_LEN);
     info->txtRecord = std::vector<uint8_t>(str.begin(), str.end());
-    if (!MDnsServiceInfo::Marshalling(dataParcel, info)) {
+    if (!dataParcel.WriteParcelable(info)) {
         return false;
     }
 
@@ -159,7 +159,7 @@ void RegisterServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_REGISTER_SERVICE), dataParcel);
 }
@@ -168,7 +168,11 @@ void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("UnRegisterServiceFuzzTest enter");
     MessageParcel dataParcel;
-    if (!GetMessageParcel(data, size, dataParcel)) {
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    if (!WriteInterfaceToken(dataParcel)) {
         return;
     }
 
@@ -176,7 +180,7 @@ void UnRegisterServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_UN_REGISTER_SERVICE), dataParcel);
 }
@@ -185,15 +189,22 @@ void StartDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("StartDiscoverServiceFuzzTest enter");
     MessageParcel dataParcel;
-    if (!GetMessageParcel(data, size, dataParcel)) {
+    if (!InitGlobalData(data, size)) {
         return;
     }
 
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
+    std::string serviceType = GetStringFromData(STR_LEN);
+    if (!dataParcel.WriteString16(Str8ToStr16(serviceType))) {
+        return;
+    }
     sptr<IDiscoveryCallbackTest> callback = new (std::nothrow) IDiscoveryCallbackTest();
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_START_DISCOVER_SERVICE), dataParcel);
 }
@@ -202,15 +213,18 @@ void StopDiscoverServiceFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("StopDiscoverServiceFuzzTest enter");
     MessageParcel dataParcel;
-    if (!GetMessageParcel(data, size, dataParcel)) {
+    if (!InitGlobalData(data, size)) {
         return;
     }
 
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
     sptr<IDiscoveryCallbackTest> callback = new (std::nothrow) IDiscoveryCallbackTest();
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_STOP_DISCOVER_SERVICE), dataParcel);
 }
@@ -227,7 +241,7 @@ void ResolveServiceFuzzTest(const uint8_t *data, size_t size)
     if (callback == nullptr) {
         return;
     }
-    dataParcel.WriteRemoteObject(callback->AsObject().GetRefPtr());
+    dataParcel.WriteRemoteObject(callback->AsObject());
 
     OnRemoteRequest(static_cast<uint32_t>(IMdnsServiceIpcCode::COMMAND_RESOLVE_SERVICE), dataParcel);
 }

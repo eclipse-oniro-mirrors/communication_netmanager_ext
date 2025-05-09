@@ -46,7 +46,7 @@ bool ConfigurationParcelIpc::Marshalling(Parcel &parcel) const
 
 ConfigurationParcelIpc* ConfigurationParcelIpc::Unmarshalling(Parcel &parcel)
 {
-    ConfigurationParcelIpc* ptr = new (std::nothrow) ConfigurationParcelIpc();
+    std::unique_ptr<ConfigurationParcelIpc> ptr = std::make_unique<ConfigurationParcelIpc>();
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;
@@ -74,7 +74,7 @@ ConfigurationParcelIpc* ConfigurationParcelIpc::Unmarshalling(Parcel &parcel)
         }
         ptr->flags_.push_back(flags);
     }
-    return ptr;
+    return ptr.release();
 }
 
 void ConfigurationParcelIpc::ConvertEtherConfigParcelToNmd(const ConfigurationParcelIpc &ipc,

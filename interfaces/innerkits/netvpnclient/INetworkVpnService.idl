@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 import IVpnEventCallback;
 sequenceable VpnConfig..OHOS.NetManagerStandard.VpnConfig;
 sequenceable SysvpnConfig..OHOS.NetManagerStandard.SysVpnConfig;
@@ -28,12 +28,12 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     void RegisterBundleName([in] String bundleName, [in] String abilityName);
     void GetSelfAppName([out] String selfAppName, [out] String selfBundleName);
     void SetSelfVpnPid();
-    [macrodef SUPPORT_SYSVPN] void SetUpVpn([in] SysVpnConfig config);
-    [macrodef SUPPORT_SYSVPN] void AddSysVpnConfig([inout] SysVpnConfig config);
+    [macrodef SUPPORT_SYSVPN] void SetUpSysVpn([in] sptr<SysVpnConfig> config);
+    [macrodef SUPPORT_SYSVPN] void AddSysVpnConfig([in] sptr<SysVpnConfig> config);
     [macrodef SUPPORT_SYSVPN] void DeleteSysVpnConfig([in] String vpnId);
-    [macrodef SUPPORT_SYSVPN] void GetSysVpnConfigList([out] List<SysVpnConfig> vpnList);
-    [macrodef SUPPORT_SYSVPN] void GetSysVpnConfig([out] SysVpnConfig config, [in] String vpnId);
-    [macrodef SUPPORT_SYSVPN] void GetConnectedSysVpnConfig([out] SysVpnConfig config);
+    [macrodef SUPPORT_SYSVPN] void GetSysVpnConfigList([out] List<sptr<SysVpnConfig>> vpnList);
+    [macrodef SUPPORT_SYSVPN] void GetSysVpnConfig([out] sptr<SysVpnConfig> config, [in] String vpnId);
+    [macrodef SUPPORT_SYSVPN] void GetConnectedSysVpnConfig([out] sptr<SysVpnConfig> config);
     [macrodef SUPPORT_SYSVPN] void NotifyConnectStage([in] String stage, [in] int resultIpc);
     [macrodef SUPPORT_SYSVPN] void GetSysVpnCertUri([in] int certType, [out] String certUri);
 }

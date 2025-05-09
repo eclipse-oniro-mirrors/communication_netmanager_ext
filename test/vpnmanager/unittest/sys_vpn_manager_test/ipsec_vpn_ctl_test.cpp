@@ -175,5 +175,50 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
     certType = -1;
     EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest003, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    config->ipsecPublicUserCertConf_ = "testUserUri";
+    ipsecControl_->ipsecVpnConfig_ = config;
+    std::string certUri;
+    int32_t certType = 1;
+    EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ("testUserUri", certUri);
+    certType = 3;
+    EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest001, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    config->strongswanConf_ = "INVALID_BASE64";
+    ipsecControl_->ipsecVpnConfig_ = config;
+    EXPECT_EQ(ipsecControl_->InitConfigFile(), NETMANAGER_EXT_SUCCESS);
+    config->strongswanConf_ = "SGVsbG8sIFdvcmxkIQ==";
+    ipsecControl_->ipsecVpnConfig_ = config;
+    EXPECT_EQ(ipsecControl_->InitConfigFile(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest002, TestSize.Level1)
+{
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
+    EXPECT_EQ(ipsecControl_->InitConfigFile(), NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

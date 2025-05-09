@@ -356,7 +356,7 @@ int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<In
     if (temp == nullptr) {
         return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
-    *ifaceConfig = *temp;
+    ifaceConfig = temp;
     return NETMANAGER_EXT_SUCCESS;
 }
 

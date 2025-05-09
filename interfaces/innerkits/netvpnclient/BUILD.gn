@@ -54,6 +54,7 @@ config("net_conn_manager_if_config") {
   if (netmanager_ext_feature_sysvpn) {
     cflags += sysvpn_flags
     cflags_cc += sysvpn_flags
+    defines += [ "SUPPORT_SYSVPN" ]
   }
 }
 
@@ -105,6 +106,11 @@ config("networkvpn_interface_stub_config") {
     "include",
     "${target_gen_dir}",
   ]
+  if (netmanager_ext_feature_sysvpn) {
+    cflags = sysvpn_flags
+    cflags_cc = sysvpn_flags
+    defines = [ "SUPPORT_SYSVPN" ]
+  }
 }
 
 ohos_source_set("networkvpn_interface_stub") {

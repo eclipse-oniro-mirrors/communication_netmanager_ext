@@ -294,5 +294,165 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration012, TestSize.Level1)
     configSptr = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
     EXPECT_TRUE(configSptr->mode_ == STATIC);
 }
+
+HWTEST_F(EthernetConfigurationTest, ReadEthernetInterfacesTest001, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, std::set<NetCap>> devCaps;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    sptr<InterfaceConfiguration> preConfig = new InterfaceConfiguration();
+    devCfgs["eth0"] = preConfig;
+    cJSON *json = cJSON_CreateArray();
+    cJSON *item1 = cJSON_CreateObject();
+    cJSON *capsArray = cJSON_CreateArray();
+
+    cJSON_AddItemToArray(capsArray, cJSON_CreateNumber(1));
+    cJSON_AddItemToArray(capsArray, cJSON_CreateNumber(2));
+
+    std::string CONFIG_KEY_ETH_IFACE = "iface";
+    std::string CONFIG_KEY_ETH_CAPS = "caps";
+    cJSON_AddItemToObject(item1, CONFIG_KEY_ETH_IFACE.c_str(), cJSON_CreateString("eth0"));
+    cJSON_AddItemToObject(item1, CONFIG_KEY_ETH_CAPS.c_str(), capsArray);
+    cJSON_AddItemToArray(json, item1);
+
+    bool result = ethernetConfiguration.ReadEthernetInterfaces(devCaps, devCfgs, json);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(devCaps.size(), 1);
+    EXPECT_EQ(devCaps["eth0"].size(), 2);
+
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, ReadEthernetInterfacesTest002, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, std::set<NetCap>> devCaps;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    sptr<InterfaceConfiguration> preConfig = new InterfaceConfiguration();
+    devCfgs["eth0"] = preConfig;
+
+    cJSON *json = cJSON_CreateArray();
+    cJSON *item1 = cJSON_CreateObject();
+
+    std::string CONFIG_KEY_ETH_IFACE = "iface";
+    cJSON_AddItemToObject(item1, CONFIG_KEY_ETH_IFACE.c_str(), cJSON_CreateString("eth0"));
+    cJSON_AddItemToArray(json, item1);
+
+    bool result = ethernetConfiguration.ReadEthernetInterfaces(devCaps, devCfgs, json);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(devCaps.size(), 0);
+
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, ReadEthernetInterfacesTest003, TestSize.Level1)
+{
+    class MockEthernetConfiguration : public EthernetConfiguration {
+    public:
+        sptr<InterfaceConfiguration> ConvertJsonToConfiguration(const cJSON *item, bool isLan) {
+            return new InterfaceConfiguration();
+        }
+    };
+
+    MockEthernetConfiguration ethernetConfiguration;
+    std::map<std::string, std::set<NetCap>> devCaps;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    sptr<InterfaceConfiguration> preConfig = new InterfaceConfiguration();
+    devCfgs["eth0"] = preConfig;
+    cJSON *json = cJSON_CreateArray();
+    cJSON *item1 = cJSON_CreateObject();
+
+    std::string CONFIG_KEY_ETH_IFACE = "iface";
+    std::string CONFIG_KEY_ETH_IP = "ip";
+    cJSON_AddItemToObject(item1, CONFIG_KEY_ETH_IFACE.c_str(), cJSON_CreateString("eth0"));
+    cJSON_AddItemToObject(item1, CONFIG_KEY_ETH_IP.c_str(), cJSON_CreateString("192.168.1.1"));
+
+    cJSON_AddItemToArray(json, item1);
+
+    bool result = ethernetConfiguration.ReadEthernetInterfaces(devCaps, devCfgs, json);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(devCaps.size(), 0);
+    EXPECT_EQ(devCfgs.size(), 1);
+    EXPECT_NE(devCfgs["eth0"], nullptr);
+
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, WriteUserConfigurationTest001, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::string iface = "iface";
+    sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
+    cfg->mode_ = STATIC;
+    ethernetConfiguration.WriteUserConfiguration(iface, cfg);
+    cfg->mode_ = LAN_STATIC;
+    ethernetConfiguration.WriteUserConfiguration(iface, cfg);
+    cfg->mode_ = DHCP;
+    ethernetConfiguration.WriteUserConfiguration(iface, cfg);
+    EXPECT_EQ(iface, "iface");
+}
+
+HWTEST_F(EthernetConfigurationTest, GetGatewayFromRouteListTest001, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::list<Route> routeList;
+    Route route;
+    INetAddr addr;
+    addr.address_ = "0.0";
+    route.gateway_ = addr;
+    routeList.push_back(route);
+    auto result = ethernetConfiguration.GetGatewayFromRouteList(routeList);
+    EXPECT_TRUE(!result.empty());
+}
+
+HWTEST_F(EthernetConfigurationTest, MakeInterfaceConfigurationTest001, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    sptr<InterfaceConfiguration> devCfg = (std::make_unique<InterfaceConfiguration>()).release();
+    devCfg->mode_ = STATIC;
+    sptr<NetLinkInfo> devLinkInfo = nullptr;
+    auto result = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
+    EXPECT_EQ(result, nullptr);
+
+    devCfg = nullptr;
+    devLinkInfo = (std::make_unique<NetLinkInfo>()).release();
+    result = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
+    EXPECT_EQ(result, nullptr);
+}
+
+HWTEST_F(EthernetConfigurationTest, ParserIfaceIpAndRouteTest001, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    sptr<InterfaceConfiguration> cfg = new (std::nothrow) InterfaceConfiguration();
+
+    INetAddr addr1;
+    addr1.address_ = "2001:db8::/64";
+    INetAddr addr2;
+    addr2.address_ = "255.255.255.0";
+    cfg->ipStatic_.netMaskList_.push_back(addr1);
+    cfg->ipStatic_.netMaskList_.push_back(addr2);
+
+    INetAddr ipAddr1;
+    ipAddr1.address_ = "192.168.1.1";
+    INetAddr ipAddr2;
+    ipAddr2.address_ = "2001:db8::1";
+    cfg->ipStatic_.ipAddrList_.push_back(ipAddr1);
+    cfg->ipStatic_.ipAddrList_.push_back(ipAddr2);
+
+    INetAddr route1;
+    route1.address_ = "192.168.1.0";
+    INetAddr route2;
+    route2.address_ = "2001:db8::";
+    cfg->ipStatic_.routeList_.push_back(route1);
+    cfg->ipStatic_.routeList_.push_back(route2);
+
+    std::string rootNetMask = "2001:db8::/64;255.255.255.0";
+
+    ethernetConfiguration.ParserIfaceIpAndRoute(cfg, rootNetMask);
+
+    for (const auto &route : cfg->ipStatic_.routeList_) {
+        EXPECT_EQ(route.prefixlen_, 0);
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
