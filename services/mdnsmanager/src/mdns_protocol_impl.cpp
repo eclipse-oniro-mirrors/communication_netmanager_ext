@@ -87,9 +87,11 @@ void MDnsProtocolImpl::Init()
         RunTaskQueue(taskQueue_);
     });
     listener_.Start();
-
-    taskQueue_.clear();
-    taskOnChange_.clear();
+    {
+        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        taskQueue_.clear();
+        taskOnChange_.clear();
+    }
     AddTask([this]() { return Browse(); }, false);
 
     SubscribeCes();
