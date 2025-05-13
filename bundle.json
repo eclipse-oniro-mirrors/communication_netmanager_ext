@@ -87,7 +87,8 @@
                 "core_service",
                 "cellular_data",
                 "libxml2",
-                "json"
+                "json",
+                "runtime_core"
             ]
         },
         "build": {
@@ -113,8 +114,11 @@
                     "//foundation/communication/netmanager_ext/sa_profile:networkslice_manager_profile",
                     "//foundation/communication/netmanager_ext:networkslice_packages",
                     "//foundation/communication/netmanager_ext/services/etc/init:UrspConfig_xml",
+
                     "//foundation/communication/netmanager_ext/services/etc/init:UrspConfig2_xml",
-                    "//foundation/communication/netmanager_ext/services/etc/init:reportUrsp"
+                    "//foundation/communication/netmanager_ext/services/etc/init:reportUrsp",
+                    "//foundation/communication/netmanager_ext/frameworks/ets/ani:ani_package"
+
                 ]
             },
             "inner_kits": [
@@ -196,7 +200,6 @@
                     "header": {
                         "header_files": [
                             "networksliceclient/include/networkslice_client.h"
-
                         ],
                         "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
                     }
