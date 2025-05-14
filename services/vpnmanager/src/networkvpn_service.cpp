@@ -1007,9 +1007,10 @@ int32_t NetworkVpnService::GetSysVpnCertUri(const int32_t certType, std::string 
 
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callback)
 {
-    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
-    if (checkPermission != NETMANAGER_SUCCESS)
-        return checkPermission;
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
+        NETMGR_EXT_LOG_E("RegisterVpnEvent failed, Permission denied");
+        return NETMANAGER_ERR_PERMISSION_DENIED;
+    }
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
@@ -1024,9 +1025,10 @@ int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callb
 
 int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> &callback)
 {
-    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
-    if (checkPermission != NETMANAGER_SUCCESS)
-        return checkPermission;
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
+        NETMGR_EXT_LOG_E("RegisterVpnEvent failed, Permission denied");
+        return NETMANAGER_ERR_PERMISSION_DENIED;
+    }
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
