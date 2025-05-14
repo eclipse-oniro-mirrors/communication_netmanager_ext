@@ -1555,5 +1555,155 @@ HWTEST_F(MDnsProtocolImplTest, ProcessAnswerRecordTest004, TestSize.Level1) {
     mDnsProtocolImpl.ProcessAnswerRecord(false, rr, changed);
     EXPECT_TRUE(changed.empty());
 }
+
+HWTEST_F(MDnsProtocolImplTest, KillCacheTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test1";
+
+    mDnsProtocolImpl.browserMap_[key].emplace_back();
+    mDnsProtocolImpl.browserMap_[key].back().state = MDnsProtocolImpl::State::REMOVE;
+
+    mDnsProtocolImpl.cacheMap_[key].state = MDnsProtocolImpl::State::REMOVE;
+    mDnsProtocolImpl.cacheMap_[key].ttl = 1000;
+    mDnsProtocolImpl.cacheMap_[key].refrehTime = MilliSecondsSinceEpochTest() - 500;
+
+    mDnsProtocolImpl.KillCache(key);
+
+    EXPECT_TRUE(mDnsProtocolImpl.browserMap_[key].empty());
+    EXPECT_FALSE(mDnsProtocolImpl.cacheMap_.count(key));
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillCacheTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test2";
+    mDnsProtocolImpl.browserMap_[key].emplace_back();
+    mDnsProtocolImpl.browserMap_[key].back().state = MDnsProtocolImpl::State::REMOVE;
+    mDnsProtocolImpl.cacheMap_.clear();
+    mDnsProtocolImpl.KillCache(key);
+
+    EXPECT_TRUE(mDnsProtocolImpl.browserMap_[key].empty());
+    EXPECT_FALSE(mDnsProtocolImpl.IsCacheAvailable(key));
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillCacheTest003, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test3";
+    mDnsProtocolImpl.cacheMap_[key].state = MDnsProtocolImpl::State::ADD;
+    mDnsProtocolImpl.cacheMap_[key].ttl = 1000;
+    mDnsProtocolImpl.cacheMap_[key].refrehTime = MilliSecondsSinceEpochTest() - 500;
+    mDnsProtocolImpl.KillCache(key);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_[key].state, MDnsProtocolImpl::State::LIVE);
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillCacheTest004, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test4";
+    mDnsProtocolImpl.cacheMap_[key].state = MDnsProtocolImpl::State::REFRESH;
+    mDnsProtocolImpl.cacheMap_[key].ttl = 1000;
+    mDnsProtocolImpl.cacheMap_[key].refrehTime = MilliSecondsSinceEpochTest() - 500;
+    mDnsProtocolImpl.KillCache(key);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_[key].state, MDnsProtocolImpl::State::LIVE);
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillCacheTest005, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test5";
+    mDnsProtocolImpl.cacheMap_[key].state = MDnsProtocolImpl::State::ADD;
+    mDnsProtocolImpl.cacheMap_[key].ttl = 1;
+    mDnsProtocolImpl.cacheMap_[key].refrehTime = MilliSecondsSinceEpochTest() - 2000;
+    mDnsProtocolImpl.KillCache(key);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_[key].state, MDnsProtocolImpl::State::ADD);
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillCacheTest006, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test6";
+    mDnsProtocolImpl.cacheMap_[key].state = MDnsProtocolImpl::State::DEAD;
+    mDnsProtocolImpl.cacheMap_[key].ttl = 1000;
+    mDnsProtocolImpl.cacheMap_[key].refrehTime = MilliSecondsSinceEpochTest() - 500;
+    mDnsProtocolImpl.KillCache(key);
+    EXPECT_EQ(mDnsProtocolImpl.cacheMap_[key].state, MDnsProtocolImpl::State::DEAD);
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillBrowseCacheTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test1";
+    MDnsProtocolImpl::Result resultAdd;
+    resultAdd.state = MDnsProtocolImpl::State::ADD;
+    resultAdd.serviceName = "service1";
+    resultAdd.serviceType = "_http._tcp";
+    mDnsProtocolImpl.browserMap_[key].push_back(resultAdd);
+    auto it = mDnsProtocolImpl.browserMap_[key].begin();
+    mDnsProtocolImpl.KillBrowseCache(key, it);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_[key].front().state, MDnsProtocolImpl::State::LIVE);
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillBrowseCacheTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test2";
+    MDnsProtocolImpl::Result resultRefresh;
+    resultRefresh.state = MDnsProtocolImpl::State::REFRESH;
+    resultRefresh.serviceName = "service2";
+    resultRefresh.serviceType = "_http._tcp";
+    mDnsProtocolImpl.browserMap_[key].push_back(resultRefresh);
+    auto it = mDnsProtocolImpl.browserMap_[key].begin();
+    mDnsProtocolImpl.KillBrowseCache(key, it);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_[key].front().state, MDnsProtocolImpl::State::LIVE);
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillBrowseCacheTest003, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test3";
+    MDnsProtocolImpl::Result resultRefresh;
+    resultRefresh.state = MDnsProtocolImpl::State::REMOVE;
+    resultRefresh.serviceName = "service3";
+    resultRefresh.serviceType = "_http._tcp";
+    mDnsProtocolImpl.browserMap_[key].push_back(resultRefresh);
+    auto it = mDnsProtocolImpl.browserMap_[key].begin();
+    mDnsProtocolImpl.KillBrowseCache(key, it);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_[key].front().state, MDnsProtocolImpl::State::DEAD);
+}
+
+HWTEST_F(MDnsProtocolImplTest, KillBrowseCacheTest004, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    std::string key = "test4";
+    MDnsProtocolImpl::Result resultRefresh;
+    resultRefresh.state = MDnsProtocolImpl::State::DEAD;
+    resultRefresh.serviceName = "service4";
+    resultRefresh.serviceType = "_http._tcp";
+    mDnsProtocolImpl.browserMap_[key].push_back(resultRefresh);
+    auto it = mDnsProtocolImpl.browserMap_[key].begin();
+    mDnsProtocolImpl.KillBrowseCache(key, it);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_[key].front().state, MDnsProtocolImpl::State::DEAD);
+}
+
+HWTEST_F(MDnsProtocolImplTest, StopCbMapTest001, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    mDnsProtocolImpl.config_.topDomain = ".local";
+    std::string serviceType = "_http._tcp";
+    std::string name = mDnsProtocolImpl.Decorated(serviceType);
+    int32_t ret = mDnsProtocolImpl.StopCbMap(serviceType);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    EXPECT_EQ(mDnsProtocolImpl.nameCbMap_.size(), 0);
+    EXPECT_EQ(mDnsProtocolImpl.taskOnChange_.size(), 0);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_.size(), 0);
+}
+
+HWTEST_F(MDnsProtocolImplTest, StopCbMapTest002, TestSize.Level1) {
+    MDnsProtocolImpl mDnsProtocolImpl;
+    mDnsProtocolImpl.config_.topDomain = ".local";
+    std::string serviceType = "_http._tcp";
+    std::string name = mDnsProtocolImpl.Decorated(serviceType);
+    MDnsProtocolImpl::Result result1, result2;
+    result1.serviceName = "service1";
+    result1.serviceType = serviceType;
+    result2.serviceName = "service2";
+    result2.serviceType = serviceType;
+    mDnsProtocolImpl.browserMap_[name].push_back(result1);
+    mDnsProtocolImpl.browserMap_[name].push_back(result2);
+    int32_t ret = mDnsProtocolImpl.StopCbMap(serviceType);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    EXPECT_EQ(mDnsProtocolImpl.browserMap_.find(name), mDnsProtocolImpl.browserMap_.end());
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
