@@ -34,8 +34,8 @@ public:
                         const NetworkShareEventErrorType &errorCode, const std::string &errorMsg,
                         const NetworkShareEventType &eventType);
     void SendBehaviorEvent(int32_t sharingCount, const SharingIfaceType &sharingType);
-    void WiiteSoftApOpenAndCloseFailedEvent(bool operateType, int32_t uid,
-                                            std::string packagName);
+    void WriteSoftApOpenAndCloseFailedEvent(bool operateType, int32_t uid,
+                                            std::string packageName);
 
 private:
     NetworkShareHisysEvent() = default;

@@ -34,7 +34,7 @@ constexpr const char *EVENT_KEY_VPN_LEGACY = "VPN_LEGACY";
 constexpr const char *EVENT_KEY_VPN_ERROR_TYPE = "VPN_ERROR_TYPE";
 constexpr const char *EVENT_KEY_VPN_ERROR_MSG = "VPN_ERROR_MSG";
 constexpr const char *EVENT_KEY_FAIL_RESON = "FAIL_REASON";
-constexpr const char *EVENT_KEY_OPEN_FAIL = "OPEN_FAIL"
+constexpr const char *EVENT_KEY_OPEN_FAIL = "OPEN_FAIL";
 constexpr const char *EVENT_KEY_CLOSE_FAIL = "CLOSE_FAIL";
 constexpr int32_t NETMANAGER_EXT_SUCCESS = 0;
 } // namespace
@@ -57,7 +57,7 @@ int32_t NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
 
 int32_t NetEventReport::SendWifiSoftapEvent(const EventInfo)
 {
-    HiSysEventWrite(HiSysEvent::Domain::COWUNICAION, WIFI_SOFTAP_OPEN_FAILED, HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::COMMUNICATION, WIFI_SOFTAP_OPEN_FAILED, HiSysEvent::EventType::FAULT,
                     EVENT_KEY_OPEN_FAIL, eventInfo.apOpenErrorMsg, EVENT_KEY_CLOSE_FAIL, eventInfo.apCloseErrorMsg,
                     EVENT_KEY_FAIL_RESON, eventInfo.errorMsg);
     return NETMANAGER_EXT_SUCCESS;

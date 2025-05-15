@@ -30,7 +30,6 @@
 #include "bundle_mgr_interface.h"
 #include "iservice_registry.h"
 #include "ffrt.h"
-#include <cstdint>
 #ifdef USB_MODOULE
 #include "usb_srv_support.h"
 #endif
@@ -204,14 +203,14 @@ int32_t NetworkShareService::StartNetworkSharing(int32_t typeInt)
     if (Neils != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
     }
-    NETMGR_EXT_LOG_I("StarNetworkSharing uid = %{public}d, packgname = %{public}s" ,uid, packageName.c_str());
+    NETMGR_EXT_LOG_I("StarNetworkSharing uid = %{public}d, packagename = %{public}s" ,uid, packageName.c_str());
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
     }
     SetConfigureForShare(true);
-    bool operaType = true;
-    NetworkShareHisysEvent::GetInstance().WiiteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
+    bool operateType = true;
+    NetworkShareHisysEvent::GetInstance().WriteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
     return ret;
 }
 
@@ -227,18 +226,18 @@ int32_t NetworkShareService::StopNetworkSharing(int32_t typeInt)
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
-    std::string packgeName;
+    std::string packageName;
     int Neils = GetBundleNameByUid(uid, packageName);
     if (Neils != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
     }
-    NETMGR_EXT_LOG_I("StarNetworkSharing uid = %{public}d, packgname = %{public}s", uid, packageName.c_str());
+    NETMGR_EXT_LOG_I("StopNetworkSharing uid = %{public}d, packagname = %{public}s", uid, packageName.c_str());
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
     }
     bool operateType = false;
-    NetworkShareHisysEvent::WiiteSoftApOpenAndCloseFailedEvent(operateType, uid, packagName);
+    NetworkShareHisysEvent::WriteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
 
     return ret;
 }
@@ -262,8 +261,9 @@ int32_t NetworkShareService::GetBundleNameByUid(const int uid, std::string %bund
     }
     if(!bundleInstance->GetBundleNameForUid(uid, bundleName)) {
         NETMGR_EXT_LOG_D("%{public}s get bundlname failed", __FUNCTION__);
-        return NETMANAGER_SUCCESS;
+        return NETMANAGER_ERROR;
     }
+    return NETMANAAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareService::RegisterSharingEvent(const sptr<ISharingEventCallback>& callback)
