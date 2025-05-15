@@ -39,6 +39,7 @@ ohos_unittest("ethernet_manager_test") {
     "ethernet_service_stub_test.cpp",
     "ethernet_service_test.cpp",
     "mac_address_info_test.cpp",
+    "ethernet_device_info_test.cpp",
   ]
 
   include_dirs = [

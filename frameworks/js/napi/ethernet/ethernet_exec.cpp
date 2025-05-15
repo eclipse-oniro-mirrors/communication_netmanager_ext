@@ -40,6 +40,13 @@ constexpr const char *DOMAIN = "domain";
 constexpr const char *DEFAULT_SEPARATOR = ",";
 constexpr const char *MAC_ADDR = "macAddress";
 constexpr const char *IFACE = "iface";
+constexpr const char *IFACE_NAME = "ifaceName";
+constexpr const char *DEVICE_NAME = "deviceName";
+constexpr const char *CONNECTION_MODE = "connectionMode";
+constexpr const char *SUPPLIER_NAME = "supplierName";
+constexpr const char *SUPPLIER_ID = "supplierId";
+constexpr const char *PRODUCT_NAME = "productName";
+constexpr const char *MAX_RATE = "maximumRate";
 
 std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
 {
@@ -164,6 +171,35 @@ napi_value GetAllActiveIfacesCallback(GetAllActiveIfacesContext *context)
         NapiUtils::SetArrayElement(context->GetEnv(), ifaces, index++, ifaceStr);
     }
     return ifaces;
+}
+
+bool ExecGetDeviceInformation(GetDeviceInformationContext *context)
+{
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetDeviceInformation(context->deviceInfo_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecGetDeviceInformation, err: %{public}d", result);
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
+ 
+napi_value GetDeviceInformationCallback(GetDeviceInformationContext *context)
+{
+    napi_value deviceInfoList = NapiUtils::CreateArray(context->GetEnv(), context->deviceInfo_.size());
+    uint32_t index = 0;
+    for (auto &eachInfo : context->deviceInfo_) {
+        napi_value deviceInfo = NapiUtils::CreateObject(context->GetEnv());
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), deviceInfo, IFACE_NAME, eachInfo.ifaceName_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), deviceInfo, DEVICE_NAME, eachInfo.deviceName_);
+        NapiUtils::SetInt32Property(context->GetEnv(), deviceInfo, CONNECTION_MODE, eachInfo.connectionMode_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), deviceInfo, SUPPLIER_NAME, eachInfo.supplierName_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), deviceInfo, SUPPLIER_ID, eachInfo.supplierId_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), deviceInfo, PRODUCT_NAME, eachInfo.productName_);
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), deviceInfo, MAX_RATE, eachInfo.maximumRate_);
+        NapiUtils::SetArrayElement(context->GetEnv(), deviceInfoList, index++, deviceInfo);
+    }
+    return deviceInfoList;
 }
 } // namespace EthernetExec
 } // namespace NetManagerStandard

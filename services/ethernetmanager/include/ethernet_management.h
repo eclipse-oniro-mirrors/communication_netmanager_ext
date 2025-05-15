@@ -21,6 +21,7 @@
 
 #include "dev_interface_state.h"
 #include "ethernet_configuration.h"
+#include "ethernet_device_info.h"
 #include "ethernet_dhcp_controller.h"
 #include "iservice_registry.h"
 #include "mac_address_info.h"
@@ -74,6 +75,7 @@ public:
     void GetDumpInfo(std::string &info);
     void DevInterfaceAdd(const std::string &devName);
     void DevInterfaceRemove(const std::string &devName);
+    int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList);
 
 private:
     EthernetManagement();
@@ -87,6 +89,11 @@ private:
     void StartSetDevUpThd();
     bool IsIfaceLinkUp(const std::string &iface);
     bool ModeInputCheck(IPSetMode origin, IPSetMode input);
+    bool GetSysNodeValue(const std::string &nodePath, std::string &nodeVal);
+    void GetPciEthDeviceInfo(const std::string &iface, std::string &nodePath,
+        std::vector<EthernetDeviceInfo> &deviceInfoList);
+    void GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
+        std::vector<EthernetDeviceInfo> &deviceInfoList);
 
 private:
     std::map<std::string, std::set<NetCap>> devCaps_;

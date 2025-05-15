@@ -153,6 +153,16 @@ public:
      */
     int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
 
+    /**
+     * Get the ethernet device infomation
+     *
+     * @param deviceInfoList device information list
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.GET_NETWORK_INFO
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList);
+
 private:
     class EthernetDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

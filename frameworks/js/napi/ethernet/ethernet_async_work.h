@@ -35,6 +35,9 @@ void IsIfaceActiveCallback(napi_env env, napi_status status, void *data);
 
 void ExecGetAllActiveIfaces(napi_env env, void *data);
 void GetAllActiveIfacesCallback(napi_env env, napi_status status, void *data);
+
+void ExecGetDeviceInformation(napi_env env, void *data);
+void GetDeviceInformationCallback(napi_env env, napi_status status, void *data);
 } // namespace EthernetAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

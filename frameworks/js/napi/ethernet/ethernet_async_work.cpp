@@ -18,6 +18,7 @@
 #include "base_async_work.h"
 #include "ethernet_exec.h"
 #include "get_all_active_ifaces_context.h"
+#include "get_device_infomation.h"
 #include "get_mac_address_context.h"
 #include "get_iface_config_context.h"
 #include "is_iface_active_context.h"
@@ -75,6 +76,17 @@ void GetAllActiveIfacesCallback(napi_env env, napi_status status, void *data)
 {
     BaseAsyncWork::AsyncWorkCallback<GetAllActiveIfacesContext, EthernetExec::GetAllActiveIfacesCallback>(env, status,
                                                                                                           data);
+}
+
+void ExecGetDeviceInformation(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetDeviceInformationContext, EthernetExec::ExecGetDeviceInformation>(env, data);
+}
+ 
+void GetDeviceInformationCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetDeviceInformationContext, EthernetExec::GetDeviceInformationCallback>(env,
+        status, data);
 }
 } // namespace EthernetAsyncWork
 } // namespace NetManagerStandard

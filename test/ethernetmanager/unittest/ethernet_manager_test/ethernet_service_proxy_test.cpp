@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "ethernet_client.h"
+#include "ethernet_device_info.h"
 #include "gtest/gtest-message.h"
 #include "gtest/gtest-test-part.h"
 #include "gtest/hwext/gtest-ext.h"
@@ -204,6 +205,15 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceConfigTest001, TestSize.Level1)
     config.flags_.push_back("broadcast");
     int32_t ret = ethernetServiceProxy.SetInterfaceConfig(DEV_NAME, config);
     EXPECT_EQ(ret, 5);
+}
+
+HWTEST_F(EtherNetServiceProxyTest, GetDeviceInformationTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    EthernetServiceProxy ethernetServiceProxy(nullptr);
+    std::vector<EthernetDeviceInfo> devInfoList;
+    auto ret = ethernetServiceProxy.GetDeviceInformation(devInfoList);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

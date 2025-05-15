@@ -325,6 +325,19 @@ void EthernetServiceCommonFuzzTest(const uint8_t *data, size_t size)
     ethernetServiceCommon->ResetEthernetFactory();
 }
 
+void GetDeviceInformationFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    NetManagerExtAccessToken token;
+    MessageParcel parcel;
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_DEVICE_INFORMATION), parcel);
+}
+
 void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -362,6 +375,9 @@ void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
     std::string devName = GetStringFromData(IFACE_LEN);
     ethernetManagement->DevInterfaceAdd(devName);
     ethernetManagement->DevInterfaceRemove(devName);
+    
+    std::vector<EthernetDeviceInfo> devInfoList;
+    ethernetManagement->GetDeviceInformation(devInfoList);
 }
 
 void EthernetDhcpControllerFuzzTest(const uint8_t *data, size_t size)

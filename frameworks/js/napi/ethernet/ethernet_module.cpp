@@ -18,6 +18,7 @@
 
 #include "ethernet_async_work.h"
 #include "get_all_active_ifaces_context.h"
+#include "get_device_infomation.h"
 #include "get_mac_address_context.h"
 #include "get_iface_config_context.h"
 #include "mac_address_info.h"
@@ -43,6 +44,7 @@ constexpr const char *DHCP_NAME = "DHCP";
 constexpr const char *IP_SET_MODE = "IPSetMode";
 constexpr const char *FUNCTION_ON = "on";
 constexpr const char *FUNCTION_OFF = "off";
+constexpr const char *GET_DEVICE_INFO = "getDeviceInformation";
 
 napi_value GetMacAddress(napi_env env, napi_callback_info info)
 {
@@ -94,6 +96,12 @@ napi_value Off(napi_env env, napi_callback_info info)
     return InterfaceStateObserverWrapper::GetInstance().Off(env, info, {EVENT_STATS_CHANGE}, false);
 }
 
+napi_value GetDeviceInformation(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetDeviceInformationContext>(env, info, GET_DEVICE_INFO, nullptr,
+        EthernetAsyncWork::ExecGetDeviceInformation, EthernetAsyncWork::GetDeviceInformationCallback);
+}
+
 static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
 {
     NapiUtils::DefineProperties(env, exports, {
@@ -104,6 +112,7 @@ static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION(GET_ALL_IFACES, GetAllActiveIfaces),
         DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
         DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
+        DECLARE_NAPI_FUNCTION(GET_DEVICE_INFO, GetDeviceInformation),
     });
     return exports;
 }

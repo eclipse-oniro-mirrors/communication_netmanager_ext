@@ -15,10 +15,12 @@
 
 #include "ethernet_management.h"
 
+#include <fcntl.h>
 #include <regex>
 #include <thread>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <vector>
 
@@ -32,6 +34,13 @@ namespace NetManagerStandard {
 const std::string IFACE_MATCH = "eth\\d";
 constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
+constexpr const char *SYS_CLASS_NET_PATH = "/sys/class/net/";
+constexpr const char *ITEM_DEVICE = "/device";
+constexpr const char *ITEM_USB = "usb";
+constexpr const char *ITEM_DEVICE_NAME = "/product";
+constexpr const char *ITEM_SUPPLIER_ID = "/idVendor";
+constexpr const char *ITEM_SUPPLIER_NAME = "/manufacturer";
+constexpr const char *ITEM_MAXIMUM_RATE = "/speed";
 constexpr int SLEEP_TIME_S = 2;
 constexpr uint32_t INDEX_ONE = 1;
 constexpr uint32_t INDEX_TWO = 2;
@@ -552,6 +561,82 @@ bool EthernetManagement::ModeInputCheck(IPSetMode origin, IPSetMode input)
         }
     }
     return true;
+}
+
+bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::string &nodeVal)
+{
+    int fd = open(nodePath.c_str(), O_RDONLY);
+    if (fd < 0) {
+        return false;
+    }
+    char value[BUFFER_SIZE];
+    if (read(fd, value, BUFFER_SIZE) < 0) {
+        close(fd);
+        return false;
+    }
+    nodeVal = value;
+    nodeVal.pop_back();
+    close(fd);
+    return true;
+}
+ 
+void EthernetManagement::GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
+    std::vector<EthernetDeviceInfo> &deviceInfoList)
+{
+    NETMGR_EXT_LOG_I("GetUsbEthDeviceInfo iface = %{public}s nodePath = %{public}s", iface.c_str(), nodePath.c_str());
+    size_t pos = nodePath.find_last_of('/');
+    if (pos != std::string::npos) {
+        nodePath.erase(pos);
+    }
+    EthernetDeviceInfo tempDeviceInfo;
+    tempDeviceInfo.ifaceName_ = iface;
+    tempDeviceInfo.connectionMode_ = EXTERNAL;
+    bool ret = true;
+    ret &= GetSysNodeValue(nodePath + ITEM_DEVICE_NAME, tempDeviceInfo.deviceName_);
+    ret &= GetSysNodeValue(nodePath + ITEM_SUPPLIER_NAME, tempDeviceInfo.supplierName_);
+    ret &= GetSysNodeValue(nodePath + ITEM_SUPPLIER_ID, tempDeviceInfo.supplierId_);
+    ret &= GetSysNodeValue(nodePath + ITEM_MAXIMUM_RATE, tempDeviceInfo.maximumRate_);
+    tempDeviceInfo.productName_ = tempDeviceInfo.deviceName_;
+    if (ret) {
+        deviceInfoList.push_back(tempDeviceInfo);
+    }
+}
+ 
+void EthernetManagement::GetPciEthDeviceInfo(const std::string &iface, std::string &nodePath,
+    std::vector<EthernetDeviceInfo> &deviceInfoList)
+{
+    NETMGR_EXT_LOG_I("GetPciEthDeviceInfo iface = %{public}s nodePath = %{public}s", iface.c_str(), nodePath.c_str());
+}
+ 
+int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
+{
+    deviceInfoList.clear();
+    std::vector<std::string> ifaces;
+    std::unique_lock<std::mutex> lock(mutex_);
+    for (auto it = devs_.begin(); it != devs_.end(); ++it) {
+        ifaces.emplace_back(it->first);
+    }
+    lock.unlock();
+    for (std::string &iface : ifaces) {
+        std::string netDevicePath = SYS_CLASS_NET_PATH + iface + ITEM_DEVICE;
+        char symbolicPath[PATH_MAX];
+        memset_s(symbolicPath, sizeof(symbolicPath), '\0', sizeof(symbolicPath));
+        if (realpath(netDevicePath.c_str(), symbolicPath) == NULL) {
+            NETMGR_EXT_LOG_E("GetDeviceInformation realpath %{public}s err:%{public}d", netDevicePath.c_str(), errno);
+            continue;
+        }
+        std::string netDevNodePath = symbolicPath;
+        if (netDevNodePath.find(ITEM_USB) != std::string::npos) {
+            GetUsbEthDeviceInfo(iface, netDevNodePath, deviceInfoList);
+        } else {
+            GetPciEthDeviceInfo(iface, netDevNodePath, deviceInfoList);
+        }
+    }
+    if (deviceInfoList.size() == 0) {
+        NETMGR_EXT_LOG_E("GetDeviceInformation list empty");
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

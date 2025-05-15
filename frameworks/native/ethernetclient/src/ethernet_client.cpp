@@ -275,5 +275,15 @@ int32_t EthernetClient::SetInterfaceConfig(const std::string &iface, OHOS::nmd::
     ConfigurationParcelIpc::ConvertNmdToEtherConfigParcel(configIpc, cfg);
     return proxy->SetInterfaceConfig(iface, configIpc);
 }
+
+int32_t EthernetClient::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->GetDeviceInformation(deviceInfoList);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -17,6 +17,7 @@ interface OHOS.NetManagerStandard.InterfaceStateCallback;
 sequenceable OHOS.NetManagerStandard.InterfaceConfiguration;
 sequenceable OHOS.NetManagerStandard.ConfigurationParcelIpc;
 sequenceable OHOS.NetManagerStandard.MacAddressInfo;
+sequenceable OHOS.NetManagerStandard.EthernetDeviceInfo;
 interface OHOS.NetManagerStandard.IEthernetService {
     void GetMacAddress([out] List<MacAddressInfo> macAddrList);
     void SetIfaceConfig([in] String iface, [in] sptr<InterfaceConfiguration> ic);
@@ -30,4 +31,5 @@ interface OHOS.NetManagerStandard.IEthernetService {
     void SetInterfaceDown([in] String iface);
     void GetInterfaceConfig([in] String iface, [out] ConfigurationParcelIpc cfg);
     void SetInterfaceConfig([in] String iface, [in] ConfigurationParcelIpc cfg);
+    void GetDeviceInformation([out] List<EthernetDeviceInfo> deviceInfoList);
 }

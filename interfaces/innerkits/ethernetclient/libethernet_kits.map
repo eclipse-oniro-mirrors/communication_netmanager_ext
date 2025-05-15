@@ -51,6 +51,8 @@
       "OHOS::NetManagerStandard::EthernetServiceProxy::GetMacAddress(std::__h::vector<OHOS::NetManagerStandard::MacAddressInfo, std::__h::allocator<OHOS::NetManagerStandard::MacAddressInfo>>&)";
       "OHOS::NetManagerStandard::EthernetServiceProxy::GetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration>&)";
       "OHOS::NetManagerStandard::HttpProxy::HttpProxy()";
+      "OHOS::NetManagerStandard::EthernetClient::GetDeviceInformation(std::__h::vector<OHOS::NetManagerStandard::EthernetDeviceInfo, std::__h::allocator<OHOS::NetManagerStandard::EthernetDeviceInfo>>&)";
+      "OHOS::NetManagerStandard::EthernetServiceProxy::GetDeviceInformation(std::__h::vector<OHOS::NetManagerStandard::EthernetDeviceInfo, std::__h::allocator<OHOS::NetManagerStandard::EthernetDeviceInfo>>&)";
     };
   local:
    *;

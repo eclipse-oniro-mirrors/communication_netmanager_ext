@@ -93,6 +93,11 @@ public:
     {
         return 0;
     }
+
+    int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList) override
+    {
+        return 0;
+    }
 };
 } // namespace
 
@@ -361,6 +366,29 @@ HWTEST_F(EthernetServiceStubTest, OnSetInterfaceConfigTest001, TestSize.Level1)
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
         IEthernetServiceIpcCode::COMMAND_SET_INTERFACE_CONFIG), data, reply, option);
     EXPECT_EQ(ret, 5);
+}
+
+/**
+ * @tc.name: OnGetDeviceInformationTest001
+ * @tc.desc: Test EthernetServiceStub OnGetDeviceInformation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetServiceStubTest, OnGetDeviceInformationTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor());
+    data.WriteString(TEST_STRING);
+    data.WriteString(TEST_STRING);
+    data.WriteInt32(0);
+    data.WriteString(TEST_STRING);
+    data.WriteString(TEST_STRING);
+    data.WriteString(TEST_STRING);
+    data.WriteString(TEST_STRING);
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = instance_->OnRemoteRequest(
+        static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_DEVICE_INFORMATION), data, reply, option);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
