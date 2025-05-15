@@ -249,7 +249,7 @@ sptr<AppExecFwk::IBundleMgr> GetBundleManager()
         NETMGR_EXT_LOG_E("Get system ability manager failed!");
         return nullptr;
     }
-    return iface_cast<AppExectFwk::IBundleMgr>(systemManger->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID));
+    return iface_cast<AppExecFwk::IBundleMgr>(systemManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID));
 }
 
 int32_t NetworkShareService::GetBundleNameByUid(const int uid, std::string &bundleName)
