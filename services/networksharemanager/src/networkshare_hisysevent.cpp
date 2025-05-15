@@ -74,12 +74,12 @@ void NetworkShareHisysEvent::WriteSoftApOpenAndCloseFailedEvent(bool operateType
     EventInfo eventInfo;
     eventInfo.errorMsg = result;
     eventInfo.operatorType = operateType;
-    if (operateType == ture) {
+    if (operateType == true) {
         eventInfo.apOpenErrorMsg = "OPEN_SUCCESS";
     } else if(operateType == false) {
         eventInfo.apCloseErrorMsg = "CLOSE_SUCCESS";
     }
-    NetEventReport::SendwifiSofttapEvent(eventInfo);
+    NetEventReport::SendWifiSoftapEvent(eventInfo);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

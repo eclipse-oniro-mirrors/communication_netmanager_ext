@@ -55,9 +55,9 @@ int32_t NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetEventReport::SendWifiSoftapEvent(const EventInfo)
+int32_t NetEventReport::SendWifiSoftapEvent(const EventInfo &eventInfo)
 {
-    HiSysEventWrite(HiSysEvent::Domain::COMMUNICATION, WIFI_SOFTAP_OPEN_FAILED, HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::COMMUNICATION, WIFI_SOFTAP_OPEN_AND_CLOSE_FAILED, HiSysEvent::EventType::FAULT,
                     EVENT_KEY_OPEN_FAIL, eventInfo.apOpenErrorMsg, EVENT_KEY_CLOSE_FAIL, eventInfo.apCloseErrorMsg,
                     EVENT_KEY_FAIL_RESON, eventInfo.errorMsg);
     return NETMANAGER_EXT_SUCCESS;

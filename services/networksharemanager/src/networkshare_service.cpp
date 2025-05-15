@@ -203,7 +203,7 @@ int32_t NetworkShareService::StartNetworkSharing(int32_t typeInt)
     if (Neils != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
     }
-    NETMGR_EXT_LOG_I("StarNetworkSharing uid = %{public}d, packagename = %{public}s" ,uid, packageName.c_str());
+    NETMGR_EXT_LOG_I("StartNetworkSharing uid = %{public}d, packagename = %{public}s", uid, packageName.c_str());
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
@@ -237,33 +237,33 @@ int32_t NetworkShareService::StopNetworkSharing(int32_t typeInt)
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
     }
     bool operateType = false;
-    NetworkShareHisysEvent::WriteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
+    NetworkShareHisysEvent::GetInstance().WriteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
 
     return ret;
 }
 
 sptr<AppExecFwk::IBundleMgr> GetBundleManager()
 {
-    sptr<ISystemAbiltyManger> systemManger = SystembilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemManger == nullptr) {
-        NETMGR_EXT_LOG_E("Get system ablity manager failed");
+    sptr<ISystemAbilityManager> systemManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemManager == nullptr) {
+        NETMGR_EXT_LOG_E("Get system ability manager failed!");
         return nullptr;
     }
     return iface_cast<AppExectFwk::IBundleMgr>(systemManger->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID));
 }
 
-int32_t NetworkShareService::GetBundleNameByUid(const int uid, std::string %bundleName)
+int32_t NetworkShareService::GetBundleNameByUid(const int uid, std::string &bundleName)
 {
     sptr<AppExecFwk::IBundleMgr> bundleInstance = GetBundleManager();
     if (bundleInstance == nullptr) {
-        NETMGR_EXT_LOG_E("%{public}s get bundlname failed", __FUNCTION__);
+        NETMGR_EXT_LOG_E("%{public}s bundle instance is null", __FUNCTION__);
         return NETMANAGER_ERROR;
     }
     if(!bundleInstance->GetBundleNameForUid(uid, bundleName)) {
-        NETMGR_EXT_LOG_D("%{public}s get bundlname failed", __FUNCTION__);
+        NETMGR_EXT_LOG_D("%{public}s get bundlename failed", __FUNCTION__);
         return NETMANAGER_ERROR;
     }
-    return NETMANAAGER_EXT_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareService::RegisterSharingEvent(const sptr<ISharingEventCallback>& callback)
