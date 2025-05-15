@@ -256,9 +256,10 @@ int32_t NetworkVpnService::CheckIpcPermission(const std::string &strPermission)
 
 int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
 {
-    int32_t ret = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
-    if (ret != NETMANAGER_SUCCESS)
-        return ret;
+    std::string vpnBundleName = GetBundleName();
+    if (!CheckVpnPermission(vpnBundleName)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     isRun = false;
     isExistVpn = false;
@@ -604,10 +605,6 @@ bool NetworkVpnService::CheckVpnPermission(const std::string &bundleName)
 int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
-    std::string isExtPermission = isVpnExtCall ? "" : std::string(Permission::MANAGE_VPN);
-    int32_t checkPermission = CheckIpcPermission(isExtPermission);
-    if (checkPermission != NETMANAGER_SUCCESS)
-        return checkPermission;
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     sptr<VpnConfig> configPtr = sptr<VpnConfig>::MakeSptr(config);
     std::string vpnBundleName = GetBundleName();
@@ -659,10 +656,9 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
      * Only permission verification is performed and
      * the protected socket implements fwmark_service in the netsys process.
      */
-    std::string isExtPermission = isVpnExtCall ?  "" : std::string(Permission::MANAGE_VPN);
-    int32_t checkPermission = CheckIpcPermission(isExtPermission);
-    if (checkPermission  != NETMANAGER_SUCCESS) {
-        return checkPermission;
+    std::string vpnBundleName = GetBundleName();
+    if (!CheckVpnPermission(vpnBundleName)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     NETMGR_EXT_LOG_I("Protect vpn tunnel successfully.");
     return NETMANAGER_EXT_SUCCESS;
@@ -671,11 +667,6 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("DestroyVpn in");
-    std::string isExtPermission = isVpnExtCall ?  "" : std::string(Permission::MANAGE_VPN);
-    int32_t checkPermission = CheckIpcPermission(isExtPermission);
-    if (checkPermission  != NETMANAGER_SUCCESS) {
-        return checkPermission;
-    }
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!CheckVpnPermission(vpnBundleName)) {
@@ -1007,9 +998,10 @@ int32_t NetworkVpnService::GetSysVpnCertUri(const int32_t certType, std::string 
 
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callback)
 {
-    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
-    if (checkPermission != NETMANAGER_SUCCESS)
-        return checkPermission;
+    std::string vpnBundleName = GetBundleName();
+    if (!CheckVpnPermission(vpnBundleName)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
@@ -1024,9 +1016,10 @@ int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callb
 
 int32_t NetworkVpnService::UnregisterVpnEvent(const sptr<IVpnEventCallback> &callback)
 {
-    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
-    if (checkPermission != NETMANAGER_SUCCESS)
-        return checkPermission;
+    std::string vpnBundleName = GetBundleName();
+    if (!CheckVpnPermission(vpnBundleName)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
