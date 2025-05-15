@@ -667,10 +667,6 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("DestroyVpn in");
-    std::string vpnBundleName = GetBundleName();
-    if (!CheckVpnPermission(vpnBundleName)) {
-        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-    }
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!CheckVpnPermission(vpnBundleName)) {
