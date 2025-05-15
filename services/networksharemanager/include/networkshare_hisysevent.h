@@ -16,6 +16,7 @@
 #ifndef NETWORKSHARE_HISYSEVENT_H
 #define NETWORKSHARE_HISYSEVENT_H
 
+#include <cstdint>
 #include <string>
 
 #include "net_event_report.h"
@@ -34,6 +35,8 @@ public:
                         const NetworkShareEventErrorType &errorCode, const std::string &errorMsg,
                         const NetworkShareEventType &eventType);
     void SendBehaviorEvent(int32_t sharingCount, const SharingIfaceType &sharingType);
+    void WiiteSoftApOpenAndCloseFailedEvent(bool operateType, int32_t uid,
+                                            std::string packagName);
 
 private:
     NetworkShareHisysEvent() = default;

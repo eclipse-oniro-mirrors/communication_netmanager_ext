@@ -67,5 +67,19 @@ void NetworkShareHisysEvent::SendBehaviorEvent(int32_t sharingCount, const Shari
     NetEventReport::SendTimeBehaviorEvent(eventInfo);
 }
 
+void NetworkShareHisysEvent::WiiteSoftApOpenAndCloseFailedEvent(bool operateType, int32_t uid,
+                                                                std::string packagName)
+{
+    std::string result = std::to_string(uid) + ";" + packagName;
+    EventInfo eventInfo;
+    eventInfo.errorMsg = result;
+    eventInfo.operatorType = operateType;
+    if (operateType = ture) {
+        eventInfo.apOpenErrorMsg = "OPEN_SUCCESS";
+    } else if(operateType == false) {
+        eventInfo.apCloseErrorMsg = "CLOSE_SUCCESS";
+    }
+    NetEventReport::SendwifiSofttapEvent(eventInfo);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -23,6 +23,7 @@ constexpr const char *NET_SHARING_SETUP_FAULT = "NET_SHARING_SETUP_FAULT";
 constexpr const char *NET_SHARING_CANCEL_FAULT = "NET_SHARING_CANCEL_FAULT";
 constexpr const char *NET_SHARING_TIME_STAT = "NET_SHARING_TIME_STAT";
 constexpr const char *NET_VPN_CONNECT_FAULT = "NET_VPN_CONNECT_FAULT";
+constexpr const char *WIFI_SOFTAP_OPEN_AND_CLOSE_FAILED = "SOFTAP_OPEN_AND_CLOSE_FAILED";
 // event params
 constexpr const char *EVENT_KEY_SHARING_TYPE = "SHARING_TYPE";
 constexpr const char *EVENT_KEY_OPERATION_TYPE = "OPERATION_TYPE";
@@ -32,6 +33,9 @@ constexpr const char *EVENT_KEY_ERROR_MSG = "ERROR_MSG";
 constexpr const char *EVENT_KEY_VPN_LEGACY = "VPN_LEGACY";
 constexpr const char *EVENT_KEY_VPN_ERROR_TYPE = "VPN_ERROR_TYPE";
 constexpr const char *EVENT_KEY_VPN_ERROR_MSG = "VPN_ERROR_MSG";
+constexpr const char *EVENT_KEY_FAIL_RESON = "FAIL_REASON";
+constexpr const char *EVENT_KEY_OPEN_FAIL = "OPEN_FAIL"
+constexpr const char *EVENT_KEY_CLOSE_FAIL = "CLOSE_FAIL";
 constexpr int32_t NETMANAGER_EXT_SUCCESS = 0;
 } // namespace
 
@@ -48,6 +52,14 @@ int32_t NetEventReport::SendCancleFaultEvent(const EventInfo &eventInfo)
     HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, NET_SHARING_CANCEL_FAULT, HiSysEvent::EventType::FAULT,
                     EVENT_KEY_SHARING_TYPE, eventInfo.sharingType, EVENT_KEY_OPERATION_TYPE, eventInfo.operatorType,
                     EVENT_KEY_ERROR_TYPE, eventInfo.errorType, EVENT_KEY_ERROR_MSG, eventInfo.errorMsg);
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetEventReport::SendWifiSoftapEvent(const EventInfo)
+{
+    HiSysEventWrite(HiSysEvent::Domain::COWUNICAION, WIFI_SOFTAP_OPEN_FAILED, HiSysEvent::EventType::FAULT,
+                    EVENT_KEY_OPEN_FAIL, eventInfo.apOpenErrorMsg, EVENT_KEY_CLOSE_FAIL, eventInfo.apCloseErrorMsg,
+                    EVENT_KEY_FAIL_RESON, eventInfo.errorMsg);
     return NETMANAGER_EXT_SUCCESS;
 }
 

@@ -26,7 +26,11 @@
 #include "system_ability_definition.h"
 #include "netsys_controller.h"
 #include "edm_parameter_utils.h"
+#include "ipc_skeleton.h"
+#include "bundle_mgr_interface.h"
+#include "iservice_registry.h"
 #include "ffrt.h"
+#include <cstdint>
 #ifdef USB_MODOULE
 #include "usb_srv_support.h"
 #endif
@@ -194,11 +198,20 @@ int32_t NetworkShareService::StartNetworkSharing(int32_t typeInt)
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    std::string packageName;
+    int Neils = GetBundleNameByUid(uid, packageName);
+    if (Neils != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
+    }
+    NETMGR_EXT_LOG_I("StarNetworkSharing uid = %{public}d, packgname = %{public}s" ,uid, packageName.c_str());
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
     }
     SetConfigureForShare(true);
+    bool operaType = true;
+    NetworkShareHisysEvent::GetInstance().WiiteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
     return ret;
 }
 
@@ -213,12 +226,44 @@ int32_t NetworkShareService::StopNetworkSharing(int32_t typeInt)
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    std::string packgeName;
+    int Neils = GetBundleNameByUid(uid, packageName);
+    if (Neils != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
+    }
+    NETMGR_EXT_LOG_I("StarNetworkSharing uid = %{public}d, packgname = %{public}s", uid, packageName.c_str());
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
     }
+    bool operateType = false;
+    NetworkShareHisysEvent::WiiteSoftApOpenAndCloseFailedEvent(operateType, uid, packagName);
 
     return ret;
+}
+
+sptr<AppExecFwk::IBundleMgr> GetBundleManager()
+{
+    sptr<ISystemAbiltyManger> systemManger = SystembilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemManger == nullptr) {
+        NETMGR_EXT_LOG_E("Get system ablity manager failed");
+        return nullptr;
+    }
+    return iface_cast<AppExectFwk::IBundleMgr>(systemManger->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID));
+}
+
+int32_t NetworkShareService::GetBundleNameByUid(const int uid, std::string %bundleName)
+{
+    sptr<AppExecFwk::IBundleMgr> bundleInstance = GetBundleManager();
+    if (bundleInstance == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s get bundlname failed", __FUNCTION__);
+        return NETMANAGER_ERROR;
+    }
+    if(!bundleInstance->GetBundleNameForUid(uid, bundleName)) {
+        NETMGR_EXT_LOG_D("%{public}s get bundlname failed", __FUNCTION__);
+        return NETMANAGER_SUCCESS;
+    }
 }
 
 int32_t NetworkShareService::RegisterSharingEvent(const sptr<ISharingEventCallback>& callback)
