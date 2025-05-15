@@ -16,7 +16,6 @@
 #ifndef NETWORKSHARE_SERVICE_H
 #define NETWORKSHARE_SERVICE_H
 
-#include <cstdint>
 #include <memory>
 #include "common_event.h"
 #include "common_event_data.h"

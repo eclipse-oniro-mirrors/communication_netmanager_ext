@@ -16,7 +16,6 @@
 #ifndef NETWORKSHARE_HISYSEVENT_H
 #define NETWORKSHARE_HISYSEVENT_H
 
-#include <cstdint>
 #include <string>
 
 #include "net_event_report.h"
