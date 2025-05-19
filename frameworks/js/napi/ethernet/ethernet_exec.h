@@ -19,6 +19,7 @@
 #include <napi/native_api.h>
 
 #include "get_all_active_ifaces_context.h"
+#include "get_device_infomation.h"
 #include "get_iface_config_context.h"
 #include "is_iface_active_context.h"
 #include "set_iface_config_context.h"
@@ -41,6 +42,9 @@ napi_value IsIfaceActiveCallback(IsIfaceActiveContext *context);
 
 bool ExecGetAllActiveIfaces(GetAllActiveIfacesContext *context);
 napi_value GetAllActiveIfacesCallback(GetAllActiveIfacesContext *context);
+
+bool ExecGetDeviceInformation(GetDeviceInformationContext *context);
+napi_value GetDeviceInformationCallback(GetDeviceInformationContext *context);
 } // namespace EthernetExec
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -476,5 +476,13 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest004, TestSize.Level1)
     result = ethernetService.UnregisterMonitorIfaceCallbackAsync(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
+
+HWTEST_F(EtherNetServiceTest, GetDeviceInformationTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    std::vector<EthernetDeviceInfo> devInfoList;
+    int ret = ethernetService.GetDeviceInformation(devInfoList);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

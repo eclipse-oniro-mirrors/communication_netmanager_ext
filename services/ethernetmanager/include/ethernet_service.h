@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "ethernet_device_info.h"
 #include "ethernet_management.h"
 #include "ethernet_service_common.h"
 #include "ethernet_service_stub.h"
@@ -78,6 +79,7 @@ public:
     int32_t SetInterfaceDown(const std::string &iface) override;
     int32_t GetInterfaceConfig(const std::string &iface, ConfigurationParcelIpc &cfgIpc) override;
     int32_t SetInterfaceConfig(const std::string &iface, const ConfigurationParcelIpc &cfgIpc) override;
+    int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList) override;
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
