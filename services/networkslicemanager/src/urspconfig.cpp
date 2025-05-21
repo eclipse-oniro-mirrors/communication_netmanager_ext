@@ -143,12 +143,12 @@ void UrspConfig::ParseAllUePolicy(xmlDocPtr doc)
 {
     NETMGR_EXT_LOG_I("UrspConfig::ParseAllUePolicy");
     xmlNodePtr curNode = xmlDocGetRootElement(doc);
-    std::string curName = std::string(reinterpret_cast<const char*>(curNode->name));
-    NETMGR_EXT_LOG_I("UrspConfig::ParseAllUePolicy::curName:%{public}s ", curName.c_str());
     if (curNode == NULL) {
         NETMGR_EXT_LOG_E("No root element found in config file!");
         return;
     }
+    std::string curName = std::string(reinterpret_cast<const char*>(curNode->name));
+    NETMGR_EXT_LOG_I("UrspConfig::ParseAllUePolicy::curName:%{public}s ", curName.c_str());
     xmlNodePtr child = curNode->children;
     while (child != NULL) {
         if (child->type == XML_TEXT_NODE || child->type == XML_COMMENT_NODE) {
