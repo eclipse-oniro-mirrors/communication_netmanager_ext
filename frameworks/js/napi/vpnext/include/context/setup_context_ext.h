@@ -24,7 +24,6 @@
 #include "refbase.h"
 #ifdef SUPPORT_SYSVPN
 #include "sysvpn_config.h"
-#include "vpn_config_utils_ext.h"
 #endif // SUPPORT_SYSVPN
 #include "vpn_config.h"
 

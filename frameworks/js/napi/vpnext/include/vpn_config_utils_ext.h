@@ -18,15 +18,12 @@
 
 #include <cstddef>
 #include <napi/native_api.h>
-#include <string>
 #include <vector>
 
 #include "inet_addr.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "openvpn_config.h"
-#include "route.h"
-#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
