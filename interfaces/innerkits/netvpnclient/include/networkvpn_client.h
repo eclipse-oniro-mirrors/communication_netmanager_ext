@@ -98,11 +98,12 @@ public:
      * setup system vpn.
      *
      * @param config system VPN interface parameters
+     * @param isVpnExtCall is vpnext call
      * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t SetUpVpn(const sptr<SysVpnConfig> &config);
+    int32_t SetUpVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall = false);
 
     /**
      * save vpn

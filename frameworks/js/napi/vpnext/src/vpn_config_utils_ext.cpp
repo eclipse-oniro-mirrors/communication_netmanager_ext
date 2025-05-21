@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "vpn_config_utils.h"
+#include "vpn_config_utils_ext.h"
 
 #include "napi_utils.h"
 #include "inet_addr.h"
@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-namespace VpnConfigUtils {
+namespace VpnConfigUtilsExt {
 bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpnConfig)
 {
     if (params == nullptr) {

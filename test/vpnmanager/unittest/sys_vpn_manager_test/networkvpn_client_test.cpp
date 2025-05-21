@@ -59,19 +59,41 @@ void NetworkVpnClientTest::TearDownTestCase() {}
 
 HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
     sptr<SysVpnConfig> config = nullptr;
-    int32_t ret = networkVpnClient_.SetUpVpn(config);
+    int32_t ret = networkVpnClient_.SetUpVpn(config, false);
+
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
     config->vpnId_ = "123";
-    ret = networkVpnClient_.SetUpVpn(config);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
     config->vpnName_ = "testSetUpVpn";
     config->vpnType_ = 1;
-    ret = networkVpnClient_.SetUpVpn(config);
+    ret = networkVpnClient_.SetUpVpn(config, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+    NetManagerExtAccessToken access;
+    ret = networkVpnClient_.SetUpVpn(config, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = nullptr;
+    int32_t ret = networkVpnClient_.SetUpVpn(config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+
+    config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    config->vpnId_ = "123";
+    config->vpnName_ = "testSetUpVpn";
+    config->vpnType_ = 1;
+    ret = networkVpnClient_.SetUpVpn(config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig001, TestSize.Level1)

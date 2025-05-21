@@ -32,6 +32,10 @@
 #include "vpn_extension_context.h"
 #include "vpn_monitor_ext.h"
 #include "want.h"
+#ifdef SUPPORT_SYSVPN
+#include "ipc_skeleton.h"
+#include "os_account_manager.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -150,6 +154,28 @@ static std::string Replace(std::string s)
     return s;
 }
 
+#ifdef SUPPORT_SYSVPN
+int32_t CheckVpnPermission(const std::string &bundleName, std::string &vpnExtMode)
+{
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
+        NETMANAGER_EXT_LOGE("checkVpnPermission::GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
+        return -1;
+    }
+    NETMANAGER_EXT_LOGI("checkVpnPermission uid: %{public}d, userid: %{public}d", uid, userId);
+    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName + std::to_string(userId), vpnExtMode);
+    if (ret != 0 || vpnExtMode != "1") {
+        ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+        if (ret != 0 || vpnExtMode != "1") {
+            NETMANAGER_EXT_LOGE("checkVpnPermission::dataShareHelperUtils Query error, err = %{public}d", ret);
+            return -1;
+        }
+    }
+    return 0;
+}
+#endif // SUPPORT_SYSVPN
+
 napi_value ProcessPermissionRequests(napi_env env, const std::string &bundleName, const std::string &abilityName)
 {
     std::string selfAppName;
@@ -164,7 +190,12 @@ napi_value ProcessPermissionRequests(napi_env env, const std::string &bundleName
 
     bool vpnDialogSelect = false;
     std::string vpnExtMode = std::to_string(vpnDialogSelect);
-    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+    int32_t ret = 0;
+#ifdef SUPPORT_SYSVPN
+    ret = CheckVpnPermission(bundleName, vpnExtMode);
+#else
+    ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+#endif // SUPPORT_SYSVPN
     if (ret != 0 || vpnExtMode != "1") {
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
@@ -247,7 +278,12 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
     }
     bool vpnDialogSelect = false;
     std::string vpnExtMode = std::to_string(vpnDialogSelect);
-    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+    int32_t ret = 0;
+#ifdef SUPPORT_SYSVPN
+    ret = CheckVpnPermission(bundleName, vpnExtMode);
+#else
+    ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+#endif // SUPPORT_SYSVPN
     if (ret != 0 || vpnExtMode != "1") {
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         return CreateRejectedPromise(env);
@@ -286,7 +322,19 @@ static napi_value UpdateVpnAuthorize(napi_env env, napi_callback_info info)
         bundleName = Replace(bundleName);
     }
     std::string vpnExtMode = std::to_string(vpnDialogSelect);
-    int32_t ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+    int32_t ret = 0;
+#ifdef SUPPORT_SYSVPN
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
+        NETMANAGER_EXT_LOGE("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
+        return nullptr;
+    }
+    NETMANAGER_EXT_LOGE("UpdateVpnAuthorize uid: %{public}d, userid: %{public}d", uid, userId);
+    ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName + std::to_string(userId), vpnExtMode);
+#else
+    ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+#endif // SUPPORT_SYSVPN
     NETMANAGER_EXT_LOGI("UpdateVpnAuthorize result. ret = %{public}d", ret);
 
     napi_value jsValue = nullptr;

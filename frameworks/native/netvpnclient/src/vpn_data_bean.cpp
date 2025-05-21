@@ -35,6 +35,7 @@ sptr<SysVpnConfig> VpnDataBean::ConvertVpnBeanToSysVpnConfig(sptr<VpnDataBean> &
             return ConvertVpnBeanToIpsecVpnConfig(vpnBean);
         case VpnType::OPENVPN:
             return ConvertVpnBeanToOpenvpnConfig(vpnBean);
+        case VpnType::L2TP:
         case VpnType::L2TP_IPSEC_PSK:
         case VpnType::L2TP_IPSEC_RSA:
             return ConvertVpnBeanToL2tpVpnConfig(vpnBean);
@@ -105,8 +106,6 @@ sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBea
 
     ipsecVpnConfig->ipsecPreSharedKey_ = vpnBean->ipsecPreSharedKey_;
     ipsecVpnConfig->ipsecIdentifier_ = vpnBean->ipsecIdentifier_;
-    ipsecVpnConfig->swanctlConf_ = vpnBean->swanctlConf_;
-    ipsecVpnConfig->strongswanConf_ = vpnBean->strongswanConf_;
     ipsecVpnConfig->ipsecCaCertConf_ = vpnBean->ipsecCaCertConf_;
     ipsecVpnConfig->ipsecPrivateUserCertConf_ = vpnBean->ipsecPrivateUserCertConf_;
     ipsecVpnConfig->ipsecPublicUserCertConf_ = vpnBean->ipsecPublicUserCertConf_;
@@ -148,7 +147,6 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
 
     l2tpVpnConfig->ipsecPreSharedKey_ = vpnBean->ipsecPreSharedKey_;
     l2tpVpnConfig->ipsecIdentifier_ = vpnBean->ipsecIdentifier_;
-    l2tpVpnConfig->strongswanConf_ = vpnBean->strongswanConf_;
     l2tpVpnConfig->ipsecCaCertConf_ = vpnBean->ipsecCaCertConf_;
     l2tpVpnConfig->ipsecPrivateUserCertConf_ = vpnBean->ipsecPrivateUserCertConf_;
     l2tpVpnConfig->ipsecPublicUserCertConf_ = vpnBean->ipsecPublicUserCertConf_;
@@ -160,10 +158,6 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
     l2tpVpnConfig->ipsecPrivateServerCertFilePath_ = vpnBean->ipsecPrivateServerCertFilePath_;
     l2tpVpnConfig->ipsecPublicServerCertFilePath_ = vpnBean->ipsecPublicServerCertFilePath_;
 
-    l2tpVpnConfig->ipsecConf_ = vpnBean->ipsecConf_;
-    l2tpVpnConfig->ipsecSecrets_ = vpnBean->ipsecSecrets_;
-    l2tpVpnConfig->optionsL2tpdClient_ = vpnBean->optionsL2tpdClient_;
-    l2tpVpnConfig->xl2tpdConf_ = vpnBean->xl2tpdConf_;
     l2tpVpnConfig->l2tpSharedKey_ = vpnBean->l2tpSharedKey_;
     return l2tpVpnConfig;
 }
@@ -189,6 +183,7 @@ sptr<VpnDataBean> VpnDataBean::ConvertSysVpnConfigToVpnBean(const sptr<SysVpnCon
         case VpnType::IPSEC_HYBRID_RSA:
             ConvertIpsecVpnConfigToVpnBean(sysVpnConfig, vpnBean);
             break;
+        case VpnType::L2TP:
         case VpnType::L2TP_IPSEC_PSK:
         case VpnType::L2TP_IPSEC_RSA:
             ConvertL2tpVpnConfigToVpnBean(sysVpnConfig, vpnBean);
@@ -268,8 +263,6 @@ void VpnDataBean::ConvertIpsecVpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpn
     }
     vpnBean->ipsecPreSharedKey_ = ipsecVpnConfig->ipsecPreSharedKey_;
     vpnBean->ipsecIdentifier_ = ipsecVpnConfig->ipsecIdentifier_;
-    vpnBean->swanctlConf_ = ipsecVpnConfig->swanctlConf_;
-    vpnBean->strongswanConf_ = ipsecVpnConfig->strongswanConf_;
     vpnBean->ipsecCaCertConf_ = ipsecVpnConfig->ipsecCaCertConf_;
     vpnBean->ipsecPrivateUserCertConf_ = ipsecVpnConfig->ipsecPrivateUserCertConf_;
     vpnBean->ipsecPublicUserCertConf_ = ipsecVpnConfig->ipsecPublicUserCertConf_;
@@ -296,7 +289,6 @@ void VpnDataBean::ConvertL2tpVpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnC
     }
     vpnBean->ipsecPreSharedKey_ = l2tpVpnConfig->ipsecPreSharedKey_;
     vpnBean->ipsecIdentifier_ = l2tpVpnConfig->ipsecIdentifier_;
-    vpnBean->strongswanConf_ = l2tpVpnConfig->strongswanConf_;
     vpnBean->ipsecCaCertConf_ = l2tpVpnConfig->ipsecCaCertConf_;
     vpnBean->ipsecPrivateUserCertConf_ = l2tpVpnConfig->ipsecPrivateUserCertConf_;
     vpnBean->ipsecPublicUserCertConf_ = l2tpVpnConfig->ipsecPublicUserCertConf_;
@@ -307,11 +299,6 @@ void VpnDataBean::ConvertL2tpVpnConfigToVpnBean(const sptr<SysVpnConfig> sysVpnC
     vpnBean->ipsecPublicUserCertFilePath_ = l2tpVpnConfig->ipsecPublicUserCertFilePath_;
     vpnBean->ipsecPrivateServerCertFilePath_ = l2tpVpnConfig->ipsecPrivateServerCertFilePath_;
     vpnBean->ipsecPublicServerCertFilePath_ = l2tpVpnConfig->ipsecPublicServerCertFilePath_;
-
-    vpnBean->ipsecConf_ = l2tpVpnConfig->ipsecConf_;
-    vpnBean->ipsecSecrets_ = l2tpVpnConfig->ipsecSecrets_;
-    vpnBean->optionsL2tpdClient_ = l2tpVpnConfig->optionsL2tpdClient_;
-    vpnBean->xl2tpdConf_ = l2tpVpnConfig->xl2tpdConf_;
     vpnBean->l2tpSharedKey_ = l2tpVpnConfig->l2tpSharedKey_;
     l2tpVpnConfig = nullptr;
 }

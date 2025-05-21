@@ -28,7 +28,7 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     void RegisterBundleName([in] String bundleName, [in] String abilityName);
     void GetSelfAppName([out] String selfAppName, [out] String selfBundleName);
     void SetSelfVpnPid();
-    [macrodef SUPPORT_SYSVPN] void SetUpSysVpn([in] sptr<SysVpnConfig> config);
+    [macrodef SUPPORT_SYSVPN] void SetUpSysVpn([in] sptr<SysVpnConfig> config, [in] boolean isVpnExtCall);
     [macrodef SUPPORT_SYSVPN] void AddSysVpnConfig([in] sptr<SysVpnConfig> config);
     [macrodef SUPPORT_SYSVPN] void DeleteSysVpnConfig([in] String vpnId);
     [macrodef SUPPORT_SYSVPN] void GetSysVpnConfigList([out] List<sptr<SysVpnConfig>> vpnList);
