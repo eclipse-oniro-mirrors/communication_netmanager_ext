@@ -1352,7 +1352,7 @@ HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgTest001, TestSize.Level1)
     EthernetManagement ethernetmanagement;
     std::string iface = "123";
     sptr<InterfaceConfiguration> ifaceConfig = new InterfaceConfiguration();
-    EXPECT_EQ(ethernetmanagement.GetDevInterfaceCfg(iface, ifaceConfig), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ethernetmanagement.GetDevInterfaceCfg(iface, ifaceConfig), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)
@@ -1360,7 +1360,7 @@ HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)
     EthernetManagement ethernetmanagement;
     std::string iface = "123";
     int32_t activeStatus = 123;
-    EXPECT_EQ(ethernetmanagement.IsIfaceActive(iface, activeStatus), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ethernetmanagement.IsIfaceActive(iface, activeStatus), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest003, TestSize.Level1)

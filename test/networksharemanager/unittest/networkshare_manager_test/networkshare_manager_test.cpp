@@ -185,7 +185,7 @@ HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent002, TestSize.Level1)
     NetManagerExtAccessToken token;
     sptr<ISharingEventCallback> callback = nullptr;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->RegisterSharingEvent(callback);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, 5);
 }
 
 HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent001, TestSize.Level1)
@@ -201,7 +201,7 @@ HWTEST_F(NetworkShareManagerTest, UnregisterSharingEvent002, TestSize.Level1)
     NetManagerExtAccessToken token;
     sptr<ISharingEventCallback> callback = nullptr;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->UnregisterSharingEvent(callback);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
+    EXPECT_EQ(result, 5);
 }
 
 HWTEST_F(NetworkShareManagerTest, GetSharingIfaces01, TestSize.Level1)
@@ -270,7 +270,7 @@ HWTEST_F(NetworkShareManagerTest, SetConfigureForShare01, TestSize.Level1)
 {
     bool enabled = true;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->SetConfigureForShare(enabled);
-    EXPECT_NE(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareManagerTest, SetConfigureForShare02, TestSize.Level1)

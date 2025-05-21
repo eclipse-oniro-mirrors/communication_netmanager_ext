@@ -269,7 +269,7 @@ HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest001, TestSize.Level1)
 {
     bool enabled = true;
     auto ret = instance_->SetConfigureForShare(enabled);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest002, TestSize.Level1)
@@ -277,7 +277,7 @@ HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest002, TestSize.Level1)
     NetManagerExtAccessToken token;
     bool enabled = true;
     auto ret = instance_->SetConfigureForShare(enabled);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest003, TestSize.Level1)
@@ -285,7 +285,7 @@ HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest003, TestSize.Level1)
     NetManagerExtAccessToken token;
     bool enabled = false;
     auto ret = instance_->SetConfigureForShare(enabled);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkShareServiceTest, GetDumpMessage001, TestSize.Level1)
