@@ -41,6 +41,7 @@ constexpr const char *ITEM_DEVICE_NAME = "/product";
 constexpr const char *ITEM_SUPPLIER_ID = "/idVendor";
 constexpr const char *ITEM_SUPPLIER_NAME = "/manufacturer";
 constexpr const char *ITEM_MAXIMUM_RATE = "/speed";
+constexpr const char *ITEM_UNIT_MBS = " Mb/s";
 constexpr int SLEEP_TIME_S = 2;
 constexpr uint32_t INDEX_ONE = 1;
 constexpr uint32_t INDEX_TWO = 2;
@@ -597,6 +598,7 @@ void EthernetManagement::GetUsbEthDeviceInfo(const std::string &iface, std::stri
     ret &= GetSysNodeValue(nodePath + ITEM_SUPPLIER_ID, tempDeviceInfo.supplierId_);
     ret &= GetSysNodeValue(nodePath + ITEM_MAXIMUM_RATE, tempDeviceInfo.maximumRate_);
     tempDeviceInfo.productName_ = tempDeviceInfo.deviceName_;
+    tempDeviceInfo.maximumRate_ += ITEM_UNIT_MBS;
     if (ret) {
         deviceInfoList.push_back(tempDeviceInfo);
     }

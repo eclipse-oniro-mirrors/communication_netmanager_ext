@@ -58,7 +58,7 @@ foundation/communication/netmanager_ext/
 | ohos.net.ethernet | function isIfaceActive\(iface?: string\): Promise<number\>; |判断接口是否已激活，返回Promise |
 | ohos.net.ethernet | function getAllActiveIfaces\(callback: AsyncCallback<Array\<string\>\>\): void; |获取活动的网络接口，调用callback |
 | ohos.net.ethernet | function getAllActiveIfaces\(\): Promise<Array\<string\>\>; |获取活动的网络接口，返回Promise |
-| ohos.net.ethernet | function getDeviceInformation\(\): Promise<Array\<EthernetDeviceInfo\>\>; |获取以太网设备信息，返回Promise |
+| ohos.net.ethernet | function getEthernetDeviceInfos\(\): Promise<Array\<EthernetDeviceInfos\>\>; |获取以太网设备信息，返回Promise |
 | ohos.net.sharing | function isSharingSupported(callback: AsyncCallback\<boolean>): void; | 获取当前系统是否支持网络共享，调用callback |
 | ohos.net.sharing | function isSharingSupported(): Promise\<boolean>; | 获取当前系统是否支持网络共享，返回promise |
 | ohos.net.sharing | function isSharing(callback: AsyncCallback\<boolean>): void; | 获取当前共享状态，调用callback |
