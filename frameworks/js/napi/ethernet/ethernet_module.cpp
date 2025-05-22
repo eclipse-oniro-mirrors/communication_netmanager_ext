@@ -44,7 +44,7 @@ constexpr const char *DHCP_NAME = "DHCP";
 constexpr const char *IP_SET_MODE = "IPSetMode";
 constexpr const char *FUNCTION_ON = "on";
 constexpr const char *FUNCTION_OFF = "off";
-constexpr const char *GET_DEVICE_INFO = "getDeviceInformation";
+constexpr const char *GET_DEVICE_INFO = "getEthernetDeviceInfos";
 
 napi_value GetMacAddress(napi_env env, napi_callback_info info)
 {
