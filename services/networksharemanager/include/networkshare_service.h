@@ -137,6 +137,8 @@ public:
      */
     int32_t SetConfigureForShare(bool enabled) override;
 
+    int32_t GetBundleNameByUid(const int uid, std::string &bundleName);
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;

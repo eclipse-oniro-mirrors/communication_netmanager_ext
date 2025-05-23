@@ -32,6 +32,8 @@ struct EventInfo {
 
     int32_t errorType = 0;
     std::string errorMsg;
+    std::string apOpenErrorMsg;
+    std::string apCloseErrorMsg;
 };
 
 enum class NetworkShareEventOperator {
@@ -101,6 +103,7 @@ public:
     static int32_t SendCancleFaultEvent(const EventInfo &eventInfo);
     static int32_t SendTimeBehaviorEvent(const EventInfo &eventInfo);
     static int32_t SendVpnConnectEvent(const VpnEventInfo &eventInfo);
+    static int32_t SendWifiSoftapEvent(const EventInfo &eventInfo);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

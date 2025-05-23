@@ -67,5 +67,19 @@ void NetworkShareHisysEvent::SendBehaviorEvent(int32_t sharingCount, const Shari
     NetEventReport::SendTimeBehaviorEvent(eventInfo);
 }
 
+void NetworkShareHisysEvent::WriteSoftApOpenAndCloseFailedEvent(bool operateType, int32_t uid,
+                                                                std::string packageName)
+{
+    std::string result = std::to_string(uid) + ";" + packageName;
+    EventInfo eventInfo;
+    eventInfo.errorMsg = result;
+    eventInfo.operatorType = operateType;
+    if (operateType == true) {
+        eventInfo.apOpenErrorMsg = "OPEN_SUCCESS";
+    } else if(operateType == false) {
+        eventInfo.apCloseErrorMsg = "CLOSE_SUCCESS";
+    }
+    NetEventReport::SendWifiSoftapEvent(eventInfo);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
