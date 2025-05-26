@@ -219,9 +219,11 @@ int32_t VpnDatabaseHelper::getVpnDataSize(const sptr<VpnDataBean> &vpnBean)
     int32_t ret = queryResultSet->GetRowCount(size);
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("getVpnDataSize failed, get row count failed, ret:%{public}d", ret);
+        queryResultSet->Close();
         return size;
     }
     NETMGR_EXT_LOG_I("getVpnDataSize size=%{public}d", size);
+    queryResultSet->Close();
     return size;
 }
 
@@ -247,6 +249,7 @@ bool VpnDatabaseHelper::IsVpnInfoExists(const std::string &vpnId)
 
     int32_t rowCount = 0;
     int32_t ret = queryResultSet->GetRowCount(rowCount);
+    queryResultSet->Close();
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("get row count failed, ret:%{public}d", ret);
         return false;
@@ -426,19 +429,22 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     int ret = queryResultSet->GetRowCount(rowCount);
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("QueryVpnData failed, get row count failed, ret:%{public}d", ret);
+        queryResultSet->Close();
         return ret;
     }
     if (rowCount == 0) {
         NETMGR_EXT_LOG_E("QueryVpnData result num is 0");
+        queryResultSet->Close();
         return NETMANAGER_EXT_SUCCESS;
     }
     while (!queryResultSet->GoToNextRow()) {
         GetVpnDataFromResultSet(queryResultSet, vpnBean);
         if (vpnBean->vpnId_ == vpnUuid) {
             DecryptData(vpnBean);
-            return NETMANAGER_SUCCESS;
+            break;
         }
     }
+    queryResultSet->Close();
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -462,10 +468,12 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<sptr<SysVpnConfig>> &infos, 
     int ret = queryResultSet->GetRowCount(rowCount);
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("QueryAllData failed, get row count failed, ret:%{public}d", ret);
+        queryResultSet->Close();
         return ret;
     }
     if (rowCount == 0) {
         NETMGR_EXT_LOG_E("QueryAllData result num is 0");
+        queryResultSet->Close();
         return NETMANAGER_EXT_SUCCESS;
     }
     while (!queryResultSet->GoToNextRow()) {
@@ -483,6 +491,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<sptr<SysVpnConfig>> &infos, 
         }
         infos.emplace_back(config);
     }
+    queryResultSet->Close();
     return NETMANAGER_EXT_SUCCESS;
 }
 

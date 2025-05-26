@@ -122,17 +122,20 @@ bool RouterAdvertisementDaemon::CreateRASocket()
     if (setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
         NETMGR_EXT_LOG_E("CreateRASocket setsockopt SO_RCVTIMEO fail");
         close(socket_);
+        socket_ = -1;
         return false;
     }
     ifreq ifr = {};
     if (strncpy_s(ifr.ifr_name, IFNAMSIZ - 1, raParams_->name_.c_str(), raParams_->name_.size()) != EOK) {
         NETMGR_EXT_LOG_E("CreateRASocket strncopy fail");
         close(socket_);
+        socket_ = -1;
         return false;
     }
     if (setsockopt(socket_, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) < 0) {
         NETMGR_EXT_LOG_E("CreateRASocket setsockopt SO_BINDTODEVICE fail");
         close(socket_);
+        socket_ = -1;
         return false;
     }
     uint32_t hoplimitNew = DEFAULT_HOP_LIMIT;

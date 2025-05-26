@@ -289,6 +289,7 @@ void DevInterfaceState::UpdateLanLinkInfo(const sptr<StaticConfiguration> &confi
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
             NETMGR_EXT_LOG_E("NetLinkInfo new failed");
+            return;
         }
     }
     std::list<INetAddr>().swap(linkInfo_->netAddrList_);
@@ -318,6 +319,7 @@ void DevInterfaceState::UpdateLinkInfo(const sptr<StaticConfiguration> &config)
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
             NETMGR_EXT_LOG_E("NetLinkInfo new failed");
+            return;
         }
     }
 
