@@ -15,8 +15,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use ani_rs::{
     business_error::BusinessError,
-    callback::{Callback, GlobalCallback},
-    objects::AniFnObject,
+    objects::{AniFnObject, GlobalRefCallback},
     AniEnv,
 };
 
@@ -153,7 +152,7 @@ impl Registar {
 
 #[ani_rs::native]
 pub fn on_sharing_state_change(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback = Callback::new(callback).into_global(env).unwrap();
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::SharingStateChange(callback);
     Registar::get_instance().register(flavor).map_err(|err| {
         BusinessError::new(
@@ -168,7 +167,7 @@ pub fn on_interface_sharing_state_change(
     env: &AniEnv,
     callback: AniFnObject,
 ) -> Result<(), BusinessError> {
-    let callback = Callback::new(callback).into_global(env).unwrap();
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::InterfaceSharingStateChange(callback);
     Registar::get_instance().register(flavor).map_err(|err| {
         BusinessError::new(
@@ -183,7 +182,7 @@ pub fn on_sharing_upstream_change(
     env: &AniEnv,
     callback: AniFnObject,
 ) -> Result<(), BusinessError> {
-    let callback = Callback::new(callback).into_global(env).unwrap();
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::SharingUpstreamChange(callback);
     Registar::get_instance().register(flavor).map_err(|err| {
         BusinessError::new(
@@ -205,7 +204,7 @@ pub fn off_sharing_state_change(env: &AniEnv, callback: AniFnObject) -> Result<(
                 )
             });
     }
-    let callback = Callback::new(callback).into_global(env).unwrap();
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::SharingUpstreamChange(callback);
     Registar::get_instance()
         .unregister_sharing_state_change(Some(&flavor))
@@ -232,7 +231,7 @@ pub fn off_interface_sharing_state_change(
                 )
             });
     }
-    let callback = Callback::new(callback).into_global(env).unwrap();
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::InterfaceSharingStateChange(callback);
     Registar::get_instance()
         .unregister_interface_sharing_state_change(Some(&flavor))
@@ -259,7 +258,7 @@ pub fn off_sharing_upstream_change(
                 )
             });
     }
-    let callback = Callback::new(callback).into_global(env).unwrap();
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::SharingUpstreamChange(callback);
     Registar::get_instance()
         .unregister_sharing_upstream_change(Some(&flavor))
@@ -273,9 +272,9 @@ pub fn off_sharing_upstream_change(
 
 #[derive(PartialEq, Eq)]
 pub enum CallbackFlavor {
-    SharingStateChange(GlobalCallback<(bool,)>),
-    InterfaceSharingStateChange(GlobalCallback<(bridge::InterfaceSharingStateInfo,)>),
-    SharingUpstreamChange(GlobalCallback<(bridge::NetHandle,)>),
+    SharingStateChange(GlobalRefCallback<(bool,)>),
+    InterfaceSharingStateChange(GlobalRefCallback<(bridge::InterfaceSharingStateInfo,)>),
+    SharingUpstreamChange(GlobalRefCallback<(bridge::NetHandle,)>),
 }
 
 #[derive(PartialEq, Eq)]
@@ -290,19 +289,19 @@ impl SharingCallback {
 
     pub fn on_sharing_state_change(&self, is_running: bool) {
         if let CallbackFlavor::SharingStateChange(callback) = &*self.inner {
-            callback.execute_collective((is_running,));
+            callback.execute((is_running,));
         }
     }
 
     pub fn on_interface_sharing_state_change(&self, info: ffi::InterfaceSharingStateInfo) {
         if let CallbackFlavor::InterfaceSharingStateChange(callback) = &*self.inner {
-            callback.execute_collective((info.into(),));
+            callback.execute((info.into(),));
         }
     }
 
     pub fn on_sharing_upstream_change(&self, net_handle: ffi::NetHandle) {
         if let CallbackFlavor::SharingUpstreamChange(callback) = &*self.inner {
-            callback.execute_collective((net_handle.into(),));
+            callback.execute((net_handle.into(),));
         }
     }
 }
