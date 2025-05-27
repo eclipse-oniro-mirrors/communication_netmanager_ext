@@ -598,6 +598,9 @@ void HwNetworkSliceManager::FillIpBindParas(std::map<std::string, std::string>& 
 {
     NETMGR_EXT_LOG_E("FillIpBindParas");
     if (tds->isMatchFqdn()) {
+        if (fqdnIps == nullptr) {
+            return;
+        }
         FqdnIps newFqdnIps = *fqdnIps;
         std::shared_ptr<FqdnIps> nsiFqdnIps = nsi->getFqdnIps(*tds);
         if (nsiFqdnIps == nullptr) {
