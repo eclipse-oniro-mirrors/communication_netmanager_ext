@@ -925,6 +925,9 @@ bool NetworkSliceManager::isCanRequestNetwork()
 
 void NetworkSliceManager::NotifySlicePara(const std::shared_ptr<GetSlicePara>& getSlicePara)
 {
+    if (getSlicePara == nullptr) {
+        return;
+    }
     getSlicePara->isDone = true; // Update the status
 }
 
