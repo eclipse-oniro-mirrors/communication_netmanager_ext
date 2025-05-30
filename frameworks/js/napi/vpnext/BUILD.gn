@@ -43,13 +43,10 @@ ohos_shared_library("vpnextension") {
     ]
   }
 
-  configs = [ "$ABILITY_RUNTIME_SERVICES_PATH/abilitymgr:abilityms_config" ]
   include_dirs = [
     "$NETMANAGER_EXT_NAPI_ROOT/vpnext/include",
     "$NETMANAGER_EXT_NAPI_ROOT/vpnext/include/context",
-    "$ABILITY_RUNTIME_NAPI_PATH/inner/napi_common",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/vpnextension/include",
-    "$ABILITY_RUNTIME_KITS_PATH/native/appkit/ability_runtime/context",
   ]
 
   deps = [
@@ -71,6 +68,7 @@ ohos_shared_library("vpnextension") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",

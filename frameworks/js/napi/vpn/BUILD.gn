@@ -78,6 +78,7 @@ ohos_shared_library("vpn") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
   ]
 

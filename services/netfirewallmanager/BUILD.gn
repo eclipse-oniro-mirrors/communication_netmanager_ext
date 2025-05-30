@@ -18,12 +18,9 @@ config("netfirewall_manager_config") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netfirewallclient/include",
-    "$NETCONNMANAGER_COMMON_DIR/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$NETFIREWALLMANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$NETCONNMANAGER_UTILS_DIR/common_utils/include",
   ]
 
   defines = [
@@ -94,19 +91,9 @@ ohos_shared_library("netfirewall_manager") {
   deps = netfirewall_manager_deps
   external_deps = netfirewall_manager_external_deps
 
-  cflags = memory_optimization_cflags
-  cflags += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags + memory_optimization_cflags
 
-  cflags_cc = memory_optimization_cflags_cc
-  cflags_cc += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags + memory_optimization_cflags_cc
 
   deps += [ "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_parcel" ]
 

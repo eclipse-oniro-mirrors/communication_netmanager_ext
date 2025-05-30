@@ -35,7 +35,6 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
 
   if (communication_wifi_switch_enable) {
@@ -79,7 +78,6 @@ ohos_fuzztest("NetShareClientFuzzTest") {
 
   deps = [
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
-    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
   deps +=
       [ "$EXT_INNERKITS_ROOT/netshareclient:netshare_service_interface_stub" ]
@@ -96,6 +94,7 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "netmanager_base:netsys_controller",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "safwk:system_ability_fwk",

@@ -38,17 +38,9 @@ config("net_conn_manager_if_config") {
     cflags += [ "-DBUILD_PUBLIC_VERSION" ]
   }
 
-  cflags += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags += common_cflags
 
-  cflags_cc = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags
   defines = [
     "NETMGR_LOG_TAG = \"WearableDistributedNetManager\"",
     "LOG_DOMAIN = 0xD0015B0",

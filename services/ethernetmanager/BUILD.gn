@@ -36,28 +36,17 @@ ohos_shared_library("ethernet_manager") {
   ]
 
   include_dirs = [
-    "$NETCONNMANAGER_UTILS_DIR/common_utils/include",
-    "$NETCONNMANAGER_COMMON_DIR/include",
     "include",
     "include/stub",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
-  cflags = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags
 
-  cflags_cc = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags
 
   deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_parcel" ]
   deps += [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_service_interface_stub" ]

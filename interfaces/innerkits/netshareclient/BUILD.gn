@@ -38,20 +38,12 @@ config("net_conn_manager_if_config") {
     cflags += [ "-DBUILD_PUBLIC_VERSION" ]
   }
 
-  cflags += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags += common_cflags
 
-  cflags_cc = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags
 }
 
-ohos_source_set("networkshare_parcel") {
+ohos_static_library("networkshare_parcel") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -70,7 +62,7 @@ ohos_source_set("networkshare_parcel") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
-    "netmanager_base:net_conn_parcel",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
   ]
 
@@ -94,7 +86,7 @@ config("netshare_service_interface_stub_config") {
   ]
 }
  
-ohos_source_set("netshare_service_interface_stub") {
+ohos_static_library("netshare_service_interface_stub") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true

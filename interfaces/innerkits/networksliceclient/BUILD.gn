@@ -36,18 +36,12 @@ config("net_conn_manager_if_config") {
     defines += [ "BUILD_PUBLIC_VERSION" ]
   }
 
-  cflags = [
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags
 
-  cflags_cc = [
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags
 }
 
-ohos_source_set("networkslice_parcel") {
+ohos_static_library("networkslice_parcel") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true

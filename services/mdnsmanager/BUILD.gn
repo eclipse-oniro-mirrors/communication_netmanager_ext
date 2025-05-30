@@ -52,28 +52,11 @@ ohos_shared_library("mdns_manager") {
   ]
 
   deps += [ "$EXT_INNERKITS_ROOT/mdnsclient:mdns_service_interface_stub" ]
-  cflags = [
-    "-fvisibility=hidden",
-    "-fdata-sections",
-    "-ffunction-sections",
-    "-Os",
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags + memory_optimization_cflags
 
-  cflags_cc = [
-    "-fvisibility-inlines-hidden",
-    "-Os",
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags + memory_optimization_cflags_cc
 
-  ldflags = [
-    "-Wl,--exclude-libs=ALL",
-    "-Wl,--gc-sections",
-  ]
+  ldflags = memory_optimization_ldflags
 
   external_deps = [
     "bounds_checking_function:libsec_shared",

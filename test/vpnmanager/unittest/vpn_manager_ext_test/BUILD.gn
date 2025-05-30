@@ -28,7 +28,6 @@ ohos_unittest("vpn_manager_ext_test") {
   sources = [ "networkvpn_service_ext_test.cpp" ]
 
   include_dirs = [
-    "$BASE_INNERKITS_ROOT/netconnclient/include/proxy",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
@@ -37,7 +36,6 @@ ohos_unittest("vpn_manager_ext_test") {
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
 
   deps = [
@@ -58,6 +56,7 @@ ohos_unittest("vpn_manager_ext_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
