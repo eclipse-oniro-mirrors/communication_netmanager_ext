@@ -212,6 +212,19 @@ declare namespace ethernet {
   function getMacAddress(): Promise<Array<MacAddressInfo>>;
 
   /**
+   * Get the ethernet mac address list.
+   * @permission ohos.permission.GET_NETWORK_INFO
+   * @returns { Promise<Array<EthernetDeviceInfos>> } the promise returned by the function.
+   * @throws { BusinessError } 201 - Permission denied.
+   * @throws { BusinessError } 202 - Non-system applications use system APIs.
+   * @throws { BusinessError } 2201005 - Device information does not exist.
+   * @syscap SystemCapability.Communication.NetManager.Ethernet
+   * @systemapi Hide this for inner system use.
+   * @since 20
+   */
+  function getEthernetDeviceInfos(): Promise<Array<EthernetDeviceInfos>>;
+
+  /**
    * Defines the network configuration for the Ethernet connection.
    * @interface InterfaceConfiguration
    * @syscap SystemCapability.Communication.NetManager.Ethernet
@@ -337,6 +350,103 @@ declare namespace ethernet {
      * @since 14
      */
     macAddress: string;
+  }
+
+  /**
+   * Defines the device information of the Ethernet.
+   * @interface EthernetDeviceInfos
+   * @syscap SystemCapability.Communication.NetManager.Ethernet
+   * @systemapi Hide this for inner system use.
+   * @since 20
+   */
+  export interface EthernetDeviceInfos {
+    /**
+     * Ethernet interface name.
+     * @type { string }
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    ifaceName: string;
+ 
+    /**
+     * Ethernet device name.
+     * @type { string }
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    deviceName: string;
+ 
+    /**
+     * Device connection mode.
+     * @type { DeviceConnectionType }
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    connectionMode: DeviceConnectionType;
+ 
+    /**
+     * Supplier name of device.
+     * @type { string }
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    supplierName: string;
+ 
+    /**
+     * Supplier id of device.
+     * @type { string }
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    supplierId: string;
+ 
+    /**
+     * Product name of device.
+     * @type { string }
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    productName: string;
+ 
+    /**
+     * Maximum Rate of device.
+     * @type { string }
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    maximumRate: string;
+  }
+ 
+  /**
+   * Defines the Device Connection Mode of the Ethernet.
+   * @enum {number}
+   * @syscap SystemCapability.Communication.NetManager.Ethernet
+   * @systemapi Hide this for inner system use.
+   * @since 20
+   */
+  export enum DeviceConnectionType {
+    /**
+     * Ethernet in built-in mode.
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    BUILT_IN = 0,
+ 
+    /**
+     * Ethernet in external mode. For example, an ethernet connection via USB.
+     * @syscap SystemCapability.Communication.NetManager.Ethernet
+     * @systemapi Hide this for inner system use.
+     * @since 20
+     */
+    EXTERNAL = 1
   }
 }
 
