@@ -19,16 +19,8 @@ config("net_vpn_extension_if_config") {
   include_dirs = [
     "include",
     "include/ipc",
-    "$NETMANAGERNATIVE_ROOT/fwmarkclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
-    "$ABILITY_RUNTIME_SERVICES_PATH/common/include",
-    "$ABILITY_RUNTIME_NAPI_PATH/inner/napi_common",
-    "$ABILITY_RUNTIME_INNER_API_PATH/dataobs_manager/include",
-    "$ABILITY_RUNTIME_INNER_API_PATH/runtime/include",
-    "$ABILITY_RUNTIME_KITS_PATH/native/appkit/ability_runtime",
-    "$ABILITY_RUNTIME_KITS_PATH/native/ability/ability_runtime",
-    "$ABILITY_RUNTIME_KITS_PATH/native/ability/native",
   ]
 
   defines = []
@@ -56,7 +48,6 @@ ohos_shared_library("vpn_extension") {
   branch_protector_ret = "pac_ret"
 
   sources = [
-    "$ABILITY_RUNTIME_PATH/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp",
     "$VPN_EXTENSION_SOURCE_DIR/src/js_vpn_extension.cpp",
     "$VPN_EXTENSION_SOURCE_DIR/src/js_vpn_extension_context.cpp",
     "$VPN_EXTENSION_SOURCE_DIR/src/vpn_extension.cpp",
@@ -68,7 +59,6 @@ ohos_shared_library("vpn_extension") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
-    "${ABILITY_RUNTIME_PATH}/interfaces/kits/native/ability/native",
   ]
 
   deps = [
@@ -101,7 +91,7 @@ ohos_shared_library("vpn_extension") {
     "napi:ace_napi",
     "netmanager_base:fwmark_client",
     "netmanager_base:napi_utils",
-    "netmanager_base:net_conn_parcel",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "safwk:system_ability_fwk",

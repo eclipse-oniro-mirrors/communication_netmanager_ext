@@ -62,7 +62,6 @@ ohos_unittest("networkshare_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/stub",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager/include/utils",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
 
   defines = []

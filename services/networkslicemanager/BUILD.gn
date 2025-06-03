@@ -22,7 +22,6 @@ ohos_shared_library("networkslice_manager") {
   }
   branch_protector_ret = "pac_ret"
   sources = [
-    "$NETCONNMANAGER_INNERKITS_SOURCE_DIR/src/inet_addr.cpp",
     "src/allowednssaiconfig.cpp",
     "src/broadcast_proxy.cpp",
     "src/dns_result_callback.cpp",
@@ -73,18 +72,9 @@ ohos_shared_library("networkslice_manager") {
     "samgr:samgr_proxy",
   ]
 
-  cflags = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags
 
-  cflags_cc = [
-    "-fstack-protector-strong",
-    "-fexceptions",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags
 
   deps = [
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",

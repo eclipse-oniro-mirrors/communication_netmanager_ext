@@ -53,47 +53,8 @@ NETWORKSLICE_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/networkslicemanager"
 # args of uitls
 NETWORKSHAREMANAGER_UTILS_DIR = "$NETMANAGER_EXT_ROOT/utils"
 
-# args of base module
-NETMANAGER_BASE_ROOT = "$SUBSYSTEM_DIR/netmanager_base"
-
-# args of base modules'frameworks
-NETCONNMANAGER_INNERKITS_SOURCE_DIR =
-    "$NETMANAGER_BASE_ROOT/frameworks/native/netconnclient"
-
-# args of base modules' interfaces
-BASE_INNERKITS_ROOT = "$NETMANAGER_BASE_ROOT/interfaces/innerkits"
-
-# args of base module's servicesability_runtime
-NETCONNMANAGER_COMMON_DIR = "$NETMANAGER_BASE_ROOT/services/common"
-NETSYSCONTROLLER_ROOT_DIR = "$NETMANAGER_BASE_ROOT/services/netsyscontroller"
-NETCONNMANAGER_SOURCE_DIR = "$NETMANAGER_BASE_ROOT/services/netconnmanager"
-NETMANAGERNATIVE_ROOT = "$NETMANAGER_BASE_ROOT/services/netmanagernative"
-
-# args of base module's utils
-NETCONNMANAGER_UTILS_DIR = "$NETMANAGER_BASE_ROOT/utils"
-
-# NETMANAGER_PREBUILTS_DIR = "$NETMANAGER_BASE_ROOT/prebuilts"
-
 # args of other module
-DHCP_MANAGER_ROOT = "//foundation/communication/dhcp"
 WIFI_MANAGER_ROOT = "//foundation/communication/wifi/wifi"
-WIFI_MANAGER_INNERKITS_DIR = "$WIFI_MANAGER_ROOT/interfaces/kits/c"
-WIFI_FRAMEWORK_NATIVE_INCLUDE = "$WIFI_MANAGER_ROOT/frameworks/native/include"
-BLUETOOTH_ROOT = "//foundation/communication/bluetooth"
-USB_MANAGER_ROOT = "//base/usb/usb_manager"
-SAMGR_MANAGER_ROOT = "//foundation/systemabilitymgr/samgr"
-UTILS_ROOT = "//utils"
-THIRD_PARTY_ROOT = "//third_party"
-C_UTILS_ROOT = "//commonlibrary/c_utils"
-ABILITY_RUNTIME_PATH = "//foundation/ability/ability_runtime"
-ABILITY_RUNTIME_INNER_API_PATH = "$ABILITY_RUNTIME_PATH/interfaces/inner_api"
-ABILITY_RUNTIME_KITS_PATH = "$ABILITY_RUNTIME_PATH/interfaces/kits"
-ABILITY_RUNTIME_SERVICES_PATH = "$ABILITY_RUNTIME_PATH/services"
-ABILITY_RUNTIME_NAPI_PATH = "$ABILITY_RUNTIME_PATH/frameworks/js/napi"
-ABILITY_RUNTIME_NATIVE_PATH = "$ABILITY_RUNTIME_PATH/frameworks/native"
-ABILITY_DISPLAY_MANAGER = "//foundation/window/window_manager"
-BATTERY_MANAER_PATH = "//base/powermgr/battery_manager"
-BATTERY_INNER_API = "$BATTERY_MANAER_PATH/interfaces/inner_api"
 
 use_js_debug = false
 declare_args() {
@@ -119,16 +80,22 @@ declare_args() {
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]
 
-memory_optimization_cflags = [
-  "-fvisibility=hidden",
+common_cflags = [
+  "-fstack-protector-strong",
+  "-D_FORTIFY_SOURCE=2",
   "-fdata-sections",
   "-ffunction-sections",
   "-Os",
+  "-O2",
+]
+
+memory_optimization_cflags = [
+  "-fvisibility=hidden",
 ]
 
 memory_optimization_cflags_cc = [
+  "-fvisibility=hidden",
   "-fvisibility-inlines-hidden",
-  "-Os",
 ]
 
 memory_optimization_ldflags = [

@@ -20,7 +20,6 @@ config("net_conn_manager_if_config") {
     "include",
     "include/ipc",
     "${target_gen_dir}",
-    "$NETMANAGERNATIVE_ROOT/fwmarkclient/include",
     "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
@@ -39,17 +38,9 @@ config("net_conn_manager_if_config") {
     defines += [ "BUILD_PUBLIC_VERSION" ]
   }
 
-  cflags = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags
 
-  cflags_cc = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags
 
   if (netmanager_ext_feature_sysvpn) {
     cflags += sysvpn_flags
@@ -58,7 +49,7 @@ config("net_conn_manager_if_config") {
   }
 }
 
-ohos_source_set("networkvpn_parcel") {
+ohos_static_library("networkvpn_parcel") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -88,7 +79,7 @@ ohos_source_set("networkvpn_parcel") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "netmanager_base:net_conn_parcel",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
   ]
 

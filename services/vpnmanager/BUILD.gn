@@ -19,13 +19,10 @@ config("net_vpn_manager_config") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
-    "$NETCONNMANAGER_COMMON_DIR/include",
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$VPNMANAGER_SOURCE_DIR/include",
     "$VPNMANAGER_SOURCE_DIR/include/ipc",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
-    "$NETMANAGERNATIVE_ROOT/include/netsys",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
     "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpnext/include",
   ]
 
@@ -82,6 +79,7 @@ net_vpn_manager_external_deps = [
   "netmanager_base:net_data_share",
   "netmanager_base:net_manager_common",
   "netmanager_base:net_native_manager_if",
+  "netmanager_base:net_service_common",
   "netmanager_base:netsys_controller",
   "os_account:os_account_innerkits",
   "relational_store:native_rdb",
@@ -111,22 +109,12 @@ ohos_shared_library("net_vpn_manager") {
   deps += [ "$EXT_INNERKITS_ROOT/netvpnclient:networkvpn_interface_stub" ]
   external_deps = net_vpn_manager_external_deps
 
-  cflags = memory_optimization_cflags
-  cflags += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags + memory_optimization_cflags
   defines = []
   if (netmanager_ext_feature_vpn_for_user0) {
     defines += [ "ENABLE_VPN_FOR_USER0" ]
   }
-  cflags_cc = memory_optimization_cflags_cc
-  cflags_cc += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags + memory_optimization_cflags_cc
 
   if (netmanager_ext_feature_sysvpn) {
     cflags += sysvpn_flags

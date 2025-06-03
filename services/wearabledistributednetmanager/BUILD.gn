@@ -34,10 +34,6 @@ config("wearable_distributed_net_manager_config") {
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
   }
-
-  if (battery_manager_switch_enable) {
-    include_dirs += [ "$BATTERY_INNER_API/native/include" ]
-  }
 }
 
 wearable_distributed_net_manager_sources = [
@@ -73,7 +69,6 @@ wearable_distributed_net_manager_external_deps = [
   "hitrace:hitrace_meter",
   "ipc:ipc_core",
   "netmanager_base:net_conn_manager_if",
-  "netmanager_base:net_conn_parcel",
   "netmanager_base:net_data_share",
   "netmanager_base:net_manager_common",
   "netmanager_base:net_native_manager_if",
@@ -100,23 +95,13 @@ ohos_shared_library("wearable_distributed_net_manager") {
   deps = wearable_distributed_net_manager_deps
   external_deps = wearable_distributed_net_manager_external_deps
 
-  cflags = memory_optimization_cflags
-  cflags += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
-
   if (battery_manager_switch_enable) {
     external_deps += [ "battery_manager:batterysrv_client" ]
   }
 
-  cflags_cc = memory_optimization_cflags_cc
-  cflags_cc += [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags + memory_optimization_cflags
+
+  cflags_cc = common_cflags + memory_optimization_cflags_cc
 
   ldflags = memory_optimization_ldflags
 

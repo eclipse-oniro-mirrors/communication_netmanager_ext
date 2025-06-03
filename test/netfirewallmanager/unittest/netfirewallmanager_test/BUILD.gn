@@ -41,8 +41,6 @@ ohos_unittest("netfirewallmanager_test") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_SECURITY_PATH/security",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
-    "$NETCONNMANAGER_COMMON_DIR/include",
     "$NETFIREWALLMANAGER_SOURCE_DIR/include",
     "$EXT_INNERKITS_ROOT/netfirewallclient/include",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
@@ -51,10 +49,8 @@ ohos_unittest("netfirewallmanager_test") {
   deps = [
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_manager_if",
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_parcel",
-    "$NETCONNMANAGER_COMMON_DIR:net_service_common",
     "$NETFIREWALLMANAGER_SOURCE_DIR:netfirewall_manager_static",
     "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
-    "$NETSYSCONTROLLER_ROOT_DIR:netsys_controller",
   ]
 
   external_deps = [
@@ -69,8 +65,10 @@ ohos_unittest("netfirewallmanager_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "netmanager_base:net_conn_parcel",
+    "netmanager_base:netsys_controller",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_native_manager_if",
+    "netmanager_base:net_service_common",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
   ]

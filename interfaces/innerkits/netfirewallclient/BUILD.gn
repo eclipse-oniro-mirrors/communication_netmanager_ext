@@ -36,20 +36,12 @@ config("net_conn_manager_if_config") {
     defines += [ "BUILD_PUBLIC_VERSION" ]
   }
 
-  cflags = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags = common_cflags
 
-  cflags_cc = [
-    "-fstack-protector-strong",
-    "-D_FORTIFY_SOURCE=2",
-    "-O2",
-  ]
+  cflags_cc = common_cflags
 }
 
-ohos_source_set("netfirewall_parcel") {
+ohos_static_library("netfirewall_parcel") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -67,7 +59,7 @@ ohos_source_set("netfirewall_parcel") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "netmanager_base:net_conn_parcel",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_native_manager_if",
   ]
 

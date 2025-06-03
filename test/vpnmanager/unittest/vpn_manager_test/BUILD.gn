@@ -45,7 +45,6 @@ ohos_unittest("vpn_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
-    "$NETSYSCONTROLLER_ROOT_DIR/include",
   ]
 
   deps = [
@@ -68,6 +67,7 @@ ohos_unittest("vpn_manager_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "netmanager_base:fwmark_client",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "netmanager_base:netsys_controller",
