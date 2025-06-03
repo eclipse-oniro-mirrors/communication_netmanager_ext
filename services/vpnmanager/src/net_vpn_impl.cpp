@@ -49,6 +49,11 @@ NetVpnImpl::NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t u
     if (netSupplierInfo_ == nullptr) {
         NETMGR_EXT_LOG_E("NetSupplierInfo new failed");
     }
+#ifdef SUPPORT_SYSVPN
+    if (netSupplierInfo_ != nullptr) {
+        netSupplierInfo_->uid_ = IPCSkeleton::GetCallingUid();
+    }
+#endif // SUPPORT_SYSVPN
 }
 
 int32_t NetVpnImpl::RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateCb> callback)
