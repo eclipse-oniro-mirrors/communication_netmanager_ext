@@ -21,7 +21,6 @@
 #include "bundle_constants.h"
 #include "iremote_object.h"
 #include "net_event_report.h"
-#include "net_manager_center.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netfirewall_default_rule_parser.h"

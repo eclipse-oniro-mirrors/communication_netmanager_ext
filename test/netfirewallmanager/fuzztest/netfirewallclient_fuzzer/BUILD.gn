@@ -72,7 +72,7 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
-    "netmanager_base:net_service_common"
+    "netmanager_base:net_service_common",
     "os_account:os_account_innerkits",
   ]
 
