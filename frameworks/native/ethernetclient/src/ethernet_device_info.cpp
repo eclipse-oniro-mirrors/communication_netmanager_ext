@@ -45,7 +45,7 @@ bool EthernetDeviceInfo::Marshalling(Parcel &parcel) const
  
 EthernetDeviceInfo* EthernetDeviceInfo::Unmarshalling(Parcel &parcel)
 {
-    EthernetDeviceInfo* ptr = new (std::nothrow) EthernetDeviceInfo();
+    std::unique_ptr<EthernetDeviceInfo> ptr = std::make_unique<EthernetDeviceInfo>();
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -72,7 +72,7 @@ EthernetDeviceInfo* EthernetDeviceInfo::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadString(ptr->maximumRate_)) {
         return nullptr;
     }
-    return ptr;
+    return ptr.release();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

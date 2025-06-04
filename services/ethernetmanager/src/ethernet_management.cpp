@@ -570,12 +570,12 @@ bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::strin
     if (fd < 0) {
         return false;
     }
-    char value[BUFFER_SIZE];
+    char value[BUFFER_SIZE] = {'\0'};
     if (read(fd, value, BUFFER_SIZE) < 0) {
         close(fd);
         return false;
     }
-    nodeVal = value;
+    nodeVal = std::string(value);
     nodeVal.pop_back();
     close(fd);
     return true;
