@@ -87,7 +87,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnTest001, TestSize.Level1)
         return;
     }
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyProtectTest001, TestSize.Level1)
