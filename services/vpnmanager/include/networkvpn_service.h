@@ -228,6 +228,7 @@ private:
     void StartAlwaysOnVpn();
     void SubscribeCommonEvent();
     int32_t CheckIpcPermission(const std::string &strPermission);
+    bool CheckSystemCall(const std::string &bundleName);
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;

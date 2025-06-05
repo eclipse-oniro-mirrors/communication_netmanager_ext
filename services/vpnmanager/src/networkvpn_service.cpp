@@ -258,6 +258,9 @@ int32_t NetworkVpnService::CheckIpcPermission(const std::string &strPermission)
 int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
 {
     std::string vpnBundleName = GetBundleName();
+    if (!CheckSystemCall(vpnBundleName)) {
+        return NETMANAGER_ERR_NOT_SYSTEM_CALL;
+    }
     if (!CheckVpnPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -589,6 +592,20 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
     ofs << jsonString;
 }
 
+bool NetworkVpnService::CheckSystemCall(const std::string &bundleName)
+{
+    if (!NetManagerPermission::IsSystemCaller()) {
+        std::string vpnExtMode;
+        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, bundleName.c_str());
+        if (ret != 0 || vpnExtMode != "1") {
+            NETMGR_EXT_LOG_E("query datebase fail.");
+            return false;
+        }
+    }
+    return true;
+}
+
 bool NetworkVpnService::CheckVpnPermission(const std::string &bundleName)
 {
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
@@ -630,6 +647,9 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     sptr<VpnConfig> configPtr = sptr<VpnConfig>::MakeSptr(config);
     std::string vpnBundleName = GetBundleName();
+    if (!CheckSystemCall(vpnBundleName)) {
+        return NETMANAGER_ERR_NOT_SYSTEM_CALL;
+    }
     if (!CheckVpnPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -679,6 +699,9 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
      * the protected socket implements fwmark_service in the netsys process.
      */
     std::string vpnBundleName = GetBundleName();
+    if (!CheckSystemCall(vpnBundleName)) {
+        return NETMANAGER_ERR_NOT_SYSTEM_CALL;
+    }
     if (!CheckVpnPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -691,6 +714,9 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     NETMGR_EXT_LOG_I("DestroyVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
+    if (!CheckSystemCall(vpnBundleName)) {
+        return NETMANAGER_ERR_NOT_SYSTEM_CALL;
+    }
     if (!CheckVpnPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
