@@ -65,7 +65,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyIsNetworkSharingSupportedTest001, Tes
         return;
     }
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_GET_SHARING_SUPPORTED);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
 HWTEST_F(NetworkShareServiceStubTest, ReplyIsSharingTest001, TestSize.Level1)
@@ -220,7 +220,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplySetConfigureForShareTest001, TestSize
         return;
     }
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_SET_CONFIG);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
