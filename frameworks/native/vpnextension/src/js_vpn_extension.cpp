@@ -102,6 +102,10 @@ napi_value AttachVpnExtensionContext(napi_env env, void *value, void *)
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachVpnExtensionContext, value, nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<VpnExtensionContext>(ptr);
+    if (workContext == nullptr) {
+        NETMGR_EXT_LOG_E("failed to new workContext");
+        return nullptr;
+    }
     napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             NETMGR_EXT_LOG_I("Finalizer for weak_ptr vpn extension context is called");
