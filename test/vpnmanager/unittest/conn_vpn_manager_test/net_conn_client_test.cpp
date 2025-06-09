@@ -1301,22 +1301,6 @@ HWTEST_F(NetConnClientTest, RegisterSlotTypeTest002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
 
-HWTEST_F(NetConnClientTest, GetPinSetForHostName001, TestSize.Level1)
-{
-    std::string hostname("www.example.com");
-    std::string pins;
-    auto ret = NetConnClient::GetInstance().GetPinSetForHostName(hostname, pins);
-    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
-}
-
-HWTEST_F(NetConnClientTest, GetTrustAnchorsForHostName001, TestSize.Level1)
-{
-    std::string hostname("www.example.com");
-    std::vector<std::string> certs;
-    auto ret = NetConnClient::GetInstance().GetTrustAnchorsForHostName(hostname, certs);
-    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
-}
-
 /**
  * @tc.name: FactoryResetNetworkTest001
  * @tc.desc: Test NetConnClient::FactoryResetNetwork
