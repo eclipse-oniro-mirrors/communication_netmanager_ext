@@ -309,7 +309,6 @@ HWTEST_F(NetworkVpnServiceTest, DumpTest001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl001, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     int32_t userId = 0;
