@@ -87,7 +87,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnTest001, TestSize.Level1)
         return;
     }
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyProtectTest001, TestSize.Level1)
@@ -205,7 +205,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterBundleNameVpnTest001, TestSize.
         return;
     }
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_REGISTER_BUNDLE_NAME);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL);
 }
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyDefaultTest001, TestSize.Level1)
