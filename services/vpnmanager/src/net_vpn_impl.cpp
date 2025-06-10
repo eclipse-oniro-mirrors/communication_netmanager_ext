@@ -133,20 +133,14 @@ int32_t NetVpnImpl::SetUp()
 
 void NetVpnImpl::SetAllUidRanges()
 {
-    GenerateUidRanges(userId_, beginUids_, endUids_);
-#ifdef ENABLE_VPN_FOR_USER0
-    bool hasUser0 = userId_ == 0;
-#endif
+    if (userId_ != 0) {
+        GenerateUidRanges(userId_, beginUids_, endUids_);
+    }
     for (auto &elem : activeUserIds_) {
         GenerateUidRanges(elem, beginUids_, endUids_);
-#ifdef ENABLE_VPN_FOR_USER0
-        hasUser0 = hasUser0 || elem == 0;
-#endif
     }
 #ifdef ENABLE_VPN_FOR_USER0
-    if (!hasUser0) {
-        GenerateUidRanges(0, beginUids_, endUids_);
-    }
+    GenerateUidRanges(0, beginUids_, endUids_);
 #endif
 }
 
