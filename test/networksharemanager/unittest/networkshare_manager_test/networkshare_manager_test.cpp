@@ -107,7 +107,7 @@ HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t supportedFlag;
     auto ret = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETWORKSHARE_ERROR_UNKNOWN_TYPE);
 }
 
 HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)

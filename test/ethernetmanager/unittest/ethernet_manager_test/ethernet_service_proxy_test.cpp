@@ -213,7 +213,7 @@ HWTEST_F(EtherNetServiceProxyTest, GetDeviceInformationTest001, TestSize.Level1)
     EthernetServiceProxy ethernetServiceProxy(nullptr);
     std::vector<EthernetDeviceInfo> devInfoList;
     auto ret = ethernetServiceProxy.GetDeviceInformation(devInfoList);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

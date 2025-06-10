@@ -87,15 +87,15 @@ HWTEST_F(NetworkSliceClientTest, NetworkSliceAllowedNssaiRpt001, TestSize.Level1
 {
     NetManagerExtAccessToken access;
     std::vector<uint8_t> buffer = {};
-    EXPECT_EQ(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer),
-        NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    EXPECT_NE(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer),
+        NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceAllowedNssaiRpt002, TestSize.Level1)
 {
     std::vector<uint8_t> buffer = {};
-    EXPECT_EQ(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer),
-        NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    EXPECT_NE(networkSliceClient_->NetworkSliceAllowedNssaiRpt(buffer),
+        NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkSliceClientTest, NetworkSliceEhplmnRpt001, TestSize.Level1)

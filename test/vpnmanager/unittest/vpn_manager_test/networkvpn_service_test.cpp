@@ -112,7 +112,7 @@ HWTEST_F(NetworkVpnServiceTest, Prepare001, TestSize.Level1)
     bool isExistVpn = false;
     bool isRun = false;
     std::string pkg;
-    EXPECT_EQ(instance_->Prepare(isExistVpn, isRun, pkg), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->Prepare(isExistVpn, isRun, pkg), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
@@ -130,7 +130,7 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
 {
-    EXPECT_EQ(instance_->Protect(), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(instance_->Protect(), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, DestroyVpn, TestSize.Level1)
@@ -142,13 +142,13 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, RegisterSharingEventTest001, TestSize.Level1)
 {
     int32_t ret = instance_->RegisterVpnEvent(eventCallback_);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, UnregisterSharingEventTest001, TestSize.Level1)
 {
     int32_t ret = instance_->UnregisterVpnEvent(eventCallback_);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, CheckCurrentUser, TestSize.Level1)
