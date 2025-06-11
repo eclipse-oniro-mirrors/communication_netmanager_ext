@@ -290,8 +290,12 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     config->routeList_.push_back(route);
 
     INetAddr dnsNet1;
+    dnsNet1.type_ = (CommonUtils::GetAddrFamily(dhcpResult.dns1)) ? INetAddr::IpType::IPV6 :
+        INetAddr::IpType::IPV4;
     dnsNet1.address_ = dhcpResult.dns1;
     INetAddr dnsNet2;
+    dnsNet2.type_ = (CommonUtils::GetAddrFamily(dhcpResult.dns2)) ? INetAddr::IpType::IPV6 :
+        INetAddr::IpType::IPV4;
     dnsNet2.address_ = dhcpResult.dns2;
     config->dnsServers_.push_back(dnsNet1);
     config->dnsServers_.push_back(dnsNet2);
