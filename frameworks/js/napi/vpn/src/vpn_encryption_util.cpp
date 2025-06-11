@@ -276,61 +276,6 @@ int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::str
     return ret;
 }
 
-int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const EncryptedData &encryptedData,
-    std::string &decryptedData)
-{
-    if (encryptedData.encryptedData_.size() == 0) {
-        return HKS_SUCCESS;
-    }
-    struct HksBlob authId = vpnEncryptionInfo.keyAlias;
-    uint8_t cipherBuf[AES_COMMON_SIZE] = {0};
-    uint32_t length = AES_COMMON_SIZE;
-    int32_t retStrToArrat = HexStringToVec(encryptedData.encryptedData_, cipherBuf, AES_COMMON_SIZE, length);
-    if (retStrToArrat != 0) {
-        return HKS_FAILURE;
-    }
-
-    uint8_t nonce[NONCE_SIZE] = {0};
-    uint32_t lengthIV = NONCE_SIZE;
-    retStrToArrat = HexStringToVec(encryptedData.iv_, nonce, NONCE_SIZE, lengthIV);
-    if (retStrToArrat != 0) {
-        return HKS_FAILURE;
-    }
-
-    struct HksBlob cipherData = { length, cipherBuf };
-    struct HksParamSet *decryParamSet = nullptr;
-    int32_t ret = VpnBuildHksParamSet(&decryParamSet, vpnEncryptionInfo.userId, nonce);
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("BuildHksParamSet failed");
-        return ret;
-    }
-
-    ret = HksKeyExist(&authId, decryParamSet);
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("vpn decryption key not exist");
-        HksFreeParamSet(&decryParamSet);
-        return ret;
-    }
-    uint8_t plainBuff[AES_COMMON_SIZE] = {0};
-    HksBlob plainText = {
-        .size = AES_COMMON_SIZE,
-        .data = plainBuff
-    };
-
-    ret = HksDecrypt(&authId, decryParamSet, &cipherData, &plainText);
-    if (ret != HKS_SUCCESS) {
-        NETMGR_EXT_LOG_E("Hks decryption failed");
-        HksFreeParamSet(&decryParamSet);
-        ret = VpnDecryptionBack(vpnEncryptionInfo, encryptedData, decryptedData);
-        return ret;
-    }
-
-    std::string temp(plainText.data, plainText.data + plainText.size);
-    decryptedData = temp;
-    HksFreeParamSet(&decryParamSet);
-    return ret;
-}
-
 int32_t VpnDecryptionBack(const VpnEncryptionInfo &vpnEncryptionInfo, const EncryptedData &encryptedData,
     std::string &decryptedData)
 {
@@ -377,6 +322,61 @@ int32_t VpnDecryptionBack(const VpnEncryptionInfo &vpnEncryptionInfo, const Encr
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("Hks decryption failed");
         HksFreeParamSet(&decryParamSet);
+        return ret;
+    }
+
+    std::string temp(plainText.data, plainText.data + plainText.size);
+    decryptedData = temp;
+    HksFreeParamSet(&decryParamSet);
+    return ret;
+}
+
+int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const EncryptedData &encryptedData,
+    std::string &decryptedData)
+{
+    if (encryptedData.encryptedData_.size() == 0) {
+        return HKS_SUCCESS;
+    }
+    struct HksBlob authId = vpnEncryptionInfo.keyAlias;
+    uint8_t cipherBuf[AES_COMMON_SIZE] = {0};
+    uint32_t length = AES_COMMON_SIZE;
+    int32_t retStrToArrat = HexStringToVec(encryptedData.encryptedData_, cipherBuf, AES_COMMON_SIZE, length);
+    if (retStrToArrat != 0) {
+        return HKS_FAILURE;
+    }
+
+    uint8_t nonce[NONCE_SIZE] = {0};
+    uint32_t lengthIV = NONCE_SIZE;
+    retStrToArrat = HexStringToVec(encryptedData.iv_, nonce, NONCE_SIZE, lengthIV);
+    if (retStrToArrat != 0) {
+        return HKS_FAILURE;
+    }
+
+    struct HksBlob cipherData = { length, cipherBuf };
+    struct HksParamSet *decryParamSet = nullptr;
+    int32_t ret = VpnBuildHksParamSet(&decryParamSet, vpnEncryptionInfo.userId, nonce);
+    if (ret != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("BuildHksParamSet failed");
+        return ret;
+    }
+
+    ret = HksKeyExist(&authId, decryParamSet);
+    if (ret != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("vpn decryption key not exist");
+        HksFreeParamSet(&decryParamSet);
+        return ret;
+    }
+    uint8_t plainBuff[AES_COMMON_SIZE] = {0};
+    HksBlob plainText = {
+        .size = AES_COMMON_SIZE,
+        .data = plainBuff
+    };
+
+    ret = HksDecrypt(&authId, decryParamSet, &cipherData, &plainText);
+    if (ret != HKS_SUCCESS) {
+        NETMGR_EXT_LOG_E("Hks decryption failed");
+        HksFreeParamSet(&decryParamSet);
+        ret = VpnDecryptionBack(vpnEncryptionInfo, encryptedData, decryptedData);
         return ret;
     }
 
