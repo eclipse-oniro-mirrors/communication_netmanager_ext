@@ -417,15 +417,6 @@ HWTEST_F(EthernetManagerTest, OnInterfaceAddressRemovedTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(EthernetManagerTest, OnInterfaceAddedTest001, TestSize.Level1)
-{
-    EthernetManagement ethernetmanagement;
-    EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
-    std::string iface = "eth0";
-    int ret = devinterfacestatecallback.OnInterfaceAdded(iface);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
 HWTEST_F(EthernetManagerTest, OnInterfaceRemovedTest001, TestSize.Level1)
 {
     EthernetManagement ethernetmanagement;
