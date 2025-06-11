@@ -43,7 +43,6 @@ public:
         std::string &bundleName, int32_t userId, bool isVpnExtCall);
     int32_t AddMultiVpnInfo(const sptr<MultiVpnInfo> &info);
     int32_t DelMultiVpnInfo(const sptr<MultiVpnInfo> &info);
-    std::vector<sptr<MultiVpnInfo>> GetMultiVpnInfo();
     bool StartIpsec();
     void StopIpsec();
     bool StartL2tp();

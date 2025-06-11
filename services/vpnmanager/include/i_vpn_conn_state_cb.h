@@ -24,9 +24,9 @@ namespace NetManagerStandard {
 class IVpnConnStateCb {
 public:
     virtual void OnVpnConnStateChanged(const VpnConnectState &state) = 0;
-    #ifdef SUPPORT_SYSVPN
+#ifdef SUPPORT_SYSVPN
     virtual void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) = 0;
-    #endif // SUPPORT_SYSVPN
+#endif // SUPPORT_SYSVPN
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

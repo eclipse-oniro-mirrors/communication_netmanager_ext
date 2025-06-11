@@ -30,7 +30,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t MAX_VPN_INTERFACE_COUNT = 20;
-constexpr const char *PPP_CARD_NAME = "ppp";
+constexpr const char *PPP_CARD_NAME = "ppp-vpn";
 constexpr const char *XFRM_CARD_NAME = "xfrm-vpn";
 MultiVpnHelper &MultiVpnHelper::GetInstance()
 {
@@ -124,14 +124,8 @@ int32_t MultiVpnHelper::AddMultiVpnInfo(const sptr<MultiVpnInfo> &info)
     if (std::find(multiVpnInfos_.begin(), multiVpnInfos_.end(), info) == multiVpnInfos_.end()) {
         multiVpnInfos_.emplace_back(info);
     }
-    NETMGR_EXT_LOG_D("AddMultiVpnInfo %{public}s, size:%{public}zu",
-        info->ifName.c_str(), multiVpnInfos_.size());
+    NETMGR_EXT_LOG_D("AddMultiVpnInfo %{public}s", info->ifName.c_str());
     return NETMANAGER_EXT_SUCCESS;
-}
-
-std::vector<sptr<MultiVpnInfo>> MultiVpnHelper::GetMultiVpnInfo()
-{
-    return multiVpnInfos_;
 }
 
 int32_t MultiVpnHelper::DelMultiVpnInfo(const sptr<MultiVpnInfo> &info)
@@ -142,8 +136,7 @@ int32_t MultiVpnHelper::DelMultiVpnInfo(const sptr<MultiVpnInfo> &info)
     }
     multiVpnInfos_.erase(std::remove(multiVpnInfos_.begin(), multiVpnInfos_.end(), info),
         multiVpnInfos_.end());
-    NETMGR_EXT_LOG_I("DelMultiVpnInfo %{public}s, size:%{public}zu",
-        info->ifName.c_str(), multiVpnInfos_.size());
+    NETMGR_EXT_LOG_I("DelMultiVpnInfo %{public}s", info->ifName.c_str());
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -162,7 +155,6 @@ bool MultiVpnHelper::StartIpsec()
 
 void MultiVpnHelper::StopIpsec()
 {
-    NETMGR_EXT_LOG_I("ipsec stop");
     ipsecStartedCount_ = ipsecStartedCount_ - 1;
     NETMGR_EXT_LOG_I("ipsec stop count %{public}d", ipsecStartedCount_);
 }
@@ -181,7 +173,6 @@ bool MultiVpnHelper::StartL2tp()
 
 void MultiVpnHelper::StopL2tp()
 {
-    NETMGR_EXT_LOG_I("l2tp stop");
     l2tpStartedCount_ = l2tpStartedCount_ - 1;
     NETMGR_EXT_LOG_I("L2tp stop count %{public}d", l2tpStartedCount_);
 }

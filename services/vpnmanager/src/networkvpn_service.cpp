@@ -850,7 +850,6 @@ int32_t NetworkVpnService::DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vp
         NETMGR_EXT_LOG_E("DestroyMultiVpn failed, vpnObj null");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    // destroy vpn
     if (vpnObj->Destroy() != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("destroy vpn is failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -859,7 +858,7 @@ int32_t NetworkVpnService::DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vp
         NETMGR_EXT_LOG_E("reset vpnObj_");
         vpnObj_ = nullptr;
     }
-    // del multi vpn interface
+
     sptr<MultiVpnInfo> multiVpnInterface = vpnObj->multiVpnInfo_;
     if (multiVpnInterface == nullptr) {
         NETMGR_EXT_LOG_E("DestroyMultiVpn failed, multiVpnInfo_ null");
@@ -871,7 +870,6 @@ int32_t NetworkVpnService::DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vp
         NETMGR_EXT_LOG_E("DestroyMultiVpn DelMultiVpnInfo failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    // del vpnObj
     if (needErase) {
         vpnObjMap_.erase(multiVpnInterface->vpnId);
     }
