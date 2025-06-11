@@ -31,9 +31,14 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     [macrodef SUPPORT_SYSVPN] void SetUpSysVpn([in] sptr<SysVpnConfig> config, [in] boolean isVpnExtCall);
     [macrodef SUPPORT_SYSVPN] void AddSysVpnConfig([in] sptr<SysVpnConfig> config);
     [macrodef SUPPORT_SYSVPN] void DeleteSysVpnConfig([in] String vpnId);
+    [macrodef SUPPORT_SYSVPN] void GetConnectedVpnAppInfo([out]List<String> bundleNameList);
     [macrodef SUPPORT_SYSVPN] void GetSysVpnConfigList([out] List<sptr<SysVpnConfig>> vpnList);
     [macrodef SUPPORT_SYSVPN] void GetSysVpnConfig([out] sptr<SysVpnConfig> config, [in] String vpnId);
     [macrodef SUPPORT_SYSVPN] void GetConnectedSysVpnConfig([out] sptr<SysVpnConfig> config);
     [macrodef SUPPORT_SYSVPN] void NotifyConnectStage([in] String stage, [in] int resultIpc);
     [macrodef SUPPORT_SYSVPN] void GetSysVpnCertUri([in] int certType, [out] String certUri);
+    [macrodef SUPPORT_SYSVPN] void DestroyVpn([in] String vpnId);
+    [macrodef SUPPORT_SYSVPN] void RegisterMultiVpnEvent([in] IVpnEventCallback callbackparam);
+    [macrodef SUPPORT_SYSVPN] void UnregisterMultiVpnEvent([in] IVpnEventCallback callbackparam);
+    
 }

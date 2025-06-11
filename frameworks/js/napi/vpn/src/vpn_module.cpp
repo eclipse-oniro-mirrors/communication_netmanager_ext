@@ -26,6 +26,7 @@
 #ifdef SUPPORT_SYSVPN
 #include "add_context.h"
 #include "delete_context.h"
+#include "get_app_info_context.h"
 #include "get_list_context.h"
 #include "get_context.h"
 #include "get_connected_context.h"
@@ -41,6 +42,7 @@ constexpr const char *OFF = "off";
 #ifdef SUPPORT_SYSVPN
 constexpr const char *ADD_SYS_VPN_CONFIG = "addSysVpnConfig";
 constexpr const char *DELETE_SYS_VPN_CONFIG = "deleteSysVpnConfig";
+constexpr const char *GET_CONNECTED_VPN_APP_INFO = "getConnectedVpnAppInfo";
 constexpr const char *GET_SYS_VPN_CONFIG_LIST = "getSysVpnConfigList";
 constexpr const char *GET_SYS_VPN_CONFIG = "getSysVpnConfig";
 constexpr const char *GET_CONNECTED_SYS_VPN_CONFIG = "getConnectedSysVpnConfig";
@@ -111,6 +113,12 @@ static napi_value GetConnectedSysVpnConfig(napi_env env, napi_callback_info info
     return ModuleTemplate::Interface<GetConnectedContext>(env, info, GET_CONNECTED_SYS_VPN_CONFIG, nullptr,
         VpnAsyncWork::ExecGetConnectedSysVpnConfig, VpnAsyncWork::GetConnectedSysVpnConfigCallback);
 }
+
+static napi_value GetConnectedVpnAppInfo(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetAppInfoContext>(env, info, GET_CONNECTED_VPN_APP_INFO, nullptr,
+        VpnAsyncWork::ExecGetConnectedVpnAppInfo, VpnAsyncWork::GetConnectedVpnAppInfoCallback);
+}
 #endif // SUPPORT_SYSVPN
 
 napi_value RegisterVpnModule(napi_env env, napi_value exports)
@@ -123,6 +131,7 @@ napi_value RegisterVpnModule(napi_env env, napi_value exports)
                                     #ifdef SUPPORT_SYSVPN
                                     DECLARE_NAPI_FUNCTION(ADD_SYS_VPN_CONFIG, AddSysVpnConfig),
                                     DECLARE_NAPI_FUNCTION(DELETE_SYS_VPN_CONFIG, DeleteSysVpnConfig),
+                                    DECLARE_NAPI_FUNCTION(GET_CONNECTED_VPN_APP_INFO, GetConnectedVpnAppInfo),
                                     DECLARE_NAPI_FUNCTION(GET_SYS_VPN_CONFIG_LIST, GetSysVpnConfigList),
                                     DECLARE_NAPI_FUNCTION(GET_SYS_VPN_CONFIG, GetSysVpnConfig),
                                     DECLARE_NAPI_FUNCTION(GET_CONNECTED_SYS_VPN_CONFIG, GetConnectedSysVpnConfig),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,21 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef VPN_CONN_STATE_CALLBACK_H
-#define VPN_CONN_STATE_CALLBACK_H
+#ifndef VPN_GET_APP_INFO_CONTEXT_H
+#define VPN_GET_APP_INFO_CONTEXT_H
 
-#include "net_manager_ext_constants.h"
+#include <cstddef>
+#include <napi/native_api.h>
+#include <vector>
+
+#include "base_context.h"
+#include "event_manager.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-
-class IVpnConnStateCb {
+class GetAppInfoContext : public BaseContext {
 public:
-    virtual void OnVpnConnStateChanged(const VpnConnectState &state) = 0;
-    #ifdef SUPPORT_SYSVPN
-    virtual void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) = 0;
-    #endif // SUPPORT_SYSVPN
+    GetAppInfoContext() = delete;
+    GetAppInfoContext(napi_env env, EventManager *manager);
+
+    void ParseParams(napi_value *params, size_t paramsCount);
+public:
+    std::vector<std::string> bundleNameList_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // VPN_CONN_STATE_CALLBACK_H
+#endif // VPN_GET_APP_INFO_CONTEXT_H

@@ -66,6 +66,18 @@ void DestroyCallback(napi_env env, napi_status status, void *data)
 {
     BaseAsyncWork::AsyncWorkCallback<DestroyContext, VpnExecExt::DestroyCallback>(env, status, data);
 }
+
+#ifdef SUPPORT_SYSVPN
+void ExecGenerateVpnId(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GenerateVpnIdContext, VpnExecExt::ExecGenerateVpnId>(env, data);
+}
+
+void GenerateVpnIdCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GenerateVpnIdContext, VpnExecExt::GenerateVpnIdCallback>(env, status, data);
+}
+#endif // SUPPORT_SYSVPN
 } // namespace VpnAsyncWorkExt
 } // namespace NetManagerStandard
 } // namespace OHOS

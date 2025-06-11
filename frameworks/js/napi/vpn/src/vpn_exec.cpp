@@ -182,6 +182,20 @@ bool ExecGetConnectedSysVpnConfig(GetConnectedContext *context)
     }
     return true;
 }
+
+bool ExecGetConnectedVpnAppInfo(GetAppInfoContext *context)
+{
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
+    int32_t result = NetworkVpnClient::GetInstance().GetConnectedVpnAppInfo(context->bundleNameList_);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        return false;
+    }
+    return true;
+}
 #endif // SUPPORT_SYSVPN
 
 napi_value PrepareCallback(PrepareContext *context)
@@ -262,6 +276,23 @@ napi_value GetConnectedSysVpnConfigCallback(GetConnectedContext *context)
         return nullptr;
     }
     return VpnConfigUtils::CreateNapiVpnConfig(context->GetEnv(), context->vpnConfig_);
+}
+
+napi_value GetConnectedVpnAppInfoCallback(GetAppInfoContext *context)
+{
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return nullptr;
+    }
+    int32_t index = 0;
+    auto len = context->bundleNameList_.size();
+    napi_value array = NapiUtils::CreateArray(context->GetEnv(), len);
+    for (const auto &info : context->bundleNameList_) {
+        napi_value bundleName = NapiUtils::CreateStringUtf8(context->GetEnv(), info);
+        NapiUtils::SetArrayElement(context->GetEnv(), array, index, bundleName);
+        ++index;
+    }
+    return array;
 }
 #endif // SUPPORT_SYSVPN
 } // namespace VpnExec

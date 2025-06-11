@@ -117,6 +117,16 @@ void GetConnectedSysVpnConfigCallback(napi_env env, napi_status status, void *da
 {
     BaseAsyncWork::AsyncWorkCallback<GetConnectedContext, VpnExec::GetConnectedSysVpnConfigCallback>(env, status, data);
 }
+
+void ExecGetConnectedVpnAppInfo(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetAppInfoContext, VpnExec::ExecGetConnectedVpnAppInfo>(env, data);
+}
+
+void GetConnectedVpnAppInfoCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetAppInfoContext, VpnExec::GetConnectedVpnAppInfoCallback>(env, status, data);
+}
 #endif // SUPPORT_SYSVPN
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard

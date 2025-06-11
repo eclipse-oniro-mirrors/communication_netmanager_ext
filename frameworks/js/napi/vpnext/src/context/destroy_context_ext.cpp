@@ -20,6 +20,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t PARAM_NONE = 0;
 constexpr int32_t PARAM_JUST_CALLBACK = 1;
+constexpr int32_t PARAM_OPTIONS_AND_CALLBACK = 2;
 
 DestroyContext::DestroyContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
 
@@ -30,7 +31,27 @@ void DestroyContext::ParseParams(napi_value *params, size_t paramsCount)
             SetParseOK(true);
             break;
         case PARAM_JUST_CALLBACK:
-            SetParseOK(SetCallback(params[0]) == napi_ok);
+            if (NapiUtils::GetValueType(GetEnv(), params[0]) == napi_function) {
+                SetParseOK(SetCallback(params[0]) == napi_ok);
+                return;
+            }
+            if (NapiUtils::GetValueType(GetEnv(), params[0]) == napi_string) {
+                vpnId_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[0]);
+                SetParseOK(true);
+                return;
+            }
+            SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+            SetNeedThrowException(true);
+            break;
+        case PARAM_OPTIONS_AND_CALLBACK:
+            if ((NapiUtils::GetValueType(GetEnv(), params[0]) == napi_string) &&
+                (NapiUtils::GetValueType(GetEnv(), params[1]) == napi_function)) {
+                vpnId_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[0]);
+                SetParseOK(SetCallback(params[1]) == napi_ok);
+            } else {
+                SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+                SetNeedThrowException(true);
+            }
             break;
         default:
             SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);

@@ -22,6 +22,9 @@
 #include "prepare_context_ext.h"
 #include "protect_context_ext.h"
 #include "setup_context_ext.h"
+#ifdef SUPPORT_SYSVPN
+#include "generate_vpnId_context_ext.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -37,6 +40,11 @@ napi_value ProtectCallback(ProtectContext *context);
 
 bool ExecDestroy(DestroyContext *context);
 napi_value DestroyCallback(DestroyContext *context);
+
+#ifdef SUPPORT_SYSVPN
+bool ExecGenerateVpnId(GenerateVpnIdContext *context);
+napi_value GenerateVpnIdCallback(GenerateVpnIdContext *context);
+#endif // SUPPORT_SYSVPN
 } // namespace VpnExecExt
 } // namespace NetManagerStandard
 } // namespace OHOS

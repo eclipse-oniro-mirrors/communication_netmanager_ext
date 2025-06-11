@@ -31,6 +31,7 @@ ohos_unittest("sys_vpn_manager_test") {
     "ipsec_vpn_ctl_test.cpp",
     "l2tp_vpn_config_test.cpp",
     "l2tp_vpn_ctl_test.cpp",
+    "multi_vpn_helper_test.cpp",
     "net_vpn_impl_test.cpp",
     "networkvpn_client_test.cpp",
     "networkvpn_service_test.cpp",
@@ -82,6 +83,7 @@ ohos_unittest("sys_vpn_manager_test") {
     "netmanager_base:netsys_controller",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
+    "safwk:system_ability_fwk",
   ]
 
   defines = [

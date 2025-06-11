@@ -36,6 +36,10 @@ namespace NetManagerStandard {
 class VpnSetUpEventCallback : public VpnEventCallbackStub {
 public:
     int32_t OnVpnStateChanged(bool isConnected) override{ return ERR_OK; };
+    #ifdef SUPPORT_SYSVPN
+    int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
+        const std::string &vpnId) override{ return ERR_OK; };
+    #endif // SUPPORT_SYSVPN
     int32_t OnVpnMultiUserSetUp() override;
 };
 
@@ -126,6 +130,16 @@ public:
     int32_t DeleteSysVpnConfig(const std::string &vpnId);
 
     /**
+     * get app info of connected vpn
+     *
+     * @param bundleNameList app bundleName list (in param)
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t GetConnectedVpnAppInfo(std::vector<std::string> &bundleNameList);
+
+    /**
      * get vpn list
      *
      * @param vpnList vpn list (out param)
@@ -175,6 +189,37 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri);
+
+    /**
+     * stop the vpn connection, system will destroy the vpn network.
+     *
+     * @param vpnId vpnId
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t DestroyVpn(const std::string &vpnId);
+
+    /**
+     * register the multi vpn state callback
+     *
+     * @param callback if this fuction return NETMANAGER_EXT_SUCCESS(0), this callback will be called by service
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t RegisterMultiVpnEvent(sptr<IVpnEventCallback> callback);
+
+    /**
+     * unregister the multi vpn state callback
+     *
+     * @param callback if this fuction return NETMANAGER_EXT_SUCCESS(0), this callback will not be called by service
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t UnregisterMultiVpnEvent(sptr<IVpnEventCallback> callback);
+
 #endif // SUPPORT_SYSVPN
 
     /**

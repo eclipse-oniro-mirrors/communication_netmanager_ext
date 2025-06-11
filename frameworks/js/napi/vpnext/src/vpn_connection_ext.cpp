@@ -16,6 +16,9 @@
 #include "vpn_connection_ext.h"
 
 #include "destroy_context_ext.h"
+#ifdef SUPPORT_SYSVPN
+#include "generate_vpnId_context_ext.h"
+#endif // SUPPORT_SYSVPN
 #include "module_template.h"
 #include "prepare_context_ext.h"
 #include "protect_context_ext.h"
@@ -53,6 +56,15 @@ napi_value Destroy(napi_env env, napi_callback_info info)
     return ModuleTemplate::Interface<DestroyContext>(env, info, DESTROY_EXT, nullptr, VpnAsyncWorkExt::ExecDestroy,
                                                      VpnAsyncWorkExt::DestroyCallback);
 }
+
+#ifdef SUPPORT_SYSVPN
+napi_value GenerateVpnId(napi_env env, napi_callback_info info)
+{
+    NETMANAGER_EXT_LOGI("enter VpnConnectionExt GenerateVpnId");
+    return ModuleTemplate::Interface<GenerateVpnIdContext>(env, info, GENERATE_VPN_ID_EXT, nullptr,
+        VpnAsyncWorkExt::ExecGenerateVpnId, VpnAsyncWorkExt::GenerateVpnIdCallback);
+}
+#endif // SUPPORT_SYSVPN
 
 napi_value On(napi_env env, napi_callback_info info)
 {

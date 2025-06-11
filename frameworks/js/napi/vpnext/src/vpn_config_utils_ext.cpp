@@ -35,21 +35,10 @@ bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpn
     switch (vpnType) {
         case VpnType::IKEV2_IPSEC_MSCHAPv2:
         case VpnType::IKEV2_IPSEC_PSK:
-        case VpnType::IKEV2_IPSEC_RSA:
-        case VpnType::IPSEC_XAUTH_PSK:
-        case VpnType::IPSEC_XAUTH_RSA:
-        case VpnType::IPSEC_HYBRID_RSA: {
+        case VpnType::IKEV2_IPSEC_RSA: {
             vpnConfig = CreateAndParseIpsecVpnConf(env, params[0]);
             if (vpnConfig == nullptr) {
                 NETMGR_EXT_LOG_E("CreateAndParseIpsecVpnConf failed, vpnConfig is null");
-                return false;
-            }
-            break;
-        }
-        case VpnType::OPENVPN: {
-            vpnConfig = CreateAndParseOpenvpnConf(env, params[0]);
-            if (vpnConfig == nullptr) {
-                NETMGR_EXT_LOG_E("CreateAndParseOpenvpnConf failed, vpnConfig is null");
                 return false;
             }
             break;

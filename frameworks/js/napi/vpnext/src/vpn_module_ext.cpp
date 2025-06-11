@@ -164,7 +164,8 @@ int32_t CheckVpnPermission(const std::string &bundleName, std::string &vpnExtMod
         return -1;
     }
     NETMANAGER_EXT_LOGI("checkVpnPermission uid: %{public}d, userid: %{public}d", uid, userId);
-    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName + std::to_string(userId), vpnExtMode);
+    std::string key = bundleName + "_" + std::to_string(userId);
+    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
     if (ret != 0 || vpnExtMode != "1") {
         ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
         if (ret != 0 || vpnExtMode != "1") {
@@ -330,8 +331,8 @@ static napi_value UpdateVpnAuthorize(napi_env env, napi_callback_info info)
         NETMANAGER_EXT_LOGE("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
         return nullptr;
     }
-    NETMANAGER_EXT_LOGE("UpdateVpnAuthorize uid: %{public}d, userid: %{public}d", uid, userId);
-    ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName + std::to_string(userId), vpnExtMode);
+    std::string key = bundleName + "_" + std::to_string(userId);
+    ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, key, vpnExtMode);
 #else
     ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, vpnExtMode);
 #endif // SUPPORT_SYSVPN
@@ -356,6 +357,9 @@ napi_value RegisterVpnExtModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(SET_UP_EXT, VpnConnectionExt::SetUp),
                                     DECLARE_NAPI_FUNCTION(PROTECT_EXT, VpnConnectionExt::Protect),
                                     DECLARE_NAPI_FUNCTION(DESTROY_EXT, VpnConnectionExt::Destroy),
+                                    #ifdef SUPPORT_SYSVPN
+                                    DECLARE_NAPI_FUNCTION(GENERATE_VPN_ID_EXT, VpnConnectionExt::GenerateVpnId),
+                                    #endif // SUPPORT_SYSVPN
                                 },
                                 VPN_CONNECTION_EXT);
     return exports;

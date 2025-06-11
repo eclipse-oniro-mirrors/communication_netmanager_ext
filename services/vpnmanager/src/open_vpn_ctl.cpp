@@ -159,7 +159,7 @@ void OpenvpnCtl::UpdateConfig(cJSON *jConfig)
     }
     vpnConfig_->addresses_.emplace_back(iNetAddr);
 
-    iRoute.iface_ = TUN_CARD_NAME;
+    iRoute.iface_ = GetInterfaceName();
     iRoute.isDefaultRoute_ = true;
     iRoute.destination_ = destination;
     iRoute.gateway_ = gateway;

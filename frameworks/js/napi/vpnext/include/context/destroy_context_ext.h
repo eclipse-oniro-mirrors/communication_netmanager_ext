@@ -30,6 +30,9 @@ public:
     DestroyContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
+
+public:
+    std::string vpnId_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

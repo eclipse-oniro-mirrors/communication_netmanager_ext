@@ -25,6 +25,7 @@
 #ifdef SUPPORT_SYSVPN
 #include "add_context.h"
 #include "delete_context.h"
+#include "get_app_info_context.h"
 #include "get_list_context.h"
 #include "get_context.h"
 #include "get_connected_context.h"
@@ -60,6 +61,9 @@ napi_value GetSysVpnConfigCallback(GetContext *context);
 
 bool ExecGetConnectedSysVpnConfig(GetConnectedContext *context);
 napi_value GetConnectedSysVpnConfigCallback(GetConnectedContext *context);
+
+bool ExecGetConnectedVpnAppInfo(GetAppInfoContext *context);
+napi_value GetConnectedVpnAppInfoCallback(GetAppInfoContext *context);
 #endif // SUPPORT_SYSVPN
 } // namespace VpnExec
 } // namespace NetManagerStandard

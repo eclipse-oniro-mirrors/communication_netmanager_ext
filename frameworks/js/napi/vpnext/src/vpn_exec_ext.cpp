@@ -25,6 +25,9 @@
 #include "want.h"
 #include "ability_manager_client.h"
 #include "extension_ability_info.h"
+#ifdef SUPPORT_SYSVPN
+#include "uuid.h"
+#endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -100,13 +103,34 @@ bool ExecDestroy(DestroyContext *context)
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
         return false;
     }
-    int32_t result = vpnClient->DestroyVpn(true);
+    int32_t result = 0;
+#ifdef SUPPORT_SYSVPN
+    if (!context->vpnId_.empty()) {
+        result = vpnClient->DestroyVpn(context->vpnId_);
+    } else {
+        result = vpnClient->DestroyVpn(true);
+    }
+#else
+    result = vpnClient->DestroyVpn(true);
+#endif // SUPPORT_SYSVPN
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
         return false;
     }
     return true;
 }
+
+#ifdef SUPPORT_SYSVPN
+bool ExecGenerateVpnId(GenerateVpnIdContext *context)
+{
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
+    context->vpnId_ = UUID::RandomUUID().ToString();
+    return true;
+}
+#endif // SUPPORT_SYSVPN
 
 napi_value PrepareCallback(PrepareContext *context)
 {
@@ -131,6 +155,12 @@ napi_value DestroyCallback(DestroyContext *context)
 {
     return NapiUtils::GetUndefined(context->GetEnv());
 }
+#ifdef SUPPORT_SYSVPN
+napi_value GenerateVpnIdCallback(GenerateVpnIdContext *context)
+{
+    return NapiUtils::CreateStringUtf8(context->GetEnv(), context->vpnId_);
+}
+#endif // SUPPORT_SYSVPN
 } // namespace VpnExecExt
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -35,6 +35,9 @@ constexpr const char *ON = "on";
 constexpr const char *OFF = "off";
 constexpr const char *VPNEXT_MODE_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
+#ifdef SUPPORT_SYSVPN
+constexpr const char *GENERATE_VPN_ID_EXT = "generateVpnId";
+#endif // SUPPORT_SYSVPN
 } // namespace
 
 namespace VpnConnectionExt {
@@ -44,6 +47,9 @@ napi_value Protect(napi_env env, napi_callback_info info);
 napi_value Destroy(napi_env env, napi_callback_info info);
 napi_value On(napi_env env, napi_callback_info info);
 napi_value Off(napi_env env, napi_callback_info info);
+#ifdef SUPPORT_SYSVPN
+napi_value GenerateVpnId(napi_env env, napi_callback_info info);
+#endif // SUPPORT_SYSVPN
 } // namespace VpnConnectionExt
 } // namespace NetManagerStandard
 } // namespace OHOS
