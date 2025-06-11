@@ -236,6 +236,11 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     auto elem = want.GetElement();
     elem.SetAbilityName(Replace(abilityName));
     want.SetElement(elem);
+    if (OHOS::system::GetBoolParameter("persist.edm.vpn_disable", false)) {
+        napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PERMISSION_DENIED).c_str(),
+            "persist.edm.vpn_disable disallowed setting up vpn");
+        return CreateRejectedPromise(env);
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);

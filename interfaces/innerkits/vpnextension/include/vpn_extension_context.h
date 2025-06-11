@@ -26,6 +26,8 @@
 #include "runtime.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "parameters.h"
+#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {

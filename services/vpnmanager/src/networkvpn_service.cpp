@@ -31,6 +31,7 @@
 #include "securec.h"
 #include "system_ability_definition.h"
 #include "iservice_registry.h"
+#include "parameters.h"
 
 #include "ability_manager_client.h"
 #include "extended_vpn_ctl.h"
@@ -645,6 +646,10 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
+    if (OHOS::system::GetParameter("persist.edm.vpn_disable", "false") != "true") {
+        NETMGR_EXT_LOG_E("persist.edm.vpn_disable disallowed setting up vpn");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     sptr<VpnConfig> configPtr = sptr<VpnConfig>::MakeSptr(config);
     std::string vpnBundleName = GetBundleName();
     if (!CheckSystemCall(vpnBundleName)) {
