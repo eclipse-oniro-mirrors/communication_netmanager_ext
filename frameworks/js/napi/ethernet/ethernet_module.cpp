@@ -117,6 +117,18 @@ static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
     return exports;
 }
 
+static void AddCleanupHook(napi_env env)
+{
+    NapiUtils::SetEnvValid(env);
+    auto envWrapper = new (std::nothrow) napi_env;
+    if (envWrapper == nullptr) {
+        NETMANAGER_BASE_LOGE("EnvWrapper create fail!");
+        return;
+    }
+    *envWrapper = env;
+    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
+}
+
 napi_value RegisterEthernetInterface(napi_env env, napi_value exports)
 {
     DeclareEthernetInterface(env, exports);
@@ -130,6 +142,7 @@ napi_value RegisterEthernetInterface(napi_env env, napi_value exports)
     napi_value ipSetMOdes = NapiUtils::CreateObject(env);
     NapiUtils::DefineProperties(env, ipSetMOdes, ipSetMode);
     NapiUtils::SetNamedProperty(env, exports, IP_SET_MODE, ipSetMOdes);
+    AddCleanupHook(env);
     return exports;
 }
 
