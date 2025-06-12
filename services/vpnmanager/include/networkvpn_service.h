@@ -69,6 +69,9 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         explicit VpnConnStateCb(const NetworkVpnService &vpnService) : vpnService_(vpnService){};
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state) override;
+        #ifdef SUPPORT_SYSVPN
+        void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
+        #endif // SUPPORT_SYSVPN
 
     private:
         const NetworkVpnService &vpnService_;
@@ -85,6 +88,13 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
     private:
         std::weak_ptr<NetworkVpnService> vpnService_;
     };
+#ifdef SUPPORT_SYSVPN
+    struct MultiVpnEventCallback : RefBase {
+        std::string bundleName;
+        int32_t userId;
+        sptr<IVpnEventCallback> callback;
+    };
+#endif // SUPPORT_SYSVPN
 
 public:
     /**
@@ -119,6 +129,11 @@ public:
 
 #ifdef SUPPORT_SYSVPN
     /**
+     * stop the vpn connection
+     */
+    int32_t DestroyVpn(const std::string &vpnId) override;
+
+    /**
      * This function is called when the system vpn application negotiation ends
      */
     int32_t SetUpSysVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall = false) override;
@@ -132,6 +147,11 @@ public:
      * get the vpn config list
      */
     int32_t DeleteSysVpnConfig(const std::string &vpnId) override;
+
+    /**
+     * get the app info of connected vpn
+     */
+    int32_t GetConnectedVpnAppInfo(std::vector<std::string> &bundleNameList) override;
 
     /**
      * get the vpn config listGetConnectedSysVpnConfig
@@ -154,6 +174,16 @@ public:
     int32_t NotifyConnectStage(const std::string &stage, const int32_t result) override;
 
     int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
+
+    /**
+     * register multi vpn callback
+     */
+    int32_t RegisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback) override;
+
+    /**
+     * unregister multi vpn callback
+     */
+    int32_t UnregisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback) override;
 #endif // SUPPORT_SYSVPN
 
     /**
@@ -211,6 +241,11 @@ private:
     int32_t SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback);
     int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
 
+    #ifdef SUPPORT_SYSVPN
+    int32_t SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallback> callback, const std::string &vpnBundleName);
+    int32_t SyncUnregisterMultiVpnEvent(const sptr<IVpnEventCallback> callback);
+    #endif // SUPPORT_SYSVPN
+
     void OnNetSysRestart();
     void ConvertVecRouteToJson(const std::vector<Route>& routes, cJSON* jVecRoutes);
     void ConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr);
@@ -242,6 +277,8 @@ private:
     int32_t QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean);
     std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
+    int32_t DestroyMultiVpn(int32_t callingUid);
+    int32_t DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vpnObj, bool needErase = true);
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();
     std::string GetCurrentVpnBundleName();
@@ -256,6 +293,10 @@ private:
     bool isServicePublished_ = false;
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
+#ifdef SUPPORT_SYSVPN
+    std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap_;
+    std::vector<sptr<MultiVpnEventCallback>> multiVpnEventCallbacks_;
+#endif // SUPPORT_SYSVPN
     std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
     std::shared_ptr<ffrt::queue> networkVpnServiceFfrtQueue_ = nullptr;
     std::mutex netVpnMutex_;

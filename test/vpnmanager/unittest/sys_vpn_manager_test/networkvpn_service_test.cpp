@@ -42,6 +42,8 @@ using namespace testing::ext;
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
     int32_t OnVpnStateChanged(bool isConnected) override{ return 0; };
+    int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
+        const std::string &vpnId) override{ return 0; };
     int32_t OnVpnMultiUserSetUp() override{ return 0; };
 };
 class NetworkVpnServiceTest : public testing::Test {
@@ -152,20 +154,20 @@ HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigTest001, TestSize.Level1)
 
     // vpnConfig_ is "test001"
     instance_->AddSysVpnConfig(vpnConfig_);
-    sptr<SysVpnConfig> resultConfig = nullptr;
+    sptr<SysVpnConfig> resultConfig = new (std::nothrow) IpsecVpnConfig();
     EXPECT_EQ(instance_->GetSysVpnConfig(resultConfig, vpnId_), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigTest002, TestSize.Level1)
 {
     std::string id;
-    sptr<SysVpnConfig> resultConfig = nullptr;
+    sptr<SysVpnConfig> resultConfig = new (std::nothrow) IpsecVpnConfig();
     EXPECT_EQ(instance_->GetSysVpnConfig(resultConfig, id), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
 }
 
 HWTEST_F(NetworkVpnServiceTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
 {
-    sptr<SysVpnConfig> resultConfig = nullptr;
+    sptr<SysVpnConfig> resultConfig = new (std::nothrow) IpsecVpnConfig();
     EXPECT_EQ(instance_->GetConnectedSysVpnConfig(resultConfig), NETMANAGER_EXT_SUCCESS);
 
     instance_->AddSysVpnConfig(vpnConfig_);
@@ -448,6 +450,88 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn002, TestSize.Level1)
+{
+    std::string vpnId = "";
+    int32_t ret = instance_->DestroyVpn(vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    vpnId = "testVpnId";
+    ret = instance_->DestroyVpn(vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    ret = instance_->DestroyVpn(vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyMultiVpn001, TestSize.Level1)
+{
+    std::string vpnId = "testVpnId";
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = vpnId;
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
+    instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
+    int32_t ret = instance_->DestroyMultiVpn(0);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    sptr<MultiVpnInfo> multiVpnInterface = new (std::nothrow) MultiVpnInfo();
+    multiVpnInterface->vpnId = vpnId;
+    multiVpnInterface->userId = userId;
+    multiVpnInterface->callingUid = 100;
+    sysVpnCtl->multiVpnInfo_ = multiVpnInterface;
+    instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
+    ret = instance_->DestroyMultiVpn(100);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    instance_->DeleteSysVpnConfig(vpnId);
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyMultiVpn002, TestSize.Level1)
+{
+    int32_t ret = instance_->DestroyMultiVpn(nullptr);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    std::string vpnId = "testVpnId";
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = vpnId;
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
+    instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
+    instance_->DeleteSysVpnConfig(vpnId);
+    instance_->vpnObj_ = sysVpnCtl;
+    ret = instance_->DestroyMultiVpn(sysVpnCtl, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    sptr<MultiVpnInfo> multiVpnInterface = new (std::nothrow) MultiVpnInfo();
+    multiVpnInterface->vpnId = vpnId;
+    multiVpnInterface->userId = userId;
+    sysVpnCtl->multiVpnInfo_ = multiVpnInterface;
+    ret = instance_->DestroyMultiVpn(sysVpnCtl, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnAppInfo001, TestSize.Level1)
+{
+    std::vector<std::string> appInfos;
+    int32_t ret = instance_->GetConnectedVpnAppInfo(appInfos);
+    EXPECT_EQ(ret, NETMANAGER_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    ret = instance_->GetConnectedVpnAppInfo(appInfos);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkVpnServiceTest, RegisterVpnEvent001, TestSize.Level1)
 {
     sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
@@ -458,6 +542,22 @@ HWTEST_F(NetworkVpnServiceTest, UnregisterVpnEvent001, TestSize.Level1)
 {
     sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
     EXPECT_EQ(instance_->UnregisterVpnEvent(callback), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RegisterMultiVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+    EXPECT_EQ(instance_->RegisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    EXPECT_EQ(instance_->RegisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, UnregisterMultiVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+    EXPECT_EQ(instance_->UnregisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    EXPECT_EQ(instance_->UnregisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, CreateVpnConnection001, TestSize.Level1)
@@ -492,6 +592,42 @@ HWTEST_F(NetworkVpnServiceTest, SyncUnregisterVpnEvent001, TestSize.Level1)
 
     instance_->vpnEventCallbacks_.push_back(callback);
     ret = instance_->SyncUnregisterVpnEvent(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SyncRegisterMultiVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+    std::string pkg = "";
+    int32_t ret = instance_->SyncRegisterMultiVpnEvent(callback, pkg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    pkg = "com.vpn.test";
+    ret = instance_->SyncRegisterMultiVpnEvent(callback, pkg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+
+    sptr<NetworkVpnService::MultiVpnEventCallback> multiVpnEventCallback =
+        new (std::nothrow) NetworkVpnService::MultiVpnEventCallback();
+    multiVpnEventCallback->userId = 100;
+    multiVpnEventCallback->bundleName = "com.vpn.test";
+    multiVpnEventCallback->callback = callback;
+    instance_->multiVpnEventCallbacks_.push_back(multiVpnEventCallback);
+    ret = instance_->SyncRegisterMultiVpnEvent(callback, pkg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SyncUnregisterMultiVpnEvent001, TestSize.Level1)
+{
+    sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
+    int32_t ret = instance_->SyncUnregisterMultiVpnEvent(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+
+    sptr<NetworkVpnService::MultiVpnEventCallback> multiVpnEventCallback =
+        new (std::nothrow) NetworkVpnService::MultiVpnEventCallback();
+    multiVpnEventCallback->userId = 100;
+    multiVpnEventCallback->bundleName = "com.vpn.test";
+    multiVpnEventCallback->callback = callback;
+    instance_->multiVpnEventCallbacks_.push_back(multiVpnEventCallback);
+    ret = instance_->SyncUnregisterMultiVpnEvent(callback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -591,6 +727,20 @@ HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
     ASSERT_NE(instance_->vpnConnCallback_, nullptr);
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
     instance_->vpnConnCallback_->OnVpnConnStateChanged(state);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnMultiVpnConnStateChanged001, TestSize.Level1)
+{
+    int ret = 0;
+    std::string vpnId = "testId";
+    if (instance_->vpnConnCallback_ == nullptr) {
+        instance_->vpnConnCallback_ = std::make_shared<NetworkVpnService::VpnConnStateCb>(*instance_);
+        ret = NETMANAGER_EXT_SUCCESS;
+    }
+    ASSERT_NE(instance_->vpnConnCallback_, nullptr);
+    VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    instance_->networkVpnServiceFfrtQueue_ = std::make_shared<ffrt::queue>("NetworkVpnService");
+    instance_->vpnConnCallback_->OnMultiVpnConnStateChanged(state, vpnId);
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnReceiveEvent001, TestSize.Level1)

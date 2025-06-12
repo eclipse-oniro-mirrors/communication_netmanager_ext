@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef VPN_DESTROY_CONTEXT_H
-#define VPN_DESTROY_CONTEXT_H
+#ifndef VPN_GENERATE_VPNID_CONTEXT_H
+#define VPN_GENERATE_VPNID_CONTEXT_H
 
 #include <cstddef>
+#include <string>
 #include <napi/native_api.h>
 
 #include "base_context.h"
@@ -24,16 +25,16 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class DestroyContext : public BaseContext {
+class GenerateVpnIdContext : public BaseContext {
 public:
-    DestroyContext() = delete;
-    DestroyContext(napi_env env, EventManager *manager);
+    GenerateVpnIdContext() = delete;
+    GenerateVpnIdContext(napi_env env, EventManager *manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 
 public:
-    std::string vpnId_;
+    std::string vpnId_ = "";
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // VPN_DESTROY_CONTEXT_H
+#endif // VPN_GERENATE_VPNID_CONTEXT_H

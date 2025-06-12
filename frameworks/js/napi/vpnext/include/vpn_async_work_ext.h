@@ -32,6 +32,11 @@ void ProtectCallback(napi_env env, napi_status status, void *data);
 
 void ExecDestroy(napi_env env, void *data);
 void DestroyCallback(napi_env env, napi_status status, void *data);
+
+#ifdef SUPPORT_SYSVPN
+void ExecGenerateVpnId(napi_env env, void *data);
+void GenerateVpnIdCallback(napi_env env, napi_status status, void *data);
+#endif // SUPPORT_SYSVPN
 } // namespace VpnAsyncWorkExt
 } // namespace NetManagerStandard
 } // namespace OHOS

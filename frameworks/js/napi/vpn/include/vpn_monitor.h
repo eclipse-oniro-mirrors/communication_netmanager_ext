@@ -27,6 +27,9 @@ namespace NetManagerStandard {
 class VpnEventCallback : public VpnEventCallbackStub {
 public:
     int32_t OnVpnStateChanged(bool isConnected) override;
+    #ifdef SUPPORT_SYSVPN
+    int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName, const std::string &vpnId) override;
+    #endif // SUPPORT_SYSVPN
     int32_t OnVpnMultiUserSetUp() override{ return ERR_OK; };
 };
 
@@ -51,6 +54,9 @@ public:
 
 private:
     sptr<VpnEventCallback> eventCallback_ = nullptr;
+#ifdef SUPPORT_SYSVPN
+    sptr<VpnEventCallback> multiEventCallback_ = nullptr;
+#endif // SUPPORT_SYSVPN
     napi_value callback_ = nullptr;
     EventManager *manager_ = nullptr;
 
@@ -59,6 +65,11 @@ private:
     bool UnwrapManager(napi_env env, napi_value jsObject);
     void Register(napi_env env);
     void Unregister(napi_env env);
+#ifdef SUPPORT_SYSVPN
+    bool ParseParams(napi_env env, napi_callback_info info, std::string &event);
+    void Register(napi_env env, const std::string &event);
+    void Unregister(napi_env env, const std::string &event);
+#endif // SUPPORT_SYSVPN
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

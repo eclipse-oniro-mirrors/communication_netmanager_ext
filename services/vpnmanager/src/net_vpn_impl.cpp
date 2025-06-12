@@ -31,6 +31,7 @@
 #include "netsys_controller.h"
 #ifdef SUPPORT_SYSVPN
 #include "sysvpn_config.h"
+#include "multi_vpn_helper.h"
 #endif // SUPPORT_SYSVPN
 
 namespace OHOS {
@@ -68,6 +69,11 @@ int32_t NetVpnImpl::RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateC
 
 void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
 {
+#ifdef SUPPORT_SYSVPN
+    if (multiVpnInfo_ != nullptr) {
+        multiVpnInfo_->vpnConnectState = state;
+    }
+#endif // SUPPORT_SYSVPN
     if (connChangedCb_ == nullptr) {
         NETMGR_EXT_LOG_E("NotifyConnectState connect callback is null.");
         return;
@@ -81,7 +87,7 @@ int32_t NetVpnImpl::SetUp()
         NETMGR_EXT_LOG_E("VpnConnect vpnConfig_ is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    NETMGR_EXT_LOG_I("SetUp interface name:%{public}s", TUN_CARD_NAME);
+    NETMGR_EXT_LOG_I("SetUp interface name:%{public}s", GetInterfaceName().c_str());
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
 
     auto &netConnClientIns = NetConnClient::GetInstance();
@@ -104,7 +110,7 @@ int32_t NetVpnImpl::SetUp()
     }
 
     std::list<int32_t> netIdList;
-    netConnClientIns.GetNetIdByIdentifier(TUN_CARD_NAME, netIdList);
+    netConnClientIns.GetNetIdByIdentifier(GetInterfaceName(), netIdList);
     if (netIdList.size() == 0) {
         NETMGR_EXT_LOG_E("get netId failed, netId list size is 0");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR, "get Net id failed");
@@ -218,7 +224,8 @@ bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns)
     if (vpnConfig_->isMetered_ == false) {
         netCap.insert(NET_CAPABILITY_NOT_METERED);
     }
-    if (netConnClientIns.RegisterNetSupplier(BEARER_VPN, TUN_CARD_NAME, netCap, netSupplierId_) != NETMANAGER_SUCCESS) {
+    if (netConnClientIns.RegisterNetSupplier(BEARER_VPN, GetInterfaceName(), netCap,
+        netSupplierId_) != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("vpn netManager RegisterNetSupplier error.");
         return false;
     }
@@ -263,8 +270,7 @@ bool NetVpnImpl::UpdateNetLinkInfo()
         NETMGR_EXT_LOG_E("linkInfo is nullptr");
         return false;
     }
-
-    linkInfo->ifaceName_ = TUN_CARD_NAME;
+    linkInfo->ifaceName_ = GetInterfaceName();
     linkInfo->netAddrList_.assign(vpnConfig_->addresses_.begin(), vpnConfig_->addresses_.end());
 
     if (vpnConfig_->routes_.empty()) {
@@ -309,7 +315,7 @@ bool NetVpnImpl::UpdateNetLinkInfo()
 
 void NetVpnImpl::SetIpv4DefaultRoute(Route &ipv4DefaultRoute)
 {
-    ipv4DefaultRoute.iface_ = TUN_CARD_NAME;
+    ipv4DefaultRoute.iface_ = GetInterfaceName();
     ipv4DefaultRoute.destination_.type_ = INetAddr::IPV4;
     ipv4DefaultRoute.destination_.address_ = IPV4_DEFAULT_ROUTE_ADDR;
     ipv4DefaultRoute.destination_.prefixlen_ = CommonUtils::GetMaskLength(IPV4_DEFAULT_ROUTE_ADDR);
@@ -318,7 +324,7 @@ void NetVpnImpl::SetIpv4DefaultRoute(Route &ipv4DefaultRoute)
 
 void NetVpnImpl::SetIpv6DefaultRoute(Route &ipv6DefaultRoute)
 {
-    ipv6DefaultRoute.iface_ = TUN_CARD_NAME;
+    ipv6DefaultRoute.iface_ = GetInterfaceName();
     ipv6DefaultRoute.destination_.type_ = INetAddr::IPV6;
     ipv6DefaultRoute.destination_.address_ = IPV6_DEFAULT_ROUTE_ADDR;
     ipv6DefaultRoute.destination_.prefixlen_ = CommonUtils::Ipv6PrefixLen(IPV6_DEFAULT_ROUTE_ADDR);
@@ -337,7 +343,7 @@ void NetVpnImpl::DelNetLinkInfo(NetConnClient &netConnClientIns)
 void NetVpnImpl::AdjustRouteInfo(Route &route)
 {
     if (route.iface_.empty()) {
-        route.iface_ = TUN_CARD_NAME;
+        route.iface_ = GetInterfaceName();
     }
     if (vpnConfig_->isAcceptIPv6_ == true && route.destination_.family_ == INetAddr::IpType::IPV6) {
         route.destination_.address_ = CommonUtils::GetIpv6Prefix(route.destination_.address_,

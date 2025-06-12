@@ -60,6 +60,7 @@ ohos_shared_library("vpn") {
     sources += [
       "src/context/add_context.cpp",
       "src/context/delete_context.cpp",
+      "src/context/get_app_info_context.cpp",
       "src/context/get_connected_context.cpp",
       "src/context/get_context.cpp",
       "src/context/get_list_context.cpp",

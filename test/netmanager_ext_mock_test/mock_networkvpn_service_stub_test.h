@@ -44,7 +44,7 @@ public:
     }
 
 #ifdef SUPPORT_SYSVPN
-    int32_t SetUpSysVpn(const sptr<SysVpnConfig> &config) override
+    int32_t SetUpSysVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall = false) override
     {
         return 0;
     }
@@ -80,6 +80,26 @@ public:
     }
 
     int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override
+    {
+        return 0;
+    }
+
+    int32_t GetConnectedVpnAppInfo(std::vector<std::string> &bundleNameList) override
+    {
+        return 0;
+    }
+
+    int32_t DestroyVpn(const std::string &vpnId) override
+    {
+        return 0;
+    }
+
+    int32_t RegisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback) override
+    {
+        return 0;
+    }
+
+    int32_t UnregisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback) override
     {
         return 0;
     }

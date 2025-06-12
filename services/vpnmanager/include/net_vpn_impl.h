@@ -31,6 +31,7 @@
 #include "networkvpn_hisysevent.h"
 #ifdef SUPPORT_SYSVPN
 #include "sysvpn_config.h"
+#include "multi_vpn_helper.h"
 #endif // SUPPORT_SYSVPN
 #include "vpn_config.h"
 
@@ -74,6 +75,11 @@ public:
     }
     inline std::string GetInterfaceName() const
     {
+#ifdef SUPPORT_SYSVPN
+        if (multiVpnInfo_ != nullptr && !multiVpnInfo_->ifName.empty()) {
+            return multiVpnInfo_->ifName;
+        }
+#endif
         return TUN_CARD_NAME;
     }
 
@@ -98,6 +104,11 @@ private:
                                         std::vector<int32_t> &endUids);
     std::set<int32_t> GetAppsUids(int32_t userId, const std::vector<std::string> &applications);
     int32_t GenerateUidRanges(int32_t userId, std::vector<int32_t> &beginUids, std::vector<int32_t> &endUids);
+
+#ifdef SUPPORT_SYSVPN
+public:
+    sptr<MultiVpnInfo> multiVpnInfo_ = nullptr;
+#endif // SUPPORT_SYSVPN
 
 protected:
     sptr<VpnConfig> vpnConfig_ = nullptr;

@@ -48,6 +48,9 @@ void GetSysVpnConfigCallback(napi_env env, napi_status status, void *data);
 
 void ExecGetConnectedSysVpnConfig(napi_env env, void *data);
 void GetConnectedSysVpnConfigCallback(napi_env env, napi_status status, void *data);
+
+void ExecGetConnectedVpnAppInfo(napi_env env, void *data);
+void GetConnectedVpnAppInfoCallback(napi_env env, napi_status status, void *data);
 #endif // SUPPORT_SYSVPN
 } // namespace VpnAsyncWork
 } // namespace NetManagerStandard

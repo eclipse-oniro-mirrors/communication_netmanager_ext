@@ -135,6 +135,26 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
+int32_t NetworkVpnClient::DestroyVpn(const std::string &vpnId)
+{
+    if (vpnId.empty()) {
+        NETMGR_EXT_LOG_E("DestroyVpn vpnId is empty");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    vpnInterface_.CloseVpnInterfaceFd();
+    if (vpnEventCallback_ != nullptr) {
+        UnregisterVpnEvent(vpnEventCallback_);
+        vpnEventCallback_ = nullptr;
+    }
+
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("DestroyVpn proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->DestroyVpn(vpnId);
+}
+
 int32_t NetworkVpnClient::SetUpVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall)
 {
     if (config == nullptr) {
@@ -176,6 +196,16 @@ int32_t NetworkVpnClient::DeleteSysVpnConfig(const std::string &vpnId)
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     return proxy->DeleteSysVpnConfig(vpnId);
+}
+
+int32_t NetworkVpnClient::GetConnectedVpnAppInfo(std::vector<std::string> &bundleNameList)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetConnectedVpnAppInfo proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetConnectedVpnAppInfo(bundleNameList);
 }
 
 int32_t NetworkVpnClient::GetSysVpnConfigList(std::vector<sptr<SysVpnConfig>> &vpnList)
@@ -230,6 +260,34 @@ int32_t NetworkVpnClient::GetSysVpnCertUri(const int32_t certType, std::string &
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     return proxy->GetSysVpnCertUri(certType, certUri);
+}
+
+int32_t NetworkVpnClient::RegisterMultiVpnEvent(sptr<IVpnEventCallback> callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("RegisterMultiVpnEvent callback is null.");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("RegisterMultiVpnEvent proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->RegisterMultiVpnEvent(callback);
+}
+
+int32_t NetworkVpnClient::UnregisterMultiVpnEvent(sptr<IVpnEventCallback> callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("UnregisterMultiVpnEvent callback is null.");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("UnregisterMultiVpnEvent proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->UnregisterMultiVpnEvent(callback);
 }
 #endif // SUPPORT_SYSVPN
 
