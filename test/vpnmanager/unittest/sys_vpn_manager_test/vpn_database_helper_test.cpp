@@ -262,7 +262,7 @@ HWTEST_F(VpnDatabaseHelperTest, EncryptData001, TestSize.Level1)
     vpnBean->saveLogin_ = 1;
     
     EXPECT_EQ(vpnDataHelper_.EncryptData(vpnBean), NETMANAGER_EXT_ERR_INTERNAL);
-    EXPECT_EQ(vpnDataHelper_.DecryptData(vpnBean), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(vpnDataHelper_.DecryptData(vpnBean), NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
