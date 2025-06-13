@@ -240,5 +240,29 @@ HWTEST_F(VpnDatabaseHelperTest, NoStore001, TestSize.Level1)
     EXPECT_EQ(vpnDataHelper_.DeleteVpnData(vpnBean->vpnId_), NETMANAGER_EXT_ERR_OPERATION_FAILED);
     vpnDataHelper_.store_ = tmp;
 }
+
+HWTEST_F(VpnDatabaseHelperTest, EncryptData001, TestSize.Level1)
+{
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    vpnBean->vpnId_ = "1234";
+    vpnBean->userName_ = "TEST";
+    vpnBean->password_ = "111111";
+    vpnBean->ipsecPreSharedKey_ = "ipsecPreSharedKey_";
+    vpnBean->l2tpSharedKey_ = "l2tpSharedKey_";
+    vpnBean->askpass_ = "swanctlConf_";
+    vpnBean->swanctlConf_ = "ipsecPreSharedKey_";
+    vpnBean->optionsL2tpdClient_ = "optionsL2tpdClient_";
+    vpnBean->ipsecSecrets_ = "ipsecSecrets_";
+    vpnBean->userId_ = 100;
+    vpnBean->vpnType_ = 1;
+    vpnBean->vpnName_ = "name";
+    vpnBean->vpnAddress_ = "1.1.1.1";
+    vpnBean->isLegacy_ = 1;
+    vpnBean->saveLogin_ = 1;
+    
+    EXPECT_EQ(vpnDataHelper_.EncryptData(vpnBean), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(vpnDataHelper_.DecryptData(vpnBean), NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
