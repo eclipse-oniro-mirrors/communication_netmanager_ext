@@ -94,6 +94,9 @@ private:
         std::vector<EthernetDeviceInfo> &deviceInfoList);
     void GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
         std::vector<EthernetDeviceInfo> &deviceInfoList);
+    bool CanModifyCheck(IPSetMode origin, IPSetMode input);
+    void ProcessChangeMode(
+        const std::string &iface, sptr<DevInterfaceState> devState, sptr<InterfaceConfiguration> cfg);
 
 private:
     std::map<std::string, std::set<NetCap>> devCaps_;

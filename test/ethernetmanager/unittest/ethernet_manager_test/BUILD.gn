@@ -65,6 +65,7 @@ ohos_unittest("ethernet_manager_test") {
     "cJSON:cjson",
     "dhcp:dhcp_sdk",
     "ffrt:libffrt",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "netmanager_base:netsys_controller",
     "netmanager_base:net_conn_manager_if",
