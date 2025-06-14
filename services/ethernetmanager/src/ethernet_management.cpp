@@ -16,11 +16,11 @@
 #include "ethernet_management.h"
 
 #include <fcntl.h>
+#include <fstream>
 #include <regex>
 #include <thread>
 #include <pthread.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <vector>
 
@@ -566,18 +566,17 @@ bool EthernetManagement::ModeInputCheck(IPSetMode origin, IPSetMode input)
 
 bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::string &nodeVal)
 {
-    int fd = open(nodePath.c_str(), O_RDONLY);
-    if (fd < 0) {
+    std::ifstream infile;
+    std::string strLine;
+    infile.open(nodePath);
+    if (!infile.is_open()) {
+        NETMGR_EXT_LOG_E("GetSysNodeValue open failed");
         return false;
     }
-    char value[BUFFER_SIZE] = {'\0'};
-    if (read(fd, value, BUFFER_SIZE) < 0) {
-        close(fd);
-        return false;
+    while (getline(infile, strLine)) {
+        nodeVal.append(strLine);
     }
-    nodeVal = std::string(value);
-    nodeVal.pop_back();
-    close(fd);
+    infile.close();
     return true;
 }
  
@@ -621,13 +620,13 @@ int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo>
     lock.unlock();
     for (std::string &iface : ifaces) {
         std::string netDevicePath = SYS_CLASS_NET_PATH + iface + ITEM_DEVICE;
-        char symbolicPath[PATH_MAX];
-        memset_s(symbolicPath, sizeof(symbolicPath), '\0', sizeof(symbolicPath));
-        if (realpath(netDevicePath.c_str(), symbolicPath) == NULL) {
-            NETMGR_EXT_LOG_E("GetDeviceInformation realpath %{public}s err:%{public}d", netDevicePath.c_str(), errno);
+        std::filesystem::path filePath(netDevicePath);
+        auto truePath = std::filesystem::canonical(filePath);
+        if (!std::filesystem::exists(truePath)) {
+            NETMGR_EXT_LOG_E("GetDeviceInformation truePath %{public}s not exist", truePath.string().c_str());
             continue;
         }
-        std::string netDevNodePath = symbolicPath;
+        std::string netDevNodePath = truePath.string();
         if (netDevNodePath.find(ITEM_USB) != std::string::npos) {
             GetUsbEthDeviceInfo(iface, netDevNodePath, deviceInfoList);
         } else {

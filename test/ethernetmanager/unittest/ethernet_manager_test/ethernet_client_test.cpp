@@ -190,5 +190,18 @@ HWTEST_F(EthernetClientTest, SetInterfaceConfigTest001, TestSize.Level1)
     int32_t ret = ethernetClient->SetInterfaceConfig(iface, cfg);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+/**
+ * @tc.name: GetDeviceInformationTest001
+ * @tc.desc: Test GetDeviceInformation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, GetDeviceInformationTest001, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    std::vector<EthernetDeviceInfo> devInfoList;
+    int32_t ret = ethernetClient->GetDeviceInformation(devInfoList);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
