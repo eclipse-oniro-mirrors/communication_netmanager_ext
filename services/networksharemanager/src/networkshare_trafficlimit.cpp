@@ -35,6 +35,7 @@ static constexpr const char *SHARE_SETTING_URI =
 const std::string SHARE_LIMIT = "wifiap_one_usage_limit";
 const std::string WIFI_AP_STATS = "wifiap_one_usage_stats";
 const std::string SHARING_LIMIT_TASK_NAME = "networkshare_traffic_limit";
+const std::string CELLULAR_IFACE_NAME = "rmnet";
 constexpr int64_t SECOND_IN_MILLIS = 1000;
 constexpr int32_t NUMBER_THREE = 3;
 constexpr int32_t UTIL_MIN_SUB_ID = 0;
@@ -273,7 +274,11 @@ void NetworkShareTrafficLimit::UpdataSharingTrafficStats()
         NETMGR_EXT_LOG_E("GetTrafficBytes err, ret[%{public}d].", ret);
         return;
     }
-
+    if (ifaceName.find(CELLULAR_IFACE_NAME) == std::string::npos) {
+        NETMGR_EXT_LOG_E("hotspot is not cellular sharing");
+        return;
+    }
+    
     int64_t tetherStats = static_cast<int64_t>(traffic.receive + traffic.send);
     NETMGR_EXT_LOG_I("Stats=%{public}" PRId64, tetherStats);
     int64_t statsMills = GetCurrentMilliseconds();

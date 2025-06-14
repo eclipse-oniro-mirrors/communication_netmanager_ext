@@ -382,9 +382,9 @@ void NetworkShareSubStateMachine::SharedStateExit()
 {
     NETMGR_EXT_LOG_I("Exit Sub StateMachine[%{public}s] Shared State.", ifaceName_.c_str());
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    nmd::NetworkSharingTraffic traffic;
+    NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
     if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
-        nmd::NetworkSharingTraffic traffic;
-        NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
         NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToSettingsDB(traffic);
     }
 #endif
@@ -411,13 +411,13 @@ int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &me
         std::any_cast<std::shared_ptr<UpstreamNetworkInfo>>(messageObj);
     if (upstreamNetInfo == nullptr) {
         NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] upstreamNetInfo is null, need clean.", ifaceName_.c_str());
-    #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+        nmd::NetworkSharingTraffic traffic;
+        NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
         if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
-            nmd::NetworkSharingTraffic traffic;
-            NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
             NetworkShareTrafficLimit::GetInstance().AddSharingTrafficBeforeConnChanged(traffic);
         }
-    #endif
+#endif
         CleanupUpstreamInterface();
         upstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
         return NETMANAGER_EXT_SUCCESS;
