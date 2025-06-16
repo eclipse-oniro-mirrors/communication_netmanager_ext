@@ -644,13 +644,7 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 bool NetworkVpnService::CheckSystemCall(const std::string &bundleName)
 {
     if (!NetManagerPermission::IsSystemCaller()) {
-        std::string vpnExtMode;
-        int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, bundleName.c_str());
-        if (ret != 0 || vpnExtMode != "1") {
-            NETMGR_EXT_LOG_E("query datebase fail.");
-            return false;
-        }
+        return CheckVpnExtPermission(bundleName);
     }
     return true;
 }
@@ -658,35 +652,36 @@ bool NetworkVpnService::CheckSystemCall(const std::string &bundleName)
 bool NetworkVpnService::CheckVpnPermission(const std::string &bundleName)
 {
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_VPN)) {
-        int32_t ret = NETMANAGER_EXT_SUCCESS;
-        std::string vpnExtMode;
+        return CheckVpnExtPermission(bundleName);
+    }
+    return true;
+}
+
+bool NetworkVpnService::CheckVpnExtPermission(const std::string &bundleName)
+{
+    int32_t ret = NETMANAGER_EXT_SUCCESS;
+    std::string vpnExtMode;
 #ifdef SUPPORT_SYSVPN
-        int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-        std::vector<int32_t> activeUserIds;
-        ret = CheckCurrentAccountType(userId, activeUserIds);
-        if (ret != NETMANAGER_EXT_SUCCESS) {
-            NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
-            return ret;
-        }
-        std::string key = bundleName + "_" + std::to_string(userId);
-        ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
-        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s] userId = [%{public}d]",
-            ret, bundleName.c_str(), userId);
-        if (ret != 0 || vpnExtMode != "1") {
-            ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-            if (ret != 0 || vpnExtMode != "1") {
-                NETMGR_EXT_LOG_E("query datebase fail.");
-                return false;
-            }
-        }
-#else
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
+        NETMGR_EXT_LOG_E("CheckSystemCall GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
+        return false;
+    }
+    std::string key = bundleName + "_" + std::to_string(userId);
+    ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
+    if (ret == NETMANAGER_EXT_SUCCESS && vpnExtMode == "1") {
+        return true;
+    }
+#endif // SUPPORT_SYSVPN
+    NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s] userId = [%{public}d]",
+                     ret, bundleName.c_str(), userId);
+    if (ret != NETMANAGER_EXT_SUCCESS || vpnExtMode != "1") {
         ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-        NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s]", ret, bundleName.c_str());
-        if (ret != 0 || vpnExtMode != "1") {
+        if (ret != NETMANAGER_EXT_SUCCESS || vpnExtMode != "1") {
             NETMGR_EXT_LOG_E("query datebase fail.");
             return false;
         }
-#endif // SUPPORT_SYSVPN
     }
     return true;
 }
