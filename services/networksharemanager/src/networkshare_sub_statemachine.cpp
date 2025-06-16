@@ -109,6 +109,12 @@ void NetworkShareSubStateMachine::CreateInitStateTable()
     temp.func_ = &NetworkShareSubStateMachine::HandleInitInterfaceDown;
     temp.nextState_ = SUBSTATE_UNAVAILABLE;
     stateTable_.push_back(temp);
+
+    temp.event_ = CMD_NETSHARE_UNREQUESTED;
+    temp.curState_ = SUBSTATE_INIT;
+    temp.func_ = &NetworkShareSubStateMachine::HandleSharedUnrequest;
+    temp.nextState_ = SUBSTATE_UNAVAILABLE;
+    stateTable_.push_back(temp);
 }
 
 void NetworkShareSubStateMachine::CreateSharedStateTable()
