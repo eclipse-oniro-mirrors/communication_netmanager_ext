@@ -41,7 +41,6 @@
 #ifdef WIFI_MODOULE
 #include "wifi_ap_msg.h"
 #include "wifi_hotspot.h"
-#include "wifi_device_config.h"
 #endif
 
 namespace OHOS {
@@ -114,6 +113,15 @@ private:
         int32_t lastError_;
         bool isNcm_;
     };
+
+#ifdef WIFI_MODOULE
+    class WifiHotspotCallback : public IRemoteStub<Wifi::IWifiHotspotCallback> {
+    public:
+        void OnHotspotStateChanged(int state) override;
+        void OnHotspotStaJoin(const Wifi::StationInfo &info) override;
+        void OnHotspotStaLeave(const Wifi::StationInfo &info) override;
+    };
+#endif
 
 public:
     static NetworkShareTracker &GetInstance();
@@ -248,12 +256,9 @@ private:
     void StopDnsProxy();
     SharingIfaceState SubSmStateToExportState(int32_t state);
     void OnChangeSharingState(const SharingIfaceType &type, bool state);
-    static void OnWifiHotspotStateChanged(int state);
-    static void OnWifiHotspotStaLeave(StationInfo *info);
-    static void OnWifiHotspotStaJoin(StationInfo *info);
-    void RegisterWifiApCallback();
     void RegisterBtPanCallback();
 #ifdef WIFI_MODOULE
+    void RegisterWifiApCallback();
     void SetWifiState(const Wifi::ApState &state);
     void HandleHotSpotStarted();
     void HandleHotSpotClosed();
@@ -263,6 +268,9 @@ private:
     void StopIdleApStopTimer();
     void StartIdleApStopTimer();
     void GetPowerConnected();
+    int32_t EnableHotspot();
+    int32_t DisableHotspot();
+    int32_t GetStationNum(size_t &num);
 #endif
 #ifdef BLUETOOTH_MODOULE
     void SetBluetoothState(const Bluetooth::BTConnectState &state);
@@ -288,8 +296,8 @@ private:
     bool isStartDnsProxy_ = false;
 #ifdef WIFI_MODOULE
     int32_t wifiShareCount_ = 0;
+    sptr<WifiHotspotCallback> wifiHotspotCallback_ = nullptr;
     Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
-    WifiEvent g_wifiEvent = {0};
     uint32_t idleApStopTimerId_ = 0;
     ffrt::mutex apStopTimerMutex_;
     bool powerConnected_ = false;

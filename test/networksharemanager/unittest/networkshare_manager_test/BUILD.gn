@@ -67,10 +67,6 @@ ohos_unittest("networkshare_manager_test") {
   defines = []
   if (communication_wifi_switch_enable) {
     defines += [ "WIFI_MODOULE" ]
-    include_dirs += [
-      "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-      "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
-    ]
   }
   if (communication_bluetooth_switch_enable) {
     defines += [ "BLUETOOTH_MODOULE" ]

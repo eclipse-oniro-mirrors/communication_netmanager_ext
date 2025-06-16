@@ -541,7 +541,9 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     std::vector<std::string> ifaceRegexs;
     std::vector<std::string> ifaces;
     int32_t kbByte = 0;
+    auto wifiHotspotCallback = sptr<NetworkShareTracker::WifiHotspotCallback>::MakeSptr();
     NetworkShareTracker::GetInstance().Uninit();
+    wifiHotspotCallback->OnHotspotStateChanged(num);
     NetworkShareTracker::GetInstance().IsNetworkSharingSupported(supported);
     NetworkShareTracker::GetInstance().IsSharing(sharingStatus);
     NetworkShareTracker::GetInstance().StartNetworkSharing(ifaceType);
@@ -613,9 +615,9 @@ void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
     tra.SetDnsForwarders(*netHandle);
     tra.StopDnsProxy();
     tra.SubSmStateToExportState(num);
-    tra.RegisterWifiApCallback();
     tra.RegisterBtPanCallback();
 #ifdef WIFI_MODOULE
+    tra.RegisterWifiApCallback();
     tra.SetWifiState(Wifi::ApState(num % ENUM_TYPE_VALUE6));
 #endif
 #ifdef BLUETOOTH_MODOULE

@@ -405,6 +405,25 @@ HWTEST_F(NetworkShareSubStateMachineTest, HandleConnectionChanged003, TestSize.L
 }
 
 /**
+ * @tc.name: HandleConnectionChanged004
+ * @tc.desc: Test NetworkShareSubStateMachine HandleConnectionChanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareSubStateMachineTest, HandleConnectionChanged004, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = std::make_shared<NetworkShareSubStateMachine>(
+        WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    sptr<NetHandle> handle = nullptr;
+    sptr<NetAllCapabilities> netcap = new (std::nothrow) NetManagerStandard::NetAllCapabilities();
+    sptr<NetLinkInfo> link = new (std::nothrow) NetManagerStandard::NetLinkInfo();
+    auto upstreamNetInfo = std::make_shared<UpstreamNetworkInfo>(handle, netcap, link);
+    networkShareSubStateMachine->upstreamIfaceName_ = "test0";
+    upstreamNetInfo->netLinkPro_->ifaceName_ = "test1";
+    EXPECT_TRUE(networkShareSubStateMachine->HasChangeUpstreamIfaceSet(upstreamNetInfo->netLinkPro_->ifaceName_));
+}
+
+/**
  * @tc.name: AddRoutesToLocalNetwork001
  * @tc.desc: Test NetworkShareSubStateMachine AddRoutesToLocalNetwork.
  * @tc.type: FUNC
