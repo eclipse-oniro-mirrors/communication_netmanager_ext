@@ -69,8 +69,6 @@ ohos_unittest("networkslice_manager_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
-    "cellular_data:tel_cellular_data_api",
-    "core_service:tel_core_service_api",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "dhcp:dhcp_sdk",
