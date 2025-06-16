@@ -669,19 +669,17 @@ bool NetworkVpnService::CheckVpnExtPermission(const std::string &bundleName)
         return false;
     }
     std::string key = bundleName + "_" + std::to_string(userId);
+    NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s] userId = [%{public}d]",
+                     ret, bundleName.c_str(), userId);
     ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
     if (ret == NETMANAGER_EXT_SUCCESS && vpnExtMode == "1") {
         return true;
     }
 #endif // SUPPORT_SYSVPN
-    NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s] userId = [%{public}d]",
-                     ret, bundleName.c_str(), userId);
+    ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
     if (ret != NETMANAGER_EXT_SUCCESS || vpnExtMode != "1") {
-        ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-        if (ret != NETMANAGER_EXT_SUCCESS || vpnExtMode != "1") {
-            NETMGR_EXT_LOG_E("query datebase fail.");
-            return false;
-        }
+        NETMGR_EXT_LOG_E("query datebase fail.");
+        return false;
     }
     return true;
 }
