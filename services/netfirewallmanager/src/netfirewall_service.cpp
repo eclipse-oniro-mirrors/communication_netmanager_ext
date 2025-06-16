@@ -36,7 +36,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int64_t QUERY_USER_ID_DELAY_TIME_MS = 300L;
+constexpr int64_t QUERY_USER_ID_DELAY_TIME_MS = 300000L;
 constexpr int32_t QUERY_USER_MAX_RETRY_TIMES = 100;
 constexpr int64_t SET_POLICY_DELAY_TIME_MS = 500000L;
 
