@@ -120,5 +120,12 @@ HWTEST_F(WearableDistributedNetClientTest, UpdateWearableDistributedNetMeteredSt
     auto ret = WearableDistributedNetClient::GetInstance().UpdateWearableDistributedNetMeteredStatus(isMetered);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
+
+HWTEST_F(WearableDistributedNetClientTest, EnableWearableDistributedNet, TestSize.Level1)
+{
+    bool enableFlag = true;
+    auto ret = WearableDistributedNetClient::GetInstance().EnableWearableDistributedNet(enableFlag);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
