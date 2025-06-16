@@ -53,9 +53,6 @@ NETWORKSLICE_SOURCE_DIR = "$NETMANAGER_EXT_ROOT/services/networkslicemanager"
 # args of uitls
 NETWORKSHAREMANAGER_UTILS_DIR = "$NETMANAGER_EXT_ROOT/utils"
 
-# args of other module
-WIFI_MANAGER_ROOT = "//foundation/communication/wifi/wifi"
-
 use_js_debug = false
 declare_args() {
   communication_bluetooth_switch_enable = false

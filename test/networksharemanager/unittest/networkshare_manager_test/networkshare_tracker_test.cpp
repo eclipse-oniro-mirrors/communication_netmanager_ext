@@ -549,23 +549,24 @@ HWTEST_F(NetworkShareTrackerTest, GetSharedSubSMTraffic03, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStateChanged01, TestSize.Level1)
 {
     int32_t state = 2;
-    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+    auto wifiHotspotCallback = sptr<NetworkShareTracker::WifiHotspotCallback>::MakeSptr();
+    wifiHotspotCallback->OnHotspotStateChanged(state);
     EXPECT_EQ(NetworkShareTracker::GetInstance().curWifiState_, Wifi::ApState::AP_STATE_STARTING);
 
     state = 3;
-    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+    wifiHotspotCallback->OnHotspotStateChanged(state);
     EXPECT_EQ(NetworkShareTracker::GetInstance().curWifiState_, Wifi::ApState::AP_STATE_STARTED);
 
     state = 4;
-    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+    wifiHotspotCallback->OnHotspotStateChanged(state);
     EXPECT_EQ(NetworkShareTracker::GetInstance().curWifiState_, Wifi::ApState::AP_STATE_CLOSING);
 
     state = 5;
-    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+    wifiHotspotCallback->OnHotspotStateChanged(state);
     EXPECT_EQ(NetworkShareTracker::GetInstance().curWifiState_, Wifi::ApState::AP_STATE_CLOSED);
 
     state = 0;
-    NetworkShareTracker::GetInstance().OnWifiHotspotStateChanged(state);
+    wifiHotspotCallback->OnHotspotStateChanged(state);
     EXPECT_EQ(NetworkShareTracker::GetInstance().curWifiState_, Wifi::ApState::AP_STATE_NONE);
 }
 #endif
@@ -800,19 +801,21 @@ HWTEST_F(NetworkShareTrackerTest, HandleIdleApStopTimerTest, TestSize.Level1)
 
 HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStaJoinTest, TestSize.Level1)
 {
-    StationInfo sta{};
-    NetworkShareTracker::GetInstance().OnWifiHotspotStaJoin(&sta);
+    Wifi::StationInfo sta{};
+    auto wifiHotspotCallback = sptr<NetworkShareTracker::WifiHotspotCallback>::MakeSptr();
+    wifiHotspotCallback->OnHotspotStaJoin(sta);
     EXPECT_EQ(NetworkShareTracker::GetInstance().staConnected_, true);
     EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
 }
 
 HWTEST_F(NetworkShareTrackerTest, OnWifiHotspotStaLeaveTest, TestSize.Level1)
 {
-    StationInfo sta{};
+    Wifi::StationInfo sta{};
+    auto wifiHotspotCallback = sptr<NetworkShareTracker::WifiHotspotCallback>::MakeSptr();
     NetworkShareTracker::GetInstance().powerConnected_ = true;
     NetworkShareTracker::GetInstance().staConnected_ = true;
     NetworkShareTracker::GetInstance().curWifiState_ = Wifi::ApState::AP_STATE_STARTED;
-    NetworkShareTracker::GetInstance().OnWifiHotspotStaLeave(&sta);
+    wifiHotspotCallback->OnHotspotStaLeave(sta);
     EXPECT_EQ(NetworkShareTracker::GetInstance().idleApStopTimerId_, 0);
 }
 

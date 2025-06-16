@@ -37,13 +37,6 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
   ]
 
-  if (communication_wifi_switch_enable) {
-    include_dirs += [
-      "$WIFI_MANAGER_ROOT/interfaces/kits/c",
-      "$WIFI_MANAGER_ROOT/frameworks/native/interfaces",
-    ]
-  }
-
   cflags = [
     "-g",
     "-O0",
