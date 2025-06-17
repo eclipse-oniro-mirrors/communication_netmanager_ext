@@ -31,6 +31,7 @@
 #include "securec.h"
 #include "system_ability_definition.h"
 #include "iservice_registry.h"
+#include "parameters.h"
 
 #include "ability_manager_client.h"
 #include "extended_vpn_ctl.h"
@@ -688,6 +689,10 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
     std::unique_lock<std::mutex> locker(netVpnMutex_);
+    if (OHOS::system::GetBoolParameter("persist.edm.vpn_disable", false)) {
+        NETMGR_EXT_LOG_E("persist.edm.vpn_disable disallowed setting up vpn");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     sptr<VpnConfig> configPtr = sptr<VpnConfig>::MakeSptr(config);
     std::string vpnBundleName = GetBundleName();
     if (!CheckSystemCall(vpnBundleName)) {
@@ -704,13 +709,9 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
         return ret;
     }
     if (vpnObj_ != nullptr) {
-        if (vpnObj_->GetUserId() == userId) {
-            NETMGR_EXT_LOG_W("vpn exist already, please execute destory first");
-            return NETWORKVPN_ERROR_VPN_EXIST;
-        } else {
-            NETMGR_EXT_LOG_W("vpn using by other user");
-            return NETWORKVPN_ERROR_VPN_EXIST;
-        }
+        NETMGR_EXT_LOG_W("%{public}s", (vpnObj_->GetUserId() == userId ?
+            "vpn exist already, please execute destory first" : "vpn using by other user"));
+        return NETWORKVPN_ERROR_VPN_EXIST;
     }
     vpnObj_ = std::make_shared<ExtendedVpnCtl>(configPtr, "", userId, activeUserIds);
     if (vpnObj_->RegisterConnectStateChangedCb(vpnConnCallback_) != NETMANAGER_EXT_SUCCESS) {

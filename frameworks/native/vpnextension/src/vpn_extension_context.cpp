@@ -56,6 +56,10 @@ ErrCode VpnExtensionContext::ConnectAbility(
 ErrCode VpnExtensionContext::StartVpnExtensionAbility(const AAFwk::Want &want, int32_t accountId) const
 {
     NETMGR_EXT_LOG_D("%{public}s begin.", __func__);
+    if (OHOS::system::GetBoolParameter("persist.edm.vpn_disable", false)) {
+        NETMGR_EXT_LOG_E("persist.edm.vpn_disable disallowed setting up vpn");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
         want, token_, accountId, AppExecFwk::ExtensionAbilityType::VPN);
     if (err != ERR_OK) {

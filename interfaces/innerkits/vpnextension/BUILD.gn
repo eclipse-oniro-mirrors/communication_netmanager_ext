@@ -85,6 +85,7 @@ ohos_shared_library("vpn_extension") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
