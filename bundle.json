@@ -51,7 +51,6 @@
             "components": [
                 "bounds_checking_function",
                 "ipc",
-                "init",
                 "safwk",
                 "napi",
                 "dhcp",
