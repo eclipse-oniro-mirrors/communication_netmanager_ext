@@ -27,6 +27,7 @@
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
+#include "parameters.h"
 #include "securec.h"
 
 namespace OHOS {
@@ -49,6 +50,7 @@ constexpr uint32_t INDEX_THREE = 3;
 constexpr uint32_t INDEX_FOUR = 4;
 constexpr uint32_t INDEX_FIVE = 5;
 constexpr uint32_t BUFFER_SIZE = 64;
+constexpr const char *SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE = "persist.edm.set_ethernet_ip_disable";
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
@@ -282,17 +284,16 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("The iface[%{public}s] device can not exchange between WAN and LAN", iface.c_str());
         return NETMANAGER_ERR_INVALID_PARAMETER;
     }
+    if (!CanModifyCheck(devState->GetIfcfg()->mode_, cfg->mode_)) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device is not allowed to update", iface.c_str());
+        return NETMANAGER_ERR_PERMISSION_DENIED;
+    }
     if (!ethConfiguration_->WriteUserConfiguration(iface, cfg)) {
         NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
         return ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL;
     }
     if (devState->GetIfcfg()->mode_ != cfg->mode_) {
-        if (cfg->mode_ == DHCP || cfg->mode_ == LAN_DHCP) {
-            StartDhcpClient(iface, devState);
-        } else {
-            StopDhcpClient(iface, devState);
-            netLinkConfigs_[iface] = nullptr;
-        }
+        ProcessChangeMode(iface, devState, cfg);
     } else if (cfg->mode_ == DHCP) {
         devState->UpdateNetHttpProxy(cfg->httpProxy_);
     }
@@ -305,6 +306,29 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
     }
     devCfgs_[iface] = cfg;
     return NETMANAGER_EXT_SUCCESS;
+}
+
+bool EthernetManagement::CanModifyCheck(IPSetMode origin, IPSetMode input)
+{
+    std::string param(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE);
+    bool isSetEthernetIpDisabled = OHOS::system::GetBoolParameter(param, false);
+    NETMGR_EXT_LOG_D("Set ethernet ip is disabled: %{public}d, origin mode: %{public}d, input mode: %{public}d",
+        isSetEthernetIpDisabled, origin, input);
+    if (isSetEthernetIpDisabled && origin == STATIC && (input == DHCP || input == STATIC)) {
+        return false;
+    }
+    return true;
+}
+
+void EthernetManagement::ProcessChangeMode(
+    const std::string &iface, sptr<DevInterfaceState> devState, sptr<InterfaceConfiguration> cfg)
+{
+    if (cfg->mode_ == DHCP || cfg->mode_ == LAN_DHCP) {
+        StartDhcpClient(iface, devState);
+    } else {
+        StopDhcpClient(iface, devState);
+        netLinkConfigs_[iface] = nullptr;
+    }
 }
 
 int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult)

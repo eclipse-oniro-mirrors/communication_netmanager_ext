@@ -25,6 +25,7 @@
 #include "net_manager_constants.h"
 #include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "parameters.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "static_configuration.h"
@@ -57,6 +58,7 @@ const int32_t FD = 5;
 const int32_t SYSTEM_ABILITY_INVALID = 666;
 constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
 const int32_t RET_ZERO = 0;
+constexpr const char *SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE = "persist.edm.set_ethernet_ip_disable";
 
 class MonitorInterfaceStateCallback : public InterfaceStateCallbackStub {
 public:
@@ -868,6 +870,75 @@ HWTEST_F(EthernetManagerTest, EthernetManager034, TestSize.Level1)
     int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+/**
+ * @tc.name: EthernetManager035
+ * @tc.desc: Test EthernetManagement::UpdateDevInterfaceCfg
+ * Switch interface mode from hdcp to static when system param "persist.edm.set_ethernet_ip_disable" is true success
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, EthernetManager035, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    ic->mode_ = STATIC;
+    std::string iface = DEV_NAME;
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
+    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
+}
+
+/**
+ * @tc.name: EthernetManager036
+ * @tc.desc: Test EthernetManagement::UpdateDevInterfaceCfg
+ * Switch interface mode from static to dhcp when system param "persist.edm.set_ethernet_ip_disable" is true denied
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, EthernetManager036, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    sptr<InterfaceConfiguration> ic1 = GetIfaceConfig();
+    ic1->mode_ = STATIC;
+    std::string iface = DEV_NAME;
+    int32_t result1 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic1);
+    EXPECT_EQ(result1, NETMANAGER_EXT_SUCCESS);
+
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
+    sptr<InterfaceConfiguration> ic2 = GetIfaceConfig();
+    ic2->mode_ = DHCP;
+    int32_t result2 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic2);
+    EXPECT_EQ(result2, NETMANAGER_ERR_PERMISSION_DENIED);
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
+}
+
+/**
+ * @tc.name: EthernetManager037
+ * @tc.desc: Test EthernetManagement::UpdateDevInterfaceCfg
+ * Modify interface when system param "persist.edm.set_ethernet_ip_disable" is true and interface mode is static denied
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetManagerTest, EthernetManager037, TestSize.Level1)
+{
+    EthernetManagement ethernetManagement;
+    ethernetManagement.DevInterfaceAdd(DEV_NAME);
+    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    sptr<InterfaceConfiguration> ic = GetIfaceConfig();
+    ic->mode_ = STATIC;
+    std::string iface = DEV_NAME;
+    int32_t result1 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result1, NETMANAGER_EXT_SUCCESS);
+
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
+    int32_t result2 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    EXPECT_EQ(result2, NETMANAGER_ERR_PERMISSION_DENIED);
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
+}
+
 
 HWTEST_F(EthernetManagerTest, EthernetDhcpController001, TestSize.Level1)
 {
