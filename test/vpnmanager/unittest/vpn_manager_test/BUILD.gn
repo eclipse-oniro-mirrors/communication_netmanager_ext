@@ -45,6 +45,7 @@ ohos_unittest("vpn_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
+    "$NETMANAGER_EXT_ROOT/utils/event_report/include",
   ]
 
   deps = [
