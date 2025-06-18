@@ -104,6 +104,7 @@ private:
                                         std::vector<int32_t> &endUids);
     std::set<int32_t> GetAppsUids(int32_t userId, const std::vector<std::string> &applications);
     int32_t GenerateUidRanges(int32_t userId, std::vector<int32_t> &beginUids, std::vector<int32_t> &endUids);
+    std::string ConvertVpnIpv4Address(uint32_t addressIpv4);
 
 #ifdef SUPPORT_SYSVPN
 public:
