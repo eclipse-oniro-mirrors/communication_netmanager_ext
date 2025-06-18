@@ -243,5 +243,11 @@ HWTEST_F(NetVpnImplTest, GenerateUidRangesByRefusedApps001, TestSize.Level1)
     netVpnImpl_->GenerateUidRangesByRefusedApps(userId, uids, beginUids, endUids);
     EXPECT_EQ(beginUids.empty(), false);
 }
+
+HWTEST_F(NetVpnImplTest, ConvertVpnIpv4Address001, TestSize.Level1)
+{
+    std::string result = netVpnImpl_->ConvertVpnIpv4Address(0);
+    EXPECT_EQ(result, "0.0.0.0");
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
