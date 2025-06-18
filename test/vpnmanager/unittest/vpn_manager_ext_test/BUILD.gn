@@ -33,6 +33,7 @@ ohos_unittest("vpn_manager_ext_test") {
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
     "$EXT_SECURITY_PATH/security",
+    "$NETMANAGER_EXT_ROOT/utils/event_report/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
