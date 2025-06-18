@@ -20,7 +20,6 @@ config("net_tether_manager_config") {
     "$EXT_INNERKITS_ROOT/netshareclient/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/utils",

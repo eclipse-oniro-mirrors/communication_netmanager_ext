@@ -18,7 +18,6 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 config("net_conn_manager_if_config") {
   include_dirs = [
     "include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/wearabledistributednetclient/include",
     "${target_gen_dir}",

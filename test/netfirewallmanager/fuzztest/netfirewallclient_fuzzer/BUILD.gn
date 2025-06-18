@@ -52,7 +52,6 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_manager_if",
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_parcel",
     "$NETFIREWALLMANAGER_SOURCE_DIR:netfirewall_manager_static",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [

@@ -16,7 +16,6 @@
 #include <filesystem>
 #include <system_error>
 
-#include "hilog/log.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netfirewall_database.h"
 

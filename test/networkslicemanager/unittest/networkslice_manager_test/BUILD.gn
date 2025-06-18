@@ -27,6 +27,7 @@ ohos_unittest("networkslice_manager_test") {
 
   include_dirs = [
     "$EXT_SECURITY_PATH/security",
+    "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_ROOT/test/networkslicemanager/unittest/networkslice_manager_test",
   ]
 
@@ -34,7 +35,6 @@ ohos_unittest("networkslice_manager_test") {
     "$EXT_INNERKITS_ROOT/networksliceclient:networkslice_manager_if",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   if (netmanager_ext_feature_networkslice) {

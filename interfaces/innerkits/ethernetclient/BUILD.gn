@@ -63,7 +63,6 @@ ohos_static_library("ethernet_parcel") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   external_deps = [
@@ -122,7 +121,7 @@ ohos_shared_library("ethernet_manager_if") {
 
   branch_protector_ret = "pac_ret"
 
-  include_dirs = [ "$NETMANAGER_EXT_ROOT/utils/log/include" ]
+  include_dirs = [ "$EXT_INNERKITS_ROOT/include" ]
 
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/ethernet_client.cpp",

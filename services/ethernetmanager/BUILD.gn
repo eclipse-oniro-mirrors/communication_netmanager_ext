@@ -41,7 +41,6 @@ ohos_shared_library("ethernet_manager") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   cflags = common_cflags

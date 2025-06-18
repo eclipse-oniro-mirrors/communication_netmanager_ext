@@ -20,7 +20,6 @@ config("net_vpn_extension_if_config") {
     "include",
     "include/ipc",
     "$EXT_INNERKITS_ROOT/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   defines = []
@@ -58,12 +57,10 @@ ohos_shared_library("vpn_extension") {
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   deps = [
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [

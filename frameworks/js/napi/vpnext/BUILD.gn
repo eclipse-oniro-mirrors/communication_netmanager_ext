@@ -46,6 +46,7 @@ ohos_shared_library("vpnextension") {
   }
 
   include_dirs = [
+    "$EXT_INNERKITS_ROOT/include",
     "$NETMANAGER_EXT_NAPI_ROOT/vpnext/include",
     "$NETMANAGER_EXT_NAPI_ROOT/vpnext/include/context",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/vpnextension/include",
@@ -54,7 +55,6 @@ ohos_shared_library("vpnextension") {
   deps = [
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/vpnextension:vpn_extension",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [

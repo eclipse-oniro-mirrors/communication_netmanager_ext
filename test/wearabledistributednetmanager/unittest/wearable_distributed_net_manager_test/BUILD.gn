@@ -51,7 +51,6 @@ ohos_unittest("wearable_distributed_net_manager_test") {
     "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_manager_if",
     "$EXT_INNERKITS_ROOT/wearabledistributednetclient:wearable_distributed_net_service",
     "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager:wearable_distributed_net_manager",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
