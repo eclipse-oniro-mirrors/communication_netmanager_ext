@@ -41,6 +41,10 @@ constexpr int32_t INVALID_UID = -1;
 constexpr int32_t IPV4_NET_MASK_MAX_LENGTH = 32;
 constexpr const char *IPV4_DEFAULT_ROUTE_ADDR = "0.0.0.0";
 constexpr const char *IPV6_DEFAULT_ROUTE_ADDR = "fe80::";
+constexpr int32_t BITS_24 = 24;
+constexpr int32_t BITS_16 = 16;
+constexpr int32_t BITS_8 = 8;
+constexpr const char *IPADDR_DELIMITER = ".";
 } // namespace
 
 NetVpnImpl::NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds)
@@ -352,7 +356,7 @@ void NetVpnImpl::AdjustRouteInfo(Route &route)
         uint32_t maskUint = (0xFFFFFFFF << (IPV4_NET_MASK_MAX_LENGTH - route.destination_.prefixlen_));
         uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(route.destination_.address_);
         uint32_t subNetAddress = ipAddrUint & maskUint;
-        route.destination_.address_ = CommonUtils::ConvertIpv4Address(subNetAddress);
+        route.destination_.address_ = ConvertVpnIpv4Address(subNetAddress);
     }
 }
 
@@ -451,6 +455,14 @@ int32_t NetVpnImpl::GenerateUidRanges(int32_t userId, std::vector<int32_t> &begi
         NETMGR_EXT_LOG_I("GenerateUidRanges default all app, uid range: %{public}d -- %{public}d.", start, stop);
     }
     return NETMANAGER_EXT_SUCCESS;
+}
+
+std::string NetVpnImpl::ConvertVpnIpv4Address(uint32_t addressIpv4)
+{
+    std::ostringstream stream;
+    stream << ((addressIpv4 >> BITS_24) & 0xFF) << IPADDR_DELIMITER << ((addressIpv4 >> BITS_16) & 0xFF)
+           << IPADDR_DELIMITER << ((addressIpv4 >> BITS_8) & 0xFF) << IPADDR_DELIMITER << (addressIpv4 & 0xFF);
+    return stream.str();
 }
 
 } // namespace NetManagerStandard
