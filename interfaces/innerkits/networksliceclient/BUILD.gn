@@ -81,6 +81,7 @@ ohos_shared_library("networkslice_manager_if") {
   deps = [ ":networkslice_parcel" ]
 
   external_deps = [
+    "hilog:libhilog",
     "netmanager_base:net_manager_common",
     "ipc:ipc_single",
     "netmanager_base:net_native_manager_if",
