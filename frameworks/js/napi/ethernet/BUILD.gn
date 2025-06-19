@@ -25,7 +25,7 @@ ohos_shared_library("ethernet") {
 
   include_dirs = [
     "context",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
+    "$EXT_INNERKITS_ROOT/include",
   ]
 
   sources = [

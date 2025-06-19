@@ -16,8 +16,7 @@
 #include <securec.h>
 #include <string>
 
-#include "hilog/log.h"
-#include "netmgr_ext_log_wrapper.h"
+include "netmgr_ext_log_wrapper.h"
 #include "netfirewall_db_helper.h"
 
 using namespace OHOS::NativeRdb;

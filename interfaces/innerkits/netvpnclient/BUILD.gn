@@ -21,7 +21,6 @@ config("net_conn_manager_if_config") {
     "include/ipc",
     "${target_gen_dir}",
     "$EXT_INNERKITS_ROOT/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   defines = []
@@ -73,7 +72,6 @@ ohos_static_library("networkvpn_parcel") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   external_deps = [

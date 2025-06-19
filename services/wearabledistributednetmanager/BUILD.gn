@@ -19,7 +19,6 @@ config("wearable_distributed_net_manager_config") {
     "include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/wearabledistributednetclient/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$WEARABLE_DISTRIBUTED_NET_MANAGER_SOURCE_DIR/include",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
     "${target_gen_dir}",

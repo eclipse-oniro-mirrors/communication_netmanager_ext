@@ -54,10 +54,10 @@ ohos_unittest("ethernet_manager_test") {
   deps = [
     "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",

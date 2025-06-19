@@ -45,10 +45,13 @@ ohos_shared_library("mdns_manager") {
 
   configs = [ ":mdns_manager_config" ]
 
+  include_dirs = [
+    "$EXT_INNERKITS_ROOT/include",
+  ]
+
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_service_interface_stub",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   deps += [ "$EXT_INNERKITS_ROOT/mdnsclient:mdns_service_interface_stub" ]
@@ -105,10 +108,13 @@ ohos_static_library("mdns_manager_static") {
 
   configs = [ ":mdns_manager_config" ]
 
+  include_dirs = [
+    "$EXT_INNERKITS_ROOT/include",
+  ]
+
   deps = [
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_parcel",
     "$EXT_INNERKITS_ROOT/mdnsclient:mdns_service_interface_stub",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   deps += [ "$EXT_INNERKITS_ROOT/mdnsclient:mdns_service_interface_stub" ]

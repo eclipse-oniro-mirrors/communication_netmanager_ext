@@ -15,7 +15,6 @@
 
 #include <thread>
 
-#include "hilog/log.h"
 #include "iservice_registry.h"
 #include "net_manager_constants.h"
 #include "netfirewall_client.h"

@@ -19,7 +19,6 @@ config("net_vpn_manager_config") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$VPNMANAGER_SOURCE_DIR/include",
     "$VPNMANAGER_SOURCE_DIR/include/ipc",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",

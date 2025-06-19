@@ -40,6 +40,7 @@ ohos_shared_library("networkslice_manager") {
     "src/urspconfig.cpp",
   ]
   include_dirs = [
+    "$EXT_INNERKITS_ROOT/include",
     "include",
     "model",
   ]
@@ -80,7 +81,6 @@ ohos_shared_library("networkslice_manager") {
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/networksliceclient:networkslice_manager_if",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   defines = [

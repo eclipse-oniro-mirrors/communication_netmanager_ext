@@ -77,10 +77,10 @@ ohos_unittest("networkshare_manager_test") {
     "$EXT_INNERKITS_ROOT/netshareclient:net_tether_manager_if",
     "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager_static",
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ability_manager",

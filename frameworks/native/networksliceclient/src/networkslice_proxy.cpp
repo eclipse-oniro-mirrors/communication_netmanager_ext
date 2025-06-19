@@ -14,7 +14,6 @@
  */
 
 #include "networkslice_proxy.h"
-#include "hilog/log.h"
 #include "iremote_object.h"
 #include "message_option.h"
 #include "message_parcel.h"

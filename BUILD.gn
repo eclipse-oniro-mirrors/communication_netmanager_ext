@@ -18,7 +18,6 @@ group("common_ext_packages") {
   if (netmanager_ext_feature_ethernet) {
     deps += [
       "$NETMANAGER_EXT_ROOT/utils:net_event_report",
-      "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
     ]
   }
 }

@@ -19,7 +19,6 @@ config("net_conn_manager_if_config") {
     "include",
     "include/ipc",
     "$EXT_INNERKITS_ROOT/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   defines = []
@@ -53,7 +52,6 @@ ohos_static_library("netfirewall_parcel") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netfirewallclient/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   external_deps = [

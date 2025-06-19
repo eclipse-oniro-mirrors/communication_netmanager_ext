@@ -17,7 +17,6 @@
 #include <sys/socket.h>
 
 #include "errors.h"
-#include "hilog/log.h"
 #include "ipc_object_stub.h"
 #include "ipc_types.h"
 #include "message_parcel.h"

@@ -33,6 +33,7 @@ ohos_unittest("vpn_manager_ext_test") {
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
     "$EXT_SECURITY_PATH/security",
+    "$NETMANAGER_EXT_ROOT/utils/event_report/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
@@ -41,10 +42,10 @@ ohos_unittest("vpn_manager_ext_test") {
   deps = [
     "$EXT_INNERKITS_ROOT/netvpnclient:net_vpn_manager_if",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager:net_vpn_manager_static",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",

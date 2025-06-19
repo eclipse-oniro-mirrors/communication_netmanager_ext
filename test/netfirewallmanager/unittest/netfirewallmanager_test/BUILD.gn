@@ -50,10 +50,10 @@ ohos_unittest("netfirewallmanager_test") {
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_manager_if",
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_parcel",
     "$NETFIREWALLMANAGER_SOURCE_DIR:netfirewall_manager_static",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",

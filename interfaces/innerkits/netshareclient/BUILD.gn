@@ -57,7 +57,6 @@ ohos_static_library("networkshare_parcel") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   external_deps = [
@@ -116,7 +115,7 @@ ohos_shared_library("net_tether_manager_if") {
 
   branch_protector_ret = "pac_ret"
 
-  include_dirs = [ "$NETMANAGER_EXT_ROOT/utils/log/include" ]
+  include_dirs = [ "$EXT_INNERKITS_ROOT/include"]
 
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/networkshare_client.cpp",

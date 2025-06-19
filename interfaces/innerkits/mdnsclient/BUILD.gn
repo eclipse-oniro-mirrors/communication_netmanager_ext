@@ -56,9 +56,9 @@ ohos_static_library("mdns_parcel") {
     "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_service_info.cpp",
   ]
 
-  include_dirs = [ "$EXT_INNERKITS_ROOT/mdnsclient/include" ]
-
-  deps = [ "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common" ]
+  include_dirs = [  "$EXT_INNERKITS_ROOT/mdnsclient/include" ,
+                    "$EXT_INNERKITS_ROOT/include",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -117,6 +117,10 @@ ohos_shared_library("mdns_manager_if") {
 
   branch_protector_ret = "pac_ret"
 
+  include_dirs = [
+    "$EXT_INNERKITS_ROOT/include",
+  ]
+
   sources = [
     "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_client.cpp",
     "$NETMANAGER_EXT_ROOT/frameworks/native/mdnsclient/src/mdns_client_resume.cpp",
@@ -132,7 +136,6 @@ ohos_shared_library("mdns_manager_if") {
 
   deps = [
     ":mdns_parcel",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   deps += [ ":mdns_service_interface" ]

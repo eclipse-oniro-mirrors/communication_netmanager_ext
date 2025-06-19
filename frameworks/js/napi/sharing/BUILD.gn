@@ -50,9 +50,12 @@ ohos_shared_library("sharing") {
     "src/netshare_startsharing_context.cpp",
   ]
 
+  include_dirs = [
+    "$EXT_INNERKITS_ROOT/include",
+  ]
+
   deps = [
     "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netshareclient:net_tether_manager_if",
-    "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common",
   ]
 
   external_deps = [

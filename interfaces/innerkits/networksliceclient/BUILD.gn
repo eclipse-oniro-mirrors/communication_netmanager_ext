@@ -19,7 +19,6 @@ config("net_conn_manager_if_config") {
     "include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/networksliceclient/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
 
   defines = []
@@ -53,10 +52,7 @@ ohos_static_library("networkslice_parcel") {
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/networksliceclient/include",
-    "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
-
-  deps = [ "$NETMANAGER_EXT_ROOT/utils:net_manager_ext_common" ]
 
   external_deps = [
     "c_utils:utils",
@@ -85,7 +81,7 @@ ohos_shared_library("networkslice_manager_if") {
   deps = [ ":networkslice_parcel" ]
 
   external_deps = [
-    "hilog:libhilog",
+    "netmanager_base:net_manager_common",
     "ipc:ipc_single",
     "netmanager_base:net_native_manager_if",
     "samgr:samgr_proxy",
