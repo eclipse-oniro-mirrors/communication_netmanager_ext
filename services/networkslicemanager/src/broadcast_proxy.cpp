@@ -158,6 +158,9 @@ void broadcast_proxy::SystemAbilityListener::RegisterVpnEventCallback()
     if (vpnEventObserver_ == nullptr) {
         vpnEventObserver_ = new (std::nothrow) broadcast_proxy::VpnEventObserver();
     }
+    if (vpnEventObserver_ == nullptr) {
+        return;
+    }
     if (NetManagerStandard::NetworkVpnClient::GetInstance().RegisterVpnEvent(vpnEventObserver_) != 0) {
         NETMGR_EXT_LOG_E("vpn event observer register failed");
     }
