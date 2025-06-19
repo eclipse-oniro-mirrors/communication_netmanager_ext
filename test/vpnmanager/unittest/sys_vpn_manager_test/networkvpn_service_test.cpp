@@ -24,6 +24,7 @@
 #include "net_manager_constants.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
+#include "parameters.h"
 
 #ifdef GTEST_API_
 #define private public
@@ -270,6 +271,17 @@ HWTEST_F(NetworkVpnServiceTest, SetUpSysVpn002, TestSize.Level1)
     ret = instance_->SetUpSysVpn(config, true);
     EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
     instance_->vpnObj_ = tmp;
+}
+
+HWTEST_F(NetworkVpnServiceTest, SetUpSysVpn003, TestSize.Level1)
+{
+    system::SetParameter("persist.edm.vpn_disable", "true");
+    sptr<SysVpnConfig> config = nullptr;
+    int32_t ret = instance_->SetUpSysVpn(config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    ret = instance_->SetUpSysVpn(config, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    system::SetParameter("persist.edm.vpn_disable", "false");
 }
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)

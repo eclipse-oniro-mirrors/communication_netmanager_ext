@@ -872,6 +872,10 @@ int32_t NetworkVpnService::DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vp
 
 int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall)
 {
+    if (OHOS::system::GetBoolParameter("persist.edm.vpn_disable", false)) {
+        NETMGR_EXT_LOG_E("persist.edm.vpn_disable disallowed setting up vpn");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("config is null.");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;

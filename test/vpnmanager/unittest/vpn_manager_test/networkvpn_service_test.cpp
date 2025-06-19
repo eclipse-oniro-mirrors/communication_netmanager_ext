@@ -19,6 +19,7 @@
 #include "extended_vpn_ctl.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#include "parameters.h"
 
 #ifdef GTEST_API_
 #define private public
@@ -119,7 +120,7 @@ HWTEST_F(NetworkVpnServiceTest, Prepare001, TestSize.Level1)
     EXPECT_NE(instance_->Prepare(isExistVpn, isRun, pkg), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
-HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
+HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
 {
     int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
@@ -130,6 +131,17 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn, TestSize.Level1)
     userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
     EXPECT_EQ(instance_->SetUpVpn(*config), NETMANAGER_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, SetUpVpn002, TestSize.Level1)
+{
+    system::SetParameter("persist.edm.vpn_disable", "true");
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    int32_t ret = instance_->SetUpVpn(*config, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    ret = instance_->SetUpVpn(*config, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    system::SetParameter("persist.edm.vpn_disable", "false");
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
