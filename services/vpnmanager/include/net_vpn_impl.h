@@ -107,6 +107,7 @@ private:
     std::string ConvertVpnIpv4Address(uint32_t addressIpv4);
 
 #ifdef SUPPORT_SYSVPN
+    void ProcessUpRules(bool isUp);
 public:
     sptr<MultiVpnInfo> multiVpnInfo_ = nullptr;
 #endif // SUPPORT_SYSVPN

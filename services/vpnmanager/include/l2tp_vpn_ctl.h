@@ -28,6 +28,11 @@ namespace NetManagerStandard {
 namespace {
 const std::string L2TP_IPSEC_CONFIGURED_TAG = "xl2tpdstart";
 const std::string L2TP_IPSEC_CONNECTED_TAG = "pppdstart";
+constexpr const char *SINGLE_XL2TP_TEMPCONFIG =
+    R"(l2tp lns = vpn_address;ppp debug = yes;pppoptfile = options.l2tpd.client.conf;length bit = yes;)";
+constexpr const char *VPN_ADDRESS_KEY = "vpn_address";
+constexpr const char *VPN_NAME_KEY = "l2tp";
+constexpr const char *VPN_CLIENT_CONFIG_NAME_KEY = "options.l2tpd.client.conf";
 } // namespace
 class L2tpVpnCtl : public IpsecVpnCtl {
 public:
@@ -42,6 +47,14 @@ private:
     int32_t StartSysVpn() override;
     int32_t StopSysVpn() override;
     int32_t InitConfigFile() override;
+    std::string GetXl2tpdConfig();
+    void AddConfigToL2tpdConf();
+    void HandleIpdecStarted();
+    void HandleSwanCtlLoaded();
+    void HandleL2tpConfiged();
+    void HandleL2tpdCtl();
+    void HandleL2tpConnected();
+    int32_t ProcessUpdateConfig(const std::string &config);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

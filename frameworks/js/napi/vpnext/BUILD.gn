@@ -40,7 +40,7 @@ ohos_shared_library("vpnextension") {
 
   if (netmanager_ext_feature_sysvpn) {
     sources += [
-      "src/vpn_config_utils_ext.cpp",      
+      "src/vpn_config_utils_ext.cpp",
       "src/context/generate_vpnId_context_ext.cpp",
     ]
   }

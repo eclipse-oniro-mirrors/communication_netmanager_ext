@@ -17,7 +17,6 @@
 
 #include <string>
 
-#include "base64_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netmanager_base_common_utils.h"
 #include "net_manager_ext_constants.h"
@@ -33,12 +32,20 @@ int32_t L2tpVpnCtl::StopSysVpn()
 {
     NETMGR_EXT_LOG_I("stop l2tp vpn");
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
-    if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
-    } else {
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_DOWN_HOME);
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
+    std::string connectName = L2TP_CONNECT_NAME;
+    std::string ipsecName = IPSEC_CONNECT_NAME;
+    if (multiVpnInfo_ != nullptr) {
+        int32_t id = multiVpnInfo_->ifNameId;
+        connectName = connectName + std::to_string(id);
+        ipsecName = ipsecName + std::to_string(id);
     }
+    if (l2tpVpnConfig_ != nullptr && l2tpVpnConfig_->vpnType_ != VpnType::L2TP) {
+        NetsysController::GetInstance().ProcessVpnStage(
+            SysVpnStageCode::VPN_STAGE_DOWN_HOME, ipsecName);
+        MultiVpnHelper::GetInstance().StopIpsec();
+    }
+    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_STOP, connectName);
+    MultiVpnHelper::GetInstance().StopL2tp();
     NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -48,11 +55,20 @@ int32_t L2tpVpnCtl::StartSysVpn()
     NETMGR_EXT_LOG_I("start l2tp vpn");
     state_ = IpsecVpnStateCode::STATE_INIT;
     InitConfigFile();
+    if (multiVpnInfo_ != nullptr) {
+        NetsysController::GetInstance().ProcessVpnStage(
+            SysVpnStageCode::VPN_STAGE_CREATE_PPP_FD, multiVpnInfo_->ifName);
+    }
     if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
-        state_ = IpsecVpnStateCode::STATE_STARTED;
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_LOAD);
+        state_ = IpsecVpnStateCode::STATE_CONFIGED;
+        if (!MultiVpnHelper::GetInstance().StartL2tp()) {
+            AddConfigToL2tpdConf();
+        }
     } else {
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_RESTART);
+        if (!MultiVpnHelper::GetInstance().StartIpsec()) {
+            state_ = IpsecVpnStateCode::STATE_STARTED;
+            NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
+        }
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -65,22 +81,10 @@ int32_t L2tpVpnCtl::InitConfigFile()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     if (!l2tpVpnConfig_->strongswanConf_.empty()) {
-        std::string strongswanCfg = Base64::Decode(l2tpVpnConfig_->strongswanConf_);
-        if (!strongswanCfg.empty()) {
-            CommonUtils::WriteFile(SWAN_CONFIG_FILE, strongswanCfg);
-        }
+        CommonUtils::WriteFile(SWAN_CONFIG_FILE, l2tpVpnConfig_->strongswanConf_);
     }
     if (!l2tpVpnConfig_->xl2tpdConf_.empty()) {
-        std::string xl2tpdConf = Base64::Decode(l2tpVpnConfig_->xl2tpdConf_);
-        if (!xl2tpdConf.empty()) {
-            CommonUtils::WriteFile(L2TP_CFG, xl2tpdConf);
-        }
-    }
-    if (!l2tpVpnConfig_->ipsecConf_.empty()) {
-        std::string ipsecConf = Base64::Decode(l2tpVpnConfig_->ipsecConf_);
-        if (!ipsecConf.empty()) {
-            CommonUtils::WriteFile(L2TP_IPSEC_CFG, ipsecConf);
-        }
+        CommonUtils::WriteFile(L2TP_CFG, l2tpVpnConfig_->xl2tpdConf_);
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -95,42 +99,38 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
         NETMGR_EXT_LOG_E("l2tpVpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+
     switch (state_) {
         case IpsecVpnStateCode::STATE_INIT:
             if (stage.compare(IPSEC_START_TAG) == 0) {
-                // 1. start l2tp
-                NETMGR_EXT_LOG_I("l2tp vpn setup step 1: start l2tp");
-                state_ = IpsecVpnStateCode::STATE_STARTED;
-                NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_LOAD);
+                HandleIpdecStarted();
             }
             break;
         case IpsecVpnStateCode::STATE_STARTED:
-            if (stage.compare(L2TP_IPSEC_CONFIGURED_TAG) == 0) {
-                // 2. start connect
-                NETMGR_EXT_LOG_I("l2tp vpn setup step 2: start connect");
-                if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
-                    state_ = IpsecVpnStateCode::STATE_CONTROLLED;
-                    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL);
-                } else {
-                    state_ = IpsecVpnStateCode::STATE_CONFIGED;
-                    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
-                }
+            if (stage.compare(SWANCTL_START_TAG) == 0) {
+                HandleSwanCtlLoaded();
             }
             break;
         case IpsecVpnStateCode::STATE_CONFIGED:
+            if (stage.compare(L2TP_IPSEC_CONFIGURED_TAG) == 0) {
+                HandleL2tpConfiged();
+            }
+            break;
+        case IpsecVpnStateCode::STATE_L2TP_STARTED:
             if (stage.compare(IPSEC_CONNECT_TAG) == 0) {
-                // 3. set stage IPSEC_L2TP_CTL
-                NETMGR_EXT_LOG_I("l2tp vpn setup step 3: set stage IPSEC_L2TP_CTL");
-                state_ = IpsecVpnStateCode::STATE_CONTROLLED;
-                NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL);
+                HandleL2tpdCtl();
             }
             break;
         case IpsecVpnStateCode::STATE_CONTROLLED:
             if (stage.compare(L2TP_IPSEC_CONNECTED_TAG) == 0) {
-                // 4. is connected
-                NETMGR_EXT_LOG_I("l2tp vpn setup step 4: is connected");
-                state_ = IpsecVpnStateCode::STATE_CONNECTED;
-                NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+                HandleL2tpConnected();
+            }
+            break;
+        case IpsecVpnStateCode::STATE_CONNECTED:
+            if (stage.find(IPSEC_NODE_UPDATE_CONFIG) != std::string::npos) {
+                if (ProcessUpdateConfig(stage) != NETMANAGER_EXT_SUCCESS) {
+                    return NETMANAGER_EXT_ERR_INTERNAL;
+                }
             }
             break;
         default:
@@ -157,10 +157,13 @@ int32_t L2tpVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUr
             certUri = l2tpVpnConfig_->ipsecPublicServerCertConf_;
             break;
         case IpsecVpnCertType::OPTIONS_L2TP_CLIENT_CONF:
-            certUri = Base64::Decode(l2tpVpnConfig_->optionsL2tpdClient_);
+            certUri = l2tpVpnConfig_->optionsL2tpdClient_;
             break;
         case IpsecVpnCertType::L2TP_IPSEC_SECRETS_CONF:
-            certUri = Base64::Decode(l2tpVpnConfig_->ipsecSecrets_);
+            certUri = l2tpVpnConfig_->ipsecSecrets_;
+            break;
+        case IpsecVpnCertType::SWAN_CTL_CONF:
+            certUri = l2tpVpnConfig_->ipsecConf_;
             break;
         default:
             NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
@@ -174,6 +177,109 @@ int32_t L2tpVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
     if (state_ == IpsecVpnStateCode::STATE_CONNECTED && l2tpVpnConfig_ != nullptr) {
         NETMGR_EXT_LOG_I("GetConnectedSysVpnConfig success");
         sysVpnConfig = l2tpVpnConfig_;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+std::string L2tpVpnCtl::GetXl2tpdConfig()
+{
+    std::string templateContent = SINGLE_XL2TP_TEMPCONFIG;
+    if (l2tpVpnConfig_ != nullptr && multiVpnInfo_ != nullptr && !l2tpVpnConfig_->addresses_.empty()) {
+        std::map<std::string, std::string> params;
+        params[VPN_NAME_KEY] = std::string(VPN_NAME_KEY) + std::to_string(multiVpnInfo_->ifNameId);
+        params[VPN_ADDRESS_KEY] = l2tpVpnConfig_->addresses_[0].address_;
+        params[VPN_CLIENT_CONFIG_NAME_KEY] = std::string(VPN_CLIENT_CONFIG_NAME_KEY) +
+                                             "-" + std::to_string(multiVpnInfo_->ifNameId);
+        size_t pos = 0;
+        for (const auto& [key, value] : params) {
+            if (value.empty()) {
+                continue;
+            }
+            size_t pos = 0;
+            while ((pos = templateContent.find(key, pos)) != std::string::npos) {
+                templateContent.replace(pos, key.length(), value);
+                break;
+            }
+        }
+    }
+    templateContent = "\"" + templateContent + "\"";
+    return templateContent;
+}
+
+void L2tpVpnCtl::AddConfigToL2tpdConf()
+{
+    std::string tempConfig = GetXl2tpdConfig();
+    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_L2TP_CONF, tempConfig);
+}
+
+void L2tpVpnCtl::HandleIpdecStarted()
+{
+    NETMGR_EXT_LOG_I("1:ipsec started, process load swanctl config");
+    state_ = IpsecVpnStateCode::STATE_STARTED;
+    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
+}
+
+void L2tpVpnCtl::HandleSwanCtlLoaded()
+{
+    NETMGR_EXT_LOG_I("2:swanctl loaded, process start l2tp or add l2tp config");
+    state_ = IpsecVpnStateCode::STATE_CONFIGED;
+    if (!MultiVpnHelper::GetInstance().StartL2tp()) {
+        AddConfigToL2tpdConf();
+    }
+}
+
+void L2tpVpnCtl::HandleL2tpConfiged()
+{
+    NETMGR_EXT_LOG_I("3:l2tpd started orconfiged, process ipsec up");
+    if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
+        state_ = IpsecVpnStateCode::STATE_CONTROLLED;
+        if (multiVpnInfo_ != nullptr) {
+            NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL,
+                std::string(L2TP_CONNECT_NAME) + std::to_string(multiVpnInfo_->ifNameId));
+        } else {
+            NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL);
+        }
+    } else {
+        state_ = IpsecVpnStateCode::STATE_L2TP_STARTED;
+        if (multiVpnInfo_ != nullptr) {
+            NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME,
+                std::string(IPSEC_CONNECT_NAME) + std::to_string(multiVpnInfo_->ifNameId));
+        } else {
+            NetsysController::GetInstance().ProcessVpnStage(
+                SysVpnStageCode::VPN_STAGE_UP_HOME, std::string(IPSEC_CONNECT_NAME));
+        }
+    }
+}
+
+void L2tpVpnCtl::HandleL2tpdCtl()
+{
+    NETMGR_EXT_LOG_I("4:set stage IPSEC_L2TP_CTL, process ehco c");
+    state_ = IpsecVpnStateCode::STATE_CONTROLLED;
+    if (multiVpnInfo_ != nullptr) {
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL,
+            std::string(L2TP_CONNECT_NAME) + std::to_string(multiVpnInfo_->ifNameId));
+    } else {
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL);
+    }
+}
+
+void L2tpVpnCtl::HandleL2tpConnected()
+{
+    NETMGR_EXT_LOG_I("5:l2tp vpn is connected");
+    state_ = IpsecVpnStateCode::STATE_CONNECTED;
+    NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+}
+
+int32_t L2tpVpnCtl::ProcessUpdateConfig(const std::string &config)
+{
+    NETMGR_EXT_LOG_I("6:l2tp vpn config update");
+    if (UpdateConfig(config) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_I("l2tp vpn config update failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (SetUpVpnTun() != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_I("set up l2tp vpn failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;
 }

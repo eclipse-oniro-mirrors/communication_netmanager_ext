@@ -16,6 +16,6 @@
 package OHOS.NetManagerStandard;
 [callback] interface IVpnEventCallback{
     void OnVpnStateChanged([in] boolean isConnected);
-    [macrodef SUPPORT_SYSVPN] void OnMultiVpnStateChanged([in] boolean isConnected, [in] String bundleName, [in] String vpnId);
+    void OnMultiVpnStateChanged([in] boolean isConnected, [in] String bundleName, [in] String vpnId);
     void OnVpnMultiUserSetUp();
 }

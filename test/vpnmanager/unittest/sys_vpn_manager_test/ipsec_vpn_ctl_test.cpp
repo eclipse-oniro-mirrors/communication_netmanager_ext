@@ -134,6 +134,9 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
     ipsecControl_->state_ = IpsecVpnStateCode::STATE_CONFIGED;
     EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_CONFIGED;
+    stage ="{\"updateconfig\":{\"test\":\"192.168.1.1\"}}";
+    EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
@@ -220,5 +223,66 @@ HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest002, TestSize.Level1)
     ipsecControl_->ipsecVpnConfig_ = nullptr;
     EXPECT_EQ(ipsecControl_->InitConfigFile(), NETMANAGER_EXT_ERR_INTERNAL);
 }
+
+HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
+{
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
+    std::string message;
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    message = "test";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    message = "updateconfig";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    message = "updateconfig{}";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    message = "{\"updateconfig\"}";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    message = R"({"config":{"address":"192.168.1.1", "netmask":"255.255.255.0",
+        "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    message = "{\"updateconfig\":{\"test\":\"192.168.1.1\"}}";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    ipsecControl_->ipsecVpnConfig_ = config;
+    message = R"({"updateconfig":{"address":"192.168.1.1", "netmask":"255.255.255.0",
+        "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+    message = R"({"updateconfig":{"remoteip":"192.168.1.1","address":"192.168.1.1",
+        "netmask":"255.255.255.0", "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(IpsecVpnCtlTest, HandleUpdateConfig001, TestSize.Level1)
+{
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
+    std::string message;
+    EXPECT_EQ(ipsecControl_->HandleUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
+    message = R"({"updateconfig":{"address":"192.168.1.1", "netmask":"255.255.255.0",
+        "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->HandleUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
+
+    sptr<IpsecVpnConfig> ipsecConfig = new (std::nothrow) IpsecVpnConfig();
+    if (ipsecConfig == nullptr) {
+        return;
+    }
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    ipsecControl_ = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+    ipsecControl_->ipsecVpnConfig_ = ipsecConfig;
+    message = R"({"updateconfig":{"address":"192.168.1.1", "netmask":"255.255.255.0",
+        "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->HandleUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
