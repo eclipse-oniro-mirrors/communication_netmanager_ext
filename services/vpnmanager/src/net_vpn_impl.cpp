@@ -73,17 +73,15 @@ int32_t NetVpnImpl::RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateC
 
 void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
 {
-#ifdef SUPPORT_SYSVPN
-    if (multiVpnInfo_ != nullptr) {
-        multiVpnInfo_->vpnConnectState = state;
-    }
-#endif // SUPPORT_SYSVPN
     if (connChangedCb_ == nullptr) {
         NETMGR_EXT_LOG_E("NotifyConnectState connect callback is null.");
         return;
     }
 #ifdef SUPPORT_SYSVPN
-    connChangedCb_->OnMultiVpnConnStateChanged(state, multiVpnInfo_->vpnId);
+    if (multiVpnInfo_ != nullptr) {
+        multiVpnInfo_->vpnConnectState = state;
+        connChangedCb_->OnMultiVpnConnStateChanged(state, multiVpnInfo_->vpnId);
+    }
 #endif // SUPPORT_SYSVPN
     connChangedCb_->OnVpnConnStateChanged(state);
 }
