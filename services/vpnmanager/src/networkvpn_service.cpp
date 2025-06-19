@@ -243,7 +243,6 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
     vpnService_.networkVpnServiceFfrtQueue_->wait(OnVpnConnStateTask);
 }
 
-
 void NetworkVpnService::VpnConnStateCb::OnMultiVpnConnStateChanged(const VpnConnectState &state,
     const std::string &vpnId)
 {
@@ -275,7 +274,6 @@ void NetworkVpnService::VpnConnStateCb::OnMultiVpnConnStateChanged(const VpnConn
     vpnService_.networkVpnServiceFfrtQueue_->wait(OnVpnConnStateTask);
 #endif // SUPPORT_SYSVPN
 }
-
 
 void NetworkVpnService::OnVpnMultiUserSetUp()
 {

@@ -99,7 +99,6 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
         NETMGR_EXT_LOG_E("l2tpVpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
     switch (state_) {
         case IpsecVpnStateCode::STATE_INIT:
             if (stage.compare(IPSEC_START_TAG) == 0) {
