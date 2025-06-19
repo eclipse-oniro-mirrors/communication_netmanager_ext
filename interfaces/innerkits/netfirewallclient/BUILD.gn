@@ -57,6 +57,7 @@ ohos_static_library("netfirewall_parcel") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "netmanager_base:net_manager_common",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_native_manager_if",
   ]
@@ -88,6 +89,7 @@ ohos_shared_library("netfirewall_manager_if") {
     external_deps = [
       "hilog:libhilog",
       "ipc:ipc_single",
+      "netmanager_base:net_manager_common",
       "netmanager_base:net_native_manager_if",
       "samgr:samgr_proxy",
     ]
