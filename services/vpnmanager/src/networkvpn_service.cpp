@@ -75,6 +75,8 @@ constexpr const char *const PARAM_KEY_STATE = "state";
 constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
     "usual.event.VPN_CONNECTION_STATUS_CHANGED";
 
+constexpr char* const PERMISSION_MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
+
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
 NetworkVpnService::~NetworkVpnService()
 {
@@ -765,12 +767,14 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    if (hasOpenedVpnUid_ != IPCSkeleton::GetCallingUid()) {
+    if (!NetManagerPermission::CheckPermission(PERMISSION_MANAGE_EDM_POLICY)) {
+        if (hasOpenedVpnUid_ != IPCSkeleton::GetCallingUid()) {
 #ifdef SUPPORT_SYSVPN
-        return DestroyMultiVpn(IPCSkeleton::GetCallingUid());
+            return DestroyMultiVpn(IPCSkeleton::GetCallingUid());
 #endif // SUPPORT_SYSVPN
-        NETMGR_EXT_LOG_E("not same vpn, can't destroy");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+            NETMGR_EXT_LOG_E("not same vpn, can't destroy");
+            return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        }
     }
 
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
