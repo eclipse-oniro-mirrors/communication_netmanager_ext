@@ -75,7 +75,7 @@ constexpr const char *const PARAM_KEY_STATE = "state";
 constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
     "usual.event.VPN_CONNECTION_STATUS_CHANGED";
 
-constexpr char* const PERMISSION_MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
+constexpr const char* const PERMISSION_MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
 
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
 NetworkVpnService::~NetworkVpnService()
