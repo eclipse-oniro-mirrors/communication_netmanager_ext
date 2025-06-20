@@ -229,7 +229,7 @@ void L2tpVpnCtl::HandleSwanCtlLoaded()
 
 void L2tpVpnCtl::HandleL2tpConfiged()
 {
-    NETMGR_EXT_LOG_I("3:l2tpd started orconfiged, process ipsec up");
+    NETMGR_EXT_LOG_I("3:l2tpd started or configed, process ipsec up");
     if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
         state_ = IpsecVpnStateCode::STATE_CONTROLLED;
         if (multiVpnInfo_ != nullptr) {

@@ -463,12 +463,12 @@ int32_t NetVpnImpl::GenerateUidRanges(int32_t userId, std::vector<int32_t> &begi
         userId = AppExecFwk::Constants::START_USERID;
     }
 #ifdef SUPPORT_SYSVPN
-        if (multiVpnInfo_ != nullptr && multiVpnInfo_->isVpnExtCall) {
-            if (vpnConfig_->acceptedApplications_.size() == 0) {
-                NETMGR_EXT_LOG_W("GenerateUidRangesMark is vpn ext call, but not accept uid ranges");
-                return NETMANAGER_EXT_SUCCESS;
-            }
+    if (multiVpnInfo_ != nullptr && multiVpnInfo_->isVpnExtCall) {
+        if (vpnConfig_->acceptedApplications_.size() == 0) {
+            NETMGR_EXT_LOG_W("GenerateUidRangesMark is vpn ext call, but not accept uid ranges");
+            return NETMANAGER_EXT_SUCCESS;
         }
+    }
 #endif // SUPPORT_SYSVPN
     if (vpnConfig_->acceptedApplications_.size()) {
         std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->acceptedApplications_);
