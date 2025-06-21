@@ -21,6 +21,7 @@
 #endif
 
 #include "ethernet_service_stub.h"
+#include "net_eap_callback_stub.h"
 #include "iethernet_service.h"
 #include "net_manager_constants.h"
 #include "configuration_parcel_ipc.h"
@@ -94,6 +95,32 @@ public:
         return 0;
     }
 
+    int32_t RegCustomEapHandler(int netType, const std::string &regCmd,
+        const sptr<INetEapPostbackCallback> &callback) override
+    {
+        return 0;
+    }
+ 
+    int32_t ReplyCustomEapData(int result, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+ 
+    int32_t RegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback) override
+    {
+        return 0;
+    }
+ 
+    int32_t UnRegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback) override
+    {
+        return 0;
+    }
+ 
+    int32_t NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+ 
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList) override
     {
         return 0;
@@ -101,6 +128,29 @@ public:
 };
 } // namespace
 
+class NetRegisterEapCallbackTest : public NetRegisterEapCallbackStub {
+public:
+    int32_t OnRegisterCustomEapCallback(const std::string &regCmd) override
+    {
+        return 0;
+    }
+    int32_t OnReplyCustomEapDataEvent(int result, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+};
+ 
+class NetEapPostBackCallbackTest : public NetEapPostbackCallbackStub {
+public:
+    int32_t OnEapSupplicantPostback(NetType netType, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+};
+ 
+static inline sptr<NetRegisterEapCallbackTest> g_registerEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
+static inline sptr<NetEapPostBackCallbackTest> g_eapPostbackCallback = new (std::nothrow) NetEapPostBackCallbackTest();
+ 
 using namespace testing::ext;
 class EthernetServiceStubTest : public testing::Test {
 public:
@@ -368,6 +418,145 @@ HWTEST_F(EthernetServiceStubTest, OnSetInterfaceConfigTest001, TestSize.Level1)
     EXPECT_EQ(ret, 5);
 }
 
+/**
+ * @tc.name: RegCustomEapHandlerTest001
+ * @tc.desc: Test EthernetServiceStub RegCustomEapHandler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetServiceStubTest, RegCustomEapHandlerTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor())) {
+        return;
+    }
+    int netType = static_cast<int>(NetType::WLAN0);
+    if (!data.WriteInt32(netType)) {
+        return;
+    }
+    if (data.WriteRemoteObject(g_eapPostbackCallback->AsObject())) {
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
+        IEthernetServiceIpcCode::COMMAND_REG_CUSTOM_EAP_HANDLER), data, reply, option);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+ 
+/**
+ * @tc.name: ReplyCustomEapDataTest001
+ * @tc.desc: Test EthernetServiceStub ReplyCustomEapData.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetServiceStubTest, ReplyCustomEapDataTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor())) {
+        return;
+    }
+    int result = 1;
+    if (!data.WriteInt32(result)) {
+        return;
+    }
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    eapData->eapCode = 1;
+    eapData->eapType = 25;
+    eapData->msgId = 55;
+    eapData->bufferLen = 3;
+    std::vector<uint8_t> tmp = {0x11, 0x12, 0x13};
+    eapData->eapBuffer = tmp;
+    if (!eapData->Marshalling(data)) {
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
+        IEthernetServiceIpcCode::COMMAND_REPLY_CUSTOM_EAP_DATA), data, reply, option);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+ 
+/**
+ * @tc.name: RegisterCustomEapCallbackTest001
+ * @tc.desc: Test EthernetServiceStub RegisterCustomEapCallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetServiceStubTest, RegisterCustomEapCallbackTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor())) {
+        return;
+    }
+    int netType = 1;
+    if (!data.WriteInt32(netType)) {
+        return;
+    }
+    if (data.WriteRemoteObject(g_registerEapCallback->AsObject())) {
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
+        IEthernetServiceIpcCode::COMMAND_REGISTER_CUSTOM_EAP_CALLBACK), data, reply, option);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+ 
+/**
+ * @tc.name: UnRegisterCustomEapCallbackTest001
+ * @tc.desc: Test EthernetServiceStub UnRegisterCustomEapCallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetServiceStubTest, UnRegisterCustomEapCallbackTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor())) {
+        return;
+    }
+    int netType = 1;
+    if (!data.WriteInt32(netType)) {
+        return;
+    }
+    if (data.WriteRemoteObject(g_registerEapCallback->AsObject())) {
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
+        IEthernetServiceIpcCode::COMMAND_UN_REGISTER_CUSTOM_EAP_CALLBACK), data, reply, option);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+ 
+/**
+ * @tc.name: NotifyWpaEapInterceptInfoTest001
+ * @tc.desc: Test EthernetServiceStub NotifyWpaEapInterceptInfo.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetServiceStubTest, NotifyWpaEapInterceptInfoTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(EthernetServiceStub::GetDescriptor())) {
+        return;
+    }
+    int netType = 1;
+    if (!data.WriteInt32(netType)) {
+        return;
+    }
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    eapData->eapCode = 1;
+    eapData->eapType = 25;
+    eapData->msgId = 55;
+    eapData->bufferLen = 3;
+    std::vector<uint8_t> tmp = {0x11, 0x12, 0x13};
+    eapData->eapBuffer = tmp;
+    if (!eapData->Marshalling(data)) {
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(
+        IEthernetServiceIpcCode::COMMAND_NOTIFY_WPA_EAP_INTERCEPT_INFO), data, reply, option);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+ 
 /**
  * @tc.name: OnGetDeviceInformationTest001
  * @tc.desc: Test EthernetServiceStub OnGetDeviceInformation.
