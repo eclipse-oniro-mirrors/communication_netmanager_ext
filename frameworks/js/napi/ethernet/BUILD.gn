@@ -56,7 +56,10 @@ ohos_shared_library("ethernet") {
     "-O2",
   ]
 
-  deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if" ]
+  deps = [ 
+    "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if", 
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/ethernet/customeap:eap",
+    ]
 
   external_deps = [
     "c_utils:utils",
