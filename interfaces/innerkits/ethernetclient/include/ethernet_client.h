@@ -20,6 +20,7 @@
 
 #include "iethernet_service.h"
 #include "interface_state_callback.h"
+#include "net_eap_callback_stub.h"
 #include "parcel.h"
 #include "singleton.h"
 
@@ -153,6 +154,59 @@ public:
      */
     int32_t SetInterfaceConfig(const std::string &iface, OHOS::nmd::InterfaceConfigurationParcel &cfg);
 
+    /**
+     * Register custom eap info and callback
+     * @param netType Indicates net type need to customize
+     * @param regCmd Indicates some eapCode and eapType info. eg: 2:277:278
+     * @param callback the func of post back eap data
+     * @return Returns 0, successfully register custom eap callback, otherwise it will failed
+     * @permission ohos.permission.ENTERPRISE_MANAGE_EAP
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t RegCustomEapHandler(NetType netType, const std::string &regCmd,
+        const sptr<INetEapPostbackCallback> &callback);
+ 
+    /**
+     * Reply custom eap data of app
+     *
+     * @param result The result of app
+     * @param eapData sptr of EapData
+     * @return Returns 0, successfully replyl custom eap data, otherwise it will failed
+     * @permission ohos.permission.ENTERPRISE_MANAGE_EAP
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t ReplyCustomEapData(int result, const sptr<EapData> &eapData);
+ 
+    /**
+     * Register module callback, such as wifi or eth
+     *
+     * @param netType Indicates net interface type need to customize
+     * @param callback The callback of INetRegisterEapCallback interface
+     * @return Returns 0, successfully register custom eap callback, otherwise it will failed
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);
+ 
+    /**
+     * unRegister custom eap callback
+     *
+     * @param netType Indicates net interface type need to customize
+     * @param callback The callback of INetRegisterEapCallback interface
+     * @return Returns 0, successfully unregister custom eap callback, otherwise it will failed
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t UnRegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);
+ 
+    /**
+     * Notify Wap Eap Intercept Info
+     *
+     * @param netType Indicates net interface type need to customize
+     * @param eapData the sptr of eapData
+     * @return Returns 0, successfully notity success, otherwise it will failed
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t NotifyWpaEapInterceptInfo(const NetType netType, const sptr<EapData> &eapData);
+ 
     /**
      * Get the ethernet device infomation
      *
