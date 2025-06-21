@@ -48,7 +48,7 @@ enum class NetType {
 enum class RegTriggerMode {
     SA_LAUNCH = 0,
     USER_REGISTER = 1,
-    UNREGISTER =2,
+    UNREGISTER = 2,
     INVALID
 };
  

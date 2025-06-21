@@ -37,9 +37,9 @@ static void AddCleanupHook(napi_env env)
 napi_value EapModule::InitEapModule(napi_env env, napi_value exports)
 {
     std::initializer_list<napi_property_descriptor> functions = {
-        DECLARE_NAPI_FUNCTION(FUNCTION_REG_CUSTOM_EAP_HANDLER, RegCustomEapHandler),
-        DECLARE_NAPI_FUNCTION(FUNCTION_UNREG_CUSTOM_EAP_HANDLER, UnRegCustomEapHandler),
-        DECLARE_NAPI_FUNCTION(FUNCTION_REPLY_CUSTOM_EAP_DATA, ReplyCustomEapData),
+        DECLARE_NAPI_FUNCTION(functionRegCustomEapHandler, RegCustomEapHandler),
+        DECLARE_NAPI_FUNCTION(functionUnregCustomEapHandler, UnRegCustomEapHandler),
+        DECLARE_NAPI_FUNCTION(functionReplyCustomEapData, ReplyCustomEapData),
     };
     NapiUtils::DefineProperties(env, exports, functions);
     InitProperties(env, exports);
@@ -56,7 +56,7 @@ void EapModule::InitProperties(napi_env env, napi_value exports)
     };
     napi_value customResult = NapiUtils::CreateObject(env);
     NapiUtils::DefineProperties(env, customResult, results);
-    NapiUtils::SetNamedProperty(env, exports, INTERFACE_NET_EAP_CUSTOM_RESULT, customResult);
+    NapiUtils::SetNamedProperty(env, exports, interfaceNetEapCustomResult, customResult);
 }
  
 static napi_module g_eapModule = {

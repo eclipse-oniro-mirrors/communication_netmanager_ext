@@ -34,7 +34,7 @@ int32_t NetEapPostBackCallback::OnEapSupplicantPostback(NetType netType, const s
 {
     if (eapData == nullptr) {
         NETMANAGER_EXT_LOGE("%{public}s eapData is nullptr.", __func__);
-        return NETMANAGER_ERR_LOCAL_PTR_NULL;     
+        return NETMANAGER_ERR_LOCAL_PTR_NULL;
     }
     if (eapData->eapCode < EAP_CODE_MIN || eapData->eapCode > EAP_CODE_MAX) {
         NETMANAGER_EXT_LOGE("eapCode %{public}d invalid.", eapData->eapCode);
@@ -42,7 +42,7 @@ int32_t NetEapPostBackCallback::OnEapSupplicantPostback(NetType netType, const s
     }
     if (eapData->eapBuffer.size() == 0) {
         NETMANAGER_EXT_LOGE("%{public}s eapBuffer size is 0. %{public}s", __func__, eapData->PrintLogInfo().c_str());
-        return NETMANAGER_ERR_PARAMETER_ERROR;  
+        return NETMANAGER_ERR_PARAMETER_ERROR;
     }
     NETMANAGER_EXT_LOGI("%{public}s: eapCode:%{public}d, eapType:%{public}d, buffsize:%{public}zu", __func__,
         eapData->eapCode, eapData->eapType, eapData->eapBuffer.size());
@@ -78,7 +78,8 @@ bool NetEapPostBackCallback::CheckAndNotifyApp(NetType netType, const int32_t ke
     }
     for (auto& each : it->second) {
         auto func = [this, env = each.m_regEnv, eapData] () -> napi_value { return this->CreateResult(env, eapData); };
-        std::shared_ptr<AsyncEventData> asyncEvent = std::make_shared<AsyncEventData>(each.m_regEnv, each.m_regHandlerRef, func);
+        std::shared_ptr<AsyncEventData> asyncEvent =
+            std::make_shared<AsyncEventData>(each.m_regEnv, each.m_regHandlerRef, func);
         asyncEvent->Init(key, netType, eapData->msgId);
         EventNotify(asyncEvent);
     }
@@ -144,7 +145,8 @@ void NetEapPostBackCallback::InitScope(const std::shared_ptr<AsyncEventData> &as
     }
 }
  
-void NetEapPostBackCallback::EndSendTask(const std::shared_ptr<AsyncEventData> &asyncEvent, bool unrefRef, uint32_t refCount)
+void NetEapPostBackCallback::EndSendTask(const std::shared_ptr<AsyncEventData> &asyncEvent,
+    bool unrefRef, uint32_t refCount)
 {
     napi_close_handle_scope(asyncEvent->env_, scope_);
     if (unrefRef) {
@@ -243,10 +245,9 @@ bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, int eapCode
             mapObj[composeParam] = std::vector<RegObj>{regObj};
             g_eventRegisterInfo[netType] = mapObj;
         } else {
-            auto vecIter = std::find_if(iter->second.begin(), iter->second.end(), 
-                [&regObj](const RegObj &obj){ return regObj.m_regEnv == obj.m_regEnv;});
-            if (vecIter != iter->second.end())
-            {
+            auto vecIter = std::find_if(iter->second.begin(), iter->second.end(),
+                [&regObj] (const RegObj &obj) { return regObj.m_regEnv == obj.m_regEnv;});
+            if (vecIter != iter->second.end()) {
                 NETMANAGER_EXT_LOGE("%{public}s, eapCode:%{public}d, eapType:%{public}d callback is registered!",
                     __func__, eapCode, eapType);
                 return true;

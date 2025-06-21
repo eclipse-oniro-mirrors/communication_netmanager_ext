@@ -13,8 +13,8 @@
  * limitations under the License.
  */
  
- #include "eap_napi_event.h"
- #include "napi_constant.h"
+#include "eap_napi_event.h"
+#include "napi_constant.h"
  
 namespace OHOS {
 namespace NetManagerStandard {

@@ -32,8 +32,7 @@ NetEapHandler &NetEapHandler::GetInstance()
 int32_t NetEapHandler::RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
-    if (callback == nullptr)
-    {
+    if (callback == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, callback is nullptr", __func__);
         return NETMANAGER_ERR_LOCAL_PTR_NULL;
     }
@@ -53,8 +52,7 @@ int32_t NetEapHandler::RegisterCustomEapCallback(const NetType netType, const sp
 int32_t NetEapHandler::UnRegisterCustomEapCallback(NetType netType, const sptr<INetRegisterEapCallback> &callback)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
-    if (callback == nullptr)
-    {
+    if (callback == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, postBackCb is nullptr", __func__);
         return NETMANAGER_ERR_LOCAL_PTR_NULL;
     }
@@ -76,8 +74,7 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
     const sptr<INetEapPostbackCallback> &postBackCb)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
-    if (postBackCb == nullptr)
-    {
+    if (postBackCb == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, postBackCb is nullptr", __func__);
         return NETMANAGER_ERR_LOCAL_PTR_NULL;
     }
@@ -113,7 +110,7 @@ int32_t NetEapHandler::NotifyWpaEapInterceptInfo(const NetType netType, const sp
     }
     if (eapData->eapBuffer.size() == 0) {
         NETMGR_EXT_LOG_E("%{public}s eapData size is 0, %{public}s", __func__, eapData->PrintLogInfo().c_str());
-        return NETMANAGER_ERR_INVALID_PARAMETER;    
+        return NETMANAGER_ERR_INVALID_PARAMETER;
     }
     auto postbackCb = GetPostbackCallback();
     if (postbackCb) {

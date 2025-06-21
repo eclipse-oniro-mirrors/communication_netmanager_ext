@@ -23,10 +23,10 @@ namespace OHOS {
 namespace NetManagerStandard {
 class EapModule final {
 public:
-    static constexpr const char *INTERFACE_NET_EAP_CUSTOM_RESULT = "CustomResult";
-    static constexpr const char *FUNCTION_REG_CUSTOM_EAP_HANDLER = "regCustomEapHandler";
-    static constexpr const char *FUNCTION_UNREG_CUSTOM_EAP_HANDLER = "unregCustomEapHandler";
-    static constexpr const char *FUNCTION_REPLY_CUSTOM_EAP_DATA = "replyCustomEapData";
+    static constexpr const char *interfaceNetEapCustomResult = "CustomResult";
+    static constexpr const char *functionRegCustomEapHandler = "regCustomEapHandler";
+    static constexpr const char *functionUnregCustomEapHandler = "unregCustomEapHandler";
+    static constexpr const char *functionReplyCustomEapData = "replyCustomEapData";
  
     static napi_value InitEapModule(napi_env env, napi_value exports);
 private:

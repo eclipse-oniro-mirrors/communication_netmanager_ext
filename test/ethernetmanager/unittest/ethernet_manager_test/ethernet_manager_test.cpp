@@ -1470,7 +1470,8 @@ HWTEST_F(EthernetManagerTest, RegCustomEapHandlerTest, TestSize.Level1)
     const NetType netType = NetType::WLAN0;
     std::string regCmd = "2:277:278";
     sptr<NetRegisterEapCallbackTest> netRegisterEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterCustomEapCallback(netType, netRegisterEapCallback);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterCustomEapCallback(
+        netType, netRegisterEapCallback);
     sptr<EapPostbackCallbackTest> eapPostBackCallback = new (std::nothrow) EapPostbackCallbackTest();
     ret = DelayedSingleton<EthernetClient>::GetInstance()->RegCustomEapHandler(netType, regCmd, eapPostBackCallback);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
@@ -1494,14 +1495,14 @@ HWTEST_F(EthernetManagerTest, ReplyCustomEapDataTest, TestSize.Level1)
  
     auto ret = DelayedSingleton<EthernetClient>::GetInstance()->ReplyCustomEapData(result, eapData);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
- 
 }
  
 HWTEST_F(EthernetManagerTest, RegisterCustomEapCallbackTest, TestSize.Level1)
 {
     const NetType netType = NetType::WLAN0;
     sptr<NetRegisterEapCallbackTest> netRegisterEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterCustomEapCallback(netType, netRegisterEapCallback);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterCustomEapCallback(
+        netType, netRegisterEapCallback);
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
  
@@ -1509,7 +1510,8 @@ HWTEST_F(EthernetManagerTest, UnRegisterCustomEapCallbackTest, TestSize.Level1)
 {
     const NetType netType = NetType::WLAN0;
     sptr<NetRegisterEapCallbackTest> netRegisterEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->UnRegisterCustomEapCallback(netType, netRegisterEapCallback);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->UnRegisterCustomEapCallback(
+        netType, netRegisterEapCallback);
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
  

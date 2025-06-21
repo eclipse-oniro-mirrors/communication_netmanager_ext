@@ -451,7 +451,6 @@ int32_t EthernetService::UnRegisterCustomEapCallback(int netType,
 {
     NETMGR_EXT_LOG_D("Enter UnRegisterCustomEapCallback");
     return NetEapHandler::GetInstance().UnRegisterCustomEapCallback(static_cast<NetType>(netType), callback);
- 
 }
  
 int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData)

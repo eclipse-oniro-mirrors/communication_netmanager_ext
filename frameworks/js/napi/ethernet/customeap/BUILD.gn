@@ -20,7 +20,7 @@ ohos_shared_library("eap") {
     cfi_cross_dso = true
     boundary_sanitize = true
     ubsan = true
-    debug = true
+    debug = false
   }
  
   branch_protector_ret = "pac_ret"

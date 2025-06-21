@@ -89,11 +89,11 @@ int32_t NetRegisterEapCallbackProxy::OnRegisterCustomEapCallback(const std::stri
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
         return NETMANAGER_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
- 
+
     if (!dataParcel.WriteString(regCmd)) {
         return NETMANAGER_ERR_WRITE_DATA_FAIL;
-    }  
- 
+    }
+
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("Remote is null");
@@ -131,8 +131,8 @@ int32_t NetRegisterEapCallbackProxy::OnReplyCustomEapDataEvent(int result, const
  
     if (!eapData->Marshalling(dataParcel)) {
         return NETMANAGER_ERR_WRITE_DATA_FAIL;
-    }  
- 
+    }
+
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, remote is nullptr, %{public}s", __func__, eapData->PrintLogInfo().c_str());
