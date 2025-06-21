@@ -55,6 +55,30 @@ public:
     void TearDown();
 };
 
+class NetRegisterEapCallbackTest : public NetRegisterEapCallbackStub {
+public:
+    int32_t OnRegisterCustomEapCallback(const std::string &regCmd) override
+    {
+        return 0;
+    }
+ 
+    int32_t OnReplyCustomEapDataEvent(int result, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+};
+ 
+class EapPostbackCallbackTest : public NetEapPostbackCallbackStub {
+public:
+    int32_t OnEapSupplicantPostback(NetType netType, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+};
+ 
+static sptr<INetRegisterEapCallback> g_registerEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
+static sptr<INetEapPostbackCallback> g_eapPostbackCallback = new (std::nothrow) EapPostbackCallbackTest();
+ 
 sptr<InterfaceConfiguration> EtherNetServiceTest::GetIfaceConfig()
 {
     sptr<InterfaceConfiguration> ic = (std::make_unique<InterfaceConfiguration>()).release();
@@ -484,5 +508,64 @@ HWTEST_F(EtherNetServiceTest, GetDeviceInformationTest001, TestSize.Level1)
     int ret = ethernetService.GetDeviceInformation(devInfoList);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
+ 
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+HWTEST_F(EtherNetServiceTest, RegCustomEapHandlerTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    NetType netType = NetType::WLAN0;
+    sptr<INetEapPostbackCallback> callback_ = nullptr;
+    std::string regCmd = "2:277:278";
+    auto ret = ethernetService.RegCustomEapHandler(static_cast<int>(netType), regCmd, callback_);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+ 
+HWTEST_F(EtherNetServiceTest, ReplyCustomEapDataTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    int result = 1;
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    eapData->eapCode = 1;
+    eapData->eapType = 13;
+    eapData->msgId = 55;
+    eapData->bufferLen = 4;
+    std::vector<uint8_t> tmp = {0x11, 0x12};
+    eapData->eapBuffer = tmp;
+    int ret = ethernetService.ReplyCustomEapData(result, eapData);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+ 
+HWTEST_F(EtherNetServiceTest, RegisterCustomEapCallbackTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    NetType netType = NetType::WLAN0;
+    auto ret = ethernetService.RegisterCustomEapCallback(static_cast<int>(netType), g_registerEapCallback);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
+ 
+HWTEST_F(EtherNetServiceTest, UnRegisterCustomEapCallbackTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    NetType netType = NetType::WLAN0;
+    auto ret = ethernetService.UnRegisterCustomEapCallback(static_cast<int>(netType), g_registerEapCallback);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
+ 
+HWTEST_F(EtherNetServiceTest, NotifyWpaEapInterceptInfoTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    NetType netType = NetType::WLAN0;
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    eapData->eapCode = 1;
+    eapData->eapType = 13;
+    eapData->msgId = 55;
+    eapData->bufferLen = 4;
+    std::vector<uint8_t> tmp = {0x11, 0x12};
+    eapData->eapBuffer = tmp;
+    auto ret = ethernetService.NotifyWpaEapInterceptInfo(static_cast<int>(netType), eapData);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
+#endif
+ 
 } // namespace NetManagerStandard
 } // namespace OHOS
