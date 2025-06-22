@@ -64,7 +64,9 @@ public:
     napi_env m_regEnv;
     napi_ref m_regHandlerRef;
 };
- 
+
+using TypeMapRegObj = std::map<uint32_t, std::vector<RegObj>>;
+
 class AsyncEventData {
 public:
     napi_env env_;
@@ -128,10 +130,12 @@ public:
     int32_t ReplyCustomEapData(CustomResult result, const sptr<EapData> &eapData);
     bool RegCustomEapHandler(NetType netType, RegTriggerMode triggerMode);
     bool UnRegCustomEapHandler(NetType netType);
+    std::map<NetType, TypeMapRegObj> eventRegisterInfo_;
  
 private:
     sptr<NetEapPostBackCallback> eapPostBackCallback_ = nullptr;
     OHOS::sptr<OHOS::ISystemAbilityStatusChange> mSaStatusListener = nullptr;
+    static std::map<NetType, TypeMapRegObj> eventRegisterInfo_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

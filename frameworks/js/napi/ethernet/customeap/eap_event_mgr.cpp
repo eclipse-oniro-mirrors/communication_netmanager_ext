@@ -19,16 +19,14 @@
 namespace OHOS {
 namespace NetManagerStandard {
  
-#define REGISTERINFO_MAX_NUM 16
-#define WIFI_DEVICE_SA_ID 1120
-#define COMM_ETHERNET_MANAGER_SYS_ABILITY_ID 1157
+static constexpr int32_t REGISTERINFO_MAX_NUM = 16;
+static constexpr int32_t WIFI_DEVICE_SA_ID = 1120;
+static constexpr int32_t COMM_ETHERNET_MANAGER_SYS_ABILITY_ID = 1157;
 static constexpr uint32_t INVALID_REF_COUNT = 0xff;
 static constexpr const char *EAP_BUFFER = "eapBuffer";
 static constexpr const char *EAP_BUFFERLEN = "bufferLen";
 static constexpr const char *EAP_MSGID = "msgId";
-using TypeMapRegObj = std::map<uint32_t, std::vector<RegObj>>;
 static std::shared_mutex g_regInfoMutex;
-static std::map<NetType, TypeMapRegObj> g_eventRegisterInfo;
  
 int32_t NetEapPostBackCallback::OnEapSupplicantPostback(NetType netType, const sptr<EapData> &eapData)
 {
@@ -66,8 +64,9 @@ napi_value NetEapPostBackCallback::CreateResult(const napi_env& env, const sptr<
 bool NetEapPostBackCallback::CheckAndNotifyApp(NetType netType, const int32_t key, const sptr<EapData> &eapData)
 {
     std::shared_lock<std::shared_mutex> lock(g_regInfoMutex);
-    auto netTypeIter = g_eventRegisterInfo.find(netType);
-    if (netTypeIter == g_eventRegisterInfo.end()) {
+    auto regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
+    auto netTypeIter = regInfo.find(netType);
+    if (netTypeIter == regInfo.end()) {
         NETMANAGER_EXT_LOGE("%{public}s, netType %{public}d not find register info.", __func__, netType);
         return false;
     }
@@ -96,8 +95,9 @@ void NetEapPostBackCallback::SendTask(const std::shared_ptr<AsyncEventData> &asy
     bool unrefRef = false;
     bool find = false;
     InitScope(asyncEvent);
-    auto it = g_eventRegisterInfo[asyncEvent->netType_].find(asyncEvent->key_);
-    if (it == g_eventRegisterInfo[asyncEvent->netType_].end()) {
+    auto regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
+    auto it = regInfo[asyncEvent->netType_].find(asyncEvent->key_);
+    if (it == regInfo[asyncEvent->netType_].end()) {
         NETMANAGER_EXT_LOGE("%{public}s, event has been unregistered.", __func__);
         EndSendTask(asyncEvent, unrefRef, refCount);
         return;
@@ -203,11 +203,8 @@ EapEventMgr::EapEventMgr():eapPostBackCallback_(new (std::nothrow) NetEapPostBac
             NETMANAGER_EXT_LOGE("samgrProxy is nullptr!");
             return;
         }
-        mSaStatusListener = new OHOS::NetManagerStandard::NetManagerNapiAbilityStatusChange();
-        if (mSaStatusListener == nullptr) {
-            NETMANAGER_EXT_LOGE("mSaStatusListener is nullptr!");
-            return;
-        }
+        sptr<NetManagerNapiAbilityStatusChange> mSaStatusListener = sptr<NetManagerNapiAbilityStatusChange>::MakeSptr();
+
         int32_t retWifiSa = samgrProxy->SubscribeSystemAbility((int32_t)WIFI_DEVICE_SA_ID, mSaStatusListener);
         int32_t retNetManagerSa = samgrProxy->SubscribeSystemAbility(
             (int32_t)COMM_ETHERNET_MANAGER_SYS_ABILITY_ID, mSaStatusListener);
@@ -225,12 +222,12 @@ bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, int eapCode
     RegObj regObj(env, handlerRef);
  
     std::unique_lock<std::shared_mutex> guard(g_regInfoMutex);
-    auto netTypeMapIter = g_eventRegisterInfo.find(netType);
-    if (netTypeMapIter == g_eventRegisterInfo.end()) {
+    auto netTypeMapIter = eventRegisterInfo_.find(netType);
+    if (netTypeMapIter == eventRegisterInfo_.end()) {
         NETMANAGER_EXT_LOGI("%{public}s, new netType!", __func__);
         TypeMapRegObj mapObj;
         mapObj[composeParam] = std::vector<RegObj>{regObj};
-        g_eventRegisterInfo[netType] = mapObj;
+        eventRegisterInfo_[netType] = mapObj;
     } else {
         NETMANAGER_EXT_LOGI("%{public}s, exist netType!", __func__);
         TypeMapRegObj mapObj = netTypeMapIter->second;
@@ -243,7 +240,7 @@ bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, int eapCode
                 return false;
             }
             mapObj[composeParam] = std::vector<RegObj>{regObj};
-            g_eventRegisterInfo[netType] = mapObj;
+            eventRegisterInfo_[netType] = mapObj;
         } else {
             auto vecIter = std::find_if(iter->second.begin(), iter->second.end(),
                 [&regObj] (const RegObj &obj) { return regObj.m_regEnv == obj.m_regEnv;});
@@ -266,9 +263,9 @@ bool EapEventMgr::RegCustomEapHandler(NetType netType, RegTriggerMode triggerMod
     std::string regCmd;
     {
         std::shared_lock<std::shared_mutex> guard(g_regInfoMutex);
-        auto mNetTypeValueIter = g_eventRegisterInfo.find(netType);
-        if (mNetTypeValueIter == g_eventRegisterInfo.end()) {
-            NETMANAGER_EXT_LOGE("%{public}s g_eventRegisterInfo not have eapType:%{public}d", __func__, netType);
+        auto mNetTypeValueIter = eventRegisterInfo_.find(netType);
+        if (mNetTypeValueIter == eventRegisterInfo_.end()) {
+            NETMANAGER_EXT_LOGE("%{public}s eventRegisterInfo_ not have eapType:%{public}d", __func__, netType);
             return false;
         }
         regCmd += std::to_string(static_cast<int>(netType));
@@ -301,8 +298,8 @@ bool EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, int eapCo
     bool needUnregister = false;
     {
         std::unique_lock<std::shared_mutex> guard(g_regInfoMutex);
-        auto netTypeMapIter = g_eventRegisterInfo.find(netType);
-        if (netTypeMapIter == g_eventRegisterInfo.end()) {
+        auto netTypeMapIter = eventRegisterInfo_.find(netType);
+        if (netTypeMapIter == eventRegisterInfo_.end()) {
             NETMANAGER_EXT_LOGE("%{public}s, not netType %{public}d handler", __func__, netType);
             return false;
         }
@@ -345,6 +342,10 @@ int32_t EapEventMgr::ReplyCustomEapData(CustomResult result, const sptr<EapData>
     }
     return NETMANAGER_SUCCESS;
 }
- 
+
+std::map<NetType, TypeMapRegObj> EapEventMgr::GetRegisterInfoMap()
+{
+    return eventRegisterInfo_;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

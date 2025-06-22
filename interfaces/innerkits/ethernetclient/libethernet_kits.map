@@ -59,6 +59,7 @@
       "OHOS::NetManagerStandard::EthernetClient::RegisterCustomEapCallback(OHOS::NetManagerStandard::NetType, OHOS::sptr<OHOS::NetManagerStandard::INetRegisterEapCallback> const&)";
       "OHOS::NetManagerStandard::EthernetClient::UnRegisterCustomEapCallback(OHOS::NetManagerStandard::NetType, OHOS::sptr<OHOS::NetManagerStandard::INetRegisterEapCallback> const&)";
       "OHOS::NetManagerStandard::EapData::EapData()";
+      "OHOS::NetManagerStandard::EapData::~EapData()";
       "OHOS::NetManagerStandard::EthernetClient::NotifyWpaEapInterceptInfo(OHOS::NetManagerStandard::NetType, OHOS::sptr<OHOS::NetManagerStandard::EapData> const&)";
       "OHOS::NetManagerStandard::NetRegisterEapCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
       "OHOS::NetManagerStandard::NetRegisterEapCallbackStub::OnRegisterCustomEapCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
