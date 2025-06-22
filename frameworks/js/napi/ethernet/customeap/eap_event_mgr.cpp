@@ -21,7 +21,7 @@ namespace NetManagerStandard {
  
 #define REGISTERINFO_MAX_NUM 16
 #define WIFI_DEVICE_SA_ID 1120
-#define COMM_NET_CONN_MANAGER_SA_ID 1151
+#define COMM_ETHERNET_MANAGER_SYS_ABILITY_ID 1157
 static constexpr uint32_t INVALID_REF_COUNT = 0xff;
 static constexpr const char *EAP_BUFFER = "eapBuffer";
 static constexpr const char *EAP_BUFFERLEN = "bufferLen";
@@ -174,7 +174,7 @@ void NetManagerNapiAbilityStatusChange::OnAddSystemAbility(int32_t systemAbility
     std::vector<std::string> event;
     switch (systemAbilityId) {
         case WIFI_DEVICE_SA_ID:
-        case COMM_NET_CONN_MANAGER_SA_ID: {
+        case COMM_ETHERNET_MANAGER_SYS_ABILITY_ID: {
             EapEventMgr::GetInstance().RegCustomEapHandler(NetType::WLAN0, RegTriggerMode::SA_LAUNCH);
             break;
         }

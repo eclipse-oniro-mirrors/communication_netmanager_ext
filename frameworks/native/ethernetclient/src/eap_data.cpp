@@ -49,15 +49,15 @@ bool EapData::Marshalling(Parcel &parcel) const
     return true;
 }
  
-sptr<EapData> EapData::Unmarshalling(Parcel &parcel)
+EapData* EapData::Unmarshalling(Parcel &parcel)
 {
-    sptr<EapData> ptr = new EapData();
-    ptr->eapCode = parcel.ReadInt32();
-    ptr->eapType = parcel.ReadInt32();
-    ptr->msgId = parcel.ReadInt32();
-    ptr->bufferLen = parcel.ReadInt32();
-    parcel.ReadUInt8Vector(&(ptr->eapBuffer));
-    return ptr;
+    std::unique_ptr<EapData> ptr = std::make_unique<EapData>();
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+    bool allOk = parcel.ReadInt32(ptr->eapCode) && parcel.ReadInt32(ptr->eapType) && parcel.ReadInt32(ptr->msgId) &&
+        parcel.ReadInt32(ptr->bufferLen) && parcel.ReadInt32(&ptr->eapBuffer);
+    return allOk ? ptr.release() : nullptr;
 }
  
 std::string EapData::PrintLogInfo()

@@ -422,7 +422,7 @@ void EthernetService::NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction)
 int32_t EthernetService::RegCustomEapHandler(int netType, const std::string &regCmd,
     const sptr<INetEapPostbackCallback> &callback)
 {
-    NETMGR_EXT_LOG_I("Enter RegCustomEapHandler");
+    NETMGR_EXT_LOG_D("Enter RegCustomEapHandler");
     if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_MANAGE_EAP)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;

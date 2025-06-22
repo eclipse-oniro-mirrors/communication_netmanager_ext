@@ -44,7 +44,7 @@ enum class NetType {
     ETH0 = 2,
     INVALID
 };
- 
+
 enum class RegTriggerMode {
     SA_LAUNCH = 0,
     USER_REGISTER = 1,
@@ -63,7 +63,7 @@ struct NET_SYMBOL_VISIBLE EapData final : public Parcelable {
     EapData();
     ~EapData();
     bool Marshalling(Parcel &parcel) const override;
-    static sptr<EapData> Unmarshalling(Parcel &parcel);
+    static EapData* Unmarshalling(Parcel &parcel);
     std::string PrintLogInfo();
 };
 } // namespace NetManagerStandard
