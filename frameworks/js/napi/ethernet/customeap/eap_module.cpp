@@ -50,9 +50,12 @@ napi_value EapModule::InitEapModule(napi_env env, napi_value exports)
 void EapModule::InitProperties(napi_env env, napi_value exports)
 {
     std::initializer_list<napi_property_descriptor> results = {
-        DECLARE_EAP_CUSTOM_RESULT(RESULT_FAIL),
-        DECLARE_EAP_CUSTOM_RESULT(RESULT_NEXT),
-        DECLARE_EAP_CUSTOM_RESULT(RESULT_FINISH),
+        DECLARE_NAPI_STATIC_PROPERTY("RESULT_FAIL",
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(CustomResult::RESULT_FAIL))),
+        DECLARE_NAPI_STATIC_PROPERTY("RESULT_NEXT",
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(CustomResult::RESULT_NEXT))),
+        DECLARE_NAPI_STATIC_PROPERTY("RESULT_FINISH",
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(CustomResult::RESULT_FINISH))),
     };
     napi_value customResult = NapiUtils::CreateObject(env);
     NapiUtils::DefineProperties(env, customResult, results);
