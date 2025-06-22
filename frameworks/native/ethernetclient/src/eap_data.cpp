@@ -56,7 +56,7 @@ EapData* EapData::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     bool allOk = parcel.ReadInt32(ptr->eapCode) && parcel.ReadInt32(ptr->eapType) && parcel.ReadInt32(ptr->msgId) &&
-        parcel.ReadInt32(ptr->bufferLen) && parcel.ReadInt32(&ptr->eapBuffer);
+        parcel.ReadInt32(ptr->bufferLen) && parcel.ReadUint8Vector(&ptr->eapBuffer);
     return allOk ? ptr.release() : nullptr;
 }
  
