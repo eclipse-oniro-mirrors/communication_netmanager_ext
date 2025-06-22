@@ -130,12 +130,12 @@ public:
     int32_t ReplyCustomEapData(CustomResult result, const sptr<EapData> &eapData);
     bool RegCustomEapHandler(NetType netType, RegTriggerMode triggerMode);
     bool UnRegCustomEapHandler(NetType netType);
-    std::map<NetType, TypeMapRegObj> eventRegisterInfo_;
+    std::map<NetType, TypeMapRegObj> GetRegisterInfoMap();
  
 private:
     sptr<NetEapPostBackCallback> eapPostBackCallback_ = nullptr;
     OHOS::sptr<OHOS::ISystemAbilityStatusChange> mSaStatusListener = nullptr;
-    static std::map<NetType, TypeMapRegObj> eventRegisterInfo_;
+    std::map<NetType, TypeMapRegObj> eventRegisterInfo_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
