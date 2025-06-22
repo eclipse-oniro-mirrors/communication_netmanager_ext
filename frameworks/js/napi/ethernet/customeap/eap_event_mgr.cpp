@@ -210,7 +210,7 @@ EapEventMgr::EapEventMgr():eapPostBackCallback_(new (std::nothrow) NetEapPostBac
         }
         int32_t retWifiSa = samgrProxy->SubscribeSystemAbility((int32_t)WIFI_DEVICE_SA_ID, mSaStatusListener);
         int32_t retNetManagerSa = samgrProxy->SubscribeSystemAbility(
-            (int32_t)COMM_NET_CONN_MANAGER_SA_ID, mSaStatusListener);
+            (int32_t)COMM_ETHERNET_MANAGER_SYS_ABILITY_ID, mSaStatusListener);
         NETMANAGER_EXT_LOGI("EventRegister, SubscribeSystemAbility return retWifiSa:%{public}d, \
             retNetManagerSa:%{public}d!", retWifiSa, retNetManagerSa);
 }
