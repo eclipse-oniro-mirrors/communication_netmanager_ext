@@ -149,10 +149,91 @@ HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)
     EXPECT_NE(instance_->Protect(), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
-HWTEST_F(NetworkVpnServiceTest, DestroyVpn, TestSize.Level1)
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn001, TestSize.Level1)
 {
     instance_->vpnObj_ = nullptr;
     EXPECT_EQ(instance_->DestroyVpn(), NETMANAGER_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn002, TestSize.Level1)
+{
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN", "ohos.permission.MANAGE_EDM_POLICY" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 2,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    instance_->vpnObj_ = nullptr;
+    EXPECT_EQ(instance_->DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn003, TestSize.Level1)
+{
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    instance_->vpnObj_ = nullptr;
+    EXPECT_EQ(instance_->DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn004, TestSize.Level1)
+{
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    int32_t uidTmp = instance_->hasOpenedVpnUid_;
+    instance_->hasOpenedVpnUid_ = -1;
+    instance_->vpnObj_ = nullptr;
+    EXPECT_EQ(instance_->DestroyVpn(), NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    instance_->hasOpenedVpnUid_ = uidTmp;
+
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
 }
 
 HWTEST_F(NetworkVpnServiceTest, RegisterSharingEventTest001, TestSize.Level1)
