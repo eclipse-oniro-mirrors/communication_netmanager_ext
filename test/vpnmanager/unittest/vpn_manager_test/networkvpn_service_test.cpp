@@ -157,13 +157,13 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, DestroyVpn002, TestSize.Level1)
 {
-    const char* PERMISSIONS[] = { "ohos.permission.MANAGE_VPN", "ohos.permission.MANAGE_EDM_POLICY" };
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN", "ohos.permission.MANAGE_EDM_POLICY" };
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 2,
         .aclsNum = 0,
         .dcaps = nullptr,
-        .perms = PERMISSIONS,
+        .perms = permissions,
         .acls = nullptr,
         .aplStr = "system_basic",
     };
@@ -183,13 +183,13 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn002, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, DestroyVpn003, TestSize.Level1)
 {
-    const char* PERMISSIONS[] = { "ohos.permission.MANAGE_VPN" };
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 1,
         .aclsNum = 0,
         .dcaps = nullptr,
-        .perms = PERMISSIONS,
+        .perms = permissions,
         .acls = nullptr,
         .aplStr = "system_basic",
     };
@@ -209,13 +209,13 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn003, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, DestroyVpn004, TestSize.Level1)
 {
-    const char* PERMISSIONS[] = { "ohos.permission.MANAGE_VPN" };
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 1,
         .aclsNum = 0,
         .dcaps = nullptr,
-        .perms = PERMISSIONS,
+        .perms = permissions,
         .acls = nullptr,
         .aplStr = "system_basic",
     };
