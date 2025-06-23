@@ -17,8 +17,6 @@
 #include "netmanager_ext_log.h"
  
 static constexpr const char *EAP_MODULE_NAME = "net.eap";
-#define DECLARE_EAP_CUSTOM_RESULT(result) \
-    DECLARE_NAPI_STATIC_PROPERTY(#result, NapiUtils::CreateUint32(env, static_cast<uint32_t>(CustomResult::result)))
  
 namespace OHOS::NetManagerStandard {
  
