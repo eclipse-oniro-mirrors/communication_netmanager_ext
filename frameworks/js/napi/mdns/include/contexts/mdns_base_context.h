@@ -27,7 +27,7 @@ namespace NetManagerStandard {
 class MDnsBaseContext : public BaseContext {
 public:
     MDnsBaseContext() = delete;
-    explicit MDnsBaseContext(napi_env env, EventManager *manager);
+    explicit MDnsBaseContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     MDnsServiceInfo &GetServiceInfo();
     void SetServiceInfo(const MDnsServiceInfo &info);

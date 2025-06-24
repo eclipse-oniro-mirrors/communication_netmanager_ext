@@ -27,7 +27,7 @@ class MDnsRemoveLocalServiceContext final : public MDnsBaseContext {
 public:
     DISALLOW_COPY_AND_MOVE(MDnsRemoveLocalServiceContext);
     MDnsRemoveLocalServiceContext() = delete;
-    explicit MDnsRemoveLocalServiceContext(napi_env env, EventManager *manager);
+    explicit MDnsRemoveLocalServiceContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
     sptr<IRegistrationCallback> GetObserver();

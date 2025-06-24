@@ -21,7 +21,7 @@ namespace NetManagerStandard {
 constexpr int32_t PARAM_NONE = 0;
 constexpr int32_t PARAM_JUST_CALLBACK = 1;
 
-GetListContext::GetListContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+GetListContext::GetListContext(napi_env env, std::shared_ptr<EventManager>& manager) : BaseContext(env, manager) {}
 
 void GetListContext::ParseParams(napi_value *params, size_t paramsCount)
 {

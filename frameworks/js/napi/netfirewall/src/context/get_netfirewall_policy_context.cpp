@@ -34,7 +34,7 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t count)
     return true;
 }
 
-GetNetFirewallPolicyContext::GetNetFirewallPolicyContext(napi_env env, EventManager *manager)
+GetNetFirewallPolicyContext::GetNetFirewallPolicyContext(napi_env env, std::shared_ptr<EventManager>& manager)
     : BaseContext(env, manager)
 {}
 

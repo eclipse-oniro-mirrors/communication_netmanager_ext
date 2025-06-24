@@ -48,7 +48,7 @@ constexpr const char *GET_SYS_VPN_CONFIG = "getSysVpnConfig";
 constexpr const char *GET_CONNECTED_SYS_VPN_CONFIG = "getConnectedSysVpnConfig";
 #endif // SUPPORT_SYSVPN
 
-static void *MakeData(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
+static void *MakeData(napi_env env, size_t argc, napi_value *argv, std::shared_ptr<EventManager>& manager)
 {
     if ((argc != PARAM_ONE) || (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) != napi_object)) {
         NETMANAGER_EXT_LOGE("funciton prameter error");

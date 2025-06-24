@@ -27,16 +27,10 @@ namespace NetManagerStandard {
 NetShareObserverWrapper::NetShareObserverWrapper()
 {
     observer_ = new NetShareCallbackObserver();
-    manager_ = new EventManager();
+    manager_ = std::make_shared<EventManager>();
 }
 
-NetShareObserverWrapper::~NetShareObserverWrapper()
-{
-    if (manager_ != nullptr) {
-        delete manager_;
-        manager_ = nullptr;
-    }
-}
+NetShareObserverWrapper::~NetShareObserverWrapper() = default;
 
 napi_value NetShareObserverWrapper::On(napi_env env, napi_callback_info info,
                                        const std::initializer_list<std::string_view> &events, bool asyncCallback)
@@ -116,7 +110,7 @@ napi_value NetShareObserverWrapper::Off(napi_env env, napi_callback_info info,
     return NapiUtils::GetUndefined(env);
 }
 
-EventManager *NetShareObserverWrapper::GetEventManager() const
+std::shared_ptr<EventManager> NetShareObserverWrapper::GetEventManager() const
 {
     return manager_;
 }

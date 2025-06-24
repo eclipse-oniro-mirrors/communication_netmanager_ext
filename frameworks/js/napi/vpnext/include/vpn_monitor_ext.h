@@ -55,7 +55,7 @@ public:
     napi_value Off(napi_env env, napi_callback_info info);
     bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName, const std::string &appName);
 
-    EventManager inline *GetManager() const
+    inline std::shared_ptr<EventManager> GetManager() const
     {
         return manager_;
     }
@@ -63,7 +63,7 @@ public:
 private:
     sptr<VpnEventCallback> eventCallback_ = nullptr;
     napi_value callback_ = nullptr;
-    EventManager *manager_ = nullptr;
+    std::shared_ptr<EventManager> manager_ = nullptr;
 
 class VpnAbilityConn : public AAFwk::AbilityConnectionStub {
     void OnAbilityConnectDone(const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject,

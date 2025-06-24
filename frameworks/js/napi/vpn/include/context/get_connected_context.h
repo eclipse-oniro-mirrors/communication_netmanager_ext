@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class GetConnectedContext : public BaseContext {
 public:
     GetConnectedContext() = delete;
-    GetConnectedContext(napi_env env, EventManager *manager);
+    GetConnectedContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 public:

@@ -45,7 +45,7 @@ public:
     napi_value On(napi_env env, napi_callback_info info);
     napi_value Off(napi_env env, napi_callback_info info);
 
-    EventManager inline *GetManager() const
+    inline std::shared_ptr<EventManager> GetManager() const
     {
         return manager_;
     }
@@ -56,7 +56,7 @@ private:
     sptr<VpnEventCallback> multiEventCallback_ = nullptr;
 #endif // SUPPORT_SYSVPN
     napi_value callback_ = nullptr;
-    EventManager *manager_ = nullptr;
+    std::shared_ptr<EventManager> manager_ = nullptr;
 
 private:
     bool ParseParams(napi_env env, napi_callback_info info);

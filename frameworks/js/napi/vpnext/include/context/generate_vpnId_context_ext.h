@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class GenerateVpnIdContext : public BaseContext {
 public:
     GenerateVpnIdContext() = delete;
-    GenerateVpnIdContext(napi_env env, EventManager *manager);
+    GenerateVpnIdContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

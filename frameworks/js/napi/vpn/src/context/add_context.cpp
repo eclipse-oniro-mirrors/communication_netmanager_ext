@@ -27,7 +27,7 @@ namespace NetManagerStandard {
 constexpr int32_t PARAM_JUST_OPTIONS = 1;
 constexpr int32_t PARAM_OPTIONS_AND_CALLBACK = 2;
 
-AddContext::AddContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+AddContext::AddContext(napi_env env, std::shared_ptr<EventManager>& manager) : BaseContext(env, manager) {}
 
 bool AddContext::CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {

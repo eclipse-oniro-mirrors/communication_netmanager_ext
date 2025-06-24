@@ -31,7 +31,7 @@ namespace NetManagerStandard {
 class GetMacAddressContext : public BaseContext {
 public:
     GetMacAddressContext() = delete;
-    explicit GetMacAddressContext(napi_env env, EventManager *manager);
+    explicit GetMacAddressContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

@@ -117,7 +117,7 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
     return promise;
 }
 
-static void *MakeDataExt(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
+static void *MakeDataExt(napi_env env, size_t argc, napi_value *argv, std::shared_ptr<EventManager>& manager)
 {
     if ((argc != PARAM_ONE) || (NapiUtils::GetValueType(env, argv[ARG_NUM_0]) != napi_object)) {
         NETMANAGER_EXT_LOGE("funciton prameter error");

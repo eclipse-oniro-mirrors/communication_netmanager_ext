@@ -40,7 +40,7 @@ public:
 
     static InterfaceStateObserverWrapper &GetInstance();
 
-    EventManager *GetEventManager() const
+    std::shared_ptr<EventManager> GetEventManager() const
     {
         return manager_;
     }
@@ -50,7 +50,7 @@ private:
     ~InterfaceStateObserverWrapper();
 
     sptr<InterfaceStateObserver> observer_ = nullptr;
-    EventManager *manager_ = nullptr;
+    std::shared_ptr<EventManager> manager_ = nullptr;
     bool registered_ = false;
 };
 } // namespace NetManagerStandard

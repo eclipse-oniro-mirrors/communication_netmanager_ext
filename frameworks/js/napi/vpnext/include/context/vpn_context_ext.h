@@ -29,7 +29,7 @@ namespace NetManagerStandard {
 class VpnContext : public BaseContext {
 public:
     VpnContext() = delete;
-    VpnContext(napi_env env, EventManager *manager);
+    VpnContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

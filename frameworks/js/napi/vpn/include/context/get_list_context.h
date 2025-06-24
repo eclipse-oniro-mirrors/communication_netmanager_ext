@@ -29,7 +29,7 @@ namespace NetManagerStandard {
 class GetListContext : public BaseContext {
 public:
     GetListContext() = delete;
-    GetListContext(napi_env env, EventManager *manager);
+    GetListContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

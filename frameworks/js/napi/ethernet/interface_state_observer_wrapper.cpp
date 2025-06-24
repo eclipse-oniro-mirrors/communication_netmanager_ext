@@ -24,14 +24,11 @@
 namespace OHOS {
 namespace NetManagerStandard {
 InterfaceStateObserverWrapper::InterfaceStateObserverWrapper()
-    : observer_(new InterfaceStateObserver()), manager_(new EventManager()), registered_(false)
+    : observer_(new InterfaceStateObserver()), manager_(std::make_shared<EventManager>()), registered_(false)
 {
 }
 
-InterfaceStateObserverWrapper::~InterfaceStateObserverWrapper()
-{
-    delete manager_;
-}
+InterfaceStateObserverWrapper::~InterfaceStateObserverWrapper() = default;
 
 InterfaceStateObserverWrapper &InterfaceStateObserverWrapper::GetInstance()
 {

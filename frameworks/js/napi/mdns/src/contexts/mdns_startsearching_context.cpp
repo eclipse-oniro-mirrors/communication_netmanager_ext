@@ -21,7 +21,8 @@
 #include "mdns_common.h"
 
 namespace OHOS::NetManagerStandard {
-MDnsStartSearchingContext::MDnsStartSearchingContext(napi_env env, EventManager *manager) : BaseContext(env, manager)
+MDnsStartSearchingContext::MDnsStartSearchingContext(napi_env env, std::shared_ptr<EventManager>& manager)
+    : BaseContext(env, manager)
 {
     if (manager) {
         auto discover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());

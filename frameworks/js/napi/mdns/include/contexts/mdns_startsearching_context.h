@@ -27,7 +27,7 @@ class MDnsStartSearchingContext final : public BaseContext {
 public:
     DISALLOW_COPY_AND_MOVE(MDnsStartSearchingContext);
     MDnsStartSearchingContext() = delete;
-    explicit MDnsStartSearchingContext(napi_env env, EventManager *manager);
+    explicit MDnsStartSearchingContext(napi_env env, std::shared_ptr<EventManager>& manager);
     void ParseParams(napi_value *params, size_t paramsCount);
     wptr<MDnsDiscoveryObserver> GetObserver();
     MDnsDiscoveryInstance GetDiscover();

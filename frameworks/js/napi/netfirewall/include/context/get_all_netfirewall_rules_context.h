@@ -29,7 +29,7 @@ class GetNetFirewallRulesContext : public BaseContext {
 public:
     GetNetFirewallRulesContext() = delete;
 
-    GetNetFirewallRulesContext(napi_env env, EventManager *manager);
+    GetNetFirewallRulesContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

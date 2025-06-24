@@ -19,7 +19,7 @@
  
 namespace OHOS {
 namespace NetManagerStandard {
-GetDeviceInformationContext::GetDeviceInformationContext(napi_env env, EventManager *manager)
+GetDeviceInformationContext::GetDeviceInformationContext(napi_env env, std::shared_ptr<EventManager>& manager)
     : BaseContext(env, manager) {}
  
 void GetDeviceInformationContext::ParseParams(napi_value *params, size_t paramsCount)

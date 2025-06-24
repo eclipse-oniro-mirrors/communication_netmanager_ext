@@ -21,7 +21,7 @@
 #include "mdns_common.h"
 
 namespace OHOS::NetManagerStandard {
-MDnsBaseContext::MDnsBaseContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+MDnsBaseContext::MDnsBaseContext(napi_env env, std::shared_ptr<EventManager>& manager) : BaseContext(env, manager) {}
 
 void MDnsBaseContext::ParseAddressObj(napi_env env, napi_value obj)
 {

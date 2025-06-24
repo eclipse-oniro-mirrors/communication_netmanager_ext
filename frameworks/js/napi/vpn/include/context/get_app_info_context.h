@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class GetAppInfoContext : public BaseContext {
 public:
     GetAppInfoContext() = delete;
-    GetAppInfoContext(napi_env env, EventManager *manager);
+    GetAppInfoContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 public:

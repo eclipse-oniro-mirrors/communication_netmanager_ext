@@ -31,7 +31,7 @@ class SetNetFirewallPolicyContext : public BaseContext {
 public:
     SetNetFirewallPolicyContext() = delete;
 
-    SetNetFirewallPolicyContext(napi_env env, EventManager *manager);
+    SetNetFirewallPolicyContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

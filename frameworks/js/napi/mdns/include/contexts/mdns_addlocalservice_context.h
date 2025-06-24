@@ -30,7 +30,7 @@ class MDnsAddLocalServiceContext final : public MDnsBaseContext {
 public:
     DISALLOW_COPY_AND_MOVE(MDnsAddLocalServiceContext);
     MDnsAddLocalServiceContext() = delete;
-    explicit MDnsAddLocalServiceContext(napi_env env, EventManager *manager);
+    explicit MDnsAddLocalServiceContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
     sptr<IRegistrationCallback> GetObserver() const;
