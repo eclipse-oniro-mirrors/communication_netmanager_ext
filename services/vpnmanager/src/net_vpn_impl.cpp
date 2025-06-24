@@ -73,15 +73,16 @@ int32_t NetVpnImpl::RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateC
 
 void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
 {
-#ifdef SUPPORT_SYSVPN
-    if (multiVpnInfo_ != nullptr) {
-        multiVpnInfo_->vpnConnectState = state;
-    }
-#endif // SUPPORT_SYSVPN
     if (connChangedCb_ == nullptr) {
         NETMGR_EXT_LOG_E("NotifyConnectState connect callback is null.");
         return;
     }
+#ifdef SUPPORT_SYSVPN
+    if (multiVpnInfo_ != nullptr) {
+        multiVpnInfo_->vpnConnectState = state;
+        connChangedCb_->OnMultiVpnConnStateChanged(state, multiVpnInfo_->vpnId);
+    }
+#endif // SUPPORT_SYSVPN
     connChangedCb_->OnVpnConnStateChanged(state);
 }
 
@@ -131,6 +132,7 @@ int32_t NetVpnImpl::SetUp()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 #ifdef SUPPORT_SYSVPN
+    ProcessUpRules(true);
     if (!IsSystemVpn()) {
         NotifyConnectState(VpnConnectState::VPN_CONNECTED);
     }
@@ -174,6 +176,9 @@ int32_t NetVpnImpl::ResumeUids()
 
 int32_t NetVpnImpl::Destroy()
 {
+#ifdef SUPPORT_SYSVPN
+    ProcessUpRules(false);
+#endif // SUPPORT_SYSVPN
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
     if (NetsysController::GetInstance().NetworkDelUids(netId_, beginUids_, endUids_)) {
         NETMGR_EXT_LOG_W("vpn remove whitelist rule error");
@@ -211,9 +216,25 @@ int32_t NetVpnImpl::GetSysVpnCertUri(const int32_t certType, std::string &certUr
 {
     return NETMANAGER_EXT_SUCCESS;
 }
+
 bool NetVpnImpl::IsSystemVpn()
 {
     return false;
+}
+
+void NetVpnImpl::ProcessUpRules(bool isUp)
+{
+    if (vpnConfig_ != nullptr && !vpnConfig_->addresses_.empty()) {
+        std::vector<std::string> extMessages;
+        if (multiVpnInfo_ != nullptr && multiVpnInfo_->isVpnExtCall) {
+            INetAddr netAddr = vpnConfig_->addresses_.back();
+            extMessages.emplace_back(netAddr.address_);
+        } else {
+            INetAddr netAddr = vpnConfig_->addresses_.front();
+            extMessages.emplace_back(netAddr.address_);
+        }
+        NetsysController::GetInstance().UpdateVpnRules(netId_, extMessages, isUp);
+    }
 }
 #endif // SUPPORT_SYSVPN
 
@@ -441,6 +462,14 @@ int32_t NetVpnImpl::GenerateUidRanges(int32_t userId, std::vector<int32_t> &begi
     if (userId == AppExecFwk::Constants::INVALID_USERID) {
         userId = AppExecFwk::Constants::START_USERID;
     }
+#ifdef SUPPORT_SYSVPN
+    if (multiVpnInfo_ != nullptr && multiVpnInfo_->isVpnExtCall) {
+        if (vpnConfig_->acceptedApplications_.size() == 0) {
+            NETMGR_EXT_LOG_W("GenerateUidRangesMark is vpn ext call, but not accept uid ranges");
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
+#endif // SUPPORT_SYSVPN
     if (vpnConfig_->acceptedApplications_.size()) {
         std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->acceptedApplications_);
         GenerateUidRangesByAcceptedApps(uids, beginUids, endUids);

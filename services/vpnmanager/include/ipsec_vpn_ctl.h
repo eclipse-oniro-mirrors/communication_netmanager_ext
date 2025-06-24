@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include "cJSON.h"
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
 #include "net_vpn_impl.h"
@@ -28,21 +29,29 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-const std::string SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
-const std::string L2TP_IPSEC_CFG = IPSEC_PIDDIR "/ipsec.conf";
-const std::string L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
-const std::string IPSEC_START_TAG = "start";
-const std::string SWANCTL_START_TAG = "config";
-const std::string IPSEC_CONNECT_TAG = "connect";
+constexpr const char *SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
+constexpr const char *L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
+constexpr const char *IPSEC_START_TAG = "start";
+constexpr const char *SWANCTL_START_TAG = "config";
+constexpr const char *IPSEC_CONNECT_TAG = "connect";
+constexpr const char *IPSEC_CONNECT_NAME = "home";
+constexpr const char *L2TP_CONNECT_NAME = "l2tp";
+constexpr const char *IPSEC_NODE_UPDATE_CONFIG = "updateconfig";
+constexpr const char *IPSEC_NODE_MTU = "mtu";
+constexpr const char *IPSEC_NODE_ADDRESS = "address";
+constexpr const char *IPSEC_NODE_NETMASK = "netmask";
+constexpr const char *IPSEC_NODE_PHY_NAME = "phyifname";
+constexpr const char *IPSEC_NODE_REMOTE_IP = "remoteip";
 } // namespace
 using namespace NetsysNative;
 enum IpsecVpnStateCode {
     STATE_INIT = 0,
     STATE_STARTED,      // ipsec restart compelete
-    STATE_CONFIGED,     // swanctl load files compelete or xl2tpd start
+    STATE_CONFIGED,     // swanctl load files compelete
     STATE_CONTROLLED,   // control pppd startup
     STATE_CONNECTED,    // ipsec up home or pppd started
     STATE_DISCONNECTED, // stop
+    STATE_L2TP_STARTED, // xl2tpd start
 };
 
 enum IpsecVpnCertType : int32_t {
@@ -77,6 +86,14 @@ protected:
     virtual int32_t InitConfigFile();
     void CleanTempFiles();
     void DeleteTempFile(const std::string &fileName);
+    int32_t SetUpVpnTun();
+    int32_t UpdateConfig(const std::string &msg);
+private:
+    void ProcessUpdateConfig(cJSON* jConfig);
+    void ProcessSwanctlLoad();
+    void ProcessIpsecUp();
+    void HandleConnected();
+    int32_t HandleUpdateConfig(const std::string &config);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -65,6 +65,10 @@ int32_t OpenvpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
 
 int32_t OpenvpnCtl::SetUpVpnTun()
 {
+    if (multiVpnInfo_ != nullptr) {
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_CALL_MODE,
+            multiVpnInfo_->isVpnExtCall ? "0" : "1");
+    }
     int result = NetVpnImpl::SetUp();
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_W("openvpn SetUp failed");
@@ -217,6 +221,10 @@ bool OpenvpnCtl::IsSystemVpn()
 int32_t OpenvpnCtl::Destroy()
 {
     StopOpenvpn();
+    if (multiVpnInfo_ != nullptr) {
+        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_CALL_MODE,
+            multiVpnInfo_->isVpnExtCall ? "0" : "1");
+    }
     int result = NetVpnImpl::Destroy();
     NETMGR_EXT_LOG_I("openvpn Destroy result %{public}d}", result);
     return result;

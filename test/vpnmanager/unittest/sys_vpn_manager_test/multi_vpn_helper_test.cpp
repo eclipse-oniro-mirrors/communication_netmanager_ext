@@ -61,13 +61,12 @@ HWTEST_F(MultiVpnHelperTest, GetNewIfNameId001, TestSize.Level1)
 
 HWTEST_F(MultiVpnHelperTest, CreateMultiVpnInfo001, TestSize.Level1)
 {
-    sptr<SysVpnConfig> vpnConfig = nullptr;
     sptr<MultiVpnInfo> info = nullptr;
     std::string bundleName = "test";
     int32_t userId = 1;
     bool isVpnExtCall = true;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
-        NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo("testid", 1, info),
+        NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(MultiVpnHelperTest, CreateMultiVpnInfo002, TestSize.Level1)
@@ -80,11 +79,11 @@ HWTEST_F(MultiVpnHelperTest, CreateMultiVpnInfo002, TestSize.Level1)
     bool isVpnExtCall = true;
     for (size_t i = 1; i < 21; ++i) {
         sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
-        ASSERT_NE(vpnInfo, nullptr);;
+        ASSERT_NE(vpnInfo, nullptr);
         vpnInfo->ifNameId = i;
         multiVpnHelper_.multiVpnInfos_.emplace_back(vpnInfo);
     }
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, 1, info),
         NETMANAGER_EXT_ERR_INTERNAL);
     multiVpnHelper_.multiVpnInfos_.clear();
 }
@@ -102,34 +101,34 @@ HWTEST_F(MultiVpnHelperTest, CreateMultiVpnInfo003, TestSize.Level1)
     sptr<SysVpnConfig> vpnConfig = new (std::nothrow) SysVpnConfig();
     ASSERT_NE(vpnConfig, nullptr);
     vpnConfig->vpnType_ = VpnType::IKEV2_IPSEC_MSCHAPv2;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::IKEV2_IPSEC_PSK;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::IKEV2_IPSEC_RSA;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::IPSEC_XAUTH_PSK;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::IPSEC_XAUTH_RSA;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::IPSEC_HYBRID_RSA;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::OPENVPN;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::L2TP_IPSEC_PSK;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::L2TP_IPSEC_RSA;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     vpnConfig->vpnType_ = VpnType::L2TP;
-    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig, info, bundleName, userId, isVpnExtCall),
+    EXPECT_EQ(multiVpnHelper_.CreateMultiVpnInfo(vpnConfig->vpnId_, vpnConfig->vpnType_, info),
         NETMANAGER_EXT_SUCCESS);
     multiVpnHelper_.multiVpnInfos_.clear();
 }
@@ -234,22 +233,6 @@ HWTEST_F(MultiVpnHelperTest, IsOpenvpnConnectedStage001, TestSize.Level1)
     EXPECT_EQ(multiVpnHelper_.IsOpenvpnConnectedStage(stage), false);
     stage ="openvpn{\"updateState\":{\"state\":4}}";
     EXPECT_EQ(multiVpnHelper_.IsOpenvpnConnectedStage(stage), true);
-}
-
-HWTEST_F(MultiVpnHelperTest, IsAnyVpnConnecting001, TestSize.Level1)
-{
-    multiVpnHelper_.multiVpnInfos_.clear();
-    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
-    ASSERT_NE(vpnInfo, nullptr);
-    vpnInfo->ifNameId = 1;
-    multiVpnHelper_.multiVpnInfos_.emplace_back(vpnInfo);
-    EXPECT_EQ(multiVpnHelper_.IsAnyVpnConnecting(), false);
-    sptr<MultiVpnInfo> vpnInfo1 = new (std::nothrow) MultiVpnInfo();
-    ASSERT_NE(vpnInfo1, nullptr);
-    vpnInfo1->isConnecting = true;
-    multiVpnHelper_.multiVpnInfos_.emplace_back(vpnInfo1);
-    EXPECT_EQ(multiVpnHelper_.IsAnyVpnConnecting(), true);
-    multiVpnHelper_.multiVpnInfos_.clear();
 }
 }
 }

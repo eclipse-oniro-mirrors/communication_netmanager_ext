@@ -27,9 +27,7 @@ namespace NetManagerStandard {
 class VpnEventCallback : public VpnEventCallbackStub {
 public:
     int32_t OnVpnStateChanged(bool isConnected) override;
-    #ifdef SUPPORT_SYSVPN
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName, const std::string &vpnId) override;
-    #endif // SUPPORT_SYSVPN
     int32_t OnVpnMultiUserSetUp() override{ return ERR_OK; };
 };
 
