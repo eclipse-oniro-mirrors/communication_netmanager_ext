@@ -182,24 +182,13 @@ int32_t L2tpVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 
 std::string L2tpVpnCtl::GetXl2tpdConfig()
 {
-    std::string templateContent = SINGLE_XL2TP_TEMPCONFIG;
+    std::string templateContent;
     if (l2tpVpnConfig_ != nullptr && multiVpnInfo_ != nullptr && !l2tpVpnConfig_->addresses_.empty()) {
-        std::map<std::string, std::string> params;
-        params[VPN_NAME_KEY] = std::string(VPN_NAME_KEY) + std::to_string(multiVpnInfo_->ifNameId);
-        params[VPN_ADDRESS_KEY] = l2tpVpnConfig_->addresses_[0].address_;
-        params[VPN_CLIENT_CONFIG_NAME_KEY] = std::string(VPN_CLIENT_CONFIG_NAME_KEY) +
-                                             "-" + std::to_string(multiVpnInfo_->ifNameId);
-        size_t pos = 0;
-        for (const auto& [key, value] : params) {
-            if (value.empty()) {
-                continue;
-            }
-            size_t pos = 0;
-            while ((pos = templateContent.find(key, pos)) != std::string::npos) {
-                templateContent.replace(pos, key.length(), value);
-                break;
-            }
-        }
+        templateContent.append(VPN_NAME_KEY).append(std::to_string(multiVpnInfo_->ifNameId))
+            .append(SINGLE_XL2TP_CONFIG_LNS).append(l2tpVpnConfig_->addresses_[0].address_)
+            .append(SINGLE_XL2TP_CONFIG_PPP).append(VPN_CLIENT_CONFIG_NAME_KEY)
+            .append(std::to_string(multiVpnInfo_->ifNameId))
+            .append(SINGLE_XL2TP_CONFIG_LENGTH);
     }
     templateContent = "\"" + templateContent + "\"";
     return templateContent;
@@ -240,19 +229,17 @@ void L2tpVpnCtl::HandleL2tpConfiged()
         }
     } else {
         state_ = IpsecVpnStateCode::STATE_L2TP_STARTED;
-        if (multiVpnInfo_ != nullptr) {
-            NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME,
-                std::string(IPSEC_CONNECT_NAME) + std::to_string(multiVpnInfo_->ifNameId));
-        } else {
-            NetsysController::GetInstance().ProcessVpnStage(
-                SysVpnStageCode::VPN_STAGE_UP_HOME, std::string(IPSEC_CONNECT_NAME));
-        }
+        std::string baseConnectName = IPSEC_CONNECT_NAME;
+        std::string connectName = multiVpnInfo_ == nullptr ? baseConnectName :
+            baseConnectName + std::to_string(multiVpnInfo_->ifNameId);
+        NetsysController::GetInstance().ProcessVpnStage(
+            SysVpnStageCode::VPN_STAGE_UP_HOME, connectName);
     }
 }
 
 void L2tpVpnCtl::HandleL2tpdCtl()
 {
-    NETMGR_EXT_LOG_I("4:set stage IPSEC_L2TP_CTL, process ehco c");
+    NETMGR_EXT_LOG_I("4:set stage IPSEC_L2TP_CTL, process echo c");
     state_ = IpsecVpnStateCode::STATE_CONTROLLED;
     if (multiVpnInfo_ != nullptr) {
         NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_L2TP_CTL,

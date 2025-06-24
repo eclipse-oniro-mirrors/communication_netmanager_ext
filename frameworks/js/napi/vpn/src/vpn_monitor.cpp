@@ -17,7 +17,9 @@
 
 #include <cstddef>
 #include <string>
+#ifdef SUPPORT_SYSVPN
 #include <utility>
+#endif // SUPPORT_SYSVPN
 
 #include <napi/native_common.h>
 #include <uv.h>

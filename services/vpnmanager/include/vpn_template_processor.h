@@ -35,10 +35,8 @@ private:
         std::map<std::string, std::shared_ptr<NetVpnImpl>> &vpnObjMap);
     void GenOptionsL2tpdClient(sptr<L2tpVpnConfig> &config);
     void GenIpsecSecrets(sptr<L2tpVpnConfig> &config);
-    void InflateConf(std::string &conf,
-        const std::unordered_map<std::string, std::string>& params);
-
-    void GetConnectAndSecretTemp(int32_t type, std::string &outConnect, std::string &outSecret);
+    void GetSecret(sptr<IpsecVpnConfig> &ipsecConfig, int32_t ifNameId, std::string &outSecret);
+    void GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t ifNameId, std::string &outConnect);
     void CreateConnectAndSecret(sptr<IpsecVpnConfig> &ipsecConfig, sptr<L2tpVpnConfig> &l2tpConfig,
         int32_t ifNameId, std::string &outConnect, std::string &outSecret);
     void CreateXl2tpdConf(sptr<L2tpVpnConfig> &config, int32_t ifNameId, std::string &outConf);

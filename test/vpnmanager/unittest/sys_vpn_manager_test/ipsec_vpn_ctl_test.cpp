@@ -139,6 +139,24 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
     EXPECT_EQ(ipsecControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
+HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest002, TestSize.Level1)
+{
+    ASSERT_NE(ipsecControl_, nullptr);
+    std::string stage;
+    int32_t errorCode = 0;
+    int32_t ret = 0;
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    stage = SWANCTL_START_TAG;
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    ipsecControl_->multiVpnInfo_ = vpnInfo;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ipsecControl_->multiVpnInfo_->ifNameId = 1;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
 {
     sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
@@ -224,7 +242,7 @@ HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest002, TestSize.Level1)
     EXPECT_EQ(ipsecControl_->InitConfigFile(), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
-HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
+HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest001, TestSize.Level1)
 {
     if (ipsecControl_ == nullptr) {
         return;
@@ -257,9 +275,13 @@ HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
     message = R"({"updateconfig":{"remoteip":"192.168.1.1","address":"192.168.1.1",
         "netmask":"255.255.255.0", "mtu":1400, "phyifname":"xfrm"}})";
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+    ipsecControl_->vpnConfig_ = nullptr;
+    message = R"({"updateconfig":{"address":"192.168.1.1", "netmask":"255.255.255.0",
+        "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(IpsecVpnCtlTest, HandleUpdateConfig001, TestSize.Level1)
+HWTEST_F(IpsecVpnCtlTest, HandleUpdateConfigTest001, TestSize.Level1)
 {
     if (ipsecControl_ == nullptr) {
         return;
@@ -282,6 +304,71 @@ HWTEST_F(IpsecVpnCtlTest, HandleUpdateConfig001, TestSize.Level1)
     message = R"({"updateconfig":{"address":"192.168.1.1", "netmask":"255.255.255.0",
         "mtu":1400, "phyifname":"xfrm"}})";
     EXPECT_EQ(ipsecControl_->HandleUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(IpsecVpnCtlTest, StartSysVpnTest001, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> ipsecConfig = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(ipsecConfig, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::unique_ptr<IpsecVpnCtl> ipsecControl1
+        = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+    ASSERT_NE(ipsecControl1, nullptr);
+    EXPECT_EQ(ipsecControl1->SetUp(), NETMANAGER_EXT_SUCCESS);
+    std::unique_ptr<IpsecVpnCtl> ipsecControl2
+        = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+        ASSERT_NE(ipsecControl2, nullptr);
+    EXPECT_EQ(ipsecControl2->SetUp(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(IpsecVpnCtlTest, DestroyTest002, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> ipsecConfig = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(ipsecConfig, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+
+    std::unique_ptr<IpsecVpnCtl> ipsecControl
+        = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+    ASSERT_NE(ipsecControl, nullptr);
+    EXPECT_EQ(ipsecControl->Destroy(), NETMANAGER_EXT_SUCCESS);
+
+    std::unique_ptr<IpsecVpnCtl> ipsecControl1
+        = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+    ASSERT_NE(ipsecControl1, nullptr);
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    ipsecControl1->multiVpnInfo_ = vpnInfo;
+    ipsecControl1->multiVpnInfo_->isVpnExtCall = false;
+    EXPECT_EQ(ipsecControl1->Destroy(), NETMANAGER_EXT_SUCCESS);
+    std::unique_ptr<IpsecVpnCtl> ipsecControl2
+        = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+    ASSERT_NE(ipsecControl2, nullptr);
+    vpnInfo->isVpnExtCall = 1;
+    ipsecControl1->multiVpnInfo_->isVpnExtCall = true;
+    ipsecControl1->multiVpnInfo_->ifNameId = 1;
+    EXPECT_EQ(ipsecControl2->Destroy(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(IpsecVpnCtlTest, SetUpVpnTunTest001, TestSize.Level1)
+{
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    vpnInfo->isVpnExtCall = 0;
+    vpnInfo->ifNameId = 1;
+    sptr<IpsecVpnConfig> ipsecConfig = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(ipsecConfig, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::unique_ptr<IpsecVpnCtl> ipsecControl
+        = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
+    ASSERT_NE(ipsecControl, nullptr);
+    ipsecControl->multiVpnInfo_ = vpnInfo;
+    ipsecControl->multiVpnInfo_->isVpnExtCall = true;
+    EXPECT_NE(ipsecControl->SetUpVpnTun(), NETMANAGER_EXT_SUCCESS);
+    ipsecControl->multiVpnInfo_->isVpnExtCall = false;
+    EXPECT_NE(ipsecControl->SetUpVpnTun(), NETMANAGER_EXT_SUCCESS);
 }
 
 } // namespace NetManagerStandard

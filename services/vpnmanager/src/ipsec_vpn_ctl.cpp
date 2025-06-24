@@ -60,13 +60,11 @@ int32_t IpsecVpnCtl::StopSysVpn()
 {
     NETMGR_EXT_LOG_I("stop ipsec vpn");
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
-    if (multiVpnInfo_ != nullptr) {
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_DOWN_HOME,
-            std::string(IPSEC_CONNECT_NAME) + std::to_string(multiVpnInfo_->ifNameId));
-    } else {
-        NetsysController::GetInstance().ProcessVpnStage(
-            SysVpnStageCode::VPN_STAGE_DOWN_HOME, std::string(IPSEC_CONNECT_NAME));
-    }
+    std::string baseConnectName = IPSEC_CONNECT_NAME;
+    std::string connectName = multiVpnInfo_ == nullptr ? baseConnectName :
+        baseConnectName + std::to_string(multiVpnInfo_->ifNameId);
+    NetsysController::GetInstance().ProcessVpnStage(
+        SysVpnStageCode::VPN_STAGE_DOWN_HOME, connectName);
     MultiVpnHelper::GetInstance().StopIpsec();
     NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
     return NETMANAGER_EXT_SUCCESS;
@@ -120,7 +118,6 @@ int32_t IpsecVpnCtl::SetUpVpnTun()
     }
     int result = NetVpnImpl::SetUp();
     if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_W("ipsec SetUp failed");
         StopSysVpn();
     }
     NETMGR_EXT_LOG_I("ipsec SetUp %{public}d", result);
@@ -294,13 +291,11 @@ void IpsecVpnCtl::ProcessIpsecUp()
     // 2. start connect
     NETMGR_EXT_LOG_I("ipsec vpn setup step 2: start connect");
     state_ = IpsecVpnStateCode::STATE_CONFIGED;
-    if (multiVpnInfo_ != nullptr) {
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME,
-            std::string(IPSEC_CONNECT_NAME) + std::to_string(multiVpnInfo_->ifNameId));
-    } else {
-        NetsysController::GetInstance().ProcessVpnStage(
-            SysVpnStageCode::VPN_STAGE_UP_HOME, std::string(IPSEC_CONNECT_NAME));
-    }
+    std::string baseConnectName = IPSEC_CONNECT_NAME;
+    std::string connectName = multiVpnInfo_ == nullptr ? baseConnectName :
+        baseConnectName + std::to_string(multiVpnInfo_->ifNameId);
+    NetsysController::GetInstance().ProcessVpnStage(
+        SysVpnStageCode::VPN_STAGE_UP_HOME, std::string(connectName));
 }
 
 void IpsecVpnCtl::HandleConnected()

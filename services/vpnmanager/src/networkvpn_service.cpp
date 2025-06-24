@@ -209,27 +209,29 @@ void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &st
 void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectState &state)
 {
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
-    vpnService_.PublishVpnConnectionStateEvent(state);
     if (!vpnService_.networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
         return;
     }
 #ifdef SUPPORT_SYSVPN
-    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
-        NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
-        return;
-    }
-    bool isAllDisconnected = true;
-    for (const auto& [name, vpn] : vpnService_.vpnObjMap_) {
-        if (vpn->multiVpnInfo_->userId == userId &&
-                vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
-            isAllDisconnected = false;
+    if (state == VpnConnectState::VPN_DISCONNECTED) {
+        int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+        int32_t uid = IPCSkeleton::GetCallingUid();
+        if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
+            NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
             return;
+        }
+        for (const auto &[name, vpn] : vpnService_.vpnObjMap_) {
+            int32_t vpnUserId = (vpn != nullptr && vpn->multiVpnInfo_ != nullptr) ?
+                vpn->multiVpnInfo_->userId : AppExecFwk::Constants::UNSPECIFIED_USERID;
+            if (vpnUserId == userId && vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
+                NETMGR_EXT_LOG_I("OnVpnConnStateChanged :: other vpn is connnected");
+                return;
+            }
         }
     }
 #endif // SUPPORT_SYSVPN
+    vpnService_.PublishVpnConnectionStateEvent(state);
     std::function<void()> OnVpnConnStateChangedFunction = [this, &state]() {
         std::for_each(vpnService_.vpnEventCallbacks_.begin(), vpnService_.vpnEventCallbacks_.end(),
                       [&state](const auto &callback) {
@@ -248,7 +250,6 @@ void NetworkVpnService::VpnConnStateCb::OnMultiVpnConnStateChanged(const VpnConn
 {
 #ifdef SUPPORT_SYSVPN
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
-    vpnService_.PublishVpnConnectionStateEvent(state);
     if (!vpnService_.networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
         return;

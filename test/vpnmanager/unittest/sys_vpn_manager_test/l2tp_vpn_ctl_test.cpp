@@ -89,9 +89,11 @@ HWTEST_F(L2tpVpnCtlTest, SetUp002, TestSize.Level1)
     EXPECT_EQ(l2tpControl->SetUp(), NETMANAGER_EXT_SUCCESS);
     l2tpControl->l2tpVpnConfig_->vpnType_ = 4;
     EXPECT_EQ(l2tpControl->SetUp(), NETMANAGER_EXT_SUCCESS);
+    l2tpControl->l2tpVpnConfig_->vpnType_ = 5;
+    EXPECT_EQ(l2tpControl->SetUp(), NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(L2tpVpnCtlTest, SetUp003, TestSize.Level1)
+HWTEST_F(L2tpVpnCtlTest, SetUpTest003, TestSize.Level1)
 {
     sptr<L2tpVpnConfig> l2tpVpnconfig = new (std::nothrow) L2tpVpnConfig();
     ASSERT_NE(l2tpVpnconfig, nullptr);
@@ -112,6 +114,31 @@ HWTEST_F(L2tpVpnCtlTest, SetUp003, TestSize.Level1)
     ASSERT_NE(vpnInfo, nullptr);
     l2tpControl->multiVpnInfo_ = vpnInfo;
     EXPECT_EQ(l2tpControl->SetUp(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(L2tpVpnCtlTest, StartSysVpnTest001, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> l2tpVpnconfig = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(l2tpVpnconfig, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    l2tpVpnconfig->addresses_.push_back(*netAddr);
+    l2tpVpnconfig->vpnId_ = "123";
+    l2tpVpnconfig->vpnName_ = "testSetUpVpn";
+    l2tpVpnconfig->vpnType_ = 1;
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::unique_ptr<L2tpVpnCtl> l2tpControl =
+        std::make_unique<L2tpVpnCtl>(l2tpVpnconfig, "pkg", userId, activeUserIds);
+    ASSERT_NE(l2tpControl, nullptr);
+    l2tpControl->l2tpVpnConfig_ = l2tpVpnconfig;
+    l2tpControl->l2tpVpnConfig_->vpnType_ = 4;
+    EXPECT_EQ(l2tpControl->StartSysVpn(), NETMANAGER_EXT_SUCCESS);
+    l2tpControl->l2tpVpnConfig_->vpnType_ = 5;
+    EXPECT_EQ(l2tpControl->StartSysVpn(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(L2tpVpnCtlTest, Destroy001, TestSize.Level1)
@@ -254,6 +281,45 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
+HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest003, TestSize.Level1)
+{
+    ASSERT_NE(l2tpControl_, nullptr);
+    std::string stage;
+    int32_t errorCode = NETMANAGER_EXT_SUCCESS;
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_CONFIGED;
+    stage = L2TP_IPSEC_CONFIGURED_TAG;
+    sptr<L2tpVpnConfig> l2tpVpnconfig = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(l2tpVpnconfig, nullptr);
+    l2tpControl_->l2tpVpnConfig_ = l2tpVpnconfig;
+    l2tpControl_->l2tpVpnConfig_->vpnType_ = 4;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    l2tpControl_->multiVpnInfo_ = vpnInfo;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_L2TP_STARTED;
+    stage = IPSEC_CONNECT_TAG;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest004, TestSize.Level1)
+{
+    ASSERT_NE(l2tpControl_, nullptr);
+    std::string stage;
+    int32_t errorCode = NETMANAGER_EXT_SUCCESS;
+    l2tpControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    stage = SWANCTL_START_TAG;
+    sptr<L2tpVpnConfig> l2tpVpnconfig = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(l2tpVpnconfig, nullptr);
+    l2tpControl_->l2tpVpnConfig_ = l2tpVpnconfig;
+    MultiVpnHelper::GetInstance().StartL2tp();
+    l2tpControl_->l2tpVpnConfig_->vpnType_ = 4;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+    l2tpControl_->l2tpVpnConfig_->vpnType_ = 5;
+    EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
 {
     sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
@@ -365,18 +431,14 @@ HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest003, TestSize.Level1)
 HWTEST_F(L2tpVpnCtlTest, ProcessUpdateL2tpConfig001, TestSize.Level1)
 {
     sptr<L2tpVpnConfig> l2tpVpnconfig = new (std::nothrow) L2tpVpnConfig();
-    if (l2tpVpnconfig == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpVpnconfig, nullptr);
     int32_t userId = 0;
     std::vector<int32_t> activeUserIds;
     std::unique_ptr<L2tpVpnCtl> l2tpControl =
         std::make_unique<L2tpVpnCtl>(l2tpVpnconfig, "pkg", userId, activeUserIds);
-    if (l2tpControl == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpVpnconfig, nullptr);
     std::string message;
-    l2tpControl->l2tpVpnConfig_ = nullptr;
+    EXPECT_EQ(l2tpControl->ProcessUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
     message = R"({"updateconfig":{"address":"192.168.1.1", "netmask":"255.255.255.0",
         "mtu":1400, "phyifname":"xfrm"}})";
     EXPECT_EQ(l2tpControl->ProcessUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);

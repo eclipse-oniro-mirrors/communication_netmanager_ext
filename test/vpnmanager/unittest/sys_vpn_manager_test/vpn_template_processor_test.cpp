@@ -15,6 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#ifdef GTEST_API_
+#define private public
+#define protected public
+#endif
 #include <string>
 #include <vector>
 
@@ -26,12 +30,7 @@
 #include "vpn_template_processor.h"
 #include "net_manager_constants.h"
 #include "multi_vpn_helper.h"
-#ifdef GTEST_API_
-#define private public
-#define protected public
-#endif
 #include "networkvpn_service.h"
-
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -69,7 +68,13 @@ HWTEST_F(VpnTemplateProcessorTest, BuildConfig001, TestSize.Level1)
 
 HWTEST_F(VpnTemplateProcessorTest, BuildConfig002, TestSize.Level1)
 {
-    std::shared_ptr<NetVpnImpl> vpnObj = nullptr;
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<IpsecVpnCtl> sysVpnCtl = std::make_shared<IpsecVpnCtl>(config, "", userId, activeUserIds);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    std::shared_ptr<NetVpnImpl> vpnObj = sysVpnCtl;
     std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap;
     VpnTemplateProcessor processor;
     EXPECT_EQ(processor.BuildConfig(vpnObj, vpnObjMap), NETMANAGER_EXT_ERR_INTERNAL);
@@ -226,6 +231,74 @@ HWTEST_F(VpnTemplateProcessorTest, BuildConfig007, TestSize.Level1)
     MultiVpnHelper::GetInstance().CreateMultiVpnInfo(config->vpnId_, config->vpnType_,
         vpnObj8->multiVpnInfo_);
     EXPECT_EQ(processor.BuildConfig(vpnObj8, vpnObjMap), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, BuildConfig008, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<IpsecVpnCtl> sysVpnCtl = std::make_shared<IpsecVpnCtl>(config, "", userId, activeUserIds);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    sysVpnCtl->multiVpnInfo_ = vpnInfo;
+    std::shared_ptr<NetVpnImpl> vpnObj = sysVpnCtl;
+    std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap;
+    VpnTemplateProcessor processor;
+    EXPECT_EQ(processor.BuildConfig(vpnObj, vpnObjMap), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GenXl2tpdConf001, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = nullptr;
+    std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap;
+    VpnTemplateProcessor processor;
+    processor.GenXl2tpdConf(config, 1, vpnObjMap);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GenOptionsL2tpdClient001, TestSize.Level1)
+{
+    VpnTemplateProcessor processor;
+    sptr<L2tpVpnConfig> config = nullptr;
+    processor.GenOptionsL2tpdClient(config);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, CreateXl2tpdConf001, TestSize.Level1)
+{
+    VpnTemplateProcessor processor;
+    sptr<L2tpVpnConfig> config = nullptr;
+    std::string conf;
+    processor.CreateXl2tpdConf(config, 1, conf);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GetSecret001, TestSize.Level1)
+{
+    VpnTemplateProcessor processor;
+    sptr<IpsecVpnConfig> ipsecConfig = nullptr;
+    std::string conf;
+    processor.GetSecret(ipsecConfig, 1, conf);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GetConnect001, TestSize.Level1)
+{
+    VpnTemplateProcessor processor;
+    sptr<IpsecVpnConfig> ipsecConfig = nullptr;
+    std::string conf;
+    processor.GetConnect(ipsecConfig, 1, conf);
+    ipsecConfig= new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(ipsecConfig, nullptr);
+    processor.GetConnect(ipsecConfig, 1, conf);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    ipsecConfig->addresses_.push_back(*netAddr);
+    processor.GetConnect(ipsecConfig, 1, conf);
+    ipsecConfig->vpnType_ = -1;
+    processor.GetConnect(ipsecConfig, 1, conf);
 }
 
 } // namespace NetManagerStandard

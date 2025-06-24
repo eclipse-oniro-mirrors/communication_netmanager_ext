@@ -29,12 +29,11 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-const std::string SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
-const std::string L2TP_IPSEC_CFG = IPSEC_PIDDIR "/ipsec.conf";
-const std::string L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
-const std::string IPSEC_START_TAG = "start";
-const std::string SWANCTL_START_TAG = "config";
-const std::string IPSEC_CONNECT_TAG = "connect";
+constexpr const char *SWAN_CONFIG_FILE = IPSEC_PIDDIR "/strongswan.conf";
+constexpr const char *L2TP_CFG = IPSEC_PIDDIR "/xl2tpd.conf";
+constexpr const char *IPSEC_START_TAG = "start";
+constexpr const char *SWANCTL_START_TAG = "config";
+constexpr const char *IPSEC_CONNECT_TAG = "connect";
 constexpr const char *IPSEC_CONNECT_NAME = "home";
 constexpr const char *L2TP_CONNECT_NAME = "l2tp";
 constexpr const char *IPSEC_NODE_UPDATE_CONFIG = "updateconfig";

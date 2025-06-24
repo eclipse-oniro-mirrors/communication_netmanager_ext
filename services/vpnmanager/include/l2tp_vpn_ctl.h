@@ -26,13 +26,13 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-const std::string L2TP_IPSEC_CONFIGURED_TAG = "xl2tpdstart";
-const std::string L2TP_IPSEC_CONNECTED_TAG = "pppdstart";
-constexpr const char *SINGLE_XL2TP_TEMPCONFIG =
-    R"(l2tp lns = vpn_address;ppp debug = yes;pppoptfile = options.l2tpd.client.conf;length bit = yes;)";
-constexpr const char *VPN_ADDRESS_KEY = "vpn_address";
+constexpr const char *L2TP_IPSEC_CONFIGURED_TAG = "xl2tpdstart";
+constexpr const char *L2TP_IPSEC_CONNECTED_TAG = "pppdstart";
 constexpr const char *VPN_NAME_KEY = "l2tp";
 constexpr const char *VPN_CLIENT_CONFIG_NAME_KEY = "options.l2tpd.client.conf";
+constexpr const char *SINGLE_XL2TP_CONFIG_LNS = " lns = ";
+constexpr const char *SINGLE_XL2TP_CONFIG_PPP = ";ppp debug = yes;pppoptfile = ";
+constexpr const char *SINGLE_XL2TP_CONFIG_LENGTH = ";length bit = yes;";
 } // namespace
 class L2tpVpnCtl : public IpsecVpnCtl {
 public:
