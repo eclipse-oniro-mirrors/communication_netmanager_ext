@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "net_manager_constants.h"
+#include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "parameters.h"
@@ -36,6 +37,7 @@ const std::string IFACE_MATCH = "eth\\d";
 constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
 constexpr const char *SYS_CLASS_NET_PATH = "/sys/class/net/";
+static constexpr const char *MDIO_BUS_DEV_INFO_PATH = "/sys/bus/mdio_bus/devices/bf800000.xge-0:01/dev_info";
 constexpr const char *ITEM_DEVICE = "/device";
 constexpr const char *ITEM_USB = "usb";
 constexpr const char *ITEM_DEVICE_NAME = "/product";
@@ -43,6 +45,8 @@ constexpr const char *ITEM_SUPPLIER_ID = "/idVendor";
 constexpr const char *ITEM_SUPPLIER_NAME = "/manufacturer";
 constexpr const char *ITEM_MAXIMUM_RATE = "/speed";
 constexpr const char *ITEM_UNIT_MBS = " Mb/s";
+static constexpr const char *ITEM_COMMA = ",";
+static constexpr uint32_t INDEX_ZERO = 0;
 constexpr int SLEEP_TIME_S = 2;
 constexpr uint32_t INDEX_ONE = 1;
 constexpr uint32_t INDEX_TWO = 2;
@@ -607,7 +611,6 @@ bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::strin
 void EthernetManagement::GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
     std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
-    NETMGR_EXT_LOG_I("GetUsbEthDeviceInfo iface = %{public}s nodePath = %{public}s", iface.c_str(), nodePath.c_str());
     size_t pos = nodePath.find_last_of('/');
     if (pos != std::string::npos) {
         nodePath.erase(pos);
@@ -627,10 +630,26 @@ void EthernetManagement::GetUsbEthDeviceInfo(const std::string &iface, std::stri
     }
 }
  
-void EthernetManagement::GetPciEthDeviceInfo(const std::string &iface, std::string &nodePath,
+void EthernetManagement::GetPciEthDeviceInfo(const std::string &iface, std::string nodePath,
     std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
-    NETMGR_EXT_LOG_I("GetPciEthDeviceInfo iface = %{public}s nodePath = %{public}s", iface.c_str(), nodePath.c_str());
+    std::string value;
+    if (!GetSysNodeValue(nodePath, value)) {
+        return;
+    }
+    auto valVec = CommonUtils::Split(value, ITEM_COMMA);
+    if (valVec.size() != INDEX_FOUR) {
+        return;
+    }
+    EthernetDeviceInfo tempDeviceInfo;
+    tempDeviceInfo.ifaceName_ = iface;
+    tempDeviceInfo.connectionMode_ = BUILT_IN;
+    tempDeviceInfo.deviceName_ = valVec[INDEX_ZERO];
+    tempDeviceInfo.supplierId_ = valVec[INDEX_ONE];
+    tempDeviceInfo.supplierName_ = valVec[INDEX_TWO];
+    tempDeviceInfo.maximumRate_ = valVec[INDEX_THREE] + ITEM_UNIT_MBS;
+    tempDeviceInfo.productName_ = tempDeviceInfo.deviceName_;
+    deviceInfoList.push_back(tempDeviceInfo);
 }
  
 int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
@@ -654,7 +673,7 @@ int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo>
         if (netDevNodePath.find(ITEM_USB) != std::string::npos) {
             GetUsbEthDeviceInfo(iface, netDevNodePath, deviceInfoList);
         } else {
-            GetPciEthDeviceInfo(iface, netDevNodePath, deviceInfoList);
+            GetPciEthDeviceInfo(iface, MDIO_BUS_DEV_INFO_PATH, deviceInfoList);
         }
     }
     if (deviceInfoList.size() == 0) {
