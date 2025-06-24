@@ -202,41 +202,35 @@ void VpnTemplateProcessor::GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t
     outConnect = homeElement + " {\n remote_addrs = " + ipsecConfig->addresses_[0].address_ + "\n vips = 0.0.0.0\n";
     std::ostringstream oss;
     switch (ipsecConfig->vpnType_) {
-        case VpnType::IKEV2_IPSEC_MSCHAPv2: {
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
             oss << "local {\n auth = eap-mschapv2\n eap_id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "remote {\n auth = pubkey\n}\n" << children << "\nversion = 2\n proposals = default\n}\n";
             break;
-        }
-        case VpnType::IKEV2_IPSEC_PSK: {
+        case VpnType::IKEV2_IPSEC_PSK:
             oss << "local {\n auth = psk\n}\n remote {\n auth = psk\n id = " << ipsecId << "\n}\n";
             oss << children << "\nversion = 2\n proposals = default\n}\n";
             break;
-        }
-        case VpnType::IKEV2_IPSEC_RSA: {
+        case VpnType::IKEV2_IPSEC_RSA:
             oss << "local {\n auth = pubkey\n id = " << ipsecId << "\n}\n";
             oss << "remote {\n auth = pubkey\n}\n" << children << "\nversion = 2\n proposals = default\n}\n";
             break;
-        }
-        case VpnType::IPSEC_XAUTH_PSK: {
+        case VpnType::IPSEC_XAUTH_PSK:
             oss << "local {\n auth = psk\n id = " << ipsecId << "\n}\n";
             oss << "local-xauth {\n auth = xauth\n xauth_id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "remote {\n auth = psk\n id = " << ipsecId << "\n}\n";
             oss << children << "\n version = 1\n proposals = default\n aggressive=yes\n}\n";
             break;
-        }
-        case VpnType::IPSEC_XAUTH_RSA: {
+        case VpnType::IPSEC_XAUTH_RSA:
             oss << "local {\n auth = pubkey\n id = " << ipsecId << "\n}\n";
             oss << "local-xauth {\n auth = xauth\n}\n remote {\n auth = pubkey\n}\n";
             oss << "children {\n home {\n remote_ts=0.0.0.0/0\n esp_proposals = default\n}\n}\n";
             oss << "version = 1\n proposals = default\n}\n";
             break;
-        }
-        case VpnType::IPSEC_HYBRID_RSA: {
+        case VpnType::IPSEC_HYBRID_RSA:
             oss << "local {\n auth = xauth\n xauth_id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "remote {\n auth = pubkey\n}\n";
             oss << children << "{\n version = 1\n proposals = default\n}\n";
             break;
-        }
         default:
             break;
     }
@@ -250,19 +244,21 @@ void VpnTemplateProcessor::CreateConnectAndSecret(sptr<IpsecVpnConfig> &ipsecCon
         NETMGR_EXT_LOG_W("invalid config");
         return;
     }
-    std::string connect, secret;
+    std::string connect;
+    std::string secret;
     if (l2tpConfig != nullptr) {
         if (l2tpConfig->vpnType_ == L2TP) {
             return;
         }
         std::string homeElement = "home" + std::to_string(ifNameId);
         std::string address = !l2tpConfig->addresses_.empty() ? l2tpConfig->addresses_[0].address_ : "";
-        std::string localId = !l2tpConfig->ipsecIdentifier_.empty() ? l2tpConfig->ipsecIdentifier_ : 
+        std::string localId = !l2tpConfig->ipsecIdentifier_.empty() ? l2tpConfig->ipsecIdentifier_ :
             (l2tpConfig->vpnType_ == L2TP_IPSEC_PSK) ? homeElement : "%any";
         std::string remoteId = l2tpConfig->ipsecIdentifier_.empty() ? "%any" : l2tpConfig->ipsecIdentifier_;
         std::string authType = (l2tpConfig->vpnType_ == L2TP_IPSEC_PSK) ? "psk" : "pubkey";
 
-        std::ostringstream connectOss, secretOss;
+        std::ostringstream connectOss;
+        std::ostringstream secretOss;
         connectOss << "home" << ifNameId << " {\nremote_addrs = " << address << "\n";
         connectOss << "local {\nid = " << localId << "\nauth = " << authType << "\n}\n";
         connectOss << "remote {\nid = " << remoteId << "\nauth = " << authType << "\n}\n";
