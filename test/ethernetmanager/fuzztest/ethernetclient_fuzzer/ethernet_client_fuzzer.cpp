@@ -43,6 +43,8 @@ static constexpr uint32_t CREATE_BOOL_TYPE_VALUE = 2;
 size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
 constexpr size_t IFACE_LEN = 5;
+constexpr size_t NET_TYPE_LEN = 1;
+constexpr size_t REG_CMD_LEN = 1024;
 } // namespace
 
 template <class T> T GetData()
@@ -78,6 +80,29 @@ public:
     }
 };
 
+class NetRegisterEapCallbackTest : public NetRegisterEapCallbackStub {
+public:
+    int32_t OnRegisterCustomEapCallback(const std::string &regCmd) override
+    {
+        return 0;
+    }
+    int32_t OnReplyCustomEapDataEvent(int result, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+};
+ 
+class NetEapPostBackCallbackTest : public NetEapPostbackCallbackStub {
+public:
+    int32_t OnEapSupplicantPostback(NetType netType, const sptr<EapData> &eapData) override
+    {
+        return 0;
+    }
+};
+ 
+static inline sptr<INetRegisterEapCallback> g_registerEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
+static inline sptr<INetEapPostbackCallback> g_eapPostbackCallback = new (std::nothrow) NetEapPostBackCallbackTest();
+ 
 std::string GetStringFromData(int strlen)
 {
     char cstr[strlen];
@@ -325,6 +350,122 @@ void EthernetServiceCommonFuzzTest(const uint8_t *data, size_t size)
     ethernetServiceCommon->ResetEthernetFactory();
 }
 
+void RegCustomEapHandlerFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    std::string regCmd = GetStringFromData(REG_CMD_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteInt32(std::stoi(netType))) {
+        return;
+    }
+    if (!parcel.WriteString(regCmd)) {
+        return;
+    }
+    if (!parcel.WriteRemoteObject(g_eapPostbackCallback->AsObject())) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_REG_CUSTOM_EAP_HANDLER), parcel);
+}
+ 
+void ReplyCustomEapDataFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    std::string result = GetStringFromData(NET_TYPE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteInt32(std::stoi(result))) {
+        return;
+    }
+ 
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    eapData->eapCode =  std::stoi(GetStringFromData(NET_TYPE_LEN));
+    eapData->eapType =  std::stoi(GetStringFromData(NET_TYPE_LEN));
+    eapData->msgId =  std::stoi(GetStringFromData(NET_TYPE_LEN));
+    eapData->bufferLen =  std::stoi(GetStringFromData(REG_CMD_LEN));
+    std::vector<uint8_t> tmp = {0x11, 0x12, 0x13};
+    eapData->eapBuffer = tmp;
+    eapData->Marshalling(parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_REPLY_CUSTOM_EAP_DATA), parcel);
+}
+ 
+void RegisterCustomEapCallbackFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteInt32(std::stoi(netType))) {
+        return;
+    }
+    if (!parcel.WriteRemoteObject(g_registerEapCallback->AsObject())) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_REGISTER_CUSTOM_EAP_CALLBACK), parcel);
+}
+ 
+void UnRegisterCustomEapCallbackFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteInt32(std::stoi(netType))) {
+        return;
+    }
+    if (!parcel.WriteRemoteObject(g_registerEapCallback->AsObject())) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_UN_REGISTER_CUSTOM_EAP_CALLBACK), parcel);
+}
+ 
+void NotifyWpaEapInterceptInfoFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteInt32(std::stoi(netType))) {
+        return;
+    }
+ 
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    eapData->eapCode =  std::stoi(GetStringFromData(NET_TYPE_LEN));
+    eapData->eapType =  std::stoi(GetStringFromData(NET_TYPE_LEN));
+    eapData->msgId =  std::stoi(GetStringFromData(NET_TYPE_LEN));
+    eapData->bufferLen =  std::stoi(GetStringFromData(REG_CMD_LEN));
+    std::vector<uint8_t> tmp = {0x11, 0x12, 0x13};
+    eapData->eapBuffer = tmp;
+    eapData->Marshalling(parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_NOTIFY_WPA_EAP_INTERCEPT_INFO), parcel);
+}
+ 
 void GetDeviceInformationFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -421,5 +562,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::EthernetServiceCommonFuzzTest(data, size);
     OHOS::NetManagerStandard::EthernetManagementFuzzTest(data, size);
     OHOS::NetManagerStandard::EthernetDhcpControllerFuzzTest(data, size);
+    OHOS::NetManagerStandard::RegCustomEapHandlerFuzzTest(data, size);
+    OHOS::NetManagerStandard::ReplyCustomEapDataFuzzTest(data, size);
+    OHOS::NetManagerStandard::RegisterCustomEapCallbackFuzzTest(data, size);
+    OHOS::NetManagerStandard::UnRegisterCustomEapCallbackFuzzTest(data, size);
+    OHOS::NetManagerStandard::NotifyWpaEapInterceptInfoFuzzTest(data, size);
     return 0;
 }

@@ -33,6 +33,8 @@ ohos_shared_library("ethernet_manager") {
     "src/ethernet_management.cpp",
     "src/ethernet_service.cpp",
     "src/ethernet_service_common.cpp",
+    "src/net_eap_callback_proxy.cpp",
+    "src/net_eap_handler.cpp",
   ]
 
   include_dirs = [
@@ -75,6 +77,10 @@ ohos_shared_library("ethernet_manager") {
     "NETWORK_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/ethernet_interfaces.json\"",
   ]
 
+  if (netmanager_ext_extensible_authentication) {
+    defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+  }
+ 
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
   }

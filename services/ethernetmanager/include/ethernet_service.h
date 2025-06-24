@@ -28,6 +28,7 @@
 #include "ethernet_service_stub.h"
 #include "event_handler.h"
 #include "netsys_controller_callback.h"
+#include "net_eap_handler.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "system_ability.h"
@@ -79,6 +80,12 @@ public:
     int32_t SetInterfaceDown(const std::string &iface) override;
     int32_t GetInterfaceConfig(const std::string &iface, ConfigurationParcelIpc &cfgIpc) override;
     int32_t SetInterfaceConfig(const std::string &iface, const ConfigurationParcelIpc &cfgIpc) override;
+    int32_t RegCustomEapHandler(int netType, const std::string &regCmd,
+        const sptr<INetEapPostbackCallback> &callback) override;
+    int32_t ReplyCustomEapData(int result, const sptr<EapData> &eapData) override;
+    int32_t RegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback) override;
+    int32_t UnRegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback) override;
+    int32_t NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData) override;
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList) override;
 
 protected:

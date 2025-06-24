@@ -40,6 +40,8 @@ ohos_unittest("ethernet_manager_test") {
     "ethernet_service_test.cpp",
     "mac_address_info_test.cpp",
     "ethernet_device_info_test.cpp",
+    "net_eap_callback_stub_test.cpp",
+    "net_eap_handler_test.cpp",
   ]
 
   include_dirs = [
@@ -84,6 +86,10 @@ ohos_unittest("ethernet_manager_test") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
+  if (netmanager_ext_extensible_authentication) {
+    defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+  }
+ 
   external_deps += [ "hilog:libhilog" ]
 
   part_name = "netmanager_ext"

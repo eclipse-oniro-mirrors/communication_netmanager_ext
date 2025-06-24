@@ -419,6 +419,46 @@ void EthernetService::NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction)
     ethernetServiceFfrtQueue_->wait(NotifyMonitorIfaceTask_);
 }
 
+int32_t EthernetService::RegCustomEapHandler(int netType, const std::string &regCmd,
+    const sptr<INetEapPostbackCallback> &callback)
+{
+    NETMGR_EXT_LOG_D("Enter RegCustomEapHandler");
+    if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    return NetEapHandler::GetInstance().RegCustomEapHandler(static_cast<NetType>(netType), regCmd, callback);
+}
+ 
+int32_t EthernetService::ReplyCustomEapData(int eapResult, const sptr<EapData> &eapData)
+{
+    NETMGR_EXT_LOG_D("Enter ReplyCustomEapData");
+    if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    return NetEapHandler::GetInstance().ReplyCustomEapData(eapResult, eapData);
+}
+ 
+int32_t EthernetService::RegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback)
+{
+    NETMGR_EXT_LOG_D("Enter RegisterCustomEapCallback");
+    return NetEapHandler::GetInstance().RegisterCustomEapCallback(static_cast<NetType>(netType), callback);
+}
+ 
+int32_t EthernetService::UnRegisterCustomEapCallback(int netType,
+    const sptr<INetRegisterEapCallback> &callback)
+{
+    NETMGR_EXT_LOG_D("Enter UnRegisterCustomEapCallback");
+    return NetEapHandler::GetInstance().UnRegisterCustomEapCallback(static_cast<NetType>(netType), callback);
+}
+ 
+int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData)
+{
+    NETMGR_EXT_LOG_D("Enter NotifyWpaEapInterceptInfo");
+    return NetEapHandler::GetInstance().NotifyWpaEapInterceptInfo(static_cast<NetType>(netType), eapData);
+}
+ 
 int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
     if (!NetManagerPermission::IsSystemCaller()) {

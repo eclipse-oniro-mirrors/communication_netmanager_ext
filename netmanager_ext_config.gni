@@ -72,6 +72,7 @@ declare_args() {
   battery_manager_switch_enable = false
   netmanager_ext_share_notification_enable = false
   netmanager_ext_share_traffic_limit_enable = false
+  netmanager_ext_extensible_authentication = false
   netmanager_ext_feature_networkslice = false
 }
 

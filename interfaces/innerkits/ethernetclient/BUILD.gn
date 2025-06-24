@@ -56,6 +56,7 @@ ohos_static_library("ethernet_parcel") {
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/configuration_parcel_ipc.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/interface_configuration.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/mac_address_info.cpp",
+    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/eap_data.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/static_configuration.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/ethernet_device_info.cpp",
   ]
@@ -125,6 +126,7 @@ ohos_shared_library("ethernet_manager_if") {
 
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/ethernet_client.cpp",
+    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/net_eap_callback_stub.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_proxy.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_stub.cpp",
   ]
@@ -160,6 +162,10 @@ ohos_shared_library("ethernet_manager_if") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
+  if (netmanager_ext_extensible_authentication) {
+    defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+  }
+ 
   external_deps += [ "hilog:libhilog" ]
 
   innerapi_tags = [ "platformsdk" ]

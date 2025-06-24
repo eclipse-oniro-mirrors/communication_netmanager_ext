@@ -276,6 +276,92 @@ int32_t EthernetClient::SetInterfaceConfig(const std::string &iface, OHOS::nmd::
     return proxy->SetInterfaceConfig(iface, configIpc);
 }
 
+int32_t EthernetClient::RegCustomEapHandler(NetType netType, const std::string &regCmd,
+    const sptr<INetEapPostbackCallback> &callback)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s callback is nullptr.", __func__);
+        return NETMANAGER_ERR_LOCAL_PTR_NULL;
+    }
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s proxy is nullptr.", __func__);
+        return NETMANAGER_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->RegCustomEapHandler(static_cast<int>(netType), regCmd, callback);
+#else
+    return NETMANAGER_SUCCESS;
+#endif
+}
+ 
+int32_t EthernetClient::ReplyCustomEapData(int result, const sptr<EapData> &eapData)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    if (eapData == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s, eapData is nullptr", __func__);
+        return NETMANAGER_ERR_GET_PROXY_FAIL;
+    }
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s, proxy is nullptr.", __func__);
+        return NETMANAGER_ERR_LOCAL_PTR_NULL;
+    }
+    return proxy->ReplyCustomEapData(result, eapData);
+#else
+    return NETMANAGER_SUCCESS;
+#endif
+}
+ 
+int32_t EthernetClient::RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s proxy is nullptr.", __func__);
+        return NETMANAGER_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->RegisterCustomEapCallback(static_cast<int>(netType), callback);
+#else
+    return NETMANAGER_SUCCESS;
+#endif
+}
+ 
+int32_t EthernetClient::UnRegisterCustomEapCallback(const NetType netType,
+    const sptr<INetRegisterEapCallback> &callback)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s proxy is nullptr.", __func__);
+        return NETMANAGER_ERR_GET_PROXY_FAIL;
+    }
+ 
+    return proxy->UnRegisterCustomEapCallback(static_cast<int>(netType), callback);
+#else
+    return NETMANAGER_SUCCESS;
+#endif
+}
+ 
+int32_t EthernetClient::NotifyWpaEapInterceptInfo(const NetType netType, const sptr<EapData> &eapData)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    if (eapData == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s eapData is nullptr.", __func__);
+        return NETMANAGER_ERR_LOCAL_PTR_NULL;
+    }
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("%{public}s proxy is nullptr.", __func__);
+        return NETMANAGER_ERR_GET_PROXY_FAIL;
+    }
+ 
+    return proxy->NotifyWpaEapInterceptInfo(static_cast<int>(netType), eapData);
+#else
+    return NETMANAGER_SUCCESS;
+#endif
+}
+ 
 int32_t EthernetClient::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
     sptr<IEthernetService> proxy = GetProxy();

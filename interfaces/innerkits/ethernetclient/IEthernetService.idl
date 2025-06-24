@@ -18,6 +18,9 @@ sequenceable OHOS.NetManagerStandard.InterfaceConfiguration;
 sequenceable OHOS.NetManagerStandard.ConfigurationParcelIpc;
 sequenceable OHOS.NetManagerStandard.MacAddressInfo;
 sequenceable OHOS.NetManagerStandard.EthernetDeviceInfo;
+sequenceable OHOS.NetManagerStandard.EapData;
+interface OHOS.NetManagerStandard.INetEapPostbackCallback;
+interface OHOS.NetManagerStandard.INetRegisterEapCallback;
 interface OHOS.NetManagerStandard.IEthernetService {
     void GetMacAddress([out] List<MacAddressInfo> macAddrList);
     void SetIfaceConfig([in] String iface, [in] sptr<InterfaceConfiguration> ic);
@@ -32,4 +35,9 @@ interface OHOS.NetManagerStandard.IEthernetService {
     void GetInterfaceConfig([in] String iface, [out] ConfigurationParcelIpc cfg);
     void SetInterfaceConfig([in] String iface, [in] ConfigurationParcelIpc cfg);
     void GetDeviceInformation([out] List<EthernetDeviceInfo> deviceInfoList);
+    void RegCustomEapHandler([in] int netType, [in] String regCmd, [in] INetEapPostbackCallback cb);
+    void ReplyCustomEapData([in] int eapResult, [in] sptr<EapData> eapData);
+    void RegisterCustomEapCallback([in] int netType, [in] INetRegisterEapCallback cb);
+    void UnRegisterCustomEapCallback([in] int netType, [in] INetRegisterEapCallback cb);
+    void NotifyWpaEapInterceptInfo([in] int netType, [in] sptr<EapData> eapData);
 }
