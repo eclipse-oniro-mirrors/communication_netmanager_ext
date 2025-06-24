@@ -36,10 +36,10 @@ config("net_vpn_manager_config") {
 }
 
 net_vpn_manager_sources = [
+  "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkvpn_service.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/extended_vpn_ctl.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/net_vpn_impl.cpp",
   "$VPNMANAGER_SOURCE_DIR/src/networkvpn_hisysevent.cpp",
-  "$VPNMANAGER_SOURCE_DIR/src/networkvpn_service.cpp",
   "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp",
 ]
 

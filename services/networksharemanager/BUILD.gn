@@ -132,7 +132,7 @@ ohos_shared_library("net_tether_manager") {
     ]
     defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
     sources +=
-        [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_trafficlimit.cpp" ]
+        [ "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkshare_trafficlimit.cpp" ]
   }
 
   defines += [
@@ -253,7 +253,7 @@ ohos_static_library("net_tether_manager_static") {
     ]
     defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
     sources +=
-        [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_trafficlimit.cpp" ]
+        [ "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkshare_trafficlimit.cpp" ]
   }
 
   defines += [
