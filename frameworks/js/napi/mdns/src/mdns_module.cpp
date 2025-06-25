@@ -47,7 +47,8 @@ static std::string GetContextIdString(napi_env env, napi_value obj)
     return std::string();
 }
 
-static void *ParseMDnsDiscoveryParams(napi_env env, size_t argc, napi_value *argv, EventManager *manager)
+static void *ParseMDnsDiscoveryParams(napi_env env, size_t argc, napi_value *argv,
+    std::shared_ptr<EventManager>& manager)
 {
     std::unique_ptr<MDnsDiscoveryInstance, decltype(&MDnsDiscoveryInstance::DeleteMDnsDiscovery)> mdnsDiscover(
         MDnsDiscoveryInstance::MakeMDnsDiscovery(manager), MDnsDiscoveryInstance::DeleteMDnsDiscovery);
@@ -68,13 +69,17 @@ static void *ParseMDnsDiscoveryParams(napi_env env, size_t argc, napi_value *arg
 napi_value MDnsModule::CreateDiscoveryService(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::NewInstance(env, info, FUNCTION_DISCOVERY_SERVICE, ParseMDnsDiscoveryParams,
-                                       [](napi_env, void *data, void *) {
-                                           NETMANAGER_BASE_LOGI("finalize DiscoveryService");
-                                           auto manager = static_cast<EventManager *>(data);
-                                           auto mdnsDiscover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
-                                           delete manager;
-                                           MDnsDiscoveryInstance::DeleteMDnsDiscovery(mdnsDiscover);
-                                       });
+        [](napi_env, void *data, void *) {
+            NETMANAGER_BASE_LOGI("finalize DiscoveryService");
+            auto sharedManager = static_cast<std::shared_ptr<EventManager> *>(data);
+            if (sharedManager == nullptr || *sharedManager == nullptr) {
+                return;
+            }
+            auto manager = *sharedManager;
+            auto mdnsDiscover = static_cast<MDnsDiscoveryInstance *>(manager->GetData());
+            delete sharedManager;
+            MDnsDiscoveryInstance::DeleteMDnsDiscovery(mdnsDiscover);
+        });
 }
 
 napi_value MDnsModule::AddLocalService(napi_env env, napi_callback_info info)

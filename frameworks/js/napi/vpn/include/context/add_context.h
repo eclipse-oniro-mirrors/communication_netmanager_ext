@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class AddContext : public BaseContext {
 public:
     AddContext() = delete;
-    AddContext(napi_env env, EventManager *manager);
+    AddContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
     bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount);

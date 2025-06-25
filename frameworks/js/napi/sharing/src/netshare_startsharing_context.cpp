@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-NetShareStartSharingContext::NetShareStartSharingContext(napi_env env, EventManager *manager)
+NetShareStartSharingContext::NetShareStartSharingContext(napi_env env, std::shared_ptr<EventManager>& manager)
     : BaseContext(env, manager)
 {
 }

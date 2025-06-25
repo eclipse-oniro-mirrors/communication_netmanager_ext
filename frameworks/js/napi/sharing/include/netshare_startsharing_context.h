@@ -32,7 +32,7 @@ public:
     DISALLOW_COPY_AND_MOVE(NetShareStartSharingContext);
 
     NetShareStartSharingContext() = delete;
-    explicit NetShareStartSharingContext(napi_env env, EventManager *manager);
+    explicit NetShareStartSharingContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
     int32_t GetParam() const;

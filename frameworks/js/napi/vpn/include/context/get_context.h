@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class GetContext : public BaseContext {
 public:
     GetContext() = delete;
-    GetContext(napi_env env, EventManager *manager);
+    GetContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
     bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount);

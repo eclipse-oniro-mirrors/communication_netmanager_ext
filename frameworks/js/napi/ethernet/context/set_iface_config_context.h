@@ -31,7 +31,7 @@ namespace NetManagerStandard {
 class SetIfaceConfigContext : public BaseContext {
 public:
     SetIfaceConfigContext() = delete;
-    explicit SetIfaceConfigContext(napi_env env, EventManager *manager);
+    explicit SetIfaceConfigContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

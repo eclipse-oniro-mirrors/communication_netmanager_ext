@@ -19,7 +19,8 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-GetAllActiveIfacesContext::GetAllActiveIfacesContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+GetAllActiveIfacesContext::GetAllActiveIfacesContext(napi_env env, std::shared_ptr<EventManager>& manager)
+    : BaseContext(env, manager) {}
 
 void GetAllActiveIfacesContext::ParseParams(napi_value *params, size_t paramsCount)
 {

@@ -29,7 +29,7 @@ class AddNetFirewallRuleContext : public BaseContext {
 public:
     AddNetFirewallRuleContext() = delete;
 
-    AddNetFirewallRuleContext(napi_env env, EventManager *manager);
+    AddNetFirewallRuleContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

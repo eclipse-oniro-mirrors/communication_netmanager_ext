@@ -27,7 +27,7 @@ namespace NetManagerStandard {
 class GetDeviceInformationContext : public BaseContext {
 public:
     GetDeviceInformationContext() = delete;
-    explicit GetDeviceInformationContext(napi_env env, EventManager *manager);
+    explicit GetDeviceInformationContext(napi_env env, std::shared_ptr<EventManager>& manager);
  
     void ParseParams(napi_value *params, size_t paramsCount);
  

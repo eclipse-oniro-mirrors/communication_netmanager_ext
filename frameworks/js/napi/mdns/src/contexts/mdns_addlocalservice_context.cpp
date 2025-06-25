@@ -24,7 +24,7 @@ namespace OHOS::NetManagerStandard {
 std::map<std::string, sptr<IRegistrationCallback>> MDnsAddLocalServiceContext::registerCallbackMap_;
 std::mutex g_mDNSRegisterMutex;
 
-MDnsAddLocalServiceContext::MDnsAddLocalServiceContext(napi_env env, EventManager *manager)
+MDnsAddLocalServiceContext::MDnsAddLocalServiceContext(napi_env env, std::shared_ptr<EventManager>& manager)
     : MDnsBaseContext(env, manager)
 {
 }

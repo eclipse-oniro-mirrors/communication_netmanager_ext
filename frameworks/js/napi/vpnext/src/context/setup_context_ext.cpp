@@ -116,7 +116,7 @@ void GetBoolFromJsOptionItem(napi_env env, napi_value object, const std::string 
 }
 } // namespace
 
-SetUpContext::SetUpContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+SetUpContext::SetUpContext(napi_env env, std::shared_ptr<EventManager>& manager) : BaseContext(env, manager) {}
 
 void SetUpContext::ParseParams(napi_value *params, size_t paramsCount)
 {

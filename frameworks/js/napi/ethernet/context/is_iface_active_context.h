@@ -30,7 +30,7 @@ namespace NetManagerStandard {
 class IsIfaceActiveContext : public BaseContext {
 public:
     IsIfaceActiveContext() = delete;
-    explicit IsIfaceActiveContext(napi_env env, EventManager *manager);
+    explicit IsIfaceActiveContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

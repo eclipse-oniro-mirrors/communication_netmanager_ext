@@ -28,9 +28,9 @@ public:
     MDnsDiscoveryInstance();
     ~MDnsDiscoveryInstance() = default;
     [[nodiscard]] sptr<MDnsDiscoveryObserver> GetObserver() const;
-    [[nodiscard]] EventManager *GetEventManager() const;
+    [[nodiscard]] std::shared_ptr<EventManager> GetEventManager() const;
 
-    static MDnsDiscoveryInstance *MakeMDnsDiscovery(EventManager *eventManager);
+    static MDnsDiscoveryInstance *MakeMDnsDiscovery(std::shared_ptr<EventManager>& eventManager);
     static void DeleteMDnsDiscovery(MDnsDiscoveryInstance *mDnsDiscovery);
 
     std::string context_;
@@ -39,8 +39,8 @@ public:
     static std::map<MDnsDiscoveryObserver *, MDnsDiscoveryInstance *> discoverInstanceMap_;
 
 private:
-    EventManager *manager_ = nullptr;
-    explicit MDnsDiscoveryInstance(EventManager *eventManager);
+    std::shared_ptr<EventManager> manager_ = nullptr;
+    explicit MDnsDiscoveryInstance(std::shared_ptr<EventManager>& eventManager);
 };
 } // namespace OHOS::NetManagerStandard
 #endif /* NETMANAGER_EXT_MDNS_INSTANCES_H */

@@ -36,11 +36,11 @@ public:
                   bool asyncCallback);
     napi_value Off(napi_env env, napi_callback_info info, const std::initializer_list<std::string_view> &events,
                    bool asyncCallback);
-    EventManager *GetEventManager() const;
+    std::shared_ptr<EventManager> GetEventManager() const;
 
 private:
     sptr<NetShareCallbackObserver> observer_ = nullptr;
-    EventManager *manager_ = nullptr;
+    std::shared_ptr<EventManager> manager_ = nullptr;
     bool registed_ = false;
 
 private:

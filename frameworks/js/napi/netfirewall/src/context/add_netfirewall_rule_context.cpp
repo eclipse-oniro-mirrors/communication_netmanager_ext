@@ -37,7 +37,8 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount
     return true;
 }
 
-AddNetFirewallRuleContext::AddNetFirewallRuleContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+AddNetFirewallRuleContext::AddNetFirewallRuleContext(napi_env env, std::shared_ptr<EventManager>& manager)
+    : BaseContext(env, manager) {}
 
 void AddNetFirewallRuleContext::ParseParams(napi_value *params, size_t paramsCount)
 {

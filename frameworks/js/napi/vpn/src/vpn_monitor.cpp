@@ -152,16 +152,10 @@ int32_t VpnEventCallback::OnMultiVpnStateChanged(bool isConnected, const std::st
 
 VpnMonitor::VpnMonitor()
 {
-    manager_ = new EventManager();
+    manager_ = std::make_shared<EventManager>();
 }
 
-VpnMonitor::~VpnMonitor()
-{
-    if (manager_ != nullptr) {
-        delete manager_;
-        manager_ = nullptr;
-    }
-}
+VpnMonitor::~VpnMonitor() = default;
 
 VpnMonitor &VpnMonitor::GetInstance()
 {

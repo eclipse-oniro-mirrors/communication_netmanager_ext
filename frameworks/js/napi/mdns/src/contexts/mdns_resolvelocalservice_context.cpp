@@ -23,7 +23,7 @@ namespace OHOS::NetManagerStandard {
 std::map<std::string, sptr<IResolveCallback>> MDnsResolveLocalServiceContext::resolveCallbackMap_;
 std::mutex g_mDNSResolveMutex;
 
-MDnsResolveLocalServiceContext::MDnsResolveLocalServiceContext(napi_env env, EventManager *manager)
+MDnsResolveLocalServiceContext::MDnsResolveLocalServiceContext(napi_env env, std::shared_ptr<EventManager>& manager)
     : MDnsBaseContext(env, manager), resolveObserver_(new (std::nothrow) MDnsResolveObserver())
 {
 }

@@ -22,7 +22,7 @@
 
 namespace OHOS::NetManagerStandard {
 std::mutex g_mDNSUnregisterMutex;
-MDnsRemoveLocalServiceContext::MDnsRemoveLocalServiceContext(napi_env env, EventManager *manager)
+MDnsRemoveLocalServiceContext::MDnsRemoveLocalServiceContext(napi_env env, std::shared_ptr<EventManager>& manager)
     : MDnsBaseContext(env, manager)
 {
 }

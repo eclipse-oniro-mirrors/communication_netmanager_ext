@@ -44,7 +44,8 @@ bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 }
 } // namespace
 
-SetIfaceConfigContext::SetIfaceConfigContext(napi_env env, EventManager *manager) : BaseContext(env, manager) {}
+SetIfaceConfigContext::SetIfaceConfigContext(napi_env env, std::shared_ptr<EventManager>& manager)
+    : BaseContext(env, manager) {}
 
 void SetIfaceConfigContext::ParseParams(napi_value *params, size_t paramsCount)
 {

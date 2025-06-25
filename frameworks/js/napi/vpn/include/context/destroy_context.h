@@ -27,7 +27,7 @@ namespace NetManagerStandard {
 class DestroyContext : public BaseContext {
 public:
     DestroyContext() = delete;
-    DestroyContext(napi_env env, EventManager *manager);
+    DestroyContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 };

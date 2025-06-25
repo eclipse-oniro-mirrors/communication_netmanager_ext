@@ -23,14 +23,14 @@ namespace OHOS::NetManagerStandard {
 std::map<MDnsDiscoveryObserver *, MDnsDiscoveryInstance *> MDnsDiscoveryInstance::discoverInstanceMap_;
 std::mutex g_mDNSDiscoverMutex;
 
-MDnsDiscoveryInstance::MDnsDiscoveryInstance(EventManager *eventManager)
+MDnsDiscoveryInstance::MDnsDiscoveryInstance(std::shared_ptr<EventManager>& eventManager)
     : observer_(new (std::nothrow) MDnsDiscoveryObserver), manager_(eventManager)
 {
 }
 
 MDnsDiscoveryInstance::MDnsDiscoveryInstance() {}
 
-MDnsDiscoveryInstance *MDnsDiscoveryInstance::MakeMDnsDiscovery(EventManager *eventManager)
+MDnsDiscoveryInstance *MDnsDiscoveryInstance::MakeMDnsDiscovery(std::shared_ptr<EventManager>& eventManager)
 {
     std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
     auto mdnsDiscovery = new MDnsDiscoveryInstance(eventManager);
@@ -59,7 +59,7 @@ sptr<MDnsDiscoveryObserver> MDnsDiscoveryInstance::GetObserver() const
     return observer_;
 }
 
-EventManager *MDnsDiscoveryInstance::GetEventManager() const
+std::shared_ptr<EventManager> MDnsDiscoveryInstance::GetEventManager() const
 {
     return manager_;
 }

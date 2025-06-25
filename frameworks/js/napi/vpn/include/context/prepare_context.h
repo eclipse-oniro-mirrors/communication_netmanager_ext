@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class PrepareContext : public BaseContext {
 public:
     PrepareContext() = delete;
-    PrepareContext(napi_env env, EventManager *manager);
+    PrepareContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 

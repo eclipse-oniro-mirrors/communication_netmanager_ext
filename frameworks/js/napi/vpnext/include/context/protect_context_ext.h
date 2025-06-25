@@ -28,7 +28,7 @@ namespace NetManagerStandard {
 class ProtectContext : public BaseContext {
 public:
     ProtectContext() = delete;
-    ProtectContext(napi_env env, EventManager *manager);
+    ProtectContext(napi_env env, std::shared_ptr<EventManager>& manager);
 
     void ParseParams(napi_value *params, size_t paramsCount);
 
