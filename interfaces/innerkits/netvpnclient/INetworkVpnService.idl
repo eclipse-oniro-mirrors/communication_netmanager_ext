@@ -40,4 +40,5 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     [macrodef SUPPORT_SYSVPN] void DestroyVpn([in] String vpnId);
     [macrodef SUPPORT_SYSVPN] void RegisterMultiVpnEvent([in] IVpnEventCallback callbackparam);
     [macrodef SUPPORT_SYSVPN] void UnregisterMultiVpnEvent([in] IVpnEventCallback callbackparam);
+    
 }

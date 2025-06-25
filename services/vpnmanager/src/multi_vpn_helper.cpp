@@ -64,15 +64,20 @@ int32_t MultiVpnHelper::GetNewIfNameId()
     return newId;
 }
 
-int32_t MultiVpnHelper::CreateMultiVpnInfo(const std::string &vpnId, int32_t vpnType, sptr<MultiVpnInfo> &info)
+int32_t MultiVpnHelper::CreateMultiVpnInfo(const sptr<SysVpnConfig> &vpnConfig,
+    sptr<MultiVpnInfo> &info, std::string &bundleName, int32_t userId, bool isVpnExtCall)
 {
+    if (vpnConfig == nullptr) {
+        NETMGR_EXT_LOG_E("CreateMultiVpnInfo failed, config is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     if (multiVpnInfos_.size() >= MAX_VPN_INTERFACE_COUNT) {
         NETMGR_EXT_LOG_E("CreateMultiVpnInfo failed, MAX_VPN_INTERFACE_COUNT");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     int32_t ifNameId = GetNewIfNameId();
-    std::string newIfName;
-    switch (vpnType) {
+    std::string newIfName = "";
+    switch (vpnConfig->vpnType_) {
         case VpnType::IKEV2_IPSEC_MSCHAPv2:
         case VpnType::IKEV2_IPSEC_PSK:
         case VpnType::IKEV2_IPSEC_RSA:
@@ -90,18 +95,22 @@ int32_t MultiVpnHelper::CreateMultiVpnInfo(const std::string &vpnId, int32_t vpn
             newIfName = PPP_CARD_NAME + std::to_string(ifNameId);
             break;
         default:
-            NETMGR_EXT_LOG_I("other vpnType=%{public}d", vpnType);
-            break;
+            NETMGR_EXT_LOG_E("CreateMultiVpnInfo failed, invalid type=%{public}d", vpnConfig->vpnType_);
+            return NETMANAGER_EXT_ERR_INTERNAL;
     }
     info = new (std::nothrow) MultiVpnInfo();
     if (info == nullptr) {
         NETMGR_EXT_LOG_E("CreateMultiVpnInfo failed, info is null");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    info->vpnId = vpnId;
+    info->vpnId = vpnConfig->vpnId_;
     info->ifNameId = ifNameId;
     info->ifName = newIfName;
     info->callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    info->isConnecting = true;
+    info->isVpnExtCall = isVpnExtCall;
+    info->bundleName = bundleName;
+    info->userId = userId;
     NETMGR_EXT_LOG_I("CreateMultiVpnInfo %{public}s", newIfName.c_str());
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -212,6 +221,16 @@ bool MultiVpnHelper::IsOpenvpnConnectedStage(const std::string &msg)
         cJSON_Delete(message);
     }
     return openvpnConnected;
+}
+
+bool MultiVpnHelper::IsAnyVpnConnecting()
+{
+    for (const auto &info : multiVpnInfos_) {
+        if (info->isConnecting) {
+            return true;
+        }
+    }
+    return false;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

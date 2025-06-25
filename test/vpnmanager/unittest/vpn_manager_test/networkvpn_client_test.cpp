@@ -47,8 +47,10 @@ using namespace testing::ext;
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
     int32_t OnVpnStateChanged(bool isConnected) override{ return 0; };
+#ifdef SUPPORT_SYSVPN
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override{ return 0; };
+#endif // SUPPORT_SYSVPN
     int32_t OnVpnMultiUserSetUp() override{ return 0; };
 };
 

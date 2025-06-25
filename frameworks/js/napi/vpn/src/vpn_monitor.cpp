@@ -17,9 +17,7 @@
 
 #include <cstddef>
 #include <string>
-#ifdef SUPPORT_SYSVPN
 #include <utility>
-#endif // SUPPORT_SYSVPN
 
 #include <napi/native_common.h>
 #include <uv.h>
@@ -136,19 +134,19 @@ int32_t VpnEventCallback::OnVpnStateChanged(bool isConnected)
     return ERR_OK;
 }
 
+#ifdef SUPPORT_SYSVPN
 int32_t VpnEventCallback::OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
     const std::string &vpnId)
 {
-#ifdef SUPPORT_SYSVPN
     auto manager = VpnMonitor::GetInstance().GetManager();
     MultiVpnData *data = new MultiVpnData();
     data->isConnected = isConnected;
     data->bundleName = bundleName;
     data->vpnId = vpnId;
     manager->EmitByUv(CONNECT_MULTI, reinterpret_cast<void *>(data), EventConnectMultiCallback);
-#endif // SUPPORT_SYSVPN
     return ERR_OK;
 }
+#endif // SUPPORT_SYSVPN
 
 VpnMonitor::VpnMonitor()
 {

@@ -69,7 +69,9 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         explicit VpnConnStateCb(const NetworkVpnService &vpnService) : vpnService_(vpnService){};
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state) override;
+        #ifdef SUPPORT_SYSVPN
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
+        #endif // SUPPORT_SYSVPN
 
     private:
         const NetworkVpnService &vpnService_;
@@ -278,8 +280,6 @@ private:
         std::vector<int32_t> &activeUserIds);
     int32_t DestroyMultiVpn(int32_t callingUid);
     int32_t DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vpnObj, bool needErase = true);
-    bool IsSetUpReady(std::string &vpnId, std::string &vpnBundleName,
-        int32_t &userId, std::vector<int32_t> &activeUserIds);
 #endif // SUPPORT_SYSVPN
     std::string GetBundleName();
     std::string GetCurrentVpnBundleName();
@@ -295,7 +295,6 @@ private:
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
 #ifdef SUPPORT_SYSVPN
-    std::shared_ptr<NetVpnImpl> connectingObj_;
     std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap_;
     std::vector<sptr<MultiVpnEventCallback>> multiVpnEventCallbacks_;
 #endif // SUPPORT_SYSVPN

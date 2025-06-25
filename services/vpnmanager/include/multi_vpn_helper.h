@@ -20,11 +20,9 @@
 #include "sysvpn_config.h"
 #include "refbase.h"
 #include "net_manager_ext_constants.h"
-#include "netsys_controller.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-using namespace NetsysNative;
 struct MultiVpnInfo : RefBase {
     std::string vpnId;
     std::string ifName;
@@ -33,20 +31,23 @@ struct MultiVpnInfo : RefBase {
     int32_t callingUid;
     int32_t userId;
     VpnConnectState vpnConnectState = VpnConnectState::VPN_DISCONNECTED;
-    bool isVpnExtCall = true;
+    bool isConnecting = false;
+    bool isVpnExtCall = false;
 };
 
 class MultiVpnHelper {
 public:
     static MultiVpnHelper &GetInstance();
     int32_t GetNewIfNameId();
-    int32_t CreateMultiVpnInfo(const std::string &vpnId, int32_t vpnType, sptr<MultiVpnInfo> &info);
+    int32_t CreateMultiVpnInfo(const sptr<SysVpnConfig> &config, sptr<MultiVpnInfo> &info,
+        std::string &bundleName, int32_t userId, bool isVpnExtCall);
     int32_t AddMultiVpnInfo(const sptr<MultiVpnInfo> &info);
     int32_t DelMultiVpnInfo(const sptr<MultiVpnInfo> &info);
     bool StartIpsec();
     void StopIpsec();
     bool StartL2tp();
     void StopL2tp();
+    bool IsAnyVpnConnecting();
     bool IsConnectedStage(const std::string &stage);
 private:
     MultiVpnHelper();

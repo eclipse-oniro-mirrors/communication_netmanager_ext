@@ -16,30 +16,25 @@
 #ifndef NET_VPN_TEMPLATE_PROCESSOR_H
 #define NET_VPN_TEMPLATE_PROCESSOR_H
 
-#include <unordered_map>
 #include "ipsecvpn_config.h"
 #include "l2tpvpn_config.h"
-#include "net_vpn_impl.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 class VpnTemplateProcessor {
 public:
-    int32_t BuildConfig(std::shared_ptr<NetVpnImpl> &vpnObj,
-        std::map<std::string, std::shared_ptr<NetVpnImpl>> &vpnObjMap);
+    int32_t BuildConfig(sptr<L2tpVpnConfig> &l2tpConfig);
+    int32_t BuildConfig(sptr<IpsecVpnConfig> &ipsecConfig);
 
 private:
-    void GenSwanctlOrIpsecConf(sptr<IpsecVpnConfig> &ipsecConfig, sptr<L2tpVpnConfig> &l2tpConfig,
-        int32_t ifNameId, std::map<std::string, std::shared_ptr<NetVpnImpl>> &vpnObjMap);
-    void GenXl2tpdConf(sptr<L2tpVpnConfig> &config, int32_t ifNameId,
-        std::map<std::string, std::shared_ptr<NetVpnImpl>> &vpnObjMap);
+    void GenSwanctlConf(sptr<IpsecVpnConfig> &config);
+    void GenXl2tpdConf(sptr<L2tpVpnConfig> &config);
     void GenOptionsL2tpdClient(sptr<L2tpVpnConfig> &config);
+    void GenIpsecConf(sptr<L2tpVpnConfig> &config);
     void GenIpsecSecrets(sptr<L2tpVpnConfig> &config);
-    void GetSecret(sptr<IpsecVpnConfig> &ipsecConfig, int32_t ifNameId, std::string &outSecret);
-    void GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t ifNameId, std::string &outConnect);
-    void CreateConnectAndSecret(sptr<IpsecVpnConfig> &ipsecConfig, sptr<L2tpVpnConfig> &l2tpConfig,
-        int32_t ifNameId, std::string &outConnect, std::string &outSecret);
-    void CreateXl2tpdConf(sptr<L2tpVpnConfig> &config, int32_t ifNameId, std::string &outConf);
+    void GenStrongSwanConf(int32_t vpnType, std::string &outConf);
+    void InflateConf(std::string &conf,
+        const std::unordered_map<std::string, std::string>& params);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

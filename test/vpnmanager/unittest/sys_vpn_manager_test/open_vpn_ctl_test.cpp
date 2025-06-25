@@ -118,35 +118,6 @@ HWTEST_F(OpenvpnCtlTest, HandleClientMessage001, TestSize.Level1)
     EXPECT_EQ(openvpnControl_->openvpnState_, OPENVPN_STATE_DISCONNECTED);
 }
 
-HWTEST_F(OpenvpnCtlTest, HandleClientMessage002, TestSize.Level1)
-{
-    int32_t ret;
-    std::string msg = R"(openvpn{"setupVpnTun":{"ip":"192.168.1.100"}})";
-    ret = openvpnControl_->HandleClientMessage(msg);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
-    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
-    ASSERT_NE(vpnInfo, nullptr);
-    openvpnControl_->multiVpnInfo_ = vpnInfo;
-    ret = openvpnControl_->HandleClientMessage(msg);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(OpenvpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
-{
-    openvpnControl_->openvpnConfig_ = nullptr;
-    int32_t ret;
-    std::string uri;
-    ret = openvpnControl_->GetSysVpnCertUri(1, uri);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
-    sptr<OpenvpnConfig> openvpnConfig = new (std::nothrow) OpenvpnConfig();
-    ASSERT_NE(openvpnConfig, nullptr);
-    openvpnControl_->openvpnConfig_ = openvpnConfig;
-    ret = openvpnControl_->GetSysVpnCertUri(0, uri);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    ret = openvpnControl_->GetSysVpnCertUri(1, uri);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
 HWTEST_F(OpenvpnCtlTest, UpdateState001, TestSize.Level1)
 {
     ASSERT_NE(openvpnControl_, nullptr);

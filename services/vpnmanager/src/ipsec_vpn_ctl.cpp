@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "multi_vpn_helper.h"
+#include "base64_utils.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netmanager_base_common_utils.h"
 #include "net_manager_ext_constants.h"
@@ -46,26 +46,15 @@ int32_t IpsecVpnCtl::SetUp()
 
 int32_t IpsecVpnCtl::Destroy()
 {
-    StopSysVpn();
-    if (multiVpnInfo_ != nullptr) {
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_CALL_MODE,
-            multiVpnInfo_->isVpnExtCall ? "0" : "1");
-    }
-    int result = NetVpnImpl::Destroy();
-    NETMGR_EXT_LOG_I("ipsec Destroy result %{public}d", result);
-    return result;
+    return StopSysVpn();
 }
 
 int32_t IpsecVpnCtl::StopSysVpn()
 {
     NETMGR_EXT_LOG_I("stop ipsec vpn");
     state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
-    std::string baseConnectName = IPSEC_CONNECT_NAME;
-    std::string connectName = multiVpnInfo_ == nullptr ? baseConnectName :
-        baseConnectName + std::to_string(multiVpnInfo_->ifNameId);
-    NetsysController::GetInstance().ProcessVpnStage(
-        SysVpnStageCode::VPN_STAGE_DOWN_HOME, connectName);
-    MultiVpnHelper::GetInstance().StopIpsec();
+    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_DOWN_HOME);
+    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_STOP);
     NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -75,10 +64,7 @@ int32_t IpsecVpnCtl::StartSysVpn()
     NETMGR_EXT_LOG_I("start ipsec vpn");
     state_ = IpsecVpnStateCode::STATE_INIT;
     InitConfigFile();
-    if (!MultiVpnHelper::GetInstance().StartIpsec()) {
-        state_ = IpsecVpnStateCode::STATE_STARTED;
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
-    };
+    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_RESTART);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -90,7 +76,10 @@ int32_t IpsecVpnCtl::InitConfigFile()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     if (!ipsecVpnConfig_->strongswanConf_.empty()) {
-        CommonUtils::WriteFile(SWAN_CONFIG_FILE, ipsecVpnConfig_->strongswanConf_);
+        std::string strongswanCfg = Base64::Decode(ipsecVpnConfig_->strongswanConf_);
+        if (!strongswanCfg.empty()) {
+            CommonUtils::WriteFile(SWAN_CONFIG_FILE, strongswanCfg);
+        }
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -99,6 +88,7 @@ void IpsecVpnCtl::CleanTempFiles()
 {
     DeleteTempFile(SWAN_CONFIG_FILE);
     DeleteTempFile(L2TP_CFG);
+    DeleteTempFile(L2TP_IPSEC_CFG);
 }
 
 void IpsecVpnCtl::DeleteTempFile(const std::string &fileName)
@@ -109,50 +99,6 @@ void IpsecVpnCtl::DeleteTempFile(const std::string &fileName)
         }
     }
 }
-
-int32_t IpsecVpnCtl::SetUpVpnTun()
-{
-    if (multiVpnInfo_ != nullptr) {
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_CALL_MODE,
-            multiVpnInfo_->isVpnExtCall ? "0" : "1");
-    }
-    int result = NetVpnImpl::SetUp();
-    if (result != NETMANAGER_EXT_SUCCESS) {
-        StopSysVpn();
-    }
-    NETMGR_EXT_LOG_I("ipsec SetUp %{public}d", result);
-    return result;
-}
-
-int32_t IpsecVpnCtl::UpdateConfig(const std::string &msg)
-{
-    if (msg.empty()) {
-        NETMGR_EXT_LOG_E("msg is empty");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
-    const char *ret = strstr(msg.c_str(), "{");
-    if (ret == nullptr) {
-        NETMGR_EXT_LOG_E("client rootJson format error");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
-    cJSON* rootJson = cJSON_Parse(ret);
-    if (rootJson == nullptr) {
-        NETMGR_EXT_LOG_E("not json string");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
-
-    cJSON* jConfig = cJSON_GetObjectItem(rootJson, IPSEC_NODE_UPDATE_CONFIG);
-    if (!cJSON_IsObject(jConfig)) {
-        cJSON_Delete(rootJson);
-        NETMGR_EXT_LOG_E("jConfig format error");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
-    ProcessUpdateConfig(jConfig);
-
-    cJSON_Delete(rootJson);
-    return NETMANAGER_EXT_SUCCESS;
-}
-
 
 int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &result)
 {
@@ -167,22 +113,26 @@ int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t 
     switch (state_) {
         case IpsecVpnStateCode::STATE_INIT:
             if (stage.compare(IPSEC_START_TAG) == 0) {
-                ProcessSwanctlLoad();
+                // 1. start strongswan
+                NETMGR_EXT_LOG_I("ipsec vpn setup step 1: start strongswan");
+                state_ = IpsecVpnStateCode::STATE_STARTED;
+                NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
             }
             break;
         case IpsecVpnStateCode::STATE_STARTED:
             if (stage.compare(SWANCTL_START_TAG) == 0) {
-                ProcessIpsecUp();
+                // 2. start connect
+                NETMGR_EXT_LOG_I("ipsec vpn setup step 2: start connect");
+                state_ = IpsecVpnStateCode::STATE_CONFIGED;
+                NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_UP_HOME);
             }
             break;
         case IpsecVpnStateCode::STATE_CONFIGED:
             if (stage.compare(IPSEC_CONNECT_TAG) == 0) {
-                HandleConnected();
-            }
-            if (stage.find(IPSEC_NODE_UPDATE_CONFIG) != std::string::npos) {
-                if (HandleUpdateConfig(stage) != NETMANAGER_EXT_SUCCESS) {
-                    return NETMANAGER_EXT_ERR_INTERNAL;
-                }
+                // 3. is connected
+                NETMGR_EXT_LOG_I("ipsec vpn setup step 3: is connected");
+                state_ = IpsecVpnStateCode::STATE_CONNECTED;
+                NotifyConnectState(VpnConnectState::VPN_CONNECTED);
             }
             break;
         default:
@@ -209,7 +159,7 @@ int32_t IpsecVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certU
             certUri = ipsecVpnConfig_->ipsecPublicServerCertConf_;
             break;
         case IpsecVpnCertType::SWAN_CTL_CONF:
-            certUri = ipsecVpnConfig_->swanctlConf_;
+            certUri = Base64::Decode(ipsecVpnConfig_->swanctlConf_);
             break;
         default:
             NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
@@ -230,93 +180,6 @@ int32_t IpsecVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 bool IpsecVpnCtl::IsInternalVpn()
 {
     return true;
-}
-
-void IpsecVpnCtl::ProcessUpdateConfig(cJSON* jConfig)
-{
-    if (vpnConfig_ == nullptr) {
-        NETMGR_EXT_LOG_E("UpdateConfig vpnConfig_ is null");
-        return;
-    }
-    cJSON *mtu = cJSON_GetObjectItem(jConfig, IPSEC_NODE_MTU);
-    if (mtu != nullptr && cJSON_IsNumber(mtu)) {
-        int32_t ipsecVpnMtu = static_cast<int32_t>(cJSON_GetNumberValue(mtu));
-        vpnConfig_->mtu_ = ipsecVpnMtu;
-        NETMGR_EXT_LOG_I("UpdateConfig mtu %{public}d", ipsecVpnMtu);
-    }
-
-    INetAddr iNetAddr;
-    INetAddr destination;
-    INetAddr gateway;
-    cJSON *address = cJSON_GetObjectItem(jConfig, IPSEC_NODE_ADDRESS);
-    if (address != nullptr && cJSON_IsString(address)) {
-        std::string ipsecVpnAddress = cJSON_GetStringValue(address);
-        iNetAddr.address_ = ipsecVpnAddress;
-        gateway.address_ = ipsecVpnAddress;
-        destination.address_ = ipsecVpnAddress;
-    }
-
-    cJSON *netmask = cJSON_GetObjectItem(jConfig, IPSEC_NODE_NETMASK);
-    if (netmask != nullptr && cJSON_IsString(netmask)) {
-        std::string ipsecVpnNetmask = cJSON_GetStringValue(netmask);
-        iNetAddr.netMask_ = ipsecVpnNetmask;
-        destination.prefixlen_ = CommonUtils::GetMaskLength(ipsecVpnNetmask);
-    }
-
-    cJSON *phyIfNameObj = cJSON_GetObjectItem(jConfig, IPSEC_NODE_PHY_NAME);
-    if (phyIfNameObj != nullptr && cJSON_IsString(phyIfNameObj)) {
-        std::string phyIfName = cJSON_GetStringValue(phyIfNameObj);
-        NETMGR_EXT_LOG_I("phyIfName:%{public}s", phyIfName.c_str());
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_XFRM_PHY_IFNAME, phyIfName);
-    }
-
-    cJSON *dstIpObj = cJSON_GetObjectItem(jConfig, IPSEC_NODE_REMOTE_IP);
-    if (dstIpObj != nullptr && cJSON_IsString(dstIpObj)) {
-        std::string remoteIp = cJSON_GetStringValue(dstIpObj);
-        NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_REMOTE_ADDRESS, remoteIp);
-    }
-    vpnConfig_->addresses_.emplace_back(iNetAddr);
-}
-
-void IpsecVpnCtl::ProcessSwanctlLoad()
-{
-    // 1. start strongswan
-    NETMGR_EXT_LOG_I("ipsec vpn setup step 1: start strongswan");
-    state_ = IpsecVpnStateCode::STATE_STARTED;
-    NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SWANCTL_LOAD);
-}
-
-void IpsecVpnCtl::ProcessIpsecUp()
-{
-    // 2. start connect
-    NETMGR_EXT_LOG_I("ipsec vpn setup step 2: start connect");
-    state_ = IpsecVpnStateCode::STATE_CONFIGED;
-    std::string baseConnectName = IPSEC_CONNECT_NAME;
-    std::string connectName = multiVpnInfo_ == nullptr ? baseConnectName :
-        baseConnectName + std::to_string(multiVpnInfo_->ifNameId);
-    NetsysController::GetInstance().ProcessVpnStage(
-        SysVpnStageCode::VPN_STAGE_UP_HOME, std::string(connectName));
-}
-
-void IpsecVpnCtl::HandleConnected()
-{
-    // 3. is connected
-    NETMGR_EXT_LOG_I("ipsec vpn setup step 3: is connected");
-    state_ = IpsecVpnStateCode::STATE_CONNECTED;
-    NotifyConnectState(VpnConnectState::VPN_CONNECTED);
-}
-
-int32_t IpsecVpnCtl::HandleUpdateConfig(const std::string &config)
-{
-    if (UpdateConfig(config) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_I("ipsec vpn config update failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    if (SetUpVpnTun() != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_I("set up l2tp vpn failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

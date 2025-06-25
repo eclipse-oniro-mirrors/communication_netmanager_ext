@@ -100,8 +100,6 @@ class VpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
     int32_t OnVpnStateChanged(bool isConnected) override { return 0; };
     int32_t OnVpnMultiUserSetUp()override { return 0; };
-    int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
-        const std::string &vpnId) override{ return 0; };
 };
 
 __attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(INetworkVpnServiceIpcCode code,
