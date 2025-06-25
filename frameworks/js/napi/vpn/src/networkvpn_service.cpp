@@ -1670,9 +1670,8 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
         NETMGR_EXT_LOG_D("COMMON_EVENT_PACKAGE_REMOVED, BundleName %{public}s", bundleName.c_str());
 #ifdef SUPPORT_SYSVPN
         int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
-            NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
+        if (AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(userId) != ERR_OK) {
+            NETMGR_EXT_LOG_E("GetForegroundOsAccountLocalId error");
             return;
         }
         NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName + "_" + std::to_string(userId));
