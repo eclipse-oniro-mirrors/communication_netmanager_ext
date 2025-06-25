@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <fstream>
+
 #include "ethernet_client.h"
 #include "http_proxy.h"
 #include "inet_addr.h"
@@ -52,11 +54,10 @@ constexpr const char *DEV_DOWN = "down";
 constexpr const char *TEST_PROXY_HOST = "127.0.0.1";
 constexpr const char *TEST_MAC_ADDRESS = "a0:0b:c1:d0:02:03";
 constexpr uint16_t TEST_PROXY_PORT = 8080;
-std::string INFO = "info";
 constexpr const char *IFACE = "iface0";
 const int32_t FD = 5;
 const int32_t SYSTEM_ABILITY_INVALID = 666;
-constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
+constexpr uint16_t DEPENDENT_SERVICE_ALL = 0x0003;
 const int32_t RET_ZERO = 0;
 constexpr const char *SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE = "persist.edm.set_ethernet_ip_disable";
 
@@ -572,7 +573,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager009, TestSize.Level1)
     ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, DEV_NAME);
     ethernetService.OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, DEV_NAME);
     ethernetService.OnAddSystemAbility(SYSTEM_ABILITY_INVALID, DEV_NAME);
-    ethernetService.dependentServiceState_ = DEPENDENT_SERVICE_All;
+    ethernetService.dependentServiceState_ = DEPENDENT_SERVICE_ALL;
     ethernetService.OnAddSystemAbility(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID, DEV_NAME);
 }
 
@@ -581,6 +582,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
+    std::string info = "info";
     EthernetManagement ethernetManagement;
     ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
     ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
@@ -593,7 +595,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
     ethernetManagement.StartSetDevUpThd();
     ethernetManagement.DevInterfaceAdd(DEV_NAME);
     ethernetManagement.DevInterfaceRemove(DEV_NAME);
-    ethernetManagement.GetDumpInfo(INFO);
+    ethernetManagement.GetDumpInfo(info);
     EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
     ret = devCallback.OnInterfaceAdded(IFACE);
     EXPECT_EQ(ret, RET_ZERO);
@@ -1529,6 +1531,44 @@ HWTEST_F(EthernetManagerTest, NotifyWpaEapInterceptInfoTest, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
 #endif
+
+HWTEST_F(EthernetManagerTest, EthernetManagerGetDeviceInfoTest01, TestSize.Level1)
+{
+    std::string eth0 = "eth0";
+    std::string testPath1 = "testPath";
+    std::string testPath2 = "testPath/testPath2";
+    std::string testPath3 = "/data/service/el1/public/dev_info";
+    std::ofstream outfile;
+    outfile.open(testPath3);
+    if (outfile.is_open()) {
+        outfile << "YT8521 Ethernet,011a,YT,1000";
+        outfile.close();
+    }
  
+    std::vector<EthernetDeviceInfo> deviceInfoList;
+    EthernetManagement ethernetManagement;
+    ethernetManagement.devs_.clear();
+    ethernetManagement.GetDeviceInformation(deviceInfoList);
+    EXPECT_EQ(deviceInfoList.size(), 0);
+    EthernetDeviceInfo tmp;
+    deviceInfoList.push_back(tmp);
+    ethernetManagement.GetDeviceInformation(deviceInfoList);
+    EXPECT_GE(deviceInfoList.size(), 0);
+ 
+    ethernetManagement.GetUsbEthDeviceInfo(eth0, testPath1, deviceInfoList);
+    ethernetManagement.GetUsbEthDeviceInfo(eth0, testPath2, deviceInfoList);
+    EXPECT_GE(deviceInfoList.size(), 0);
+ 
+    ethernetManagement.GetPciEthDeviceInfo(eth0, testPath1, deviceInfoList);
+    ethernetManagement.GetPciEthDeviceInfo(eth0, testPath2, deviceInfoList);
+    ethernetManagement.GetUsbEthDeviceInfo(eth0, testPath3, deviceInfoList);
+    EXPECT_GE(deviceInfoList.size(), 0);
+ 
+    std::string value;
+    ethernetManagement.GetSysNodeValue(testPath2, value);
+    ethernetManagement.GetSysNodeValue(testPath3, value);
+    EXPECT_GE(value.length(), 0);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

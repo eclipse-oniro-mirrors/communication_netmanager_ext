@@ -90,7 +90,7 @@ private:
     bool IsIfaceLinkUp(const std::string &iface);
     bool ModeInputCheck(IPSetMode origin, IPSetMode input);
     bool GetSysNodeValue(const std::string &nodePath, std::string &nodeVal);
-    void GetPciEthDeviceInfo(const std::string &iface, std::string &nodePath,
+    void GetPciEthDeviceInfo(const std::string &iface, std::string nodePath,
         std::vector<EthernetDeviceInfo> &deviceInfoList);
     void GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
         std::vector<EthernetDeviceInfo> &deviceInfoList);
