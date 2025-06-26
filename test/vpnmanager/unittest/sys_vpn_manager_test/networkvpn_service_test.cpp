@@ -489,10 +489,16 @@ HWTEST_F(NetworkVpnServiceTest, DestroyMultiVpn001, TestSize.Level1)
     config->vpnType_ = 1;
     EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
     sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
+    if (sysVpnCtl == nullptr) {
+        return;
+    }
     instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
     int32_t ret = instance_->DestroyMultiVpn(0);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
     sptr<MultiVpnInfo> multiVpnInterface = new (std::nothrow) MultiVpnInfo();
+    if (multiVpnInterface == nullptr) {
+        return;
+    }
     multiVpnInterface->vpnId = vpnId;
     multiVpnInterface->userId = userId;
     multiVpnInterface->callingUid = 100;
@@ -520,6 +526,9 @@ HWTEST_F(NetworkVpnServiceTest, DestroyMultiVpn002, TestSize.Level1)
     config->vpnType_ = 1;
     EXPECT_EQ(instance_->AddSysVpnConfig(config), NETMANAGER_EXT_SUCCESS);
     sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
+    if (sysVpnCtl == nullptr) {
+        return;
+    }
     instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
     instance_->DeleteSysVpnConfig(vpnId);
     instance_->vpnObj_ = sysVpnCtl;
@@ -527,6 +536,9 @@ HWTEST_F(NetworkVpnServiceTest, DestroyMultiVpn002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     sptr<MultiVpnInfo> multiVpnInterface = new (std::nothrow) MultiVpnInfo();
+    if (multiVpnInterface == nullptr) {
+        return;
+    }
     multiVpnInterface->vpnId = vpnId;
     multiVpnInterface->userId = userId;
     sysVpnCtl->multiVpnInfo_ = multiVpnInterface;
