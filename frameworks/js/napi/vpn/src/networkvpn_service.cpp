@@ -1234,7 +1234,6 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
     if (checkPermission != NETMANAGER_SUCCESS)
         return checkPermission;
-    sptr<SysVpnConfig> configPtr = new (std::nothrow) SysVpnConfig();
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -1439,6 +1438,10 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     sptr<MultiVpnEventCallback> multiVpnEventCallback = new (std::nothrow) MultiVpnEventCallback();
+    if (multiVpnEventCallback == nullptr) {
+        NETMGR_EXT_LOG_E("SyncRegisterMultiVpnEvent error, multiVpnEventCallback is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     multiVpnEventCallback->userId = userId;
     multiVpnEventCallback->bundleName = vpnBundleName;
     multiVpnEventCallback->callback = callback;
