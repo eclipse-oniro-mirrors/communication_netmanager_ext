@@ -96,6 +96,7 @@ HWTEST_F(MultiVpnHelperTest, CreateMultiVpnInfo003, TestSize.Level1)
     int32_t userId = 1;
     bool isVpnExtCall = true;
     sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
     vpnInfo->ifNameId = 1;
     multiVpnHelper_.multiVpnInfos_.emplace_back(vpnInfo);
     sptr<SysVpnConfig> vpnConfig = new (std::nothrow) SysVpnConfig();
