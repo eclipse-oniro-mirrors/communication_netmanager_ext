@@ -31,8 +31,8 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as boolean);
-    }, (err: BusinessError): void => {
-        callback(err, false);
+    }, (err: Error): void => {
+        callback(err as BusinessError, false);
     });
   }
 
@@ -42,8 +42,8 @@ export default namespace sharing {
               return isSharingSupportedSync();
           }).then((content: NullishType) => {
               resolve(content as boolean);
-          }, (err: BusinessError): void => {
-              reject(err);
+          }, (err: Error): void => {
+              reject(err as BusinessError);
           });
       });
   }
@@ -56,8 +56,8 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as boolean);
-    }, (err: BusinessError): void => {
-        callback(err, false);
+    }, (err: Error): void => {
+        callback(err as BusinessError, false);
     });
   }
 
@@ -67,12 +67,12 @@ export default namespace sharing {
               return isSharingSync();
           }).then((content: NullishType) => {
               resolve(content as boolean);
-          }, (err: BusinessError): void => {
-              reject(err);
+          }, (err: Error): void => {
+              reject(err as BusinessError);
           });
       });
   }
-  
+
   export native function startSharingSync(type: SharingIfaceType): void;
 
   export function startSharing(type: SharingIfaceType, callback: AsyncCallback<void>): void {
@@ -81,8 +81,8 @@ export default namespace sharing {
     })
     p1.then(() => {
         callback(new BusinessError(), undefined);
-    }, (err: BusinessError): void => {
-        callback(err, undefined);
+    }, (err: Error): void => {
+        callback(err as BusinessError, undefined);
     });
   }
 
@@ -92,8 +92,8 @@ export default namespace sharing {
           return startSharingSync(type);
         }).then(() => {
             resolve(undefined);
-        }, (err: BusinessError): void => {
-            reject(err);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
         });
     });
   }
@@ -106,8 +106,8 @@ export default namespace sharing {
     })
     p1.then(() => {
         callback(new BusinessError(), undefined);
-    }, (err: BusinessError): void => {
-        callback(err, undefined);
+    }, (err: Error): void => {
+        callback(err as BusinessError, undefined);
     });
   }
 
@@ -117,8 +117,8 @@ export default namespace sharing {
           return stopSharingSync(type);
         }).then(() => {
             resolve(undefined);
-        }, (err: BusinessError): void => {
-            reject(err);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
         });
     });
   }
@@ -131,8 +131,8 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as long);
-    }, (err: BusinessError): void => {
-        callback(err, 0);
+    }, (err: Error): void => {
+        callback(err as BusinessError, 0);
     });
   }
 
@@ -142,8 +142,8 @@ export default namespace sharing {
             return getStatsRxBytesSync();
         }).then((content: NullishType) => {
             resolve(content as long);
-        }, (err: BusinessError): void => {
-            reject(err);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
         });
     });
   }
@@ -156,8 +156,8 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as long);
-    }, (err: BusinessError): void => {
-        callback(err, 0);
+    }, (err: Error): void => {
+        callback(err as BusinessError, 0);
     });
   }
 
@@ -167,8 +167,8 @@ export default namespace sharing {
           return getStatsTxBytesSync();
       }).then((content: NullishType) => {
           resolve(content as long);
-      }, (err: BusinessError): void => {
-          reject(err);
+      }, (err: Error): void => {
+          reject(err as BusinessError);
       });
     });
   }
@@ -181,8 +181,8 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as long);
-    }, (err: BusinessError): void => {
-        callback(err, 0);
+    }, (err: Error): void => {
+        callback(err as BusinessError, 0);
     });
   }
 
@@ -192,8 +192,8 @@ export default namespace sharing {
           return getStatsTxBytesSync();
       }).then((content: NullishType) => {
           resolve(content as long);
-      }, (err: BusinessError): void => {
-          reject(err);
+      }, (err: Error): void => {
+          reject(err as BusinessError);
       });
     });
   }
@@ -206,8 +206,8 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as Array<string>);
-    }, (err: BusinessError): void => {
-        callback(err, new Array<string>());
+    }, (err: Error): void => {
+        callback(err as BusinessError, new Array<string>());
     });
   }
 
@@ -217,8 +217,8 @@ export default namespace sharing {
           return getSharingIfacesSync(state);
       }).then((content: NullishType) => {
           resolve(content as Array<string>);
-      }, (err: BusinessError): void => {
-          reject(err);
+      }, (err: Error): void => {
+          reject(err as BusinessError);
       });
     });
   }
@@ -231,9 +231,9 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as SharingIfaceState);
-    }, (err: BusinessError): void => {
-        callback(err, SharingIfaceState.SHARING_NIC_SERVING);
-    }); 
+    }, (err: Error): void => {
+        callback(err as BusinessError, SharingIfaceState.SHARING_NIC_SERVING);
+    });
   }
 
   export function getSharingState(type: SharingIfaceType): Promise<SharingIfaceState> {
@@ -242,8 +242,8 @@ export default namespace sharing {
           return getSharingStateSync(type);
       }).then((content: NullishType) => {
           resolve(content as SharingIfaceState);
-      }, (err: BusinessError): void => {
-          reject(err);
+      }, (err: Error): void => {
+          reject(err as BusinessError);
       });
     });
   }
@@ -256,9 +256,9 @@ export default namespace sharing {
     })
     p1.then((content: NullishType) => {
         callback(new BusinessError(), content as Array<string>);
-    }, (err: BusinessError): void => {
-        callback(err, new Array<string>());
-    }); 
+    }, (err: Error): void => {
+        callback(err as BusinessError, new Array<string>());
+    });
   }
 
   export function getSharableRegexes(type: SharingIfaceType): Promise<Array<string>> {
@@ -267,8 +267,8 @@ export default namespace sharing {
           return getSharableRegexesSync(type);
       }).then((content: NullishType) => {
           resolve(content as Array<string>);
-      }, (err: BusinessError): void => {
-          reject(err);
+      }, (err: Error): void => {
+          reject(err as BusinessError);
       });
     });
   }
