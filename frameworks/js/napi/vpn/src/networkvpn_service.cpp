@@ -1234,7 +1234,6 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
     if (checkPermission != NETMANAGER_SUCCESS)
         return checkPermission;
-    sptr<SysVpnConfig> configPtr = new (std::nothrow) SysVpnConfig();
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -1439,6 +1438,10 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     sptr<MultiVpnEventCallback> multiVpnEventCallback = new (std::nothrow) MultiVpnEventCallback();
+    if (multiVpnEventCallback == nullptr) {
+        NETMGR_EXT_LOG_E("SyncRegisterMultiVpnEvent error, multiVpnEventCallback is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     multiVpnEventCallback->userId = userId;
     multiVpnEventCallback->bundleName = vpnBundleName;
     multiVpnEventCallback->callback = callback;
@@ -1670,9 +1673,8 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
         NETMGR_EXT_LOG_D("COMMON_EVENT_PACKAGE_REMOVED, BundleName %{public}s", bundleName.c_str());
 #ifdef SUPPORT_SYSVPN
         int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
-            NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
+        if (AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(userId) != ERR_OK) {
+            NETMGR_EXT_LOG_E("GetForegroundOsAccountLocalId error");
             return;
         }
         NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName + "_" + std::to_string(userId));
