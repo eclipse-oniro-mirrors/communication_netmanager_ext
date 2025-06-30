@@ -202,6 +202,11 @@ int32_t NetVpnImpl::Destroy()
 }
 
 #ifdef SUPPORT_SYSVPN
+int32_t NetVpnImpl::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t NetVpnImpl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &vpnConfig)
 {
     return NETMANAGER_EXT_SUCCESS;

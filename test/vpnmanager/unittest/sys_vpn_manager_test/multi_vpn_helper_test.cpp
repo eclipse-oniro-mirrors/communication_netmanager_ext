@@ -235,5 +235,27 @@ HWTEST_F(MultiVpnHelperTest, IsOpenvpnConnectedStage001, TestSize.Level1)
     stage ="openvpn{\"updateState\":{\"state\":4}}";
     EXPECT_EQ(multiVpnHelper_.IsOpenvpnConnectedStage(stage), true);
 }
+
+HWTEST_F(MultiVpnHelperTest, CheckAndCompareMultiVpnLocalAddress001, TestSize.Level1)
+{
+    multiVpnHelper_.multiVpnInfos_.clear();
+    EXPECT_EQ(multiVpnHelper_.CheckAndCompareMultiVpnLocalAddress("10.2.0.10"), NETMANAGER_EXT_SUCCESS);
+    sptr<MultiVpnInfo> info = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(info, nullptr);
+    multiVpnHelper_.multiVpnInfos_.emplace_back(info);
+    EXPECT_EQ(multiVpnHelper_.CheckAndCompareMultiVpnLocalAddress("10.2.0.10"), NETMANAGER_EXT_SUCCESS);
+    multiVpnHelper_.multiVpnInfos_.clear();
+    info->localAddress = "10.2.0.10";
+    multiVpnHelper_.multiVpnInfos_.emplace_back(info);
+    EXPECT_EQ(multiVpnHelper_.CheckAndCompareMultiVpnLocalAddress("10.2.0.10"), NETMANAGER_EXT_ERR_INTERNAL);
+    multiVpnHelper_.multiVpnInfos_.clear();
+    info->localAddress = "10.2.0.12";
+    multiVpnHelper_.multiVpnInfos_.emplace_back(info);
+    EXPECT_EQ(multiVpnHelper_.CheckAndCompareMultiVpnLocalAddress("10.2.0.10"), NETMANAGER_EXT_SUCCESS);
+    info == nullptr;
+    multiVpnHelper_.multiVpnInfos_.emplace_back(info);
+    EXPECT_EQ(multiVpnHelper_.CheckAndCompareMultiVpnLocalAddress("10.2.0.10"), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(multiVpnHelper_.CheckAndCompareMultiVpnLocalAddress(""), NETMANAGER_EXT_SUCCESS);
 }
-}
+} // namespace NetManagerStandard
+} // namespace OHOS

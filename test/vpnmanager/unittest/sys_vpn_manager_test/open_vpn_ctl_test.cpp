@@ -239,5 +239,13 @@ HWTEST_F(OpenvpnCtlTest, MaskOpenvpnMessage001, TestSize.Level1)
     EXPECT_EQ(openvpnControl_->MaskOpenvpnMessage(OPENVPN_UPDATE), OPENVPN_UPDATE);
     EXPECT_EQ(openvpnControl_->MaskOpenvpnMessage(OPENVPN_CONFIG), OPENVPN_CONFIG_MASK);
 }
+
+HWTEST_F(OpenvpnCtlTest, GetVpnCertData001, TestSize.Level1)
+{
+    if (openvpnControl_ != nullptr) {
+        std::vector<int8_t> certData;
+        EXPECT_EQ(openvpnControl_->GetVpnCertData(1, certData), NETMANAGER_EXT_SUCCESS);
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

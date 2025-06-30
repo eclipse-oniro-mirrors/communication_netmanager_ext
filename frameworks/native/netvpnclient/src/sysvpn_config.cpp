@@ -35,7 +35,13 @@ bool SysVpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteString(password_) &&
                  parcel.WriteBool(saveLogin_) &&
                  parcel.WriteInt32(userId_) &&
-                 parcel.WriteString(forwardingRoutes_);
+                 parcel.WriteString(forwardingRoutes_) &&
+                 parcel.WriteString(pkcs12Password_);
+
+    allOK = allOK && parcel.WriteInt32(static_cast<int32_t>(pkcs12FileData_.size()));
+    for (uint8_t byte : pkcs12FileData_) {
+        allOK = allOK && parcel.WriteUint8(byte);
+    }
     if (!allOK) {
         NETMGR_EXT_LOG_I("sysvpn SysVpnConfig Marshalling failed");
     }
@@ -78,7 +84,16 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
                  parcel.ReadString(ptr->password_) &&
                  parcel.ReadBool(ptr->saveLogin_) &&
                  parcel.ReadInt32(ptr->userId_) &&
-                 parcel.ReadString(ptr->forwardingRoutes_);
+                 parcel.ReadString(ptr->forwardingRoutes_) &&
+                 parcel.ReadString(ptr->pkcs12Password_);
+
+    int32_t pkcs12FileDataSize = 0;
+    uint8_t data = 0;
+    allOK = allOK && parcel.ReadInt32(pkcs12FileDataSize);
+    for (int32_t i = 0; i < pkcs12FileDataSize; i++) {
+        allOK = allOK && parcel.ReadUint8(data);
+        ptr->pkcs12FileData_.push_back(data);
+    }
     if (!allOK) {
         NETMGR_EXT_LOG_I("sysvpn SysVpnConfig Unmarshalling failed");
     }

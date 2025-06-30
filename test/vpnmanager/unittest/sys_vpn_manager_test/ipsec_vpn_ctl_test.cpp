@@ -216,6 +216,60 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest003, TestSize.Level1)
     EXPECT_EQ(ipsecControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(IpsecVpnCtlTest, GetVpnCertData001, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    config->pkcs12Password_ = "123456";
+    ipsecControl_->ipsecVpnConfig_ = config;
+    std::vector<int8_t> certData;
+    int32_t certType = 1;
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), 0);
+    certType = 3;
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_ERR_INTERNAL);
+    std::vector<uint8_t> testCertData{0x30, 0x82, 0x0b, 0xc1, 0x02, 0x01};
+    config->pkcs12FileData_ = testCertData;
+    ipsecControl_->ipsecVpnConfig_ = config;
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), 0);
+    certType = 6;
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), testCertData.size());
+    certData.clear();
+    config->pkcs12FileData_.clear();
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), 0);
+}
+
+HWTEST_F(IpsecVpnCtlTest, GetVpnCertData002, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    config->pkcs12Password_ = "123456";
+    ipsecControl_->ipsecVpnConfig_ = config;
+    std::vector<int8_t> certData;
+    int32_t certType = 7;
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), config->pkcs12Password_.length());
+    certType = 3;
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    certType = 7;
+    config->pkcs12Password_ = "";
+    EXPECT_EQ(ipsecControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest001, TestSize.Level1)
 {
     sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
@@ -278,6 +332,42 @@ HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest001, TestSize.Level1)
     ipsecControl_->vpnConfig_ = nullptr;
     message = R"({"updateconfig":{"address":"192.168.1.1", "netmask":"255.255.255.0",
         "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
+{
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    std::string message;
+    ipsecControl_->ipsecVpnConfig_ = config;
+
+    INetAddr netAddr;
+    netAddr.address_ = "10.1.0.12";
+    sptr<VpnConfig> vpnConfig = new (std::nothrow) VpnConfig();
+    if (vpnConfig == nullptr) {
+        return;
+    }
+    message = R"({"updateconfig":{"remoteip":"192.168.1.21","address":"10.1.0.12",
+        "netmask":"255.255.255.0", "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+    ipsecControl_->vpnConfig_ = vpnConfig;
+    ipsecControl_->vpnConfig_->addresses_.push_back(netAddr);
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+    MultiVpnHelper::GetInstance().CreateMultiVpnInfo(
+        "1000", VpnType::L2TP_IPSEC_PSK, ipsecControl_->multiVpnInfo_);
+    ASSERT_NE(ipsecControl_->multiVpnInfo_, nullptr);
+    ipsecControl_->multiVpnInfo_->localAddress = "10.1.0.12";
+    MultiVpnHelper::GetInstance().AddMultiVpnInfo(ipsecControl_->multiVpnInfo_);
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
+    ipsecControl_->vpnConfig_ = nullptr;
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+    ipsecControl_->multiVpnInfo_ = nullptr;
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
 }
 
@@ -368,6 +458,14 @@ HWTEST_F(IpsecVpnCtlTest, SetUpVpnTunTest001, TestSize.Level1)
     ipsecControl->multiVpnInfo_->isVpnExtCall = true;
     EXPECT_NE(ipsecControl->SetUpVpnTun(), NETMANAGER_EXT_SUCCESS);
     ipsecControl->multiVpnInfo_->isVpnExtCall = false;
+    EXPECT_NE(ipsecControl->SetUpVpnTun(), NETMANAGER_EXT_SUCCESS);
+    ipsecConfig->vpnId_ = "123";
+    ipsecConfig->vpnName_ = "xfrm-vpn2";
+    ipsecConfig->vpnType_ = 2;
+    INetAddr netAddr;
+    netAddr.address_ = "10.1.0.12";
+    ipsecConfig->addresses_.push_back(netAddr);
+    ipsecControl->multiVpnInfo_->isVpnExtCall = true;
     EXPECT_NE(ipsecControl->SetUpVpnTun(), NETMANAGER_EXT_SUCCESS);
 }
 

@@ -61,6 +61,8 @@ enum IpsecVpnCertType : int32_t {
     SWAN_CTL_CONF,
     OPTIONS_L2TP_CLIENT_CONF,
     L2TP_IPSEC_SECRETS_CONF,
+    PKCS12_DATA,
+    PKCS12_PASSWD,
 };
 
 class IpsecVpnCtl : public NetVpnImpl {
@@ -71,6 +73,7 @@ public:
     sptr<IpsecVpnConfig> ipsecVpnConfig_ = nullptr;
     sptr<L2tpVpnConfig> l2tpVpnConfig_ = nullptr;
 
+    int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData) override;
     bool IsInternalVpn() override;
     int32_t SetUp() override;
     int32_t Destroy() override;

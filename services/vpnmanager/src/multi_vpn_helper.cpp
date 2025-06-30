@@ -21,6 +21,7 @@
 
 #include "cJSON.h"
 #include "net_manager_constants.h"
+#include "netmanager_base_common_utils.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "ipc_skeleton.h"
@@ -128,6 +129,28 @@ int32_t MultiVpnHelper::DelMultiVpnInfo(const sptr<MultiVpnInfo> &info)
     multiVpnInfos_.erase(std::remove(multiVpnInfos_.begin(), multiVpnInfos_.end(), info),
         multiVpnInfos_.end());
     NETMGR_EXT_LOG_I("DelMultiVpnInfo %{public}s", info->ifName.c_str());
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t MultiVpnHelper::CheckAndCompareMultiVpnLocalAddress(const std::string& localAddress)
+{
+    NETMGR_EXT_LOG_I("CheckAndCompareMultiVpnLocalAddress %{public}zu", multiVpnInfos_.size());
+    if (localAddress.empty()) {
+        NETMGR_EXT_LOG_I("local address is empty, do not check ipaddress");
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    for (sptr<MultiVpnInfo> &info : multiVpnInfos_) {
+        if (info == nullptr) {
+            continue;
+        }
+        NETMGR_EXT_LOG_D("old ip address:[%{public}s]",
+            CommonUtils::ToAnonymousIp(info->localAddress).c_str());
+        if (localAddress == info->localAddress) {
+            NETMGR_EXT_LOG_E("Same ip address:[%{public}s], there is not create vpn",
+                CommonUtils::ToAnonymousIp(localAddress).c_str());
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 

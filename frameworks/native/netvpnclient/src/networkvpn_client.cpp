@@ -135,6 +135,16 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
+int32_t NetworkVpnClient::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetVpnCertData proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetVpnCertData(certType, certData);
+}
+
 int32_t NetworkVpnClient::DestroyVpn(const std::string &vpnId)
 {
     if (vpnId.empty()) {

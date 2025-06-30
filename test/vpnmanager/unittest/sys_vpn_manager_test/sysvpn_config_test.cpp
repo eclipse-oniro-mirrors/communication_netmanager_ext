@@ -32,6 +32,8 @@ constexpr const char *TEST_PASSWORD = "password_";
 constexpr bool TEST_SAVE_LOGIN = false;
 constexpr int32_t TEST_USERID = 0;
 constexpr const char *TEST_FORWARD = "forwardingRoutes_";
+constexpr const char *TEST_PKCS12_PASSWORD = "123456";
+std::vector<uint8_t> TEST_PKCS12_DATA{0x30, 0x82, 0x0b, 0xc1, 0x02, 0x01};
 
 IpsecVpnConfig GetIpsecVpnConfigData()
 {
@@ -44,6 +46,8 @@ IpsecVpnConfig GetIpsecVpnConfigData()
     infoSequence.saveLogin_ = TEST_SAVE_LOGIN;
     infoSequence.userId_ = TEST_USERID;
     infoSequence.forwardingRoutes_ = TEST_FORWARD;
+    infoSequence.pkcs12Password_ = TEST_PKCS12_PASSWORD;
+    infoSequence.pkcs12FileData_ = TEST_PKCS12_DATA;
     return infoSequence;
 }
 
@@ -58,6 +62,8 @@ L2tpVpnConfig GetL2tpVpnConfigData()
     infoSequence.saveLogin_ = TEST_SAVE_LOGIN;
     infoSequence.userId_ = TEST_USERID;
     infoSequence.forwardingRoutes_ = TEST_FORWARD;
+    infoSequence.pkcs12Password_ = TEST_PKCS12_PASSWORD;
+    infoSequence.pkcs12FileData_ = TEST_PKCS12_DATA;
     return infoSequence;
 }
 
@@ -72,6 +78,8 @@ OpenvpnConfig GetOpenvpnConfigData()
     infoSequence.saveLogin_ = TEST_SAVE_LOGIN;
     infoSequence.userId_ = TEST_USERID;
     infoSequence.forwardingRoutes_ = TEST_FORWARD;
+    infoSequence.pkcs12Password_ = TEST_PKCS12_PASSWORD;
+    infoSequence.pkcs12FileData_ = TEST_PKCS12_DATA;
     return infoSequence;
 }
 } // namespace

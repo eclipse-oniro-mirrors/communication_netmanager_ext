@@ -104,6 +104,15 @@ HWTEST_F(NetVpnImplTest, GetSysVpnCertUri001, TestSize.Level1)
     EXPECT_EQ(netVpnImpl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetVpnImplTest, GetVpnCertData001, TestSize.Level1)
+{
+    if (netVpnImpl_ != nullptr) {
+        int32_t certType = 0;
+        std::vector<int8_t> certData;
+        EXPECT_EQ(netVpnImpl_->GetVpnCertData(0, certData), NETMANAGER_EXT_SUCCESS);
+    }
+}
+
 HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo001, TestSize.Level1)
 {
     netVpnImpl_->vpnConfig_ = nullptr;

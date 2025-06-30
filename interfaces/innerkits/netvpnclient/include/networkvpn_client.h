@@ -97,6 +97,16 @@ public:
 
 #ifdef SUPPORT_SYSVPN
     /**
+     * get vpn certificate data
+     *
+     * @param certType the certificate type (ca certificate, user certificate or server certificate)
+     * @param certData the certificate data (out param)
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @systemapi Hide this for inner use.
+     */
+    int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData);
+
+    /**
      * setup system vpn.
      *
      * @param config system VPN interface parameters
