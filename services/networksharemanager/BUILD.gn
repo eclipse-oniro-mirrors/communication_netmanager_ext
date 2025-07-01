@@ -278,4 +278,5 @@ ohos_prebuilt_etc("network_share_config") {
   install_enable = true
   relative_install_dir = "communication/netmanager_ext"
   part_name = "netmanager_ext"
+  subsystem_name = "communication"
 }
