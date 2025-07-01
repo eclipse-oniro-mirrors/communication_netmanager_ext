@@ -48,6 +48,7 @@ public:
     virtual int32_t SetUp() = 0;
     virtual int32_t Destroy() = 0;
 #ifdef SUPPORT_SYSVPN
+    virtual int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData);
     virtual int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig);
     virtual int32_t NotifyConnectStage(const std::string &stage, const int32_t &result);
     virtual int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri);

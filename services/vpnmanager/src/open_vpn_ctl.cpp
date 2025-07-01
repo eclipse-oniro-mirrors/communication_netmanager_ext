@@ -213,6 +213,11 @@ int32_t OpenvpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUr
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t OpenvpnCtl::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
+{
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 bool OpenvpnCtl::IsSystemVpn()
 {
     return true;

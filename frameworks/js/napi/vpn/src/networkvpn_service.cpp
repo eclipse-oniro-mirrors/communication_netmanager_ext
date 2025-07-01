@@ -1323,6 +1323,22 @@ int32_t NetworkVpnService::UnregisterMultiVpnEvent(const sptr<IVpnEventCallback>
     networkVpnServiceFfrtQueue_->wait(UnregisterVpnEventTask);
     return ret;
 }
+
+int32_t NetworkVpnService::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
+{
+    uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    if (callingUid != UID_NET_SYS_NATIVE) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri failed, invalid callingUid");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    std::unique_lock<std::mutex> locker(netVpnMutex_);
+
+    if (connectingObj_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetVpnCertData failed, connectingObj_ is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    return connectingObj_->GetVpnCertData(certType, certData);
+}
 #endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callback)

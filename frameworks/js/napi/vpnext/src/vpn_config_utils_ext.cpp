@@ -143,6 +143,12 @@ bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> sy
     GetStringFromJsOptionItem(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
     GetStringFromJsOptionItem(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
     GetBoolFromJsOptionItem(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_);
+    if (sysVpnConfig->vpnType_ == VpnType::IKEV2_IPSEC_MSCHAPv2 ||
+        sysVpnConfig->vpnType_ == VpnType::IKEV2_IPSEC_RSA ||
+        sysVpnConfig->vpnType_ == VpnType::L2TP_IPSEC_RSA) {
+        GetStringFromJsOptionItem(env, config, CONFIG_PK12_PASSWORD, sysVpnConfig->pkcs12Password_);
+        GetU8VectorFromJsOptionItem(env, config, CONFIG_PK12_FILE_DATA, sysVpnConfig->pkcs12FileData_);
+    }
     return true;
 }
 
@@ -246,6 +252,46 @@ sptr<OpenvpnConfig> CreateAndParseOpenvpnConf(napi_env env, napi_value config)
     GetStringFromJsOptionItem(env, config, CONFIG_OPENVPN_PRIVATE_KEY_FILE_PATH,
         openvpnConfig->ovpnPrivateKeyFilePath_);
     return openvpnConfig;
+}
+
+bool GetU8VectorFromJsOptionItem(const napi_env env, const napi_value config, const std::string &key,
+    std::vector<uint8_t> &value)
+{
+    bool hasProperty = NapiUtils::HasNamedProperty(env, config, key);
+    if (!hasProperty) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector, Js to U8Vector no property: %{public}s", key.c_str());
+        return false;
+    }
+    napi_value array = NapiUtils::GetNamedProperty(env, config, key);
+
+    bool isTypedArray = false;
+    if (napi_is_typedarray(env, array, &isTypedArray) != napi_ok || !isTypedArray) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector, property is not typedarray: %{public}s", key.c_str());
+        return false;
+    }
+
+    size_t length = 0;
+    size_t offset = 0;
+    napi_typedarray_type type;
+    napi_value buffer = nullptr;
+    NAPI_CALL_BASE(env, napi_get_typedarray_info(env, array, &type, &length, nullptr, &buffer, &offset), {});
+    if (type != napi_uint8_array || buffer == nullptr) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector, %{public}s, buffer is nullptr: %{public}d",
+            key.c_str(), (int)(buffer == nullptr));
+        return false;
+    }
+
+    size_t total = 0;
+    uint8_t *data = nullptr;
+    NAPI_CALL_BASE(env, napi_get_arraybuffer_info(env, buffer, reinterpret_cast<void **>(&data), &total), {});
+    length = std::min<size_t>(length, total - offset);
+    value.resize(length);
+    int retCode = memcpy_s(value.data(), value.size(), &data[offset], length);
+    if (retCode != EOK) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector, memcpy_s return fail: %{public}d", retCode);
+        return false;
+    }
+    return true;
 }
 
 bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)

@@ -119,6 +119,10 @@ int32_t IpsecVpnCtl::SetUpVpnTun()
     int result = NetVpnImpl::SetUp();
     if (result != NETMANAGER_EXT_SUCCESS) {
         StopSysVpn();
+    } else {
+        if (multiVpnInfo_ != nullptr && !vpnConfig_->addresses_.empty()) {
+            multiVpnInfo_->localAddress = vpnConfig_->addresses_.back().address_;
+        }
     }
     NETMGR_EXT_LOG_I("ipsec SetUp %{public}d", result);
     return result;
@@ -150,6 +154,13 @@ int32_t IpsecVpnCtl::UpdateConfig(const std::string &msg)
     ProcessUpdateConfig(jConfig);
 
     cJSON_Delete(rootJson);
+    if (multiVpnInfo_ != nullptr && vpnConfig_ != nullptr && !vpnConfig_->addresses_.empty()) {
+        if (MultiVpnHelper::GetInstance().
+            CheckAndCompareMultiVpnLocalAddress(vpnConfig_->addresses_.back().address_) != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("ipsec check ip address is same error.");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -211,6 +222,38 @@ int32_t IpsecVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certU
         case IpsecVpnCertType::SWAN_CTL_CONF:
             certUri = ipsecVpnConfig_->swanctlConf_;
             break;
+        default:
+            NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
+            break;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t IpsecVpnCtl::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
+{
+    if (ipsecVpnConfig_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysVpnCertUri ipsecVpnConfig is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    switch (certType) {
+        case IpsecVpnCertType::PKCS12_PASSWD: {
+            if (!ipsecVpnConfig_->pkcs12Password_.empty()) {
+                certData.assign(ipsecVpnConfig_->pkcs12Password_.begin(),
+                    ipsecVpnConfig_->pkcs12Password_.end());
+            } else {
+                NETMGR_EXT_LOG_D("GetVpnCertData pkcs12 password is empty");
+            }
+            break;
+        }
+        case IpsecVpnCertType::PKCS12_DATA: {
+            if (!ipsecVpnConfig_->pkcs12FileData_.empty()) {
+                certData.assign(ipsecVpnConfig_->pkcs12FileData_.begin(),
+                    ipsecVpnConfig_->pkcs12FileData_.end());
+            } else {
+                NETMGR_EXT_LOG_D("GetVpnCertData pkcs12 data is empty");
+            }
+            break;
+        }
         default:
             NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
             break;

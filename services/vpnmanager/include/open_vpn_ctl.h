@@ -59,6 +59,7 @@ public:
     OpenvpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
     ~OpenvpnCtl() = default;
 
+    int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData) override;
     bool IsInternalVpn() override;
     int32_t SetUp() override;
     int32_t Destroy() override;

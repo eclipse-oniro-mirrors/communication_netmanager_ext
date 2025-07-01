@@ -171,6 +171,38 @@ int32_t L2tpVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUr
     return NETMANAGER_EXT_SUCCESS;
 }
 
+int32_t L2tpVpnCtl::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
+{
+    if (l2tpVpnConfig_ == nullptr) {
+        NETMGR_EXT_LOG_E("GetVpnCertData ipsecVpnConfig is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    switch (certType) {
+        case IpsecVpnCertType::PKCS12_PASSWD: {
+            if (!l2tpVpnConfig_->pkcs12Password_.empty()) {
+                certData.assign(l2tpVpnConfig_->pkcs12Password_.begin(),
+                    l2tpVpnConfig_->pkcs12Password_.end());
+            } else {
+                NETMGR_EXT_LOG_D("GetVpnCertData pkcs12 password is empty");
+            }
+            break;
+        }
+        case IpsecVpnCertType::PKCS12_DATA: {
+            if (!l2tpVpnConfig_->pkcs12FileData_.empty()) {
+                certData.assign(l2tpVpnConfig_->pkcs12FileData_.begin(),
+                    l2tpVpnConfig_->pkcs12FileData_.end());
+            } else {
+                NETMGR_EXT_LOG_D("GetVpnCertData pkcs12 data is empty");
+            }
+            break;
+        }
+        default:
+            NETMGR_EXT_LOG_E("invalid certType: %{public}d", certType);
+            break;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t L2tpVpnCtl::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig)
 {
     if (state_ == IpsecVpnStateCode::STATE_CONNECTED && l2tpVpnConfig_ != nullptr) {

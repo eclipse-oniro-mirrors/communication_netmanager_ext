@@ -127,6 +127,11 @@ public:
 
 #ifdef SUPPORT_SYSVPN
     /**
+     * get vpn cert data
+     */
+    int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData) override;
+
+    /**
      * stop the vpn connection
      */
     int32_t DestroyVpn(const std::string &vpnId) override;

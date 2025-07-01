@@ -364,6 +364,60 @@ HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
     EXPECT_EQ(l2tpControl_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(L2tpVpnCtlTest, GetVpnCertData001, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    config->pkcs12Password_ = "123456";
+    l2tpControl_->l2tpVpnConfig_ = config;
+    std::vector<int8_t> certData;
+    int32_t certType = 1;
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), 0);
+    certType = 3;
+    l2tpControl_->l2tpVpnConfig_ = nullptr;
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_ERR_INTERNAL);
+    std::vector<uint8_t> testCertData{0x30, 0x82, 0x0b, 0xc1, 0x02, 0x01};
+    config->pkcs12FileData_ = testCertData;
+    l2tpControl_->l2tpVpnConfig_ = config;
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), 0);
+    certType = 6;
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), testCertData.size());
+    certData.clear();
+    config->pkcs12FileData_.clear();
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), 0);
+}
+
+HWTEST_F(L2tpVpnCtlTest, GetVpnCertData002, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    if (l2tpControl_ == nullptr) {
+        return;
+    }
+    config->pkcs12Password_ = "123456";
+    l2tpControl_->l2tpVpnConfig_ = config;
+    std::vector<int8_t> certData;
+    int32_t certType = 7;
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(certData.size(), config->pkcs12Password_.length());
+    certType = 3;
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+    certType = 7;
+    config->pkcs12Password_ = "";
+    EXPECT_EQ(l2tpControl_->GetVpnCertData(certType, certData), NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(L2tpVpnCtlTest, InitConfigFile001, TestSize.Level1)
 {
     sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();

@@ -190,6 +190,15 @@ HWTEST_F(NetworkVpnServiceTest, GetSysVpnCertUriTest001, TestSize.Level1)
     EXPECT_EQ(instance_->GetSysVpnCertUri(certType, certUri), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 
+HWTEST_F(NetworkVpnServiceTest, GetVpnCertData001, TestSize.Level1)
+{
+    std::vector<int8_t> certData;
+    ASSERT_NE(instance_, nullptr);
+    EXPECT_EQ(instance_->GetVpnCertData(6, certData), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    NetManagerExtAccessToken access;
+    EXPECT_EQ(instance_->GetVpnCertData(6, certData), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+}
+
 HWTEST_F(NetworkVpnServiceTest, QueryVpnData001, TestSize.Level1)
 {
     sptr<SysVpnConfig> openvpnConfig = nullptr;

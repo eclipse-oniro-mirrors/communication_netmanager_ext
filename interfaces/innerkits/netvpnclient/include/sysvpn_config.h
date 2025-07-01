@@ -45,6 +45,8 @@ struct SysVpnConfig : public VpnConfig {
     bool saveLogin_ = false;
     int32_t userId_ = 0;
     std::string forwardingRoutes_;
+    std::string pkcs12Password_;
+    std::vector<uint8_t> pkcs12FileData_;
 
     bool Marshalling(Parcel &parcel) const override;
     static SysVpnConfig* Unmarshalling(Parcel &parcel);

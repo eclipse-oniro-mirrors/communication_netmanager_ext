@@ -39,6 +39,7 @@ public:
     L2tpVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
     ~L2tpVpnCtl() = default;
 
+    int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData) override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
     int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
     int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;

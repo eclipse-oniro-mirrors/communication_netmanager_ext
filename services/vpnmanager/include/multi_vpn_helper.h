@@ -29,6 +29,7 @@ struct MultiVpnInfo : RefBase {
     std::string vpnId;
     std::string ifName;
     std::string bundleName;
+    std::string localAddress;
     int32_t ifNameId;
     int32_t callingUid;
     int32_t userId;
@@ -48,6 +49,7 @@ public:
     bool StartL2tp();
     void StopL2tp();
     bool IsConnectedStage(const std::string &stage);
+    int32_t CheckAndCompareMultiVpnLocalAddress(const std::string& localAddress);
 private:
     MultiVpnHelper();
     bool IsOpenvpnConnectedStage(const std::string &stage);

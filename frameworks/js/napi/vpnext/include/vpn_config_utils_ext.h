@@ -59,6 +59,8 @@ constexpr const char *CONFIG_USER_NAME = "userName";
 constexpr const char *CONFIG_PASSWORD = "password";
 constexpr const char *CONFIG_SAVE_LOGIN = "saveLogin";
 constexpr const char *CONFIG_FORWARDED_ROUTES = "forwardingRoutes";
+constexpr const char *CONFIG_PK12_PASSWORD = "pkcs12Password";
+constexpr const char *CONFIG_PK12_FILE_DATA = "pkcs12FileData";
 
 constexpr const char *CONFIG_OVPN_PORT = "ovpnPort";
 constexpr const char *CONFIG_OPENVPN_PROTOCOL = "ovpnProtocol";
@@ -110,6 +112,8 @@ void GetUint8FromJsOptionItem(napi_env env, napi_value object, const std::string
 void GetStringFromJsOptionItem(napi_env env, napi_value object, const std::string &key, std::string &value);
 bool GetStringFromJsMandatoryItem(napi_env env, napi_value object, const std::string &key, std::string &value);
 void GetInt32FromJsOptionItem(napi_env env, napi_value object, const std::string &key, int32_t &value);
+bool GetU8VectorFromJsOptionItem(const napi_env env, napi_value object, const std::string &key,
+    std::vector<uint8_t> &value);
 
 napi_value CreateNapiVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);
 napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig);

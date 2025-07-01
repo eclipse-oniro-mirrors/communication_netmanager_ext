@@ -273,6 +273,14 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnCertUri001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
     certType = -1;
     ret = networkVpnClient_.GetSysVpnCertUri(certType, certUri);
+}
+
+HWTEST_F(NetworkVpnClientTest, GetVpnCertData001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    int32_t certType = 0;
+    std::vector<int8_t> certData;
+    int32_t ret = networkVpnClient_.GetVpnCertData(certType, certData);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 
