@@ -65,7 +65,7 @@ ohos_unittest("networkslice_manager_test") {
     "c_utils:utils",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken",
+    "access_token:libnativetoken_shared",
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

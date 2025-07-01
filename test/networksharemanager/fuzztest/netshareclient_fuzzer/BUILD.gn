@@ -76,12 +76,13 @@ ohos_fuzztest("NetShareClientFuzzTest") {
       [ "$EXT_INNERKITS_ROOT/netshareclient:netshare_service_interface_stub" ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken",
+    "access_token:libnativetoken_shared",
     "access_token:libtoken_setproc",
     "bluetooth:btframework",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "dhcp:dhcp_sdk",
+    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hicollie:libhicollie",
     "hilog:libhilog",

@@ -36,7 +36,6 @@
 #define protected public
 #include "ethernet_client.h"
 #include "ethernet_dhcp_controller.h"
-#include "ethernet_service.h"
 #include "ethernet_management.h"
 #include "ethernet_service_proxy.h"
 
