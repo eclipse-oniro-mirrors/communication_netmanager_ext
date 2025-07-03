@@ -598,7 +598,7 @@ bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::strin
     std::string strLine;
 
     char nodeRealpath[PATH_MAX];
-    if (realpath(filename, nodeRealpath) == NULL) {
+    if (realpath(nodePath.c_str(), nodeRealpath) == NULL) {
         NETMGR_EXT_LOG_E("GetSysNodeValue get realpath failed");
         return false;
     }
