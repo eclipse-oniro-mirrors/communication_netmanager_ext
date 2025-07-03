@@ -840,6 +840,23 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 }
 
 #ifdef SUPPORT_SYSVPN
+int32_t NetworkVpnService::InitMultiVpnInfo(const std::string &vpnId, int32_t vpnType,
+    std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj)
+{
+    if (vpnObj == nullptr) {
+        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (MultiVpnHelper::GetInstance().CreateMultiVpnInfo(
+        vpnId, vpnType, vpnObj->multiVpnInfo_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    vpnObj->multiVpnInfo_->bundleName = vpnBundleName;
+    vpnObj->multiVpnInfo_->userId = userId;
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
 {
     if (vpnId.empty()) {
@@ -908,23 +925,6 @@ int32_t NetworkVpnService::DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vp
     if (needErase) {
         vpnObjMap_.erase(multiVpnInterface->vpnId);
     }
-    return NETMANAGER_EXT_SUCCESS;
-}
-
-int32_t NetworkVpnService::InitMultiVpnInfo(const std::string &vpnId, int32_t vpnType,
-    std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj)
-{
-    if (vpnObj == nullptr) {
-        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    if (MultiVpnHelper::GetInstance().CreateMultiVpnInfo(
-        vpnId, vpnType, vpnObj->multiVpnInfo_) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    vpnObj->multiVpnInfo_->bundleName = vpnBundleName;
-    vpnObj->multiVpnInfo_->userId = userId;
     return NETMANAGER_EXT_SUCCESS;
 }
 
