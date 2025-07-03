@@ -43,6 +43,7 @@ namespace {
 constexpr const char *ALWAYS_ON_VPN_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=sharing_always_on_vpn";
 constexpr const char *KEY_ALWAYS_ON_VPN = "settings.netmanager.always_on_vpn";
+
 } // namespace
 using namespace OHOS::EventFwk;
 class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, protected NoCopyable,
