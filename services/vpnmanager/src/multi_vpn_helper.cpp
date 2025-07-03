@@ -33,6 +33,9 @@ namespace NetManagerStandard {
 constexpr int32_t MAX_VPN_INTERFACE_COUNT = 20;
 constexpr const char *PPP_CARD_NAME = "ppp-vpn";
 constexpr const char *XFRM_CARD_NAME = "xfrm-vpn";
+constexpr const char *MULTI_TUN_CARD_NAME = "multitun-vpn";
+constexpr const char *ADDRESS = "address";
+
 MultiVpnHelper &MultiVpnHelper::GetInstance()
 {
     static MultiVpnHelper instance;
@@ -91,6 +94,7 @@ int32_t MultiVpnHelper::CreateMultiVpnInfo(const std::string &vpnId, int32_t vpn
             newIfName = PPP_CARD_NAME + std::to_string(ifNameId);
             break;
         default:
+            newIfName = MULTI_TUN_CARD_NAME + std::to_string(ifNameId);
             NETMGR_EXT_LOG_I("other vpnType=%{public}d", vpnType);
             break;
     }
@@ -132,7 +136,7 @@ int32_t MultiVpnHelper::DelMultiVpnInfo(const sptr<MultiVpnInfo> &info)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t MultiVpnHelper::CheckAndCompareMultiVpnLocalAddress(const std::string& localAddress)
+int32_t MultiVpnHelper::CheckAndCompareMultiVpnLocalAddress(const std::string &localAddress)
 {
     NETMGR_EXT_LOG_I("CheckAndCompareMultiVpnLocalAddress %{public}zu", multiVpnInfos_.size());
     if (localAddress.empty()) {
@@ -235,6 +239,31 @@ bool MultiVpnHelper::IsOpenvpnConnectedStage(const std::string &msg)
         cJSON_Delete(message);
     }
     return openvpnConnected;
+}
+
+int32_t MultiVpnHelper::GetDisconnectAddr(const std::string &stage, std::string &addr)
+{
+    cJSON* rootJson = cJSON_Parse(stage.c_str());
+    if (rootJson == nullptr) {
+        NETMGR_EXT_LOG_E("not json string");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    cJSON* disconn = cJSON_GetObjectItem(rootJson, DISCONNECT_TAG);
+    if (disconn == nullptr || !cJSON_IsObject(disconn)) {
+        NETMGR_EXT_LOG_E("disconn format error");
+        cJSON_Delete(rootJson);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    cJSON* address = cJSON_GetObjectItem(disconn, ADDRESS);
+    if (address == nullptr || !cJSON_IsString(address)) {
+        NETMGR_EXT_LOG_E("address format error");
+        cJSON_Delete(rootJson);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    addr = cJSON_GetStringValue(address);
+    cJSON_Delete(rootJson);
+    return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

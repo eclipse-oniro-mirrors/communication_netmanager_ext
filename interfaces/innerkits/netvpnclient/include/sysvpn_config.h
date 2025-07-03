@@ -37,7 +37,6 @@ enum VpnType : int32_t {
 };
 
 struct SysVpnConfig : public VpnConfig {
-    std::string vpnId_;
     std::string vpnName_;
     int32_t vpnType_ = 0;
     std::string userName_;

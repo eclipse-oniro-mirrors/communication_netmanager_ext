@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 struct VpnConfig : public Parcelable {
+    std::string vpnId_;
     std::vector<INetAddr> addresses_;
     std::vector<Route> routes_;
     int32_t mtu_ = 0;

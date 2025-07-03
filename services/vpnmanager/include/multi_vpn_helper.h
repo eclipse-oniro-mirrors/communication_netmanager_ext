@@ -36,6 +36,8 @@ struct MultiVpnInfo : RefBase {
     VpnConnectState vpnConnectState = VpnConnectState::VPN_DISCONNECTED;
     bool isVpnExtCall = true;
 };
+constexpr int32_t VPN_LOCAL_IP_INDEX = 1;
+constexpr const char *DISCONNECT_TAG = "disconnect";
 
 class MultiVpnHelper {
 public:
@@ -49,7 +51,8 @@ public:
     bool StartL2tp();
     void StopL2tp();
     bool IsConnectedStage(const std::string &stage);
-    int32_t CheckAndCompareMultiVpnLocalAddress(const std::string& localAddress);
+    int32_t CheckAndCompareMultiVpnLocalAddress(const std::string &localAddress);
+    int32_t GetDisconnectAddr(const std::string &stage, std::string &addr);
 private:
     MultiVpnHelper();
     bool IsOpenvpnConnectedStage(const std::string &stage);

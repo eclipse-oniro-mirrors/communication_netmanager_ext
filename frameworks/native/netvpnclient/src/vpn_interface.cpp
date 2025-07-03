@@ -30,9 +30,31 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 namespace {
-static const sockaddr_un SERVER_PATH = {AF_UNIX, "/dev/unix/socket/tunfd"};
 constexpr int32_t CONNECT_TIMEOUT = 1;
 constexpr int32_t INVALID_FD = -1;
+int32_t FdReadyHandle(int32_t &sockfd, fd_set &rset, fd_set &wset, uint32_t flags)
+{
+    int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
+    socklen_t len = sizeof(result);
+    if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
+        if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &result, &len) < 0) {
+            NETMGR_EXT_LOG_E("getsockopt error: %{public}d", errno);
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+    } else {
+        NETMGR_EXT_LOG_E("select error: sockfd not set");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    if (result != NETMANAGER_EXT_SUCCESS) { // connect failed.
+        NETMGR_EXT_LOG_E("connect failed. error: %{public}d", result);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    } else {                           // connect success.
+        fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
+        NETMGR_EXT_LOG_I("connect success.");
+        return NETMANAGER_EXT_SUCCESS;
+    }
+}
 } // namespace
 
 int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
@@ -41,7 +63,13 @@ int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
     fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 
     /* EINPROGRESS - Indicates that the connection establishment has been started but is not complete */
-    int32_t ret = connect(sockfd, reinterpret_cast<const sockaddr *>(&SERVER_PATH), sizeof(SERVER_PATH));
+    sockaddr_un serverPath = {AF_UNIX, "/dev/unix/socket/tunfd"};
+#ifdef SUPPORT_SYSVPN
+    if (isSupportMultiVpn_) {
+        serverPath = {AF_UNIX, "/dev/unix/socket/multivpnfd"};
+    }
+#endif // SUPPORT_SYSVPN
+    int32_t ret = connect(sockfd, reinterpret_cast<const sockaddr *>(&serverPath), sizeof(serverPath));
     if ((ret < 0) && (errno != EINPROGRESS)) {
         NETMGR_EXT_LOG_E("connect error: %{public}d", errno);
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -68,26 +96,7 @@ int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
         NETMGR_EXT_LOG_E("connect timeout.");
         return NETMANAGER_EXT_ERR_INTERNAL;
     } else { // fd ready
-        int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
-        socklen_t len = sizeof(result);
-        if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
-            if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &result, &len) < 0) {
-                NETMGR_EXT_LOG_E("getsockopt error: %{public}d", errno);
-                return NETMANAGER_EXT_ERR_INTERNAL;
-            }
-        } else {
-            NETMGR_EXT_LOG_E("select error: sockfd not set");
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        }
-
-        if (result != NETMANAGER_EXT_SUCCESS) { // connect failed.
-            NETMGR_EXT_LOG_E("connect failed. error: %{public}d", result);
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        } else {                           // connect success.
-            fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
-            NETMGR_EXT_LOG_I("connect success.");
-            return NETMANAGER_EXT_SUCCESS;
-        }
+        return FdReadyHandle(sockfd, rset, wset, flags);
     }
 }
 
@@ -172,6 +181,13 @@ void VpnInterface::CloseVpnInterfaceFd()
         tunFd_ = 0;
     }
 }
+
+#ifdef SUPPORT_SYSVPN
+void VpnInterface::SetSupportMultiVpn(bool isSupportMultiVpn)
+{
+    isSupportMultiVpn_ = isSupportMultiVpn;
+}
+#endif // SUPPORT_SYSVPN
 
 } // namespace NetManagerStandard
 } // namespace OHOS

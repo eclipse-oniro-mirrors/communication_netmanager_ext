@@ -146,13 +146,25 @@ bool SetUpContext::ParseVpnConfig(napi_value *params)
         NETMGR_EXT_LOG_E("params is nullptr");
         return false;
     }
-    if (NapiUtils::HasNamedProperty(GetEnv(), params[0], "vpnId")) {
+    if (NapiUtils::HasNamedProperty(GetEnv(), params[0], VpnConfigUtilsExt::CONFIG_VPN_TYPE)) {
         if (!VpnConfigUtilsExt::ParseSysVpnConfig(GetEnv(), params, sysVpnConfig_)) {
             NETMGR_EXT_LOG_E("ParsesysVpnconfig is failed");
             return false;
         }
         NETMGR_EXT_LOG_I("setup parse sysvpn config, id=%{public}s, type=%{public}d",
             sysVpnConfig_->vpnId_.c_str(), sysVpnConfig_->vpnType_);
+        return true;
+    } else if (NapiUtils::HasNamedProperty(GetEnv(), params[0], VpnConfigUtilsExt::CONFIG_VPN_ID)) {
+        vpnConfig_ = new (std::nothrow) VpnConfig();
+        if (vpnConfig_ == nullptr) {
+            NETMGR_EXT_LOG_E("vpnConfig is nullptr");
+            return false;
+        }
+        vpnConfig_->vpnId_ = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[0], VpnConfigUtilsExt::CONFIG_VPN_ID);
+        NETMGR_EXT_LOG_I("setup parse vpn config, id=%{public}s", vpnConfig_->vpnId_.c_str());
+        if (!ParseAddrRouteParams(params[0]) || !ParseChoiceableParams(params[0])) {
+            return false;
+        }
         return true;
     }
 #endif // SUPPORT_SYSVPN
