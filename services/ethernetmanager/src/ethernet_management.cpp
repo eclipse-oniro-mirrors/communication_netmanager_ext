@@ -596,15 +596,24 @@ bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::strin
 {
     std::ifstream infile;
     std::string strLine;
-    infile.open(nodePath);
+
+    auto nodeRealpath = realpath(nodePath.c_str(), nullptr);
+    if (nodeRealpath == nullptr) {
+        NETMGR_EXT_LOG_E("GetSysNodeValue get realpath failed");
+        return false;
+    }
+    
+    infile.open(nodeRealpath);
     if (!infile.is_open()) {
         NETMGR_EXT_LOG_E("GetSysNodeValue open failed");
+        free(nodeRealpath);
         return false;
     }
     while (getline(infile, strLine)) {
         nodeVal.append(strLine);
     }
     infile.close();
+    free(nodeRealpath);
     return true;
 }
  
