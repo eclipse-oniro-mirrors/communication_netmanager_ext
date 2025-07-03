@@ -46,6 +46,7 @@ constexpr const char *NET_DESTINATION = "destination";
 constexpr const char *NET_GATEWAY = "gateway";
 constexpr const char *NET_HAS_GATEWAY = "hasGateway";
 constexpr const char *NET_ISDEFAULTROUTE = "isDefaultRoute";
+constexpr const char *NET_ISEXCLUDEDROUTE = "isExcludedRoute";
 constexpr const char *CONFIG_DNSADDRESSES = "dnsAddresses";
 constexpr const char *CONFIG_SEARCHDOMAINS = "searchDomains";
 constexpr const char *CONFIG_MTU = "mtu";
@@ -301,6 +302,7 @@ static bool ParseRoute(napi_env env, napi_value jsRoute, Route &route)
 
     GetBoolFromJsOptionItem(env, jsRoute, NET_HAS_GATEWAY, route.hasGateway_);
     GetBoolFromJsOptionItem(env, jsRoute, NET_ISDEFAULTROUTE, route.isDefaultRoute_);
+    GetBoolFromJsOptionItem(env, jsRoute, NET_ISEXCLUDEDROUTE, route.isExcludedRoute_);
     return true;
 }
 
