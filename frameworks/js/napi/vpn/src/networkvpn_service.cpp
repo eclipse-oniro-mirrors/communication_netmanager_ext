@@ -224,9 +224,11 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
             return;
         }
         for (const auto &[name, vpn] : vpnService_.vpnObjMap_) {
-            int32_t vpnUserId = (vpn != nullptr && vpn->multiVpnInfo_ != nullptr) ?
-                vpn->multiVpnInfo_->userId : AppExecFwk::Constants::UNSPECIFIED_USERID;
-            if (vpnUserId == userId && vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
+            if (vpn == nullptr || vpn->multiVpnInfo_ == nullptr) {
+                continue;
+            }
+            if (vpn->multiVpnInfo_->userId == userId &&
+                vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
                 NETMGR_EXT_LOG_I("OnVpnConnStateChanged :: other vpn is connnected");
                 return;
             }

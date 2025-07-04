@@ -73,15 +73,16 @@ void VpnTemplateProcessor::GenSwanctlOrIpsecConf(sptr<IpsecVpnConfig> &ipsecConf
     std::string connects;
     std::string secrets;
     for (const auto& pair : vpnObjMap) {
+        if (pair.second == nullptr || pair.second->multiVpnInfo_ == nullptr) {
+            continue;
+        }
         if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL) {
             continue;
         }
-        if (pair.second != nullptr) {
-            std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
-            if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
-                CreateConnectAndSecret(vpnObj->ipsecVpnConfig_, vpnObj->l2tpVpnConfig_,
-                    vpnObj->multiVpnInfo_->ifNameId, connects, secrets);
-            }
+        std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
+        if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
+            CreateConnectAndSecret(vpnObj->ipsecVpnConfig_, vpnObj->l2tpVpnConfig_,
+                vpnObj->multiVpnInfo_->ifNameId, connects, secrets);
         }
     }
     CreateConnectAndSecret(ipsecConfig, l2tpConfig, ifNameId, connects, secrets);
@@ -103,14 +104,15 @@ void VpnTemplateProcessor::GenXl2tpdConf(sptr<L2tpVpnConfig> &config, int32_t if
     }
     std::string conf;
     for (const auto& pair : vpnObjMap) {
+        if (pair.second == nullptr || pair.second->multiVpnInfo_ == nullptr) {
+            continue;
+        }
         if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL) {
             continue;
         }
-        if (pair.second != nullptr) {
-            std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
-            if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
-                CreateXl2tpdConf(vpnObj->l2tpVpnConfig_, vpnObj->multiVpnInfo_->ifNameId, conf);
-            }
+        std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
+        if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
+            CreateXl2tpdConf(vpnObj->l2tpVpnConfig_, vpnObj->multiVpnInfo_->ifNameId, conf);
         }
     }
     CreateXl2tpdConf(config, ifNameId, conf);
