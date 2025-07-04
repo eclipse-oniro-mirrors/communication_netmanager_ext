@@ -283,9 +283,11 @@ private:
         std::vector<int32_t> &activeUserIds);
     int32_t DestroyMultiVpn(int32_t callingUid);
     int32_t DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vpnObj, bool needErase = true);
-    bool IsSetUpReady(std::string &vpnId, std::string &vpnBundleName,
-        int32_t &userId, std::vector<int32_t> &activeUserIds);
+    int32_t InitMultiVpnInfo(const std::string &vpnId, int32_t vpnType,
+        std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj);
 #endif // SUPPORT_SYSVPN
+    int32_t IsSetUpReady(const std::string &vpnId, std::string &vpnBundleName,
+        int32_t &userId, std::vector<int32_t> &activeUserIds);
     std::string GetBundleName();
     std::string GetCurrentVpnBundleName();
     std::vector<std::string> GetCurrentVpnAbilityName();

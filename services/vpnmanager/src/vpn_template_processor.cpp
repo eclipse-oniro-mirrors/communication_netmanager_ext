@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr const char *MULTI_TUN_CARD_NAME = "multitun-vpn";
 constexpr const char* STRONGSWAN_CONF_TEMPCONFIG = R"(charon {
   i_dont_care_about_security_and_use_aggressive_mode_psk = yes
   install_virtual_ip = no
@@ -72,12 +73,16 @@ void VpnTemplateProcessor::GenSwanctlOrIpsecConf(sptr<IpsecVpnConfig> &ipsecConf
     std::string connects;
     std::string secrets;
     for (const auto& pair : vpnObjMap) {
-        if (pair.second != nullptr) {
-            std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
-            if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
-                CreateConnectAndSecret(vpnObj->ipsecVpnConfig_, vpnObj->l2tpVpnConfig_,
-                    vpnObj->multiVpnInfo_->ifNameId, connects, secrets);
-            }
+        if (pair.second == nullptr || pair.second->multiVpnInfo_ == nullptr) {
+            continue;
+        }
+        if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL) {
+            continue;
+        }
+        std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
+        if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
+            CreateConnectAndSecret(vpnObj->ipsecVpnConfig_, vpnObj->l2tpVpnConfig_,
+                vpnObj->multiVpnInfo_->ifNameId, connects, secrets);
         }
     }
     CreateConnectAndSecret(ipsecConfig, l2tpConfig, ifNameId, connects, secrets);
@@ -99,11 +104,15 @@ void VpnTemplateProcessor::GenXl2tpdConf(sptr<L2tpVpnConfig> &config, int32_t if
     }
     std::string conf;
     for (const auto& pair : vpnObjMap) {
-        if (pair.second != nullptr) {
-            std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
-            if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
-                CreateXl2tpdConf(vpnObj->l2tpVpnConfig_, vpnObj->multiVpnInfo_->ifNameId, conf);
-            }
+        if (pair.second == nullptr || pair.second->multiVpnInfo_ == nullptr) {
+            continue;
+        }
+        if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL) {
+            continue;
+        }
+        std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
+        if (vpnObj != nullptr && vpnObj->multiVpnInfo_ != nullptr) {
+            CreateXl2tpdConf(vpnObj->l2tpVpnConfig_, vpnObj->multiVpnInfo_->ifNameId, conf);
         }
     }
     CreateXl2tpdConf(config, ifNameId, conf);

@@ -31,13 +31,18 @@ public:
 public:
     int32_t GetVpnInterfaceFd();
     void CloseVpnInterfaceFd();
-
+#ifdef SUPPORT_SYSVPN
+    void SetSupportMultiVpn(bool isMultiTunVpn);
+#endif // SUPPORT_SYSVPN
 private:
     int32_t ConnectControl(int32_t sockfd, int32_t nsec);
     int32_t RecvMsgFromUnixServer(int32_t sockfd);
 
 private:
     std::atomic_int tunFd_{0};
+#ifdef SUPPORT_SYSVPN
+    bool isSupportMultiVpn_ = false;
+#endif // SUPPORT_SYSVPN
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

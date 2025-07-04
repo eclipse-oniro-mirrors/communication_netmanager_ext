@@ -28,7 +28,6 @@ bool SysVpnConfig::Marshalling(Parcel &parcel) const
     parcel.WriteInt32(vpnType_);
 
     bool allOK = VpnConfig::Marshalling(parcel) &&
-                 parcel.WriteString(vpnId_) &&
                  parcel.WriteString(vpnName_) &&
                  parcel.WriteInt32(vpnType_) &&
                  parcel.WriteString(userName_) &&
@@ -77,7 +76,6 @@ SysVpnConfig* SysVpnConfig::Unmarshalling(Parcel &parcel)
 bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
 {
     bool allOK = VpnConfig::UnmarshallingVpnConfig(parcel, ptr) &&
-                 parcel.ReadString(ptr->vpnId_) &&
                  parcel.ReadString(ptr->vpnName_) &&
                  parcel.ReadInt32(ptr->vpnType_) &&
                  parcel.ReadString(ptr->userName_) &&

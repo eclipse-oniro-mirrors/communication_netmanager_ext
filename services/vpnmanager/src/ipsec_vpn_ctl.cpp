@@ -116,16 +116,17 @@ int32_t IpsecVpnCtl::SetUpVpnTun()
         NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_CALL_MODE,
             multiVpnInfo_->isVpnExtCall ? "0" : "1");
     }
-    int result = NetVpnImpl::SetUp();
-    if (result != NETMANAGER_EXT_SUCCESS) {
+    if (NetVpnImpl::SetUp() != NETMANAGER_EXT_SUCCESS) {
         StopSysVpn();
-    } else {
-        if (multiVpnInfo_ != nullptr && !vpnConfig_->addresses_.empty()) {
-            multiVpnInfo_->localAddress = vpnConfig_->addresses_.back().address_;
-        }
+        NETMGR_EXT_LOG_I("ipsec SetUp failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    NETMGR_EXT_LOG_I("ipsec SetUp %{public}d", result);
-    return result;
+    if (multiVpnInfo_ != nullptr && vpnConfig_ != nullptr) {
+        multiVpnInfo_->localAddress = vpnConfig_->addresses_.empty() ?
+            "" : vpnConfig_->addresses_.back().address_;
+    }
+    NETMGR_EXT_LOG_I("ipsec SetUp success");
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t IpsecVpnCtl::UpdateConfig(const std::string &msg)
@@ -147,16 +148,17 @@ int32_t IpsecVpnCtl::UpdateConfig(const std::string &msg)
 
     cJSON* jConfig = cJSON_GetObjectItem(rootJson, IPSEC_NODE_UPDATE_CONFIG);
     if (!cJSON_IsObject(jConfig)) {
-        cJSON_Delete(rootJson);
         NETMGR_EXT_LOG_E("jConfig format error");
+        cJSON_Delete(rootJson);
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     ProcessUpdateConfig(jConfig);
 
     cJSON_Delete(rootJson);
-    if (multiVpnInfo_ != nullptr && vpnConfig_ != nullptr && !vpnConfig_->addresses_.empty()) {
-        if (MultiVpnHelper::GetInstance().
-            CheckAndCompareMultiVpnLocalAddress(vpnConfig_->addresses_.back().address_) != NETMANAGER_EXT_SUCCESS) {
+    rootJson = nullptr;
+    if (vpnConfig_ != nullptr) {
+        std::string addr = vpnConfig_->addresses_.empty() ? "" : vpnConfig_->addresses_.back().address_;
+        if (MultiVpnHelper::GetInstance().CheckAndCompareMultiVpnLocalAddress(addr) != NETMANAGER_EXT_SUCCESS) {
             NETMGR_EXT_LOG_E("ipsec check ip address is same error.");
             return NETMANAGER_EXT_ERR_INTERNAL;
         }

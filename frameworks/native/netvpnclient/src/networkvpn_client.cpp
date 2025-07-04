@@ -100,7 +100,9 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool 
     }
     clientVpnConfig_.first = config;
     clientVpnConfig_.second = isVpnExtCall;
-
+#ifdef SUPPORT_SYSVPN
+    vpnInterface_.SetSupportMultiVpn(!config->vpnId_.empty());
+#endif // SUPPORT_SYSVPN
     tunFd = vpnInterface_.GetVpnInterfaceFd();
     if (tunFd <= 0) {
         return NETMANAGER_EXT_ERR_INTERNAL;

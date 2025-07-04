@@ -24,7 +24,8 @@ constexpr uint32_t ROUTE_MAX_SIZE = 2000;
 }
 bool VpnConfig::Marshalling(Parcel &parcel) const
 {
-    bool allOK = MarshallingAddrRoute(parcel) && parcel.WriteInt32(mtu_) && parcel.WriteBool(isAcceptIPv4_) &&
+    bool allOK = parcel.WriteString(vpnId_) &&
+                 MarshallingAddrRoute(parcel) && parcel.WriteInt32(mtu_) && parcel.WriteBool(isAcceptIPv4_) &&
                  parcel.WriteBool(isAcceptIPv6_) && parcel.WriteBool(isLegacy_) && parcel.WriteBool(isMetered_) &&
                  parcel.WriteBool(isBlocking_) && MarshallingVectorString(parcel, dnsAddresses_) &&
                  MarshallingVectorString(parcel, searchDomains_) &&
@@ -90,7 +91,8 @@ bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, VpnConfig* ptr)
         NETMGR_EXT_LOG_E("VpnConfig ptr is null");
         return false;
     }
-    bool allOK = UnmarshallingAddrRoute(parcel, ptr) && parcel.ReadInt32(ptr->mtu_) &&
+    bool allOK = parcel.ReadString(ptr->vpnId_) &&
+                 UnmarshallingAddrRoute(parcel, ptr) && parcel.ReadInt32(ptr->mtu_) &&
                  parcel.ReadBool(ptr->isAcceptIPv4_) && parcel.ReadBool(ptr->isAcceptIPv6_) &&
                  parcel.ReadBool(ptr->isLegacy_) && parcel.ReadBool(ptr->isMetered_) &&
                  parcel.ReadBool(ptr->isBlocking_) && UnmarshallingVectorString(parcel, ptr->dnsAddresses_) &&
