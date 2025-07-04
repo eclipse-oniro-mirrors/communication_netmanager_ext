@@ -596,7 +596,15 @@ bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::strin
 {
     std::ifstream infile;
     std::string strLine;
-    infile.open(nodePath);
+
+    std::filesystem::path filePath(nodePath);
+    auto truePath = std::filesystem::canonical(filePath);
+    if (!std::filesystem::exists(truePath)) {
+        NETMGR_EXT_LOG_E("GetSysNodeValue truePath %{public}s not exist", truePath.string().c_str());
+        return false;
+    }
+    std::string truePathStr = truePath.string();
+    infile.open(truePathStr);
     if (!infile.is_open()) {
         NETMGR_EXT_LOG_E("GetSysNodeValue open failed");
         return false;
