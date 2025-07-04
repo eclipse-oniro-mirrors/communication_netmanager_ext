@@ -44,6 +44,11 @@ public:
     }
 
 #ifdef SUPPORT_SYSVPN
+    int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData) override
+    {
+        return 0;
+    }
+
     int32_t SetUpSysVpn(const sptr<SysVpnConfig> &config, bool isVpnExtCall = false) override
     {
         return 0;
