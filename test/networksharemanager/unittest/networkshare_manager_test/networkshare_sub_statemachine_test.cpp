@@ -421,6 +421,7 @@ HWTEST_F(NetworkShareSubStateMachineTest, HandleConnectionChanged004, TestSize.L
     networkShareSubStateMachine->upstreamIfaceName_ = "test0";
     upstreamNetInfo->netLinkPro_->ifaceName_ = "test1";
     EXPECT_TRUE(networkShareSubStateMachine->HasChangeUpstreamIfaceSet(upstreamNetInfo->netLinkPro_->ifaceName_));
+    networkShareSubStateMachine->HandleConnectionChanged(upstreamNetInfo);
 }
 
 /**
