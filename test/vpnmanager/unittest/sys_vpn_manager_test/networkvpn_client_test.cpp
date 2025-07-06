@@ -307,7 +307,7 @@ HWTEST_F(NetworkVpnClientTest, RecoverCallback001, TestSize.Level1)
 HWTEST_F(NetworkVpnClientTest, OnRemoteDied001, TestSize.Level1)
 {
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    sptr<IRemoteObject> remote = sam->CheckSystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID);
+    sptr<IRemoteObject> remote = sam->GetSystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID);
     networkVpnClient_.networkVpnService_ = iface_cast<INetworkVpnService>(remote);
     networkVpnClient_.vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
     ASSERT_NE(networkVpnClient_.vpnEventCallback_, nullptr);

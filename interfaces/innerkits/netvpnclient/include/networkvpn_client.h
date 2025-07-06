@@ -28,6 +28,7 @@
 #include "inetwork_vpn_service.h"
 #include "ivpn_event_callback.h"
 #include "vpn_event_callback_stub.h"
+#include "system_ability_status_change_stub.h"
 #include "vpn_interface.h"
 
 namespace OHOS {
@@ -41,12 +42,28 @@ public:
     int32_t OnVpnMultiUserSetUp() override;
 };
 
+class VpnEventCallbackCollection final : public VpnEventCallbackStub {
+public:
+    int32_t OnVpnStateChanged(bool isConnected) override;
+    int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
+        const std::string &vpnId) override;
+    int32_t OnVpnMultiUserSetUp() override;
+
+    int32_t RegisterCallback(sptr<IVpnEventCallback> callback);
+    int32_t UnregisterCallback(sptr<IVpnEventCallback> callback);
+
+private:
+    std::list<sptr<IVpnEventCallback>> vpnEventCbList_;
+};
+
 class NetworkVpnClient {
 private:
-    NetworkVpnClient() = default;
-    ~NetworkVpnClient() = default;
+    NetworkVpnClient();
+    ~NetworkVpnClient();
     NetworkVpnClient(const NetworkVpnClient &) = delete;
     NetworkVpnClient &operator=(const NetworkVpnClient &) = delete;
+    void Subscribe();
+    void Unsubscribe();
 
 public:
     static NetworkVpnClient &GetInstance();
@@ -283,16 +300,35 @@ private:
         NetworkVpnClient &client_;
     };
 
+    class SystemAbilityListener : public SystemAbilityStatusChangeStub {
+    public:
+        SystemAbilityListener() = default;
+        ~SystemAbilityListener() = default;
+        void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+        void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override {};
+    private:
+        void RegisterVpnEventCallback();
+    }
+
     sptr<INetworkVpnService> GetProxy();
     void RecoverCallback();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void RegisterVpnEventCbCollection();
+    void UnregisterVpnEventCbCollection();
+#ifdef
+    void RegisterMuiltiVpnEventCbCollection();
+    void UnregisterMultiVpnEventCbCollection();
+#endif
 
 private:
     std::mutex mutex_;
     VpnInterface vpnInterface_;
+    sptr<SystemAbilityListener> saStatusChangeListener_ = nullptr;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
+    sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = nullptr;
+    sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = nullptr;
     std::pair<sptr<VpnConfig>, bool> clientVpnConfig_;
 };
 } // namespace NetManagerStandard
