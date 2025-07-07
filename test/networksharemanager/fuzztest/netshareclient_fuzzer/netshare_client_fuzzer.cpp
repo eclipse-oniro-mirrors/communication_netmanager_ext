@@ -58,6 +58,8 @@ size_t g_baseFuzzSize = 0;
 size_t g_baseFuzzPos;
 uint32_t g_testRunTimes = 0;
 constexpr size_t IFACE_LEN = 5;
+constexpr uint8_t NET_FAMILY_IPV4 = 1;
+constexpr uint8_t NET_FAMILY_IPV6 = 2;
 } // namespace
 
 template <class T> T GetData()
@@ -680,6 +682,89 @@ void NetworkShareConfigurationFuzzTest(const uint8_t *data, size_t size)
     std::vector<std::string> res;
     config.ParseRegexsData(res, str);
 }
+
+void GetShareIpv6PrefixFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("GetShareIpv6PrefixFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    std::string str = GetStringFromData(IFACE_LEN);
+    std::shared_ptr<NetworkShareConfiguration> config;
+    SharingIfaceType interfaceType = static_cast<SharingIfaceType>(GetData<uint32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE);
+    auto networkShareSubStateMachine = std::make_unique<NetworkShareSubStateMachine>(str, interfaceType, config);
+    std::string iface = GetStringFromData(IFACE_LEN);
+    networkShareSubStateMachine->GetShareIpv6Prefix(iface);
+    networkShareSubStateMachine->MacToEui64Addr(iface);
+    networkShareSubStateMachine->GenerateIpv6(iface);
+}
+
+void ConfigureShareIpv4FuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("ConfigureShareIpv4FuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    std::string str = GetStringFromData(IFACE_LEN);
+    std::shared_ptr<NetworkShareConfiguration> config;
+    SharingIfaceType interfaceType = static_cast<SharingIfaceType>(GetData<uint32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE);
+    auto networkShareSubStateMachine = std::make_unique<NetworkShareSubStateMachine>(str, interfaceType, config);
+    sptr<NetLinkInfo> upstreamLinkInfo = new NetLinkInfo();
+    INetAddr inetAddr;
+    inetAddr.family_ = NET_FAMILY_IPV4;
+    upstreamLinkInfo->netAddrList_.push_back(inetAddr);
+    networkShareSubStateMachine->ConfigureShareIpv4(upstreamLinkInfo);
+}
+
+void ConfigureShareIpv6FuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("ConfigureShareIpv6FuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    std::string str = GetStringFromData(IFACE_LEN);
+    std::shared_ptr<NetworkShareConfiguration> config;
+    SharingIfaceType interfaceType = static_cast<SharingIfaceType>(GetData<uint32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE);
+    auto networkShareSubStateMachine = std::make_unique<NetworkShareSubStateMachine>(str, interfaceType, config);
+    sptr<NetLinkInfo> upstreamLinkInfo = new NetLinkInfo();
+    INetAddr inetAddr;
+    inetAddr.family_ = NET_FAMILY_IPV6;
+    upstreamLinkInfo->netAddrList_.push_back(inetAddr);
+    networkShareSubStateMachine->ConfigureShareIpv6(upstreamLinkInfo);
+    networkShareSubStateMachine->StopIpv6();
+    IpPrefix ipPrefix;
+    networkShareSubStateMachine->lastRaParams_.prefixes_.push_back(ipPrefix);
+    networkShareSubStateMachine->StartIpv6();
+    networkShareSubStateMachine->StopIpv6();
+    networkShareSubStateMachine->lastRaParams_.prefixes_.push_back(ipPrefix);
+    networkShareSubStateMachine->AddIpv6AddrToLocalNetwork();
+}
+
+void GetUsbDestinationAddrFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("GetUsbDestinationAddrFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    std::string str = GetStringFromData(IFACE_LEN);
+    std::shared_ptr<NetworkShareConfiguration> config;
+    SharingIfaceType interfaceType = static_cast<SharingIfaceType>(GetData<uint32_t>() % CREATE_SHARE_IFACE_TYPE_VALUE);
+    auto networkShareSubStateMachine = std::make_unique<NetworkShareSubStateMachine>(str, interfaceType, config);
+    networkShareSubStateMachine->configuration_ = std::make_shared<NetworkShareConfiguration>();
+    networkShareSubStateMachine->GetWifiHotspotDhcpFlag();
+    std::string addrStr;
+    networkShareSubStateMachine->GetUsbDestinationAddr(addrStr);
+    networkShareSubStateMachine->configuration_->usbIpv4Str_ = "192.168.1.1";
+    networkShareSubStateMachine->GetUsbDestinationAddr(addrStr);
+    networkShareSubStateMachine->configuration_->routeSuffix_ = "10";
+    networkShareSubStateMachine->GetUsbDestinationAddr(addrStr);
+    std::shared_ptr<INetAddr> netAddr = nullptr;
+    networkShareSubStateMachine->StartDhcp(netAddr);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -705,5 +790,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::NetworkShareMainStateMachineFuzzTest(data, size);
     OHOS::NetManagerStandard::NetworkShareHisysEventFuzzTest(data, size);
     OHOS::NetManagerStandard::NetGetStatsBytesFuzzTest(data, size);
+    OHOS::NetManagerStandard::GetShareIpv6PrefixFuzzTest(data, size);
+    OHOS::NetManagerStandard::ConfigureShareIpv4FuzzTest(data, size);
+    OHOS::NetManagerStandard::ConfigureShareIpv6FuzzTest(data, size);
+    OHOS::NetManagerStandard::GetUsbDestinationAddrFuzzTest(data, size);
     return 0;
 }
