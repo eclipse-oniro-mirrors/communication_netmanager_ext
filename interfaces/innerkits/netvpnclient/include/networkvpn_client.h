@@ -308,7 +308,7 @@ private:
         void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override {};
     private:
         void RegisterVpnEventCallback();
-    }
+    };
 
     sptr<INetworkVpnService> GetProxy();
     void RecoverCallback();
