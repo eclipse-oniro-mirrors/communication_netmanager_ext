@@ -40,8 +40,6 @@ public:
     ~SystemAbilityListener() = default;
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override {};
-private:
-    void RegisterVpnEventCallback();
 };
 
 int32_t VpnSetUpEventCallback::OnVpnMultiUserSetUp()
@@ -53,7 +51,10 @@ int32_t VpnSetUpEventCallback::OnVpnMultiUserSetUp()
 
 int32_t VpnEventCallbackCollection::OnVpnStateChanged(bool isConnected)
 {
-    for (auto iter = vpnEventCbList_.begin(); iter != vpnEventCbList_.end(); iter++) {
+    std::shared_lock<std::shared_mutex> lock(vpnEventCbMutex_);
+    std::list<sptr<IVpnEventCallback>> tmpList = vpnEventCbList_;
+    lock.unlock();
+    for (auto iter = tmpList.begin(); iter != tmpList.end(); iter++) {
         (*iter)->OnVpnStateChanged(isConnected);
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -62,7 +63,10 @@ int32_t VpnEventCallbackCollection::OnVpnStateChanged(bool isConnected)
 int32_t VpnEventCallbackCollection::OnMultiVpnStateChanged(
     bool isConnected, const std::string &bundleName, const std::string &vpnId)
 {
-    for (auto iter = vpnEventCbList_.begin(); iter != vpnEventCbList_.end(); iter++) {
+    std::shared_lock<std::shared_mutex> lock(vpnEventCbMutex_);
+    std::list<sptr<IVpnEventCallback>> tmpList = vpnEventCbList_;
+    lock.unlock();
+    for (auto iter = tmpList.begin(); iter != tmpList.end(); iter++) {
         (*iter)->OnMultiVpnStateChanged(isConnected, bundleName, vpnId);
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -70,7 +74,10 @@ int32_t VpnEventCallbackCollection::OnMultiVpnStateChanged(
 
 int32_t VpnEventCallbackCollection::OnVpnMultiUserSetUp()
 {
-    for (auto iter = vpnEventCbList_.begin(); iter != vpnEventCbList_.end(); iter++) {
+    std::shared_lock<std::shared_mutex> lock(vpnEventCbMutex_);
+    std::list<sptr<IVpnEventCallback>> tmpList = vpnEventCbList_;
+    lock.unlock();
+    for (auto iter = tmpList.begin(); iter != tmpList.end(); iter++) {
         (*iter)->OnVpnMultiUserSetUp();
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -78,6 +85,7 @@ int32_t VpnEventCallbackCollection::OnVpnMultiUserSetUp()
 
 int32_t VpnEventCallbackCollection::RegisterCallback(sptr<IVpnEventCallback> callback)
 {
+    std::unique_lock<std::shared_mutex> lock(vpnEventCbMutex_);
     for (auto iter = vpnEventCbList_.begin(); iter != vpnEventCbList_.end(); iter++) {
         if ((*iter)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
             return NETMANAGER_EXT_ERR_OPERATION_FAILED;
@@ -89,6 +97,7 @@ int32_t VpnEventCallbackCollection::RegisterCallback(sptr<IVpnEventCallback> cal
 
 int32_t VpnEventCallbackCollection::UnregisterCallback(sptr<IVpnEventCallback> callback)
 {
+    std::unique_lock<std::shared_mutex> lock(vpnEventCbMutex_);
     for (auto iter = vpnEventCbList_.begin(); iter != vpnEventCbList_.end(); iter++) {
         if ((*iter)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
             vpnEventCbList_.erase(iter);

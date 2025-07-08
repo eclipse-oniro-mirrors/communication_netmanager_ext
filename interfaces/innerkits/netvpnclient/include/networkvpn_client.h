@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <shared_mutex>
 
 #include <parcel.h>
 #include <refbase.h>
@@ -52,6 +53,7 @@ public:
     int32_t UnregisterCallback(sptr<IVpnEventCallback> callback);
 
 private:
+    std::shared_mutex vpnEventCbMutex_;
     std::list<sptr<IVpnEventCallback>> vpnEventCbList_;
 };
 
