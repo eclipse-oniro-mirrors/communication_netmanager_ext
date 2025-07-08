@@ -28,7 +28,6 @@
 #include "inetwork_vpn_service.h"
 #include "ivpn_event_callback.h"
 #include "vpn_event_callback_stub.h"
-#include "system_ability_status_change_stub.h"
 #include "vpn_interface.h"
 
 namespace OHOS {

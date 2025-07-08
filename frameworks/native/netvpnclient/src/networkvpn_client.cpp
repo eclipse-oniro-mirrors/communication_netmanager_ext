@@ -26,6 +26,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
 #include "network_vpn_service_proxy.h"
+#include "system_ability_status_change_stub.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
