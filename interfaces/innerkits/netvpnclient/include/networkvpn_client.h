@@ -300,22 +300,14 @@ private:
         NetworkVpnClient &client_;
     };
 
-    class SystemAbilityListener : public SystemAbilityStatusChangeStub {
-    public:
-        SystemAbilityListener() = default;
-        ~SystemAbilityListener() = default;
-        void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
-        void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override {};
-    private:
-        void RegisterVpnEventCallback();
-    };
+    class SystemAbilityListener;
 
     sptr<INetworkVpnService> GetProxy();
     void RecoverCallback();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
     void RegisterVpnEventCbCollection();
     void UnregisterVpnEventCbCollection();
-#ifdef
+#ifdef SUPPORT_SYSVPN
     void RegisterMuiltiVpnEventCbCollection();
     void UnregisterMultiVpnEventCbCollection();
 #endif
@@ -323,7 +315,7 @@ private:
 private:
     std::mutex mutex_;
     VpnInterface vpnInterface_;
-    sptr<SystemAbilityListener> saStatusChangeListener_ = nullptr;
+    sptr<SystemAbilityListener> saStatusChangeListener_;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;

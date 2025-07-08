@@ -33,6 +33,16 @@ namespace NetManagerStandard {
 static constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
 static constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 
+class NetworkVpnClient::SystemAbilityListener : public SystemAbilityStatusChangeStub {
+public:
+    SystemAbilityListener() = default;
+    ~SystemAbilityListener() = default;
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+    void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override {};
+private:
+    void RegisterVpnEventCallback();
+};
+
 int32_t VpnSetUpEventCallback::OnVpnMultiUserSetUp()
 {
     NETMGR_EXT_LOG_I("vpn multiple user setup event.");
