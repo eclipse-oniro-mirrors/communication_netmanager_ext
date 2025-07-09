@@ -55,6 +55,7 @@ private:
     void HandleL2tpConfiged();
     void HandleL2tpdCtl();
     void HandleL2tpConnected();
+    void HandleConnectFailed();
     int32_t ProcessUpdateConfig(const std::string &config);
 };
 } // namespace NetManagerStandard

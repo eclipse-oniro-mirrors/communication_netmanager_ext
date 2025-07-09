@@ -52,8 +52,9 @@ void VpnHisysEvent::SendFaultEventConnDestroy(const VpnEventType &isLegacy, cons
     NetEventReport::SendVpnConnectEvent(eventInfo);
 }
 
-void VpnHisysEvent::SetFaultVpnEvent(const int32_t &userId, const std::string &bundleName, const VpnOperatorType &operatorType,
-                                     const VpnOperatorErrorType &errorCode, const std::string &errorMsg)
+void VpnHisysEvent::SetFaultVpnEvent(const int32_t &userId, const std::string &bundleName,
+                                     const VpnOperatorType &operatorType, const VpnOperatorErrorType &errorCode,
+                                     const std::string &errorMsg)
 {
     MultiVpnEvent event;
     event.userId = userId;
@@ -64,7 +65,8 @@ void VpnHisysEvent::SetFaultVpnEvent(const int32_t &userId, const std::string &b
     NetEventReport::SendVpnFault(event);
 }
 
-void VpnHisysEvent::SetBehaviorVpnEvent(const int32_t &userId, const std::string &bundleName, const VpnOperatorType &operatorType)
+void VpnHisysEvent::SetBehaviorVpnEvent(const int32_t &userId, const std::string &bundleName,
+                                        const VpnOperatorType &operatorType)
 {
     MultiVpnEvent event;
     event.userId = userId;
