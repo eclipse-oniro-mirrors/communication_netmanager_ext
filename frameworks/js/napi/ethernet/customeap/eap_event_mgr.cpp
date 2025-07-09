@@ -212,7 +212,8 @@ EapEventMgr::EapEventMgr():eapPostBackCallback_(new (std::nothrow) NetEapPostBac
             retNetManagerSa:%{public}d!", retWifiSa, retNetManagerSa);
 }
  
-bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, int eapCode, int eapType, napi_value handler)
+bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType,
+    napi_value handler)
 {
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
         static_cast<int>(netType), eapCode, eapType);
@@ -287,7 +288,8 @@ bool EapEventMgr::RegCustomEapHandler(NetType netType, RegTriggerMode triggerMod
     return true;
 }
  
-bool EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, int eapCode, int eapType, napi_value handler)
+bool EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType,
+    napi_value handler)
 {
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
         static_cast<int>(netType), eapCode, eapType);

@@ -31,10 +31,10 @@ EapData::~EapData()
  
 bool EapData::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteInt32(eapCode)) {
+    if (!parcel.WriteUint32(eapCode)) {
         return false;
     }
-    if (!parcel.WriteInt32(eapType)) {
+    if (!parcel.WriteUint32(eapType)) {
         return false;
     }
     if (!parcel.WriteInt32(msgId)) {
@@ -55,7 +55,7 @@ EapData* EapData::Unmarshalling(Parcel &parcel)
     if (ptr == nullptr) {
         return nullptr;
     }
-    bool allOk = parcel.ReadInt32(ptr->eapCode) && parcel.ReadInt32(ptr->eapType) && parcel.ReadInt32(ptr->msgId) &&
+    bool allOk = parcel.ReadUint32(ptr->eapCode) && parcel.ReadUint32(ptr->eapType) && parcel.ReadInt32(ptr->msgId) &&
         parcel.ReadInt32(ptr->bufferLen) && parcel.ReadUInt8Vector(&ptr->eapBuffer);
     return allOk ? ptr.release() : nullptr;
 }

@@ -62,13 +62,13 @@ napi_value RegCustomEapHandler(napi_env env, napi_callback_info info)
         return NapiUtils::GetUndefined(env);
     }
  
-    int32_t eapCode = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_1]);
+    uint32_t eapCode = NapiUtils::GetUint32FromValue(env, argv[ARG_INDEX_1]);
     if (eapCode < EAP_CODE_MIN || eapCode > EAP_CODE_MAX) {
         NETMANAGER_EXT_LOGE("valid eapCode %{public}d", eapCode);
         return NapiUtils::GetUndefined(env);
     }
  
-    int32_t eapType = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_2]);
+    uint32_t eapType = NapiUtils::GetUint32FromValue(env, argv[ARG_INDEX_2]);
     if (eapType < EAP_TYPE_MIN || eapType > EAP_TYPE_MAX) {
         NETMANAGER_EXT_LOGE("valid eapType %{public}d", eapType);
         return NapiUtils::GetUndefined(env);
