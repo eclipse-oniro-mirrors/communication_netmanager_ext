@@ -18,6 +18,7 @@
  
 #include "parcel.h"
 #include "refbase.h"
+#include <climits>
  
 namespace OHOS {
 namespace NetManagerStandard {
@@ -54,8 +55,8 @@ enum class RegTriggerMode {
  
 #define NET_SYMBOL_VISIBLE __attribute__ ((visibility("default")))
 struct NET_SYMBOL_VISIBLE EapData final : public Parcelable {
-    int32_t eapCode = -1;
-    int32_t eapType = -1;
+    uint32_t eapCode = UINT_MAX;
+    uint32_t eapType = UINT_MAX;
     int32_t msgId = -1;
     int32_t bufferLen = -1;
     std::vector<uint8_t> eapBuffer;

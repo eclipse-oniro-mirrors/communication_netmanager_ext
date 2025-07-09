@@ -72,9 +72,9 @@ public:
     napi_env env_;
     napi_ref callbackRef_;
     std::function<napi_value ()> packResult_;
-    int key_;
-    NetType netType_;
-    int32_t msgId_;
+    int32_t key_ = 0;
+    NetType netType_ = NetType::INVALID;
+    int32_t msgId_ = -1;
  
     AsyncEventData(napi_env e, napi_ref r, std::function<napi_value ()> p)
     {
@@ -125,8 +125,8 @@ public:
     ~EapEventMgr() = default;
  
     static EapEventMgr &GetInstance();
-    bool RegCustomEapHandler(napi_env env, NetType netType, int eapCode, int eapType, napi_value handler);
-    bool UnRegCustomEapHandler(napi_env env, NetType netType, int eapCode, int eapType, napi_value handler);
+    bool RegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType, napi_value handler);
+    bool UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType, napi_value handler);
     int32_t ReplyCustomEapData(CustomResult result, const sptr<EapData> &eapData);
     bool RegCustomEapHandler(NetType netType, RegTriggerMode triggerMode);
     bool UnRegCustomEapHandler(NetType netType);
