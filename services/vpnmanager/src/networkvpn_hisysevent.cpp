@@ -52,5 +52,26 @@ void VpnHisysEvent::SendFaultEventConnDestroy(const VpnEventType &isLegacy, cons
     NetEventReport::SendVpnConnectEvent(eventInfo);
 }
 
+void VpnHisysEvent::SetFaultVpnEvent(const int32_t &userId, const std::string &bundleName, const VpnOperatorType &operatorType,
+                                     const VpnOperatorErrorType &errorCode, const std::string &errorMsg)
+{
+    MultiVpnEvent event;
+    event.userId = userId;
+    event.bundleName = bundleName;
+    event.operatorType = static_cast<int32_t>(operatorType);
+    event.errorType = static_cast<int32_t>(errorCode);
+    event.errorMsg = errorMsg;
+    NetEventReport::SendVpnFault(event);
+}
+
+void VpnHisysEvent::SetBehaviorVpnEvent(const int32_t &userId, const std::string &bundleName, const VpnOperatorType &operatorType)
+{
+    MultiVpnEvent event;
+    event.userId = userId;
+    event.bundleName = bundleName;
+    event.operatorType = static_cast<int32_t>(operatorType);
+    NetEventReport::SendVpnBehavior(event);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

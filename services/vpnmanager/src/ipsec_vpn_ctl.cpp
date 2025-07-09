@@ -174,7 +174,13 @@ int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t 
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("vpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
+        NETMGR_EXT_LOG_E("ipsec vpn connect failed");
+        if (multiVpnInfo_ != nullptr) {
+            VpnHisysEvent::SetFaultVpnEvent(multiVpnInfo_->userId, multiVpnInfo_->bundleName,
+                VpnOperatorType::OPERATION_SETUP_VPN,
+                VpnOperatorErrorType::ERROR_CONFIG_WRONG, "ipsec vpn setup failed");
+        }
+        Destroy();
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     switch (state_) {
