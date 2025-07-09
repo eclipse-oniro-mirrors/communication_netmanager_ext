@@ -156,10 +156,10 @@ int32_t GetKeyByAlias(struct HksBlob *keyAlias, const struct HksParamSet *genPar
     return keyExist;
 }
 
-int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId, uint8_t *nonce)
+int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId, uint8_t *nonce, uint32_t nonceSize)
 {
     struct HksParam IVParam[] = {
-        { .tag = HKS_TAG_NONCE, .blob = { .size = NONCE_SIZE, .data = nonce } },
+        { .tag = HKS_TAG_NONCE, .blob = { .size = nonceSize, .data = nonce } },
     };
     g_genParam[0].int32Param = userId;
     int32_t ret = HksInitParamSet(paramSet);
@@ -244,7 +244,7 @@ int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::str
     }
 
     struct HksParamSet *encryParamSet = nullptr;
-    ret = VpnBuildHksParamSet(&encryParamSet, vpnEncryptionInfo.userId, nonce);
+    ret = VpnBuildHksParamSet(&encryParamSet, vpnEncryptionInfo.userId, nonce, NONCE_SIZE);
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("VpnBuildHksParamSet failed");
         return ret;
@@ -300,7 +300,7 @@ int32_t VpnDecryptionBack(const VpnEncryptionInfo &vpnEncryptionInfo, const Encr
     struct HksBlob cipherData = { length, cipherBuf };
     struct HksParamSet *decryParamSet = nullptr;
     uint8_t nonceBack[NONCE_SIZE] = {0};
-    int32_t ret = VpnBuildHksParamSet(&decryParamSet, vpnEncryptionInfo.userId, nonceBack);
+    int32_t ret = VpnBuildHksParamSet(&decryParamSet, vpnEncryptionInfo.userId, nonceBack, NONCE_SIZE);
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("BuildHksParamSet failed");
         return ret;
@@ -354,7 +354,7 @@ int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const Encrypte
 
     struct HksBlob cipherData = { length, cipherBuf };
     struct HksParamSet *decryParamSet = nullptr;
-    int32_t ret = VpnBuildHksParamSet(&decryParamSet, vpnEncryptionInfo.userId, nonce);
+    int32_t ret = VpnBuildHksParamSet(&decryParamSet, vpnEncryptionInfo.userId, nonce, NONCE_SIZE);
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("BuildHksParamSet failed");
         return ret;
