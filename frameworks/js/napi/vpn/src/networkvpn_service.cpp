@@ -752,7 +752,6 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
 #ifdef SUPPORT_SYSVPN
     if (!config.vpnId_.empty() &&
         InitMultiVpnInfo(config.vpnId_, 0, vpnBundleName, userId, vpnObj) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("SetUpSysVpn failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 #endif // SUPPORT_SYSVPN
