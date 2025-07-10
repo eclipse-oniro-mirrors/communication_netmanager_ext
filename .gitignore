@@ -3,3 +3,6 @@ cmake-build-debug
 CMakeLists.txt
 .clang-format
 .vscode
+Cargo.lock
+/target
+
