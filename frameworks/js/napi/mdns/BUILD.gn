@@ -74,7 +74,6 @@ ohos_shared_library("mdns") {
     "netmanager_base:napi_utils",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
-    "hiappevent:hiappevent_innerapi",
   ]
 
   configs = [ ":mdns_config" ]

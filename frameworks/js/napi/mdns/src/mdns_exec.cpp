@@ -21,23 +21,19 @@
 #include "mdns_client.h"
 #include "mdns_exec.h"
 #include "mdns_instances.h"
-#include "hi_app_event_report.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 
 bool MDnsExec::ExecAddLocalService(MDnsAddLocalServiceContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "MDnsAddLocalService");
     auto ret =
         DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(context->GetServiceInfo(), context->GetObserver());
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ret);
         NETMANAGER_EXT_LOGE("RegisterService error, errorCode: %{public}d", ret);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ret);
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
@@ -87,13 +83,11 @@ bool MDnsExec::ExecResolveLocalService(MDnsResolveLocalServiceContext *context)
 
 bool MDnsExec::ExecStartSearchingMDNS(MDnsStartSearchingContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "MDnsExecStartSearching");
     auto discover = context->GetDiscover();
     auto ret =
         DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(discover.serviceType_, discover.observer_);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ret);
         NETMANAGER_EXT_LOGE("StartDiscoverService error, errorCode: %{public}d", ret);
     }
     MDnsServiceInfo info;
@@ -105,18 +99,15 @@ bool MDnsExec::ExecStartSearchingMDNS(MDnsStartSearchingContext *context)
         return false;
     }
     observer->EmitStartDiscover(info, ret);
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ret);
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
 bool MDnsExec::ExecStopSearchingMDNS(MDnsStopSearchingContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "MDnsStopSearching");
     auto discover = context->GetDiscover();
     auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(discover.observer_);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(ret);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ret);
         NETMANAGER_EXT_LOGE("StopDiscoverService error, errorCode: %{public}d", ret);
     }
     MDnsServiceInfo info;
@@ -128,7 +119,6 @@ bool MDnsExec::ExecStopSearchingMDNS(MDnsStopSearchingContext *context)
         return false;
     }
     observer->EmitStopDiscover(info, ret);
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ret);
     return ret == NETMANAGER_EXT_SUCCESS;
 }
 
