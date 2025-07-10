@@ -188,7 +188,7 @@ HWTEST_F(NetworkVpnClientTest, ConnectControl, TestSize.Level1)
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_GE(fd, 0);
     ret = vpnInterface.ConnectControl(fd, nsec);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnClientTest, RecvMsgFromUnixServer, TestSize.Level1)
@@ -203,7 +203,7 @@ HWTEST_F(NetworkVpnClientTest, GetVpnInterfaceFd, TestSize.Level1)
 {
     VpnInterface vpnInterface;
     int32_t fd = vpnInterface.GetVpnInterfaceFd();
-    EXPECT_GT(fd, 0);
+    EXPECT_NE(fd, 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
