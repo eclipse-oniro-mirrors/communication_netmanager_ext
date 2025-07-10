@@ -25,7 +25,6 @@
 #include "want.h"
 #include "ability_manager_client.h"
 #include "extension_ability_info.h"
-#include "hi_app_event_report.h"
 #ifdef SUPPORT_SYSVPN
 #include "uuid.h"
 #endif // SUPPORT_SYSVPN
@@ -56,7 +55,6 @@ bool ExecPrepare(PrepareContext *context)
 
 bool ExecSetUp(SetUpContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnSetUp");
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
@@ -78,16 +76,13 @@ bool ExecSetUp(SetUpContext *context)
 #endif // SUPPORT_SYSVPN
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
     return true;
 }
 
 bool ExecProtect(ProtectContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnProtect");
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
@@ -96,16 +91,13 @@ bool ExecProtect(ProtectContext *context)
     int32_t result = vpnClient->Protect(context->socketFd_, true);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
     return true;
 }
 
 bool ExecDestroy(DestroyContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnDestroy");
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
@@ -123,10 +115,8 @@ bool ExecDestroy(DestroyContext *context)
 #endif // SUPPORT_SYSVPN
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return true;
 }
 

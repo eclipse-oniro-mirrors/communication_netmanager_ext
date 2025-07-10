@@ -25,7 +25,8 @@
             "SystemCapability.Communication.NetManager.MDNS",
             "SystemCapability.Communication.NetManager.Vpn",
             "SystemCapability.Communication.NetManager.NetFirewall",
-            "SystemCapability.Communication.NetManager.Eap"
+            "SystemCapability.Communication.NetManager.Eap",
+            "SystemCapability.Communication.NetManager.WearableDistributedNet"
         ],
         "features": [
             "netmanager_ext_feature_coverage",
@@ -87,8 +88,7 @@
                 "core_service",
                 "cellular_data",
                 "libxml2",
-                "json",
-                "hiappevent"
+                "json"
             ]
         },
         "build": {

@@ -23,7 +23,6 @@
 #include "netmanager_ext_log.h"
 #include "netfirewall_client.h"
 #include "singleton.h"
-#include "hi_app_event_report.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -39,7 +38,6 @@ template <typename ContextT> static inline NetFirewallClient *GetNetFirewallInst
 
 bool ExecSetNetFirewallPolicy(SetNetFirewallPolicyContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "NetFirewallSetNetFirewallPolicy");
     if (context == nullptr || context->status_ == nullptr) {
         return false;
     }
@@ -51,10 +49,8 @@ bool ExecSetNetFirewallPolicy(SetNetFirewallPolicyContext *context)
     if (result != FIREWALL_SUCCESS) {
         NETMANAGER_EXT_LOGE("ExecSetIfaceConfig error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return true;
 }
 
@@ -101,7 +97,6 @@ napi_value GetNetFirewallPolicyCallback(GetNetFirewallPolicyContext *context)
 
 bool ExecAddNetFirewallRule(AddNetFirewallRuleContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "NetFirewallAddNetFirewallRule");
     if (context == nullptr || context->rule_ == nullptr) {
         return false;
     }
@@ -113,10 +108,8 @@ bool ExecAddNetFirewallRule(AddNetFirewallRuleContext *context)
     if (result != FIREWALL_SUCCESS) {
         NETMANAGER_EXT_LOGE("ExecAddNetFirewallRule error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return true;
 }
 
@@ -131,7 +124,6 @@ napi_value AddNetFirewallRuleCallback(AddNetFirewallRuleContext *context)
 
 bool ExecUpdateNetFirewallRule(UpdateNetFirewallRuleContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "FirewallUpdateNetFirewallRule");
     if (context == nullptr || context->rule_ == nullptr) {
         return false;
     }
@@ -142,10 +134,8 @@ bool ExecUpdateNetFirewallRule(UpdateNetFirewallRuleContext *context)
     if (result != FIREWALL_SUCCESS) {
         NETMANAGER_EXT_LOGE("ExecUpdateNetFirewallRule error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return true;
 }
 
@@ -160,7 +150,6 @@ napi_value UpdateNetFirewallRuleCallback(UpdateNetFirewallRuleContext *context)
 
 bool ExecDeleteNetFirewallRule(DeleteNetFirewallRuleContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "NetFirewallremoveNetFirewallRule");
     if (context == nullptr) {
         return false;
     }
@@ -172,10 +161,8 @@ bool ExecDeleteNetFirewallRule(DeleteNetFirewallRuleContext *context)
     if (result != FIREWALL_SUCCESS) {
         NETMANAGER_EXT_LOGE("ExecDeleteNetFirewallRule error, errorCode: %{public}d", result);
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return true;
 }
 
