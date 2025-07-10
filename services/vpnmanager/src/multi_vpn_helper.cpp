@@ -106,7 +106,7 @@ int32_t MultiVpnHelper::CreateMultiVpnInfo(const std::string &vpnId, int32_t vpn
     info->vpnId = vpnId;
     info->ifNameId = ifNameId;
     info->ifName = newIfName;
-    info->callingUid = IPCSkeleton::GetCallingUid();
+    info->callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
     NETMGR_EXT_LOG_I("CreateMultiVpnInfo %{public}s", newIfName.c_str());
     return NETMANAGER_EXT_SUCCESS;
 }
