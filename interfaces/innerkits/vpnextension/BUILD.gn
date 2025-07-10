@@ -148,6 +148,7 @@ ohos_shared_library("vpn_extension_module") {
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "window_manager:libdm",
+    "ipc:ipc_napi",
   ]
 
   public_external_deps = [
