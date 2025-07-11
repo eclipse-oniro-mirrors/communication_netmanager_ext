@@ -359,10 +359,10 @@ void RegCustomEapHandlerFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    uint32_t netType = GetData<uint32_t>();
     std::string regCmd = GetStringFromData(REG_CMD_LEN);
     WriteInterfaceToken(parcel);
-    if (!parcel.WriteInt32(std::stoi(netType))) {
+    if (!parcel.WriteUint32(netType)) {
         return;
     }
     if (!parcel.WriteString(regCmd)) {
@@ -383,17 +383,17 @@ void ReplyCustomEapDataFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string result = GetStringFromData(NET_TYPE_LEN);
+    uint32_t result = GetData<uint32_t>();
     WriteInterfaceToken(parcel);
-    if (!parcel.WriteInt32(std::stoi(result))) {
+    if (!parcel.WriteUint32(result)) {
         return;
     }
  
     sptr<EapData> eapData = new (std::nothrow) EapData();
-    eapData->eapCode =  std::stoi(GetStringFromData(NET_TYPE_LEN));
-    eapData->eapType =  std::stoi(GetStringFromData(NET_TYPE_LEN));
-    eapData->msgId =  std::stoi(GetStringFromData(NET_TYPE_LEN));
-    eapData->bufferLen =  std::stoi(GetStringFromData(REG_CMD_LEN));
+    eapData->eapCode = GetData<uint32_t>();
+    eapData->eapType = GetData<uint32_t>();
+    eapData->msgId = GetData<uint32_t>();
+    eapData->bufferLen = GetData<uint32_t>() % REG_CMD_LEN;
     std::vector<uint8_t> tmp = {0x11, 0x12, 0x13};
     eapData->eapBuffer = tmp;
     eapData->Marshalling(parcel);
@@ -409,9 +409,9 @@ void RegisterCustomEapCallbackFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    uint32_t netType = GetData<uint32_t>();
     WriteInterfaceToken(parcel);
-    if (!parcel.WriteInt32(std::stoi(netType))) {
+    if (!parcel.WriteUint32(netType)) {
         return;
     }
     if (!parcel.WriteRemoteObject(g_registerEapCallback->AsObject())) {
@@ -429,9 +429,9 @@ void UnRegisterCustomEapCallbackFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    uint32_t netType = GetData<uint32_t>();
     WriteInterfaceToken(parcel);
-    if (!parcel.WriteInt32(std::stoi(netType))) {
+    if (!parcel.WriteUint32(netType)) {
         return;
     }
     if (!parcel.WriteRemoteObject(g_registerEapCallback->AsObject())) {
@@ -449,17 +449,17 @@ void NotifyWpaEapInterceptInfoFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
     MessageParcel parcel;
-    std::string netType = GetStringFromData(NET_TYPE_LEN);
+    uint32_t netType = GetData<uint32_t>();
     WriteInterfaceToken(parcel);
-    if (!parcel.WriteInt32(std::stoi(netType))) {
+    if (!parcel.WriteUint32(netType)) {
         return;
     }
  
     sptr<EapData> eapData = new (std::nothrow) EapData();
-    eapData->eapCode =  std::stoi(GetStringFromData(NET_TYPE_LEN));
-    eapData->eapType =  std::stoi(GetStringFromData(NET_TYPE_LEN));
-    eapData->msgId =  std::stoi(GetStringFromData(NET_TYPE_LEN));
-    eapData->bufferLen =  std::stoi(GetStringFromData(REG_CMD_LEN));
+    eapData->eapCode = GetData<uint32_t>();
+    eapData->eapType = GetData<uint32_t>();
+    eapData->msgId = GetData<uint32_t>();
+    eapData->bufferLen = GetData<uint32_t>();;
     std::vector<uint8_t> tmp = {0x11, 0x12, 0x13};
     eapData->eapBuffer = tmp;
     eapData->Marshalling(parcel);
