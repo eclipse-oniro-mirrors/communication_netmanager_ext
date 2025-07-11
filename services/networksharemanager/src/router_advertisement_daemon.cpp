@@ -106,7 +106,6 @@ void RouterAdvertisementDaemon::StopRa()
     ffrtTimer_.Stop();
 
     HupRaThread();
-    CloseRaSocket();
 }
 
 bool RouterAdvertisementDaemon::CreateRASocket()
