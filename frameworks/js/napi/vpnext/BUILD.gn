@@ -75,6 +75,7 @@ ohos_shared_library("vpnextension") {
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
     "os_account:os_account_innerkits",
+    "hiappevent:hiappevent_innerapi",
   ]
 
   relative_install_dir = "module/net"
