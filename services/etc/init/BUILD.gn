@@ -56,3 +56,10 @@ ohos_prebuilt_etc("reportUrsp") {
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }
+
+ohos_prebuilt_etc("eth_wpa_supplicant.conf") {
+  source = "eth_wpa_supplicant.conf"
+  relative_install_dir = "init"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}

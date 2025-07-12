@@ -34,7 +34,7 @@ ohos_shared_library("eap") {
     "eap_module.cpp",
     "eap_napi_event.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/eap_data.cpp",
-      ]
+  ]
  
   cflags = [
     "-fstack-protector-strong",

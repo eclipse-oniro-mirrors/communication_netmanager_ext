@@ -479,6 +479,45 @@ void GetDeviceInformationFuzzTest(const uint8_t *data, size_t size)
     OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_DEVICE_INFORMATION), parcel);
 }
 
+
+void StartEthEapFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    int32_t netId = GetData<int32_t>();
+    std::unique_ptr<EthEapProfile> profile = std::make_unique<EthEapProfile>();
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteInt32(netId)) {
+        return;
+    }
+    if (!profile->Marshalling(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_START_ETH_EAP), parcel);
+}
+ 
+void LogOffEthEapFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    MessageParcel parcel;
+    int32_t netId = GetData<int32_t>();
+    WriteInterfaceToken(parcel);
+    if (!parcel.WriteInt32(netId)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_LOG_OFF_ETH_EAP), parcel);
+}
+
 void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -567,5 +606,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::RegisterCustomEapCallbackFuzzTest(data, size);
     OHOS::NetManagerStandard::UnRegisterCustomEapCallbackFuzzTest(data, size);
     OHOS::NetManagerStandard::NotifyWpaEapInterceptInfoFuzzTest(data, size);
+    OHOS::NetManagerStandard::GetDeviceInformationFuzzTest(data, size);
+    OHOS::NetManagerStandard::StartEthEapFuzzTest(data, size);
+    OHOS::NetManagerStandard::LogOffEthEapFuzzTest(data, size);
     return 0;
 }
