@@ -271,7 +271,7 @@ void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
 {
     sptr<NetHandle> pNetHandle = sptr<NetHandle>::MakeSptr();
     sptr<NetAllCapabilities> pNetCapabilities = sptr<NetAllCapabilities>::MakeSptr();
-    sptr<NetLinkInfo> pNetLinkInfo = sptr<>::MakeSptr(NetLinkInfo);
+    sptr<NetLinkInfo> pNetLinkInfo = sptr<NetLinkInfo>::MakeSptr();
     std::shared_ptr<UpstreamNetworkInfo> netInfoPtr =
         std::make_shared<UpstreamNetworkInfo>(pNetHandle, pNetCapabilities, pNetLinkInfo);
     if (networkMonitor_ != nullptr && networkMonitor_->GetCurrentGoodUpstream(netInfoPtr)) {
