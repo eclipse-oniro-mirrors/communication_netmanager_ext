@@ -270,7 +270,7 @@ int NetworkShareMainStateMachine::EraseSharedSubSM(const std::any &messageObj)
 void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
 {
     sptr<NetHandle> pNetHandle = sptr<NetHandle>::MakeSptr();
-    sptr<NetAllCapabilities> pNetCapabilities = sptr<>::MakeSptr(NetAllCapabilities);
+    sptr<NetAllCapabilities> pNetCapabilities = sptr<NetAllCapabilities>::MakeSptr();
     sptr<NetLinkInfo> pNetLinkInfo = sptr<>::MakeSptr(NetLinkInfo);
     std::shared_ptr<UpstreamNetworkInfo> netInfoPtr =
         std::make_shared<UpstreamNetworkInfo>(pNetHandle, pNetCapabilities, pNetLinkInfo);

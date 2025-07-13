@@ -301,7 +301,7 @@ int32_t NetFirewallStub::OnGetInterceptRecords(MessageParcel &data, MessageParce
         NETMANAGER_EXT_LOGE("ParsePageParam page or pageSize is error");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
-    sptr<InterceptRecordPage> info = sptr<>::MakeSptr(InterceptRecordPage);
+    sptr<InterceptRecordPage> info = sptr<InterceptRecordPage>::MakeSptr();
     int32_t ret = GetInterceptRecords(userId, param, info);
     if (ret == FIREWALL_SUCCESS) {
         if (!info->Marshalling(reply)) {
