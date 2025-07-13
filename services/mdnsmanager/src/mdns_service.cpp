@@ -119,7 +119,7 @@ bool MDnsService::Init()
         }
         isRegistered_ = true;
     }
-    netStateCallback_ = new (std::nothrow) NetInterfaceStateCallback();
+    netStateCallback_ = sptr<NetInterfaceStateCallback>::MakeSptr();
     int32_t err = NetConnClient::GetInstance().RegisterNetInterfaceCallback(netStateCallback_);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("mdns_log Failed to register the NetInterfaceCallback, error code: [%{public}d]", err);
@@ -127,7 +127,7 @@ bool MDnsService::Init()
     }
 
     if (deathRecipient_ == nullptr) {
-        deathRecipient_ = new (std::nothrow) MdnsCallbackDeathRecipient(*this);
+        deathRecipient_ = sptr<MdnsCallbackDeathRecipient>::MakeSptr(*this);
     }
     NETMGR_EXT_LOG_D("mdns_log Init mdns service OK");
     return true;

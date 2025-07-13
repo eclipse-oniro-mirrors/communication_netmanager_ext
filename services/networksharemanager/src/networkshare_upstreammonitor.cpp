@@ -110,7 +110,7 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
     std::lock_guard lock(networkCallbackMutex_);
     if (defaultNetworkCallback_ == nullptr) {
         defaultNetworkCallback_ =
-            new (std::nothrow) NetConnectionCallback(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
+            sptr<NetConnectionCallback>::MakeSptr(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
     }
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
     netSpecifier_ = (std::make_unique<NetSpecifier>()).release();
@@ -218,8 +218,8 @@ void NetworkShareUpstreamMonitor::HandleNetAvailable(sptr<NetHandle> &netHandle)
     auto iter = networkMaps_.find(netHandle->GetNetId());
     if (iter == networkMaps_.end()) {
         NETMGR_EXT_LOG_I("netHandle[%{public}d] is new.", netHandle->GetNetId());
-        sptr<NetAllCapabilities> netCap = new (std::nothrow) NetAllCapabilities();
-        sptr<NetLinkInfo> linkInfo = new (std::nothrow) NetLinkInfo();
+        sptr<NetAllCapabilities> netCap = sptr<NetAllCapabilities>::MakeSptr();
+        sptr<NetLinkInfo> linkInfo = sptr<NetLinkInfo>::MakeSptr();
         std::shared_ptr<UpstreamNetworkInfo> network =
             std::make_shared<UpstreamNetworkInfo>(netHandle, netCap, linkInfo);
         networkMaps_.insert(std::make_pair(netHandle->GetNetId(), network));

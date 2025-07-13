@@ -249,7 +249,7 @@ bool NetFirewallDefaultRuleParser::GetDefaultRules(std::vector<sptr<NetFirewallR
         for (int i = 0; i < itemSize; i++) {
             cJSON *item = cJSON_GetArrayItem(defaultRules, i);
             if (cJSON_IsObject(item)) {
-                sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
+                sptr<NetFirewallRule> rule = sptr<NetFirewallRule>::MakeSptr();
                 ConvertFirewallRuleToConfig(rule, item);
                 ruleList.emplace_back(std::move(rule));
             }

@@ -197,7 +197,7 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
     want.SetParam("abilityName", abilityName + VPN_DIALOG_POSTFIX);
     want.SetParam("appName", appName);
 
-    sptr<VpnMonitor::VpnAbilityConn> vpnAbilityConn_ = new (std::nothrow) VpnMonitor::VpnAbilityConn();
+    sptr<VpnMonitor::VpnAbilityConn> vpnAbilityConn_ = sptr<VpnMonitor::VpnAbilityConn>::MakeSptr();
     auto ret = abmc->ConnectAbility(want, vpnAbilityConn_, -1);
     if (ret != 0) {
         NETMANAGER_EXT_LOGE("connectAbility failed %{public}d", ret);
