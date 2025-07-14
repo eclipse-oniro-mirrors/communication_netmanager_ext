@@ -51,6 +51,7 @@ public:
 
     int32_t RegisterCallback(sptr<IVpnEventCallback> callback);
     int32_t UnregisterCallback(sptr<IVpnEventCallback> callback);
+    int32_t GetCallbackNum();
 
 private:
     std::shared_mutex vpnEventCbMutex_;
@@ -286,6 +287,7 @@ public:
     int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName);
 
     int32_t SetSelfVpnPid();
+    void SetVpnSaState(bool state);
 
 private:
     class MonitorVpnServiceDead : public IRemoteObject::DeathRecipient {
@@ -323,6 +325,7 @@ private:
     sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = nullptr;
     sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = nullptr;
     std::pair<sptr<VpnConfig>, bool> clientVpnConfig_;
+    bool saStart_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

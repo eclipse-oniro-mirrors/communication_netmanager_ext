@@ -1955,7 +1955,7 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
     UnregisterVpnEvent(callback);
-    std::lock_guard<std::mutex> autoLock(netVpnMutex_);
+    std::lock_guard<std::mutex> autoLock(remoteMutex_);
 #ifdef SUPPORT_SYSVPN
     if (vpnObj_ != nullptr && vpnObj_->IsSystemVpn()) {
         NETMGR_EXT_LOG_W("system vpn client died");
