@@ -471,5 +471,16 @@ int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &d
     }
     return ethManagement_.GetDeviceInformation(deviceInfoList);
 }
+
+int32_t EthernetService::StartEthEap(int32_t netId, const EthEapProfile& profile)
+{
+    return NETMANAGER_SUCCESS;
+}
+ 
+int32_t EthernetService::LogOffEthEap(int32_t netId)
+{
+    return NETMANAGER_SUCCESS;
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

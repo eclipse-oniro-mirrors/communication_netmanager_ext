@@ -59,6 +59,7 @@ ohos_static_library("ethernet_parcel") {
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/eap_data.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/static_configuration.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/ethernet_device_info.cpp",
+    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/eth_eap_profile.cpp",
   ]
 
   include_dirs = [

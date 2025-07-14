@@ -87,6 +87,8 @@ public:
     int32_t UnRegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback) override;
     int32_t NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData) override;
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList) override;
+    int32_t StartEthEap(int32_t netId, const EthEapProfile& profile) override;
+    int32_t LogOffEthEap(int32_t netId) override;
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;

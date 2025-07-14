@@ -371,5 +371,33 @@ int32_t EthernetClient::GetDeviceInformation(std::vector<EthernetDeviceInfo> &de
     }
     return proxy->GetDeviceInformation(deviceInfoList);
 }
+
+int32_t EthernetClient::StartEthEap(int32_t netId, const EthEapProfile& profile)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->StartEthEap(netId, profile);
+#else
+    return NETMANAGER_SUCCESS;
+#endif
+}
+ 
+int32_t EthernetClient::LogOffEthEap(int32_t netId)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->LogOffEthEap(netId);
+#else
+    return NETMANAGER_SUCCESS;
+#endif
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

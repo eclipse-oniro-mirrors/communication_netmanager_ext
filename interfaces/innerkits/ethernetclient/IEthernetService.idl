@@ -19,6 +19,7 @@ sequenceable OHOS.NetManagerStandard.ConfigurationParcelIpc;
 sequenceable OHOS.NetManagerStandard.MacAddressInfo;
 sequenceable OHOS.NetManagerStandard.EthernetDeviceInfo;
 sequenceable OHOS.NetManagerStandard.EapData;
+sequenceable OHOS.NetManagerStandard.EthEapProfile;
 interface OHOS.NetManagerStandard.INetEapPostbackCallback;
 interface OHOS.NetManagerStandard.INetRegisterEapCallback;
 interface OHOS.NetManagerStandard.IEthernetService {
@@ -40,4 +41,6 @@ interface OHOS.NetManagerStandard.IEthernetService {
     void RegisterCustomEapCallback([in] int netType, [in] INetRegisterEapCallback cb);
     void UnRegisterCustomEapCallback([in] int netType, [in] INetRegisterEapCallback cb);
     void NotifyWpaEapInterceptInfo([in] int netType, [in] sptr<EapData> eapData);
+    void StartEthEap([in] int netId, [in] EthEapProfile profile);
+    void LogOffEthEap([in] int netId);
 }

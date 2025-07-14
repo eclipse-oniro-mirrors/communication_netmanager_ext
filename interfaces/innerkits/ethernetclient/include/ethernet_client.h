@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "eth_eap_profile.h"
 #include "iethernet_service.h"
 #include "interface_state_callback.h"
 #include "net_eap_callback_stub.h"
@@ -216,6 +217,25 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList);
+
+    /**
+     * Start EAP authentication on specified network interface.
+     *
+     * @param netId Indicates the eth network id to start EAP authentication.
+     * @param profile Indicates the eap profile.
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @syscap SystemCapability.Communication.NetManager.Eap
+     */
+    int32_t StartEthEap(int32_t netId, const EthEapProfile& profile);
+ 
+    /**
+     * Log off EAP authentication on specified network interface.
+     *
+     * @param netId Indicates the eth network id to Log off EAP authentication.
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @syscap SystemCapability.Communication.NetManager.Eap
+     */
+    int32_t LogOffEthEap(int32_t netId);
 
 private:
     class EthernetDeathRecipient : public IRemoteObject::DeathRecipient {

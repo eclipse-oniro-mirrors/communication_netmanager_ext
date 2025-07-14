@@ -79,6 +79,10 @@
       "virtual thunk to OHOS::NetManagerStandard::NetEapPostbackCallbackStub::~NetEapPostbackCallbackStub()";
       "OHOS::NetManagerStandard::NetRegisterEapCallbackProxy::NetRegisterEapCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
       "OHOS::NetManagerStandard::NetEapPostbackCallbackProxy::NetEapPostbackCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
+      "OHOS::NetManagerStandard::EthernetClient::StartEthEap(int, OHOS::NetManagerStandard::EthEapProfile const&)";
+      "OHOS::NetManagerStandard::EthernetClient::LogOffEthEap(int)";
+      VTT?for?OHOS::NetManagerStandard::EthEapProfile;
+      vtable?for?OHOS::NetManagerStandard::EthEapProfile;
     };
   local:
    *;

@@ -35,6 +35,47 @@ static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount
     }
     return false;
 }
+
+static bool CheckStartEthEapParams(napi_env env, napi_value *params, size_t paramsCount)
+{
+    if (paramsCount == PARAM_DOUBLE_OPTIONS) {
+        return NapiUtils::GetValueType(env, params[ARG_INDEX_0]) == napi_number &&
+            NapiUtils::GetValueType(env, params[ARG_INDEX_1]) == napi_object;
+    }
+    return false;
+}
+ 
+static bool GetU8VectorFromJsOptionItem(const napi_env env, const napi_value config,
+    const std::string &key, std::vector<uint8_t> &value)
+{
+    bool hasProperty = NapiUtils::HasNamedProperty(env, config, key);
+    if (!hasProperty) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector no property: %{public}s", key.c_str());
+        return false;
+    }
+    napi_value array = NapiUtils::GetNamedProperty(env, config, key);
+    bool isTypedArray = false;
+    if (napi_is_typedarray(env, array, &isTypedArray) != napi_ok || !isTypedArray) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector not typedarray: %{public}s", key.c_str());
+        return false;
+    }
+    size_t length = 0;
+    size_t offset = 0;
+    napi_typedarray_type type;
+    napi_value buffer = nullptr;
+    NAPI_CALL_BASE(env, napi_get_typedarray_info(env, array, &type, &length, nullptr, &buffer, &offset), {});
+    if (type != napi_uint8_array || buffer == nullptr) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector buffer null: %{public}s", key.c_str());
+        return false;
+    }
+    size_t total = 0;
+    uint8_t *data = nullptr;
+    NAPI_CALL_BASE(env, napi_get_arraybuffer_info(env, buffer, reinterpret_cast<void **>(&data), &total), {});
+    length = std::min<size_t>(length, total - offset);
+    value.resize(length);
+    memcpy_s(value.data(), value.size(), &data[offset], length);
+    return true;
+}
 #endif
 } // namespace
  
@@ -161,6 +202,56 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;
+}
+
+napi_value StartEthEap(napi_env env, napi_callback_info info)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    size_t argc = 2;
+    napi_value argv[2] = {0};
+    napi_value thisVar = 0;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    if (!CheckStartEthEapParams(env, argv, argc)) {
+        return NapiUtils::GetUndefined(env);
+    }
+    int32_t netId = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
+    EthEapProfile profile;
+    profile.eapMethod = static_cast<EapMethod>(NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1],
+        "eapMethod"));
+    profile.phase2Method = static_cast<Phase2Method>(NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1],
+        "phase2Method"));
+    profile.identity = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "identity");
+    profile.anonymousIdentity = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "anonymousIdentity");
+    profile.password = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "password");
+    profile.caCertAliases = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "caCertAliases");
+    profile.caPath = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "caPath");
+    profile.clientCertAliases = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "clientCertAliases");
+    GetU8VectorFromJsOptionItem(env, argv[ARG_INDEX_1], "certEntry", profile.certEntry);
+    profile.certPassword = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "certPassword");
+    profile.altSubjectMatch = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "altSubjectMatch");
+    profile.domainSuffixMatch = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "domainSuffixMatch");
+    profile.realm = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "realm");
+    profile.plmn = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "plmn");
+    profile.eapSubId = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "eapSubId");
+    DelayedSingleton<EthernetClient>::GetInstance()->StartEthEap(netId, profile);
+#endif
+    return NapiUtils::GetUndefined(env);
+}
+ 
+napi_value LogOffEthEap(napi_env env, napi_callback_info info)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    size_t argc = 2;
+    napi_value argv[2] = {0};
+    napi_value thisVar = 0;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
+    if ((argc != PARAM_JUST_OPTIONS) || (NapiUtils::GetValueType(env, argv[ARG_INDEX_0]) != napi_number)) {
+        return NapiUtils::GetUndefined(env);
+    }
+    int32_t netId = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
+    DelayedSingleton<EthernetClient>::GetInstance()->LogOffEthEap(netId);
+#endif
+    return NapiUtils::GetUndefined(env);
 }
  
 } // namespace NetManagerStandard

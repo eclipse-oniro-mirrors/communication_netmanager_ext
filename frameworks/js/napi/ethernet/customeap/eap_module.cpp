@@ -14,10 +14,16 @@
  */
  
 #include "eap_module.h"
+
+#include "eth_eap_profile.h"
 #include "netmanager_ext_log.h"
  
 static constexpr const char *EAP_MODULE_NAME = "net.eap";
- 
+static constexpr const char *INTERFACE_ETH_METHOD = "EapMethod";
+static constexpr const char *INTERFACE_PHASE_2_METHOD = "Phase2Method";
+static constexpr const char *FUNCTION_START_ETH_EAP = "startEthEap";
+static constexpr const char *FUNCTION_LOGOFF_ETH_EAP = "logOffEthEap";
+
 namespace OHOS::NetManagerStandard {
  
 static void AddCleanupHook(napi_env env)
@@ -31,6 +37,56 @@ static void AddCleanupHook(napi_env env)
     *envWrapper = env;
     napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
 }
+
+void EapModule::DeclareEapMethod(napi_env env, napi_value exports)
+{
+    napi_value result = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, result, {
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_NONE",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_NONE))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_PEAP",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_PEAP))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_TLS",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_TLS))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_TTLS",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_TTLS))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_PWD",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_PWD))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_SIM",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_SIM))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_AKA",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_AKA))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_AKA_PRIME",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_AKA_PRIME))),
+        DECLARE_NAPI_STATIC_PROPERTY("EAP_UNAUTH_TLS",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EapMethod::EAP_UNAUTH_TLS))),
+    });
+    NapiUtils::SetNamedProperty(env, exports, INTERFACE_ETH_METHOD, result);
+}
+ 
+void EapModule::DeclarePhase2Method(napi_env env, napi_value exports)
+{
+    napi_value result = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, result, {
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_NONE",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_NONE))),
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_PAP",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_PAP))),
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_MSCHAP",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_MSCHAP))),
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_MSCHAPV2",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_MSCHAPV2))),
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_GTC",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_GTC))),
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_SIM",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_SIM))),
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_AKA",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_AKA))),
+        DECLARE_NAPI_STATIC_PROPERTY("PHASE2_AKA_PRIME",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(Phase2Method::PHASE2_AKA_PRIME))),
+    });
+    NapiUtils::SetNamedProperty(env, exports, INTERFACE_PHASE_2_METHOD, result);
+}
  
 napi_value EapModule::InitEapModule(napi_env env, napi_value exports)
 {
@@ -38,9 +94,13 @@ napi_value EapModule::InitEapModule(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION(functionRegCustomEapHandler, RegCustomEapHandler),
         DECLARE_NAPI_FUNCTION(functionUnregCustomEapHandler, UnRegCustomEapHandler),
         DECLARE_NAPI_FUNCTION(functionReplyCustomEapData, ReplyCustomEapData),
+        DECLARE_NAPI_FUNCTION(FUNCTION_START_ETH_EAP, StartEthEap),
+        DECLARE_NAPI_FUNCTION(FUNCTION_LOGOFF_ETH_EAP, LogOffEthEap),
     };
     NapiUtils::DefineProperties(env, exports, functions);
     InitProperties(env, exports);
+    DeclareEapMethod(env, exports);
+    DeclarePhase2Method(env, exports);
     AddCleanupHook(env);
     return exports;
 }

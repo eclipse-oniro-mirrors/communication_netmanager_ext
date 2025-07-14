@@ -18,6 +18,7 @@
 #include <napi/native_api.h>
 #include "eap_data.h"
 #include "eap_event_mgr.h"
+#include "eth_eap_profile.h"
  
 namespace OHOS {
 namespace NetManagerStandard {
@@ -25,6 +26,8 @@ namespace NetManagerStandard {
 napi_value RegCustomEapHandler(napi_env env, napi_callback_info cbinfo);
 napi_value UnRegCustomEapHandler(napi_env env, napi_callback_info cbinfo);
 napi_value ReplyCustomEapData(napi_env env, napi_callback_info cbinfo);
+napi_value StartEthEap(napi_env env, napi_callback_info info);
+napi_value LogOffEthEap(napi_env env, napi_callback_info info);
  
 } // namespace NetManagerStandard
 } // namespace OHOS

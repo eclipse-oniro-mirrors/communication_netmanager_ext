@@ -31,6 +31,8 @@ public:
     static napi_value InitEapModule(napi_env env, napi_value exports);
 private:
     static void InitProperties(napi_env env, napi_value exports);
+    static void DeclareEapMethod(napi_env env, napi_value exports);
+    static void DeclarePhase2Method(napi_env env, napi_value exports);
 };
 } // namespace OHOS::NetManagerStandard
 } // OHOS

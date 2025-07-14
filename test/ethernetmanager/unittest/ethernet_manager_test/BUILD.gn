@@ -42,6 +42,7 @@ ohos_unittest("ethernet_manager_test") {
     "ethernet_device_info_test.cpp",
     "net_eap_callback_stub_test.cpp",
     "net_eap_handler_test.cpp",
+    "eth_eap_profile_test.cpp",
   ]
 
   include_dirs = [
