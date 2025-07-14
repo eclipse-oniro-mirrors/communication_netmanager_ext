@@ -114,7 +114,7 @@ int32_t NetFirewallStub::OnGetNetFirewallPolicy(MessageParcel &data, MessageParc
         NETMGR_EXT_LOG_E("Parameter error.");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
-    sptr<NetFirewallPolicy> status = new (std::nothrow) NetFirewallPolicy();
+    sptr<NetFirewallPolicy> status = sptr<NetFirewallPolicy>::MakeSptr();
     int32_t ret = GetNetFirewallPolicy(userId, status);
     if (ret == FIREWALL_SUCCESS) {
         if (!status->Marshalling(reply)) {
@@ -245,7 +245,7 @@ int32_t NetFirewallStub::OnGetNetFirewallRules(MessageParcel &data, MessageParce
         NETMANAGER_EXT_LOGE("ParsePageParam page or pageSize is error");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
-    sptr<FirewallRulePage> info = new (std::nothrow) FirewallRulePage();
+    sptr<FirewallRulePage> info = sptr<FirewallRulePage>::MakeSptr();
     int32_t ret = GetNetFirewallRules(userId, param, info);
     if (ret == FIREWALL_SUCCESS) {
         if (!info->Marshalling(reply)) {
@@ -270,7 +270,7 @@ int32_t NetFirewallStub::OnGetNetFirewallRule(MessageParcel &data, MessageParcel
         NETMGR_EXT_LOG_E("Parameter error.");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
-    sptr<NetFirewallRule> rule = new (std::nothrow) NetFirewallRule();
+    sptr<NetFirewallRule> rule = sptr<NetFirewallRule>::MakeSptr();
     int32_t ret = GetNetFirewallRule(userId, ruleId, rule);
     if (ret == FIREWALL_SUCCESS) {
         if (!rule->Marshalling(reply)) {
@@ -301,7 +301,7 @@ int32_t NetFirewallStub::OnGetInterceptRecords(MessageParcel &data, MessageParce
         NETMANAGER_EXT_LOGE("ParsePageParam page or pageSize is error");
         return FIREWALL_ERR_INVALID_PARAMETER;
     }
-    sptr<InterceptRecordPage> info = new (std::nothrow) InterceptRecordPage();
+    sptr<InterceptRecordPage> info = sptr<InterceptRecordPage>::MakeSptr();
     int32_t ret = GetInterceptRecords(userId, param, info);
     if (ret == FIREWALL_SUCCESS) {
         if (!info->Marshalling(reply)) {

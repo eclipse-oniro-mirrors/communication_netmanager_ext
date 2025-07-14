@@ -244,6 +244,10 @@ void JsVpnExtension::BindContext(napi_env env, napi_value obj)
         return;
     }
     auto workContext = new (std::nothrow) std::weak_ptr<VpnExtensionContext>(context);
+    if (workContext == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get workContext");
+        return;
+    }
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachVpnExtensionContext, workContext, nullptr);
     NETMGR_EXT_LOG_I("JsVpnExtension::Init Bind.");

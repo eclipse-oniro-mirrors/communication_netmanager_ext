@@ -983,7 +983,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
     if (isVpnExtCall) {
         type = config->vpnType_;
     } else {
-        vpnBean = new (std::nothrow) VpnDataBean();
+        vpnBean = sptr<VpnDataBean>::MakeSptr();
         int32_t result = QueryVpnData(config, vpnBean);
         if (result != NETMANAGER_EXT_SUCCESS) {
             return nullptr;

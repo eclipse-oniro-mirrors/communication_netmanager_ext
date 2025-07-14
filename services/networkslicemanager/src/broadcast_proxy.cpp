@@ -112,7 +112,7 @@ void broadcast_proxy::UnSubscribeCommonEvent()
 void broadcast_proxy::SubscribeApplicationState()
 {
     if (appAwareObserver_ == nullptr) {
-        appAwareObserver_ = new (std::nothrow) AppAwareObserver();
+        appAwareObserver_ = sptr<AppAwareObserver>::MakeSptr();
     }
     if (appAwareObserver_ == nullptr) {
         NETMGR_EXT_LOG_E("failed to create appAwareObserver_ instance");

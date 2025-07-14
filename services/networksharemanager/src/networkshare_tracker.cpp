@@ -278,7 +278,7 @@ bool NetworkShareTracker::Init()
     upstreamNetworkMonitor->RegisterUpstreamChangedCallback(std::make_shared<MainSmUpstreamCallback>());
     mainStateMachine_ = std::make_shared<NetworkShareMainStateMachine>(upstreamNetworkMonitor);
 
-    netsysCallback_ = new (std::nothrow) NetsysCallback();
+    netsysCallback_ = sptr<NetsysCallback>::MakeSptr();
     NetsysController::GetInstance().RegisterCallback(netsysCallback_);
 
 #ifdef WIFI_MODOULE
