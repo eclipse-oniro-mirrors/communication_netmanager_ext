@@ -180,7 +180,6 @@ HWTEST_F(OpenvpnCtlTest, UpdateState002, TestSize.Level1)
     openvpnControl_->multiVpnInfo_ = vpnInfo;
     openvpnControl_->UpdateState(config);
     EXPECT_EQ(openvpnControl_->openvpnState_, OPENVPN_STATE_DISCONNECTED);
-
 }
 
 HWTEST_F(OpenvpnCtlTest, UpdateConfig001, TestSize.Level1)
