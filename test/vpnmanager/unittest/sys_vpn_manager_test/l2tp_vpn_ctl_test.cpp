@@ -320,6 +320,20 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest004, TestSize.Level1)
     EXPECT_EQ(l2tpControl_->NotifyConnectStage(stage, errorCode), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest005, TestSize.Level1)
+{
+    ASSERT_NE(l2tpControl_, nullptr);
+    std::string stage = SWANCTL_START_TAG;
+    int32_t errorCode = 1;
+    int32_t ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    l2tpControl_->multiVpnInfo_ = vpnInfo;
+    ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
 HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
 {
     sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();

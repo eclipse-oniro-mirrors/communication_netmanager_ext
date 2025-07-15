@@ -175,6 +175,12 @@ HWTEST_F(OpenvpnCtlTest, UpdateState002, TestSize.Level1)
     ASSERT_TRUE(cJSON_IsObject(config));
     openvpnControl_->UpdateState(config);
     EXPECT_EQ(openvpnControl_->openvpnState_, OPENVPN_STATE_DISCONNECTED);
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    openvpnControl_->multiVpnInfo_ = vpnInfo;
+    openvpnControl_->UpdateState(config);
+    EXPECT_EQ(openvpnControl_->openvpnState_, OPENVPN_STATE_DISCONNECTED);
+
 }
 
 HWTEST_F(OpenvpnCtlTest, UpdateConfig001, TestSize.Level1)
