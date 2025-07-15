@@ -172,5 +172,13 @@ HWTEST_F(WearableDistributedNetServiceTest, SetupWearableDistributedNet002, Test
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     wearableDistributedNetService.TearDownWearableDistributedNet();
 }
+
+HWTEST_F(WearableDistributedNetServiceTest, EnableWearableDistributedNet, TestSize.Level1)
+{
+    bool enableFlag = false;
+    WearableDistributedNetService wearableDistributedNetService(SA_ID_TEST, true);
+    int32_t result = wearableDistributedNetService.EnableWearableDistributedNet(enableFlag);
+    EXPECT_EQ(result, NETMANAGER_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
