@@ -77,9 +77,7 @@ ohos_shared_library("mdns") {
   ]
 
   if (support_jsapi) {
-    external_deps += [
-      "hiappevent:hiappevent_innerapi",
-    ]
+    external_deps += [ "hiappevent:hiappevent_innerapi" ]
   }
 
   configs = [ ":mdns_config" ]
