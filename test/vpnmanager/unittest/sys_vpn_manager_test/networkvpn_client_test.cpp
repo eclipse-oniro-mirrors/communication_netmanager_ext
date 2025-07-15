@@ -356,6 +356,8 @@ HWTEST_F(NetworkVpnClientTest, GetConnectedVpnAppInfo_01, TestSize.Level1)
 {
     std::vector<std::string> bundleNameList;
     EXPECT_EQ(networkVpnClient_.GetConnectedVpnAppInfo(bundleNameList), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    EXPECT_EQ(networkVpnClient_.GetConnectedVpnAppInfo(bundleNameList), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent_01, TestSize.Level1)
@@ -365,6 +367,8 @@ HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent_01, TestSize.Level1)
     callback = new (std::nothrow) VpnSetUpEventCallback();
     ASSERT_NE(callback, nullptr);
     EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
 }
 
 HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent_01, TestSize.Level1)
@@ -374,6 +378,8 @@ HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent_01, TestSize.Level1)
     callback = new (std::nothrow) VpnSetUpEventCallback();
     ASSERT_NE(callback, nullptr);
     EXPECT_EQ(networkVpnClient_.UnregisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    NetManagerExtAccessToken access;
+    EXPECT_EQ(networkVpnClient_.UnregisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, OnMultiVpnStateChanged_01, TestSize.Level1)
@@ -384,7 +390,7 @@ HWTEST_F(NetworkVpnClientTest, OnMultiVpnStateChanged_01, TestSize.Level1)
     std::string vpnId = "testId";
     std::string bundleName = "com.vpn.test";
     int result = networkVpnClient_.vpnEventCallback_->OnMultiVpnStateChanged(isConnected, bundleName, vpnId);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
