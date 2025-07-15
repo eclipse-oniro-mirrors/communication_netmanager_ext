@@ -351,5 +351,40 @@ HWTEST_F(NetworkVpnClientTest, SetSelfVpnPidTest_01, TestSize.Level1)
     // 验证返回值是否为成功
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnClientTest, GetConnectedVpnAppInfo_01, TestSize.Level1)
+{
+    std::vector<std::string> bundleNameList;
+    EXPECT_EQ(networkVpnClient_.GetConnectedVpnAppInfo(bundleNameList), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent_01, TestSize.Level1)
+{
+    sptr<VpnSetUpEventCallback> callback = nullptr;
+    EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    callback = new (std::nothrow) VpnSetUpEventCallback();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent_01, TestSize.Level1)
+{
+    sptr<VpnSetUpEventCallback> callback = nullptr;
+    EXPECT_EQ(networkVpnClient_.UnregisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    callback = new (std::nothrow) VpnSetUpEventCallback();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_EQ(networkVpnClient_.UnregisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkVpnClientTest, OnMultiVpnStateChanged_01, TestSize.Level1)
+{
+    networkVpnClient_.vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
+    ASSERT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
+    bool isConnected = false;
+    std::string vpnId = "testId";
+    std::string bundleName = "com.vpn.test";
+    int result = networkVpnClient_.vpnEventCallback_->OnMultiVpnStateChanged(isConnected, bundleName, vpnId);
+    EXPECT_EQ(result, 0);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
