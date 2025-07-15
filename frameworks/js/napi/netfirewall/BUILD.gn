@@ -62,8 +62,13 @@ ohos_shared_library("netfirewall") {
     "netmanager_base:napi_utils",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
-    "hiappevent:hiappevent_innerapi",
   ]
+
+  if (support_jsapi) {
+    external_deps += [
+      "hiappevent:hiappevent_innerapi",
+    ]
+  }
 
   relative_install_dir = "module/net"
   part_name = "netmanager_ext"
