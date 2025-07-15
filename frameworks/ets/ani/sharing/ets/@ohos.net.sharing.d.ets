@@ -29,7 +29,7 @@ export default namespace sharing {
     let p1 = taskpool.execute((): boolean => {
         return isSharingSupportedSync();
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as boolean);
     }, (err: Error): void => {
         callback(err as BusinessError, false);
@@ -40,7 +40,7 @@ export default namespace sharing {
     return new Promise<boolean>((resolve, reject) => {
           taskpool.execute((): boolean => {
               return isSharingSupportedSync();
-          }).then((content: NullishType) => {
+          }).then((content: Any) => {
               resolve(content as boolean);
           }, (err: Error): void => {
               reject(err as BusinessError);
@@ -54,7 +54,7 @@ export default namespace sharing {
     let p1 = taskpool.execute((): boolean => {
         return isSharingSync();
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as boolean);
     }, (err: Error): void => {
         callback(err as BusinessError, false);
@@ -65,7 +65,7 @@ export default namespace sharing {
     return new Promise<boolean>((resolve, reject) => {
           taskpool.execute((): boolean => {
               return isSharingSync();
-          }).then((content: NullishType) => {
+          }).then((content: Any) => {
               resolve(content as boolean);
           }, (err: Error): void => {
               reject(err as BusinessError);
@@ -129,7 +129,7 @@ export default namespace sharing {
     let p1 = taskpool.execute((): long => {
         return getStatsRxBytesSync();
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as long);
     }, (err: Error): void => {
         callback(err as BusinessError, 0);
@@ -140,7 +140,7 @@ export default namespace sharing {
     return new Promise<long>((resolve, reject) => {
         taskpool.execute((): long => {
             return getStatsRxBytesSync();
-        }).then((content: NullishType) => {
+        }).then((content: Any) => {
             resolve(content as long);
         }, (err: Error): void => {
             reject(err as BusinessError);
@@ -154,7 +154,7 @@ export default namespace sharing {
     let p1 = taskpool.execute((): long => {
         return getStatsTxBytesSync();
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as long);
     }, (err: Error): void => {
         callback(err as BusinessError, 0);
@@ -165,7 +165,7 @@ export default namespace sharing {
     return new Promise<long>((resolve, reject) => {
       taskpool.execute((): long => {
           return getStatsTxBytesSync();
-      }).then((content: NullishType) => {
+      }).then((content: Any) => {
           resolve(content as long);
       }, (err: Error): void => {
           reject(err as BusinessError);
@@ -179,7 +179,7 @@ export default namespace sharing {
     let p1 = taskpool.execute((): long => {
         return getStatsTotalBytesSync();
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as long);
     }, (err: Error): void => {
         callback(err as BusinessError, 0);
@@ -190,7 +190,7 @@ export default namespace sharing {
     return new Promise<long>((resolve, reject) => {
       taskpool.execute((): long => {
           return getStatsTotalBytesSync();
-      }).then((content: NullishType) => {
+      }).then((content: Any) => {
           resolve(content as long);
       }, (err: Error): void => {
           reject(err as BusinessError);
@@ -204,7 +204,7 @@ export default namespace sharing {
       let p1 = taskpool.execute((): Array<string> => {
         return getSharingIfacesSync(state);
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as Array<string>);
     }, (err: Error): void => {
         callback(err as BusinessError, new Array<string>());
@@ -215,7 +215,7 @@ export default namespace sharing {
     return new Promise<Array<string>>((resolve, reject) => {
       taskpool.execute((): Array<string> => {
           return getSharingIfacesSync(state);
-      }).then((content: NullishType) => {
+      }).then((content: Any) => {
           resolve(content as Array<string>);
       }, (err: Error): void => {
           reject(err as BusinessError);
@@ -229,7 +229,7 @@ export default namespace sharing {
     let p1 = taskpool.execute((): SharingIfaceState => {
         return getSharingStateSync(type);
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as SharingIfaceState);
     }, (err: Error): void => {
         callback(err as BusinessError, SharingIfaceState.SHARING_NIC_SERVING);
@@ -240,7 +240,7 @@ export default namespace sharing {
     return new Promise<SharingIfaceState>((resolve, reject) => {
       taskpool.execute((): SharingIfaceState => {
           return getSharingStateSync(type);
-      }).then((content: NullishType) => {
+      }).then((content: Any) => {
           resolve(content as SharingIfaceState);
       }, (err: Error): void => {
           reject(err as BusinessError);
@@ -254,7 +254,7 @@ export default namespace sharing {
     let p1 = taskpool.execute((): Array<string> => {
         return getSharableRegexesSync(type);
     })
-    p1.then((content: NullishType) => {
+    p1.then((content: Any) => {
         callback(new BusinessError(), content as Array<string>);
     }, (err: Error): void => {
         callback(err as BusinessError, new Array<string>());
@@ -265,7 +265,7 @@ export default namespace sharing {
     return new Promise<Array<string>>((resolve, reject) => {
       taskpool.execute((): Array<string> => {
           return getSharableRegexesSync(type);
-      }).then((content: NullishType) => {
+      }).then((content: Any) => {
           resolve(content as Array<string>);
       }, (err: Error): void => {
           reject(err as BusinessError);

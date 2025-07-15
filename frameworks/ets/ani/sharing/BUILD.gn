@@ -37,7 +37,6 @@ ohos_static_library("sharing_ani_static") {
   
   deps = [
     ":sharing_ani_cxx",
-    "//third_party/rust/crates/cxx:cxx_cppdeps",
     "../../../../interfaces/innerkits/netshareclient:net_tether_manager_if",
   ]
   external_deps = [
@@ -45,6 +44,7 @@ ohos_static_library("sharing_ani_static") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "rust_cxx:cxx_cppdeps"
   ]
 
   part_name = "netmanager_ext"
@@ -66,10 +66,10 @@ ohos_rust_shared_library("sharing_ani") {
     "runtime_core:ani",
     "hilog:hilog_rust",
     "netmanager_base:ani_rs",
+    "rust_cxx:lib"
   ]
   deps = [
     ":sharing_ani_static",
-    "//third_party/rust/crates/cxx:lib",
     "//third_party/rust/crates/serde/serde:lib"
   ]
   clippy_lints = "none"
