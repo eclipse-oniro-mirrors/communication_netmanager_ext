@@ -78,5 +78,12 @@ HWTEST_F(WearableDistributedNetManagementTest, UpdateNetScore, TestSize.Level1)
     WearableDistributedNetManagement::GetInstance().UpdateNetScore(isCharging);
     EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE);
 }
+
+HWTEST_F(WearableDistributedNetManagementTest, EnableWearableDistributedNetwork, TestSize.Level1)
+{
+    bool enableFlag = false;
+    int32_t result = WearableDistributedNetManagement::GetInstance().EnableWearableDistributedNetwork(enableFlag);
+    EXPECT_EQ(result, NETMANAGER_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
