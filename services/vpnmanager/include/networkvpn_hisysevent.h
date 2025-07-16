@@ -35,6 +35,11 @@ public:
 
     static void SendFaultEventConnDestroy(const VpnEventType &isLegacy, const VpnEventErrorType &errorCode,
                                           const std::string &errorMsg);
+    static void SetFaultVpnEvent(const int32_t userId, const std::string &bundleName,
+                                 const VpnOperatorType &operatorType, const VpnOperatorErrorType &errorCode,
+                                 const std::string &errorMsg);
+    static void SetBehaviorVpnEvent(const int32_t userId, const std::string &bundleName,
+                                    const VpnOperatorType &operatorType);
 };
 
 } // namespace NetManagerStandard

@@ -96,7 +96,8 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     if (result != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("l2tpVpn stage: %{public}s failed, result: %{public}d", stage.c_str(), result);
+        NETMGR_EXT_LOG_E("l2tp vpn connect failed");
+        HandleConnectFailed();
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     switch (state_) {
@@ -300,6 +301,16 @@ int32_t L2tpVpnCtl::ProcessUpdateConfig(const std::string &config)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;
+}
+
+void L2tpVpnCtl::HandleConnectFailed()
+{
+    if (multiVpnInfo_ != nullptr) {
+        VpnHisysEvent::SetFaultVpnEvent(multiVpnInfo_->userId, multiVpnInfo_->bundleName,
+            VpnOperatorType::OPERATION_SETUP_VPN,
+            VpnOperatorErrorType::ERROR_CONFIG_WRONG, "l2tp vpn setup failed");
+    }
+    Destroy();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

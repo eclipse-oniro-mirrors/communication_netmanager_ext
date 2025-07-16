@@ -126,6 +126,11 @@ void OpenvpnCtl::UpdateState(cJSON* state)
         UpdateOpenvpnState(openVpnState);
         if (openVpnState == OPENVPN_STATE_DISCONNECTED || openVpnState >= OPENVPN_STATE_ERROR_PRIVATE_KEY) {
             NETMGR_EXT_LOG_I("UpdatesState:  %{public}d", openVpnState);
+            if (multiVpnInfo_ != nullptr) {
+                VpnHisysEvent::SetFaultVpnEvent(multiVpnInfo_->userId, multiVpnInfo_->bundleName,
+                    VpnOperatorType::OPERATION_SETUP_VPN,
+                    VpnOperatorErrorType::ERROR_CONFIG_WRONG, "open vpn setup failed");
+            }
             StopOpenvpn();
         }
     }

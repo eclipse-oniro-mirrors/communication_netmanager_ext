@@ -131,7 +131,7 @@ void VpnTemplateProcessor::GenOptionsL2tpdClient(sptr<L2tpVpnConfig> &config)
         std::ostringstream oss;
         oss << "ipcp-accept-local\nipcp-accept-remote\nrefuse-eap\nrequire-mschap-v2\n";
         oss << "noccp\nnoauth\nidle 1800\nmtu 1410\nmru 1410\n";
-        oss << "defaultroute\nusepeerdns\ndebug\nconnect-delay 5000\n";
+        oss << "defaultroute\nusepeerdns\ndebug\nconnect-delay 3000\n";
         oss << "name " << config->userName_ << " \npassword " << config->password_;
         config->optionsL2tpdClient_ = oss.str();
     }
@@ -230,7 +230,7 @@ void VpnTemplateProcessor::GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t
             oss << children << "\n version = 1\n proposals = default\n aggressive=yes\n}\n";
             break;
         case VpnType::IPSEC_XAUTH_RSA:
-            oss << "local {\n auth = pubkey\n id = " << ipsecId << "\n}\n";
+            oss << "local {\n auth = pubkey\n id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "local-xauth {\n auth = xauth\n}\n remote {\n auth = pubkey\n}\n";
             oss << "children {\n home {\n remote_ts=0.0.0.0/0\n esp_proposals = default\n}\n}\n";
             oss << "version = 1\n proposals = default\n}\n";
@@ -238,7 +238,7 @@ void VpnTemplateProcessor::GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t
         case VpnType::IPSEC_HYBRID_RSA:
             oss << "local {\n auth = xauth\n xauth_id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "remote {\n auth = pubkey\n}\n";
-            oss << children << "{\n version = 1\n proposals = default\n}\n";
+            oss << children << "\n version = 1\n proposals = default\n}\n";
             break;
         default:
             break;
@@ -262,7 +262,7 @@ void VpnTemplateProcessor::CreateConnectAndSecret(sptr<IpsecVpnConfig> &ipsecCon
         std::string homeElement = "home" + std::to_string(ifNameId);
         std::string address = !l2tpConfig->addresses_.empty() ? l2tpConfig->addresses_[0].address_ : "";
         std::string localId = !l2tpConfig->ipsecIdentifier_.empty() ? l2tpConfig->ipsecIdentifier_ :
-            (l2tpConfig->vpnType_ == L2TP_IPSEC_PSK) ? homeElement : "%any";
+            (l2tpConfig->vpnType_ == L2TP_IPSEC_PSK) ? homeElement : l2tpConfig->userName_;
         std::string remoteId = l2tpConfig->ipsecIdentifier_.empty() ? "%any" : l2tpConfig->ipsecIdentifier_;
         std::string authType = (l2tpConfig->vpnType_ == L2TP_IPSEC_PSK) ? "psk" : "pubkey";
 

@@ -157,6 +157,20 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest003, TestSize.Level1)
+{
+    ASSERT_NE(ipsecControl_, nullptr);
+    std::string stage = SWANCTL_START_TAG;
+    int32_t errorCode = 1;
+    int32_t ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    ipsecControl_->multiVpnInfo_ = vpnInfo;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
 HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
 {
     sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();

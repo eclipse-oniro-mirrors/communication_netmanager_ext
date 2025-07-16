@@ -97,6 +97,26 @@ enum class VpnEventErrorType {
     ERROR_INTERNAL_ERROR = -140,
 };
 
+struct MultiVpnEvent {
+    int32_t userId = 100;
+    int32_t operatorType = 0;
+    int32_t errorType = 0;
+    std::string bundleName;
+    std::string errorMsg;
+};
+
+enum class VpnOperatorType {
+    OPERATION_SETUP_VPN = 0,
+    OPERATION_ADD_VPN,
+    OPERATION_DELETE_VPN,
+    OPERATION_DESTROY_VPN,
+};
+
+enum class VpnOperatorErrorType {
+    ERROR_CONFIG_WRONG = -100,
+    ERROR_INTERNAL_DISCONNECT = -101,
+};
+
 class NetEventReport {
 public:
     static int32_t SendSetupFaultEvent(const EventInfo &eventInfo);
@@ -104,6 +124,8 @@ public:
     static int32_t SendTimeBehaviorEvent(const EventInfo &eventInfo);
     static int32_t SendVpnConnectEvent(const VpnEventInfo &eventInfo);
     static int32_t SendWifiSoftapEvent(const EventInfo &eventInfo);
+    static int32_t SendVpnFault(const MultiVpnEvent &eventInfo);
+    static int32_t SendVpnBehavior(const MultiVpnEvent &eventInfo);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
