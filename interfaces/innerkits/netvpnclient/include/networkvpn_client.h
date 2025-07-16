@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <shared_mutex>
 
 #include <parcel.h>
 #include <refbase.h>
@@ -41,12 +42,30 @@ public:
     int32_t OnVpnMultiUserSetUp() override;
 };
 
+class VpnEventCallbackCollection final : public VpnEventCallbackStub {
+public:
+    int32_t OnVpnStateChanged(bool isConnected) override;
+    int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
+        const std::string &vpnId) override;
+    int32_t OnVpnMultiUserSetUp() override;
+
+    int32_t RegisterCallback(sptr<IVpnEventCallback> callback);
+    int32_t UnregisterCallback(sptr<IVpnEventCallback> callback);
+    int32_t GetCallbackNum();
+
+private:
+    std::shared_mutex vpnEventCbMutex_;
+    std::list<sptr<IVpnEventCallback>> vpnEventCbList_;
+};
+
 class NetworkVpnClient {
 private:
-    NetworkVpnClient() = default;
-    ~NetworkVpnClient() = default;
+    NetworkVpnClient();
+    ~NetworkVpnClient();
     NetworkVpnClient(const NetworkVpnClient &) = delete;
     NetworkVpnClient &operator=(const NetworkVpnClient &) = delete;
+    void Subscribe();
+    void Unsubscribe();
 
 public:
     static NetworkVpnClient &GetInstance();
@@ -268,6 +287,7 @@ public:
     int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName);
 
     int32_t SetSelfVpnPid();
+    void SetVpnSaState(bool state);
 
 private:
     class MonitorVpnServiceDead : public IRemoteObject::DeathRecipient {
@@ -283,17 +303,29 @@ private:
         NetworkVpnClient &client_;
     };
 
+    class SystemAbilityListener;
+
     sptr<INetworkVpnService> GetProxy();
     void RecoverCallback();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void RegisterVpnEventCbCollection();
+    void UnregisterVpnEventCbCollection();
+#ifdef SUPPORT_SYSVPN
+    void RegisterMultiVpnEventCbCollection();
+    void UnregisterMultiVpnEventCbCollection();
+#endif
 
 private:
     std::mutex mutex_;
     VpnInterface vpnInterface_;
+    sptr<SystemAbilityListener> saStatusChangeListener_;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
+    sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = nullptr;
+    sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = nullptr;
     std::pair<sptr<VpnConfig>, bool> clientVpnConfig_;
+    bool saStart_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
