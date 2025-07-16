@@ -124,7 +124,7 @@ HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
     callback_ = new (std::nothrow) IVpnEventCallbackTest();
     networkVpnClient_.saStart_ = false;
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
-    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_.GetCallbackNum(), 1);
+    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_->GetCallbackNum(), 1);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent002, TestSize.Level1)
@@ -142,7 +142,7 @@ HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent003, TestSize.Level1)
     callback_ = new (std::nothrow) IVpnEventCallbackTest();
     networkVpnClient_.saStart_ = true;
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
-    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_.GetCallbackNum(), 1);
+    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_->GetCallbackNum(), 1);
 }
 
 HWTEST_F(NetworkVpnClientTest, UnregisterVpnEvent001, TestSize.Level1)
@@ -270,7 +270,7 @@ HWTEST_F(NetworkVpnClientTest, VpnEventCallback, TestSize.Level1)
 {
     callback_ = new (std::nothrow) IVpnEventCallbackTest();
     auto collection = sptr<VpnEventCallbackCollection>::MakeSptr();
-    collection->vpnEventCallback_.push_back(callback_);
+    collection->vpnEventCbList_.push_back(callback_);
 
     EXPECT_EQ(collection->OnVpnStateChanged(true), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(collection->OnMultiVpnStateChanged(true, "test", "0"), NETMANAGER_EXT_SUCCESS);

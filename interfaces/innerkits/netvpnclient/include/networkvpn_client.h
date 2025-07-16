@@ -311,14 +311,14 @@ private:
     void RegisterVpnEventCbCollection();
     void UnregisterVpnEventCbCollection();
 #ifdef SUPPORT_SYSVPN
-    void RegisterMuiltiVpnEventCbCollection();
+    void RegisterMultiVpnEventCbCollection();
     void UnregisterMultiVpnEventCbCollection();
 #endif
 
 private:
     std::mutex mutex_;
     VpnInterface vpnInterface_;
-    sptr<SystemAbilityListener> saStatusChangeListener_;
+    sptr<SystemAbilityListener> saStatusChangeListener_ = nullptr;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
