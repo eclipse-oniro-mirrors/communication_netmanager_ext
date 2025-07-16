@@ -77,7 +77,7 @@ ohos_shared_library("vpnextension") {
     "os_account:os_account_innerkits",
   ]
 
-  if (support_jsapi) {
+  if (product_name != "qemu-arm-linux-min") {
     external_deps += [ "hiappevent:hiappevent_innerapi" ]
   }
 
