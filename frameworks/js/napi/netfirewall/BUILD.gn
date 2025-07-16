@@ -64,6 +64,10 @@ ohos_shared_library("netfirewall") {
     "netmanager_base:net_native_manager_if",
   ]
 
+  if (product_name != "qemu-arm-linux-min") {
+    external_deps += [ "hiappevent:hiappevent_innerapi" ]
+  }
+  
   relative_install_dir = "module/net"
   part_name = "netmanager_ext"
   subsystem_name = "communication"

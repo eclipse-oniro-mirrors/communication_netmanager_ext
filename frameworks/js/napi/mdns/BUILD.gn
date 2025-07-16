@@ -76,6 +76,10 @@ ohos_shared_library("mdns") {
     "samgr:samgr_proxy",
   ]
 
+  if (product_name != "qemu-arm-linux-min") {
+    external_deps += [ "hiappevent:hiappevent_innerapi" ]
+  }
+
   configs = [ ":mdns_config" ]
 
   relative_install_dir = "module/net"
