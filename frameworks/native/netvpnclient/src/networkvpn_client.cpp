@@ -113,7 +113,7 @@ int32_t VpnEventCallbackCollection::GetCallbackNum()
     return vpnEventCbList_.size();
 }
 
-NetworkVpnClient::NetworkVpnClient()
+NetworkVpnClient::NetworkVpnClient() : saStatusChangeListener_(nullptr)
 {
     Subscribe();
 }

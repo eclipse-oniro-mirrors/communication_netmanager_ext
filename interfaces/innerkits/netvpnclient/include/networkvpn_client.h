@@ -318,7 +318,7 @@ private:
 private:
     std::mutex mutex_;
     VpnInterface vpnInterface_;
-    sptr<SystemAbilityListener> saStatusChangeListener_ = nullptr;
+    sptr<SystemAbilityListener> saStatusChangeListener_;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
