@@ -64,7 +64,7 @@ ohos_shared_library("netfirewall") {
     "netmanager_base:net_native_manager_if",
   ]
 
-  if (support_jsapi) {
+  if (product_name != "qemu-arm-linux-min") {
     external_deps += [ "hiappevent:hiappevent_innerapi" ]
   }
   
