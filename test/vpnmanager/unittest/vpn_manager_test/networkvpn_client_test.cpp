@@ -162,6 +162,7 @@ HWTEST_F(NetworkVpnClientTest, UnregisterVpnEvent002, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.UnregisterVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
 }
 
+#ifdef SUPPORT_SYSVPN
 HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent001, TestSize.Level1)
 {
     networkVpnClient_.multiVpnEventCbCollection_ = nullptr;
@@ -195,6 +196,7 @@ HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent002, TestSize.Level1)
     callback_ = sptr<IVpnEventCallbackTest>::MakeSptr();
     EXPECT_EQ(networkVpnClient_.UnregisterMultiVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
 }
+#endif
 
 HWTEST_F(NetworkVpnClientTest, GetProxy, TestSize.Level1)
 {
