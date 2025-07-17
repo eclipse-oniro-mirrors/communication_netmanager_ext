@@ -316,6 +316,10 @@ int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateC
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("SetInterfaceUp Caller no sys permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_D("Set interface: %{public}s up", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService SetInterfaceUp no permission");
@@ -326,6 +330,10 @@ int32_t EthernetService::SetInterfaceUp(const std::string &iface)
 
 int32_t EthernetService::SetInterfaceDown(const std::string &iface)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("SetInterfaceDown Caller no sys permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_D("Set interface: %{public}s down", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService SetInterfaceDown no permission");
@@ -336,6 +344,10 @@ int32_t EthernetService::SetInterfaceDown(const std::string &iface)
 
 int32_t EthernetService::GetInterfaceConfig(const std::string &iface, ConfigurationParcelIpc &cfgIpc)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("GetInterfaceConfig Caller no sys permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_D("Get interface: %{public}s config", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService GetInterfaceConfig no permission");
@@ -350,6 +362,10 @@ int32_t EthernetService::GetInterfaceConfig(const std::string &iface, Configurat
 
 int32_t EthernetService::SetInterfaceConfig(const std::string &iface, const ConfigurationParcelIpc &cfgIpc)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("SetInterfaceConfig Caller no sys permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_D("Set interface: %{public}s config", iface.c_str());
     if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
         NETMGR_EXT_LOG_E("EthernetService SetInterfaceConfig no permission");
