@@ -53,6 +53,10 @@ napi_value PromiseCallback(napi_env env, napi_callback_info info)
     void *data = nullptr;
     NAPI_CALL_NO_THROW(napi_get_cb_info(env, info, nullptr, nullptr, nullptr, &data), nullptr);
     auto *callbackInfo = static_cast<AppExecFwk::AbilityTransactionCallbackInfo<> *>(data);
+    if (callbackInfo == nullptr) {
+        HILOG_WARN("callbackInfo nullptr.");
+        return nullptr;
+    }
     callbackInfo->Call();
     AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
     data = nullptr;
@@ -70,6 +74,10 @@ napi_value OnConnectPromiseCallback(napi_env env, napi_callback_info info)
     sptr<IRemoteObject> vpn = nullptr;
     if (argc > 0) {
         vpn = NAPI_ohos_rpc_getNativeRemoteObject(env, argv[0]);
+    }
+    if (callbackInfo == nullptr) {
+        HILOG_WARN("callbackInfo nullptr.");
+        return nullptr;
     }
     callbackInfo->Call(vpn);
     AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>>::Destroy(callbackInfo);
