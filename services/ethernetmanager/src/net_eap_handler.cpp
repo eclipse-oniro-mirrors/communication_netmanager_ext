@@ -105,7 +105,7 @@ int32_t NetEapHandler::NotifyWpaEapInterceptInfo(const NetType netType, const sp
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     if (eapData == nullptr) {
-        NETMGR_EXT_LOG_E("%{public}s eapData is nullptr, %{public}s", __func__, eapData->PrintLogInfo().c_str());
+        NETMGR_EXT_LOG_E("%{public}s eapData is nullptr", __func__);
         return NETMANAGER_ERR_LOCAL_PTR_NULL;
     }
     if (eapData->eapBuffer.size() == 0) {

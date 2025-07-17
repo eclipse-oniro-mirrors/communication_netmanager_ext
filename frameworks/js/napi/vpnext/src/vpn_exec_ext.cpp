@@ -56,16 +56,18 @@ bool ExecPrepare(PrepareContext *context)
 
 bool ExecSetUp(SetUpContext *context)
 {
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return false;
+    }
+    
     HiAppEventReport hiAppEventReport("NetworkKit", "VpnSetUp");
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
         return false;
     }
-    if (context == nullptr) {
-        NETMANAGER_EXT_LOGE("context is nullptr");
-        return false;
-    }
+
     int32_t result = NETMANAGER_EXT_SUCCESS;
 #ifdef SUPPORT_SYSVPN
     if (context->sysVpnConfig_ != nullptr) {
