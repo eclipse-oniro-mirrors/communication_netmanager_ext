@@ -415,7 +415,7 @@ int32_t NetworkVpnClient::RegisterMultiVpnEvent(sptr<IVpnEventCallback> callback
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     if (multiVpnEventCbCollection_ == nullptr) {
-        multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     int ret = multiVpnEventCbCollection_->RegisterCallback(callback);
     if (ret == NETMANAGER_EXT_SUCCESS && multiVpnEventCbCollection_->GetCallbackNum() == 1) {
@@ -441,10 +441,7 @@ int32_t NetworkVpnClient::UnregisterMultiVpnEvent(sptr<IVpnEventCallback> callba
 
 void NetworkVpnClient::RegisterMultiVpnEventCbCollection()
 {
-    if (multiVpnEventCbCollection_ == nullptr) {
-        multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
-    }
-    if (multiVpnEventCbCollection_->GetCallbackNum() == 0 || !saStart_) {
+    if (multiVpnEventCbCollection_ == nullptr || multiVpnEventCbCollection_->GetCallbackNum() == 0 || !saStart_) {
         return;
     }
     sptr<INetworkVpnService> proxy = GetProxy();
@@ -475,7 +472,7 @@ int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     if (vpnEventCbCollection_ == nullptr) {
-        vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     int ret = vpnEventCbCollection_->RegisterCallback(callback);
     if (ret == NETMANAGER_EXT_SUCCESS && vpnEventCbCollection_->GetCallbackNum() == 1) {
@@ -501,10 +498,7 @@ int32_t NetworkVpnClient::UnregisterVpnEvent(sptr<IVpnEventCallback> callback)
 
 void NetworkVpnClient::RegisterVpnEventCbCollection()
 {
-    if (vpnEventCbCollection_ == nullptr) {
-        vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
-    }
-    if (vpnEventCbCollection_->GetCallbackNum() == 0 || !saStart_) {
+    if (vpnEventCbCollection_ == nullptr || vpnEventCbCollection_->GetCallbackNum() == 0 || !saStart_) {
         return;
     }
     sptr<INetworkVpnService> proxy = GetProxy();
