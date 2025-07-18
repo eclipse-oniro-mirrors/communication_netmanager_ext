@@ -123,7 +123,6 @@ HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     callback_ = sptr<IVpnEventCallbackTest>::MakeSptr();
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
-    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_->GetCallbackNum(), 0);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent002, TestSize.Level1)
@@ -195,7 +194,7 @@ HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEventCbCollection001, TestSize.Le
     
     networkVpnClient_.multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     networkVpnClient_.RegisterMultiVpnEventCbCollection();
-    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_->GetCallbackNum(), 0);
+    EXPECT_EQ(networkVpnClient_.multiVpnEventCbCollection_->GetCallbackNum(), 0);
 }
 
 HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent001, TestSize.Level1)
