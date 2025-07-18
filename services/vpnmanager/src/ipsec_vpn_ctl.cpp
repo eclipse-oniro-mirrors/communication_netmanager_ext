@@ -327,6 +327,38 @@ void IpsecVpnCtl::ProcessUpdateConfig(cJSON* jConfig)
         NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_REMOTE_ADDRESS, remoteIp);
     }
     vpnConfig_->addresses_.emplace_back(iNetAddr);
+    ProcessDnsConfig(jConfig);
+}
+
+void IpsecVpnCtl::ProcessDnsConfig(cJSON* jConfig)
+{
+    if (vpnConfig_ == nullptr) {
+        NETMGR_EXT_LOG_E("UpdateConfig vpnConfig_ is null");
+        return;
+    }
+
+    for (auto it = vpnConfig_->dnsAddresses_.begin(); it != vpnConfig_->dnsAddresses_.end(); ) {
+        if (it->empty()) {
+            it = vpnConfig_->dnsAddresses_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    cJSON *dns1Obj = cJSON_GetObjectItem(jConfig, PRIMARY_DNS);
+    if (dns1Obj != nullptr && cJSON_IsString(dns1Obj)) {
+        std::string dns1 = cJSON_GetStringValue(dns1Obj);
+        if (!dns1.empty()) {
+            vpnConfig_->dnsAddresses_.emplace_back(dns1);
+        }
+    }
+
+    cJSON *dns2Obj = cJSON_GetObjectItem(jConfig, SECONDARY_DNS);
+    if (dns2Obj != nullptr && cJSON_IsString(dns2Obj)) {
+        std::string dns2 = cJSON_GetStringValue(dns2Obj);
+        if (!dns2.empty()) {
+            vpnConfig_->dnsAddresses_.emplace_back(dns2);
+        }
+    }
 }
 
 void IpsecVpnCtl::ProcessSwanctlLoad()

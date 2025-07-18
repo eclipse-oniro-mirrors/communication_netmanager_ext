@@ -42,6 +42,8 @@ constexpr const char *IPSEC_NODE_ADDRESS = "address";
 constexpr const char *IPSEC_NODE_NETMASK = "netmask";
 constexpr const char *IPSEC_NODE_PHY_NAME = "phyifname";
 constexpr const char *IPSEC_NODE_REMOTE_IP = "remoteip";
+constexpr const char *PRIMARY_DNS = "primarydns";
+constexpr const char *SECONDARY_DNS = "secondarydns";
 } // namespace
 using namespace NetsysNative;
 enum IpsecVpnStateCode {
@@ -93,6 +95,7 @@ protected:
     int32_t UpdateConfig(const std::string &msg);
 private:
     void ProcessUpdateConfig(cJSON* jConfig);
+    void ProcessDnsConfig(cJSON* jConfig);
     void ProcessSwanctlLoad();
     void ProcessIpsecUp();
     void HandleConnected();
