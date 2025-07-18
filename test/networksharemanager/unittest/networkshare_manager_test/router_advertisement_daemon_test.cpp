@@ -64,6 +64,10 @@ HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     EXPECT_TRUE(routerAdvertiseDaemon->IsSocketValid());
     routerAdvertiseDaemon->StopRa();
+    while (routerAdvertiseDaemon->raParams_ != nullptr)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
     EXPECT_FALSE(routerAdvertiseDaemon->IsSocketValid());
 }
 
