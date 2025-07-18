@@ -322,8 +322,8 @@ private:
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = nullptr;
-    sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = nullptr;
+    sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
+    sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     std::pair<sptr<VpnConfig>, bool> clientVpnConfig_;
     bool saStart_ = false;
 };

@@ -122,27 +122,35 @@ HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
     networkVpnClient_.vpnEventCbCollection_ = nullptr;
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     callback_ = sptr<IVpnEventCallbackTest>::MakeSptr();
-    networkVpnClient_.saStart_ = false;
-    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
-    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_->GetCallbackNum(), 1);
+    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent002, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
-    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    networkVpnClient_.vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
+    networkVpnClient_.saStart_ = false;
     callback_ = sptr<IVpnEventCallbackTest>::MakeSptr();
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent003, TestSize.Level1)
 {
-    networkVpnClient_.vpnEventCbCollection_ = nullptr;
-    EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    networkVpnClient_.vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     callback_ = sptr<IVpnEventCallbackTest>::MakeSptr();
     networkVpnClient_.saStart_ = true;
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_->GetCallbackNum(), 1);
+}
+
+HWTEST_F(NetworkVpnClientTest, RegisterVpnEventCbCollection001, TestSize.Level1)
+{
+    networkVpnClient_.vpnEventCbCollection_ = nullptr;
+    networkVpnClient_.RegisterVpnEventCbCollection();
+    
+    networkVpnClient_.vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
+    networkVpnClient_.RegisterVpnEventCbCollection();
+    EXPECT_EQ(networkVpnClient_.vpnEventCbCollection_->GetCallbackNum(), 0);
 }
 
 HWTEST_F(NetworkVpnClientTest, UnregisterVpnEvent001, TestSize.Level1)
@@ -168,16 +176,25 @@ HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent001, TestSize.Level1)
     networkVpnClient_.multiVpnEventCbCollection_ = nullptr;
     EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(nullptr), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     callback_ = sptr<IVpnEventCallbackTest>::MakeSptr();
-    networkVpnClient_.saStart_ = true;
-    EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback_), NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent002, TestSize.Level1)
 {
-    networkVpnClient_.multiVpnEventCbCollection_ = nullptr;
-    networkVpnClient_.saStart_ = false;
+    networkVpnClient_.multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
+    networkVpnClient_.saStart_ = true;
     callback_ = sptr<IVpnEventCallbackTest>::MakeSptr();
     EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback_), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEventCbCollection001, TestSize.Level1)
+{
+    networkVpnClient_.multiVpnEventCbCollection_ = nullptr;
+    networkVpnClient_.RegisterMultiVpnEventCbCollection();
+    
+    networkVpnClient_.multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
+    networkVpnClient_.RegisterMultiVpnEventCbCollection();
+    EXPECT_EQ(networkVpnClient_.multiVpnEventCbCollection_->GetCallbackNum(), 0);
 }
 
 HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent001, TestSize.Level1)
