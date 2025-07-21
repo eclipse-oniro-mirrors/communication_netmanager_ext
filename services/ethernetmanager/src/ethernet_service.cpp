@@ -439,7 +439,7 @@ int32_t EthernetService::RegCustomEapHandler(int netType, const std::string &reg
     const sptr<INetEapPostbackCallback> &callback)
 {
     NETMGR_EXT_LOG_D("Enter RegCustomEapHandler");
-    if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_MANAGE_EAP)) {
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -449,7 +449,7 @@ int32_t EthernetService::RegCustomEapHandler(int netType, const std::string &reg
 int32_t EthernetService::ReplyCustomEapData(int eapResult, const sptr<EapData> &eapData)
 {
     NETMGR_EXT_LOG_D("Enter ReplyCustomEapData");
-    if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_MANAGE_EAP)) {
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -459,6 +459,10 @@ int32_t EthernetService::ReplyCustomEapData(int eapResult, const sptr<EapData> &
 int32_t EthernetService::RegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback)
 {
     NETMGR_EXT_LOG_D("Enter RegisterCustomEapCallback");
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     return NetEapHandler::GetInstance().RegisterCustomEapCallback(static_cast<NetType>(netType), callback);
 }
  
@@ -466,12 +470,20 @@ int32_t EthernetService::UnRegisterCustomEapCallback(int netType,
     const sptr<INetRegisterEapCallback> &callback)
 {
     NETMGR_EXT_LOG_D("Enter UnRegisterCustomEapCallback");
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     return NetEapHandler::GetInstance().UnRegisterCustomEapCallback(static_cast<NetType>(netType), callback);
 }
  
 int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData)
 {
     NETMGR_EXT_LOG_D("Enter NotifyWpaEapInterceptInfo");
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     return NetEapHandler::GetInstance().NotifyWpaEapInterceptInfo(static_cast<NetType>(netType), eapData);
 }
  
