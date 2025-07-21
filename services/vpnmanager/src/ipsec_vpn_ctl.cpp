@@ -330,35 +330,36 @@ void IpsecVpnCtl::ProcessUpdateConfig(cJSON* jConfig)
     ProcessDnsConfig(jConfig);
 }
 
-void IpsecVpnCtl::ProcessDnsConfig(cJSON* jConfig)
+int32_t IpsecVpnCtl::ProcessDnsConfig(cJSON* jConfig)
 {
     if (vpnConfig_ == nullptr) {
-        NETMGR_EXT_LOG_E("UpdateConfig vpnConfig_ is null");
-        return;
+        NETMGR_EXT_LOG_E("ProcessDnsConfig vpnConfig_ is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    for (auto it = vpnConfig_->dnsAddresses_.begin(); it != vpnConfig_->dnsAddresses_.end(); ) {
+    for (auto it = vpnConfig_->dnsAddresses_.begin(); it != vpnConfig_->dnsAddresses_.end();) {
         if (it->empty()) {
             it = vpnConfig_->dnsAddresses_.erase(it);
         } else {
             ++it;
         }
     }
-    cJSON *dns1Obj = cJSON_GetObjectItem(jConfig, PRIMARY_DNS);
-    if (dns1Obj != nullptr && cJSON_IsString(dns1Obj)) {
-        std::string dns1 = cJSON_GetStringValue(dns1Obj);
-        if (!dns1.empty()) {
-            vpnConfig_->dnsAddresses_.emplace_back(dns1);
+    cJSON *primaryObj = cJSON_GetObjectItem(jConfig, PRIMARY_DNS);
+    if (primaryObj != nullptr && cJSON_IsString(primaryObj)) {
+        std::string dnsPrimary = cJSON_GetStringValue(primaryObj);
+        if (!dnsPrimary.empty()) {
+            vpnConfig_->dnsAddresses_.emplace_back(dnsPrimary);
         }
     }
 
-    cJSON *dns2Obj = cJSON_GetObjectItem(jConfig, SECONDARY_DNS);
-    if (dns2Obj != nullptr && cJSON_IsString(dns2Obj)) {
-        std::string dns2 = cJSON_GetStringValue(dns2Obj);
-        if (!dns2.empty()) {
-            vpnConfig_->dnsAddresses_.emplace_back(dns2);
+    cJSON *secondaryObj = cJSON_GetObjectItem(jConfig, SECONDARY_DNS);
+    if (secondaryObj != nullptr && cJSON_IsString(secondaryObj)) {
+        std::string dnsSecondary = cJSON_GetStringValue(secondaryObj);
+        if (!dnsSecondary.empty()) {
+            vpnConfig_->dnsAddresses_.emplace_back(dnsSecondary);
         }
     }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void IpsecVpnCtl::ProcessSwanctlLoad()

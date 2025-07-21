@@ -385,6 +385,45 @@ HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(IpsecVpnCtlTest, ProcessDnsConfigTest001, TestSize.Level1)
+{
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
+    EXPECT_EQ(ipsecControl_->ProcessDnsConfig(nullptr), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(IpsecVpnCtlTest, ProcessDnsConfigTest002, TestSize.Level1)
+{
+    if (ipsecControl_ == nullptr) {
+        return;
+    }
+    sptr<VpnConfig> vpnConfig = new (std::nothrow) VpnConfig();
+    if (vpnConfig == nullptr) {
+        return;
+    }
+
+    ipsecControl_->vpnConfig_ = vpnConfig;
+    ipsecControl_->vpnConfig_->dnsAddresses_.emplace_back("");
+    ipsecControl_->vpnConfig_->dnsAddresses_.emplace_back("192.168.1.1");
+    std::string message = R"({"updateconfig":{"remoteip":"192.168.1.21",
+        "netmask":"255.255.255.0", "mtu":1400, "phyifname":"xfrm"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+
+    message = R"({"updateconfig":{"remoteip":"192.168.1.21", "netmask":"255.255.255.0",
+        "mtu":1400, "phyifname":"xfrm", "primarydns":123, "secondarydns":456}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+
+    message = R"({"updateconfig":{"remoteip":"192.168.1.21", "netmask":"255.255.255.0",
+        "netmask":"255.255.255.0", "mtu":1400, "phyifname":"xfrm", "primarydns":"", "secondarydns":""}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+
+    message = R"({"updateconfig":{"remoteip":"192.168.1.21", "netmask":"255.255.255.0",
+        "mtu":1400, "phyifname":"xfrm", "primarydns":"123", "secondarydns":"456"}})";
+    EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(IpsecVpnCtlTest, HandleUpdateConfigTest001, TestSize.Level1)
 {
     if (ipsecControl_ == nullptr) {

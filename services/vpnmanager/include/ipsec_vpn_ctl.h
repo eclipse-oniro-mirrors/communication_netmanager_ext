@@ -95,7 +95,7 @@ protected:
     int32_t UpdateConfig(const std::string &msg);
 private:
     void ProcessUpdateConfig(cJSON* jConfig);
-    void ProcessDnsConfig(cJSON* jConfig);
+    int32_t ProcessDnsConfig(cJSON* jConfig);
     void ProcessSwanctlLoad();
     void ProcessIpsecUp();
     void HandleConnected();
