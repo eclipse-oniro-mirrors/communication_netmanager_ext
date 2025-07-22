@@ -90,6 +90,14 @@ ohos_unittest("ethernet_manager_test") {
 
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+    external_deps += [
+      "drivers_interface_ethernet:libethernet_proxy_1.0",
+      "hdf_core:libhdf_ipc_adapter",
+      "hdf_core:libhdi",
+    ]
+    sources += [
+      "eap_hdi_wpa_manager_test.cpp"
+    ]
   }
  
   external_deps += [ "hilog:libhilog" ]

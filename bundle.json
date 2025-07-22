@@ -86,6 +86,8 @@
                 "data_share",
                 "core_service",
                 "cellular_data",
+                "hdf_core",
+                "drivers_interface_ethernet",
                 "libxml2",
                 "json",
                 "hiappevent"
@@ -106,6 +108,7 @@
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager_trust",
                     "//foundation/communication/netmanager_ext/services/etc/init:mdnsmanager.rc",
                     "//foundation/communication/netmanager_ext/services/etc/init:vpnmanager.cfg",
+                    "//foundation/communication/netmanager_ext/services/etc/init:ethernet.cfg",
                     "//foundation/communication/netmanager_ext/sa_profile:mdns_manager_profile",
                     "//foundation/communication/netmanager_ext/sa_profile:netfirewall_manager_profile",
                     "//foundation/communication/netmanager_ext:netfirewall_packages",

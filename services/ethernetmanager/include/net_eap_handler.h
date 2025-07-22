@@ -21,12 +21,16 @@
 #include "eap_data.h"
 #include "inet_register_eap_callback.h"
 #include "inet_eap_postback_callback.h"
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#include "eth_eap_profile.h"
+#include "eap_hdi_wpa_manager.h"
+#endif
  
 namespace OHOS {
 namespace NetManagerStandard {
 class NetEapHandler : public std::enable_shared_from_this<NetEapHandler> {
 public:
-    NetEapHandler() = default;
+    NetEapHandler();
     ~NetEapHandler() = default;
  
     static NetEapHandler &GetInstance();
@@ -36,6 +40,11 @@ public:
     int32_t RegCustomEapHandler(NetType netType, const std::string &regCmd,
         const sptr<INetEapPostbackCallback> &postBackCb);
     int32_t ReplyCustomEapData(int result, const sptr<EapData> &eapData);
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    int32_t StartEthEap(int32_t netId, const EthEapProfile& profile);
+    int32_t LogOffEthEap(int32_t netId);
+#endif
+
 private:
     void SetPostbackCallback(const sptr<INetEapPostbackCallback> &postbackCallback);
     sptr<INetEapPostbackCallback> GetPostbackCallback();
@@ -46,6 +55,9 @@ private:
     sptr<INetEapPostbackCallback> postbackCallback_;
     std::mutex callbackMutex_;
     std::mutex mutex_;
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    std::shared_ptr<EapHdiWpaManager> eapHdiWpaManager_;
+#endif
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
