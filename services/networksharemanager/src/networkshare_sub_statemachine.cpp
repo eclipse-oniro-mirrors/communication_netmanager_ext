@@ -36,6 +36,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+constexpr int DHCP_IPV6_ENABLE = 1;
 constexpr const char *NEXT_HOT = "0.0.0.0";
 constexpr const char *IPV6_NEXT_HOT = "";
 const std::regex REGEX_MAC(std::string(R"(^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$)"));
@@ -529,6 +530,8 @@ void NetworkShareSubStateMachine::ConfigureShareIpv6(const sptr<NetLinkInfo> &up
         NETMGR_EXT_LOG_E("have nothing ipv6 address for iface[%{public}s!", upstreamLinkInfo->ifaceName_.c_str());
         return;
     }
+    NetsysController::GetInstance().SetEnableIpv6(ifaceName_, DHCP_IPV6_ENABLE);
+    NETMGR_EXT_LOG_I("ConfigureShareIpv6 SetEnableIpv6 success[%{public}s!", ifaceName_.c_str());
     if (raDaemon_ == nullptr) {
         AddIpv6InfoToLocalNetwork();
         StartIpv6();
