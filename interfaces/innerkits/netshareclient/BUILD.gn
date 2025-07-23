@@ -101,6 +101,7 @@ ohos_static_library("netshare_service_interface_stub") {
     "hilog:libhilog",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
+    "c_utils:utils",
   ]
   part_name = "netmanager_ext"
   subsystem_name = "communication"
