@@ -109,6 +109,7 @@ ohos_static_library("ethernet_service_interface_stub") {
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "samgr:samgr_proxy",
+    "c_utils:utils",
   ]
   part_name = "netmanager_ext"
   subsystem_name = "communication"
