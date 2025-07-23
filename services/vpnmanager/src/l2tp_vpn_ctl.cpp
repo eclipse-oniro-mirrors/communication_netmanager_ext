@@ -16,6 +16,7 @@
 #include "l2tp_vpn_ctl.h"
 
 #include <string>
+#include <sys/stat.h>
 
 #include "netmgr_ext_log_wrapper.h"
 #include "netmanager_base_common_utils.h"
@@ -82,9 +83,11 @@ int32_t L2tpVpnCtl::InitConfigFile()
     }
     if (!l2tpVpnConfig_->strongswanConf_.empty()) {
         CommonUtils::WriteFile(SWAN_CONFIG_FILE, l2tpVpnConfig_->strongswanConf_);
+        chmod(SWAN_CONFIG_FILE, S_IRUSR | S_IWUSR | S_IRGRP);
     }
     if (!l2tpVpnConfig_->xl2tpdConf_.empty()) {
         CommonUtils::WriteFile(L2TP_CFG, l2tpVpnConfig_->xl2tpdConf_);
+        chmod(L2TP_CFG, S_IRUSR | S_IWUSR | S_IRGRP);
     }
     return NETMANAGER_EXT_SUCCESS;
 }

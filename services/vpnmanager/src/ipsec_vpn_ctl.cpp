@@ -16,6 +16,7 @@
 #include "ipsec_vpn_ctl.h"
 
 #include <string>
+#include <sys/stat.h>
 
 #include "multi_vpn_helper.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -91,6 +92,7 @@ int32_t IpsecVpnCtl::InitConfigFile()
     }
     if (!ipsecVpnConfig_->strongswanConf_.empty()) {
         CommonUtils::WriteFile(SWAN_CONFIG_FILE, ipsecVpnConfig_->strongswanConf_);
+        chmod(SWAN_CONFIG_FILE, S_IRUSR | S_IWUSR | S_IRGRP);
     }
     return NETMANAGER_EXT_SUCCESS;
 }
