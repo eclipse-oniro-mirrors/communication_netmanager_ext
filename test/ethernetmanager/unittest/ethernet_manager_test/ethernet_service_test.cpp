@@ -566,6 +566,23 @@ HWTEST_F(EtherNetServiceTest, NotifyWpaEapInterceptInfoTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
 #endif
+
+HWTEST_F(EtherNetServiceTest, StartEthEapTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    int32_t netId = 100;
+    EthEapProfile profile;
+    auto ret = ethernetService.StartEthEap(netId, profile);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
+ 
+HWTEST_F(EtherNetServiceTest, LogOffEthEapTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    int32_t netId = 100;
+    auto ret = ethernetService.LogOffEthEap(netId);
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
  
 } // namespace NetManagerStandard
 } // namespace OHOS

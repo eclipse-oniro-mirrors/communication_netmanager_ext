@@ -22,7 +22,16 @@
  
 namespace OHOS {
 namespace NetManagerStandard {
- 
+
+static constexpr const char* DEFAULT_ETH_IFNAME = "eth0";
+
+NetEapHandler::NetEapHandler()
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    eapHdiWpaManager_ = std::make_shared<EapHdiWpaManager>();
+#endif
+}
+
 NetEapHandler &NetEapHandler::GetInstance()
 {
     static NetEapHandler gNetEap;
@@ -83,6 +92,13 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
         NETMGR_EXT_LOG_E("NetEapHandler, RegCustomEapHandler invalid netType %{public}d", static_cast<int>(netType));
         return NETMANAGER_ERR_PARAMETER_ERROR;
     }
+    if (netType == NetType::ETH0) {
+        NETMGR_EXT_LOG_I("RegEapHandler for eth0");
+        if (eapHdiWpaManager_ == nullptr) {
+            return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        }
+        return eapHdiWpaManager_->RegisterCustomEapCallback(DEFAULT_ETH_IFNAME, regCmd);
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = regEapCallBack_.find(netType);
     lock.unlock();
@@ -131,6 +147,13 @@ int32_t NetEapHandler::ReplyCustomEapData(int result, const sptr<EapData> &eapDa
             nTMapMsgId_.count(NetType::WLAN0), nTMapMsgId_.count(NetType::ETH0));
         return NETMANAGER_ERR_OPERATION_FAILED;
     }
+    /* ETH0 do not need check regEapCallBack_ */
+    if (iter->first == NetType::ETH0) {
+        if (eapHdiWpaManager_ == nullptr) {
+            return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        }
+        return eapHdiWpaManager_->ReplyCustomEapData(DEFAULT_ETH_IFNAME, result, eapData);
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto &callback = regEapCallBack_[iter->first];
     lock.unlock();
@@ -152,6 +175,28 @@ sptr<INetEapPostbackCallback> NetEapHandler::GetPostbackCallback()
 {
     return postbackCallback_;
 }
+
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+int32_t NetEapHandler::StartEthEap(int32_t netId, const EthEapProfile& profile)
+{
+    if (eapHdiWpaManager_ == nullptr) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    int32_t ret = eapHdiWpaManager_->LoadEthernetHdiService();
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    return eapHdiWpaManager_->StartEap(DEFAULT_ETH_IFNAME, profile);
+}
+ 
+int32_t NetEapHandler::LogOffEthEap(int32_t netId)
+{
+    if (eapHdiWpaManager_ == nullptr) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    return eapHdiWpaManager_->StopEap(DEFAULT_ETH_IFNAME);
+}
+#endif // NET_EXTENSIBLE_AUTHENTICATION
  
 } // namespace NetManagerStandard
 } // namespace OHOS

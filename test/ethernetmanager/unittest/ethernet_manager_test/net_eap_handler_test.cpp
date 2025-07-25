@@ -204,6 +204,76 @@ HWTEST_F(NetEapHandlerTest, ReplyCustomEapDataTest001, TestSize.Level1)
     int ret2 = NetEapHandler::GetInstance().ReplyCustomEapData(1, eapData);
     EXPECT_EQ(ret2, NETMANAGER_SUCCESS);
 }
+
+HWTEST_F(NetEapHandlerTest, RegCustomEapHandlerTest006, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    NetType netType = NetType::ETH0;
+    std::string regCmd = "2:277:278:279";
+    int ret = NetEapHandler::GetInstance().RegCustomEapHandler(netType, regCmd, g_eapPostbackCallback);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = nullptr;
+    ret = NetEapHandler::GetInstance().RegCustomEapHandler(netType, regCmd, g_eapPostbackCallback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = std::make_shared<EapHdiWpaManager>();
+    ret = NetEapHandler::GetInstance().RegCustomEapHandler(netType, regCmd, g_eapPostbackCallback);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+#endif
+}
+
+
+HWTEST_F(NetEapHandlerTest, ReplyCustomEapDataTest002, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    NetType netType = NetType::ETH0;
+    std::string regCmd = "2:277:278";
+    NetEapHandler::GetInstance().RegisterCustomEapCallback(netType, g_registerEapCallback);
+    NetEapHandler::GetInstance().RegCustomEapHandler(netType, regCmd, g_eapPostbackCallback);
+    int32_t result = 1;
+    sptr<EapData> eapData =new (std::nothrow) EapData();
+    eapData->eapCode = 2;
+    eapData->eapType = 13;
+    eapData->msgId = 55;
+    eapData->bufferLen = 4;
+    std::vector<uint8_t> tmp = {0x11, 0x12};
+    eapData->eapBuffer = tmp;
+    int ret = NetEapHandler::GetInstance().ReplyCustomEapData(result, eapData);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = nullptr;
+    ret = NetEapHandler::GetInstance().ReplyCustomEapData(result, eapData);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = std::make_shared<EapHdiWpaManager>();
+    ret = NetEapHandler::GetInstance().ReplyCustomEapData(result, eapData);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+#endif
+}
+ 
+HWTEST_F(NetEapHandlerTest, StartEthEapTest001, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    int32_t netId = 100;
+    EthEapProfile profile;
+    int ret = NetEapHandler::GetInstance().StartEthEap(netId, profile);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = nullptr;
+    ret = NetEapHandler::GetInstance().StartEthEap(netId, profile);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = std::make_shared<EapHdiWpaManager>();
+#endif
+}
+ 
+HWTEST_F(NetEapHandlerTest, LogOffEthEapTest001, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    int32_t netId = 100;
+    int ret = NetEapHandler::GetInstance().LogOffEthEap(netId);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = nullptr;
+    ret = NetEapHandler::GetInstance().LogOffEthEap(netId);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    NetEapHandler::GetInstance().eapHdiWpaManager_ = std::make_shared<EapHdiWpaManager>();
+#endif
+}
  
 } // namespace NetManagerStandard
 } // namespace OHOS

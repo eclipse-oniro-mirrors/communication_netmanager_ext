@@ -502,11 +502,17 @@ int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &d
 
 int32_t EthernetService::StartEthEap(int32_t netId, const EthEapProfile& profile)
 {
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    return NetEapHandler::GetInstance().StartEthEap(netId, profile);
+#endif
     return NETMANAGER_SUCCESS;
 }
  
 int32_t EthernetService::LogOffEthEap(int32_t netId)
 {
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    return NetEapHandler::GetInstance().LogOffEthEap(netId);
+#endif
     return NETMANAGER_SUCCESS;
 }
 
