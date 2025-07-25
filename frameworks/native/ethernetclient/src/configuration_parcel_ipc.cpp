@@ -68,6 +68,7 @@ ConfigurationParcelIpc* ConfigurationParcelIpc::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     std::string flags;
+    length = (length > MAX_FLAG_NUM) ? MAX_FLAG_NUM : length;
     for (int32_t idx = 0; idx < length; idx++) {
         if (!parcel.ReadString(flags)) {
             return nullptr;
