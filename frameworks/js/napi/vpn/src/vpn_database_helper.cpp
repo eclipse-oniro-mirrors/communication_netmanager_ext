@@ -477,16 +477,13 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<sptr<SysVpnConfig>> &infos, 
         return NETMANAGER_EXT_SUCCESS;
     }
     while (!queryResultSet->GoToNextRow()) {
-        sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-        if (vpnBean == nullptr) {
-            NETMGR_EXT_LOG_E("vpnBean is nullptr");
-            return NETMANAGER_EXT_ERR_INTERNAL;
-        }
+        sptr<VpnDataBean> vpnBean = sptr<VpnDataBean>::MakeSptr();
         GetVpnDataFromResultSet(queryResultSet, vpnBean);
         DecryptData(vpnBean);
         sptr<SysVpnConfig> config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
         if (config == nullptr) {
             NETMGR_EXT_LOG_E("config is nullptr");
+            queryResultSet->Close();
             return NETMANAGER_EXT_ERR_INTERNAL;
         }
         infos.emplace_back(config);
