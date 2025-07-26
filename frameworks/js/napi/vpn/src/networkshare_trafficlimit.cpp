@@ -105,20 +105,18 @@ int64_t NetworkShareTrafficLimit::GetNetSpeedForRadioTech(int32_t radioTech)
 void NetworkShareTrafficLimit::StartHandleSharingLimitEvent()
 {
     NETMGR_EXT_LOG_I("StartHandleSharingLimitEvent");
-    std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
-    observer->ReadTetherTrafficSetting();
-    observer->RegisterTetherDataSettingObserver();
+    observer_->ReadTetherTrafficSetting();
+    observer_->RegisterTetherDataSettingObserver();
     InitTetherStatsInfo();
-    eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+    eventHandler_->RemoveTask(SHARING_LIMIT_TASK_NAME);
     sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_DEFAULT);
 }
 
 void NetworkShareTrafficLimit::EndHandleSharingLimitEvent()
 {
     NETMGR_EXT_LOG_I("EndHandleSharingLimitEvent");
-    std::shared_ptr<SharingTrafficDataObserver> observer = std::make_shared<SharingTrafficDataObserver>();
-    observer->UnregisterTetherDataSettingObserver();
-    eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+    observer_->UnregisterTetherDataSettingObserver();
+    eventHandler_->RemoveAllEvents();
 }
 
 SharingTrafficDataObserver::SharingTrafficDataObserver()
@@ -161,7 +159,7 @@ void SharingTrafficDataObserver::ReadTetherTrafficSetting()
     if (!value.empty() && NetworkShareUtils::ConvertToInt64(value, tetherTmp)) {
         tetherInt = tetherTmp;
     }
-    NETMGR_EXT_LOG_D("tether limit value=%{public}" PRId64, tetherInt);
+    NETMGR_EXT_LOG_I("tether limit value=%{public}" PRId64, tetherInt);
     NetworkShareTrafficLimit::GetInstance().UpdataSharingSettingdata(tetherInt);
 }
 
@@ -208,7 +206,7 @@ void NetworkShareTrafficLimit::CheckSharingStatsData()
 {
     UpdataSharingTrafficStats();
     if (tetherTrafficInfos.mLimitSize < 0 && eventHandler_ != nullptr) {
-        eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+        eventHandler_->RemoveTask(SHARING_LIMIT_TASK_NAME);
         sendMsgDelayed(SHARING_LIMIT_TASK_NAME, STATS_INTERVAL_MAXIMUM);
         return;
     }
@@ -227,7 +225,7 @@ void NetworkShareTrafficLimit::CheckSharingStatsData()
         if (IsCellularDataConnection()) {
             updateDelay = GetNextUpdataDelay();
         }
-        eventHandler_->HandleRemoveTask(SHARING_LIMIT_TASK_NAME);
+        eventHandler_->RemoveTask(SHARING_LIMIT_TASK_NAME);
         sendMsgDelayed(SHARING_LIMIT_TASK_NAME, updateDelay);
         NETMGR_EXT_LOG_I("keep update when mIsDataConnAvailable, UpdateDelay=%{public}" PRId64, updateDelay);
     }
@@ -239,7 +237,7 @@ void NetworkShareTrafficLimit::sendMsgDelayed(const std::string &name, int64_t d
         NetworkShareTrafficLimit::CheckSharingStatsData();
         NETMGR_EXT_LOG_D("sendMsgDelayed enter");
     });
-    eventHandler_->HandlePostTask(delayed, name, delayTime);
+    eventHandler_->PostTask(delayed, name, delayTime);
 }
 
 bool NetworkShareTrafficLimit::IsCellularDataConnection()
@@ -347,28 +345,7 @@ void NetworkShareTrafficLimit::InitEventHandler()
         NETMGR_EXT_LOG_E("Failed to create a recvRunner");
         return;
     }
-    eventHandler_ = std::make_shared<TrafficEventHandler>(eventRunner);
-}
-
-TrafficEventHandler::TrafficEventHandler(const std::shared_ptr<AppExecFwk::EventRunner>& runner)
-    : EventHandler(runner)
-{}
-
-TrafficEventHandler::~TrafficEventHandler() = default;
-
-bool TrafficEventHandler::HandlePostTask(const Callback &callback, int64_t delayTime)
-{
-    return AppExecFwk::EventHandler::PostTask(callback, delayTime);
-}
-
-bool TrafficEventHandler::HandlePostTask(const Callback &callback, const std::string &name, int64_t delayTime)
-{
-    return AppExecFwk::EventHandler::PostTask(callback, name, delayTime);
-}
-
-void TrafficEventHandler::HandleRemoveTask(const std::string &name)
-{
-    AppExecFwk::EventHandler::RemoveTask(name);
+    eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(eventRunner);
 }
 
 void NetworkShareTrafficLimit::SaveSharingTrafficToCachedData(nmd::NetworkSharingTraffic &traffic)
