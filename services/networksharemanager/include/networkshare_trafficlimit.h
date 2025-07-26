@@ -53,7 +53,7 @@ enum class NetworkSpeed {
     NETWORK_SPEED_4G = 100 * MB_IN_BYTES,
 };
 
-class TrafficEventHandler;
+class SharingTrafficDataObserver;
 class NetworkShareTrafficLimit {
 public:
     NetworkShareTrafficLimit();
@@ -70,7 +70,7 @@ public:
     void AddSharingTrafficBeforeConnChanged(nmd::NetworkSharingTraffic &traffic);
     bool IsCellularDataConnection();
     void SaveSharingTrafficToSettingsDB(nmd::NetworkSharingTraffic &traffic);
-    std::shared_ptr<TrafficEventHandler> eventHandler_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_ = nullptr;
 
 private:
     void SendSharingTrafficToCachedData(const nmd::NetworkSharingTraffic &traffic,  const std::string &upIface);
@@ -82,6 +82,7 @@ private:
     bool IsValidSlotId(int32_t slotId);
     void WriteSharingTrafficToDB(const int64_t &traffic);
     void InitEventHandler();
+    std::shared_ptr<SharingTrafficDataObserver> observer_ = std::make_shared<SharingTrafficDataObserver>();
 
 private:
     TetherTrafficInfos tetherTrafficInfos;
@@ -108,15 +109,6 @@ public:
 
 public:
     sptr<TetherSingleValueObserver> mTetherSingleValueObserver_ = nullptr;
-};
-
-class TrafficEventHandler : public AppExecFwk::EventHandler {
-public:
-    explicit TrafficEventHandler(const std::shared_ptr<AppExecFwk::EventRunner>& runner);
-    ~TrafficEventHandler() override;
-    bool HandlePostTask(const Callback &callback, int64_t delayTime = 0);
-    bool HandlePostTask(const Callback &callback, const std::string &name = std::string(), int64_t delayTime = 0);
-    void HandleRemoveTask(const std::string &name);
 };
 
 inline int64_t GetCurrentMilliseconds()
