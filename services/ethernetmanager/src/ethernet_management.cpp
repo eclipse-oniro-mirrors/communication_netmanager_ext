@@ -142,12 +142,12 @@ EthernetManagement &EthernetManagement::GetInstance()
 EthernetManagement::EthernetManagement()
 {
     ethDhcpController_ = std::make_unique<EthernetDhcpController>();
-    ethDhcpNotifyCallback_ = new (std::nothrow) EhternetDhcpNotifyCallback(*this);
+    ethDhcpNotifyCallback_ = sptr<EhternetDhcpNotifyCallback>::MakeSptr(*this);
     if (ethDhcpNotifyCallback_ != nullptr) {
         ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
     }
 
-    ethDevInterfaceStateCallback_ = new (std::nothrow) DevInterfaceStateCallback(*this);
+    ethDevInterfaceStateCallback_ = sptr<DevInterfaceStateCallback>::MakeSptr(*this);
     ethConfiguration_ = std::make_unique<EthernetConfiguration>();
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
     ethLanManageMent_ = std::make_unique<EthernetLanManagement>();
@@ -360,6 +360,7 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         config = new (std::nothrow) StaticConfiguration();
         if (config == nullptr) {
             NETMGR_EXT_LOG_E("Iface:%{public}s's link info config is nullptr", dhcpResult.iface.c_str());
+            return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
         }
     }
 

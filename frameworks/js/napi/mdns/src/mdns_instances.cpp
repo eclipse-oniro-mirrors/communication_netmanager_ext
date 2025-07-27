@@ -24,7 +24,7 @@ std::map<MDnsDiscoveryObserver *, MDnsDiscoveryInstance *> MDnsDiscoveryInstance
 std::mutex g_mDNSDiscoverMutex;
 
 MDnsDiscoveryInstance::MDnsDiscoveryInstance(std::shared_ptr<EventManager>& eventManager)
-    : observer_(new (std::nothrow) MDnsDiscoveryObserver), manager_(eventManager)
+    : observer_(sptr<MDnsDiscoveryObserver>::MakeSptr()), manager_(eventManager)
 {
 }
 

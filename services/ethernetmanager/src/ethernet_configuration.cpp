@@ -203,7 +203,7 @@ bool EthernetConfiguration::ReadUserConfiguration(std::map<std::string, sptr<Int
                 continue;
             }
             std::string().swap(iface);
-            sptr<InterfaceConfiguration> cfg = new (std::nothrow) InterfaceConfiguration();
+            sptr<InterfaceConfiguration> cfg = sptr<InterfaceConfiguration>::MakeSptr();
             if (cfg == nullptr) {
                 NETMGR_EXT_LOG_E("cfg new failed for devname[%{public}s]", iface.c_str());
                 continue;
