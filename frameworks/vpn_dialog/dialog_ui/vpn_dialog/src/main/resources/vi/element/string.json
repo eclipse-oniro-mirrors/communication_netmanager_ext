@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Hủy",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Cho phép VPN này?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Cho phép",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Vui lòng xác nhận rằng bạn tin tưởng ứng dụng này. Các ứng dụng không đáng tin cậy có thể theo dõi lưu lượng mạng và đánh cắp dữ liệu của bạn.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
