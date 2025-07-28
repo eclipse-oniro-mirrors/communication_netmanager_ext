@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Cancelar",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"¿Permitir el uso de esta VPN?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Permitir",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Confirma si confías en esta aplicación. Las aplicaciones no fiables pueden monitorizar el tráfico de red y robar tus datos.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
