@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"འདོར་བ།",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"title",
+            "value":"VPN བཀོལ་ཆོག་པར་བྱེད་དམ།",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"ཆོག་པ།",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"ཉེར་སྤྱོད་འདིར་ཁྱེད་ནས་ཡིད་ཆེས་ཡོད་པ་གཏན་འཁེལ་གནང་རོགས། དེ་ལྟར་མ་བྱས་ན་དྲ་རྒྱར་ལྟ་སྡོམ་དང་གཞི་གྲངས་རྐུ་སྤྱོད་བྱེད་པའི་ཉེན་ཁ་འཕྲད་སྲིད།",
+            "attr":{
+                "priority":"LT"
+            }
+        }
+    ]
+}
