@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Отмена",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Разрешить эту VPN?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Разрешить",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Подтвердите, что это надежное приложение. Ненадежные приложения могут отслеживать сетевой трафик и красть ваши данные.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
