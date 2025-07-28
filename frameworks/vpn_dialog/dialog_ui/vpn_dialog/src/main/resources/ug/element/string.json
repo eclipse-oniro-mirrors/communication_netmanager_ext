@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"بىكار قىلىش",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"title",
+            "value":"بۇ VPN غا رۇخسەتمۇ؟",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"رۇخسەت",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"بۇ ئەپكە ئىشىنىدىغانلىقىڭىزنى جەزملەڭ، بولمىسا تور كۆزىتىلىش ياكى مەلۇمات ئوغرىلىنىش قاتارلىق خەۋپ بار.",
+            "attr":{
+                "priority":"LT"
+            }
+        }
+    ]
+}
