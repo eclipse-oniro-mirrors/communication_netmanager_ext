@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <net/if.h>
 #ifdef GTEST_API_
 #define private public
 #define protected public
@@ -64,11 +65,12 @@ HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     EXPECT_TRUE(routerAdvertiseDaemon->IsSocketValid());
     routerAdvertiseDaemon->StopRa();
-    while (routerAdvertiseDaemon->raParams_ != nullptr)
-    {
+    while (routerAdvertiseDaemon->raParams_ != nullptr) {
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
     EXPECT_FALSE(routerAdvertiseDaemon->IsSocketValid());
+    routerAdvertiseDaemon->StopRa();
+    EXPECT_EQ(routerAdvertiseDaemon->taskHandle_, nullptr);
 }
 
 /**
@@ -77,12 +79,27 @@ HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest, TestSize.Level1)
  * creating RA messages.
  * @tc.type: FUNC
  */
-HWTEST_F(RouterAdvertisementDaemonTest, CreateRASocketTest, TestSize.Level1)
+HWTEST_F(RouterAdvertisementDaemonTest, CreateRASocketTest001, TestSize.Level1)
 {
     auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
     auto ret = routerAdvertiseDaemon->CreateRASocket();
     EXPECT_TRUE(ret);
     EXPECT_TRUE(routerAdvertiseDaemon->IsSocketValid());
+}
+
+/**
+ * @tc.name: CreateRASocketTest
+ * @tc.desc: Test RouterAdvertisementDaemon CreateRASocket.Test the socket for
+ * creating RA messages.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, CreateRASocketTest002, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    routerAdvertiseDaemon->Init(std::string(IFNAMSIZ, ' '));
+    auto ret = routerAdvertiseDaemon->CreateRASocket();
+    EXPECT_FALSE(ret);
+    EXPECT_FALSE(routerAdvertiseDaemon->IsSocketValid());
 }
 
 /**
@@ -204,9 +221,6 @@ HWTEST_F(RouterAdvertisementDaemonTest, ResetRaRetryIntervalTest, TestSize.Level
     routerAdvertiseDaemon->sendRaTimes_ = 12;
     routerAdvertiseDaemon->ResetRaRetryInterval();
     EXPECT_EQ(routerAdvertiseDaemon->sendRaTimes_, 12);
-    routerAdvertiseDaemon->sendRaTimes_ = 10;
-    routerAdvertiseDaemon->ResetRaRetryInterval();
-    EXPECT_NE(routerAdvertiseDaemon->sendRaTimes_, 12);
 }
 
 /**

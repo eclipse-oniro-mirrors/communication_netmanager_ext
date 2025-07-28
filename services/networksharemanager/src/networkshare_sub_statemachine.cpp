@@ -36,7 +36,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr int DHCP_IPV6_ENABLE = 1;
 constexpr const char *NEXT_HOT = "0.0.0.0";
 constexpr const char *IPV6_NEXT_HOT = "";
 const std::regex REGEX_MAC(std::string(R"(^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$)"));
@@ -82,7 +81,9 @@ constexpr int32_t EUI64_FF = 0xFF;
 constexpr int32_t EUI64_FE = 0xFE;
 constexpr uint8_t NET_FAMILY_IPV4 = 1;
 constexpr uint8_t NET_FAMILY_IPV6 = 2;
-const std::string CELLULAR_IFACE_NAME = "rmnet";
+constexpr uint32_t DHCP_IPV6_ENABLE = 1;
+constexpr int32_t MAC_SSCANF_SPACE = 3;
+constexpr const char* CELLULAR_IFACE_NAME = "rmnet";
 } // namespace
 
 NetworkShareSubStateMachine::NetworkShareSubStateMachine(
