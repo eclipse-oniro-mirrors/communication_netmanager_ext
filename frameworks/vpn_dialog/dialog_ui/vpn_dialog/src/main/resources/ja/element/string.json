@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"キャンセル",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"このVPNを許可しますか？",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"許可",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"このアプリを信頼していることを確認してください。信頼できないアプリは、ネットワークトラフィックを監視し、データを盗む可能性があります。",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

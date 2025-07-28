@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Annuler",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Autoriser ce VPN ?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Autoriser",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Veuillez confirmer que vous faites confiance à cette application. Des applications non fiables pourraient surveiller votre trafic réseau et voler vos données.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

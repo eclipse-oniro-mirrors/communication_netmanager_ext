@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"取消",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"title",
+            "value":"允許使用 VPN？",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"允許",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"請確定您信任此應用程式，否則可能會面臨網絡被監控，數據遭到惡意盜用的風險。",
+            "attr":{
+                "priority":"LT"
+            }
+        }
+    ]
+}

@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"إلغاء",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"هل تسمح باستخدام VPN هذا؟",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"سماح",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"يُرجى تأكيد أنك تثق في هذا التطبيق. فقد تراقب التطبيقات غير الموثوقة حركة بياناتك وتسرقها.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
