@@ -35,6 +35,7 @@ struct ConfigurationParcelIpc : public Parcelable {
     virtual bool Marshalling(Parcel &parcel) const override;
     static ConfigurationParcelIpc* Unmarshalling(Parcel &parcel);
 };
+constexpr int32_t MAX_FLAG_NUM = 64;
 }
 }
 #endif // CONFIGURATION_PARCEL_IPC_H
