@@ -127,7 +127,7 @@ sptr<INetworkSliceService> NetworkSliceClient::GetProxy()
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
     }
-    deathRecipient_ = new (std::nothrow) NetworkSliceDeathRecipient(*this);
+    deathRecipient_ = sptr<NetworkSliceDeathRecipient>::MakeSptr(*this);
     if (deathRecipient_ == nullptr) {
         NETMGR_EXT_LOG_E("Recipient new failed!");
     }

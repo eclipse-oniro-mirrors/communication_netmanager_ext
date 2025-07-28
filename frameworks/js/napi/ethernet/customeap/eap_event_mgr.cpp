@@ -196,7 +196,7 @@ EapEventMgr &EapEventMgr::GetInstance()
     return instance;
 }
  
-EapEventMgr::EapEventMgr():eapPostBackCallback_(new (std::nothrow) NetEapPostBackCallback())
+EapEventMgr::EapEventMgr():eapPostBackCallback_(sptr<NetEapPostBackCallback>::MakeSptr())
 {
         auto samgrProxy = OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgrProxy == nullptr) {

@@ -24,7 +24,7 @@ std::map<std::string, sptr<IResolveCallback>> MDnsResolveLocalServiceContext::re
 std::mutex g_mDNSResolveMutex;
 
 MDnsResolveLocalServiceContext::MDnsResolveLocalServiceContext(napi_env env, std::shared_ptr<EventManager>& manager)
-    : MDnsBaseContext(env, manager), resolveObserver_(new (std::nothrow) MDnsResolveObserver())
+    : MDnsBaseContext(env, manager), resolveObserver_(sptr<MDnsResolveObserver>::MakeSptr())
 {
 }
 

@@ -132,7 +132,7 @@ sptr<IEthernetService> EthernetClient::GetProxy()
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
     }
-    deathRecipient_ = new (std::nothrow) EthernetDeathRecipient(*this);
+    deathRecipient_ = sptr<EthernetDeathRecipient>::MakeSptr(*this);
     if (deathRecipient_ == nullptr) {
         NETMGR_EXT_LOG_E("Recipient new failed!");
     }
