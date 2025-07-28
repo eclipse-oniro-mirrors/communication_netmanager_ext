@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"allowButton",
+            "value":"允许",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"notAllowButton",
+            "value":"取消",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"请确定您信任此应用，否则可能面临网络被监控，数据遭到恶意盗用的风险。",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"是否允许使用 VPN？",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
