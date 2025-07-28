@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"취소",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"이 VPN을 허용하시겠습니까?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"허용",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"이 앱을 신뢰한다고 확인하십시오. 신뢰할 수 없는 앱은 네트워크 트래픽을 모니터링하고 데이터를 도용할 수 있습니다.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
