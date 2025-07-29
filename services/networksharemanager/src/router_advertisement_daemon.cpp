@@ -28,11 +28,16 @@ namespace {
  * MinRtrAdvInterval: MUST be no less than 3seconds and no greater than 0.75 * MaxRtrAdvInterval.
  *                 Default: 0.33 * MaxRtrAdvInterval If
  *                 MaxRtrAdvInterval >= 9 seconds; otherwise, the
- *                 Default is MaxRtrAdvInterval.
+ *                 Default is random number in MinRtrAdvInterval to MaxRtrAdvInterval.
  */
-constexpr uint32_t MAX_URGENT_RTR_ADVERTISEMENTS = 10;
+// Both initial and final RAs, but also for changes in RA contents.
+// From https://tools.ietf.org/html/rfc4861#section-10 .
+constexpr uint32_t MAX_URGENT_RTR_ADVERTISEMENTS = 5;
 constexpr uint32_t RECV_RS_TIMEOUT = 1;
-constexpr uint32_t SEND_RA_INTERVAL = 3000;
+// eg:11:22:33:44:55:66 or 11-22-33-44-55-66
+constexpr uint32_t HW_MAC_STR_LENGTH = 17;
+constexpr uint32_t SECOND_TO_MICROSECOND = 1000 * 1000;
+constexpr uint32_t SEND_RA_INTERVAL = 3 * SECOND_TO_MICROSECOND;
 constexpr size_t RA_HEADER_SIZE = 16;
 
 /**
@@ -55,6 +60,7 @@ constexpr const char *DST_IPV6 = "ff02::1";
 
 RouterAdvertisementDaemon::RouterAdvertisementDaemon()
 {
+    sendRaFfrtQueue_ = std::make_shared<ffrt::queue>("SendRa");
     raParams_ = std::make_shared<RaParams>();
 }
 
@@ -95,17 +101,19 @@ int32_t RouterAdvertisementDaemon::StartRa()
     recvRsThread_ = std::thread([sp]() { sp->RunRecvRsThread(); });
     pthread_setname_np(recvRsThread_.native_handle(), "OH_Net_RecvRs");
     recvRsThread_.detach();
-    ffrtTimer_.Start(SEND_RA_INTERVAL, [sp]() { sp->ProcessSendRaPacket(); });
+    auto callback = [sp]() { sp->ProcessSendRaPacket(); };
+    taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
     return NETMANAGER_EXT_SUCCESS;
 }
 
 void RouterAdvertisementDaemon::StopRa()
 {
     NETMGR_EXT_LOG_I("StopRa");
-    // close timer
-    ffrtTimer_.Stop();
-
     HupRaThread();
+    if (taskHandle_ != nullptr) {
+        sendRaFfrtQueue_->cancel(taskHandle_);
+        taskHandle_ = nullptr;
+    }
 }
 
 bool RouterAdvertisementDaemon::CreateRASocket()
@@ -234,18 +242,14 @@ void RouterAdvertisementDaemon::BuildNewRa(const RaParams &newRa)
 
 void RouterAdvertisementDaemon::ResetRaRetryInterval()
 {
+    auto sp = shared_from_this();
+    auto callback = [sp]() { sp->ProcessSendRaPacket(); };
+    uint32_t delayTime = DEFAULT_RTR_INTERVAL_SEC * SECOND_TO_MICROSECOND;
     if (sendRaTimes_ < MAX_URGENT_RTR_ADVERTISEMENTS) {
         sendRaTimes_++;
-        return;
+        delayTime = SEND_RA_INTERVAL;
     }
-    if (sendRaTimes_ == MAX_URGENT_RTR_ADVERTISEMENTS) {
-        itimerval setvalue = {};
-        itimerval oldvalue = {};
-        setvalue.it_interval.tv_sec = DEFAULT_RTR_INTERVAL_SEC;
-        setvalue.it_value.tv_sec = 1;
-        sendRaTimes_++;
-        return;
-    }
+    taskHandle_ = sendRaFfrtQueue_->submit_h(callback, ffrt::task_attr().delay(delayTime));
 }
 
 bool RouterAdvertisementDaemon::AssembleRaLocked()

@@ -42,13 +42,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 constexpr uint32_t HW_MAC_LENGTH = 6;
-
-// eg:11:22:33:44:55:66 or 11-22-33-44-55-66
-constexpr uint32_t HW_MAC_STR_LENGTH = 17;
 constexpr uint32_t IPV6_ADDR_LEN = 16;
 constexpr uint32_t DEFAULT_RTR_INTERVAL_SEC = 600;
 constexpr uint32_t DEFAULT_LIFETIME = 6 * DEFAULT_RTR_INTERVAL_SEC;
-constexpr int32_t MAC_SSCANF_SPACE = 3;
 
 // www.rfc-editor.org/rfc/rfc4861#section-4.6
 constexpr uint32_t UNITS_OF_OCTETS = 8;
@@ -147,7 +143,8 @@ private:
     uint8_t raPacket_[IPV6_MIN_MTU] = {};
     uint16_t raPacketLength_ = 0;
     std::shared_ptr<RaParams> raParams_;
-    FfrtTimer ffrtTimer_;
+    std::shared_ptr<ffrt::queue> sendRaFfrtQueue_ = nullptr;
+    ffrt::task_handle taskHandle_ = nullptr;
 };
 
 } // namespace NetManagerStandard
