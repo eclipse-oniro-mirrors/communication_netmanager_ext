@@ -229,7 +229,10 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
 
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
-    if (abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
+    std::string selfAppName;
+    std::string selfBundleName;
+    NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName, selfBundleName);
+    if (selfBundleName != VPN_DIALOG_BUNDLENAME || abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
         NetworkVpnClient::GetInstance().SetSelfVpnPid();
         napi_value retVal = ProcessPermissionRequests(env, bundleName, abilityName);
         if (retVal != nullptr) {
