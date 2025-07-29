@@ -110,11 +110,11 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig001, TestSize.Level1)
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
-    EXPECT_TRUE(networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_SUCCESS ||
-        networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    ret = networkVpnClient_.AddSysVpnConfig(config);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
     // delete test config
-    EXPECT_TRUE(networkVpnClient_.DeleteSysVpnConfig(id) == NETMANAGER_EXT_SUCCESS ||
-        networkVpnClient_.DeleteSysVpnConfig(id) == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    auto ret2 = networkVpnClient_.DeleteSysVpnConfig(id);
+    EXPECT_TRUE(ret2 == NETMANAGER_EXT_SUCCESS || ret2 == NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig002, TestSize.Level1)
@@ -128,8 +128,8 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig002, TestSize.Level1)
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
-    EXPECT_TRUE(networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_ERR_READ_DATA_FAIL ||
-        networkVpnClient_.AddSysVpnConfig(config) == 5);
+    auto ret = networkVpnClient_.AddSysVpnConfig(config);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_READ_DATA_FAIL || ret == 5);
 }
 
 HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig003, TestSize.Level1)
@@ -151,8 +151,8 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig004, TestSize.Level1)
     config->vpnType_ = 0;
     config->saveLogin_ = false;
     config->userId_ = 0;
-    EXPECT_TRUE(networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_ERR_READ_DATA_FAIL ||
-        networkVpnClient_.AddSysVpnConfig(config) == 5);
+    auto ret = networkVpnClient_.AddSysVpnConfig(config);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_READ_DATA_FAIL || ret == 5);
 }
 
 HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig001, TestSize.Level1)
@@ -166,14 +166,14 @@ HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig001, TestSize.Level1)
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
-    EXPECT_TRUE(networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_SUCCESS ||
-        networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    auto ret = networkVpnClient_.AddSysVpnConfig(config);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
     // delete test config
     std::string emptyStr;
-    int32_t ret = networkVpnClient_.DeleteSysVpnConfig(emptyStr);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
-    ret = networkVpnClient_.DeleteSysVpnConfig(id);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    int32_t ret2 = networkVpnClient_.DeleteSysVpnConfig(emptyStr);
+    EXPECT_EQ(ret2, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    auto ret3 = networkVpnClient_.DeleteSysVpnConfig(id);
+    EXPECT_TRUE(ret3 == NETMANAGER_EXT_SUCCESS || ret3 == NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig002, TestSize.Level1)
@@ -199,8 +199,8 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList002, TestSize.Level1)
     config->vpnId_ = "testGetList";
     config->vpnName_ = "testList";
     config->vpnType_ = 1;
-    EXPECT_TRUE(networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_SUCCESS ||
-        networkVpnClient_.AddSysVpnConfig(config) == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    auto ret = networkVpnClient_.AddSysVpnConfig(config);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
     EXPECT_EQ(networkVpnClient_.GetSysVpnConfigList(list), NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
@@ -224,8 +224,8 @@ HWTEST_F(NetworkVpnClientTest, GetConnectedSysVpnConfig001, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     sptr<SysVpnConfig> resConfig = nullptr;
-    EXPECT_TRUE(networkVpnClient_.GetConnectedSysVpnConfig(resConfig) == NETMANAGER_EXT_SUCCESS ||
-        networkVpnClient_.GetConnectedSysVpnConfig(resConfig) == 5);
+    auto ret = networkVpnClient_.GetConnectedSysVpnConfig(resConfig);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == 5);
 }
 
 HWTEST_F(NetworkVpnClientTest, NotifyConnectStage001, TestSize.Level1)
@@ -373,11 +373,11 @@ HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent_01, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.RegisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     callback = new (std::nothrow) VpnSetUpEventCallback();
     ASSERT_NE(callback, nullptr);
-    EXPECT_TRUE(networkVpnClient_.RegisterMultiVpnEvent(callback) == NETMANAGER_EXT_ERR_PERMISSION_DENIED ||
-        networkVpnClient_.RegisterMultiVpnEvent(callback) == NETMANAGER_EXT_SUCCESS);
+    auto ret = networkVpnClient_.RegisterMultiVpnEvent(callback);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_PERMISSION_DENIED || ret == NETMANAGER_EXT_SUCCESS);
     NetManagerExtAccessToken access;
-    EXPECT_TRUE(networkVpnClient_.RegisterMultiVpnEvent(callback) == NETMANAGER_EXT_ERR_PARAMETER_ERROR ||
-        networkVpnClient_.RegisterMultiVpnEvent(callback) == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    ret = networkVpnClient_.RegisterMultiVpnEvent(callback);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_PARAMETER_ERROR || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent_01, TestSize.Level1)
@@ -386,11 +386,11 @@ HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent_01, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.UnregisterMultiVpnEvent(callback), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     callback = new (std::nothrow) VpnSetUpEventCallback();
     ASSERT_NE(callback, nullptr);
-    EXPECT_TRUE(networkVpnClient_.UnregisterMultiVpnEvent(callback) == NETMANAGER_EXT_ERR_PERMISSION_DENIED ||
-        networkVpnClient_.UnregisterMultiVpnEvent(callback) == NETMANAGER_EXT_SUCCESS);
+    auto ret = networkVpnClient_.UnregisterMultiVpnEvent(callback);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_PERMISSION_DENIED || ret == NETMANAGER_EXT_SUCCESS);
     NetManagerExtAccessToken access;
-    EXPECT_TRUE(networkVpnClient_.UnregisterMultiVpnEvent(callback) == NETMANAGER_EXT_ERR_OPERATION_FAILED ||
-        networkVpnClient_.UnregisterMultiVpnEvent(callback) == NETMANAGER_EXT_SUCCESS);
+    ret = networkVpnClient_.UnregisterMultiVpnEvent(callback);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_OPERATION_FAILED || ret == NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnClientTest, OnMultiVpnStateChanged_01, TestSize.Level1)
