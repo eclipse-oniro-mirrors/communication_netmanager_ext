@@ -1705,5 +1705,13 @@ HWTEST_F(MDnsProtocolImplTest, StopCbMapTest002, TestSize.Level1) {
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
     EXPECT_EQ(mDnsProtocolImpl.browserMap_.find(name), mDnsProtocolImpl.browserMap_.end());
 }
+
+HWTEST_F(MDnsClientTest, RestartResumeTest001, TestSize.Level1)
+{
+    MDnsClient mdnsclient;
+    sptr<IRegistrationCallback> cb;
+    mdnsclient.RestartResume();
+    EXPECT_EQ(mdnsclient.UnRegisterService(cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
