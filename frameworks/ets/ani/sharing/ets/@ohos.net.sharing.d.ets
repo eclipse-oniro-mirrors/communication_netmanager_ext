@@ -189,7 +189,7 @@ export default namespace sharing {
   export function getStatsTotalBytes(): Promise<long> {
     return new Promise<long>((resolve, reject) => {
       taskpool.execute((): long => {
-          return getStatsTxBytesSync();
+          return getStatsTotalBytesSync();
       }).then((content: NullishType) => {
           resolve(content as long);
       }, (err: Error): void => {
