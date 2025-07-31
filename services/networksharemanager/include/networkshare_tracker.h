@@ -226,6 +226,9 @@ public:
      */
     void OnPowerConnected();
 
+#ifdef WIFI_MODOULE
+    void RegisterWifiApCallback();
+#endif
 private:
     NetworkShareTracker() = default;
 
@@ -258,7 +261,6 @@ private:
     void OnChangeSharingState(const SharingIfaceType &type, bool state);
     void RegisterBtPanCallback();
 #ifdef WIFI_MODOULE
-    void RegisterWifiApCallback();
     void SetWifiState(const Wifi::ApState &state);
     void HandleHotSpotStarted();
     void HandleHotSpotClosed();

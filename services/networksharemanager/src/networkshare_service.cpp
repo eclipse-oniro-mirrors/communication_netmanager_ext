@@ -104,6 +104,7 @@ bool NetworkShareService::Init()
   
     AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
     AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
+    AddSystemAbilityListener(WIFI_HOTSPOT_SYS_ABILITY_ID);
     SubscribeCommonEvent();
 #ifdef SHARE_NOTIFICATION_ENABLE
     SubscribeWifiShareNtfEvent();
@@ -422,6 +423,11 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
     if (systemAbilityId == COMM_NET_CONN_MANAGER_SYS_ABILITY_ID) {
         NetworkShareTracker::GetInstance().Init();
     }
+#ifdef WIFI_MODOULE
+    if (systemAbilityId == WIFI_HOTSPOT_SYS_ABILITY_ID) {
+        NetworkShareTracker::GetInstance().RegisterWifiApCallback();
+    }
+#endif
 }
 
 void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
