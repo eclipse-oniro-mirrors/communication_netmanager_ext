@@ -502,6 +502,9 @@ void EthernetConfiguration::ParseBootProto(const std::string &fileContent, sptr<
     }
     pos += strlen(KEY_BOOTPROTO);
     const auto &bootProto = fileContent.substr(pos, fileContent.find(WRAP, pos) - pos);
+    if (cfg == nullptr) {
+        return;
+    }
     if (bootProto == KEY_LAN_STATIC) {
         cfg->mode_ = LAN_STATIC;
     } else if (bootProto == KEY_LAN_DHCP) {
