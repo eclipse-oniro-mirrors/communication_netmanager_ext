@@ -93,6 +93,8 @@ public:
      */
     void RegisterUpstreamChangedCallback(const std::shared_ptr<NotifyUpstreamCallback> &callback);
 
+    void OnNetworkConnectChange(int32_t state, int32_t bearerType);
+
 private:
     void NotifyMainStateMachine(int32_t which, const std::shared_ptr<UpstreamNetworkInfo> &obj);
     void NotifyMainStateMachine(int32_t which);

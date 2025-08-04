@@ -179,27 +179,21 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, GetCurrentGoodUpstreamTest, TestSize.L
     if (monitor == nullptr) {
         return;
     }
-    monitor->ListenDefaultNetwork();
+
     int32_t netId = 0;
     sptr<NetHandle> netHandle = nullptr;
     sptr<NetAllCapabilities> netAllCap = nullptr;
     sptr<NetLinkInfo> info = nullptr;
     auto upstreamNetInfo = std::make_shared<UpstreamNetworkInfo>(netHandle, netAllCap, info);
+
+    monitor->networkMaps_.clear();
+    monitor->defaultNetworkId_ = 100;
     bool result = monitor->GetCurrentGoodUpstream(upstreamNetInfo);
     EXPECT_FALSE(result);
 
-    netHandle = std::make_unique<NetHandle>(netId).release();
-    netAllCap = std::make_unique<NetAllCapabilities>().release();
-    info = std::make_unique<NetLinkInfo>().release();
+    monitor->networkMaps_.insert(std::make_pair(monitor->defaultNetworkId_, upstreamNetInfo));
     result = monitor->GetCurrentGoodUpstream(upstreamNetInfo);
-    EXPECT_FALSE(result);
-
-    monitor->defaultNetworkCallback_->NetAvailable(netHandle);
-    result = monitor->GetCurrentGoodUpstream(upstreamNetInfo);
-
-    netHandle->SetNetId(-1);
-    result = monitor->GetCurrentGoodUpstream(upstreamNetInfo);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, NotifyMainStateMachineTest, TestSize.Level1)
@@ -281,6 +275,24 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLost01, TestSize.Level1)
     netHandle = std::make_unique<NetHandle>(netId).release();
     NetworkShareUpstreamMonitor::GetInstance()->HandleNetLost(netHandle);
     EXPECT_NE(netHandle, nullptr);
+}
+
+HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest001, TestSize.Level1)
+{
+    auto monitor = NetworkShareUpstreamMonitor::GetInstance();
+    if (monitor == nullptr) {
+        return;
+    }
+    int32_t state = NET_CONN_STATE_CONNECTED;
+    int32_t bearerType = BEARER_WIFI;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    bearerType = BEARER_CELLULAR;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    state = NET_CONN_STATE_DISCONNECTED;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    state = NET_CONN_STATE_IDLE;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    EXPECT_NE(monitor->defaultNetworkId_, 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
