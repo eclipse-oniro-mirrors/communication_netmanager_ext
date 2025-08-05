@@ -149,6 +149,9 @@ bool RouterAdvertisementDaemon::CreateRASocket()
     if (setsockopt(socket_, IPPROTO_IPV6, IPV6_UNICAST_HOPS, (void *)&hoplimitNew, sizeof(hoplimitNew)) == -1) {
         NETMGR_EXT_LOG_E(" setsockopt IPV6_UNICAST_HOPS fail");
     }
+    if (setsockopt(socket_, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (void *)&hoplimitNew, sizeof(hoplimitNew)) == -1) {
+        NETMGR_EXT_LOG_E(" setsockopt IPV6_MULTICAST_HOPS fail");
+    }
     return true;
 }
 
