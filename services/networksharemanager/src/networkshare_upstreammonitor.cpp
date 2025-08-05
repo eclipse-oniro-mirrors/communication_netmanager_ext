@@ -92,7 +92,11 @@ int32_t NetworkShareUpstreamMonitor::NetConnectionCallback::NetBlockStatusChange
     return NETMANAGER_EXT_SUCCESS;
 }
 
-NetworkShareUpstreamMonitor::NetworkShareUpstreamMonitor() : defaultNetworkId_(INVALID_NETID) {}
+NetworkShareUpstreamMonitor::NetworkShareUpstreamMonitor() : defaultNetworkId_(INVALID_NETID)
+{
+    netSpecifier_ = sptr<NetSpecifier>::MakeSptr();
+    netSpecifier_->netCapabilities_.netCaps_ = {NET_CAPABILITY_INTERNET, NET_CAPABILITY_NOT_VPN};
+}
 
 NetworkShareUpstreamMonitor::~NetworkShareUpstreamMonitor()
 {
@@ -113,20 +117,16 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
             sptr<NetConnectionCallback>::MakeSptr(shared_from_this(), CALLBACK_DEFAULT_INTERNET_NETWORK);
     }
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    netSpecifier_ = (std::make_unique<NetSpecifier>()).release();
     bool isSupportDun = false;
     Telephony::CellularDataClient::GetInstance().GetIfSupportDunApn(isSupportDun);
     NETMGR_EXT_LOG_I("isSupportDun=%{public}d", isSupportDun);
-    isSupportDun = false;
     if (isSupportDun) {
         netSpecifier_->netCapabilities_.netCaps_ = {NET_CAPABILITY_DUN, NET_CAPABILITY_NOT_VPN};
     } else {
         netSpecifier_->netCapabilities_.netCaps_ = {NET_CAPABILITY_INTERNET, NET_CAPABILITY_NOT_VPN};
     }
-    int32_t result = NetConnClient::GetInstance().RegisterNetConnCallback(netSpecifier_, defaultNetworkCallback_, 0);
-#else
-    int32_t result = NetConnClient::GetInstance().RegisterNetConnCallback(defaultNetworkCallback_);
 #endif
+    int32_t result = NetConnClient::GetInstance().RegisterNetConnCallback(netSpecifier_, defaultNetworkCallback_, 0);
     if (result == NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_I("Register defaultNetworkCallback_ successful");
     } else {
@@ -153,40 +153,12 @@ void NetworkShareUpstreamMonitor::RegisterUpstreamChangedCallback(
 
 bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo)
 {
-    if (upstreamNetInfo == nullptr || upstreamNetInfo->netHandle_ == nullptr) {
-        NETMGR_EXT_LOG_E("NetConnClient or upstreamNetInfo is null.");
+    std::lock_guard lock(networkMapMutex_);
+    auto iter = networkMaps_.find(defaultNetworkId_);
+    if (iter == networkMaps_.end()) {
         return false;
     }
-    bool hasDefaultNet = true;
-    int32_t result = NetConnClient::GetInstance().HasDefaultNet(hasDefaultNet);
-    if (result != NETMANAGER_SUCCESS || !hasDefaultNet) {
-        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
-            NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
-            ERROR_MSG_HAS_NOT_UPSTREAM, NetworkShareEventType::SETUP_EVENT);
-        NETMGR_EXT_LOG_E("NetConn hasDefaultNet error[%{public}d].", result);
-        return false;
-    }
-
-    NetConnClient::GetInstance().GetDefaultNet(*(upstreamNetInfo->netHandle_));
-    int32_t currentNetId = upstreamNetInfo->netHandle_->GetNetId();
-    NETMGR_EXT_LOG_I("NetConn get defaultNet id[%{public}d].", currentNetId);
-    if (currentNetId <= INVALID_NETID) {
-        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
-            NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
-            ERROR_MSG_UPSTREAM_ERROR, NetworkShareEventType::SETUP_EVENT);
-        NETMGR_EXT_LOG_E("NetConn get defaultNet id[%{public}d] is error.", currentNetId);
-        return false;
-    }
-
-    {
-        std::lock_guard lock(networkMapMutex_);
-        auto iter = networkMaps_.find(currentNetId);
-        if (iter == networkMaps_.end()) {
-            return false;
-        }
-        upstreamNetInfo = iter->second;
-    }
-    defaultNetworkId_ = currentNetId;
+    upstreamNetInfo = iter->second;
     return true;
 }
 
@@ -265,13 +237,14 @@ void NetworkShareUpstreamMonitor::HandleConnectionPropertiesChange(sptr<NetHandl
 
     if (currentNetwork != nullptr) {
         if (defaultNetworkId_ == INVALID_NETID || defaultNetworkId_ == netHandle->GetNetId()) {
+            defaultNetworkId_ = netHandle->GetNetId();
             NETMGR_EXT_LOG_I("Send MainSM ON_LINKPROPERTY event with netHandle[%{public}d].", netHandle->GetNetId());
             NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_ON_LINKPROPERTIES, currentNetwork);
         } else {
+            defaultNetworkId_ = netHandle->GetNetId();
             NETMGR_EXT_LOG_I("Send MainSM ON_SWITCH event with netHandle[%{public}d].", netHandle->GetNetId());
             NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_DEFAULT_SWITCHED, currentNetwork);
         }
-        defaultNetworkId_ = netHandle->GetNetId();
     }
 }
 
@@ -288,6 +261,7 @@ void NetworkShareUpstreamMonitor::HandleNetLost(sptr<NetHandle> &netHandle)
             NETMGR_EXT_LOG_I("netHandle[%{public}d] is lost, defaultNetId[%{public}d].", netHandle->GetNetId(),
                              defaultNetworkId_);
             currentNetInfo = iter->second;
+            networkMaps_.erase(netHandle->GetNetId());
         }
     }
 
@@ -295,6 +269,18 @@ void NetworkShareUpstreamMonitor::HandleNetLost(sptr<NetHandle> &netHandle)
         NETMGR_EXT_LOG_I("Send MainSM ON_LOST event with netHandle[%{public}d].", defaultNetworkId_);
         NotifyMainStateMachine(EVENT_UPSTREAM_CALLBACK_ON_LOST, currentNetInfo);
         defaultNetworkId_ = INVALID_NETID;
+    }
+}
+
+void NetworkShareUpstreamMonitor::OnNetworkConnectChange(int32_t state, int32_t bearerType)
+{
+    if (bearerType != BEARER_CELLULAR) {
+        return;
+    }
+    if (state == NET_CONN_STATE_CONNECTED || state == NET_CONN_STATE_DISCONNECTED) {
+        NETMGR_EXT_LOG_I("OnNetworkConnectChange re-Register cell");
+        UnregisterListenDefaultNetwork();
+        ListenDefaultNetwork();
     }
 }
 

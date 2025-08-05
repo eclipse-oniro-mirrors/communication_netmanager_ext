@@ -362,5 +362,27 @@ HWTEST_F(NetworkShareServiceTest, SubscribeCommonEvent001, TestSize.Level1)
     instance_->SubscribeCommonEvent();
     EXPECT_NE(instance_->commonEventSubscriber_, nullptr);
 }
+
+HWTEST_F(NetworkShareServiceTest, OnReceiveEventTest001, TestSize.Level1)
+{
+    instance_->SubscribeCommonEvent();
+    EventFwk::CommonEventData data;
+    EventFwk::Want want;
+    want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_CONNECTIVITY_CHANGE);
+    data.SetWant(want);
+    instance_->commonEventSubscriber_->OnReceiveEvent(data);
+    EXPECT_NE(instance_->commonEventSubscriber_, nullptr);
+}
+ 
+HWTEST_F(NetworkShareServiceTest, OnReceiveEventTest002, TestSize.Level1)
+{
+    instance_->SubscribeCommonEvent();
+    EventFwk::CommonEventData data;
+    EventFwk::Want want;
+    want.SetAction("none");
+    data.SetWant(want);
+    instance_->commonEventSubscriber_->OnReceiveEvent(data);
+    EXPECT_NE(instance_->commonEventSubscriber_, nullptr);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

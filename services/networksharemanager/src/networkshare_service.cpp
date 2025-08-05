@@ -21,6 +21,7 @@
 #include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
+#include "networkshare_upstreammonitor.h"
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
 #include "system_ability_definition.h"
@@ -502,6 +503,7 @@ void NetworkShareService::SubscribeCommonEvent()
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_CONNECTED);
     matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_DISCONNECTED);
+    matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_CONNECTIVITY_CHANGE);
 #ifdef USB_MODOULE
     matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USB_STATE);
 #endif
@@ -537,6 +539,11 @@ void NetworkShareService::CommonEventSubscriber::OnReceiveEvent(const EventFwk::
             NetworkShareTracker::GetInstance().StopNetworkSharing(SharingIfaceType::SHARING_USB);
         }
 #endif
+    } else if (action == OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_CONNECTIVITY_CHANGE) {
+        int32_t state = eventData.GetCode();
+        int32_t bearerType = eventData.GetWant().GetIntParam("NetType", BEARER_DEFAULT);
+        NETMGR_EXT_LOG_I("ConnectivityChange state=%{public}d, type=%{public}d", state, bearerType);
+        DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance()->OnNetworkConnectChange(state, bearerType);
     }
 }
 
