@@ -236,7 +236,7 @@ HWTEST_F(EthernetClientTest, RegCustomEapHandlerTest001, TestSize.Level1)
     std::string regCmd = "";
     sptr<INetEapPostbackCallback> callback = (std::make_unique<NetEapPostBackCallbackTest>()).release();
     int32_t ret = ethernetClient->RegCustomEapHandler(netType, regCmd, callback);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
  
 /**
@@ -250,7 +250,7 @@ HWTEST_F(EthernetClientTest, ReplyCustomEapDataTest001, TestSize.Level1)
     int result = -1;
     sptr<EapData> eapData = (std::make_unique<EapData>()).release();
     int32_t ret = ethernetClient->ReplyCustomEapData(result, eapData);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
  
 /**
@@ -264,7 +264,7 @@ HWTEST_F(EthernetClientTest, RegisterCustomEapCallbackTest001, TestSize.Level1)
     NetType netType = NetType::ETH0;
     sptr<INetRegisterEapCallback> callback = (std::make_unique<NetRegisterEapCallbackTest>()).release();
     int32_t ret = ethernetClient->RegisterCustomEapCallback(netType, callback);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
  
 /**
@@ -278,7 +278,7 @@ HWTEST_F(EthernetClientTest, UnRegisterCustomEapCallbackTest001, TestSize.Level1
     NetType netType = NetType::ETH0;
     sptr<INetRegisterEapCallback> callback = (std::make_unique<NetRegisterEapCallbackTest>()).release();
     int32_t ret = ethernetClient->UnRegisterCustomEapCallback(netType, callback);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
  
 /**
@@ -292,7 +292,7 @@ HWTEST_F(EthernetClientTest, NotifyWpaEapInterceptInfoTest001, TestSize.Level1)
     NetType netType = NetType::ETH0;
     sptr<EapData> eapData = (std::make_unique<EapData>()).release();
     int32_t ret = ethernetClient->NotifyWpaEapInterceptInfo(netType, eapData);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
  
 /**
@@ -306,7 +306,7 @@ HWTEST_F(EthernetClientTest, StartEthEapTest001, TestSize.Level1)
     int32_t netId = 100;
     EthEapProfile profile;
     int32_t ret = ethernetClient->StartEthEap(netId, profile);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
  
 /**
@@ -319,7 +319,7 @@ HWTEST_F(EthernetClientTest, LogOffEthEapTest001, TestSize.Level1)
     auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
     int32_t netId = 100;
     int32_t ret = ethernetClient->LogOffEthEap(netId);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 } // namespace NetManagerStandard
