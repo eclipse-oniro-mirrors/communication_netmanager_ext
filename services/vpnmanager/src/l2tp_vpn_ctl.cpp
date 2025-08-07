@@ -60,7 +60,7 @@ int32_t L2tpVpnCtl::StartSysVpn()
         NetsysController::GetInstance().ProcessVpnStage(
             SysVpnStageCode::VPN_STAGE_CREATE_PPP_FD, multiVpnInfo_->ifName);
     }
-    if (l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
+    if (l2tpVpnConfig_ != nullptr && l2tpVpnConfig_->vpnType_ == VpnType::L2TP) {
         state_ = IpsecVpnStateCode::STATE_CONFIGED;
         if (!MultiVpnHelper::GetInstance().StartL2tp()) {
             AddConfigToL2tpdConf();
@@ -100,7 +100,7 @@ int32_t L2tpVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t &
     }
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("l2tp vpn connect failed");
-        HandleConnectFailed();
+        HandleConnectFailed(result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     switch (state_) {
@@ -306,12 +306,31 @@ int32_t L2tpVpnCtl::ProcessUpdateConfig(const std::string &config)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-void L2tpVpnCtl::HandleConnectFailed()
+void L2tpVpnCtl::HandleConnectFailed(const int32_t result)
 {
-    if (multiVpnInfo_ != nullptr) {
+    if (state_ == IpsecVpnStateCode::STATE_DISCONNECTED) {
+        NETMGR_EXT_LOG_I("l2tp already destroyed");
+        return;
+    }
+    if (multiVpnInfo_ != nullptr && l2tpVpnConfig_ != nullptr) {
+        VpnOperatorErrorType errorType;
+        switch (result) {
+            case VpnErrorCode::CONNECT_TIME_OUT:
+                errorType = VpnOperatorErrorType::ERROR_PEER_NO_RESPONSE;
+                break;
+            case VpnErrorCode::PASSWORD_ERROR:
+                errorType = VpnOperatorErrorType::ERROR_PASSWORD_INCORRECT;
+                break;
+            case VpnErrorCode::IKEV1_KEY_ERROR:
+                errorType = VpnOperatorErrorType::ERROR_IKEV1_KEY_INCORRECT;
+                break;
+            default:
+                Destroy();
+                return;
+        }
         VpnHisysEvent::SetFaultVpnEvent(multiVpnInfo_->userId, multiVpnInfo_->bundleName,
             VpnOperatorType::OPERATION_SETUP_VPN,
-            VpnOperatorErrorType::ERROR_CONFIG_WRONG, "l2tp vpn setup failed");
+            errorType, l2tpVpnConfig_->vpnType_);
     }
     Destroy();
 }

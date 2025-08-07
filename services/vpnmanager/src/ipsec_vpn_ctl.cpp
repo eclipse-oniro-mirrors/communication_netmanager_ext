@@ -177,12 +177,7 @@ int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t 
     }
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("ipsec vpn connect failed");
-        if (multiVpnInfo_ != nullptr) {
-            VpnHisysEvent::SetFaultVpnEvent(multiVpnInfo_->userId, multiVpnInfo_->bundleName,
-                VpnOperatorType::OPERATION_SETUP_VPN,
-                VpnOperatorErrorType::ERROR_CONFIG_WRONG, "ipsec vpn setup failed");
-        }
-        Destroy();
+        HandleIpsecConnectFailed(result);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     switch (state_) {
@@ -403,6 +398,38 @@ int32_t IpsecVpnCtl::HandleUpdateConfig(const std::string &config)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;
+}
+
+void IpsecVpnCtl::HandleIpsecConnectFailed(const int32_t result)
+{
+    if (state_ == IpsecVpnStateCode::STATE_DISCONNECTED) {
+        NETMGR_EXT_LOG_I("ipsec already destroyed");
+        return;
+    }
+    if (multiVpnInfo_ != nullptr && ipsecVpnConfig_ != nullptr) {
+        VpnOperatorErrorType errorType;
+        switch (result) {
+            case VpnErrorCode::CONNECT_TIME_OUT:
+                errorType = VpnOperatorErrorType::ERROR_PEER_NO_RESPONSE;
+                break;
+            case VpnErrorCode::IKEV2_KEY_ERROR:
+                errorType = VpnOperatorErrorType::ERROR_IKEV2_KEY_INCORRECT;
+                break;
+            case VpnErrorCode::CA_ERROR:
+                errorType = VpnOperatorErrorType::ERROR_CA_INCORRECT;
+                break;
+            case VpnErrorCode::PASSWORD_ERROR:
+                errorType = VpnOperatorErrorType::ERROR_PASSWORD_INCORRECT;
+                break;
+            default:
+                Destroy();
+                return;
+        }
+        VpnHisysEvent::SetFaultVpnEvent(multiVpnInfo_->userId, multiVpnInfo_->bundleName,
+            VpnOperatorType::OPERATION_SETUP_VPN,
+            errorType, ipsecVpnConfig_->vpnType_);
+    }
+    Destroy();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

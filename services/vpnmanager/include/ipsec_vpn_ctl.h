@@ -67,6 +67,14 @@ enum IpsecVpnCertType : int32_t {
     PKCS12_PASSWD,
 };
 
+enum VpnErrorCode : int32_t {
+    CONNECT_TIME_OUT = 200,
+    IKEV2_KEY_ERROR = 201,
+    CA_ERROR = 202,
+    PASSWORD_ERROR = 203,
+    IKEV1_KEY_ERROR = 204,
+};
+
 class IpsecVpnCtl : public NetVpnImpl {
 public:
     IpsecVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
@@ -100,6 +108,7 @@ private:
     void ProcessIpsecUp();
     void HandleConnected();
     int32_t HandleUpdateConfig(const std::string &config);
+    void HandleIpsecConnectFailed(const int32_t result);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

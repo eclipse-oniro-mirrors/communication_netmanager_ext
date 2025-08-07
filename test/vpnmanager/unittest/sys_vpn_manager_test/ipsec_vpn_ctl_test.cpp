@@ -522,5 +522,36 @@ HWTEST_F(IpsecVpnCtlTest, SetUpVpnTunTest001, TestSize.Level1)
     EXPECT_NE(ipsecControl->SetUpVpnTun(), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(IpsecVpnCtlTest, HandleIpsecConnectFailed001, TestSize.Level1)
+{
+    ASSERT_NE(ipsecControl_, nullptr);
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    ipsecControl_->multiVpnInfo_ = vpnInfo;
+    int32_t code = VpnErrorCode::CONNECT_TIME_OUT;
+    ipsecControl_->HandleIpsecConnectFailed(code);
+    EXPECT_TRUE(ipsecControl_->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = VpnErrorCode::IKEV2_KEY_ERROR;
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    ipsecControl_->HandleIpsecConnectFailed(code);
+    EXPECT_TRUE(ipsecControl_->state_ ==IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = VpnErrorCode::CA_ERROR;
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    ipsecControl_->HandleIpsecConnectFailed(code);
+    EXPECT_TRUE(ipsecControl_->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = VpnErrorCode::PASSWORD_ERROR;
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    ipsecControl_->HandleIpsecConnectFailed(code);
+    EXPECT_TRUE(ipsecControl_->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = 300;
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_STARTED;
+    ipsecControl_->HandleIpsecConnectFailed(code);
+    EXPECT_TRUE(ipsecControl_->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = 400;
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
+    ipsecControl_->HandleIpsecConnectFailed(code);
+    EXPECT_TRUE(ipsecControl_->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
