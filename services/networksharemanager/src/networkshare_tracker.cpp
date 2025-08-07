@@ -1142,7 +1142,7 @@ void NetworkShareTracker::InterfaceStatusChanged(const std::string &iface, bool 
     }
     SharingIfaceType type;
     if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, up)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
+        NETMGR_EXT_LOG_I("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
         return;
     }
     NETMGR_EXT_LOG_I("interface[%{public}s] for [%{public}s]", iface.c_str(), up ? "up" : "down");
@@ -1202,7 +1202,7 @@ void NetworkShareTracker::InterfaceAdded(const std::string &iface)
     }
     SharingIfaceType type;
     if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, true)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
+        NETMGR_EXT_LOG_I("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
         return;
     }
     NETMGR_EXT_LOG_I("iface[%{public}s], type[%{public}d].", iface.c_str(), static_cast<int32_t>(type));
@@ -1223,7 +1223,7 @@ void NetworkShareTracker::InterfaceRemoved(const std::string &iface)
     }
     SharingIfaceType type;
     if (!InterfaceNameToType(iface, type) || !IsHandleNetlinkEvent(type, false)) {
-        NETMGR_EXT_LOG_E("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
+        NETMGR_EXT_LOG_I("iface[%{public}s] is not downsteam or not correct event.", iface.c_str());
         return;
     }
     NETMGR_EXT_LOG_I("iface[%{public}s], type[%{public}d].", iface.c_str(), static_cast<int32_t>(type));
