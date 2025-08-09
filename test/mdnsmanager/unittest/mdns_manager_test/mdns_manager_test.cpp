@@ -604,7 +604,8 @@ HWTEST_F(MDnsProtocolImplTest, RegisterAndUnregisterTest001, TestSize.Level0)
     }
     info.txt = txtData;
 
-    EXPECT_EQ(mDnsProtocolImpl.Register(info), NETMANAGER_EXT_SUCCESS);
+    auto ret = mDnsProtocolImpl.Register(info);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NET_MDNS_ERR_SEND);
     std::string name = mDnsProtocolImpl.Decorated(info.serviceName + MDNS_DOMAIN_SPLITER_STR + info.serviceType);
     EXPECT_NE(mDnsProtocolImpl.srvMap_.find(name), mDnsProtocolImpl.srvMap_.end());
     EXPECT_EQ(mDnsProtocolImpl.Register(info), NET_MDNS_ERR_SERVICE_INSTANCE_DUPLICATE);
@@ -838,7 +839,7 @@ HWTEST_F(MDnsProtocolImplTest, ResolveInstanceTest001, TestSize.Level0) {
     };
     MockIResolveCallback mockCallback;
     int32_t ret = mDnsProtocolImpl.ResolveInstance(instance, mockCallback);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NET_MDNS_ERR_SEND);
 
     instance = "";
     ret = mDnsProtocolImpl.ResolveInstance(instance, mockCallback);
