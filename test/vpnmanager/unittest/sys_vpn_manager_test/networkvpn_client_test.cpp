@@ -212,7 +212,7 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig001, TestSize.Level1)
     std::string id = "1234";
     sptr<SysVpnConfig> resConfig = nullptr;
     auto ret = networkVpnClient_.GetSysVpnConfig(resConfig, id);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_OPERATION_FAILED || ret == NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig002, TestSize.Level1)
