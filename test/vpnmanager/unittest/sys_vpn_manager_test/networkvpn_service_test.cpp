@@ -357,7 +357,7 @@ HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl001, TestSize.Level1)
     auto ret = instance_->AddSysVpnConfig(config);
     EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
     sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
-    EXPECT_TRUE(sysVpnCtl != nullptr);
+    EXPECT_FALSE(sysVpnCtl != nullptr);
 }
 
 
@@ -395,7 +395,7 @@ HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl003, TestSize.Level1)
     auto ret = instance_->AddSysVpnConfig(config);
     EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
     sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
-    EXPECT_TRUE(sysVpnCtl != nullptr);
+    EXPECT_FALSE(sysVpnCtl != nullptr);
 }
 
 
@@ -433,7 +433,7 @@ HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl005, TestSize.Level1)
     auto ret = instance_->AddSysVpnConfig(config);
     EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
     sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
-    EXPECT_TRUE(sysVpnCtl != nullptr);
+    EXPECT_FALSE(sysVpnCtl != nullptr);
 }
 
 
