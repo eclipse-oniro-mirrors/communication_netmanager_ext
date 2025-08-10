@@ -144,6 +144,7 @@ ohos_shared_library("vpn_extension_module") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "napi:ace_napi",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",

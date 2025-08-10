@@ -101,6 +101,7 @@ ohos_static_library("mdns_service_interface_stub") {
   deps = [ ":mdns_service_interface" ]
   external_deps = [
     "hilog:libhilog",
+    "ipc:ipc_single",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
     "c_utils:utils",
