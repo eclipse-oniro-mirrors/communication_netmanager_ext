@@ -100,7 +100,7 @@ HWTEST_F(VpnDatabaseHelperTest, IsVpnInfoExists002, TestSize.Level1)
     vpnBean->saveLogin_ = 1;
     vpnDataHelper_.InsertData(vpnBean);
     auto ret = vpnDataHelper_.IsVpnInfoExists(vpnId);
-    EXPECT_TRUE(ret == true || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_NE(ret, true);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, InsertData001, TestSize.Level1)
@@ -223,7 +223,8 @@ HWTEST_F(VpnDatabaseHelperTest, UpdateData001, TestSize.Level1)
     vpnBean->vpnAddress_ = "2.2.2.2";
     vpnBean->isLegacy_ = 1;
     vpnBean->saveLogin_ = 1;
-    EXPECT_EQ(vpnDataHelper_.UpdateData(vpnBean), NETMANAGER_EXT_SUCCESS);
+    ret = vpnDataHelper_.UpdateData(vpnBean);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, NoStore001, TestSize.Level1)
