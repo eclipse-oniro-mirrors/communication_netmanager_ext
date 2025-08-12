@@ -18,6 +18,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr const int32_t MAIN_USER_ID = 100;
+constexpr const int32_t ONE_HOUR = 3600;
+std::chrono::system_clock::time_point VpnHisysEvent::sendEventTime = std::chrono::system_clock::time_point::min();
 
 void VpnHisysEvent::SendFaultEvent(const VpnEventType &isLegacy, const VpnEventOperator &operatorType,
                                    const VpnEventErrorType &errorCode, const std::string &errorMsg)
@@ -54,26 +57,21 @@ void VpnHisysEvent::SendFaultEventConnDestroy(const VpnEventType &isLegacy, cons
 
 void VpnHisysEvent::SetFaultVpnEvent(const int32_t userId, const std::string &bundleName,
                                      const VpnOperatorType &operatorType, const VpnOperatorErrorType &errorCode,
-                                     const std::string &errorMsg)
+                                     const int32_t vpnType)
 {
+    auto currentTime = std::chrono::system_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - sendEventTime);
+    if (elapsedTime.count() < ONE_HOUR && sendEventTime != std::chrono::system_clock::time_point::min()) {
+        return;
+    }
+    sendEventTime = currentTime;
     MultiVpnEvent event;
-    event.userId = userId;
+    event.isMainUser = userId == MAIN_USER_ID;
     event.bundleName = bundleName;
+    event.vpnType = vpnType;
     event.operatorType = static_cast<int32_t>(operatorType);
-    event.errorType = static_cast<int32_t>(errorCode);
-    event.errorMsg = errorMsg;
+    event.errorCode = static_cast<int32_t>(errorCode);
     NetEventReport::SendVpnFault(event);
 }
-
-void VpnHisysEvent::SetBehaviorVpnEvent(const int32_t userId, const std::string &bundleName,
-                                        const VpnOperatorType &operatorType)
-{
-    MultiVpnEvent event;
-    event.userId = userId;
-    event.bundleName = bundleName;
-    event.operatorType = static_cast<int32_t>(operatorType);
-    NetEventReport::SendVpnBehavior(event);
-}
-
 } // namespace NetManagerStandard
 } // namespace OHOS

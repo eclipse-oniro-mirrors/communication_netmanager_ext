@@ -37,9 +37,9 @@ public:
                                           const std::string &errorMsg);
     static void SetFaultVpnEvent(const int32_t userId, const std::string &bundleName,
                                  const VpnOperatorType &operatorType, const VpnOperatorErrorType &errorCode,
-                                 const std::string &errorMsg);
-    static void SetBehaviorVpnEvent(const int32_t userId, const std::string &bundleName,
-                                    const VpnOperatorType &operatorType);
+                                 const int32_t vpnType);
+private:
+    static std::chrono::system_clock::time_point sendEventTime;
 };
 
 } // namespace NetManagerStandard

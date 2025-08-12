@@ -756,7 +756,6 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
     }
 #endif // SUPPORT_SYSVPN
     ret = vpnObj->SetUp();
-    VpnHisysEvent::SetBehaviorVpnEvent(userId, vpnBundleName, VpnOperatorType::OPERATION_SETUP_VPN);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("SetUp failed");
         return ret;
@@ -827,7 +826,6 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
-    VpnHisysEvent::SetBehaviorVpnEvent(userId, vpnBundleName, VpnOperatorType::OPERATION_DESTROY_VPN);
     if ((vpnObj_ != nullptr) && (vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
         NETMGR_EXT_LOG_E("destroy vpn is failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -877,7 +875,6 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
         return ret;
     }
     NETMGR_EXT_LOG_I("DestroyVpn vpnId = %{public}s", vpnId.c_str());
-    VpnHisysEvent::SetBehaviorVpnEvent(userId, vpnBundleName, VpnOperatorType::OPERATION_DESTROY_VPN);
     auto it = vpnObjMap_.find(vpnId);
     if (it != vpnObjMap_.end()) {
         return DestroyMultiVpn(it->second);
@@ -968,7 +965,6 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config, bool is
     }
     NETMGR_EXT_LOG_I("SystemVpn SetUp");
     ret = vpnObj->SetUp();
-    VpnHisysEvent::SetBehaviorVpnEvent(userId, vpnBundleName, VpnOperatorType::OPERATION_SETUP_VPN);
     if (ret == NETMANAGER_EXT_SUCCESS && !isVpnExtCall) {
         hasOpenedVpnUid_ = IPCSkeleton::GetCallingUid();
         vpnObj_ = vpnObj;
@@ -1148,9 +1144,6 @@ int32_t NetworkVpnService::AddSysVpnConfig(const sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (!VpnDatabaseHelper::GetInstance().IsVpnInfoExists(vpnBean->vpnId_)) {
-        VpnHisysEvent::SetBehaviorVpnEvent(userId, GetBundleName(), VpnOperatorType::OPERATION_ADD_VPN);
-    }
     return VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
 }
 
@@ -1171,7 +1164,6 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
         NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
         return ret;
     }
-    VpnHisysEvent::SetBehaviorVpnEvent(userId, GetBundleName(), VpnOperatorType::OPERATION_DELETE_VPN);
     NETMGR_EXT_LOG_I("DeleteSysVpnConfig id=%{public}s", vpnId.c_str());
     return VpnDatabaseHelper::GetInstance().DeleteVpnData(vpnId);
 }

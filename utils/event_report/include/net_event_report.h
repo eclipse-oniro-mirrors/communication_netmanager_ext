@@ -98,11 +98,11 @@ enum class VpnEventErrorType {
 };
 
 struct MultiVpnEvent {
-    int32_t userId = 100;
+    bool isMainUser = true;
     int32_t operatorType = 0;
-    int32_t errorType = 0;
+    int32_t errorCode = 0;
+    int32_t vpnType = 0;
     std::string bundleName;
-    std::string errorMsg;
 };
 
 enum class VpnOperatorType {
@@ -113,8 +113,12 @@ enum class VpnOperatorType {
 };
 
 enum class VpnOperatorErrorType {
-    ERROR_CONFIG_WRONG = -100,
-    ERROR_INTERNAL_DISCONNECT = -101,
+    ERROR_PEER_NO_RESPONSE = -100,
+    ERROR_IKEV2_KEY_INCORRECT = -101,
+    ERROR_CA_INCORRECT = -102,
+    ERROR_PASSWORD_INCORRECT = -103,
+    ERROR_IKEV1_KEY_INCORRECT = -104,
+    ERROR_CFG_INCORRECT = -105,
 };
 
 class NetEventReport {

@@ -517,5 +517,41 @@ HWTEST_F(L2tpVpnCtlTest, ProcessUpdateL2tpConfig001, TestSize.Level1)
         "mtu":1400, "phyifname":"xfrm"}})";
     EXPECT_EQ(l2tpControl->ProcessUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
 }
+
+HWTEST_F(L2tpVpnCtlTest, HandleConnectFailed001, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> l2tpVpnconfig = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(l2tpVpnconfig, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::unique_ptr<L2tpVpnCtl> l2tpControl =
+        std::make_unique<L2tpVpnCtl>(l2tpVpnconfig, "pkg", userId, activeUserIds);
+    ASSERT_NE(l2tpControl, nullptr);
+    l2tpControl->state_ = IpsecVpnStateCode::STATE_STARTED;
+    l2tpControl->l2tpVpnConfig_ = l2tpVpnconfig;
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    l2tpControl->multiVpnInfo_ = vpnInfo;
+    int32_t code = VpnErrorCode::CONNECT_TIME_OUT;
+    l2tpControl->HandleConnectFailed(code);
+    EXPECT_TRUE(l2tpControl->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = VpnErrorCode::IKEV1_KEY_ERROR;
+    l2tpControl->state_ = IpsecVpnStateCode::STATE_STARTED;
+    l2tpControl->HandleConnectFailed(code);
+    EXPECT_TRUE(l2tpControl->state_ ==IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = VpnErrorCode::PASSWORD_ERROR;
+    l2tpControl->state_ = IpsecVpnStateCode::STATE_STARTED;
+    l2tpControl->HandleConnectFailed(code);
+    EXPECT_TRUE(l2tpControl->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = 300;
+    l2tpControl->state_ = IpsecVpnStateCode::STATE_STARTED;
+    l2tpControl->HandleConnectFailed(code);
+    EXPECT_TRUE(l2tpControl->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+    code = 400;
+    l2tpControl->state_ = IpsecVpnStateCode::STATE_DISCONNECTED;
+    l2tpControl->HandleConnectFailed(code);
+    EXPECT_TRUE(l2tpControl->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

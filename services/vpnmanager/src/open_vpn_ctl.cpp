@@ -129,7 +129,7 @@ void OpenvpnCtl::UpdateState(cJSON* state)
             if (multiVpnInfo_ != nullptr) {
                 VpnHisysEvent::SetFaultVpnEvent(multiVpnInfo_->userId, multiVpnInfo_->bundleName,
                     VpnOperatorType::OPERATION_SETUP_VPN,
-                    VpnOperatorErrorType::ERROR_CONFIG_WRONG, "open vpn setup failed");
+                    VpnOperatorErrorType::ERROR_CFG_INCORRECT, VpnType::OPENVPN);
             }
             StopOpenvpn();
         }
