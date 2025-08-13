@@ -384,5 +384,24 @@ HWTEST_F(NetworkShareServiceTest, OnReceiveEventTest002, TestSize.Level1)
     instance_->commonEventSubscriber_->OnReceiveEvent(data);
     EXPECT_NE(instance_->commonEventSubscriber_, nullptr);
 }
+
+#ifdef SHARE_NOTIFICATION_ENABLE
+HWTEST_F(NetworkShareServiceTest, SubscribeWifiShareNtfEvent001, TestSize.Level1)
+{
+    instance_->SubscribeWifiShareNtfEvent();
+    EXPECT_NE(instance_->wifiShareNtfSubscriber_, nullptr);
+}
+ 
+HWTEST_F(NetworkShareServiceTest, OnReceiveWifiShareEventTest001, TestSize.Level1)
+{
+    instance_->SubscribeWifiShareNtfEvent();
+    EventFwk::CommonEventData data;
+    EventFwk::Want want;
+    want.SetAction("usual.event.thermal.WIFI_POLICY");
+    data.SetWant(want);
+    instance_->wifiShareNtfSubscriber_->OnReceiveEvent(data);
+    EXPECT_NE(instance_->wifiShareNtfSubscriber_, nullptr);
+}
+#endif
 } // namespace NetManagerStandard
 } // namespace OHOS
