@@ -76,8 +76,8 @@ export default namespace sharing {
   export native function startSharingSync(type: SharingIfaceType): void;
 
   export function startSharing(type: SharingIfaceType, callback: AsyncCallback<void>): void {
-    let p1 = taskpool.execute((): undefined => {
-       return startSharingSync(type);
+    let p1 = taskpool.execute(() => {
+        startSharingSync(type);
     })
     p1.then(() => {
         callback(new BusinessError(), undefined);
@@ -88,8 +88,8 @@ export default namespace sharing {
 
   export function startSharing(type: SharingIfaceType): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        taskpool.execute((): undefined => {
-          return startSharingSync(type);
+        taskpool.execute(() => {
+            startSharingSync(type);
         }).then(() => {
             resolve(undefined);
         }, (err: Error): void => {
@@ -101,8 +101,8 @@ export default namespace sharing {
   export native function stopSharingSync(type: SharingIfaceType): void;
 
   export function stopSharing(type: SharingIfaceType, callback: AsyncCallback<void>): void {
-    let p1 = taskpool.execute((): undefined => {
-       return stopSharingSync(type);
+    let p1 = taskpool.execute(() => {
+        stopSharingSync(type);
     })
     p1.then(() => {
         callback(new BusinessError(), undefined);
@@ -113,8 +113,8 @@ export default namespace sharing {
 
   export function stopSharing(type: SharingIfaceType): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        taskpool.execute((): undefined => {
-          return stopSharingSync(type);
+        taskpool.execute(() => {
+            stopSharingSync(type);
         }).then(() => {
             resolve(undefined);
         }, (err: Error): void => {
