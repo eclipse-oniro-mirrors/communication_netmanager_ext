@@ -491,7 +491,9 @@ int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
         clientRequestsVector_.push_back(type);
     }
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    NetworkShareTrafficLimit::GetInstance().StartHandleSharingLimitEvent();
+    if (type == SharingIfaceType::SHARING_WIFI) {
+        NetworkShareTrafficLimit::GetInstance().StartHandleSharingLimitEvent();
+    }
 #endif
     return EnableNetSharingInternal(type, true);
 }
@@ -505,7 +507,9 @@ int32_t NetworkShareTracker::StopNetworkSharing(const SharingIfaceType &type)
         clientRequestsVector_.erase(fit);
     }
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    NetworkShareTrafficLimit::GetInstance().EndHandleSharingLimitEvent();
+    if (type == SharingIfaceType::SHARING_WIFI) {
+        NetworkShareTrafficLimit::GetInstance().EndHandleSharingLimitEvent();
+    }
 #endif
     return EnableNetSharingInternal(type, false);
 }
