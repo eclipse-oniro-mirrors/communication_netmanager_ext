@@ -43,8 +43,8 @@ const bool REGISTER_LOCAL_RESULT_NETSHARE =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkShareService>::GetInstance().get());
 constexpr int32_t XCOLLIE_TIMEOUT_DURATION = 30;
 constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
-inline const std::string IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notification.wifi.TAP_ENABLE_HOTSPOT";
-inline const std::string EVENT_THERMAL_STOP_AP = "usual.event.thermal.WIFI_POLICY";
+constexpr const char *IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notification.wifi.TAP_ENABLE_HOTSPOT";
+constexpr const char *EVENT_THERMAL_STOP_AP = "usual.event.thermal.WIFI_POLICY";
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
 
