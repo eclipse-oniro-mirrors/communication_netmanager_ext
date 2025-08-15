@@ -301,6 +301,7 @@ void NetworkShareClient::RecoverCallback()
 
 void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
+    NETMGR_EXT_LOG_I("NetworkShareClient:OnRemoteDied enter");
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("remote object is nullptr");
         return;
