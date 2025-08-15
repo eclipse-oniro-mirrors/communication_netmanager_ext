@@ -134,6 +134,7 @@ struct IndexHapComponent {
     builder: ConfirmDialog({ content: this.content }),
     autoCancel: false,
     alignment: DialogAlignment.Center,
+    onWillDismiss:(dismissDialogAction: DismissDialogAction)=> {},
   });
 
   async aboutToAppear() {
