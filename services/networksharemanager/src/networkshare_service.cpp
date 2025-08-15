@@ -20,6 +20,7 @@
 #include "net_manager_constants.h"
 #include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "networkshare_notification.h"
 #include "networkshare_constants.h"
 #include "networkshare_upstreammonitor.h"
 #include "xcollie/xcollie.h"
@@ -42,7 +43,8 @@ const bool REGISTER_LOCAL_RESULT_NETSHARE =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<NetworkShareService>::GetInstance().get());
 constexpr int32_t XCOLLIE_TIMEOUT_DURATION = 30;
 constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disallowed";
-inline const std::string IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notification.wifi.TAP_ENABLE_HOTSPOT";
+constexpr const char *IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notification.wifi.TAP_ENABLE_HOTSPOT";
+constexpr const char *EVENT_THERMAL_STOP_AP = "usual.event.thermal.WIFI_POLICY";
 
 NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
 
@@ -552,6 +554,7 @@ void NetworkShareService::SubscribeWifiShareNtfEvent()
 {
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(IDLE_AP_USER_RESTART_NOTIFICATION);
+    matchingSkills.AddEvent(EVENT_THERMAL_STOP_AP);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
 
     // 1 means CORE_EVENT_PRIORITY
@@ -574,6 +577,9 @@ void NetworkShareService::WifiShareNtfSubscriber::OnReceiveEvent(const EventFwk:
     NETMGR_EXT_LOG_I("NetworkShareService::OnReceiveEvent: %{public}s.", action.c_str());
     if (action == IDLE_AP_USER_RESTART_NOTIFICATION) {
         NetworkShareTracker::GetInstance().StartNetworkSharing(SharingIfaceType::SHARING_WIFI);
+    } else if (action == EVENT_THERMAL_STOP_AP) {
+        NetworkShareNotification::GetInstance().PublishNetworkShareNotification(
+            NotificationId::THERMAL_STOP_AP_NOTIFICATION_ID);
     }
 }
 #endif

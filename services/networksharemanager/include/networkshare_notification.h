@@ -30,7 +30,8 @@ inline const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager
 constexpr int DEFAULT_INVAL_VALUE = -1;
 enum NotificationId {
     WIFI_PORTAL_NOTIFICATION_ID = 101000,
-    HOTSPOT_IDLE_NOTIFICATION_ID
+    HOTSPOT_IDLE_NOTIFICATION_ID,
+    THERMAL_STOP_AP_NOTIFICATION_ID
 };
 
 enum NotificationOpetationType {
