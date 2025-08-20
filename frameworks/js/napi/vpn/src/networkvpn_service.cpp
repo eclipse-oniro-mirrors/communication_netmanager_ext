@@ -683,20 +683,18 @@ int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &v
         NETMGR_EXT_LOG_W("forbit setup, CheckCurrentAccountType");
         return ret;
     }
-#ifdef SUPPORT_SYSVPN
-    if ((vpnId.empty() && vpnObj_ != nullptr) || (vpnObjMap_.find(vpnId) != vpnObjMap_.end())) {
-        NETMGR_EXT_LOG_W("forbit setup, vpn exist already:%{public}s", vpnId.c_str());
-        return NETWORKVPN_ERROR_VPN_EXIST;
-    }
-    if (vpnObj_ != nullptr && vpnObj_->multiVpnInfo_ != nullptr && !vpnObj_->multiVpnInfo_->isVpnExtCall
-        && vpnObj_->multiVpnInfo_->vpnConnectState != VpnConnectState::VPN_DISCONNECTED) {
-        NETMGR_EXT_LOG_W("forbit setup, exist system vpn");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-#else
     if (vpnObj_ != nullptr) {
         NETMGR_EXT_LOG_W("%{public}s", (vpnObj_->GetUserId() == userId ?
             "vpn exist already, please execute destory first" : "vpn using by other user"));
+        return NETWORKVPN_ERROR_VPN_EXIST;
+    }
+#ifdef SUPPORT_SYSVPN
+    if (vpnId.empty() && vpnObjMap_.size() > 0) {
+        NETMGR_EXT_LOG_W("forbit setup, multi vpn exist already");
+        return NETWORKVPN_ERROR_VPN_EXIST;
+    }
+    if (!vpnId.empty() && (vpnObjMap_.find(vpnId) != vpnObjMap_.end())) {
+        NETMGR_EXT_LOG_W("forbit setup, multi vpn exist already:%{public}s", vpnId.c_str());
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
 #endif // SUPPORT_SYSVPN
@@ -942,6 +940,10 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config, bool is
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_W("SetUpVpn failed, not ready");
         return ret;
+    }
+    if (!isVpnExtCall && vpnObjMap_.size() > 0) {
+        NETMGR_EXT_LOG_I("SetUpSysVpn failed, vpn exist already.");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
     std::shared_ptr<NetVpnImpl> vpnObj = CreateSysVpnCtl(config, userId, activeUserIds, isVpnExtCall);
     if (!vpnConnCallback_) {
@@ -1306,7 +1308,11 @@ int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const in
         MultiVpnHelper::GetInstance().AddMultiVpnInfo(connectingObj_->multiVpnInfo_);
         vpnObjMap_.insert({connectingObj_->multiVpnInfo_->vpnId, connectingObj_});
     }
-    return connectingObj_->NotifyConnectStage(stage, result);
+    connectingObj_->NotifyConnectStage(stage, result);
+    if (connectingObj_ == vpnObj_ && result != NETMANAGER_EXT_SUCCESS) {
+        vpnObj_ = nullptr;
+    }
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkVpnService::GetSysVpnCertUri(const int32_t certType, std::string &certUri)
