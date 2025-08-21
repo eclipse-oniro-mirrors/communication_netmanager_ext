@@ -107,7 +107,7 @@ HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t supportedFlag;
     auto ret = DelayedSingleton<NetworkShareClient>::GetInstance()->IsSharingSupported(supportedFlag);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETWORKSHARE_ERROR_IFACE_CGF_ERROR);
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETWORKSHARE_ERROR_IFACE_CFG_ERROR);
 }
 
 HWTEST_F(NetworkShareManagerTest, IsSharing, TestSize.Level1)
