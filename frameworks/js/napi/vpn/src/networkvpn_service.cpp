@@ -690,11 +690,11 @@ int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &v
     }
 #ifdef SUPPORT_SYSVPN
     if (vpnId.empty() && vpnObjMap_.size() > 0) {
-        NETMGR_EXT_LOG_W("forbit setup, multi vpn exist already");
+        NETMGR_EXT_LOG_W("forbit setup, vpn exist already");
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
     if (!vpnId.empty() && (vpnObjMap_.find(vpnId) != vpnObjMap_.end())) {
-        NETMGR_EXT_LOG_W("forbit setup, multi vpn exist already:%{public}s", vpnId.c_str());
+        NETMGR_EXT_LOG_W("forbit setup, vpn exist already:%{public}s", vpnId.c_str());
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
 #endif // SUPPORT_SYSVPN
@@ -943,7 +943,7 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config, bool is
     }
     if (!isVpnExtCall && vpnObjMap_.size() > 0) {
         NETMGR_EXT_LOG_I("SetUpSysVpn failed, vpn exist already.");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return NETWORKVPN_ERROR_VPN_EXIST;
     }
     std::shared_ptr<NetVpnImpl> vpnObj = CreateSysVpnCtl(config, userId, activeUserIds, isVpnExtCall);
     if (!vpnConnCallback_) {

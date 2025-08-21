@@ -798,5 +798,41 @@ HWTEST_F(NetworkVpnServiceTest, OnReceiveEvent001, TestSize.Level1)
     instance_->subscriber_->OnReceiveEvent(eventData);
     EXPECT_TRUE(instance_->subscriber_ != nullptr);
 }
+
+HWTEST_F(NetworkVpnServiceTest, IsSetUpReady001, TestSize.Level1)
+{
+    NetManagerExtAccessToken accToken;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string id = "123";
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = id;
+    config->vpnName_ = "testSetUpVpn";
+    config->vpnType_ = 1;
+
+    std::string vpnBundleName;
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<IpsecVpnCtl> vpnCtl = std::make_shared<IpsecVpnCtl>(config, "", userId, activeUserIds);
+    ASSERT_NE(vpnCtl, nullptr);
+    instance_->vpnObj_ = vpnCtl;
+    int32_t ret = instance_->IsSetUpReady(id, vpnBundleName, userId, activeUserIds);
+    instance_->vpnObj_ = nullptr;
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    instance_->vpnObjMap_.insert({id, vpnCtl});
+    ret = instance_->IsSetUpReady(id, vpnBundleName, userId, activeUserIds);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    ret = instance_->IsSetUpReady("", vpnBundleName, userId, activeUserIds);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    config->vpnId_ = "1234";
+    ret = instance_->SetUpSysVpn(config, false);
+    EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
+    instance_->vpnObjMap_.erase(id);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
