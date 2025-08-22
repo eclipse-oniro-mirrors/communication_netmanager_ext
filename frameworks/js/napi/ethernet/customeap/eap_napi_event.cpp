@@ -21,6 +21,20 @@ namespace NetManagerStandard {
  
 namespace {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
+
+static constexpr const int MAX_EAP_DATA_LENGTH = 4096;
+ 
+static inline napi_value EapNapiReturn(const napi_env &env, bool cond, int32_t errCode)
+{
+    napi_value res = nullptr;
+    if (!cond) {
+        napi_throw_error(env, std::to_string(errCode).c_str(), std::to_string(errCode).c_str());
+        return res;
+    }
+    napi_get_undefined(env, &res);
+    return res;
+}
+
 static bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
 {
     if (static_cast<int>(paramsCount) == PARAM_TRIPLE_OPTIONS_AND_CALLBACK) {
@@ -99,24 +113,25 @@ napi_value RegCustomEapHandler(napi_env env, napi_callback_info info)
  
     int32_t netType = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
     if (netType < static_cast<int>(NetType::WLAN0) || netType >= static_cast<int>(NetType::INVALID)) {
-        NETMANAGER_EXT_LOGE("valid netType %{public}d", static_cast<int>(netType));
-        return NapiUtils::GetUndefined(env);
+        NETMANAGER_EXT_LOGE("invalid netType %{public}d", static_cast<int>(netType));
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_NET_TYPE);
     }
  
     uint32_t eapCode = NapiUtils::GetUint32FromValue(env, argv[ARG_INDEX_1]);
     if (eapCode < EAP_CODE_MIN || eapCode > EAP_CODE_MAX) {
-        NETMANAGER_EXT_LOGE("valid eapCode %{public}d", eapCode);
-        return NapiUtils::GetUndefined(env);
+        NETMANAGER_EXT_LOGE("invalid eapCode %{public}d", eapCode);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_CODE);
     }
  
     uint32_t eapType = NapiUtils::GetUint32FromValue(env, argv[ARG_INDEX_2]);
     if (eapType < EAP_TYPE_MIN || eapType > EAP_TYPE_MAX) {
         NETMANAGER_EXT_LOGE("valid eapType %{public}d", eapType);
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_TYPE);
     }
  
-    EapEventMgr::GetInstance().RegCustomEapHandler(env, static_cast<NetType>(netType),
+    int ret = EapEventMgr::GetInstance().RegCustomEapHandler(env, static_cast<NetType>(netType),
         eapCode, eapType, argv[ARG_INDEX_3]);
+    return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -143,24 +158,25 @@ napi_value UnRegCustomEapHandler(napi_env env, napi_callback_info info)
  
     int32_t netType = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
     if (netType < static_cast<int>(NetType::WLAN0) || netType >= static_cast<int>(NetType::INVALID)) {
-        NETMANAGER_EXT_LOGE("valid netType %{public}d", static_cast<int>(netType));
-        return NapiUtils::GetUndefined(env);
+        NETMANAGER_EXT_LOGE("invalid netType %{public}d", static_cast<int>(netType));
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_NET_TYPE);
     }
  
     int32_t eapCode = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_1]);
     if (eapCode < EAP_CODE_MIN || eapCode > EAP_CODE_MAX) {
-        NETMANAGER_EXT_LOGE("valid eapCode %{public}d", eapCode);
-        return NapiUtils::GetUndefined(env);
+        NETMANAGER_EXT_LOGE("invalid eapCode %{public}d", eapCode);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_CODE);
     }
  
     int32_t eapType = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_2]);
     if (eapType < EAP_TYPE_MIN || eapType > EAP_TYPE_MAX) {
-        NETMANAGER_EXT_LOGE("valid eapType %{public}d", eapType);
-        return NapiUtils::GetUndefined(env);
+        NETMANAGER_EXT_LOGE("invalid eapType %{public}d", eapType);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_TYPE);
     }
  
-    EapEventMgr::GetInstance().UnRegCustomEapHandler(env, static_cast<NetType>(netType),
+    int ret = EapEventMgr::GetInstance().UnRegCustomEapHandler(env, static_cast<NetType>(netType),
         eapCode, eapType, argv[ARG_INDEX_3]);
+    return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -185,19 +201,31 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
         return NapiUtils::GetUndefined(env);
     }
  
-    CustomResult customResult = static_cast<CustomResult>(NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]));
+    int32_t replyResult = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
+    if (replyResult < static_cast<int32_t>(CustomResult::RESULT_FAIL) ||
+        replyResult > static_cast<int32_t>(CustomResult::RESULT_FINISH)) {
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_RESULT);
+    }
+    CustomResult customResult = static_cast<CustomResult>(replyResult);
     sptr<EapData> eapData = new (std::nothrow) EapData();
     if (eapData == nullptr) {
         NETMANAGER_EXT_LOGE("%{public}s, eapData is nullptr", __func__);
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
     }
     eapData->msgId = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "msgId");
     eapData->bufferLen = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "bufferLen");
     NapiUtils::GetVectorUint8Property(env, argv[ARG_INDEX_1], "eapBuffer", eapData->eapBuffer);
  
-    NETMANAGER_EXT_LOGI("%{public}s, msgId:%{public}d, bufferLen:%{public}d, result:%{public}d, buffsize:%{public}zu",
-        __func__, eapData->msgId, eapData->bufferLen, static_cast<int>(customResult), eapData->eapBuffer.size());
-    EapEventMgr::GetInstance().ReplyCustomEapData(customResult, eapData);
+    if (eapData->bufferLen > MAX_EAP_DATA_LENGTH) {
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
+    }
+ 
+    NETMANAGER_EXT_LOGI("%{public}s, result:%{public}d, msgId:%{public}d, bufferLen:%{public}d,  buffsize:%{public}zu, "
+    "eapCode:%{public}d, eapType:%{public}d ",
+    __func__, static_cast<int>(customResult), eapData->msgId, eapData->bufferLen,  eapData->eapBuffer.size(),
+    eapData->eapCode, eapData->eapType);
+    int32_t ret = EapEventMgr::GetInstance().ReplyCustomEapData(customResult, eapData);
+    return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -212,7 +240,7 @@ napi_value StartEthEap(napi_env env, napi_callback_info info)
     napi_value thisVar = 0;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (!CheckStartEthEapParams(env, argv, argc)) {
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_PROFILE);
     }
     int32_t netId = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
     EthEapProfile profile;
@@ -233,7 +261,8 @@ napi_value StartEthEap(napi_env env, napi_callback_info info)
     profile.realm = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "realm");
     profile.plmn = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "plmn");
     profile.eapSubId = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "eapSubId");
-    DelayedSingleton<EthernetClient>::GetInstance()->StartEthEap(netId, profile);
+    int ret = DelayedSingleton<EthernetClient>::GetInstance()->StartEthEap(netId, profile);
+    return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif
     return NapiUtils::GetUndefined(env);
 }
@@ -246,13 +275,14 @@ napi_value LogOffEthEap(napi_env env, napi_callback_info info)
     napi_value thisVar = 0;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if ((argc != PARAM_JUST_OPTIONS) || (NapiUtils::GetValueType(env, argv[ARG_INDEX_0]) != napi_number)) {
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_LOGOFF_FAIL);
     }
     int32_t netId = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
-    DelayedSingleton<EthernetClient>::GetInstance()->LogOffEthEap(netId);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->LogOffEthEap(netId);
+    return EapNapiReturn(env, (ret == EAP_ERRCODE_SUCCESS), ret);
 #endif
     return NapiUtils::GetUndefined(env);
 }
- 
+
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -125,11 +125,12 @@ public:
     ~EapEventMgr() = default;
  
     static EapEventMgr &GetInstance();
-    bool RegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType, napi_value handler);
-    bool UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType, napi_value handler);
+    int32_t RegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType, napi_value handler);
+    int32_t UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType,
+        napi_value handler);
     int32_t ReplyCustomEapData(CustomResult result, const sptr<EapData> &eapData);
-    bool RegCustomEapHandler(NetType netType, RegTriggerMode triggerMode);
-    bool UnRegCustomEapHandler(NetType netType);
+    int32_t RegCustomEapHandler(NetType netType, RegTriggerMode triggerMode);
+    int32_t UnRegCustomEapHandler(NetType netType);
     std::map<NetType, TypeMapRegObj> GetRegisterInfoMap();
  
 private:
