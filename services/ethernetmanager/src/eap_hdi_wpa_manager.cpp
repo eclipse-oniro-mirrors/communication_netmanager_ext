@@ -89,28 +89,28 @@ int32_t EapHdiWpaManager::LoadEthernetHdiService()
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ != nullptr && devMgr_ != nullptr) {
         NETMGR_EXT_LOG_I("EthService already load");
-        return NETMANAGER_EXT_SUCCESS;
+        return EAP_ERRCODE_SUCCESS;
     }
     devMgr_ = HDIDeviceManagerGet();
     if (devMgr_ == nullptr) {
         NETMGR_EXT_LOG_E("EthService devMgr_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     int32_t loadDevRet = devMgr_->LoadDevice(devMgr_, ETHERNET_SERVICE_NAME);
     if ((loadDevRet != HDF_SUCCESS)) {
         HDIDeviceManagerRelease(devMgr_);
         devMgr_ = nullptr;
         NETMGR_EXT_LOG_E("EthService load fail");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     iEthernet_ = IEthernetGetInstance(ETHERNET_SERVICE_NAME, false);
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("EthService iEthernet_ null");
         UnloadDeviceManager();
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     NETMGR_EXT_LOG_I("EthService succ");
-    return NETMANAGER_EXT_SUCCESS;
+    return EAP_ERRCODE_SUCCESS;
 }
  
 int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfile& profile)
@@ -118,7 +118,7 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("StartEap iEthernet_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     RemoveHistoryCtrl();
     SetEapConfig(profile, ifName);
@@ -129,10 +129,10 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
         IEthernetReleaseInstance(ETHERNET_SERVICE_NAME, iEthernet_, false);
         iEthernet_ = nullptr;
         UnloadDeviceManager();
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     NETMGR_EXT_LOG_I("StartEap succ");
-    return NETMANAGER_EXT_SUCCESS;
+    return EAP_ERRCODE_SUCCESS;
 }
  
 int32_t EapHdiWpaManager::StopEap(const std::string& ifName)
@@ -140,7 +140,7 @@ int32_t EapHdiWpaManager::StopEap(const std::string& ifName)
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("StopEap iEthernet_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     UnregisterEapEventCallback(ifName);
     int32_t ret = iEthernet_->StopEap(iEthernet_, ifName.c_str());
@@ -153,7 +153,7 @@ int32_t EapHdiWpaManager::StopEap(const std::string& ifName)
         devMgr_ = nullptr;
     }
     NETMGR_EXT_LOG_I("StopEap succ");
-    return NETMANAGER_EXT_SUCCESS;
+    return (ret == HDF_SUCCESS) ? EAP_ERRCODE_SUCCESS : EAP_ERRCODE_LOGOFF_FAIL;
 }
  
 void EapHdiWpaManager::RemoveHistoryCtrl()
@@ -204,10 +204,10 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
     fileContext.append(ITEM_NETWORK_END);
     if (!WriteEapConfigToFile(fileContext)) {
         NETMGR_EXT_LOG_E("SetEapConfig fail");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     NETMGR_EXT_LOG_I("SetEapConfig succ");
-    return NETMANAGER_EXT_SUCCESS;
+    return EAP_ERRCODE_INTERNAL_ERROR;
 }
  
 int32_t EapHdiWpaManager::EapShellCmd(const std::string& ifName, const std::string& cmd)
@@ -215,7 +215,7 @@ int32_t EapHdiWpaManager::EapShellCmd(const std::string& ifName, const std::stri
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("EapShellCmd iEthernet_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     int32_t ret = iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), cmd.c_str());
     NETMGR_EXT_LOG_I("EthShellCmd cmd = %{public}s res = %{public}d", cmd.c_str(), ret);
@@ -226,7 +226,7 @@ int32_t EapHdiWpaManager::RegisterEapEventCallback(const std::string& ifName)
 {
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("RegisterEapEvent iEthernet_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     ethCallback_.OnEapEventNotify = OnEapEventReport;
     return iEthernet_->RegisterEapEventCallback(iEthernet_, &ethCallback_, ifName.c_str());
@@ -236,7 +236,7 @@ int32_t EapHdiWpaManager::UnregisterEapEventCallback(const std::string& ifName)
 {
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("UnregisterEapEvent iEthernet_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     ethCallback_.OnEapEventNotify = OnEapEventReport;
     return iEthernet_->UnregisterEapEventCallback(iEthernet_, &ethCallback_, ifName.c_str());
@@ -269,7 +269,7 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
     std::vector<std::string> vecEapDatas = CommonUtils::Split(value, ":");
     if (vecEapDatas.size() != WPA_EVENT_REPORT_PARAM_CNT) {
         NETMGR_EXT_LOG_E("OnEapEventReport value size err");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     sptr<EapData> notifyEapData = (std::make_unique<EapData>()).release();
     ConvertStrToInt(vecEapDatas[IDX_0], notifyEapData->msgId);
@@ -297,15 +297,15 @@ int32_t EapHdiWpaManager::RegisterCustomEapCallback(const std::string &ifName, c
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("RegisterEapCallback iEthernet_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     std::string cmd = "EXT_AUTH_REG " + regCmd;
     int32_t result = iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), cmd.c_str());
     if (result != HDF_SUCCESS) {
         NETMGR_EXT_LOG_E("EapShellCmd fail %{public}d", result);
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    return NETMANAGER_EXT_SUCCESS;
+    return EAP_ERRCODE_SUCCESS;
 }
  
 int32_t EapHdiWpaManager::ReplyCustomEapData(const std::string &ifName, int32_t result,
@@ -315,7 +315,7 @@ int32_t EapHdiWpaManager::ReplyCustomEapData(const std::string &ifName, int32_t 
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("ReplyEapData iEthernet_ null");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     std::string replyCmd = "EXT_AUTH_DATA " + std::to_string(result) + ":";
     replyCmd.append(std::to_string(eapData->msgId) + ":");
@@ -326,9 +326,9 @@ int32_t EapHdiWpaManager::ReplyCustomEapData(const std::string &ifName, int32_t 
     int32_t ret = iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), replyCmd.c_str());
     if (ret != HDF_SUCCESS) {
         NETMGR_EXT_LOG_E("ReplyEapData fail %{public}d", ret);
-        return NETMANAGER_EXT_ERR_INTERNAL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    return NETMANAGER_EXT_SUCCESS;
+    return EAP_ERRCODE_SUCCESS;
 }
  
 void EapHdiWpaManager::UnloadDeviceManager()
