@@ -329,7 +329,7 @@ int32_t EapEventMgr::UnRegCustomEapHandler(NetType netType)
  
 int32_t EapEventMgr::ReplyCustomEapData(CustomResult result, const sptr<EapData> &eapData)
 {
-    return errorCode = DelayedSingleton<EthernetClient>::GetInstance()->ReplyCustomEapData(static_cast<int>(result),
+    return DelayedSingleton<EthernetClient>::GetInstance()->ReplyCustomEapData(static_cast<int>(result),
         eapData);
 }
 
