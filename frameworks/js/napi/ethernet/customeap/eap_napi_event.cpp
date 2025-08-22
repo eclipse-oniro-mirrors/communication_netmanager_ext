@@ -244,10 +244,18 @@ napi_value StartEthEap(napi_env env, napi_callback_info info)
     }
     int32_t netId = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
     EthEapProfile profile;
-    profile.eapMethod = static_cast<EapMethod>(NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1],
-        "eapMethod"));
-    profile.phase2Method = static_cast<Phase2Method>(NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1],
-        "phase2Method"));
+    int32_t tmpVal = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "eapMethod");
+    if (tmpVal < static_cast<int32_t>(EapMethod::EAP_NONE) ||
+        tmpVal > static_cast<int32_t>(EapMethod::EAP_UNAUTH_TLS)) {
+            return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_PROFILE);
+    }
+    profile.eapMethod = static_cast<EapMethod>(tmpVal);
+    tmpVal = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "phase2Method");
+    if (tmpVal < static_cast<int32_t>(Phase2Method::PHASE2_NONE) ||
+        tmpVal > static_cast<int32_t>(Phase2Method::PHASE2_AKA_PRIME)) {
+            return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_PROFILE);
+    }
+    profile.phase2Method = static_cast<Phase2Method>(tmpVal);
     profile.identity = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "identity");
     profile.anonymousIdentity = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "anonymousIdentity");
     profile.password = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "password");
