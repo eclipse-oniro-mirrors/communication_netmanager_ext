@@ -221,8 +221,8 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
     }
  
     NETMANAGER_EXT_LOGI("%{public}s, result:%{public}d, msgId:%{public}d, bufferLen:%{public}d,  buffsize:%{public}zu, "
-    "eapCode:%{public}d, eapType:%{public}d ",
-    __func__, static_cast<int>(customResult), eapData->msgId, eapData->bufferLen,  eapData->eapBuffer.size(),
+        "eapCode:%{public}d, eapType:%{public}d ",
+        __func__, static_cast<int>(customResult), eapData->msgId, eapData->bufferLen,  eapData->eapBuffer.size(),
     eapData->eapCode, eapData->eapType);
     int32_t ret = EapEventMgr::GetInstance().ReplyCustomEapData(customResult, eapData);
     return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);

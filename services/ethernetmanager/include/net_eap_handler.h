@@ -50,6 +50,7 @@ private:
     sptr<INetEapPostbackCallback> GetPostbackCallback();
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     void GetIfaceNameFromNetId(int32_t netId);
+#endif
 private:
     std::map<NetType, int> nTMapMsgId_;
     std::map<NetType, sptr<INetRegisterEapCallback>> regEapCallBack_;
@@ -63,4 +64,4 @@ private:
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NET_EAP_H
+#endif // NET_EAP_HANDLER_H
