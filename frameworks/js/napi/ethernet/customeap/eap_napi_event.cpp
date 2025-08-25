@@ -125,11 +125,11 @@ napi_value RegCustomEapHandler(napi_env env, napi_callback_info info)
  
     uint32_t eapType = NapiUtils::GetUint32FromValue(env, argv[ARG_INDEX_2]);
     if (eapType < EAP_TYPE_MIN || eapType > EAP_TYPE_MAX) {
-        NETMANAGER_EXT_LOGE("valid eapType %{public}d", eapType);
+        NETMANAGER_EXT_LOGE("invalid eapType %{public}d", eapType);
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_TYPE);
     }
  
-    int ret = EapEventMgr::GetInstance().RegCustomEapHandler(env, static_cast<NetType>(netType),
+    int32_t ret = EapEventMgr::GetInstance().RegCustomEapHandler(env, static_cast<NetType>(netType),
         eapCode, eapType, argv[ARG_INDEX_3]);
     return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif
@@ -174,7 +174,7 @@ napi_value UnRegCustomEapHandler(napi_env env, napi_callback_info info)
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_TYPE);
     }
  
-    int ret = EapEventMgr::GetInstance().UnRegCustomEapHandler(env, static_cast<NetType>(netType),
+    int32_t ret = EapEventMgr::GetInstance().UnRegCustomEapHandler(env, static_cast<NetType>(netType),
         eapCode, eapType, argv[ARG_INDEX_3]);
     return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif
@@ -269,7 +269,7 @@ napi_value StartEthEap(napi_env env, napi_callback_info info)
     profile.realm = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "realm");
     profile.plmn = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "plmn");
     profile.eapSubId = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "eapSubId");
-    int ret = DelayedSingleton<EthernetClient>::GetInstance()->StartEthEap(netId, profile);
+    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->StartEthEap(netId, profile);
     return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif
     return NapiUtils::GetUndefined(env);

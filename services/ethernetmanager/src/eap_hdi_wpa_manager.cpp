@@ -207,7 +207,7 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     NETMGR_EXT_LOG_I("SetEapConfig succ");
-    return EAP_ERRCODE_INTERNAL_ERROR;
+    return EAP_ERRCODE_SUCCESS;
 }
  
 int32_t EapHdiWpaManager::EapShellCmd(const std::string& ifName, const std::string& cmd)
