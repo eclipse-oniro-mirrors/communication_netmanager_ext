@@ -153,6 +153,15 @@ void NetworkShareUpstreamMonitor::RegisterUpstreamChangedCallback(
 
 bool NetworkShareUpstreamMonitor::GetCurrentGoodUpstream(std::shared_ptr<UpstreamNetworkInfo> &upstreamNetInfo)
 {
+    bool hasDefaultNet = true;
+    int32_t result = NetConnClient::GetInstance().HasDefaultNet(hasDefaultNet);
+    if (result != NETMANAGER_SUCCESS || !hasDefaultNet) {
+        NetworkShareHisysEvent::GetInstance().SendFaultEvent(
+            NetworkShareEventOperator::OPERATION_GET_UPSTREAM, NetworkShareEventErrorType::ERROR_GET_UPSTREAM,
+            ERROR_MSG_HAS_NOT_UPSTREAM, NetworkShareEventType::SETUP_EVENT);
+        NETMGR_EXT_LOG_E("NetConn hasDefaultNet error[%{public}d].", result);
+        return false;
+    }
     std::lock_guard lock(networkMapMutex_);
     auto iter = networkMaps_.find(defaultNetworkId_);
     if (iter == networkMaps_.end()) {
