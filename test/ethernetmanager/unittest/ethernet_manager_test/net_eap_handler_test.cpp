@@ -274,6 +274,29 @@ HWTEST_F(NetEapHandlerTest, LogOffEthEapTest001, TestSize.Level1)
     NetEapHandler::GetInstance().eapHdiWpaManager_ = std::make_shared<EapHdiWpaManager>();
 #endif
 }
+
+HWTEST_F(NetEapHandlerTest, StartEthEapTest002, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    std::vector<int32_t> netIds = {100, 101, 102, 103, 104, 105};
+    EthEapProfile profile;
+    for (int32_t netId : netIds) {
+        int ret = NetEapHandler::GetInstance().StartEthEap(netId, profile);
+        EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    }
+#endif
+}
  
+HWTEST_F(NetEapHandlerTest, LogOffEthEapTest002, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    std::vector<int32_t> netIds = {100, 101, 102, 103, 104, 105};
+    for (int32_t netId : netIds) {
+        int ret = NetEapHandler::GetInstance().LogOffEthEap(netId);
+        EXPECT_NE(ret, NETMANAGER_SUCCESS);
+    }
+#endif
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
