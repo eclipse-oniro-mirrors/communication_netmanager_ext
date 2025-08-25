@@ -282,12 +282,12 @@ int32_t EthernetClient::RegCustomEapHandler(NetType netType, const std::string &
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s callback is nullptr.", __func__);
-        return NETMANAGER_ERR_LOCAL_PTR_NULL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s proxy is nullptr.", __func__);
-        return NETMANAGER_ERR_GET_PROXY_FAIL;
+        return EAP_ERRCODE_NETMANAGER_STOP;
     }
     return proxy->RegCustomEapHandler(static_cast<int>(netType), regCmd, callback);
 #else
@@ -300,12 +300,12 @@ int32_t EthernetClient::ReplyCustomEapData(int result, const sptr<EapData> &eapD
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     if (eapData == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, eapData is nullptr", __func__);
-        return NETMANAGER_ERR_GET_PROXY_FAIL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, proxy is nullptr.", __func__);
-        return NETMANAGER_ERR_LOCAL_PTR_NULL;
+        return EAP_ERRCODE_NETMANAGER_STOP;
     }
     return proxy->ReplyCustomEapData(result, eapData);
 #else
@@ -378,7 +378,7 @@ int32_t EthernetClient::StartEthEap(int32_t netId, const EthEapProfile& profile)
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
-        return IPC_PROXY_ERR;
+        return EAP_ERRCODE_NETMANAGER_STOP;
     }
     return proxy->StartEthEap(netId, profile);
 #else
@@ -392,7 +392,7 @@ int32_t EthernetClient::LogOffEthEap(int32_t netId)
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("proxy is nullptr");
-        return IPC_PROXY_ERR;
+        return EAP_ERRCODE_NETMANAGER_STOP;
     }
     return proxy->LogOffEthEap(netId);
 #else

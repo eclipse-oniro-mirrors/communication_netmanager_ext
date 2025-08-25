@@ -48,7 +48,9 @@ public:
 private:
     void SetPostbackCallback(const sptr<INetEapPostbackCallback> &postbackCallback);
     sptr<INetEapPostbackCallback> GetPostbackCallback();
- 
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    void GetIfaceNameFromNetId(int32_t netId);
+#endif
 private:
     std::map<NetType, int> nTMapMsgId_;
     std::map<NetType, sptr<INetRegisterEapCallback>> regEapCallBack_;
@@ -57,8 +59,9 @@ private:
     std::mutex mutex_;
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     std::shared_ptr<EapHdiWpaManager> eapHdiWpaManager_;
+    std::string ethEapIfName_;
 #endif
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // NET_EAP_H
+#endif // NET_EAP_HANDLER_H
