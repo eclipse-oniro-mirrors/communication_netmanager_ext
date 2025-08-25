@@ -33,7 +33,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-const std::string IFACE_MATCH = "eth\\d";
+const std::string IFACE_MATCH = "(eth|usb)\\d";
 constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
 constexpr const char *SYS_CLASS_NET_PATH = "/sys/class/net/";
