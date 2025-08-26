@@ -273,7 +273,7 @@ export default namespace sharing {
     });
   }
 
-  export function on(type: 'sharingStateChange' | 'interfaceSharingStateChange' | 'sharingUpstreamChange', callback: Object): void {
+  export function on(type: 'sharingStateChange' | 'interfaceSharingStateChange' | 'sharingUpstreamChange', callback: Callback<Any>): void {
     if (type == 'sharingStateChange') {
       onSharingStateChange(callback as Callback<boolean>);
     } else if (type == 'interfaceSharingStateChange') {
@@ -283,7 +283,7 @@ export default namespace sharing {
     }
   }
 
-  export function off(type: 'sharingStateChange' | 'interfaceSharingStateChange' | 'sharingUpstreamChange', callback?: Object): void {
+  export function off(type: 'sharingStateChange' | 'interfaceSharingStateChange' | 'sharingUpstreamChange', callback?: Callback<Any>): void {
     if (type == 'sharingStateChange') {
       offSharingStateChange(callback as Callback<boolean> | undefined);
     } else if (type == 'interfaceSharingStateChange') {
