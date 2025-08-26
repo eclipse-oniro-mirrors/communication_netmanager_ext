@@ -212,7 +212,7 @@ EapEventMgr::EapEventMgr():eapPostBackCallback_(sptr<NetEapPostBackCallback>::Ma
             retNetManagerSa:%{public}d!", retWifiSa, retNetManagerSa);
 }
  
-bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType,
+int32_t EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType,
     napi_value handler)
 {
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
@@ -238,7 +238,7 @@ bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t ea
                 eapCode, eapType);
             if (mapObj.size() > REGISTERINFO_MAX_NUM) {
                 NETMANAGER_EXT_LOGE("%{public}s, RegisterInfo Exceeding the maximum value!", __func__);
-                return false;
+                return EAP_ERRCODE_INTERNAL_ERROR;
             }
             mapObj[composeParam] = std::vector<RegObj>{regObj};
             eventRegisterInfo_[netType] = mapObj;
@@ -248,7 +248,7 @@ bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t ea
             if (vecIter != iter->second.end()) {
                 NETMANAGER_EXT_LOGE("%{public}s, eapCode:%{public}d, eapType:%{public}d callback is registered!",
                     __func__, eapCode, eapType);
-                return true;
+                return EAP_ERRCODE_SUCCESS;
             }
             iter->second.emplace_back(regObj);
             NETMANAGER_EXT_LOGI("%{public}s, eapCode:%{public}d, eapType:%{public}d callback size:%{public}zu!",
@@ -259,7 +259,7 @@ bool EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t ea
     return RegCustomEapHandler(netType, RegTriggerMode::USER_REGISTER);
 }
  
-bool EapEventMgr::RegCustomEapHandler(NetType netType, RegTriggerMode triggerMode)
+int32_t EapEventMgr::RegCustomEapHandler(NetType netType, RegTriggerMode triggerMode)
 {
     std::string regCmd;
     {
@@ -267,7 +267,7 @@ bool EapEventMgr::RegCustomEapHandler(NetType netType, RegTriggerMode triggerMod
         auto mNetTypeValueIter = eventRegisterInfo_.find(netType);
         if (mNetTypeValueIter == eventRegisterInfo_.end()) {
             NETMANAGER_EXT_LOGE("%{public}s eventRegisterInfo_ not have eapType:%{public}d", __func__, netType);
-            return false;
+            return EAP_ERRCODE_INTERNAL_ERROR;
         }
         regCmd += std::to_string(static_cast<int>(netType));
         regCmd += ":";
@@ -279,16 +279,11 @@ bool EapEventMgr::RegCustomEapHandler(NetType netType, RegTriggerMode triggerMod
     }
     NETMANAGER_EXT_LOGI("%{public}s enter, triggreMode:%{public}d, netType:%{public}d, regCmd:%{public}s", __func__,
         static_cast<int>(triggerMode), static_cast<int>(netType), regCmd.c_str());
-    int errorCode = DelayedSingleton<EthernetClient>::GetInstance()->RegCustomEapHandler(netType, regCmd,
+    return DelayedSingleton<EthernetClient>::GetInstance()->RegCustomEapHandler(netType, regCmd,
         eapPostBackCallback_);
-    if (errorCode != NETMANAGER_SUCCESS) {
-        NETMANAGER_EXT_LOGE("%{public}s failed errorCode: %{public}d", __func__, errorCode);
-        return NETMANAGER_ERR_OPERATION_FAILED;
-    }
-    return true;
 }
  
-bool EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType,
+int32_t EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType,
     napi_value handler)
 {
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
@@ -303,13 +298,13 @@ bool EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t 
         auto netTypeMapIter = eventRegisterInfo_.find(netType);
         if (netTypeMapIter == eventRegisterInfo_.end()) {
             NETMANAGER_EXT_LOGE("%{public}s, not netType %{public}d handler", __func__, netType);
-            return false;
+            return EAP_ERRCODE_INTERNAL_ERROR;
         }
         TypeMapRegObj& mapObj = netTypeMapIter->second;
         auto mapObjIter = mapObj.find(composeParam);
         if (mapObjIter == mapObj.end()) {
             NETMANAGER_EXT_LOGE("%{public}s, not composeParam %{public}d handler", __func__, composeParam);
-            return false;
+            return EAP_ERRCODE_INTERNAL_ERROR;
         }
         auto new_end = std::remove_if(mapObjIter->second.begin(), mapObjIter->second.end(),
             [env](const RegObj& obj) { return obj.m_regEnv == env; });
@@ -327,22 +322,15 @@ bool EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32_t 
     return true;
 }
  
-bool EapEventMgr::UnRegCustomEapHandler(NetType netType)
+int32_t EapEventMgr::UnRegCustomEapHandler(NetType netType)
 {
     return RegCustomEapHandler(netType, RegTriggerMode::UNREGISTER);
 }
  
 int32_t EapEventMgr::ReplyCustomEapData(CustomResult result, const sptr<EapData> &eapData)
 {
-    NETMANAGER_EXT_LOGI("%{public}s enter, result:%{public}d, eapData:%{public}s", __func__,
-        static_cast<int>(result), eapData->PrintLogInfo().c_str());
-    int32_t errorCode = DelayedSingleton<EthernetClient>::GetInstance()->ReplyCustomEapData(static_cast<int>(result),
+    return DelayedSingleton<EthernetClient>::GetInstance()->ReplyCustomEapData(static_cast<int>(result),
         eapData);
-    if (errorCode != NETMANAGER_SUCCESS) {
-        NETMANAGER_EXT_LOGE("%{public}s failed errorCode: %{public}d", __func__, errorCode);
-        return NETMANAGER_ERR_OPERATION_FAILED;
-    }
-    return NETMANAGER_SUCCESS;
 }
 
 std::map<NetType, TypeMapRegObj> EapEventMgr::GetRegisterInfoMap()

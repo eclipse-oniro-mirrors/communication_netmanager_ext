@@ -19,11 +19,14 @@
  
 #include "netmgr_ext_log_wrapper.h"
 #include "net_manager_constants.h"
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#include "net_manager_center.h"
+#endif
  
 namespace OHOS {
 namespace NetManagerStandard {
 
-static constexpr const char* DEFAULT_ETH_IFNAME = "eth0";
+static constexpr const char* ETH_PREFIX = "eth";
 
 NetEapHandler::NetEapHandler()
 {
@@ -85,31 +88,31 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     if (postBackCb == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, postBackCb is nullptr", __func__);
-        return NETMANAGER_ERR_LOCAL_PTR_NULL;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     SetPostbackCallback(postBackCb);
     if (netType < NetType::WLAN0 || netType > NetType::ETH0) {
         NETMGR_EXT_LOG_E("NetEapHandler, RegCustomEapHandler invalid netType %{public}d", static_cast<int>(netType));
-        return NETMANAGER_ERR_PARAMETER_ERROR;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     if (netType == NetType::ETH0) {
         NETMGR_EXT_LOG_I("RegEapHandler for eth0");
         if (eapHdiWpaManager_ == nullptr) {
-            return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+            return EAP_ERRCODE_INTERNAL_ERROR;
         }
-        return eapHdiWpaManager_->RegisterCustomEapCallback(DEFAULT_ETH_IFNAME, regCmd);
+        return eapHdiWpaManager_->RegisterCustomEapCallback(ethEapIfName_, regCmd);
     }
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = regEapCallBack_.find(netType);
     lock.unlock();
     if (iter == regEapCallBack_.end()) {
         NETMGR_EXT_LOG_E("RegCustomEapHandler not have callback, netType:%{public}d", static_cast<int>(netType));
-        return NETMANAGER_ERR_INVALID_PARAMETER;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     
     if (iter->second == nullptr) {
         NETMGR_EXT_LOG_E("regEapCallBack ptr is nullptr, netType:%{public}d", static_cast<int>(netType));
-        return NETMANAGER_ERR_INVALID_PARAMETER;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     iter->second->OnRegisterCustomEapCallback(regCmd);
     NETMGR_EXT_LOG_I("RegCustomEapHandler success.");
@@ -145,21 +148,21 @@ int32_t NetEapHandler::ReplyCustomEapData(int result, const sptr<EapData> &eapDa
     if (iter == nTMapMsgId_.end()) {
         NETMGR_EXT_LOG_E("%{public}s, don't match msgId and type, WALN0:%{public}zu, ETH0:%{public}zu", __func__,
             nTMapMsgId_.count(NetType::WLAN0), nTMapMsgId_.count(NetType::ETH0));
-        return NETMANAGER_ERR_OPERATION_FAILED;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     /* ETH0 do not need check regEapCallBack_ */
     if (iter->first == NetType::ETH0) {
         if (eapHdiWpaManager_ == nullptr) {
             return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
         }
-        return eapHdiWpaManager_->ReplyCustomEapData(DEFAULT_ETH_IFNAME, result, eapData);
+        return eapHdiWpaManager_->ReplyCustomEapData(ethEapIfName_, result, eapData);
     }
     std::unique_lock<std::mutex> lock(mutex_);
     auto &callback = regEapCallBack_[iter->first];
     lock.unlock();
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, callback is nullptr", __func__);
-        return NETMANAGER_ERR_OPERATION_FAILED;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
     callback->OnReplyCustomEapDataEvent(result, eapData);
 #endif
@@ -180,22 +183,40 @@ sptr<INetEapPostbackCallback> NetEapHandler::GetPostbackCallback()
 int32_t NetEapHandler::StartEthEap(int32_t netId, const EthEapProfile& profile)
 {
     if (eapHdiWpaManager_ == nullptr) {
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        return EAP_ERRCODE_INTERNAL_ERROR;
+    }
+    GetIfaceNameFromNetId(netId);
+    if (ethEapIfName_.find(ETH_PREFIX) == std::string::npos) {
+        NETMGR_EXT_LOG_E("StartEthEap invalid netid %{public}d", netId);
+        return EAP_ERRCODE_INVALID_NETID;
     }
     int32_t ret = eapHdiWpaManager_->LoadEthernetHdiService();
-    if (ret != NETMANAGER_EXT_SUCCESS) {
-        return NETMANAGER_EXT_ERR_INTERNAL;
+    if (ret != EAP_ERRCODE_SUCCESS) {
+        return ret;
     }
-    return eapHdiWpaManager_->StartEap(DEFAULT_ETH_IFNAME, profile);
+    return eapHdiWpaManager_->StartEap(ethEapIfName_, profile);
 }
  
 int32_t NetEapHandler::LogOffEthEap(int32_t netId)
 {
     if (eapHdiWpaManager_ == nullptr) {
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    return eapHdiWpaManager_->StopEap(DEFAULT_ETH_IFNAME);
+    GetIfaceNameFromNetId(netId);
+    if (ethEapIfName_.find(ETH_PREFIX) == std::string::npos) {
+        NETMGR_EXT_LOG_E("LogOffEthEap invalid netid %{public}d", netId);
+        return EAP_ERRCODE_INVALID_NETID;
+    }
+    return eapHdiWpaManager_->StopEap(ethEapIfName_);
 }
+ 
+void NetEapHandler::GetIfaceNameFromNetId(int32_t netId)
+{
+    NetLinkInfo info;
+    NetManagerCenter::GetInstance().GetConnectionProperties(netId, info);
+    ethEapIfName_ = info.ifaceName_;
+}
+
 #endif // NET_EXTENSIBLE_AUTHENTICATION
  
 } // namespace NetManagerStandard
