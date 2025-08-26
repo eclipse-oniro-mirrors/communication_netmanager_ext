@@ -22,6 +22,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t SYSVPN_MAX_SIZE = 1024;
+constexpr int32_t MAX_LEN_CERTIFICATE_CHAIN = 24588;
 
 enum VpnType : int32_t {
     IKEV2_IPSEC_MSCHAPv2 = 1,
