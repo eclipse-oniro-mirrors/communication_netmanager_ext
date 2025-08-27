@@ -55,7 +55,7 @@ ohos_unittest("ethernet_manager_test") {
   ]
 
   deps = [
-    "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager",
+    "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager_static",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
   ]
 

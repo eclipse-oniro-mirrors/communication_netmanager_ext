@@ -99,6 +99,7 @@ ohos_static_library("ethernet_service_interface_stub") {
     cfi_cross_dso = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":ethernet_service_interface_stub_config" ]
   output_values = get_target_outputs(":ethernet_service_interface")
   sources = []
@@ -130,7 +131,6 @@ ohos_shared_library("ethernet_manager_if") {
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/ethernet_client.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/net_eap_callback_stub.cpp",
-    "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_proxy.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_stub.cpp",
   ]
 

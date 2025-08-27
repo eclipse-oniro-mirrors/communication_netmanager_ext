@@ -41,10 +41,6 @@ enum class TetheringEventInterfaceCode {
     INTERFACE_SHARING_STATE_CHANGED,
     SHARING_UPSTREAM_CHANGED,
 };
-
-enum class TetheringResultInterfaceCode {
-    RESULT,
-};
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // TETHERING_IPC_INTERFACE_CODE_H

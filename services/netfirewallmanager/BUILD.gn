@@ -81,6 +81,8 @@ ohos_shared_library("netfirewall_manager") {
     debug = false
   }
 
+  branch_protector_ret = "pac_ret"
+
   configs = [
     ":netfirewall_manager_config",
     "$NETMANAGER_EXT_ROOT/resource:coverage_flags",
@@ -108,6 +110,8 @@ ohos_static_library("netfirewall_manager_static") {
     cfi_cross_dso = true
     debug = false
   }
+
+  branch_protector_ret = "pac_ret"
 
   configs = [
     ":netfirewall_manager_config",

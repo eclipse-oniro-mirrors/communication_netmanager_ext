@@ -102,7 +102,7 @@ config("networkvpn_interface_stub_config") {
   }
 }
 
-ohos_source_set("networkvpn_interface_stub") {
+ohos_static_library("networkvpn_interface_stub") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true

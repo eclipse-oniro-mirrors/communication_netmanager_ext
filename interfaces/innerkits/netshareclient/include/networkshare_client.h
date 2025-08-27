@@ -18,7 +18,6 @@
 
 #include <string>
 
-#include "i_netshare_result_callback.h"
 #include "inetwork_share_service.h"
 #include "isharing_event_callback.h"
 #include "parcel.h"

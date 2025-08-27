@@ -46,7 +46,7 @@ ohos_static_library("netfirewall_parcel") {
     cfi_cross_dso = true
     debug = false
   }
-
+  branch_protector_ret = "pac_ret"
   sources = [ "$NETFIREWALL_EXTENSION_SOURCE_DIR/src/netfirewall_common.cpp" ]
 
   include_dirs = [
@@ -72,6 +72,8 @@ ohos_shared_library("netfirewall_manager_if") {
     cfi_cross_dso = true
     debug = false
   }
+
+  branch_protector_ret = "pac_ret"
 
   if (netmanager_ext_feature_net_firewall) {
     sources = [
