@@ -91,6 +91,7 @@ ohos_static_library("netshare_service_interface_stub") {
     cfi_cross_dso = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":netshare_service_interface_stub_config" ]
   output_values = get_target_outputs(":netshare_service_interface")
   sources = []
@@ -121,9 +122,6 @@ ohos_shared_library("net_tether_manager_if") {
 
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/networkshare_client.cpp",
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/netshare_result_callback_proxy.cpp",
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/netshare_result_callback_stub.cpp",
-    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_stub.cpp",
   ]
 

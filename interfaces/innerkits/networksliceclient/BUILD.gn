@@ -71,6 +71,8 @@ ohos_shared_library("networkslice_manager_if") {
     debug = false
   }
 
+  branch_protector_ret = "pac_ret"
+
   sources = [
     "$NETWORKSLICE_INNERKITS_SOURCE_DIR/src/networkslice_client.cpp",
     "$NETWORKSLICE_INNERKITS_SOURCE_DIR/src/networkslice_proxy.cpp",

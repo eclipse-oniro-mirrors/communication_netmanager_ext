@@ -19,6 +19,8 @@ ohos_shared_library("netfirewall") {
     debug = false
   }
 
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "include",
     "include/context",
@@ -41,13 +43,11 @@ ohos_shared_library("netfirewall") {
   ]
 
   cflags = [
-    "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]
 
   cflags_cc = [
-    "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]

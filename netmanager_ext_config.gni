@@ -79,7 +79,6 @@ declare_args() {
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]
 
 common_cflags = [
-  "-fstack-protector-strong",
   "-D_FORTIFY_SOURCE=2",
   "-fdata-sections",
   "-ffunction-sections",

@@ -25,7 +25,6 @@
 #include "bluetooth_remote_device.h"
 #endif
 #include "event_handler.h"
-#include "i_netshare_result_callback.h"
 #include "isharing_event_callback.h"
 #ifdef WIFI_MODOULE
 #include "i_wifi_hotspot_callback.h"

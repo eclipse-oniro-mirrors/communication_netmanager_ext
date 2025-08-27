@@ -33,8 +33,6 @@ ohos_unittest("networkshare_manager_test") {
     "edm_parameter_utils_test.cpp",
     "interface_configuration_test.cpp",
     "net_event_report_test.cpp",
-    "netshare_result_callback_proxy_test.cpp",
-    "netshare_result_callback_stub_test.cpp",
     "networkshare_hisysevent_test.cpp",
     "networkshare_main_statemachine_test.cpp",
     "networkshare_manager_test.cpp",

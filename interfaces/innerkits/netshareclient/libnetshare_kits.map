@@ -30,8 +30,6 @@
       "OHOS::NetManagerStandard::NetworkShareClient::~NetworkShareClient()";
       "OHOS::NetManagerStandard::NetworkShareClient::RegisterSharingEvent(OHOS::sptr<OHOS::NetManagerStandard::ISharingEventCallback>)";
       "OHOS::NetManagerStandard::NetworkShareClient::UnregisterSharingEvent(OHOS::sptr<OHOS::NetManagerStandard::ISharingEventCallback>)";
-      "OHOS::NetManagerStandard::NetShareResultCallbackProxy::NetShareResultCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
-      "OHOS::NetManagerStandard::NetShareResultCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
       "OHOS::NetManagerStandard::NetworkShareLoadCallback::GetRemoteObject() const";
       VTT?for?OHOS::NetManagerStandard::NetworkShareLoadCallback;
       vtable?for?OHOS::NetManagerStandard::NetworkShareLoadCallback;
