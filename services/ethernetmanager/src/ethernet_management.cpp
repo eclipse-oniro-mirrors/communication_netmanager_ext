@@ -601,7 +601,7 @@ bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::strin
 
     std::filesystem::path filePath(nodePath);
     if (!std::filesystem::exists(filePath)) {
-        NETMGR_EXT_LOG_E("GetSysNodeValue nodePath %{public}s not exist", nodePath.c_str());
+        NETMGR_EXT_LOG_E("GetSysNodeValue nodePath not exist");
         return false;
     }
     auto truePath = std::filesystem::canonical(filePath, ec);
