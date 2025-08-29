@@ -17,12 +17,6 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 EXT_SECURITY_PATH = "../../.."
 
 ohos_unittest("vpn_manager_ext_test") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
   branch_protector_ret = "pac_ret"
 
   sources = [ "networkvpn_service_ext_test.cpp" ]

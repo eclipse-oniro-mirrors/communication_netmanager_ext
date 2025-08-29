@@ -17,12 +17,6 @@ import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 EXT_SECURITY_PATH = "../../.."
 
 ohos_unittest("netfirewallmanager_test") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
   module_out_path = "netmanager_ext/netmanager_ext/netfirewallmanager_test"
 
   sources = [
