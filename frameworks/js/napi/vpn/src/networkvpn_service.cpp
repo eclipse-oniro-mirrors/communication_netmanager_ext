@@ -80,12 +80,6 @@ constexpr const char* const PERMISSION_MANAGE_EDM_POLICY = "ohos.permission.MANA
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
 NetworkVpnService::~NetworkVpnService()
 {
-    {
-        std::lock_guard<std::mutex> autoLock(cesMutex_);
-        if (subscriber_ != nullptr) {
-            EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
-        }
-    }
     RemoveALLClientDeathRecipient();
 }
 

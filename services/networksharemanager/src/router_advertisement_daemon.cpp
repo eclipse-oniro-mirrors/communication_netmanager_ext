@@ -97,11 +97,21 @@ int32_t RouterAdvertisementDaemon::StartRa()
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     stopRaThread_ = false;
-    auto sp = shared_from_this();
-    recvRsThread_ = std::thread([sp]() { sp->RunRecvRsThread(); });
+    std::weak_ptr<RouterAdvertisementDaemon> wp = shared_from_this();
+    recvRsThread_ = std::thread([wp]() {
+        auto sp = wp.lock();
+        if (sp != nullptr) {
+            sp->RunRecvRsThread();
+        }
+    });
     pthread_setname_np(recvRsThread_.native_handle(), "OH_Net_RecvRs");
     recvRsThread_.detach();
-    auto callback = [sp]() { sp->ProcessSendRaPacket(); };
+    auto callback = [wp]() {
+        auto sp = wp.lock();
+        if (sp != nullptr) {
+            sp->ProcessSendRaPacket();
+        }
+    };
     taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -245,8 +255,13 @@ void RouterAdvertisementDaemon::BuildNewRa(const RaParams &newRa)
 
 void RouterAdvertisementDaemon::ResetRaRetryInterval()
 {
-    auto sp = shared_from_this();
-    auto callback = [sp]() { sp->ProcessSendRaPacket(); };
+    std::weak_ptr<RouterAdvertisementDaemon> wp = shared_from_this();
+    auto callback = [wp]() {
+        auto sp = wp.lock();
+        if (sp != nullptr) {
+            sp->ProcessSendRaPacket();
+        }
+    };
     uint32_t delayTime = DEFAULT_RTR_INTERVAL_SEC * SECOND_TO_MICROSECOND;
     if (sendRaTimes_ < MAX_URGENT_RTR_ADVERTISEMENTS) {
         sendRaTimes_++;

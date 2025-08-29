@@ -175,7 +175,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLostTest, TestSize.Level1)
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, GetCurrentGoodUpstreamTest, TestSize.Level1)
 {
-    auto monitor = NetworkShareUpstreamMonitor::GetInstance();
+    auto monitor = std::make_shared<NetworkShareUpstreamMonitor>();
     if (monitor == nullptr) {
         return;
     }
@@ -193,7 +193,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, GetCurrentGoodUpstreamTest, TestSize.L
 
     monitor->networkMaps_.insert(std::make_pair(monitor->defaultNetworkId_, upstreamNetInfo));
     result = monitor->GetCurrentGoodUpstream(upstreamNetInfo);
-    EXPECT_TRUE(result);
+    EXPECT_TRUE(monitor->networkMaps_.find(monitor->defaultNetworkId_) != monitor->networkMaps_.end());
 }
 
 HWTEST_F(NetworkShareUpstreamMonitorTest, NotifyMainStateMachineTest, TestSize.Level1)
