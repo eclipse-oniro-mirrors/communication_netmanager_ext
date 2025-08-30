@@ -57,10 +57,10 @@ int32_t NetworkSliceClient::NetworkSliceInitUePolicy()
 
 int32_t NetworkSliceClient::NetworkSliceAllowedNssaiRpt(std::vector<uint8_t> buffer)
 {
-    NETMGR_EXT_LOG_I("NetworkSliceClient::NetworkSliceAllowedNssaiRpt");
+    NETMGR_EXT_LOG_D("NetworkSliceClient::NetworkSliceAllowedNssaiRpt");
     sptr<INetworkSliceService> proxy = GetProxy();
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("NetworkSliceAllowedNssaiRpt proxy is nullptr");
+        NETMGR_EXT_LOG_D("NetworkSliceAllowedNssaiRpt proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     return proxy->NetworkSliceAllowedNssaiRpt(buffer);
