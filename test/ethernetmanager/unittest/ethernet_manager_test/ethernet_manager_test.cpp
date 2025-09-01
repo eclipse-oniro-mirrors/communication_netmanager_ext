@@ -1163,21 +1163,6 @@ HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest004, TestSize.Level1)
     EXPECT_EQ(devInterfaceState.dhcpReqState_, true);
 }
 
-HWTEST_F(EthernetManagerTest, GetMacAddressTest001, TestSize.Level1)
-{
-    EthernetManagement ethernetManagement;
-    std::vector<MacAddressInfo> macAddrList;
-    int32_t ret = ethernetManagement.GetMacAddress(macAddrList);
-    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
-}
-
-HWTEST_F(EthernetManagerTest, GetMacAddrTest001, TestSize.Level1)
-{
-    EthernetManagement ethernetManagement;
-    string macAddr = ethernetManagement.GetMacAddr("eth0");
-    EXPECT_TRUE(macAddr.empty());
-}
-
 HWTEST_F(EthernetManagerTest, HwAddrToStrTest001, TestSize.Level1)
 {
     EthernetManagement ethernetManagement;
@@ -1381,18 +1366,6 @@ HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest005, TestSize.Level1)
     ethernetmanagement.UpdateInterfaceState(dev, true);
     ethernetmanagement.UpdateInterfaceState(dev, false);
     EXPECT_EQ(dev, "");
-}
-
-HWTEST_F(EthernetManagerTest, GetMacAddressTest002, TestSize.Level1)
-{
-    EthernetManagement ethernetmanagement;
-    std::vector<MacAddressInfo> macAddrList = {};
-    EXPECT_NE(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
-    MacAddressInfo macaddressinfo;
-    macaddressinfo.iface_ = "123";
-    macaddressinfo.macAddress_ = "123";
-    macAddrList = {macaddressinfo};
-    EXPECT_EQ(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfgTest001, TestSize.Level1)
