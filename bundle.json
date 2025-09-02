@@ -25,7 +25,7 @@
             "SystemCapability.Communication.NetManager.MDNS",
             "SystemCapability.Communication.NetManager.Vpn",
             "SystemCapability.Communication.NetManager.NetFirewall",
-            "SystemCapability.Communication.NetManager.Eap"
+            "SystemCapability.Communication.NetManager.Eap = false"
         ],
         "features": [
             "netmanager_ext_feature_coverage",
