@@ -216,11 +216,14 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
     eapData->bufferLen = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "bufferLen");
     NapiUtils::GetVectorUint8Property(env, argv[ARG_INDEX_1], "eapBuffer", eapData->eapBuffer);
  
-    if (eapData->bufferLen > MAX_EAP_DATA_LENGTH || eapData->bufferLen != eapData->eapBuffer.size()) {
+    if (eapData->bufferLen > MAX_EAP_DATA_LENGTH) {
+        NETMANAGER_EXT_LOGE("bufferLen is exceed.");
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
+    }
+    if (eapData->bufferLen != eapData->eapBuffer.size()) {
         NETMANAGER_EXT_LOGE("bufferLen is mismatch buffer size.");
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
     }
- 
     NETMANAGER_EXT_LOGI("%{public}s, result:%{public}d, msgId:%{public}d, bufferLen:%{public}d,  buffsize:%{public}zu, "
         "eapCode:%{public}d, eapType:%{public}d ",
         __func__, static_cast<int>(customResult), eapData->msgId, eapData->bufferLen,  eapData->eapBuffer.size(),
