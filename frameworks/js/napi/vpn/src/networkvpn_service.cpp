@@ -1331,7 +1331,7 @@ int32_t NetworkVpnService::RegisterMultiVpnEvent(const sptr<IVpnEventCallback> &
     if (!CheckVpnPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    int32_t ret = NETMANAGER_ERR_SYSTEM_INTERNAL;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
         return ret;
@@ -1350,7 +1350,7 @@ int32_t NetworkVpnService::UnregisterMultiVpnEvent(const sptr<IVpnEventCallback>
     if (!CheckVpnPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    int32_t ret = NETMANAGER_ERR_SYSTEM_INTERNAL;
     if (!networkVpnServiceFfrtQueue_) {
         NETMGR_EXT_LOG_E("FFRT Create Fail");
         return ret;
@@ -1469,21 +1469,21 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
 {
     if (vpnBundleName.empty()) {
         NETMGR_EXT_LOG_E("SyncRegisterMultiVpnEvent bundle name is empty");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        return NETMANAGER_ERR_PARAMETER_INVALID;
     }
     std::lock_guard<std::mutex> autoLock(remoteMutex_);
     for (auto iterCb = multiVpnEventCallbacks_.begin(); iterCb != multiVpnEventCallbacks_.end(); iterCb++) {
         if (((*iterCb)->callback)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
             NETMGR_EXT_LOG_E("Register multi vpn event callback failed, callback already exists");
-            return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+            return NETMANAGER_ERR_SYSTEM_INTERNAL;
         }
     }
     if (multiVpnEventCallbacks_.size() >= MAX_CALLBACK_COUNT) {
         NETMGR_EXT_LOG_E("callback above max count, return error.");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        return NETMANAGER_ERR_PARAMETER_INVALID;
     }
     if (!AddClientDeathRecipient(callback)) {
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        return NETMANAGER_ERR_SYSTEM_INTERNAL;
     }
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     if (AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(userId) != ERR_OK) {
@@ -1515,7 +1515,7 @@ int32_t NetworkVpnService::SyncUnregisterMultiVpnEvent(const sptr<IVpnEventCallb
         }
     }
     NETMGR_EXT_LOG_E("Unregister multi vpn event callback is does not exist.");
-    return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    return NETMANAGER_ERR_SYSTEM_INTERNAL;
 }
 #endif // SUPPORT_SYSVPN
 
