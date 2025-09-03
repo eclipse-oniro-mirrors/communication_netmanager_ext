@@ -26,6 +26,8 @@ static constexpr uint32_t INVALID_REF_COUNT = 0xff;
 static constexpr const char *EAP_BUFFER = "eapBuffer";
 static constexpr const char *EAP_BUFFERLEN = "bufferLen";
 static constexpr const char *EAP_MSGID = "msgId";
+static constexpr const int32_t EAP_CODE_SUCCESS = 3;
+static constexpr const int32_t EAP_CODE_FAILURE = 4;
 static std::shared_mutex g_regInfoMutex;
  
 int32_t NetEapPostBackCallback::OnEapSupplicantPostback(NetType netType, const sptr<EapData> &eapData)
@@ -45,6 +47,9 @@ int32_t NetEapPostBackCallback::OnEapSupplicantPostback(NetType netType, const s
     NETMANAGER_EXT_LOGI("%{public}s: eapCode:%{public}d, eapType:%{public}d, buffsize:%{public}zu", __func__,
         eapData->eapCode, eapData->eapType, eapData->eapBuffer.size());
     uint32_t composeParam =  (eapData->eapCode << 8) | eapData->eapType;
+    if (eapData->eapCode == EAP_CODE_SUCCESS || eapData->eapCode == EAP_CODE_FAILURE) {
+        composeParam = (eapData->eapCode << 8);
+    }
     return CheckAndNotifyApp(netType, composeParam, eapData);
 }
  
@@ -218,6 +223,9 @@ int32_t EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
         static_cast<int>(netType), eapCode, eapType);
     uint32_t composeParam =  (eapCode << 8) | eapType;
+    if (eapCode == EAP_CODE_SUCCESS || eapCode == EAP_CODE_FAILURE) {
+        composeParam = (eapCode << 8);
+    }
     napi_ref handlerRef = nullptr;
     napi_create_reference(env, handler, 1, &handlerRef);
     RegObj regObj(env, handlerRef);
@@ -289,6 +297,9 @@ int32_t EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
         static_cast<int>(netType), eapCode, eapType);
     uint32_t composeParam =  (eapCode << 8) | eapType;
+    if (eapCode == EAP_CODE_SUCCESS || eapCode == EAP_CODE_FAILURE) {
+        composeParam = (eapCode << 8);
+    }
     napi_ref handlerRef = nullptr;
     napi_create_reference(env, handler, 1, &handlerRef);
     RegObj regObj(env, handlerRef);
