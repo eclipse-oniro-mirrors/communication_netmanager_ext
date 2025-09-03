@@ -853,7 +853,7 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
 {
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("vpnId is empty");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        return NETMANAGER_ERR_PARAMETER_INVALID;
     }
     std::unique_lock<std::mutex> locker(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
@@ -1182,7 +1182,7 @@ int32_t NetworkVpnService::GetConnectedVpnAppInfo(std::vector<std::string> &bund
         if (vpnObj == nullptr || vpnObj->multiVpnInfo_ == nullptr) {
             NETMGR_EXT_LOG_E("GetConnectedVpnAppInfo failed, vpnObj invalid");
             it = vpnObjMap_.erase(it);
-            return NETMANAGER_EXT_ERR_INTERNAL;
+            return NETMANAGER_ERR_SYSTEM_INTERNAL;
         }
         if (userId == vpnObj->multiVpnInfo_->userId) {
             std::string name = vpnObj->multiVpnInfo_->bundleName;
