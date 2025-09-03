@@ -37,7 +37,7 @@ void GenerateVpnIdContext::ParseParams(napi_value *params, size_t paramsCount)
             SetParseOK(SetCallback(params[0]) == napi_ok);
             break;
         default:
-            SetErrorCode(NETMANAGER_ERR_PARAMETER_INVALIDdestroy);
+            SetErrorCode(NETMANAGER_ERR_PARAMETER_INVALID);
             SetNeedThrowException(true);
             break;
     }
