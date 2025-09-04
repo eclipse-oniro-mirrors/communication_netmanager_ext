@@ -36,6 +36,8 @@ constexpr const char *OPENVPN_NODE_STATE = "state";
 constexpr const char *OPENVPN_NODE_UPDATE_STATE = "updateState";
 constexpr const char *OPENVPN_NODE_SETUP_VPN_TUN = "setupVpnTun";
 constexpr const char *OPENVPN_MASK_TAG = "***";
+constexpr const char *PRIMARY_DNS = "primarydns";
+constexpr const char *SECONDARY_DNS = "secondarydns";
 
 enum OpenvpnStateCode : int32_t {
     OPENVPN_STATE_UNKNOWN = 1,
@@ -79,6 +81,7 @@ private:
     int32_t HandleClientMessage(const std::string &msg);
     int32_t SetUpVpnTun();
     void UpdateConfig(cJSON* jConfig);
+    int32_t ProcessDnsConfig(cJSON* jConfig);
     void UpdateState(cJSON* state);
     void StopOpenvpn();
 };

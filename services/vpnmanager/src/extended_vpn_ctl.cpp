@@ -47,7 +47,7 @@ int32_t ExtendedVpnCtl::SetUp()
             multiVpnInfo_->isVpnExtCall ? "0" : "1");
         std::string addr = vpnConfig_->addresses_.empty() ? "" : vpnConfig_->addresses_.back().address_;
         if (MultiVpnHelper::GetInstance().CheckAndCompareMultiVpnLocalAddress(addr) != NETMANAGER_EXT_SUCCESS) {
-            NETMGR_EXT_LOG_E("forbit setup, multi tun check ip address is same");
+            NETMGR_EXT_LOG_E("forbid setup, multi tun check ip address is same");
             return NETMANAGER_EXT_ERR_INTERNAL;
         }
         multiVpnInfo_->localAddress = addr;

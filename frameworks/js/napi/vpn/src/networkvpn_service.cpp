@@ -665,16 +665,16 @@ int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &v
     }
     vpnBundleName = GetBundleName();
     if (!CheckSystemCall(vpnBundleName)) {
-        NETMGR_EXT_LOG_W("forbit setup, CheckSystemCall");
+        NETMGR_EXT_LOG_W("forbid setup, CheckSystemCall");
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
     }
     if (!CheckVpnPermission(vpnBundleName)) {
-        NETMGR_EXT_LOG_W("forbit setup, CheckVpnPermission");
+        NETMGR_EXT_LOG_W("forbid setup, CheckVpnPermission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_W("forbit setup, CheckCurrentAccountType");
+        NETMGR_EXT_LOG_W("forbid setup, CheckCurrentAccountType");
         return ret;
     }
     if (vpnObj_ != nullptr) {
@@ -684,11 +684,11 @@ int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &v
     }
 #ifdef SUPPORT_SYSVPN
     if (vpnId.empty() && vpnObjMap_.size() > 0) {
-        NETMGR_EXT_LOG_W("forbit setup, vpn exist already");
+        NETMGR_EXT_LOG_W("forbid setup, vpn exist already");
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
     if (!vpnId.empty() && (vpnObjMap_.find(vpnId) != vpnObjMap_.end())) {
-        NETMGR_EXT_LOG_W("forbit setup, vpn exist already:%{public}s", vpnId.c_str());
+        NETMGR_EXT_LOG_W("forbid setup, vpn exist already:%{public}s", vpnId.c_str());
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
 #endif // SUPPORT_SYSVPN

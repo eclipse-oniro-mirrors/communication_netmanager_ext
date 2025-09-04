@@ -252,5 +252,62 @@ HWTEST_F(OpenvpnCtlTest, GetVpnCertData001, TestSize.Level1)
         EXPECT_EQ(openvpnControl_->GetVpnCertData(1, certData), NETMANAGER_EXT_SUCCESS);
     }
 }
+
+HWTEST_F(OpenvpnCtlTest, ProcessDnsConfig001, TestSize.Level1)
+{
+    ASSERT_NE(openvpnControl_, nullptr);
+    std::string msg = "openvpn{\"config\":{\"primarydns\":\"1.1.1.1\", \"secondarydns\":\"2.2.2.2\"}}";
+    const char *ret = strstr(msg.c_str(), "{");
+    ASSERT_TRUE(ret != nullptr);
+    cJSON* message = cJSON_Parse(ret);
+    ASSERT_TRUE(message != nullptr);
+    cJSON* config = cJSON_GetObjectItem(message, "config");
+    ASSERT_TRUE(config != nullptr);
+    ASSERT_TRUE(cJSON_IsObject(config));
+    int32_t result = openvpnControl_->ProcessDnsConfig(config);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(OpenvpnCtlTest, ProcessDnsConfig002, TestSize.Level1)
+{
+    ASSERT_NE(openvpnControl_, nullptr);
+    std::string msg = "openvpn{\"config\":{\"primarydns\":\"\", \"secondarydns\":\"2.2.2.2\"}}";
+    const char *ret = strstr(msg.c_str(), "{");
+    ASSERT_TRUE(ret != nullptr);
+    cJSON* message = cJSON_Parse(ret);
+    ASSERT_TRUE(message != nullptr);
+    cJSON* config = cJSON_GetObjectItem(message, "config");
+    ASSERT_TRUE(config != nullptr);
+    ASSERT_TRUE(cJSON_IsObject(config));
+    int32_t result = openvpnControl_->ProcessDnsConfig(config);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(OpenvpnCtlTest, ProcessDnsConfig003, TestSize.Level1)
+{
+    ASSERT_NE(openvpnControl_, nullptr);
+    std::string msg = "openvpn{\"config\":{\"primarydns\":\"1.1.1.1\", \"secondarydns\":\"\"}}";
+    const char *ret = strstr(msg.c_str(), "{");
+    ASSERT_TRUE(ret != nullptr);
+    cJSON* message = cJSON_Parse(ret);
+    ASSERT_TRUE(message != nullptr);
+    cJSON* config = cJSON_GetObjectItem(message, "config");
+    ASSERT_TRUE(config != nullptr);
+    ASSERT_TRUE(cJSON_IsObject(config));
+    int32_t result = openvpnControl_->ProcessDnsConfig(config);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(OpenvpnCtlTest, ProcessDnsConfig004, TestSize.Level1)
+{
+    sptr<OpenvpnConfig> openvpnConfig = nullptr;
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::unique_ptr<OpenvpnCtl> control =
+        std::make_unique<OpenvpnCtl>(openvpnConfig, "pkg", userId, activeUserIds);
+    cJSON* config = nullptr;
+    int32_t result = control->ProcessDnsConfig(config);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
