@@ -285,7 +285,7 @@ int32_t NetworkVpnClient::DestroyVpn(const std::string &vpnId)
 {
     if (vpnId.empty()) {
         NETMGR_EXT_LOG_E("DestroyVpn vpnId is empty");
-        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        return NETMANAGER_ERR_PARAMETER_INVALID;
     }
     vpnInterface_.CloseVpnInterfaceFd();
     if (vpnEventCallback_ != nullptr) {
@@ -296,7 +296,7 @@ int32_t NetworkVpnClient::DestroyVpn(const std::string &vpnId)
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("DestroyVpn proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        return NETMANAGER_ERR_SYSTEM_INTERNAL;
     }
     return proxy->DestroyVpn(vpnId);
 }
@@ -349,7 +349,7 @@ int32_t NetworkVpnClient::GetConnectedVpnAppInfo(std::vector<std::string> &bundl
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("GetConnectedVpnAppInfo proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        return NETMANAGER_ERR_SYSTEM_INTERNAL;
     }
     return proxy->GetConnectedVpnAppInfo(bundleNameList);
 }
