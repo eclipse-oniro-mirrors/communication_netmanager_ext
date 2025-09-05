@@ -103,12 +103,12 @@ napi_value RegCustomEapHandler(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (requireArgc > argc) {
         NETMANAGER_EXT_LOGE("requireArgc:%{public}zu, argc:%{public}zu", requireArgc, argc);
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
     }
  
     if (!CheckParamsType(env, argv, argc)) {
         NETMANAGER_EXT_LOGE("params type error");
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
     }
  
     int32_t netType = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
@@ -148,12 +148,12 @@ napi_value UnRegCustomEapHandler(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (requireArgc > argc) {
         NETMANAGER_EXT_LOGE("requireArgc:%{public}zu, argc:%{public}zu", requireArgc, argc);
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
     }
  
     if (!CheckParamsType(env, argv, argc)) {
         NETMANAGER_EXT_LOGE("params type error");
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
     }
  
     int32_t netType = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
@@ -193,12 +193,12 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (requireArgc > argc) {
         NETMANAGER_EXT_LOGE("requireArgc:%{public}zu, argc:%{public}zu", requireArgc, argc);
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
     }
  
     if (!CheckParamsType(env, argv, argc)) {
         NETMANAGER_EXT_LOGE("params type error");
-        return NapiUtils::GetUndefined(env);
+        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
     }
  
     int32_t replyResult = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_0]);
@@ -217,9 +217,13 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
     NapiUtils::GetVectorUint8Property(env, argv[ARG_INDEX_1], "eapBuffer", eapData->eapBuffer);
  
     if (eapData->bufferLen > MAX_EAP_DATA_LENGTH) {
+        NETMANAGER_EXT_LOGE("bufferLen is exceed.");
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
     }
- 
+    if (eapData->bufferLen != eapData->eapBuffer.size()) {
+        NETMANAGER_EXT_LOGE("bufferLen is mismatch buffer size.");
+        return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
+    }
     NETMANAGER_EXT_LOGI("%{public}s, result:%{public}d, msgId:%{public}d, bufferLen:%{public}d,  buffsize:%{public}zu, "
         "eapCode:%{public}d, eapType:%{public}d ",
         __func__, static_cast<int>(customResult), eapData->msgId, eapData->bufferLen,  eapData->eapBuffer.size(),
