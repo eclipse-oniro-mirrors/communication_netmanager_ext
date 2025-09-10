@@ -112,6 +112,10 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     defines += [ "BLUETOOTH_MODOULE=1" ]
     external_deps += [ "bluetooth:btframework" ]
   }
+
+  if (netmanager_ext_share_notification_enable) {
+    defines += [ "SHARE_NOTIFICATION_ENABLE" ]
+  }
 }
 
 ###############################################################################
