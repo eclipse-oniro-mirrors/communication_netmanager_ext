@@ -178,7 +178,7 @@ void NetManagerNapiAbilityStatusChange::OnAddSystemAbility(int32_t systemAbility
         systemAbilityId);
     switch (systemAbilityId) {
         case WIFI_DEVICE_SA_ID:
-        case COMM_ETHERNET_MANAGER_SYS_ABILITY_ID
+        case COMM_ETHERNET_MANAGER_SYS_ABILITY_ID:
             EapEventMgr::GetInstance().RegCustomEapHandler(NetType::WLAN0, RegTriggerMode::SA_LAUNCH);
             break;
         default:
