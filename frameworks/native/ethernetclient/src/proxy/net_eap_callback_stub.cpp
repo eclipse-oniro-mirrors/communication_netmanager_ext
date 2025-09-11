@@ -144,11 +144,7 @@ int32_t NetRegisterEapCallbackStub::OnReplyCustomEapDataEvent(MessageParcel &dat
         return NETMANAGER_ERR_LOCAL_PTR_NULL;
     }
  
-    int32_t ret = OnReplyCustomEapDataEvent(result, eapData);
-    if (!reply.WriteInt32(ret)) {
-        NETMGR_EXT_LOG_E("Write parcel failed");
-        return ret;
-    }
+    OnReplyCustomEapDataEvent(result, eapData);
  
     return NETMANAGER_SUCCESS;
 }
