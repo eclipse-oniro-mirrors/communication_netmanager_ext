@@ -136,7 +136,7 @@ public:
 private:
     sptr<NetEapPostBackCallback> eapPostBackCallback_ = nullptr;
     OHOS::sptr<OHOS::ISystemAbilityStatusChange> mSaStatusListener = nullptr;
-    std::map<NetType, TypeMapRegObj> eventRegisterInfo_;
+    std::map<NetType, TypeMapRegObj>& eventRegisterInfo_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
