@@ -244,7 +244,7 @@ int32_t EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t
                 return EAP_ERRCODE_INTERNAL_ERROR;
             }
             mapObj.emplace(composeParam, std::vector<RegObj>{regObj});
-            eventRegisterInfo_.emplace(netType, mapObj);
+            eventRegisterInfo_[netType] = mapObj;
         } else {
             auto vecIter = std::find_if(iter->second.begin(), iter->second.end(),
                 [&regObj] (const RegObj &obj) { return regObj.m_regEnv == obj.m_regEnv;});
