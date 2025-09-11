@@ -18,7 +18,8 @@
  
 namespace OHOS {
 namespace NetManagerStandard {
- 
+
+static std::mutex g_mutex;
 namespace {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
 
@@ -207,11 +208,8 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_RESULT);
     }
     CustomResult customResult = static_cast<CustomResult>(replyResult);
-    sptr<EapData> eapData = new (std::nothrow) EapData();
-    if (eapData == nullptr) {
-        NETMANAGER_EXT_LOGE("%{public}s, eapData is nullptr", __func__);
-        return EapNapiReturn(env, false, EAP_ERRCODE_INTERNAL_ERROR);
-    }
+    std::unique_lock<std::mutex> lock(g_mutex);
+    sptr<EapData> eapData = sptr<EapData>::MakeSptr();
     eapData->msgId = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "msgId");
     eapData->bufferLen = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "bufferLen");
     NapiUtils::GetVectorUint8Property(env, argv[ARG_INDEX_1], "eapBuffer", eapData->eapBuffer);
@@ -225,9 +223,7 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
     }
     NETMANAGER_EXT_LOGI("%{public}s, result:%{public}d, msgId:%{public}d, bufferLen:%{public}d,  buffsize:%{public}zu, "
-        "eapCode:%{public}d, eapType:%{public}d ",
-        __func__, static_cast<int>(customResult), eapData->msgId, eapData->bufferLen,  eapData->eapBuffer.size(),
-        eapData->eapCode, eapData->eapType);
+        __func__, static_cast<int>(customResult), eapData->msgId, eapData->bufferLen,  eapData->eapBuffer.size());
     int32_t ret = EapEventMgr::GetInstance().ReplyCustomEapData(customResult, eapData);
     return EapNapiReturn(env, ret == EAP_ERRCODE_SUCCESS, ret);
 #endif

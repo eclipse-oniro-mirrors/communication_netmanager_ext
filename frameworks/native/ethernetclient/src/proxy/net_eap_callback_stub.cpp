@@ -29,6 +29,7 @@ NetEapPostbackCallbackStub::NetEapPostbackCallbackStub()
  
 int32_t NetEapPostbackCallbackStub::OnEapSupplicantResult(MessageParcel &data, MessageParcel &reply)
 {
+    std::unique_lock<std::mutex> lock(postbackMtx_);
     int32_t netType = 0;
     if (!data.ReadInt32(netType)) {
         return NETMANAGER_ERR_READ_DATA_FAIL;
@@ -131,6 +132,7 @@ int32_t NetRegisterEapCallbackStub::OnRegisterCustomEapCallback(MessageParcel &d
  
 int32_t NetRegisterEapCallbackStub::OnReplyCustomEapDataEvent(MessageParcel &data, MessageParcel &reply)
 {
+    std::unique_lock<std::mutex> lock(replyMtx_);
     int32_t result = -1;
     if (!data.ReadInt32(result)) {
         return NETMANAGER_ERR_READ_DATA_FAIL;

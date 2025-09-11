@@ -39,6 +39,7 @@ private:
  
 private:
     std::map<uint32_t, NetEapPostbackCallbackFunc> memberFuncMap_;
+    std::mutex postbackMtx_;
 };
  
 class NetRegisterEapCallbackStub : public IRemoteStub<INetRegisterEapCallback> {
@@ -59,6 +60,7 @@ private:
  
 private:
     std::map<uint32_t, NetRegisterEapCallbackFunc> memberFuncMap_;
+    std::mutex replyMtx_;
 };
  
 } // namespace NetManagerStandard
