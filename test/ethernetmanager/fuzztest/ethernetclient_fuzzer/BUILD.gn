@@ -22,6 +22,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
   module_out_path = fuzz_test_path
   fuzz_config_file =
       "$NETMANAGER_EXT_ROOT/test/ethernetmanager/fuzztest/ethernetclient_fuzzer"
+  _cfi_blocklist_path = "./cfi_blocklist.txt"
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
@@ -42,6 +43,7 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "-fsanitize=cfi",
     "-fsanitize-cfi-cross-dso",
     "-fvisibility=hidden",
+    "-fsanitize-blacklist=" + rebase_path(_cfi_blocklist_path, root_build_dir),
   ]
 
   ldflags = [
