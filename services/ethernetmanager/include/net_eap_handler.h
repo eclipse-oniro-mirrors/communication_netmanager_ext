@@ -54,7 +54,7 @@ private:
 private:
     std::map<NetType, int> nTMapMsgId_;
     std::map<NetType, sptr<INetRegisterEapCallback>> regEapCallBack_;
-    sptr<INetEapPostbackCallback> postbackCallback_;
+    sptr<INetEapPostbackCallback> postbackCallback_ = nullptr;
     std::mutex callbackMutex_;
     std::mutex mutex_;
 #ifdef NET_EXTENSIBLE_AUTHENTICATION

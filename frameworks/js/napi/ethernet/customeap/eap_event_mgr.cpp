@@ -166,7 +166,6 @@ void NetEapPostBackCallback::EventNotify(const std::shared_ptr<AsyncEventData> &
         NETMANAGER_EXT_LOGE("asyncEvent is null!");
         return;
     }
-    NETMANAGER_EXT_LOGI("Enter eap postback event notify, msgId: %{public}d", asyncEvent->msgId_);
     auto sendTask = std::bind(&NetEapPostBackCallback::SendTask, this, asyncEvent);
     if (napi_status::napi_ok != napi_send_event(asyncEvent->env_, sendTask, napi_eprio_immediate)) {
         NETMANAGER_EXT_LOGE("%{public}s, Failed to SendEvent", __func__);
@@ -177,23 +176,18 @@ void NetManagerNapiAbilityStatusChange::OnAddSystemAbility(int32_t systemAbility
 {
     NETMANAGER_EXT_LOGI("NetManagerNapiAbilityStatusChange OnAddSystemAbility systemAbilityId:%{public}d",
         systemAbilityId);
-    std::vector<std::string> event;
     switch (systemAbilityId) {
         case WIFI_DEVICE_SA_ID:
-        case COMM_ETHERNET_MANAGER_SYS_ABILITY_ID: {
+        case COMM_ETHERNET_MANAGER_SYS_ABILITY_ID:
             EapEventMgr::GetInstance().RegCustomEapHandler(NetType::WLAN0, RegTriggerMode::SA_LAUNCH);
             break;
-        }
         default:
-            NETMANAGER_EXT_LOGI("OnAddSystemAbility unhandled sysabilityId:%{public}d", systemAbilityId);
             return;
     }
 }
  
 void NetManagerNapiAbilityStatusChange::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
 {
-    NETMANAGER_EXT_LOGI("NetManagerNapiAbilityStatusChange OnRemoveSystemAbility systemAbilityId:%{public}d",
-        systemAbilityId);
 }
  
 EapEventMgr &EapEventMgr::GetInstance()
@@ -236,8 +230,8 @@ int32_t EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t
     if (netTypeMapIter == eventRegisterInfo_.end()) {
         NETMANAGER_EXT_LOGI("%{public}s, new netType!", __func__);
         TypeMapRegObj mapObj;
-        mapObj[composeParam] = std::vector<RegObj>{regObj};
-        eventRegisterInfo_[netType] = mapObj;
+        mapObj.emplace(composeParam, std::vector<RegObj>{regObj});
+        eventRegisterInfo_.emplace(netType, mapObj);
     } else {
         NETMANAGER_EXT_LOGI("%{public}s, exist netType!", __func__);
         TypeMapRegObj mapObj = netTypeMapIter->second;
@@ -249,7 +243,7 @@ int32_t EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t
                 NETMANAGER_EXT_LOGE("%{public}s, RegisterInfo Exceeding the maximum value!", __func__);
                 return EAP_ERRCODE_INTERNAL_ERROR;
             }
-            mapObj[composeParam] = std::vector<RegObj>{regObj};
+            mapObj.emplace(composeParam, std::vector<RegObj>{regObj});
             eventRegisterInfo_[netType] = mapObj;
         } else {
             auto vecIter = std::find_if(iter->second.begin(), iter->second.end(),
@@ -345,7 +339,7 @@ int32_t EapEventMgr::ReplyCustomEapData(CustomResult result, const sptr<EapData>
         eapData);
 }
 
-std::map<NetType, TypeMapRegObj> EapEventMgr::GetRegisterInfoMap()
+std::map<NetType, TypeMapRegObj>& EapEventMgr::GetRegisterInfoMap()
 {
     return eventRegisterInfo_;
 }
