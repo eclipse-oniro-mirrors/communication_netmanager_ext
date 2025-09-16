@@ -135,6 +135,7 @@ sptr<IEthernetService> EthernetClient::GetProxy()
     deathRecipient_ = sptr<EthernetDeathRecipient>::MakeSptr(*this);
     if (deathRecipient_ == nullptr) {
         NETMGR_EXT_LOG_E("Recipient new failed!");
+        return nullptr;
     }
     if ((remote->IsProxyObject()) && (!remote->AddDeathRecipient(deathRecipient_))) {
         NETMGR_EXT_LOG_E("add death recipient failed");
