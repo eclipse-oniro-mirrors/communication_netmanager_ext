@@ -37,6 +37,7 @@ constexpr uint16_t DEPENDENT_SERVICE_NET_CONN_MANAGER = 0x0001;
 constexpr uint16_t DEPENDENT_SERVICE_COMMON_EVENT = 0x0002;
 constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "POLICY_CALLBACK_WORK_THREAD";
+constexpr const char *ETH_PREFIX = "eth";
 const bool REGISTER_LOCAL_RESULT_ETH =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<EthernetService>::GetInstance().get());
 } // namespace
@@ -176,6 +177,11 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceLinkStateChang
     NETMGR_EXT_LOG_D("iface: %{public}s, up: %{public}d", ifName.c_str(), up);
     ethernetService_.NotifyMonitorIfaceCallbackAsync(
         [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceChanged(ifName, up); });
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    if (up && (ifName.find(ETH_PREFIX) != std::string::npos)) {
+        NetEapHandler::GetInstance().SetEthEapIfName(ifName);
+    }
+#endif // NET_EXTENSIBLE_AUTHENTICATION
     return 0;
 }
 

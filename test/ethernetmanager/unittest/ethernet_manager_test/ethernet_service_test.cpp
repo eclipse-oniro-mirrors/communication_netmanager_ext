@@ -583,6 +583,30 @@ HWTEST_F(EtherNetServiceTest, LogOffEthEapTest001, TestSize.Level1)
     auto ret = ethernetService.LogOffEthEap(netId);
     EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_PERMISSION_DENIED || ret == NETMANAGER_SUCCESS);
 }
+
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+HWTEST_F(EtherNetServiceTest, OnInterfaceLinkStateChangedTest010, TestSize.Level1)
+{
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
+    std::string ifName = "wlan0";
+    int ret = globalinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ret = globalinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+ 
+HWTEST_F(EtherNetServiceTest, OnInterfaceLinkStateChangedTest011, TestSize.Level1)
+{
+    EthernetService ethernetservice;
+    EthernetService::GlobalInterfaceStateCallback globalinterfacestatecallback(ethernetservice);
+    std::string ifName = "eth0";
+    int ret = globalinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ret = globalinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, false);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+#endif // NET_EXTENSIBLE_AUTHENTICATION
  
 } // namespace NetManagerStandard
 } // namespace OHOS
