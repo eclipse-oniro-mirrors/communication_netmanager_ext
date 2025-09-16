@@ -27,6 +27,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 static constexpr const char* ETH_PREFIX = "eth";
+static constexpr const int32_t DEFAULT_ETH_EAP_NETID = -1;
 
 NetEapHandler::NetEapHandler()
 {
@@ -96,11 +97,9 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     if (netType == NetType::ETH0) {
-        NETMGR_EXT_LOG_I("RegEapHandler for eth0");
-        if (eapHdiWpaManager_ == nullptr) {
-            return EAP_ERRCODE_INTERNAL_ERROR;
-        }
-        return eapHdiWpaManager_->RegisterCustomEapCallback(ethEapIfName_, regCmd);
+        NETMGR_EXT_LOG_I("RegEapHandler eth0 %{public}s", regCmd.c_str());
+        ethEapRegCmdVec_.emplace_back(regCmd);
+        return EAP_ERRCODE_SUCCESS;
     }
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = regEapCallBack_.find(netType);
@@ -180,21 +179,33 @@ sptr<INetEapPostbackCallback> NetEapHandler::GetPostbackCallback()
 }
 
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
+void NetEapHandler::SetEthEapIfName(const std::string &ifName)
+{
+    NETMGR_EXT_LOG_I("SetEthEapIfName %{public}s", ifName.c_str());
+    ethEapIfName_ = ifName;
+}
+
 int32_t NetEapHandler::StartEthEap(int32_t netId, const EthEapProfile& profile)
 {
     if (eapHdiWpaManager_ == nullptr) {
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    GetIfaceNameFromNetId(netId);
-    if (ethEapIfName_.find(ETH_PREFIX) == std::string::npos) {
-        NETMGR_EXT_LOG_E("StartEthEap invalid netid %{public}d", netId);
-        return EAP_ERRCODE_INVALID_NETID;
+    if (netId != DEFAULT_ETH_EAP_NETID) {
+        GetIfaceNameFromNetId(netId);
+        if (ethEapIfName_.find(ETH_PREFIX) == std::string::npos) {
+            NETMGR_EXT_LOG_E("StartEthEap invalid netid %{public}d", netId);
+            return EAP_ERRCODE_INVALID_NETID;
+        }
     }
     int32_t ret = eapHdiWpaManager_->LoadEthernetHdiService();
     if (ret != EAP_ERRCODE_SUCCESS) {
         return ret;
     }
-    return eapHdiWpaManager_->StartEap(ethEapIfName_, profile);
+    ret = eapHdiWpaManager_->StartEap(ethEapIfName_, profile);
+    for (const std::string &cmd : ethEapRegCmdVec_) {
+        eapHdiWpaManager_->RegisterCustomEapCallback(ethEapIfName_, cmd);
+    }
+    return ret;
 }
  
 int32_t NetEapHandler::LogOffEthEap(int32_t netId)
@@ -202,10 +213,12 @@ int32_t NetEapHandler::LogOffEthEap(int32_t netId)
     if (eapHdiWpaManager_ == nullptr) {
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    GetIfaceNameFromNetId(netId);
-    if (ethEapIfName_.find(ETH_PREFIX) == std::string::npos) {
-        NETMGR_EXT_LOG_E("LogOffEthEap invalid netid %{public}d", netId);
-        return EAP_ERRCODE_INVALID_NETID;
+    if (netId != DEFAULT_ETH_EAP_NETID) {
+        GetIfaceNameFromNetId(netId);
+        if (ethEapIfName_.find(ETH_PREFIX) == std::string::npos) {
+            NETMGR_EXT_LOG_E("LogOffEthEap invalid netid %{public}d", netId);
+            return EAP_ERRCODE_INVALID_NETID;
+        }
     }
     return eapHdiWpaManager_->StopEap(ethEapIfName_);
 }

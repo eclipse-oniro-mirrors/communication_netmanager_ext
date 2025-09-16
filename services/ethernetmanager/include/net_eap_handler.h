@@ -41,6 +41,7 @@ public:
         const sptr<INetEapPostbackCallback> &postBackCb);
     int32_t ReplyCustomEapData(int result, const sptr<EapData> &eapData);
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
+    void SetEthEapIfName(const std::string &ifName);
     int32_t StartEthEap(int32_t netId, const EthEapProfile& profile);
     int32_t LogOffEthEap(int32_t netId);
 #endif
@@ -59,6 +60,7 @@ private:
     std::mutex mutex_;
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     std::shared_ptr<EapHdiWpaManager> eapHdiWpaManager_;
+    std::vector<std::string> ethEapRegCmdVec_;
     std::string ethEapIfName_;
 #endif
 };

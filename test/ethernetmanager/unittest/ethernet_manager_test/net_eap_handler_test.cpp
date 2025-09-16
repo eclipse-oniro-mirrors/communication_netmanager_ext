@@ -298,6 +298,24 @@ HWTEST_F(NetEapHandlerTest, LogOffEthEapTest002, TestSize.Level1)
 #endif
 }
 
+HWTEST_F(NetEapHandlerTest, StartEthEapTest003, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    int32_t netId = -1;
+    EthEapProfile profile;
+    int ret = NetEapHandler::GetInstance().StartEthEap(netId, profile);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+#endif
+}
+
+HWTEST_F(NetEapHandlerTest, LogOffEthEapTest003, TestSize.Level1)
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    int32_t netId = -1;
+    int ret = NetEapHandler::GetInstance().LogOffEthEap(netId);
+    EXPECT_NE(ret, NETMANAGER_SUCCESS);
+#endif
+}
 
 } // namespace NetManagerStandard
 } // namespace OHOS
