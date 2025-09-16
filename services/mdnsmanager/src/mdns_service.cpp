@@ -76,6 +76,7 @@ MDnsService::MDnsService()
 MDnsService::~MDnsService()
 {
     RemoveALLClientDeathRecipient();
+    RemoveALLServiceDeathRecipient();
 }
 
 void MDnsService::OnStart()
@@ -129,6 +130,9 @@ bool MDnsService::Init()
     if (deathRecipient_ == nullptr) {
         deathRecipient_ = sptr<MdnsCallbackDeathRecipient>::MakeSptr(*this);
     }
+    if (serviceDeathRecipient_ == nullptr) {
+        serviceDeathRecipient_ = sptr<MdnsServiceCallbackDeathRecipient>::MakeSptr(*this);
+    }
     NETMGR_EXT_LOG_D("mdns_log Init mdns service OK");
     return true;
 }
@@ -145,6 +149,7 @@ int32_t MDnsService::RegisterService(const MDnsServiceInfo &serviceInfo, const s
                      std::to_string(serviceInfo.port);
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
+    AddServiceDeathRecipient(cb);
     return err;
 }
 
@@ -159,6 +164,7 @@ int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
     eventInfo.data = EVENT_DATA_CALLBACK;
     eventInfo.errorType = err;
     SendRequestEvent(eventInfo);
+    RemoveServiceDeathRecipient(cb);
     return err;
 }
 
@@ -176,6 +182,7 @@ void MDnsService::UnloadSystemAbility()
 
 void MDnsService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
 {
+    NETMGR_EXT_LOG_D("mdns_log OnRemoteDied");
     sptr<IRemoteObject> diedRemoted = remoteObject.promote();
     if (diedRemoted == nullptr) {
         NETMGR_EXT_LOG_E("mdns_log diedRemoted is null");
@@ -183,6 +190,18 @@ void MDnsService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     }
     sptr<IDiscoveryCallback> cb = iface_cast<IDiscoveryCallback>(diedRemoted);
     RemoveClientDeathRecipient(cb);
+}
+
+void MDnsService::OnServiceRemoteDied(const wptr<IRemoteObject> &remoteObject)
+{
+    NETMGR_EXT_LOG_D("mdns_log OnServiceRemoteDied");
+    sptr<IRemoteObject> diedRemoted = remoteObject.promote();
+    if (diedRemoted == nullptr) {
+        NETMGR_EXT_LOG_E("mdns_log diedRemoted is null");
+        return;
+    }
+    sptr<IRegistrationCallback> cb = iface_cast<IRegistrationCallback>(diedRemoted);
+    RemoveServiceDeathRecipient(cb);
 }
 
 void MDnsService::AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
@@ -233,6 +252,58 @@ void MDnsService::RemoveALLClientDeathRecipient()
     }
     remoteCallback_.clear();
     deathRecipient_ = nullptr;
+}
+
+void MDnsService::AddServiceDeathRecipient(const sptr<IRegistrationCallback> &cb)
+{
+    if (serviceDeathRecipient_ == nullptr) {
+        NETMGR_EXT_LOG_E("mdns_log serviceDeathRecipient is null");
+        return;
+    }
+    if (!cb->AsObject()->AddDeathRecipient(serviceDeathRecipient_)) {
+        NETMGR_EXT_LOG_E("mdns_log AddServiceDeathRecipient failed");
+        return;
+    }
+    std::lock_guard<std::mutex> autoLock(serviceRemoteMutex_);
+    auto iter =
+        std::find_if(serviceRemoteCallback_.cbegin(), serviceRemoteCallback_.cend(),
+            [&cb](const sptr<IRegistrationCallback> &item) {
+            return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
+        });
+    if (iter == serviceRemoteCallback_.cend()) {
+        serviceRemoteCallback_.emplace_back(cb);
+    }
+}
+
+void MDnsService::RemoveServiceDeathRecipient(const sptr<IRegistrationCallback> &cb)
+{
+    {
+        std::lock_guard<std::mutex> autoLock(serviceRemoteMutex_);
+        auto iter =
+            std::find_if(serviceRemoteCallback_.cbegin(), serviceRemoteCallback_.cend(),
+                [&cb](const sptr<IRegistrationCallback> &item) {
+                return item->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr();
+            });
+        if (iter == serviceRemoteCallback_.cend()) {
+            return;
+        }
+        cb->AsObject()->RemoveDeathRecipient(serviceDeathRecipient_);
+        serviceRemoteCallback_.erase(iter);
+        if (!serviceRemoteCallback_.empty()) {
+            return;
+        }
+    }
+    UnloadSystemAbility();
+}
+
+void MDnsService::RemoveALLServiceDeathRecipient()
+{
+    std::lock_guard<std::mutex> autoLock(serviceRemoteMutex_);
+    for (auto &item : serviceRemoteCallback_) {
+        item->AsObject()->RemoveDeathRecipient(serviceDeathRecipient_);
+    }
+    serviceRemoteCallback_.clear();
+    serviceDeathRecipient_ = nullptr;
 }
 
 int32_t MDnsService::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
