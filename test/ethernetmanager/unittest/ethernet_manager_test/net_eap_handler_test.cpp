@@ -298,5 +298,6 @@ HWTEST_F(NetEapHandlerTest, LogOffEthEapTest002, TestSize.Level1)
 #endif
 }
 
+
 } // namespace NetManagerStandard
 } // namespace OHOS
