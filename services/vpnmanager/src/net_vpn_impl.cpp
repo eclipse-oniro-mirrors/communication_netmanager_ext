@@ -366,7 +366,8 @@ void NetVpnImpl::DelNetLinkInfo(NetConnClient &netConnClientIns)
     for (auto &route : vpnConfig_->routes_) {
         AdjustRouteInfo(route);
         std::string destAddress = route.destination_.address_ + "/" + std::to_string(route.destination_.prefixlen_);
-        NetsysController::GetInstance().NetworkRemoveRoute(netId_, route.iface_, destAddress, route.gateway_.address_);
+        NetsysController::GetInstance().NetworkRemoveRoute(
+            netId_, route.iface_, destAddress, route.gateway_.address_, route.isExcludedRoute_);
     }
 }
 
