@@ -1177,12 +1177,11 @@ int32_t NetworkVpnService::GetConnectedVpnAppInfo(std::vector<std::string> &bund
         NETMGR_EXT_LOG_E("CheckCurrentAccountType failed");
         return ret;
     }
-    for (auto it = vpnObjMap_.begin(); it != vpnObjMap_.end();) {
-        std::shared_ptr<NetVpnImpl> vpnObj = it->second;
+    for (const auto &entry : vpnObjMap_) {
+        std::shared_ptr<NetVpnImpl> vpnObj = entry.second;
         if (vpnObj == nullptr || vpnObj->multiVpnInfo_ == nullptr) {
             NETMGR_EXT_LOG_E("GetConnectedVpnAppInfo failed, vpnObj invalid");
-            it = vpnObjMap_.erase(it);
-            return NETMANAGER_ERR_SYSTEM_INTERNAL;
+            continue;
         }
         if (userId == vpnObj->multiVpnInfo_->userId) {
             std::string name = vpnObj->multiVpnInfo_->bundleName;
