@@ -184,7 +184,9 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
             StartDhcpClient(dev, devState);
         } else {
             if (devState->IsLanIface()) {
+                std::unique_lock<std::mutex> lock(mutex_);
                 ethLanManageMent_->UpdateLanLinkInfo(devState);
+                lock.unlock();
             } else {
                 devState->RemoteUpdateNetLinkInfo();
             }
@@ -198,7 +200,9 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
         } else {
             devState->RemoteUpdateNetSupplierInfo();
         }
+        std::unique_lock<std::mutex> lock(mutex_);
         netLinkConfigs_[dev] = nullptr;
+        lock.unlock();
     }
 }
 
@@ -308,7 +312,9 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
     } else {
         devState->SetIfcfg(cfg);
     }
+    std::unique_lock<std::mutex> lock(mutex_);
     devCfgs_[iface] = cfg;
+    lock.unlock();
     return NETMANAGER_EXT_SUCCESS;
 }
 
