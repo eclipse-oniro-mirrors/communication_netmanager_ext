@@ -136,7 +136,7 @@ HWTEST_F(NetVpnImplTest, DelNetLinkInfo001, TestSize.Level1)
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
     ASSERT_TRUE(netVpnImpl_->vpnConfig_ != nullptr);
     Route route1;
-    route1.isExcludeRoute_ = false;
+    route1.isExcludedRoute_ = false;
     netVpnImpl_->vpnConfig_->routes_.push_back(route1);
     netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
     netVpnImpl_->AdjustRouteInfo(route1);
