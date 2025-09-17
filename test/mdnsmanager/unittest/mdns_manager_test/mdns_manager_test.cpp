@@ -1735,7 +1735,7 @@ HWTEST_F(MDnsClientTest, RestartResumeTest001, TestSize.Level1)
 HWTEST_F(MDnsServiceTest, OnServiceRemoteDiedTest001, TestSize.Level1)
 {
     wptr<IRemoteObject> remote = nullptr;
-    auto mDnsService = DelayedSingleton<MDnsService>::GetInstance();
+    auto mDnsService = new (std::nothrow) MDnsService();
     mDnsService->OnServiceRemoteDied(remote);
 
     MDnsServiceInfo info;
@@ -1750,11 +1750,13 @@ HWTEST_F(MDnsServiceTest, OnServiceRemoteDiedTest001, TestSize.Level1)
     remote = object;
     mDnsService->OnServiceRemoteDied(remote);
     EXPECT_NE(mDnsService, nullptr);
+
+    delete mDnsService;
 }
 
 HWTEST_F(MDnsServiceTest, AddServiceDeathRecipientTest001, TestSize.Level1)
 {
-    auto mDnsService = DelayedSingleton<MDnsService>::GetInstance();
+    auto mDnsService = new (std::nothrow) MDnsService();
     MDnsServiceInfo info;
     MDnsServiceInfo infoBack;
     info.name = DEMO_NAME;
@@ -1767,11 +1769,13 @@ HWTEST_F(MDnsServiceTest, AddServiceDeathRecipientTest001, TestSize.Level1)
 
     mDnsService->serviceDeathRecipient_ = sptr<MDnsService::MdnsServiceCallbackDeathRecipient>::MakeSptr(*mDnsService);
     mDnsService->AddServiceDeathRecipient(callback);
+
+    delete mDnsService;
 }
 
 HWTEST_F(MDnsServiceTest, RemoveServiceDeathRecipientTest001, TestSize.Level1)
 {
-    auto mDnsService = DelayedSingleton<MDnsService>::GetInstance();
+    auto mDnsService = new (std::nothrow) MDnsService();
     MDnsServiceInfo info;
     MDnsServiceInfo infoBack;
     info.name = DEMO_NAME;
@@ -1784,11 +1788,13 @@ HWTEST_F(MDnsServiceTest, RemoveServiceDeathRecipientTest001, TestSize.Level1)
     mDnsService->serviceRemoteCallback_.emplace_back(callback);
     mDnsService->RemoveServiceDeathRecipient(callback);
     EXPECT_TRUE(mDnsService->serviceRemoteCallback_.empty());
+
+    delete mDnsService;
 }
 
 HWTEST_F(MDnsServiceTest, RemoveALLServiceDeathRecipientTest001, TestSize.Level1)
 {
-    auto mDnsService = DelayedSingleton<MDnsService>::GetInstance();
+    auto mDnsService = new (std::nothrow) MDnsService();
     MDnsServiceInfo info;
     MDnsServiceInfo infoBack;
     info.name = DEMO_NAME;
@@ -1800,6 +1806,8 @@ HWTEST_F(MDnsServiceTest, RemoveALLServiceDeathRecipientTest001, TestSize.Level1
     mDnsService->serviceRemoteCallback_.emplace_back(callback);
     mDnsService->RemoveALLServiceDeathRecipient();
     EXPECT_TRUE(mDnsService->serviceRemoteCallback_.empty());
+
+    delete mDnsService;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
