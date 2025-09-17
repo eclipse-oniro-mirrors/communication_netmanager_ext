@@ -147,7 +147,6 @@ bool NetworkVpnService::Init()
         vpnConnCallback_ = std::make_shared<VpnConnStateCb>(*this);
     }
 
-    vpnHapObserver_ = new VpnHapObserver(*this);
     RegisterFactoryResetCallback();
     return true;
 }
@@ -754,9 +753,10 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
     }
     if (!vpnBundleName.empty()) {
         std::vector<std::string> list = {vpnBundleName, vpnBundleName + VPN_EXTENSION_LABEL};
+        sptr<VpnHapObserver> vpnHapObserver = new VpnHapObserver(*this, vpnBundleName);
         auto regRet =
-            Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver_, list);
-        NETMGR_EXT_LOG_I("vpnHapOberver RegisterApplicationStateObserver ret = %{public}d", regRet);
+            Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver, list);
+        NETMGR_EXT_LOG_I("vpnHapObserver RegisterApplicationStateObserver ret = %{public}d", regRet);
     }
 #ifdef SUPPORT_SYSVPN
     if (!config.vpnId_.empty()) {
@@ -1743,8 +1743,9 @@ int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName, con
     }
 
     std::vector<std::string> list = {bundleName, bundleName + VPN_EXTENSION_LABEL};
+    sptr<VpnHapObserver> vpnHapObserver = new VpnHapObserver(*this, bundleName, abilityName);
     auto regRet =
-        Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver_, list);
+        Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver, list);
     NETMGR_EXT_LOG_I("RegisterBundleName RegisterApplicationStateObserver ret = %{public}d", regRet);
 
     currentVpnBundleName_ = bundleName;
@@ -1888,10 +1889,10 @@ bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid)
     return false;
 }
 
-void NetworkVpnService::UnregVpnHpObserver()
+void NetworkVpnService::UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &vpnHapObserver)
 {
     auto unRegRet =
-        Singleton<AppExecFwk::AppMgrClient>::GetInstance().UnregisterApplicationStateObserver(vpnHapObserver_);
+        Singleton<AppExecFwk::AppMgrClient>::GetInstance().UnregisterApplicationStateObserver(vpnHapObserver);
     NETMGR_EXT_LOG_I("UnregisterApplicationStateObserver ret = %{public}d", unRegRet);
 }
 
@@ -1913,17 +1914,23 @@ void NetworkVpnService::ClearCurrentVpnUserInfo()
 void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
 {
     std::unique_lock<std::mutex> locker(vpnService_.netVpnMutex_);
-    auto extensionBundleName = vpnService_.GetCurrentVpnBundleName();
-    auto extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
+    auto extensionBundleName = bundleName_;
+    std::vector<std::string> extensionAbilityName;
+    if (hasAbilityName_) {
+        extensionAbilityName.emplace_back(abilityName_);
+    } else {
+        extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
+    }
     NETMGR_EXT_LOG_I("vpn OnProcessDied %{public}d, %{public}d", processData.uid, processData.pid);
-    if (!vpnService_.IsCurrentVpnPid(processData.uid, processData.pid)) {
+    bool isCurrentVpnPid = vpnService_.IsCurrentVpnPid(processData.uid, processData.pid);
+    if (isCurrentVpnPid) {
+        if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
+            NETMGR_EXT_LOG_E("destroy vpn failed");
+        }
+        vpnService_.vpnObj_ = nullptr;
+    } else {
         NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
-        return;
     }
-    if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
-        NETMGR_EXT_LOG_E("destroy vpn failed");
-    }
-    vpnService_.vpnObj_ = nullptr;
     for (const auto &name : extensionAbilityName) {
         AAFwk::Want want;
         AppExecFwk::ElementName elem;
@@ -1934,11 +1941,13 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
             want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
         NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
     }
-    vpnService_.UnregVpnHpObserver();
-    vpnService_.ClearCurrentVpnUserInfo();
+    vpnService_.UnregVpnHpObserver(this);
+    if (isCurrentVpnPid) {
+        vpnService_.ClearCurrentVpnUserInfo();
 #ifdef SUPPORT_SYSVPN
-    vpnService_.DestroyMultiVpn(processData.uid);
+        vpnService_.DestroyMultiVpn(processData.uid);
 #endif // SUPPORT_SYSVPN
+    }
 }
 
 void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)

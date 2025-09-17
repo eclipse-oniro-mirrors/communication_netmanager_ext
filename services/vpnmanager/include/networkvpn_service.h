@@ -64,6 +64,7 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         LOWPOWER_MODE,
         POWER_MODE_MAX = LOWPOWER_MODE
     };
+    class VpnHapObserver;
     class VpnConnStateCb : public IVpnConnStateCb {
     public:
         explicit VpnConnStateCb(const NetworkVpnService &vpnService) : vpnService_(vpnService){};
@@ -292,7 +293,7 @@ private:
     std::string GetCurrentVpnBundleName();
     std::vector<std::string> GetCurrentVpnAbilityName();
     void ClearCurrentVpnUserInfo();
-    void UnregVpnHpObserver();
+    void UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &VpnHapObserver);
     bool IsCurrentVpnPid(int32_t uid, int32_t pid);
     bool CheckVpnPermission(const std::string &bundleName);
 
@@ -334,7 +335,11 @@ public:
     int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName) override;
     class VpnHapObserver : public AppExecFwk::ApplicationStateObserverStub {
     public:
-        explicit VpnHapObserver(NetworkVpnService &vpnService) : vpnService_(vpnService){};
+        explicit VpnHapObserver(NetworkVpnService &vpnService, const std::string &bundleName)
+            : vpnService_(vpnService), bundleName_(bundleName), hasAbilityName_(false) {};
+        explicit VpnHapObserver(NetworkVpnService &vpnService, const std::string &bundleName,
+            const std::string &abilityName)
+            : vpnService_(vpnService), bundleName_(bundleName), abilityName_(abilityName), hasAbilityName_(true) {};
         virtual ~VpnHapObserver() = default;
         void OnExtensionStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override ;
         void OnProcessCreated(const AppExecFwk::ProcessData &processData) override ;
@@ -342,6 +347,9 @@ public:
         void OnProcessDied(const AppExecFwk::ProcessData &processData) override ;
     private:
         NetworkVpnService& vpnService_;
+        std::string bundleName_;
+        std::string abilityName_;
+        bool hasAbilityName_ = false;
     };
 private:
     class VpnAppDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -365,7 +373,6 @@ private:
     std::mutex remoteMutex_;
     std::mutex cesMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    sptr<VpnHapObserver> vpnHapObserver_ = nullptr;
     bool registeredCommonEvent_ = false;
     int32_t hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
