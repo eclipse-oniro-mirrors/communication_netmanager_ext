@@ -250,6 +250,14 @@ void NetworkShareSubStateMachine::InitStateEnter()
     }
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Init State.", ifaceName_.c_str());
     trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_AVAILABLE, lastError_);
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    if (networkShareTrafficLimit_ == nullptr) {
+        return;
+    }
+    if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
+        networkShareTrafficLimit_->EndHandleSharingLimitEvent();
+    }
+#endif
 }
 
 void NetworkShareSubStateMachine::InitStateExit()
@@ -384,16 +392,23 @@ void NetworkShareSubStateMachine::SharedStateEnter()
         return;
     }
     trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_SHARED, lastError_);
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
+        if (networkShareTrafficLimit_ == nullptr) {
+            networkShareTrafficLimit_ = std::make_shared<NetworkShareTrafficLimit>();
+        }
+        networkShareTrafficLimit_->StartHandleSharingLimitEvent();
+    }
+#endif
 }
 
 void NetworkShareSubStateMachine::SharedStateExit()
 {
     NETMGR_EXT_LOG_I("Exit Sub StateMachine[%{public}s] Shared State.", ifaceName_.c_str());
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    nmd::NetworkSharingTraffic traffic;
-    NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
+    networkShareTrafficLimit_->SaveSharingTrafficToCachedData();
     if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
-        NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToSettingsDB(traffic);
+        networkShareTrafficLimit_->SaveSharingTrafficToSettingsDB();
     }
 #endif
     CleanupUpstreamInterface();
@@ -420,10 +435,13 @@ int NetworkShareSubStateMachine::HandleSharedConnectionChange(const std::any &me
     if (upstreamNetInfo == nullptr) {
         NETMGR_EXT_LOG_I("Sub StateMachine[%{public}s] upstreamNetInfo is null, need clean.", ifaceName_.c_str());
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-        nmd::NetworkSharingTraffic traffic;
-        NetworkShareTrafficLimit::GetInstance().SaveSharingTrafficToCachedData(traffic);
-        if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
-            NetworkShareTrafficLimit::GetInstance().AddSharingTrafficBeforeConnChanged(traffic);
+        if (networkShareTrafficLimit_ != nullptr) {
+            nmd::NetworkSharingTraffic traffic;
+            networkShareTrafficLimit_->SaveSharingTrafficToCachedData();
+            networkShareTrafficLimit_->SendSharingTrafficToCachedData();
+            if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
+                networkShareTrafficLimit_->AddSharingTrafficBeforeConnChanged();
+            }
         }
 #endif
         CleanupUpstreamInterface();
@@ -451,6 +469,14 @@ void NetworkShareSubStateMachine::UnavailableStateEnter()
         return;
     }
     trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_UNAVAILABLE, NETMANAGER_EXT_SUCCESS);
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    if (networkShareTrafficLimit_ == nullptr) {
+        return;
+    }
+    if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
+        networkShareTrafficLimit_->EndHandleSharingLimitEvent();
+    }
+#endif
 }
 
 void NetworkShareSubStateMachine::UnavailableStateExit()

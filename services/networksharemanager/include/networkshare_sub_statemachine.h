@@ -35,6 +35,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+class NetworkShareTrafficLimit;
+#endif
 class NetworkShareSubStateMachine : public std::enable_shared_from_this<NetworkShareSubStateMachine> {
     using HandleFunc = int (NetworkShareSubStateMachine::*)(const std::any &messageObj);
 
@@ -151,6 +154,9 @@ private:
     std::shared_ptr<RouterAdvertisementDaemon> raDaemon_ = nullptr;
     RaParams lastRaParams_;
     std::string destination_ = "";
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    std::shared_ptr<NetworkShareTrafficLimit> networkShareTrafficLimit_ = nullptr;
+#endif
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

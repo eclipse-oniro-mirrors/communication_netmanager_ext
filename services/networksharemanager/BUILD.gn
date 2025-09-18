@@ -25,6 +25,9 @@ config("net_tether_manager_config") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/include/utils",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
   ]
+  if (netmanager_ext_share_traffic_limit_enable) {
+    defines = [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
+  }
 }
 
 ohos_shared_library("net_tether_manager") {
@@ -53,7 +56,7 @@ ohos_shared_library("net_tether_manager") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
   ]
 
-  configs = [ ":net_tether_manager_config" ]
+  public_configs = [ ":net_tether_manager_config" ]
 
   deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
   deps += [ "$EXT_INNERKITS_ROOT/netshareclient:netshare_service_interface_stub" ]
@@ -129,7 +132,6 @@ ohos_shared_library("net_tether_manager") {
       "core_service:tel_core_service_api",
       "data_share:datashare_consumer",
     ]
-    defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
     sources +=
         [ "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkshare_trafficlimit.cpp" ]
   }
@@ -177,7 +179,7 @@ ohos_static_library("net_tether_manager_static") {
     "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
   ]
 
-  configs = [ ":net_tether_manager_config" ]
+  public_configs = [ ":net_tether_manager_config" ]
 
   deps = [
     "$NETMANAGER_EXT_ROOT/utils:net_event_report",
@@ -212,7 +214,9 @@ ohos_static_library("net_tether_manager_static") {
     "time_service:time_client",
   ]
 
-  defines = []
+  defines = [
+    "NETMANAGER_TEST",
+  ]
 
   if (communication_wifi_switch_enable) {
     defines += [ "WIFI_MODOULE" ]
@@ -249,7 +253,6 @@ ohos_static_library("net_tether_manager_static") {
       "core_service:tel_core_service_api",
       "data_share:datashare_consumer",
     ]
-    defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
     sources +=
         [ "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkshare_trafficlimit.cpp" ]
   }
