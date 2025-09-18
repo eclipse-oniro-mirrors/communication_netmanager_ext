@@ -53,36 +53,48 @@ enum class NetworkSpeed {
     NETWORK_SPEED_4G = 100 * MB_IN_BYTES,
 };
 
-class SharingTrafficDataObserver;
-class NetworkShareTrafficLimit {
+class NetworkShareTrafficLimit : public std::enable_shared_from_this<NetworkShareTrafficLimit> {
 public:
     NetworkShareTrafficLimit();
     ~NetworkShareTrafficLimit() = default;
-    static NetworkShareTrafficLimit &GetInstance(void);
     void InitTetherStatsInfo();
     void UpdataSharingSettingdata(int64_t &tetherInt);
-    void SaveSharingTrafficToCachedData(nmd::NetworkSharingTraffic &traffic);
+    void SaveSharingTrafficToCachedData();
     int64_t GetMaxNetworkSpeed();
     void CheckSharingStatsData();
     int64_t GetNextUpdataDelay();
     void StartHandleSharingLimitEvent();
     void EndHandleSharingLimitEvent();
-    void AddSharingTrafficBeforeConnChanged(nmd::NetworkSharingTraffic &traffic);
+    void AddSharingTrafficBeforeConnChanged();
     bool IsCellularDataConnection();
-    void SaveSharingTrafficToSettingsDB(nmd::NetworkSharingTraffic &traffic);
+    void SaveSharingTrafficToSettingsDB();
+    void SendSharingTrafficToCachedData();
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_ = nullptr;
 
 private:
-    void SendSharingTrafficToCachedData(const nmd::NetworkSharingTraffic &traffic,  const std::string &upIface);
+    class TetherSingleValueObserver : public AAFwk::DataAbilityObserverStub {
+    public:
+        TetherSingleValueObserver(std::weak_ptr<NetworkShareTrafficLimit> networkShareTrafficLimit)
+            : networkShareTrafficLimit_(networkShareTrafficLimit) {}
+        ~TetherSingleValueObserver() = default;
+        void OnChange() override;
+        std::weak_ptr<NetworkShareTrafficLimit> networkShareTrafficLimit_;
+    };
     void UpdataSharingTrafficStats();
     int64_t GetNetSpeedForRadioTech(int32_t radioTech);
-    void SetTetherLimit(int64_t &tetherInt);
     void sendMsgDelayed(const std::string &name, int64_t delayTime);
     int32_t GetDefaultSlotId();
     bool IsValidSlotId(int32_t slotId);
     void WriteSharingTrafficToDB(const int64_t &traffic);
     void InitEventHandler();
-    std::shared_ptr<SharingTrafficDataObserver> observer_ = std::make_shared<SharingTrafficDataObserver>();
+
+    void RegisterTetherDataSettingObserver();
+    void UnregisterTetherDataSettingObserver();
+    void ReadTetherTrafficSetting();
+    ffrt::mutex tetherSingleValueObserverlock_;
+    sptr<TetherSingleValueObserver> mTetherSingleValueObserver_ = nullptr;
+    nmd::NetworkSharingTraffic traffic_;
+    std::string upIface_;
 
 private:
     TetherTrafficInfos tetherTrafficInfos;
@@ -90,25 +102,6 @@ private:
     int64_t lastSharingStatsSize = 0;
     int64_t tmpMills = 0;
     ffrt::mutex lock_;
-};
-
-class TetherSingleValueObserver : public AAFwk::DataAbilityObserverStub {
-public:
-    TetherSingleValueObserver() = default;
-    ~TetherSingleValueObserver() = default;
-    void OnChange() override;
-};
-
-class SharingTrafficDataObserver {
-public:
-    SharingTrafficDataObserver();
-    ~SharingTrafficDataObserver() = default;
-    void RegisterTetherDataSettingObserver();
-    void UnregisterTetherDataSettingObserver();
-    void ReadTetherTrafficSetting();
-
-public:
-    sptr<TetherSingleValueObserver> mTetherSingleValueObserver_ = nullptr;
 };
 
 inline int64_t GetCurrentMilliseconds()

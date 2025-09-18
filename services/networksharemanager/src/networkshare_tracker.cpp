@@ -40,9 +40,6 @@
 #include "usb_srv_client.h"
 #include "usb_srv_support.h"
 #endif
-#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-#include "networkshare_trafficlimit.h"
-#endif
 
 #define IFACENAME_LEN 20
 
@@ -490,11 +487,6 @@ int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
     } else {
         clientRequestsVector_.push_back(type);
     }
-#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    if (type == SharingIfaceType::SHARING_WIFI) {
-        NetworkShareTrafficLimit::GetInstance().StartHandleSharingLimitEvent();
-    }
-#endif
     return EnableNetSharingInternal(type, true);
 }
 
@@ -506,11 +498,6 @@ int32_t NetworkShareTracker::StopNetworkSharing(const SharingIfaceType &type)
     if (fit != clientRequestsVector_.end()) {
         clientRequestsVector_.erase(fit);
     }
-#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    if (type == SharingIfaceType::SHARING_WIFI) {
-        NetworkShareTrafficLimit::GetInstance().EndHandleSharingLimitEvent();
-    }
-#endif
     return EnableNetSharingInternal(type, false);
 }
 

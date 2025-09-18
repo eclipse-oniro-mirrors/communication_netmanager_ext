@@ -112,7 +112,9 @@ int32_t RouterAdvertisementDaemon::StartRa()
             sp->ProcessSendRaPacket();
         }
     };
+#ifndef NETMANAGER_TEST
     taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
+#endif
     return NETMANAGER_EXT_SUCCESS;
 }
 
