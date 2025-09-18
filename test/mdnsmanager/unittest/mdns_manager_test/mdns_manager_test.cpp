@@ -34,6 +34,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "mdns_protocol_impl.h"
+#include "mdns_service.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -218,6 +219,22 @@ void MDnsProtocolImplTest::TearDownTestCase() {}
 void MDnsProtocolImplTest::SetUp() {}
 
 void MDnsProtocolImplTest::TearDown() {}
+
+class MDnsServiceTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void MDnsServiceTest::SetUpTestCase() {}
+
+void MDnsServiceTest::TearDownTestCase() {}
+
+void MDnsServiceTest::SetUp() {}
+
+void MDnsServiceTest::TearDown() {}
 
 
 struct MdnsClientTestParams {
@@ -1713,6 +1730,84 @@ HWTEST_F(MDnsClientTest, RestartResumeTest001, TestSize.Level1)
     sptr<IRegistrationCallback> cb;
     mdnsclient.RestartResume();
     EXPECT_EQ(mdnsclient.UnRegisterService(cb), NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+}
+
+HWTEST_F(MDnsServiceTest, OnServiceRemoteDiedTest001, TestSize.Level1)
+{
+    wptr<IRemoteObject> remote = nullptr;
+    auto mDnsService = new (std::nothrow) MDnsService();
+    mDnsService->OnServiceRemoteDied(remote);
+
+    MDnsServiceInfo info;
+    MDnsServiceInfo infoBack;
+    info.name = DEMO_NAME;
+    info.type = DEMO_TYPE;
+    info.port = DEMO_PORT;
+    info.SetAttrMap(g_txt);
+    sptr<IRegistrationCallback> callback = new (std::nothrow) MDnsTestRegistrationCallback(info);
+    sptr<IRemoteObject> obj = callback->AsObject();
+    IRemoteObject *object = obj.GetRefPtr();
+    remote = object;
+    mDnsService->OnServiceRemoteDied(remote);
+    EXPECT_NE(mDnsService, nullptr);
+
+    delete mDnsService;
+}
+
+HWTEST_F(MDnsServiceTest, AddServiceDeathRecipientTest001, TestSize.Level1)
+{
+    auto mDnsService = new (std::nothrow) MDnsService();
+    MDnsServiceInfo info;
+    MDnsServiceInfo infoBack;
+    info.name = DEMO_NAME;
+    info.type = DEMO_TYPE;
+    info.port = DEMO_PORT;
+    info.SetAttrMap(g_txt);
+    sptr<IRegistrationCallback> callback = new (std::nothrow) MDnsTestRegistrationCallback(info);
+    mDnsService->AddServiceDeathRecipient(callback);
+    EXPECT_TRUE(mDnsService->serviceRemoteCallback_.empty());
+
+    mDnsService->serviceDeathRecipient_ = sptr<MDnsService::MdnsServiceCallbackDeathRecipient>::MakeSptr(*mDnsService);
+    mDnsService->AddServiceDeathRecipient(callback);
+
+    delete mDnsService;
+}
+
+HWTEST_F(MDnsServiceTest, RemoveServiceDeathRecipientTest001, TestSize.Level1)
+{
+    auto mDnsService = new (std::nothrow) MDnsService();
+    MDnsServiceInfo info;
+    MDnsServiceInfo infoBack;
+    info.name = DEMO_NAME;
+    info.type = DEMO_TYPE;
+    info.port = DEMO_PORT;
+    info.SetAttrMap(g_txt);
+    sptr<IRegistrationCallback> callback = new (std::nothrow) MDnsTestRegistrationCallback(info);
+    mDnsService->RemoveServiceDeathRecipient(callback);
+
+    mDnsService->serviceRemoteCallback_.emplace_back(callback);
+    mDnsService->RemoveServiceDeathRecipient(callback);
+    EXPECT_TRUE(mDnsService->serviceRemoteCallback_.empty());
+
+    delete mDnsService;
+}
+
+HWTEST_F(MDnsServiceTest, RemoveALLServiceDeathRecipientTest001, TestSize.Level1)
+{
+    auto mDnsService = new (std::nothrow) MDnsService();
+    MDnsServiceInfo info;
+    MDnsServiceInfo infoBack;
+    info.name = DEMO_NAME;
+    info.type = DEMO_TYPE;
+    info.port = DEMO_PORT;
+    info.SetAttrMap(g_txt);
+    sptr<IRegistrationCallback> callback = new (std::nothrow) MDnsTestRegistrationCallback(info);
+
+    mDnsService->serviceRemoteCallback_.emplace_back(callback);
+    mDnsService->RemoveALLServiceDeathRecipient();
+    EXPECT_TRUE(mDnsService->serviceRemoteCallback_.empty());
+
+    delete mDnsService;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

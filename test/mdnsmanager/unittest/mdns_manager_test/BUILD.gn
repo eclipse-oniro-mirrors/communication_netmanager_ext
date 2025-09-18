@@ -53,6 +53,7 @@ ohos_unittest("mdns_manager_test") {
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
+    "safwk:system_ability_fwk",
   ]
 
   defines = [

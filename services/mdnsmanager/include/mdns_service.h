@@ -79,14 +79,34 @@ private:
     private:
         MDnsService &client_;
     };
+
+    class MdnsServiceCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit MdnsServiceCallbackDeathRecipient(MDnsService &client) : client_(client) {}
+        ~MdnsServiceCallbackDeathRecipient() override = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) override
+        {
+            client_.OnServiceRemoteDied(remote);
+        }
+
+    private:
+        MDnsService &client_;
+    };
     void OnRemoteDied(const wptr<IRemoteObject> &remoteObject);
+    void OnServiceRemoteDied(const wptr<IRemoteObject> &remoteObject);
     void AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb);
     void RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &cb);
+    void AddServiceDeathRecipient(const sptr<IRegistrationCallback> &cb);
+    void RemoveServiceDeathRecipient(const sptr<IRegistrationCallback> &cb);
     void UnloadSystemAbility();
     void RemoveALLClientDeathRecipient();
+    void RemoveALLServiceDeathRecipient();
     std::mutex remoteMutex_;
+    std::mutex serviceRemoteMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
+    sptr<IRemoteObject::DeathRecipient> serviceDeathRecipient_ = nullptr;
     std::vector<sptr<IDiscoveryCallback>> remoteCallback_;
+    std::vector<sptr<IRegistrationCallback>> serviceRemoteCallback_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
