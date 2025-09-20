@@ -1470,7 +1470,7 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
         NETMGR_EXT_LOG_E("SyncRegisterMultiVpnEvent bundle name is empty");
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    std::lock_guard<ffrt::mutex> autoLock(remoteMutex_);
     for (auto iterCb = multiVpnEventCallbacks_.begin(); iterCb != multiVpnEventCallbacks_.end(); iterCb++) {
         if (((*iterCb)->callback)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
             NETMGR_EXT_LOG_E("Register multi vpn event callback failed, callback already exists");
@@ -1504,7 +1504,7 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
 
 int32_t NetworkVpnService::SyncUnregisterMultiVpnEvent(const sptr<IVpnEventCallback> callback)
 {
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    std::lock_guard<ffrt::mutex> autoLock(remoteMutex_);
     for (auto iter = multiVpnEventCallbacks_.begin(); iter != multiVpnEventCallbacks_.end(); ++iter) {
         if (((*iter)->callback)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
             RemoveClientDeathRecipient(callback);
@@ -1520,7 +1520,7 @@ int32_t NetworkVpnService::SyncUnregisterMultiVpnEvent(const sptr<IVpnEventCallb
 
 int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    std::lock_guard<ffrt::mutex> autoLock(remoteMutex_);
     for (auto iterCb = vpnEventCallbacks_.begin(); iterCb != vpnEventCallbacks_.end(); iterCb++) {
         if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
             NETMGR_EXT_LOG_E("Register vpn event callback failed, callback already exists");
@@ -1542,7 +1542,7 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
 
 int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    std::lock_guard<ffrt::mutex> autoLock(remoteMutex_);
     for (auto iter = vpnEventCallbacks_.begin(); iter != vpnEventCallbacks_.end(); ++iter) {
         if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
             RemoveClientDeathRecipient(callback);
@@ -1960,7 +1960,7 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
     UnregisterVpnEvent(callback);
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    std::lock_guard<ffrt::mutex> autoLock(remoteMutex_);
 #ifdef SUPPORT_SYSVPN
     if (vpnObj_ != nullptr && vpnObj_->IsSystemVpn()) {
         NETMGR_EXT_LOG_W("system vpn client died");
@@ -2003,7 +2003,7 @@ void NetworkVpnService::RemoveClientDeathRecipient(const sptr<IVpnEventCallback>
 
 void NetworkVpnService::RemoveALLClientDeathRecipient()
 {
-    std::lock_guard<std::mutex> autoLock(remoteMutex_);
+    std::lock_guard<ffrt::mutex> autoLock(remoteMutex_);
     for (auto &item : vpnEventCallbacks_) {
         item->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
