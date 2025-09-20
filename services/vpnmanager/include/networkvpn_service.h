@@ -370,7 +370,7 @@ private:
     void RemoveALLClientDeathRecipient();
 
     std::mutex vpnNameMutex_;
-    std::mutex remoteMutex_;
+    std::ffrt remoteMutex_;
     std::mutex cesMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     bool registeredCommonEvent_ = false;
