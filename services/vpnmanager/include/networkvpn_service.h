@@ -354,15 +354,19 @@ public:
 private:
     class VpnAppDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
-        explicit VpnAppDeathRecipient(NetworkVpnService &client) : client_(client) {}
+        VpnAppDeathRecipient(std::weak_ptr<NetworkVpnService> client) : client_(client) {}
         ~VpnAppDeathRecipient() override = default;
         void OnRemoteDied(const wptr<IRemoteObject> &remote) override
         {
-            client_.OnRemoteDied(remote);
+            auto client = client_.lock();
+            if (client == nullptr) {
+                return;
+            }
+            client->OnRemoteDied(remote);
         }
 
     private:
-        NetworkVpnService &client_;
+        std::weak_ptr<NetworkVpnService> client_;
     };
     void OnRemoteDied(const wptr<IRemoteObject> &remoteObject);
     bool AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback);
