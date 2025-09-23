@@ -301,7 +301,7 @@ std::shared_ptr<NetworkSliceInfo> HwNetworkSliceManager::HandleRsdRequestAgain(
     std::shared_ptr<TrafficDescriptorsInfo> tdsInUrsp)
 {
     NETMGR_EXT_LOG_I("HandleRsdRequestAgain");
-    if (requestAgain == nullptr || requestTd == nullptr) {
+    if (requestAgain == nullptr || requestTd == nullptr || tdsInUrsp == nullptr) {
         return nullptr;
     }
     std::shared_ptr<SliceRouteInfo> sri;

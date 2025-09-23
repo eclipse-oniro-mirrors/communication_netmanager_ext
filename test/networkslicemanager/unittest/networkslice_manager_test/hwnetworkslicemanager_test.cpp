@@ -177,6 +177,16 @@ HWTEST_F(HwNetworkSliceManagerTest, HandleRsdRequestAgain003, testing::ext::Test
     EXPECT_EQ(sUrspConfig_, nullptr);
 }
  
+HWTEST_F(HwNetworkSliceManagerTest, HandleRsdRequestAgain004, testing::ext::TestSize.Level1)
+{
+    NETMGR_EXT_LOG_I("HandleRsdRequestAgain004");
+    std::shared_ptr<NetworkSliceInfo> requestAgain = std::make_shared<NetworkSliceInfo>();
+    std::shared_ptr<TrafficDescriptorsInfo> requestTd;
+    std::shared_ptr<TrafficDescriptorsInfo> tdsInUrsp;
+    DelayedSingleton<HwNetworkSliceManager>::GetInstance()->HandleRsdRequestAgain(requestAgain, requestTd, tdsInUrsp);
+    EXPECT_EQ(sUrspConfig_, nullptr);
+}
+
 HWTEST_F(HwNetworkSliceManagerTest, isUpToToplimit001, testing::ext::TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("isUpToToplimit001");
@@ -896,4 +906,4 @@ HWTEST_F(HwNetworkSliceManagerTest, DumpNetworkSliceInfos001, testing::ext::Test
 }
 
 }
-}
+}
