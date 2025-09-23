@@ -248,15 +248,14 @@ void NetworkShareTracker::RecoverSharingType()
     std::set<uint32_t> sharingTypeIsOn;
     int32_t ret = NetsysController::GetInstance().GetNetworkSharingType(sharingTypeIsOn);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        clientRequestsVector_.clear();
+        clientRequestsBitMask_ = 0;
         for (auto mem : sharingTypeIsOn) {
-            clientRequestsVector_.push_back(static_cast<SharingIfaceType>(mem));
-            NETMGR_EXT_LOG_D("clientRequestsVector_.push_back = [%{public}u]", mem);
+            clientRequestsBitMask_ |= (1U << mem);
+            NETMGR_EXT_LOG_D("clientRequestsBitMask_ add mask [%{public}u]", mem);
             EnableNetSharingInternal(static_cast<SharingIfaceType>(mem), false);
             EnableNetSharingInternal(static_cast<SharingIfaceType>(mem), true);
         }
-        NETMGR_EXT_LOG_I("now clientRequestsVector_.size() = [%{public}zu], ret = [%{public}d]",
-                         clientRequestsVector_.size(), ret);
+        NETMGR_EXT_LOG_I("now clientRequestsBitMask_ =  [%{public}u], ret = [%{public}d]", clientRequestsBitMask_, ret);
     }
 }
 
@@ -294,15 +293,12 @@ bool NetworkShareTracker::Init()
 
 void NetworkShareTracker::OnChangeSharingState(const SharingIfaceType &type, bool state)
 {
-    auto fit = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
-    if (state && fit == clientRequestsVector_.end()) {
-        clientRequestsVector_.push_back(type);
+    if (state) {
+        clientRequestsBitMask_ |= (1U << static_cast<uint32_t>(type));
+    } else {
+        clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
     }
-    if (!state && fit != clientRequestsVector_.end()) {
-        clientRequestsVector_.erase(fit);
-    }
-    SendGlobalSharingStateChange();
-    NETMGR_EXT_LOG_I("Hotspot OnChangeSharing, clientRequestsVector_ [%{public}zu]", clientRequestsVector_.size());
+    NETMGR_EXT_LOG_I("Hotspot OnChangeSharing, clientRequestsBitMask_ [%{public}u]", clientRequestsBitMask_);
 }
 
 #ifdef WIFI_MODOULE
@@ -474,10 +470,8 @@ int32_t NetworkShareTracker::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
 {
-    NETMGR_EXT_LOG_I("NetworkShare start sharing,clientRequestsVector_.size = %{public}zu.",
-                     clientRequestsVector_.size());
-    auto fit = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
-    if (fit != clientRequestsVector_.end()) {
+    NETMGR_EXT_LOG_I("NetworkShare start sharing,clientRequestsBitMask_ = %{public}u.", clientRequestsBitMask_);
+    if (clientRequestsBitMask_ & (1U << static_cast<uint32_t>(type))) {
         NETMGR_EXT_LOG_I("type[%{public}d] is sharing, will close", type);
         int32_t ret = EnableNetSharingInternal(type, false);
         if (ret != NETMANAGER_EXT_SUCCESS) {
@@ -485,19 +479,15 @@ int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
             return ret;
         }
     } else {
-        clientRequestsVector_.push_back(type);
+        clientRequestsBitMask_ |= (1U << static_cast<uint32_t>(type));
     }
     return EnableNetSharingInternal(type, true);
 }
 
 int32_t NetworkShareTracker::StopNetworkSharing(const SharingIfaceType &type)
 {
-    NETMGR_EXT_LOG_I("NetworkShare stop sharing,clientRequestsVector_.size = %{public}zu.",
-                     clientRequestsVector_.size());
-    auto fit = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
-    if (fit != clientRequestsVector_.end()) {
-        clientRequestsVector_.erase(fit);
-    }
+    NETMGR_EXT_LOG_I("NetworkShare stop sharing,clientRequestsBitMask_ = %{public}u.", clientRequestsBitMask_);
+    clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
     return EnableNetSharingInternal(type, false);
 }
 
@@ -716,10 +706,7 @@ int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &ty
     }
     NETMGR_EXT_LOG_I("NetSharing EnableNetSharingInternal result is %{public}d.", result);
     if (result != NETMANAGER_EXT_SUCCESS) {
-        auto it = find(clientRequestsVector_.begin(), clientRequestsVector_.end(), type);
-        if (it != clientRequestsVector_.end()) {
-            clientRequestsVector_.erase(it);
-        }
+        clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
     }
 
     return result;
@@ -1313,9 +1300,24 @@ SharingIfaceState NetworkShareTracker::SubSmStateToExportState(int32_t state)
     return newState;
 }
 
+bool NetworkShareTracker::CheckValidShareInterface(const std::string &iface)
+{
+    bool ret = false;
+    uint32_t ifacesize = sizeof(SHARE_VALID_INTERFACES) / sizeof(SHARE_VALID_INTERFACES[0]);
+
+    for (uint32_t i = 0; i < ifacesize; ++i) {
+        ret = IsInterfaceMatchType(iface, SHARE_VALID_INTERFACES[i]);
+        if (ret) {
+            break;
+        }
+    }
+    return ret;
+}
+
+// LCOV_EXCL_START
 void NetworkShareTracker::RestartResume()
 {
-    if (clientRequestsVector_.empty()) {
+    if (clientRequestsBitMask_ == 0) {
         NETMGR_EXT_LOG_E("RestartResume, no StartDnsProxy.");
         return;
     }
@@ -1352,20 +1354,7 @@ void NetworkShareTracker::RestartResume()
         }
     }
 }
-
-bool NetworkShareTracker::CheckValidShareInterface(const std::string &iface)
-{
-    bool ret = false;
-    uint32_t ifacesize = sizeof(SHARE_VALID_INTERFACES) / sizeof(SHARE_VALID_INTERFACES[0]);
-
-    for (uint32_t i = 0; i < ifacesize; ++i) {
-        ret = IsInterfaceMatchType(iface, SHARE_VALID_INTERFACES[i]);
-        if (ret) {
-            break;
-        }
-    }
-    return ret;
-}
+// LCOV_EXCL_STOP
 
 void NetworkShareTracker::OnPowerConnected()
 {

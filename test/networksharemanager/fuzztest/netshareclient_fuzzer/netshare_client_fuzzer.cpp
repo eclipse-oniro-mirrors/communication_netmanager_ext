@@ -576,6 +576,22 @@ void NetworkShareTrackerFuzzTest(const uint8_t *data, size_t size)
     }
 }
 
+void EnableNetSharingInternalFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("NetworkShareTrackerPrivateFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+    int32_t num = GetData<int32_t>();
+    auto &tra = NetworkShareTracker::GetInstance();
+    SharingIfaceType ifaceType = SharingIfaceType(SharingIfaceType(num % ENUM_TYPE_VALUE3));
+    int32_t enable = 0;
+    while (enable < ENUM_TYPE_VALUE3) {
+        tra.EnableNetSharingInternal(ifaceType, enable);
+        enable++;
+    }
+}
+
 void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
 {
     NETMGR_EXT_LOG_D("NetworkShareTrackerPrivateFuzzTest enter");
@@ -790,6 +806,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::NetworkShareMainStateMachineFuzzTest(data, size);
     OHOS::NetManagerStandard::NetworkShareHisysEventFuzzTest(data, size);
     OHOS::NetManagerStandard::NetGetStatsBytesFuzzTest(data, size);
+    OHOS::NetManagerStandard::EnableNetSharingInternalFuzzTest(data, size);
     OHOS::NetManagerStandard::GetShareIpv6PrefixFuzzTest(data, size);
     OHOS::NetManagerStandard::ConfigureShareIpv4FuzzTest(data, size);
     OHOS::NetManagerStandard::ConfigureShareIpv6FuzzTest(data, size);

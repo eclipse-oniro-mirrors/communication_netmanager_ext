@@ -406,9 +406,11 @@ void NetworkShareSubStateMachine::SharedStateExit()
 {
     NETMGR_EXT_LOG_I("Exit Sub StateMachine[%{public}s] Shared State.", ifaceName_.c_str());
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    networkShareTrafficLimit_->SaveSharingTrafficToCachedData();
-    if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
-        networkShareTrafficLimit_->SaveSharingTrafficToSettingsDB();
+    if (networkShareTrafficLimit_ != nullptr) {
+        networkShareTrafficLimit_->SaveSharingTrafficToCachedData();
+        if (upstreamIfaceName_.find(CELLULAR_IFACE_NAME) != std::string::npos) {
+            networkShareTrafficLimit_->SaveSharingTrafficToSettingsDB();
+        }
     }
 #endif
     CleanupUpstreamInterface();

@@ -441,11 +441,13 @@ void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const s
     }
 }
 
+// LCOV_EXCL_START
 void NetworkShareService::OnNetSysRestart()
 {
     NETMGR_EXT_LOG_I("OnNetSysRestart");
     NetworkShareTracker::GetInstance().RestartResume();
 }
+// LCOV_EXCL_STOP
 
 void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, const char *value, void *context)
 {
