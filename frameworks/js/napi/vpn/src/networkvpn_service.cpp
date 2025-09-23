@@ -1978,7 +1978,7 @@ bool NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &c
 {
     NETMGR_EXT_LOG_I("vpn AddClientDeathRecipient");
     if (deathRecipient_ == nullptr) {
-        deathRecipient_ = new (std::nothrow) VpnAppDeathRecipient(*this);
+        deathRecipient_ = new (std::nothrow) VpnAppDeathRecipient(shared_from_this());
     }
     if (deathRecipient_ == nullptr) {
         NETMGR_EXT_LOG_E("deathRecipient is null");
