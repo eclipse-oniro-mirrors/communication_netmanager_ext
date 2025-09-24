@@ -88,7 +88,10 @@ static bool GetU8VectorFromJsOptionItem(const napi_env env, const napi_value con
     NAPI_CALL_BASE(env, napi_get_arraybuffer_info(env, buffer, reinterpret_cast<void **>(&data), &total), {});
     length = std::min<size_t>(length, total - offset);
     value.resize(length);
-    memcpy_s(value.data(), value.size(), &data[offset], length);
+    if (memcpy_s(value.data(), value.size(), &data[offset], length) != EOK) {
+        NETMGR_EXT_LOG_E("JsObjectToU8Vector memcpy_s err");
+        return false;
+    }
     return true;
 }
 #endif
