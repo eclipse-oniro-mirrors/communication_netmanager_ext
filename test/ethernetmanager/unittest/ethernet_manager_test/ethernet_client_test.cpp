@@ -322,5 +322,19 @@ HWTEST_F(EthernetClientTest, LogOffEthEapTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+/**
+ * @tc.name: StartEthEapTest002
+ * @tc.desc: Test StartEthEap.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, StartEthEapTest002, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    int32_t netId = 100;
+    EthEapProfile profile;
+    int32_t ret = ethernetClient->StartEthEap(netId, profile);
+    EXPECT_GE(ret, -1);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
