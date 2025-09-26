@@ -90,14 +90,24 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
     auto callbackId = std::make_shared<int32_t>();
     auto deferWrapper = std::make_shared<napi_deferred>();
     *deferWrapper = deferred;
-    auto onChange = [env, deferWrapper, bundleName, once, callbackId]() {
+    std::string key = bundleName;
+#ifdef SUPPORT_SYSVPN
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
+        NETMANAGER_EXT_LOGE("CreateObserveDataSharePromise::GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
+        return NapiUtils::GetUndefined(env);
+    }
+    key = bundleName + "_" + std::to_string(userId);
+#endif // SUPPORT_SYSVPN
+    auto onChange = [env, deferWrapper, key, once, callbackId]() {
         if (!once) {
             return;
         }
-        std::call_once(*once, [env, deferWrapper, bundleName, callbackId]() {
+        std::call_once(*once, [env, deferWrapper, key, callbackId]() {
             bool vpnDialogSelect = false;
             std::string vpnExtMode = std::to_string(vpnDialogSelect);
-            int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+            int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
             NETMANAGER_EXT_LOGI("query vpn state after dialog: %{public}d %{public}s", ret, vpnExtMode.c_str());
             if (callbackId) {
                 NetDataShareHelperUtilsIface::UnregisterObserver(VPNEXT_MODE_URI, *callbackId);
