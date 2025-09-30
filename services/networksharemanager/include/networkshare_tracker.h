@@ -292,7 +292,7 @@ private:
     ffrt::mutex callbackMutex_;
     bool isNetworkSharing_ = false;
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
-    std::vector<SharingIfaceType> clientRequestsVector_;
+    uint32_t clientRequestsBitMask_ = 0;
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
 #ifdef WIFI_MODOULE

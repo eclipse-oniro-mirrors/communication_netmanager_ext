@@ -714,9 +714,10 @@ HWTEST_F(NetworkShareTrackerTest, SubSmStateToExportState01, TestSize.Level1)
 
 HWTEST_F(NetworkShareTrackerTest, OnChangeSharingState01, TestSize.Level1)
 {
-    NetworkShareTracker::GetInstance().clientRequestsVector_.push_back(SharingIfaceType::SHARING_WIFI);
-    NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
-    EXPECT_EQ(NetworkShareTracker::GetInstance().clientRequestsVector_.size(), 0);
+    NetworkShareTracker networkShareTracker;
+    networkShareTracker.clientRequestsBitMask_ = (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_WIFI));
+    networkShareTracker.OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
+    EXPECT_EQ(networkShareTracker.clientRequestsBitMask_, 0);
 }
 
 HWTEST_F(NetworkShareTrackerTest, NetworkShareTrackerBranchTest01, TestSize.Level1)
@@ -857,10 +858,7 @@ HWTEST_F(NetworkShareTrackerTest, HandleHotSpotClosedTest, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing02, TestSize.Level1)
 {
     NetworkShareTracker networksharetracker;
-    networksharetracker.clientRequestsVector_ = {
-        SharingIfaceType::SHARING_NONE,
-        SharingIfaceType::SHARING_WIFI,
-    };
+    networksharetracker.clientRequestsBitMask_ = (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_WIFI));
     SharingIfaceType type = SharingIfaceType::SHARING_NONE;
     int32_t ret = networksharetracker.StartNetworkSharing(type);
     type = SharingIfaceType::SHARING_WIFI;
@@ -949,17 +947,17 @@ HWTEST_F(NetworkShareTrackerTest, RestartResume01, TestSize.Level1)
 {
     NetworkShareTracker networksharetracker;
     SharingIfaceType type = SharingIfaceType::SHARING_NONE;
-    networksharetracker.clientRequestsVector_.push_back(type);
+    networksharetracker.clientRequestsBitMask_ = (1U << static_cast<uint32_t>(type));
     networksharetracker.isStartDnsProxy_ = true;
     networksharetracker.RestartResume();
-    ASSERT_EQ(networksharetracker.clientRequestsVector_.size(), 1);
+    EXPECT_EQ(networksharetracker.clientRequestsBitMask_, 0);
 }
  
 HWTEST_F(NetworkShareTrackerTest, RestartResume02, TestSize.Level1)
 {
     NetworkShareTracker networksharetracker;
-    SharingIfaceType type = SharingIfaceType::SHARING_NONE;
-    networksharetracker.clientRequestsVector_.push_back(type);
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    networksharetracker.clientRequestsBitMask_ = (1U << static_cast<uint32_t>(type));
     std::string ifaceName = "123";
     SharingIfaceType interfaceType = SharingIfaceType::SHARING_NONE;
     std::shared_ptr<NetworkShareConfiguration> configuration;
@@ -967,7 +965,23 @@ HWTEST_F(NetworkShareTrackerTest, RestartResume02, TestSize.Level1)
         std::make_shared<NetworkShareSubStateMachine>(ifaceName, interfaceType, configuration);
     networksharetracker.sharedSubSM_.push_back(test);
     networksharetracker.RestartResume();
-    ASSERT_EQ(networksharetracker.clientRequestsVector_.size(), 1);
+    EXPECT_NE(networksharetracker.clientRequestsBitMask_, 0);
+    EXPECT_FALSE(networksharetracker.isStartDnsProxy_);
+    EXPECT_NE(networksharetracker.sharedSubSM_.size(), 0);
+}
+
+HWTEST_F(NetworkShareTrackerTest, RestartResume03, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    networksharetracker.clientRequestsBitMask_ = (1U << static_cast<uint32_t>(type));
+    std::string ifaceName = "123";
+    SharingIfaceType interfaceType = SharingIfaceType::SHARING_NONE;
+    networksharetracker.isStartDnsProxy_ = true;
+    networksharetracker.sharedSubSM_.push_back(nullptr);
+    networksharetracker.RestartResume();
+    EXPECT_NE(networksharetracker.clientRequestsBitMask_, 0);
+    EXPECT_NE(networksharetracker.sharedSubSM_.size(), 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
