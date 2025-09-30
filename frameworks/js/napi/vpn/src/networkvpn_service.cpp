@@ -628,7 +628,7 @@ void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::st
     }
     jsonString = str;
     cJSON_Delete(root);
-    free(str);
+    cJSON_free(str);
 }
 
 void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
