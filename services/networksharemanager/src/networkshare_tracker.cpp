@@ -1411,6 +1411,7 @@ void NetworkShareTracker::HandleHotSpotStarted()
         NetworkShareTracker::GetInstance().GetPowerConnected();
         NetworkShareTracker::GetInstance().HandleIdleApStopTimer();
     }
+    DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance()->SetHotSpotStatus(true);
 }
 
 void NetworkShareTracker::HandleHotSpotClosed()
@@ -1424,6 +1425,7 @@ void NetworkShareTracker::HandleHotSpotClosed()
     NetworkShareTracker::GetInstance().StopSubStateMachine(NetworkShareTracker::GetInstance().mApIfaceName_,
         SharingIfaceType::SHARING_WIFI);
     NetworkShareTracker::GetInstance().mApIfaceName_ = "";
+    DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance()->SetHotSpotStatus(false);
 }
 
 void NetworkShareTracker::HandleHotSpotStaJoin()
