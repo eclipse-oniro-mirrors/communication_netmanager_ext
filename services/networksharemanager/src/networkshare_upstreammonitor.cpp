@@ -120,6 +120,7 @@ void NetworkShareUpstreamMonitor::ListenDefaultNetwork()
     bool isSupportDun = false;
     Telephony::CellularDataClient::GetInstance().GetIfSupportDunApn(isSupportDun);
     NETMGR_EXT_LOG_I("isSupportDun=%{public}d", isSupportDun);
+    isDunApnUsed_ = isSupportDun;
     if (isSupportDun) {
         netSpecifier_->netCapabilities_.netCaps_ = {NET_CAPABILITY_DUN, NET_CAPABILITY_NOT_VPN};
     } else {
@@ -283,14 +284,27 @@ void NetworkShareUpstreamMonitor::HandleNetLost(sptr<NetHandle> &netHandle)
 
 void NetworkShareUpstreamMonitor::OnNetworkConnectChange(int32_t state, int32_t bearerType)
 {
-    if (bearerType != BEARER_CELLULAR) {
+#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
+    if (!isHotSpotEnabled_ || bearerType != BEARER_CELLULAR) {
         return;
     }
     if (state == NET_CONN_STATE_CONNECTED || state == NET_CONN_STATE_DISCONNECTED) {
-        NETMGR_EXT_LOG_I("OnNetworkConnectChange re-Register cell");
+        bool isSupportDun = false;
+        Telephony::CellularDataClient::GetInstance().GetIfSupportDunApn(isSupportDun);
+        if (isDunApnUsed_ == isSupportDun) {
+            return;
+        }
+        isDunApnUsed_ = isSupportDun;
+        NETMGR_EXT_LOG_I("OnNetworkConnectChange re-Register cell, isDunApnUsed_=%{public}d", isDunApnUsed_);
         UnregisterListenDefaultNetwork();
         ListenDefaultNetwork();
     }
+#endif
+}
+ 
+void NetworkShareUpstreamMonitor::SetHotSpotStatus(bool enable)
+{
+    isHotSpotEnabled_ = enable;
 }
 
 NetworkShareUpstreamMonitor::MonitorEventHandler::MonitorEventHandler(

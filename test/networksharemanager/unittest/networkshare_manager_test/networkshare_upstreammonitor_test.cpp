@@ -285,6 +285,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest001, TestSiz
     }
     int32_t state = NET_CONN_STATE_CONNECTED;
     int32_t bearerType = BEARER_WIFI;
+    monitor->isHotSpotEnabled_ = true;
     monitor->OnNetworkConnectChange(state, bearerType);
     bearerType = BEARER_CELLULAR;
     monitor->OnNetworkConnectChange(state, bearerType);
@@ -293,6 +294,32 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest001, TestSiz
     state = NET_CONN_STATE_IDLE;
     monitor->OnNetworkConnectChange(state, bearerType);
     EXPECT_NE(monitor->defaultNetworkId_, 0);
+}
+
+HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest002, TestSize.Level1)
+{
+    auto monitor = NetworkShareUpstreamMonitor::GetInstance();
+    if (monitor == nullptr) {
+        return;
+    }
+    int32_t state = NET_CONN_STATE_CONNECTED;
+    int32_t bearerType = BEARER_WIFI;
+    monitor->isHotSpotEnabled_ = false;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    bearerType = BEARER_CELLULAR;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    monitor->isHotSpotEnabled_ = true;
+    monitor->isDunApnUsed_ = true;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    monitor->isDunApnUsed_ = false;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    state = NET_CONN_STATE_DISCONNECTED;
+    monitor->isDunApnUsed_ = true;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    state = NET_CONN_STATE_IDLE;
+    monitor->isDunApnUsed_ = false;
+    monitor->OnNetworkConnectChange(state, bearerType);
+    EXPECT_GE(monitor->defaultNetworkId_, 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -94,6 +94,7 @@ public:
     void RegisterUpstreamChangedCallback(const std::shared_ptr<NotifyUpstreamCallback> &callback);
 
     void OnNetworkConnectChange(int32_t state, int32_t bearerType);
+    void SetHotSpotStatus(bool enable);
 
 private:
     void NotifyMainStateMachine(int32_t which, const std::shared_ptr<UpstreamNetworkInfo> &obj);
@@ -112,6 +113,8 @@ private:
     int32_t defaultNetworkId_ = INVALID_NETID;
     std::shared_ptr<NotifyUpstreamCallback> notifyUpstreamCallback_ = nullptr;
     sptr<NetSpecifier> netSpecifier_ = nullptr;
+    bool isDunApnUsed_ = false;
+    bool isHotSpotEnabled_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
