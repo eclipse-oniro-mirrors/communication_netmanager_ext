@@ -140,6 +140,7 @@ void NetEapPostBackCallback::SendTask(const std::shared_ptr<AsyncEventData> &asy
         EndSendTask(asyncEvent, unrefRef, refCount);
         return;
     }
+    EndSendTask(asyncEvent, unrefRef, refCount);
 }
  
 void NetEapPostBackCallback::InitScope(const std::shared_ptr<AsyncEventData> &asyncEvent)
@@ -295,9 +296,6 @@ int32_t EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32
     if (eapCode == EAP_CODE_SUCCESS || eapCode == EAP_CODE_FAILURE) {
         composeParam = (eapCode << OFFSET_EAPCODE);
     }
-    napi_ref handlerRef = nullptr;
-    napi_create_reference(env, handler, 1, &handlerRef);
-    RegObj regObj(env, handlerRef);
     bool needUnregister = false;
     {
         std::unique_lock<std::shared_mutex> guard(g_regInfoMutex);
@@ -313,7 +311,13 @@ int32_t EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32
             return EAP_ERRCODE_INTERNAL_ERROR;
         }
         auto new_end = std::remove_if(mapObjIter->second.begin(), mapObjIter->second.end(),
-            [env](const RegObj& obj) { return obj.m_regEnv == env; });
+            [env](const RegObj& obj) {
+                if (obj.m_regEnv == env) {
+                    napi_delete_reference(obj.m_regEnv, obj.m_regHandlerRef);
+                    return true;
+                }
+                return false;
+            });
         mapObjIter->second.erase(new_end, mapObjIter->second.end());
     // if have no callbacks, supplicant unregister this eap code and type
         if (mapObjIter->second.size() == 0) {
@@ -343,5 +347,17 @@ std::map<NetType, TypeMapRegObj>& EapEventMgr::GetRegisterInfoMap()
 {
     return eventRegisterInfo_;
 }
+
+EapEventMgr::~EapEventMgr()
+{
+    for (const auto &iterNetType : eventRegisterInfo_) {
+        for (const auto &iterRegObj : iterNetType.second) {
+            for (const auto &obj : iterRegObj.second) {
+                napi_delete_reference(obj.m_regEnv, obj.m_regHandlerRef);
+            }
+        }
+    }
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

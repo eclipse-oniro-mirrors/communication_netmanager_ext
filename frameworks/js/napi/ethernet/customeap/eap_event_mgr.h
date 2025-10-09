@@ -122,7 +122,7 @@ public:
 class EapEventMgr final {
 public:
     EapEventMgr();
-    ~EapEventMgr() = default;
+    ~EapEventMgr();
  
     static EapEventMgr &GetInstance();
     int32_t RegCustomEapHandler(napi_env env, NetType netType, uint32_t eapCode, uint32_t eapType, napi_value handler);
