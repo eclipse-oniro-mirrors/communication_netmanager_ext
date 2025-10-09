@@ -30,6 +30,9 @@ void SetUpCallback(napi_env env, napi_status status, void *data);
 void ExecProtect(napi_env env, void *data);
 void ProtectCallback(napi_env env, napi_status status, void *data);
 
+void ExecProtectProcessNet(napi_env env, void *data);
+void ProtectProcessNetCallback(napi_env env, napi_status status, void *data);
+
 void ExecDestroy(napi_env env, void *data);
 void DestroyCallback(napi_env env, napi_status status, void *data);
 

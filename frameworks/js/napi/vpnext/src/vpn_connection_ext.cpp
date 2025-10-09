@@ -22,6 +22,7 @@
 #include "module_template.h"
 #include "prepare_context_ext.h"
 #include "protect_context_ext.h"
+#include "protect_process_net_context_ext.h"
 #include "setup_context_ext.h"
 #include "vpn_async_work_ext.h"
 #include "vpn_monitor_ext.h"
@@ -55,6 +56,13 @@ napi_value Destroy(napi_env env, napi_callback_info info)
     NETMANAGER_EXT_LOGI("enter VpnConnectionExt Destroy");
     return ModuleTemplate::Interface<DestroyContext>(env, info, DESTROY_EXT, nullptr, VpnAsyncWorkExt::ExecDestroy,
                                                      VpnAsyncWorkExt::DestroyCallback);
+}
+
+napi_value ProtectProcessNet(napi_env env, napi_callback_info info)
+{
+    NETMANAGER_EXT_LOGI("enter VpnConnectionExt ProtectProcessNet");
+    return ModuleTemplate::Interface<ProtectProcessNetContext>(env, info, PROTECT_PROCESS_NET_EXT, nullptr,
+        VpnAsyncWorkExt::ExecProtectProcessNet, VpnAsyncWorkExt::ProtectProcessNetCallback);
 }
 
 #ifdef SUPPORT_SYSVPN
