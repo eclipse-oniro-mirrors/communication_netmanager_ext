@@ -32,7 +32,7 @@ void ProtectProcessNetContext::ParseParams(napi_value *params, size_t paramsCoun
             SetParseOK(true);
             break;
         default:
-            SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+            SetErrorCode(NETMANAGER_ERR_PARAMETER_INVALID);
             SetNeedThrowException(true);
             break;
     }
