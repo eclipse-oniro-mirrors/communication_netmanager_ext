@@ -383,6 +383,8 @@ napi_value RegisterVpnExtModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(SET_UP_EXT, VpnConnectionExt::SetUp),
                                     DECLARE_NAPI_FUNCTION(PROTECT_EXT, VpnConnectionExt::Protect),
                                     DECLARE_NAPI_FUNCTION(DESTROY_EXT, VpnConnectionExt::Destroy),
+                                    DECLARE_NAPI_FUNCTION(PROTECT_PROCESS_NET_EXT,
+                                        VpnConnectionExt::ProtectProcessNet),
                                     #ifdef SUPPORT_SYSVPN
                                     DECLARE_NAPI_FUNCTION(GENERATE_VPN_ID_EXT, VpnConnectionExt::GenerateVpnId),
                                     #endif // SUPPORT_SYSVPN

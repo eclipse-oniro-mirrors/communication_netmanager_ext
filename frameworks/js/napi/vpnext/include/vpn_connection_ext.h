@@ -31,6 +31,7 @@ constexpr const char *PREPARE = "prepare";
 constexpr const char *SET_UP_EXT = "create";
 constexpr const char *PROTECT_EXT = "protect";
 constexpr const char *DESTROY_EXT = "destroy";
+constexpr const char *PROTECT_PROCESS_NET_EXT = "protectProcessNet";
 constexpr const char *ON = "on";
 constexpr const char *OFF = "off";
 constexpr const char *VPNEXT_MODE_URI =
@@ -44,6 +45,7 @@ namespace VpnConnectionExt {
 napi_value Prepare(napi_env env, napi_callback_info info);
 napi_value SetUp(napi_env env, napi_callback_info info);
 napi_value Protect(napi_env env, napi_callback_info info);
+napi_value ProtectProcessNet(napi_env env, napi_callback_info info);
 napi_value Destroy(napi_env env, napi_callback_info info);
 napi_value On(napi_env env, napi_callback_info info);
 napi_value Off(napi_env env, napi_callback_info info);

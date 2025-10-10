@@ -26,6 +26,7 @@
 #include "ability_manager_client.h"
 #include "extension_ability_info.h"
 #include "hi_app_event_report.h"
+#include "net_conn_client.h"
 #ifdef SUPPORT_SYSVPN
 #include "uuid.h"
 #endif // SUPPORT_SYSVPN
@@ -108,6 +109,20 @@ bool ExecProtect(ProtectContext *context)
     return true;
 }
 
+bool ExecProtectProcessNet(ProtectProcessNetContext *context)
+{
+    NETMANAGER_EXT_LOGI("enter VpnExecExt ExecProtectProcessNet");
+    HiAppEventReport hiAppEventReport("NetworkKit", "VpnProtectProcessNet");
+    int32_t result = NetConnClient::GetInstance().ProtectProcessNet();
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+        return false;
+    }
+    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+    return true;
+}
+
 bool ExecDestroy(DestroyContext *context)
 {
     HiAppEventReport hiAppEventReport("NetworkKit", "VpnDestroy");
@@ -162,6 +177,11 @@ napi_value SetUpCallback(SetUpContext *context)
 }
 
 napi_value ProtectCallback(ProtectContext *context)
+{
+    return NapiUtils::GetUndefined(context->GetEnv());
+}
+
+napi_value ProtectProcessNetCallback(ProtectProcessNetContext *context)
 {
     return NapiUtils::GetUndefined(context->GetEnv());
 }

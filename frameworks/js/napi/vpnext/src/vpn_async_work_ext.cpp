@@ -21,6 +21,7 @@
 #include "destroy_context_ext.h"
 #include "prepare_context_ext.h"
 #include "protect_context_ext.h"
+#include "protect_process_net_context_ext.h"
 #include "setup_context_ext.h"
 #include "vpn_exec_ext.h"
 
@@ -55,6 +56,17 @@ void ExecProtect(napi_env env, void *data)
 void ProtectCallback(napi_env env, napi_status status, void *data)
 {
     BaseAsyncWork::AsyncWorkCallback<ProtectContext, VpnExecExt::ProtectCallback>(env, status, data);
+}
+
+void ExecProtectProcessNet(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<ProtectProcessNetContext, VpnExecExt::ExecProtectProcessNet>(env, data);
+}
+
+void ProtectProcessNetCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<ProtectProcessNetContext,
+        VpnExecExt::ProtectProcessNetCallback>(env, status, data);
 }
 
 void ExecDestroy(napi_env env, void *data)

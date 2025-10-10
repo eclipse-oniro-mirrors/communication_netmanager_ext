@@ -21,6 +21,7 @@
 #include "destroy_context_ext.h"
 #include "prepare_context_ext.h"
 #include "protect_context_ext.h"
+#include "protect_process_net_context_ext.h"
 #include "setup_context_ext.h"
 #ifdef SUPPORT_SYSVPN
 #include "generate_vpnId_context_ext.h"
@@ -37,6 +38,9 @@ napi_value SetUpCallback(SetUpContext *context);
 
 bool ExecProtect(ProtectContext *context);
 napi_value ProtectCallback(ProtectContext *context);
+
+bool ExecProtectProcessNet(ProtectProcessNetContext *context);
+napi_value ProtectProcessNetCallback(ProtectProcessNetContext *context);
 
 bool ExecDestroy(DestroyContext *context);
 napi_value DestroyCallback(DestroyContext *context);

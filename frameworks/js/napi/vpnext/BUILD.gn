@@ -29,6 +29,7 @@ ohos_shared_library("vpnextension") {
     "src/context/destroy_context_ext.cpp",
     "src/context/prepare_context_ext.cpp",
     "src/context/protect_context_ext.cpp",
+    "src/context/protect_process_net_context_ext.cpp",
     "src/context/setup_context_ext.cpp",
     "src/vpn_async_work_ext.cpp",
     "src/vpn_connection_ext.cpp",
