@@ -215,13 +215,18 @@ napi_value ReplyCustomEapData(napi_env env, napi_callback_info info)
     sptr<EapData> eapData = sptr<EapData>::MakeSptr();
     eapData->msgId = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "msgId");
     eapData->bufferLen = NapiUtils::GetInt32Property(env, argv[ARG_INDEX_1], "bufferLen");
-    NapiUtils::GetVectorUint8Property(env, argv[ARG_INDEX_1], "eapBuffer", eapData->eapBuffer);
+    GetU8VectorFromJsOptionItem(env, argv[ARG_INDEX_1], "eapBuffer", eapData->eapBuffer);
  
     if (eapData->bufferLen > MAX_EAP_DATA_LENGTH) {
         NETMANAGER_EXT_LOGE("bufferLen is exceed.");
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
     }
-    if (eapData->bufferLen != eapData->eapBuffer.size()) {
+
+    if (eapData->eapBuffer.empty()) {
+        NapiUtils::GetVectorUint8Property(env, argv[ARG_INDEX_1], "eapBuffer", eapData->eapBuffer);
+    }
+ 
+    if (eapData->bufferLen != static_cast<int32_t>(eapData->eapBuffer.size())) {
         NETMANAGER_EXT_LOGE("bufferLen is mismatch buffer size.");
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA);
     }
