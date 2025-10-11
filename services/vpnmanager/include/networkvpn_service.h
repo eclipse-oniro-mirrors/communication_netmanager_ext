@@ -380,6 +380,7 @@ private:
     bool registeredCommonEvent_ = false;
     int32_t hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
+    ffrt::shared_mutex vpnPidMapMutex_;
     std::map<int32_t, int32_t> setVpnPidMap_;
     int32_t currSetUpVpnPid_ = 0;
     std::vector<std::string> currentVpnAbilityName_;

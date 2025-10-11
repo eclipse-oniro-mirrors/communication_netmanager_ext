@@ -1801,6 +1801,7 @@ int32_t NetworkVpnService::SetSelfVpnPid()
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
     int32_t pid = IPCSkeleton::GetCallingPid();
+    std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
     setVpnPidMap_.emplace(uid, pid);
     NETMGR_EXT_LOG_I("SetSelfVpnPid uid: %{public}d, pid: %{public}d", uid, pid);
     return NETMANAGER_EXT_SUCCESS;
@@ -1878,6 +1879,7 @@ std::string NetworkVpnService::GetCurrentVpnBundleName()
 
 bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid)
 {
+    std::shared_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
     auto it = setVpnPidMap_.find(uid);
     if (it != setVpnPidMap_.end() && it->second == pid) {
         return true;
@@ -1907,6 +1909,7 @@ void NetworkVpnService::ClearCurrentVpnUserInfo()
     std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     currentVpnBundleName_ = "";
     currentVpnAbilityName_.clear();
+    std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
     setVpnPidMap_.clear();
     currSetUpVpnPid_ = 0;
 }
