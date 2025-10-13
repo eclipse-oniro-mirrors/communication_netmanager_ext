@@ -177,6 +177,8 @@ HWTEST_F(EapHdiWpaManagerTest, WriteEapConfigToFile001, TestSize.Level1)
     std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
     std::string context = "test";
     EXPECT_TRUE(manager_->WriteEapConfigToFile(context));
+    context = "test2";
+    EXPECT_TRUE(manager_->WriteEapConfigToFile(context));
 }
  
 HWTEST_F(EapHdiWpaManagerTest, OnEapEventReport001, TestSize.Level1)
