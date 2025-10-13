@@ -641,7 +641,6 @@ void NetworkShareTrackerPrivateFuzzTest(const uint8_t *data, size_t size)
 #ifdef BLUETOOTH_MODOULE
     tra.SetBluetoothState(Bluetooth::BTConnectState(num % ENUM_TYPE_VALUE4));
 #endif
-    tra.SendMainSMEvent(subSm, num, num);
 }
 
 void NetworkShareHisysEventFuzzTest(const uint8_t *data, size_t size)
