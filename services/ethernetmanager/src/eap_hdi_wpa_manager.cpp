@@ -48,6 +48,7 @@ static constexpr const char* ITEM_PASSWORD = "password=";
 static constexpr const char* ITEM_CA_CERT = "ca_cert=";
 static constexpr const char* ITEM_CLIENT_CERT = "client_cert=";
 static constexpr const char* ITEM_PRIVATE_KEY = "private_key=";
+static const std::string ITEM_QUOTE = "\"";
  
 static constexpr int8_t IDX_0 = 0;
 static constexpr int8_t IDX_1 = 1;
@@ -181,22 +182,23 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
     fileContext.append(ITEM_NETWORK_START);
     fileContext.append(ITEM_KEYMGMT);
     fileContext.append(ITEM_EAP + EAP_METHOD_STR_MAP[config.eapMethod] + ITEM_LINE);
-    fileContext.append(ITEM_IDENTITY + config.identity + ITEM_LINE);
+    fileContext.append(ITEM_IDENTITY + ITEM_QUOTE + config.identity + ITEM_QUOTE + ITEM_LINE);
     switch (config.eapMethod) {
         case EapMethod::EAP_PEAP:
         case EapMethod::EAP_TTLS:
-            fileContext.append(ITEM_PASSWORD + config.password + ITEM_LINE);
-            fileContext.append(ITEM_CA_CERT + config.caPath + ITEM_LINE);
-            fileContext.append(ITEM_PHASE2 + Phase2MethodToStr(config.eapMethod, config.phase2Method) + ITEM_LINE);
+            fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
+            fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+            fileContext.append(ITEM_PHASE2 + ITEM_QUOTE + Phase2MethodToStr(config.eapMethod, config.phase2Method)
+                + ITEM_QUOTE + ITEM_LINE);
             break;
         case EapMethod::EAP_TLS:
-            fileContext.append(ITEM_PASSWORD + config.password + ITEM_LINE);
-            fileContext.append(ITEM_CA_CERT + config.caPath + ITEM_LINE);
-            fileContext.append(ITEM_CLIENT_CERT + config.clientCertAliases + ITEM_LINE);
-            fileContext.append(ITEM_PRIVATE_KEY + config.certPassword + ITEM_LINE);
+            fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
+            fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+            fileContext.append(ITEM_CLIENT_CERT + ITEM_QUOTE + config.clientCertAliases + ITEM_QUOTE + ITEM_LINE);
+            fileContext.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + config.certPassword + ITEM_QUOTE + ITEM_LINE);
             break;
         case EapMethod::EAP_PWD:
-            fileContext.append(ITEM_PASSWORD + config.password + ITEM_LINE);
+            fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
             break;
         default:
             break;
