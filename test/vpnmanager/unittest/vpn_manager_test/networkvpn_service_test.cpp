@@ -377,9 +377,7 @@ HWTEST_F(NetworkVpnServiceTest, PublishVpnConnectionStateEventTest001, TestSize.
 HWTEST_F(NetworkVpnServiceTest, OnVpnMultiUserSetUpTest001, TestSize.Level1)
 {
     instance_->OnVpnMultiUserSetUp();
-    instance_->networkVpnServiceFfrtQueue_ = std::make_shared<ffrt::queue>("queue");
-    instance_->OnVpnMultiUserSetUp();
-    EXPECT_NE(instance_->networkVpnServiceFfrtQueue_, nullptr);
+    EXPECT_EQ(instance_->vpnEventCallbacks_.size(), 0);
 }
 
 HWTEST_F(NetworkVpnServiceTest, PrepareTest001, TestSize.Level1)

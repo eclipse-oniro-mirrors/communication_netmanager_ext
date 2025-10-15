@@ -67,20 +67,20 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
     class VpnHapObserver;
     class VpnConnStateCb : public IVpnConnStateCb {
     public:
-        explicit VpnConnStateCb(const NetworkVpnService &vpnService) : vpnService_(vpnService){};
+        explicit VpnConnStateCb(NetworkVpnService &vpnService) : vpnService_(vpnService) {};
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state) override;
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 
     private:
-        const NetworkVpnService &vpnService_;
+        NetworkVpnService &vpnService_;
     };
 
     class ReceiveMessage : public OHOS::EventFwk::CommonEventSubscriber {
     public:
         ReceiveMessage(const EventFwk::CommonEventSubscribeInfo &subscriberInfo,
             std::weak_ptr<NetworkVpnService> vpnService)
-            : EventFwk::CommonEventSubscriber(subscriberInfo), vpnService_(vpnService){};
+            : EventFwk::CommonEventSubscriber(subscriberInfo), vpnService_(vpnService) {};
 
         virtual void OnReceiveEvent(const EventFwk::CommonEventData &eventData) override;
 
@@ -296,20 +296,25 @@ private:
     void UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &VpnHapObserver);
     bool IsCurrentVpnPid(int32_t uid, int32_t pid);
     bool CheckVpnPermission(const std::string &bundleName);
+    void OnVpnConnStateChanged(const VpnConnectState &state);
+#ifdef SUPPORT_SYSVPN
+    void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId, int32_t userId);
+#endif
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool isServicePublished_ = false;
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
+    ffrt::shared_mutex netVpnMutex_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> connectingObj_;
     std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap_;
+    ffrt::shared_mutex multiVpnEventCallbacksMutex_;
     std::vector<sptr<MultiVpnEventCallback>> multiVpnEventCallbacks_;
 #endif // SUPPORT_SYSVPN
+    ffrt::shared_mutex vpnEventCallbacksMutex_;
     std::vector<sptr<IVpnEventCallback>> vpnEventCallbacks_;
-    std::shared_ptr<ffrt::queue> networkVpnServiceFfrtQueue_ = nullptr;
-    std::mutex netVpnMutex_;
     bool hasSARemoved_ = false;
     int32_t userId_ = -1;
 
@@ -319,7 +324,7 @@ private:
     void RegisterFactoryResetCallback();
     class FactoryResetCallBack : public IRemoteStub<INetFactoryResetCallback> {
     public:
-        explicit FactoryResetCallBack(NetworkVpnService& vpnService):vpnService_(vpnService){};
+        explicit FactoryResetCallBack(NetworkVpnService& vpnService) : vpnService_(vpnService) {};
 
         int32_t OnNetFactoryReset()
         {
@@ -374,7 +379,6 @@ private:
     void RemoveALLClientDeathRecipient();
 
     std::mutex vpnNameMutex_;
-    ffrt::mutex remoteMutex_;
     std::mutex cesMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     bool registeredCommonEvent_ = false;

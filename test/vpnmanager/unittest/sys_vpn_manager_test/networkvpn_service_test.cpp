@@ -749,7 +749,6 @@ HWTEST_F(NetworkVpnServiceTest, OnMultiVpnConnStateChanged001, TestSize.Level1)
     }
     ASSERT_NE(instance_->vpnConnCallback_, nullptr);
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
-    instance_->networkVpnServiceFfrtQueue_ = std::make_shared<ffrt::queue>("NetworkVpnService");
     instance_->vpnConnCallback_->OnMultiVpnConnStateChanged(state, vpnId);
 }
 
