@@ -150,7 +150,7 @@ HWTEST_F(NetFirewallRuleManagerTest, GetNetFirewallRules001, TestSize.Level1)
     param->orderField = NetFirewallOrderField::ORDER_BY_RULE_NAME;
     ret = instance_->GetNetFirewallRules(userId, param, info);
     EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
-    param->domains = "";
+    param->page = 2;
     ret = instance_->GetNetFirewallRules(userId, param, info);
     EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
 }
