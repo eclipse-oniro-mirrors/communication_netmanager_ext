@@ -292,6 +292,10 @@ int32_t NetFirewallRuleManager::GetNetFirewallRule(const int32_t userId, const i
         rule->appUid = outRule.appUid;
         rule->protocol = outRule.protocol;
         rule->dns = outRule.dns;
+        rule->isEnabled = outRule.isEnabled;
+        rule->dns.primaryDns = outRule.dns.primaryDns;
+        rule->dns.standbyDns = outRule.dns.standbyDns;
+        rule->domains = outRule.domains;
         rule->localIps.assign(outRule.localIps.begin(), outRule.localIps.end());
         rule->remoteIps.assign(outRule.remoteIps.begin(), outRule.remoteIps.end());
         rule->localPorts.assign(outRule.localPorts.begin(), outRule.localPorts.end());
