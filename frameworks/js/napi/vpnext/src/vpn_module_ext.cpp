@@ -78,7 +78,7 @@ static void RejectPromiseInIpcThread(napi_env env, napi_deferred deferred)
         env, [env, deferred]() { napi_reject_deferred(env, deferred, NapiUtils::GetUndefined(env)); }, napi_eprio_high);
 }
 
-static napi_value CreateObserveDataSharePromise(napi_env env, const std::string &bundleName)
+static napi_value CreateObserveDataSharePromise(napi_env env, const std::string &bundleName, const std::string &abilityName)
 {
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
@@ -116,8 +116,15 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
                 auto deferred = *deferWrapper;
                 *deferWrapper = nullptr;
                 if (vpnExtMode == "1") {
+                    AAFwk::Want cachedWant = VpnMonitor::GetInstance().GetCachedWant();
+                    if (!cachedWant.GetElement().GetBundleName().empty()) {
+                        AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+                            cachedWant, nullptr, -1, AppExecFwk::ExtensionAbilityType::VPN);
+                    }
+                    VpnMonitor::GetInstance().ClearCachedWant();
                     ResolvePromiseInIpcThread(env, deferred);
                 } else {
+                    VpnMonitor::GetInstance().ClearCachedWant();
                     RejectPromiseInIpcThread(env, deferred);
                 }
             }
@@ -211,7 +218,7 @@ napi_value ProcessPermissionRequests(napi_env env, const std::string &bundleName
     if (ret != 0 || vpnExtMode != "1") {
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
-        return CreateObserveDataSharePromise(env, bundleName);
+        return CreateObserveDataSharePromise(env, bundleName, abilityName);
     }
     return nullptr;
 }
@@ -237,6 +244,7 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
 
+    VpnMonitor::GetInstance().CacheCurrentWant(want);
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
     std::string selfAppName;
