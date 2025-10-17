@@ -42,6 +42,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t ARG_NUM_0 = 0;
 constexpr int32_t PARAM_ONE = 1;
+constexpr int32_t ACCOUNT_ID = -1;
 
 static napi_value CreateResolvedPromise(napi_env env)
 {
@@ -78,7 +79,7 @@ static void RejectPromiseInIpcThread(napi_env env, napi_deferred deferred)
         env, [env, deferred]() { napi_reject_deferred(env, deferred, NapiUtils::GetUndefined(env)); }, napi_eprio_high);
 }
 
-static napi_value CreateObserveDataSharePromise(napi_env env, const std::string &bundleName, const std::string &abilityName)
+static napi_value CreateObserveDataSharePromise(napi_env env, const std::string &bundleName)
 {
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
@@ -117,16 +118,13 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
                 *deferWrapper = nullptr;
                 if (vpnExtMode == "1") {
                     AAFwk::Want cachedWant = VpnMonitor::GetInstance().GetCachedWant();
-                    if (!cachedWant.GetElement().GetBundleName().empty()) {
-                        AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
-                            cachedWant, nullptr, -1, AppExecFwk::ExtensionAbilityType::VPN);
-                    }
-                    VpnMonitor::GetInstance().ClearCachedWant();
+                    AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+                        cachedWant, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
                     ResolvePromiseInIpcThread(env, deferred);
                 } else {
-                    VpnMonitor::GetInstance().ClearCachedWant();
                     RejectPromiseInIpcThread(env, deferred);
                 }
+                VpnMonitor::GetInstance().ClearCachedWant();
             }
         });
     };
@@ -218,7 +216,7 @@ napi_value ProcessPermissionRequests(napi_env env, const std::string &bundleName
     if (ret != 0 || vpnExtMode != "1") {
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         VpnMonitor::GetInstance().ShowVpnDialog(bundleName, abilityName, selfAppName);
-        return CreateObserveDataSharePromise(env, bundleName, abilityName);
+        return CreateObserveDataSharePromise(env, bundleName);
     }
     return nullptr;
 }
@@ -237,7 +235,6 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
     AAFwk::Want want;
-    int32_t accountId = -1;
     if (!AppExecFwk::UnwrapWant(env, argv[0], want)) {
         NETMANAGER_EXT_LOGE("Failed to parse want");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parse want error");
@@ -266,7 +263,7 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
-        want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
+        want, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
     hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, err);
     if (err == 0) {
