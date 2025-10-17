@@ -207,7 +207,6 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
             NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
             return;
         }
-        std::shared_lock<ffrt::shared_mutex> lock(vpnService_.netVpnMutex_);
         for (const auto &[name, vpn] : vpnService_.vpnObjMap_) {
             if (vpn == nullptr || vpn->multiVpnInfo_ == nullptr) {
                 continue;
@@ -761,6 +760,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     if (!NetManagerPermission::CheckPermission(PERMISSION_MANAGE_EDM_POLICY)) {
         if (hasOpenedVpnUid_ != IPCSkeleton::GetCallingUid()) {
 #ifdef SUPPORT_SYSVPN
+            std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
             return DestroyMultiVpn(IPCSkeleton::GetCallingUid());
 #endif // SUPPORT_SYSVPN
             NETMGR_EXT_LOG_E("not same vpn, can't destroy");
@@ -823,7 +823,7 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
         return ret;
     }
     NETMGR_EXT_LOG_I("DestroyVpn vpnId = %{public}s", vpnId.c_str());
-    std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
+    std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     auto it = vpnObjMap_.find(vpnId);
     if (it != vpnObjMap_.end()) {
         return DestroyMultiVpn(it->second);
@@ -833,7 +833,6 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
 
 int32_t NetworkVpnService::DestroyMultiVpn(int32_t callingUid)
 {
-    std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     for (auto it = vpnObjMap_.begin(); it != vpnObjMap_.end();) {
         std::shared_ptr<NetVpnImpl> vpnObj = it->second;
         if (vpnObj == nullptr || vpnObj->multiVpnInfo_ == nullptr) {
@@ -873,7 +872,6 @@ int32_t NetworkVpnService::DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vp
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     if (needErase) {
-        std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
         vpnObjMap_.erase(multiVpnInterface->vpnId);
     }
     return NETMANAGER_EXT_SUCCESS;
