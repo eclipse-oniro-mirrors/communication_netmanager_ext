@@ -120,11 +120,11 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
                     AAFwk::Want cachedWant = VpnMonitor::GetInstance().GetCachedWant();
                     AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
                         cachedWant, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
+                    VpnMonitor::GetInstance().ClearCachedWant();
                     ResolvePromiseInIpcThread(env, deferred);
                 } else {
                     RejectPromiseInIpcThread(env, deferred);
                 }
-                VpnMonitor::GetInstance().ClearCachedWant();
             }
         });
     };
