@@ -207,5 +207,28 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
     NETMANAGER_EXT_LOGI("click done");
     return true;
 }
+
+void VpnMonitor::CacheCurrentWant(const AAFwk::Want &want)
+{
+    std::lock_guard<std::mutex> lock(wantMutex_);
+    cachedWant_ = want;
+    NETMANAGER_EXT_LOGI("CacheCurrentWant: cached want from %{public}s", want.GetElement().GetBundleName().c_str());
+}
+
+AAFwk::Want VpnMonitor::GetCachedWant()
+{
+    std::lock_guard<std::mutex> lock(wantMutex_);
+    if (!cachedWant_.GetElement().GetBundleName().empty()) {
+        NETMANAGER_EXT_LOGI("GetCachedWant: get cachedwant success");
+        return cachedWant_;
+    }
+    return AAFwk::Want();
+}
+
+void VpnMonitor::ClearCachedWant()
+{
+    std::lock_guard<std::mutex> lock(wantMutex_);
+    cachedWant_ = AAFwk::Want();
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

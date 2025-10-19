@@ -42,6 +42,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t ARG_NUM_0 = 0;
 constexpr int32_t PARAM_ONE = 1;
+constexpr int32_t ACCOUNT_ID = -1;
 
 static napi_value CreateResolvedPromise(napi_env env)
 {
@@ -116,6 +117,10 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
                 auto deferred = *deferWrapper;
                 *deferWrapper = nullptr;
                 if (vpnExtMode == "1") {
+                    AAFwk::Want cachedWant = VpnMonitor::GetInstance().GetCachedWant();
+                    AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+                        cachedWant, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
+                    VpnMonitor::GetInstance().ClearCachedWant();
                     ResolvePromiseInIpcThread(env, deferred);
                 } else {
                     RejectPromiseInIpcThread(env, deferred);
@@ -230,13 +235,13 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
     AAFwk::Want want;
-    int32_t accountId = -1;
     if (!AppExecFwk::UnwrapWant(env, argv[0], want)) {
         NETMANAGER_EXT_LOGE("Failed to parse want");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parse want error");
         return CreateRejectedPromise(env);
     }
 
+    VpnMonitor::GetInstance().CacheCurrentWant(want);
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
     std::string selfAppName;
@@ -258,7 +263,7 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
-        want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
+        want, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
     hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, err);
     if (err == 0) {

@@ -48,6 +48,8 @@ private:
     ~VpnMonitor() = default;
     VpnMonitor(const VpnMonitor &) = delete;
     VpnMonitor &operator=(const VpnMonitor &) = delete;
+    AAFwk::Want cachedWant_;
+    std::mutex wantMutex_;
 
 public:
     static VpnMonitor &GetInstance();
@@ -56,6 +58,9 @@ public:
     napi_value On(napi_env env, napi_callback_info info);
     napi_value Off(napi_env env, napi_callback_info info);
     bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName, const std::string &appName);
+    void CacheCurrentWant(const AAFwk::Want &want);
+    AAFwk::Want GetCachedWant();
+    void ClearCachedWant();
 
     inline std::shared_ptr<EventManager> GetManager() const
     {
