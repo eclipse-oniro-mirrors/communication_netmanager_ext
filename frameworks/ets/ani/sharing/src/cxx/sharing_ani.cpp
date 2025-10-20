@@ -19,21 +19,30 @@
 
 #include "cxx.h"
 #include "net_manager_ext_constants.h"
+#include "net_manager_constants.h"
+#include "errorcode_convertor.h"
 #include "wrapper.rs.h"
 
 namespace OHOS {
 namespace NetManagerAni {
 
-SharingEventCallback::SharingEventCallback(rust::Box<SharingCallback> &&callback) : callback_(std::move(callback))
+sptr<NetShareCallbackObserverAni> g_netShareCallbackObserverAni =
+    sptr<NetShareCallbackObserverAni>(new (std::nothrow) NetShareCallbackObserverAni());
+
+bool g_isNetShareObserverRegistered = false;
+
+rust::String GetErrorCodeAndMessage(int32_t &errorCode)
 {
+    NetManagerStandard::NetBaseErrorCodeConvertor convertor;
+    return rust::string(convertor.ConvertErrorCode(errorCode));
 }
 
-void SharingEventCallback::OnSharingStateChanged(const bool &isRunning)
+void NetShareCallbackObserverAni::OnSharingStateChanged(const bool &isRunning)
 {
-    callback_->on_sharing_state_change(isRunning);
+    execute_sharing_state_changed(isRunning);
 }
 
-void SharingEventCallback::OnInterfaceSharingStateChanged(NetManagerStandard::SharingIfaceType const &type,
+void NetShareCallbackObserverAni::OnInterfaceSharingStateChanged(NetManagerStandard::SharingIfaceType const &type,
     std::string const &iface, NetManagerStandard::SharingIfaceState const &state)
 {
     InterfaceSharingStateInfo info{
@@ -41,33 +50,46 @@ void SharingEventCallback::OnInterfaceSharingStateChanged(NetManagerStandard::Sh
         .iface = rust::String(iface),
         .state = state,
     };
-    callback_->on_interface_sharing_state_change(info);
+    execute_interface_sharing_state_change(info);
 }
 
-void SharingEventCallback::OnSharingUpstreamChanged(sptr<NetManagerStandard::NetHandle> netHandle)
+void NetShareCallbackObserverAni::OnSharingUpstreamChanged(sptr<NetManagerStandard::NetHandle> netHandle)
 {
     NetHandle handle{
         .net_id = netHandle->GetNetId(),
     };
-    callback_->on_sharing_upstream_change(handle);
+    execute_sharing_upstream_change(handle);
 }
 
-std::unique_ptr<SharingCallbackUnregister> RegisterSharingCallback(rust::Box<SharingCallback> callback, int32_t &ret)
+int32_t NetShareObserverRegister()
 {
-    auto eventCallback = sptr<SharingEventCallback>::MakeSptr(std::move(callback));
-    ret = DelayedSingleton<NetManagerStandard::NetworkShareClient>::GetInstance()->RegisterSharingEvent(eventCallback);
-    return std::make_unique<SharingCallbackUnregister>(eventCallback);
+    if (g_isNetShareObserverRegistered) {
+        return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    }
+
+    if (g_netShareCallbackObserverAni == nullptr) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    int32_t result = DelayedSingleton<NetManagerStandard::NetworkShareClient>::GetInstance()->RegisterSharingEvent(
+        g_netShareCallbackObserverAni);
+    if (result == NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        g_isNetShareObserverRegistered = true;
+    }
+    return result;
 }
 
-SharingCallbackUnregister::SharingCallbackUnregister(sptr<SharingEventCallback> eventCallback)
-    : eventCallback_(eventCallback)
+int32_t NetShareObserverUnRegister()
 {
-}
+    if (g_netShareCallbackObserverAni == nullptr) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
 
-int32_t SharingCallbackUnregister::Unregister() const
-{
-    return DelayedSingleton<NetManagerStandard::NetworkShareClient>::GetInstance()->UnregisterSharingEvent(
-        eventCallback_);
+    int32_t result = DelayedSingleton<NetManagerStandard::NetworkShareClient>::GetInstance()->UnregisterSharingEvent(
+        g_netShareCallbackObserverAni);
+    if (result == NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        g_isNetShareObserverRegistered = false;
+    }
+    return result;
 }
 
 } // namespace NetManagerAni

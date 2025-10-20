@@ -94,31 +94,19 @@ inline int32_t GetSharableRegexs(NetManagerStandard::SharingIfaceType const &typ
     return ret;
 }
 
-class SharingEventCallback : public NetManagerStandard::SharingEventCallbackStub {
+class NetShareCallbackObserverAni : public NetManagerStandard::SharingEventCallbackStub {
 public:
-    SharingEventCallback(rust::Box<SharingCallback> &&callback);
-    ~SharingEventCallback() = default;
-
     void OnSharingStateChanged(bool const &isRunning) override;
     void OnInterfaceSharingStateChanged(NetManagerStandard::SharingIfaceType const &type, std::string const &iface,
         NetManagerStandard::SharingIfaceState const &state) override;
     void OnSharingUpstreamChanged(const sptr<NetManagerStandard::NetHandle> netHandle) override;
-
-private:
-    rust::Box<SharingCallback> callback_;
 };
 
-class SharingCallbackUnregister {
-public:
-    SharingCallbackUnregister(sptr<SharingEventCallback> eventCallback);
-    ~SharingCallbackUnregister() = default;
-    int32_t Unregister() const;
+int32_t NetShareObserverRegister();
 
-private:
-    sptr<SharingEventCallback> eventCallback_;
-};
+int32_t NetShareObserverUnRegister();
 
-std::unique_ptr<SharingCallbackUnregister> RegisterSharingCallback(rust::Box<SharingCallback> callback, int32_t &ret);
+rust::String GetErrorCodeAndMessage(int32_t &errorCode);
 
 } // namespace NetManagerAni
 } // namespace OHOS

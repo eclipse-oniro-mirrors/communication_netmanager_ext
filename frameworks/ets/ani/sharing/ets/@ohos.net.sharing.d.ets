@@ -305,24 +305,29 @@ export default namespace sharing {
 
   export native function offSharingUpstreamChange(callback?: Callback<NetHandle>): void;
 
-   export enum SharingIfaceState {
+  export enum SharingIfaceState {
     SHARING_NIC_SERVING = 1,
 
     SHARING_NIC_CAN_SERVER = 2,
 
     SHARING_NIC_ERROR = 3
-    }
+  }
+
   export interface InterfaceSharingStateInfo {
-     type: SharingIfaceType;
-     iface: string;
-     state: SharingIfaceState;
-   }
+    type: SharingIfaceType;
+    iface: string;
+    state: SharingIfaceState;
+  }
 
-   export enum SharingIfaceType {
-     SHARING_WIFI = 0,
+  export class InterfaceSharingStateInfoInner implements InterfaceSharingStateInfo {
+    type: SharingIfaceType;
+    iface: string;
+    state: SharingIfaceState;
+  }
 
-     SHARING_USB = 1,
-
-     SHARING_BLUETOOTH = 2
-   }
+  export enum SharingIfaceType {
+    SHARING_WIFI = 0,
+    SHARING_USB = 1,
+    SHARING_BLUETOOTH = 2
+  }
 }
