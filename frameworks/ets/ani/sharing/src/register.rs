@@ -11,7 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::{Arc, Mutex, OnceLock};
+use std::{
+    mem,
+    ops::Deref,
+    sync::{Mutex, OnceLock},
+};
 
 use ani_rs::{
     business_error::BusinessError,
@@ -21,14 +25,14 @@ use ani_rs::{
 
 use crate::{
     bridge,
-    wrapper::{ffi, SharingCallbackUnregister, SharingClient},
+    wrapper::{convert_to_business_error, ffi, SharingClient},
 };
 
-struct Registar {
-    inner: Mutex<Vec<(Arc<CallbackFlavor>, SharingCallbackUnregister)>>,
+struct Register {
+    inner: Mutex<Vec<CallbackFlavor>>,
 }
 
-impl Registar {
+impl Register {
     fn new() -> Self {
         Self {
             inner: Mutex::new(Vec::new()),
@@ -36,130 +40,115 @@ impl Registar {
     }
 
     pub fn get_instance() -> &'static Self {
-        static INSTANCE: OnceLock<Registar> = OnceLock::new();
-        INSTANCE.get_or_init(Registar::new)
+        static INSTANCE: OnceLock<Register> = OnceLock::new();
+        INSTANCE.get_or_init(Register::new)
     }
 
     pub fn register(&self, callback: CallbackFlavor) -> Result<(), i32> {
         let mut inner = self.inner.lock().unwrap();
-        for w in inner.iter() {
-            if *w.0 == callback {
-                return Err(-1);
-            }
-        }
-        let callback = Arc::new(callback);
-        let unregister =
-            SharingClient::register_sharing_callback(SharingCallback::new(callback.clone()))?;
-        inner.push((callback, unregister));
-        Ok(())
-    }
+        SharingClient::register_sharing_observer()?;
 
-    pub fn unregister_callback(&self, callback: &CallbackFlavor) -> Result<(), i32> {
-        let mut ret = 0;
-        self.inner.lock().unwrap().retain_mut(|cb| {
-            if *cb.0 == *callback {
-                if let Err(e) = cb.1.unregister() {
-                    ret = e;
-                };
-                return false;
+        inner.retain(|c| {
+            if std::mem::discriminant(&callback) == std::mem::discriminant(c) {
+                false
+            } else {
+                true
             }
-            true
         });
+        inner.push(callback);
         Ok(())
     }
 
-    pub fn unregister_sharing_state_change(
+    pub fn unregister(
         &self,
-        callback: Option<&CallbackFlavor>,
+        callback_ref: Option<CallbackFlavor>,
+        event: SharingEventType,
     ) -> Result<(), i32> {
-        if let Some(callback) = callback {
-            self.unregister_callback(callback)
+        let mut inner = self.inner.lock().unwrap();
+        if let Some(callback) = callback_ref {
+            inner.retain(|c| *c != callback)
         } else {
-            let mut ret = 0;
-            self.inner.lock().unwrap().retain_mut(|cb| {
-                if let CallbackFlavor::SharingStateChange(_) = &*cb.0 {
-                    if let Err(e) = cb.1.unregister() {
-                        ret = e;
-                        true
-                    } else {
+            inner.retain(|c| match event {
+                SharingEventType::EventSharingStateChange => {
+                    if let CallbackFlavor::SharingStateChange(_) = c {
                         false
+                    } else {
+                        true
                     }
-                } else {
-                    true
                 }
-            });
-            if ret != 0 {
-                return Err(ret);
+                SharingEventType::EventInterfaceSharingStateChange => {
+                    if let CallbackFlavor::InterfaceSharingStateChange(_) = c {
+                        false
+                    } else {
+                        true
+                    }
+                }
+                SharingEventType::EventSharingUpstreamChange => {
+                    if let CallbackFlavor::SharingUpstreamChange(_) = c {
+                        false
+                    } else {
+                        true
+                    }
+                }
+            })
+        }
+
+        if (inner.is_empty()) {
+            SharingClient::unregister_sharing_observer()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn on_sharing_state_change(&self, is_running: bool) {
+        let inner = self.inner.lock().unwrap();
+        for listen in inner.deref() {
+            if let CallbackFlavor::SharingStateChange(callback) = listen {
+                callback.execute((is_running,));
             }
-            Ok(())
         }
     }
 
-    pub fn unregister_interface_sharing_state_change(
-        &self,
-        callback: Option<&CallbackFlavor>,
-    ) -> Result<(), i32> {
-        if let Some(callback) = callback {
-            self.unregister_callback(callback)
-        } else {
-            let mut ret = 0;
-            self.inner.lock().unwrap().retain_mut(|cb| {
-                if let CallbackFlavor::InterfaceSharingStateChange(_) = &*cb.0 {
-                    if let Err(e) = cb.1.unregister() {
-                        ret = e;
-                        true
-                    } else {
-                        false
-                    }
-                } else {
-                    true
-                }
-            });
-            if ret != 0 {
-                return Err(ret);
+    pub fn on_interface_sharing_state_change(&self, info: ffi::InterfaceSharingStateInfo) {
+        let inner = self.inner.lock().unwrap();
+        let param = bridge::InterfaceSharingStateInfo::from(info);
+        for listen in inner.deref() {
+            if let CallbackFlavor::InterfaceSharingStateChange(callback) = listen {
+                callback.execute((param.clone(),));
             }
-            Ok(())
         }
     }
 
-    pub fn unregister_sharing_upstream_change(
-        &self,
-        callback: Option<&CallbackFlavor>,
-    ) -> Result<(), i32> {
-        if let Some(callback) = callback {
-            self.unregister_callback(callback)
-        } else {
-            let mut ret = 0;
-            self.inner.lock().unwrap().retain_mut(|cb| {
-                if let CallbackFlavor::SharingUpstreamChange(_) = &*cb.0 {
-                    if let Err(e) = cb.1.unregister() {
-                        ret = e;
-                        true
-                    } else {
-                        false
-                    }
-                } else {
-                    true
-                }
-            });
-            if ret != 0 {
-                return Err(ret);
+    pub fn on_sharing_upstream_change(&self, net_handle: ffi::NetHandle) {
+        let inner = self.inner.lock().unwrap();
+        let param = bridge::NetHandle::from(net_handle);
+        for listen in inner.deref() {
+            if let CallbackFlavor::SharingUpstreamChange(callback) = listen {
+                callback.execute((param.clone(),));
             }
-            Ok(())
         }
     }
+}
+
+pub fn execute_sharing_state_changed(is_running: bool) {
+    Register::get_instance().on_sharing_state_change(is_running);
+}
+
+pub fn execute_interface_sharing_state_change(info: ffi::InterfaceSharingStateInfo) {
+    Register::get_instance().on_interface_sharing_state_change(info);
+}
+
+pub fn execute_sharing_upstream_change(net_handle: ffi::NetHandle) {
+    Register::get_instance().on_sharing_upstream_change(net_handle);
 }
 
 #[ani_rs::native]
 pub fn on_sharing_state_change(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
     let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::SharingStateChange(callback);
-    Registar::get_instance().register(flavor).map_err(|err| {
-        BusinessError::new(
-            err,
-            "Failed to register sharing state change callback".to_string(),
-        )
-    })
+    Register::get_instance()
+        .register(flavor)
+        .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
@@ -169,12 +158,9 @@ pub fn on_interface_sharing_state_change(
 ) -> Result<(), BusinessError> {
     let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::InterfaceSharingStateChange(callback);
-    Registar::get_instance().register(flavor).map_err(|err| {
-        BusinessError::new(
-            err,
-            "Failed to register interface sharing state change callback".to_string(),
-        )
-    })
+    Register::get_instance()
+        .register(flavor)
+        .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
@@ -184,36 +170,23 @@ pub fn on_sharing_upstream_change(
 ) -> Result<(), BusinessError> {
     let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::SharingUpstreamChange(callback);
-    Registar::get_instance().register(flavor).map_err(|err| {
-        BusinessError::new(
-            err,
-            "Failed to register sharing upstream change callback".to_string(),
-        )
-    })
+    Register::get_instance()
+        .register(flavor)
+        .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
 pub fn off_sharing_state_change(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    if env.is_undefined(&callback.clone().into()).unwrap() {
-        return Registar::get_instance()
-            .unregister_sharing_state_change(None)
-            .map_err(|err| {
-                BusinessError::new(
-                    err,
-                    "Failed to unregister sharing state change callback".to_string(),
-                )
-            });
-    }
-    let callback = callback.into_global_callback(env).unwrap();
-    let flavor = CallbackFlavor::SharingUpstreamChange(callback);
-    Registar::get_instance()
-        .unregister_sharing_state_change(Some(&flavor))
-        .map_err(|err| {
-            BusinessError::new(
-                err,
-                "Failed to unregister sharing state change callback".to_string(),
-            )
-        })
+    let callback_flavor = if env.is_undefined(&callback).unwrap() {
+        None
+    } else {
+        let callback_global = callback.into_global_callback(env).unwrap();
+        Some(CallbackFlavor::SharingStateChange(callback_global))
+    };
+
+    Register::get_instance()
+        .unregister(callback_flavor, SharingEventType::EventSharingStateChange)
+        .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
@@ -221,26 +194,19 @@ pub fn off_interface_sharing_state_change(
     env: &AniEnv,
     callback: AniFnObject,
 ) -> Result<(), BusinessError> {
-    if env.is_undefined(&callback.clone().into()).unwrap() {
-        return Registar::get_instance()
-            .unregister_interface_sharing_state_change(None)
-            .map_err(|err| {
-                BusinessError::new(
-                    err,
-                    "Failed to unregister interface sharing state change callback".to_string(),
-                )
-            });
-    }
-    let callback = callback.into_global_callback(env).unwrap();
-    let flavor = CallbackFlavor::InterfaceSharingStateChange(callback);
-    Registar::get_instance()
-        .unregister_interface_sharing_state_change(Some(&flavor))
-        .map_err(|err| {
-            BusinessError::new(
-                err,
-                "Failed to unregister interface sharing state change callback".to_string(),
-            )
-        })
+    let callback_flavor = if env.is_undefined(&callback).unwrap() {
+        None
+    } else {
+        let callback_global = callback.into_global_callback(env).unwrap();
+        Some(CallbackFlavor::InterfaceSharingStateChange(callback_global))
+    };
+
+    Register::get_instance()
+        .unregister(
+            callback_flavor,
+            SharingEventType::EventInterfaceSharingStateChange,
+        )
+        .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
@@ -248,26 +214,19 @@ pub fn off_sharing_upstream_change(
     env: &AniEnv,
     callback: AniFnObject,
 ) -> Result<(), BusinessError> {
-    if env.is_undefined(&callback.clone().into()).unwrap() {
-        return Registar::get_instance()
-            .unregister_sharing_upstream_change(None)
-            .map_err(|err| {
-                BusinessError::new(
-                    err,
-                    "Failed to unregister sharing upstream change callback".to_string(),
-                )
-            });
-    }
-    let callback = callback.into_global_callback(env).unwrap();
-    let flavor = CallbackFlavor::SharingUpstreamChange(callback);
-    Registar::get_instance()
-        .unregister_sharing_upstream_change(Some(&flavor))
-        .map_err(|err| {
-            BusinessError::new(
-                err,
-                "Failed to unregister sharing upstream change callback".to_string(),
-            )
-        })
+    let callback_flavor = if env.is_undefined(&callback).unwrap() {
+        None
+    } else {
+        let callback_global = callback.into_global_callback(env).unwrap();
+        Some(CallbackFlavor::SharingUpstreamChange(callback_global))
+    };
+
+    Register::get_instance()
+        .unregister(
+            callback_flavor,
+            SharingEventType::EventSharingUpstreamChange,
+        )
+        .map_err(convert_to_business_error)
 }
 
 #[derive(PartialEq, Eq)]
@@ -277,31 +236,8 @@ pub enum CallbackFlavor {
     SharingUpstreamChange(GlobalRefCallback<(bridge::NetHandle,)>),
 }
 
-#[derive(PartialEq, Eq)]
-pub struct SharingCallback {
-    inner: Arc<CallbackFlavor>,
-}
-
-impl SharingCallback {
-    fn new(flavor: Arc<CallbackFlavor>) -> Self {
-        Self { inner: flavor }
-    }
-
-    pub fn on_sharing_state_change(&self, is_running: bool) {
-        if let CallbackFlavor::SharingStateChange(callback) = &*self.inner {
-            callback.execute((is_running,));
-        }
-    }
-
-    pub fn on_interface_sharing_state_change(&self, info: ffi::InterfaceSharingStateInfo) {
-        if let CallbackFlavor::InterfaceSharingStateChange(callback) = &*self.inner {
-            callback.execute((info.into(),));
-        }
-    }
-
-    pub fn on_sharing_upstream_change(&self, net_handle: ffi::NetHandle) {
-        if let CallbackFlavor::SharingUpstreamChange(callback) = &*self.inner {
-            callback.execute((net_handle.into(),));
-        }
-    }
+pub enum SharingEventType {
+    EventSharingStateChange,
+    EventInterfaceSharingStateChange,
+    EventSharingUpstreamChange,
 }
