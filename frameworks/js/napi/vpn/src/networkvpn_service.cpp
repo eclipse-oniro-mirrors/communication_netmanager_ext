@@ -709,9 +709,9 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall)
     if (!vpnBundleName.empty()) {
         std::vector<std::string> list = {vpnBundleName, vpnBundleName + VPN_EXTENSION_LABEL};
         sptr<VpnHapObserver> vpnHapObserver = new VpnHapObserver(*this, vpnBundleName);
-        auto regRet =
-            Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver, list);
-        NETMGR_EXT_LOG_I("vpnHapObserver RegisterApplicationStateObserver ret = %{public}d", regRet);
+        Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver, list);
+        std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
+        setUpVpnPidMap_.emplace(IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     }
     std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
 #ifdef SUPPORT_SYSVPN
@@ -1830,13 +1830,18 @@ std::vector<std::string> NetworkVpnService::GetCurrentVpnAbilityName()
     return currentVpnAbilityName_;
 }
 
-void NetworkVpnService::ClearCurrentVpnUserInfo()
+void NetworkVpnService::ClearCurrentVpnUserInfo(int32_t uid, bool fromSetupVpn)
 {
     std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     currentVpnBundleName_ = "";
     currentVpnAbilityName_.clear();
     std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
-    setVpnPidMap_.clear();
+    NETMGR_EXT_LOG_I("ClearCurrentVpnUserInfo clear %{public}d", uid);
+    if (fromSetupVpn) {
+        setUpVpnPidMap_.erase(uid);
+    } else {
+        setVpnPidMap_.erase(uid);
+    }
     currSetUpVpnPid_ = 0;
 }
 
@@ -1859,6 +1864,7 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
         vpnService_.vpnObj_ = nullptr;
     } else {
         NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
+        return;
     }
     for (const auto &name : extensionAbilityName) {
         AAFwk::Want want;
@@ -1872,7 +1878,8 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     }
     vpnService_.UnregVpnHpObserver(this);
     if (isCurrentVpnPid) {
-        vpnService_.ClearCurrentVpnUserInfo();
+        // at present, any observer without abilityname is created by setUpVpn()
+        vpnService_.ClearCurrentVpnUserInfo(processData.uid, !hasAbilityName_);
 #ifdef SUPPORT_SYSVPN
         vpnService_.DestroyMultiVpn(processData.uid);
 #endif // SUPPORT_SYSVPN
