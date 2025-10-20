@@ -369,8 +369,11 @@ int32_t NetFirewallRuleManager::CheckRuleConstraint(const sptr<NetFirewallRule> 
         return FIREWALL_ERR_EXCEED_MAX_DOMAIN;
     }
     domainsCount = NetFirewallDbHelper::GetInstance().QueryFirewallRuleAllFuzzyDomainCount();
+    int32_t fuzzySize = std::count_if(rule->domains.begin(), rule->domains.end(), [](const auto &domain) {
+        return domain.isWildcard;
+    });
     if (allUserDomain_ + size > FIREWALL_ALL_USER_MAX_DOMAIN ||
-        domainsCount + size > FIREWALL_ALL_USER_MAX_FUZZY_DOMAIN) {
+        domainsCount + fuzzySize > FIREWALL_ALL_USER_MAX_FUZZY_DOMAIN) {
         NETMGR_EXT_LOG_E(
             "check rule constraint domain number is more than max, all domain=%{public}d all fuzzy=%{public}d",
             allUserDomain_, static_cast<int32_t>(domainsCount));

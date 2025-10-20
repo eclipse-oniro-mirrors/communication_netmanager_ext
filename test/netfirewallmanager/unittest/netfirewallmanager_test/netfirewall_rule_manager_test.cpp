@@ -121,6 +121,9 @@ HWTEST_F(NetFirewallRuleManagerTest, DeleteNetFirewallRule001, TestSize.Level1)
     ret = instance_->DeleteNetFirewallRule(userId, ruleId);
     EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
 
+    ret = instance_->DeleteNetFirewallRule(userId + userId, ruleId);
+    EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
+
     sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
     rule->isEnabled = false;
     ret = instance_->AddNetFirewallRule(rule, ruleId);
