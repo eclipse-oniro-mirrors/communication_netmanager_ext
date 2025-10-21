@@ -11,10 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use cxx::UniquePtr;
-
 use crate::bridge;
-use crate::register::SharingCallback;
+use crate::register::*;
+use ani_rs::business_error::BusinessError;
 
 pub struct SharingClient;
 
@@ -109,34 +108,18 @@ impl SharingClient {
         Ok(iface_regexs)
     }
 
-    pub fn register_sharing_callback(
-        callback: SharingCallback,
-    ) -> Result<SharingCallbackUnregister, i32> {
-        let mut ret = 0;
-        let unregister = ffi::RegisterSharingCallback(Box::new(callback), &mut ret);
-        if ret != 0 {
-            return Err(ret);
+    pub fn register_sharing_observer() -> Result<(), i32> {
+        let res = ffi::NetShareObserverRegister();
+        if res != 0 {
+            return Err(res);
         }
-        Ok(SharingCallbackUnregister::new(unregister))
-    }
-}
-
-pub struct SharingCallbackUnregister {
-    inner: UniquePtr<ffi::SharingCallbackUnregister>,
-}
-
-unsafe impl Send for SharingCallbackUnregister {}
-unsafe impl Sync for SharingCallbackUnregister {}
-
-impl SharingCallbackUnregister {
-    fn new(inner: UniquePtr<ffi::SharingCallbackUnregister>) -> Self {
-        Self { inner }
+        Ok(())
     }
 
-    pub fn unregister(&mut self) -> Result<(), i32> {
-        let ret = self.inner.pin_mut().Unregister();
-        if ret != 0 {
-            return Err(ret);
+    pub fn unregister_sharing_observer() -> Result<(), i32> {
+        let res = ffi::NetShareObserverUnRegister();
+        if res != 0 {
+            return Err(res);
         }
         Ok(())
     }
@@ -210,6 +193,11 @@ impl From<ffi::NetHandle> for bridge::NetHandle {
     }
 }
 
+pub fn convert_to_business_error(mut code: i32) -> BusinessError {
+    let error_msg = ffi::GetErrorCodeAndMessage(&mut code);
+    BusinessError::new(code, error_msg)
+}
+
 #[cxx::bridge(namespace = "OHOS::NetManagerAni")]
 pub(crate) mod ffi {
 
@@ -241,15 +229,9 @@ pub(crate) mod ffi {
     }
 
     extern "Rust" {
-        type SharingCallback;
-
-        fn on_sharing_state_change(self: &SharingCallback, is_running: bool);
-        fn on_interface_sharing_state_change(
-            self: &SharingCallback,
-            info: InterfaceSharingStateInfo,
-        );
-
-        fn on_sharing_upstream_change(self: &SharingCallback, net_handle: NetHandle);
+        fn execute_sharing_state_changed(is_running: bool);
+        fn execute_interface_sharing_state_change(info: InterfaceSharingStateInfo);
+        fn execute_sharing_upstream_change(net_handle: NetHandle);
     }
 
     unsafe extern "C++" {
@@ -259,10 +241,6 @@ pub(crate) mod ffi {
         type SharingIfaceType;
         #[namespace = "OHOS::NetManagerStandard"]
         type SharingIfaceState;
-
-        type SharingCallbackUnregister;
-
-        fn Unregister(self: &SharingCallbackUnregister) -> i32;
 
         fn IsSharingSupported(ret: &mut i32) -> bool;
         fn IsSharing(ret: &mut i32) -> bool;
@@ -274,10 +252,8 @@ pub(crate) mod ffi {
         fn GetSharingIfaces(state: &SharingIfaceState, ifaces: &mut Vec<String>) -> i32;
         fn GetSharingState(share_type: &SharingIfaceType, state: &mut SharingIfaceState) -> i32;
         fn GetSharableRegexs(share_type: &SharingIfaceType, ifaceRegexs: &mut Vec<String>) -> i32;
-
-        fn RegisterSharingCallback(
-            callback: Box<SharingCallback>,
-            ret: &mut i32,
-        ) -> UniquePtr<SharingCallbackUnregister>;
+        fn NetShareObserverRegister() -> i32;
+        fn NetShareObserverUnRegister() -> i32;
+        fn GetErrorCodeAndMessage(error_code: &mut i32) -> String;
     }
 }

@@ -12,6 +12,7 @@
 // limitations under the License.
 
 mod bridge;
+mod log;
 mod register;
 mod sharing;
 mod wrapper;
@@ -37,3 +38,21 @@ ani_rs::ani_constructor! {
         "offSharingUpstreamChange": register::off_sharing_upstream_change,
     ]
 }
+
+const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
+    log_type: hilog_rust::LogType::LogCore,
+    domain: 0xD0015B0,
+    tag: "NETMANAGER_EXT",
+};
+
+#[used]
+#[link_section = ".init_array"]
+static G_SHARING_PANIC_HOOK: extern "C" fn() = {
+    #[link_section = ".text.startup"]
+    extern "C" fn init() {
+        std::panic::set_hook(Box::new(|info| {
+            sharing_error!("Panic occurred: {:?}", info);
+        }));
+    }
+    init
+};
