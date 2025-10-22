@@ -518,6 +518,9 @@ void EthernetConfiguration::ParseBootProto(const std::string &fileContent, sptr<
 
 void EthernetConfiguration::ParseStaticConfig(const std::string &fileContent, sptr<InterfaceConfiguration> cfg)
 {
+    if (cfg == nullptr) {
+        return;
+    }
     if (cfg->mode_ != STATIC && cfg->mode_ != LAN_STATIC) {
         return;
     }
