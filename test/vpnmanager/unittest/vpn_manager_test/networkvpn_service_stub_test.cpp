@@ -90,6 +90,19 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnTest001, TestSize.Level1)
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(NetworkVpnServiceStubTest, ReplyVpnappTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    uint32_t maxsize = 2;
+    ASSERT_TRUE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()));
+    VpnConfig* config = new (std::nothrow) VpnConfig();
+    ASSERT_TRUE(config != nullptr);
+    config->acceptedApplications_ = {"com.qq.reader", "com.tencent.mm", "com.quark.browser"};
+    ASSERT_TRUE(config->Marshalling(data));
+    ASSERT_FALSE(config->UnmarshallingVectorString(data, config->acceptedApplications_, maxsize));
+    delete config;
+}
+
 HWTEST_F(NetworkVpnServiceStubTest, ReplyProtectTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
