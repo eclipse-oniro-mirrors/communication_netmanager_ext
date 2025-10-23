@@ -318,6 +318,37 @@ HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest002, TestSize.Level0)
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
 }
 
+HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest003, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    ifCfg->mode_ = DHCP;
+    EXPECT_TRUE(ifCfg->ipStatic_.dnsServers_.empty());
+    NetManagerStandard::INetAddr Emptydns;
+    Emptydns.type_ = NetManagerStandard::INetAddr::IPV4;
+    Emptydns.address_ = "";
+    ifCfg->ipStatic_.dnsServers_.push_back(Emptydns);
+    devInterfaceState.SetIfcfg(ifCfg);
+    devInterfaceState.UpdateLinkInfo();
+    EXPECT_FALSE(ifCfg->ipStatic_.dnsServers_.empty());
+}
+
+HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest004, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<StaticConfiguration> config = new StaticConfiguration();
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    devInterfaceState.SetlinkInfo(linkInfo);
+    sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
+    EXPECT_TRUE(config->dnsServers_.empty());
+    NetManagerStandard::INetAddr Emptydns;
+    Emptydns.type_ = NetManagerStandard::INetAddr::IPV4;
+    Emptydns.address_ = "";
+    config->dnsServers_.push_back(Emptydns);
+    devInterfaceState.UpdateLinkInfo(config);
+    EXPECT_FALSE(config->dnsServers_.empty());
+}
+
 HWTEST_F(DevInterfaceStateTest, GetRoutePrefixlenTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
@@ -346,6 +377,17 @@ HWTEST_F(DevInterfaceStateTest, GetDumpInfoTest001, TestSize.Level0)
     devInterfaceState.SetIfcfg(ifCfg);
     devInterfaceState.GetDumpInfo(info);
     EXPECT_NE(info, "");
+}
+
+HWTEST_F(DevInterfaceStateTest, GetIpType001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    std::string ip1 = "192.168.1.1";
+    EXPECT_EQ(devInterfaceState.GetIpType(ip1), 1);
+    std::string ip2 = "::1";
+    EXPECT_EQ(devInterfaceState.GetIpType(ip2), 2);
+    std::string ip3 = "wrong ip";
+    EXPECT_EQ(devInterfaceState.GetIpType(ip3), 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

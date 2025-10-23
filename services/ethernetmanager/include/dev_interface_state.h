@@ -77,6 +77,7 @@ private:
                                         INetAddr &targetNetAddr);
     void GetRoutePrefixlen(const std::string &bySrcAddr, const std::vector<INetAddr> &fromAddrList,
                            INetAddr &targetNetAddr);
+    uint8_t GetIpType(const std::string& ipAddr);
 
 private:
     ConnLinkState connLinkState_ = UNREGISTERED;
