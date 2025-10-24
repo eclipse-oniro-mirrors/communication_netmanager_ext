@@ -47,7 +47,7 @@ struct VpnConfig : public Parcelable {
     static VpnConfig* Unmarshalling(Parcel &parcel);
     static bool UnmarshallingVpnConfig(Parcel &parcel, VpnConfig* config);
     static bool UnmarshallingAddrRoute(Parcel &parcel, VpnConfig* config);
-    static bool UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec, uint32_t Max_Size);
+    static bool UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec, uint32_t maxSize);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
