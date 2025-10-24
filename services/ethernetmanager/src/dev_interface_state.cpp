@@ -239,12 +239,16 @@ void DevInterfaceState::UpdateLinkInfo()
         Route route;
         route.iface_ = devName_;
         route.destination_ = netAddr;
+        route.destination_.type_ = GetIpType(netAddr.address_);
         GetTargetNetAddrWithSameFamily(netAddr.address_, ifCfg_->ipStatic_.gatewayList_, route.gateway_);
         linkInfo_->routeList_.push_back(route);
     }
     CreateLocalRoute(devName_, ifCfg_->ipStatic_.ipAddrList_, ifCfg_->ipStatic_.netMaskList_);
 
     for (auto dnsServer : ifCfg_->ipStatic_.dnsServers_) {
+        if (dnsServer.address_.empty()) {
+            continue;
+        }
         linkInfo_->dnsList_.push_back(dnsServer);
     }
     linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
@@ -273,6 +277,7 @@ void DevInterfaceState::UpdateLanLinkInfo()
         Route route;
         route.iface_ = devName_;
         route.destination_ = netAddr;
+        route.destination_.type_ = GetIpType(netAddr.address_);
         GetRoutePrefixlen(netAddr.address_, ifCfg_->ipStatic_.netMaskList_, route.destination_);
         GetTargetNetAddrWithSameFamily(netAddr.address_, ifCfg_->ipStatic_.gatewayList_, route.gateway_);
         linkInfo_->routeList_.push_back(route);
@@ -303,6 +308,7 @@ void DevInterfaceState::UpdateLanLinkInfo(const sptr<StaticConfiguration> &confi
         Route routeStc;
         routeStc.iface_ = devName_;
         routeStc.destination_ = routeAddr;
+        routeStc.destination_.type_ = GetIpType(routeAddr.address_);
         GetRoutePrefixlen(routeAddr.address_, config->netMaskList_, routeStc.destination_);
         GetTargetNetAddrWithSameFamily(routeAddr.address_, config->gatewayList_, routeStc.gateway_);
         linkInfo_->routeList_.push_back(routeStc);
@@ -335,13 +341,17 @@ void DevInterfaceState::UpdateLinkInfo(const sptr<StaticConfiguration> &config)
         Route routeStc;
         routeStc.iface_ = devName_;
         routeStc.destination_ = routeAddr;
+        routeStc.destination_.type_ = GetIpType(routeAddr.address_);
         GetTargetNetAddrWithSameFamily(routeAddr.address_, config->gatewayList_, routeStc.gateway_);
         linkInfo_->routeList_.push_back(routeStc);
     }
     CreateLocalRoute(devName_, config->ipAddrList_, config->netMaskList_);
 
-    for (auto dns : config->dnsServers_) {
-        linkInfo_->dnsList_.push_back(dns);
+    for (auto dnsServer : config->dnsServers_) {
+        if (dnsServer.address_.empty()) {
+            continue;
+        }
+        linkInfo_->dnsList_.push_back(dnsServer);
     }
     if (ifCfg_) {
         linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
@@ -371,7 +381,7 @@ void DevInterfaceState::CreateLocalRoute(const std::string &iface, const std::ve
                                                      : GetIpv4Prefix(ipAddr.address_, netMaskList);
         Route localRoute;
         localRoute.iface_ = iface;
-        localRoute.destination_.type_ = family;
+        localRoute.destination_.type_ = GetIpType(ipAddr.address_);
         localRoute.destination_.address_ = routeAddr;
         localRoute.destination_.prefixlen_ = ipAddr.prefixlen_;
         localRoute.gateway_.address_ = (family == AF_INET) ? DEFAULT_ROUTE_ADDR : "";
@@ -466,6 +476,18 @@ void DevInterfaceState::GetDumpInfo(std::string &info)
     }
     data.append(TAB + TAB + "BearerType :" + std::to_string(bearerType_) + "\n");
     info.append(data);
+}
+
+uint8_t DevInterfaceState::GetIpType(const std::string& ipAddr)
+{
+    auto family = CommonUtils::GetAddrFamily(ipAddr);
+    if (family == AF_INET) {
+        return INetAddr::IpType::IPV4;
+    } else if (family == AF_INET6) {
+        return INetAddr::IpType::IPV6;
+    } else {
+        return INetAddr::IpType::UNKNOWN;
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
