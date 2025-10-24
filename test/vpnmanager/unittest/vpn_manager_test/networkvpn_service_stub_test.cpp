@@ -100,7 +100,6 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyVpnappTest001, TestSize.Level1)
     config->acceptedApplications_ = {"com.qq.reader", "com.tencent.mm", "com.quark.browser"};
     ASSERT_TRUE(config->Marshalling(data));
     ASSERT_FALSE(config->UnmarshallingVectorString(data, config->acceptedApplications_, maxSize));
-    delete config;
 }
 
 HWTEST_F(NetworkVpnServiceStubTest, ReplyProtectTest001, TestSize.Level1)
