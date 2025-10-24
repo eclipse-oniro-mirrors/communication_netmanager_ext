@@ -95,7 +95,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyVpnappTest001, TestSize.Level1)
     MessageParcel data;
     uint32_t maxsize = 2;
     ASSERT_TRUE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()));
-    VpnConfig* config = new (std::nothrow) VpnConfig();
+    std::shared_ptr<VpnConfig> config = std::make_shared<VpnConfig>();
     ASSERT_TRUE(config != nullptr);
     config->acceptedApplications_ = {"com.qq.reader", "com.tencent.mm", "com.quark.browser"};
     ASSERT_TRUE(config->Marshalling(data));
