@@ -346,8 +346,10 @@ int32_t NetworkShareSubStateMachine::GenerateIpv6(const std::string &iface)
         for (int32_t index = HALF_IN6ADDR; index < MAX_IPV6_PREFIX_LENGTH / BYTE_BIT; ++index) {
             prefix.address.s6_addr[index] = eui64.s6_addr[index];
         }
-        prefix.address.s6_addr[HALF_IN6ADDR - 1]++;
-        prefix.prefix.s6_addr[HALF_IN6ADDR - 1]++;
+        if (OHOS::system::GetBoolParameter("persist.telephony.power.feature.power_dpa_node_control", false) == false) {
+            prefix.address.s6_addr[HALF_IN6ADDR - 1]++;
+            prefix.prefix.s6_addr[HALF_IN6ADDR - 1]++;
+        }
     }
     return NETMANAGER_EXT_SUCCESS;
 }
