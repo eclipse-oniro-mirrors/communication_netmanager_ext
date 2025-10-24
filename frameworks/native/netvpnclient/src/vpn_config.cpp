@@ -20,7 +20,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr uint32_t MAX_SIZE = 64;
-constexpr uint32_t Applications_MAX_SIZE = 256;
+constexpr uint32_t APP_MAX_SIZE = 256;
 constexpr uint32_t ROUTE_MAX_SIZE = 2000;
 }
 bool VpnConfig::Marshalling(Parcel &parcel) const
@@ -98,8 +98,8 @@ bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, VpnConfig* ptr)
                  parcel.ReadBool(ptr->isLegacy_) && parcel.ReadBool(ptr->isMetered_) &&
                  parcel.ReadBool(ptr->isBlocking_) && UnmarshallingVectorString(parcel, ptr->dnsAddresses_, MAX_SIZE) &&
                  UnmarshallingVectorString(parcel, ptr->searchDomains_, MAX_SIZE) &&
-                 UnmarshallingVectorString(parcel, ptr->acceptedApplications_, Applications_MAX_SIZE) &&
-                 UnmarshallingVectorString(parcel, ptr->refusedApplications_, Applications_MAX_SIZE);
+                 UnmarshallingVectorString(parcel, ptr->acceptedApplications_, APP_MAX_SIZE) &&
+                 UnmarshallingVectorString(parcel, ptr->refusedApplications_, APP_MAX_SIZE);
     return allOK;
 }
 
@@ -141,13 +141,13 @@ bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, VpnConfig* config)
     return true;
 }
 
-bool VpnConfig::UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec, uint32_t Max_Size)
+bool VpnConfig::UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec, uint32_t maxSize)
 {
     int32_t size = 0;
     if (!parcel.ReadInt32(size)) {
         return false;
     }
-    if (static_cast<uint32_t>(size) > Max_Size) {
+    if (static_cast<uint32_t>(size) > maxSize) {
         NETMGR_EXT_LOG_E("size = [%{public}d] is too large", size);
         return false;
     }
