@@ -93,13 +93,13 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnTest001, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceStubTest, ReplyVpnappTest001, TestSize.Level1)
 {
     MessageParcel data;
-    uint32_t maxsize = 2;
+    uint32_t maxSize = 2;
     ASSERT_TRUE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()));
     std::shared_ptr<VpnConfig> config = std::make_shared<VpnConfig>();
     ASSERT_TRUE(config != nullptr);
     config->acceptedApplications_ = {"com.qq.reader", "com.tencent.mm", "com.quark.browser"};
     ASSERT_TRUE(config->Marshalling(data));
-    ASSERT_FALSE(config->UnmarshallingVectorString(data, config->acceptedApplications_, maxsize));
+    ASSERT_FALSE(config->UnmarshallingVectorString(data, config->acceptedApplications_, maxSize));
     delete config;
 }
 
