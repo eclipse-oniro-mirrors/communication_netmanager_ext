@@ -143,15 +143,15 @@ bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, VpnConfig* config)
 
 bool VpnConfig::UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec, uint32_t maxSize)
 {
-    int32_t size = 0;
-    if (!parcel.ReadInt32(size)) {
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
         return false;
     }
-    if (static_cast<uint32_t>(size) > maxSize) {
+    if (size > maxSize) {
         NETMGR_EXT_LOG_E("size = [%{public}d] is too large", size);
         return false;
     }
-    for (int32_t idx = 0; idx < size; idx++) {
+    for (uint32_t idx = 0; idx < size; idx++) {
         std::string elem;
         if (!parcel.ReadString(elem)) {
             return false;
