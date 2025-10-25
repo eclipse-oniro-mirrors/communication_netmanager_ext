@@ -28,10 +28,10 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
     bool allOK = parcel.WriteString(vpnId_) &&
                  MarshallingAddrRoute(parcel) && parcel.WriteInt32(mtu_) && parcel.WriteBool(isAcceptIPv4_) &&
                  parcel.WriteBool(isAcceptIPv6_) && parcel.WriteBool(isLegacy_) && parcel.WriteBool(isMetered_) &&
-                 parcel.WriteBool(isBlocking_) && MarshallingVectorString(parcel, dnsAddresses_) &&
-                 MarshallingVectorString(parcel, searchDomains_) &&
-                 MarshallingVectorString(parcel, acceptedApplications_) &&
-                 MarshallingVectorString(parcel, refusedApplications_);
+                 parcel.WriteBool(isBlocking_) && MarshallingVectorString(parcel, dnsAddresses_, MAX_SIZE) &&
+                 MarshallingVectorString(parcel, searchDomains_, MAX_SIZE) &&
+                 MarshallingVectorString(parcel, acceptedApplications_, APP_MAX_SIZE) &&
+                 MarshallingVectorString(parcel, refusedApplications_, APP_MAX_SIZE);
     return allOK;
 }
 
@@ -60,10 +60,13 @@ bool VpnConfig::MarshallingAddrRoute(Parcel &parcel) const
     return true;
 }
 
-bool VpnConfig::MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec) const
+bool VpnConfig::MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec, uint32_t maxSize) const
 {
-    int32_t size = static_cast<int32_t>(vec.size());
-    if (!parcel.WriteInt32(size)) {
+    uint32_t size = static_cast<uint32_t>(vec.size());
+    if (size > maxSize) {
+        return false;
+    }
+    if (!parcel.WriteUint32(size)) {
         return false;
     }
     for (auto &elem : vec) {
