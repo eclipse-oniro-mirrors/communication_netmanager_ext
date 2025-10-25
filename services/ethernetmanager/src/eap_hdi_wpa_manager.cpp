@@ -50,13 +50,13 @@ static constexpr const char* ITEM_CLIENT_CERT = "client_cert=";
 static constexpr const char* ITEM_PRIVATE_KEY = "private_key=";
 static const std::string ITEM_QUOTE = "\"";
  
-static constexpr int8_t IDX_0 = 0;
-static constexpr int8_t IDX_1 = 1;
-static constexpr int8_t IDX_2 = 2;
-static constexpr int8_t IDX_3 = 3;
-static constexpr int8_t IDX_4 = 4;
+static constexpr int8_t IDX_0 = 1;
+static constexpr int8_t IDX_1 = 2;
+static constexpr int8_t IDX_2 = 3;
+static constexpr int8_t IDX_3 = 4;
+static constexpr int8_t IDX_4 = 5;
 static constexpr int8_t BASE_10 = 10;
-static constexpr int8_t WPA_EVENT_REPORT_PARAM_CNT = 5;
+static constexpr int8_t WPA_EVENT_REPORT_PARAM_CNT = 6;
  
 static std::map<Phase2Method, std::string> PHASE2_METHOD_STR_MAP = {
     { Phase2Method::PHASE2_NONE, "NONE" },
@@ -266,11 +266,11 @@ bool EapHdiWpaManager::WriteEapConfigToFile(const std::string &fileContext)
  
 int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *ifName, const char *value)
 {
-    /* @param value -> msgId:eapCode:eapType:bufferLen:eapBuffer */
+    /* @param value -> msgType:msgId:eapCode:eapType:bufferLen:eapBuffer */
     NETMGR_EXT_LOG_I("OnEapEventReport ifName = %{public}s", ifName);
     std::vector<std::string> vecEapDatas = CommonUtils::Split(value, ":");
     if (vecEapDatas.size() != WPA_EVENT_REPORT_PARAM_CNT) {
-        NETMGR_EXT_LOG_E("OnEapEventReport value size err");
+        NETMGR_EXT_LOG_E("OnEapEventReport value size err %{public}d", vecEapDatas.size());
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     sptr<EapData> notifyEapData = (std::make_unique<EapData>()).release();
