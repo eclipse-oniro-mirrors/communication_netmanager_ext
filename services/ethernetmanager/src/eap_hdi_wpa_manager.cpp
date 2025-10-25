@@ -270,7 +270,7 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
     NETMGR_EXT_LOG_I("OnEapEventReport ifName = %{public}s", ifName);
     std::vector<std::string> vecEapDatas = CommonUtils::Split(value, ":");
     if (vecEapDatas.size() != WPA_EVENT_REPORT_PARAM_CNT) {
-        NETMGR_EXT_LOG_E("OnEapEventReport value size err %{public}d", vecEapDatas.size());
+        NETMGR_EXT_LOG_E("OnEapEventReport value size err %{public}d", static_cast<int32_t>(vecEapDatas.size()));
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     sptr<EapData> notifyEapData = (std::make_unique<EapData>()).release();
