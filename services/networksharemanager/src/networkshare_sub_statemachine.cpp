@@ -25,6 +25,7 @@
 #include <random>
 #include <regex>
 #include <sys/types.h>
+#include "parameters.h"
 #ifdef SHARE_TRAFFIC_LIMIT_ENABLE
 #include "networkshare_trafficlimit.h"
 #endif
