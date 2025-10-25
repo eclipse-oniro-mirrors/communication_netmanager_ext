@@ -42,12 +42,12 @@ struct VpnConfig : public Parcelable {
 
     bool Marshalling(Parcel &parcel) const override;
     bool MarshallingAddrRoute(Parcel &parcel) const;
-    bool MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec) const;
+    bool MarshallingVectorString(Parcel &parcel, const std::vector<std::string> &vec, uint32_t maxSize) const;
 
     static VpnConfig* Unmarshalling(Parcel &parcel);
     static bool UnmarshallingVpnConfig(Parcel &parcel, VpnConfig* config);
     static bool UnmarshallingAddrRoute(Parcel &parcel, VpnConfig* config);
-    static bool UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec);
+    static bool UnmarshallingVectorString(Parcel &parcel, std::vector<std::string> &vec, uint32_t maxSize);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
