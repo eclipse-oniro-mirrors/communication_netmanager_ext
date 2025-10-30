@@ -146,7 +146,7 @@ int32_t NetFirewallDataBase::Update(const std::string &tableName, int32_t &chang
     int32_t ret = store_->Update(changedRows, tableName, values, whereClause, whereArgs);
     if (ret == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
         NETMGR_EXT_LOG_E("Update error, restore db");
-        if (RestoreDatabase()) {
+        if (RestoreDatabase() && store_ != nullptr) {
             int32_t ret = store_->Update(changedRows, tableName, values, whereClause, whereArgs);
         }
     }
@@ -171,7 +171,7 @@ int32_t NetFirewallDataBase::Delete(const std::string &tableName, int32_t &chang
     int32_t ret = store_->Delete(changedRows, tableName, whereClause, whereArgs);
     if (ret == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
         NETMGR_EXT_LOG_E("Delete error, restore db");
-        if (RestoreDatabase()) {
+        if (RestoreDatabase() && store_ != nullptr) {
             int32_t ret = store_->Delete(changedRows, tableName, whereClause, whereArgs);
         }
     }
