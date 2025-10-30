@@ -29,7 +29,7 @@ OpenvpnCtl::OpenvpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t u
 {
 }
 
-int32_t OpenvpnCtl::SetUp()
+int32_t OpenvpnCtl::SetUp(bool isInternalChannel)
 {
     UpdateOpenvpnState(OPENVPN_STATE_SETUP);
     return StartOpenvpn();

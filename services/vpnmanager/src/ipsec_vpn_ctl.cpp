@@ -40,7 +40,7 @@ bool IpsecVpnCtl::IsSystemVpn()
     return true;
 }
 
-int32_t IpsecVpnCtl::SetUp()
+int32_t IpsecVpnCtl::SetUp(bool isInternalChannel)
 {
     return StartSysVpn();
 }

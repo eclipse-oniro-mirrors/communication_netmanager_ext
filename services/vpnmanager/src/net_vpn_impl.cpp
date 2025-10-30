@@ -45,6 +45,10 @@ constexpr int32_t BITS_24 = 24;
 constexpr int32_t BITS_16 = 16;
 constexpr int32_t BITS_8 = 8;
 constexpr const char *IPADDR_DELIMITER = ".";
+constexpr const char *PPP_CARD_NAME = "ppp-vpn";
+constexpr const char *XFRM_CARD_NAME = "xfrm-vpn";
+constexpr const char *MULTI_TUN_CARD_NAME = "multitun-vpn";
+constexpr const char *INNER_CHL_NAME = "inner-chl";
 } // namespace
 
 NetVpnImpl::NetVpnImpl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds)
@@ -73,6 +77,9 @@ int32_t NetVpnImpl::RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateC
 
 void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
 {
+    if (isInternalChannel_) {
+        return;
+    }
     if (connChangedCb_ == nullptr) {
         NETMGR_EXT_LOG_E("NotifyConnectState connect callback is null.");
         return;
@@ -86,7 +93,35 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
     connChangedCb_->OnVpnConnStateChanged(state);
 }
 
-int32_t NetVpnImpl::SetUp()
+uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)
+{
+    if (ifName.find(XFRM_CARD_NAME) != std::string::npos) {
+        return CommonUtils::StrToUint(ifName.substr(strlen(XFRM_CARD_NAME)));
+    } else if (ifName.find(PPP_CARD_NAME) != std::string::npos) {
+        return CommonUtils::StrToUint(ifName.substr(strlen(PPP_CARD_NAME)));
+    } else if (ifName.find(MULTI_TUN_CARD_NAME) != std::string::npos) {
+        return CommonUtils::StrToUint(ifName.substr(strlen(MULTI_TUN_CARD_NAME)));
+    } else if (ifName.find(INNER_CHL_NAME) != std::string::npos) {
+        return CommonUtils::StrToUint(ifName.substr(strlen(INNER_CHL_NAME)));
+    }
+    return 0;
+}
+
+int32_t NetVpnImpl::SetNetId(const VpnEventType &legacy, NetConnClient &netConnClientIns)
+{
+    std::list<int32_t> netIdList;
+    netConnClientIns.GetNetIdByIdentifier(GetInterfaceName(), netIdList);
+    if (netIdList.size() == 0) {
+        NETMGR_EXT_LOG_E("get netId failed, netId list size is 0");
+        VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR, "get Net id failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    netId_ = *(netIdList.begin());
+    NETMGR_EXT_LOG_I("vpn network netid: %{public}d", netId_);
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetVpnImpl::SetUp(bool isInternalChannel)
 {
     if (vpnConfig_ == nullptr) {
         NETMGR_EXT_LOG_E("VpnConnect vpnConfig_ is nullptr");
@@ -96,7 +131,7 @@ int32_t NetVpnImpl::SetUp()
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
 
     auto &netConnClientIns = NetConnClient::GetInstance();
-    if (!RegisterNetSupplier(netConnClientIns)) {
+    if (!RegisterNetSupplier(netConnClientIns, isInternalChannel)) {
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_REG_NET_SUPPLIER_ERROR,
                                                  "register Supplier failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -114,18 +149,16 @@ int32_t NetVpnImpl::SetUp()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    std::list<int32_t> netIdList;
-    netConnClientIns.GetNetIdByIdentifier(GetInterfaceName(), netIdList);
-    if (netIdList.size() == 0) {
-        NETMGR_EXT_LOG_E("get netId failed, netId list size is 0");
-        VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR, "get Net id failed");
+    if (SetNetId(legacy, netConnClientIns) != NETMANAGER_EXT_SUCCESS) {
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    netId_ = *(netIdList.begin());
-    NETMGR_EXT_LOG_I("vpn network netid: %{public}d", netId_);
+
+    isInternalChannel_ = isInternalChannel;
+    priorityId_ = GetVpnInterffaceToId(GetInterfaceName());
 
     SetAllUidRanges();
-    if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_, endUids_)) {
+    if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_,
+        endUids_, priorityId_) != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("vpn set whitelist rule error");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_SET_APP_UID_RULE_ERROR,
                                                  "set app uid rule failed");
@@ -163,7 +196,7 @@ int32_t NetVpnImpl::ResumeUids()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_, endUids_)) {
+    if (NetsysController::GetInstance().NetworkAddUids(netId_, beginUids_, endUids_, priorityId_)) {
         NETMGR_EXT_LOG_E("vpn set whitelist rule error");
         VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_SET_APP_UID_RULE_ERROR,
@@ -180,7 +213,7 @@ int32_t NetVpnImpl::Destroy()
     ProcessUpRules(false);
 #endif // SUPPORT_SYSVPN
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
-    if (NetsysController::GetInstance().NetworkDelUids(netId_, beginUids_, endUids_)) {
+    if (NetsysController::GetInstance().NetworkDelUids(netId_, beginUids_, endUids_, priorityId_)) {
         NETMGR_EXT_LOG_W("vpn remove whitelist rule error");
         VpnHisysEvent::SendFaultEventConnDestroy(legacy, VpnEventErrorType::ERROR_SET_APP_UID_RULE_ERROR,
                                                  "remove app uid rule failed");
@@ -243,7 +276,7 @@ void NetVpnImpl::ProcessUpRules(bool isUp)
 }
 #endif // SUPPORT_SYSVPN
 
-bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns)
+bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns, bool isInternalChannel)
 {
     if (netSupplierId_) {
         NETMGR_EXT_LOG_E("NetSupplier [%{public}d] has been registered ", netSupplierId_);
@@ -251,6 +284,9 @@ bool NetVpnImpl::RegisterNetSupplier(NetConnClient &netConnClientIns)
     }
     std::set<NetCap> netCap;
     netCap.insert(NET_CAPABILITY_INTERNET);
+    if (isInternalChannel) {
+        netCap.insert(NET_CAPABILITY_INTERNAL_CHANNEL);
+    }
     if (vpnConfig_->isMetered_ == false) {
         netCap.insert(NET_CAPABILITY_NOT_METERED);
     }

@@ -38,7 +38,7 @@ bool ExtendedVpnCtl::IsInternalVpn()
     return false;
 }
 
-int32_t ExtendedVpnCtl::SetUp()
+int32_t ExtendedVpnCtl::SetUp(bool isInternalChannel)
 {
     NETMGR_EXT_LOG_I("SetUp virtual network");
 #ifdef SUPPORT_SYSVPN
@@ -53,7 +53,7 @@ int32_t ExtendedVpnCtl::SetUp()
         multiVpnInfo_->localAddress = addr;
     }
 #endif // SUPPORT_SYSVPN
-    return NetVpnImpl::SetUp();
+    return NetVpnImpl::SetUp(isInternalChannel);
 }
 
 int32_t ExtendedVpnCtl::Destroy()

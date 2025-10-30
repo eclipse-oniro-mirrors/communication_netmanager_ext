@@ -28,7 +28,7 @@ public:
     ~ExtendedVpnCtl() = default;
 
     bool IsInternalVpn() override;
-    int32_t SetUp() override;
+    int32_t SetUp(bool isInternalChannel = false) override;
     int32_t Destroy() override;
 };
 } // namespace NetManagerStandard

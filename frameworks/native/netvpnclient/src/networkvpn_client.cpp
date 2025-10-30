@@ -214,7 +214,8 @@ int32_t NetworkVpnClient::Protect(int32_t socketFd, bool isVpnExtCall)
     return protectResult;
 }
 
-int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall)
+int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
+    int32_t &tunFd, bool isVpnExtCall, bool isInternalChannel)
 {
     if (config == nullptr) {
         NETMGR_EXT_LOG_E("SetUpVpn param config is nullptr");
@@ -226,14 +227,17 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool 
         NETMGR_EXT_LOG_E("SetUpVpn proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    NETMGR_EXT_LOG_I("enter SetUpVpn 1, %{public}d", isVpnExtCall);
-    int32_t result = proxy->SetUpVpn(*config, isVpnExtCall);
+    NETMGR_EXT_LOG_I("enter SetUpVpn %{public}d, %{public}d", isVpnExtCall, isInternalChannel);
+    int32_t result = proxy->SetUpVpn(*config, isVpnExtCall, isInternalChannel);
     if (result != NETMANAGER_EXT_SUCCESS) {
         tunFd = 0;
         return result;
     }
-    clientVpnConfig_.first = config;
-    clientVpnConfig_.second = isVpnExtCall;
+    std::unique_lock<std::shared_mutex> lock(clientVpnConfigmutex_);
+    clientVpnConfig_.config = config;
+    clientVpnConfig_.isVpnExtCall = isVpnExtCall;
+    clientVpnConfig_.isInternalChannel = isInternalChannel;
+    lock.unlock();
 #ifdef SUPPORT_SYSVPN
     vpnInterface_.SetSupportMultiVpn(!config->vpnId_.empty());
 #endif // SUPPORT_SYSVPN
@@ -241,17 +245,15 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool 
     if (tunFd <= 0) {
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
-    if (vpnEventCallback_ != nullptr) {
-        UnregisterVpnEvent(vpnEventCallback_);
+#ifdef SUPPORT_SYSVPN
+    if (isInternalChannel && !config->vpnId_.empty()) {
+        return RegisterVpnEventCbInner(true);
+    } else {
+#endif // SUPPORT_SYSVPN
+        return RegisterVpnEventCbInner(false);
+#ifdef SUPPORT_SYSVPN
     }
-    vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
-    if (vpnEventCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnEventCallback_ is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    RegisterVpnEvent(vpnEventCallback_);
-    return NETMANAGER_EXT_SUCCESS;
+#endif // SUPPORT_SYSVPN
 }
 
 int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
@@ -261,7 +263,12 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
         UnregisterVpnEvent(vpnEventCallback_);
         vpnEventCallback_ = nullptr;
     }
-
+#ifdef SUPPORT_SYSVPN
+    if (innerChlEventCallback_ != nullptr) {
+        UnregisterMultiVpnEvent(innerChlEventCallback_);
+        innerChlEventCallback_ = nullptr;
+    }
+#endif // SUPPORT_SYSVPN
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("DestroyVpn proxy is nullptr");
@@ -292,7 +299,10 @@ int32_t NetworkVpnClient::DestroyVpn(const std::string &vpnId)
         UnregisterVpnEvent(vpnEventCallback_);
         vpnEventCallback_ = nullptr;
     }
-
+    if (innerChlEventCallback_ != nullptr) {
+        UnregisterMultiVpnEvent(innerChlEventCallback_);
+        innerChlEventCallback_ = nullptr;
+    }
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("DestroyVpn proxy is nullptr");
@@ -509,6 +519,35 @@ void NetworkVpnClient::RegisterVpnEventCbCollection()
     proxy->RegisterVpnEvent(vpnEventCbCollection_);
 }
 
+int32_t NetworkVpnClient::RegisterVpnEventCbInner(bool isMultivpn)
+{
+    int32_t ret = NETMANAGER_EXT_SUCCESS;
+    if (isMultivpn) {
+#ifdef SUPPORT_SYSVPN
+        if (innerChlEventCallback_ != nullptr) {
+            UnregisterMultiVpnEvent(innerChlEventCallback_);
+        }
+        innerChlEventCallback_ = sptr<VpnSetUpEventCallback>::MakeSptr();
+        if (nullptr == innerChlEventCallback_) {
+            NETMANAGER_EXT_LOGE("innerChlEventCallback_ is nullptr");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        RegisterMultiVpnEvent(innerChlEventCallback_);
+#endif
+        return ret;
+    }
+    if (vpnEventCallback_ != nullptr) {
+        UnregisterVpnEvent(vpnEventCallback_);
+    }
+    vpnEventCallback_ = sptr<VpnSetUpEventCallback>::MakeSptr();
+    if (vpnEventCallback_ == nullptr) {
+        NETMGR_EXT_LOG_E("vpnEventCallback_ is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    RegisterVpnEvent(vpnEventCallback_);
+    return ret;
+}
+
 void NetworkVpnClient::UnregisterVpnEventCbCollection()
 {
     if (vpnEventCbCollection_ != nullptr) {
@@ -583,8 +622,10 @@ void NetworkVpnClient::RecoverCallback()
         count++;
     }
     auto proxy = GetProxy();
-    if (proxy != nullptr && clientVpnConfig_.first != nullptr) {
-        proxy->SetUpVpn(*clientVpnConfig_.first, clientVpnConfig_.second);
+    std::shared_lock<std::shared_mutex> lock(clientVpnConfigmutex_);
+    if (proxy != nullptr &&  clientVpnConfig_.config != nullptr) {
+        proxy->SetUpVpn(*clientVpnConfig_.config,
+            clientVpnConfig_.isVpnExtCall,  clientVpnConfig_.isInternalChannel);
     }
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
 }

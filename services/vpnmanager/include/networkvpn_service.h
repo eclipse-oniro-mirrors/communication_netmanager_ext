@@ -114,7 +114,8 @@ public:
     /**
      * This function is called when the three-party vpn application negotiation ends
      */
-    int32_t SetUpVpn(const VpnConfig &config, bool isVpnExtCall = false) override;
+    int32_t SetUpVpn(const VpnConfig &config,
+        bool isVpnExtCall = false, bool isInternalChannel = false) override;
 
     /**
      * protect vpn tunnel
@@ -269,6 +270,7 @@ private:
     int32_t CheckIpcPermission(const std::string &strPermission);
     bool CheckSystemCall(const std::string &bundleName);
     bool CheckVpnExtPermission(const std::string &bundleName);
+    void HandleVpnHapObserverRegistration(const std::string& bundleName);
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
@@ -283,6 +285,7 @@ private:
     std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
     int32_t DestroyMultiVpn(int32_t callingUid);
+    void DestroyMultiVpnByUserId(int32_t userId);
     int32_t DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vpnObj, bool needErase = true);
     int32_t InitMultiVpnInfo(const std::string &vpnId, int32_t vpnType,
         std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj);

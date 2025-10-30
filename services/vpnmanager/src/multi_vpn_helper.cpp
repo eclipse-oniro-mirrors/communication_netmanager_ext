@@ -35,6 +35,7 @@ constexpr const char *PPP_CARD_NAME = "ppp-vpn";
 constexpr const char *XFRM_CARD_NAME = "xfrm-vpn";
 constexpr const char *MULTI_TUN_CARD_NAME = "multitun-vpn";
 constexpr const char *ADDRESS = "address";
+constexpr const char *INNER_CHL_NAME = "inner-chl";
 
 MultiVpnHelper &MultiVpnHelper::GetInstance()
 {
@@ -92,6 +93,9 @@ int32_t MultiVpnHelper::CreateMultiVpnInfo(const std::string &vpnId, int32_t vpn
         case VpnType::L2TP_IPSEC_RSA:
         case VpnType::L2TP:
             newIfName = PPP_CARD_NAME + std::to_string(ifNameId);
+            break;
+        case VpnType::INTERNAL_CHANNEL:
+            newIfName = INNER_CHL_NAME + std::to_string(ifNameId);
             break;
         default:
             newIfName = MULTI_TUN_CARD_NAME + std::to_string(ifNameId);

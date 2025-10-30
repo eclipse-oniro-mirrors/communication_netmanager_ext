@@ -63,7 +63,7 @@ public:
 
     int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData) override;
     bool IsInternalVpn() override;
-    int32_t SetUp() override;
+    int32_t SetUp(bool isInternalChannel = false) override;
     int32_t Destroy() override;
     int32_t GetConnectedSysVpnConfig(sptr<SysVpnConfig> &sysVpnConfig) override;
     int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
