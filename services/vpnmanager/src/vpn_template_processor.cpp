@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 constexpr const char *MULTI_TUN_CARD_NAME = "multitun-vpn";
+constexpr const char *INNER_CHL_NAME = "inner-chl";
 constexpr const char* STRONGSWAN_CONF_TEMPCONFIG = R"(charon {
   i_dont_care_about_security_and_use_aggressive_mode_psk = yes
   install_virtual_ip = no
@@ -76,7 +77,8 @@ void VpnTemplateProcessor::GenSwanctlOrIpsecConf(sptr<IpsecVpnConfig> &ipsecConf
         if (pair.second == nullptr || pair.second->multiVpnInfo_ == nullptr) {
             continue;
         }
-        if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL) {
+        if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL ||
+            strstr(pair.second->multiVpnInfo_->ifName.c_str(), INNER_CHL_NAME) != NULL) {
             continue;
         }
         std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);
@@ -107,7 +109,8 @@ void VpnTemplateProcessor::GenXl2tpdConf(sptr<L2tpVpnConfig> &config, int32_t if
         if (pair.second == nullptr || pair.second->multiVpnInfo_ == nullptr) {
             continue;
         }
-        if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL) {
+        if (strstr(pair.second->multiVpnInfo_->ifName.c_str(), MULTI_TUN_CARD_NAME) != NULL ||
+            strstr(pair.second->multiVpnInfo_->ifName.c_str(), INNER_CHL_NAME) != NULL) {
             continue;
         }
         std::shared_ptr<IpsecVpnCtl> vpnObj = std::static_pointer_cast<IpsecVpnCtl>(pair.second);

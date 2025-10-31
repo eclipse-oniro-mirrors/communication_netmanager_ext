@@ -45,7 +45,7 @@ public:
     virtual ~NetVpnImpl() = default;
 
     virtual bool IsInternalVpn() = 0;
-    virtual int32_t SetUp() = 0;
+    virtual int32_t SetUp(bool isInternalChannel = false) = 0;
     virtual int32_t Destroy() = 0;
 #ifdef SUPPORT_SYSVPN
     virtual int32_t GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData);
@@ -90,9 +90,10 @@ protected:
     bool UpdateNetLinkInfo();
 
 private:
-    bool RegisterNetSupplier(NetConnClient &netConnClientIns);
+    bool RegisterNetSupplier(NetConnClient &netConnClientIns, bool isInternalChannel = false);
     void UnregisterNetSupplier(NetConnClient &netConnClientIns);
     bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);
+    int32_t SetNetId(const VpnEventType &isLegacy, NetConnClient &netConnClientIns);
 
     void DelNetLinkInfo(NetConnClient &netConnClientIns);
     void AdjustRouteInfo(Route &route);
@@ -106,7 +107,7 @@ private:
     std::set<int32_t> GetAppsUids(int32_t userId, const std::vector<std::string> &applications);
     int32_t GenerateUidRanges(int32_t userId, std::vector<int32_t> &beginUids, std::vector<int32_t> &endUids);
     std::string ConvertVpnIpv4Address(uint32_t addressIpv4);
-
+    uint32_t GetVpnInterffaceToId(const std::string &ifName);
 #ifdef SUPPORT_SYSVPN
     void ProcessUpRules(bool isUp);
 public:
@@ -121,6 +122,7 @@ private:
     int32_t userId_ = -1; // the calling app's user
     std::vector<int32_t> activeUserIds_;
     bool isVpnConnecting_ = false;
+    bool isInternalChannel_ = false;
 
     int32_t netId_ = -1;
     uint32_t netSupplierId_ = 0;
@@ -128,6 +130,7 @@ private:
     std::vector<int32_t> endUids_;
     std::shared_ptr<IVpnConnStateCb> connChangedCb_;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;
+    uint32_t priorityId_ = 0;
 
     void SetAllUidRanges();
 };

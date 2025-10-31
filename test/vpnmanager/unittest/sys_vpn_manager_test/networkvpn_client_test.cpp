@@ -308,10 +308,11 @@ HWTEST_F(NetworkVpnClientTest, RecoverCallback001, TestSize.Level1)
 {
     sptr<VpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
-    networkVpnClient_.clientVpnConfig_.first = config;
-    networkVpnClient_.clientVpnConfig_.second = true;
+    networkVpnClient_.clientVpnConfig_.config = config;
+    networkVpnClient_.clientVpnConfig_.isVpnExtCall = true;
+    networkVpnClient_.clientVpnConfig_.isInternalChannel = false;
     networkVpnClient_.RecoverCallback();
-    EXPECT_NE(networkVpnClient_.clientVpnConfig_.first, nullptr);
+    EXPECT_NE(networkVpnClient_.clientVpnConfig_.config, nullptr);
 }
 
 HWTEST_F(NetworkVpnClientTest, OnRemoteDied001, TestSize.Level1)

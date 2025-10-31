@@ -34,6 +34,12 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
+struct RecoverCallbackPara {
+    sptr<VpnConfig> config;
+    bool isVpnExtCall;
+    bool isInternalChannel;
+};
+
 class VpnSetUpEventCallback : public VpnEventCallbackStub {
 public:
     int32_t OnVpnStateChanged(bool isConnected) override{ return ERR_OK; };
@@ -103,8 +109,8 @@ public:
      * @permission ohos.permission.MANAGE_VPN
      * @systemapi Hide this for inner system use.
      */
-    int32_t SetUpVpn(sptr<VpnConfig> config, int32_t &tunFd, bool isVpnExtCall = false);
-
+    int32_t SetUpVpn(sptr<VpnConfig> config,
+        int32_t &tunFd, bool isVpnExtCall = false, bool isInternalChannel = false);
     /**
      * stop the vpn connection, system will destroy the vpn network.
      *
@@ -309,6 +315,7 @@ private:
     void RecoverCallback();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
     void RegisterVpnEventCbCollection();
+    int32_t RegisterVpnEventCbInner(bool isMultivpn);
     void UnregisterVpnEventCbCollection();
 #ifdef SUPPORT_SYSVPN
     void RegisterMultiVpnEventCbCollection();
@@ -320,11 +327,13 @@ private:
     VpnInterface vpnInterface_;
     sptr<SystemAbilityListener> saStatusChangeListener_;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
+    sptr<IVpnEventCallback> innerChlEventCallback_ = nullptr;
     sptr<INetworkVpnService> networkVpnService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
-    std::pair<sptr<VpnConfig>, bool> clientVpnConfig_;
+    std::shared_mutex clientVpnConfigmutex_;
+    RecoverCallbackPara clientVpnConfig_;
     bool saStart_ = false;
 };
 } // namespace NetManagerStandard

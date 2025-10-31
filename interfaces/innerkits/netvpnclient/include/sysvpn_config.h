@@ -34,7 +34,8 @@ enum VpnType : int32_t {
     IPSEC_XAUTH_RSA,
     IPSEC_HYBRID_RSA,
     OPENVPN,
-    L2TP
+    L2TP,
+    INTERNAL_CHANNEL
 };
 
 struct SysVpnConfig : public VpnConfig {

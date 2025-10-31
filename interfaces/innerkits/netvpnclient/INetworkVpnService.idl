@@ -18,7 +18,7 @@ sequenceable VpnConfig..OHOS.NetManagerStandard.VpnConfig;
 sequenceable SysvpnConfig..OHOS.NetManagerStandard.SysVpnConfig;
 interface OHOS.NetManagerStandard.INetworkVpnService {
     void Prepare([out] boolean isExistVpn, [out] boolean isRun, [out] String pkg);
-    void SetUpVpn([in] VpnConfig config, [in] boolean isVpnExtCall);
+    void SetUpVpn([in] VpnConfig config, [in] boolean isVpnExtCall, [in] boolean isInternalChannel);
     void Protect([in] boolean isVpnExtCall);
     void DestroyVpn([in] boolean isVpnExtCall);
     void RegisterVpnEvent([in] IVpnEventCallback callbackparam);
