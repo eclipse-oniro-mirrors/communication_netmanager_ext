@@ -1670,10 +1670,8 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
             return;
         }
         NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName + "_" + std::to_string(userId));
-        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName);
-#else
-        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName);
 #endif // SUPPORT_SYSVPN
+        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName);
     }
 }
 
