@@ -115,6 +115,28 @@ HWTEST_F(NetVpnImplTest, RegisterConnectStateChangedCb002, TestSize.Level1)
     EXPECT_EQ(netVpnImpl_->RegisterConnectStateChangedCb(callback), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetVpnImplTest, RegisterConnectStateChangedCb003, TestSize.Level1)
+{
+    uint32_t preUserId = netVpnImpl_->userId_;
+    netVpnImpl_->userId_ = 0;
+    std::shared_ptr<VpnConnStateCbTest> callback = std::make_shared<VpnConnStateCbTest>();
+    VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    netVpnImpl_->NotifyConnectState(state);
+    netVpnImpl_->userId_ = preUserId;
+    EXPECT_EQ(netVpnImpl_->RegisterConnectStateChangedCb(callback), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetVpnImplTest, RegisterConnectStateChangedCb004, TestSize.Level1)
+{
+    uint32_t preUserId = netVpnImpl_->userId_;
+    netVpnImpl_->userId_ = 100;
+    std::shared_ptr<VpnConnStateCbTest> callback = std::make_shared<VpnConnStateCbTest>();
+    VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    netVpnImpl_->NotifyConnectState(state);
+    netVpnImpl_->userId_ = preUserId;
+    EXPECT_EQ(netVpnImpl_->RegisterConnectStateChangedCb(callback), NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetVpnImplTest, RegisterNetSupplier, TestSize.Level1)
 {
     auto& netConnClientIns = NetConnClient::GetInstance();

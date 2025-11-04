@@ -246,7 +246,7 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 #ifdef SUPPORT_SYSVPN
-    if (isInternalChannel && !config->vpnId_.empty()) {
+    if (!config->vpnId_.empty()) {
         return RegisterVpnEventCbInner(true);
     } else {
 #endif // SUPPORT_SYSVPN
