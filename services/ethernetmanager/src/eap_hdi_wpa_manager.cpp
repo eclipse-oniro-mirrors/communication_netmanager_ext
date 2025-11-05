@@ -279,13 +279,18 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     // LCOV_EXCL_STOP
-    ConvertStrToInt(vecEapDatas[IDX_0], notifyEapData->msgId);
+    bool res = true;
+    res &= ConvertStrToInt(vecEapDatas[IDX_0], notifyEapData->msgId);
     int32_t eapValue;
-    ConvertStrToInt(vecEapDatas[IDX_1], eapValue);
+    res &= ConvertStrToInt(vecEapDatas[IDX_1], eapValue);
     notifyEapData->eapCode = static_cast<uint32_t>(eapValue);
-    ConvertStrToInt(vecEapDatas[IDX_2], eapValue);
+    res &= ConvertStrToInt(vecEapDatas[IDX_2], eapValue);
     notifyEapData->eapType = static_cast<uint32_t>(eapValue);
-    ConvertStrToInt(vecEapDatas[IDX_3], notifyEapData->bufferLen);
+    res &= ConvertStrToInt(vecEapDatas[IDX_3], notifyEapData->bufferLen);
+    if (!res) {
+        NETMGR_EXT_LOG_E("OnEapEventReport convert err");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     std::string decodeEapBuf = Base64::Decode(vecEapDatas[IDX_4]);
     notifyEapData->eapBuffer.assign(decodeEapBuf.begin(), decodeEapBuf.end());
     return NetEapHandler::GetInstance().NotifyWpaEapInterceptInfo(NetType::ETH0, notifyEapData);
