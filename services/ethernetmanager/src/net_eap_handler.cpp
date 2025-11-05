@@ -103,7 +103,6 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
     }
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = regEapCallBack_.find(netType);
-    lock.unlock();
     if (iter == regEapCallBack_.end()) {
         NETMGR_EXT_LOG_E("RegCustomEapHandler not have callback, netType:%{public}d", static_cast<int>(netType));
         return EAP_ERRCODE_INTERNAL_ERROR;
@@ -158,7 +157,6 @@ int32_t NetEapHandler::ReplyCustomEapData(int result, const sptr<EapData> &eapDa
     }
     std::unique_lock<std::mutex> lock(mutex_);
     auto &callback = regEapCallBack_[iter->first];
-    lock.unlock();
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s, callback is nullptr", __func__);
         return EAP_ERRCODE_INTERNAL_ERROR;
