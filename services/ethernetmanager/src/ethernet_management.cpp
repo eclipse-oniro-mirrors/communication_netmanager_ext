@@ -237,9 +237,12 @@ int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrLi
 std::string EthernetManagement::GetMacAddr(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("GetMacAddr when iface is [%{public}s]", iface.c_str());
-    std::string macAddr;
-
     int fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    if (fd < 0) {
+        NETMGR_EXT_LOG_E("create unix SOCK_STREAM socket error: %{public}d", errno);
+        return "";
+    }
+    std::string macAddr;
     struct ifreq ifr = {};
     strncpy_s(ifr.ifr_name, IFNAMSIZ, iface.c_str(), iface.length());
     
