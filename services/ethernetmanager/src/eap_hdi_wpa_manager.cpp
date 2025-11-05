@@ -273,7 +273,12 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
         NETMGR_EXT_LOG_E("OnEapEventReport value size err %{public}d", static_cast<int32_t>(vecEapDatas.size()));
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    sptr<EapData> notifyEapData = (std::make_unique<EapData>()).release();
+    sptr<EapData> notifyEapData = sptr<EapData>::MakeSptr();
+    // LCOV_EXCL_START
+    if (notifyEapData == nullptr) {
+        return EAP_ERRCODE_INTERNAL_ERROR;
+    }
+    // LCOV_EXCL_STOP
     ConvertStrToInt(vecEapDatas[IDX_0], notifyEapData->msgId);
     int32_t eapValue;
     ConvertStrToInt(vecEapDatas[IDX_1], eapValue);
