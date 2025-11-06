@@ -313,9 +313,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         devState->SetLancfg(cfg);
         ethLanManageMent_->UpdateLanLinkInfo(devState);
     } else {
-        std::unique_lock<std::mutex> lock(mutex_);
         devState->SetIfcfg(cfg);
-        lock.unlock();
     }
     std::unique_lock<std::mutex> lock(mutex_);
     devCfgs_[iface] = cfg;
