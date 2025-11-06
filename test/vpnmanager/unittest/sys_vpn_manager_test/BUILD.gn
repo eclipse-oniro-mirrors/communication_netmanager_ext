@@ -19,8 +19,18 @@ EXT_SECURITY_PATH = "../../.."
 ohos_unittest("sys_vpn_manager_test") {
   branch_protector_ret = "pac_ret"
 
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "$EXT_SECURITY_PATH/security/common_mock_netmanager_permission.cpp",
     "ipsec_vpn_config_test.cpp",
     "ipsec_vpn_ctl_test.cpp",
     "l2tp_vpn_config_test.cpp",
