@@ -24,6 +24,7 @@ namespace NetManagerStandard {
 class IVpnConnStateCb {
 public:
     virtual void OnVpnConnStateChanged(const VpnConnectState &state) = 0;
+    virtual void SendConnStateChanged(const VpnConnectState &state) {};
     virtual void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) {};
 };
 } // namespace NetManagerStandard

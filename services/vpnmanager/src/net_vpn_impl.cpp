@@ -91,6 +91,10 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
     }
 #endif // SUPPORT_SYSVPN
     connChangedCb_->OnVpnConnStateChanged(state);
+    if (userId_ == 0) {
+        return;
+    }
+    connChangedCb_->SendConnStateChanged(state);
 }
 
 uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)

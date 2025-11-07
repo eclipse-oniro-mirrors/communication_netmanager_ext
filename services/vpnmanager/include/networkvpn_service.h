@@ -70,6 +70,7 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         explicit VpnConnStateCb(NetworkVpnService &vpnService) : vpnService_(vpnService) {};
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state) override;
+        void SendConnStateChanged(const VpnConnectState &state) override;
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 
     private:
@@ -245,10 +246,13 @@ private:
     void OnVpnMultiUserSetUp();
     int32_t SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback);
     int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
+    int32_t RemoteUnregisterVpnEvent(const sptr<IVpnEventCallback> &callback);
 
     #ifdef SUPPORT_SYSVPN
     int32_t SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallback> callback, const std::string &vpnBundleName);
     int32_t SyncUnregisterMultiVpnEvent(const sptr<IVpnEventCallback> callback);
+    int32_t RemoteUnregisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback,
+        int32_t &userId,  std::string &bundleName);
     #endif // SUPPORT_SYSVPN
 
     void OnNetSysRestart();
@@ -274,6 +278,7 @@ private:
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
+    bool IsNeedNotify(const VpnConnectState &state);
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds, bool isVpnExtCall);
@@ -285,13 +290,15 @@ private:
     std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
     int32_t DestroyMultiVpn(int32_t callingUid);
-    void DestroyMultiVpnByUserId(int32_t userId);
+    void DestroyMultiVpnByUserId(int32_t userId, const std::string &bundleName);
+    void TryDestroyInnerChannel();
     int32_t DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vpnObj, bool needErase = true);
     int32_t InitMultiVpnInfo(const std::string &vpnId, int32_t vpnType,
         std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj);
 #endif // SUPPORT_SYSVPN
     int32_t IsSetUpReady(const std::string &vpnId, std::string &vpnBundleName,
         int32_t &userId, std::vector<int32_t> &activeUserIds);
+    int32_t IsNotExistVpn(bool isVpnExtCall);
     std::string GetBundleName();
     std::string GetCurrentVpnBundleName();
     std::vector<std::string> GetCurrentVpnAbilityName();

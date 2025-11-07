@@ -117,6 +117,22 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
 }
 
+#ifdef SUPPORT_SYSVPN
+HWTEST_F(NetworkVpnClientTest, SetUpVpn003, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    int32_t tunFd = 0;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+	
+    config->vpnId_ = "test";
+    tunFd = 10;
+    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+}
+#endif
+
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
 {
     networkVpnClient_.vpnEventCbCollection_ = nullptr;
