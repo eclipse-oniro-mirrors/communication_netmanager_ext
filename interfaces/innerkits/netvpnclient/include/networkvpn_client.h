@@ -333,7 +333,7 @@ private:
     sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     std::shared_mutex clientVpnConfigmutex_;
-    RecoverCallbackPara clientVpnConfig_;
+    RecoverCallbackPara clientVpnConfig_ = {nullptr, false, false};
     bool saStart_ = false;
 };
 } // namespace NetManagerStandard
