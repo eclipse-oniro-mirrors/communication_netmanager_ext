@@ -94,6 +94,8 @@ constexpr const char *CONFIG_OPTIONS_L2TPD_CLIENT = "optionsL2tpdClient";
 constexpr const char *CONFIG_XL2TPD_CONF = "xl2tpdConfig";
 constexpr const char *CONFIG_L2TP_SHARED_KEY = "l2tpSharedKey";
 
+constexpr const char *CONFIG_REMOTE_ADDRS = "remoteAddresses";
+
 bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpnConfig);
 bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);

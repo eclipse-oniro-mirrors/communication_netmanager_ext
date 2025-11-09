@@ -154,6 +154,7 @@ bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> sy
     GetStringFromJsOptionItem(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
     GetStringFromJsOptionItem(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
     GetBoolFromJsOptionItem(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_);
+    ParseOptionArrayString(env, config, CONFIG_REMOTE_ADDRS, sysVpnConfig->remoteAddresses_);
     return true;
 }
 
@@ -493,6 +494,12 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
         NapiUtils::SetUint32Property(env, linkAddr, NET_PREFIXLENGTH, 1);
         NapiUtils::SetArrayElement(env, linkAddresses, 0, linkAddr);
         NapiUtils::SetNamedProperty(env, config, CONFIG_ADDRESSES, linkAddresses);
+    }
+    std::vector<std::string> remoteAddrs = sysVpnConfig->remoteAddresses_;
+    if (!remoteAddrs.empty()) {
+        napi_value remoteArray = NapiUtils::CreateArray(env, 1);
+        NapiUtils::SetArrayElement(env, remoteArray, 0, NapiUtils::CreateStringUtf8(env, remoteAddrs[0]));
+        NapiUtils::SetNamedProperty(env, config, CONFIG_REMOTE_ADDRS, remoteArray);
     }
     std::vector<std::string> dnsAddresses = sysVpnConfig->dnsAddresses_;
     if (!dnsAddresses.empty()) {

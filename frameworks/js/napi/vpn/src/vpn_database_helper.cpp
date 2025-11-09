@@ -50,7 +50,7 @@ VpnDatabaseHelper::VpnDatabaseHelper()
     OHOS::NativeRdb::RdbStoreConfig config(vpnDatabaseName);
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     VpnDataBaseCallBack sqliteOpenHelperCallback;
-    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
+    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, VPN_DATA_DB_VER_2, sqliteOpenHelperCallback, errCode);
     if (errCode != OHOS::NativeRdb::E_OK && errCode != OHOS::NativeRdb::E_SQLITE_CORRUPT) {
         NETMGR_EXT_LOG_E("GetRdbStore failed. errCode :%{public}d", errCode);
     } else {
@@ -77,8 +77,14 @@ int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
 
 int32_t VpnDataBaseCallBack::OnUpgrade(OHOS::NativeRdb::RdbStore &store, int32_t oldVersion, int32_t newVersion)
 {
-    NETMGR_EXT_LOG_I("DB OnUpgrade Enter");
-    return NETMANAGER_EXT_SUCCESS;
+    int32_t ret = NETMANAGER_EXT_SUCCESS;
+    if (newVersion == VPN_DATA_DB_VER_2) {
+        std::string sql = "ALTER TABLE " + VPN_CONFIG_TABLE + " ADD COLUMN " + VPN_REMOTE_ADDR
+            + " TEXT NOT NULL DEFAULT '';";
+        ret = store.ExecuteSql(sql);
+    }
+    NETMGR_EXT_LOG_I("DB OnUpgrade %{public}d -> %{public}d, ret %{public}d", oldVersion, newVersion, ret);
+    return ret;
 }
 
 int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32_t oldVersion, int32_t newVersion)
@@ -305,6 +311,7 @@ void VpnDatabaseHelper::BindVpnData(NativeRdb::ValuesBucket &values, const sptr<
     values.PutString(OPTIONS_L2TPD_CLIENT, info->optionsL2tpdClient_);
     values.PutString(XL2TPD_CONF, info->xl2tpdConf_);
     values.PutString(L2TP_SHARED_KEY, info->l2tpSharedKey_);
+    values.PutString(VPN_REMOTE_ADDR, info->remoteAddr_);
 }
 
 int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &vpnBean)
@@ -398,6 +405,7 @@ void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::Nati
     queryResultSet->GetString(INDEX_OPTIONS_L2TPD_CLIENT, vpnBean->optionsL2tpdClient_);
     queryResultSet->GetString(INDEX_XL2TPD_CONF, vpnBean->xl2tpdConf_);
     queryResultSet->GetString(INDEX_L2TP_SHARED_KEY, vpnBean->l2tpSharedKey_);
+    queryResultSet->GetString(INDEX_VPN_REMOTE_ADDR, vpnBean->remoteAddr_);
 }
 
 int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid)

@@ -759,6 +759,22 @@ HWTEST_F(NetworkVpnServiceTest, OnReceiveEvent001, TestSize.Level1)
     EXPECT_TRUE(instance_->subscriber_ != nullptr);
 }
 
+HWTEST_F(NetworkVpnServiceTest, TryParseSysRemoteAddrTest001, TestSize.Level1)
+{
+    sptr<VpnDataBean> vpnBean = nullptr;
+    instance_->TryParseSysRemoteAddr(vpnBean);
+    vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    instance_->TryParseSysRemoteAddr(vpnBean);
+    EXPECT_TRUE(vpnBean->vpnAddress_.empty());
+    vpnBean->remoteAddr_ = "notexistvpnbean.com";
+    instance_->TryParseSysRemoteAddr(vpnBean);
+    EXPECT_TRUE(vpnBean->vpnAddress_.empty());
+    vpnBean->remoteAddr_ = "www.baidu.com";
+    instance_->TryParseSysRemoteAddr(vpnBean);
+    EXPECT_FALSE(vpnBean->vpnAddress_.empty());
+}
+
 HWTEST_F(NetworkVpnServiceTest, IsSetUpReady001, TestSize.Level1)
 {
     NetManagerExtAccessToken accToken;

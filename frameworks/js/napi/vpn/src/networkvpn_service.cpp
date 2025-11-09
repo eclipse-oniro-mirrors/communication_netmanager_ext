@@ -63,6 +63,7 @@ constexpr const char* VPN_EXTENSION_LABEL = ":vpn";
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t UID_NET_SYS_NATIVE = 1098;
+static constexpr const uint8_t IP_ADDR_LEN_MAX = 64;
 constexpr const char *VPNEXT_MODE_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
 
@@ -1143,6 +1144,23 @@ std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtl(const sptr<Sys
     return sysVpnCtl;
 }
 
+void NetworkVpnService::TryParseSysRemoteAddr(sptr<VpnDataBean> &vpnBean)
+{
+    if (vpnBean == nullptr || vpnBean->remoteAddr_.empty()) {
+        return;
+    }
+    AddrInfo hints;
+    std::vector<AddrInfo> ipAddrs;
+    NetsysController::GetInstance().GetAddrInfo(vpnBean->remoteAddr_, "", hints, 0, ipAddrs);
+    if (!ipAddrs.empty() && ipAddrs[0].aiFamily == AF_INET) {
+        char ipstr[IP_ADDR_LEN_MAX] = { 0 };
+        struct sockaddr_in *s = &ipAddrs[0].aiAddr.sin;
+        (void)inet_ntop(AF_INET, &(s->sin_addr), ipstr, sizeof(ipstr));
+        vpnBean->vpnAddress_ = ipstr;
+    }
+    NETMGR_EXT_LOG_I("ParseSysRemoteAddr len %{public}d", static_cast<int32_t>(vpnBean->vpnAddress_.length()));
+}
+
 int32_t NetworkVpnService::AddSysVpnConfig(const sptr<SysVpnConfig> &config)
 {
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
@@ -1170,6 +1188,7 @@ int32_t NetworkVpnService::AddSysVpnConfig(const sptr<SysVpnConfig> &config)
         NETMGR_EXT_LOG_E("vpnBean is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    TryParseSysRemoteAddr(vpnBean);
     return VpnDatabaseHelper::GetInstance().InsertOrUpdateData(vpnBean);
 }
 

@@ -42,6 +42,7 @@ struct VpnDataBean : public virtual RefBase {
     std::string forwardingRoutes_;
     std::string dnsAddresses_;
     std::string searchDomains_;
+    std::string remoteAddr_;
 
     //openvpn
     std::string ovpnPort_;

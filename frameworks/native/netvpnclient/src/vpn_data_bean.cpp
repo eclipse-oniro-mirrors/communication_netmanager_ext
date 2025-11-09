@@ -75,6 +75,10 @@ sptr<OpenvpnConfig> VpnDataBean::ConvertVpnBeanToOpenvpnConfig(sptr<VpnDataBean>
     openvpnConfig->ovpnUserCertFilePath_ = vpnBean->ovpnUserCertFilePath_;
     openvpnConfig->ovpnPrivateKeyFilePath_ = vpnBean->ovpnPrivateKeyFilePath_;
 
+    if (!vpnBean->remoteAddr_.empty()) {
+        openvpnConfig->remoteAddresses_.push_back(vpnBean->remoteAddr_);
+    }
+
     return openvpnConfig;
 }
 
@@ -116,6 +120,10 @@ sptr<IpsecVpnConfig> VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(sptr<VpnDataBea
     ipsecVpnConfig->ipsecPublicUserCertFilePath_ = vpnBean->ipsecPublicUserCertFilePath_;
     ipsecVpnConfig->ipsecPrivateServerCertFilePath_ = vpnBean->ipsecPrivateServerCertFilePath_;
     ipsecVpnConfig->ipsecPublicServerCertFilePath_ = vpnBean->ipsecPublicServerCertFilePath_;
+
+    if (!vpnBean->remoteAddr_.empty()) {
+        ipsecVpnConfig->remoteAddresses_.push_back(vpnBean->remoteAddr_);
+    }
     return ipsecVpnConfig;
 }
 
@@ -159,6 +167,9 @@ sptr<L2tpVpnConfig> VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(sptr<VpnDataBean>
     l2tpVpnConfig->ipsecPublicServerCertFilePath_ = vpnBean->ipsecPublicServerCertFilePath_;
 
     l2tpVpnConfig->l2tpSharedKey_ = vpnBean->l2tpSharedKey_;
+    if (!vpnBean->remoteAddr_.empty()) {
+        l2tpVpnConfig->remoteAddresses_.push_back(vpnBean->remoteAddr_);
+    }
     return l2tpVpnConfig;
 }
 
@@ -210,6 +221,9 @@ void VpnDataBean::ConvertCommonVpnConfigToVpnBean(const sptr<SysVpnConfig> &sysV
     std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
     if (!addresses.empty()) {
         vpnBean->vpnAddress_ = addresses[0].address_;
+    }
+    if (!sysVpnConfig->remoteAddresses_.empty()) {
+        vpnBean->remoteAddr_ = sysVpnConfig->remoteAddresses_[0];
     }
     vpnBean->userName_ = sysVpnConfig->userName_;
     vpnBean->password_ = sysVpnConfig->password_;
