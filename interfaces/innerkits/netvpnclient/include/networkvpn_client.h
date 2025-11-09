@@ -35,9 +35,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 struct RecoverCallbackPara {
-    sptr<VpnConfig> config;
-    bool isVpnExtCall;
-    bool isInternalChannel;
+    sptr<VpnConfig> config = nullptr;
+    bool isVpnExtCall = false;
+    bool isInternalChannel = false;
 };
 
 class VpnSetUpEventCallback : public VpnEventCallbackStub {
@@ -333,7 +333,7 @@ private:
     sptr<VpnEventCallbackCollection> vpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     std::shared_mutex clientVpnConfigmutex_;
-    RecoverCallbackPara clientVpnConfig_ = {nullptr, false, false};
+    RecoverCallbackPara clientVpnConfig_;
     bool saStart_ = false;
 };
 } // namespace NetManagerStandard
