@@ -126,6 +126,7 @@ void RouterAdvertisementDaemon::StopRa()
         sendRaFfrtQueue_->cancel(taskHandle_);
         taskHandle_ = nullptr;
     }
+    sendRaFfrtQueue_ = nullptr;
 }
 
 bool RouterAdvertisementDaemon::CreateRASocket()
