@@ -35,9 +35,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 struct RecoverCallbackPara {
-    sptr<VpnConfig> config;
-    bool isVpnExtCall;
-    bool isInternalChannel;
+    sptr<VpnConfig> config = nullptr;
+    bool isVpnExtCall = false;
+    bool isInternalChannel = false;
 };
 
 class VpnSetUpEventCallback : public VpnEventCallbackStub {
