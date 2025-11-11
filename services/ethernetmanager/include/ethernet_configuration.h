@@ -42,7 +42,7 @@ public:
     bool ReadUserConfiguration(std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs);
     bool WriteUserConfiguration(const std::string &iface, sptr<InterfaceConfiguration> &cfg);
     bool ClearAllUserConfiguration();
-    bool ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult, sptr<StaticConfiguration> &config);
+    bool ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
     sptr<InterfaceConfiguration> MakeInterfaceConfiguration(const sptr<InterfaceConfiguration> &devCfg,
                                                             const sptr<NetLinkInfo> &devLinkInfo);
 
@@ -68,7 +68,7 @@ private:
     void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
     void GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent);
     std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList);
-    bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, sptr<StaticConfiguration> &config);
+    bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
     std::string GetIfaceMode(IPSetMode mode);
     std::vector<INetAddr> GetGatewayFromMap(const std::unordered_map<std::string, INetAddr> &temp);
     std::vector<INetAddr> GetGatewayFromRouteList(std::list<Route> &routeList);

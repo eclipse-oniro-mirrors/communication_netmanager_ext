@@ -300,7 +300,6 @@ private:
         int32_t &userId, std::vector<int32_t> &activeUserIds);
     int32_t IsNotExistVpn(bool isVpnExtCall);
     std::string GetBundleName();
-    std::string GetCurrentVpnBundleName();
     std::vector<std::string> GetCurrentVpnAbilityName();
     void ClearCurrentVpnUserInfo(int32_t uid, bool fromSetupVpn);
     void UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &VpnHapObserver);
@@ -396,7 +395,6 @@ private:
     std::string currentVpnBundleName_;
     ffrt::shared_mutex vpnPidMapMutex_;
     std::map<int32_t, int32_t> setVpnPidMap_;
-    std::map<int32_t, int32_t> setUpVpnPidMap_;
     int32_t currSetUpVpnPid_ = 0;
     std::vector<std::string> currentVpnAbilityName_;
 };

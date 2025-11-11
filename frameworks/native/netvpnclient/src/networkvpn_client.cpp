@@ -261,12 +261,10 @@ int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
     vpnInterface_.CloseVpnInterfaceFd();
     if (vpnEventCallback_ != nullptr) {
         UnregisterVpnEvent(vpnEventCallback_);
-        vpnEventCallback_ = nullptr;
     }
 #ifdef SUPPORT_SYSVPN
     if (innerChlEventCallback_ != nullptr) {
         UnregisterMultiVpnEvent(innerChlEventCallback_);
-        innerChlEventCallback_ = nullptr;
     }
 #endif // SUPPORT_SYSVPN
     sptr<INetworkVpnService> proxy = GetProxy();
@@ -297,11 +295,9 @@ int32_t NetworkVpnClient::DestroyVpn(const std::string &vpnId)
     vpnInterface_.CloseVpnInterfaceFd();
     if (vpnEventCallback_ != nullptr) {
         UnregisterVpnEvent(vpnEventCallback_);
-        vpnEventCallback_ = nullptr;
     }
     if (innerChlEventCallback_ != nullptr) {
         UnregisterMultiVpnEvent(innerChlEventCallback_);
-        innerChlEventCallback_ = nullptr;
     }
     sptr<INetworkVpnService> proxy = GetProxy();
     if (proxy == nullptr) {
@@ -521,31 +517,20 @@ void NetworkVpnClient::RegisterVpnEventCbCollection()
 
 int32_t NetworkVpnClient::RegisterVpnEventCbInner(bool isMultivpn)
 {
-    int32_t ret = NETMANAGER_EXT_SUCCESS;
     if (isMultivpn) {
 #ifdef SUPPORT_SYSVPN
-        if (innerChlEventCallback_ != nullptr) {
-            UnregisterMultiVpnEvent(innerChlEventCallback_);
-        }
-        innerChlEventCallback_ = sptr<VpnSetUpEventCallback>::MakeSptr();
-        if (nullptr == innerChlEventCallback_) {
-            NETMANAGER_EXT_LOGE("innerChlEventCallback_ is nullptr");
-            return NETMANAGER_EXT_ERR_INTERNAL;
+        if (innerChlEventCallback_ == nullptr) {
+            innerChlEventCallback_ = sptr<VpnSetUpEventCallback>::MakeSptr();
         }
         RegisterMultiVpnEvent(innerChlEventCallback_);
 #endif
-        return ret;
+    } else {
+        if (vpnEventCallback_ == nullptr) {
+            vpnEventCallback_ = sptr<VpnSetUpEventCallback>::MakeSptr();
+        }
+        RegisterVpnEvent(vpnEventCallback_);
     }
-    if (vpnEventCallback_ != nullptr) {
-        UnregisterVpnEvent(vpnEventCallback_);
-    }
-    vpnEventCallback_ = sptr<VpnSetUpEventCallback>::MakeSptr();
-    if (vpnEventCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("vpnEventCallback_ is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    RegisterVpnEvent(vpnEventCallback_);
-    return ret;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 void NetworkVpnClient::UnregisterVpnEventCbCollection()
@@ -667,7 +652,6 @@ void NetworkVpnClient::multiUserSetUpEvent()
     vpnInterface_.CloseVpnInterfaceFd();
     if (vpnEventCallback_ != nullptr) {
         UnregisterVpnEvent(vpnEventCallback_);
-        vpnEventCallback_ = nullptr;
     }
 }
 

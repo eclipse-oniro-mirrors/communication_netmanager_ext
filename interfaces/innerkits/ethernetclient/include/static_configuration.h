@@ -35,7 +35,7 @@ struct StaticConfiguration final : public Parcelable {
     bool Marshalling(Parcel &parcel) const override;
     bool MarshallingNetAddressList(const std::vector<INetAddr> &netAddrList, uint32_t maxSize, Parcel &parcel) const;
 
-    static sptr<StaticConfiguration> Unmarshalling(Parcel &parcel);
+    static StaticConfiguration Unmarshalling(Parcel &parcel);
     static bool UnmarshallingNetAddressList(Parcel &parcel, std::vector<INetAddr> &netAddrList, uint32_t maxSize);
     static void ExtractNetAddrBySeparator(const std::string &input, std::vector<INetAddr> &netAddrList);
 };

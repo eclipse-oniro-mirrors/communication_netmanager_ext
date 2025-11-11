@@ -57,7 +57,10 @@ constexpr uint32_t BUFFER_SIZE = 64;
 constexpr const char *SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE = "persist.edm.set_ethernet_ip_disable";
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
-    ethernetManagement_.UpdateDevInterfaceLinkInfo(dhcpResult);
+    auto sp = ethernetManagement_.lock();
+    if (sp != nullptr) {
+        sp->UpdateDevInterfaceLinkInfo(dhcpResult);
+    }
     return 0;
 }
 
@@ -75,9 +78,14 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAddressRemoved
 
 int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
 {
+    auto sp = ethernetManagement_.lock();
+    if (sp == nullptr) {
+        return 0;
+    }
+
     std::regex re(IFACE_MATCH);
     if (std::regex_search(iface, re)) {
-        ethernetManagement_.DevInterfaceAdd(iface);
+        sp->DevInterfaceAdd(iface);
         if (NetsysController::GetInstance().SetInterfaceUp(iface) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Iface[%{public}s] added set up fail!", iface.c_str());
         }
@@ -87,9 +95,14 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAdded(const st
 
 int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
 {
+    auto sp = ethernetManagement_.lock();
+    if (sp == nullptr) {
+        return 0;
+    }
+
     std::regex re(IFACE_MATCH);
     if (std::regex_search(iface, re)) {
-        ethernetManagement_.DevInterfaceRemove(iface);
+        sp->DevInterfaceRemove(iface);
         if (NetsysController::GetInstance().SetInterfaceDown(iface) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Iface[%{public}s] added set down fail!", iface.c_str());
         }
@@ -104,10 +117,14 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceChanged(const 
 
 int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
 {
+    auto sp = ethernetManagement_.lock();
+    if (sp == nullptr) {
+        return 0;
+    }
     auto startTime = std::chrono::steady_clock::now();
     std::regex re(IFACE_MATCH);
     if (std::regex_search(ifName, re)) {
-        ethernetManagement_.UpdateInterfaceState(ifName, up);
+        sp->UpdateInterfaceState(ifName, up);
     }
     auto endTime = std::chrono::steady_clock::now();
     auto durationNs = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
@@ -133,21 +150,9 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnBandwidthReachedLimit(c
     return 0;
 }
 
-EthernetManagement &EthernetManagement::GetInstance()
-{
-    static EthernetManagement gInstance;
-    return gInstance;
-}
-
 EthernetManagement::EthernetManagement()
 {
     ethDhcpController_ = std::make_unique<EthernetDhcpController>();
-    ethDhcpNotifyCallback_ = sptr<EhternetDhcpNotifyCallback>::MakeSptr(*this);
-    if (ethDhcpNotifyCallback_ != nullptr) {
-        ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
-    }
-
-    ethDevInterfaceStateCallback_ = sptr<DevInterfaceStateCallback>::MakeSptr(*this);
     ethConfiguration_ = std::make_unique<EthernetConfiguration>();
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
     ethLanManageMent_ = std::make_unique<EthernetLanManagement>();
@@ -159,14 +164,13 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
 {
     NETMGR_EXT_LOG_D("EthernetManagement UpdateInterfaceState dev[%{public}s] up[%{public}d]", dev.c_str(), up);
     sptr<DevInterfaceState> devState = nullptr;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto fit = devs_.find(dev);
-        if (fit == devs_.end()) {
-            return;
-        }
-        devState = fit->second;
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    auto fit = devs_.find(dev);
+    if (fit == devs_.end()) {
+        return;
     }
+    devState = fit->second;
+    lock.unlock();
     if (devState == nullptr) {
         NETMGR_EXT_LOG_E("devState is nullptr");
         return;
@@ -184,9 +188,7 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
             StartDhcpClient(dev, devState);
         } else {
             if (devState->IsLanIface()) {
-                std::unique_lock<std::mutex> lock(mutex_);
                 ethLanManageMent_->UpdateLanLinkInfo(devState);
-                lock.unlock();
             } else {
                 devState->RemoteUpdateNetLinkInfo();
             }
@@ -200,9 +202,8 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
         } else {
             devState->RemoteUpdateNetSupplierInfo();
         }
-        std::unique_lock<std::mutex> lock(mutex_);
-        netLinkConfigs_[dev] = nullptr;
-        lock.unlock();
+        std::unique_lock<std::shared_mutex> lock2(mutex_);
+        netLinkConfigs_.erase(dev);
     }
 }
 
@@ -278,15 +279,14 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
     sptr<DevInterfaceState> devState = nullptr;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto fit = devs_.find(iface);
-        if (fit == devs_.end() || fit->second == nullptr) {
-            NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
-            return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
-        }
-        devState = fit->second;
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    auto fit = devs_.find(iface);
+    if (fit == devs_.end() || fit->second == nullptr) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", iface.c_str());
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
+    devState = fit->second;
+    lock.unlock();
     if (!devState->GetLinkUp()) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is unlink", iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
@@ -315,9 +315,8 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
     } else {
         devState->SetIfcfg(cfg);
     }
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock2(mutex_);
     devCfgs_[iface] = cfg;
-    lock.unlock();
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -340,14 +339,15 @@ void EthernetManagement::ProcessChangeMode(
         StartDhcpClient(iface, devState);
     } else {
         StopDhcpClient(iface, devState);
-        netLinkConfigs_[iface] = nullptr;
+        std::unique_lock<std::shared_mutex> lock(mutex_);
+        netLinkConfigs_.erase(iface);
     }
 }
 
 int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     NETMGR_EXT_LOG_D("EthernetManagement::UpdateDevInterfaceLinkInfo");
-    std::lock_guard<std::mutex> locker(mutex_);
+    std::unique_lock<std::shared_mutex> locker(mutex_);
     auto fit = devs_.find(dhcpResult.iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device or device information does not exist", dhcpResult.iface.c_str());
@@ -364,15 +364,7 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
 
-    auto &config = netLinkConfigs_[dhcpResult.iface];
-    if (config == nullptr) {
-        config = new (std::nothrow) StaticConfiguration();
-        if (config == nullptr) {
-            NETMGR_EXT_LOG_E("Iface:%{public}s's link info config is nullptr", dhcpResult.iface.c_str());
-            return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
-        }
-    }
-
+    StaticConfiguration& config = netLinkConfigs_[dhcpResult.iface];
     if (!ethConfiguration_->ConvertToConfiguration(dhcpResult, config)) {
         NETMGR_EXT_LOG_E("EthernetManagement dhcp convert to configurations error!");
         return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
@@ -390,7 +382,7 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
 
 int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
@@ -410,7 +402,7 @@ int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<In
 
 int32_t EthernetManagement::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     auto fit = devs_.find(iface);
     if (fit == devs_.end() || fit->second == nullptr) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
@@ -422,7 +414,7 @@ int32_t EthernetManagement::IsIfaceActive(const std::string &iface, int32_t &act
 
 int32_t EthernetManagement::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     for (auto it = devs_.begin(); it != devs_.end(); ++it) {
         if (it->second->GetLinkUp()) {
             activeIfaces.push_back(it->first);
@@ -445,9 +437,16 @@ void EthernetManagement::Init()
 {
     static const unsigned int SLEEP_TIME = 4;
     std::this_thread::sleep_for(std::chrono::seconds(SLEEP_TIME));
-    if (ethDevInterfaceStateCallback_ != nullptr) {
-        NetsysController::GetInstance().RegisterCallback(ethDevInterfaceStateCallback_);
+    if (ethDevInterfaceStateCallback_ == nullptr) {
+        ethDevInterfaceStateCallback_ =
+            sptr<DevInterfaceStateCallback>::MakeSptr(std::weak_ptr<EthernetManagement>(shared_from_this()));
     }
+    ethDhcpNotifyCallback_ =
+        sptr<EhternetDhcpNotifyCallback>::MakeSptr(std::weak_ptr<EthernetManagement>(shared_from_this()));
+    if (ethDhcpController_ != nullptr) {
+        ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
+    }
+    NetsysController::GetInstance().RegisterCallback(ethDevInterfaceStateCallback_);
     std::regex re(IFACE_MATCH);
     std::vector<std::string> ifaces = NetsysController::GetInstance().InterfaceGetList();
     if (ifaces.empty()) {
@@ -466,21 +465,24 @@ void EthernetManagement::Init()
         }
         DevInterfaceAdd(devName);
     }
-    std::thread t(&EthernetManagement::StartSetDevUpThd, &EthernetManagement::GetInstance());
-    std::string threadName = "SetDevUpThd";
-    pthread_setname_np(t.native_handle(), threadName.c_str());
+    std::weak_ptr<EthernetManagement> wp = shared_from_this();
+    std::thread t([wp]() {
+        auto sp = wp.lock();
+        if (sp != nullptr) {
+            sp->StartSetDevUpThd();
+        }
+    });
+    pthread_setname_np(t.native_handle(), "SetDevUpThd");
     t.detach();
-    NETMGR_EXT_LOG_D("EthernetManagement devs_ size[%{public}zd", devs_.size());
 }
 
 void EthernetManagement::StartSetDevUpThd()
 {
     NETMGR_EXT_LOG_D("EthernetManagement StartSetDevUpThd in.");
     std::map<std::string, sptr<DevInterfaceState>> tempDevMap;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        tempDevMap = devs_;
-    }
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    tempDevMap = devs_;
+    lock.unlock();
 
     for (auto &dev : tempDevMap) {
         std::string devName = dev.first;
@@ -529,7 +531,7 @@ void EthernetManagement::StopDhcpClient(const std::string &dev, sptr<DevInterfac
 void EthernetManagement::DevInterfaceAdd(const std::string &devName)
 {
     NETMGR_EXT_LOG_D("Interface name:[%{public}s] add.", devName.c_str());
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     auto fitDev = devs_.find(devName);
     if (fitDev != devs_.end()) {
         NETMGR_EXT_LOG_E("Interface name:[%{public}s] has added.", devName.c_str());
@@ -573,7 +575,7 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
 void EthernetManagement::DevInterfaceRemove(const std::string &devName)
 {
     NETMGR_EXT_LOG_D("Interface name:[%{public}s] remove.", devName.c_str());
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     auto fitDev = devs_.find(devName);
     if (fitDev != devs_.end()) {
         if (fitDev->second != nullptr) {
@@ -585,6 +587,7 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
 
 void EthernetManagement::GetDumpInfo(std::string &info)
 {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     std::for_each(devs_.begin(), devs_.end(), [&info](const auto &dev) { dev.second->GetDumpInfo(info); });
 }
 
@@ -679,7 +682,7 @@ int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo>
 {
     deviceInfoList.clear();
     std::vector<std::string> ifaces;
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     for (auto it = devs_.begin(); it != devs_.end(); ++it) {
         ifaces.emplace_back(it->first);
     }

@@ -350,6 +350,47 @@ void EthernetServiceCommonFuzzTest(const uint8_t *data, size_t size)
     ethernetServiceCommon->ResetEthernetFactory();
 }
 
+void StartDhcpClientFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string dev = GetStringFromData(IFACE_LEN);
+    sptr<DevInterfaceState> devState = new DevInterfaceState();
+    ethernetManagement->StartDhcpClient(dev, devState);
+}
+
+void StopDhcpClientFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string dev = GetStringFromData(IFACE_LEN);
+    sptr<DevInterfaceState> devState = new DevInterfaceState();
+    ethernetManagement->StopDhcpClient(dev, devState);
+}
+
+void IsIfaceLinkUpFuzzTest(const uint8_t *data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return;
+    }
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string iface = GetStringFromData(IFACE_LEN);
+    ethernetManagement->IsIfaceLinkUp(iface);
+}
+
 void RegCustomEapHandlerFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr) {
@@ -527,7 +568,7 @@ void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
     g_baseFuzzSize = size;
     g_baseFuzzPos = 0;
 
-    auto ethernetManagement = std::make_unique<EthernetManagement>();
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     EthernetDhcpCallback::DhcpResult dhcpResult;
     ethernetManagement->UpdateDevInterfaceLinkInfo(dhcpResult);
 

@@ -398,7 +398,7 @@ HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, OnInterfaceAddressUpdatedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
     std::string addr;
     std::string ifName;
@@ -410,7 +410,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceAddressUpdatedTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, OnInterfaceAddressRemovedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
     std::string addr;
     std::string ifName;
@@ -422,7 +422,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceAddressRemovedTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, OnInterfaceAddedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
     std::string iface = "eth0";
     int ret = devinterfacestatecallback.OnInterfaceAdded(iface);
@@ -431,7 +431,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceAddedTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, OnInterfaceRemovedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
     std::string iface = "eth0";
     int ret = devinterfacestatecallback.OnInterfaceRemoved(iface);
@@ -440,7 +440,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceRemovedTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, OnInterfaceChangedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
     std::string iface;
     int ret = devinterfacestatecallback.OnInterfaceChanged(iface, true);
@@ -449,7 +449,7 @@ HWTEST_F(EthernetManagerTest, OnInterfaceChangedTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, OnInterfaceLinkStateChangedTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     EthernetManagement::DevInterfaceStateCallback devinterfacestatecallback(ethernetmanagement);
     std::string ifName = "eth0";;
     int ret = devinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, true);
@@ -583,19 +583,19 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
         return;
     }
     std::string info = "info";
-    EthernetManagement ethernetManagement;
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, false);
     EthernetDhcpCallback::DhcpResult dhcpResult;
-    int32_t ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    int32_t ret = ethernetManagement->UpdateDevInterfaceLinkInfo(dhcpResult);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     sptr<InterfaceConfiguration> ic;
-    ethernetManagement.GetDevInterfaceCfg(IFACE, ic);
-    ethernetManagement.Init();
-    ethernetManagement.StartSetDevUpThd();
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.DevInterfaceRemove(DEV_NAME);
-    ethernetManagement.GetDumpInfo(info);
+    ethernetManagement->GetDevInterfaceCfg(IFACE, ic);
+    ethernetManagement->Init();
+    ethernetManagement->StartSetDevUpThd();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->DevInterfaceRemove(DEV_NAME);
+    ethernetManagement->GetDumpInfo(info);
     EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
     ret = devCallback.OnInterfaceAdded(IFACE);
     EXPECT_EQ(ret, RET_ZERO);
@@ -646,19 +646,19 @@ HWTEST_F(EthernetManagerTest, EthernetManager014, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager015, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::string dev = "eth0";
-    ethernetManagement.UpdateInterfaceState(dev, true);
+    ethernetManagement->UpdateInterfaceState(dev, true);
 
     std::vector<std::string> activeIfaces;
-    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    int32_t ret = ethernetManagement->GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager017, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
-    int32_t ret = ethernetManagement.ResetFactory();
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    int32_t ret = ethernetManagement->ResetFactory();
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -690,12 +690,12 @@ HWTEST_F(EthernetManagerTest, EthernetManager021, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, false);
     EthernetDhcpCallback::DhcpResult dhcpResult;
-    int32_t ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    int32_t ret = ethernetManagement->UpdateDevInterfaceLinkInfo(dhcpResult);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -704,12 +704,12 @@ HWTEST_F(EthernetManagerTest, EthernetManager022, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, false);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     std::string iface = "eth0";
-    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, ETHERNET_ERR_DEVICE_NOT_LINK);
 }
 
@@ -718,13 +718,13 @@ HWTEST_F(EthernetManagerTest, EthernetManager023, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ic->mode_ = LAN_DHCP;
     std::string iface = "eth0";
-    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, NETMANAGER_ERR_INVALID_PARAMETER);
 }
 
@@ -733,13 +733,13 @@ HWTEST_F(EthernetManagerTest, EthernetManager024, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ic->mode_ = DHCP;
     std::string iface = "eth0";
-    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL);
 }
 
@@ -748,13 +748,13 @@ HWTEST_F(EthernetManagerTest, EthernetManager025, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ic->mode_ = DHCP;
     std::string iface = "eth0";
-    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -763,12 +763,12 @@ HWTEST_F(EthernetManagerTest, EthernetManager026, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, false);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, false);
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.iface = "eth0";
-    int32_t result = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    int32_t result = ethernetManagement->UpdateDevInterfaceLinkInfo(dhcpResult);
     EXPECT_EQ(result, ETHERNET_ERR_DEVICE_NOT_LINK);
 }
 
@@ -777,12 +777,12 @@ HWTEST_F(EthernetManagerTest, EthernetManager027, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.iface = "eth0";
-    int32_t result = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    int32_t result = ethernetManagement->UpdateDevInterfaceLinkInfo(dhcpResult);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -791,11 +791,11 @@ HWTEST_F(EthernetManagerTest, EthernetManager028, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(IFACE);
-    ethernetManagement.UpdateInterfaceState(IFACE, false);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(IFACE);
+    ethernetManagement->UpdateInterfaceState(IFACE, false);
     sptr<InterfaceConfiguration> cfg;
-    int32_t result = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
+    int32_t result = ethernetManagement->GetDevInterfaceCfg(IFACE, cfg);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -804,11 +804,11 @@ HWTEST_F(EthernetManagerTest, EthernetManager029, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(IFACE);
-    ethernetManagement.UpdateInterfaceState(IFACE, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(IFACE);
+    ethernetManagement->UpdateInterfaceState(IFACE, true);
     sptr<InterfaceConfiguration> cfg;
-    int32_t result = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
+    int32_t result = ethernetManagement->GetDevInterfaceCfg(IFACE, cfg);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -817,24 +817,24 @@ HWTEST_F(EthernetManagerTest, EthernetManager030, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     NetManagerExtAccessToken token;
     int32_t activeStatus = -1;
-    int32_t ret = ethernetManagement.IsIfaceActive(DEV_NAME, activeStatus);
+    int32_t ret = ethernetManagement->IsIfaceActive(DEV_NAME, activeStatus);
     ASSERT_EQ(activeStatus, 1);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager031, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::string dev = "eth0";
-    ethernetManagement.DevInterfaceAdd(dev);
-    ethernetManagement.UpdateInterfaceState(dev, true);
+    ethernetManagement->DevInterfaceAdd(dev);
+    ethernetManagement->UpdateInterfaceState(dev, true);
     std::vector<std::string> activeIfaces;
-    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    int32_t ret = ethernetManagement->GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -843,9 +843,9 @@ HWTEST_F(EthernetManagerTest, EthernetManager032, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.StartSetDevUpThd();
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->StartSetDevUpThd();
     EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
     int32_t ret = devCallback.OnInterfaceAdded(IFACE);
     EXPECT_EQ(ret, RET_ZERO);
@@ -853,23 +853,23 @@ HWTEST_F(EthernetManagerTest, EthernetManager032, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager033, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::string dev = "eth0";
-    ethernetManagement.DevInterfaceAdd(dev);
-    ethernetManagement.UpdateInterfaceState(dev, true);
+    ethernetManagement->DevInterfaceAdd(dev);
+    ethernetManagement->UpdateInterfaceState(dev, true);
     std::vector<std::string> activeIfaces;
-    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    int32_t ret = ethernetManagement->GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager034, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::string dev = "eth0";
-    ethernetManagement.DevInterfaceAdd(dev);
-    ethernetManagement.DevInterfaceAdd(dev);
+    ethernetManagement->DevInterfaceAdd(dev);
+    ethernetManagement->DevInterfaceAdd(dev);
     std::vector<std::string> activeIfaces;
-    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    int32_t ret = ethernetManagement->GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -881,14 +881,14 @@ HWTEST_F(EthernetManagerTest, EthernetManager034, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager035, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ic->mode_ = STATIC;
     std::string iface = DEV_NAME;
     OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
-    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
 }
@@ -901,19 +901,19 @@ HWTEST_F(EthernetManagerTest, EthernetManager035, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager036, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic1 = GetIfaceConfig();
     ic1->mode_ = STATIC;
     std::string iface = DEV_NAME;
-    int32_t result1 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic1);
+    int32_t result1 = ethernetManagement->UpdateDevInterfaceCfg(iface, ic1);
     EXPECT_EQ(result1, NETMANAGER_EXT_SUCCESS);
 
     OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
     sptr<InterfaceConfiguration> ic2 = GetIfaceConfig();
     ic2->mode_ = DHCP;
-    int32_t result2 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic2);
+    int32_t result2 = ethernetManagement->UpdateDevInterfaceCfg(iface, ic2);
     EXPECT_EQ(result2, NETMANAGER_ERR_PERMISSION_DENIED);
     OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
 }
@@ -926,17 +926,17 @@ HWTEST_F(EthernetManagerTest, EthernetManager036, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager037, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
-    ethernetManagement.DevInterfaceAdd(DEV_NAME);
-    ethernetManagement.UpdateInterfaceState(DEV_NAME, true);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->DevInterfaceAdd(DEV_NAME);
+    ethernetManagement->UpdateInterfaceState(DEV_NAME, true);
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     ic->mode_ = STATIC;
     std::string iface = DEV_NAME;
-    int32_t result1 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result1 = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result1, NETMANAGER_EXT_SUCCESS);
 
     OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
-    int32_t result2 = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result2 = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result2, NETMANAGER_ERR_PERMISSION_DENIED);
     OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
 }
@@ -1005,7 +1005,7 @@ HWTEST_F(EthernetManagerTest, SetInterfaceDownTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     NetsysControllerCallback::DhcpResult dhcpResult;
     EthernetManagement::DevInterfaceStateCallback devCallback(ethernetManagement);
 
@@ -1032,76 +1032,76 @@ HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest002, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     EthernetDhcpCallback::DhcpResult dhcpResult;
 
     sptr<InterfaceConfiguration> cfg = nullptr;
-    auto ret = ethernetManagement.UpdateDevInterfaceCfg(IFACE, cfg);
+    auto ret = ethernetManagement->UpdateDevInterfaceCfg(IFACE, cfg);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 
-    ret = ethernetManagement.UpdateDevInterfaceLinkInfo(dhcpResult);
+    ret = ethernetManagement->UpdateDevInterfaceLinkInfo(dhcpResult);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 	
     IPSetMode origin = STATIC;
     IPSetMode input = DHCP;
-    ret = ethernetManagement.ModeInputCheck(origin, input);
+    ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_TRUE(ret);
 
     origin = STATIC;
     input = LAN_STATIC;
-    ret = ethernetManagement.ModeInputCheck(origin, input);
+    ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_FALSE(ret);
 
     origin = LAN_STATIC;
     input = DHCP;
-    ret = ethernetManagement.ModeInputCheck(origin, input);
+    ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_FALSE(ret);
 
     origin = LAN_STATIC;
     input = LAN_DHCP;
-    ret = ethernetManagement.ModeInputCheck(origin, input);
+    ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_TRUE(ret);
 
-    ret = ethernetManagement.GetDevInterfaceCfg(IFACE, cfg);
+    ret = ethernetManagement->GetDevInterfaceCfg(IFACE, cfg);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
     if (devState != nullptr) {
-        ethernetManagement.StartDhcpClient(DEV_NAME, devState);
-        ethernetManagement.StopDhcpClient(DEV_NAME, devState);
+        ethernetManagement->StartDhcpClient(DEV_NAME, devState);
+        ethernetManagement->StopDhcpClient(DEV_NAME, devState);
     }
-    ethernetManagement.DevInterfaceRemove(DEV_NAME);
+    ethernetManagement->DevInterfaceRemove(DEV_NAME);
 
     int32_t activeStatus = 0;
-    ret = ethernetManagement.IsIfaceActive(IFACE, activeStatus);
+    ret = ethernetManagement->IsIfaceActive(IFACE, activeStatus);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManagerBranchTest003, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     std::string iface = "";
-    int32_t result = ethernetManagement.UpdateDevInterfaceCfg(iface, ic);
+    int32_t result = ethernetManagement->UpdateDevInterfaceCfg(iface, ic);
     EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     std::string devName = "";
-    ethernetManagement.DevInterfaceAdd(devName);
-    bool ret = ethernetManagement.IsIfaceLinkUp(iface);
+    ethernetManagement->DevInterfaceAdd(devName);
+    bool ret = ethernetManagement->IsIfaceLinkUp(iface);
     EXPECT_FALSE(ret);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
-    ethernetManagement.devs_["test_dev"] = nullptr;
-    ethernetManagement.UpdateInterfaceState("test_dev", true);
-    EXPECT_NE(ethernetManagement.ethLanManageMent_, nullptr);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->devs_["test_dev"] = nullptr;
+    ethernetManagement->UpdateInterfaceState("test_dev", true);
+    EXPECT_NE(ethernetManagement->ethLanManageMent_, nullptr);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest002, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     DevInterfaceState devInterfaceState;
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
     if (ifCfg != nullptr)
@@ -1111,16 +1111,16 @@ HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest002, TestSize.Level1)
     devInterfaceState.ifCfg_->mode_ = DHCP;
     std::string dev = "eth0";
     devInterfaceState.dhcpReqState_ = false;
-    ethernetManagement.UpdateInterfaceState(dev, false);
+    ethernetManagement->UpdateInterfaceState(dev, false);
     devInterfaceState.ifCfg_->mode_ = LAN_DHCP;
-    ethernetManagement.UpdateInterfaceState(dev, false);
+    ethernetManagement->UpdateInterfaceState(dev, false);
     EXPECT_EQ(devInterfaceState.dhcpReqState_, false);
-    EXPECT_NE(ethernetManagement.ethLanManageMent_, nullptr);
+    EXPECT_NE(ethernetManagement->ethLanManageMent_, nullptr);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest003, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     DevInterfaceState devInterfaceState;
     std::string dev = "eth0";
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
@@ -1130,16 +1130,16 @@ HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest003, TestSize.Level1)
     }
     devInterfaceState.ifCfg_->mode_ = DHCP;
     devInterfaceState.dhcpReqState_ = true;
-    ethernetManagement.UpdateInterfaceState(dev, false);
+    ethernetManagement->UpdateInterfaceState(dev, false);
     devInterfaceState.ifCfg_->mode_ = LAN_DHCP;
-    ethernetManagement.UpdateInterfaceState(dev, false);
-    EXPECT_NE(ethernetManagement.ethLanManageMent_, nullptr);
+    ethernetManagement->UpdateInterfaceState(dev, false);
+    EXPECT_NE(ethernetManagement->ethLanManageMent_, nullptr);
     EXPECT_EQ(devInterfaceState.dhcpReqState_, true);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest004, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     DevInterfaceState devInterfaceState;
     std::string dev = "eth0";
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
@@ -1149,123 +1149,123 @@ HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest004, TestSize.Level1)
     }
     devInterfaceState.ifCfg_->mode_ = STATIC;
     devInterfaceState.dhcpReqState_ = false;
-    ethernetManagement.UpdateInterfaceState(dev, true);
+    ethernetManagement->UpdateInterfaceState(dev, true);
 
     devInterfaceState.ifCfg_->mode_ = STATIC;
     devInterfaceState.dhcpReqState_ = true;
-    ethernetManagement.UpdateInterfaceState(dev, true);
+    ethernetManagement->UpdateInterfaceState(dev, true);
 
     devInterfaceState.ifCfg_->mode_ = LAN_DHCP;
     devInterfaceState.dhcpReqState_ = true;
-    ethernetManagement.UpdateInterfaceState(dev, true);
+    ethernetManagement->UpdateInterfaceState(dev, true);
 
-    EXPECT_NE(ethernetManagement.ethLanManageMent_, nullptr);
+    EXPECT_NE(ethernetManagement->ethLanManageMent_, nullptr);
     EXPECT_EQ(devInterfaceState.dhcpReqState_, true);
 }
 
 HWTEST_F(EthernetManagerTest, GetMacAddressTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::vector<MacAddressInfo> macAddrList;
-    int32_t ret = ethernetManagement.GetMacAddress(macAddrList);
+    int32_t ret = ethernetManagement->GetMacAddress(macAddrList);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, GetMacAddrTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
-    string macAddr = ethernetManagement.GetMacAddr("eth0");
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    string macAddr = ethernetManagement->GetMacAddr("eth0");
     EXPECT_TRUE(macAddr.empty());
 }
 
 HWTEST_F(EthernetManagerTest, HwAddrToStrTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     char hwaddr[] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
-    string macAddr = ethernetManagement.HwAddrToStr(hwaddr);
+    string macAddr = ethernetManagement->HwAddrToStr(hwaddr);
     EXPECT_EQ(macAddr, "00:11:22:33:44:55");
-    macAddr = ethernetManagement.HwAddrToStr(nullptr);
+    macAddr = ethernetManagement->HwAddrToStr(nullptr);
     EXPECT_TRUE(macAddr.empty());
 }
 
 HWTEST_F(EthernetManagerTest, ModeInputCheckTest, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
 
     IPSetMode origin = DHCP;
     IPSetMode input = LAN_STATIC;
-    bool ret = ethernetManagement.ModeInputCheck(origin, input);
+    bool ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_FALSE(ret);
 
     origin = DHCP;
     input = LAN_DHCP;
-    ret = ethernetManagement.ModeInputCheck(origin, input);
+    ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_FALSE(ret);
 
     origin = LAN_DHCP;
     input = STATIC;
-    ret = ethernetManagement.ModeInputCheck(origin, input);
+    ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_FALSE(ret);
 
     origin = LAN_DHCP;
     input = DHCP;
-    ret = ethernetManagement.ModeInputCheck(origin, input);
+    ret = ethernetManagement->ModeInputCheck(origin, input);
     EXPECT_FALSE(ret);
 }
 
 HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::string dev = "eth0";
-    ethernetManagement.DevInterfaceAdd(dev);
-    ethernetManagement.DevInterfaceRemove(dev);
+    ethernetManagement->DevInterfaceAdd(dev);
+    ethernetManagement->DevInterfaceRemove(dev);
     std::vector<std::string> activeIfaces;
-    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    int32_t ret = ethernetManagement->GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     EXPECT_FALSE(std::count(activeIfaces.begin(), activeIfaces.end(), dev));
 }
 
 HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest002, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::string dev = "eth0";
-    ethernetManagement.DevInterfaceAdd(dev);
-    auto fitDev = ethernetManagement.devs_.find(dev);
-    if (fitDev != ethernetManagement.devs_.end())
+    ethernetManagement->DevInterfaceAdd(dev);
+    auto fitDev = ethernetManagement->devs_.find(dev);
+    if (fitDev != ethernetManagement->devs_.end())
     {
         fitDev->second = nullptr;
     }
-    ethernetManagement.DevInterfaceRemove(dev);
+    ethernetManagement->DevInterfaceRemove(dev);
     std::vector<std::string> activeIfaces;
-    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    int32_t ret = ethernetManagement->GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     EXPECT_FALSE(std::count(activeIfaces.begin(), activeIfaces.end(), dev));
 }
 
 HWTEST_F(EthernetManagerTest, DevInterfaceAddTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetManagement;
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::string dev = "eth0";
     sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
     cfg->mode_ = LAN_STATIC;
-    ethernetManagement.devCfgs_[dev] = cfg;
-    ethernetManagement.DevInterfaceAdd(dev);
+    ethernetManagement->devCfgs_[dev] = cfg;
+    ethernetManagement->DevInterfaceAdd(dev);
     std::vector<std::string> activeIfaces;
-    int32_t ret = ethernetManagement.GetAllActiveIfaces(activeIfaces);
+    int32_t ret = ethernetManagement->GetAllActiveIfaces(activeIfaces);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 
     cfg->mode_ = LAN_DHCP;
-    ethernetManagement.devCfgs_[dev] = cfg;
-    ethernetManagement.DevInterfaceAdd(dev);
+    ethernetManagement->devCfgs_[dev] = cfg;
+    ethernetManagement->DevInterfaceAdd(dev);
     std::vector<std::string> activeIfaces1;
-    ret = ethernetManagement.GetAllActiveIfaces(activeIfaces1);
+    ret = ethernetManagement->GetAllActiveIfaces(activeIfaces1);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 
     cfg->mode_ = STATIC;
-    ethernetManagement.devCfgs_[dev] = cfg;
-    ethernetManagement.DevInterfaceAdd(dev);
+    ethernetManagement->devCfgs_[dev] = cfg;
+    ethernetManagement->DevInterfaceAdd(dev);
     std::vector<std::string> activeIfaces2;
-    ret = ethernetManagement.GetAllActiveIfaces(activeIfaces2);
+    ret = ethernetManagement->GetAllActiveIfaces(activeIfaces2);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
@@ -1376,71 +1376,71 @@ HWTEST_F(EthernetManagerTest, OnStartTest001, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, UpdateInterfaceStateTest005, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     std::string dev = "";
-    ethernetmanagement.UpdateInterfaceState(dev, true);
-    ethernetmanagement.UpdateInterfaceState(dev, false);
+    ethernetmanagement->UpdateInterfaceState(dev, true);
+    ethernetmanagement->UpdateInterfaceState(dev, false);
     EXPECT_EQ(dev, "");
 }
 
 HWTEST_F(EthernetManagerTest, GetMacAddressTest002, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     std::vector<MacAddressInfo> macAddrList = {};
-    EXPECT_NE(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ethernetmanagement->GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
     MacAddressInfo macaddressinfo;
     macaddressinfo.iface_ = "123";
     macaddressinfo.macAddress_ = "123";
     macAddrList = {macaddressinfo};
-    EXPECT_EQ(ethernetmanagement.GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ethernetmanagement->GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfgTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     std::string iface = "123";
     sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
-    ethernetmanagement.DevInterfaceAdd(iface);
-    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceCfg(iface, cfg), ETHERNET_ERR_DEVICE_NOT_LINK);
-    ethernetmanagement.UpdateInterfaceState(iface, true);
-    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceCfg(iface, cfg), NETMANAGER_EXT_SUCCESS);
+    ethernetmanagement->DevInterfaceAdd(iface);
+    EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceCfg(iface, cfg), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement->UpdateInterfaceState(iface, true);
+    EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceCfg(iface, cfg), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EthernetManagerTest, UpdateDevInterfaceLinkInfoTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.iface = "123";
-    ethernetmanagement.DevInterfaceAdd(dhcpResult.iface);
-    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement->DevInterfaceAdd(dhcpResult.iface);
+    EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
     dhcpResult.iface = "1";
-    ethernetmanagement.DevInterfaceAdd(dhcpResult.iface);
-    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
-    ethernetmanagement.UpdateInterfaceState(dhcpResult.iface, true);
-    EXPECT_EQ(ethernetmanagement.UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL);
+    ethernetmanagement->DevInterfaceAdd(dhcpResult.iface);
+    EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_DEVICE_NOT_LINK);
+    ethernetmanagement->UpdateInterfaceState(dhcpResult.iface, true);
+    EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL);
 }
 
 HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     std::string iface = "123";
     sptr<InterfaceConfiguration> ifaceConfig = new InterfaceConfiguration();
-    EXPECT_NE(ethernetmanagement.GetDevInterfaceCfg(iface, ifaceConfig), ETHERNET_ERR_INIT_FAIL);
+    EXPECT_EQ(ethernetmanagement->GetDevInterfaceCfg(iface, ifaceConfig), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     std::string iface = "123";
     int32_t activeStatus = 123;
-    EXPECT_NE(ethernetmanagement.IsIfaceActive(iface, activeStatus), ETHERNET_ERR_INIT_FAIL);
+    EXPECT_EQ(ethernetmanagement->IsIfaceActive(iface, activeStatus), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest003, TestSize.Level1)
 {
-    EthernetManagement ethernetmanagement;
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
     std::string devName = "123";
-    ethernetmanagement.DevInterfaceRemove(devName);
+    ethernetmanagement->DevInterfaceRemove(devName);
     EXPECT_EQ(devName, "123");
 }
  
@@ -1546,27 +1546,27 @@ HWTEST_F(EthernetManagerTest, EthernetManagerGetDeviceInfoTest01, TestSize.Level
     }
  
     std::vector<EthernetDeviceInfo> deviceInfoList;
-    EthernetManagement ethernetManagement;
-    ethernetManagement.devs_.clear();
-    ethernetManagement.GetDeviceInformation(deviceInfoList);
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    ethernetManagement->devs_.clear();
+    ethernetManagement->GetDeviceInformation(deviceInfoList);
     EXPECT_EQ(deviceInfoList.size(), 0);
     EthernetDeviceInfo tmp;
     deviceInfoList.push_back(tmp);
-    ethernetManagement.GetDeviceInformation(deviceInfoList);
+    ethernetManagement->GetDeviceInformation(deviceInfoList);
     EXPECT_GE(deviceInfoList.size(), 0);
  
-    ethernetManagement.GetUsbEthDeviceInfo(eth0, testPath1, deviceInfoList);
-    ethernetManagement.GetUsbEthDeviceInfo(eth0, testPath2, deviceInfoList);
+    ethernetManagement->GetUsbEthDeviceInfo(eth0, testPath1, deviceInfoList);
+    ethernetManagement->GetUsbEthDeviceInfo(eth0, testPath2, deviceInfoList);
     EXPECT_GE(deviceInfoList.size(), 0);
  
-    ethernetManagement.GetPciEthDeviceInfo(eth0, testPath1, deviceInfoList);
-    ethernetManagement.GetPciEthDeviceInfo(eth0, testPath2, deviceInfoList);
-    ethernetManagement.GetUsbEthDeviceInfo(eth0, testPath3, deviceInfoList);
+    ethernetManagement->GetPciEthDeviceInfo(eth0, testPath1, deviceInfoList);
+    ethernetManagement->GetPciEthDeviceInfo(eth0, testPath2, deviceInfoList);
+    ethernetManagement->GetUsbEthDeviceInfo(eth0, testPath3, deviceInfoList);
     EXPECT_GE(deviceInfoList.size(), 0);
  
     std::string value;
-    ethernetManagement.GetSysNodeValue(testPath2, value);
-    ethernetManagement.GetSysNodeValue(testPath3, value);
+    ethernetManagement->GetSysNodeValue(testPath2, value);
+    ethernetManagement->GetSysNodeValue(testPath3, value);
     EXPECT_GE(value.length(), 0);
 }
 

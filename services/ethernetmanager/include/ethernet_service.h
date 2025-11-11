@@ -112,7 +112,7 @@ private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
     bool registerToService_ = false;
     uint16_t dependentServiceState_ = 0;
-    EthernetManagement& ethManagement_ = EthernetManagement::GetInstance();
+    std::shared_ptr<EthernetManagement> ethManagement_ = nullptr;
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
     sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
     std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
