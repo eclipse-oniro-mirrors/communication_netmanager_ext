@@ -32,14 +32,15 @@ namespace NetManagerStandard {
  
 class RegObj {
 public:
-    RegObj() : m_regEnv(0), m_regHandlerRef(nullptr)
+    RegObj() : m_regEnv(0), m_regHandlerRef(nullptr), refCount_(0)
     {
     }
  
-    explicit RegObj(const napi_env& env, const napi_ref& ref)
+    explicit RegObj(const napi_env& env, const napi_ref& ref, int refCount = 1)
     {
         m_regEnv = env;
         m_regHandlerRef = ref;
+        refCount_ = refCount;
     }
  
     ~RegObj()
@@ -63,6 +64,7 @@ public:
  
     napi_env m_regEnv;
     napi_ref m_regHandlerRef;
+    uint32_t refCount_;
 };
 
 using TypeMapRegObj = std::map<uint32_t, std::vector<RegObj>>;
@@ -106,7 +108,7 @@ private:
     void EventNotify(const std::shared_ptr<AsyncEventData> &asyncEvent);
     void SendTask(const std::shared_ptr<AsyncEventData> &asyncEvent);
     void InitScope(const std::shared_ptr<AsyncEventData> &asyncEvent);
-    void EndSendTask(const std::shared_ptr<AsyncEventData> &asyncEvent, bool unrefRef, uint32_t refCount);
+    void EndSendTask(const std::shared_ptr<AsyncEventData> &asyncEvent, bool unrefRef, uint32_t &refCount);
     napi_value CreateResult(const napi_env& env, const sptr<EapData> &eapData);
  
 private:
