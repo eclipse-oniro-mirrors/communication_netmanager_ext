@@ -17,7 +17,7 @@
 #define ETHERNET_MANAGEMENT_H
 
 #include <map>
-#include <mutex>
+#include <shared_mutex>
 
 #include "dev_interface_state.h"
 #include "ethernet_configuration.h"
@@ -31,38 +31,10 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class EthernetManagement {
-private:
-    class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
-    public:
-        EhternetDhcpNotifyCallback(EthernetManagement &ethernetManagement) : ethernetManagement_(ethernetManagement) {}
-        int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override;
-
-    private:
-        EthernetManagement &ethernetManagement_;
-    };
-
-private:
-    class DevInterfaceStateCallback : public NetsysControllerCallback {
-    public:
-        DevInterfaceStateCallback(EthernetManagement &ethernetManagement) : ethernetManagement_(ethernetManagement) {}
-        ~DevInterfaceStateCallback() = default;
-        int32_t OnInterfaceAddressUpdated(const std::string &, const std::string &, int, int) override;
-        int32_t OnInterfaceAddressRemoved(const std::string &, const std::string &, int, int) override;
-        int32_t OnInterfaceAdded(const std::string &iface) override;
-        int32_t OnInterfaceRemoved(const std::string &iface) override;
-        int32_t OnInterfaceChanged(const std::string &, bool) override;
-        int32_t OnInterfaceLinkStateChanged(const std::string &ifName, bool up) override;
-        int32_t OnRouteChanged(bool, const std::string &, const std::string &, const std::string &) override;
-        int32_t OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult) override;
-        int32_t OnBandwidthReachedLimit(const std::string &limitName, const std::string &iface) override;
-
-    private:
-        EthernetManagement &ethernetManagement_;
-    };
-
+class EthernetManagement : public std::enable_shared_from_this<EthernetManagement> {
 public:
-    static EthernetManagement& GetInstance();
+    EthernetManagement();
+    ~EthernetManagement();
     void Init();
     int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
     void UpdateInterfaceState(const std::string &dev, bool up);
@@ -78,10 +50,37 @@ public:
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList);
 
 private:
-    EthernetManagement();
-    ~EthernetManagement();
-    EthernetManagement(const EthernetManagement&) = delete;
-    EthernetManagement& operator=(const EthernetManagement&) = delete;
+    class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
+    public:
+        EhternetDhcpNotifyCallback(std::weak_ptr<EthernetManagement> ethernetManagement)
+            : ethernetManagement_(ethernetManagement) {}
+        int32_t OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult) override;
+
+    private:
+        std::weak_ptr<EthernetManagement> ethernetManagement_;
+    };
+
+private:
+    class DevInterfaceStateCallback : public NetsysControllerCallback {
+    public:
+        DevInterfaceStateCallback(std::weak_ptr<EthernetManagement> ethernetManagement)
+            : ethernetManagement_(ethernetManagement) {}
+        ~DevInterfaceStateCallback() = default;
+        int32_t OnInterfaceAddressUpdated(const std::string &, const std::string &, int, int) override;
+        int32_t OnInterfaceAddressRemoved(const std::string &, const std::string &, int, int) override;
+        int32_t OnInterfaceAdded(const std::string &iface) override;
+        int32_t OnInterfaceRemoved(const std::string &iface) override;
+        int32_t OnInterfaceChanged(const std::string &, bool) override;
+        int32_t OnInterfaceLinkStateChanged(const std::string &ifName, bool up) override;
+        int32_t OnRouteChanged(bool, const std::string &, const std::string &, const std::string &) override;
+        int32_t OnDhcpSuccess(NetsysControllerCallback::DhcpResult &dhcpResult) override;
+        int32_t OnBandwidthReachedLimit(const std::string &limitName, const std::string &iface) override;
+
+    private:
+        std::weak_ptr<EthernetManagement> ethernetManagement_;
+    };
+
+private:
     std::string GetMacAddr(const std::string &iface);
     std::string HwAddrToStr(char *hwaddr);
     void StartDhcpClient(const std::string &dev, sptr<DevInterfaceState> &devState);
@@ -106,9 +105,9 @@ private:
     std::unique_ptr<EthernetDhcpController> ethDhcpController_ = nullptr;
     sptr<EhternetDhcpNotifyCallback> ethDhcpNotifyCallback_ = nullptr;
     sptr<NetsysControllerCallback> ethDevInterfaceStateCallback_ = nullptr;
-    std::map<std::string, sptr<StaticConfiguration>> netLinkConfigs_;
+    std::map<std::string, StaticConfiguration> netLinkConfigs_;
     std::unique_ptr<EthernetLanManagement> ethLanManageMent_ = nullptr;
-    std::mutex mutex_;
+    std::shared_mutex mutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

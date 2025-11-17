@@ -699,8 +699,6 @@ void NetworkVpnService::HandleVpnHapObserverRegistration(const std::string& bund
         std::vector<std::string> list = {bundleName, bundleName + VPN_EXTENSION_LABEL};
         sptr<VpnHapObserver> vpnHapObserver = new VpnHapObserver(*this, bundleName);
         Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(vpnHapObserver, list);
-        std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
-        setUpVpnPidMap_.emplace(IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     }
 }
 
@@ -748,6 +746,7 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall, 
 #endif // SUPPORT_SYSVPN
     hasOpenedVpnUid_ = IPCSkeleton::GetCallingUid();
     currSetUpVpnPid_ = IPCSkeleton::GetCallingPid();
+    std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     currentVpnBundleName_ = vpnBundleName;
     vpnObj_ = vpnObj;
     return ret;
@@ -1904,11 +1903,6 @@ void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessStateChanged");
 }
 
-std::string NetworkVpnService::GetCurrentVpnBundleName()
-{
-    return currentVpnBundleName_;
-}
-
 bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
@@ -1943,9 +1937,7 @@ void NetworkVpnService::ClearCurrentVpnUserInfo(int32_t uid, bool fromSetupVpn)
     currentVpnAbilityName_.clear();
     std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
     NETMGR_EXT_LOG_I("ClearCurrentVpnUserInfo clear %{public}d", uid);
-    if (fromSetupVpn) {
-        setUpVpnPidMap_.erase(uid);
-    } else {
+    if (!fromSetupVpn) {
         setVpnPidMap_.erase(uid);
     }
 }

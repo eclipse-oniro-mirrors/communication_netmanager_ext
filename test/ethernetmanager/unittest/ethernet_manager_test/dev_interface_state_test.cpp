@@ -59,9 +59,7 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateTest001, TestSize.Level1)
     bool getDhcpReqState = devInterfaceState.GetDhcpReqState();
     EXPECT_TRUE(getDhcpReqState);
 
-    sptr<StaticConfiguration> config = nullptr;
-    devInterfaceState.UpdateLinkInfo(config);
-    config = new (std::nothrow) StaticConfiguration();
+    StaticConfiguration config;
     devInterfaceState.linkInfo_ = nullptr;
     devInterfaceState.UpdateLinkInfo(config);
     devInterfaceState.linkInfo_ = new (std::nothrow) NetLinkInfo();
@@ -156,7 +154,7 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest001, TestSize.Level1)
     auto result = devInterfaceState.GetIpv4Prefix(testString, netMaskList);
     EXPECT_TRUE(result.empty());
 
-    sptr<StaticConfiguration> config = nullptr;
+    StaticConfiguration config;
     devInterfaceState.UpdateLanLinkInfo(config);
 
     INetAddr targetNetAddr = {};
@@ -172,7 +170,7 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateBranchTest002, TestSize.Level1)
 
     sptr<NetLinkInfo> linkInfo = nullptr;
     devInterfaceState.SetlinkInfo(linkInfo);
-    sptr<StaticConfiguration> config = new (std::nothrow) StaticConfiguration();
+    StaticConfiguration config;
     devInterfaceState.UpdateLanLinkInfo(config);
 
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
@@ -299,7 +297,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest001, TestSize.Level0)
 HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest002, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
-    sptr<StaticConfiguration> config = new StaticConfiguration();
+    StaticConfiguration config;
     devInterfaceState.linkInfo_ = nullptr;
     devInterfaceState.UpdateLanLinkInfo(config);
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
@@ -308,7 +306,7 @@ HWTEST_F(DevInterfaceStateTest, UpdateLanLinkInfoTest002, TestSize.Level0)
 HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest002, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
-    sptr<StaticConfiguration> config = new StaticConfiguration();
+    StaticConfiguration config;
     sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
     devInterfaceState.SetlinkInfo(linkInfo);
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
@@ -336,17 +334,17 @@ HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest003, TestSize.Level0)
 HWTEST_F(DevInterfaceStateTest, UpdateLinkInfoTest004, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;
-    sptr<StaticConfiguration> config = new StaticConfiguration();
+    StaticConfiguration config = StaticConfiguration();
     sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
     devInterfaceState.SetlinkInfo(linkInfo);
     sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
-    EXPECT_TRUE(config->dnsServers_.empty());
+    EXPECT_TRUE(config.dnsServers_.empty());
     NetManagerStandard::INetAddr Emptydns;
     Emptydns.type_ = NetManagerStandard::INetAddr::IPV4;
     Emptydns.address_ = "";
-    config->dnsServers_.push_back(Emptydns);
+    config.dnsServers_.push_back(Emptydns);
     devInterfaceState.UpdateLinkInfo(config);
-    EXPECT_FALSE(config->dnsServers_.empty());
+    EXPECT_FALSE(config.dnsServers_.empty());
 }
 
 HWTEST_F(DevInterfaceStateTest, GetRoutePrefixlenTest001, TestSize.Level0)

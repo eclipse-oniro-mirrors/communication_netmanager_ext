@@ -46,7 +46,7 @@ public:
     void SetLancfg(sptr<InterfaceConfiguration> &ifCfg);
     void SetDhcpReqState(bool dhcpReqState);
     void UpdateNetHttpProxy(const HttpProxy &httpProxy);
-    void UpdateLinkInfo(const sptr<StaticConfiguration> &config);
+    void UpdateLinkInfo(const StaticConfiguration &config);
     std::string GetDevName() const;
     const std::set<NetCap> &GetNetCaps() const;
     std::set<NetCap> GetNetCaps();
@@ -57,7 +57,7 @@ public:
     bool GetDhcpReqState() const;
     bool IsLanIface();
     void UpdateLanLinkInfo();
-    void UpdateLanLinkInfo(const sptr<StaticConfiguration> &config);
+    void UpdateLanLinkInfo(const StaticConfiguration &config);
 
     void RemoteRegisterNetSupplier();
     void RemoteUnregisterNetSupplier();

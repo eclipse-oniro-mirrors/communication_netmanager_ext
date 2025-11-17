@@ -71,7 +71,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration001, TestSize.Level1)
     ret = ethernetConfiguration.ClearAllUserConfiguration();
     EXPECT_TRUE(ret);
     EthernetDhcpCallback::DhcpResult dhcpResult;
-    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    StaticConfiguration config;
     ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
     EXPECT_FALSE(ret);
     std::string strRet = ethernetConfiguration.ReadJsonFile(FILE_PATH);
@@ -95,7 +95,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration002, TestSize.Level1)
 {
     EthernetConfiguration ethernetConfiguration;
     EthernetDhcpCallback::DhcpResult dhcpResult;
-    sptr<StaticConfiguration> config = nullptr;
+    StaticConfiguration config;
     bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
     EXPECT_FALSE(ret);
 
@@ -131,7 +131,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration003, TestSize.Level1)
     EthernetConfiguration ethernetConfiguration;
     EthernetDhcpCallback::DhcpResult dhcpResult;
     dhcpResult.ipAddr = "test";
-    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    StaticConfiguration config;
     ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
 
     std::string result = ethernetConfiguration.GetIfaceMode(IPSetMode::LAN_STATIC);
@@ -234,13 +234,13 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration008, TestSize.Level1)
     dhcpResult.gateWay = "test2";
     INetAddr ipv4Addr;
     ipv4Addr.address_ = "test1";
-    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
-    config->ipAddrList_.push_back(ipv4Addr);
+    StaticConfiguration config;
+    config.ipAddrList_.push_back(ipv4Addr);
     bool ret = ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
     EXPECT_TRUE(ret);
 
     ipv4Addr.address_ = "test2";
-    config->gatewayList_.push_back(ipv4Addr);
+    config.gatewayList_.push_back(ipv4Addr);
     ret = ethernetConfiguration.IsValidDhcpResult(dhcpResult, config);
     EXPECT_FALSE(ret);
 }
@@ -253,7 +253,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration009, TestSize.Level1)
     dhcpResult.gateWay = "test2";
     dhcpResult.route1 = "test3";
     dhcpResult.route2 = "test4";
-    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    StaticConfiguration config;
     bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
     EXPECT_TRUE(ret);
 }
@@ -266,7 +266,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration010, TestSize.Level1)
     dhcpResult.gateWay = "test2";
     dhcpResult.route1 = "*";
     dhcpResult.route2 = "test4";
-    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    StaticConfiguration config;
     bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
     EXPECT_TRUE(ret);
 }
@@ -279,7 +279,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration011, TestSize.Level1)
     dhcpResult.gateWay = "test2";
     dhcpResult.route1 = "*";
     dhcpResult.route2 = "*";
-    sptr<StaticConfiguration> config = (std::make_unique<StaticConfiguration>()).release();
+    StaticConfiguration config;
     bool ret = ethernetConfiguration.ConvertToConfiguration(dhcpResult, config);
     EXPECT_TRUE(ret);
 }

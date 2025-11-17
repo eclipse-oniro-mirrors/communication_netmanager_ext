@@ -248,12 +248,8 @@ bool EthernetConfiguration::ClearAllUserConfiguration()
 }
 
 bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult,
-                                                   sptr<StaticConfiguration> &config)
+                                                   StaticConfiguration &config)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("Error ConvertToIpConfiguration config is null");
-        return false;
-    }
     if (!IsValidDhcpResult(dhcpResult, config)) {
         return false;
     }
@@ -264,16 +260,16 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     ipAddr.prefixlen_ = (ipAddr.family_ == AF_INET6)
                             ? static_cast<uint8_t>(CommonUtils::Ipv6PrefixLen(dhcpResult.subNet))
                             : static_cast<uint8_t>(CommonUtils::Ipv4PrefixLen(dhcpResult.subNet));
-    config->ipAddrList_.push_back(ipAddr);
+    config.ipAddrList_.push_back(ipAddr);
 
     INetAddr netMask;
     netMask.address_ = dhcpResult.subNet;
-    config->netMaskList_.push_back(netMask);
+    config.netMaskList_.push_back(netMask);
 
     INetAddr gateway;
     gateway.address_ = dhcpResult.gateWay;
     gateway.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(dhcpResult.gateWay));
-    config->gatewayList_.push_back(gateway);
+    config.gatewayList_.push_back(gateway);
 
     INetAddr route;
     if (dhcpResult.gateWay != dhcpResult.route1 && dhcpResult.route1 != EMPTY_NET_ADDR) {
@@ -287,7 +283,7 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
         route.prefixlen_ = 0;
     }
     route.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(route.address_));
-    config->routeList_.push_back(route);
+    config.routeList_.push_back(route);
 
     INetAddr dnsNet1;
     dnsNet1.type_ = (CommonUtils::GetAddrFamily(dhcpResult.dns1)) ? INetAddr::IpType::IPV6 :
@@ -297,8 +293,8 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
     dnsNet2.type_ = (CommonUtils::GetAddrFamily(dhcpResult.dns2)) ? INetAddr::IpType::IPV6 :
         INetAddr::IpType::IPV4;
     dnsNet2.address_ = dhcpResult.dns2;
-    config->dnsServers_.push_back(dnsNet1);
-    config->dnsServers_.push_back(dnsNet2);
+    config.dnsServers_.push_back(dnsNet1);
+    config.dnsServers_.push_back(dnsNet2);
     return true;
 }
 
@@ -702,12 +698,8 @@ std::string EthernetConfiguration::AccumulateNetAddress(const std::vector<INetAd
 }
 
 bool EthernetConfiguration::IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult,
-                                              sptr<StaticConfiguration> &config)
+                                              StaticConfiguration &config)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("config is nullptr");
-        return false;
-    }
     if (dhcpResult.ipAddr.empty()) {
         NETMGR_EXT_LOG_E("DhcpResult ip addr is empty");
         return false;
@@ -715,14 +707,14 @@ bool EthernetConfiguration::IsValidDhcpResult(const EthernetDhcpCallback::DhcpRe
 
     bool isSameIp = false;
     bool isSameGateway = false;
-    if (std::any_of(config->ipAddrList_.begin(), config->ipAddrList_.end(), [&dhcpResult](const auto &ipAddr) {
+    if (std::any_of(config.ipAddrList_.begin(), config.ipAddrList_.end(), [&dhcpResult](const auto &ipAddr) {
         return dhcpResult.ipAddr == ipAddr.address_;
         })) {
         NETMGR_EXT_LOG_I("Same ip addr:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.ipAddr).c_str());
         isSameIp = true;
     }
 
-    if (std::any_of(config->gatewayList_.begin(), config->gatewayList_.end(), [&dhcpResult](const auto &gateway) {
+    if (std::any_of(config.gatewayList_.begin(), config.gatewayList_.end(), [&dhcpResult](const auto &gateway) {
         return dhcpResult.gateWay == gateway.address_;
         })) {
         NETMGR_EXT_LOG_I("Same gateway:%{public}s", CommonUtils::ToAnonymousIp(dhcpResult.gateWay).c_str());

@@ -57,8 +57,7 @@ HWTEST_F(StaticConfigurationTest, StaticConfiguration01, TestSize.Level1)
     StaticConfiguration data = GetStaticConfiguration();
     EXPECT_TRUE(data.Marshalling(parcel));
     auto result = StaticConfiguration::Unmarshalling(parcel);
-    ASSERT_NE(result, nullptr);
-    EXPECT_EQ(result->domain_, data.domain_);
+    EXPECT_EQ(result.domain_, data.domain_);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

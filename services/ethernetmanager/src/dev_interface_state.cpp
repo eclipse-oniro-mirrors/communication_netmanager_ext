@@ -284,12 +284,8 @@ void DevInterfaceState::UpdateLanLinkInfo()
     }
 }
 
-void DevInterfaceState::UpdateLanLinkInfo(const sptr<StaticConfiguration> &config)
+void DevInterfaceState::UpdateLanLinkInfo(const StaticConfiguration &config)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("config is nullptr");
-        return;
-    }
     if (linkInfo_ == nullptr) {
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
@@ -300,27 +296,23 @@ void DevInterfaceState::UpdateLanLinkInfo(const sptr<StaticConfiguration> &confi
     std::list<INetAddr>().swap(linkInfo_->netAddrList_);
     std::list<Route>().swap(linkInfo_->routeList_);
     linkInfo_->ifaceName_ = devName_;
-    for (const auto &ipAddr : config->ipAddrList_) {
+    for (const auto &ipAddr : config.ipAddrList_) {
         linkInfo_->netAddrList_.push_back(ipAddr);
     }
 
-    for (const auto &routeAddr : config->routeList_) {
+    for (const auto &routeAddr : config.routeList_) {
         Route routeStc;
         routeStc.iface_ = devName_;
         routeStc.destination_ = routeAddr;
         routeStc.destination_.type_ = GetIpType(routeAddr.address_);
-        GetRoutePrefixlen(routeAddr.address_, config->netMaskList_, routeStc.destination_);
-        GetTargetNetAddrWithSameFamily(routeAddr.address_, config->gatewayList_, routeStc.gateway_);
+        GetRoutePrefixlen(routeAddr.address_, config.netMaskList_, routeStc.destination_);
+        GetTargetNetAddrWithSameFamily(routeAddr.address_, config.gatewayList_, routeStc.gateway_);
         linkInfo_->routeList_.push_back(routeStc);
     }
 }
 
-void DevInterfaceState::UpdateLinkInfo(const sptr<StaticConfiguration> &config)
+void DevInterfaceState::UpdateLinkInfo(const StaticConfiguration &config)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("config is nullptr");
-        return;
-    }
     if (linkInfo_ == nullptr) {
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
@@ -333,21 +325,21 @@ void DevInterfaceState::UpdateLinkInfo(const sptr<StaticConfiguration> &config)
     std::list<Route>().swap(linkInfo_->routeList_);
     std::list<INetAddr>().swap(linkInfo_->dnsList_);
     linkInfo_->ifaceName_ = devName_;
-    for (const auto &ipAddr : config->ipAddrList_) {
+    for (const auto &ipAddr : config.ipAddrList_) {
         linkInfo_->netAddrList_.push_back(ipAddr);
     }
 
-    for (const auto &routeAddr : config->routeList_) {
+    for (const auto &routeAddr : config.routeList_) {
         Route routeStc;
         routeStc.iface_ = devName_;
         routeStc.destination_ = routeAddr;
         routeStc.destination_.type_ = GetIpType(routeAddr.address_);
-        GetTargetNetAddrWithSameFamily(routeAddr.address_, config->gatewayList_, routeStc.gateway_);
+        GetTargetNetAddrWithSameFamily(routeAddr.address_, config.gatewayList_, routeStc.gateway_);
         linkInfo_->routeList_.push_back(routeStc);
     }
-    CreateLocalRoute(devName_, config->ipAddrList_, config->netMaskList_);
+    CreateLocalRoute(devName_, config.ipAddrList_, config.netMaskList_);
 
-    for (auto dnsServer : config->dnsServers_) {
+    for (auto dnsServer : config.dnsServers_) {
         if (dnsServer.address_.empty()) {
             continue;
         }

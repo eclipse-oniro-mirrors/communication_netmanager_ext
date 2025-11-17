@@ -42,7 +42,10 @@ const bool REGISTER_LOCAL_RESULT_ETH =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<EthernetService>::GetInstance().get());
 } // namespace
 
-EthernetService::EthernetService() : SystemAbility(COMM_ETHERNET_MANAGER_SYS_ABILITY_ID, true) {}
+EthernetService::EthernetService() : SystemAbility(COMM_ETHERNET_MANAGER_SYS_ABILITY_ID, true)
+{
+    ethManagement_ = std::make_shared<EthernetManagement>();
+}
 
 EthernetService::~EthernetService() = default;
 
@@ -75,7 +78,7 @@ int32_t EthernetService::Dump(int32_t fd, const std::vector<std::u16string> &arg
 {
     NETMGR_EXT_LOG_D("Start Dump, fd: %{public}d", fd);
     std::string result;
-    ethManagement_.GetDumpInfo(result);
+    ethManagement_->GetDumpInfo(result);
     int32_t ret = dprintf(fd, "%s\n", result.c_str());
     return ret < 0 ? NETMANAGER_EXT_ERR_LOCAL_PTR_NULL : NETMANAGER_EXT_SUCCESS;
 }
@@ -134,7 +137,7 @@ bool EthernetService::Init()
 void EthernetService::InitManagement()
 {
     NETMGR_EXT_LOG_D("EthernetService::InitManagement Enter");
-    ethManagement_.Init();
+    ethManagement_->Init();
 }
 
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressUpdated(const std::string &addr,
@@ -210,7 +213,7 @@ int32_t EthernetService::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.GetMacAddress(macAddrList);
+    return ethManagement_->GetMacAddress(macAddrList);
 }
 
 int32_t EthernetService::SetIfaceConfig(const std::string &iface, const sptr<InterfaceConfiguration> &ic)
@@ -225,7 +228,7 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, const sptr<Int
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.UpdateDevInterfaceCfg(iface, ic);
+    return ethManagement_->UpdateDevInterfaceCfg(iface, ic);
 }
 
 int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
@@ -240,7 +243,7 @@ int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<Interface
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.GetDevInterfaceCfg(iface, ifaceConfig);
+    return ethManagement_->GetDevInterfaceCfg(iface, ifaceConfig);
 }
 
 int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &activeStatus)
@@ -255,7 +258,7 @@ int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &active
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.IsIfaceActive(iface, activeStatus);
+    return ethManagement_->IsIfaceActive(iface, activeStatus);
 }
 
 int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
@@ -269,7 +272,7 @@ int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfac
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.GetAllActiveIfaces(activeIfaces);
+    return ethManagement_->GetAllActiveIfaces(activeIfaces);
 }
 
 int32_t EthernetService::ResetFactory()
@@ -283,7 +286,7 @@ int32_t EthernetService::ResetFactory()
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    return ethManagement_.ResetFactory();
+    return ethManagement_->ResetFactory();
 }
 
 int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
@@ -503,7 +506,7 @@ int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &d
         NETMGR_EXT_LOG_E("GetDeviceInformation no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return ethManagement_.GetDeviceInformation(deviceInfoList);
+    return ethManagement_->GetDeviceInformation(deviceInfoList);
 }
 
 int32_t EthernetService::StartEthEap(int32_t netId, const EthEapProfile& profile)

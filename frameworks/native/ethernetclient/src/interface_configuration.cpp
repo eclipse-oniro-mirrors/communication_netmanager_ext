@@ -50,12 +50,7 @@ InterfaceConfiguration* InterfaceConfiguration::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     ptr->mode_ = static_cast<IPSetMode>(mode);
-    sptr<StaticConfiguration> sc = StaticConfiguration::Unmarshalling(parcel);
-    if (sc == nullptr) {
-        NETMGR_EXT_LOG_E("sc is null");
-        return nullptr;
-    }
-    ptr->ipStatic_ = *sc;
+    ptr->ipStatic_ = StaticConfiguration::Unmarshalling(parcel);
     if (!HttpProxy::Unmarshalling(parcel, ptr->httpProxy_)) {
         NETMGR_EXT_LOG_E("Unmarshalling HttpProxy failed.");
         return nullptr;

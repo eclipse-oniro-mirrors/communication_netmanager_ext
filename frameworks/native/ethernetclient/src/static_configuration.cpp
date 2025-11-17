@@ -56,20 +56,19 @@ bool StaticConfiguration::MarshallingNetAddressList(const std::vector<INetAddr> 
     return true;
 }
 
-sptr<StaticConfiguration> StaticConfiguration::Unmarshalling(Parcel &parcel)
+StaticConfiguration StaticConfiguration::Unmarshalling(Parcel &parcel)
 {
-    sptr<StaticConfiguration> ptr = new (std::nothrow) StaticConfiguration();
-    if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("ptr new failed");
-        return nullptr;
+    StaticConfiguration config;
+    bool ret = UnmarshallingNetAddressList(parcel, config.ipAddrList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, config.routeList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, config.gatewayList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, config.netMaskList_, MAX_ADDR_SIZE) &&
+               UnmarshallingNetAddressList(parcel, config.dnsServers_, MAX_DNS_SIZE) &&
+               parcel.ReadString(config.domain_);
+    if (!ret) {
+        return {};
     }
-
-    bool ret = UnmarshallingNetAddressList(parcel, ptr->ipAddrList_, MAX_ADDR_SIZE) &&
-               UnmarshallingNetAddressList(parcel, ptr->routeList_, MAX_ADDR_SIZE) &&
-               UnmarshallingNetAddressList(parcel, ptr->gatewayList_, MAX_ADDR_SIZE) &&
-               UnmarshallingNetAddressList(parcel, ptr->netMaskList_, MAX_ADDR_SIZE) &&
-               UnmarshallingNetAddressList(parcel, ptr->dnsServers_, MAX_DNS_SIZE) && parcel.ReadString(ptr->domain_);
-    return ret ? ptr : nullptr;
+    return config;
 }
 
 bool StaticConfiguration::UnmarshallingNetAddressList(Parcel &parcel, std::vector<INetAddr> &netAddrList,
