@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Annulla",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Vuoi consentire questa VPN?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Consenti",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Conferma che questa app è affidabile. Le app non affidabili potrebbero monitorare il traffico di rete e rubare i tuoi dati.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

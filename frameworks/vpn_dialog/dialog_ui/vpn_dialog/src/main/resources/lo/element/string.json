@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"​ຍົກ​ເລີກ",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"ອະນຸຍາດ VPN ນີ້ບໍ?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"ອະ​ນຸ​ຍາດ",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"ກະລຸນາຢືນຢັນວ່າທ່ານເຊື່ອໝັ້ນແອັບນີ້. ແອັບທີ່ບໍ່ໜ້າເຊື່ອຖືສາມາດຕິດຕາມການຮັບສົ່ງຂໍ້ມູນເຄືອຂ່າຍຂອງທ່ານ ແລະ ລັກຂໍ້ມູນຂອງທ່ານ.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

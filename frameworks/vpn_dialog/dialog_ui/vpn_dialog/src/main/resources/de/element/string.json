@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Abbrechen",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Dieses VPN zulassen?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Zulassen",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Bestätigen Sie, dass Sie dieser App vertrauen. Nicht vertrauenswürdige Apps könnten Ihren Netzwerkverkehr überwachen und Ihre Daten stehlen.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
