@@ -98,65 +98,59 @@ void NetEapPostBackCallback::SendTask(const std::shared_ptr<AsyncEventData> &asy
     napi_value undefine;
     uint32_t refCount = INVALID_REF_COUNT;
     napi_status res;
-    bool unrefRef = false;
-    bool find = false;
     InitScope(asyncEvent);
     auto regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
     auto it = regInfo[asyncEvent->netType_].find(asyncEvent->key_);
     if (it == regInfo[asyncEvent->netType_].end()) {
         NETMANAGER_EXT_LOGE("%{public}s, event has been unregistered.", __func__);
-        EndSendTask(asyncEvent, unrefRef, refCount);
+        EndSendTask(asyncEvent, false, refCount);
         return;
     }
     for (auto& each : it->second) {
-        if (each.m_regEnv == asyncEvent->env_ && each.m_regHandlerRef == asyncEvent->callbackRef_) {
-            find = true;
-            break;
+        if (each.m_regEnv == asyncEvent->env_ &&
+            each.m_regHandlerRef == asyncEvent->callbackRef_ && each.refCount_ > 0) {
+            res = napi_reference_ref(asyncEvent->env_, asyncEvent->callbackRef_, &each.refCount_);
+            NETMANAGER_EXT_LOGI("%{public}s, res: %{public}d, callbackRef: %{private}p, refCount: %{public}d",
+                __func__, res, asyncEvent->callbackRef_, each.refCount_);
+            if (res != napi_ok || each.refCount_ <= 1) {
+                EndSendTask(asyncEvent, true, each.refCount_);
+                return;
+            }
+            res = napi_get_reference_value(asyncEvent->env_, asyncEvent->callbackRef_, &handler);
+            if (res != napi_ok || handler == nullptr) {
+                NETMANAGER_EXT_LOGE("%{public}s, handler is nullptr or res: %{public}d!", __func__, res);
+                EndSendTask(asyncEvent, true, each.refCount_);
+                return;
+            }
+            napi_get_undefined(asyncEvent->env_, &undefine);
+            jsEvent = asyncEvent->packResult_();
+            if (napi_call_function(asyncEvent->env_, nullptr, handler, 1, &jsEvent, &undefine) != napi_ok) {
+                NETMANAGER_EXT_LOGE("%{public}s, Report event to Js failed", __func__);
+            }
+            EndSendTask(asyncEvent, true, each.refCount_);
+            return;
         }
     }
-    if (find == false) {
-        NETMANAGER_EXT_LOGE("%{public}s, NOT find the event.", __func__);
-        EndSendTask(asyncEvent, unrefRef, refCount);
-        return;
-    }
-    res = napi_reference_ref(asyncEvent->env_, asyncEvent->callbackRef_, &refCount);
-    NETMANAGER_EXT_LOGI("%{public}s, res: %{public}d, callbackRef: %{private}p, refCount: %{public}d",
-        __func__, res, asyncEvent->callbackRef_, refCount);
-    if (res != napi_ok || refCount <= 1) {
-        EndSendTask(asyncEvent, unrefRef, refCount);
-        return;
-    }
-    unrefRef = true;
-    res = napi_get_reference_value(asyncEvent->env_, asyncEvent->callbackRef_, &handler);
-    if (res != napi_ok || handler == nullptr) {
-        NETMANAGER_EXT_LOGE("%{public}s, handler is nullptr or res: %{public}d!", __func__, res);
-        EndSendTask(asyncEvent, unrefRef, refCount);
-        return;
-    }
-    napi_get_undefined(asyncEvent->env_, &undefine);
-    jsEvent = asyncEvent->packResult_();
-    if (napi_call_function(asyncEvent->env_, nullptr, handler, 1, &jsEvent, &undefine) != napi_ok) {
-        NETMANAGER_EXT_LOGE("%{public}s, Report event to Js failed", __func__);
-        EndSendTask(asyncEvent, unrefRef, refCount);
-        return;
-    }
-    EndSendTask(asyncEvent, unrefRef, refCount);
+    NETMANAGER_EXT_LOGE("%{public}s, NOT find the event.", __func__);
+    EndSendTask(asyncEvent, false, refCount);
+    return;
 }
  
 void NetEapPostBackCallback::InitScope(const std::shared_ptr<AsyncEventData> &asyncEvent)
 {
     napi_open_handle_scope(asyncEvent->env_, &scope_);
+    uint32_t refCount = 0;
     if (scope_ == nullptr) {
         NETMANAGER_EXT_LOGE("napi_send_event, scope is nullptr");
-        EndSendTask(asyncEvent, false, INVALID_REF_COUNT);
+        EndSendTask(asyncEvent, false, refCount);
     }
 }
  
 void NetEapPostBackCallback::EndSendTask(const std::shared_ptr<AsyncEventData> &asyncEvent,
-    bool unrefRef, uint32_t refCount)
+    bool unrefRef, uint32_t &refCount)
 {
     napi_close_handle_scope(asyncEvent->env_, scope_);
-    if (unrefRef) {
+    if (unrefRef && refCount > 0) {
         napi_reference_unref(asyncEvent->env_, asyncEvent->callbackRef_, &refCount);
     }
 }
@@ -311,9 +305,12 @@ int32_t EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32
             return EAP_ERRCODE_INTERNAL_ERROR;
         }
         auto new_end = std::remove_if(mapObjIter->second.begin(), mapObjIter->second.end(),
-            [env](const RegObj& obj) {
-                if (obj.m_regEnv == env) {
-                    napi_delete_reference(obj.m_regEnv, obj.m_regHandlerRef);
+            [env](RegObj& obj) {
+                if (obj.m_regEnv == env && obj.refCount_ > 0) {
+                    napi_status status = napi_reference_unref(obj.m_regEnv, obj.m_regHandlerRef, &obj.refCount_);
+                    if (status == napi_ok && obj.refCount_ == 0) {
+                        obj.m_regHandlerRef = NULL;
+                    }
                     return true;
                 }
                 return false;
@@ -350,10 +347,19 @@ std::map<NetType, TypeMapRegObj>& EapEventMgr::GetRegisterInfoMap()
 
 EapEventMgr::~EapEventMgr()
 {
-    for (const auto &iterNetType : eventRegisterInfo_) {
-        for (const auto &iterRegObj : iterNetType.second) {
-            for (const auto &obj : iterRegObj.second) {
-                napi_delete_reference(obj.m_regEnv, obj.m_regHandlerRef);
+    auto deleteReference = [](RegObj &obj) {
+        if (obj.refCount_ > 0) {
+            napi_status status = napi_delete_reference(obj.m_regEnv, obj.m_regHandlerRef);
+            if (status == napi_ok) {
+                obj.refCount_ = 0;
+                obj.m_regHandlerRef = NULL;
+            }
+        }
+    };
+    for (const auto iterNetType : eventRegisterInfo_) {
+        for (const auto iterRegObj : iterNetType.second) {
+            for (auto obj : iterRegObj.second) {
+                    deleteReference(obj);
             }
         }
     }
