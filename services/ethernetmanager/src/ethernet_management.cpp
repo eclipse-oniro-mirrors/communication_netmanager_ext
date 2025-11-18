@@ -204,6 +204,8 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
         }
         std::unique_lock<std::shared_mutex> lock2(mutex_);
         netLinkConfigs_.erase(dev);
+        configsV4_.erase(dev);
+        configsV6_.erase(dev);
     }
 }
 
@@ -341,6 +343,8 @@ void EthernetManagement::ProcessChangeMode(
         StopDhcpClient(iface, devState);
         std::unique_lock<std::shared_mutex> lock(mutex_);
         netLinkConfigs_.erase(iface);
+        configsV4_.erase(iface);
+        configsV6_.erase(iface);
     }
 }
 
@@ -365,10 +369,11 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
     }
 
     StaticConfiguration& config = netLinkConfigs_[dhcpResult.iface];
-    if (!ethConfiguration_->ConvertToConfiguration(dhcpResult, config)) {
-        NETMGR_EXT_LOG_E("EthernetManagement dhcp convert to configurations error!");
+    if (UpdataEthernetConfig(dhcpResult, config) != 0) {
+        NETMGR_EXT_LOG_E("EthernetManagement dhcp updata to configurations error!");
         return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
     }
+
     if (fit->second->IsLanIface()) {
         ethLanManageMent_->GetOldLinkInfo(fit->second);
         fit->second->UpdateLanLinkInfo(config);
@@ -378,6 +383,60 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         fit->second->RemoteUpdateNetLinkInfo();
     }
     return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetManagement::UpdataEthernetConfig(EthernetDhcpCallback::DhcpResult &dhcpResult,
+    StaticConfiguration &config)
+{
+    if (dhcpResult.ipAddr.empty()) {
+        NETMGR_EXT_LOG_E("DhcpResult ip addr is empty");
+        return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
+    }
+    if (CommonUtils::GetAddrFamily(dhcpResult.ipAddr) == AF_INET) {
+        ClearEthernetConfig(configsV4_[dhcpResult.iface]);
+        if (!ethConfiguration_->ConvertToConfiguration(dhcpResult, configsV4_[dhcpResult.iface])) {
+            NETMGR_EXT_LOG_E("UpdataEthernetConfig dhcp convert to configurations v4 error!");
+            return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
+        }
+    } else if (CommonUtils::GetAddrFamily(dhcpResult.ipAddr) == AF_INET6) {
+        ClearEthernetConfig(configsV6_[dhcpResult.iface]);
+        if (!ethConfiguration_->ConvertToConfiguration(dhcpResult, configsV6_[dhcpResult.iface])) {
+            NETMGR_EXT_LOG_E("UpdataEthernetConfig dhcp convert to configurations v6 error!");
+            return ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL;
+        }
+    }
+    ClearEthernetConfig(config);
+    MergeEthernetConfig(config, configsV4_[dhcpResult.iface], configsV6_[dhcpResult.iface]);
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+void EthernetManagement::ClearEthernetConfig(StaticConfiguration &config)
+{
+    if (config.ipAddrList_.empty()) {
+        NETMGR_EXT_LOG_E("config is empty");
+        return;
+    }
+    config.ipAddrList_.clear();
+    config.routeList_.clear();
+    config.gatewayList_.clear();
+    config.netMaskList_.clear();
+    config.dnsServers_.clear();
+    config.domain_.clear();
+}
+
+void EthernetManagement::MergeEthernetConfig(StaticConfiguration &config, StaticConfiguration &configV4,
+    StaticConfiguration &configV6)
+{
+    config.ipAddrList_.insert(config.ipAddrList_.end(), configV4.ipAddrList_.begin(), configV4.ipAddrList_.end());
+    config.ipAddrList_.insert(config.ipAddrList_.end(), configV6.ipAddrList_.begin(), configV6.ipAddrList_.end());
+    config.routeList_.insert(config.routeList_.end(), configV4.routeList_.begin(), configV4.routeList_.end());
+    config.routeList_.insert(config.routeList_.end(), configV6.routeList_.begin(), configV6.routeList_.end());
+    config.gatewayList_.insert(config.gatewayList_.end(), configV4.gatewayList_.begin(), configV4.gatewayList_.end());
+    config.gatewayList_.insert(config.gatewayList_.end(), configV6.gatewayList_.begin(), configV6.gatewayList_.end());
+    config.netMaskList_.insert(config.netMaskList_.end(), configV4.netMaskList_.begin(), configV4.netMaskList_.end());
+    config.netMaskList_.insert(config.netMaskList_.end(), configV6.netMaskList_.begin(), configV6.netMaskList_.end());
+    config.dnsServers_.insert(config.dnsServers_.end(), configV4.dnsServers_.begin(), configV4.dnsServers_.end());
+    config.dnsServers_.insert(config.dnsServers_.end(), configV6.dnsServers_.begin(), configV6.dnsServers_.end());
 }
 
 int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)

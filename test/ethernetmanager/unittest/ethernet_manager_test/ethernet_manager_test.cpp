@@ -1420,6 +1420,66 @@ HWTEST_F(EthernetManagerTest, UpdateDevInterfaceLinkInfoTest001, TestSize.Level1
     EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceLinkInfo(dhcpResult), ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL);
 }
 
+HWTEST_F(EthernetManagerTest, UpdataEthernetConfigTest001, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "0.0.0.0";
+    dhcpResult.iface = "123";
+    dhcpResult.gateWay = "123";
+    dhcpResult.subNet = "123";
+    dhcpResult.route1 = "123";
+    dhcpResult.dns1 = "123";
+    StaticConfiguration config;
+    EXPECT_EQ(ethernetmanagement->UpdataEthernetConfig(dhcpResult, config), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, UpdataEthernetConfigTest002, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "0000:0000:0000:0000:0000:0000:0000:0000";
+    dhcpResult.iface = "123";
+    dhcpResult.gateWay = "123";
+    dhcpResult.subNet = "123";
+    dhcpResult.route1 = "123";
+    dhcpResult.dns1 = "123";
+    StaticConfiguration config;
+    EXPECT_EQ(ethernetmanagement->UpdataEthernetConfig(dhcpResult, config), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EthernetManagerTest, UpdataEthernetConfigTest003, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    EthernetDhcpCallback::DhcpResult dhcpResult;
+    dhcpResult.ipAddr = "";
+    dhcpResult.iface = "123";
+    dhcpResult.gateWay = "123";
+    dhcpResult.subNet = "123";
+    dhcpResult.route1 = "123";
+    dhcpResult.dns1 = "123";
+    StaticConfiguration config;
+    EXPECT_EQ(ethernetmanagement->UpdataEthernetConfig(dhcpResult, config), ETHERNET_ERR_CONVERT_CONFIGURATINO_FAIL);
+}
+
+HWTEST_F(EthernetManagerTest, ClearEthernetConfigTest001, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    StaticConfiguration config;
+    ethernetmanagement->ClearEthernetConfig(config);
+    EXPECT_EQ(config.ipAddrList_.empty(), true);
+}
+
+HWTEST_F(EthernetManagerTest, ClearEthernetConfigTest002, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    INetAddr ipAddr;
+    StaticConfiguration config;
+    config.ipAddrList_.push_back(ipAddr);
+    ethernetmanagement->ClearEthernetConfig(config);
+    EXPECT_EQ(config.ipAddrList_.empty(), true);
+}
+
 HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgTest001, TestSize.Level1)
 {
     auto ethernetmanagement = std::make_shared<EthernetManagement>();
