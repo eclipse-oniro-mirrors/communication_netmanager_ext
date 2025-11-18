@@ -123,75 +123,75 @@ export default namespace sharing {
     });
   }
 
-  export native function getStatsRxBytesSync():long;
+  export native function getStatsRxBytesSync():int;
 
-  export function getStatsRxBytes(callback: AsyncCallback<long>): void {
-    let p1 = taskpool.execute((): long => {
+  export function getStatsRxBytes(callback: AsyncCallback<int>): void {
+    let p1 = taskpool.execute((): int => {
         return getStatsRxBytesSync();
     })
     p1.then((content: Any) => {
-        callback(new BusinessError(), content as long);
+        callback(new BusinessError(), content as int);
     }, (err: Error): void => {
         callback(err as BusinessError, 0);
     });
   }
 
-  export function getStatsRxBytes(): Promise<long> {
-    return new Promise<long>((resolve, reject) => {
-        taskpool.execute((): long => {
+  export function getStatsRxBytes(): Promise<int> {
+    return new Promise<int>((resolve, reject) => {
+        taskpool.execute((): int => {
             return getStatsRxBytesSync();
         }).then((content: Any) => {
-            resolve(content as long);
+            resolve(content as int);
         }, (err: Error): void => {
             reject(err as BusinessError);
         });
     });
   }
 
-  export native function getStatsTxBytesSync():long;
+  export native function getStatsTxBytesSync():int;
 
-  function getStatsTxBytes(callback: AsyncCallback<number>): void {
-    let p1 = taskpool.execute((): long => {
+  function getStatsTxBytes(callback: AsyncCallback<int>): void {
+    let p1 = taskpool.execute((): int => {
         return getStatsTxBytesSync();
     })
     p1.then((content: Any) => {
-        callback(new BusinessError(), content as long);
+        callback(new BusinessError(), content as int);
     }, (err: Error): void => {
         callback(err as BusinessError, 0);
     });
   }
 
-  function getStatsTxBytes(): Promise<long> {
-    return new Promise<long>((resolve, reject) => {
-      taskpool.execute((): long => {
+  function getStatsTxBytes(): Promise<int> {
+    return new Promise<int>((resolve, reject) => {
+      taskpool.execute((): int => {
           return getStatsTxBytesSync();
       }).then((content: Any) => {
-          resolve(content as long);
+          resolve(content as int);
       }, (err: Error): void => {
           reject(err as BusinessError);
       });
     });
   }
 
-  export native function getStatsTotalBytesSync():long;
+  export native function getStatsTotalBytesSync():int;
 
-  export function getStatsTotalBytes(callback: AsyncCallback<number>): void {
-    let p1 = taskpool.execute((): long => {
+  export function getStatsTotalBytes(callback: AsyncCallback<int>): void {
+    let p1 = taskpool.execute((): int => {
         return getStatsTotalBytesSync();
     })
     p1.then((content: Any) => {
-        callback(new BusinessError(), content as long);
+        callback(new BusinessError(), content as int);
     }, (err: Error): void => {
         callback(err as BusinessError, 0);
     });
   }
 
-  export function getStatsTotalBytes(): Promise<long> {
-    return new Promise<long>((resolve, reject) => {
-      taskpool.execute((): long => {
+  export function getStatsTotalBytes(): Promise<int> {
+    return new Promise<int>((resolve, reject) => {
+      taskpool.execute((): int => {
           return getStatsTotalBytesSync();
       }).then((content: Any) => {
-          resolve(content as long);
+          resolve(content as int);
       }, (err: Error): void => {
           reject(err as BusinessError);
       });
