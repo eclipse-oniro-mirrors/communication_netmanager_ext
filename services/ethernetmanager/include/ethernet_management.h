@@ -96,6 +96,10 @@ private:
     bool CanModifyCheck(IPSetMode origin, IPSetMode input);
     void ProcessChangeMode(
         const std::string &iface, sptr<DevInterfaceState> devState, sptr<InterfaceConfiguration> cfg);
+    int32_t UpdataEthernetConfig(EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
+    void ClearEthernetConfig(StaticConfiguration &config);
+    void MergeEthernetConfig(StaticConfiguration &config, StaticConfiguration &configV4,
+        StaticConfiguration &configV6);
 
 private:
     std::map<std::string, std::set<NetCap>> devCaps_;
@@ -108,6 +112,8 @@ private:
     std::map<std::string, StaticConfiguration> netLinkConfigs_;
     std::unique_ptr<EthernetLanManagement> ethLanManageMent_ = nullptr;
     std::shared_mutex mutex_;
+    std::map<std::string, StaticConfiguration> configsV4_;
+    std::map<std::string, StaticConfiguration> configsV6_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
