@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Anuluj",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Zezwolić na ten VPN?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Zezwól",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Potwierdź, że ufasz tej aplikacji. Niezaufane aplikacje mogą monitorować ruch w sieci i wykradać Twoje dane.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

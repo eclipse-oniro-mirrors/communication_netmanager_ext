@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Batal",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Izinkan VPN ini?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Izinkan",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Konfirmasikan bahwa Anda memercayai aplikasi ini. Aplikasi yang tidak tepercaya dapat memantau lalu lintas jaringan Anda dan mencuri data Anda.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"ပယ်ဖျက်မည်",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"ဤ VPN ကို ခွင့်ပြုမည်လား။",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"ခွင့်ပြုရန်",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"ဤအက်ပ်ကို သင် ယုံကြည်စိတ်ချကြောင်း အတည်ပြုပေးပါ။ မယုံကြည်ရသော အက်ပ်များက သင့်ကွန်ရက် ဒေတာ စီးဆင်းမှုကို စောင့်ကြည့်ပြီး သင့်ဒေတာများကို ခိုးယူနိုင်ပါသည်။",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

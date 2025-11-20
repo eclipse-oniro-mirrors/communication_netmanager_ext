@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"ยกเลิก",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"อนุญาต VPN นี้หรือไม่",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"อนุญาต",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"โปรดยืนยันว่าคุณเชื่อถือแอปนี้ แอปที่ไม่น่าเชื่อถืออาจตรวจสอบปริมาณการใช้งานเครือข่ายของคุณและขโมยข้อมูลของคุณ",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

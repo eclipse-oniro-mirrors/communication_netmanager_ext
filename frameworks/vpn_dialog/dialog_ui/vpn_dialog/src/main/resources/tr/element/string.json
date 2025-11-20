@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"İptal",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Bu VPN'e izin verilsin mi?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"İzin ver",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Lütfen bu uygulamaya güvendiğinizi onaylayın. Güvenilmeyen uygulamalar ağ trafiğinizi izleyebilir ve verilerinizi çalabilir.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

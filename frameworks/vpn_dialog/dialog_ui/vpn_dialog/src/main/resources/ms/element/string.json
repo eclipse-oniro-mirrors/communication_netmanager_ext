@@ -1,0 +1,32 @@
+{
+    "string":[
+        {
+            "name":"notAllowButton",
+            "value":"Batalkan",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"title",
+            "value":"Benarkan VPN ini?",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"allowButton",
+            "value":"Benarkan",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"warning",
+            "value":"Sila sahkan bahawa anda mempercayai aplikasi ini. Aplikasi yang tidak boleh dipercayai boleh memantau trafik rangkaian anda dan mencuri data anda.",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
