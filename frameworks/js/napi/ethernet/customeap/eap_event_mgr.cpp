@@ -356,10 +356,10 @@ EapEventMgr::~EapEventMgr()
             }
         }
     };
-    for (const auto iterNetType : eventRegisterInfo_) {
-        for (const auto iterRegObj : iterNetType.second) {
-            for (auto obj : iterRegObj.second) {
-                    deleteReference(obj);
+    for (auto &iterNetType : eventRegisterInfo_) {
+        for (auto &iterRegObj : iterNetType.second) {
+            for (auto &obj : iterRegObj.second) {
+                deleteReference(obj);
             }
         }
     }
