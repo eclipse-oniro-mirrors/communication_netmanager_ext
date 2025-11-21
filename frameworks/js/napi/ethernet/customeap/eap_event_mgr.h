@@ -36,7 +36,7 @@ public:
     {
     }
  
-    explicit RegObj(const napi_env& env, const napi_ref& ref, int refCount = 1)
+    explicit RegObj(const napi_env& env, const napi_ref& ref, uint32_t refCount = 1)
     {
         m_regEnv = env;
         m_regHandlerRef = ref;
