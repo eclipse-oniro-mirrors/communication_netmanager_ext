@@ -516,7 +516,7 @@ ssize_t MDnsSocketListener::MulticastAll(const MDnsPayload &payload)
     for (size_t i = 0; i < socks_.size() && i < MDNS_MAX_SOCKET; ++i) {
         ssize_t sendLen = Multicast(socks_[i], payload);
         if (sendLen == -1) {
-            return sendLen;
+            continue;
         }
         total += sendLen;
     }
