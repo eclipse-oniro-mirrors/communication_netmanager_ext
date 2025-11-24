@@ -134,7 +134,7 @@ export default class VpnDialogAbility extends extension {
       await this.vpnWin.setUIContent('pages/VpnDialog');
       await this.vpnWin.setWindowBackgroundColor('#00000000');
       await this.vpnWin.showWindow();
-      await this.onfoldStatusChange();
+      this.onfoldStatusChange();
       try {
         await this.vpnWin.hideNonSystemFloatingWindows(true);
       } catch (err) {
