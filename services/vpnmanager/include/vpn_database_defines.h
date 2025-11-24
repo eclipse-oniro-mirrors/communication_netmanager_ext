@@ -63,13 +63,15 @@ constexpr const char *VPN_CONFIG_TABLE_CREATE_PARAM = "vpnId TEXT PRIMARY KEY NO
     "ipsecSecrets TEXT NOT NULL,"
     "optionsL2tpdClient TEXT NOT NULL,"
     "xl2tpdConf TEXT NOT NULL,"
-    "l2tpSharedKey TEXT NOT NULL";
+    "l2tpSharedKey TEXT NOT NULL,"
+    "remoteAddresses TEXT NOT NULL";
 
 const std::string VPN_CONFIG_TABLE = "T_vpn_config";
 
-constexpr int32_t VPN_CONFIG_TABLE_PARAM_NUM = 40;
+constexpr int32_t VPN_CONFIG_TABLE_PARAM_NUM = 41;
 
 constexpr int32_t DATABASE_OPEN_VERSION = 1;
+constexpr int32_t VPN_DATA_DB_VER_2 = 2; // add new column "remoteAddresses"
 
 const std::string VPN_ID = "vpnId";
 const std::string VPN_NAME = "vpnName";
@@ -115,6 +117,8 @@ const std::string OPTIONS_L2TPD_CLIENT = "optionsL2tpdClient";
 const std::string XL2TPD_CONF = "xl2tpdConf";
 const std::string L2TP_SHARED_KEY = "l2tpSharedKey";
 
+const std::string VPN_REMOTE_ADDR = "remoteAddresses";
+
 constexpr int32_t INDEX_VPN_ID = 0;
 constexpr int32_t INDEX_VPN_NAME = 1;
 constexpr int32_t INDEX_VPN_TYPE = 2;
@@ -155,6 +159,7 @@ constexpr int32_t INDEX_IPSEC_SECRETS = 36;
 constexpr int32_t INDEX_OPTIONS_L2TPD_CLIENT = 37;
 constexpr int32_t INDEX_XL2TPD_CONF = 38;
 constexpr int32_t INDEX_L2TP_SHARED_KEY = 39;
+constexpr int32_t INDEX_VPN_REMOTE_ADDR = 40;
 } // namespace VpnDatabaseDefines
 } // namespace NetManagerStandard
 } // namespace OHOS

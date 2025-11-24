@@ -295,6 +295,7 @@ private:
     int32_t DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vpnObj, bool needErase = true);
     int32_t InitMultiVpnInfo(const std::string &vpnId, int32_t vpnType,
         std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj);
+    void TryParseSysRemoteAddr(sptr<VpnDataBean> &config);
 #endif // SUPPORT_SYSVPN
     int32_t IsSetUpReady(const std::string &vpnId, std::string &vpnBundleName,
         int32_t &userId, std::vector<int32_t> &activeUserIds);

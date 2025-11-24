@@ -73,12 +73,20 @@ HWTEST_F(VpnDataBeanTest, ConvertVpnBeanToIpsecVpnConfig001, TestSize.Level1)
 {
     sptr<VpnDataBean> bean = nullptr;
     EXPECT_EQ(VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(bean), nullptr);
+    bean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(bean, nullptr);
+    bean->remoteAddr_ = "test";
+    ASSERT_NE(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
 }
-
+ 
 HWTEST_F(VpnDataBeanTest, ConvertVpnBeanToL2tpVpnConfig001, TestSize.Level1)
 {
     sptr<VpnDataBean> bean = nullptr;
     EXPECT_EQ(VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(bean), nullptr);
+    bean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(bean, nullptr);
+    bean->remoteAddr_ = "test";
+    ASSERT_NE(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
 }
 
 HWTEST_F(VpnDataBeanTest, ConvertSysVpnConfigToVpnBean001, TestSize.Level1)
@@ -183,6 +191,8 @@ HWTEST_F(VpnDataBeanTest, ConvertVpnBeanToOpenvpnConfig001, TestSize.Level1)
     bean->vpnType_ = -1;
     ASSERT_NE(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
     bean->vpnType_ = VpnType::OPENVPN;
+    ASSERT_NE(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
+    bean->remoteAddr_ = "test";
     ASSERT_NE(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(bean), nullptr);
 }
 

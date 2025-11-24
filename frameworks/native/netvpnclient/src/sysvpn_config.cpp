@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+static constexpr const uint8_t MAX_REMOTE_ADDR_SIZE = 2;
 
 bool SysVpnConfig::Marshalling(Parcel &parcel) const
 {
@@ -35,7 +36,8 @@ bool SysVpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteBool(saveLogin_) &&
                  parcel.WriteInt32(userId_) &&
                  parcel.WriteString(forwardingRoutes_) &&
-                 parcel.WriteString(pkcs12Password_);
+                 parcel.WriteString(pkcs12Password_) &&
+                 VpnConfig::MarshallingVectorString(parcel, remoteAddresses_, MAX_REMOTE_ADDR_SIZE);
 
     allOK = allOK && parcel.WriteInt32(static_cast<int32_t>(pkcs12FileData_.size()));
     for (uint8_t byte : pkcs12FileData_) {
@@ -83,7 +85,8 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
                  parcel.ReadBool(ptr->saveLogin_) &&
                  parcel.ReadInt32(ptr->userId_) &&
                  parcel.ReadString(ptr->forwardingRoutes_) &&
-                 parcel.ReadString(ptr->pkcs12Password_);
+                 parcel.ReadString(ptr->pkcs12Password_) &&
+                 VpnConfig::UnmarshallingVectorString(parcel, ptr->remoteAddresses_, MAX_REMOTE_ADDR_SIZE);
 
     int32_t pkcs12FileDataSize = 0;
     uint8_t data = 0;

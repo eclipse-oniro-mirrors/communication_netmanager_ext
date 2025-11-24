@@ -59,9 +59,10 @@ HWTEST_F(VpnDatabaseHelperTest, OnUpgrade001, TestSize.Level1)
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     VpnDataBaseCallBack sqliteOpenHelperCallback;
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
-        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, NEW_VERSION, sqliteOpenHelperCallback, errCode);
-    int32_t ret = dbCallBack->OnUpgrade(*(store_), OLD_VERSION, NEW_VERSION);
+        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, OLD_VERSION, sqliteOpenHelperCallback, errCode);
+    int32_t ret = dbCallBack->OnUpgrade(*(store_), OLD_VERSION, OLD_VERSION);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    int32_t ret2 = dbCallBack->OnUpgrade(*(store_), OLD_VERSION, NEW_VERSION);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, OnDowngrade001, TestSize.Level1)
@@ -73,7 +74,7 @@ HWTEST_F(VpnDatabaseHelperTest, OnDowngrade001, TestSize.Level1)
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     VpnDataBaseCallBack sqliteOpenHelperCallback;
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
-        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, NEW_VERSION, sqliteOpenHelperCallback, errCode);
+        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, OLD_VERSION, sqliteOpenHelperCallback, errCode);
     int32_t ret = dbCallBack->OnDowngrade(*(store_), OLD_VERSION, NEW_VERSION);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
