@@ -112,6 +112,18 @@ export default class VpnDialogAbility extends extension {
     }
   }
 
+  onfoldStatusChange(): void {
+    display.on('foldStatusChange', () => {
+      let foldStatus = display.getFoldStatus();
+      if(foldStatus === 2 || foldStatus === 11 || foldStatus === 1){
+        setTimeout(() => {
+          let dis = display.getDefaultDisplaySync();
+          this.vpnWin.resize(dis.width, dis.height);
+        }, 70);
+      }
+    });
+  }
+
   private async createWindow(config: window.Configuration, rect: NavigationBarRect): Promise<void> {
     console.log('create windows execute');
     try {
@@ -122,13 +134,7 @@ export default class VpnDialogAbility extends extension {
       await this.vpnWin.setUIContent('pages/VpnDialog');
       await this.vpnWin.setWindowBackgroundColor('#00000000');
       await this.vpnWin.showWindow();
-      display.on('foldStatusChange', () => {
-        let foldStatus = display.getFoldStatus();
-        setTimeout(() => {
-          let dis = display.getDefaultDisplaySync();
-          this.vpnWin.resize(dis.width, dis.height);
-        }, 70);
-      });
+      await this.onfoldStatusChange();
       try {
         await this.vpnWin.hideNonSystemFloatingWindows(true);
       } catch (err) {
