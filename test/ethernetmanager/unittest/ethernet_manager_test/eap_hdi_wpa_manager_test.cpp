@@ -102,6 +102,39 @@ HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest001, TestSize.Level1)
     profile.eapMethod = EapMethod::EAP_NONE;
     EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest002, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthEapProfile profile;
+    std::string ifName = "eth0";
+    profile.identity = "identity";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.password = "password";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.eapMethod = EapMethod::EAP_PEAP;
+    profile.caPath = "";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.caPath = "caPath";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.phase2Method = Phase2Method::PHASE2_NONE;
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.phase2Method = Phase2Method::PHASE2_PAP;
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.eapMethod = EapMethod::EAP_TLS;
+    profile.caPath = "";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.caPath = "caPath";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.clientCertAliases = "";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.clientCertAliases = "clientCertAliases";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.certPassword = "";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    profile.certPassword = "certPassword";
+    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+}
  
 HWTEST_F(EapHdiWpaManagerTest, RemoveHistoryCtrl001, TestSize.Level1)
 {

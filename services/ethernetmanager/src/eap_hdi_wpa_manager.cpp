@@ -181,24 +181,36 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
     fileContext.append(ITEM_AP_SCAN);
     fileContext.append(ITEM_NETWORK_START);
     fileContext.append(ITEM_KEYMGMT);
-    fileContext.append(ITEM_EAP + EAP_METHOD_STR_MAP[config.eapMethod] + ITEM_LINE);
-    fileContext.append(ITEM_IDENTITY + ITEM_QUOTE + config.identity + ITEM_QUOTE + ITEM_LINE);
+    if (EAP_METHOD_STR_MAP.find(config.eapMethod) != EAP_METHOD_STR_MAP.end()) {
+        fileContext.append(ITEM_EAP + EAP_METHOD_STR_MAP[config.eapMethod] + ITEM_LINE);
+    }
+    if (!config.identity.empty()) {
+        fileContext.append(ITEM_IDENTITY + ITEM_QUOTE + config.identity + ITEM_QUOTE + ITEM_LINE);
+    }
+    if (!config.password.empty()) {
+        fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
+    }
     switch (config.eapMethod) {
         case EapMethod::EAP_PEAP:
         case EapMethod::EAP_TTLS:
-            fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
-            fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
-            fileContext.append(ITEM_PHASE2 + ITEM_QUOTE + Phase2MethodToStr(config.eapMethod, config.phase2Method)
-                + ITEM_QUOTE + ITEM_LINE);
+            if (!config.caPath.empty()) {
+                fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+            }
+            if (config.phase2Method != Phase2Method::PHASE2_NONE) {
+                fileContext.append(ITEM_PHASE2 + ITEM_QUOTE + Phase2MethodToStr(config.eapMethod, config.phase2Method)
+                    + ITEM_QUOTE + ITEM_LINE);
+            }
             break;
         case EapMethod::EAP_TLS:
-            fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
-            fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
-            fileContext.append(ITEM_CLIENT_CERT + ITEM_QUOTE + config.clientCertAliases + ITEM_QUOTE + ITEM_LINE);
-            fileContext.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + config.certPassword + ITEM_QUOTE + ITEM_LINE);
-            break;
-        case EapMethod::EAP_PWD:
-            fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
+            if (!config.caPath.empty()) {
+                fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+            }
+            if (!config.clientCertAliases.empty()) {
+                fileContext.append(ITEM_CLIENT_CERT + ITEM_QUOTE + config.clientCertAliases + ITEM_QUOTE + ITEM_LINE);
+            }
+            if (!config.certPassword.empty()) {
+                fileContext.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + config.certPassword + ITEM_QUOTE + ITEM_LINE);
+            }
             break;
         default:
             break;
