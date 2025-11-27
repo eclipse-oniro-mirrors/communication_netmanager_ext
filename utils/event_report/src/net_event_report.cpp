@@ -44,6 +44,7 @@ constexpr const char *EVENT_KEY_VPN_TYPE = "VPN_TYPE";
 constexpr const char *EVENT_KEY_VPN_BUNDLE_NAME = "BUNDLE_NAME";
 constexpr const char *EVENT_KEY_VPN_OPERATION_TYPE = "OPERATION_TYPE";
 constexpr const char *EVENT_KEY_VPN_ERROR_CODE = "ERROR_TYPE";
+constexpr const char CHR_DOMAIN[] = "CHR";
 constexpr int32_t NETMANAGER_EXT_SUCCESS = 0;
 } // namespace
 
@@ -88,7 +89,7 @@ int32_t NetEventReport::SendVpnConnectEvent(const VpnEventInfo &eventInfo)
 
 int32_t NetEventReport::SendVpnFault(const MultiVpnEvent &eventInfo)
 {
-    HiSysEventWrite(HiSysEvent::Domain::NETMANAGER_STANDARD, VPN_OPERATE_FAULT, HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(CHR_DOMAIN, VPN_OPERATE_FAULT, HiSysEvent::EventType::FAULT,
                     EVENT_KEY_VPN_USER_TYPE, eventInfo.isMainUser, EVENT_KEY_VPN_TYPE, eventInfo.vpnType,
                     EVENT_KEY_VPN_BUNDLE_NAME, eventInfo.bundleName,
                     EVENT_KEY_VPN_OPERATION_TYPE, eventInfo.operatorType,
