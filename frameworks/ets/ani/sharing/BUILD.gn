@@ -80,7 +80,7 @@ ohos_rust_shared_library("sharing_ani") {
 
 generate_static_abc("sharing") {
   base_url = "./ets"
-  files = [ "ets/@ohos.net.sharing.d.ets" ]
+  files = [ "ets/@ohos.net.sharing.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/sharing.abc"
 }
