@@ -144,6 +144,7 @@ void NetworkShareUpstreamMonitor::UnregisterListenDefaultNetwork()
     } else {
         NETMGR_EXT_LOG_E("UnRegister defaultNetworkCallback_ failed");
     }
+    defaultNetworkId_ = INVALID_NETID;
 }
 
 void NetworkShareUpstreamMonitor::RegisterUpstreamChangedCallback(
