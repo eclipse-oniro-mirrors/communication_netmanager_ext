@@ -706,6 +706,7 @@ void NetworkVpnService::HandleVpnHapObserverRegistration(const std::string& bund
 int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall, bool isInternalChannel)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
+    std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     std::string vpnBundleName;
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
@@ -736,7 +737,6 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall, 
         return ret;
     }
     HandleVpnHapObserverRegistration(vpnBundleName);
-    std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
 #ifdef SUPPORT_SYSVPN
     if (!config.vpnId_.empty()) {
         MultiVpnHelper::GetInstance().AddMultiVpnInfo(vpnObj->multiVpnInfo_);
@@ -773,6 +773,7 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 {
     NETMGR_EXT_LOG_I("DestroyVpn in");
+    std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     std::string vpnBundleName = GetBundleName();
     if (!CheckSystemCall(vpnBundleName)) {
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
@@ -784,7 +785,6 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     if (!NetManagerPermission::CheckPermission(PERMISSION_MANAGE_EDM_POLICY)) {
         if (hasOpenedVpnUid_ != IPCSkeleton::GetCallingUid()) {
 #ifdef SUPPORT_SYSVPN
-            std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
             return DestroyMultiVpn(IPCSkeleton::GetCallingUid());
 #endif // SUPPORT_SYSVPN
             NETMGR_EXT_LOG_E("not same vpn, can't destroy");
@@ -798,7 +798,6 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     if (NETMANAGER_EXT_SUCCESS != ret) {
         return ret;
     }
-    std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     if ((vpnObj_ != nullptr) && (vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
         NETMGR_EXT_LOG_E("destroy vpn is failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
