@@ -105,7 +105,23 @@ export default class VpnDialogAbility extends extension {
    */
   onDestroy(): void {
     console.info('VpnDialogAbility onDestroy.');
-    display.off('foldStatusChange');
+    try {
+      display.off('foldStatusChange');
+    } catch (err) {
+      console.error('VpnDialogAbility display off foldStatusChange failed!');
+    }
+  }
+
+  onfoldStatusChange(): void {
+    display.on('foldStatusChange', () => {
+      let foldStatus = display.getFoldStatus();
+      if(foldStatus === 2 || foldStatus === 11 || foldStatus === 1){
+        setTimeout(() => {
+          let dis = display.getDefaultDisplaySync();
+          this.vpnWin.resize(dis.width, dis.height);
+        }, 70);
+      }
+    });
   }
 
   private async createWindow(config: window.Configuration, rect: NavigationBarRect): Promise<void> {
@@ -114,26 +130,11 @@ export default class VpnDialogAbility extends extension {
       this.vpnWin = await window.createWindow(config);
       GlobalContext.getContext().setObject('vpnWin', this.vpnWin);
       globalThis.vpnWin = this.vpnWin;
-
-      display.on('foldStatusChange', () => {
-        let foldStatus = display.getFoldStatus();
-        if(foldStatus === 2 || foldStatus === 11 || foldStatus === 1){
-          setTimeout(() => {
-            let dis = display.getDefaultDisplaySync();
-            rect = {
-              left: 0,
-              top: 0,
-              width: dis.width,
-              height: dis.height
-            };
-            this.vpnWin.resize(rect.width, rect.height);
-          }, 70);
-        }
-      });
       await this.vpnWin.resize(rect.width, rect.height);
       await this.vpnWin.setUIContent('pages/VpnDialog');
       await this.vpnWin.setWindowBackgroundColor('#00000000');
       await this.vpnWin.showWindow();
+      this.onfoldStatusChange();
       try {
         await this.vpnWin.hideNonSystemFloatingWindows(true);
       } catch (err) {
