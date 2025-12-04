@@ -27,7 +27,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr const char *DEFAULT_ROUTE_ADDR = "0.0.0.0";
+constexpr const char *DEFAULT_IPV4_ADDR = "0.0.0.0";
+constexpr const char *DEFAULT_IPV6_ADDR = "::";
 } // namespace
 
 DevInterfaceState::DevInterfaceState()
@@ -231,18 +232,29 @@ void DevInterfaceState::UpdateLinkInfo()
     std::list<Route>().swap(linkInfo_->routeList_);
     std::list<INetAddr>().swap(linkInfo_->dnsList_);
     linkInfo_->ifaceName_ = devName_;
+    bool hasIpv4Addr = false;
+    bool hasIpv6Addr = false;
     for (const auto &ipAddr : ifCfg_->ipStatic_.ipAddrList_) {
         linkInfo_->netAddrList_.push_back(ipAddr);
+        auto family = CommonUtils::GetAddrFamily(ipAddr.address_);
+        bool isValidAddr = CommonUtils::IsValidAddress(ipAddr.address_);
+        hasIpv4Addr = (family == AF_INET && isValidAddr) ? true : hasIpv4Addr;
+        hasIpv6Addr = (family == AF_INET6 && isValidAddr) ? true : hasIpv6Addr;
     }
 
-    for (const auto &netAddr : ifCfg_->ipStatic_.routeList_) {
-        Route route;
-        route.iface_ = devName_;
-        route.destination_ = netAddr;
-        route.destination_.type_ = GetIpType(netAddr.address_);
-        GetTargetNetAddrWithSameFamily(netAddr.address_, ifCfg_->ipStatic_.gatewayList_, route.gateway_);
-        linkInfo_->routeList_.push_back(route);
+    if (ifCfg_->ipStatic_.routeList_.empty()) {
+        CreateDefaultRoute(ifCfg_->ipStatic_.gatewayList_, hasIpv4Addr, hasIpv6Addr);
+    } else {
+        for (const auto &netAddr : ifCfg_->ipStatic_.routeList_) {
+            Route route;
+            route.iface_ = devName_;
+            route.destination_ = netAddr;
+            route.destination_.type_ = GetIpType(netAddr.address_);
+            GetTargetNetAddrWithSameFamily(netAddr.address_, ifCfg_->ipStatic_.gatewayList_, route.gateway_);
+            linkInfo_->routeList_.push_back(route);
+        }
     }
+
     CreateLocalRoute(devName_, ifCfg_->ipStatic_.ipAddrList_, ifCfg_->ipStatic_.netMaskList_);
 
     for (auto dnsServer : ifCfg_->ipStatic_.dnsServers_) {
@@ -376,7 +388,7 @@ void DevInterfaceState::CreateLocalRoute(const std::string &iface, const std::ve
         localRoute.destination_.type_ = GetIpType(ipAddr.address_);
         localRoute.destination_.address_ = routeAddr;
         localRoute.destination_.prefixlen_ = ipAddr.prefixlen_;
-        localRoute.gateway_.address_ = (family == AF_INET) ? DEFAULT_ROUTE_ADDR : "";
+        localRoute.gateway_.address_ = (family == AF_INET) ? DEFAULT_IPV4_ADDR : "";
         linkInfo_->routeList_.push_back(localRoute);
     }
 }
@@ -479,6 +491,27 @@ uint8_t DevInterfaceState::GetIpType(const std::string& ipAddr)
         return INetAddr::IpType::IPV6;
     } else {
         return INetAddr::IpType::UNKNOWN;
+    }
+}
+
+void DevInterfaceState::CreateDefaultRoute(
+    const std::vector<INetAddr> &gatewayList, bool hasIpv4Addr, bool hasIpv6Addr)
+{
+    for (const auto &gateway : gatewayList) {
+        Route route;
+        auto ipType = GetIpType(gateway.address_);
+        if (ipType == INetAddr::IpType::IPV4 && hasIpv4Addr) {
+            route.destination_.address_ = DEFAULT_IPV4_ADDR;
+        } else if (ipType == INetAddr::IpType::IPV6 && hasIpv6Addr) {
+            route.destination_.address_ = DEFAULT_IPV6_ADDR;
+        } else {
+            continue;
+        }
+        route.destination_.type_ = ipType;
+        route.destination_.prefixlen_ = 0;
+        route.gateway_.family_ = ipType;
+        route.gateway_.address_ = gateway.address_;
+        linkInfo_->routeList_.push_back(route);
     }
 }
 } // namespace NetManagerStandard

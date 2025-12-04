@@ -387,5 +387,42 @@ HWTEST_F(DevInterfaceStateTest, GetIpType001, TestSize.Level0)
     std::string ip3 = "wrong ip";
     EXPECT_EQ(devInterfaceState.GetIpType(ip3), 0);
 }
+
+HWTEST_F(DevInterfaceStateTest, CreateDefaultRouteTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    devInterfaceState.SetlinkInfo(linkInfo);
+    std::vector<NetManagerStandard::INetAddr> gatewayList;
+    devInterfaceState.CreateDefaultRoute(gatewayList, true, true);
+    EXPECT_TRUE(linkInfo->routeList_.empty());
+}
+
+HWTEST_F(DevInterfaceStateTest, CreateDefaultRouteTest002, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    devInterfaceState.SetlinkInfo(linkInfo);
+    std::vector<NetManagerStandard::INetAddr> gatewayList;
+    NetManagerStandard::INetAddr router1, router2;
+    router1.address_ = "0.0.0.0";
+    router2.address_ = "::";
+    gatewayList.push_back(router1);
+    gatewayList.push_back(router2);
+    devInterfaceState.CreateDefaultRoute(gatewayList, true, true);
+    EXPECT_FALSE(linkInfo->routeList_.empty());
+
+    linkInfo->routeList_.clear();
+    devInterfaceState.CreateDefaultRoute(gatewayList, true, false);
+    EXPECT_FALSE(linkInfo->routeList_.empty());
+
+    linkInfo->routeList_.clear();
+    devInterfaceState.CreateDefaultRoute(gatewayList, false, true);
+    EXPECT_FALSE(linkInfo->routeList_.empty());
+
+    linkInfo->routeList_.clear();
+    devInterfaceState.CreateDefaultRoute(gatewayList, false, false);
+    EXPECT_TRUE(linkInfo->routeList_.empty());
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
