@@ -675,5 +675,12 @@ HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest002, TestSize.Level1)
     bool res = instance_->IsNeedNotify(state);
     EXPECT_TRUE(res);
 }
+
+HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
+{
+    OHOS::AAFwk::Want want;
+    EXPECT_NE(instance_->StartVpnExtensionAbility(want), ERR_OK);
+    EXPECT_NE(instance_->StopVpnExtensionAbility(want), ERR_OK);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
