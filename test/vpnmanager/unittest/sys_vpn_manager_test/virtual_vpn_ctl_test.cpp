@@ -26,6 +26,8 @@
 #include "net_manager_constants.h"
 #include "virtual_vpn_ctl.h"
 
+#include "networkvpn_client.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
@@ -42,6 +44,7 @@ void VirtualVpnCtlTest::SetUpTestSuite()
 
 HWTEST_F(VirtualVpnCtlTest, TestCreateVirtualVpn, TestSize.Level1)
 {
+#ifdef SUPPORT_SYSVPN
     NetworkVpnClient &vpnClient = NetworkVpnClient::GetInstance();
     auto config = sptr<SysVpnConfig>::MakeSptr();
 
@@ -53,7 +56,8 @@ HWTEST_F(VirtualVpnCtlTest, TestCreateVirtualVpn, TestSize.Level1)
     rc = vpnClient.NotifyConnectStage("connect", 0);
     EXPECT_EQ(rc, 0);
 
-    vpnClient.DestoryVpn(dcpcShareVpnName);
+    vpnClient.DestoryVpn(std::string("dcpc_vpn_share_mgr"));
+#endif
 }
 
 } // namespace NetManagerStandard

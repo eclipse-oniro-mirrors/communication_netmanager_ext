@@ -84,8 +84,9 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
         NETMGR_EXT_LOG_E("NotifyConnectState connect callback is null.");
         return;
     }
-    const std::string vpnId = (multiVpnInfo_ != nullptr) ? multiVpnInfo_->vpnId : "";
+    const std::string vpnId = "";
 #ifdef SUPPORT_SYSVPN
+    vpnId = (multiVpnInfo_ != nullptr) ? multiVpnInfo_->vpnId : "";
     if (multiVpnInfo_ != nullptr) {
         multiVpnInfo_->vpnConnectState = state;
         connChangedCb_->OnMultiVpnConnStateChanged(state, vpnId);
