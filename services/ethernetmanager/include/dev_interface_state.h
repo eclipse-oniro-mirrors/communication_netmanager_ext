@@ -78,6 +78,7 @@ private:
     void GetRoutePrefixlen(const std::string &bySrcAddr, const std::vector<INetAddr> &fromAddrList,
                            INetAddr &targetNetAddr);
     uint8_t GetIpType(const std::string& ipAddr);
+    void CreateDefaultRoute(const std::vector<INetAddr> &gatewayList, bool hasIpv4Addr, bool hasIpv6Addr);
 
 private:
     ConnLinkState connLinkState_ = UNREGISTERED;
