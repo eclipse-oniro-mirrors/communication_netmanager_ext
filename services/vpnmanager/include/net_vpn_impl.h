@@ -55,7 +55,7 @@ public:
     virtual bool IsSystemVpn();
 #endif // SUPPORT_SYSVPN
     int32_t RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateCb> callback);
-    void NotifyConnectState(const VpnConnectState &state);
+    virtual void NotifyConnectState(const VpnConnectState &state);
 
 public:
     inline sptr<VpnConfig> GetVpnConfig() const
@@ -83,18 +83,22 @@ public:
 #endif
         return TUN_CARD_NAME;
     }
+    std::shared_ptr<IVpnConnStateCb> GetConnectStateChangedCb()
+    {
+        return connChangedCb_;
+    }
 
     int32_t ResumeUids();
 
 protected:
     bool UpdateNetLinkInfo();
-
-private:
     bool RegisterNetSupplier(NetConnClient &netConnClientIns, bool isInternalChannel = false);
     void UnregisterNetSupplier(NetConnClient &netConnClientIns);
     bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);
-    int32_t SetNetId(const VpnEventType &isLegacy, NetConnClient &netConnClientIns);
+    bool IsGlobalVpn();
 
+private:
+    int32_t SetNetId(const VpnEventType &isLegacy, NetConnClient &netConnClientIns);
     void DelNetLinkInfo(NetConnClient &netConnClientIns);
     void AdjustRouteInfo(Route &route);
     void SetIpv4DefaultRoute(Route &ipv4DefaultRoute);

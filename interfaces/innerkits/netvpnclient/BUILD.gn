@@ -154,6 +154,7 @@ ohos_shared_library("net_vpn_manager_if") {
     "ipc:ipc_single",
     "netmanager_base:fwmark_client",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
 
   public_external_deps = [

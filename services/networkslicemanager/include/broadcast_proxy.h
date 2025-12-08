@@ -112,7 +112,8 @@ private:
     public:
         VpnEventObserver() = default;
         ~VpnEventObserver() = default;
-        int32_t OnVpnStateChanged(bool isConnected) override;
+        int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+                                  const std::string &vpnId, bool isGlobalVpn) override;
     };
 
     class SystemAbilityListener : public SystemAbilityStatusChangeStub {

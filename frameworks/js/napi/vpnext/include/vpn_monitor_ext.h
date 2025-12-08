@@ -36,7 +36,8 @@ static constexpr const char *VPN_DIALOG_POSTFIX = "**vpndialog**";
 static constexpr const char *VPN_DIALOG_BUNDLENAME = "com.ohos.vpndialog";
 class VpnEventCallback : public VpnEventCallbackStub {
 public:
-    int32_t OnVpnStateChanged(bool isConnected) override;
+    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+                              const std::string &vpnId, bool isGlobalVpn) override;
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override{ return ERR_OK; };
     int32_t OnVpnMultiUserSetUp() override{ return ERR_OK; };

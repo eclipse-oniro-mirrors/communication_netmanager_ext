@@ -42,7 +42,8 @@ using namespace testing::ext;
 } // namespace
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    int32_t OnVpnStateChanged(bool isConnected) override{ return 0; };
+    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+                              const std::string &vpnId, bool isGlobalVpn) override{ return 0; };
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override{ return 0; };
     int32_t OnVpnMultiUserSetUp() override{ return 0; };
@@ -734,7 +735,7 @@ HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
     }
     ASSERT_NE(instance_->vpnConnCallback_, nullptr);
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
-    instance_->vpnConnCallback_->OnVpnConnStateChanged(state);
+    instance_->vpnConnCallback_->OnVpnConnStateChanged(state, "vpn-tun", "", false);
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnMultiVpnConnStateChanged001, TestSize.Level1)

@@ -299,7 +299,7 @@ HWTEST_F(NetworkVpnClientTest, OnVpnMultiUserSetUp001, TestSize.Level1)
     networkVpnClient_.vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
     ASSERT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
     bool isConnected = false;
-    networkVpnClient_.vpnEventCallback_->OnVpnStateChanged(isConnected);
+    networkVpnClient_.vpnEventCallback_->OnVpnStateChanged(isConnected, "vpn-tun", "", false);
     networkVpnClient_.vpnEventCallback_->OnVpnMultiUserSetUp();
     EXPECT_EQ(networkVpnClient_.vpnEventCallback_, nullptr);
 }
