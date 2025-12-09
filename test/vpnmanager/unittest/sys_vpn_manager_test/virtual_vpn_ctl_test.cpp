@@ -34,30 +34,90 @@ namespace {
 using namespace testing::ext;
 }
 
+class VirtualVpnConnStateCbTest : public IVpnConnStateCb {
+public:
+    VirtualVpnConnStateCbTest() = default;
+    virtual ~VirtualVpnConnStateCbTest() = default;
+    void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
+                               const std::string &vpnIfAddr,
+                               const std::string &vpnId, bool isGlobalVpn) override;
+    void SendConnStateChanged(const VpnConnectState &state) override;
+    void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
+};
+
+void VirtualVpnConnStateCbTest::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
+                                                      const std::string &vpnIfAddr,
+                                                      const std::string &vpnId, bool isGlobalVpn) {}
+void VirtualVpnConnStateCbTest::SendConnStateChanged(const VpnConnectState &state) {}
+void VirtualVpnConnStateCbTest::OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) {}
+
 class VirtualVpnCtlTest : public testing::Test {
 public:
+    static inline std::unique_ptr<VirtualVpnCtl> control_ = nullptr;
     static void SetUpTestSuite();
 };
 
 void VirtualVpnCtlTest::SetUpTestSuite()
-{}
-
-HWTEST_F(VirtualVpnCtlTest, TestCreateVirtualVpn, TestSize.Level1)
 {
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    if (config == nullptr) {
+        return;
+    }
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    control_ = std::make_unique<VirtualVpnCtl>(config, "pkg", userId, activeUserIds);
+    if (control_ == nullptr) {
+        return;
+    }
+}
+
+HWTEST_F(VirtualVpnCtlTest, SetUp001, TestSize.Level1)
+{
+    control_->vpnConfig_ = nullptr;
+    EXPECT_EQ(control_->SetUp(true), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(VirtualVpnCtlTest, SetUp002, TestSize.Level1)
+{
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    control_->vpnConfig_ = config;
+    EXPECT_EQ(control_->SetUp(true), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(VirtualVpnCtlTest, Destory001, TestSize.Level1)
+{
+    EXPECT_EQ(control_->Destory(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(VirtualVpnCtlTest, NotifyConnectState001, TestSize.Level1)
+{
+    control_->connChangedCb_ = nullptr;
+    control_->NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+    EXPECT_EQ(control_->netSupplierId_, 0);
+}
+
+HWTEST_F(VirtualVpnCtlTest, NotifyConnectState002, TestSize.Level1)
+{
+    std::shared_ptr<IVpnConnStateCb> cb = std::make_shared<VirtualVpnConnStateCbTest>();
+    control_->connChangedCb_ = cb;
 #ifdef SUPPORT_SYSVPN
-    NetworkVpnClient &vpnClient = NetworkVpnClient::GetInstance();
-    auto config = sptr<SysVpnConfig>::MakeSptr();
-
-    config->vpnType_ = VpnType::VIRTUAL_VPN;
-    config->vpnId_ = "dcpc_vpn_share_mgr";
-    int32_t rc = vpnClient.SetUpVpn(config, true);
-    EXPECT_EQ(rc, 0);
-
-    rc = vpnClient.NotifyConnectStage("connect", 0);
-    EXPECT_EQ(rc, 0);
-
-    vpnClient.DestoryVpn(std::string("dcpc_vpn_share_mgr"));
+    control_->multiVpnInfo_ = nullptr;
 #endif
+    control_->NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+    EXPECT_EQ(control_->netSupplierId_, 0);
+}
+
+HWTEST_F(VirtualVpnCtlTest, NotifyConnectState003, TestSize.Level1)
+{
+    std::shared_ptr<IVpnConnStateCb> cb = std::make_shared<VirtualVpnConnStateCbTest>();
+    control_->connChangedCb_ = cb;
+#ifdef SUPPORT_SYSVPN
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    vpnInfo->vpnId = "test";
+    control_->multiVpnInfo_ = vpnInfo;
+#endif
+    control_->NotifyConnectState(VpnConnectState::VPN_CONNECTED);
+    EXPECT_EQ(control_->netSupplierId_, 0);
 }
 
 } // namespace NetManagerStandard

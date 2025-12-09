@@ -2124,13 +2124,14 @@ void NetworkVpnService::RemoveALLClientDeathRecipient()
 }
 
 void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
+                                              const std::string &vpnIfAddr,
                                               const std::string &vpnId, bool isGlobalVpn)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
     std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
         [&state, &vpnIfName, &vpnId, &isGlobalVpn](const auto &callback) {
             bool isConnected = (VpnConnectState::VPN_CONNECTED == state) ? true : false;
-            callback->OnVpnStateChanged(isConnected, vpnIfName, vpnId, isGlobalVpn);
+            callback->OnVpnStateChanged(isConnected, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
         });
 }
 

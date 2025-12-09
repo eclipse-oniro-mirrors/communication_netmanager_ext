@@ -177,6 +177,7 @@ void broadcast_proxy::SystemAbilityListener::RegisterDnsResultCallback()
 }
 
 int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+                                                             const std::string &vpnIfAddr,
                                                              const std::string &vpnId, bool isGlobalVpn)
 {
     NETMGR_EXT_LOG_E("vpn state changed. cur state: %{public}d", isConnected);

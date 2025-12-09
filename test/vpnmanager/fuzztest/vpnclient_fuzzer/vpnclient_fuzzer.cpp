@@ -98,7 +98,7 @@ Route GetRouteData()
 
 class VpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName, const std::string &vpnIfAddr,
                               const std::string &vpnId, bool isGlobalVpn) override { return 0; };
     int32_t OnVpnMultiUserSetUp()override { return 0; };
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,

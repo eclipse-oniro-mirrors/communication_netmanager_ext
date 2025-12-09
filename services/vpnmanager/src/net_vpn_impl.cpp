@@ -120,8 +120,7 @@ bool NetVpnImpl::IsGlobalVpn()
                      validRefusedApps, validAcceptedApps, static_cast<int>(vpnConfig_->routes_.size()));
 
     return (validAcceptedApps == 0) &&
-           (validRefusedApps == 0) &&
-           (vpnConfig_->routes_.size() == 0);
+           (validRefusedApps == 0);
 }
 
 uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)

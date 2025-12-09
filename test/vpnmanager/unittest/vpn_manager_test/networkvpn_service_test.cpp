@@ -38,7 +38,7 @@ using namespace testing::ext;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 class VpnEventTestCallback : public VpnEventCallbackStub {
 public:
-    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName, const std::string &vpnIfAddr,
                               const std::string &vpnId, bool isGlobalVpn) override{ return 0; };
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override{ return 0; };

@@ -266,5 +266,31 @@ HWTEST_F(NetVpnImplTest, ConvertVpnIpv4Address001, TestSize.Level1)
     std::string result = netVpnImpl_->ConvertVpnIpv4Address(0);
     EXPECT_EQ(result, "0.0.0.0");
 }
+
+HWTEST_F(NetVpnImplTest, IsGlobalVpn001, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = nullptr;
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    netVpnImpl_->vpnConfig_->acceptedApplications_.push_back("testapp1");
+    netVpnImpl_->vpnConfig_->acceptedApplications_.push_back("");
+    netVpnImpl_->vpnConfig_->refusedApplications_.push_back("testapp2");
+    netVpnImpl_->vpnConfig_->refusedApplications_.push_back("");
+    EXPECT_EQ(netVpnImpl_->IsGlobalVpn(), false);
+    
+    netVpnImpl_->vpnConfig_->acceptedApplications_.clear();
+    netVpnImpl_->vpnConfig_->refusedApplications_.clear();
+    EXPECT_EQ(netVpnImpl_->IsGlobalVpn(), true);
+}
+
+HWTEST_F(NetVpnImplTest, GetVpnIfAddr001, TestSize.Level1)
+{
+    INetAddr addr;
+    addr.address_ = "1.2.3.4";
+    netVpnImpl_->vpnConfig_ = nullptr;
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    netVpnImpl_->vpnConfig_->addresses_.clear();
+    netVpnImpl_->vpnConfig_->addresses_.push_back(addr);
+    EXPECT_EQ(netVpnImpl_->GetVpnIfAddr(), "1.2.3.4");
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
