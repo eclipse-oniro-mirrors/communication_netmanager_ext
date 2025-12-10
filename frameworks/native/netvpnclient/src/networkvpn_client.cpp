@@ -158,7 +158,7 @@ void NetworkVpnClient::SystemAbilityListener::OnAddSystemAbility(int32_t systemA
 {
     switch (systemAbilityId) {
         case COMM_VPN_MANAGER_SYS_ABILITY_ID: {
-            ffrt::submit([this] { 
+            ffrt::submit([this] {
                 NetworkVpnClient::GetInstance().SetVpnSaState(true);
                 NetworkVpnClient::GetInstance().RegisterVpnEventCbCollection();
 #ifdef SUPPORT_SYSVPN

@@ -1139,7 +1139,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateVirtualCtl(const sptr<SysVp
         return nullptr;
     }
 
-    std::shared_ptr<VirtualVpnCtl> virtualVpnCtl = 
+    std::shared_ptr<VirtualVpnCtl> virtualVpnCtl =
         std::make_shared<VirtualVpnCtl>(config, "", userId, activeUserIds);
     return virtualVpnCtl;
 }

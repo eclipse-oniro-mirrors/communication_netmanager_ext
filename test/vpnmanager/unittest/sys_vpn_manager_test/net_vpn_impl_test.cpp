@@ -70,7 +70,8 @@ bool NetVpnImplInstance::IsInternalVpn()
 }
 
 void VpnConnStateCbTest::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                                               const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) {}
+                                               const std::string &vpnIfAddr,
+                                               const std::string &vpnId, bool isGlobalVpn) {}
 
 class NetVpnImplTest : public testing::Test {
 public:
