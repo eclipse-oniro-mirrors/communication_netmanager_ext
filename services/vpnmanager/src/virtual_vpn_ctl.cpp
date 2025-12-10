@@ -36,7 +36,7 @@ bool VirtualVpnCtl::IsInternalVpn()
 
 /*
  * virtual vpn ctl is used for distributed modem;
- * when the phone is sharing vpn, the tablet should alse show vpn sharing icon,
+ * when the phone is sharing vpn, the tablet should also show vpn sharing icon,
  * the class VirtualVpnCtl is used for show vpn sharing icon and register the VPN bearer;
  * Here we reuse RegisterNetSupplier, UpdateNetSupplierInfo, NotifyConnectState of base class
  * to implements the vpn icon and vpn bearer type.
@@ -82,14 +82,15 @@ void VirtualVpnCtl::NotifyConnectState(const VpnConnectState &state)
         return;
     }
 
-    const std::string vpnId = (multiVpnInfo_ != nullptr) ? multiVpnInfo_->vpnId : "";
+    std::string vpnId = "";
 #ifdef SUPPORT_SYSVPN
+    vpnId = (multiVpnInfo_ != nullptr) ? multiVpnInfo_->vpnId : "";
     if (multiVpnInfo_ != nullptr) {
         multiVpnInfo_->vpnConnectState = state;
         cb->OnMultiVpnConnStateChanged(state, vpnId);
     }
 #endif // SUPPORT_SYSVPN
-    cb->OnVpnConnStateChanged(state, GetInterfaceName(), vpnId, IsGlobalVpn());
+    cb->OnVpnConnStateChanged(state, GetInterfaceName(), GetVpnIfAddr(), vpnId, IsGlobalVpn());
     cb->SendConnStateChanged(state);
 }
 
@@ -107,7 +108,7 @@ int32_t VirtualVpnCtl::Destroy()
     NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
 #endif
 
-    NETMGR_EXT_LOG_I("virtual vpn destory interface name:%{public}s", GetInterfaceName().c_str());
+    NETMGR_EXT_LOG_I("virtual vpn destroy interface name:%{public}s", GetInterfaceName().c_str());
     return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard

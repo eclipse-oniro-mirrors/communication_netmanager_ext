@@ -92,7 +92,8 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
         connChangedCb_->OnMultiVpnConnStateChanged(state, vpnId);
     }
 #endif // SUPPORT_SYSVPN
-    connChangedCb_->OnVpnConnStateChanged(state, GetInterfaceName(), vpnId, IsGlobalVpn());
+    connChangedCb_->OnVpnConnStateChanged(state, GetInterfaceName(),
+                                          GetVpnIfAddr(), vpnId, IsGlobalVpn());
     if (userId_ == 0) {
         return;
     }
@@ -121,6 +122,17 @@ bool NetVpnImpl::IsGlobalVpn()
 
     return (validAcceptedApps == 0) &&
            (validRefusedApps == 0);
+}
+
+std::string NetVpnImpl::GetVpnIfAddr()
+{
+    std::string ifAddr = "";
+
+    if (!vpnConfig_->addresses_.empty()) {
+        ifAddr = vpnConfig_->addresses_.back().address_;
+    }
+
+    return ifAddr;
 }
 
 uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)

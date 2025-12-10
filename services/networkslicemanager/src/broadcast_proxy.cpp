@@ -155,14 +155,14 @@ void broadcast_proxy::UnSubscribeApplicationState()
 void broadcast_proxy::SystemAbilityListener::RegisterVpnEventCallback()
 {
     ffrt::submit([this] {
-        NETMGR_EXT_LOG_E("RegisterVpnEventCallback start.");
+        NETMGR_EXT_LOG_I("RegisterVpnEventCallback start.");
         if (vpnEventObserver_ == nullptr) {
             vpnEventObserver_ = sptr<broadcast_proxy::VpnEventObserver>::MakeSptr();
         }
         if (NetManagerStandard::NetworkVpnClient::GetInstance().RegisterVpnEvent(vpnEventObserver_) != 0) {
             NETMGR_EXT_LOG_E("vpn event observer register failed");
         }
-        NETMGR_EXT_LOG_E("RegisterVpnEventCallback success.");
+        NETMGR_EXT_LOG_I("RegisterVpnEventCallback success.");
     });
 }
 

@@ -46,7 +46,7 @@ public:
     VpnConnStateCbTest() = default;
     virtual ~VpnConnStateCbTest() = default;
     void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                               const std::string &vpnId, bool isGlobalVpn) override;
+                               const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) override;
 };
 
 NetVpnImplInstance::NetVpnImplInstance(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds)
@@ -70,6 +70,7 @@ bool NetVpnImplInstance::IsInternalVpn()
 }
 
 void VpnConnStateCbTest::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
+                                               const std::string &vpnIfAddr,
                                                const std::string &vpnId, bool isGlobalVpn) {}
 
 class NetVpnImplTest : public testing::Test {

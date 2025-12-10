@@ -221,12 +221,13 @@ void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &st
 
 void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectState &state,
                                                               const std::string &vpnIfName,
+                                                              const std::string &vpnIfAddr,
                                                               const std::string &vpnId,
                                                               bool isGlobalVpn)
 {
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
     if (vpnService_.IsNeedNotify(state)) {
-        return vpnService_.OnVpnConnStateChanged(state, vpnIfName, vpnId, isGlobalVpn);
+        return vpnService_.OnVpnConnStateChanged(state, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
     }
     return;
 }
@@ -1130,7 +1131,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateOpenvpnCtl(const sptr<SysVp
     return openVpnCtl;
 }
 
-std::stared_ptr<NetVpnImpl> NetworkVpnService::CreateVirtualCtl(const sptr<SysVpnConfig> &config, int32_t userId,
+std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateVirtualCtl(const sptr<SysVpnConfig> &config, int32_t userId,
     std::vector<int32_t> &activeUserIds)
 {
     if (config == nullptr) {
@@ -2129,7 +2130,7 @@ void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, cons
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
     std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
-        [&state, &vpnIfName, &vpnId, &isGlobalVpn](const auto &callback) {
+        [&state, &vpnIfName, &vpnIfAddr, &vpnId, &isGlobalVpn](const auto &callback) {
             bool isConnected = (VpnConnectState::VPN_CONNECTED == state) ? true : false;
             callback->OnVpnStateChanged(isConnected, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
         });

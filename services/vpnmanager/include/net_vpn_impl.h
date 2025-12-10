@@ -96,6 +96,7 @@ protected:
     void UnregisterNetSupplier(NetConnClient &netConnClientIns);
     bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);
     bool IsGlobalVpn();
+    std::string GetVpnIfAddr();
 
 private:
     int32_t SetNetId(const VpnEventType &isLegacy, NetConnClient &netConnClientIns);

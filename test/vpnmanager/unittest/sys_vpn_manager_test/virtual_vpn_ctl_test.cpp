@@ -84,9 +84,9 @@ HWTEST_F(VirtualVpnCtlTest, SetUp002, TestSize.Level1)
     EXPECT_EQ(control_->SetUp(true), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
-HWTEST_F(VirtualVpnCtlTest, Destory001, TestSize.Level1)
+HWTEST_F(VirtualVpnCtlTest, Destroy001, TestSize.Level1)
 {
-    EXPECT_EQ(control_->Destory(), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(control_->Destroy(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(VirtualVpnCtlTest, NotifyConnectState001, TestSize.Level1)

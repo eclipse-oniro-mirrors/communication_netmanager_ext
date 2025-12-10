@@ -70,7 +70,7 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         explicit VpnConnStateCb(NetworkVpnService &vpnService) : vpnService_(vpnService) {};
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                                   const std::string &vpnId, bool isGlobalVpn) override;
+                                   const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) override;
         void SendConnStateChanged(const VpnConnectState &state) override;
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 
@@ -311,7 +311,7 @@ private:
     bool IsCurrentVpnPid(int32_t uid, int32_t pid);
     bool CheckVpnPermission(const std::string &bundleName);
     void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                               const std::string &vpnId, bool isGlobalVpn);
+                               const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn);
 #ifdef SUPPORT_SYSVPN
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId, int32_t userId);
 #endif

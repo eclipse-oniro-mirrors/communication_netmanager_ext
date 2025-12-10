@@ -758,7 +758,7 @@ HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
     }
     ASSERT_NE(instance_->vpnConnCallback_, nullptr);
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
-    instance_->vpnConnCallback_->OnVpnConnStateChanged(state, "vpn-tun", "", false);
+    instance_->vpnConnCallback_->OnVpnConnStateChanged(state, "vpn-tun", "192.168.10.2", "", false);
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnMultiVpnConnStateChanged001, TestSize.Level1)
