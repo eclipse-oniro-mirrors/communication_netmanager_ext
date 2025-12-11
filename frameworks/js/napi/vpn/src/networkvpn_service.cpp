@@ -1715,10 +1715,13 @@ void NetworkVpnService::StartAlwaysOnVpn()
         std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
         if (vpnObj_ != nullptr) {
             std::string pkg = vpnObj_->GetVpnPkg();
+            lock.unlock();
             if (pkg != alwaysOnBundleName) {
                 NETMGR_EXT_LOG_W("vpn [ %{public}s] exist, destroy vpn first", pkg.c_str());
                 DestroyVpn();
             }
+        } else {
+            lock.unlock();
         }
         // recover vpn config
         RecoverVpnConfig();
