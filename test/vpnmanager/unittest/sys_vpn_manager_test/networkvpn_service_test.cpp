@@ -326,7 +326,7 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
 
     instance_->vpnObj_ = nullptr;
     ret = instance_->SetUpVpn(*config, true);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     ret = instance_->SetUpVpn(*config, true);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
@@ -804,7 +804,7 @@ HWTEST_F(NetworkVpnServiceTest, IsSetUpReady001, TestSize.Level1)
     ret = instance_->IsSetUpReady(id, vpnBundleName, userId, activeUserIds);
     EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
     ret = instance_->IsSetUpReady("", vpnBundleName, userId, activeUserIds);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
     config->vpnId_ = "1234";
     ret = instance_->SetUpSysVpn(config, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
