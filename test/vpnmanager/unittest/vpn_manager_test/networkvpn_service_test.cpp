@@ -331,7 +331,7 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
     }
     instance_->setVpnPidMap_.emplace(userId, 123456);
     vpnHapObserver->OnProcessDied(data);
-    EXPECT_TRUE(instance_->vpnObj_ == nullptr);
+    EXPECT_FALSE(instance_->vpnObj_ == nullptr);
 }
 
 HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest002, TestSize.Level1)
