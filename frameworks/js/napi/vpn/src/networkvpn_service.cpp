@@ -193,13 +193,18 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state)
             NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
             return false;
         }
-        if ((userId == 0 && vpnObjMap_.size() > 0) || (userId != 0 && vpnObj_ != nullptr)) {
-            NETMGR_EXT_LOG_E("other type vpn is connnected");
+        if (userId != 0 && vpnObj_ != nullptr) {
+            NETMGR_EXT_LOG_E("single type vpn is connnected");
             return false;
         }
         for (const auto &[name, vpn] : vpnObjMap_) {
             if (vpn == nullptr || vpn->multiVpnInfo_ == nullptr) {
                 continue;
+            }
+            if (userId == 0 && vpn->multiVpnInfo_->ifName.substr(0, sizeof(INNER_CHL_NAME)) != INNER_CHL_NAME &&
+                vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
+                NETMGR_EXT_LOG_E("multi type vpn is connnected");
+                return false;
             }
             if (vpn->multiVpnInfo_->userId == userId &&
                 vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
