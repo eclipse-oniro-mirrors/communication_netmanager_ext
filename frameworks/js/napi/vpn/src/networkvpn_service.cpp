@@ -201,7 +201,7 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state)
             if (vpn == nullptr || vpn->multiVpnInfo_ == nullptr) {
                 continue;
             }
-            if (userId == 0 && vpn->multiVpnInfo_->ifName.substr(0, sizeof(INNER_CHL_NAME)) != INNER_CHL_NAME &&
+            if (userId == 0 && vpn->multiVpnInfo_->ifName.substr(0, strlen(INNER_CHL_NAME)) != INNER_CHL_NAME &&
                 vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
                 NETMGR_EXT_LOG_E("multi type vpn is connnected");
                 return false;
