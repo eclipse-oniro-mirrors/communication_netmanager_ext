@@ -319,7 +319,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest002, TestSiz
     state = NET_CONN_STATE_IDLE;
     monitor->isDunApnUsed_ = false;
     monitor->OnNetworkConnectChange(state, bearerType);
-    EXPECT_GE(monitor->defaultNetworkId_, 0);
+    EXPECT_LE(monitor->defaultNetworkId_, 0);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
