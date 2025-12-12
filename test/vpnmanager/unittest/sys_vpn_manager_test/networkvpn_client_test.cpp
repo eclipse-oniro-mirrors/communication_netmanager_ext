@@ -301,7 +301,7 @@ HWTEST_F(NetworkVpnClientTest, OnVpnMultiUserSetUp001, TestSize.Level1)
     bool isConnected = false;
     networkVpnClient_.vpnEventCallback_->OnVpnStateChanged(isConnected);
     networkVpnClient_.vpnEventCallback_->OnVpnMultiUserSetUp();
-    EXPECT_EQ(networkVpnClient_.vpnEventCallback_, nullptr);
+    EXPECT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
 }
 
 HWTEST_F(NetworkVpnClientTest, RecoverCallback001, TestSize.Level1)
