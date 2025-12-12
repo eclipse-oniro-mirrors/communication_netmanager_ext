@@ -271,6 +271,8 @@ HWTEST_F(NetVpnImplTest, ConvertVpnIpv4Address001, TestSize.Level1)
 HWTEST_F(NetVpnImplTest, IsGlobalVpn001, TestSize.Level1)
 {
     netVpnImpl_->vpnConfig_ = nullptr;
+    EXPECT_EQ(netVpnImpl_->IsGlobalVpn(), false);
+
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
     netVpnImpl_->vpnConfig_->acceptedApplications_.push_back("testapp1");
     netVpnImpl_->vpnConfig_->acceptedApplications_.push_back("");
@@ -288,6 +290,8 @@ HWTEST_F(NetVpnImplTest, GetVpnIfAddr001, TestSize.Level1)
     INetAddr addr;
     addr.address_ = "1.2.3.4";
     netVpnImpl_->vpnConfig_ = nullptr;
+    EXPECT_EQ(netVpnImpl_->GetVpnIfAddr(), "");
+    
     netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
     netVpnImpl_->vpnConfig_->addresses_.clear();
     netVpnImpl_->vpnConfig_->addresses_.push_back(addr);

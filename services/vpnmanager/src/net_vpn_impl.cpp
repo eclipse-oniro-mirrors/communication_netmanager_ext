@@ -105,6 +105,10 @@ bool NetVpnImpl::IsGlobalVpn()
     int32_t validAcceptedApps = 0;
     int32_t validRefusedApps = 0;
 
+    if (vpnConfig_ == nullptr) {
+        return false;
+    }
+
     for (auto &e : vpnConfig_->acceptedApplications_) {
         if (!e.empty()) {
             ++validAcceptedApps;
@@ -128,7 +132,7 @@ std::string NetVpnImpl::GetVpnIfAddr()
 {
     std::string ifAddr = "";
 
-    if (!vpnConfig_->addresses_.empty()) {
+    if (vpnConfig_ != nullptr && !vpnConfig_->addresses_.empty()) {
         ifAddr = vpnConfig_->addresses_.back().address_;
     }
 
