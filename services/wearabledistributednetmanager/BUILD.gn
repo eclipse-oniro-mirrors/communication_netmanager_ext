@@ -69,6 +69,7 @@ wearable_distributed_net_manager_external_deps = [
   "ipc:ipc_core",
   "netmanager_base:net_conn_manager_if",
   "netmanager_base:net_data_share",
+  "data_share:datashare_consumer",
   "netmanager_base:net_manager_common",
   "netmanager_base:net_native_manager_if",
   "netmanager_base:net_service_common",
