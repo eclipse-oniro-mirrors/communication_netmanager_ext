@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,21 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef VPN_CONN_STATE_CALLBACK_H
-#define VPN_CONN_STATE_CALLBACK_H
+#ifndef VIRTUAL_VPN_CTL_H
+#define VIRTUAL_VPN_CTL_H
 
-#include "net_manager_ext_constants.h"
+#include <cstdint>
+
+#include "net_vpn_impl.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-
-class IVpnConnStateCb {
+class VirtualVpnCtl : public NetVpnImpl {
 public:
-    virtual void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                                       const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) = 0;
-    virtual void SendConnStateChanged(const VpnConnectState &state) {};
-    virtual void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) {};
+    VirtualVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId, std::vector<int32_t> &activeUserIds);
+    ~VirtualVpnCtl() = default;
+    
+    bool IsInternalVpn() override;
+    int32_t SetUp(bool isInternalChannel = false) override;
+    void NotifyConnectState(const VpnConnectState &state) override;
+    int32_t Destroy() override;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
-#endif // VPN_CONN_STATE_CALLBACK_H
+#endif // VIRTUAL_VPN_CTL_H

@@ -124,6 +124,7 @@ ohos_shared_library("net_vpn_manager") {
       "$VPNMANAGER_SOURCE_DIR/src/ipsec_vpn_ctl.cpp",
       "$VPNMANAGER_SOURCE_DIR/src/l2tp_vpn_ctl.cpp",
       "$VPNMANAGER_SOURCE_DIR/src/open_vpn_ctl.cpp",
+      "$VPNMANAGER_SOURCE_DIR/src/virtual_vpn_ctl.cpp",
     ]
   }
 
@@ -154,6 +155,7 @@ ohos_static_library("net_vpn_manager_static") {
       "$VPNMANAGER_SOURCE_DIR/src/ipsec_vpn_ctl.cpp",
       "$VPNMANAGER_SOURCE_DIR/src/l2tp_vpn_ctl.cpp",
       "$VPNMANAGER_SOURCE_DIR/src/open_vpn_ctl.cpp",
+      "$VPNMANAGER_SOURCE_DIR/src/virtual_vpn_ctl.cpp",
     ]
   }
 

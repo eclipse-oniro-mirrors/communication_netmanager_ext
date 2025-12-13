@@ -14,7 +14,7 @@
  */
 
 #include "networkvpn_client.h"
-
+#include "ffrt.h"
 #include <thread>
 #ifdef SUPPORT_SYSVPN
 #include <vector>
@@ -49,13 +49,15 @@ int32_t VpnSetUpEventCallback::OnVpnMultiUserSetUp()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnEventCallbackCollection::OnVpnStateChanged(bool isConnected)
+int32_t VpnEventCallbackCollection::OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+                                                      const std::string &vpnIfAddr,
+                                                      const std::string &vpnId, bool isGlobalVpn)
 {
     std::shared_lock<std::shared_mutex> lock(vpnEventCbMutex_);
     std::list<sptr<IVpnEventCallback>> tmpList = vpnEventCbList_;
     lock.unlock();
     for (auto iter = tmpList.begin(); iter != tmpList.end(); iter++) {
-        (*iter)->OnVpnStateChanged(isConnected);
+        (*iter)->OnVpnStateChanged(isConnected, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
     }
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -156,11 +158,13 @@ void NetworkVpnClient::SystemAbilityListener::OnAddSystemAbility(int32_t systemA
 {
     switch (systemAbilityId) {
         case COMM_VPN_MANAGER_SYS_ABILITY_ID: {
-            NetworkVpnClient::GetInstance().SetVpnSaState(true);
-            NetworkVpnClient::GetInstance().RegisterVpnEventCbCollection();
+            ffrt::submit([this] {
+                NetworkVpnClient::GetInstance().SetVpnSaState(true);
+                NetworkVpnClient::GetInstance().RegisterVpnEventCbCollection();
 #ifdef SUPPORT_SYSVPN
-            NetworkVpnClient::GetInstance().RegisterMultiVpnEventCbCollection();
+                NetworkVpnClient::GetInstance().RegisterMultiVpnEventCbCollection();
 #endif
+            });
             break;
         }
         default:
@@ -512,7 +516,10 @@ void NetworkVpnClient::RegisterVpnEventCbCollection()
         NETMGR_EXT_LOG_E("RegisterVpnEventCbCollection proxy is nullptr");
         return;
     }
-    proxy->RegisterVpnEvent(vpnEventCbCollection_);
+    int32_t rc = proxy->RegisterVpnEvent(vpnEventCbCollection_);
+    if (rc != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy RegisterVpnEvent failed");
+    }
 }
 
 int32_t NetworkVpnClient::RegisterVpnEventCbInner(bool isMultivpn)

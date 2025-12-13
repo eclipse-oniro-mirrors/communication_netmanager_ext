@@ -154,14 +154,16 @@ void broadcast_proxy::UnSubscribeApplicationState()
 
 void broadcast_proxy::SystemAbilityListener::RegisterVpnEventCallback()
 {
-    NETMGR_EXT_LOG_E("RegisterVpnEventCallback start.");
-    if (vpnEventObserver_ == nullptr) {
-        vpnEventObserver_ = sptr<broadcast_proxy::VpnEventObserver>::MakeSptr();
-    }
-    if (NetManagerStandard::NetworkVpnClient::GetInstance().RegisterVpnEvent(vpnEventObserver_) != 0) {
-        NETMGR_EXT_LOG_E("vpn event observer register failed");
-    }
-    NETMGR_EXT_LOG_E("RegisterVpnEventCallback success.");
+    ffrt::submit([this] {
+        NETMGR_EXT_LOG_I("RegisterVpnEventCallback start.");
+        if (vpnEventObserver_ == nullptr) {
+            vpnEventObserver_ = sptr<broadcast_proxy::VpnEventObserver>::MakeSptr();
+        }
+        if (NetManagerStandard::NetworkVpnClient::GetInstance().RegisterVpnEvent(vpnEventObserver_) != 0) {
+            NETMGR_EXT_LOG_E("vpn event observer register failed");
+        }
+        NETMGR_EXT_LOG_I("RegisterVpnEventCallback success.");
+    });
 }
 
 void broadcast_proxy::SystemAbilityListener::RegisterDnsResultCallback()
@@ -174,7 +176,9 @@ void broadcast_proxy::SystemAbilityListener::RegisterDnsResultCallback()
     NETMGR_EXT_LOG_E("RegisterVpnEventCallback success.");
 }
 
-int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool isConnected)
+int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
+                                                             const std::string &vpnIfAddr,
+                                                             const std::string &vpnId, bool isGlobalVpn)
 {
     NETMGR_EXT_LOG_E("vpn state changed. cur state: %{public}d", isConnected);
     Singleton<NetworkSliceMsgCenter>::GetInstance().Publish(EVENT_VPN_MODE_CHANGED, isConnected);

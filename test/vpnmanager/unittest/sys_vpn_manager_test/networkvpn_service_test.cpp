@@ -42,7 +42,8 @@ using namespace testing::ext;
 } // namespace
 class IVpnEventCallbackTest : public IRemoteStub<IVpnEventCallback> {
 public:
-    int32_t OnVpnStateChanged(bool isConnected) override{ return 0; };
+    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName, const std::string &vpnIfAddr,
+                              const std::string &vpnId, bool isGlobalVpn) override{ return 0; };
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override{ return 0; };
     int32_t OnVpnMultiUserSetUp() override{ return 0; };
@@ -421,6 +422,29 @@ HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl004, TestSize.Level1)
     EXPECT_TRUE(sysVpnCtl != nullptr);
 }
 
+HWTEST_F(NetworkVpnServiceTest, CreateSysVpnCtl005, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = new (std::nothrow) OpenvpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = "1234";
+    config->vpnName_ = "test001";
+    config->vpnType_ = 12;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    EXPECT_TRUE(sysVpnCtl != nullptr);
+    
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, false);
+    EXPECT_TRUE(sysVpnCtl == nullptr);
+}
+
 HWTEST_F(NetworkVpnServiceTest, Init001, TestSize.Level1)
 {
     EXPECT_EQ(instance_->Init(), false);
@@ -734,7 +758,7 @@ HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
     }
     ASSERT_NE(instance_->vpnConnCallback_, nullptr);
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
-    instance_->vpnConnCallback_->OnVpnConnStateChanged(state);
+    instance_->vpnConnCallback_->OnVpnConnStateChanged(state, "vpn-tun", "192.168.10.2", "", false);
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnMultiVpnConnStateChanged001, TestSize.Level1)
@@ -809,6 +833,14 @@ HWTEST_F(NetworkVpnServiceTest, IsSetUpReady001, TestSize.Level1)
     ret = instance_->SetUpSysVpn(config, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     instance_->vpnObjMap_.erase(id);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CreateVirtualCtl001, TestSize.Level1)
+{
+    sptr<SysVpnConfig> config = nullptr;
+    std::vector<int32_t> ids;
+    std::shared_ptr<NetVpnImpl> vpn = instance_->CreateVirtualCtl(config, 0, ids);
+    EXPECT_EQ(vpn, nullptr);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

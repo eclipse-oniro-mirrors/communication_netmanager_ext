@@ -69,7 +69,8 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
     public:
         explicit VpnConnStateCb(NetworkVpnService &vpnService) : vpnService_(vpnService) {};
         virtual ~VpnConnStateCb() = default;
-        void OnVpnConnStateChanged(const VpnConnectState &state) override;
+        void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
+                                   const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) override;
         void SendConnStateChanged(const VpnConnectState &state) override;
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 
@@ -247,6 +248,7 @@ private:
     int32_t SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback);
     int32_t SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback);
     int32_t RemoteUnregisterVpnEvent(const sptr<IVpnEventCallback> &callback);
+    bool IsSelfCall();
 
     #ifdef SUPPORT_SYSVPN
     int32_t SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallback> callback, const std::string &vpnBundleName);
@@ -289,6 +291,8 @@ private:
     int32_t QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean);
     std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
+    std::shared_ptr<NetVpnImpl> CreateVirtualCtl(const sptr<SysVpnConfig> &config, int32_t userId,
+        std::vector<int32_t> &activeUserIds);
     int32_t DestroyMultiVpn(int32_t callingUid);
     void DestroyMultiVpnByUserId(int32_t userId, const std::string &bundleName);
     void TryDestroyInnerChannel();
@@ -306,7 +310,8 @@ private:
     void UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &VpnHapObserver);
     bool IsCurrentVpnPid(int32_t uid, int32_t pid);
     bool CheckVpnPermission(const std::string &bundleName);
-    void OnVpnConnStateChanged(const VpnConnectState &state);
+    void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
+                               const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn);
 #ifdef SUPPORT_SYSVPN
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId, int32_t userId);
 #endif

@@ -48,6 +48,7 @@
 #include "ipsec_vpn_ctl.h"
 #include "l2tp_vpn_ctl.h"
 #include "open_vpn_ctl.h"
+#include "virtual_vpn_ctl.h"
 #include "vpn_data_bean.h"
 #include "multi_vpn_helper.h"
 #include "vpn_template_processor.h"
@@ -218,11 +219,15 @@ void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &st
     }
 }
 
-void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectState &state)
+void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectState &state,
+                                                              const std::string &vpnIfName,
+                                                              const std::string &vpnIfAddr,
+                                                              const std::string &vpnId,
+                                                              bool isGlobalVpn)
 {
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
     if (vpnService_.IsNeedNotify(state)) {
-        return vpnService_.OnVpnConnStateChanged(state);
+        return vpnService_.OnVpnConnStateChanged(state, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
     }
     return;
 }
@@ -279,6 +284,7 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
     }
     if (!CheckVpnPermission(vpnBundleName)) {
+        NETMGR_EXT_LOG_E("check vpn permission failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
@@ -817,12 +823,12 @@ int32_t NetworkVpnService::InitMultiVpnInfo(const std::string &vpnId, int32_t vp
     std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj)
 {
     if (vpnObj == nullptr) {
-        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed");
+        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed vpnObj is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     if (MultiVpnHelper::GetInstance().CreateMultiVpnInfo(
         vpnId, vpnType, vpnObj->multiVpnInfo_) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed");
+        NETMGR_EXT_LOG_E("InitMultiVpnInfo failed create multi vpn info failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     vpnObj->multiVpnInfo_->bundleName = vpnBundleName;
@@ -838,18 +844,21 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
     }
     std::string vpnBundleName = GetBundleName();
     if (!CheckVpnPermission(vpnBundleName)) {
+        NETMGR_EXT_LOG_E("check permission failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
     if (NETMANAGER_EXT_SUCCESS != ret) {
+        NETMGR_EXT_LOG_E("DestroyVpn check account type failed vpnId = %{public}s", vpnId.c_str());
         return ret;
     }
     NETMGR_EXT_LOG_I("DestroyVpn vpnId = %{public}s", vpnId.c_str());
     std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     auto it = vpnObjMap_.find(vpnId);
     if (it != vpnObjMap_.end()) {
+        NETMGR_EXT_LOG_E("DestroyVpn vpnId = %{public}s", vpnId.c_str());
         return DestroyMultiVpn(it->second);
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -982,7 +991,7 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config, bool is
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     vpnObj->multiVpnInfo_->isVpnExtCall = isVpnExtCall;
-    if (config->vpnType_ != VpnType::OPENVPN) {
+    if (config->vpnType_ != VpnType::OPENVPN && config->vpnType_ != VpnType::VIRTUAL_VPN) {
         VpnTemplateProcessor vpnTemplateProcessor;
         if (vpnTemplateProcessor.BuildConfig(vpnObj, vpnObjMap_) != NETMANAGER_EXT_SUCCESS) {
             NETMGR_EXT_LOG_E("vpnTemplateProcessor BuildConfig failed");
@@ -1041,6 +1050,11 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
             } else {
                 return CreateOpenvpnCtl(VpnDataBean::ConvertVpnBeanToOpenvpnConfig(vpnBean), userId, activeUserIds);
             }
+        case VpnType::VIRTUAL_VPN:
+            if (isVpnExtCall) {
+                return CreateVirtualCtl(config, userId, activeUserIds);
+            }
+            return nullptr;
         default:
             NETMGR_EXT_LOG_E("vpn type is invalid, %{public}d", vpnBean->vpnType_);
             return nullptr;
@@ -1115,6 +1129,19 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateOpenvpnCtl(const sptr<SysVp
     }
     vpnConfig = nullptr;
     return openVpnCtl;
+}
+
+std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateVirtualCtl(const sptr<SysVpnConfig> &config, int32_t userId,
+    std::vector<int32_t> &activeUserIds)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("CreateVirtualCtl failed, config is error");
+        return nullptr;
+    }
+
+    std::shared_ptr<VirtualVpnCtl> virtualVpnCtl =
+        std::make_shared<VirtualVpnCtl>(config, "", userId, activeUserIds);
+    return virtualVpnCtl;
 }
 
 std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtl(const sptr<SysVpnConfig> &config,
@@ -1316,7 +1343,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
 int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const int32_t result)
 {
     uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
-    if (callingUid != UID_NET_SYS_NATIVE) {
+    if (!IsSelfCall() && (callingUid != UID_NET_SYS_NATIVE)) {
         NETMGR_EXT_LOG_E("NotifyConnectStage failed, invalid callingUid");
         return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
     }
@@ -1437,6 +1464,7 @@ int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callb
 {
     std::string vpnBundleName = GetBundleName();
     if (!CheckVpnPermission(vpnBundleName)) {
+        NETMGR_EXT_LOG_E("permission check failed.");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     int32_t ret = SyncRegisterVpnEvent(callback);
@@ -1462,6 +1490,18 @@ int32_t NetworkVpnService::RemoteUnregisterVpnEvent(const sptr<IVpnEventCallback
     }
     int32_t ret = SyncUnregisterVpnEvent(callback);
     return ret;
+}
+
+bool NetworkVpnService::IsSelfCall()
+{
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
+    int32_t myPid = getpid();
+
+    if (callingPid < 0) {
+        return false;
+    }
+
+    return callingPid == myPid;
 }
 
 int32_t NetworkVpnService::CreateVpnConnection(bool isVpnExtCall)
@@ -1528,6 +1568,7 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
     if (!AddClientDeathRecipient(callback)) {
+        NETMGR_EXT_LOG_E("add death recipient failed.");
         return NETMANAGER_ERR_SYSTEM_INTERNAL;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
@@ -1582,7 +1623,8 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
         NETMGR_EXT_LOG_E("callback above max count, return error.");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    if (!AddClientDeathRecipient(callback)) {
+    if (!IsSelfCall() && !AddClientDeathRecipient(callback)) {
+        NETMGR_EXT_LOG_E("add death recipient failed.");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     vpnEventCallbacks_.push_back(callback);
@@ -2082,13 +2124,15 @@ void NetworkVpnService::RemoveALLClientDeathRecipient()
     deathRecipient_ = nullptr;
 }
 
-void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state)
+void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
+                                              const std::string &vpnIfAddr,
+                                              const std::string &vpnId, bool isGlobalVpn)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
     std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
-        [&state](const auto &callback) {
+        [&state, &vpnIfName, &vpnIfAddr, &vpnId, &isGlobalVpn](const auto &callback) {
             bool isConnected = (VpnConnectState::VPN_CONNECTED == state) ? true : false;
-            callback->OnVpnStateChanged(isConnected);
+            callback->OnVpnStateChanged(isConnected, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
         });
 }
 

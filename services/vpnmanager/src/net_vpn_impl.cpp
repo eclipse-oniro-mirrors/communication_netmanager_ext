@@ -84,17 +84,59 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
         NETMGR_EXT_LOG_E("NotifyConnectState connect callback is null.");
         return;
     }
+    std::string vpnId = "";
 #ifdef SUPPORT_SYSVPN
+    vpnId = (multiVpnInfo_ != nullptr) ? multiVpnInfo_->vpnId : "";
     if (multiVpnInfo_ != nullptr) {
         multiVpnInfo_->vpnConnectState = state;
-        connChangedCb_->OnMultiVpnConnStateChanged(state, multiVpnInfo_->vpnId);
+        connChangedCb_->OnMultiVpnConnStateChanged(state, vpnId);
     }
 #endif // SUPPORT_SYSVPN
-    connChangedCb_->OnVpnConnStateChanged(state);
+    connChangedCb_->OnVpnConnStateChanged(state, GetInterfaceName(),
+                                          GetVpnIfAddr(), vpnId, IsGlobalVpn());
     if (userId_ == 0) {
         return;
     }
     connChangedCb_->SendConnStateChanged(state);
+}
+
+bool NetVpnImpl::IsGlobalVpn()
+{
+    int32_t validAcceptedApps = 0;
+    int32_t validRefusedApps = 0;
+
+    if (vpnConfig_ == nullptr) {
+        return false;
+    }
+
+    for (auto &e : vpnConfig_->acceptedApplications_) {
+        if (!e.empty()) {
+            ++validAcceptedApps;
+        }
+    }
+
+    for (auto &e : vpnConfig_->refusedApplications_) {
+        if (!e.empty()) {
+            ++validRefusedApps;
+        }
+    }
+
+    NETMGR_EXT_LOG_I("IsGlobalVpn: refused = %{public}d accepted = %{public}d routed = %{public}d",
+                     validRefusedApps, validAcceptedApps, static_cast<int>(vpnConfig_->routes_.size()));
+
+    return (validAcceptedApps == 0) &&
+           (validRefusedApps == 0);
+}
+
+std::string NetVpnImpl::GetVpnIfAddr()
+{
+    std::string ifAddr = "";
+
+    if (vpnConfig_ != nullptr && !vpnConfig_->addresses_.empty()) {
+        ifAddr = vpnConfig_->addresses_.back().address_;
+    }
+
+    return ifAddr;
 }
 
 uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)

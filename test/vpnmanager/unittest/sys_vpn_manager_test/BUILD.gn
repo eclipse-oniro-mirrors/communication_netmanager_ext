@@ -35,6 +35,7 @@ ohos_unittest("sys_vpn_manager_test") {
     "ipsec_vpn_ctl_test.cpp",
     "l2tp_vpn_config_test.cpp",
     "l2tp_vpn_ctl_test.cpp",
+    "virtual_vpn_ctl_test.cpp",
     "multi_vpn_helper_test.cpp",
     "net_vpn_impl_test.cpp",
     "networkvpn_client_test.cpp",
