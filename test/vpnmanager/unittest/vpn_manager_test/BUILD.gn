@@ -30,6 +30,7 @@ ohos_unittest("vpn_manager_test") {
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "$EXT_SECURITY_PATH/datashare/net_datashare_utils_iface_mock.cpp",
     "extended_vpn_ctl_test.cpp",
     "net_vpn_impl_test.cpp",
     "networkvpn_client_test.cpp",
@@ -71,6 +72,9 @@ ohos_unittest("vpn_manager_test") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "netmanager_base:net_data_share",
     "netmanager_base:fwmark_client",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
