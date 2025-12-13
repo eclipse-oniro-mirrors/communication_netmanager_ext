@@ -29,6 +29,9 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t NET_SCORE_WITH_CHARGE_STATE = 50;
 constexpr int32_t NET_SCORE_WITH_UNCHARGE_STATE = 80;
+constexpr int32_t NET_SCORE_WITH_PAIR_IOS_STATE = 50;
+constexpr int32_t NET_SCORE_WITH_PAIR_HARMONY_STATE = 80;
+constexpr int32_t NET_SCORE_WITH_PAIR_OTHER_STATE = 80;
 namespace {
     using ChargeState = OHOS::PowerMgr::BatteryChargeState;
 }
@@ -52,6 +55,8 @@ private:
     int32_t DisableWearableDistributedNetForward();
     int32_t EnableWearableDistributedNetForward(const int32_t tcpPortId, const int32_t udpPortId);
     int32_t ClearWearableDistributedNetForwardConfig();
+    std::string QueryDBSettingPairDeviceType();
+    void SetScoreBasePairDeviceType();
     void SetInitNetScore(OHOS::PowerMgr::BatteryChargeState chargeState);
     void SetScoreBaseNetStatus(const bool isAvailable);
     void SetScoreBaseChargeStatus(const bool isCharging);
@@ -65,6 +70,7 @@ private:
     NetLinkInfo netLinkInfo_;
     bool isMetered_ = false;
     int32_t score_ = NET_SCORE_WITH_UNCHARGE_STATE;
+    std::string queryedPairType_ = "";
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
