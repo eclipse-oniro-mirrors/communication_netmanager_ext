@@ -316,6 +316,33 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
+HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest002, TestSize.Level1)
+{
+    std::string pkg = "testMock";
+    bool enable = true;
+    sptr<VpnConfig> vpnCfg = new (std::nothrow) VpnConfig();
+    if (vpnCfg != nullptr) {
+        instance_->SetAlwaysOnVpn(pkg, enable);
+    }
+    int32_t ret = instance_->GetAlwaysOnVpn(pkg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+ 
+HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest003, TestSize.Level1)
+{
+    std::string pkg = "testMock";
+    bool enable = true;
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
+    instance_->SetAlwaysOnVpn(pkg, enable);
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    instance_->SetAlwaysOnVpn(pkg, enable);
+    int32_t ret = instance_->GetAlwaysOnVpn(pkg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
 {
     int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
