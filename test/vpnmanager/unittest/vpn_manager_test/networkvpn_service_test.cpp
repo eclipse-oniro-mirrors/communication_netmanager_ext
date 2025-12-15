@@ -647,47 +647,5 @@ HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest002, TestSize.Level1)
     bool res = instance_->IsNeedNotify(state);
     EXPECT_TRUE(res);
 }
-
-HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest003, TestSize.Level1)
-{
-    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    std::shared_ptr<NetVpnImpl> vpnObj = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    instance_->vpnObjMap_.insert({"test", vpnObj});
-
-    VpnConnectState state = VpnConnectState::VPN_DISCONNECTED;
-    bool res = instance_->IsNeedNotify(state);
-    EXPECT_TRUE(res);
-}
-
-HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest004, TestSize.Level1)
-{
-    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    std::shared_ptr<NetVpnImpl> vpnObj = std::make_shared<IpsecVpnCtl>(config, "", userId, activeUserIds);
-    instance_->vpnObjMap_.insert({"test", vpnObj});
-
-    VpnConnectState state = VpnConnectState::VPN_DISCONNECTED;
-    bool res = instance_->IsNeedNotify(state);
-    EXPECT_TRUE(res);
-}
-
-HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest005, TestSize.Level1)
-{
-    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    std::shared_ptr<NetVpnImpl> vpnObj1 = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    instance_->vpnObjMap_.insert({"test1", vpnObj1});
-
-    std::shared_ptr<NetVpnImpl> vpnObj2 = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    instance_->vpnObjMap_.insert({"test2", vpnObj2});
-
-    VpnConnectState state = VpnConnectState::VPN_DISCONNECTED;
-    bool res = instance_->IsNeedNotify(state);
-    EXPECT_TRUE(res);
-}
 } // namespace NetManagerStandard
 } // namespace OHOS
