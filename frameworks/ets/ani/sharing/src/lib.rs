@@ -18,7 +18,7 @@ mod sharing;
 mod wrapper;
 
 ani_rs::ani_constructor! {
-    namespace "L@ohos/net/sharing/sharing"
+    namespace "@ohos.net.sharing.sharing"
     [
         "isSharingSupportedSync": sharing::is_sharing_supported,
         "isSharingSync": sharing::is_sharing,

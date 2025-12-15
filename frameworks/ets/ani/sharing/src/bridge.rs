@@ -13,7 +13,7 @@
 
 use serde::{Deserialize, Serialize};
 
-#[ani_rs::ani(path = "L@ohos/net/sharing/sharing/SharingIfaceState")]
+#[ani_rs::ani(path = "@ohos.net.sharing.sharing.SharingIfaceState")]
 #[derive(Clone)]
 pub enum SharingIfaceState {
     SharingNicServing = 1,
@@ -23,7 +23,7 @@ pub enum SharingIfaceState {
     SharingNicError = 3,
 }
 
-#[ani_rs::ani(path = "L@ohos/net/sharing/sharing/SharingIfaceType")]
+#[ani_rs::ani(path = "@ohos.net.sharing.sharing.SharingIfaceType")]
 #[derive(Clone)]
 pub enum SharingIfaceType {
     SharingWifi = 0,
@@ -44,7 +44,7 @@ pub struct InterfaceSharingStateInfo {
     pub state: SharingIfaceState,
 }
 
-#[ani_rs::ani(path = "L@ohos/net/connection/connection/NetHandleInner")]
+#[ani_rs::ani(path = "@ohos.net.connection.connection.NetHandleInner")]
 #[derive(Clone)]
 pub struct NetHandle {
     pub net_id: i32,
