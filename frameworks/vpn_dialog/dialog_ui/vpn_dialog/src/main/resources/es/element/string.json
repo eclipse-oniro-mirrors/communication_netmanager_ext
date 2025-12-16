@@ -23,7 +23,7 @@
         },
         {
             "name":"warning",
-            "value":"Confirma si confías en esta aplicación. Las aplicaciones no fiables pueden monitorizar el tráfico de red y robar tus datos.",
+            "value":"Confirma que confías en esta aplicación. Las aplicaciones no fiables pueden monitorizar el tráfico de red y robar tus datos.",
             "attr":{
                 "priority":"translate"
             }
