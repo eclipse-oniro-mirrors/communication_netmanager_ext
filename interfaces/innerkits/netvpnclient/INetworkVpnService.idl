@@ -16,6 +16,7 @@
 import IVpnEventCallback;
 sequenceable VpnConfig..OHOS.NetManagerStandard.VpnConfig;
 sequenceable SysvpnConfig..OHOS.NetManagerStandard.SysVpnConfig;
+sequenceable Want..OHOS.AAFwk.Want;
 interface OHOS.NetManagerStandard.INetworkVpnService {
     void Prepare([out] boolean isExistVpn, [out] boolean isRun, [out] String pkg);
     void SetUpVpn([in] VpnConfig config, [in] boolean isVpnExtCall, [in] boolean isInternalChannel);
@@ -28,6 +29,8 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     void RegisterBundleName([in] String bundleName, [in] String abilityName);
     void GetSelfAppName([out] String selfAppName, [out] String selfBundleName);
     void SetSelfVpnPid();
+    void StartVpnExtensionAbility([in] Want want);
+    void StopVpnExtensionAbility([in] Want want);
     [macrodef SUPPORT_SYSVPN] void GetVpnCertData([in] int certType, [out] byte[] certData);
     [macrodef SUPPORT_SYSVPN] void SetUpSysVpn([in] sptr<SysVpnConfig> config, [in] boolean isVpnExtCall);
     [macrodef SUPPORT_SYSVPN] void AddSysVpnConfig([in] sptr<SysVpnConfig> config);

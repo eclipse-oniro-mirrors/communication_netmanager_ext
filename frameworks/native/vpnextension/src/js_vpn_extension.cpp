@@ -45,6 +45,7 @@ namespace NetManagerStandard {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr uint32_t UID_NET_MANAGER = 1099;
 }
 
 namespace {
@@ -332,6 +333,10 @@ sptr<IRemoteObject> JsVpnExtension::OnConnect(const AAFwk::Want &want,
 {
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
+
+    if (want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1) == UID_NET_MANAGER) {
+        return static_cast<sptr<IRemoteObject>>(new IPCObjectStub());
+    }
     napi_value result = CallOnConnect(want);
     bool isPromise = CheckPromise(result);
     if (!isPromise) {
