@@ -369,14 +369,14 @@ HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmonyCha
 {
     WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_HARMONY;
     WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(true);
-    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE );
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE);
 }
 
 HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmonyUnCharge, TestSize.Level1)
 {
     WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_HARMONY;
     WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(false);
-    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE );
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
