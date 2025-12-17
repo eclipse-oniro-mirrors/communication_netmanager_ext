@@ -351,23 +351,30 @@ HWTEST_F(WearableDistributedNetAgentTest, SetScoreBasePairDeviceTypePairEmpty, T
     EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
 }
  
-HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairIos, TestSize.Level1)
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairIosCharge, TestSize.Level1)
 {
-    WearableDistributedNetAgent::GetInstance().queryedPairType_ = PAIR_DEVICE_IOS;
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_IOS;
     WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(true);
     EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_PAIR_IOS_STATE);
 }
- 
-HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmony, TestSize.Level1)
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairIosUnCharge, TestSize.Level1)
 {
-    WearableDistributedNetAgent::GetInstance().queryedPairType_ = PAIR_DEVICE_HARMONY;
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_IOS;
+    WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(false);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_PAIR_IOS_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmonyCharge, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_HARMONY;
     WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(true);
     EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE );
 }
- 
-HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmony, TestSize.Level1)
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmonyUnCharge, TestSize.Level1)
 {
-    WearableDistributedNetAgent::GetInstance().queryedPairType_ = PAIR_DEVICE_HARMONY;
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_HARMONY;
     WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(false);
     EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE );
 }
