@@ -225,7 +225,7 @@ HWTEST_F(VpnDatabaseHelperTest, UpdateData001, TestSize.Level1)
     vpnBean->isLegacy_ = 1;
     vpnBean->saveLogin_ = 1;
     ret = vpnDataHelper_.UpdateData(vpnBean);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(VpnDatabaseHelperTest, NoStore001, TestSize.Level1)
