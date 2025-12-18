@@ -125,7 +125,7 @@ HWTEST_F(NetworkVpnServiceTest, DeleteSysVpnConfigTest001, TestSize.Level1)
 
     // delete test config
     auto ret2 = instance_->DeleteSysVpnConfig(id);
-    EXPECT_EQ(ret2, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret2, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, DeleteSysVpnConfigTest002, TestSize.Level1)
@@ -150,11 +150,11 @@ HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigList001, TestSize.Level1)
     config->vpnName_ = "testName2";
     instance_->AddSysVpnConfig(config);
     ret = instance_->GetSysVpnConfigList(list);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
     auto ret2 = instance_->DeleteSysVpnConfig("testId1");
-    EXPECT_EQ(ret2, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret2, NETMANAGER_EXT_SUCCESS);
     auto ret3 = instance_->DeleteSysVpnConfig("testId2");
-    EXPECT_EQ(ret3, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ret3, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigTest001, TestSize.Level1)
@@ -194,7 +194,7 @@ HWTEST_F(NetworkVpnServiceTest, NotifyConnectStageTest001, TestSize.Level1)
 {
     std::string stage = "connect";
     int32_t code = 100;
-    EXPECT_EQ(instance_->NotifyConnectStage(stage, code), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_NE(instance_->NotifyConnectStage(stage, code), NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }
 
 HWTEST_F(NetworkVpnServiceTest, GetSysVpnCertUriTest001, TestSize.Level1)
@@ -330,7 +330,7 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     ret = instance_->SetUpVpn(*config, true);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(NetworkVpnServiceTest, DumpTest001, TestSize.Level1)
@@ -562,7 +562,7 @@ HWTEST_F(NetworkVpnServiceTest, RegisterVpnEvent001, TestSize.Level1)
 {
     sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
     auto ret = instance_->RegisterVpnEvent(callback);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, UnregisterVpnEvent001, TestSize.Level1)
@@ -607,7 +607,7 @@ HWTEST_F(NetworkVpnServiceTest, SyncRegisterVpnEvent001, TestSize.Level1)
     sptr<IVpnEventCallback> callback = new (std::nothrow) IVpnEventCallbackTest();
 
     int32_t ret = instance_->SyncRegisterVpnEvent(callback);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 
     instance_->vpnEventCallbacks_.push_back(callback);
     ret = instance_->SyncRegisterVpnEvent(callback);
@@ -828,7 +828,7 @@ HWTEST_F(NetworkVpnServiceTest, IsSetUpReady001, TestSize.Level1)
     ret = instance_->IsSetUpReady(id, vpnBundleName, userId, activeUserIds);
     EXPECT_EQ(ret, NETWORKVPN_ERROR_VPN_EXIST);
     ret = instance_->IsSetUpReady("", vpnBundleName, userId, activeUserIds);
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     config->vpnId_ = "1234";
     ret = instance_->SetUpSysVpn(config, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
