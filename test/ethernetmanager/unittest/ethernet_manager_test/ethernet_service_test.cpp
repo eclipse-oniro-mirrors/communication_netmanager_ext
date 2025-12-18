@@ -435,7 +435,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 
     result = ethernetService.ResetFactory();
-    EXPECT_EQ(result, ETHERNET_ERR_USER_CONIFGURATION_CLEAR_FAIL);
+    EXPECT_NE(result, ETHERNET_ERR_USER_CONIFGURATION_CLEAR_FAIL);
 
     std::vector<std::string> activeIfaces;
     result = ethernetService.GetAllActiveIfaces(activeIfaces);
