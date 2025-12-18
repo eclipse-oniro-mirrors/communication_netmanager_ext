@@ -194,6 +194,18 @@ int32_t NetFirewallService::GetInterceptRecords(const int32_t userId, const sptr
     return NetFirewallInterceptRecorder::GetInstance()->GetInterceptRecords(userId, requestParam, info);
 }
 
+int32_t NetFirewallService::RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback)
+{
+    NETMGR_EXT_LOG_I("RegisterInterceptRecordsCallback");
+    return NetFirewallInterceptRecorder::GetInstance()->RegisterInterceptRecordsCallback(callback);
+}
+
+int32_t NetFirewallService::UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback)
+{
+    NETMGR_EXT_LOG_I("UnregisterInterceptRecordsCallback");
+    return NetFirewallInterceptRecorder::GetInstance()->UnregisterInterceptRecordsCallback(callback);
+}
+
 int32_t NetFirewallService::CheckUserExist(const int32_t userId)
 {
     AccountSA::OsAccountInfo accountInfo;

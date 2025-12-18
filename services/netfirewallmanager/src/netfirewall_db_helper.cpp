@@ -505,13 +505,16 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     int32_t localPort = 0;
     int32_t remotePort = 0;
     int32_t protocol = 0;
+    int32_t time = 0;
     InterceptRecord info;
     for (int32_t i = 0; (i < table.rowCount) && !endFlag; i++) {
         if (resultSet->GoToRow(i) != E_OK) {
             NETMGR_EXT_LOG_E("GetResultRightRecordEx GoToRow %{public}d", i);
             break;
         }
-        resultSet->GetInt(table.timeIndex, info.time);
+        if (resultSet->GetInt(table.timeIndex, time) == E_OK) {
+            info.time = static_cast<uint64_t>(time) * MILLIS_PER_SEC;
+        }
         resultSet->GetString(table.localIpIndex, info.localIp);
         resultSet->GetString(table.remoteIpIndex, info.remoteIp);
         if (resultSet->GetInt(table.localPortIndex, localPort) == E_OK) {
@@ -840,7 +843,7 @@ int32_t NetFirewallDbHelper::AddInterceptRecord(const int32_t userId, std::vecto
     for (size_t i = 0; i < size; i++) {
         values.Clear();
         values.PutInt(NET_FIREWALL_USER_ID, userId);
-        values.PutInt(NET_FIREWALL_RECORD_TIME, records[i]->time);
+        values.PutInt(NET_FIREWALL_RECORD_TIME, static_cast<int32_t>(records[i]->time / MILLIS_PER_SEC));
         values.PutString(NET_FIREWALL_RECORD_LOCAL_IP, records[i]->localIp);
         values.PutString(NET_FIREWALL_RECORD_REMOTE_IP, records[i]->remoteIp);
         values.PutInt(NET_FIREWALL_RECORD_LOCAL_PORT, static_cast<int32_t>(records[i]->localPort));

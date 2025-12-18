@@ -64,6 +64,16 @@ public:
     {
         return 0;
     }
+
+    int32_t RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) override
+    {
+        return 0;
+    }
+
+    int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) override
+    {
+        return 0;
+    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

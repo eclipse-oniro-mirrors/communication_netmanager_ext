@@ -247,5 +247,79 @@ int32_t NetFirewallProxy::GetInterceptRecords(const int32_t userId, const sptr<R
     }
     return FIREWALL_SUCCESS;
 }
+
+int32_t NetFirewallProxy::RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("The parameter of callback is nullptr");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+
+    MessageParcel data;
+    // LCOV_EXCL_START
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("RegisterInterceptRecordsCallback WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    data.WriteRemoteObject(callback->AsObject());
+
+    //LCOV_EXCL_START
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret =
+        remote->SendRequest(static_cast<uint32_t>(REGISTER_INTERCEPT_RECORDS_CALLBACK), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    if (!reply.ReadInt32(ret)) {
+        return NETMANAGER_ERR_READ_REPLY_FAIL;
+    }
+    return ret;
+}
+
+int32_t NetFirewallProxy::UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("The parameter of callback is nullptr");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+
+    // LCOV_EXCL_START
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("UnregisterInterceptRecordsCallback WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    data.WriteRemoteObject(callback->AsObject());
+
+    sptr<IRemoteObject> remote = Remote();
+    // LCOV_EXCL_START
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret =
+        remote->SendRequest(static_cast<uint32_t>(UNREGISTER_INTERCEPT_RECORDS_CALLBACK), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    if (!reply.ReadInt32(ret)) {
+        return NETMANAGER_ERR_READ_REPLY_FAIL;
+    }
+    return ret;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

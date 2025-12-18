@@ -45,6 +45,7 @@ netfirewall_manager_sources = [
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_rule_native_helper.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_service.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_stub.cpp",
+  "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_intercept_record_callback_proxy.cpp",
 ]
 
 netfirewall_manager_deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]

@@ -18,6 +18,7 @@
 
 #include "iremote_broker.h"
 #include "netfirewall_common.h"
+#include "i_net_intercept_record_callback.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -38,6 +39,10 @@ public:
 
     virtual int32_t GetNetFirewallRule(const int32_t userId, const int32_t ruleId, sptr<NetFirewallRule> &rule) = 0;
 
+    virtual int32_t RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) = 0;
+
+    virtual int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) = 0;
+
     virtual int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) = 0;
 
@@ -49,7 +54,9 @@ public:
         DELETE_NET_FIREWALL_RULE,
         GET_ALL_NET_FIREWALL_RULES,
         GET_NET_FIREWALL_RULE,
-        GET_ALL_INTERCEPT_RECORDS
+        GET_ALL_INTERCEPT_RECORDS,
+        REGISTER_INTERCEPT_RECORDS_CALLBACK,
+        UNREGISTER_INTERCEPT_RECORDS_CALLBACK,
     };
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetFirewallService");
 };

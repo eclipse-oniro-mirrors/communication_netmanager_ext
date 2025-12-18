@@ -25,6 +25,7 @@
 #include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netfirewall_stub.h"
+#include "i_net_intercept_record_callback.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -50,6 +51,10 @@ NetFirewallStub::NetFirewallStub()
                                                                     &NetFirewallStub::OnGetNetFirewallRule};
     memberFuncMap_[static_cast<uint32_t>(GET_ALL_INTERCEPT_RECORDS)] = {PERMISSION_GET_NET_FIREWALL,
                                                                        &NetFirewallStub::OnGetInterceptRecords};
+    memberFuncMap_[static_cast<uint32_t>(REGISTER_INTERCEPT_RECORDS_CALLBACK)] = {
+        PERMISSION_GET_NET_FIREWALL, &NetFirewallStub::OnRegisterInterceptRecordsCallback};
+    memberFuncMap_[static_cast<uint32_t>(UNREGISTER_INTERCEPT_RECORDS_CALLBACK)] = {
+        PERMISSION_GET_NET_FIREWALL, &NetFirewallStub::OnUnregisterInterceptRecordsCallback};
 }
 
 int32_t NetFirewallStub::CheckFirewallPermission(std::string &strPermission)
@@ -311,5 +316,34 @@ int32_t NetFirewallStub::OnGetInterceptRecords(MessageParcel &data, MessageParce
     NetFirewallHisysEvent::SendRecordRequestReport(userId, ret);
     return ret;
 }
+
+int32_t NetFirewallStub::OnRegisterInterceptRecordsCallback(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> remote = data.ReadRemoteObject();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+
+    sptr<INetInterceptRecordCallback> callback = iface_cast<INetInterceptRecordCallback>(remote);
+    int32_t ret = RegisterInterceptRecordsCallback(callback);
+    reply.WriteInt32(ret);
+    return ret;
+}
+
+int32_t NetFirewallStub::OnUnregisterInterceptRecordsCallback(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> remote = data.ReadRemoteObject();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+
+    sptr<INetInterceptRecordCallback> callback = iface_cast<INetInterceptRecordCallback>(remote);
+    int32_t ret = UnregisterInterceptRecordsCallback(callback);
+    reply.WriteInt32(ret);
+    return ret;
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

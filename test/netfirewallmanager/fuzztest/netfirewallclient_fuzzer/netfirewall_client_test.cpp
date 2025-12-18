@@ -31,6 +31,7 @@
 #include "netfirewall_common.h"
 #include "netfirewall_service.h"
 #include "i_netfirewall_service.h"
+#include "mock_i_net_intercept_record_callback_test.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -115,11 +116,49 @@ void SetNetFirewallPolicyTest(const uint8_t *data, size_t size)
     parcel.WriteInt32(userId);
     OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::SET_NET_FIREWALL_STATUS), parcel);
 }
+
+void RegisterInterceptRecordsCallbackTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!IsDataAndWriteVaild(data, size, parcel)) {
+        return;
+    }
+    auto status = std::make_unique<NetFirewallPolicy>();
+    if (!status->Marshalling(parcel)) {
+        return;
+    }
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    if (callback == nullptr) {
+        return;
+    }
+    parcel.WriteRemoteObject(callback->AsObject());
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::REGISTER_INTERCEPT_RECORDS_CALLBACK), parcel);
+}
+
+void UnregisterInterceptRecordsCallbackTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!IsDataAndWriteVaild(data, size, parcel)) {
+        return;
+    }
+    auto status = std::make_unique<NetFirewallPolicy>();
+    if (!status->Marshalling(parcel)) {
+        return;
+    }
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    if (callback == nullptr) {
+        return;
+    }
+    parcel.WriteRemoteObject(callback->AsObject());
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::UNREGISTER_INTERCEPT_RECORDS_CALLBACK), parcel);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     OHOS::NetManagerStandard::SetNetFirewallPolicyTest(data, size);
+    OHOS::NetManagerStandard::RegisterInterceptRecordsCallbackTest(data, size);
+    OHOS::NetManagerStandard::UnregisterInterceptRecordsCallbackTest(data, size);
     return 0;
 }

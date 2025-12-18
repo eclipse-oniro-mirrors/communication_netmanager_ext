@@ -57,6 +57,10 @@ private:
 
     int32_t OnGetInterceptRecords(MessageParcel &data, MessageParcel &reply);
 
+    int32_t OnRegisterInterceptRecordsCallback(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnUnregisterInterceptRecordsCallback(MessageParcel &data, MessageParcel &reply);
+
     int32_t CheckFirewallPermission(std::string &strPermission);
 
 private:
