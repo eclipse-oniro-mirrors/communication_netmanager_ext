@@ -18,10 +18,17 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "wearable_distributed_net_agent.h"
 #include "wearable_distributed_net_link_info.h"
+#include "net_datashare_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 const std::string WEARABLE_DISTRIBUTED_NET_NAME = "wearabledistributednet";
+constexpr const char *PAIR_DEVICE_URI =
+    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=pair_device";
+constexpr const char *PAIR_DEVICE_KEY = "pair_device";
+constexpr const char *PAIR_DEVICE_OTHER = "0";
+constexpr const char *PAIR_DEVICE_IOS = "1";
+constexpr const char *PAIR_DEVICE_HARMONY = "3";
 
 WearableDistributedNetAgent &WearableDistributedNetAgent::GetInstance()
 {
@@ -77,10 +84,30 @@ int32_t WearableDistributedNetAgent::UpdateMeteredStatus(const bool isMetered)
     return UpdateNetCaps(isMetered);
 }
 
+std::string WearableDistributedNetAgent::QueryDBSettingPairDeviceType()
+{
+    if (queryedPairType_ != "") {
+        NETMGR_EXT_LOG_E("Pair device type already exist");
+        return queryedPairType_;
+    }
+    std::string value = "";
+    Uri uri(PAIR_DEVICE_URI);
+    auto dataShareHelperUtils = std::make_unique<NetDataShareHelperUtils>();
+    int32_t ret = dataShareHelperUtils->Query(uri, PAIR_DEVICE_KEY, value);
+    if (ret != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("Query error.");
+        return "";
+    }
+    NETMGR_EXT_LOG_I("Query pair device type: %{public}s", value.c_str());
+    return value;
+}
+
 int32_t WearableDistributedNetAgent::SetupWearableDistributedNetwork(const int32_t tcpPortId, const int32_t udpPortId,
                                                                      const bool isMetered)
 {
     NETMGR_EXT_LOG_I("SetupWearableDistributedNetwork isMetered:[%{public}s]", isMetered ? "true" : "false");
+    queryedPairType_ = "";
+    queryedPairType_ = QueryDBSettingPairDeviceType();
     int32_t result = RegisterNetSupplier(isMetered);
     if (result != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("WearableDistributedNetAgent RegisterNetSupplier failed, result:[%{public}d]", result);
@@ -177,6 +204,21 @@ int32_t WearableDistributedNetAgent::UnregisterNetSupplier()
     return NETMANAGER_SUCCESS;
 }
 
+void WearableDistributedNetAgent::SetScoreBasePairDeviceType()
+{
+    std::string pairDeviceType = QueryDBSettingPairDeviceType();
+    if (pairDeviceType == PAIR_DEVICE_OTHER) {
+        score_ = NET_SCORE_WITH_PAIR_OTHER_STATE;
+    } else if (pairDeviceType == PAIR_DEVICE_IOS) {
+        score_ = NET_SCORE_WITH_PAIR_IOS_STATE;
+    } else if (pairDeviceType == PAIR_DEVICE_HARMONY) {
+        score_ = NET_SCORE_WITH_PAIR_HARMONY_STATE;
+    } else {
+        NETMGR_EXT_LOG_E("Invalid value: %{public}s", pairDeviceType.c_str());
+        return;
+    }
+}
+
 void WearableDistributedNetAgent::SetInitNetScore(OHOS::PowerMgr::BatteryChargeState chargeState)
 {
     switch (chargeState) {
@@ -185,11 +227,11 @@ void WearableDistributedNetAgent::SetInitNetScore(OHOS::PowerMgr::BatteryChargeS
             score_ = NET_SCORE_WITH_CHARGE_STATE;
             break;
         case OHOS::PowerMgr::BatteryChargeState::CHARGE_STATE_DISABLE:
-            score_ = NET_SCORE_WITH_UNCHARGE_STATE;
-            break;
         default:
+            SetScoreBasePairDeviceType();
             break;
     }
+    NETMGR_EXT_LOG_I("SetInitNetScore chargeState = %{public}d", chargeState);
 }
 
 void WearableDistributedNetAgent::SetScoreBaseNetStatus(const bool isAvailable)
@@ -276,7 +318,11 @@ int32_t WearableDistributedNetAgent::UpdateNetScore(const bool isCharging)
 
 void WearableDistributedNetAgent::SetScoreBaseChargeStatus(const bool isCharging)
 {
-    score_ = isCharging ? NET_SCORE_WITH_CHARGE_STATE : NET_SCORE_WITH_UNCHARGE_STATE;
+    if (QueryDBSettingPairDeviceType() == PAIR_DEVICE_IOS) {
+        score_ = NET_SCORE_WITH_PAIR_IOS_STATE;
+    } else {
+        score_ = isCharging ? NET_SCORE_WITH_CHARGE_STATE : NET_SCORE_WITH_UNCHARGE_STATE;
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

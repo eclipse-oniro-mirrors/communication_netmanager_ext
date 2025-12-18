@@ -315,5 +315,68 @@ HWTEST_F(WearableDistributedNetAgentTest, EnableWearableDistributedNetwork, Test
     int32_t result = WearableDistributedNetAgent::GetInstance().EnableWearableDistributedNetwork(enableFlag);
     EXPECT_EQ(result, NETMANAGER_SUCCESS);
 }
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBasePairDeviceTypePairIos, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queryedPairType_ = PAIR_DEVICE_IOS;
+    WearableDistributedNetAgent::GetInstance().SetScoreBasePairDeviceType();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_PAIR_IOS_STATE);
+}
+ 
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBasePairDeviceTypePairOther, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queryedPairType_ = PAIR_DEVICE_OTHER;
+    WearableDistributedNetAgent::GetInstance().SetScoreBasePairDeviceType();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_PAIR_OTHER_STATE);
+}
+ 
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBasePairDeviceTypePairHarmony, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queryedPairType_ = PAIR_DEVICE_HARMONY;
+    WearableDistributedNetAgent::GetInstance().SetScoreBasePairDeviceType();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_PAIR_HARMONY_STATE);
+}
+ 
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBasePairDeviceTypePairUnknown, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queryedPairType_ = "4";
+    WearableDistributedNetAgent::GetInstance().SetScoreBasePairDeviceType();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
+}
+ 
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBasePairDeviceTypePairEmpty, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queryedPairType_ = "";
+    WearableDistributedNetAgent::GetInstance().SetScoreBasePairDeviceType();
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
+}
+ 
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairIosCharge, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_IOS;
+    WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(true);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_PAIR_IOS_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairIosUnCharge, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_IOS;
+    WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(false);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_PAIR_IOS_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmonyCharge, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_HARMONY;
+    WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(true);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_CHARGE_STATE);
+}
+
+HWTEST_F(WearableDistributedNetAgentTest, SetScoreBaseChargeStatusPairHarmonyUnCharge, TestSize.Level1)
+{
+    WearableDistributedNetAgent::GetInstance().queriedPairType_ = PAIR_DEVICE_HARMONY;
+    WearableDistributedNetAgent::GetInstance().SetScoreBaseChargeStatus(false);
+    EXPECT_EQ(WearableDistributedNetAgent::GetInstance().score_, NET_SCORE_WITH_UNCHARGE_STATE);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
