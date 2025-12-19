@@ -2053,7 +2053,7 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     auto extensionBundleName = bundleName_;
     std::set<std::string> extensionAbilityName;
     if (hasAbilityName_) {
-        extensionAbilityName.emplace_back(abilityName_);
+        extensionAbilityName.emplace(abilityName_);
     } else {
         extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
     }
