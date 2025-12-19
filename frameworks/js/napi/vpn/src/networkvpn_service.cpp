@@ -1854,7 +1854,7 @@ int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName, con
 
     currentVpnBundleName_ = bundleName;
     std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
-    currentVpnAbilityName_.emplace_back(abilityName);
+    currentVpnAbilityName_.emplace(abilityName);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -1985,7 +1985,7 @@ std::string NetworkVpnService::GetBundleName()
     for (const auto &hap : bundleInfo.hapModuleInfos) {
         for (const auto &ext : hap.extensionInfos) {
             if (ext.type == AppExecFwk::ExtensionAbilityType::VPN) {
-                currentVpnAbilityName_.emplace_back(ext.name);
+                currentVpnAbilityName_.emplace(ext.name);
             }
         }
     }
@@ -2029,7 +2029,7 @@ void NetworkVpnService::UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapO
     NETMGR_EXT_LOG_I("UnregisterApplicationStateObserver ret = %{public}d", unRegRet);
 }
 
-std::vector<std::string> NetworkVpnService::GetCurrentVpnAbilityName()
+std::set<std::string> NetworkVpnService::GetCurrentVpnAbilityName()
 {
     std::lock_guard<std::mutex> autoLock(vpnNameMutex_);
     return currentVpnAbilityName_;
@@ -2051,9 +2051,9 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
 {
     std::unique_lock<ffrt::shared_mutex> lock(vpnService_.netVpnMutex_);
     auto extensionBundleName = bundleName_;
-    std::vector<std::string> extensionAbilityName;
+    std::set<std::string> extensionAbilityName;
     if (hasAbilityName_) {
-        extensionAbilityName.emplace_back(abilityName_);
+        extensionAbilityName.emplace(abilityName_);
     } else {
         extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
     }
