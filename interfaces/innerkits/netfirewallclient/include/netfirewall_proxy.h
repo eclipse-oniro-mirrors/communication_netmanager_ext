@@ -43,6 +43,10 @@ public:
     int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) override;
 
+    int32_t RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) override;
+
+    int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) override;
+
     explicit NetFirewallProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<INetFirewallService>(impl) {}
     ~NetFirewallProxy() = default;
 

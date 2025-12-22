@@ -46,6 +46,7 @@
 #include "netfirewall_db_helper.h"
 #include "netfirewall_hisysevent.h"
 #include "netfirewall_intercept_recorder.h"
+#include "mock_i_net_intercept_record_callback_test.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -66,6 +67,7 @@ constexpr uint16_t LOCAL_START_PORT = 10020;
 constexpr uint16_t LOCAL_END_PORT = 1003;
 constexpr uint16_t REMOTE_START_PORT = 1002;
 constexpr uint16_t REMOTE_END_PORT = 10030;
+constexpr int32_t RECORD_CACHE_SIZE = 100;
 
 std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart)
 {
@@ -678,10 +680,18 @@ HWTEST_F(NetFirewallServiceTest, OnIntercept, TestSize.Level1)
     record->remotePort = destPort;
     record->protocol = 1;
     record->appUid = uid;
-    NetFirewallInterceptRecorder::GetInstance()->RegisterInterceptCallback();
-    int32_t ret = NetFirewallInterceptRecorder::GetInstance()->callback_->OnIntercept(record);
-    NetFirewallInterceptRecorder::GetInstance()->UnRegisterInterceptCallback();
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    netFirewallInterceptRecorder->RegisterInterceptCallback();
+    auto callback = netFirewallInterceptRecorder->callback_;
+    ASSERT_NE(callback, nullptr);
+    int32_t ret = callback->OnIntercept(record);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_EQ(netFirewallInterceptRecorder->interceptRecordCallbacks_.empty(), true);
+    ret = callback->OnIntercept(record);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    netFirewallInterceptRecorder->UnRegisterInterceptCallback();
 }
 
 /**
@@ -958,6 +968,339 @@ HWTEST_F(NetFirewallServiceTest, InitNetfirewallPolicy001, TestSize.Level1)
 {
     int32_t ret = NetFirewallPolicyManager::GetInstance().InitNetfirewallPolicy();
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterInterceptRecordsCallback001
+ * @tc.desc: Test NetFirewallInterceptRecorder RegisterInterceptRecordsCallback with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, RegisterInterceptRecordsCallback001, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    int32_t ret = netFirewallInterceptRecorder->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: RegisterInterceptRecordsCallback002
+ * @tc.desc: Test NetFirewallInterceptRecorder RegisterInterceptRecordsCallback with valid callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, RegisterInterceptRecordsCallback002, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    int32_t ret = netFirewallInterceptRecorder->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    netFirewallInterceptRecorder->UnregisterInterceptRecordsCallback(callback);
+}
+
+/**
+ * @tc.name: RegisterInterceptRecordsCallbackService001
+ * @tc.desc: Test NetFirewallService RegisterInterceptRecordsCallback with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, RegisterInterceptRecordsCallbackService001, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    int32_t ret = DelayedSingleton<NetFirewallService>::GetInstance()->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: RegisterInterceptRecordsCallbackService002
+ * @tc.desc: Test NetFirewallService RegisterInterceptRecordsCallback with valid callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, RegisterInterceptRecordsCallbackService004, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    int32_t ret = DelayedSingleton<NetFirewallService>::GetInstance()->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    DelayedSingleton<NetFirewallService>::GetInstance()->UnregisterInterceptRecordsCallback(callback);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallback001
+ * @tc.desc: Test NetFirewallInterceptRecorder UnregisterInterceptRecordsCallback with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UnregisterInterceptRecordsCallback001, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    int32_t ret = netFirewallInterceptRecorder->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallback002
+ * @tc.desc: Test NetFirewallInterceptRecorder UnregisterInterceptRecordsCallback with valid callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UnregisterInterceptRecordsCallback002, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    int32_t registerRet = netFirewallInterceptRecorder->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(registerRet, FIREWALL_SUCCESS);
+    int32_t unregisterRet = netFirewallInterceptRecorder->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(unregisterRet, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallback003
+ * @tc.desc: Test NetFirewallInterceptRecorder UnregisterInterceptRecordsCallback with non-existent callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UnregisterInterceptRecordsCallback003, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    int32_t ret = netFirewallInterceptRecorder->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallbackService001
+ * @tc.desc: Test NetFirewallService UnregisterInterceptRecordsCallback with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UnregisterInterceptRecordsCallbackService001, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    int32_t ret = DelayedSingleton<NetFirewallService>::GetInstance()->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallbackService002
+ * @tc.desc: Test NetFirewallService UnregisterInterceptRecordsCallback with valid callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UnregisterInterceptRecordsCallbackService002, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    int32_t registerRet =
+        DelayedSingleton<NetFirewallService>::GetInstance()->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(registerRet, FIREWALL_SUCCESS);
+    int32_t unregisterRet =
+        DelayedSingleton<NetFirewallService>::GetInstance()->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(unregisterRet, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallbackService003
+ * @tc.desc: Test NetFirewallService UnregisterInterceptRecordsCallback with non-existent callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UnregisterInterceptRecordsCallbackService003, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    int32_t ret = DelayedSingleton<NetFirewallService>::GetInstance()->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: PutRecordCacheWithoutSkip001
+ * @tc.desc: Test NetFirewallInterceptRecorder PutRecordCacheWithoutSkip with null record.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, PutRecordCacheWithoutSkip001, TestSize.Level1)
+{
+    sptr<InterceptRecord> record = nullptr;
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    netFirewallInterceptRecorder->PutRecordCacheWithoutSkip(record);
+    int32_t cacheSize = netFirewallInterceptRecorder->recordCacheWithoutSkip_.size();
+    EXPECT_GE(cacheSize, 0);
+}
+
+/**
+ * @tc.name: PutRecordCacheWithoutSkip002
+ * @tc.desc: Test NetFirewallInterceptRecorder PutRecordCacheWithoutSkip with valid record.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, PutRecordCacheWithoutSkip002, TestSize.Level1)
+{
+    sptr<InterceptRecord> record = new (std::nothrow) InterceptRecord();
+    ASSERT_NE(record, nullptr);
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    netFirewallInterceptRecorder->PutRecordCacheWithoutSkip(record);
+    int32_t cacheSize = netFirewallInterceptRecorder->recordCacheWithoutSkip_.size();
+    EXPECT_GE(cacheSize, 0);
+}
+
+/**
+ * @tc.name: ShouldSkipNotify001
+ * @tc.desc: Test NetFirewallInterceptRecorder ShouldSkipNotify.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, ShouldSkipNotify001, TestSize.Level1)
+{
+    sptr<InterceptRecord> record = nullptr;
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    bool skip = netFirewallInterceptRecorder->ShouldSkipNotify(record);
+    EXPECT_TRUE(skip);
+    record = new (std::nothrow) InterceptRecord();
+    ASSERT_NE(record, nullptr);
+    record->time = 0;
+    record->localIp = "192.168.1.1";
+    record->remoteIp = "192.168.1.2";
+    record->localPort = LOCAL_START_PORT;
+    record->remotePort = REMOTE_START_PORT;
+    record->protocol = 1;
+    record->appUid = 0;
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(record);
+    EXPECT_FALSE(skip);
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(record);
+    EXPECT_TRUE(skip);
+    sptr<InterceptRecord> newRecord = new (std::nothrow) InterceptRecord();
+    newRecord->localIp = "1.1.1.1";
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(newRecord);
+    EXPECT_FALSE(skip);
+    netFirewallInterceptRecorder->oldRecord_ = record;
+    newRecord->remoteIp = "2.2.2.2";
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(newRecord);
+    EXPECT_FALSE(skip);
+    netFirewallInterceptRecorder->oldRecord_ = record;
+    newRecord->localPort = LOCAL_END_PORT;
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(newRecord);
+    EXPECT_FALSE(skip);
+    netFirewallInterceptRecorder->oldRecord_ = record;
+    newRecord->remotePort = REMOTE_END_PORT;
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(newRecord);
+    EXPECT_FALSE(skip);
+    netFirewallInterceptRecorder->oldRecord_ = record;
+    newRecord->protocol = 0;
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(newRecord);
+    EXPECT_FALSE(skip);
+    netFirewallInterceptRecorder->oldRecord_ = record;
+    newRecord->appUid = 1;
+    skip = netFirewallInterceptRecorder->ShouldSkipNotify(newRecord);
+    EXPECT_FALSE(skip);
+}
+
+/**
+ * @tc.name: ReportInterceptWithoutSkip001
+ * @tc.desc: Test NetFirewallServiceTest ReportInterceptWithoutSkip.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, ReportInterceptWithoutSkip001, TestSize.Level1)
+{
+    sptr<InterceptRecord> record = new (std::nothrow) InterceptRecord();
+    ASSERT_NE(record, nullptr);
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    int32_t ret = netFirewallInterceptRecorder->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    ret = netFirewallInterceptRecorder->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+    sptr<INetInterceptRecordCallback> newCallback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(newCallback, nullptr);
+    ret = netFirewallInterceptRecorder->RegisterInterceptRecordsCallback(newCallback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    netFirewallInterceptRecorder->RegisterInterceptCallback();
+    auto callbackInstance = netFirewallInterceptRecorder->callback_;
+    ASSERT_NE(callbackInstance, nullptr);
+    callbackInstance->OnIntercept(record);
+    auto recordCacheWithoutSkipSize = netFirewallInterceptRecorder->recordCacheWithoutSkip_.size();
+    EXPECT_GE(recordCacheWithoutSkipSize, 0);
+    netFirewallInterceptRecorder->UnRegisterInterceptCallback();
+    ret = netFirewallInterceptRecorder->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: ReportInterceptWithoutSkip002
+ * @tc.desc: Test NetFirewallServiceTest ReportInterceptWithoutSkip.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, ReportInterceptWithoutSkip002, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    int32_t ret = netFirewallInterceptRecorder->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    netFirewallInterceptRecorder->RegisterInterceptCallback();
+    auto callbackInstance = netFirewallInterceptRecorder->callback_;
+    ASSERT_NE(callbackInstance, nullptr);
+    sptr<InterceptRecord> record = new (std::nothrow) InterceptRecord();
+    ASSERT_NE(record, nullptr);
+    netFirewallInterceptRecorder->recordCacheWithoutSkip_.resize(RECORD_CACHE_SIZE);
+    ret = callbackInstance->OnIntercept(record);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    netFirewallInterceptRecorder->UnRegisterInterceptCallback();
+    ret = netFirewallInterceptRecorder->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    sptr<INetInterceptRecordCallback> newCallback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(newCallback, nullptr);
+    ret = netFirewallInterceptRecorder->UnregisterInterceptRecordsCallback(newCallback);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: GetInterceptRecord002
+ * @tc.desc: Test NetFirewallServiceTest GetInterceptRecords.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetInterceptRecord002, TestSize.Level1)
+{
+    std::shared_ptr<NetFirewallInterceptRecorder> netFirewallInterceptRecorder =
+        std::make_shared<NetFirewallInterceptRecorder>();
+    ASSERT_NE(netFirewallInterceptRecorder, nullptr);
+    sptr<RequestParam> param = nullptr;
+    sptr<InterceptRecordPage> info = nullptr;
+    int32_t ret = netFirewallInterceptRecorder->GetInterceptRecords(0, param, info);
+    EXPECT_EQ(ret, FIREWALL_ERR_PARAMETER_ERROR);
+
+    param = new (std::nothrow) RequestParam();
+    param->page = 1;
+    param->pageSize = 5;
+    param->orderType = NetFirewallOrderType::ORDER_ASC;
+    param->orderField = NetFirewallOrderField::ORDER_BY_RECORD_TIME;
+    ret = netFirewallInterceptRecorder->GetInterceptRecords(0, param, info);
+    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+    info = new (std::nothrow) InterceptRecordPage();
+    info->totalPage = 1;
+    int32_t userId = instance_->GetCurrentAccountId();
+    ret = netFirewallInterceptRecorder->GetInterceptRecords(userId, param, info);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    userId += 1;
+    info->totalPage = 0;
+    ret = netFirewallInterceptRecorder->GetInterceptRecords(userId, param, info);
+    EXPECT_EQ(ret, FIREWALL_FAILURE);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

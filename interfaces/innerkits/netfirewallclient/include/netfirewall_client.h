@@ -68,6 +68,9 @@ public:
 
     int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info);
+    int32_t RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback);
+
+    int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback);
 
 private:
     class MonitorPcfirewallServiceDead : public IRemoteObject::DeathRecipient {

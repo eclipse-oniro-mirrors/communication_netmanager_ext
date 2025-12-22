@@ -20,6 +20,7 @@
 #include <shared_mutex>
 
 #include "ffrt.h"
+#include "i_net_intercept_record_callback.h"
 #include "netfirewall_common.h"
 #include "netfirewall_callback_stub.h"
 
@@ -44,7 +45,10 @@ public:
         virtual int32_t OnIntercept(sptr<InterceptRecord> &record) override;
 
     private:
+        void ReportInterceptWithoutSkip(sptr<InterceptRecord> &record);
+        void FlushRecordCacheWithoutSkip();
         std::shared_ptr<NetFirewallInterceptRecorder> recorder_ = nullptr;
+        ffrt::task_handle recordWithoutSkipTaskHandle_;
         ffrt::task_handle recordTaskHandle_;
         std::shared_ptr<ffrt::queue> ffrtQueue_;
     };
@@ -107,12 +111,48 @@ public:
      */
     int32_t UnRegisterInterceptCallback();
 
+    /**
+     * add interception recordWithoutSkip in cache
+     *
+     * @param recordWithoutSkip record object
+     */
+    void PutRecordCacheWithoutSkip(sptr<InterceptRecord> &recordWithoutSkip);
+
+    /**
+     * Register to receive callbacks for intercept event
+     *
+     * @param callback implement of INetFirewallCallback
+     * @return 0 if success or -1 if an error occurred
+     */
+    int32_t RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback);
+
+    /**
+     * Unregister to receive callbacks for intercept event
+     *
+     * @param callback register callback for recevie intercept event
+     * @return 0 if success or -1 if an error occurred
+     */
+    int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback);
+
+    /**
+     * Determine if the notification for an intercept record should be skipped.
+     *
+     * @param record The intercept record to be evaluated.
+     * @return True if the notification should be skipped, false otherwise.
+     */
+    bool ShouldSkipNotify(sptr<InterceptRecord> &record);
+
 private:
     std::shared_mutex setRecordMutex_;
+    std::mutex setRecordWithoutSkipMutex_;
     std::shared_mutex callbackMutex_;
+    std::mutex interceptRecordCallbackMutex_;
     std::atomic<int32_t> currentUserId_ = 0;
     std::vector<sptr<InterceptRecord>> recordCache_;
+    std::vector<sptr<InterceptRecord>> recordCacheWithoutSkip_;
+    std::vector<sptr<INetInterceptRecordCallback>> interceptRecordCallbacks_;
     sptr<OHOS::NetsysNative::INetFirewallCallback> callback_ = nullptr;
+    sptr<InterceptRecord> oldRecord_ = nullptr;
     static std::shared_ptr<NetFirewallInterceptRecorder> instance_;
 };
 } // namespace NetManagerStandard

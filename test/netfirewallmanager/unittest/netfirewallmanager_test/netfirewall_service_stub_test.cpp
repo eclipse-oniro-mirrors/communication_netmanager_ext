@@ -331,8 +331,8 @@ HWTEST_F(NetFirewallServiceStubTest, OnRemoteRequest001, TestSize.Level1)
     }
     MessageParcel reply;
     MessageOption option;
-    int32_t code = static_cast<uint32_t>(INetFirewallService::GET_ALL_INTERCEPT_RECORDS) + 1;
-    int32_t ret = instance_->OnRemoteRequest(code, data, reply, option);
+    std::shared_ptr<NetFirewallStub> instance = std::make_shared<MockNetFirewallServiceStub>();
+    int32_t ret = instance->OnRemoteRequest(-1, data, reply, option);
     EXPECT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
 }
 
@@ -520,6 +520,27 @@ HWTEST_F(NetFirewallServiceStubTest, OnGetInterceptRecords001, TestSize.Level1)
     data.WriteInt32(userId);
     ret = instance_->OnGetInterceptRecords(data, reply);
     EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+}
+
+
+HWTEST_F(NetFirewallServiceStubTest, OnRegisterInterceptRecordsCallback001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    std::shared_ptr<NetFirewallStub> instance = std::make_shared<MockNetFirewallServiceStub>();
+    ASSERT_NE(instance, nullptr);
+    int32_t ret = instance->OnRegisterInterceptRecordsCallback(data, reply);
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnUnregisterInterceptRecordsCallback001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    std::shared_ptr<NetFirewallStub> instance = std::make_shared<MockNetFirewallServiceStub>();
+    ASSERT_NE(instance, nullptr);
+    int32_t ret = instance->OnUnregisterInterceptRecordsCallback(data, reply);
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

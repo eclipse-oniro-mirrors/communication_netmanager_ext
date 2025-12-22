@@ -20,6 +20,7 @@
 #include "netfirewall_client.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
+#include "i_net_intercept_record_callback.h"
 
 using namespace OHOS::HiviewDFX;
 
@@ -134,6 +135,30 @@ int32_t NetFirewallClient::GetNetFirewallRule(const int32_t userId, const int32_
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     return proxy->GetNetFirewallRule(userId, ruleId, rule);
+}
+
+int32_t NetFirewallClient::RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetAllNetMessageInterceptInfoRecords proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    return proxy->RegisterInterceptRecordsCallback(callback);
+}
+
+int32_t NetFirewallClient::UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetAllNetMessageInterceptInfoRecords proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    return proxy->UnregisterInterceptRecordsCallback(callback);
 }
 
 int32_t NetFirewallClient::GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,

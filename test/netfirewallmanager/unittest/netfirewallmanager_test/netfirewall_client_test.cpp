@@ -41,6 +41,7 @@
 #include "netfirewall_common.h"
 #include "netfirewall_proxy.h"
 #include "netfirewall_service.h"
+#include "mock_i_net_intercept_record_callback_test.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -559,6 +560,80 @@ HWTEST_F(NetFirewallClientTest, OnLoadSystemAbilitySuccessTest001, TestSize.Leve
         remoteObject);
     auto ret = DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->GetRemoteObject();
     EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: RegisterInterceptRecordsCallback
+ * @tc.desc: Test NetFirewallClientTest RegisterInterceptRecordsCallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallClientTest, RegisterInterceptRecordsCallback, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    std::shared_ptr<NetFirewallClient> netFirewallClient = std::make_shared<NetFirewallClient>();
+    ASSERT_NE(netFirewallClient, nullptr);
+    int32_t ret = netFirewallClient->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL);
+    callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    ret = netFirewallClient->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+    int32_t result = netFirewallClient->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(result, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallback
+ * @tc.desc: Test NetFirewallClientTest UnregisterInterceptRecordsCallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallClientTest, UnregisterInterceptRecordsCallback, TestSize.Level1)
+{
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    std::shared_ptr<NetFirewallClient> netFirewallClient = std::make_shared<NetFirewallClient>();
+    ASSERT_NE(netFirewallClient, nullptr);
+    int32_t ret = netFirewallClient->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL);
+}
+
+/**
+ * @tc.name: RegisterInterceptRecordsCallbackProxy001
+ * @tc.desc: Test NetFirewallProxy RegisterInterceptRecordsCallback with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallClientTest, RegisterInterceptRecordsCallbackProxy001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::shared_ptr<NetFirewallClient> netFirewallClient = std::make_shared<NetFirewallClient>();
+    ASSERT_NE(netFirewallClient, nullptr);
+    sptr<INetFirewallService> proxy = netFirewallClient->GetProxy();
+    ASSERT_NE(proxy, nullptr);
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    int32_t ret = proxy->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL);
+    callback = new (std::nothrow) MockINetInterceptRecordCallbackTest();
+    ASSERT_NE(callback, nullptr);
+    ret = proxy->RegisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+    int32_t result = proxy->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(result, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: UnregisterInterceptRecordsCallbackProxy001
+ * @tc.desc: Test NetFirewallProxy UnregisterInterceptRecordsCallback with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallClientTest, UnregisterInterceptRecordsCallbackProxy001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::shared_ptr<NetFirewallClient> netFirewallClient = std::make_shared<NetFirewallClient>();
+    ASSERT_NE(netFirewallClient, nullptr);
+    sptr<INetFirewallService> proxy = netFirewallClient->GetProxy();
+    ASSERT_NE(proxy, nullptr);
+    sptr<INetInterceptRecordCallback> callback = nullptr;
+    int32_t ret = proxy->UnregisterInterceptRecordsCallback(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

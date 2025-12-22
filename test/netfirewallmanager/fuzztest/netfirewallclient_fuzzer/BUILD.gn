@@ -27,6 +27,7 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "$NETMANAGER_EXT_ROOT/utils/log/include",
     "$NETFIREWALLMANAGER_SOURCE_DIR/include",
     "$EXT_INNERKITS_ROOT/netfirewallclient/include",
+    "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
   ]
 
   cflags = [

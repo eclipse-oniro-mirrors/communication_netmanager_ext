@@ -136,6 +136,23 @@ public:
         sptr<InterceptRecordPage> &info) override;
 
     /**
+     * Register callback for recevie intercept records
+     *
+     * @param callback register callback for recevie intercept records
+     * @return Returns 0 success. Otherwise fail
+     */
+    int32_t RegisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) override;
+
+    /**
+     * Unregister callback for recevie intercept records
+     *
+     * @param callback register callback for recevie intercept records
+     * @return Returns 0 success. Otherwise fail
+     *
+     */
+    int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) override;
+
+    /**
      * dump function
      *
      * @param fd File handle

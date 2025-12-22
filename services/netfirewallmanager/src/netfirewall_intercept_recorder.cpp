@@ -23,6 +23,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t RECORD_CACHE_SIZE = 100;
 constexpr int64_t RECORD_TASK_DELAY_TIME_MS = 3 * 60 * 1000;
+constexpr int64_t IPC_FLUSH_INTERVAL_MS = 1000;
 
 std::shared_ptr<NetFirewallInterceptRecorder> NetFirewallInterceptRecorder::instance_ = nullptr;
 
@@ -67,6 +68,41 @@ int32_t NetFirewallInterceptRecorder::GetInterceptRecords(const int32_t userId, 
     return FIREWALL_SUCCESS;
 }
 
+int32_t NetFirewallInterceptRecorder::RegisterInterceptRecordsCallback(
+    const sptr<INetInterceptRecordCallback>& callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        return FIREWALL_ERR_INTERNAL;
+    }
+    std::lock_guard<std::mutex> locker(interceptRecordCallbackMutex_);
+    for (auto it = interceptRecordCallbacks_.begin(); it != interceptRecordCallbacks_.end(); ++it) {
+        if ((*it)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+            return FIREWALL_ERR_INVALID_PARAMETER;
+        }
+    }
+    interceptRecordCallbacks_.emplace_back(callback);
+    return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallInterceptRecorder::UnregisterInterceptRecordsCallback(
+    const sptr<INetInterceptRecordCallback> &callback)
+{
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        return FIREWALL_ERR_INTERNAL;
+    }
+
+    std::lock_guard<std::mutex> locker(interceptRecordCallbackMutex_);
+    for (auto it = interceptRecordCallbacks_.begin(); it != interceptRecordCallbacks_.end(); ++it) {
+        if ((*it)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+            interceptRecordCallbacks_.erase(it);
+            return FIREWALL_SUCCESS;
+        }
+    }
+    return FIREWALL_SUCCESS;
+}
+
 void NetFirewallInterceptRecorder::SetCurrentUserId(int32_t userId)
 {
     NETMGR_EXT_LOG_I("SetCurrentUserId userid = %{public}d", userId);
@@ -85,6 +121,14 @@ void NetFirewallInterceptRecorder::PutRecordCache(sptr<InterceptRecord> record)
     std::lock_guard<std::shared_mutex> locker(setRecordMutex_);
     if (record != nullptr) {
         recordCache_.emplace_back(record);
+    }
+}
+
+void NetFirewallInterceptRecorder::PutRecordCacheWithoutSkip(sptr<InterceptRecord> &recordWithoutSkip)
+{
+    std::lock_guard<std::mutex> locker(setRecordWithoutSkipMutex_);
+    if (recordWithoutSkip != nullptr) {
+        recordCacheWithoutSkip_.emplace_back(recordWithoutSkip);
     }
 }
 
@@ -120,9 +164,33 @@ int32_t NetFirewallInterceptRecorder::UnRegisterInterceptCallback()
     return ret;
 }
 
+bool NetFirewallInterceptRecorder::ShouldSkipNotify(sptr<InterceptRecord> &record)
+{
+    if (!record) {
+        return true;
+    }
+    const auto intervalMs = static_cast<decltype(record->time)>(INTERCEPT_BUFF_INTERVAL_MS);
+    if (oldRecord_ != nullptr && (record->time - oldRecord_->time) < intervalMs) {
+        if (record->localIp == oldRecord_->localIp && record->remoteIp == oldRecord_->remoteIp &&
+            record->localPort == oldRecord_->localPort && record->remotePort == oldRecord_->remotePort &&
+            record->protocol == oldRecord_->protocol && record->appUid == oldRecord_->appUid) {
+            return true;
+        }
+    }
+    oldRecord_ = record;
+    return false;
+}
+
 int32_t NetFirewallInterceptRecorder::FirewallCallback::OnIntercept(sptr<InterceptRecord> &record)
 {
-    NETMGR_EXT_LOG_I("FirewallCallback::OnIntercept: time=%{public}d", record->time);
+    NETMGR_EXT_LOG_I("FirewallCallback::OnIntercept: time=%{public}lu", record->time);
+    ReportInterceptWithoutSkip(record);
+    if (!recorder_) {
+        return FIREWALL_ERR_INTERNAL;
+    }
+    if (recorder_->ShouldSkipNotify(record)) {
+        return FIREWALL_SUCCESS;
+    }
     recorder_->PutRecordCache(record);
     if (recordTaskHandle_ != nullptr) {
         ffrtQueue_->cancel(recordTaskHandle_);
@@ -137,6 +205,59 @@ int32_t NetFirewallInterceptRecorder::FirewallCallback::OnIntercept(sptr<Interce
         ffrtQueue_->submit(callback);
     }
     return FIREWALL_SUCCESS;
+}
+
+void NetFirewallInterceptRecorder::FirewallCallback::FlushRecordCacheWithoutSkip()
+{
+    if (!recorder_) {
+        return;
+    }
+    std::vector<sptr<InterceptRecord>> buffer;
+    {
+        std::lock_guard<std::mutex> lockerRecordCache(recorder_->setRecordWithoutSkipMutex_);
+        buffer.swap(recorder_->recordCacheWithoutSkip_);
+    }
+    if (buffer.empty()) {
+        return;
+    }
+    std::vector<sptr<INetInterceptRecordCallback>> interceptRecordCallback;
+    {
+        std::lock_guard<std::mutex> lockerCallback(recorder_->interceptRecordCallbackMutex_);
+        interceptRecordCallback.swap(recorder_->interceptRecordCallbacks_);
+    }
+    for (const auto &cb : interceptRecordCallback) {
+        if (!cb) {
+            continue;
+        }
+        for (const auto &item : buffer) {
+            cb->OnInterceptRecord(item);
+        }
+    }
+}
+
+void NetFirewallInterceptRecorder::FirewallCallback::ReportInterceptWithoutSkip(sptr<InterceptRecord> &record)
+{
+    if (!recorder_) {
+        return;
+    }
+    if (recorder_->interceptRecordCallbacks_.empty()) {
+        return;
+    }
+    recorder_->PutRecordCacheWithoutSkip(record);
+    if (recordWithoutSkipTaskHandle_ != nullptr) {
+        ffrtQueue_->cancel(recordWithoutSkipTaskHandle_);
+        recordWithoutSkipTaskHandle_ = nullptr;
+    }
+
+    auto flushCallback = [this]() { FlushRecordCacheWithoutSkip(); };
+
+    if (recorder_->recordCacheWithoutSkip_.size() >= RECORD_CACHE_SIZE) {
+        FlushRecordCacheWithoutSkip();
+    } else {
+        recordWithoutSkipTaskHandle_ = ffrtQueue_->submit_h(
+            flushCallback, ffrt::task_attr().delay(IPC_FLUSH_INTERVAL_MS).name("ReportInterceptWithoutSkipFlush"));
+    }
+    return;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

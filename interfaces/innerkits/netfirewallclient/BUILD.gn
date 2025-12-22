@@ -79,6 +79,7 @@ ohos_shared_library("netfirewall_manager_if") {
     sources = [
       "$NETFIREWALL_EXTENSION_SOURCE_DIR/src/netfirewall_client.cpp",
       "$NETFIREWALL_EXTENSION_SOURCE_DIR/src/netfirewall_proxy.cpp",
+      "$NETFIREWALL_EXTENSION_SOURCE_DIR/src/netfirewall_intercept_record_callback_stub.cpp",
     ]
 
     public_configs = [
