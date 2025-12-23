@@ -74,7 +74,7 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
                                    const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) override;
-        void SendConnStateChanged(const VpnConnectState &state) override;
+        void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0) override;
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 
     private:
@@ -286,7 +286,7 @@ private:
     void HandleVpnHapObserverRegistration(const std::string& bundleName);
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
-    void PublishVpnConnectionStateEvent(const VpnConnectState &state) const;
+    void PublishVpnConnectionStateEvent(const VpnConnectState &state, int32_t vpnType = 0) const;
     bool IsNeedNotify(const VpnConnectState &state);
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
