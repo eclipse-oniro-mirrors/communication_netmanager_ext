@@ -2063,12 +2063,13 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
         NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
         return;
     }
-    if (processData.pid == vpnService_.currSetUpVpnPid_) {
+    if (processData.pid == vpnService_.currSetUpVpnPid_ || processData.uid == vpnService_.hasOpenedVpnUid_) {
         if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
             NETMGR_EXT_LOG_E("destroy vpn failed");
         }
         vpnService_.vpnObj_ = nullptr;
         vpnService_.currSetUpVpnPid_ = 0;
+        vpnService_.hasOpenedVpnUid_ = 0;
     } else {
 #ifdef SUPPORT_SYSVPN
         NETMGR_EXT_LOG_E("destroy multivpn");
