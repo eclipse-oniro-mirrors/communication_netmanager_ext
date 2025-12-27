@@ -219,8 +219,7 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state)
     return true;
 }
 
-void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &state,
-                                                       int32_t vpnType) const
+void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &state, int32_t vpnType) const
 {
     OHOS::AAFwk::Want want;
     want.SetAction(COMMON_EVENT_VPN_CONNECT_STATUS_VALUE);
@@ -248,8 +247,7 @@ void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectSta
 {
     NETMGR_EXT_LOG_I("SendConnStateChanged vpn connect state[%{public}d].", static_cast<uint32_t>(state));
     if (vpnService_.IsNeedNotify(state)) {
-        NETMGR_EXT_LOG_I("PublishVpnConnectionStateEvent vpn connect state[%{public}d], vpnType[%{public}d].",
-            static_cast<uint32_t>(state), vpnType);
+        NETMGR_EXT_LOG_I("PublishVpnConnectionStateEvent vpn connect vpnType[%{public}d].", vpnType);
         return vpnService_.PublishVpnConnectionStateEvent(state, vpnType);
     }
     return;
