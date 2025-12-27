@@ -61,6 +61,7 @@ constexpr int32_t MAX_CALLBACK_COUNT = 128;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 constexpr const char* VPN_CONFIG_FILE = "/data/service/el1/public/netmanager/vpn_config.json";
 constexpr const char* VPN_EXTENSION_LABEL = ":vpn";
+constexpr const char* DCPC_SAHRING_VPN_ID = "dcpc_share_vpn";
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 30;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t UID_NET_SYS_NATIVE = 1098;
@@ -640,6 +641,15 @@ bool NetworkVpnService::CheckVpnPermission(const std::string &bundleName)
     return true;
 }
 
+bool NetworkVpnService::IsDistributedModemSharingVpn()
+{
+#ifdef SUPPORT_SYSVPN
+    return (vpnObjMap_.find(DCPC_SAHRING_VPN_ID) != vpnObjMap_.end());
+#else
+    return false;
+#endif
+}
+
 int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &vpnBundleName,
     int32_t &userId, std::vector<int32_t> &activeUserIds)
 {
@@ -665,6 +675,10 @@ int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &v
 #ifdef SUPPORT_SYSVPN
     if ((vpnId.empty() && vpnObj_ != nullptr) || (vpnObjMap_.find(vpnId) != vpnObjMap_.end())) {
         NETMGR_EXT_LOG_W("forbit setup, vpn exist already:%{public}s", vpnId.c_str());
+        return NETWORKVPN_ERROR_VPN_EXIST;
+    }
+    if (vpnId.empty() && IsDistributedModemSharingVpn()) {
+        NETMGR_EXT_LOG_W("forbit setup, distributed modem is sharing vpn");
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
     if (vpnObj_ != nullptr && vpnObj_->multiVpnInfo_ != nullptr && !vpnObj_->multiVpnInfo_->isVpnExtCall
