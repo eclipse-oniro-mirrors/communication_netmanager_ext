@@ -847,9 +847,9 @@ HWTEST_F(NetworkVpnServiceTest, IsDistributedModemSharingVpn001, TestSize.Level1
 {
     instance_->vpnObjMap_.clear();
     EXPECT_FALSE(instance_->IsDistributedModemSharingVpn());
-    std::shared_ptr<IpsecVpnCtl> vpnCtl = std::make_shared<IpsecVpnCtl>(config, "", userId, activeUserIds);
-    instance_->vpnObjMap_.insert({"dcpc_share_vpn", vpnCtl});
+    instance_->vpnObjMap_.insert({"dcpc_share_vpn", nullptr});
     EXPECT_TRUE(instance_->IsDistributedModemSharingVpn());
+    instance_->vpnObjMap_.clear();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
