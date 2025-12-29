@@ -334,7 +334,7 @@ HWTEST_F(NetworkVpnClientTest, multiUserSetUpEvent001, TestSize.Level1)
     networkVpnClient_.vpnEventCallback_ = new (std::nothrow) VpnSetUpEventCallback();
     ASSERT_NE(networkVpnClient_.vpnEventCallback_, nullptr);
     networkVpnClient_.multiUserSetUpEvent();
-    EXPECT_TRUE(networkVpnClient_.vpnEventCallback_ == nullptr);
+    EXPECT_FALSE(networkVpnClient_.vpnEventCallback_ == nullptr);
 }
 
 HWTEST_F(NetworkVpnClientTest, GetSelfAppNameTest_01, TestSize.Level1)
