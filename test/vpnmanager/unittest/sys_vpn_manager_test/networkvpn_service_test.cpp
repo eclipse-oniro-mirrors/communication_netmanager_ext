@@ -61,7 +61,7 @@ public:
 void NetworkVpnServiceTest::SetUpTestCase()
 {
     vpnConfig_ = new (std::nothrow) IpsecVpnConfig();
-    ASSERT_NE(vpnConfig_, nullptr); 
+    ASSERT_NE(vpnConfig_, nullptr);
     vpnConfig_->vpnId_ = vpnId_;
     vpnConfig_->vpnName_ = vpnId_;
     vpnConfig_->vpnType_ = 1;
