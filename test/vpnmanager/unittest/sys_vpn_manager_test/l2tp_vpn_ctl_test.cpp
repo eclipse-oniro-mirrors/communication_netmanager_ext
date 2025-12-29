@@ -43,17 +43,13 @@ void L2tpVpnCtlTest::SetUpTestSuite()
     int32_t userId = 0;
     std::vector<int32_t> activeUserIds;
     l2tpControl_ = std::make_unique<L2tpVpnCtl>(l2tpVpnconfig, "pkg", userId, activeUserIds);
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     l2tpControl_->l2tpVpnConfig_ = l2tpVpnconfig;
 }
 
 HWTEST_F(L2tpVpnCtlTest, SetUp001, TestSize.Level1)
 {
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     EXPECT_EQ(l2tpControl_->SetUp(), NETMANAGER_EXT_SUCCESS);
 }
 
@@ -143,9 +139,7 @@ HWTEST_F(L2tpVpnCtlTest, StartSysVpnTest001, TestSize.Level1)
 
 HWTEST_F(L2tpVpnCtlTest, Destroy001, TestSize.Level1)
 {
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     EXPECT_EQ(l2tpControl_->Destroy(), NETMANAGER_EXT_SUCCESS);
 }
 
@@ -171,17 +165,13 @@ HWTEST_F(L2tpVpnCtlTest, Destroy002, TestSize.Level1)
 
 HWTEST_F(L2tpVpnCtlTest, IsInternalVpn001, TestSize.Level1)
 {
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     EXPECT_EQ(l2tpControl_->IsInternalVpn(), true);
 }
 
 HWTEST_F(L2tpVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
 {
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     sptr<SysVpnConfig> resConfig = nullptr;
     int32_t ret = l2tpControl_->GetConnectedSysVpnConfig(resConfig);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -197,9 +187,7 @@ HWTEST_F(L2tpVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
 
 HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
 {
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     std::string stage;
     int32_t errorCode = 1;
     int32_t ret = l2tpControl_->NotifyConnectStage(stage, errorCode);
@@ -245,9 +233,7 @@ HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
 
 HWTEST_F(L2tpVpnCtlTest, NotifyConnectStageTest002, TestSize.Level1)
 {
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     std::string stage;
     int32_t errorCode = NETMANAGER_EXT_SUCCESS;
     int32_t ret;
@@ -340,9 +326,7 @@ HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     config->ipsecCaCertConf_ = "CaCertUri";
     l2tpControl_->l2tpVpnConfig_ = nullptr;
     std::string certUri;
@@ -361,9 +345,7 @@ HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     config->ipsecPublicUserCertConf_ = "UserCertUri";
     l2tpControl_->l2tpVpnConfig_ = config;
     std::string certUri;
@@ -384,9 +366,7 @@ HWTEST_F(L2tpVpnCtlTest, GetVpnCertData001, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     config->pkcs12Password_ = "123456";
     l2tpControl_->l2tpVpnConfig_ = config;
     std::vector<int8_t> certData;
@@ -416,9 +396,7 @@ HWTEST_F(L2tpVpnCtlTest, GetVpnCertData002, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     config->pkcs12Password_ = "123456";
     l2tpControl_->l2tpVpnConfig_ = config;
     std::vector<int8_t> certData;
@@ -438,9 +416,7 @@ HWTEST_F(L2tpVpnCtlTest, InitConfigFile001, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     config->ipsecPublicUserCertConf_ = "testUserUri";
     config->xl2tpdConf_ = "testXl2tpdConf";
     config->strongswanConf_ = "testStrongswanConf";
@@ -461,9 +437,7 @@ HWTEST_F(L2tpVpnCtlTest, InitConfigFile002, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     config->ipsecPublicUserCertConf_ = "testUserUri";
     config->xl2tpdConf_ = "INVALID_BASE64";
     config->strongswanConf_ = "INVALID_BASE64";
@@ -481,9 +455,7 @@ HWTEST_F(L2tpVpnCtlTest, GetSysVpnCertUriTest003, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (l2tpControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(l2tpControl_, nullptr);
     config->ipsecPublicUserCertConf_ = "UserCertUri";
     l2tpControl_->l2tpVpnConfig_ = config;
     std::string certUri;

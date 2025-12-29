@@ -292,9 +292,7 @@ HWTEST_F(NetConnManagerTest, NetConnManager006, TestSize.Level1)
     result = NetConnClient::GetInstance().RegisterNetConnCallback(callback);
     if (result == NETMANAGER_SUCCESS) {
         sptr<INetConnService> proxy = NetConnManagerTest::GetProxy();
-        if (proxy == nullptr) {
-            return;
-        }
+        ASSERT_NE(proxy, nullptr);
         proxy->UpdateNetStateForTest(netSpecifier, 1);
         callback->WaitFor(WAIT_TIME_SECOND_LONG);
         int32_t netState = callback->GetNetState();
@@ -316,17 +314,12 @@ HWTEST_F(NetConnManagerTest, NetConnManager007, TestSize.Level1)
 {
     NetHandle netHandle;
     int32_t result = NetConnClient::GetInstance().GetDefaultNet(netHandle);
-    if (result != NETMANAGER_SUCCESS) {
-        return ;
-    }
+    ASSERT_EQ(result, NETMANAGER_SUCCESS);
     sptr<NetDetectionCallbackStub> callback = new NetDetectionCallbackStub();
     int32_t netId = netHandle.GetNetId();
     std::cout << "RegisterNetDetectionCallback netId:"<< netId << std::endl;
     result = NetConnClient::GetInstance().RegisterNetDetectionCallback(netId, callback);
-    if (result == 0) {
-        std::cout << "RegisterNetDetectionCallback register success" << std::endl;
-        return;
-    }
+    ASSERT_NE(result, 0);
     std::cout << "RegisterNetDetectionCallback failed ret = %{public}d"<< result << std::endl;
 
     result = NetConnClient::GetInstance().UnRegisterNetDetectionCallback(netId, callback);
@@ -342,9 +335,7 @@ HWTEST_F(NetConnManagerTest, NetConnManager008, TestSize.Level1)
 {
     auto &client = NetConnClient::GetInstance();
     sptr<INetConnService> proxy = NetConnManagerTest::GetProxy();
-    if (proxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(proxy, nullptr);
     NetManagerBaseAccessToken token;
     std::list<sptr<NetHandle>> netList;
     int32_t result = client.GetAllNets(netList);
@@ -398,9 +389,7 @@ HWTEST_F(NetConnManagerTest, NetConnManager008, TestSize.Level1)
 HWTEST_F(NetConnManagerTest, NetConnManager009, TestSize.Level1)
 {
     sptr<INetConnService> proxy = NetConnManagerTest::GetProxy();
-    if (proxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(proxy, nullptr);
 
     sptr<NetDetectionCallbackTest> detectionCallback = GetINetDetectionCallbackSample();
     if (detectionCallback == nullptr) {
@@ -458,9 +447,7 @@ HWTEST_F(NetConnManagerTest, NetConnManager011, TestSize.Level1)
     std::cout << "supplierId3 : " << supplierId3 << std::endl;
 
     sptr<INetConnService> proxy = NetConnManagerTest::GetProxy();
-    if (proxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(proxy, nullptr);
     std::list<int32_t> netIdList;
     result = proxy->GetSpecificNet(bearerType, netIdList);
     ASSERT_TRUE(result == NETMANAGER_SUCCESS);
@@ -637,9 +624,7 @@ HWTEST_F(NetConnManagerTest, NetConnManager016, TestSize.Level1)
 {
     auto &client = NetConnClient::GetInstance();
     sptr<INetConnService> proxy = NetConnManagerTest::GetProxy();
-    if (proxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(proxy, nullptr);
     NetManagerBaseAccessToken token;
     int32_t result;
     std::list<sptr<NetHandle>> netList;
@@ -754,10 +739,7 @@ HWTEST_F(NetConnManagerTest, NetConnManager020, TestSize.Level1)
 HWTEST_F(NetConnManagerTest, NetConnManager021, TestSize.Level1)
 {
     sptr<INetConnService> proxy = NetConnManagerTest::GetProxy();
-    if (proxy == nullptr) {
-        std::cout << "-------NetConnManager021 GetProxy failed." << std::endl;
-        return;
-    }
+    ASSERT_NE(proxy, nullptr);
     int32_t netId = 110;
     int32_t result = proxy->NetDetection(netId);
     EXPECT_NE(result, NETMANAGER_SUCCESS);
@@ -791,9 +773,7 @@ HWTEST_F(NetConnManagerTest, NetConnManager022, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     sptr<INetConnService> proxy = NetConnManagerTest::GetProxy();
-    if (proxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(proxy, nullptr);
     uint32_t supplierId = 0;
     std::string testString = "test";
     std::set<NetCap> netCaps{NetCap::NET_CAPABILITY_INTERNAL_DEFAULT};

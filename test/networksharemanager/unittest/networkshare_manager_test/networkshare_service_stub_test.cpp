@@ -61,9 +61,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyIsNetworkSharingSupportedTest001, Tes
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_GET_SHARING_SUPPORTED);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
@@ -72,9 +70,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyIsSharingTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_GET_IS_SHARING);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -83,9 +79,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyStartNetworkSharingTest001, TestSize.
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
     }
@@ -97,9 +91,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyStopNetworkSharingTest001, TestSize.L
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
     }
@@ -111,9 +103,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyGetSharableRegexsTest001, TestSize.Le
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
     }
@@ -125,9 +115,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyGetSharingStateTest001, TestSize.Leve
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
     }
@@ -139,9 +127,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyGetNetSharingIfacesTest001, TestSize.
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
     }
@@ -153,9 +139,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyRegisterSharingEventTest001, TestSize
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     sptr<ISharingEventCallback> callback = new (std::nothrow) MockISharingEventCallback();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -168,9 +152,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyUnregisterSharingEventTest001, TestSi
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     sptr<ISharingEventCallback> callback = new (std::nothrow) MockISharingEventCallback();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -183,9 +165,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyGetStatsRxBytesTest001, TestSize.Leve
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_GET_RX_BYTES);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -194,9 +174,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyGetStatsTxBytesTest001, TestSize.Leve
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_GET_TX_BYTES);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -205,9 +183,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplyGetStatsTotalBytesTest001, TestSize.L
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_GET_TOTAL_BYTES);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -216,9 +192,7 @@ HWTEST_F(NetworkShareServiceStubTest, ReplySetConfigureForShareTest001, TestSize
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkShareServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, TetheringInterfaceCode::CMD_SET_CONFIG);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 }

@@ -250,9 +250,6 @@ HWTEST_F(UtNetPolicyService, NetPolicyServiceBranchTest002, TestSize.Level1)
     ASSERT_TRUE(instance_->netPolicyRule_ != nullptr);
     ASSERT_TRUE(instance_->netPolicyTraffic_ != nullptr);
     ASSERT_TRUE(instance_->netPolicyFirewall_ != nullptr);
-    if (instance_->netPolicyFirewall_ == nullptr) {
-        return;
-    }
     instance_->netPolicyFirewall_->Init();
 
     uint32_t policy = 0;

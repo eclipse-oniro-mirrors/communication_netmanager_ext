@@ -354,9 +354,7 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
     data.uid = userId;
     sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
         *instance_, "testBundleName", "testAbility");
-    if (vpnHapObserver == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnHapObserver, nullptr);
     instance_->setVpnPidMap_.emplace(userId, 123456);
     vpnHapObserver->OnProcessDied(data);
     EXPECT_FALSE(instance_->vpnObj_ == nullptr);
@@ -373,9 +371,7 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest002, TestSize.Level1)
     data.uid = userId + 1;  // differs from userId
     sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
         *instance_, "testBundleName");
-    if (vpnHapObserver == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnHapObserver, nullptr);
     instance_->setVpnPidMap_.emplace(userId, 123456);
     vpnHapObserver->OnProcessDied(data);
     EXPECT_TRUE(instance_->vpnObj_ != nullptr);

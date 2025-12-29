@@ -442,9 +442,6 @@ HWTEST_F(MDnsServerTest, MDnsServerBranchTest001, TestSize.Level1)
     std::string serviceType = "test";
     sptr<IDiscoveryCallback> callback = new (std::nothrow) MockIDiscoveryCallbackTest();
     EXPECT_TRUE(callback != nullptr);
-    if (callback == nullptr) {
-        return;
-    }
     auto ret = DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(serviceType, callback);
     EXPECT_EQ(ret, NET_MDNS_ERR_ILLEGAL_ARGUMENT);
 

@@ -59,9 +59,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyPrepareTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_PREPARE);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -70,9 +68,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     VpnConfig* config = new (std::nothrow) VpnConfig();
     EXPECT_TRUE(config != nullptr);
     if (config == nullptr) {
@@ -106,9 +102,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyProtectTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_PROTECT);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -117,9 +111,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyDestroyVpnTest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_DESTROY_VPN);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -128,9 +120,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterVpnEventTest001, TestSize.Level
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -143,9 +133,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyUnregisterVpnEventTest001, TestSize.Lev
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -158,9 +146,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyCreateVpnConnectionTest001, TestSize.Le
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_CREATE_VPN_CONNECTION);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -169,9 +155,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterSharingEventTest001, TestSize.L
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -184,9 +168,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyUnregisterSharingEventTest001, TestSize
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -198,9 +180,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyUnregisterSharingEventTest001, TestSize
 HWTEST_F(NetworkVpnServiceStubTest, ReplyFactoryResetVpnTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_FACTORY_RESET_VPN);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }

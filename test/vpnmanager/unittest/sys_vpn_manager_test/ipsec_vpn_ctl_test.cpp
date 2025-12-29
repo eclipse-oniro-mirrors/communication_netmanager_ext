@@ -46,41 +46,31 @@ void IpsecVpnCtlTest::SetUpTestSuite()
     int32_t userId = 0;
     std::vector<int32_t> activeUserIds;
     ipsecControl_ = std::make_unique<IpsecVpnCtl>(ipsecConfig, "pkg", userId, activeUserIds);
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     ipsecControl_->ipsecVpnConfig_ = ipsecConfig;
 }
 
 HWTEST_F(IpsecVpnCtlTest, SetUp001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     EXPECT_EQ(ipsecControl_->SetUp(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(IpsecVpnCtlTest, Destroy001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     EXPECT_EQ(ipsecControl_->Destroy(), NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(IpsecVpnCtlTest, IsInternalVpn001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     EXPECT_EQ(ipsecControl_->IsInternalVpn(), true);
 }
 
 HWTEST_F(IpsecVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     sptr<SysVpnConfig> resConfig = nullptr;
     int32_t ret = ipsecControl_->GetConnectedSysVpnConfig(resConfig);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -96,9 +86,7 @@ HWTEST_F(IpsecVpnCtlTest, GetConnectedSysVpnConfigTest001, TestSize.Level1)
 
 HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     std::string stage;
     int32_t errorCode = 1;
     int32_t ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
@@ -177,9 +165,7 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     config->ipsecCaCertConf_ = "testCaUri";
     ipsecControl_->ipsecVpnConfig_ = nullptr;
     int32_t certType = 0;
@@ -196,9 +182,7 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest002, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     config->ipsecPublicUserCertConf_ = "testUserUri";
     ipsecControl_->ipsecVpnConfig_ = config;
     std::string certUri;
@@ -217,9 +201,7 @@ HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest003, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     config->ipsecPublicUserCertConf_ = "testUserUri";
     ipsecControl_->ipsecVpnConfig_ = config;
     std::string certUri;
@@ -236,9 +218,7 @@ HWTEST_F(IpsecVpnCtlTest, GetVpnCertData001, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     config->pkcs12Password_ = "123456";
     ipsecControl_->ipsecVpnConfig_ = config;
     std::vector<int8_t> certData;
@@ -268,9 +248,7 @@ HWTEST_F(IpsecVpnCtlTest, GetVpnCertData002, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     config->pkcs12Password_ = "123456";
     ipsecControl_->ipsecVpnConfig_ = config;
     std::vector<int8_t> certData;
@@ -290,9 +268,7 @@ HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest001, TestSize.Level1)
     if (config == nullptr) {
         return;
     }
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     config->strongswanConf_ = "INVALID_BASE64";
     ipsecControl_->ipsecVpnConfig_ = config;
     EXPECT_EQ(ipsecControl_->InitConfigFile(), NETMANAGER_EXT_SUCCESS);
@@ -303,18 +279,14 @@ HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest001, TestSize.Level1)
 
 HWTEST_F(IpsecVpnCtlTest, InitConfigFileTest002, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     ipsecControl_->ipsecVpnConfig_ = nullptr;
     EXPECT_EQ(ipsecControl_->InitConfigFile(), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     ipsecControl_->ipsecVpnConfig_ = nullptr;
     std::string message;
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
@@ -351,9 +323,7 @@ HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest001, TestSize.Level1)
 
 HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     if (config == nullptr) {
         return;
@@ -387,18 +357,14 @@ HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
 
 HWTEST_F(IpsecVpnCtlTest, ProcessDnsConfigTest001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     ipsecControl_->ipsecVpnConfig_ = nullptr;
     EXPECT_EQ(ipsecControl_->ProcessDnsConfig(nullptr), NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(IpsecVpnCtlTest, ProcessDnsConfigTest002, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     sptr<VpnConfig> vpnConfig = new (std::nothrow) VpnConfig();
     if (vpnConfig == nullptr) {
         return;
@@ -426,9 +392,7 @@ HWTEST_F(IpsecVpnCtlTest, ProcessDnsConfigTest002, TestSize.Level1)
 
 HWTEST_F(IpsecVpnCtlTest, HandleUpdateConfigTest001, TestSize.Level1)
 {
-    if (ipsecControl_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(ipsecControl_, nullptr);
     ipsecControl_->ipsecVpnConfig_ = nullptr;
     std::string message;
     EXPECT_EQ(ipsecControl_->HandleUpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);

@@ -96,9 +96,7 @@ HWTEST_F(BroadcastProxyTest, SystemAbilityCustomizedListenerTest001, TestSize.Le
 {
     NETMGR_EXT_LOG_I("SystemAbilityCustomizedListenerTest001 enter");
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     broadcastProxy->statusChangeListener_->OnAddSystemAbility(-1, "");
     broadcastProxy->statusChangeListener_->OnRemoveSystemAbility(-1, "");
     broadcastProxy->statusChangeListener_->OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, "");
@@ -120,9 +118,6 @@ HWTEST_F(BroadcastProxyTest, NetManagerAppAwareObserverCallback1, testing::ext::
     sptr<broadcast_proxy::AppAwareObserver> appAwareObserver = new (std::nothrow) broadcast_proxy::AppAwareObserver();
     AppExecFwk::AppStateData appStateData;
     EXPECT_NE(appAwareObserver, NULL);
-    if (!appAwareObserver) {
-        return;
-    }
     appAwareObserver->OnForegroundApplicationChanged(appStateData);
 }
  
@@ -142,9 +137,6 @@ HWTEST_F(BroadcastProxyTest, NetManagerAppAwareObserverCallback2, testing::ext::
     appStateData.bundleName = "browser";
     appStateData.isFocused = false;
     EXPECT_NE(appAwareObserver, NULL);
-    if (!appAwareObserver) {
-        return;
-    }
     appAwareObserver->OnForegroundApplicationChanged(appStateData);
 }
  
@@ -157,9 +149,7 @@ HWTEST_F(BroadcastProxyTest, NetManagerAppAwareObserverCallback2, testing::ext::
 HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_SCREEN_ON, TestSize.Level1)
 {
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     NETMGR_EXT_LOG_I("NETMANAGER_EXT_SCREEN_ON enter");
     NetworkSliceEvent event = EVENT_SCREEN_ON;
     std::string commonEventSupport = EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_ON;
@@ -188,9 +178,7 @@ HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_SCREEN_ON, TestSize.Level1)
 HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_SCREEN_OFF, TestSize.Level1)
 {
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     NETMGR_EXT_LOG_I("NETMANAGER_EXT_SCREEN_OFF enter");
     NetworkSliceEvent event = EVENT_SCREEN_OFF;
     std::string commonEventSupport = EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_OFF;
@@ -219,9 +207,7 @@ HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_SCREEN_OFF, TestSize.Level1)
 HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_WIFI_CONN_STATE, TestSize.Level1)
 {
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     NETMGR_EXT_LOG_I("NETMANAGER_EXT_WIFI_CONN_STATE enter");
     NetworkSliceEvent event = EVENT_WIFI_CONN_CHANGED;
     std::string commonEventSupport = EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_CONN_STATE;
@@ -250,9 +236,7 @@ HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_WIFI_CONN_STATE, TestSize.Level1)
 HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_SIM_STATE, TestSize.Level1)
 {
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     NETMGR_EXT_LOG_I("NETMANAGER_EXT_SIM_STATE enter");
     NetworkSliceEvent event = EVENT_HANDLE_SIM_STATE_CHANGED;
     std::string commonEventSupport = EventFwk::CommonEventSupport::COMMON_EVENT_SIM_STATE_CHANGED;
@@ -281,9 +265,7 @@ HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_SIM_STATE, TestSize.Level1)
 HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_AIRPLANE_MODE_CHANGED, TestSize.Level1)
 {
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     NETMGR_EXT_LOG_I("NETMANAGER_EXT_AIRPLANE_MODE_CHANGED enter");
     NetworkSliceEvent event = EVENT_AIR_MODE_CHANGED;
     std::string commonEventSupport = EventFwk::CommonEventSupport::COMMON_EVENT_AIRPLANE_MODE_CHANGED;
@@ -312,9 +294,7 @@ HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_AIRPLANE_MODE_CHANGED, TestSize.Leve
 HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_NETWORK_STATE_CHANGED, TestSize.Level1)
 {
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     NETMGR_EXT_LOG_I("NETMANAGER_EXT_NETWORK_STATE_CHANGED enter");
     NetworkSliceEvent event = EVENT_NETWORK_STATE_CHANGED;
     std::string commonEventSupport = EventFwk::CommonEventSupport::COMMON_EVENT_NETWORK_STATE_CHANGED;
@@ -343,9 +323,7 @@ HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_NETWORK_STATE_CHANGED, TestSize.Leve
 HWTEST_F(BroadcastProxyTest, NETMANAGER_EXT_CONNECTIVITY_CHANGE, TestSize.Level1)
 {
     auto broadcastProxy = std::make_shared<broadcast_proxy>();
-    if (broadcastProxy == nullptr) {
-        return;
-    }
+    ASSERT_NE(broadcastProxy, nullptr);
     NETMGR_EXT_LOG_I("NETMANAGER_EXT_CONNECTIVITY_CHANGE enter");
     NetworkSliceEvent event = EVENT_CONNECTIVITY_CHANGE;
     std::string commonEventSupport = EventFwk::CommonEventSupport::COMMON_EVENT_CONNECTIVITY_CHANGE;
