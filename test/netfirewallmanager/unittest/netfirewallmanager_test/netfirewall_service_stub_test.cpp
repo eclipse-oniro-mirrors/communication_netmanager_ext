@@ -144,9 +144,7 @@ HWTEST_F(NetFirewallServiceStubTest, SetNetFirewallPolicy001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
@@ -170,9 +168,7 @@ HWTEST_F(NetFirewallServiceStubTest, GetNetFirewallPolicy001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
@@ -196,9 +192,7 @@ HWTEST_F(NetFirewallServiceStubTest, AddNetFirewallRule001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     sptr<NetFirewallRule> status = new (std::nothrow) NetFirewallRule();
     EXPECT_TRUE(status != nullptr);
@@ -218,9 +212,7 @@ HWTEST_F(NetFirewallServiceStubTest, UpdateNetFirewallRule001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     sptr<NetFirewallRule> status = new (std::nothrow) NetFirewallRule();
     EXPECT_TRUE(status != nullptr);
@@ -240,9 +232,7 @@ HWTEST_F(NetFirewallServiceStubTest, DeleteNetFirewallRule001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     if (!data.WriteInt32(USER_ID)) {
         return;
@@ -260,9 +250,7 @@ HWTEST_F(NetFirewallServiceStubTest, GetAllNetFirewallRule001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
@@ -282,9 +270,7 @@ HWTEST_F(NetFirewallServiceStubTest, GetNetFirewallRule001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
@@ -302,9 +288,7 @@ HWTEST_F(NetFirewallServiceStubTest, GetInterceptRecord001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
 
     if (!data.WriteInt32(TEST_INT32_NUMBER)) {
         return;
@@ -326,9 +310,7 @@ HWTEST_F(NetFirewallServiceStubTest, OnRemoteRequest001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetFirewallStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetFirewallStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     std::shared_ptr<NetFirewallStub> instance = std::make_shared<MockNetFirewallServiceStub>();

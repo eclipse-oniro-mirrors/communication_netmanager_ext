@@ -54,9 +54,7 @@ HWTEST_F(ExtendedVpnCtlTest, SetUp001, TestSize.Level1)
 HWTEST_F(ExtendedVpnCtlTest, SetUp002, TestSize.Level1)
 {
     sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
-    if (vpnInfo == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnInfo, nullptr);
     sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
     if (netAddr == nullptr) {
         return;
@@ -84,9 +82,7 @@ HWTEST_F(ExtendedVpnCtlTest, Destroy001, TestSize.Level1)
 HWTEST_F(ExtendedVpnCtlTest, Destroy002, TestSize.Level1)
 {
     sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
-    if (vpnInfo == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnInfo, nullptr);
     vpnInfo->isVpnExtCall = true;
     vpnInfo->ifNameId = 1;
     vpnControl_->multiVpnInfo_ = vpnInfo;

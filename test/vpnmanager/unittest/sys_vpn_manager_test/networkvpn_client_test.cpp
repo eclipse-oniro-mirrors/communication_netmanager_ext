@@ -122,9 +122,7 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig002, TestSize.Level1)
     NetManagerExtAccessToken access;
     std::string id = "1234";
     sptr<SysVpnConfig> config = new (std::nothrow) SysVpnConfig();
-    if (config == nullptr) {
-        return;
-    }
+    ASSERT_NE(config, nullptr);
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
@@ -143,9 +141,7 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig004, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    if (config == nullptr) {
-        return;
-    }
+    ASSERT_NE(config, nullptr);
     config->vpnId_ = "testId0";
     config->vpnName_ = "test";
     config->vpnType_ = 0;
@@ -160,9 +156,7 @@ HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig001, TestSize.Level1)
     NetManagerExtAccessToken access;
     std::string id = "1234";
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    if (config == nullptr) {
-        return;
-    }
+    ASSERT_NE(config, nullptr);
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;

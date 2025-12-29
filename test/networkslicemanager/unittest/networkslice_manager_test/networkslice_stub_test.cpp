@@ -114,9 +114,7 @@ HWTEST_F(NetworkSliceStubTest, OnSetNetworkSlicePolicy001, TestSize.Level1)
     MessageParcel data;
     int32_t buffersize = 1;
     uint8_t buffer = 0;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     data.WriteInt32(buffersize);
     data.WriteUint8(buffer);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::SET_NETWORKSLICE_UEPOLICY);
@@ -128,10 +126,7 @@ HWTEST_F(NetworkSliceStubTest, OnSetNetworkSlicePolicy002, TestSize.Level1)
     NETMGR_EXT_LOG_I("OnSetNetworkSlicePolicy002");
     MessageParcel data;
     int32_t buffersize = 0;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()))
-    {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     data.WriteInt32(buffersize);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::SET_NETWORKSLICE_UEPOLICY);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
@@ -143,9 +138,7 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceAllowedNssaiRpt001, TestSize.Level1
     MessageParcel data;
     int32_t buffersize = 1;
     uint8_t buffer = 0;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     data.WriteInt32(buffersize);
     data.WriteUint8(buffer);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_ALLOWEDNSSAI_RPT);
@@ -157,10 +150,7 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceAllowedNssaiRpt002, TestSize.Level1
     NETMGR_EXT_LOG_I("OnNetworkSliceAllowedNssaiRpt002");
     MessageParcel data;
     int32_t buffersize = 0;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()))
-    {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_ALLOWEDNSSAI_RPT);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
@@ -171,9 +161,7 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceEhplmnRpt001, TestSize.Level1)
     MessageParcel data;
     int32_t buffersize = 1;
     uint8_t buffer = 0;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     data.WriteInt32(buffersize);
     data.WriteUint8(buffer);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_EHPLMN_RPT);
@@ -185,10 +173,7 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceEhplmnRpt002, TestSize.Level1)
     NETMGR_EXT_LOG_I("OnNetworkSliceEhplmnRpt002");
     MessageParcel data;
     int32_t buffersize = 0;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()))
-    {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_EHPLMN_RPT);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
@@ -197,9 +182,7 @@ HWTEST_F(NetworkSliceStubTest, OnNetworkSliceInitUePolicy001, TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("OnNetworkSliceInitUePolicy001");
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_INIT_UEPOLICY);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -208,9 +191,7 @@ HWTEST_F(NetworkSliceStubTest, OnGetRouteSelectionDescriptorByDNN001, TestSize.L
 {
     NETMGR_EXT_LOG_I("OnGetRouteSelectionDescriptorByDNN001");
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_GETRSDBYDNN);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -220,9 +201,7 @@ HWTEST_F(NetworkSliceStubTest, OnGetRSDByNetCap001, TestSize.Level1)
     NETMGR_EXT_LOG_I("OnGetRSDByNetCap001");
     MessageParcel data;
     int32_t netcap = 19;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_GETRSDBYNETCAP);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -231,9 +210,7 @@ HWTEST_F(NetworkSliceStubTest, OnSetSaState001, TestSize.Level1)
 {
     NETMGR_EXT_LOG_I("OnSetSaState001");
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetworkSliceStub::GetDescriptor()), false);
     int32_t ret = SendRemoteRequest(data, NetworkSliceInterfaceCode::NETWORKSLICE_SETSASTATE);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }

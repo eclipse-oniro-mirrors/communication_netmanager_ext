@@ -49,9 +49,7 @@ public:
 HWTEST_F(NetworkShareUpstreamMonitorTest, UpstreamMonitorTest, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     int32_t netId = 0;
     sptr<NetHandle> netHandle = std::make_unique<NetHandle>(netId).release();
     sptr<NetAllCapabilities> netAllCap = std::make_unique<NetAllCapabilities>().release();
@@ -81,9 +79,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, UpstreamMonitorTest, TestSize.Level1)
 HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetAvailableTest, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     monitor->ListenDefaultNetwork();
     int32_t netId = 0;
     sptr<NetHandle> netHandle = nullptr;
@@ -97,9 +93,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetAvailableTest, TestSize.Level
 HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetCapabilitiesChangeTest, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     monitor->ListenDefaultNetwork();
     int32_t netId = 0;
     sptr<NetHandle> netHandle = nullptr;
@@ -127,9 +121,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetCapabilitiesChangeTest, TestS
 HWTEST_F(NetworkShareUpstreamMonitorTest, HandleConnectionPropertiesChangeTest, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     monitor->ListenDefaultNetwork();
     int32_t netId = 0;
     sptr<NetHandle> netHandle = nullptr;
@@ -159,9 +151,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleConnectionPropertiesChangeTest, 
 HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLostTest, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     monitor->ListenDefaultNetwork();
     int32_t netId = 0;
     sptr<NetHandle> netHandle = nullptr;
@@ -176,9 +166,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLostTest, TestSize.Level1)
 HWTEST_F(NetworkShareUpstreamMonitorTest, GetCurrentGoodUpstreamTest, TestSize.Level1)
 {
     auto monitor = std::make_shared<NetworkShareUpstreamMonitor>();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
 
     int32_t netId = 0;
     sptr<NetHandle> netHandle = nullptr;
@@ -199,9 +187,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, GetCurrentGoodUpstreamTest, TestSize.L
 HWTEST_F(NetworkShareUpstreamMonitorTest, NotifyMainStateMachineTest, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     monitor->ListenDefaultNetwork();
     int32_t which = 100;
     monitor->NotifyMainStateMachine(which, nullptr);
@@ -280,9 +266,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, HandleNetLost01, TestSize.Level1)
 HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest001, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     int32_t state = NET_CONN_STATE_CONNECTED;
     int32_t bearerType = BEARER_WIFI;
     monitor->isHotSpotEnabled_ = true;
@@ -299,9 +283,7 @@ HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest001, TestSiz
 HWTEST_F(NetworkShareUpstreamMonitorTest, OnNetworkConnectChangeTest002, TestSize.Level1)
 {
     auto monitor = NetworkShareUpstreamMonitor::GetInstance();
-    if (monitor == nullptr) {
-        return;
-    }
+    ASSERT_NE(monitor, nullptr);
     int32_t state = NET_CONN_STATE_CONNECTED;
     int32_t bearerType = BEARER_WIFI;
     monitor->isHotSpotEnabled_ = false;

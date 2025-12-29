@@ -89,9 +89,7 @@ HWTEST_F(VpnDatabaseHelperTest, IsVpnInfoExists002, TestSize.Level1)
 {
     std::string vpnId = "1234";
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    if (vpnBean == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnBean, nullptr);
     vpnBean->vpnId_ = "1234";
     vpnBean->userId_ = 100;
     vpnBean->vpnType_ = 1;
@@ -182,9 +180,7 @@ HWTEST_F(VpnDatabaseHelperTest, DeleteVpnData001, TestSize.Level1)
     EXPECT_EQ(vpnDataHelper_.DeleteVpnData(vpnId), NETMANAGER_EXT_ERR_INVALID_PARAMETER);
     vpnId = "1234";
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    if (vpnBean == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnBean, nullptr);
     vpnBean->vpnId_ = "1234";
     vpnBean->userId_ = 100;
     vpnBean->vpnType_ = 1;
@@ -200,9 +196,7 @@ HWTEST_F(VpnDatabaseHelperTest, DeleteVpnData001, TestSize.Level1)
 HWTEST_F(VpnDatabaseHelperTest, UpdateData001, TestSize.Level1)
 {
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
-    if (vpnBean == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnBean, nullptr);
     vpnBean->vpnId_ = "1234";
     vpnBean->userId_ = 100;
     vpnBean->vpnType_ = 1;

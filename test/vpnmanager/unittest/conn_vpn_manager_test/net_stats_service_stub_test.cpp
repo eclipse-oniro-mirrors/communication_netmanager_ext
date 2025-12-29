@@ -212,9 +212,7 @@ HWTEST_F(TestNetStatsServiceStub, RegisterNetStatsCallbackTest001, TestSize.Leve
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     sptr<INetStatsCallback> callback = new (std::nothrow) NetStatsCallbackTestCb();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -235,9 +233,7 @@ HWTEST_F(TestNetStatsServiceStub, UnregisterNetStatsCallbackTest001, TestSize.Le
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     sptr<INetStatsCallback> callback = new (std::nothrow) NetStatsCallbackTestCb();
     if (!data.WriteRemoteObject(callback->AsObject())) {
         return;
@@ -257,9 +253,7 @@ HWTEST_F(TestNetStatsServiceStub, UnregisterNetStatsCallbackTest001, TestSize.Le
 HWTEST_F(TestNetStatsServiceStub, GetIfaceRxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteString(TEST_STRING)) {
         return;
     }
@@ -278,9 +272,7 @@ HWTEST_F(TestNetStatsServiceStub, GetIfaceRxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetIfaceTxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteString(TEST_STRING)) {
         return;
     }
@@ -299,9 +291,7 @@ HWTEST_F(TestNetStatsServiceStub, GetIfaceTxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetCellularRxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(StatsInterfaceCode::CMD_GET_CELLULAR_RXBYTES), data,
@@ -317,9 +307,7 @@ HWTEST_F(TestNetStatsServiceStub, GetCellularRxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetCellularTxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(StatsInterfaceCode::CMD_GET_CELLULAR_TXBYTES), data,
@@ -335,9 +323,7 @@ HWTEST_F(TestNetStatsServiceStub, GetCellularTxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetAllRxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret =
@@ -353,9 +339,7 @@ HWTEST_F(TestNetStatsServiceStub, GetAllRxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetAllTxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret =
@@ -371,9 +355,7 @@ HWTEST_F(TestNetStatsServiceStub, GetAllTxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetUidRxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteUint32(TEST_UINT32_VALUE)) {
         return;
     }
@@ -392,9 +374,7 @@ HWTEST_F(TestNetStatsServiceStub, GetUidRxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetUidTxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteUint32(TEST_UINT32_VALUE)) {
         return;
     }
@@ -414,9 +394,7 @@ HWTEST_F(TestNetStatsServiceStub, GetIfaceStatsDetailTest001, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteString(TEST_STRING)) {
         return;
     }
@@ -442,9 +420,7 @@ HWTEST_F(TestNetStatsServiceStub, GetUidStatsDetailTest001, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteString(TEST_STRING)) {
         return;
     }
@@ -473,9 +449,7 @@ HWTEST_F(TestNetStatsServiceStub, UpdateIfacesStatsTest001, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteString(TEST_STRING)) {
         return;
     }
@@ -503,9 +477,7 @@ HWTEST_F(TestNetStatsServiceStub, UpdateIfacesStatsTest002, TestSize.Level1)
 {
     NetManagerBaseNotSystemToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteString(TEST_STRING)) {
         return;
     }
@@ -533,9 +505,7 @@ HWTEST_F(TestNetStatsServiceStub, UpdateIfacesStatsTest003, TestSize.Level1)
 {
     NetManagerBaseNoPermissionToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteString(TEST_STRING)) {
         return;
     }
@@ -562,9 +532,7 @@ HWTEST_F(TestNetStatsServiceStub, UpdateIfacesStatsTest003, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, UpdateStatsDataTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
 
@@ -582,9 +550,7 @@ HWTEST_F(TestNetStatsServiceStub, ResetFactoryTest001, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(StatsInterfaceCode::CMD_NSM_RESET_FACTORY), data,
@@ -601,9 +567,7 @@ HWTEST_F(TestNetStatsServiceStub, ResetFactoryTest002, TestSize.Level1)
 {
     NetManagerBaseNotSystemToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(StatsInterfaceCode::CMD_NSM_RESET_FACTORY), data,
@@ -620,9 +584,7 @@ HWTEST_F(TestNetStatsServiceStub, ResetFactoryTest003, TestSize.Level1)
 {
     NetManagerBaseNoPermissionToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(StatsInterfaceCode::CMD_NSM_RESET_FACTORY), data,
@@ -639,9 +601,7 @@ HWTEST_F(TestNetStatsServiceStub, GetAllStatsInfoTest001, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(static_cast<uint32_t>(StatsInterfaceCode::CMD_GET_ALL_STATS_INFO), data,
@@ -658,9 +618,7 @@ HWTEST_F(TestNetStatsServiceStub, GetAllSimStatsInfoTest001, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     MessageParcel reply;
     MessageOption option;
     int32_t ret = instance_->OnRemoteRequest(
@@ -677,9 +635,7 @@ HWTEST_F(TestNetStatsServiceStub, GetTrafficStatsByNetworkTest001, TestSize.Leve
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     sptr<NetStatsNetwork> network = GetSptrNetworkData();
     if (!network->Marshalling(data)) {
         return;
@@ -700,9 +656,7 @@ HWTEST_F(TestNetStatsServiceStub, GetTrafficStatsByUidNetworkTest001, TestSize.L
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     uint32_t uid = TEST_UID;
     if (!data.WriteUint32(uid)) {
         return;
@@ -727,9 +681,7 @@ HWTEST_F(TestNetStatsServiceStub, SetAppStats001, TestSize.Level1)
 {
     NetManagerBaseAccessToken token;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     PushStatsInfo info;
     if (!info.Marshalling(data)) {
         return;
@@ -749,9 +701,7 @@ HWTEST_F(TestNetStatsServiceStub, SetAppStats001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetCookieRxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteUint64(TEST_UINT64_VALUE)) {
         return;
     }
@@ -770,9 +720,7 @@ HWTEST_F(TestNetStatsServiceStub, GetCookieRxBytesTest001, TestSize.Level1)
 HWTEST_F(TestNetStatsServiceStub, GetCookieTxBytesTest001, TestSize.Level1)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor())) {
-        return;
-    }
+    ASSERT_NE(data.WriteInterfaceToken(NetStatsServiceStub::GetDescriptor()), false);
     if (!data.WriteUint64(TEST_UINT64_VALUE)) {
         return;
     }

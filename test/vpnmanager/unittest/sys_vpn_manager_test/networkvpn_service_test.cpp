@@ -61,9 +61,7 @@ public:
 void NetworkVpnServiceTest::SetUpTestCase()
 {
     vpnConfig_ = new (std::nothrow) IpsecVpnConfig();
-    if (vpnConfig_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnConfig_, nullptr); 
     vpnConfig_->vpnId_ = vpnId_;
     vpnConfig_->vpnName_ = vpnId_;
     vpnConfig_->vpnType_ = 1;
@@ -71,9 +69,7 @@ void NetworkVpnServiceTest::SetUpTestCase()
 
 void NetworkVpnServiceTest::TearDownTestCase()
 {
-    if (vpnConfig_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnConfig_, nullptr);
     instance_->DeleteSysVpnConfig(vpnId_);
 }
 
@@ -96,9 +92,7 @@ HWTEST_F(NetworkVpnServiceTest, OnStop001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, AddSysVpnConfigTest001, TestSize.Level1)
 {
-    if (vpnConfig_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnConfig_, nullptr);
     auto ret = instance_->AddSysVpnConfig(vpnConfig_);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -114,9 +108,7 @@ HWTEST_F(NetworkVpnServiceTest, DeleteSysVpnConfigTest001, TestSize.Level1)
 {
     std::string id = "1234";
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
-    if (config == nullptr) {
-        return;
-    }
+    ASSERT_NE(config, nullptr);
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
@@ -159,9 +151,7 @@ HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigList001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, GetSysVpnConfigTest001, TestSize.Level1)
 {
-    if (vpnConfig_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(vpnConfig_, nullptr);
 
     // vpnConfig_ is "test001"
     instance_->AddSysVpnConfig(vpnConfig_);
