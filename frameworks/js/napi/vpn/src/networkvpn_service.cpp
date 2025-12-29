@@ -247,7 +247,7 @@ void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectSta
 {
     NETMGR_EXT_LOG_I("SendConnStateChanged vpn connect state[%{public}d].", static_cast<uint32_t>(state));
     if (vpnService_.IsNeedNotify(state)) {
-        NETMGR_EXT_LOG_I("PublishVpnConnectionStateEvent vpn connect vpnType[%{public}d].", vpnType);
+        NETMGR_EXT_LOG_I("PublishVpnConnectionStateEvent vpn connect vpnType[%{public}d]", vpnType);
         return vpnService_.PublishVpnConnectionStateEvent(state, vpnType);
     }
     return;
