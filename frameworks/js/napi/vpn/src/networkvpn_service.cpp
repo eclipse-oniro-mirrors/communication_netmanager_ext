@@ -678,7 +678,7 @@ int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &v
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
     if (vpnId.empty() && IsDistributedModemSharingVpn()) {
-        NETMGR_EXT_LOG_W("forbit setup, distributed modem is sharing vpn.");
+        NETMGR_EXT_LOG_W("forbit setup, distributed modem is sharing vpn");
         return NETWORKVPN_ERROR_VPN_EXIST;
     }
     if (vpnObj_ != nullptr && vpnObj_->multiVpnInfo_ != nullptr && !vpnObj_->multiVpnInfo_->isVpnExtCall
