@@ -322,6 +322,7 @@ private:
 #ifdef SUPPORT_SYSVPN
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId, int32_t userId);
 #endif
+    bool IsDistributedModemSharingVpn();
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
