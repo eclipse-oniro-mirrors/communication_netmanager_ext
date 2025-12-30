@@ -90,6 +90,18 @@ public:
 
     int32_t ResumeUids();
 
+    void SetCallingUid(int32_t uid);
+    inline int32_t GetCallingUid() const
+    {
+        return uid_;
+    }
+    void SetCallingPid(int32_t pid);
+    inline int32_t GetCallingPid() const
+    {
+        return pid_;
+    }
+    bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid);
+
 protected:
     bool UpdateNetLinkInfo();
     bool RegisterNetSupplier(NetConnClient &netConnClientIns, bool isInternalChannel = false);
@@ -136,6 +148,8 @@ private:
     std::shared_ptr<IVpnConnStateCb> connChangedCb_;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;
     uint32_t priorityId_ = 0;
+    int32_t uid_ = -1;
+    int32_t pid_ = -1;
 
     void SetAllUidRanges();
 };

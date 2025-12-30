@@ -582,5 +582,28 @@ std::string NetVpnImpl::ConvertVpnIpv4Address(uint32_t addressIpv4)
     return stream.str();
 }
 
+void NetVpnImpl::SetCallingUid(int32_t uid)
+{
+    uid_ = uid;
+}
+
+void NetVpnImpl::SetCallingPid(int32_t pid)
+{
+    pid_ = pid;
+}
+
+bool NetVpnImpl::IsAppUidInWhiteList(int32_t callingUid, int32_t appUid)
+{
+    if (callingUid != uid_) {
+        return false;
+    }
+    auto size = beginUids_.size();
+    for (size_t i = 0; i < size; ++i) {
+        if (appUid >= beginUids_[i] && appUid <= endUids_[i]) {
+            return true;
+        }
+    }
+    return false;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -147,6 +147,10 @@ bool NetworkVpnService::Init()
     }
 
     RegisterFactoryResetCallback();
+
+    serviceIface_ = std::make_unique<NetworkVpnServiceIface>().release();
+    NetManagerCenter::GetInstance().RegisterVpnService(serviceIface_);
+
     return true;
 }
 
@@ -766,6 +770,8 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall, 
         NETMGR_EXT_LOG_E("SetUp failed");
         return ret;
     }
+    vpnObj->SetCallingUid(IPCSkeleton::GetCallingUid());
+    vpnObj->SetCallingPid(IPCSkeleton::GetCallingPid());
     HandleVpnHapObserverRegistration(vpnBundleName);
     std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
 #ifdef SUPPORT_SYSVPN
@@ -1026,6 +1032,8 @@ int32_t NetworkVpnService::SetUpSysVpn(const sptr<SysVpnConfig> &config, bool is
     NETMGR_EXT_LOG_I("SystemVpn SetUp");
     ret = vpnObj->SetUp();
     if (ret == NETMANAGER_EXT_SUCCESS && !isVpnExtCall) {
+        vpnObj->SetCallingUid(IPCSkeleton::GetCallingUid());
+        vpnObj->SetCallingPid(IPCSkeleton::GetCallingPid());
         hasOpenedVpnUid_ = IPCSkeleton::GetCallingUid();
         vpnObj_ = vpnObj;
     }
@@ -1957,6 +1965,48 @@ int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
     ErrCode err = abilityManager->StopExtensionAbility(
         want, nullptr, INVALID_CODE, AppExecFwk::ExtensionAbilityType::VPN);
     return err;
+}
+
+bool NetworkVpnService::IsVpnApplication(int32_t uid)
+{
+    std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
+#ifdef SUPPORT_SYSVPN
+    for (const auto &vpnObjItem : vpnObjMap_) {
+        if (!vpnObjItem.second) {
+            continue;
+        }
+        if (uid == vpnObjItem.second->GetCallingUid()) {
+            return true;
+        }
+    }
+#endif // SUPPORT_SYSVPN
+
+    if ((vpnObj_ != nullptr) && (vpnObj_->GetCallingUid() == uid)) {
+        return true;
+    }
+    return false;
+}
+
+bool NetworkVpnService::IsAppUidInWhiteList(int32_t callingUid, int32_t appUid)
+{
+    std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
+
+#ifdef SUPPORT_SYSVPN
+    for (const auto &vpnObjItem : vpnObjMap_) {
+        if (!vpnObjItem.second) {
+            continue;
+        }
+        if (vpnObjItem.second->IsAppUidInWhiteList(callingUid, appUid)) {
+            return true;
+        }
+    }
+    return false;
+#endif // SUPPORT_SYSVPN
+
+    if (vpnObj_ != nullptr) {
+        return vpnObj_->IsAppUidInWhiteList(callingUid, appUid);
+    }
+    return false;
 }
 
 std::string NetworkVpnService::GetBundleName()

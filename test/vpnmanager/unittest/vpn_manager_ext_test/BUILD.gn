@@ -53,6 +53,7 @@ ohos_unittest("vpn_manager_ext_test") {
     "hisysevent:libhisysevent",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
+    "netmanager_base:net_service_common",
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
   ]

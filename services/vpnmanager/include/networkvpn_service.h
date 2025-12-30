@@ -22,6 +22,7 @@
 #include "i_vpn_conn_state_cb.h"
 #include "net_vpn_impl.h"
 #include "network_vpn_service_stub.h"
+#include "networkvpn_service_iface.h"
 #include "os_account_manager.h"
 #include "singleton.h"
 #include "system_ability.h"
@@ -242,6 +243,9 @@ public:
 
     int32_t StopVpnExtensionAbility(const AAFwk::Want& want) override;
 
+    bool IsVpnApplication(int32_t uid);
+    bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid);
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -423,6 +427,7 @@ private:
     std::map<int32_t, int32_t> setVpnPidMap_;
     int32_t currSetUpVpnPid_ = 0;
     std::set<std::string> currentVpnAbilityName_;
+    sptr<NetworkVpnServiceIface> serviceIface_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
