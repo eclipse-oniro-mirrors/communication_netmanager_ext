@@ -75,6 +75,7 @@ const bool REGISTER_LOCAL_RESULT_NETVPN =
 constexpr const int INVALID_CODE = -1;
 const std::vector<std::string> ACCESS_PERMISSION {"ohos.permission.GET_NETWORK_INFO"};
 constexpr const char *const PARAM_KEY_STATE = "state";
+constexpr const char *const PARAM_KEY_VPN_TYPE = "vpnType";
 constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
     "usual.event.VPN_CONNECTION_STATUS_CHANGED";
 
@@ -219,11 +220,12 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state)
     return true;
 }
 
-void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &state) const
+void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &state, int32_t vpnType) const
 {
     OHOS::AAFwk::Want want;
     want.SetAction(COMMON_EVENT_VPN_CONNECT_STATUS_VALUE);
     want.SetParam(PARAM_KEY_STATE, (state == VpnConnectState::VPN_CONNECTED) ? 1 : 0);
+    want.SetParam(PARAM_KEY_VPN_TYPE, vpnType);
     if (!PublishEvent(want, INVALID_CODE, false, true, ACCESS_PERMISSION)) {
         NETMGR_EXT_LOG_I("Publish vpn connection state fail.");
     }
@@ -242,12 +244,12 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
     return;
 }
 
-void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectState &state)
+void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectState &state, int32_t vpnType)
 {
     NETMGR_EXT_LOG_I("SendConnStateChanged vpn connect state[%{public}d].", static_cast<uint32_t>(state));
     if (vpnService_.IsNeedNotify(state)) {
-        NETMGR_EXT_LOG_I("PublishVpnConnectionStateEvent vpn connect state[%{public}d].", static_cast<uint32_t>(state));
-        return vpnService_.PublishVpnConnectionStateEvent(state);
+        NETMGR_EXT_LOG_I("PublishVpnConnectionStateEvent vpn connect vpnType[%{public}d]", vpnType);
+        return vpnService_.PublishVpnConnectionStateEvent(state, vpnType);
     }
     return;
 }
