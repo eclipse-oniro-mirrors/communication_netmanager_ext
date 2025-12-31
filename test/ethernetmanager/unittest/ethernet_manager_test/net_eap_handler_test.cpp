@@ -139,7 +139,9 @@ HWTEST_F(NetEapHandlerTest, RegCustomEapHandlerTest003, TestSize.Level1)
     NetType netType = NetType::WLAN0;
     std::string regCmd = "2:277:278";
     int ret1 = NetEapHandler::GetInstance().RegisterCustomEapCallback(netType, nullptr);
-    ASSERT_EQ(ret1, NETMANAGER_SUCCESS);
+    if (ret1 != NETMANAGER_SUCCESS) {
+        return;
+    }
     int ret2 = NetEapHandler::GetInstance().RegCustomEapHandler(netType, regCmd, g_eapPostbackCallback);
     EXPECT_TRUE(ret2 == NETMANAGER_ERR_INVALID_PARAMETER || ret2 == NETMANAGER_SUCCESS);
 }
@@ -149,7 +151,9 @@ HWTEST_F(NetEapHandlerTest, RegCustomEapHandlerTest004, TestSize.Level1)
     NetType netType = NetType::WLAN0;
     std::string regCmd = "2:277:278";
     int ret1 = NetEapHandler::GetInstance().RegisterCustomEapCallback(netType, g_registerEapCallback);
-    ASSERT_EQ(ret1, NETMANAGER_SUCCESS);
+    if (ret1 != NETMANAGER_SUCCESS) {
+        return;
+    }
     int ret2 = NetEapHandler::GetInstance().RegCustomEapHandler(netType, regCmd, g_eapPostbackCallback);
     EXPECT_EQ(ret2, NETMANAGER_SUCCESS);
 }

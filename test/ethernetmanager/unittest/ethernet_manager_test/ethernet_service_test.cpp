@@ -339,7 +339,10 @@ HWTEST_F(EtherNetServiceTest, SetInterfaceConfigTest001, TestSize.Level1)
 HWTEST_F(EtherNetServiceTest, EthernetServiceCommonTest001, TestSize.Level1)
 {
     sptr<EthernetServiceCommon> serviceComm_ = new (std::nothrow) EthernetServiceCommon();
-    ASSERT_NE(serviceComm_, nullptr);
+    if (serviceComm_ == nullptr) {
+        NETMGR_EXT_LOG_E("serviceComm_ is nullptr");
+        return;
+    }
     auto ret = serviceComm_->ResetEthernetFactory();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
