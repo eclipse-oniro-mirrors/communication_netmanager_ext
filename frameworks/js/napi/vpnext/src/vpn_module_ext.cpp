@@ -223,7 +223,7 @@ napi_value ProcessPermissionRequests(napi_env env, const std::string &bundleName
 
 napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnStartVpnExtensionAbility");
+    auto hiAppEventReport = std::make_shared<HiAppEventReport>("NetworkKit", "VpnStartVpnExtensionAbility");
     napi_value thisVal = nullptr;
     std::size_t argc = MAX_PARAM_NUM;
 
@@ -264,19 +264,19 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     }
     auto err = NetworkVpnClient::GetInstance().StartVpnExtensionAbility(want);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, err);
+    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, err);
     if (err == 0) {
         int32_t rst = NetworkVpnClient::GetInstance().RegisterBundleName(bundleName, Replace(abilityName));
         NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, rst);
+        hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, rst);
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
+    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return CreateResolvedPromise(env);
 }
 
 napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnStopVpnExtensionAbility");
+    auto hiAppEventReport = std::make_shared<HiAppEventReport>("NetworkKit", "VpnStopVpnExtensionAbility");
     napi_value thisVal = nullptr;
     std::size_t argc = MAX_PARAM_NUM;
 
@@ -314,13 +314,13 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
 #endif // SUPPORT_SYSVPN
     if (ret != 0 || vpnExtMode != "1") {
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ret);
+        hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, ret);
         return CreateRejectedPromise(env);
     }
 
     auto err = NetworkVpnClient::GetInstance().StopVpnExtensionAbility(want);
     NETMANAGER_EXT_LOGI("execute StopExtensionAbility result: %{public}d", err);
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, err);
+    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, err);
     return CreateResolvedPromise(env);
 }
 
