@@ -65,7 +65,7 @@ bool ExecSetUp(SetUpContext *context)
         return false;
     }
     
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnSetUp");
+    auto hiAppEventReport = std::make_shared<HiAppEventReport>("NetworkKit", "VpnSetUp");
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
@@ -84,16 +84,16 @@ bool ExecSetUp(SetUpContext *context)
 #endif // SUPPORT_SYSVPN
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+        hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, result);
     return true;
 }
 
 bool ExecProtect(ProtectContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnProtect");
+    auto hiAppEventReport = std::make_shared<HiAppEventReport>("NetworkKit", "VpnProtect");
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
@@ -102,30 +102,30 @@ bool ExecProtect(ProtectContext *context)
     int32_t result = vpnClient->Protect(context->socketFd_, true);
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+        hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, result);
     return true;
 }
 
 bool ExecProtectProcessNet(ProtectProcessNetContext *context)
 {
     NETMANAGER_EXT_LOGI("enter VpnExecExt ExecProtectProcessNet");
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnProtectProcessNet");
+    auto hiAppEventReport = std::make_shared<HiAppEventReport>("NetworkKit", "VpnProtectProcessNet");
     int32_t result = NetConnClient::GetInstance().ProtectProcessNet();
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+        hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, result);
     return true;
 }
 
 bool ExecDestroy(DestroyContext *context)
 {
-    HiAppEventReport hiAppEventReport("NetworkKit", "VpnDestroy");
+    auto hiAppEventReport = std::make_shared<HiAppEventReport>("NetworkKit", "VpnDestroy");
     auto vpnClient = GetVpnConnectionInstance(context);
     if (vpnClient == nullptr) {
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
@@ -143,10 +143,10 @@ bool ExecDestroy(DestroyContext *context)
 #endif // SUPPORT_SYSVPN
     if (result != NETMANAGER_EXT_SUCCESS) {
         context->SetErrorCode(result);
-        hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, result);
+        hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, result);
         return false;
     }
-    hiAppEventReport.ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
+    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return true;
 }
 
