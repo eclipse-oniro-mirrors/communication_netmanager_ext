@@ -23,6 +23,7 @@ namespace NetManagerStandard {
 constexpr const char *MULTI_TUN_CARD_NAME = "multitun-vpn";
 constexpr const char *INNER_CHL_NAME = "inner-chl";
 constexpr const char* STRONGSWAN_CONF_TEMPCONFIG = R"(charon {
+  interfaces_ignore = rmnet_ims00, rmnet_r_ims00
   i_dont_care_about_security_and_use_aggressive_mode_psk = yes
   install_virtual_ip = no
   plugins {
@@ -32,6 +33,9 @@ constexpr const char* STRONGSWAN_CONF_TEMPCONFIG = R"(charon {
     }
     kernel-netlink {
       load = yes
+    }
+    bypass-lan {
+      interfaces_ignore = rmnet_ims00, rmnet_r_ims00
     }
   }
 }
