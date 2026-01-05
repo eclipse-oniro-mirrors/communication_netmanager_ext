@@ -297,5 +297,46 @@ HWTEST_F(NetVpnImplTest, GetVpnIfAddr001, TestSize.Level1)
     netVpnImpl_->vpnConfig_->addresses_.push_back(addr);
     EXPECT_EQ(netVpnImpl_->GetVpnIfAddr(), "1.2.3.4");
 }
+
+HWTEST_F(NetVpnImplTest, IsAppUidInWhiteList001, TestSize.Level1)
+{
+    int32_t callingUid = AppExecFwk::Constants::BASE_USER_RANGE + 1;
+    netVpnImpl_->SetCallingUid(callingUid);
+    netVpnImpl_->SetCallingPid(1000);
+    netVpnImpl_->beginUids_.clear();
+    netVpnImpl_->endUids_.clear();
+    netVpnImpl_->beginUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE);
+    netVpnImpl_->endUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE + 100);
+    netVpnImpl_->beginUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE + 200);
+    netVpnImpl_->endUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE + AppExecFwk::Constants::MAX_APP_UID);
+    bool ret = netVpnImpl_->IsAppUidInWhiteList(callingUid, AppExecFwk::Constants::BASE_USER_RANGE + 300);
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(NetVpnImplTest, IsAppUidInWhiteList002, TestSize.Level1)
+{
+    int32_t callingUid = AppExecFwk::Constants::BASE_USER_RANGE + 1;
+    netVpnImpl_->SetCallingUid(callingUid);
+    netVpnImpl_->SetCallingPid(1000);
+    netVpnImpl_->beginUids_.clear();
+    netVpnImpl_->endUids_.clear();
+    netVpnImpl_->beginUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE);
+    netVpnImpl_->endUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE + 100);
+    bool ret = netVpnImpl_->IsAppUidInWhiteList(callingUid, AppExecFwk::Constants::BASE_USER_RANGE + 300);
+    EXPECT_FALSE(ret);
+}
+
+HWTEST_F(NetVpnImplTest, IsAppUidInWhiteList003, TestSize.Level1)
+{
+    int32_t callingUid = AppExecFwk::Constants::BASE_USER_RANGE + 1;
+    netVpnImpl_->SetCallingUid(callingUid);
+    netVpnImpl_->SetCallingPid(1000);
+    netVpnImpl_->beginUids_.clear();
+    netVpnImpl_->endUids_.clear();
+    netVpnImpl_->beginUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE);
+    netVpnImpl_->endUids_.push_back(AppExecFwk::Constants::BASE_USER_RANGE + 100);
+    bool ret = netVpnImpl_->IsAppUidInWhiteList(callingUid + 1, AppExecFwk::Constants::BASE_USER_RANGE + 300);
+    EXPECT_FALSE(ret);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

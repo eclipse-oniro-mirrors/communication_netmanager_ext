@@ -88,6 +88,7 @@ ohos_unittest("sys_vpn_manager_test") {
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
     "netmanager_base:net_manager_common",
+    "netmanager_base:net_service_common",
     "netmanager_base:netsys_controller",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
