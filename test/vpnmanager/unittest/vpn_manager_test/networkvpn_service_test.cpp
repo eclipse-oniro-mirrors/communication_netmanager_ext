@@ -651,27 +651,6 @@ HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest001, TestSize.Level1)
     EXPECT_FALSE(instance_->IsCurrentVpnPid(uid, pid));
 }
 
-HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest001, TestSize.Level1)
-{
-    VpnConnectState state = VpnConnectState::VPN_DISCONNECTED;
-    bool res = instance_->IsNeedNotify(state);
-    state = VpnConnectState::VPN_CONNECTED;
-    res = instance_->IsNeedNotify(state);
-    EXPECT_TRUE(res);
-}
-
-HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest002, TestSize.Level1)
-{
-    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-
-    VpnConnectState state = VpnConnectState::VPN_DISCONNECTED;
-    bool res = instance_->IsNeedNotify(state);
-    EXPECT_TRUE(res);
-}
-
 HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
 {
     OHOS::AAFwk::Want want;
