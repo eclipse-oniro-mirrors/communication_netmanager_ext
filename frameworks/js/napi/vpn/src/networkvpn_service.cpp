@@ -148,7 +148,7 @@ bool NetworkVpnService::Init()
 
     RegisterFactoryResetCallback();
 
-    serviceIface_ = std::make_unique<NetworkVpnServiceIface>().release();
+    serviceIface_ = sptr<NetworkVpnServiceIface>::MakeSptr();
     NetManagerCenter::GetInstance().RegisterVpnService(serviceIface_);
 
     return true;
