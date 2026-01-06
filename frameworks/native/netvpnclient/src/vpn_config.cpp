@@ -22,6 +22,7 @@ namespace {
 constexpr uint32_t MAX_SIZE = 64;
 constexpr uint32_t APP_MAX_SIZE = 256;
 constexpr uint32_t ROUTE_MAX_SIZE = 2000;
+constexpr uint32_t ADDR_MAX_SIZE = 2000;
 }
 bool VpnConfig::Marshalling(Parcel &parcel) const
 {
@@ -112,7 +113,7 @@ bool VpnConfig::UnmarshallingAddrRoute(Parcel &parcel, VpnConfig* config)
     if (!parcel.ReadInt32(addrSize)) {
         return false;
     }
-    if (static_cast<uint32_t>(addrSize) > MAX_SIZE) {
+    if (static_cast<uint32_t>(addrSize) > ADDR_MAX_SIZE) {
         NETMGR_EXT_LOG_E("addrSize=[%{public}d] is too large", addrSize);
         return false;
     }
