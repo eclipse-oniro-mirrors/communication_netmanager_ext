@@ -27,6 +27,10 @@ namespace NetManagerStandard {
 int32_t NetFirewallProxy::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &status)
 {
     NETMGR_EXT_LOG_I("SetNetFirewallPolicy");
+    if (status == nullptr) {
+        NETMGR_EXT_LOG_E("status is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
@@ -81,6 +85,10 @@ int32_t NetFirewallProxy::GetNetFirewallPolicy(const int32_t userId, sptr<NetFir
 int32_t NetFirewallProxy::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &result)
 {
     NETMGR_EXT_LOG_I("AddNetFirewallRule");
+    if (rule == nullptr) {
+        NETMGR_EXT_LOG_E("rule is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
@@ -109,6 +117,10 @@ int32_t NetFirewallProxy::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, 
 int32_t NetFirewallProxy::UpdateNetFirewallRule(const sptr<NetFirewallRule> &rule)
 {
     NETMGR_EXT_LOG_I("UpdateNetFirewallRule");
+    if (rule == nullptr) {
+        NETMGR_EXT_LOG_E("rule is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("UpdateNetFirewallRule WriteInterfaceToken failed");
@@ -159,6 +171,10 @@ int32_t NetFirewallProxy::DeleteNetFirewallRule(const int32_t userId, const int3
 int32_t NetFirewallProxy::GetNetFirewallRules(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<FirewallRulePage> &info)
 {
+    if (requestParam == nullptr) {
+        NETMGR_EXT_LOG_E("requestParam is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
@@ -219,6 +235,10 @@ int32_t NetFirewallProxy::GetNetFirewallRule(const int32_t userId, const int32_t
 int32_t NetFirewallProxy::GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<InterceptRecordPage> &info)
 {
+    if (requestParam == nullptr) {
+        NETMGR_EXT_LOG_E("requestParam is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("GetInterceptRecords WriteInterfaceToken failed");

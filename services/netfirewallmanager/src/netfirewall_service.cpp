@@ -98,6 +98,10 @@ bool NetFirewallService::IsSameNetFirewallPolicy(const sptr<NetFirewallPolicy> &
  */
 int32_t NetFirewallService::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &policy)
 {
+    if (policy == nullptr) {
+        NETMGR_EXT_LOG_E("policy is null");
+        return FIREWALL_ERR_INTERNAL;
+    }
     NETMGR_EXT_LOG_I("SetNetFirewallPolicy userId=%{public}d isOpen=%{public}d, in=%{public}d, out=%{public}d",
         userId, policy->isOpen, policy->inAction, policy->outAction);
     int32_t ret = CheckUserExist(userId);

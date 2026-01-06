@@ -61,6 +61,9 @@ void DevInterfaceState::SetlinkInfo(sptr<NetLinkInfo> &linkInfo)
 
 void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifCfg)
 {
+    if (ifCfg == NULL) {
+        return;
+    }
     ifCfg_ = ifCfg;
     if (ifCfg_->mode_ == STATIC) {
         UpdateLinkInfo();
@@ -72,6 +75,9 @@ void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifCfg)
 
 void DevInterfaceState::SetLancfg(sptr<InterfaceConfiguration> &ifCfg)
 {
+    if (ifCfg == NULL) {
+        return;
+    }
     ifCfg_ = ifCfg;
     if (ifCfg_->mode_ == LAN_STATIC) {
         UpdateLanLinkInfo();

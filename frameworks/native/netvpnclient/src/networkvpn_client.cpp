@@ -87,6 +87,10 @@ int32_t VpnEventCallbackCollection::OnVpnMultiUserSetUp()
 
 int32_t VpnEventCallbackCollection::RegisterCallback(sptr<IVpnEventCallback> callback)
 {
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("callback is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
     std::unique_lock<std::shared_mutex> lock(vpnEventCbMutex_);
     for (auto iter = vpnEventCbList_.begin(); iter != vpnEventCbList_.end(); iter++) {
         if ((*iter)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
@@ -99,6 +103,10 @@ int32_t VpnEventCallbackCollection::RegisterCallback(sptr<IVpnEventCallback> cal
 
 int32_t VpnEventCallbackCollection::UnregisterCallback(sptr<IVpnEventCallback> callback)
 {
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("callback is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
     std::unique_lock<std::shared_mutex> lock(vpnEventCbMutex_);
     for (auto iter = vpnEventCbList_.begin(); iter != vpnEventCbList_.end(); iter++) {
         if ((*iter)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {

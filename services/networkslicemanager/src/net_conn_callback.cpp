@@ -17,11 +17,14 @@
 #include "networkslicecommconfig.h"
 #include "networksliceutil.h"
 #include "hwnetworkslicemanager.h"
- 
+
 namespace OHOS {
 namespace NetManagerStandard {
 int32_t NetConnCallback::NetAvailable(sptr<NetHandle> &netHandle)
 {
+    if (netHandle == nullptr) {
+        return -1;
+    }
     int32_t netId = netHandle->GetNetId();
     netId_ = netId;
     NETMGR_EXT_LOG_I("netconn callback, netAvailable, netId: %{public}d", netId);
@@ -33,23 +36,26 @@ int32_t NetConnCallback::NetAvailable(sptr<NetHandle> &netHandle)
     }
     return NetManagerStandard::NETMANAGER_SUCCESS;
 }
- 
+
 int32_t NetConnCallback::NetLost(sptr<NetHandle> &netHandle)
 {
+    if (netHandle == nullptr) {
+        return -1;
+    }
     int32_t netId = netHandle->GetNetId();
     netId_ = 0;
     NETMGR_EXT_LOG_I("netconn callback, NetLost, netId: %{public}d", netId);
     DelayedSingleton<HwNetworkSliceManager>::GetInstance()->OnNetworkLost(mNetCap_, netId);
     return NetManagerStandard::NETMANAGER_SUCCESS;
 }
- 
+
 int32_t NetConnCallback::NetUnavailable()
 {
     NETMGR_EXT_LOG_E("netconn callback, NetUnavailable");
     DelayedSingleton<HwNetworkSliceManager>::GetInstance()->OnNetworkUnavailable(mNetCap_);
     return NetManagerStandard::NETMANAGER_SUCCESS;
 }
- 
+
 void NetConnCallback::SetNetCap(NetCap netCap)
 {
     mNetCap_ = netCap;
@@ -64,22 +70,22 @@ void NetConnCallback::CacheRequestUid(int32_t uid)
 {
     mRequestUids_.insert(uid);
 }
- 
+
 void NetConnCallback::RemoveRequestUid(int32_t uid)
 {
     mRequestUids_.erase(uid);
 }
- 
+
 std::set<int32_t> NetConnCallback::GetRequestUids()
 {
     return mRequestUids_;
 }
- 
+
 void NetConnCallback::SetUid(int32_t uid)
 {
     mUid_ = uid;
 }
- 
+
 int32_t NetConnCallback::GetUid()
 {
     return mUid_;

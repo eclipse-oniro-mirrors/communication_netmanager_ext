@@ -214,7 +214,7 @@ void NetworkSliceManager::HandleAirModeChanged(int32_t mode)
         airModeOn_ = true;
     }
 }
- 
+
 void NetworkSliceManager::HandleWifiConnChanged(int32_t state)
 {
     bool wifiConnLastStatus = wifiConn_;
@@ -292,7 +292,7 @@ void NetworkSliceManager::HandleUrspFromUnsolData(const std::shared_ptr<std::vec
         NETMGR_EXT_LOG_E("nullptr");
         return;
     }
-    
+
     std::vector<uint8_t> buffer = *msg;
     NETMGR_EXT_LOG_I("buffer size:%{public}d", (int)buffer.size());
     if (buffer.empty()) {
@@ -750,6 +750,9 @@ void NetworkSliceManager::IpParaReportControl()
 void NetworkSliceManager::GetRouteSelectionDescriptorByAppDescriptor(const std::shared_ptr<GetSlicePara>& getSlicePara)
 {
     NETMGR_EXT_LOG_I("GetRouteSelectionDescriptorByAppDescriptor");
+    if (getSlicePara == nullptr) {
+        return;
+    }
     if (!isMeetNetworkSliceConditions()) {
         NotifySlicePara(getSlicePara);
         return;

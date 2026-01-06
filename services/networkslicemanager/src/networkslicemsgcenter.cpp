@@ -25,6 +25,9 @@ std::shared_timed_mutex NetworkSliceMsgCenter::mutex_ = {};
 void NetworkSliceMsgCenter::registHandler(NetworkSliceSubModule moduleId,
     std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
+    if (handler == nullptr) {
+        return;
+    }
     std::unique_lock<std::shared_timed_mutex> lock(mutex_);
     auto itHandlerList = moduleIdHandlerListMap_.find(moduleId);
     if (itHandlerList != moduleIdHandlerListMap_.end()) {
@@ -40,6 +43,9 @@ void NetworkSliceMsgCenter::registHandler(NetworkSliceSubModule moduleId,
 void NetworkSliceMsgCenter::unRegistHandler(NetworkSliceSubModule moduleId,
     std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
+    if (handler == nullptr) {
+        return;
+    }
     std::unique_lock<std::shared_timed_mutex> lock(mutex_);
     auto itHandlerList = moduleIdHandlerListMap_.find(moduleId);
     if (itHandlerList != moduleIdHandlerListMap_.end()) {

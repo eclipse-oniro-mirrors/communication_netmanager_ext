@@ -94,6 +94,10 @@ void SharingEventCallbackProxy::OnSharingUpstreamChanged(const sptr<NetHandle> n
         NETMGR_EXT_LOG_E("OnSharingUpstreamChanged get Remote() error.");
         return;
     }
+    if (netHandle == nullptr) {
+        NETMGR_EXT_LOG_E("netHandle is null.");
+        return;
+    }
 
     MessageParcel data;
     MessageParcel reply;
