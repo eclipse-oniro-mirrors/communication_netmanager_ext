@@ -183,9 +183,11 @@ bool NetFirewallInterceptRecorder::ShouldSkipNotify(sptr<InterceptRecord> &recor
 
 int32_t NetFirewallInterceptRecorder::FirewallCallback::OnIntercept(sptr<InterceptRecord> &record)
 {
+    // LCOV_EXCL_START
     if (record == nullptr) {
         return FIREWALL_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
     NETMGR_EXT_LOG_I("FirewallCallback::OnIntercept: time=%{public}lu", record->time);
     ReportInterceptWithoutSkip(record);
     if (!recorder_) {
