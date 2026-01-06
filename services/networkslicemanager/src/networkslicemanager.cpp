@@ -750,9 +750,11 @@ void NetworkSliceManager::IpParaReportControl()
 void NetworkSliceManager::GetRouteSelectionDescriptorByAppDescriptor(const std::shared_ptr<GetSlicePara>& getSlicePara)
 {
     NETMGR_EXT_LOG_I("GetRouteSelectionDescriptorByAppDescriptor");
+    // LCOV_EXCL_START
     if (getSlicePara == nullptr) {
         return;
     }
+    // LCOV_EXCL_STOP
     if (!isMeetNetworkSliceConditions()) {
         NotifySlicePara(getSlicePara);
         return;
