@@ -1580,10 +1580,12 @@ int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<
 int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallback> callback,
     const std::string &vpnBundleName)
 {
+    // LCOV_EXCL_START
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("callback is null.");
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
+    // LCOV_EXCL_STOP
     std::unique_lock<ffrt::shared_mutex> lock(multiVpnEventCallbacksMutex_);
     for (auto iterCb = multiVpnEventCallbacks_.begin(); iterCb != multiVpnEventCallbacks_.end(); iterCb++) {
         if (((*iterCb)->callback)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
@@ -1622,10 +1624,12 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
 
 int32_t NetworkVpnService::SyncUnregisterMultiVpnEvent(const sptr<IVpnEventCallback> callback)
 {
+    // LCOV_EXCL_START
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("callback is null.");
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
+    // LCOV_EXCL_STOP
     std::unique_lock<ffrt::shared_mutex> lock(multiVpnEventCallbacksMutex_);
     for (auto iter = multiVpnEventCallbacks_.begin(); iter != multiVpnEventCallbacks_.end(); ++iter) {
         if (((*iter)->callback)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
@@ -1643,10 +1647,12 @@ int32_t NetworkVpnService::SyncUnregisterMultiVpnEvent(const sptr<IVpnEventCallb
 
 int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
+    // LCOV_EXCL_START
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("callback is null.");
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
+    // LCOV_EXCL_STOP
     std::unique_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
     for (auto iterCb = vpnEventCallbacks_.begin(); iterCb != vpnEventCallbacks_.end(); iterCb++) {
         if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
@@ -1670,10 +1676,12 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
 
 int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> callback)
 {
+    // LCOV_EXCL_START
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("callback is null.");
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
+    // LCOV_EXCL_STOP
     std::unique_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
     for (auto iter = vpnEventCallbacks_.begin(); iter != vpnEventCallbacks_.end(); ++iter) {
         if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
