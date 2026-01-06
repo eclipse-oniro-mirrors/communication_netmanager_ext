@@ -721,15 +721,23 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleDomainByUserIdCount(int32_t userId
 int32_t NetFirewallDbHelper::QueryFirewallRule(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<FirewallRulePage> &info)
 {
+    // LCOV_EXCL_START
+    if (requestParam == nullptr || info == nullptr) {
+        NETMGR_EXT_LOG_E("null ptr");
+        return FIREWALL_FAILURE;
+    }
+    // LCOV_EXCL_STOP
     std::lock_guard<std::mutex> guard(databaseMutex_);
     int64_t rowCount = 0;
     RdbPredicates rdbPredicates(FIREWALL_TABLE_NAME);
     rdbPredicates.BeginWrap()->EqualTo(NET_FIREWALL_USER_ID, std::to_string(userId))->EndWrap();
     firewallDatabase_->Count(rowCount, rdbPredicates);
-    if (rowCount == 0) {
-        NETMGR_EXT_LOG_I("QueryFirewallRule: no rule found");
+    // LCOV_EXCL_START
+    if (rowCount == 0 || requestParam->pageSize == 0) {
+        NETMGR_EXT_LOG_I("QueryFirewallRule: no rule found or pageSize is 0");
         return FIREWALL_OK;
     }
+    // LCOV_EXCL_STOP
     info->totalPage = rowCount / requestParam->pageSize;
     int32_t remainder = rowCount % requestParam->pageSize;
     if (remainder > 0) {
@@ -783,6 +791,11 @@ int32_t NetFirewallDbHelper::QuerySql(const std::string &sql)
 
 bool NetFirewallDbHelper::IsDnsRuleExist(const sptr<NetFirewallRule> &rule)
 {
+    // LCOV_EXCL_START
+    if (rule == nullptr) {
+        return false;
+    }
+    // LCOV_EXCL_STOP
     if (rule->ruleType != NetFirewallRuleType::RULE_DNS) {
         return false;
     }
@@ -879,6 +892,16 @@ int32_t NetFirewallDbHelper::DeleteInterceptRecord(const int32_t userId)
 int32_t NetFirewallDbHelper::QueryInterceptRecord(const int32_t userId, const sptr<RequestParam> &requestParam,
     sptr<InterceptRecordPage> &info)
 {
+    // LCOV_EXCL_START
+    if (requestParam == nullptr || info == nullptr) {
+        NETMGR_EXT_LOG_E("null ptr");
+        return FIREWALL_FAILURE;
+    }
+    if (requestParam->pageSize == 0) {
+        NETMGR_EXT_LOG_E("pageSize is 0");
+        return FIREWALL_FAILURE;
+    }
+    // LCOV_EXCL_STOP
     std::lock_guard<std::mutex> guard(databaseMutex_);
     int64_t rowCount = 0;
     RdbPredicates rdbPredicates(INTERCEPT_RECORD_TABLE);

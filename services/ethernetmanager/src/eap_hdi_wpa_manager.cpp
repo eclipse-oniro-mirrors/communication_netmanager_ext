@@ -12,29 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "eap_hdi_wpa_manager.h"
- 
+
 #include <filesystem>
 #include <map>
 #include <charconv>
 #include <codecvt>
 #include <fstream>
- 
+
 #include "base64_utils.h"
 #include "net_eap_handler.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netmanager_base_common_utils.h"
 #include "net_manager_constants.h"
- 
+
 namespace OHOS {
 namespace NetManagerStandard {
- 
+
 static constexpr const char* ETHERNET_SERVICE_NAME = "ethernet_service";
 static constexpr const char* ITEM_WPA_CTRL = "wpa_ctrl_";
 static constexpr const char* ETH_CONFIG_ROOR_DIR = "/data/service/el1/public/eth";
 static constexpr const char* ETH_WPA_CONFIG_PATH = "/data/service/el1/public/eth/eth_wpa_supplicant.conf";
- 
+
 static constexpr const char* ITEM_CTRL_IFACE = "ctrl_interface=/data/service/el1/public/eth\n";
 static constexpr const char* ITEM_LINE = "\n";
 static constexpr const char* ITEM_AP_SCAN = "ap_scan=0\n";
@@ -49,7 +49,7 @@ static constexpr const char* ITEM_CA_CERT = "ca_cert=";
 static constexpr const char* ITEM_CLIENT_CERT = "client_cert=";
 static constexpr const char* ITEM_PRIVATE_KEY = "private_key=";
 static const std::string ITEM_QUOTE = "\"";
- 
+
 static constexpr int8_t IDX_0 = 1;
 static constexpr int8_t IDX_1 = 2;
 static constexpr int8_t IDX_2 = 3;
@@ -57,7 +57,7 @@ static constexpr int8_t IDX_3 = 4;
 static constexpr int8_t IDX_4 = 5;
 static constexpr int8_t BASE_10 = 10;
 static constexpr int8_t WPA_EVENT_REPORT_PARAM_CNT = 6;
- 
+
 static std::map<Phase2Method, std::string> PHASE2_METHOD_STR_MAP = {
     { Phase2Method::PHASE2_NONE, "NONE" },
     { Phase2Method::PHASE2_PAP, "PAP" },
@@ -79,12 +79,12 @@ static std::map<EapMethod, std::string> EAP_METHOD_STR_MAP = {
     { EapMethod::EAP_AKA_PRIME, "AKA'" },
     { EapMethod::EAP_UNAUTH_TLS, "AKA" },
 };
- 
+
 EapHdiWpaManager::EapHdiWpaManager()
 {
     memset_s(&ethCallback_, sizeof(ethCallback_), 0, sizeof(ethCallback_));
 }
- 
+
 int32_t EapHdiWpaManager::LoadEthernetHdiService()
 {
     std::lock_guard<std::mutex> lock(wpaMutex_);
@@ -113,7 +113,7 @@ int32_t EapHdiWpaManager::LoadEthernetHdiService()
     NETMGR_EXT_LOG_I("EthService succ");
     return EAP_ERRCODE_SUCCESS;
 }
- 
+
 int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfile& profile)
 {
     std::lock_guard<std::mutex> lock(wpaMutex_);
@@ -135,7 +135,7 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
     NETMGR_EXT_LOG_I("StartEap succ");
     return EAP_ERRCODE_SUCCESS;
 }
- 
+
 int32_t EapHdiWpaManager::StopEap(const std::string& ifName)
 {
     std::lock_guard<std::mutex> lock(wpaMutex_);
@@ -156,7 +156,7 @@ int32_t EapHdiWpaManager::StopEap(const std::string& ifName)
     NETMGR_EXT_LOG_I("StopEap succ");
     return (ret == HDF_SUCCESS) ? EAP_ERRCODE_SUCCESS : EAP_ERRCODE_LOGOFF_FAIL;
 }
- 
+
 void EapHdiWpaManager::RemoveHistoryCtrl()
 {
     std::filesystem::path filePath(ETH_CONFIG_ROOR_DIR);
@@ -173,7 +173,7 @@ void EapHdiWpaManager::RemoveHistoryCtrl()
         }
     }
 }
- 
+
 int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::string& ifName)
 {
     std::string fileContext;
@@ -223,7 +223,7 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
     NETMGR_EXT_LOG_I("SetEapConfig succ");
     return EAP_ERRCODE_SUCCESS;
 }
- 
+
 int32_t EapHdiWpaManager::EapShellCmd(const std::string& ifName, const std::string& cmd)
 {
     std::lock_guard<std::mutex> lock(wpaMutex_);
@@ -235,7 +235,7 @@ int32_t EapHdiWpaManager::EapShellCmd(const std::string& ifName, const std::stri
     NETMGR_EXT_LOG_I("EthShellCmd cmd = %{public}s res = %{public}d", cmd.c_str(), ret);
     return ret;
 }
- 
+
 int32_t EapHdiWpaManager::RegisterEapEventCallback(const std::string& ifName)
 {
     if (iEthernet_ == nullptr) {
@@ -245,7 +245,7 @@ int32_t EapHdiWpaManager::RegisterEapEventCallback(const std::string& ifName)
     ethCallback_.OnEapEventNotify = OnEapEventReport;
     return iEthernet_->RegisterEapEventCallback(iEthernet_, &ethCallback_, ifName.c_str());
 }
- 
+
 int32_t EapHdiWpaManager::UnregisterEapEventCallback(const std::string& ifName)
 {
     if (iEthernet_ == nullptr) {
@@ -255,13 +255,13 @@ int32_t EapHdiWpaManager::UnregisterEapEventCallback(const std::string& ifName)
     ethCallback_.OnEapEventNotify = OnEapEventReport;
     return iEthernet_->UnregisterEapEventCallback(iEthernet_, &ethCallback_, ifName.c_str());
 }
- 
+
 std::string EapHdiWpaManager::Phase2MethodToStr(EapMethod eap, Phase2Method method)
 {
     std::string prefix = (eap == EapMethod::EAP_TTLS && method == Phase2Method::PHASE2_GTC) ? "autheap=" : "auth=";
     return prefix + PHASE2_METHOD_STR_MAP[method];
 }
- 
+
 bool EapHdiWpaManager::WriteEapConfigToFile(const std::string &fileContext)
 {
     std::string destPath = ETH_WPA_CONFIG_PATH;
@@ -275,10 +275,13 @@ bool EapHdiWpaManager::WriteEapConfigToFile(const std::string &fileContext)
     file.close();
     return true;
 }
- 
+
 int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *ifName, const char *value)
 {
     /* @param value -> msgType:msgId:eapCode:eapType:bufferLen:eapBuffer */
+    if (ifName == nullptr || value == nullptr) {
+        return EAP_ERRCODE_INTERNAL_ERROR;
+    }
     NETMGR_EXT_LOG_I("OnEapEventReport ifName = %{public}s", ifName);
     std::vector<std::string> vecEapDatas = CommonUtils::Split(value, ":");
     if (vecEapDatas.size() != WPA_EVENT_REPORT_PARAM_CNT) {
@@ -307,13 +310,13 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
     notifyEapData->eapBuffer.assign(decodeEapBuf.begin(), decodeEapBuf.end());
     return NetEapHandler::GetInstance().NotifyWpaEapInterceptInfo(NetType::ETH0, notifyEapData);
 }
- 
+
 bool EapHdiWpaManager::ConvertStrToInt(const std::string &str, int32_t &value)
 {
     auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value, BASE_10);
     return ec == std::errc{} && ptr == str.data() + str.size();
 }
- 
+
 int32_t EapHdiWpaManager::RegisterCustomEapCallback(const std::string &ifName, const std::string &regCmd)
 {
     /*  @param regCmd -> netType:size:composeParam1:composeParam2...((eapCode << 8) | eapType) */
@@ -331,7 +334,7 @@ int32_t EapHdiWpaManager::RegisterCustomEapCallback(const std::string &ifName, c
     }
     return EAP_ERRCODE_SUCCESS;
 }
- 
+
 int32_t EapHdiWpaManager::ReplyCustomEapData(const std::string &ifName, int32_t result,
     const sptr<EapData> &eapData)
 {
@@ -354,7 +357,7 @@ int32_t EapHdiWpaManager::ReplyCustomEapData(const std::string &ifName, int32_t 
     }
     return EAP_ERRCODE_SUCCESS;
 }
- 
+
 void EapHdiWpaManager::UnloadDeviceManager()
 {
     if (devMgr_ != nullptr) {
@@ -363,6 +366,6 @@ void EapHdiWpaManager::UnloadDeviceManager()
         devMgr_ = nullptr;
     }
 }
- 
+
 } // namespace NetManagerStandard
 }  // namespace OHOS

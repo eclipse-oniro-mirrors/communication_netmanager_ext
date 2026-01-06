@@ -499,6 +499,12 @@ ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
 
 ssize_t MDnsSocketListener::Unicast(int sock, sockaddr *saddr, const MDnsPayload &payload)
 {
+    // LCOV_EXCL_START
+    if (saddr == nullptr) {
+        NETMGR_EXT_LOG_E("saddr is null");
+        return -1;
+    }
+    // LCOV_EXCL_STOP
     socklen_t saddrLen = 0;
     if (saddr->sa_family == AF_INET) {
         saddrLen = sizeof(sockaddr_in);

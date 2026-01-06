@@ -73,6 +73,7 @@ NetworkShareClient::~NetworkShareClient()
     if (serviceRemote == nullptr) {
         return;
     }
+
     if (deathRecipient_) {
         serviceRemote->RemoveDeathRecipient(deathRecipient_);
     }
@@ -125,6 +126,12 @@ int32_t NetworkShareClient::IsSharing(int32_t &sharingStatus)
 int32_t NetworkShareClient::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     NETMGR_EXT_LOG_I("NetworkShare RegisterSharingEvent.");
+    // LCOV_EXCL_START
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("callback is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    // LCOV_EXCL_STOP
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("RegisterSharingEvent proxy is nullptr");
@@ -142,6 +149,12 @@ int32_t NetworkShareClient::RegisterSharingEvent(sptr<ISharingEventCallback> cal
 int32_t NetworkShareClient::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     NETMGR_EXT_LOG_I("NetworkShare UnregisterSharingEvent.");
+    // LCOV_EXCL_START
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("callback is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    // LCOV_EXCL_STOP
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("UnregisterSharingEvent proxy is nullptr");

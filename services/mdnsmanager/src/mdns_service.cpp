@@ -139,6 +139,12 @@ bool MDnsService::Init()
 
 int32_t MDnsService::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
 {
+    // LCOV_EXCL_START
+    if (cb == nullptr) {
+        NETMGR_EXT_LOG_E("callback is nullptr");
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    // LCOV_EXCL_STOP
     int32_t err = MDnsManager::GetInstance().RegisterService(serviceInfo, cb);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
@@ -155,6 +161,12 @@ int32_t MDnsService::RegisterService(const MDnsServiceInfo &serviceInfo, const s
 
 int32_t MDnsService::UnRegisterService(const sptr<IRegistrationCallback> &cb)
 {
+    // LCOV_EXCL_START
+    if (cb == nullptr) {
+        NETMGR_EXT_LOG_E("callback is nullptr");
+        return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
+    }
+    // LCOV_EXCL_STOP
     int32_t err = MDnsManager::GetInstance().UnRegisterService(cb);
     if (err != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("mdns_log manager call failed, error code: [%{public}d]", err);
@@ -206,10 +218,12 @@ void MDnsService::OnServiceRemoteDied(const wptr<IRemoteObject> &remoteObject)
 
 void MDnsService::AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
 {
-    if (deathRecipient_ == nullptr) {
-        NETMGR_EXT_LOG_E("mdns_log deathRecipient is null");
+    // LCOV_EXCL_START
+    if (deathRecipient_ == nullptr || cb == nullptr) {
+        NETMGR_EXT_LOG_E("mdns_log deathRecipient or cb is null");
         return;
     }
+    // LCOV_EXCL_STOP
     if (!cb->AsObject()->AddDeathRecipient(deathRecipient_)) {
         NETMGR_EXT_LOG_E("mdns_log AddClientDeathRecipient failed");
         return;
@@ -226,6 +240,12 @@ void MDnsService::AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
 
 void MDnsService::RemoveClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
 {
+    // LCOV_EXCL_START
+    if (cb == nullptr) {
+        NETMGR_EXT_LOG_E("callback is nullptr");
+        return;
+    }
+    // LCOV_EXCL_STOP
     {
         std::lock_guard<std::mutex> autoLock(remoteMutex_);
         auto iter =
@@ -256,10 +276,12 @@ void MDnsService::RemoveALLClientDeathRecipient()
 
 void MDnsService::AddServiceDeathRecipient(const sptr<IRegistrationCallback> &cb)
 {
-    if (serviceDeathRecipient_ == nullptr) {
-        NETMGR_EXT_LOG_E("mdns_log serviceDeathRecipient is null");
+    // LCOV_EXCL_START
+    if (serviceDeathRecipient_ == nullptr || cb == nullptr) {
+        NETMGR_EXT_LOG_E("mdns_log serviceDeathRecipient or cb is null");
         return;
     }
+    // LCOV_EXCL_STOP
     if (!cb->AsObject()->AddDeathRecipient(serviceDeathRecipient_)) {
         NETMGR_EXT_LOG_E("mdns_log AddServiceDeathRecipient failed");
         return;
@@ -277,6 +299,12 @@ void MDnsService::AddServiceDeathRecipient(const sptr<IRegistrationCallback> &cb
 
 void MDnsService::RemoveServiceDeathRecipient(const sptr<IRegistrationCallback> &cb)
 {
+    // LCOV_EXCL_START
+    if (cb == nullptr) {
+        NETMGR_EXT_LOG_E("callback is nullptr");
+        return;
+    }
+    // LCOV_EXCL_STOP
     {
         std::lock_guard<std::mutex> autoLock(serviceRemoteMutex_);
         auto iter =
