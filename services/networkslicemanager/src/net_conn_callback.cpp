@@ -22,9 +22,11 @@ namespace OHOS {
 namespace NetManagerStandard {
 int32_t NetConnCallback::NetAvailable(sptr<NetHandle> &netHandle)
 {
+    // LCOV_EXCL_START
     if (netHandle == nullptr) {
         return -1;
     }
+    // LCOV_EXCL_STOP
     int32_t netId = netHandle->GetNetId();
     netId_ = netId;
     NETMGR_EXT_LOG_I("netconn callback, netAvailable, netId: %{public}d", netId);
@@ -39,9 +41,11 @@ int32_t NetConnCallback::NetAvailable(sptr<NetHandle> &netHandle)
 
 int32_t NetConnCallback::NetLost(sptr<NetHandle> &netHandle)
 {
+    // LCOV_EXCL_START
     if (netHandle == nullptr) {
         return -1;
     }
+    // LCOV_EXCL_STOP
     int32_t netId = netHandle->GetNetId();
     netId_ = 0;
     NETMGR_EXT_LOG_I("netconn callback, NetLost, netId: %{public}d", netId);
