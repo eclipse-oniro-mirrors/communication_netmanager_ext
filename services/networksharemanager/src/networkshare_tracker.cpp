@@ -631,10 +631,12 @@ int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> ca
 
 int32_t NetworkShareTracker::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
+    // LCOV_EXCL_START
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("callback is null.");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
+    // LCOV_EXCL_STOP
     std::lock_guard<ffrt::mutex> lock(callbackMutex_);
     for (auto iter = sharingEventCallback_.begin(); iter != sharingEventCallback_.end(); ++iter) {
         if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
