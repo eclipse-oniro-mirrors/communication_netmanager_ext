@@ -215,6 +215,7 @@ int32_t NetFirewallInterceptRecorder::FirewallCallback::OnIntercept(sptr<Interce
 void NetFirewallInterceptRecorder::FirewallCallback::FlushRecordCacheWithoutSkip()
 {
     if (!recorder_) {
+        NETMGR_EXT_LOG_E("FlushRecordCacheWithoutSkip recorder is nullptr");
         return;
     }
     std::vector<sptr<InterceptRecord>> buffer;
@@ -222,15 +223,12 @@ void NetFirewallInterceptRecorder::FirewallCallback::FlushRecordCacheWithoutSkip
         std::lock_guard<std::mutex> lockerRecordCache(recorder_->setRecordWithoutSkipMutex_);
         buffer.swap(recorder_->recordCacheWithoutSkip_);
     }
+    NETMGR_EXT_LOG_I("FlushRecordCacheWithoutSkip notify bufferSize=%{public}zu", buffer.size());
     if (buffer.empty()) {
         return;
     }
-    std::vector<sptr<INetInterceptRecordCallback>> interceptRecordCallback;
-    {
-        std::lock_guard<std::mutex> lockerCallback(recorder_->interceptRecordCallbackMutex_);
-        interceptRecordCallback.swap(recorder_->interceptRecordCallbacks_);
-    }
-    for (const auto &cb : interceptRecordCallback) {
+    std::lock_guard<std::mutex> lockerCallback(recorder_->interceptRecordCallbackMutex_);
+    for (const auto &cb : recorder_->interceptRecordCallbacks_) {
         if (!cb) {
             continue;
         }
@@ -243,6 +241,7 @@ void NetFirewallInterceptRecorder::FirewallCallback::FlushRecordCacheWithoutSkip
 void NetFirewallInterceptRecorder::FirewallCallback::ReportInterceptWithoutSkip(sptr<InterceptRecord> &record)
 {
     if (!recorder_) {
+        NETMGR_EXT_LOG_E("ReportInterceptWithoutSkip recorder is nullptr");
         return;
     }
     if (recorder_->interceptRecordCallbacks_.empty()) {
