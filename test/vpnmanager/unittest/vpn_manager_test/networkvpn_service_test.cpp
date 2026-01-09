@@ -125,22 +125,68 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
     std::vector<int32_t> activeUserIds;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(*config), NETMANAGER_ERR_PERMISSION_DENIED);
+    VpnConfigRawData rawdata;
+    EXPECT_EQ(true, rawdata.SerializeFromVpnConfig(*config));
+    EXPECT_EQ(instance_->SetUpVpn(rawdata), NETMANAGER_ERR_PERMISSION_DENIED);
 
     userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(*config), NETMANAGER_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(instance_->SetUpVpn(rawdata), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn002, TestSize.Level1)
 {
     system::SetParameter("persist.edm.vpn_disable", "true");
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    int32_t ret = instance_->SetUpVpn(*config, true);
+    VpnConfigRawData rawdata;
+    EXPECT_EQ(true, rawdata.SerializeFromVpnConfig(*config));
+    int32_t ret = instance_->SetUpVpn(rawdata, true);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
-    ret = instance_->SetUpVpn(*config, false);
+    ret = instance_->SetUpVpn(rawdata, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
     system::SetParameter("persist.edm.vpn_disable", "false");
+}
+
+HWTEST_F(NetworkVpnServiceTest, ProcessVpnConfigTest001, TestSize.Level1)
+{
+    VpnConfigRawData configData;
+    sptr<VpnConfig> configPtr = new (std::nothrow) VpnConfig();
+    ASSERT_NE(configPtr, nullptr);
+    EXPECT_EQ(true, configData.SerializeFromVpnConfig(*configPtr));
+
+    std::string vpnBundleName;
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    VpnConfig config;
+    int32_t result = instance_->ProcessVpnConfig(configData, vpnBundleName, userId, activeUserIds, config);
+    EXPECT_NE(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ProcessVpnConfigTest002, TestSize.Level1)
+{
+    VpnConfigRawData configData;
+    std::string vpnBundleName;
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    VpnConfig config;
+    int32_t result = instance_->ProcessVpnConfig(configData, vpnBundleName, userId, activeUserIds, config);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(NetworkVpnServiceTest, ProcessVpnConfigTest003, TestSize.Level1)
+{
+    VpnConfigRawData configData;
+    sptr<VpnConfig> configPtr = new (std::nothrow) VpnConfig();
+    ASSERT_NE(configPtr, nullptr);
+    configPtr->vpnId_ = "invalid_vpn_id";
+    EXPECT_EQ(true, configData.SerializeFromVpnConfig(*configPtr));
+
+    std::string vpnBundleName;
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    VpnConfig config;
+    int32_t result = instance_->ProcessVpnConfig(configData, vpnBundleName, userId, activeUserIds, config);
+    EXPECT_NE(result, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(NetworkVpnServiceTest, Protect, TestSize.Level1)

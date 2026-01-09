@@ -120,7 +120,7 @@ public:
     /**
      * This function is called when the three-party vpn application negotiation ends
      */
-    int32_t SetUpVpn(const VpnConfig &config,
+    int32_t SetUpVpn(const VpnConfigRawData &configData,
         bool isVpnExtCall = false, bool isInternalChannel = false) override;
 
     /**
@@ -314,6 +314,8 @@ private:
 #endif // SUPPORT_SYSVPN
     int32_t IsSetUpReady(const std::string &vpnId, std::string &vpnBundleName,
         int32_t &userId, std::vector<int32_t> &activeUserIds);
+    int32_t ProcessVpnConfig(const VpnConfigRawData& configData, std::string& vpnBundleName,
+        int32_t& userId, std::vector<int32_t>& activeUserIds, VpnConfig& config);
     int32_t IsNotExistVpn(bool isVpnExtCall);
     std::string GetBundleName();
     std::set<std::string> GetCurrentVpnAbilityName();

@@ -28,7 +28,8 @@ public:
         return 0;
     }
 
-    int32_t SetUpVpn(const VpnConfig &config, bool isVpnExtCall = false, bool isInternalChannel = false) override
+    int32_t SetUpVpn(const VpnConfigRawData &configData,
+        bool isVpnExtCall = false, bool isInternalChannel = false) override
     {
         return 0;
     }

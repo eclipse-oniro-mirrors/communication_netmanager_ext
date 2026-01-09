@@ -21,7 +21,7 @@ namespace NetManagerStandard {
 namespace {
 constexpr uint32_t MAX_SIZE = 64;
 constexpr uint32_t APP_MAX_SIZE = 256;
-constexpr uint32_t ROUTE_MAX_SIZE = 2000;
+constexpr uint32_t ROUTE_MAX_SIZE = 10000;
 constexpr uint32_t ADDR_MAX_SIZE = 2000;
 }
 bool VpnConfig::Marshalling(Parcel &parcel) const

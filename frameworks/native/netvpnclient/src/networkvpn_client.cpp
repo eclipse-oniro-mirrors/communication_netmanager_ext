@@ -244,7 +244,12 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
     NETMGR_EXT_LOG_I("enter SetUpVpn %{public}d, %{public}d", isVpnExtCall, isInternalChannel);
-    int32_t result = proxy->SetUpVpn(*config, isVpnExtCall, isInternalChannel);
+    VpnConfigRawData rawdata;
+    if (!rawdata.SerializeFromVpnConfig(*config)) {
+        NETMGR_EXT_LOG_I("SetUpVpn SerializeFromVpnConfig fail");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    int32_t result = proxy->SetUpVpn(rawdata, isVpnExtCall, isInternalChannel);
     if (result != NETMANAGER_EXT_SUCCESS) {
         tunFd = 0;
         return result;
@@ -628,7 +633,12 @@ void NetworkVpnClient::RecoverCallback()
     auto proxy = GetProxy();
     std::shared_lock<std::shared_mutex> lock(clientVpnConfigmutex_);
     if (proxy != nullptr &&  clientVpnConfig_.config != nullptr) {
-        proxy->SetUpVpn(*clientVpnConfig_.config,
+        VpnConfigRawData rawdata;
+        if (!rawdata.SerializeFromVpnConfig(*clientVpnConfig_.config)) {
+            NETMGR_EXT_LOG_I("SetUpVpn SerializeFromVpnConfig fail");
+            proxy = nullptr;
+        }
+        proxy->SetUpVpn(rawdata,
             clientVpnConfig_.isVpnExtCall,  clientVpnConfig_.isInternalChannel);
     }
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
