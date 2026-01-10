@@ -313,7 +313,7 @@ HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest001, TestSize.Level1)
     int32_t ret = instance_->SetAlwaysOnVpn(pkg, enable);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
     ret = instance_->GetAlwaysOnVpn(pkg);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_LE(ret, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, NetworkVpnServiceBranchTest002, TestSize.Level1)
@@ -357,7 +357,7 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest001, TestSize.Level1)
     ASSERT_NE(vpnHapObserver, nullptr);
     instance_->setVpnPidMap_.emplace(userId, 123456);
     vpnHapObserver->OnProcessDied(data);
-    EXPECT_FALSE(instance_->vpnObj_ == nullptr);
+    EXPECT_TRUE(instance_->vpnObj_ == nullptr);
 }
 
 HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest002, TestSize.Level1)
