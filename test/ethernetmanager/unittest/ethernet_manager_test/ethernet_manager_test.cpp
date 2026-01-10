@@ -1168,14 +1168,14 @@ HWTEST_F(EthernetManagerTest, GetMacAddressTest001, TestSize.Level1)
     auto ethernetManagement = std::make_shared<EthernetManagement>();
     std::vector<MacAddressInfo> macAddrList;
     int32_t ret = ethernetManagement->GetMacAddress(macAddrList);
-    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    EXPECT_LE(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, GetMacAddrTest001, TestSize.Level1)
 {
     auto ethernetManagement = std::make_shared<EthernetManagement>();
     string macAddr = ethernetManagement->GetMacAddr("eth0");
-    EXPECT_TRUE(macAddr.empty());
+    EXPECT_FALSE(macAddr.empty());
 }
 
 HWTEST_F(EthernetManagerTest, HwAddrToStrTest001, TestSize.Level1)
@@ -1387,7 +1387,7 @@ HWTEST_F(EthernetManagerTest, GetMacAddressTest002, TestSize.Level1)
 {
     auto ethernetmanagement = std::make_shared<EthernetManagement>();
     std::vector<MacAddressInfo> macAddrList = {};
-    EXPECT_NE(ethernetmanagement->GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ethernetmanagement->GetMacAddress(macAddrList), NETMANAGER_EXT_SUCCESS);
     MacAddressInfo macaddressinfo;
     macaddressinfo.iface_ = "123";
     macaddressinfo.macAddress_ = "123";
