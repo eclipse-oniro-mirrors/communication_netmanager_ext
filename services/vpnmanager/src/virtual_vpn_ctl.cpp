@@ -15,6 +15,8 @@
 
 #include "virtual_vpn_ctl.h"
 
+#include "broadcast_manager.h"
+#include "common_event_support.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
@@ -63,6 +65,8 @@ int32_t VirtualVpnCtl::SetUp(bool isInternalChannel)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
+    SendConnectionChangedBroadcast(NET_CONN_STATE_CONNECTED);
+
 #ifdef SUPPORT_SYSVPN
     if (!IsSystemVpn()) {
         NotifyConnectState(VpnConnectState::VPN_CONNECTED);
@@ -99,6 +103,9 @@ int32_t VirtualVpnCtl::Destroy()
     auto &netConnClientIns = NetConnClient::GetInstance();
     UpdateNetSupplierInfo(netConnClientIns, false);
     UnregisterNetSupplier(netConnClientIns);
+    
+    SendConnectionChangedBroadcast(NET_CONN_STATE_DISCONNECTED);
+
 #ifdef SUPPORT_SYSVPN
     if (!IsSystemVpn()) {
         NotifyConnectState(VpnConnectState::VPN_DISCONNECTED);
@@ -110,6 +117,17 @@ int32_t VirtualVpnCtl::Destroy()
 
     NETMGR_EXT_LOG_I("virtual vpn destroy interface name:%{public}s", GetInterfaceName().c_str());
     return NETMANAGER_EXT_SUCCESS;
+}
+
+void VirtualVpnCtl::SendConnectionChangedBroadcast(const NetConnState &netConnState)
+{
+    BroadcastInfo info;
+    info.action = EventFwk::CommonEventSupport::COMMON_EVENT_CONNECTIVITY_CHANGE;
+    info.data = "Net Manager Connection State Changed";
+    info.code = static_cast<int32_t>(netConnState);
+    info.ordered = false;
+    std::map<std::string, int32_t> param = {{"NetType", static_cast<int32_t>(BEARER_VPN)}};
+    BroadcastManager::GetInstance().SendBroadcast(info, param);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

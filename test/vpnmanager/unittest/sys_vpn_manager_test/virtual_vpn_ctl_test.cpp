@@ -118,6 +118,9 @@ HWTEST_F(VirtualVpnCtlTest, NotifyConnectState003, TestSize.Level1)
 #endif
     control_->NotifyConnectState(VpnConnectState::VPN_CONNECTED);
     EXPECT_EQ(control_->netSupplierId_, 0);
+
+    control_->SendConnectionChangedBroadcast(NET_CONN_STATE_CONNECTED);
+    control_->SendConnectionChangedBroadcast(NET_CONN_STATE_DISCONNECTED);
 }
 
 } // namespace NetManagerStandard

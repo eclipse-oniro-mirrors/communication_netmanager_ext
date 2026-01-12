@@ -19,6 +19,7 @@
 #include <cstdint>
 
 #include "net_vpn_impl.h"
+#include "net_supplier_info.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -31,6 +32,15 @@ public:
     int32_t SetUp(bool isInternalChannel = false) override;
     void NotifyConnectState(const VpnConnectState &state) override;
     int32_t Destroy() override;
+
+private:
+    /*
+     * Send COMMON_EVENT_CONNECTIVITY_CHANGE by ourself;
+     * When setup vpn, COMMON_EVENT_CONNECTIVITY_CHANGE will be sent by Network class when update netlink info,
+     * but virtual vpn do not have any interface and do not update netlink info, so we should send
+     * COMMON_EVENT_CONNECTIVITY_CHANGE ourself.
+     */
+    void SendConnectionChangedBroadcast(const NetConnState &netConnState);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
