@@ -303,7 +303,9 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     config->vpnId_ = "123";
-    int32_t ret = instance_->SetUpVpn(*config, true);
+    VpnConfigRawData rawdata;
+    EXPECT_EQ(true, rawdata.SerializeFromVpnConfig(*config));
+    int32_t ret = instance_->SetUpVpn(rawdata, true);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     NetManagerExtAccessToken accToken;
@@ -312,14 +314,14 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     std::vector<int32_t> activeUserIds;
     instance_->CheckCurrentAccountType(userId, activeUserIds);
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
-    ret = instance_->SetUpVpn(*config, true);
+    ret = instance_->SetUpVpn(rawdata, true);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     instance_->vpnObj_ = nullptr;
-    ret = instance_->SetUpVpn(*config, true);
+    ret = instance_->SetUpVpn(rawdata, true);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
-    ret = instance_->SetUpVpn(*config, true);
+    ret = instance_->SetUpVpn(rawdata, true);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 

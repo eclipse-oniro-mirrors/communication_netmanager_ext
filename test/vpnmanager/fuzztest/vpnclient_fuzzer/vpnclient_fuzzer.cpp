@@ -172,7 +172,11 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
     config->searchDomains_.emplace_back(GetStringData());
     config->acceptedApplications_.emplace_back(GetStringData());
     config->acceptedApplications_.emplace_back(GetStringData());
-    if (!config->Marshalling(dataParcel)) {
+    VpnConfigRawData rawdata;
+    if (!rawdata.SerializeFromVpnConfig(*config)) {
+        return;
+    }
+    if (!rawdata.Marshalling(dataParcel)) {
         return;
     }
     OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN, dataParcel);

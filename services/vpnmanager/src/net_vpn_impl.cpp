@@ -24,6 +24,7 @@
 #include "system_ability_definition.h"
 
 #include "net_conn_client.h"
+#include "net_manager_center.h"
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmanager_base_common_utils.h"
@@ -421,7 +422,7 @@ bool NetVpnImpl::UpdateNetLinkInfo()
         linkInfo->domain_.append(domain).append(" ");
     }
     linkInfo->mtu_ = vpnConfig_->mtu_;
-    NetConnClient::GetInstance().UpdateNetLinkInfo(netSupplierId_, linkInfo);
+    NetManagerCenter::GetInstance().UpdateNetLinkInfo(netSupplierId_, linkInfo);
     return true;
 }
 

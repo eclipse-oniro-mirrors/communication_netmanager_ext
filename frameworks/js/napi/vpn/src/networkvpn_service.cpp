@@ -525,7 +525,12 @@ void NetworkVpnService::RecoverVpnConfig()
     std::string jsonString;
     std::getline(ifs, jsonString);
     ParseJsonToConfig(vpnCfg, jsonString);
-    SetUpVpn(*vpnCfg);
+    VpnConfigRawData rawdata;
+    if (!rawdata.SerializeFromVpnConfig(*vpnCfg)) {
+        NETMGR_EXT_LOG_I("SetUpVpn SerializeFromVpnConfig fail");
+        return;
+    }
+    SetUpVpn(rawdata);
 }
 
 void NetworkVpnService::ConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr)
@@ -729,15 +734,30 @@ void NetworkVpnService::HandleVpnHapObserverRegistration(const std::string& bund
     }
 }
 
-int32_t NetworkVpnService::SetUpVpn(const VpnConfig &config, bool isVpnExtCall, bool isInternalChannel)
+int32_t NetworkVpnService::ProcessVpnConfig(const VpnConfigRawData& configData, std::string& vpnBundleName,
+    int32_t& userId, std::vector<int32_t>& activeUserIds, VpnConfig& config)
+{
+    if (!configData.ToVpnConfig(config)) {
+        NETMGR_EXT_LOG_E("ProcessVpnConfig ToVpnConfig failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    int32_t ret = IsSetUpReady(config.vpnId_, vpnBundleName, userId, activeUserIds);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_W("ProcessVpnConfig failed, not ready");
+        return ret;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isVpnExtCall, bool isInternalChannel)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
     std::string vpnBundleName;
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
-    int32_t ret = IsSetUpReady(config.vpnId_, vpnBundleName, userId, activeUserIds);
+    VpnConfig config;
+    int32_t ret = ProcessVpnConfig(configData, vpnBundleName, userId, activeUserIds, config);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_W("SetUpVpn failed, not ready");
         return ret;
     }
     std::shared_ptr<NetVpnImpl> vpnObj = std::make_shared<ExtendedVpnCtl>(
