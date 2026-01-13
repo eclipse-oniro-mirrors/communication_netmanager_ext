@@ -82,7 +82,7 @@ HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest, TestSize.Level1)
 HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest002, TestSize.Level1)
 {
     auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
-    std::weak_ptr<RouterAdvertisementDaemon> wp = shared_from_this();
+    std::weak_ptr<RouterAdvertisementDaemon> wp(routerAdvertiseDaemon);
     auto callback = [wp]() {
         auto sp = wp.lock();
         if (sp != nullptr) {
