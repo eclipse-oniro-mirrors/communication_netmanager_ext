@@ -91,6 +91,7 @@ HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest002, TestSize.Level1)
     };
     routerAdvertiseDaemon->taskHandle_ = routerAdvertiseDaemon->sendRaFfrtQueue_->submit_h(callback);
     routerAdvertiseDaemon->StopRa();
+    routerAdvertiseDaemon->sendRaFfrtQueue_ = std::make_shared<ffrt::queue>("SendRa");
     routerAdvertiseDaemon->taskHandle_ = routerAdvertiseDaemon->sendRaFfrtQueue_->submit_h(callback);
     routerAdvertiseDaemon->sendRaFfrtQueue_ = nullptr;
     routerAdvertiseDaemon->StopRa();
