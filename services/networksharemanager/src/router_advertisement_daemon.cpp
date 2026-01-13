@@ -113,7 +113,10 @@ int32_t RouterAdvertisementDaemon::StartRa()
         }
     };
 #ifndef NETMANAGER_TEST
-    taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
+    std::lock_guard<ffrt::mutex> lock(sendRaFfrtQueueMutex_);
+    if (sendRaFfrtQueue_ != nullptr) {
+        taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
+    }
 #endif
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -122,11 +125,14 @@ void RouterAdvertisementDaemon::StopRa()
 {
     NETMGR_EXT_LOG_I("StopRa");
     HupRaThread();
-    if (taskHandle_ != nullptr) {
+    std::lock_guard<ffrt::mutex> lock(sendRaFfrtQueueMutex_);
+    if (taskHandle_ != nullptr && sendRaFfrtQueue_ != nullptr) {
         sendRaFfrtQueue_->cancel(taskHandle_);
         taskHandle_ = nullptr;
     }
-    sendRaFfrtQueue_ = nullptr;
+    if (taskHandle_ != nullptr) {
+        taskHandle_ = nullptr;
+    }
 }
 
 bool RouterAdvertisementDaemon::CreateRASocket()
@@ -270,7 +276,10 @@ void RouterAdvertisementDaemon::ResetRaRetryInterval()
         sendRaTimes_++;
         delayTime = SEND_RA_INTERVAL;
     }
-    taskHandle_ = sendRaFfrtQueue_->submit_h(callback, ffrt::task_attr().delay(delayTime));
+    std::lock_guard<ffrt::mutex> lock(sendRaFfrtQueueMutex_);
+    if (sendRaFfrtQueue_ != nullptr) {
+        taskHandle_ = sendRaFfrtQueue_->submit_h(callback, ffrt::task_attr().delay(delayTime));
+    }
 }
 
 bool RouterAdvertisementDaemon::AssembleRaLocked()
