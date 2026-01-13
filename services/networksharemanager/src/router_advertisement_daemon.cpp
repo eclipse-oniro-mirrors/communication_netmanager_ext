@@ -129,6 +129,7 @@ void RouterAdvertisementDaemon::StopRa()
     if (taskHandle_ != nullptr && sendRaFfrtQueue_ != nullptr) {
         sendRaFfrtQueue_->cancel(taskHandle_);
         taskHandle_ = nullptr;
+        sendRaFfrtQueue_ = nullptr;
     }
     if (taskHandle_ != nullptr) {
         taskHandle_ = nullptr;
