@@ -81,10 +81,23 @@ void MDnsProtocolImpl::Init()
         listener_.OpenSocketForDefault(config_.ipv6Support);
     }
     listener_.SetReceiveHandler(
-        [this](int sock, const MDnsPayload &payload) { return this->ReceivePacket(sock, payload); });
-    listener_.SetFinishedHandler([this](int sock) {
-        std::lock_guard<std::recursive_mutex> guard(mutex_);
-        RunTaskQueue(taskQueue_);
+        [wp = weak_from_this()](int sock, const MDnsPayload &payload) { 
+            auto sp = wp.lock();
+            // LCOV_EXCL_START
+            if (sp == nullptr) {
+                return;
+            }
+            // LCOV_EXCL_STOP
+            return sp->ReceivePacket(sock, payload); });
+    listener_.SetFinishedHandler([wp = weak_from_this()](int sock) {
+            auto sp = wp.lock();
+            // LCOV_EXCL_START
+            if (sp == nullptr) {
+                return;
+            }
+            // LCOV_EXCL_STOP
+        std::lock_guard<std::recursive_mutex> guard(sp->mutex_);
+        sp->RunTaskQueue(sp->taskQueue_);
     });
     listener_.Start();
     {
@@ -92,7 +105,14 @@ void MDnsProtocolImpl::Init()
         taskQueue_.clear();
         taskOnChange_.clear();
     }
-    AddTask([this]() { return Browse(); }, false);
+    AddTask([wp = weak_from_this()]() { 
+        auto sp = wp.lock();
+        // LCOV_EXCL_START
+        if (sp == nullptr) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
+        return sp->Browse(); }, false);
 
     SubscribeCes();
 }
@@ -352,30 +372,36 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
     browserMap_.insert({name, std::vector<Result>{}});
     nameCbMap_[name] = cb;
     // key is serviceTYpe
-    AddEvent(name, [this, name, cb]() {
+    AddEvent(name, [wp = weak_from_this(), name, cb]() {
+        auto sp = wp.lock();
+        // LCOV_EXCL_START
+        if (sp == nullptr) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
         std::lock_guard<std::recursive_mutex> guard(mutex_);
-        if (!IsBrowserAvailable(name)) {
+        if (!sp->IsBrowserAvailable(name)) {
             return false;
         }
         if (!MDnsManager::GetInstance().IsAvailableCallback(cb)) {
             return true;
         }
-        for (auto &res : browserMap_[name]) {
-            std::string fullName = Decorated(res.serviceName + MDNS_DOMAIN_SPLITER_STR + res.serviceType);
+        for (auto &res : sp->browserMap_[name]) {
+            std::string fullName = sp->Decorated(res.serviceName + MDNS_DOMAIN_SPLITER_STR + res.serviceType);
             NETMGR_EXT_LOG_W("mdns_log DiscoveryFromNet name:[%{public}s] fullName:[%{public}s]", name.c_str(),
                              fullName.c_str());
-            if (cacheMap_.find(fullName) == cacheMap_.end() ||
+            if (sp->cacheMap_.find(fullName) == sp->cacheMap_.end() ||
                 (res.state == State::ADD || res.state == State::REFRESH)) {
                 NETMGR_EXT_LOG_W("mdns_log HandleServiceFound");
-                cb->HandleServiceFound(ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
+                cb->HandleServiceFound(sp->ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
                 res.state = State::LIVE;
             }
             if (res.state == State::REMOVE) {
                 res.state = State::DEAD;
                 NETMGR_EXT_LOG_D("mdns_log HandleServiceLost");
-                cb->HandleServiceLost(ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
-                if (cacheMap_.find(fullName) != cacheMap_.end()) {
-                    cacheMap_.erase(fullName);
+                cb->HandleServiceLost(sp->ConvertResultToInfo(res), NETMANAGER_EXT_SUCCESS);
+                if (sp->cacheMap_.find(fullName) != sp->cacheMap_.end()) {
+                    sp->cacheMap_.erase(fullName);
                 }
             }
         }
@@ -383,16 +409,15 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
     });
 
     AddTask([=]() {
-            MDnsPayloadParser parser;
-            MDnsMessage msg{};
-            msg.questions.emplace_back(DNSProto::Question{
-                .name = name,
-                .qtype = DNSProto::RRTYPE_PTR,
-                .qclass = DNSProto::RRCLASS_IN,
-            });
-            listener_.MulticastAll(parser.ToBytes(msg));
-            return true;
-        }, false);
+        MDnsPayloadParser parser;
+        MDnsMessage msg{};
+        msg.questions.emplace_back(DNSProto::Question{
+            .name = name,
+            .qtype = DNSProto::RRTYPE_PTR,
+            .qclass = DNSProto::RRCLASS_IN, });
+        listener_.MulticastAll(parser.ToBytes(msg));
+        return true;}, false);
+
     return true;
 }
 
@@ -429,14 +454,20 @@ bool MDnsProtocolImpl::ResolveInstanceFromCache(const std::string &name, const s
     } else {
         ResolveFromNet(r.domain, nullptr);
         NETMGR_EXT_LOG_D("mdns_log Add Event DomainCache UnAvailable, [%{public}s]", r.domain.c_str());
-        AddEvent(r.domain, [this, cb, r]() mutable {
-            if (!IsDomainCacheAvailable(r.domain)) {
+        AddEvent(r.domain, [wp = weak_from_this(), cb, r]() mutable {
+            auto sp = wp.lock();
+            // LCOV_EXCL_START
+            if (sp == nullptr) {
                 return false;
             }
-            r.ipv6 = cacheMap_[r.domain].ipv6;
-            r.addr = cacheMap_[r.domain].addr;
+            // LCOV_EXCL_STOP
+            if (!sp->IsDomainCacheAvailable(r.domain)) {
+                return false;
+            }
+            r.ipv6 = sp->cacheMap_[r.domain].ipv6;
+            r.addr = sp->cacheMap_[r.domain].addr;
             if (nullptr != cb) {
-                cb->HandleResolveResult(ConvertResultToInfo(r), NETMANAGER_EXT_SUCCESS);
+                cb->HandleResolveResult(sp->ConvertResultToInfo(r), NETMANAGER_EXT_SUCCESS);
             }
             return true;
         });
@@ -465,7 +496,14 @@ bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name, const spt
         .qclass = DNSProto::RRCLASS_IN,
     });
     msg.header.qdcount = msg.questions.size();
-    AddEvent(name, [this, name, cb]() { return ResolveInstanceFromCache(name, cb); });
+    AddEvent(name, [wp = weak_from_this(), name, cb]() { 
+        auto sp = wp.lock();
+        // LCOV_EXCL_START
+        if (sp == nullptr) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
+        return sp->ResolveInstanceFromCache(name, cb); });
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     return size > 0;
 }
@@ -477,7 +515,13 @@ bool MDnsProtocolImpl::ResolveFromCache(const std::string &domain, const sptr<IR
     if (!IsDomainCacheAvailable(domain)) {
         return false;
     }
-    AddTask([this, cb, info = ConvertResultToInfo(cacheMap_[domain])]() {
+    AddTask([wp = weak_from_this(), cb, info = ConvertResultToInfo(cacheMap_[domain])]() {
+        auto sp = wp.lock();
+        // LCOV_EXCL_START
+        if (sp == nullptr) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
         if (nullptr != cb) {
             cb->HandleResolveResult(info, NETMANAGER_EXT_SUCCESS);
         }
@@ -507,7 +551,14 @@ bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain, const sptr<IRes
         .qclass = DNSProto::RRCLASS_IN,
     });
     // key is serviceName
-    AddEvent(domain, [this, cb, domain]() { return ResolveFromCache(domain, cb); });
+    AddEvent(domain, [wp = weak_from_this(), cb, domain]() { 
+        auto sp = wp.lock();
+        // LCOV_EXCL_START
+        if (sp == nullptr) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
+        return sp->ResolveFromCache(domain, cb); });
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     return size > 0;
 }
