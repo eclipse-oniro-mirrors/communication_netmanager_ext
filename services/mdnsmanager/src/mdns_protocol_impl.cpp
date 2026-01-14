@@ -379,7 +379,7 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
             return false;
         }
         // LCOV_EXCL_STOP
-        std::lock_guard<std::recursive_mutex> guard(mutex_);
+        std::lock_guard<std::recursive_mutex> guard(sp->mutex_);
         if (!sp->IsBrowserAvailable(name)) {
             return false;
         }
