@@ -80,15 +80,15 @@ void MDnsProtocolImpl::Init()
     } else {
         listener_.OpenSocketForDefault(config_.ipv6Support);
     }
-    listener_.SetReceiveHandler(
-        [wp = weak_from_this()](int sock, const MDnsPayload &payload) { 
+    listener_.SetReceiveHandler([wp = weak_from_this()](int sock, const MDnsPayload &payload) { 
             auto sp = wp.lock();
             // LCOV_EXCL_START
             if (sp == nullptr) {
                 return;
             }
             // LCOV_EXCL_STOP
-            return sp->ReceivePacket(sock, payload); });
+            return sp->ReceivePacket(sock, payload); 
+    });
     listener_.SetFinishedHandler([wp = weak_from_this()](int sock) {
             auto sp = wp.lock();
             // LCOV_EXCL_START
@@ -105,14 +105,15 @@ void MDnsProtocolImpl::Init()
         taskQueue_.clear();
         taskOnChange_.clear();
     }
-    AddTask([wp = weak_from_this()]() { 
+    AddTask([wp = weak_from_this()]() {
         auto sp = wp.lock();
         // LCOV_EXCL_START
         if (sp == nullptr) {
             return false;
         }
         // LCOV_EXCL_STOP
-        return sp->Browse(); }, false);
+        return sp->Browse(); 
+    }, false);
 
     SubscribeCes();
 }
@@ -416,7 +417,8 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
             .qtype = DNSProto::RRTYPE_PTR,
             .qclass = DNSProto::RRCLASS_IN, });
         listener_.MulticastAll(parser.ToBytes(msg));
-        return true;}, false);
+        return true;
+    }, false);
 
     return true;
 }
@@ -503,7 +505,8 @@ bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name, const spt
             return false;
         }
         // LCOV_EXCL_STOP
-        return sp->ResolveInstanceFromCache(name, cb); });
+        return sp->ResolveInstanceFromCache(name, cb); 
+    });
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     return size > 0;
 }
@@ -558,7 +561,8 @@ bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain, const sptr<IRes
             return false;
         }
         // LCOV_EXCL_STOP
-        return sp->ResolveFromCache(domain, cb); });
+        return sp->ResolveFromCache(domain, cb); 
+    });
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     return size > 0;
 }
