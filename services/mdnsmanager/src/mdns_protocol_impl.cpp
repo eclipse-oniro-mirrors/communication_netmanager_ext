@@ -417,8 +417,7 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
             .qtype = DNSProto::RRTYPE_PTR,
             .qclass = DNSProto::RRCLASS_IN, });
         listener_.MulticastAll(parser.ToBytes(msg));
-        return true;
-    }, false);
+        return true; }, false);
 
     return true;
 }
