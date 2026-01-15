@@ -37,6 +37,10 @@ constexpr const char *NET_MASK = "netMask";
 constexpr const char *GATEWAY = "gateway";
 constexpr const char *DNS_SERVERS = "dnsServers";
 constexpr const char *DOMAIN = "domain";
+constexpr const char *HTTP_PROXY = "httpProxy";
+constexpr const char *HOST = "host";
+constexpr const char *PORT = "port";
+constexpr const char *EXCLUSION_LIST = "exclusionList";
 constexpr const char *DEFAULT_SEPARATOR = ",";
 constexpr const char *MAC_ADDR = "macAddress";
 constexpr const char *IFACE = "iface";
@@ -115,6 +119,26 @@ napi_value GetIfaceConfigCallback(GetIfaceConfigContext *context)
 
     NapiUtils::SetStringPropertyUtf8(context->GetEnv(), interfaceConfiguration, DOMAIN,
                                      context->config_->ipStatic_.domain_);
+
+    std::string host = context->config_->httpProxy_.GetHost();
+    if (!host.empty()) {
+        napi_value httpProxy = NapiUtils::CreateObject(context->GetEnv());
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), httpProxy, HOST, host);
+
+        NapiUtils::SetInt32Property(context->GetEnv(), httpProxy, PORT,
+                                    context->config_->httpProxy_.GetPort());
+
+        auto lists = context->config_->httpProxy_.GetExclusionList();
+        napi_value exclusionList = NapiUtils::CreateArray(context->GetEnv(), lists.size());
+        size_t index = 0;
+        for (auto list : lists) {
+            napi_value jsList = NapiUtils::CreateStringUtf8(context->GetEnv(), list);
+            NapiUtils::SetArrayElement(context->GetEnv(), exclusionList, index++, jsList);
+        }
+        NapiUtils::SetNamedProperty(context->GetEnv(), httpProxy, EXCLUSION_LIST, exclusionList);
+
+        NapiUtils::SetNamedProperty(context->GetEnv(), interfaceConfiguration, HTTP_PROXY, httpProxy);
+    }
     return interfaceConfiguration;
 }
 
