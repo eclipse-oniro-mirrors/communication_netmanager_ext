@@ -113,12 +113,10 @@ int32_t RouterAdvertisementDaemon::StartRa()
         }
     };
 #ifndef NETMANAGER_TEST
-    // LCOV_EXCL_START
     std::lock_guard<ffrt::mutex> lock(sendRaFfrtQueueMutex_);
     if (sendRaFfrtQueue_ != nullptr) {
         taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
     }
-    // LCOV_EXCL_STOP
 #endif
     return NETMANAGER_EXT_SUCCESS;
 }
