@@ -18,6 +18,7 @@
 #include <csignal>
 #include <net/if.h>
 #include <sys/time.h>
+#include <shared_mutex>
 
 namespace OHOS {
 namespace NetManagerStandard {
