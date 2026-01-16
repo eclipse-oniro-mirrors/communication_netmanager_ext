@@ -326,6 +326,10 @@ int32_t NetFirewallStub::OnRegisterInterceptRecordsCallback(MessageParcel &data,
     }
 
     sptr<INetInterceptRecordCallback> callback = iface_cast<INetInterceptRecordCallback>(remote);
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     int32_t ret = RegisterInterceptRecordsCallback(callback);
     reply.WriteInt32(ret);
     return ret;
@@ -340,6 +344,10 @@ int32_t NetFirewallStub::OnUnregisterInterceptRecordsCallback(MessageParcel &dat
     }
 
     sptr<INetInterceptRecordCallback> callback = iface_cast<INetInterceptRecordCallback>(remote);
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("Callback ptr is nullptr.");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
     int32_t ret = UnregisterInterceptRecordsCallback(callback);
     reply.WriteInt32(ret);
     return ret;
