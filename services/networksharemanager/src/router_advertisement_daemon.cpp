@@ -113,7 +113,7 @@ int32_t RouterAdvertisementDaemon::StartRa()
         }
     };
 #ifndef NETMANAGER_TEST
-    std::lock_guard<ffrt::mutex> lock(sendRaFfrtQueueMutex_);
+    std::shared_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
     if (sendRaFfrtQueue_ != nullptr) {
         taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
     }
@@ -125,7 +125,7 @@ void RouterAdvertisementDaemon::StopRa()
 {
     NETMGR_EXT_LOG_I("StopRa");
     HupRaThread();
-    std::lock_guard<ffrt::mutex> lock(sendRaFfrtQueueMutex_);
+    std::unique_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
     if (taskHandle_ != nullptr && sendRaFfrtQueue_ != nullptr) {
         sendRaFfrtQueue_->cancel(taskHandle_);
         taskHandle_ = nullptr;
@@ -277,7 +277,7 @@ void RouterAdvertisementDaemon::ResetRaRetryInterval()
         sendRaTimes_++;
         delayTime = SEND_RA_INTERVAL;
     }
-    std::lock_guard<ffrt::mutex> lock(sendRaFfrtQueueMutex_);
+    std::shared_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
     if (sendRaFfrtQueue_ != nullptr) {
         taskHandle_ = sendRaFfrtQueue_->submit_h(callback, ffrt::task_attr().delay(delayTime));
     }
