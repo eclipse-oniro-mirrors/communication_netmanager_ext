@@ -41,7 +41,7 @@ struct MDnsConfig {
     std::string hostname;
 };
 
-class MDnsProtocolImpl {
+class MDnsProtocolImpl : public std::enable_shared_from_this<MDnsProtocolImpl> {
 public:
     MDnsProtocolImpl();
     ~MDnsProtocolImpl() = default;

@@ -36,13 +36,13 @@ MDnsManager::MDnsManager() {}
 void MDnsManager::RestartMDnsProtocolImpl()
 {
     NETMGR_EXT_LOG_D("mdns_log Network switching");
-    impl.Init();
+    impl_->Init();
     RestartDiscoverService();
 }
 
 bool MDnsManager::IsSupportIpV6()
 {
-    return impl.GetConfig().ipv6Support;
+    return impl_->GetConfig().ipv6Support;
 }
 
 int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const sptr<IRegistrationCallback> &cb)
@@ -58,8 +58,8 @@ int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const s
                                     .port = serviceInfo.port,
                                     .txt = serviceInfo.txtRecord};
 
-    int32_t err = impl.Register(result);
-    impl.AddTask([this, cb, serviceInfo, err]() {
+    int32_t err = impl_->Register(result);
+    impl_->AddTask([this, cb, serviceInfo, err]() {
         cb->HandleRegisterResult(serviceInfo, err);
         return true;
     });
@@ -86,7 +86,7 @@ int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
         return NET_MDNS_ERR_CALLBACK_NOT_FOUND;
     }
 
-    int32_t err = impl.UnRegister(itr->second);
+    int32_t err = impl_->UnRegister(itr->second);
     if (err == NETMANAGER_EXT_SUCCESS) {
         registerMap_.erase(itr);
     }
@@ -104,7 +104,7 @@ int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const 
     if (!IsTypeValid(serviceType)) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
-    std::string name = impl.Decorated(serviceType);
+    std::string name = impl_->Decorated(serviceType);
     if (!IsDomainValid(name)) {
         return NET_MDNS_ERR_ILLEGAL_ARGUMENT;
     }
@@ -116,7 +116,7 @@ int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const 
         }
         discoveryMap_.emplace(cb, serviceType);
     }
-    return impl.Discovery(serviceType, cb);
+    return impl_->Discovery(serviceType, cb);
 }
 
 int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
@@ -136,7 +136,7 @@ int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
         key = local->second;
         discoveryMap_.erase(local);
     }
-    return impl.StopCbMap(key);
+    return impl_->StopCbMap(key);
 }
 
 void MDnsManager::RestartDiscoverService()
@@ -150,8 +150,8 @@ void MDnsManager::RestartDiscoverService()
             continue;
         }
         auto serviceType = it.second;
-        impl.StopCbMap(serviceType);
-        impl.Discovery(serviceType, cb);
+        impl_->StopCbMap(serviceType);
+        impl_->Discovery(serviceType, cb);
     }
 }
 
@@ -164,18 +164,18 @@ int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
     }
 
     std::string instance = serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type;
-    return impl.ResolveInstance(instance, cb);
+    return impl_->ResolveInstance(instance, cb);
 }
 
 void MDnsManager::GetDumpMessage(std::string &message)
 {
     message.append("mDNS Info:\n");
-    const auto &config = impl.GetConfig();
+    const auto &config = impl_->GetConfig();
     message.append("\tIPv6 Support: " + std::to_string(config.ipv6Support) + "\n");
     message.append("\tAll Iface: " + std::to_string(config.configAllIface) + "\n");
     message.append("\tTop Domain: " + config.topDomain + "\n");
     message.append("\tHostname: " + config.hostname + "\n");
-    message.append("\tImpl Service Count: " + std::to_string(impl.srvMap_.size()) + "\n");
+    message.append("\tImpl Service Count: " + std::to_string(impl_->srvMap_.size()) + "\n");
     message.append("\tDiscovery Count: " + std::to_string(discoveryMap_.size()) + "\n");
 }
 
