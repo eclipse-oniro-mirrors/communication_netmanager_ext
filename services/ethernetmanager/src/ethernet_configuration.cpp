@@ -355,6 +355,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
     for (const auto &addr : devLinkInfo->dnsList_) {
         cfg->ipStatic_.dnsServers_.push_back(addr);
     }
+    cfg->httpProxy_ = devLinkInfo->httpProxy_;
     return cfg;
 }
 
