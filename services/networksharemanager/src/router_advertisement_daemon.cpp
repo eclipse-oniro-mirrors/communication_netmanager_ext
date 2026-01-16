@@ -127,14 +127,13 @@ void RouterAdvertisementDaemon::StopRa()
     NETMGR_EXT_LOG_I("StopRa");
     HupRaThread();
     std::unique_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
-    if (taskHandle_ != nullptr && sendRaFfrtQueue_ != nullptr) {
-        sendRaFfrtQueue_->cancel(taskHandle_);
-        taskHandle_ = nullptr;
-        sendRaFfrtQueue_ = nullptr;
-    }
     if (taskHandle_ != nullptr) {
+        if (sendRaFfrtQueue_ != nullptr) {
+            sendRaFfrtQueue_->cancel(taskHandle_);
+        }
         taskHandle_ = nullptr;
     }
+    sendRaFfrtQueue_ = nullptr;
 }
 
 bool RouterAdvertisementDaemon::CreateRASocket()
