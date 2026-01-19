@@ -299,12 +299,7 @@ void ReceivePacketTest(const uint8_t *data, size_t size)
     if (data == nullptr) {
         return;
     }
-    MessageParcel dataParcel;
-    if (!GetMessageParcel(data, size, dataParcel)) {
-        return;
-    }
-    std::string str = GetStringFromData(STR_LEN);
-    std::vector<uint8_t> copy = std::vector<uint8_t>(str.begin(), str.end());
+    std::vector<uint8_t> copy = std::vector<uint8_t>(data, data + size);
     MDnsPayloadParser parser;
     MDnsMessage msg = parser.FromBytes(copy);
 }
