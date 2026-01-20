@@ -713,6 +713,8 @@ int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &ty
     NETMGR_EXT_LOG_I("NetSharing EnableNetSharingInternal result is %{public}d.", result);
     if (result != NETMANAGER_EXT_SUCCESS) {
         clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
+    } else {
+        result = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), enable);
     }
 
     return result;
@@ -1494,7 +1496,7 @@ void NetworkShareTracker::StartIdleApStopTimer()
         NetworkShareNotification::GetInstance().PublishNetworkShareNotification(
             NotificationId::HOTSPOT_IDLE_NOTIFICATION_ID);
 #endif
-        int32_t ret = DisableHotspot();
+        int32_t ret = StopNetworkSharing(SharingIfaceType::SHARING_WIFI);
         NETMGR_EXT_LOG_E("DisableHotspot ret[%{public}d].", ret);
     });
     idleApStopTimerId_ = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(timer);

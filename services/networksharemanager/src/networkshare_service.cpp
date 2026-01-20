@@ -210,7 +210,6 @@ int32_t NetworkShareService::StartNetworkSharing(int32_t typeInt)
     NETMGR_EXT_LOG_I("StartNetworkSharing uid = %{public}d, packagename = %{public}s", uid, packageName.c_str());
     int32_t ret = NetworkShareTracker::GetInstance().StartNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), true);
         if (typeInt == 0) {
             bool operateType = true;
             NetworkShareHisysEvent::GetInstance().WriteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
@@ -240,7 +239,6 @@ int32_t NetworkShareService::StopNetworkSharing(int32_t typeInt)
     NETMGR_EXT_LOG_I("StopNetworkSharing uid = %{public}d, packagname = %{public}s", uid, packageName.c_str());
     int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        ret = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), false);
         if (typeInt == 0) {
             bool operateType = false;
             NetworkShareHisysEvent::GetInstance().WriteSoftApOpenAndCloseFailedEvent(operateType, uid, packageName);
