@@ -190,7 +190,7 @@ bool NetworkVpnService::PublishEvent(const OHOS::AAFwk::Want &want, int eventCod
     return publishResult;
 }
 
-bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state)
+bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state, const std::string &vpnId)
 {
 #ifdef SUPPORT_SYSVPN
     if (state == VpnConnectState::VPN_DISCONNECTED) {
@@ -200,9 +200,18 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state)
             NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
             return false;
         }
+        if (vpnId != "" && vpnObj_ != nullptr && !vpnObj_->IsSystemVpn()) {
+            NETMGR_EXT_LOG_E("single type vpn is connected, vpnId: %{public}s.", vpnId.c_str());
+            return false;
+        }
         for (const auto &[name, vpn] : vpnObjMap_) {
             if (vpn == nullptr || vpn->multiVpnInfo_ == nullptr) {
                 continue;
+            }
+            if (vpnId == "" && vpn->multiVpnInfo_->ifName.substr(0, strlen(INNER_CHL_NAME)) != INNER_CHL_NAME &&
+                vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
+                NETMGR_EXT_LOG_E("multi type vpn is connected.");
+                return false;
             }
             if (vpn->multiVpnInfo_->userId == userId &&
                 vpn->multiVpnInfo_->vpnConnectState == VpnConnectState::VPN_CONNECTED) {
@@ -233,16 +242,17 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
                                                               bool isGlobalVpn)
 {
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
-    if (vpnService_.IsNeedNotify(state)) {
+    if (vpnService_.IsNeedNotify(state, vpnId)) {
         return vpnService_.OnVpnConnStateChanged(state, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
     }
     return;
 }
 
-void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectState &state, int32_t vpnType)
+void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectState &state, int32_t vpnType,
+    const std::string &vpnId)
 {
     NETMGR_EXT_LOG_I("SendConnStateChanged vpn connect state[%{public}d].", static_cast<uint32_t>(state));
-    if (vpnService_.IsNeedNotify(state)) {
+    if (vpnService_.IsNeedNotify(state, vpnId)) {
         NETMGR_EXT_LOG_I("PublishVpnConnectionStateEvent vpn connect vpnType[%{public}d]", vpnType);
         return vpnService_.PublishVpnConnectionStateEvent(state, vpnType);
     }
