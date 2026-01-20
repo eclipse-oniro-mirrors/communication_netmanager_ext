@@ -25,7 +25,8 @@ class IVpnConnStateCb {
 public:
     virtual void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
                                        const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) = 0;
-    virtual void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0) {};
+    virtual void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0,
+                                      const std::string &vpnId = "") {};
     virtual void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) {};
 };
 } // namespace NetManagerStandard
