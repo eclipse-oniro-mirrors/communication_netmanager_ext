@@ -703,5 +703,34 @@ HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
     EXPECT_NE(instance_->StartVpnExtensionAbility(want), ERR_OK);
     EXPECT_NE(instance_->StopVpnExtensionAbility(want), ERR_OK);
 }
+
+HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest001, TestSize.Level1)
+{
+    std::string vpnId = "";
+    VpnConnectState state = VpnConnectState::VPN_DISCONNECTED;
+    bool res = instance_->IsNeedNotify(state, vpnId);
+    vpnId = "test";
+    res = instance_->IsNeedNotify(state, vpnId);
+    state = VpnConnectState::VPN_CONNECTED;
+    res = instance_->IsNeedNotify(state, vpnId);
+    vpnId = "";
+    res = instance_->IsNeedNotify(state, vpnId);
+    EXPECT_TRUE(res);
+}
+ 
+HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest002, TestSize.Level1)
+{
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+ 
+    VpnConnectState state = VpnConnectState::VPN_DISCONNECTED;
+    std::string vpnId = "test";
+    bool res = instance_->IsNeedNotify(state, vpnId);
+    vpnId = "";
+    res = instance_->IsNeedNotify(state, vpnId);
+    EXPECT_TRUE(res);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
