@@ -98,7 +98,7 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
     if (userId_ == 0) {
         return;
     }
-    connChangedCb_->SendConnStateChanged(state);
+    connChangedCb_->SendConnStateChanged(state, 0, vpnId);
 }
 
 bool NetVpnImpl::IsGlobalVpn()
