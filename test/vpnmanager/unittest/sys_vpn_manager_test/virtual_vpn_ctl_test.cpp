@@ -41,14 +41,16 @@ public:
     void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
                                const std::string &vpnIfAddr,
                                const std::string &vpnId, bool isGlobalVpn) override;
-    void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0) override;
+    void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0,
+                              const std::string &vpnId = "") override;
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 };
 
 void VirtualVpnConnStateCbTest::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
                                                       const std::string &vpnIfAddr,
                                                       const std::string &vpnId, bool isGlobalVpn) {}
-void VirtualVpnConnStateCbTest::SendConnStateChanged(const VpnConnectState &state, int32_t vpnType) {}
+void VirtualVpnConnStateCbTest::SendConnStateChanged(const VpnConnectState &state, int32_t vpnType,
+                                                     const std::string &vpnId) {}
 void VirtualVpnConnStateCbTest::OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) {}
 
 class VirtualVpnCtlTest : public testing::Test {

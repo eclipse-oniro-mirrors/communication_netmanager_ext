@@ -95,7 +95,7 @@ void VirtualVpnCtl::NotifyConnectState(const VpnConnectState &state)
     }
 #endif // SUPPORT_SYSVPN
     cb->OnVpnConnStateChanged(state, GetInterfaceName(), GetVpnIfAddr(), vpnId, IsGlobalVpn());
-    cb->SendConnStateChanged(state, VpnType::VIRTUAL_VPN);
+    cb->SendConnStateChanged(state, VpnType::VIRTUAL_VPN, vpnId);
 }
 
 int32_t VirtualVpnCtl::Destroy()
