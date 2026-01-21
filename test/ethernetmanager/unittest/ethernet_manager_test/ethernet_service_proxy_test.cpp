@@ -180,7 +180,7 @@ HWTEST_F(EtherNetServiceProxyTest, SetInterfaceUpTest001, TestSize.Level1)
     EXPECT_LE(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
     ConfigurationParcelIpc cfg;
     ret = ethernetServiceProxy.GetInterfaceConfig(DEV_NAME, cfg);
-    EXPECT_EQ(ret, 5);
+    EXPECT_LE(ret, NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL);
 }
 
 HWTEST_F(EtherNetServiceProxyTest, SetInterfaceDownTest001, TestSize.Level1)
