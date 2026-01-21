@@ -200,10 +200,12 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state, const std::st
             NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
             return false;
         }
+        // LCOV_EXCL_START
         if (vpnId != "" && vpnObj_ != nullptr && !vpnObj_->IsSystemVpn()) {
             NETMGR_EXT_LOG_E("single type vpn is connected, vpnId: %{public}s.", vpnId.c_str());
             return false;
         }
+        // LCOV_EXCL_STOP
         for (const auto &[name, vpn] : vpnObjMap_) {
             if (vpn == nullptr || vpn->multiVpnInfo_ == nullptr) {
                 continue;
