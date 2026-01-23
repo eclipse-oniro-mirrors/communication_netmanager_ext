@@ -689,12 +689,13 @@ HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest001, TestSize.Level1)
 {
     int32_t uid = 1;
     int32_t pid = 2;
+    bool isMainProc = false;
     instance_->setVpnPidMap_ = {
         {1, 2},
         {3, 4}};
-    EXPECT_TRUE(instance_->IsCurrentVpnPid(uid, pid));
+    EXPECT_TRUE(instance_->IsCurrentVpnPid(uid, pid, isMainProc));
     pid = 1;
-    EXPECT_FALSE(instance_->IsCurrentVpnPid(uid, pid));
+    EXPECT_FALSE(instance_->IsCurrentVpnPid(uid, pid, isMainProc));
 }
 
 HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
