@@ -322,7 +322,7 @@ private:
     std::set<std::string> GetCurrentVpnAbilityName();
     void ClearCurrentVpnUserInfo(int32_t uid, bool fromSetupVpn);
     void UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &VpnHapObserver);
-    bool IsCurrentVpnPid(int32_t uid, int32_t pid);
+    bool IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc);
     bool CheckVpnPermission(const std::string &bundleName);
     void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
                                const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn);
