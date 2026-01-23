@@ -2121,11 +2121,12 @@ void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessStateChanged");
 }
 
-bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid)
+bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
     auto it = setVpnPidMap_.find(uid);
     if (it != setVpnPidMap_.end() && it->second == pid) {
+        isMainProc = true;
         return true;
     }
 
@@ -2171,7 +2172,8 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
         extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
     }
     NETMGR_EXT_LOG_I("vpn OnProcessDied %{public}d, %{public}d", processData.uid, processData.pid);
-    bool isCurrentVpnPid = vpnService_.IsCurrentVpnPid(processData.uid, processData.pid);
+    bool isMainProc = false;
+    bool isCurrentVpnPid = vpnService_.IsCurrentVpnPid(processData.uid, processData.pid, isMainProc);
     if (!isCurrentVpnPid) {
         NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
         return;
@@ -2189,15 +2191,17 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
         vpnService_.DestroyMultiVpn(processData.uid);
 #endif // SUPPORT_SYSVPN
     }
-    for (const auto &name : extensionAbilityName) {
-        AAFwk::Want want;
-        AppExecFwk::ElementName elem;
-        elem.SetBundleName(extensionBundleName);
-        elem.SetAbilityName(name);
-        want.SetElement(elem);
-        auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
-            want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
-        NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
+    if (isMainProc) {
+        for (const auto &name : extensionAbilityName) {
+            AAFwk::Want want;
+            AppExecFwk::ElementName elem;
+            elem.SetBundleName(extensionBundleName);
+            elem.SetAbilityName(name);
+            want.SetElement(elem);
+            auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+                want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+            NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
+        }
     }
     vpnService_.UnregVpnHpObserver(this);
     // at present, any observer without abilityname is created by setUpVpn()
