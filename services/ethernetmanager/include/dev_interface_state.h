@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <shared_mutex>
 
 #include "http_proxy.h"
 #include "mac_address_info.h"
@@ -51,7 +52,7 @@ public:
     const std::set<NetCap> &GetNetCaps() const;
     std::set<NetCap> GetNetCaps();
     bool GetLinkUp() const;
-    sptr<NetLinkInfo> GetLinkInfo() const;
+    bool GetLinkInfo(NetLinkInfo &linkInfo);
     sptr<InterfaceConfiguration> GetIfcfg() const;
     IPSetMode GetIPSetMode() const;
     bool GetDhcpReqState() const;
@@ -86,6 +87,7 @@ private:
     std::string devName_;
     bool linkUp_ = false;
     bool dhcpReqState_ = false;
+    std::shared_mutex linkInfoMutex_;
     sptr<NetLinkInfo> linkInfo_ = nullptr;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;
     sptr<InterfaceConfiguration> ifCfg_ = nullptr;

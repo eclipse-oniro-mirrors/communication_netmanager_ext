@@ -44,7 +44,7 @@ public:
     bool ClearAllUserConfiguration();
     bool ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
     sptr<InterfaceConfiguration> MakeInterfaceConfiguration(const sptr<InterfaceConfiguration> &devCfg,
-                                                            const sptr<NetLinkInfo> &devLinkInfo);
+        const NetLinkInfo &devLinkInfo);
 
 private:
     void ParseDevice(const std::string &fileContent, std::string &iface);
@@ -71,7 +71,7 @@ private:
     bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
     std::string GetIfaceMode(IPSetMode mode);
     std::vector<INetAddr> GetGatewayFromMap(const std::unordered_map<std::string, INetAddr> &temp);
-    std::vector<INetAddr> GetGatewayFromRouteList(std::list<Route> &routeList);
+    std::vector<INetAddr> GetGatewayFromRouteList(const std::list<Route> &routeList);
 
 private:
     std::mutex mutex_;

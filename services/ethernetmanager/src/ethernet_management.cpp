@@ -451,7 +451,11 @@ int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<In
         ifaceConfig = fit->second->GetIfcfg();
         return NETMANAGER_EXT_SUCCESS;
     }
-    auto temp = ethConfiguration_->MakeInterfaceConfiguration(fit->second->GetIfcfg(), fit->second->GetLinkInfo());
+    NetLinkInfo netLinkInfo;
+    if (!fit->second->GetLinkInfo(netLinkInfo)) {
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    auto temp = ethConfiguration_->MakeInterfaceConfiguration(fit->second->GetIfcfg(), netLinkInfo);
     if (temp == nullptr) {
         return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }

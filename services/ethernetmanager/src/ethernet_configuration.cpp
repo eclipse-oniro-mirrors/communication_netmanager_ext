@@ -307,7 +307,7 @@ std::vector<INetAddr> EthernetConfiguration::GetGatewayFromMap(const std::unorde
     return t;
 }
 
-std::vector<INetAddr> EthernetConfiguration::GetGatewayFromRouteList(std::list<Route> &routeList)
+std::vector<INetAddr> EthernetConfiguration::GetGatewayFromRouteList(const std::list<Route> &routeList)
 {
     std::unordered_map<std::string, INetAddr> temp;
     for (const auto &route : routeList) {
@@ -323,9 +323,9 @@ std::vector<INetAddr> EthernetConfiguration::GetGatewayFromRouteList(std::list<R
 }
 
 sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
-    const sptr<InterfaceConfiguration> &devCfg, const sptr<NetLinkInfo> &devLinkInfo)
+    const sptr<InterfaceConfiguration> &devCfg, const NetLinkInfo &devLinkInfo)
 {
-    if (devCfg == nullptr || devLinkInfo == nullptr) {
+    if (devCfg == nullptr) {
         NETMGR_EXT_LOG_E("param is nullptr");
         return nullptr;
     }
@@ -335,7 +335,7 @@ sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
         return nullptr;
     }
     cfg->mode_ = devCfg->mode_;
-    for (const auto &ipAddr : devLinkInfo->netAddrList_) {
+    for (const auto &ipAddr : devLinkInfo.netAddrList_) {
         cfg->ipStatic_.ipAddrList_.push_back(ipAddr);
         auto family = CommonUtils::GetAddrFamily(ipAddr.address_);
         INetAddr netMask;
@@ -346,16 +346,16 @@ sptr<InterfaceConfiguration> EthernetConfiguration::MakeInterfaceConfiguration(
                 : ipAddr.netMask_;
         cfg->ipStatic_.netMaskList_.push_back(netMask);
     }
-    for (const auto &route : devLinkInfo->routeList_) {
+    for (const auto &route : devLinkInfo.routeList_) {
         cfg->ipStatic_.routeList_.push_back(route.destination_);
     }
-    cfg->ipStatic_.gatewayList_ = GetGatewayFromRouteList(devLinkInfo->routeList_);
+    cfg->ipStatic_.gatewayList_ = GetGatewayFromRouteList(devLinkInfo.routeList_);
 
-    cfg->ipStatic_.domain_ = devLinkInfo->domain_;
-    for (const auto &addr : devLinkInfo->dnsList_) {
+    cfg->ipStatic_.domain_ = devLinkInfo.domain_;
+    for (const auto &addr : devLinkInfo.dnsList_) {
         cfg->ipStatic_.dnsServers_.push_back(addr);
     }
-    cfg->httpProxy_ = devLinkInfo->httpProxy_;
+    cfg->httpProxy_ = devLinkInfo.httpProxy_;
     return cfg;
 }
 

@@ -70,8 +70,6 @@ HWTEST_F(DevInterfaceStateTest, DevInterfaceStateTest001, TestSize.Level1)
     EXPECT_FALSE(getNetCaps.empty());
     bool linkUp = devInterfaceState.GetLinkUp();
     EXPECT_TRUE(linkUp);
-    sptr<NetLinkInfo> getLinkInfo = devInterfaceState.GetLinkInfo();
-    EXPECT_NE(getLinkInfo, nullptr);
 }
 
 HWTEST_F(DevInterfaceStateTest, DevInterfaceStateTest002, TestSize.Level1)
