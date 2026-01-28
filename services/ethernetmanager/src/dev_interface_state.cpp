@@ -56,6 +56,7 @@ void DevInterfaceState::SetLinkUp(bool up)
 
 void DevInterfaceState::SetlinkInfo(sptr<NetLinkInfo> &linkInfo)
 {
+    std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
     linkInfo_ = linkInfo;
 }
 
@@ -113,9 +114,14 @@ bool DevInterfaceState::GetLinkUp() const
     return linkUp_;
 }
 
-sptr<NetLinkInfo> DevInterfaceState::GetLinkInfo() const
+bool DevInterfaceState::GetLinkInfo(NetLinkInfo &linkInfo)
 {
-    return linkInfo_;
+    std::shared_lock<std::shared_mutex> lock(linkInfoMutex_);
+    if (linkInfo_ == nullptr) {
+        return false;
+    }
+    linkInfo = *linkInfo_;
+    return true;
 }
 
 sptr<InterfaceConfiguration> DevInterfaceState::GetIfcfg() const
@@ -180,19 +186,20 @@ void DevInterfaceState::RemoteUpdateNetLinkInfo()
         NETMGR_EXT_LOG_E("DevInterfaceCfg RemoteUpdateNetLinkInfo regState_:LINK_UNAVAILABLE");
         return;
     }
+    std::shared_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ == nullptr) {
         NETMGR_EXT_LOG_E("DevInterfaceCfg RemoteUpdateNetLinkInfo linkInfo_ is nullptr");
         return;
     }
-    auto newNetLinkinfo = linkInfo_;
-    for (auto &netAddr: newNetLinkinfo->netAddrList_) {
+
+    for (auto &netAddr: linkInfo_->netAddrList_) {
         if (netAddr.family_ == AF_INET) {
             netAddr.family_ = INetAddr::IpType::IPV4;
         } else if (netAddr.family_ == AF_INET6) {
             netAddr.family_ = INetAddr::IpType::IPV6;
         }
     }
-    NetManagerCenter::GetInstance().UpdateNetLinkInfo(netSupplier_, newNetLinkinfo);
+    NetManagerCenter::GetInstance().UpdateNetLinkInfo(netSupplier_, linkInfo_);
 }
 
 void DevInterfaceState::RemoteUpdateNetSupplierInfo()
@@ -217,11 +224,13 @@ void DevInterfaceState::UpdateNetHttpProxy(const HttpProxy &httpProxy)
     }
     ifCfg_->httpProxy_ = httpProxy;
     if (connLinkState_ == LINK_AVAILABLE) {
+        std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
         if (linkInfo_ == nullptr) {
             NETMGR_EXT_LOG_E("linkInfo_ is nullptr");
             return;
         }
         linkInfo_->httpProxy_ = httpProxy;
+        lock.unlock();
         RemoteUpdateNetLinkInfo();
     }
 }
@@ -231,6 +240,7 @@ void DevInterfaceState::UpdateLinkInfo()
     if (ifCfg_ == nullptr || ifCfg_->mode_ != STATIC) {
         return;
     }
+    std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ == nullptr) {
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
@@ -281,6 +291,7 @@ void DevInterfaceState::UpdateLanLinkInfo()
     if (ifCfg_ == nullptr || ifCfg_->mode_ != LAN_STATIC) {
         return;
     }
+    std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ == nullptr) {
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
@@ -308,6 +319,7 @@ void DevInterfaceState::UpdateLanLinkInfo()
 
 void DevInterfaceState::UpdateLanLinkInfo(const StaticConfiguration &config)
 {
+    std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ == nullptr) {
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
@@ -335,6 +347,7 @@ void DevInterfaceState::UpdateLanLinkInfo(const StaticConfiguration &config)
 
 void DevInterfaceState::UpdateLinkInfo(const StaticConfiguration &config)
 {
+    std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ == nullptr) {
         linkInfo_ = new (std::nothrow) NetLinkInfo();
         if (linkInfo_ == nullptr) {
@@ -384,6 +397,9 @@ void DevInterfaceState::UpdateSupplierAvailable()
 void DevInterfaceState::CreateLocalRoute(const std::string &iface, const std::vector<INetAddr> &ipAddrList,
                                          const std::vector<INetAddr> &netMaskList)
 {
+    /* no need to add lock for linkInfo_, the func is called by UpdateLinkInfo and UpdateLanLinkInfo,
+     * have locked allready.
+     */
     if (linkInfo_ == nullptr) {
         NETMGR_EXT_LOG_E("linkInfo_ is nullptr");
         return;
@@ -453,9 +469,11 @@ void DevInterfaceState::GetDumpInfo(std::string &info)
     std::string data = "DevInterfaceState: \n";
     std::for_each(dumpInfo.begin(), dumpInfo.end(),
                   [&data, &TAB](const auto &msg) { data.append(TAB + TAB + msg + "\n"); });
+    std::shared_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ != nullptr) {
         data.append(linkInfo_->ToString(TAB) + "\n");
     }
+    lock.unlock();
     if (netSupplierInfo_ != nullptr) {
         data.append(netSupplierInfo_->ToString(TAB) + "\n");
     }
@@ -521,6 +539,7 @@ void DevInterfaceState::CreateDefaultRoute(
         route.destination_.prefixlen_ = 0;
         route.gateway_.family_ = ipType;
         route.gateway_.address_ = gateway.address_;
+        // no need to add lock for linkInfo_, the func is called by UpdateLinkInfo, have locked allready.
         linkInfo_->routeList_.push_back(route);
     }
 }

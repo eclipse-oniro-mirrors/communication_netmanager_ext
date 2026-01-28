@@ -110,7 +110,8 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration002, TestSize.Level1)
     ret = ethernetConfiguration.IsDirExist(filePath);
     EXPECT_FALSE(ret);
 
-    configSptr = ethernetConfiguration.MakeInterfaceConfiguration(nullptr, nullptr);
+    NetLinkInfo devLinkInfo;
+    configSptr = ethernetConfiguration.MakeInterfaceConfiguration(nullptr, devLinkInfo);
     EXPECT_TRUE(configSptr == nullptr);
 
     ret = ethernetConfiguration.DelDir(filePath);
@@ -290,7 +291,7 @@ HWTEST_F(EthernetConfigurationTest, EthernetConfiguration012, TestSize.Level1)
     sptr<InterfaceConfiguration> configSptr = nullptr;
     sptr<InterfaceConfiguration> devCfg = (std::make_unique<InterfaceConfiguration>()).release();
     devCfg->mode_ = STATIC;
-    sptr<NetLinkInfo> devLinkInfo = (std::make_unique<NetLinkInfo>()).release();
+    NetLinkInfo devLinkInfo;
     configSptr = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
     EXPECT_TRUE(configSptr->mode_ == STATIC);
 }
@@ -410,12 +411,11 @@ HWTEST_F(EthernetConfigurationTest, MakeInterfaceConfigurationTest001, TestSize.
     EthernetConfiguration ethernetConfiguration;
     sptr<InterfaceConfiguration> devCfg = (std::make_unique<InterfaceConfiguration>()).release();
     devCfg->mode_ = STATIC;
-    sptr<NetLinkInfo> devLinkInfo = nullptr;
+    NetLinkInfo devLinkInfo;
     auto result = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
     EXPECT_EQ(result, nullptr);
 
     devCfg = nullptr;
-    devLinkInfo = (std::make_unique<NetLinkInfo>()).release();
     result = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
     EXPECT_EQ(result, nullptr);
 }

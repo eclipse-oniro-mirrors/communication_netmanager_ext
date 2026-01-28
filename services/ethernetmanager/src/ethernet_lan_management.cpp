@@ -37,12 +37,11 @@ void EthernetLanManagement::GetOldLinkInfo(sptr<DevInterfaceState> &devState)
         NETMGR_EXT_LOG_D("EthernetLanManagement:GetOldLinkInfo fail due to devState is nullptr");
         return;
     }
-    if (devState->GetLinkInfo() == nullptr) {
+    if (!devState->GetLinkInfo(netLinkInfo_)) {
         NETMGR_EXT_LOG_W("EthernetLanManagement:GetOldLinkInfo fail due to linkInfo is NULL");
         netLinkInfo_.Initialize();
         return;
     }
-    netLinkInfo_ = *(devState->GetLinkInfo());
 }
 
 int32_t EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devState)
@@ -55,11 +54,11 @@ int32_t EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devSta
         NETMGR_EXT_LOG_D("EthernetLanManagement:UpdateLanLinkInfo fail due to not link up");
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
-    if (devState->GetLinkInfo() == nullptr) {
+    NetLinkInfo newNetLinkInfo;
+    if (!devState->GetLinkInfo(newNetLinkInfo)) {
         NETMGR_EXT_LOG_E("EthernetLanManagement:UpdateLanLinkInfo fail due to newNetLinkInfo is NULL");
         return NETMANAGER_ERR_INTERNAL;
     }
-    NetLinkInfo newNetLinkInfo = *(devState->GetLinkInfo());
     int32_t ret = NETMANAGER_SUCCESS;
     ret += DelIp(newNetLinkInfo);
     ret += SetIp(newNetLinkInfo);
@@ -75,11 +74,11 @@ int32_t EthernetLanManagement::ReleaseLanNetLink(sptr<DevInterfaceState> &devSta
         NETMGR_EXT_LOG_D("EthernetLanManagement:ReleaseLanNetLink fail due to devState is nullptr");
         return NETMANAGER_ERR_INTERNAL;
     }
-    if (devState->GetLinkInfo() == nullptr) {
+    NetLinkInfo newNetLinkInfo;
+    if (!devState->GetLinkInfo(newNetLinkInfo)) {
         NETMGR_EXT_LOG_E("EthernetLanManagement:ReleaseLanNetLink fail due to newNetLinkInfo is NULL");
         return NETMANAGER_ERR_INTERNAL;
     }
-    NetLinkInfo newNetLinkInfo = *(devState->GetLinkInfo());
     int32_t ret = NETMANAGER_SUCCESS;
     for (const auto &inetAddr : newNetLinkInfo.netAddrList_) {
         auto family = CommonUtils::GetAddrFamily(inetAddr.address_);

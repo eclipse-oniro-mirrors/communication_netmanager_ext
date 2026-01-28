@@ -118,7 +118,7 @@ HWTEST_F(EthernetLanManagementTest, EthernetLanManagement002, TestSize.Level1)
     setDevState->SetDevName(DEV_NAME);
     setDevState->SetLinkUp(true);
     setDevState->SetLancfg(newIc);
-    netLinkInfo = *(setDevState->GetLinkInfo());
+    setDevState->GetLinkInfo(netLinkInfo);
     ret = ethernetLanManager.DelIp(netLinkInfo);
     ASSERT_EQ(ret, NETMANAGER_SUCCESS);
     ret = ethernetLanManager.SetIp(netLinkInfo);
