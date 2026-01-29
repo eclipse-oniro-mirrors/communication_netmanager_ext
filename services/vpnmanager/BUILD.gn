@@ -63,7 +63,6 @@ net_vpn_manager_deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
 net_vpn_manager_external_deps = [
   "ability_base:want",
   "ability_base:zuri",
-  "ability_runtime:ability_connect_callback_stub",
   "ability_runtime:ability_manager",
   "ability_runtime:app_manager",
   "bundle_framework:appexecfwk_base",

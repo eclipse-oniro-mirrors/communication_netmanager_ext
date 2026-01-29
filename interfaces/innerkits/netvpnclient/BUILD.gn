@@ -115,7 +115,6 @@ ohos_static_library("networkvpn_interface_stub") {
   sources += filter_include(output_values, [ "*ack_proxy.cpp" ])
   deps = [ ":networkvpn_interface" ]
   external_deps = [
-    "ability_base:want",
     "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
@@ -150,7 +149,6 @@ ohos_shared_library("net_vpn_manager_if") {
   deps += [ ":networkvpn_interface" ]
 
   external_deps = [
-    "ability_base:want",
     "bounds_checking_function:libsec_shared",
     "hilog:libhilog",
     "ipc:ipc_single",
