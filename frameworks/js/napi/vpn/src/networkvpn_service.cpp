@@ -1982,38 +1982,6 @@ int32_t NetworkVpnService::SetSelfVpnPid()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
-{
-    auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
-    if (abilityManager == nullptr) {
-        NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    auto abilityConnection = sptr<NetworkVpnService::VpnAbilityConnect>::MakeSptr();
-    auto ret = abilityManager->ConnectAbilityWithExtensionType(want,
-        abilityConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
-    if (ret != ERR_OK) {
-        NETMGR_EXT_LOG_E("ConnectAbilityWithExtensionType failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    auto err = abilityManager->StartExtensionAbility(
-        want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
-    return err;
-}
-
-int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
-{
-    auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
-    if (abilityManager == nullptr) {
-        NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-
-    ErrCode err = abilityManager->StopExtensionAbility(
-        want, nullptr, INVALID_CODE, AppExecFwk::ExtensionAbilityType::VPN);
-    return err;
-}
-
 bool NetworkVpnService::IsVpnApplication(int32_t uid)
 {
     std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
