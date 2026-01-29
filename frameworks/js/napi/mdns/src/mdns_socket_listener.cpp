@@ -384,6 +384,9 @@ void MDnsSocketListener::Run()
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(ctrlPair_[0], &rfds);
+        if (static_cast<bool>(finished_)) {
+            finished_(ctrlPair_[0]);
+        }
         int nfds = ctrlPair_[0] + 1;
         for (size_t i = 0; i < socks_.size(); ++i) {
             FD_SET(socks_[i], &rfds);
@@ -401,9 +404,6 @@ void MDnsSocketListener::Run()
             if (FD_ISSET(socks_[i], &rfds)) {
                 ReceiveInSock(socks_[i]);
             }
-        }
-        if (static_cast<bool>(finished_)) {
-            finished_(ctrlPair_[0]);
         }
     }
     NETMGR_EXT_LOG_I("mdns_log listener stopped");

@@ -99,7 +99,6 @@ void MDnsProtocolImpl::Init()
         std::lock_guard<std::recursive_mutex> guard(sp->mutex_);
         sp->RunTaskQueue(sp->taskQueue_);
     });
-    listener_.Start();
     {
         std::lock_guard<std::recursive_mutex> guard(mutex_);
         taskQueue_.clear();
@@ -427,6 +426,7 @@ int32_t MDnsProtocolImpl::Discovery(const std::string &serviceType, const sptr<I
     NETMGR_EXT_LOG_D("mdns_log Discovery");
     DiscoveryFromCache(serviceType, cb);
     DiscoveryFromNet(serviceType, cb);
+    listener_.Start();
     return NETMANAGER_EXT_SUCCESS;
 }
 
