@@ -262,7 +262,8 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
             "persist.edm.vpn_disable disallowed setting up vpn");
         return CreateRejectedPromise(env);
     }
-    auto err = NetworkVpnClient::GetInstance().StartVpnExtensionAbility(want);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
     hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, err);
     if (err == 0) {
@@ -288,6 +289,7 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
     AAFwk::Want want;
+    int32_t accountId = -1;
     if (!AppExecFwk::UnwrapWant(env, argv[0], want)) {
         NETMANAGER_EXT_LOGE("Failed to parse want");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parse want error");
@@ -318,7 +320,8 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
 
-    auto err = NetworkVpnClient::GetInstance().StopVpnExtensionAbility(want);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+        want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StopExtensionAbility result: %{public}d", err);
     hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, err);
     return CreateResolvedPromise(env);
