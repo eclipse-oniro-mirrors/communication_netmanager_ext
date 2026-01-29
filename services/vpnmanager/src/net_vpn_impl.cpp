@@ -463,6 +463,8 @@ void NetVpnImpl::AdjustRouteInfo(Route &route)
         route.destination_.address_ = CommonUtils::GetIpv6Prefix(route.destination_.address_,
             route.destination_.prefixlen_);
     } else {
+        route.destination_.prefixlen_ = route.destination_.prefixlen_ < IPV4_NET_MASK_MAX_LENGTH ?
+                                        route.destination_.prefixlen_ : IPV4_NET_MASK_MAX_LENGTH;
         uint32_t maskUint = (0xFFFFFFFF << (IPV4_NET_MASK_MAX_LENGTH - route.destination_.prefixlen_));
         uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(route.destination_.address_);
         uint32_t subNetAddress = ipAddrUint & maskUint;
