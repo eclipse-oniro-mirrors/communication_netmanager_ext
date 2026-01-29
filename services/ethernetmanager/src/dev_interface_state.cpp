@@ -197,6 +197,8 @@ void DevInterfaceState::RemoteUpdateNetLinkInfo()
             netAddr.family_ = INetAddr::IpType::IPV4;
         } else if (netAddr.family_ == AF_INET6) {
             netAddr.family_ = INetAddr::IpType::IPV6;
+        } else {
+            netAddr.family_ = GetIpType(netAddr.address_);
         }
     }
     NetManagerCenter::GetInstance().UpdateNetLinkInfo(netSupplier_, linkInfo_);
