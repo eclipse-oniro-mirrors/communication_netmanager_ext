@@ -246,8 +246,8 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
     NETMGR_EXT_LOG_I("enter SetUpVpn %{public}d, %{public}d", isVpnExtCall, isInternalChannel);
     VpnConfigRawData rawdata;
     if (!rawdata.SerializeFromVpnConfig(*config)) {
-        NETMGR_EXT_LOG_I("SetUpVpn SerializeFromVpnConfig fail");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        NETMGR_EXT_LOG_E("SetUpVpn SerializeFromVpnConfig fail");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
     int32_t result = proxy->SetUpVpn(rawdata, isVpnExtCall, isInternalChannel);
     if (result != NETMANAGER_EXT_SUCCESS) {
