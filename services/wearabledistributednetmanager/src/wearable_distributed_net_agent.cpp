@@ -272,12 +272,13 @@ int32_t WearableDistributedNetAgent::UpdateNetLinkInfo()
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    int32_t result = SetNetLinkInfo(netLinkInfo_);
+    NetLinkInfo netLinkInfo;
+    int32_t result = SetNetLinkInfo(netLinkInfo);
     if (result != NETMANAGER_SUCCESS) {
         NETMGR_EXT_LOG_E("Wearable Distributed Net Agent GetNetLinkInfo error, result:[%{public}d]", result);
         return result;
     }
-    auto networkLinkInfo = sptr<NetLinkInfo>::MakeSptr(netLinkInfo_);
+    auto networkLinkInfo = sptr<NetLinkInfo>::MakeSptr(netLinkInfo);
     if (networkLinkInfo == nullptr) {
         NETMGR_EXT_LOG_E("NetLinkInfo new failed, networkLinkInfo is nullptr");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;

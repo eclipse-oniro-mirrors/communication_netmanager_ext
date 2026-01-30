@@ -67,7 +67,6 @@ private:
     std::set<NetCap> netCaps_;
     WearableDistributedNetStaticConfiguration staticConfiguration_;
     NetSupplierInfo netSupplierInfo_;
-    NetLinkInfo netLinkInfo_;
     bool isMetered_ = false;
     int32_t score_ = NET_SCORE_WITH_UNCHARGE_STATE;
     std::string queryedPairType_ = "";
