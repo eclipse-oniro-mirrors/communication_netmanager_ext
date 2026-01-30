@@ -19,8 +19,8 @@ config("net_vpn_manager_config") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include",
     "$EXT_INNERKITS_ROOT/netvpnclient/include/ipc",
-    "$VPNMANAGER_SOURCE_DIR/include",
-    "$VPNMANAGER_SOURCE_DIR/include/ipc",
+    "include",
+    "include/ipc",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
     "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpnext/include",
   ]
@@ -36,25 +36,25 @@ config("net_vpn_manager_config") {
 }
 
 net_vpn_manager_sources = [
-  "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkvpn_service.cpp",
-  "$VPNMANAGER_SOURCE_DIR/src/extended_vpn_ctl.cpp",
-  "$VPNMANAGER_SOURCE_DIR/src/net_vpn_impl.cpp",
-  "$VPNMANAGER_SOURCE_DIR/src/networkvpn_hisysevent.cpp",
-  "$VPNMANAGER_SOURCE_DIR/src/networkvpn_service_iface.cpp",
+  "src/networkvpn_service.cpp",
+  "src/extended_vpn_ctl.cpp",
+  "src/net_vpn_impl.cpp",
+  "src/networkvpn_hisysevent.cpp",
+  "src/networkvpn_service_iface.cpp",
   "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp",
 ]
 
 if (netmanager_ext_feature_sysvpn) {
   net_vpn_manager_sources += [
-    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/vpn_database_helper.cpp",
-    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/vpn_encryption_util.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/ipsecvpn_config.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/l2tpvpn_config.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/openvpn_config.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/sysvpn_config.cpp",
     "$VPN_INNERKITS_SOURCE_DIR/src/vpn_data_bean.cpp",
-    "$VPNMANAGER_SOURCE_DIR/src/multi_vpn_helper.cpp",
-    "$VPNMANAGER_SOURCE_DIR/src/vpn_template_processor.cpp",
+    "src/vpn_database_helper.cpp",
+    "src/vpn_encryption_util.cpp",
+    "src/multi_vpn_helper.cpp",
+    "src/vpn_template_processor.cpp",
   ]
 }
 
@@ -122,10 +122,10 @@ ohos_shared_library("net_vpn_manager") {
     cflags += sysvpn_flags
     cflags_cc += sysvpn_flags
     sources += [
-      "$VPNMANAGER_SOURCE_DIR/src/ipsec_vpn_ctl.cpp",
-      "$VPNMANAGER_SOURCE_DIR/src/l2tp_vpn_ctl.cpp",
-      "$VPNMANAGER_SOURCE_DIR/src/open_vpn_ctl.cpp",
-      "$VPNMANAGER_SOURCE_DIR/src/virtual_vpn_ctl.cpp",
+      "src/ipsec_vpn_ctl.cpp",
+      "src/l2tp_vpn_ctl.cpp",
+      "src/open_vpn_ctl.cpp",
+      "src/virtual_vpn_ctl.cpp",
     ]
   }
 
@@ -153,10 +153,10 @@ ohos_static_library("net_vpn_manager_static") {
     cflags = sysvpn_flags
     cflags_cc = sysvpn_flags
     sources += [
-      "$VPNMANAGER_SOURCE_DIR/src/ipsec_vpn_ctl.cpp",
-      "$VPNMANAGER_SOURCE_DIR/src/l2tp_vpn_ctl.cpp",
-      "$VPNMANAGER_SOURCE_DIR/src/open_vpn_ctl.cpp",
-      "$VPNMANAGER_SOURCE_DIR/src/virtual_vpn_ctl.cpp",
+      "src/ipsec_vpn_ctl.cpp",
+      "src/l2tp_vpn_ctl.cpp",
+      "src/open_vpn_ctl.cpp",
+      "src/virtual_vpn_ctl.cpp",
     ]
   }
 

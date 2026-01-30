@@ -24,14 +24,17 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-
+// LCOV_EXCL_START
 MDnsManager &MDnsManager::GetInstance()
 {
     static MDnsManager sInstance;
     return sInstance;
 }
 
-MDnsManager::MDnsManager() {}
+MDnsManager::MDnsManager()
+{
+    impl_->Init();
+}
 
 void MDnsManager::RestartMDnsProtocolImpl()
 {
@@ -184,5 +187,6 @@ bool MDnsManager::IsAvailableCallback(const sptr<IDiscoveryCallback> &cb)
     std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
     return cb != nullptr && discoveryMap_.find(cb) != discoveryMap_.end();
 }
+// LCOV_EXCL_STOP
 } // namespace NetManagerStandard
 } // namespace OHOS

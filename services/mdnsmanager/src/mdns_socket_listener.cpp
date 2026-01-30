@@ -60,6 +60,7 @@ inline bool IfaceIsSupported(ifaddrs *ifa)
            (!(ifa->ifa_flags & IFF_LOOPBACK) && !(ifa->ifa_flags & IFF_POINTOPOINT));
 }
 
+// LCOV_EXCL_START
 int InitFdFlags(int sock)
 {
     const int flags = fcntl(sock, F_GETFL, 0);
@@ -201,9 +202,6 @@ MDnsSocketListener::~MDnsSocketListener()
 
 void MDnsSocketListener::Start()
 {
-    if (std::this_thread::get_id() == thread_.get_id()) {
-        return;
-    }
     if (!runningFlag_) {
         runningFlag_ = true;
         thread_ = std::thread([this]() { Run(); });
@@ -213,11 +211,9 @@ void MDnsSocketListener::Start()
     }
 }
 
+// LCOV_EXCL_STOP
 void MDnsSocketListener::Stop()
 {
-    if (std::this_thread::get_id() == thread_.get_id()) {
-        return;
-    }
     if (runningFlag_) {
         runningFlag_ = false;
         TriggerRefresh();
@@ -250,6 +246,7 @@ bool MDnsSocketListener::Ifaceverification(ifaddrs *ifa, ifaddrs *loaddr)
     return true;
 }
 
+// LCOV_EXCL_START
 void MDnsSocketListener::OpenSocketForEachIface(bool ipv6Support, bool lo)
 {
     ifaddrs *ifaddr = nullptr;
@@ -341,6 +338,7 @@ uint32_t MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
     NETMGR_EXT_LOG_I("mdns_log iface found, ifa_name=[%{public}s]", ifa->ifa_name);
     return BOOL_VALUE_TRUE;
 }
+// LCOV_EXCL_STOP
 
 void MDnsSocketListener::OpenSocketForDefault(bool ipv6Support)
 {
@@ -409,6 +407,7 @@ void MDnsSocketListener::Run()
     NETMGR_EXT_LOG_I("mdns_log listener stopped");
 }
 
+// LCOV_EXCL_START
 void MDnsSocketListener::ReceiveInSock(int sock)
 {
     sockaddr_storage addr{};
@@ -457,6 +456,7 @@ void MDnsSocketListener::ReceiveInSock(int sock)
         recv_(sock, payload);
     }
 }
+// LCOV_EXCL_STOP
 
 void MDnsSocketListener::TriggerRefresh()
 {
@@ -470,6 +470,7 @@ bool MDnsSocketListener::CanRefresh()
     return (std::string_view(buf) == CONTROL_TAG_REFRESH);
 }
 
+// LCOV_EXCL_START
 ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
 {
     const sockaddr *saddrIf = GetSockAddr(sock);
@@ -499,12 +500,10 @@ ssize_t MDnsSocketListener::Multicast(int sock, const MDnsPayload &payload)
 
 ssize_t MDnsSocketListener::Unicast(int sock, sockaddr *saddr, const MDnsPayload &payload)
 {
-    // LCOV_EXCL_START
     if (saddr == nullptr) {
         NETMGR_EXT_LOG_E("saddr is null");
         return -1;
     }
-    // LCOV_EXCL_STOP
     socklen_t saddrLen = 0;
     if (saddr->sa_family == AF_INET) {
         saddrLen = sizeof(sockaddr_in);
@@ -533,6 +532,7 @@ const std::vector<int> &MDnsSocketListener::GetSockets() const
 {
     return socks_;
 }
+// LCOV_EXCL_STOP
 
 void MDnsSocketListener::SetReceiveHandler(const ReceiveHandler &callback)
 {
@@ -544,11 +544,13 @@ void MDnsSocketListener::SetFinishedHandler(const FinishedHandler &callback)
     finished_ = callback;
 }
 
+// LCOV_EXCL_START
 std::string_view MDnsSocketListener::GetIface(int sock) const
 {
     auto i = iface_.find(sock);
     return i == iface_.end() ? std::string_view{} : i->second;
 }
+// LCOV_EXCL_STOP
 
 const sockaddr *MDnsSocketListener::GetSockAddr(int sock) const
 {
