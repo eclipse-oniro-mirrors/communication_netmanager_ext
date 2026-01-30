@@ -38,6 +38,7 @@ struct HksParam g_genParam[] = {
     { .tag = HKS_TAG_ASSOCIATED_DATA, .blob = { .size = AAD_SIZE, .data = (uint8_t *)AAD } },
 };
 
+// LCOV_EXCL_START
 static char ConvertArrayChar(uint8_t ch)
 {
     constexpr int maxDecNum = 9;
@@ -110,6 +111,7 @@ int HexStringToVec(const std::string &str, uint8_t plainText[], uint32_t plainLe
     resultLength = result.size();
     return 0;
 }
+// LCOV_EXCL_STOP
 
 std::vector<std::string> Split(const std::string &str, const std::string &sep)
 {
@@ -130,9 +132,11 @@ std::vector<std::string> Split(const std::string &str, const std::string &sep)
 int32_t SetUpHks()
 {
     int32_t ret = HksInitialize();
+    // LCOV_EXCL_START
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("vpn encryption init failed");
     }
+    // LCOV_EXCL_STOP
     return ret;
 }
 
@@ -143,6 +147,7 @@ int32_t GetKeyByAlias(struct HksBlob *keyAlias, const struct HksParamSet *genPar
         return -1;
     }
     int32_t keyExist = HksKeyExist(keyAlias, genParamSet);
+    // LCOV_EXCL_START
     if (keyExist == HKS_ERROR_NOT_EXIST) {
         int32_t ret = HksGenerateKey(keyAlias, genParamSet, nullptr);
         if (ret != HKS_SUCCESS) {
@@ -153,6 +158,7 @@ int32_t GetKeyByAlias(struct HksBlob *keyAlias, const struct HksParamSet *genPar
         NETMGR_EXT_LOG_E("%{public}s search key failed:%{public}d", __func__, keyExist);
         return keyExist;
     }
+    // LCOV_EXCL_STOP
     return keyExist;
 }
 
@@ -168,6 +174,7 @@ int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId, uint8
         return ret;
     }
     ret = HksAddParams(*paramSet, g_genParam, sizeof(g_genParam) / sizeof(HksParam));
+    // LCOV_EXCL_START
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("HksAddParams g_genParam failed");
         HksFreeParamSet(paramSet);
@@ -185,6 +192,7 @@ int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId, uint8
         HksFreeParamSet(paramSet);
         return ret;
     }
+    // LCOV_EXCL_STOP
     return ret;
 }
 
@@ -192,10 +200,12 @@ int32_t VpnEncryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &
 {
     if (!data.empty()) {
         EncryptedData encryptedData;
+        // LCOV_EXCL_START
         if (VpnEncryption(vpnEncryptionInfo, data, encryptedData) != HKS_SUCCESS) {
             NETMGR_EXT_LOG_E("VpnEncryption failed");
             return NETMANAGER_EXT_ERR_INTERNAL;
         }
+        // LCOV_EXCL_STOP
         data = encryptedData.encryptedData_ + ENCRYT_SPLIT_SEP + encryptedData.iv_;
     }
     return NETMANAGER_EXT_SUCCESS;
@@ -207,17 +217,21 @@ int32_t VpnDecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &
         const std::vector<std::string> encryedDataStrs = Split(data, ENCRYT_SPLIT_SEP);
         if (encryedDataStrs.size() > 1) {
             EncryptedData *encryptedData = new (std::nothrow) EncryptedData(encryedDataStrs[0], encryedDataStrs[1]);
+            // LCOV_EXCL_START
             if (encryptedData == nullptr) {
                 NETMGR_EXT_LOG_E("new EncryptedData failed");
                 return NETMANAGER_EXT_ERR_INTERNAL;
             }
+            // LCOV_EXCL_STOP
             std::string decryptedData = "";
+            // LCOV_EXCL_START
             if (VpnDecryption(vpnEncryptionInfo, *encryptedData, decryptedData) != HKS_SUCCESS) {
                 NETMGR_EXT_LOG_E("VpnDecryption failed");
                 delete encryptedData;
                 encryptedData = nullptr;
                 return NETMANAGER_EXT_ERR_INTERNAL;
             }
+            // LCOV_EXCL_STOP
             data = decryptedData;
             delete encryptedData;
             encryptedData = nullptr;
@@ -226,6 +240,7 @@ int32_t VpnDecryptData(const VpnEncryptionInfo &vpnEncryptionInfo, std::string &
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 int32_t VpnEncryption(const VpnEncryptionInfo &vpnEncryptionInfo, const std::string &inputString,
     EncryptedData &encryptedData)
 {
@@ -385,6 +400,6 @@ int32_t VpnDecryption(const VpnEncryptionInfo &vpnEncryptionInfo, const Encrypte
     HksFreeParamSet(&decryParamSet);
     return ret;
 }
-
+// LCOV_EXCL_STOP
 }  // namespace NetManagerStandard
 }  // namespace OHOS

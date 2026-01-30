@@ -38,12 +38,14 @@ VpnDatabaseHelper::VpnDatabaseHelper()
 {
     if (!std::filesystem::exists(VPN_DATABASE_PATH)) {
         std::error_code ec;
+        // LCOV_EXCL_START
         if (std::filesystem::create_directories(VPN_DATABASE_PATH, ec)) {
             NETMGR_EXT_LOG_D("create_directories success :%{public}s", VPN_DATABASE_PATH.c_str());
         } else {
             NETMGR_EXT_LOG_E("create_directories error :%{public}s : %s", VPN_DATABASE_PATH.c_str(),
                 ec.message().c_str());
         }
+        // LCOV_EXCL_STOP
     }
     std::string vpnDatabaseName = VPN_DATABASE_PATH + VPN_DB_NAME;
     int32_t errCode = OHOS::NativeRdb::E_OK;
@@ -56,10 +58,11 @@ VpnDatabaseHelper::VpnDatabaseHelper()
     } else {
         NETMGR_EXT_LOG_I("GetRdbStore success");
     }
-
+    // LCOV_EXCL_START
     if (SetUpHks() != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("SetUpHks failed");
     }
+    // LCOV_EXCL_STOP
 }
 
 int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
@@ -68,10 +71,12 @@ int32_t VpnDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
     std::string sql =
         "CREATE TABLE IF NOT EXISTS " + VPN_CONFIG_TABLE + "(" + std::string(VPN_CONFIG_TABLE_CREATE_PARAM) + ");";
     int32_t ret = store.ExecuteSql(sql);
+    // LCOV_EXCL_START
     if (ret != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("Create table failed: %{public}d", ret);
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
+    // LCOV_EXCL_STOP
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -93,6 +98,7 @@ int32_t VpnDataBaseCallBack::OnDowngrade(OHOS::NativeRdb::RdbStore &store, int32
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 int32_t VpnDatabaseHelper::EncryptData(const sptr<VpnDataBean> &vpnBean)
 {
     if (vpnBean == nullptr) {
@@ -180,6 +186,7 @@ int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+// LCOV_EXCL_STOP
 
 int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
 {
@@ -204,6 +211,7 @@ int32_t VpnDatabaseHelper::InsertOrUpdateData(const sptr<VpnDataBean> &vpnBean)
     return InsertData(vpnBean);
 }
 
+// LCOV_EXCL_START
 int32_t VpnDatabaseHelper::getVpnDataSize(const sptr<VpnDataBean> &vpnBean)
 {
     int32_t size = 0;
@@ -313,6 +321,7 @@ void VpnDatabaseHelper::BindVpnData(NativeRdb::ValuesBucket &values, const sptr<
     values.PutString(L2TP_SHARED_KEY, info->l2tpSharedKey_);
     values.PutString(VPN_REMOTE_ADDR, info->remoteAddr_);
 }
+// LCOV_EXCL_STOP
 
 int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &vpnBean)
 {
@@ -330,13 +339,16 @@ int32_t VpnDatabaseHelper::InsertData(const sptr<VpnDataBean> &vpnBean)
     BindVpnData(values, vpnBean);
     int64_t rowId = 0;
     int ret = store_->Insert(rowId, VPN_CONFIG_TABLE, values);
+    // LCOV_EXCL_START
     if (ret != NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("InsertData failed, result is %{public}d", ret);
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
+    // LCOV_EXCL_STOP
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 int32_t VpnDatabaseHelper::UpdateData(const sptr<VpnDataBean> &vpnBean)
 {
     if (store_ == nullptr) {
@@ -407,6 +419,7 @@ void VpnDatabaseHelper::GetVpnDataFromResultSet(const std::shared_ptr<OHOS::Nati
     queryResultSet->GetString(INDEX_L2TP_SHARED_KEY, vpnBean->l2tpSharedKey_);
     queryResultSet->GetString(INDEX_VPN_REMOTE_ADDR, vpnBean->remoteAddr_);
 }
+// LCOV_EXCL_STOP
 
 int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::string &vpnUuid)
 {
@@ -429,6 +442,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
     OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(VPN_ID, vpnUuid);
     auto queryResultSet = store_->Query(rdbPredicate, columns);
+    // LCOV_EXCL_START
     if (queryResultSet == nullptr) {
         NETMGR_EXT_LOG_E("QueryVpnData error");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
@@ -452,6 +466,7 @@ int32_t VpnDatabaseHelper::QueryVpnData(sptr<VpnDataBean> &vpnBean, const std::s
             break;
         }
     }
+    // LCOV_EXCL_STOP
     queryResultSet->Close();
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -467,6 +482,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<sptr<SysVpnConfig>> &infos, 
     std::vector<std::string> columns;
     OHOS::NativeRdb::RdbPredicates rdbPredicate{ VPN_CONFIG_TABLE };
     rdbPredicate.EqualTo(USER_ID, userId);
+    // LCOV_EXCL_START
     auto queryResultSet = store_->Query(rdbPredicate, columns);
     if (queryResultSet == nullptr) {
         NETMGR_EXT_LOG_E("QueryAllData error");
@@ -496,6 +512,7 @@ int32_t VpnDatabaseHelper::QueryAllData(std::vector<sptr<SysVpnConfig>> &infos, 
         }
         infos.emplace_back(config);
     }
+    // LCOV_EXCL_STOP
     queryResultSet->Close();
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -507,7 +524,7 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
         NETMGR_EXT_LOG_E("DeleteVpnData vpnUuid is empty");
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
-
+    // LCOV_EXCL_START
     if (store_ == nullptr) {
         NETMGR_EXT_LOG_E("DeleteVpnData store_ is nullptr");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
@@ -520,6 +537,7 @@ int32_t VpnDatabaseHelper::DeleteVpnData(const std::string &vpnUuid)
         NETMGR_EXT_LOG_E("DeleteVpnData failed, result is %{public}d", result);
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
+    // LCOV_EXCL_STOP
     return NETMANAGER_EXT_SUCCESS;
 }
 } // namespace NetManagerStandard

@@ -43,7 +43,7 @@ struct MDnsConfig {
 
 class MDnsProtocolImpl : public std::enable_shared_from_this<MDnsProtocolImpl> {
 public:
-    MDnsProtocolImpl();
+    MDnsProtocolImpl() = default;
     ~MDnsProtocolImpl() = default;
 
     struct Result;
