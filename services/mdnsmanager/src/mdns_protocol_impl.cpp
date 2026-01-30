@@ -290,16 +290,19 @@ void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<
 
 void MDnsProtocolImpl::SetConfig(const MDnsConfig &config)
 {
+    std::unique_lock<std::shared_mutex> lock(configMutex_);
     config_ = config;
 }
 
-const MDnsConfig &MDnsProtocolImpl::GetConfig() const
+MDnsConfig MDnsProtocolImpl::GetConfig()
 {
+    std::shared_lock<std::shared_mutex> lock(configMutex_);
     return config_;
 }
 
-std::string MDnsProtocolImpl::Decorated(const std::string &name) const
+std::string MDnsProtocolImpl::Decorated(const std::string &name)
 {
+    std::shared_lock<std::shared_mutex> lock(configMutex_);
     return name + config_.topDomain;
 }
 
@@ -905,6 +908,7 @@ void MDnsProtocolImpl::ProcessAnswerRecord(bool v6, const DNSProto::ResourceReco
 
 std::string MDnsProtocolImpl::GetHostDomain()
 {
+    std::unique_lock<std::shared_mutex> lock(configMutex_);
     if (config_.hostname.empty()) {
         char buffer[MDNS_MAX_DOMAIN_LABEL];
         if (gethostname(buffer, sizeof(buffer)) == 0) {
@@ -916,7 +920,9 @@ std::string MDnsProtocolImpl::GetHostDomain()
             config_.hostname += std::to_string(uid);
         }
     }
-    return Decorated(config_.hostname);
+    auto hostname = config_.hostname;
+    lock.unlock();
+    return Decorated(hostname);
 }
 
 void MDnsProtocolImpl::AddTask(const Task &task, bool atonce)

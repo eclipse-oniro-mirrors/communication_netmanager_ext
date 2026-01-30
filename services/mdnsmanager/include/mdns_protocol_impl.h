@@ -20,6 +20,7 @@
 #include <list>
 #include <set>
 #include <string>
+#include <shared_mutex>
 
 #include "imdns_service.h"
 #include "mdns_common.h"
@@ -75,7 +76,7 @@ public:
     static void SetScreenState(bool isOn);
     void SetConfig(const MDnsConfig &config);
     bool Browse();
-    const MDnsConfig &GetConfig() const;
+    MDnsConfig GetConfig();
 
     int32_t Register(const Result &info);
     int32_t Discovery(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);
@@ -116,7 +117,7 @@ public:
     void KillCache(const std::string &key);
     MDnsServiceInfo ConvertResultToInfo(const Result &result);
 
-    std::string Decorated(const std::string &name) const;
+    std::string Decorated(const std::string &name);
     std::string Dotted(const std::string &name) const;
     std::string UnDotted(const std::string &name) const;
     std::string GetHostDomain();
@@ -140,6 +141,7 @@ public:
 
 private:
     int64_t lastRunTime = {-1};
+    std::shared_mutex configMutex_;
     MDnsConfig config_;
     MDnsSocketListener listener_;
     std::map<std::string, std::vector<Result>> browserMap_;

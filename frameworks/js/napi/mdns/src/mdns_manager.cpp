@@ -170,7 +170,7 @@ int32_t MDnsManager::ResolveService(const MDnsServiceInfo &serviceInfo, const sp
 void MDnsManager::GetDumpMessage(std::string &message)
 {
     message.append("mDNS Info:\n");
-    const auto &config = impl_->GetConfig();
+    auto config = impl_->GetConfig();
     message.append("\tIPv6 Support: " + std::to_string(config.ipv6Support) + "\n");
     message.append("\tAll Iface: " + std::to_string(config.configAllIface) + "\n");
     message.append("\tTop Domain: " + config.topDomain + "\n");
