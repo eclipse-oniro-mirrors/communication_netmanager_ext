@@ -246,8 +246,8 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
     NETMGR_EXT_LOG_I("enter SetUpVpn %{public}d, %{public}d", isVpnExtCall, isInternalChannel);
     VpnConfigRawData rawdata;
     if (!rawdata.SerializeFromVpnConfig(*config)) {
-        NETMGR_EXT_LOG_I("SetUpVpn SerializeFromVpnConfig fail");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        NETMGR_EXT_LOG_E("SetUpVpn SerializeFromVpnConfig fail");
+        return NETMANAGER_EXT_ERR_INTERNAL;
     }
     int32_t result = proxy->SetUpVpn(rawdata, isVpnExtCall, isInternalChannel);
     if (result != NETMANAGER_EXT_SUCCESS) {
@@ -707,26 +707,6 @@ int32_t NetworkVpnClient::SetSelfVpnPid()
 void NetworkVpnClient::SetVpnSaState(bool state)
 {
     saStart_ = state;
-}
-
-int32_t NetworkVpnClient::StartVpnExtensionAbility(AAFwk::Want want)
-{
-    sptr<INetworkVpnService> proxy = GetProxy();
-    if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("StartVpnExtensionAbility proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
-    }
-    return proxy->StartVpnExtensionAbility(want);
-}
-
-int32_t NetworkVpnClient::StopVpnExtensionAbility(AAFwk::Want want)
-{
-    sptr<INetworkVpnService> proxy = GetProxy();
-    if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("StopVpnExtensionAbility proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
-    }
-    return proxy->StopVpnExtensionAbility(want);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

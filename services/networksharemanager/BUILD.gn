@@ -20,9 +20,9 @@ config("net_tether_manager_config") {
     "$EXT_INNERKITS_ROOT/netshareclient/include",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy",
     "$EXT_INNERKITS_ROOT/netshareclient/include/proxy/ipccallback",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/include",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/include/stub",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/include/utils",
+    "include",
+    "include/stub",
+    "include/utils",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
   ]
   if (netmanager_ext_share_traffic_limit_enable) {
@@ -42,18 +42,18 @@ ohos_shared_library("net_tether_manager") {
 
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/networkshare_utils.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
+    "src/networkshare_configuration.cpp",
+    "src/networkshare_hisysevent.cpp",
+    "src/networkshare_main_statemachine.cpp",
+    "src/networkshare_service.cpp",
+    "src/networkshare_sub_statemachine.cpp",
+    "src/networkshare_tracker.cpp",
+    "src/networkshare_upstreammonitor.cpp",
+    "src/router_advertisement_daemon.cpp",
+    "src/router_advertisement_params.cpp",
+    "src/utils/edm_parameter_utils.cpp",
+    "src/utils/networkshare_utils.cpp",
+    "src/utils/sys_timer.cpp",
   ]
 
   public_configs = [ ":net_tether_manager_config" ]
@@ -123,7 +123,7 @@ ohos_shared_library("net_tether_manager") {
   if (netmanager_ext_share_notification_enable) {
     defines += [ "SHARE_NOTIFICATION_ENABLE" ]
     sources +=
-        [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_notification.cpp" ]
+        [ "src/networkshare_notification.cpp" ]
   }
 
   if (netmanager_ext_share_traffic_limit_enable) {
@@ -133,7 +133,7 @@ ohos_shared_library("net_tether_manager") {
       "data_share:datashare_consumer",
     ]
     sources +=
-        [ "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkshare_trafficlimit.cpp" ]
+        [ "src/networkshare_trafficlimit.cpp" ]
   }
 
   defines += [
@@ -165,18 +165,18 @@ ohos_static_library("net_tether_manager_static") {
 
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_configuration.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_hisysevent.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_main_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_service.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_sub_statemachine.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_tracker.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_upstreammonitor.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_daemon.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/router_advertisement_params.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/edm_parameter_utils.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/networkshare_utils.cpp",
-    "$NETWORKSHAREMANAGER_SOURCE_DIR/src/utils/sys_timer.cpp",
+    "src/networkshare_configuration.cpp",
+    "src/networkshare_hisysevent.cpp",
+    "src/networkshare_main_statemachine.cpp",
+    "src/networkshare_service.cpp",
+    "src/networkshare_sub_statemachine.cpp",
+    "src/networkshare_tracker.cpp",
+    "src/networkshare_upstreammonitor.cpp",
+    "src/router_advertisement_daemon.cpp",
+    "src/router_advertisement_params.cpp",
+    "src/utils/edm_parameter_utils.cpp",
+    "src/utils/networkshare_utils.cpp",
+    "src/utils/sys_timer.cpp",
   ]
 
   public_configs = [ ":net_tether_manager_config" ]
@@ -244,7 +244,7 @@ ohos_static_library("net_tether_manager_static") {
   if (netmanager_ext_share_notification_enable) {
     defines += [ "SHARE_NOTIFICATION_ENABLE" ]
     sources +=
-        [ "$NETWORKSHAREMANAGER_SOURCE_DIR/src/networkshare_notification.cpp" ]
+        [ "src/networkshare_notification.cpp" ]
   }
 
   if (netmanager_ext_share_traffic_limit_enable) {
@@ -254,7 +254,7 @@ ohos_static_library("net_tether_manager_static") {
       "data_share:datashare_consumer",
     ]
     sources +=
-        [ "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/networkshare_trafficlimit.cpp" ]
+        [ "src/networkshare_trafficlimit.cpp" ]
   }
 
   defines += [

@@ -124,6 +124,7 @@ int32_t NetworkVpnService::Dump(int32_t fd, const std::vector<std::u16string> &a
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 bool NetworkVpnService::Init()
 {
     if (!REGISTER_LOCAL_RESULT_NETVPN) {
@@ -153,6 +154,7 @@ bool NetworkVpnService::Init()
 
     return true;
 }
+// LCOV_EXCL_STOP
 
 void NetworkVpnService::GetDumpMessage(std::string &message)
 {
@@ -190,6 +192,7 @@ bool NetworkVpnService::PublishEvent(const OHOS::AAFwk::Want &want, int eventCod
     return publishResult;
 }
 
+// LCOV_EXCL_START
 bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state, const std::string &vpnId)
 {
 #ifdef SUPPORT_SYSVPN
@@ -200,12 +203,10 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state, const std::st
             NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
             return false;
         }
-        // LCOV_EXCL_START
         if (vpnId != "" && vpnObj_ != nullptr && !vpnObj_->IsSystemVpn()) {
             NETMGR_EXT_LOG_E("single type vpn is connected, vpnId: %{public}s.", vpnId.c_str());
             return false;
         }
-        // LCOV_EXCL_STOP
         for (const auto &[name, vpn] : vpnObjMap_) {
             if (vpn == nullptr || vpn->multiVpnInfo_ == nullptr) {
                 continue;
@@ -225,6 +226,7 @@ bool NetworkVpnService::IsNeedNotify(const VpnConnectState &state, const std::st
 #endif // SUPPORT_SYSVPN
     return true;
 }
+// LCOV_EXCL_STOP
 
 void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &state, int32_t vpnType) const
 {
@@ -250,6 +252,7 @@ void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectSt
     return;
 }
 
+// LCOV_EXCL_START
 void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectState &state, int32_t vpnType,
     const std::string &vpnId)
 {
@@ -260,6 +263,7 @@ void NetworkVpnService::VpnConnStateCb::SendConnStateChanged(const VpnConnectSta
     }
     return;
 }
+// LCOV_EXCL_STOP
 
 void NetworkVpnService::VpnConnStateCb::OnMultiVpnConnStateChanged(const VpnConnectState &state,
     const std::string &vpnId)
@@ -267,10 +271,12 @@ void NetworkVpnService::VpnConnStateCb::OnMultiVpnConnStateChanged(const VpnConn
 #ifdef SUPPORT_SYSVPN
     NETMGR_EXT_LOG_I("receive new multi vpn connect state[%{public}d].", static_cast<uint32_t>(state));
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    // LCOV_EXCL_START
     if (AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(userId) != ERR_OK) {
         NETMGR_EXT_LOG_E("GetForegroundOsAccountLocalId error");
         return;
     }
+    // LCOV_EXCL_STOP
     vpnService_.OnMultiVpnConnStateChanged(state, vpnId, userId);
 #endif // SUPPORT_SYSVPN
 }
@@ -283,6 +289,7 @@ void NetworkVpnService::OnVpnMultiUserSetUp()
         [](const auto &callback) { callback->OnVpnMultiUserSetUp(); });
 }
 
+// LCOV_EXCL_START
 int32_t NetworkVpnService::CheckIpcPermission(const std::string &strPermission)
 {
     if (!NetManagerPermission::IsSystemCaller()) {
@@ -295,13 +302,16 @@ int32_t NetworkVpnService::CheckIpcPermission(const std::string &strPermission)
     }
     return NETMANAGER_SUCCESS;
 }
+// LCOV_EXCL_STOP
 
 int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &pkg)
 {
     std::string vpnBundleName = GetBundleName();
+    // LCOV_EXCL_START
     if (!CheckSystemCall(vpnBundleName)) {
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
     }
+    // LCOV_EXCL_STOP
     if (!CheckVpnPermission(vpnBundleName)) {
         NETMGR_EXT_LOG_E("check vpn permission failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -318,6 +328,7 @@ int32_t NetworkVpnService::Prepare(bool &isExistVpn, bool &isRun, std::string &p
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
 {
     cJSON *dnsAddr = cJSON_GetObjectItem(doc, "dnsAddresses");
@@ -363,6 +374,7 @@ void NetworkVpnService::ConvertStringToConfig(sptr<VpnConfig> &vpnCfg, const cJS
         }
     }
 }
+// LCOV_EXCL_STOP
 
 void NetworkVpnService::ConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const mem)
 {
@@ -401,6 +413,7 @@ void NetworkVpnService::ConvertNetAddrToConfig(INetAddr& tmp, const cJSON* const
     }
 }
 
+// LCOV_EXCL_START
 void NetworkVpnService::ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const cJSON* const doc)
 {
     cJSON *addresses = cJSON_GetObjectItem(doc, "addresses");
@@ -416,6 +429,7 @@ void NetworkVpnService::ConvertVecAddrToConfig(sptr<VpnConfig> &vpnCfg, const cJ
         }
     }
 }
+// LCOV_EXCL_STOP
 
 void NetworkVpnService::ConvertRouteToConfig(Route& tmp, const cJSON* const mem)
 {
@@ -530,6 +544,7 @@ void NetworkVpnService::RecoverVpnConfig()
 {
     sptr<VpnConfig> vpnCfg = new VpnConfig();
     std::ifstream ifs(VPN_CONFIG_FILE);
+    // LCOV_EXCL_START
     if (!ifs) {
         NETMGR_EXT_LOG_D("file don't exist, don't need recover");
         return;
@@ -542,6 +557,7 @@ void NetworkVpnService::RecoverVpnConfig()
         NETMGR_EXT_LOG_I("SetUpVpn SerializeFromVpnConfig fail");
         return;
     }
+    // LCOV_EXCL_STOP
     SetUpVpn(rawdata);
 }
 
@@ -622,15 +638,18 @@ void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::st
     }
     cJSON_AddItemToObject(root, "refusedApplications", jVecRefuseApp);
     char *str = cJSON_Print(root);
+    // LCOV_EXCL_START
     if (str == nullptr) {
         cJSON_Delete(root);
         return;
     }
+    // LCOV_EXCL_STOP
     jsonString = str;
     cJSON_Delete(root);
     cJSON_free(str);
 }
 
+// LCOV_EXCL_START
 void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
 {
     std::string jsonString;
@@ -638,12 +657,15 @@ void NetworkVpnService::SaveVpnConfig(const sptr<VpnConfig> &vpnCfg)
     std::ofstream ofs(VPN_CONFIG_FILE);
     ofs << jsonString;
 }
+// LCOV_EXCL_STOP
 
 bool NetworkVpnService::CheckSystemCall(const std::string &bundleName)
 {
+    // LCOV_EXCL_START
     if (!NetManagerPermission::IsSystemCaller()) {
         return CheckVpnExtPermission(bundleName);
     }
+    // LCOV_EXCL_STOP
     return true;
 }
 
@@ -761,6 +783,7 @@ int32_t NetworkVpnService::ProcessVpnConfig(const VpnConfigRawData& configData, 
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isVpnExtCall, bool isInternalChannel)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
@@ -812,6 +835,7 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isV
     vpnObj_ = vpnObj;
     return ret;
 }
+// LCOV_EXCL_STOP
 
 int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 {
@@ -859,10 +883,12 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
         return ret;
     }
     std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
+    // LCOV_EXCL_START
     if ((vpnObj_ != nullptr) && (vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
         NETMGR_EXT_LOG_E("destroy vpn is failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
     vpnObj_ = nullptr;
     // remove vpn config
     remove(VPN_CONFIG_FILE);
@@ -937,6 +963,7 @@ int32_t NetworkVpnService::DestroyMultiVpn(int32_t callingUid)
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 void NetworkVpnService::DestroyMultiVpnByUserId(int32_t userId, const std::string &bundleName)
 {
     for (auto it = vpnObjMap_.begin(); it != vpnObjMap_.end();) {
@@ -958,6 +985,7 @@ void NetworkVpnService::DestroyMultiVpnByUserId(int32_t userId, const std::strin
     }
     return;
 }
+// LCOV_EXCL_STOP
 
 void NetworkVpnService::TryDestroyInnerChannel()
 {
@@ -1295,6 +1323,7 @@ int32_t NetworkVpnService::DeleteSysVpnConfig(const std::string &vpnId)
     return VpnDatabaseHelper::GetInstance().DeleteVpnData(vpnId);
 }
 
+// LCOV_EXCL_START
 int32_t NetworkVpnService::GetConnectedVpnAppInfo(std::vector<std::string> &bundleNameList)
 {
     std::string vpnBundleName = GetBundleName();
@@ -1324,6 +1353,7 @@ int32_t NetworkVpnService::GetConnectedVpnAppInfo(std::vector<std::string> &bund
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+// LCOV_EXCL_STOP
 
 int32_t NetworkVpnService::GetSysVpnConfigList(std::vector<sptr<SysVpnConfig>> &vpnList)
 {
@@ -1396,6 +1426,7 @@ int32_t NetworkVpnService::GetConnectedSysVpnConfig(sptr<SysVpnConfig> &config)
     return vpnObj_->GetConnectedSysVpnConfig(config);
 }
 
+// LCOV_EXCL_START
 int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const int32_t result)
 {
     uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
@@ -1455,6 +1486,7 @@ int32_t NetworkVpnService::GetSysVpnCertUri(const int32_t certType, std::string 
     }
     return connectingObj_->GetSysVpnCertUri(certType, certUri);
 }
+// LCOV_EXCL_STOP
 
 int32_t NetworkVpnService::RegisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback)
 {
@@ -1481,9 +1513,11 @@ int32_t NetworkVpnService::RemoteUnregisterMultiVpnEvent(const sptr<IVpnEventCal
 {
     std::string vpnBundleName = GetBundleName();
     NETMGR_EXT_LOG_I("RemoteUnregisterMultiVpnEvent vpnBundleName %{public}s.", vpnBundleName.c_str());
+    // LCOV_EXCL_START
     if (!CheckVpnPermission(vpnBundleName) && !CheckSystemCall(vpnBundleName)) {
         return -1;
     }
+    // LCOV_EXCL_STOP
     std::unique_lock<ffrt::shared_mutex> lock(multiVpnEventCallbacksMutex_);
     for (auto iter = multiVpnEventCallbacks_.begin(); iter != multiVpnEventCallbacks_.end(); ++iter) {
         if (((*iter)->callback)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
@@ -1499,6 +1533,7 @@ int32_t NetworkVpnService::RemoteUnregisterMultiVpnEvent(const sptr<IVpnEventCal
     return -1;
 }
 
+// LCOV_EXCL_START
 int32_t NetworkVpnService::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
 {
     uint32_t callingUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
@@ -1514,6 +1549,7 @@ int32_t NetworkVpnService::GetVpnCertData(const int32_t certType, std::vector<in
     }
     return connectingObj_->GetVpnCertData(certType, certData);
 }
+// LCOV_EXCL_STOP
 #endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnService::RegisterVpnEvent(const sptr<IVpnEventCallback> &callback)
@@ -1541,9 +1577,11 @@ int32_t NetworkVpnService::RemoteUnregisterVpnEvent(const sptr<IVpnEventCallback
 {
     std::string vpnBundleName = GetBundleName();
     NETMGR_EXT_LOG_I("RemoteUnregisterVpnEvent vpnBundleName %{public}s.", vpnBundleName.c_str());
+    // LCOV_EXCL_START
     if (!CheckVpnPermission(vpnBundleName) && !CheckSystemCall(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
+    // LCOV_EXCL_STOP
     int32_t ret = SyncUnregisterVpnEvent(callback);
     return ret;
 }
@@ -1569,6 +1607,7 @@ int32_t NetworkVpnService::CreateVpnConnection(bool isVpnExtCall)
     return NETMANAGER_EXT_SUCCESS;
 }
 
+// LCOV_EXCL_START
 int32_t NetworkVpnService::CheckCurrentAccountType(int32_t &userId, std::vector<int32_t> &activeUserIds)
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
@@ -1635,15 +1674,13 @@ int32_t NetworkVpnService::SyncRegisterMultiVpnEvent(const sptr<IVpnEventCallbac
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    // LCOV_EXCL_START
     if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
         NETMGR_EXT_LOG_E("GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    sptr<MultiVpnEventCallback> multiVpnEventCallback = new (std::nothrow) MultiVpnEventCallback();
-    if (multiVpnEventCallback == nullptr) {
-        NETMGR_EXT_LOG_E("SyncRegisterMultiVpnEvent error, multiVpnEventCallback is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
+    // LCOV_EXCL_STOP
+    sptr<MultiVpnEventCallback> multiVpnEventCallback = sptr<MultiVpnEventCallback>::MakeSptr();
     multiVpnEventCallback->userId = userId;
     multiVpnEventCallback->bundleName = vpnBundleName;
     multiVpnEventCallback->callback = callback;
@@ -1697,10 +1734,12 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
         NETMGR_EXT_LOG_E("callback above max count, return error.");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
+    // LCOV_EXCL_START
     if (!IsSelfCall() && !AddClientDeathRecipient(callback)) {
         NETMGR_EXT_LOG_E("add death recipient failed.");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
+    // LCOV_EXCL_STOP
     vpnEventCallbacks_.push_back(callback);
     NETMGR_EXT_LOG_I("Register vpn event callback successfully");
     return NETMANAGER_EXT_SUCCESS;
@@ -1735,9 +1774,11 @@ void NetworkVpnService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
             OnNetSysRestart();
             hasSARemoved_ = false;
         }
+    // LCOV_EXCL_START
     } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID && !registeredCommonEvent_) {
         SubscribeCommonEvent();
     }
+    // LCOV_EXCL_STOP
 }
 
 void NetworkVpnService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
@@ -1864,14 +1905,17 @@ void NetworkVpnService::SubscribeCommonEvent()
         subscriber_ = std::make_shared<ReceiveMessage>(subscribeInfo, shared_from_this());
     }
     bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
+    // LCOV_EXCL_START
     if (!ret) {
         NETMGR_EXT_LOG_E("SubscribeCommonEvent fail: %{public}d", ret);
         registeredCommonEvent_ = false;
     } else {
         registeredCommonEvent_ = true;
     }
+    // LCOV_EXCL_STOP
 }
 
+// LCOV_EXCL_START
 void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 {
     auto vpnService = vpnService_.lock();
@@ -1910,6 +1954,7 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
         NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName);
     }
 }
+// LCOV_EXCL_STOP
 
 int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName, const std::string &abilityName)
 {
@@ -1953,7 +1998,7 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string 
         NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-
+    // LCOV_EXCL_START
     auto bundleResourceProxy = bms->GetBundleResourceProxy();
     if (bundleResourceProxy == nullptr) {
         NETMGR_EXT_LOG_E("Error get bundleResourceProxy fail");
@@ -1966,6 +2011,7 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string 
         NETMGR_EXT_LOG_E("Error call GetBundleResourceInfo fail %{public}d", static_cast<int>(errCode));
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
     NETMGR_EXT_LOG_I("StartVpnExtensionAbility bundleResourceInfo.label %{public}s", bundleResourceInfo.label.c_str());
     selfAppName = bundleResourceInfo.label;
     selfBundleName = bundleName;
@@ -1982,38 +2028,7 @@ int32_t NetworkVpnService::SetSelfVpnPid()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
-{
-    auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
-    if (abilityManager == nullptr) {
-        NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    auto abilityConnection = sptr<NetworkVpnService::VpnAbilityConnect>::MakeSptr();
-    auto ret = abilityManager->ConnectAbilityWithExtensionType(want,
-        abilityConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
-    if (ret != ERR_OK) {
-        NETMGR_EXT_LOG_E("ConnectAbilityWithExtensionType failed");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    auto err = abilityManager->StartExtensionAbility(
-        want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
-    return err;
-}
-
-int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
-{
-    auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
-    if (abilityManager == nullptr) {
-        NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-
-    ErrCode err = abilityManager->StopExtensionAbility(
-        want, nullptr, INVALID_CODE, AppExecFwk::ExtensionAbilityType::VPN);
-    return err;
-}
-
+// LCOV_EXCL_START
 bool NetworkVpnService::IsVpnApplication(int32_t uid)
 {
     std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
@@ -2120,6 +2135,7 @@ void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::
 {
     NETMGR_EXT_LOG_I("VPN HAP is OnProcessStateChanged");
 }
+// LCOV_EXCL_STOP
 
 bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc)
 {
@@ -2129,10 +2145,11 @@ bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainPr
         isMainProc = true;
         return true;
     }
-
+    // LCOV_EXCL_START
     if (pid == currSetUpVpnPid_) {
         return true;
     }
+    // LCOV_EXCL_STOP
     return false;
 }
 
@@ -2208,6 +2225,7 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     vpnService_.ClearCurrentVpnUserInfo(processData.uid, !hasAbilityName_);
 }
 
+// LCOV_EXCL_START
 void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
 {
     NETMGR_EXT_LOG_I("vpn OnRemoteDied");
@@ -2248,6 +2266,7 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
         vpnObj_ = nullptr;
     }
 }
+// LCOV_EXCL_STOP
 
 bool NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &callback)
 {

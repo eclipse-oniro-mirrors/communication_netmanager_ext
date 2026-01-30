@@ -64,11 +64,6 @@ int64_t MilliSecondsSinceEpoch()
         .count();
 }
 
-MDnsProtocolImpl::MDnsProtocolImpl()
-{
-    Init();
-}
-
 void MDnsProtocolImpl::Init()
 {
     NETMGR_EXT_LOG_D("mdns_log MDnsProtocolImpl init");
@@ -80,16 +75,18 @@ void MDnsProtocolImpl::Init()
     } else {
         listener_.OpenSocketForDefault(config_.ipv6Support);
     }
-    listener_.SetReceiveHandler([wp = weak_from_this()](int sock, const MDnsPayload &payload) { 
+    listener_.SetReceiveHandler(
+        [wp = weak_from_this()](int sock, const MDnsPayload &payload) {
             auto sp = wp.lock();
             // LCOV_EXCL_START
             if (sp == nullptr) {
                 return;
             }
             // LCOV_EXCL_STOP
-            return sp->ReceivePacket(sock, payload); 
-    });
-    listener_.SetFinishedHandler([wp = weak_from_this()](int sock) {
+            return sp->ReceivePacket(sock, payload);
+        });
+    listener_.SetFinishedHandler(
+        [wp = weak_from_this()](int sock) {
             auto sp = wp.lock();
             // LCOV_EXCL_START
             if (sp == nullptr) {
@@ -99,20 +96,23 @@ void MDnsProtocolImpl::Init()
         std::lock_guard<std::recursive_mutex> guard(sp->mutex_);
         sp->RunTaskQueue(sp->taskQueue_);
     });
+
+
     {
         std::lock_guard<std::recursive_mutex> guard(mutex_);
         taskQueue_.clear();
         taskOnChange_.clear();
     }
-    AddTask([wp = weak_from_this()]() {
-        auto sp = wp.lock();
-        // LCOV_EXCL_START
-        if (sp == nullptr) {
-            return false;
-        }
-        // LCOV_EXCL_STOP
-        return sp->Browse(); 
-    }, false);
+    AddTask(
+        [wp = weak_from_this()]() {
+            auto sp = wp.lock();
+            // LCOV_EXCL_START
+            if (sp == nullptr) {
+                return false;
+            }
+            // LCOV_EXCL_STOP
+            return sp->Browse();
+        }, false);
 
     SubscribeCes();
 }
@@ -408,16 +408,18 @@ bool MDnsProtocolImpl::DiscoveryFromNet(const std::string &serviceType, const sp
         return false;
     });
 
-    AddTask([=]() {
-        MDnsPayloadParser parser;
-        MDnsMessage msg{};
-        msg.questions.emplace_back(DNSProto::Question{
-            .name = name,
-            .qtype = DNSProto::RRTYPE_PTR,
-            .qclass = DNSProto::RRCLASS_IN, });
-        listener_.MulticastAll(parser.ToBytes(msg));
-        return true; }, false);
-
+    AddTask(
+        [=]() {
+            MDnsPayloadParser parser;
+            MDnsMessage msg{};
+            msg.questions.emplace_back(DNSProto::Question{
+                .name = name,
+                .qtype = DNSProto::RRTYPE_PTR,
+                .qclass = DNSProto::RRCLASS_IN,
+            });
+            listener_.MulticastAll(parser.ToBytes(msg));
+            return true;
+        }, false);
     return true;
 }
 
@@ -497,15 +499,16 @@ bool MDnsProtocolImpl::ResolveInstanceFromNet(const std::string &name, const spt
         .qclass = DNSProto::RRCLASS_IN,
     });
     msg.header.qdcount = msg.questions.size();
-    AddEvent(name, [wp = weak_from_this(), name, cb]() { 
-        auto sp = wp.lock();
-        // LCOV_EXCL_START
-        if (sp == nullptr) {
-            return false;
-        }
-        // LCOV_EXCL_STOP
-        return sp->ResolveInstanceFromCache(name, cb); 
-    });
+    AddEvent(name,
+        [wp = weak_from_this(), name, cb]() { 
+            auto sp = wp.lock();
+            // LCOV_EXCL_START
+            if (sp == nullptr) {
+                return false;
+            }
+            // LCOV_EXCL_STOP
+            return sp->ResolveInstanceFromCache(name, cb);
+        });
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     return size > 0;
 }
@@ -553,15 +556,16 @@ bool MDnsProtocolImpl::ResolveFromNet(const std::string &domain, const sptr<IRes
         .qclass = DNSProto::RRCLASS_IN,
     });
     // key is serviceName
-    AddEvent(domain, [wp = weak_from_this(), cb, domain]() { 
-        auto sp = wp.lock();
-        // LCOV_EXCL_START
-        if (sp == nullptr) {
-            return false;
-        }
-        // LCOV_EXCL_STOP
-        return sp->ResolveFromCache(domain, cb); 
-    });
+    AddEvent(domain,
+        [wp = weak_from_this(), cb, domain]() {
+            auto sp = wp.lock();
+            // LCOV_EXCL_START
+            if (sp == nullptr) {
+                return false;
+            }
+            // LCOV_EXCL_STOP
+            return sp->ResolveFromCache(domain, cb);
+        });
     ssize_t size = listener_.MulticastAll(parser.ToBytes(msg));
     return size > 0;
 }
