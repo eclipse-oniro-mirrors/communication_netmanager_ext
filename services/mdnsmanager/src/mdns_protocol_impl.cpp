@@ -93,8 +93,8 @@ void MDnsProtocolImpl::Init()
                 return;
             }
             // LCOV_EXCL_STOP
-        std::lock_guard<std::recursive_mutex> guard(sp->mutex_);
-        sp->RunTaskQueue(sp->taskQueue_);
+            std::lock_guard<std::recursive_mutex> guard(sp->mutex_);
+            sp->RunTaskQueue(sp->taskQueue_);
     });
     {
         std::lock_guard<std::recursive_mutex> guard(mutex_);
