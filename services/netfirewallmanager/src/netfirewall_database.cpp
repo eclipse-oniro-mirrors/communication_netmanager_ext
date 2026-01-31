@@ -120,7 +120,7 @@ int64_t NetFirewallDataBase::Insert(const OHOS::NativeRdb::ValuesBucket &insertV
     NETMGR_EXT_LOG_D("Insert id=%{public}" PRIu64 "", outRowId);
     if (ret == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
         NETMGR_EXT_LOG_E("Insert error, restore db");
-        if (RestoreDatabase()) {
+        if (RestoreDatabase() && store_ != nullptr) {
             int32_t ret = store_->Insert(outRowId, tableName, insertValues);
         }
     }
