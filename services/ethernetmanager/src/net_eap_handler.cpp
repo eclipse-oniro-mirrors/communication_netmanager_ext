@@ -168,11 +168,13 @@ int32_t NetEapHandler::ReplyCustomEapData(int result, const sptr<EapData> &eapDa
  
 void NetEapHandler::SetPostbackCallback(const sptr<INetEapPostbackCallback> &postbackCallback)
 {
+    std::unique_lock<std::shared_mutex> lock(postbackCallbackMutex_);
     postbackCallback_ = postbackCallback;
 }
  
 sptr<INetEapPostbackCallback> NetEapHandler::GetPostbackCallback()
 {
+    std::shared_lock<std::shared_mutex> lock(postbackCallbackMutex_);
     return postbackCallback_;
 }
 
