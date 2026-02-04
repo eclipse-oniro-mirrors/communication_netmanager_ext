@@ -46,6 +46,17 @@ constexpr const char *GET_CONNECTED_VPN_APP_INFO = "getConnectedVpnAppInfo";
 constexpr const char *GET_SYS_VPN_CONFIG_LIST = "getSysVpnConfigList";
 constexpr const char *GET_SYS_VPN_CONFIG = "getSysVpnConfig";
 constexpr const char *GET_CONNECTED_SYS_VPN_CONFIG = "getConnectedSysVpnConfig";
+constexpr const char *ENUM_SYSVPN_TYPE = "SysVpnType";
+constexpr const char *IKEV2_IPSEC_MSCHAPv2_TYPE = "IKEV2_IPSEC_MSCHAPv2";
+constexpr const char *IKEV2_IPSEC_PSK_TYPE = "IKEV2_IPSEC_PSK";
+constexpr const char *IKEV2_IPSEC_RSA_TYPE = "IKEV2_IPSEC_RSA";
+constexpr const char *L2TP_IPSEC_PSK_TYPE = "L2TP_IPSEC_PSK";
+constexpr const char *L2TP_IPSEC_RSA_TYPE = "L2TP_IPSEC_RSA";
+constexpr const char *IPSEC_XAUTH_PSK_TYPE = "IPSEC_XAUTH_PSK";
+constexpr const char *IPSEC_XAUTH_RSA_TYPE = "IPSEC_XAUTH_RSA";
+constexpr const char *IPSEC_HYBRID_RSA_TYPE = "IPSEC_HYBRID_RSA";
+constexpr const char *OPENVPN_TYPE = "OPENVPN";
+constexpr const char *L2TP_TYPE = "L2TP";
 #endif // SUPPORT_SYSVPN
 
 static void *MakeData(napi_env env, size_t argc, napi_value *argv, std::shared_ptr<EventManager>& manager)
@@ -119,6 +130,59 @@ static napi_value GetConnectedVpnAppInfo(napi_env env, napi_callback_info info)
     return ModuleTemplate::Interface<GetAppInfoContext>(env, info, GET_CONNECTED_VPN_APP_INFO, nullptr,
         VpnAsyncWork::ExecGetConnectedVpnAppInfo, VpnAsyncWork::GetConnectedVpnAppInfoCallback);
 }
+
+static void InitSysVpnType(napi_env env, napi_value exports)
+{
+    NapiUtils::DefineProperties(env, exports, {
+        DECLARE_NAPI_STATIC_PROPERTY(IKEV2_IPSEC_MSCHAPv2_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2))),
+        DECLARE_NAPI_STATIC_PROPERTY(IKEV2_IPSEC_PSK_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IKEV2_IPSEC_PSK))),
+        DECLARE_NAPI_STATIC_PROPERTY(IKEV2_IPSEC_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IKEV2_IPSEC_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(L2TP_IPSEC_PSK_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::L2TP_IPSEC_PSK))),
+        DECLARE_NAPI_STATIC_PROPERTY(L2TP_IPSEC_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::L2TP_IPSEC_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(IPSEC_XAUTH_PSK_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IPSEC_XAUTH_PSK))),
+        DECLARE_NAPI_STATIC_PROPERTY(IPSEC_XAUTH_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IPSEC_XAUTH_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(IPSEC_HYBRID_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IPSEC_HYBRID_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(OPENVPN_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::OPENVPN))),
+        DECLARE_NAPI_STATIC_PROPERTY(L2TP_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::L2TP))),
+    });
+
+    std::initializer_list<napi_property_descriptor> properties = {
+        DECLARE_NAPI_STATIC_PROPERTY(IKEV2_IPSEC_MSCHAPv2_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IKEV2_IPSEC_MSCHAPv2))),
+        DECLARE_NAPI_STATIC_PROPERTY(IKEV2_IPSEC_PSK_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IKEV2_IPSEC_PSK))),
+        DECLARE_NAPI_STATIC_PROPERTY(IKEV2_IPSEC_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IKEV2_IPSEC_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(L2TP_IPSEC_PSK_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::L2TP_IPSEC_PSK))),
+        DECLARE_NAPI_STATIC_PROPERTY(L2TP_IPSEC_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::L2TP_IPSEC_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(IPSEC_XAUTH_PSK_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IPSEC_XAUTH_PSK))),
+        DECLARE_NAPI_STATIC_PROPERTY(IPSEC_XAUTH_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IPSEC_XAUTH_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(IPSEC_HYBRID_RSA_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::IPSEC_HYBRID_RSA))),
+        DECLARE_NAPI_STATIC_PROPERTY(OPENVPN_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::OPENVPN))),
+        DECLARE_NAPI_STATIC_PROPERTY(L2TP_TYPE,
+            NapiUtils::CreateUint32(env, static_cast<uint32_t>(VpnType::L2TP))),
+    };
+
+    napi_value sysVpnType = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, sysVpnType, properties);
+    NapiUtils::SetNamedProperty(env, exports, ENUM_SYSVPN_TYPE, sysVpnType);
+}
 #endif // SUPPORT_SYSVPN
 
 napi_value RegisterVpnModule(napi_env env, napi_value exports)
@@ -144,6 +208,9 @@ napi_value RegisterVpnModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(DESTROY, VpnConnection::Destroy),
                                 },
                                 VPN_CONNECTION);
+#ifdef SUPPORT_SYSVPN
+    InitSysVpnType(env, exports);
+#endif // SUPPORT_SYSVPN
     NapiUtils::SetEnvValid(env);
     napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
     return exports;
