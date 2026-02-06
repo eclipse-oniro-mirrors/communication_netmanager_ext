@@ -38,9 +38,7 @@ public:
 void ExtendedVpnCtlTest::SetUpTestSuite()
 {
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    if (config == nullptr) {
-        return;
-    }
+    ASSERT_NE(config, nullptr);
     int32_t userId = 0;
     std::vector<int32_t> activeUserIds;
     vpnControl_ = std::make_unique<ExtendedVpnCtl>(config, "pkg", userId, activeUserIds);
@@ -56,9 +54,7 @@ HWTEST_F(ExtendedVpnCtlTest, SetUp002, TestSize.Level1)
     sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
     ASSERT_NE(vpnInfo, nullptr);
     sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
-    if (netAddr == nullptr) {
-        return;
-    }
+    ASSERT_NE(netAddr, nullptr);
     std::string ip = "1.1.1.1";
     netAddr->address_ = ip;
     netAddr->prefixlen_ = 1;

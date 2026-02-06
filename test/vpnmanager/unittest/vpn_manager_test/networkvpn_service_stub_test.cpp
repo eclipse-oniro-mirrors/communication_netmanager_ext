@@ -71,17 +71,12 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplySetUpVpnTest001, TestSize.Level1)
     ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     VpnConfig* config = new (std::nothrow) VpnConfig();
     EXPECT_TRUE(config != nullptr);
-    if (config == nullptr) {
-        return;
-    }
     config->isAcceptIPv4_ = false;
     config->isAcceptIPv6_ = false;
     config->isLegacy_ = false;
     config->isMetered_ = false;
     config->isBlocking_ = false;
-    if (!config->Marshalling(data)) {
-        return;
-    }
+    EXPECT_NE(config->Marshalling(data), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
@@ -122,9 +117,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterVpnEventTest001, TestSize.Level
     MessageParcel data;
     ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        return;
-    }
+    EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_REGISTER_VPN_EVENT);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -135,9 +128,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyUnregisterVpnEventTest001, TestSize.Lev
     MessageParcel data;
     ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        return;
-    }
+    EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_UNREGISTER_VPN_EVENT);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -157,9 +148,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterSharingEventTest001, TestSize.L
     MessageParcel data;
     ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        return;
-    }
+    EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_REGISTER_VPN_EVENT);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -170,9 +159,7 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyUnregisterSharingEventTest001, TestSize
     MessageParcel data;
     ASSERT_NE(data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor()), false);
     sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        return;
-    }
+    EXPECT_NE(data.WriteRemoteObject(callback->AsObject()), false);
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_UNREGISTER_VPN_EVENT);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
