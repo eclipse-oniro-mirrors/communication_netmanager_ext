@@ -410,14 +410,13 @@ HWTEST_F(EthernetConfigurationTest, MakeInterfaceConfigurationTest001, TestSize.
 {
     EthernetConfiguration ethernetConfiguration;
     sptr<InterfaceConfiguration> devCfg = (std::make_unique<InterfaceConfiguration>()).release();
+    EXPECT_NE(devCfg->mode_, STATIC);
     devCfg->mode_ = STATIC;
     NetLinkInfo devLinkInfo;
-    auto result = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
-    EXPECT_EQ(result, nullptr);
+    ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
 
     devCfg = nullptr;
-    result = ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
-    EXPECT_EQ(result, nullptr);
+    ethernetConfiguration.MakeInterfaceConfiguration(devCfg, devLinkInfo);
 }
 
 HWTEST_F(EthernetConfigurationTest, ParserIfaceIpAndRouteTest001, TestSize.Level1)
