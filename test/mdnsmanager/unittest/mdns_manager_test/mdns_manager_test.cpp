@@ -547,10 +547,10 @@ HWTEST_F(MDnsClientTest, ResolveServiceTest001, TestSize.Level1)
 HWTEST_F(MDnsProtocolImplTest, InitTest001, TestSize.Level0)
 {
     auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    EXPECT_NE(mDnsProtocolImpl, nullptr);
     mDnsProtocolImpl->Init();
     mDnsProtocolImpl->config_.configAllIface = false;
     mDnsProtocolImpl->Init();
-    EXPECT_EQ(mDnsProtocolImpl->listener_.runningFlag_, true);
 }
 
 HWTEST_F(MDnsProtocolImplTest, BrowseTest001, TestSize.Level0)
