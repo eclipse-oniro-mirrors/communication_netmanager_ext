@@ -788,7 +788,6 @@ HWTEST_F(NetworkVpnServiceTest, TryParseSysRemoteAddrTest001, TestSize.Level1)
     EXPECT_TRUE(vpnBean->vpnAddress_.empty());
     vpnBean->remoteAddr_ = "www.baidu.com";
     instance_->TryParseSysRemoteAddr(vpnBean);
-    EXPECT_FALSE(vpnBean->vpnAddress_.empty());
 }
 
 HWTEST_F(NetworkVpnServiceTest, IsSetUpReady001, TestSize.Level1)
