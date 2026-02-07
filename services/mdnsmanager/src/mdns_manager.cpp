@@ -113,7 +113,7 @@ int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const 
     }
 
     {
-        std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
+        std::unique_lock<std::shared_mutex> guard(discoveryMutex_);
         if (discoveryMap_.find(cb) != discoveryMap_.end()) {
             return NET_MDNS_ERR_CALLBACK_DUPLICATED;
         }
@@ -131,7 +131,7 @@ int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
     }
     std::string key;
     {
-        std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
+        std::unique_lock<std::shared_mutex> guard(discoveryMutex_);
         auto local = discoveryMap_.find(cb);
         if (local == discoveryMap_.end()) {
             return NET_MDNS_ERR_CALLBACK_NOT_FOUND;
@@ -145,8 +145,10 @@ int32_t MDnsManager::StopDiscoverService(const sptr<IDiscoveryCallback> &cb)
 void MDnsManager::RestartDiscoverService()
 {
     NETMGR_EXT_LOG_D("mdns_log RestartDiscoverService");
-    std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
-    for (const auto &it : discoveryMap_) {
+    std::shared_lock<std::shared_mutex> guard(discoveryMutex_);
+    std::map<sptr<IDiscoveryCallback>, std::string, CompareSmartPointer> discoveryMap = discoveryMap_;
+    guard.unlock();
+    for (const auto &it : discoveryMap) {
         auto cb = it.first;
         if (cb == nullptr || cb->AsObject() == nullptr) {
             NETMGR_EXT_LOG_E("mdns_log callback is nullptr");
@@ -184,7 +186,7 @@ void MDnsManager::GetDumpMessage(std::string &message)
 
 bool MDnsManager::IsAvailableCallback(const sptr<IDiscoveryCallback> &cb)
 {
-    std::lock_guard<std::recursive_mutex> guard(discoveryMutex_);
+    std::shared_lock<std::shared_mutex> guard(discoveryMutex_);
     return cb != nullptr && discoveryMap_.find(cb) != discoveryMap_.end();
 }
 // LCOV_EXCL_STOP
