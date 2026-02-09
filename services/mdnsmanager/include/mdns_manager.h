@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <shared_mutex>
 
 #include "parcel.h"
 
@@ -65,7 +66,7 @@ private:
     std::map<sptr<IRegistrationCallback>, std::string, CompareSmartPointer> registerMap_;
     std::map<sptr<IDiscoveryCallback>, std::string, CompareSmartPointer> discoveryMap_;
     std::recursive_mutex registerMutex_;
-    std::recursive_mutex discoveryMutex_;
+    std::shared_mutex discoveryMutex_;
 };
 
 } // namespace NetManagerStandard
