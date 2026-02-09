@@ -99,6 +99,10 @@ export default struct ConfirmDialog {
                 deviceId: '',
                 bundleName: bundleName,
                 abilityName: abilityName,
+                parameters: {
+                  callingUid: globalThis.vpnCallingUid,
+                  callingPid: globalThis.vpnCallingPid,
+                },
               };
               vpnext.startVpnExtensionAbility(want);
               this.destruction();
@@ -150,4 +154,4 @@ struct IndexHapComponent {
 
   build() {
   }
-}
+}

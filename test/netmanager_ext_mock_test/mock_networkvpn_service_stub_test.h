@@ -146,7 +146,12 @@ public:
         return 0;
     }
 
-    int32_t SetSelfVpnPid() override
+    int32_t StartVpnExtensionAbility(const AAFwk::Want& want) override
+    {
+        return 0;
+    }
+
+    int32_t StopVpnExtensionAbility(const AAFwk::Want& want) override
     {
         return 0;
     }
