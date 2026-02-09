@@ -272,6 +272,7 @@ void DevInterfaceState::UpdateLinkInfo()
             route.iface_ = devName_;
             route.destination_ = netAddr;
             route.destination_.type_ = GetIpType(netAddr.address_);
+            route.destination_.family_ = route.destination_.type_;
             GetTargetNetAddrWithSameFamily(netAddr.address_, ifCfg_->ipStatic_.gatewayList_, route.gateway_);
             linkInfo_->routeList_.push_back(route);
         }
@@ -283,6 +284,7 @@ void DevInterfaceState::UpdateLinkInfo()
         if (dnsServer.address_.empty()) {
             continue;
         }
+        dnsServer.family_ = GetIpType(dnsServer.address_);
         linkInfo_->dnsList_.push_back(dnsServer);
     }
     linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
@@ -539,6 +541,7 @@ void DevInterfaceState::CreateDefaultRoute(
         }
         route.destination_.type_ = ipType;
         route.destination_.prefixlen_ = 0;
+        route.destination_.family_ = route.destination_.type_;
         route.gateway_.family_ = ipType;
         route.gateway_.address_ = gateway.address_;
         // no need to add lock for linkInfo_, the func is called by UpdateLinkInfo, have locked allready.
