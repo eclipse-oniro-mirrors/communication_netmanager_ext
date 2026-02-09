@@ -282,17 +282,20 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
         route.address_ = (ipAddr.family_ == AF_INET6) ? DEFAULT_IPV6_ADDR : DEFAULT_IPV4_ADDR;
         route.prefixlen_ = 0;
     }
-    route.family_ = static_cast<uint8_t>(CommonUtils::GetAddrFamily(route.address_));
+    route.family_ = (CommonUtils::GetAddrFamily(route.address_) == AF_INET) ? INetAddr::IpType::IPV4 :
+        INetAddr::IpType::IPV6;
     config.routeList_.push_back(route);
 
     INetAddr dnsNet1;
     dnsNet1.type_ = (CommonUtils::GetAddrFamily(dhcpResult.dns1)) ? INetAddr::IpType::IPV6 :
         INetAddr::IpType::IPV4;
     dnsNet1.address_ = dhcpResult.dns1;
+    dnsNet1.family_ = dnsNet1.type_;
     INetAddr dnsNet2;
     dnsNet2.type_ = (CommonUtils::GetAddrFamily(dhcpResult.dns2)) ? INetAddr::IpType::IPV6 :
         INetAddr::IpType::IPV4;
     dnsNet2.address_ = dhcpResult.dns2;
+    dnsNet2.family_ = dnsNet2.type_;
     config.dnsServers_.push_back(dnsNet1);
     config.dnsServers_.push_back(dnsNet2);
     return true;
