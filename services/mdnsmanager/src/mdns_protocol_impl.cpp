@@ -320,6 +320,7 @@ int32_t MDnsProtocolImpl::Register(const Result &info)
         }
         srvMap_.emplace(name, info);
     }
+    listener_.Start();
     return Announce(info, false);
 }
 
