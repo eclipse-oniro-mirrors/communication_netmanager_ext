@@ -142,6 +142,20 @@ HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.RegisterVpnEvent(callback_), NETMANAGER_EXT_ERR_LOCAL_PTR_NULL);
 }
 
+HWTEST_F(NetworkVpnClientTest, StartVpnExtensionAbilityTest_01, TestSize.Level1)
+{
+    OHOS::AAFwk::Want want;
+    int32_t result = networkVpnClient_.StartVpnExtensionAbility(want);
+    EXPECT_NE(result, ERR_OK);
+}
+
+HWTEST_F(NetworkVpnClientTest, StopVpnExtensionAbilityTest_01, TestSize.Level1)
+{
+    OHOS::AAFwk::Want want;
+    int32_t result = networkVpnClient_.StopVpnExtensionAbility(want);
+    EXPECT_NE(result, ERR_OK);
+}
+
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent002, TestSize.Level1)
 {
     NetManagerExtAccessToken access;

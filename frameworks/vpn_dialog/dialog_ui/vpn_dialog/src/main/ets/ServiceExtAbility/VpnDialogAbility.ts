@@ -50,6 +50,8 @@ export default class VpnDialogAbility extends extension {
     if (want && want.parameters && want.parameters.appName) {
       console.info('onCreate is triggered calling bundleName' + want.parameters.appName);
       globalThis.vpnCallingAppName = want.parameters.appName;
+      globalThis.vpnCallingPid = want.parameters['ohos.aafwk.param.callerPid'];
+      globalThis.vpnCallingUid = want.parameters['ohos.aafwk.param.callerUid'];
     }
     this.windowNum = 0;
   }

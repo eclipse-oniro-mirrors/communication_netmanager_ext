@@ -2018,14 +2018,45 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string 
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::SetSelfVpnPid()
+int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
 {
+    auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
+    if (abilityManager == nullptr) {
+        NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     int32_t uid = IPCSkeleton::GetCallingUid();
     int32_t pid = IPCSkeleton::GetCallingPid();
-    std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
-    setVpnPidMap_.emplace(uid, pid);
-    NETMGR_EXT_LOG_I("SetSelfVpnPid uid: %{public}d, pid: %{public}d", uid, pid);
-    return NETMANAGER_EXT_SUCCESS;
+    // check if uid is vpnDialog
+    if (NetManagerPermission::IsSystemCaller()) {
+        uid = want.GetIntParam("callingUid", -1);
+        pid = want.GetIntParam("callingPid", -1);
+    }
+    if (uid == -1 || pid == -1) {
+        NETMGR_EXT_LOG_E("Failed to get caller uid or pid");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    {
+        std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
+        setVpnPidMap_.emplace(uid, pid);
+        NETMGR_EXT_LOG_I("SetSelfVpnPid uid: %{public}d, pid: %{public}d", uid, pid);
+    }
+    auto err = abilityManager->StartExtensionAbility(
+        want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+    return err;
+}
+
+int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
+{
+    auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
+    if (abilityManager == nullptr) {
+        NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    ErrCode err = abilityManager->StopExtensionAbility(
+        want, nullptr, INVALID_CODE, AppExecFwk::ExtensionAbilityType::VPN);
+    return err;
 }
 
 // LCOV_EXCL_START

@@ -698,6 +698,13 @@ HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest001, TestSize.Level1)
     EXPECT_FALSE(instance_->IsCurrentVpnPid(uid, pid, isMainProc));
 }
 
+HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
+{
+    OHOS::AAFwk::Want want;
+    EXPECT_NE(instance_->StartVpnExtensionAbility(want), ERR_OK);
+    EXPECT_NE(instance_->StopVpnExtensionAbility(want), ERR_OK);
+}
+
 HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest001, TestSize.Level1)
 {
     std::string vpnId = "";

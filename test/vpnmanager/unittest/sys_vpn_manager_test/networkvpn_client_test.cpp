@@ -347,16 +347,6 @@ HWTEST_F(NetworkVpnClientTest, GetSelfAppNameTest_01, TestSize.Level1)
     EXPECT_TRUE(selfBundleName.empty());
 }
 
-HWTEST_F(NetworkVpnClientTest, SetSelfVpnPidTest_01, TestSize.Level1)
-{
-    NetworkVpnClient networkVpnClient;
-
-    int32_t result = networkVpnClient.SetSelfVpnPid();
-
-    // 验证返回值是否为成功
-    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
-}
-
 HWTEST_F(NetworkVpnClientTest, GetConnectedVpnAppInfo_01, TestSize.Level1)
 {
     std::vector<std::string> bundleNameList;

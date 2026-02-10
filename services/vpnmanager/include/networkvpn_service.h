@@ -29,10 +29,13 @@
 #include "common_event_manager.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
+#include "ability_connect_callback_interface.h"
+#include "ability_connect_callback_stub.h"
 #include "application_state_observer_stub.h"
 #include "app_mgr_client.h"
 #include "cJSON.h"
 #include "ffrt.h"
+#include "netmanager_ext_log.h"
 #ifdef SUPPORT_SYSVPN
 #include "ipsec_vpn_ctl.h"
 #include "vpn_database_helper.h"
@@ -235,7 +238,9 @@ public:
 
     int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName) override;
 
-    int32_t SetSelfVpnPid() override;
+    int32_t StartVpnExtensionAbility(const AAFwk::Want& want) override;
+
+    int32_t StopVpnExtensionAbility(const AAFwk::Want& want) override;
 
     bool IsVpnApplication(int32_t uid);
     bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid);
@@ -378,6 +383,18 @@ public:
         std::string bundleName_;
         std::string abilityName_;
         bool hasAbilityName_ = false;
+    };
+    class VpnAbilityConnect : public AAFwk::AbilityConnectionStub {
+    public:
+        void OnAbilityConnectDone(const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject,
+                                  int32_t resultCode) override
+        {
+            NETMANAGER_EXT_LOGI("connect done");
+        }
+        void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override
+        {
+            NETMANAGER_EXT_LOGI("disconnect done");
+        }
     };
 private:
     class VpnAppDeathRecipient : public IRemoteObject::DeathRecipient {

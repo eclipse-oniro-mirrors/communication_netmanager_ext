@@ -294,8 +294,10 @@ public:
 
     int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName);
 
-    int32_t SetSelfVpnPid();
     void SetVpnSaState(bool state);
+
+    int32_t StartVpnExtensionAbility(AAFwk::Want want);
+    int32_t StopVpnExtensionAbility(AAFwk::Want want);
 
 private:
     class MonitorVpnServiceDead : public IRemoteObject::DeathRecipient {

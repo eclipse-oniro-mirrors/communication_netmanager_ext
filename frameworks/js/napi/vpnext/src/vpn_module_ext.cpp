@@ -248,7 +248,6 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     std::string selfBundleName;
     NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName, selfBundleName);
     if (selfBundleName != VPN_DIALOG_BUNDLENAME || abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
-        NetworkVpnClient::GetInstance().SetSelfVpnPid();
         napi_value retVal = ProcessPermissionRequests(env, bundleName, abilityName);
         if (retVal != nullptr) {
             return retVal;
@@ -262,8 +261,7 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
             "persist.edm.vpn_disable disallowed setting up vpn");
         return CreateRejectedPromise(env);
     }
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
-        want, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
+    auto err = NetworkVpnClient::GetInstance().StartVpnExtensionAbility(want);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
     hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, err);
     if (err == 0) {
@@ -289,7 +287,6 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
     AAFwk::Want want;
-    int32_t accountId = -1;
     if (!AppExecFwk::UnwrapWant(env, argv[0], want)) {
         NETMANAGER_EXT_LOGE("Failed to parse want");
         napi_throw_error(env, std::to_string(NETMANAGER_EXT_ERR_PARAMETER_ERROR).c_str(), "Parse want error");
@@ -320,8 +317,7 @@ napi_value StopVpnExtensionAbility(napi_env env, napi_callback_info info)
         return CreateRejectedPromise(env);
     }
 
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
-        want, nullptr, accountId, AppExecFwk::ExtensionAbilityType::VPN);
+    auto err = NetworkVpnClient::GetInstance().StopVpnExtensionAbility(want);
     NETMANAGER_EXT_LOGI("execute StopExtensionAbility result: %{public}d", err);
     hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, err);
     return CreateResolvedPromise(env);
