@@ -2026,7 +2026,7 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
- 	int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t pid = IPCSkeleton::GetCallingPid();
     // check if uid is vpnDialog
     if (NetManagerPermission::IsSystemCaller()) {
         uid = want.GetIntParam("callingUid", -1);
