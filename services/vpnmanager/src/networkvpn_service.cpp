@@ -149,7 +149,7 @@ bool NetworkVpnService::Init()
 
     RegisterFactoryResetCallback();
 
-    serviceIface_ = sptr<NetworkVpnServiceIface>::MakeSptr();
+    serviceIface_ = std::make_shared<NetworkVpnServiceIface>();
     NetManagerCenter::GetInstance().RegisterVpnService(serviceIface_);
 
     return true;
@@ -1766,6 +1766,12 @@ int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> 
     return NETMANAGER_EXT_ERR_OPERATION_FAILED;
 }
 
+void NetworkVpnService::NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName)
+{
+    std::unique_lock<std::shared_mutex> lock(allowConnectVpnBundleNameMutex_);
+    allowConnectVpnBundleName_ = std::move(allowConnectVpnBundleName);
+}
+
 void NetworkVpnService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
     NETMGR_EXT_LOG_D("NetworkVpnService::OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
@@ -2021,6 +2027,7 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string 
 int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
 {
     auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
+    // LCOV_EXCL_START
     if (abilityManager == nullptr) {
         NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -2036,11 +2043,23 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         NETMGR_EXT_LOG_E("Failed to get caller uid or pid");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    {
-        std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
-        setVpnPidMap_.emplace(uid, pid);
-        NETMGR_EXT_LOG_I("SetSelfVpnPid uid: %{public}d, pid: %{public}d", uid, pid);
+    auto vpnBundleName = want.GetElement().GetBundleName();
+    std::shared_lock<std::shared_mutex> allowConnectVpnBundleNameLock(allowConnectVpnBundleNameMutex_);
+    if (allowConnectVpnBundleName_.find(vpnBundleName) != allowConnectVpnBundleName_.end()) {
+        auto abilityConnection = sptr<NetworkVpnService::VpnAbilityConnect>::MakeSptr();
+        auto ret = abilityManager->ConnectAbilityWithExtensionType(want,
+            abilityConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+        if (ret != ERR_OK) {
+            NETMGR_EXT_LOG_E("ConnectAbilityWithExtensionType failed");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
     }
+    allowConnectVpnBundleNameLock.unlock();
+    // LCOV_EXCL_STOP
+    std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
+    setVpnPidMap_.emplace(uid, pid);
+    lock.unlock();
+    NETMGR_EXT_LOG_I("SetSelfVpnPid uid: %{public}d, pid: %{public}d", uid, pid);
     auto err = abilityManager->StartExtensionAbility(
         want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
     return err;
@@ -2049,10 +2068,12 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
 int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
 {
     auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
+    // LCOV_EXCL_START
     if (abilityManager == nullptr) {
         NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
 
     ErrCode err = abilityManager->StopExtensionAbility(
         want, nullptr, INVALID_CODE, AppExecFwk::ExtensionAbilityType::VPN);
