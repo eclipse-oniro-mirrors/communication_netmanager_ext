@@ -923,6 +923,9 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
     std::string vpnBundleName = GetBundleName();
+    if (!CheckSystemCall(vpnBundleName)) {
+        return NETMANAGER_ERR_NOT_SYSTEM_CALL;
+    }
     if (!CheckVpnPermission(vpnBundleName)) {
         NETMGR_EXT_LOG_E("check permission failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
