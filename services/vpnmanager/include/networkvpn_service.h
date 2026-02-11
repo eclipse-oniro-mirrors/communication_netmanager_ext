@@ -245,6 +245,8 @@ public:
     bool IsVpnApplication(int32_t uid);
     bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid);
 
+    void NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName);
+
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -428,7 +430,9 @@ private:
     std::map<int32_t, int32_t> setVpnPidMap_;
     int32_t currSetUpVpnPid_ = 0;
     std::set<std::string> currentVpnAbilityName_;
-    sptr<NetworkVpnServiceIface> serviceIface_ = nullptr;
+    std::shared_mutex allowConnectVpnBundleNameMutex_;
+    std::set<std::string> allowConnectVpnBundleName_;
+    std::shared_ptr<NetworkVpnServiceIface> serviceIface_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

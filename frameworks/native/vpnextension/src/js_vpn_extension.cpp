@@ -32,6 +32,7 @@
 #include "napi_common_configuration.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "napi_utils.h"
 #ifdef SUPPORT_GRAPHICS
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -45,6 +46,7 @@ namespace NetManagerStandard {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr uint32_t UID_NET_MANAGER = 1099;
 }
 
 namespace {
@@ -333,6 +335,12 @@ sptr<IRemoteObject> JsVpnExtension::OnConnect(const AAFwk::Want &want,
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
     napi_value result = CallOnConnect(want);
+    // LCOV_EXCL_START
+    if (NapiUtils::GetValueType(env, result) == napi_undefined &&
+        want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1) == UID_NET_MANAGER) {
+        return static_cast<sptr<IRemoteObject>>(new IPCObjectStub());
+    }
+    // LCOV_EXCL_STOP
     bool isPromise = CheckPromise(result);
     if (!isPromise) {
         isAsyncCallback = false;

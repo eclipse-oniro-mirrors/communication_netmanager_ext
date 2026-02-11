@@ -26,6 +26,7 @@ class NetworkVpnServiceIface : public NetVpnBaseService {
 public:
     bool IsVpnApplication(int32_t uid) override;
     bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid) override;
+    void NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName) override;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
