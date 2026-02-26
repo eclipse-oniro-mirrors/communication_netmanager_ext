@@ -470,6 +470,9 @@ int32_t NetworkShareTracker::IsSharing(int32_t &sharingStatus)
 
 int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
 {
+    if (static_cast<uint32_t>(type) > static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH)) {
+        return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
+    }
     NETMGR_EXT_LOG_I("NetworkShare start sharing,clientRequestsBitMask_ = %{public}u.", clientRequestsBitMask_);
     if (clientRequestsBitMask_ & (1U << static_cast<uint32_t>(type))) {
         NETMGR_EXT_LOG_I("type[%{public}d] is sharing, will close", type);
@@ -486,6 +489,9 @@ int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
 
 int32_t NetworkShareTracker::StopNetworkSharing(const SharingIfaceType &type)
 {
+    if (static_cast<uint32_t>(type) > static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH)) {
+        return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
+    }
     NETMGR_EXT_LOG_I("NetworkShare stop sharing,clientRequestsBitMask_ = %{public}u.", clientRequestsBitMask_);
     clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
     return EnableNetSharingInternal(type, false);
