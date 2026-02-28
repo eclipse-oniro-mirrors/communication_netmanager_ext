@@ -1738,7 +1738,7 @@ int32_t NetworkVpnService::SyncRegisterVpnEvent(const sptr<IVpnEventCallback> ca
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     // LCOV_EXCL_START
-    if (!IsSelfCall() && !AddClientDeathRecipient(callback)) {
+    if (!IsSelfCall() && !NetManagerPermission::IsSystemCaller() && !AddClientDeathRecipient(callback)) {
         NETMGR_EXT_LOG_E("add death recipient failed.");
         return NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
