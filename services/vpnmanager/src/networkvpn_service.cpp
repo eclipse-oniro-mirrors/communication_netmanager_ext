@@ -131,6 +131,10 @@ bool NetworkVpnService::Init()
         NETMGR_EXT_LOG_E("Register to local sa manager failed");
         return false;
     }
+
+    serviceIface_ = std::make_shared<NetworkVpnServiceIface>();
+    NetManagerCenter::GetInstance().RegisterVpnService(serviceIface_);
+
     if (!isServicePublished_) {
         if (!Publish(DelayedSingleton<NetworkVpnService>::GetInstance().get())) {
             NETMGR_EXT_LOG_E("Register to sa manager failed");
@@ -148,10 +152,6 @@ bool NetworkVpnService::Init()
     }
 
     RegisterFactoryResetCallback();
-
-    serviceIface_ = std::make_shared<NetworkVpnServiceIface>();
-    NetManagerCenter::GetInstance().RegisterVpnService(serviceIface_);
-
     return true;
 }
 // LCOV_EXCL_STOP
