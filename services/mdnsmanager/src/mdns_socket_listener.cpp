@@ -202,6 +202,7 @@ MDnsSocketListener::~MDnsSocketListener()
 
 void MDnsSocketListener::Start()
 {
+    std::lock_guard<std::mutex> lock (mutex_);
     if (!runningFlag_) {
         runningFlag_ = true;
         thread_ = std::thread([this]() { Run(); });
