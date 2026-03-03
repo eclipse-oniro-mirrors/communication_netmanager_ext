@@ -2227,8 +2227,8 @@ void NetworkVpnService::ClearCurrentVpnUserInfo(int32_t uid, bool fromSetupVpn)
     currentVpnBundleName_ = "";
     currentVpnAbilityName_.clear();
     std::unique_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
-    NETMGR_EXT_LOG_I("ClearCurrentVpnUserInfo clear %{public}d", uid);
-    if (!fromSetupVpn) {
+    NETMGR_EXT_LOG_I("ClearCurrentVpnUserInfo clear %{public}d, fromSetupVpn %{public}d", uid, fromSetupVpn);
+    if (fromSetupVpn) {
         setVpnPidMap_.erase(uid);
     }
 }
@@ -2277,7 +2277,7 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     }
     vpnService_.UnregVpnHpObserver(this);
     // at present, any observer without abilityname is created by setUpVpn()
-    vpnService_.ClearCurrentVpnUserInfo(processData.uid, !hasAbilityName_);
+    vpnService_.ClearCurrentVpnUserInfo(processData.uid, isMainProc);
 }
 
 // LCOV_EXCL_START
