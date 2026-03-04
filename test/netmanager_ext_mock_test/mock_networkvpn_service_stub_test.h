@@ -136,11 +136,6 @@ public:
         return 0;
     }
 
-    int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName) override
-    {
-        return 0;
-    }
-
     int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName) override
     {
         return 0;
