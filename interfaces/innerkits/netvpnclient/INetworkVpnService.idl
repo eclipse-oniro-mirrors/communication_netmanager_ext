@@ -26,7 +26,6 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     void UnregisterVpnEvent([in] IVpnEventCallback callbackparam);
     void CreateVpnConnection([in] boolean isVpnExtCall);
     void FactoryResetVpn();
-    void RegisterBundleName([in] String bundleName, [in] String abilityName);
     void GetSelfAppName([out] String selfAppName, [out] String selfBundleName);
     void StartVpnExtensionAbility([in] Want want);
     void StopVpnExtensionAbility([in] Want want);

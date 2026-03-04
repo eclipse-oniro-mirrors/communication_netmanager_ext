@@ -330,6 +330,10 @@ private:
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId, int32_t userId);
 #endif
     bool IsDistributedModemSharingVpn();
+    int32_t CheckPermission(int32_t uid, const std::string &bundleName, std::string &vpnExtMode);
+    int32_t GetAppInfoByUid(int32_t uid, std::string &selfAppName, std::string &selfBundleName);
+    int32_t EnforceVpnPermission(const AAFwk::Want &want, int32_t uid);
+    int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -367,7 +371,6 @@ private:
     sptr<INetFactoryResetCallback> netFactoryResetCallback_ = nullptr;
 
 public:
-    int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName) override;
     class VpnHapObserver : public AppExecFwk::ApplicationStateObserverStub {
     public:
         explicit VpnHapObserver(NetworkVpnService &vpnService, const std::string &bundleName)
