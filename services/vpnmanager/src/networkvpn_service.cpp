@@ -2032,50 +2032,14 @@ int32_t NetworkVpnService::GetAppInfoByUid(int32_t uid, std::string &selfAppName
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::CheckPermission(int32_t uid, const std::string &bundleName, std::string &vpnExtMode)
-{
-#ifdef SUPPORT_SYSVPN
-    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
-        NETMANAGER_EXT_LOGE("checkPermission::GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
-        return -1;
-    }
-    NETMANAGER_EXT_LOGI("checkPermission uid: %{public}d, userid: %{public}d", uid, userId);
-    std::string key = bundleName + "_" + std::to_string(userId);
-    int32_t ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
-    if (ret != 0 || vpnExtMode != "1") {
-        ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-        if (ret != 0 || vpnExtMode != "1") {
-            NETMANAGER_EXT_LOGE("checkPermission Query error, err = %{public}d", ret);
-            return -1;
-        }
-    }
-    return 0;
-#else
-    return NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
-#endif
-}
-
-int32_t NetworkVpnService::EnforceVpnPermission(const AAFwk::Want &want, int32_t uid)
+bool NetworkVpnService::IsWantBuindleNameValid(const AAFwk::Want &want, int32_t uid)
 {
     // Check if want is started from the same bundle name
     std::string callingAppName;
     std::string callingBundleName;
     GetAppInfoByUid(uid, callingAppName, callingBundleName);
     std::string wantBundleName = want.GetElement().GetBundleName();
-    if (callingBundleName != wantBundleName) {
-        NETMANAGER_EXT_LOGE("Start other bundleName vpn is prohibited!");
-        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-    }
-    // query database to confirm the permission
-    std::string vpnExtMode("0");
-    int32_t ret = CheckPermission(uid, callingBundleName, vpnExtMode);
-    if (ret != 0) {
-        NETMANAGER_EXT_LOGE("Query permission for %{public}s failed",
-            callingBundleName.c_str());
-        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-    }
-    return NETMANAGER_EXT_SUCCESS;
+    return callingBundleName == wantBundleName;
 }
 
 int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
@@ -2097,7 +2061,12 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         NETMGR_EXT_LOG_E("Failed to get caller uid or pid");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (EnforceVpnPermission(want, uid) != NETMANAGER_EXT_SUCCESS) {
+    if (!IsWantBuindleNameValid(want, uid)) {
+        NETMGR_EXT_LOG_I("StartVpnExtensionAbility not allowed to start ability with different bundle name");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    if (CheckVpnExtPermission(want.GetElement().GetBundleName()) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartVpnExtensionAbility permission check failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     auto vpnBundleName = want.GetElement().GetBundleName();
@@ -2140,7 +2109,12 @@ int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
     // LCOV_EXCL_STOP
 
     int32_t uid = IPCSkeleton::GetCallingUid();
-    if (EnforceVpnPermission(want, uid) != NETMANAGER_EXT_SUCCESS) {
+    if (!IsWantBuindleNameValid(want, uid)) {
+        NETMGR_EXT_LOG_I("StopVpnExtensionAbility not allowed to stop ability with different bundle name");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    if (CheckVpnExtPermission(want.GetElement().GetBundleName()) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("StopVpnExtensionAbility permission check failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
