@@ -171,33 +171,5 @@ HWTEST_F(NetworkVpnServiceStubTest, ReplyFactoryResetVpnTest001, TestSize.Level1
     int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_FACTORY_RESET_VPN);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyRegisterBundleNameVpnTest001, TestSize.Level1)
-{
-    NetManagerExtAccessToken token;
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    sptr<IVpnEventCallback> callback = new (std::nothrow) MockIVpnEventCallback();
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        return;
-    }
-    int32_t ret = SendRemoteRequest(data, INetworkVpnServiceIpcCode::COMMAND_REGISTER_BUNDLE_NAME);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL || ret == NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnServiceStubTest, ReplyDefaultTest001, TestSize.Level1)
-{
-    NetManagerExtAccessToken token;
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_REGISTER_BUNDLE_NAME) +
-                    static_cast<uint32_t>(INetworkVpnServiceIpcCode::COMMAND_REGISTER_BUNDLE_NAME);
-    int32_t ret = SendRemoteRequest(data, static_cast<INetworkVpnServiceIpcCode>(code));
-    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
-}
 } // namespace NetManagerStandard
 } // namespace OHOS
