@@ -2066,7 +2066,6 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     if (CheckVpnExtPermission(want.GetElement().GetBundleName()) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("StartVpnExtensionAbility permission check failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     auto vpnBundleName = want.GetElement().GetBundleName();
