@@ -2032,7 +2032,7 @@ int32_t NetworkVpnService::GetAppInfoByUid(int32_t uid, std::string &selfAppName
     return NETMANAGER_EXT_SUCCESS;
 }
 
-bool NetworkVpnService::IsWantBuindleNameValid(const AAFwk::Want &want, int32_t uid)
+bool NetworkVpnService::IsWantBundleNameValid(const AAFwk::Want &want, int32_t uid)
 {
     // Check if want is started from the same bundle name
     std::string callingAppName;
@@ -2061,7 +2061,7 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         NETMGR_EXT_LOG_E("Failed to get caller uid or pid");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (!IsWantBuindleNameValid(want, uid)) {
+    if (!IsWantBundleNameValid(want, uid)) {
         NETMGR_EXT_LOG_I("StartVpnExtensionAbility not allowed to start ability with different bundle name");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
@@ -2109,7 +2109,7 @@ int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
     // LCOV_EXCL_STOP
 
     int32_t uid = IPCSkeleton::GetCallingUid();
-    if (!IsWantBuindleNameValid(want, uid)) {
+    if (!IsWantBundleNameValid(want, uid)) {
         NETMGR_EXT_LOG_I("StopVpnExtensionAbility not allowed to stop ability with different bundle name");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
