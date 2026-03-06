@@ -41,8 +41,7 @@
             "netmanager_ext_share_traffic_limit_enable",
             "netmanager_ext_feature_networkslice",
             "netmanager_ext_extensible_authentication",
-            "netmanager_ext_share_notification_enable",
-            "netmanager_ext_build_oz"
+            "netmanager_ext_share_notification_enable"
         ],
         "adapted_system_type": [
             "standard"
