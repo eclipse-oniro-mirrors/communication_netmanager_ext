@@ -82,8 +82,7 @@ common_cflags = [
   "-D_FORTIFY_SOURCE=2",
   "-fdata-sections",
   "-ffunction-sections",
-  "-Os",
-  "-O2",
+  "-Oz",
 ]
 
 memory_optimization_cflags = [
