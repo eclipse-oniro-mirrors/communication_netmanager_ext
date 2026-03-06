@@ -2037,7 +2037,9 @@ bool NetworkVpnService::IsWantBundleNameValid(const AAFwk::Want &want, int32_t u
     // Check if want is started from the same bundle name
     std::string callingAppName;
     std::string callingBundleName;
-    GetAppInfoByUid(uid, callingAppName, callingBundleName);
+    if (GetAppInfoByUid(uid, callingAppName, callingBundleName) != NETMANAGER_EXT_SUCCESS) {
+        return false;
+    }
     std::string wantBundleName = want.GetElement().GetBundleName();
     return callingBundleName == wantBundleName;
 }
@@ -2065,7 +2067,7 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         NETMGR_EXT_LOG_I("StartVpnExtensionAbility not allowed to start ability with different bundle name");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    if (CheckVpnExtPermission(want.GetElement().GetBundleName()) != NETMANAGER_EXT_SUCCESS) {
+    if (!CheckVpnExtPermission(want.GetElement().GetBundleName())) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     auto vpnBundleName = want.GetElement().GetBundleName();
@@ -2112,7 +2114,7 @@ int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
         NETMGR_EXT_LOG_I("StopVpnExtensionAbility not allowed to stop ability with different bundle name");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    if (CheckVpnExtPermission(want.GetElement().GetBundleName()) != NETMANAGER_EXT_SUCCESS) {
+    if (!CheckVpnExtPermission(want.GetElement().GetBundleName())) {
         NETMGR_EXT_LOG_E("StopVpnExtensionAbility permission check failed");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
