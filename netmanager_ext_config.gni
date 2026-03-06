@@ -74,17 +74,29 @@ declare_args() {
   netmanager_ext_share_traffic_limit_enable = false
   netmanager_ext_extensible_authentication = false
   netmanager_ext_feature_networkslice = false
+  netmanager_ext_build_oz = false
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]
 
-common_cflags = [
-  "-D_FORTIFY_SOURCE=2",
-  "-fdata-sections",
-  "-ffunction-sections",
-  "-Os",
-  "-O2",
-]
+common_cflags = []
+ 
+if (netmanager_ext_build_oz){
+    common_cflags += [
+      "-D_FORTIFY_SOURCE=2",
+      "-fdata-sections",
+      "-ffunction-sections",
+      "-Oz",
+    ]
+} else {
+    common_cflags += [
+      "-D_FORTIFY_SOURCE=2",
+      "-fdata-sections",
+      "-ffunction-sections",
+      "-Os",
+      "-O2",
+    ]
+}
 
 memory_optimization_cflags = [
   "-fvisibility=hidden",
