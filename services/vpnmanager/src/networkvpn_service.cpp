@@ -1985,6 +1985,12 @@ int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName, con
 
 int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string &selfBundleName)
 {
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    return GetAppInfoByUid(uid, selfAppName, selfBundleName);
+}
+
+int32_t NetworkVpnService::GetAppInfoByUid(int32_t uid, std::string &selfAppName, std::string &selfBundleName)
+{
     std::string bundleName;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
@@ -2001,7 +2007,6 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string 
         NETMGR_EXT_LOG_E("bundle manager service is NULL.");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    int32_t uid = IPCSkeleton::GetCallingUid();
     auto result = bms->GetNameForUid(uid, bundleName);
     if (result != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
@@ -2027,6 +2032,18 @@ int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string 
     return NETMANAGER_EXT_SUCCESS;
 }
 
+bool NetworkVpnService::IsWantBundleNameValid(const AAFwk::Want &want, int32_t uid)
+{
+    // Check if want is started from the same bundle name
+    std::string callingAppName;
+    std::string callingBundleName;
+    if (GetAppInfoByUid(uid, callingAppName, callingBundleName) != NETMANAGER_EXT_SUCCESS) {
+        return false;
+    }
+    std::string wantBundleName = want.GetElement().GetBundleName();
+    return callingBundleName == wantBundleName;
+}
+
 int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
 {
     auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
@@ -2045,6 +2062,13 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
     if (uid == -1 || pid == -1) {
         NETMGR_EXT_LOG_E("Failed to get caller uid or pid");
         return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (!IsWantBundleNameValid(want, uid)) {
+        NETMGR_EXT_LOG_I("StartVpnExtensionAbility not allowed to start ability with different bundle name");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    if (!CheckVpnExtPermission(want.GetElement().GetBundleName())) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     auto vpnBundleName = want.GetElement().GetBundleName();
     std::shared_lock<std::shared_mutex> allowConnectVpnBundleNameLock(allowConnectVpnBundleNameMutex_);
@@ -2065,6 +2089,13 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
     NETMGR_EXT_LOG_I("SetSelfVpnPid uid: %{public}d, pid: %{public}d", uid, pid);
     auto err = abilityManager->StartExtensionAbility(
         want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+    NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
+    if (err == 0) {
+        std::string wantBundleName = want.GetElement().GetBundleName();
+        std::string wantAbilityName = want.GetElement().GetAbilityName();
+        int32_t rst = RegisterBundleName(wantBundleName, wantAbilityName);
+        NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
+    }
     return err;
 }
 
@@ -2077,6 +2108,16 @@ int32_t NetworkVpnService::StopVpnExtensionAbility(const AAFwk::Want &want)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     // LCOV_EXCL_STOP
+
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (!IsWantBundleNameValid(want, uid)) {
+        NETMGR_EXT_LOG_I("StopVpnExtensionAbility not allowed to stop ability with different bundle name");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    if (!CheckVpnExtPermission(want.GetElement().GetBundleName())) {
+        NETMGR_EXT_LOG_E("StopVpnExtensionAbility permission check failed");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
 
     ErrCode err = abilityManager->StopExtensionAbility(
         want, nullptr, INVALID_CODE, AppExecFwk::ExtensionAbilityType::VPN);

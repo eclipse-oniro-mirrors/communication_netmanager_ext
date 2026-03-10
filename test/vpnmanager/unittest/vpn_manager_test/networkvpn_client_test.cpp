@@ -279,14 +279,6 @@ HWTEST_F(NetworkVpnClientTest, NetworkVpnClientBranch001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
-HWTEST_F(NetworkVpnClientTest, RegisterBundleName001, TestSize.Level1)
-{
-    std::string bundleName = "com.test.test";
-    std::string abilityName = "vpnAbility";
-    auto ret = networkVpnClient_.RegisterBundleName(bundleName, abilityName);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
 HWTEST_F(NetworkVpnClientTest, ConnectControl, TestSize.Level1)
 {
     VpnInterface vpnInterface;

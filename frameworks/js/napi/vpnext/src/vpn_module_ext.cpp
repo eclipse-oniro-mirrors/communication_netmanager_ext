@@ -264,12 +264,6 @@ napi_value StartVpnExtensionAbility(napi_env env, napi_callback_info info)
     auto err = NetworkVpnClient::GetInstance().StartVpnExtensionAbility(want);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
     hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, err);
-    if (err == 0) {
-        int32_t rst = NetworkVpnClient::GetInstance().RegisterBundleName(bundleName, Replace(abilityName));
-        NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
-        hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, rst);
-    }
-    hiAppEventReport->ReportSdkEvent(RESULT_SUCCESS, ERR_NONE);
     return CreateResolvedPromise(env);
 }
 
