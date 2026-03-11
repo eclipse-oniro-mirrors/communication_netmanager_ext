@@ -481,6 +481,102 @@ HWTEST_F(NetworkVpnServiceTest, DestroyVpn002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn003, TestSize.Level1)
+{
+    std::string vpnId = "testVpnId003";
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = vpnId;
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    
+    instance_->vpnObjMap_.insert({vpnId, nullptr});
+    int32_t ret = instance_->DestroyVpn(vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    instance_->vpnObjMap_.erase(vpnId);
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn004, TestSize.Level1)
+{
+    std::string vpnId = "testVpnId004";
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = vpnId;
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    
+    instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
+    int32_t ret = instance_->DestroyVpn(vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    instance_->vpnObjMap_.erase(vpnId);
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn005, TestSize.Level1)
+{
+    std::string vpnId = "testVpnId005";
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = vpnId;
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    
+    sptr<MultiVpnInfo> multiVpnInterface = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(multiVpnInterface, nullptr);
+    multiVpnInterface->vpnId = vpnId;
+    multiVpnInterface->userId = userId;
+    multiVpnInterface->callingUid = 100;
+    sysVpnCtl->multiVpnInfo_ = multiVpnInterface;
+    instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
+    
+    int32_t ret = instance_->DestroyVpn(vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    instance_->vpnObjMap_.erase(vpnId);
+}
+
+HWTEST_F(NetworkVpnServiceTest, DestroyVpn006, TestSize.Level1)
+{
+    std::string vpnId = "testVpnId006";
+    NetManagerExtAccessToken access;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = nullptr;
+    config->vpnId_ = vpnId;
+    config->vpnName_ = "test001";
+    config->vpnType_ = 1;
+    sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    
+    sptr<MultiVpnInfo> multiVpnInterface = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(multiVpnInterface, nullptr);
+    multiVpnInterface->vpnId = vpnId;
+    multiVpnInterface->userId = userId;
+    sysVpnCtl->multiVpnInfo_ = multiVpnInterface;
+    instance_->vpnObjMap_.insert({vpnId, sysVpnCtl});
+    
+    int32_t ret = instance_->DestroyVpn(vpnId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
 HWTEST_F(NetworkVpnServiceTest, DestroyMultiVpn001, TestSize.Level1)
 {
     std::string vpnId = "testVpnId";
