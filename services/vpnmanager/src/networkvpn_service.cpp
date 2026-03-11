@@ -948,8 +948,8 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
         }
         int32_t callingUid = IPCSkeleton::GetCallingUid();
         if (vpnObj->multiVpnInfo_->callingUid != callingUid) {
-            NETMGR_EXT_LOG_E("DestroyVpn permission denied, caller uid %{public}d is not the creator %{public}d, vpnId = %{public}s",
-                callingUid, vpnObj->multiVpnInfo_->callingUid, vpnId.c_str());
+            NETMGR_EXT_LOG_E("DestroyVpn permission denied, caller uid %{public}d is not the creator"
+                " %{public}d, vpnId = %{public}s", callingUid, vpnObj->multiVpnInfo_->callingUid, vpnId.c_str());
             return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
         }
         return DestroyMultiVpn(it->second);
