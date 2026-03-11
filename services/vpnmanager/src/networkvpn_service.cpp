@@ -941,7 +941,17 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
     std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     auto it = vpnObjMap_.find(vpnId);
     if (it != vpnObjMap_.end()) {
-        NETMGR_EXT_LOG_E("DestroyVpn vpnId = %{public}s", vpnId.c_str());
+        std::shared_ptr<NetVpnImpl> vpnObj = it->second;
+        if (vpnObj == nullptr || vpnObj->multiVpnInfo_ == nullptr) {
+            NETMGR_EXT_LOG_E("DestroyVpn vpnObj or multiVpnInfo is null, vpnId = %{public}s", vpnId.c_str());
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (vpnObj->multiVpnInfo_->callingUid != callingUid) {
+            NETMGR_EXT_LOG_E("DestroyVpn permission denied, caller uid %{public}d is not the creator"
+                " %{public}d, vpnId = %{public}s", callingUid, vpnObj->multiVpnInfo_->callingUid, vpnId.c_str());
+            return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+        }
         return DestroyMultiVpn(it->second);
     }
     return NETMANAGER_EXT_SUCCESS;
