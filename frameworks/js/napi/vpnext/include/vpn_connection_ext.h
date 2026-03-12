@@ -39,6 +39,9 @@ constexpr const char *VPNEXT_MODE_URI =
 #ifdef SUPPORT_SYSVPN
 constexpr const char *GENERATE_VPN_ID_EXT = "generateVpnId";
 #endif // SUPPORT_SYSVPN
+constexpr const char *CREATE_VPN_OBSERVER = "createVpnObserver";
+constexpr const char *VPN_OBSERVER_EXT = "VpnObserverExt";
+constexpr const char *EVENT_AUTHORIZATION = "authorization";
 } // namespace
 
 namespace VpnConnectionExt {
@@ -53,6 +56,11 @@ napi_value Off(napi_env env, napi_callback_info info);
 napi_value GenerateVpnId(napi_env env, napi_callback_info info);
 #endif // SUPPORT_SYSVPN
 } // namespace VpnConnectionExt
+
+namespace VpnObserverExt {
+napi_value On(napi_env env, napi_callback_info info);
+napi_value Off(napi_env env, napi_callback_info info);
+} // namespace VpnObserverExt
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // VPN_CONNECTION_H
