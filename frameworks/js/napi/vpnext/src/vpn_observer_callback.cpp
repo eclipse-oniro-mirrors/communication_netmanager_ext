@@ -86,8 +86,8 @@ static bool GetVpnObserverInstance(VpnObserver *observer, VpnObserverInstance *&
     return true;
 }
 
-static bool ValidateVpnObserverInstance(VpnObserverInstance *instance, napi_env &env,
-    std::shared_ptr<EventManager> &manager)
+static bool CheckVpnObserverInstance(
+    VpnObserverInstance *instance, napi_env &env, std::shared_ptr<EventManager> &manager)
 {
     if (instance == nullptr) {
         NETMANAGER_EXT_LOGE("HandleResult vpnObserverInstance is nullptr");
@@ -167,7 +167,7 @@ int32_t VpnObserver::HandleAuthorizeResult(bool isAuthorized)
 
     napi_env env = nullptr;
     std::shared_ptr<EventManager> manager = nullptr;
-    if (!ValidateVpnObserverInstance(vpnObserverInstance, env, manager)) {
+    if (!CheckVpnObserverInstance(vpnObserverInstance, env, manager)) {
         return 0;
     }
 
