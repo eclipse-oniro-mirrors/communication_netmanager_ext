@@ -33,7 +33,7 @@ class VpnObserver : public RefBase {
 public:
     VpnObserver() = default;
     ~VpnObserver() = default;
-    int32_t HandleResult(bool isAuthorized);
+    int32_t HandleAuthorizeResult(bool isAuthorized);
 };
 
 } // namespace NetManagerStandard

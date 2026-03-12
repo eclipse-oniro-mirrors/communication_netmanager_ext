@@ -41,7 +41,7 @@ constexpr const char *GENERATE_VPN_ID_EXT = "generateVpnId";
 #endif // SUPPORT_SYSVPN
 constexpr const char *CREATE_VPN_OBSERVER = "createVpnObserver";
 constexpr const char *VPN_OBSERVER_EXT = "VpnObserverExt";
-constexpr const char *EVENT_AUTHORIZATION = "authorization";
+constexpr const char *EVENT_AUTHORIZATION = "authorizationResult";
 } // namespace
 
 namespace VpnConnectionExt {

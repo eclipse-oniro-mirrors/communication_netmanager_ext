@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,7 +86,8 @@ static bool GetVpnObserverInstance(VpnObserver *observer, VpnObserverInstance *&
     return true;
 }
 
-static bool ValidateVpnObserverInstance(VpnObserverInstance *instance, napi_env &env, std::shared_ptr<EventManager> &manager)
+static bool ValidateVpnObserverInstance(VpnObserverInstance *instance, napi_env &env,
+    std::shared_ptr<EventManager> &manager)
 {
     if (instance == nullptr) {
         NETMANAGER_EXT_LOGE("HandleResult vpnObserverInstance is nullptr");
@@ -111,7 +112,8 @@ static bool ValidateVpnObserverInstance(VpnObserverInstance *instance, napi_env 
     return true;
 }
 
-static VpnAuthorizationContext *CreateAuthorizationContext(napi_env env, std::shared_ptr<EventManager> &manager, bool isAuthorized)
+static VpnAuthorizationContext *CreateAuthorizationContext(napi_env env,
+    std::shared_ptr<EventManager> &manager, bool isAuthorized)
 {
     auto *context = new VpnAuthorizationContext();
     context->env = env;
@@ -168,7 +170,7 @@ static bool QueueAsyncWork(napi_env env, VpnAuthorizationContext *context)
     return true;
 }
 
-int32_t VpnObserver::HandleResult(bool isAuthorized)
+int32_t VpnObserver::HandleAuthorizeResult(bool isAuthorized)
 {
     VpnObserverInstance *vpnObserverInstance = nullptr;
     if (!GetVpnObserverInstance(this, vpnObserverInstance)) {

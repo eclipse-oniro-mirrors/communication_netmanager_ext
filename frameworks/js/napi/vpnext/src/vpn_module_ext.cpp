@@ -89,7 +89,7 @@ static void ResolvePromiseInIpcThread(napi_env env, napi_deferred deferred)
             
             for (auto &item : observers) {
                 if (item.second && item.second->HasEventListener(EVENT_AUTHORIZATION)) {
-                    item.first->HandleResult(true);
+                    item.first->HandleAuthorizeResult(true);
                 }
             }
         }, 
@@ -117,7 +117,7 @@ static void RejectPromiseInIpcThread(napi_env env, napi_deferred deferred)
             
             for (auto &item : observers) {
                 if (item.second && item.second->HasEventListener(EVENT_AUTHORIZATION)) {
-                    item.first->HandleResult(false);
+                    item.first->HandleAuthorizeResult(false);
                 }
             }
         }, 
