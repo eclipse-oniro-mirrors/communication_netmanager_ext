@@ -25,7 +25,7 @@
 
 #include "net_manager_constants.h"
 #include "virtual_vpn_ctl.h"
-
+#include "vpn_state.h"
 #include "networkvpn_client.h"
 
 namespace OHOS {
@@ -38,17 +38,13 @@ class VirtualVpnConnStateCbTest : public IVpnConnStateCb {
 public:
     VirtualVpnConnStateCbTest() = default;
     virtual ~VirtualVpnConnStateCbTest() = default;
-    void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                               const std::string &vpnIfAddr,
-                               const std::string &vpnId, bool isGlobalVpn) override;
+    void OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState) override;
     void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0,
                               const std::string &vpnId = "") override;
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 };
 
-void VirtualVpnConnStateCbTest::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                                                      const std::string &vpnIfAddr,
-                                                      const std::string &vpnId, bool isGlobalVpn) {}
+void VirtualVpnConnStateCbTest::OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState) {}
 void VirtualVpnConnStateCbTest::SendConnStateChanged(const VpnConnectState &state, int32_t vpnType,
                                                      const std::string &vpnId) {}
 void VirtualVpnConnStateCbTest::OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) {}
@@ -123,6 +119,40 @@ HWTEST_F(VirtualVpnCtlTest, NotifyConnectState003, TestSize.Level1)
 
     control_->SendConnectionChangedBroadcast(NET_CONN_STATE_CONNECTED);
     control_->SendConnectionChangedBroadcast(NET_CONN_STATE_DISCONNECTED);
+}
+
+HWTEST_F(VirtualVpnCtlTest, GenerateAllowedUids001, TestSize.Level1)
+{
+    control_->GenerateAllowedUids();
+    EXPECT_EQ(control_->beginUids_.size(), 1);
+    EXPECT_EQ(control_->endUids_.size(), 1);
+}
+
+HWTEST_F(VirtualVpnCtlTest, UpdateDnsServers001, TestSize.Level1)
+{
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    config->isAcceptIPv4_ = true;
+    config->dnsAddresses_.push_back("8.8.8.8");
+    control_->vpnConfig_ = config;
+    bool ret = control_->UpdateDnsServers();
+    EXPECT_EQ(ret, false);
+    config->isAcceptIPv4_ = false;
+    ret = control_->UpdateDnsServers();
+    EXPECT_EQ(ret, false);
+}
+
+HWTEST_F(VirtualVpnCtlTest, VpnStateTest, TestSize.Level1)
+{
+    std::vector<Route> routes;
+    std::vector<std::string> dnsServers;
+    dnsServers.push_back("8.8.8.8");
+    Parcel parcel;
+    VpnState state("vpn-tun", "1.1.1.1", "virtual-vpn", true, routes, dnsServers);
+    bool ret = state.Marshalling(parcel);
+    EXPECT_EQ(ret, true);
+    VpnState *vpnState = VpnState::Unmarshalling(parcel);
+    EXPECT_NE(vpnState, nullptr);
+    delete vpnState;
 }
 
 } // namespace NetManagerStandard

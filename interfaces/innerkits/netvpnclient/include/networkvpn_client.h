@@ -30,6 +30,7 @@
 #include "ivpn_event_callback.h"
 #include "vpn_event_callback_stub.h"
 #include "vpn_interface.h"
+#include "vpn_state.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -42,8 +43,7 @@ struct RecoverCallbackPara {
 
 class VpnSetUpEventCallback : public VpnEventCallbackStub {
 public:
-    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName, const std::string &vpnIfAddr,
-                              const std::string &vpnId, bool isGlobalVpn) override{ return ERR_OK; };
+    int32_t OnVpnStateChanged(bool isConnected, const sptr<VpnState> &vpnState) override{ return ERR_OK; };
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override{ return ERR_OK; };
     int32_t OnVpnMultiUserSetUp() override;
@@ -51,8 +51,7 @@ public:
 
 class VpnEventCallbackCollection final : public VpnEventCallbackStub {
 public:
-    int32_t OnVpnStateChanged(bool isConnected, const std::string &vpnIfName, const std::string &vpnIfAddr,
-                              const std::string &vpnId, bool isGlobalVpn) override;
+    int32_t OnVpnStateChanged(bool isConnected, const sptr<VpnState> &vpnState) override;
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override;
     int32_t OnVpnMultiUserSetUp() override;

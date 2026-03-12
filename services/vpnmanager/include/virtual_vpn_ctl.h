@@ -33,6 +33,10 @@ public:
     void NotifyConnectState(const VpnConnectState &state) override;
     int32_t Destroy() override;
 
+protected:
+    bool UpdateDnsServers();
+    void GenerateAllowedUids();
+
 private:
     /*
      * Send COMMON_EVENT_CONNECTIVITY_CHANGE by ourself;

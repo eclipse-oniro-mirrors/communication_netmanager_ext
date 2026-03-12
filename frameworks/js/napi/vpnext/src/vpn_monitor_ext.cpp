@@ -82,9 +82,7 @@ bool CheckParamType(napi_env env, napi_value *params, size_t paramsCount)
 }
 } // namespace
 
-int32_t VpnEventCallback::OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
-                                            const std::string &vpnIfAddr,
-                                            const std::string &vpnId, bool isGlobalVpn)
+int32_t VpnEventCallback::OnVpnStateChanged(bool isConnected, const sptr<VpnState> &vpnState)
 {
     auto manager = VpnMonitor::GetInstance().GetManager();
     bool *data = new bool(isConnected);

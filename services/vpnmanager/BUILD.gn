@@ -42,6 +42,7 @@ net_vpn_manager_sources = [
   "src/networkvpn_hisysevent.cpp",
   "src/networkvpn_service_iface.cpp",
   "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp",
+  "$VPN_INNERKITS_SOURCE_DIR/src/vpn_state.cpp",
 ]
 
 if (netmanager_ext_feature_sysvpn) {

@@ -49,15 +49,13 @@ int32_t VpnSetUpEventCallback::OnVpnMultiUserSetUp()
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnEventCallbackCollection::OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
-                                                      const std::string &vpnIfAddr,
-                                                      const std::string &vpnId, bool isGlobalVpn)
+int32_t VpnEventCallbackCollection::OnVpnStateChanged(bool isConnected, const sptr<VpnState> &vpnState)
 {
     std::shared_lock<std::shared_mutex> lock(vpnEventCbMutex_);
     std::list<sptr<IVpnEventCallback>> tmpList = vpnEventCbList_;
     lock.unlock();
     for (auto iter = tmpList.begin(); iter != tmpList.end(); iter++) {
-        (*iter)->OnVpnStateChanged(isConnected, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
+        (*iter)->OnVpnStateChanged(isConnected, vpnState);
     }
     return NETMANAGER_EXT_SUCCESS;
 }

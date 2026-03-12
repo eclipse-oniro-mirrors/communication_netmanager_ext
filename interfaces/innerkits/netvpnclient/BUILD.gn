@@ -57,7 +57,9 @@ ohos_static_library("networkvpn_parcel") {
 
   branch_protector_ret = "pac_ret"
 
-  sources = [ "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp" ]
+  sources = [ "$VPN_INNERKITS_SOURCE_DIR/src/vpn_config.cpp", 
+              "$VPN_INNERKITS_SOURCE_DIR/src/vpn_state.cpp"
+  ]
 
   if (netmanager_ext_feature_sysvpn) {
     sources += [
@@ -88,6 +90,7 @@ ohos_static_library("networkvpn_parcel") {
 idl_gen_interface("networkvpn_interface") {
   sources = [ "INetworkVpnService.idl" ]
   sources_callback = [ "IVpnEventCallback.idl" ]
+  inputs = ["IVpnEventCallback.idl"]
 }
 
 config("networkvpn_interface_stub_config") {

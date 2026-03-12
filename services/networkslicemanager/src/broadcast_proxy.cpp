@@ -176,15 +176,13 @@ void broadcast_proxy::SystemAbilityListener::RegisterDnsResultCallback()
     NETMGR_EXT_LOG_E("RegisterVpnEventCallback success.");
 }
 
-int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool isConnected, const std::string &vpnIfName,
-                                                             const std::string &vpnIfAddr,
-                                                             const std::string &vpnId, bool isGlobalVpn)
+int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool isConnected, const sptr<VpnState> &vpnState)
 {
     NETMGR_EXT_LOG_E("vpn state changed. cur state: %{public}d", isConnected);
     Singleton<NetworkSliceMsgCenter>::GetInstance().Publish(EVENT_VPN_MODE_CHANGED, isConnected);
     return ERR_OK;
 }
- 
+
 void broadcast_proxy::HandleSystemEvent(const EventFwk::CommonEventData& eventData)
 {
     auto action = eventData.GetWant().GetAction();

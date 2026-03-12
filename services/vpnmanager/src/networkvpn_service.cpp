@@ -240,14 +240,11 @@ void NetworkVpnService::PublishVpnConnectionStateEvent(const VpnConnectState &st
 }
 
 void NetworkVpnService::VpnConnStateCb::OnVpnConnStateChanged(const VpnConnectState &state,
-                                                              const std::string &vpnIfName,
-                                                              const std::string &vpnIfAddr,
-                                                              const std::string &vpnId,
-                                                              bool isGlobalVpn)
+                                                              const sptr<VpnState> &vpnState)
 {
     NETMGR_EXT_LOG_I("receive new vpn connect state[%{public}d].", static_cast<uint32_t>(state));
-    if (vpnService_.IsNeedNotify(state, vpnId)) {
-        return vpnService_.OnVpnConnStateChanged(state, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
+    if (vpnService_.IsNeedNotify(state, vpnState->vpnId_)) {
+        return vpnService_.OnVpnConnStateChanged(state, vpnState);
     }
     return;
 }
@@ -2411,15 +2408,16 @@ void NetworkVpnService::RemoveALLClientDeathRecipient()
     deathRecipient_ = nullptr;
 }
 
-void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                                              const std::string &vpnIfAddr,
-                                              const std::string &vpnId, bool isGlobalVpn)
+void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
+
+    const_cast<sptr<VpnState> &>(vpnState)->vpnPacketName_ = GetBundleName();
+
     std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
-        [&state, &vpnIfName, &vpnIfAddr, &vpnId, &isGlobalVpn](const auto &callback) {
+        [&state, &vpnState](const auto &callback) {
             bool isConnected = (VpnConnectState::VPN_CONNECTED == state) ? true : false;
-            callback->OnVpnStateChanged(isConnected, vpnIfName, vpnIfAddr, vpnId, isGlobalVpn);
+            callback->OnVpnStateChanged(isConnected, vpnState);
         });
 }
 

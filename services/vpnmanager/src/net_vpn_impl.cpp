@@ -93,8 +93,10 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
         connChangedCb_->OnMultiVpnConnStateChanged(state, vpnId);
     }
 #endif // SUPPORT_SYSVPN
-    connChangedCb_->OnVpnConnStateChanged(state, GetInterfaceName(),
-                                          GetVpnIfAddr(), vpnId, IsGlobalVpn());
+    sptr<VpnState> vpnState = new VpnState(GetInterfaceName(), GetVpnIfAddr(), vpnId,
+                                           IsGlobalVpn(), vpnConfig_->routes_,
+                                           vpnConfig_->dnsAddresses_);
+    connChangedCb_->OnVpnConnStateChanged(state, vpnState);
     if (userId_ == 0) {
         return;
     }
@@ -140,6 +142,34 @@ std::string NetVpnImpl::GetVpnIfAddr()
     return ifAddr;
 }
 
+void NetVpnImpl::SetNetSupplierInfoIdent(const std::string &ident)
+{
+    netSupplierInfo_->ident_ = ident;
+}
+
+void NetVpnImpl::AddUidRange(int32_t start, int32_t end)
+{
+    beginUids_.push_back(start);
+    endUids_.push_back(end);
+}
+
+int32_t NetVpnImpl::NetworkAddUids()
+{
+    return NetsysController::GetInstance().NetworkAddUids(netId_,
+                                    beginUids_, endUids_, 0);
+}
+
+int32_t NetVpnImpl::NetworkDelUids()
+{
+    return NetsysController::GetInstance().NetworkDelUids(netId_, 
+                                    beginUids_, endUids_, 0);
+}
+
+uint32_t NetVpnImpl::GetNetSupplierId() const
+{
+    return netSupplierId_;
+}
+
 uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)
 {
     if (ifName.find(XFRM_CARD_NAME) != std::string::npos) {
@@ -154,10 +184,11 @@ uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)
     return 0;
 }
 
-int32_t NetVpnImpl::SetNetId(const VpnEventType &legacy, NetConnClient &netConnClientIns)
+int32_t NetVpnImpl::SetNetId(const std::string &ident, 
+                             const VpnEventType &legacy, NetConnClient &netConnClientIns)
 {
     std::list<int32_t> netIdList;
-    netConnClientIns.GetNetIdByIdentifier(GetInterfaceName(), netIdList);
+    netConnClientIns.GetNetIdByIdentifier(ident, netIdList);
     if (netIdList.size() == 0) {
         NETMGR_EXT_LOG_E("get netId failed, netId list size is 0");
         VpnHisysEvent::SendFaultEventConnSetting(legacy, VpnEventErrorType::ERROR_INTERNAL_ERROR, "get Net id failed");
@@ -196,7 +227,7 @@ int32_t NetVpnImpl::SetUp(bool isInternalChannel)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    if (SetNetId(legacy, netConnClientIns) != NETMANAGER_EXT_SUCCESS) {
+    if (SetNetId(GetInterfaceName(), legacy, netConnClientIns) != NETMANAGER_EXT_SUCCESS) {
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 

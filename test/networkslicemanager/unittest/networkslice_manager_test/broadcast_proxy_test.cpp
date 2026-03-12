@@ -353,7 +353,8 @@ HWTEST_F(VpnEventObserverTest, VpnEventObserverTest_001, TestSize.Level1)
 {
     bool isConnected = true;
     broadcast_proxy::VpnEventObserver observer;
-    observer.OnVpnStateChanged(isConnected, "vpn-tun", "192.168.10.2", "", false);
+    VpnState vpnState;
+    observer.OnVpnStateChanged(isConnected, vpnState);
     broadcast_proxy proxy_instance;
     EXPECT_TRUE(proxy_instance.subscriber_ == nullptr);
 }

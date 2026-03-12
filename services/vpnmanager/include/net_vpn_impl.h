@@ -34,6 +34,7 @@
 #include "multi_vpn_helper.h"
 #endif // SUPPORT_SYSVPN
 #include "vpn_config.h"
+#include "vpn_state.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -109,9 +110,15 @@ protected:
     bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);
     bool IsGlobalVpn();
     std::string GetVpnIfAddr();
+    void SetNetSupplierInfoIdent(const std::string &ident);
+    int32_t SetNetId(const std::string &ident,
+                     const VpnEventType &isLegacy, NetConnClient &netConnClientIns);
+    void AddUidRange(int32_t start, int32_t end);
+    int32_t NetworkAddUids();
+    int32_t NetworkDelUids();
+    uint32_t GetNetSupplierId() const;
 
 private:
-    int32_t SetNetId(const VpnEventType &isLegacy, NetConnClient &netConnClientIns);
     void DelNetLinkInfo(NetConnClient &netConnClientIns);
     void AdjustRouteInfo(Route &route);
     void SetIpv4DefaultRoute(Route &ipv4DefaultRoute);
@@ -150,7 +157,6 @@ private:
     uint32_t priorityId_ = 0;
     int32_t uid_ = -1;
     int32_t pid_ = -1;
-
     void SetAllUidRanges();
 };
 } // namespace NetManagerStandard

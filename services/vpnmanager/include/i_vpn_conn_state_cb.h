@@ -17,14 +17,14 @@
 #define VPN_CONN_STATE_CALLBACK_H
 
 #include "net_manager_ext_constants.h"
+#include "vpn_state.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 
 class IVpnConnStateCb {
 public:
-    virtual void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                                       const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) = 0;
+    virtual void OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState) = 0;
     virtual void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0,
                                       const std::string &vpnId = "") {};
     virtual void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) {};
