@@ -118,7 +118,7 @@ static void RejectPromiseInIpcThread(napi_env env, napi_deferred deferred)
                     item.first->HandleAuthorizeResult(false);
                 }
             }
-        }, 
+        },
         napi_eprio_high);
 }
 

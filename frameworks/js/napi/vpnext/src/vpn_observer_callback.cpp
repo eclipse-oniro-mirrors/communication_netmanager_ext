@@ -125,12 +125,8 @@ static VpnAuthorizationContext *CreateAuthorizationContext(napi_env env,
 
 static bool CreateResourceName(napi_env env, napi_value &resourceName)
 {
-    napi_status status = napi_create_string_utf8(
-        env,
-        "VpnAuthorizationEvent",
-        NAPI_AUTO_LENGTH,
-        &resourceName
-    );
+    napi_status status = napi_create_string_utf8(env, "VpnAuthorizationEvent",
+        NAPI_AUTO_LENGTH, &resourceName);
     if (status != napi_ok) {
         NETMANAGER_EXT_LOGE("HandleResult napi_create_string_utf8 FAILED: %{public}d", status);
         return false;
@@ -140,16 +136,8 @@ static bool CreateResourceName(napi_env env, napi_value &resourceName)
 
 static bool CreateAsyncWork(napi_env env, napi_value resourceName, VpnAuthorizationContext *context)
 {
-    napi_status status = napi_create_async_work(
-        env,
-        nullptr,
-        resourceName,
-        VpnAuthorizationExecute,
-        VpnAuthorizationComplete,
-        context,
-        &context->work
-    );
-
+    napi_status status = napi_create_async_work(env, nullptr, resourceName,
+        VpnAuthorizationExecute, VpnAuthorizationComplete, context, &context->work);
     if (status != napi_ok) {
         NETMANAGER_EXT_LOGE("HandleResult napi_create_async_work FAILED: %{public}d", status);
         return false;
