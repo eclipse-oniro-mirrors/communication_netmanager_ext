@@ -36,6 +36,8 @@ ohos_shared_library("vpnextension") {
     "src/vpn_exec_ext.cpp",
     "src/vpn_module_ext.cpp",
     "src/vpn_monitor_ext.cpp",
+    "src/vpn_observer_callback.cpp",
+    "src/vpn_observer_instance_ext.cpp",
   ]
 
   if (netmanager_ext_feature_sysvpn) {
