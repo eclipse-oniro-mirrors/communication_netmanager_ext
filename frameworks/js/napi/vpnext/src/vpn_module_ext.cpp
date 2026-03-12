@@ -73,7 +73,7 @@ static void ResolvePromiseInIpcThread(napi_env env, napi_deferred deferred)
     std::vector<std::pair<sptr<VpnObserver>, std::shared_ptr<EventManager>>> observers;
     {
         std::lock_guard<std::mutex> lock{VpnObserverInstance::g_vpnObserverMutex};
-        NETMANAGER_EXT_LOGI("[ResolvePromiseInIpcThread] Notifying %{public}zu observers", 
+        NETMANAGER_EXT_LOGI("[ResolvePromiseInIpcThread] Notifying %{public}zu observers",
                             VpnObserverInstance::observerInstanceMap_.size());
         observers.reserve(VpnObserverInstance::observerInstanceMap_.size());
         for (auto &iter : VpnObserverInstance::observerInstanceMap_) {
@@ -84,15 +84,14 @@ static void ResolvePromiseInIpcThread(napi_env env, napi_deferred deferred)
     }
     
     napi_send_event(
-        env, [env, deferred, observers]() { 
+        env, [env, deferred, observers]() {
             napi_resolve_deferred(env, deferred, NapiUtils::GetUndefined(env));
-            
             for (auto &item : observers) {
                 if (item.second && item.second->HasEventListener(EVENT_AUTHORIZATION)) {
                     item.first->HandleAuthorizeResult(true);
                 }
             }
-        }, 
+        },
         napi_eprio_high);
 }
 
@@ -101,7 +100,7 @@ static void RejectPromiseInIpcThread(napi_env env, napi_deferred deferred)
     std::vector<std::pair<sptr<VpnObserver>, std::shared_ptr<EventManager>>> observers;
     {
         std::lock_guard<std::mutex> lock{VpnObserverInstance::g_vpnObserverMutex};
-        NETMANAGER_EXT_LOGI("[RejectPromiseInIpcThread] Notifying %{public}zu observers", 
+        NETMANAGER_EXT_LOGI("[RejectPromiseInIpcThread] Notifying %{public}zu observers",
                             VpnObserverInstance::observerInstanceMap_.size());
         observers.reserve(VpnObserverInstance::observerInstanceMap_.size());
         for (auto &iter : VpnObserverInstance::observerInstanceMap_) {
@@ -112,9 +111,8 @@ static void RejectPromiseInIpcThread(napi_env env, napi_deferred deferred)
     }
     
     napi_send_event(
-        env, [env, deferred, observers]() { 
+        env, [env, deferred, observers]() {
             napi_reject_deferred(env, deferred, NapiUtils::GetUndefined(env));
-            
             for (auto &item : observers) {
                 if (item.second && item.second->HasEventListener(EVENT_AUTHORIZATION)) {
                     item.first->HandleAuthorizeResult(false);
@@ -383,7 +381,7 @@ static void *MakeVpnObserverExt(napi_env env, size_t argc, napi_value *argv, std
 static napi_value CreateVpnObserver(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::NewInstance(env, info, VPN_OBSERVER_EXT, MakeVpnObserverExt,
-    [](napi_env, void *data, void *) {
+        [](napi_env, void *data, void *) {
         NETMANAGER_EXT_LOGI("finalize VpnObserver");
         auto *vpnObserverInstance = static_cast<VpnObserverInstance *>(data);
         if (vpnObserverInstance == nullptr) {

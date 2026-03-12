@@ -33,7 +33,7 @@ public:
     static VpnObserverInstance *MakeVpnObserver(napi_env env, std::shared_ptr<EventManager>& eventManager);
     static void DeleteVpnObserver(VpnObserverInstance *vpnObserverInstance);
     static std::map<VpnObserver *, VpnObserverInstance *> observerInstanceMap_;
-    static std::mutex g_vpnObserverMutex; 
+    static std::mutex g_vpnObserverMutex;
 
 private:
     napi_env env_;
