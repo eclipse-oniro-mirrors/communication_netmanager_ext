@@ -27,10 +27,10 @@ namespace NetManagerStandard {
 struct VpnAuthorizationContext {
     napi_env env;
     std::string type;
-    std::unique_ptr<bool> data;
+    bool data;
     std::shared_ptr<EventManager> manager;
 
-    VpnAuthorizationContext() : env(nullptr) {}
+    VpnAuthorizationContext() : env(nullptr), data(false) {}
     ~VpnAuthorizationContext() = default;
 };
 
@@ -72,14 +72,14 @@ static bool CheckVpnObserverInstance(
     return true;
 }
 
-static VpnAuthorizationContext *CreateAuthorizationContext(napi_env env,
-    std::shared_ptr<EventManager> &manager, bool isAuthorized)
+static std::shared_ptr<VpnAuthorizationContext> CreateAuthorizationContext(
+    napi_env env, std::shared_ptr<EventManager> &manager, bool isAuthorized)
 {
-    auto *context = new VpnAuthorizationContext();
+    auto context = std::make_shared<VpnAuthorizationContext>();
     context->env = env;
     context->type = EVENT_AUTHORIZATION;
     context->manager = manager;
-    context->data = std::make_unique<bool>(isAuthorized);
+    context->data = isAuthorized;
     return context;
 }
 
@@ -96,7 +96,7 @@ int32_t VpnObserver::HandleAuthorizeResult(bool isAuthorized)
         return 0;
     }
 
-    VpnAuthorizationContext *context = CreateAuthorizationContext(env, manager, isAuthorized);
+    auto context = CreateAuthorizationContext(env, manager, isAuthorized);
     if (context == nullptr) {
         return 0;
     }
@@ -105,18 +105,15 @@ int32_t VpnObserver::HandleAuthorizeResult(bool isAuthorized)
         env, [context]() {
             if (context->manager == nullptr) {
                 NETMANAGER_EXT_LOGE("VpnAuthorizationEvent manager is nullptr!");
-                delete context;
                 return;
             }
 
             napi_handle_scope scope = NapiUtils::OpenScope(context->env);
-            napi_value isAuthorized = NapiUtils::GetBoolean(context->env, *(context->data));
+            napi_value isAuthorized = NapiUtils::GetBoolean(context->env, context->data);
 
             std::pair<napi_value, napi_value> arg = {NapiUtils::GetUndefined(context->env), isAuthorized};
             context->manager->Emit(context->type, arg);
             NapiUtils::CloseScope(context->env, scope);
-
-            delete context;
         },
         napi_eprio_high);
     return 0;
