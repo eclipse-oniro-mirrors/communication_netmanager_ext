@@ -37,7 +37,7 @@ struct VpnAuthorizationContext {
 
 static void VpnAuthorizationExecute(napi_env env, void *data)
 {
-    NETMANAGER_EXT_LOG_D("VpnAuthorizationExecute enter");
+    NETMGR_EXT_LOG_D("VpnAuthorizationExecute enter");
 }
 
 static void VpnAuthorizationComplete(napi_env env, napi_status status, void *data)
