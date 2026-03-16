@@ -435,16 +435,63 @@ static napi_value UpdateVpnAuthorize(napi_env env, napi_callback_info info)
     return jsValue;
 }
 
-napi_value VpnObserverExt::On(napi_env env, napi_callback_info info)
+napi_value VpnObserverExt::OnAuthorization(napi_env env, napi_callback_info info)
 {
-    std::initializer_list<std::string> events = {EVENT_AUTHORIZATION};
-    return ModuleTemplate::On(env, info, events, false);
+    napi_value thisVal = nullptr;
+    size_t paramsCount = MAX_PARAM_NUM;
+    napi_value params[MAX_PARAM_NUM] = {nullptr};
+    NAPI_CALL(env, napi_get_cb_info(env, info, &paramsCount, params, &thisVal, nullptr));
+
+    if (paramsCount != 1 || NapiUtils::GetValueType(env, params[0]) != napi_function) {
+        NETMANAGER_EXT_LOGE("napi OnAuthorization interface para: [function]");
+        return NapiUtils::GetUndefined(env);
+    }
+
+    std::shared_ptr<EventManager> *sharedManager = nullptr;
+    napi_status status = napi_unwrap(env, thisVal, reinterpret_cast<void **>(&sharedManager));
+    if (status != napi_ok || sharedManager == nullptr || *sharedManager == nullptr) {
+        NETMANAGER_EXT_LOGE("napi_unwrap failed or sharedManager is null");
+        return NapiUtils::GetUndefined(env);
+    }
+    auto manager = *sharedManager;
+    if (manager == nullptr) {
+        NETMANAGER_EXT_LOGE("manager is null");
+        return NapiUtils::GetUndefined(env);
+    }
+    manager->AddListener(env, EVENT_AUTHORIZATION, params[0], false, false);
+    return NapiUtils::GetUndefined(env);
 }
 
-napi_value VpnObserverExt::Off(napi_env env, napi_callback_info info)
+napi_value VpnObserverExt::OffAuthorization(napi_env env, napi_callback_info info)
 {
-    std::initializer_list<std::string> events = {EVENT_AUTHORIZATION};
-    return ModuleTemplate::Off(env, info, events);
+    napi_value thisVal = nullptr;
+    size_t paramsCount = MAX_PARAM_NUM;
+    napi_value params[MAX_PARAM_NUM] = {nullptr};
+    NAPI_CALL(env, napi_get_cb_info(env, info, &paramsCount, params, &thisVal, nullptr));
+
+    std::shared_ptr<EventManager> *sharedManager = nullptr;
+    napi_status status = napi_unwrap(env, thisVal, reinterpret_cast<void **>(&sharedManager));
+    if (status != napi_ok || sharedManager == nullptr || *sharedManager == nullptr) {
+        NETMANAGER_EXT_LOGE("napi_unwrap failed or sharedManager is null");
+        return NapiUtils::GetUndefined(env);
+    }
+    auto manager = *sharedManager;
+    if (manager == nullptr) {
+        NETMANAGER_EXT_LOGE("manager is null");
+        return NapiUtils::GetUndefined(env);
+    }
+    if (paramsCount == 0) {
+        manager->DeleteListener(EVENT_AUTHORIZATION);
+        return NapiUtils::GetUndefined(env);
+    }
+
+    if (paramsCount != 1 || NapiUtils::GetValueType(env, params[0]) != napi_function) {
+        NETMANAGER_EXT_LOGE("napi OffAuthorization interface para: [function]");
+        return NapiUtils::GetUndefined(env);
+    }
+
+    manager->DeleteListener(EVENT_AUTHORIZATION, params[0]);
+    return NapiUtils::GetUndefined(env);
 }
 
 napi_value RegisterVpnExtModule(napi_env env, napi_value exports)
@@ -471,8 +518,8 @@ napi_value RegisterVpnExtModule(napi_env env, napi_value exports)
                                 VPN_CONNECTION_EXT);
     ModuleTemplate::DefineClass(env, exports,
                                 {
-                                    DECLARE_NAPI_FUNCTION(ON, VpnObserverExt::On),
-                                    DECLARE_NAPI_FUNCTION(OFF, VpnObserverExt::Off),
+                                    DECLARE_NAPI_FUNCTION(ON_AUTHORIZATION, VpnObserverExt::OnAuthorization),
+                                    DECLARE_NAPI_FUNCTION(OFF_AUTHORIZATION, VpnObserverExt::OffAuthorization),
                                 },
                                 VPN_OBSERVER_EXT);
     return exports;

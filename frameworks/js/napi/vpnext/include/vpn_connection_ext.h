@@ -42,6 +42,8 @@ constexpr const char *GENERATE_VPN_ID_EXT = "generateVpnId";
 constexpr const char *CREATE_VPN_OBSERVER = "createVpnObserver";
 constexpr const char *VPN_OBSERVER_EXT = "VpnObserverExt";
 constexpr const char *EVENT_AUTHORIZATION = "authorizationResult";
+constexpr const char *ON_AUTHORIZATION = "onAuthorizationResult";
+constexpr const char *OFF_AUTHORIZATION = "offAuthorizationResult";
 } // namespace
 
 namespace VpnConnectionExt {
@@ -58,8 +60,8 @@ napi_value GenerateVpnId(napi_env env, napi_callback_info info);
 } // namespace VpnConnectionExt
 
 namespace VpnObserverExt {
-napi_value On(napi_env env, napi_callback_info info);
-napi_value Off(napi_env env, napi_callback_info info);
+napi_value OnAuthorization(napi_env env, napi_callback_info info);
+napi_value OffAuthorization(napi_env env, napi_callback_info info);
 } // namespace VpnObserverExt
 } // namespace NetManagerStandard
 } // namespace OHOS
