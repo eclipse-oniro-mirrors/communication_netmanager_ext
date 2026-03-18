@@ -232,11 +232,5 @@ AAFwk::Want VpnMonitor::GetCachedWant()
     }
     return AAFwk::Want();
 }
-
-void VpnMonitor::ClearCachedWant()
-{
-    std::lock_guard<std::mutex> lock(wantMutex_);
-    cachedWant_ = AAFwk::Want();
-}
 } // namespace NetManagerStandard
 } // namespace OHOS
