@@ -61,6 +61,9 @@ export default class VpnDialogAbility extends extension {
   
     globalThis.extensionContext = this.context;
 
+    if (want?.parameters) {
+      globalThis.parameters = want.parameters;
+    }
     if (want?.parameters?.abilityName) {
       let abilityName: string = want.parameters.abilityName.toString();
       globalThis.abilityName = abilityName;

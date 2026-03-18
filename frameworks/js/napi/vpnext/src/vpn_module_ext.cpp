@@ -44,7 +44,6 @@ namespace OHOS {
 namespace NetManagerStandard {
 constexpr int32_t ARG_NUM_0 = 0;
 constexpr int32_t PARAM_ONE = 1;
-constexpr int32_t ACCOUNT_ID = -1;
 
 static napi_value CreateResolvedPromise(napi_env env)
 {
@@ -160,10 +159,6 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
                 auto deferred = *deferWrapper;
                 *deferWrapper = nullptr;
                 if (vpnExtMode == "1") {
-                    AAFwk::Want cachedWant = VpnMonitor::GetInstance().GetCachedWant();
-                    AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
-                        cachedWant, nullptr, ACCOUNT_ID, AppExecFwk::ExtensionAbilityType::VPN);
-                    VpnMonitor::GetInstance().ClearCachedWant();
                     ResolvePromiseInIpcThread(env, deferred);
                 } else {
                     RejectPromiseInIpcThread(env, deferred);

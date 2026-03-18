@@ -61,7 +61,6 @@ public:
     bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName, const std::string &appName);
     void CacheCurrentWant(const AAFwk::Want &want);
     AAFwk::Want GetCachedWant();
-    void ClearCachedWant();
 
     inline std::shared_ptr<EventManager> GetManager() const
     {

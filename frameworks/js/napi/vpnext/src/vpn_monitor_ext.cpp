@@ -26,6 +26,7 @@
 #include "netmanager_ext_log.h"
 #include "networkvpn_client.h"
 #include "want.h"
+#include "want_params.h"
 #include "ability_manager_client.h"
 #include "extension_ability_info.h"
 
@@ -193,7 +194,12 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
         return false;
     }
 
+    AAFwk::Want cachedwant = VpnMonitor::GetInstance().GetCachedWant();
+    AAFwk::WantParams cachedParams = cachedwant.GetParams();
     AAFwk::Want want;
+    AAFwk::WantParams wantParams = want.GetParams();
+    wantParams.SetParam("myParams", AAFwk::WantParamWrapper::Box(cachedParams));
+    want.SetParams(wantParams);
     want.SetElementName(VPN_DIALOG_BUNDLENAME, "VpnServiceExtAbility");
     want.SetParam("bundleName", bundleName);
     want.SetParam("abilityName", abilityName + VPN_DIALOG_POSTFIX);
@@ -225,12 +231,6 @@ AAFwk::Want VpnMonitor::GetCachedWant()
         return cachedWant_;
     }
     return AAFwk::Want();
-}
-
-void VpnMonitor::ClearCachedWant()
-{
-    std::lock_guard<std::mutex> lock(wantMutex_);
-    cachedWant_ = AAFwk::Want();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
