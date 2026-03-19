@@ -18,6 +18,7 @@
 #include <csignal>
 #include <net/if.h>
 #include <sys/time.h>
+#include <shared_mutex>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -113,7 +114,10 @@ int32_t RouterAdvertisementDaemon::StartRa()
         }
     };
 #ifndef NETMANAGER_TEST
-    taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
+    std::shared_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
+    if (sendRaFfrtQueue_ != nullptr) {
+        taskHandle_ = sendRaFfrtQueue_->submit_h(callback);
+    }
 #endif
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -122,8 +126,11 @@ void RouterAdvertisementDaemon::StopRa()
 {
     NETMGR_EXT_LOG_I("StopRa");
     HupRaThread();
+    std::unique_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
     if (taskHandle_ != nullptr) {
-        sendRaFfrtQueue_->cancel(taskHandle_);
+        if (sendRaFfrtQueue_ != nullptr) {
+            sendRaFfrtQueue_->cancel(taskHandle_);
+        }
         taskHandle_ = nullptr;
     }
     sendRaFfrtQueue_ = nullptr;
@@ -270,7 +277,10 @@ void RouterAdvertisementDaemon::ResetRaRetryInterval()
         sendRaTimes_++;
         delayTime = SEND_RA_INTERVAL;
     }
-    taskHandle_ = sendRaFfrtQueue_->submit_h(callback, ffrt::task_attr().delay(delayTime));
+    std::shared_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
+    if (sendRaFfrtQueue_ != nullptr) {
+        taskHandle_ = sendRaFfrtQueue_->submit_h(callback, ffrt::task_attr().delay(delayTime));
+    }
 }
 
 bool RouterAdvertisementDaemon::AssembleRaLocked()

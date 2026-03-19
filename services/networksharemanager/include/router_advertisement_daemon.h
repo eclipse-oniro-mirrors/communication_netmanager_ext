@@ -143,6 +143,7 @@ private:
     uint8_t raPacket_[IPV6_MIN_MTU] = {};
     uint16_t raPacketLength_ = 0;
     std::shared_ptr<RaParams> raParams_;
+    ffrt::shared_mutex sendRaFfrtQueueMutex_;
     std::shared_ptr<ffrt::queue> sendRaFfrtQueue_ = nullptr;
     ffrt::task_handle taskHandle_ = nullptr;
 };

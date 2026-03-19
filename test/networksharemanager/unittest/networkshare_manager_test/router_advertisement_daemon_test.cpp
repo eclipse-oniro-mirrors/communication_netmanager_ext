@@ -74,6 +74,31 @@ HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StartRaTest002
+ * @tc.desc: Test RouterAdvertisementDaemon StartRa/StopRa.Test starting and
+ * stopping the transmission of RA messages.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, StartStopRaTest002, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    std::weak_ptr<RouterAdvertisementDaemon> wp(routerAdvertiseDaemon);
+    auto callback = [wp]() {
+        auto sp = wp.lock();
+        if (sp != nullptr) {
+            sp->ProcessSendRaPacket();
+        }
+    };
+    routerAdvertiseDaemon->taskHandle_ = routerAdvertiseDaemon->sendRaFfrtQueue_->submit_h(callback);
+    routerAdvertiseDaemon->StopRa();
+    routerAdvertiseDaemon->sendRaFfrtQueue_ = std::make_shared<ffrt::queue>("SendRa");
+    routerAdvertiseDaemon->taskHandle_ = routerAdvertiseDaemon->sendRaFfrtQueue_->submit_h(callback);
+    routerAdvertiseDaemon->sendRaFfrtQueue_ = nullptr;
+    routerAdvertiseDaemon->StopRa();
+    EXPECT_EQ(routerAdvertiseDaemon->taskHandle_, nullptr);
+}
+
+/**
  * @tc.name: CreateRASocketTest
  * @tc.desc: Test RouterAdvertisementDaemon CreateRASocket.Test the socket for
  * creating RA messages.
