@@ -314,7 +314,6 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch001, TestSize.Level1)
     int32_t fd = 0;
     int32_t ret = instance_->Dump(fd, args);
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_INTERNAL_ERROR);
-
     std::string sharingType;
     std::string typeContent = "wifi;";
     instance_->GetSharingType(SharingIfaceType::SHARING_BLUETOOTH, typeContent, sharingType);
