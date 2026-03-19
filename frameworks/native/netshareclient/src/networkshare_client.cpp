@@ -26,7 +26,6 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr size_t WAIT_REMOTE_TIME_SEC = 5;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
@@ -260,21 +259,7 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         NETMGR_EXT_LOG_E("get SystemAbilityManager failed");
         return nullptr;
     }
-    sptr<NetworkShareLoadCallback> callback = new (std::nothrow) NetworkShareLoadCallback;
-    if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Failed to create NetworkShareLoadCallback instance.");
-        return nullptr;
-    }
-    if (sam->LoadSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, callback) != 0) {
-        return nullptr;
-    }
-    {
-        std::unique_lock<std::mutex> uniqueLock(g_mutexCv);
-        g_cv.wait_for(uniqueLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
-            [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
-    }
-
-    auto remote = callback->GetRemoteObject();
+    sptr<IRemoteObject> remote = sam->GetSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID);
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
