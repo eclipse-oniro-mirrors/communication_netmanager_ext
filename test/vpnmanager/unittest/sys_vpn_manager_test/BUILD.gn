@@ -94,6 +94,7 @@ ohos_unittest("sys_vpn_manager_test") {
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
+    "googletest:gmock_main",
   ]
 
   defines = [

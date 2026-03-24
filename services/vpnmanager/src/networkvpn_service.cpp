@@ -2411,13 +2411,15 @@ void NetworkVpnService::RemoveALLClientDeathRecipient()
 void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
-
-    const_cast<sptr<VpnState> &>(vpnState)->vpnPacketName_ = GetBundleName();
+    std::string bundleName = GetBundleName();
 
     std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
-        [&state, &vpnState](const auto &callback) {
+        [&state, &vpnState, &bundleName](const auto &callback) {
+            sptr<VpnState> vpnStateBak(vpnState);
+            vpnStateBak->vpnPacketName_ = bundleName;
+
             bool isConnected = (VpnConnectState::VPN_CONNECTED == state) ? true : false;
-            callback->OnVpnStateChanged(isConnected, vpnState);
+            callback->OnVpnStateChanged(isConnected, vpnStateBak);
         });
 }
 

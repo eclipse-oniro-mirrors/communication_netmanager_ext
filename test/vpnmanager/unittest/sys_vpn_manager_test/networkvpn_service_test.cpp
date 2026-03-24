@@ -845,7 +845,7 @@ HWTEST_F(NetworkVpnServiceTest, OnVpnConnStateChanged001, TestSize.Level1)
     }
     ASSERT_NE(instance_->vpnConnCallback_, nullptr);
     VpnConnectState state = VpnConnectState::VPN_CONNECTED;
-    sptr<VpnState> vpnState = nullptr;
+    sptr<VpnState> vpnState = new VpnState();
     instance_->vpnConnCallback_->OnVpnConnStateChanged(state, vpnState);
 }
 

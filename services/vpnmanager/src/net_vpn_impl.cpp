@@ -93,7 +93,7 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
         connChangedCb_->OnMultiVpnConnStateChanged(state, vpnId);
     }
 #endif // SUPPORT_SYSVPN
-    sptr<VpnState> vpnState = new VpnState(GetInterfaceName(), GetVpnIfAddr(), vpnId,
+    sptr<VpnState> vpnState = sptr<VpnState>::MakeSptr(GetInterfaceName(), GetVpnIfAddr(), vpnId,
                                            IsGlobalVpn(), vpnConfig_->routes_,
                                            vpnConfig_->dnsAddresses_);
     connChangedCb_->OnVpnConnStateChanged(state, vpnState);
@@ -156,13 +156,13 @@ void NetVpnImpl::AddUidRange(int32_t start, int32_t end)
 int32_t NetVpnImpl::NetworkAddUids()
 {
     return NetsysController::GetInstance().NetworkAddUids(netId_,
-                                    beginUids_, endUids_, 0);
+        beginUids_, endUids_, 0);
 }
 
 int32_t NetVpnImpl::NetworkDelUids()
 {
-    return NetsysController::GetInstance().NetworkDelUids(netId_, 
-                                    beginUids_, endUids_, 0);
+    return NetsysController::GetInstance().NetworkDelUids(netId_,
+        beginUids_, endUids_, 0);
 }
 
 uint32_t NetVpnImpl::GetNetSupplierId() const
@@ -184,7 +184,7 @@ uint32_t NetVpnImpl::GetVpnInterffaceToId(const std::string &ifName)
     return 0;
 }
 
-int32_t NetVpnImpl::SetNetId(const std::string &ident, 
+int32_t NetVpnImpl::SetNetId(const std::string &ident,
                              const VpnEventType &legacy, NetConnClient &netConnClientIns)
 {
     std::list<int32_t> netIdList;

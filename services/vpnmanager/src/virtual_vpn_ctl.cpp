@@ -23,10 +23,13 @@
 #include "net_manager_center.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
+#include <string_view>
 
 
 namespace OHOS {
 namespace NetManagerStandard {
+
+constexpr std::string_view VIRTUAL_VPN_IDENTIFIER = "VirtualVpn";
 
 VirtualVpnCtl::VirtualVpnCtl(sptr<VpnConfig> config, const std::string &pkg, int32_t userId,
     std::vector<int32_t> &activeUserIds)
@@ -58,8 +61,8 @@ int32_t VirtualVpnCtl::SetUp(bool isInternalChannel)
     VpnEventType legacy = IsInternalVpn() ? VpnEventType::TYPE_LEGACY : VpnEventType::TYPE_EXTENDED;
 
     // Set net supplier info identifier, we need identifier to get net id
-    const std::string vpnNetIdent = "VirtualVpn";
-    SetNetSupplierInfoIdent(vpnNetIdent);
+    const std::string ident = VIRTUAL_VPN_IDENTIFIER.data();
+    SetNetSupplierInfoIdent(ident);
 
     auto &netConnClientIns = NetConnClient::GetInstance();
     if (!RegisterNetSupplier(netConnClientIns, isInternalChannel)) {
@@ -76,7 +79,7 @@ int32_t VirtualVpnCtl::SetUp(bool isInternalChannel)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    if (SetNetId(vpnNetIdent, legacy, netConnClientIns) != NETMANAGER_EXT_SUCCESS) {
+    if (SetNetId(ident, legacy, netConnClientIns) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("get netid failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
@@ -110,7 +113,7 @@ int32_t VirtualVpnCtl::SetUp(bool isInternalChannel)
 void VirtualVpnCtl::GenerateAllowedUids()
 {
     int32_t start = AppExecFwk::Constants::START_USERID * AppExecFwk::Constants::BASE_USER_RANGE;
-    int32_t end = AppExecFwk::Constants::START_USERID * AppExecFwk::Constants::BASE_USER_RANGE + 
+    int32_t end = AppExecFwk::Constants::START_USERID * AppExecFwk::Constants::BASE_USER_RANGE +
                     AppExecFwk::Constants::MAX_APP_UID;
 
     AddUidRange(start, end);
@@ -163,7 +166,7 @@ void VirtualVpnCtl::NotifyConnectState(const VpnConnectState &state)
         cb->OnMultiVpnConnStateChanged(state, vpnId);
     }
 #endif // SUPPORT_SYSVPN
-    sptr<VpnState> vpnState = new VpnState(GetInterfaceName(), GetVpnIfAddr(),
+    sptr<VpnState> vpnState = sptr<VpnState>::MakeSptr(GetInterfaceName(), GetVpnIfAddr(),
                                            vpnId, IsGlobalVpn(), vpnConfig_->routes_,
                                            vpnConfig_->dnsAddresses_);
     cb->OnVpnConnStateChanged(state, vpnState);

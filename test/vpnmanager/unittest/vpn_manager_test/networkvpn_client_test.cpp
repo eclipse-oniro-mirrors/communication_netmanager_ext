@@ -313,7 +313,7 @@ HWTEST_F(NetworkVpnClientTest, VpnEventCallback, TestSize.Level1)
     auto collection = sptr<VpnEventCallbackCollection>::MakeSptr();
     collection->vpnEventCbList_.push_back(callback_);
 
-    sptr<VpnState> vpnState = nullptr;
+    sptr<VpnState> vpnState = new VpnState();
     EXPECT_EQ(collection->OnVpnStateChanged(true, vpnState), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(collection->OnMultiVpnStateChanged(true, "test", "0"), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(collection->OnVpnMultiUserSetUp(), NETMANAGER_EXT_SUCCESS);

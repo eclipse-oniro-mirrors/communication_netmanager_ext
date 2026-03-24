@@ -74,7 +74,7 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         explicit VpnConnStateCb(NetworkVpnService &vpnService) : vpnService_(vpnService) {};
         virtual ~VpnConnStateCb() = default;
         void OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState) override;
-	void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0,
+        void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0,
                                   const std::string &vpnId = "") override;
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
 

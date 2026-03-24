@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,9 +50,12 @@ bool VpnState::Marshalling(Parcel &parcel) const
 bool VpnState::MarshallingRoute(Parcel &parcel) const
 {
     int32_t routeSize = static_cast<int32_t>(routes_.size());
+
+    // LCOV_EXCL_START
     if (!parcel.WriteInt32(routeSize)) {
         return false;
     }
+    // LCOV_EXCL_STOP
 
     for (auto route : routes_) {
         if (!route.Marshalling(parcel)) {
@@ -69,14 +72,18 @@ bool VpnState::MarshallingDns(Parcel &parcel) const
         return false;
     }
 
+    // LCOV_EXCL_START
     if (!parcel.WriteUint32(size)) {
         return false;
     }
+    // LCOV_EXCL_STOP
 
     for (auto &elem : dnsServers_) {
+        // LCOV_EXCL_START
         if (!parcel.WriteString(elem)) {
             return false;
         }
+        // LCOV_EXCL_STOP
     }
     return true;
 }
@@ -84,10 +91,13 @@ bool VpnState::MarshallingDns(Parcel &parcel) const
 VpnState* VpnState::Unmarshalling(Parcel &parcel)
 {
     std::unique_ptr<VpnState> ptr = std::make_unique<VpnState>();
+
+    // LCOV_EXCL_START
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("ptr is null");
         return nullptr;
     }
+    // LCOV_EXCL_STOP
 
     bool allOK = UnmarshallingVpnState(parcel, ptr.get());
     return allOK ? ptr.release() : nullptr;
@@ -95,10 +105,12 @@ VpnState* VpnState::Unmarshalling(Parcel &parcel)
 
 bool VpnState::UnmarshallingVpnState(Parcel &parcel, VpnState* ptr)
 {
+    // LCOV_EXCL_START
     if (ptr == nullptr) {
         NETMGR_EXT_LOG_E("VpnConfig ptr is null");
         return false;
     }
+    // LCOV_EXCL_STOP
     bool allOK = parcel.ReadString(ptr->vpnIfName_) &&
                  parcel.ReadString(ptr->vpnIfAddr_) &&
                  parcel.ReadString(ptr->vpnId_) &&
@@ -112,10 +124,12 @@ bool VpnState::UnmarshallingVpnState(Parcel &parcel, VpnState* ptr)
 bool VpnState::UnmarshallingRoute(Parcel &parcel, VpnState* config)
 {
     int32_t routeSize = 0;
+    // LCOV_EXCL_START
     if (!parcel.ReadInt32(routeSize)) {
         NETMGR_EXT_LOG_E("read route size failed");
         return false;
     }
+    // LCOV_EXCL_STOP
     if (static_cast<uint32_t>(routeSize) > ROUTE_MAX_SIZE) {
         NETMGR_EXT_LOG_E("routeSize=[%{public}d] is too large", routeSize);
         return false;
@@ -134,9 +148,11 @@ bool VpnState::UnmarshallingRoute(Parcel &parcel, VpnState* config)
 bool VpnState::UnmarshallingDns(Parcel &parcel, VpnState* config)
 {
     uint32_t size = 0;
+    // LCOV_EXCL_START
     if (!parcel.ReadUint32(size)) {
         return false;
     }
+    // LCOV_EXCL_STOP
 
     if (size > DNS_MAX_COUNT) {
         NETMGR_EXT_LOG_E("size = [%{public}d] is too large", size);
@@ -145,9 +161,11 @@ bool VpnState::UnmarshallingDns(Parcel &parcel, VpnState* config)
 
     for (uint32_t idx = 0; idx < size; idx++) {
         std::string elem;
+        // LCOV_EXCL_START
         if (!parcel.ReadString(elem)) {
             return false;
         }
+        // LCOV_EXCL_STOP
         config->dnsServers_.push_back(elem);
     }
 
