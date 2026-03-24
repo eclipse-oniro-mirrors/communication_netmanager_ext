@@ -26,13 +26,13 @@ constexpr uint32_t DNS_MAX_COUNT = 64;
 
 VpnState::VpnState(const std::string &vpnIfName, const std::string &vpnIfAddr,
                    const std::string &vpnId, bool isGlobalVpn, const std::vector<Route> &routes,
-                   const std::vector<std::string> &dnsServers):
-    vpnIfName_(vpnIfName),
-    vpnIfAddr_(vpnIfAddr),
-    vpnId_(vpnId),
-    isGlobalVpn_(isGlobalVpn),
-    routes_(routes),
-    dnsServers_(dnsServers)
+                   const std::vector<std::string> &dnsServers)
+    : vpnIfName_(vpnIfName),
+      vpnIfAddr_(vpnIfAddr),
+      vpnId_(vpnId),
+      isGlobalVpn_(isGlobalVpn),
+      routes_(routes),
+      dnsServers_(dnsServers)
 {}
 
 bool VpnState::Marshalling(Parcel &parcel) const
@@ -50,13 +50,11 @@ bool VpnState::Marshalling(Parcel &parcel) const
 bool VpnState::MarshallingRoute(Parcel &parcel) const
 {
     int32_t routeSize = static_cast<int32_t>(routes_.size());
-
     // LCOV_EXCL_START
     if (!parcel.WriteInt32(routeSize)) {
         return false;
     }
     // LCOV_EXCL_STOP
-
     for (auto route : routes_) {
         if (!route.Marshalling(parcel)) {
             return false;
