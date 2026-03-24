@@ -104,16 +104,16 @@ HWTEST_F(VirtualVpnCtlTest, SetUp003, TestSize.Level1)
 
     EXPECT_CALL(*mockNetConnService, GetNetIdByIdentifier(_, _)).
         WillRepeatedly([](const std::string &ident, std::list<int32_t> &netIdList) {
-                            netIdList.push_back(123);
-                            return 0;
-                          });
+            netIdList.push_back(123);
+            return 0;
+        });
     
     EXPECT_CALL(*mockNetConnService, RegisterNetSupplier(_, _, _, _)).
         WillRepeatedly([](NetBearType bearerType, const std::string &ident,
-                          const std::set<NetCap> &netCaps, uint32_t &supplierId) {
-                            supplierId = 1;
-                            return 0;
-                          });
+        const std::set<NetCap> &netCaps, uint32_t &supplierId) {
+            supplierId = 1;
+            return 0;
+        });
 
     EXPECT_CALL(*mockNetConnBaseService, UpdateNetLinkInfo(_, _)).WillRepeatedly(testing::Return(0));
     control_->netSupplierId_ = 0;
@@ -126,8 +126,8 @@ HWTEST_F(VirtualVpnCtlTest, SetUp003, TestSize.Level1)
     EXPECT_CALL(*mockNetConnBaseService, UpdateNetLinkInfo(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockNetConnService, GetNetIdByIdentifier(_, _)).
         WillRepeatedly([](const std::string &ident, std::list<int32_t> &netIdList) {
-                            return 0;
-                          });
+            return 0;
+        });
     control_->netSupplierId_ = 0;
     EXPECT_EQ(control_->SetUp(true), NETMANAGER_EXT_ERR_INTERNAL);
 
