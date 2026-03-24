@@ -94,8 +94,8 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
     }
 #endif // SUPPORT_SYSVPN
     sptr<VpnState> vpnState = sptr<VpnState>::MakeSptr(GetInterfaceName(), GetVpnIfAddr(), vpnId,
-                                           IsGlobalVpn(), vpnConfig_->routes_,
-                                           vpnConfig_->dnsAddresses_);
+                                                       IsGlobalVpn(), vpnConfig_->routes_,
+                                                       vpnConfig_->dnsAddresses_);
     connChangedCb_->OnVpnConnStateChanged(state, vpnState);
     if (userId_ == 0) {
         return;
