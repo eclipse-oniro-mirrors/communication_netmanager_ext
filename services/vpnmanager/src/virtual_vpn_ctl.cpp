@@ -167,8 +167,8 @@ void VirtualVpnCtl::NotifyConnectState(const VpnConnectState &state)
     }
 #endif // SUPPORT_SYSVPN
     sptr<VpnState> vpnState = sptr<VpnState>::MakeSptr(GetInterfaceName(), GetVpnIfAddr(),
-                                           vpnId, IsGlobalVpn(), vpnConfig_->routes_,
-                                           vpnConfig_->dnsAddresses_);
+        vpnId, IsGlobalVpn(), vpnConfig_->routes_,
+        vpnConfig_->dnsAddresses_);
     cb->OnVpnConnStateChanged(state, vpnState);
     cb->SendConnStateChanged(state, VpnType::VIRTUAL_VPN, vpnId);
 }
