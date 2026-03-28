@@ -73,8 +73,7 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
     public:
         explicit VpnConnStateCb(NetworkVpnService &vpnService) : vpnService_(vpnService) {};
         virtual ~VpnConnStateCb() = default;
-        void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                                   const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn) override;
+        void OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState) override;
         void SendConnStateChanged(const VpnConnectState &state, int32_t vpnType = 0,
                                   const std::string &vpnId = "") override;
         void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId) override;
@@ -324,8 +323,7 @@ private:
     void UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &VpnHapObserver);
     bool IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc);
     bool CheckVpnPermission(const std::string &bundleName);
-    void OnVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnIfName,
-                               const std::string &vpnIfAddr, const std::string &vpnId, bool isGlobalVpn);
+    void OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState);
 #ifdef SUPPORT_SYSVPN
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId, int32_t userId);
 #endif

@@ -56,6 +56,7 @@ ohos_unittest("vpn_manager_ext_test") {
     "netmanager_base:net_service_common",
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
+    "googletest:gmock_main",
   ]
 
   defines = [
