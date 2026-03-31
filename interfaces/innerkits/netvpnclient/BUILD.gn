@@ -199,6 +199,7 @@ ohos_shared_library("net_vpn_permission_if") {
     ":networkvpn_parcel",
   ]
   external_deps = [
+    "ability_base:want",
     "ipc:ipc_single",
     "hilog:libhilog",
     "samgr:samgr_proxy",
