@@ -37,10 +37,13 @@
 #include "netmanager_base_common_utils.h"
 #include "networkvpn_client.h"
 #include "vpn_event_callback_stub.h"
+#include "mock_i_network_vpn_service.h"
+#include "networkvpn_permission_client.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+using namespace testing;
 using namespace testing::ext;
 } // namespace
 
@@ -318,6 +321,20 @@ HWTEST_F(NetworkVpnClientTest, VpnEventCallback, TestSize.Level1)
                                             "", false), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(collection->OnMultiVpnStateChanged(true, "test", "0"), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(collection->OnVpnMultiUserSetUp(), NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnClientTest, RequestVpnPermission0001, TestSize.Level1)
+{
+    bool isAuthorized = false;
+    auto ret = RequestVpnPermission(1099, "", "", isAuthorized);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+}
+
+HWTEST_F(NetworkVpnClientTest, RequestVpnPermission0002, TestSize.Level1)
+{
+    bool isAuthorized = false;
+    auto ret = RequestVpnPermission(1099, "test", "", isAuthorized);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

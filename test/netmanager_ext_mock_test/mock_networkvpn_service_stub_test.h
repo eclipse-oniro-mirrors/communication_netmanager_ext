@@ -150,6 +150,12 @@ public:
     {
         return 0;
     }
+
+    int32_t RequestVpnPermission(int32_t uid, const std::string& bundleName, const std::string& abilityName,
+        bool &isAuthorized) override
+    {
+        return 0;
+    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

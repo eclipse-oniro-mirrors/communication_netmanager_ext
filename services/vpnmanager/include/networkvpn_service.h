@@ -237,15 +237,19 @@ public:
     int32_t GetAlwaysOnVpn(std::string &pkg);
 
     int32_t GetSelfAppName(std::string &selfAppName, std::string &selfBundleName) override;
-
+    int32_t GetAppNameByUid(int32_t uid, std::string &appName, std::string &bundleName);
     int32_t StartVpnExtensionAbility(const AAFwk::Want& want) override;
 
     int32_t StopVpnExtensionAbility(const AAFwk::Want& want) override;
+    int32_t RequestVpnPermission(int32_t uid, const std::string &bundleName, const std::string &abilityName,
+        bool &isAuthorized) override;
 
     bool IsVpnApplication(int32_t uid);
     bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid);
 
-    void NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName);
+    void NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName,
+        std::set<std::string> &&allowVpnStartWithoutCheckPermissions);
+    int32_t StopVpnExtensionAbility(const std::string &bundleName, const std::string &abilityName);
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -288,6 +292,9 @@ private:
     int32_t CheckIpcPermission(const std::string &strPermission);
     bool CheckSystemCall(const std::string &bundleName);
     bool CheckVpnExtPermission(const std::string &bundleName);
+    bool CheckVpnExtPermission(int32_t uid, const std::string &bundleName);
+    virtual bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName,
+        const std::string &appName, int32_t uid);
     void HandleVpnHapObserverRegistration(const std::string& bundleName);
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
@@ -330,7 +337,6 @@ private:
     void OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId, int32_t userId);
 #endif
     bool IsDistributedModemSharingVpn();
-    int32_t GetAppInfoByUid(int32_t uid, std::string &selfAppName, std::string &selfBundleName);
     bool IsWantBundleNameValid(const AAFwk::Want &want, int32_t uid);
     int32_t RegisterBundleName(const std::string &bundleName, const std::string &abilityName);
 
@@ -390,15 +396,21 @@ public:
     };
     class VpnAbilityConnect : public AAFwk::AbilityConnectionStub {
     public:
+        VpnAbilityConnect(std::weak_ptr<NetworkVpnService> service, const std::string& bundleName,
+            const std::string& abilityName, int32_t uid)
+            : service_(service), bundleName_(bundleName), abilityName_(abilityName), uid_(uid) {}
         void OnAbilityConnectDone(const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject,
                                   int32_t resultCode) override
         {
             NETMANAGER_EXT_LOGI("connect done");
         }
-        void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override
-        {
-            NETMANAGER_EXT_LOGI("disconnect done");
-        }
+        void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override;
+
+    private:
+        std::weak_ptr<NetworkVpnService> service_;
+        std::string bundleName_;
+        std::string abilityName_;
+        int32_t uid_;
     };
 private:
     class VpnAppDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -434,7 +446,10 @@ private:
     std::set<std::string> currentVpnAbilityName_;
     std::shared_mutex allowConnectVpnBundleNameMutex_;
     std::set<std::string> allowConnectVpnBundleName_;
+    std::set<std::string> allowVpnStartWithoutCheckPermissions_;
     std::shared_ptr<NetworkVpnServiceIface> serviceIface_ = nullptr;
+    ffrt::shared_mutex vpnExtPermissionCacheMutex_;
+    std::map<std::string, bool> vpnExtPermissionCache_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -30,5 +30,8 @@ group("unittest") {
 
 group("fuzztest") {
   testonly = true
-  deps = [ "fuzztest/vpnclient_fuzzer:fuzztest" ]
+  deps = [
+    "fuzztest/vpnclient_fuzzer:fuzztest",
+    "fuzztest/vpnclientrequestvpnpermission_fuzzer:fuzztest",
+  ]
 }

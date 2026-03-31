@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include "accesstoken_kit.h"
 #include "extended_vpn_ctl.h"
@@ -34,6 +35,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+using namespace testing;
 using namespace testing::ext;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
 class VpnEventTestCallback : public VpnEventCallbackStub {
@@ -43,6 +45,13 @@ public:
     int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
         const std::string &vpnId) override{ return 0; };
     int32_t OnVpnMultiUserSetUp() override{ return 0; };
+};
+
+class MockNetworkVpnService : public NetworkVpnService {
+public:
+    MOCK_METHOD(bool, ShowVpnDialog,
+        (const std::string &bundleName, const std::string &abilityName, const std::string &appName, int32_t uid),
+        (override));
 };
 } // namespace
 
@@ -732,6 +741,108 @@ HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest002, TestSize.Level1)
     vpnId = "";
     res = instance_->IsNeedNotify(state, vpnId);
     EXPECT_TRUE(res);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest001, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    int32_t uid = 1000;
+    std::string bundleName = "com.test.bundle";
+    std::string abilityName = "VpnServiceExtAbility";
+    bool isAuthorized = true;
+    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_FALSE(isAuthorized);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest002, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    int32_t uid = 1099;
+    std::string bundleName = "";
+    std::string abilityName = "VpnServiceExtAbility";
+    bool isAuthorized = true;
+    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_FALSE(isAuthorized);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest003, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<MockNetworkVpnService>();
+    EXPECT_CALL(*vpnService, ShowVpnDialog(_, _, _, _)).WillRepeatedly(Return(false));
+    int32_t uid = 1099;
+    std::string bundleName = "";
+    std::string abilityName = "VpnServiceExtAbility";
+    bool isAuthorized = false;
+    vpnService->allowVpnStartWithoutCheckPermissions_.emplace("");
+    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(isAuthorized);
+}
+
+HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest004, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<MockNetworkVpnService>();
+    EXPECT_CALL(*vpnService, ShowVpnDialog(_, _, _, _)).WillRepeatedly(Return(true));
+    int32_t uid = 1099;
+    std::string bundleName = "";
+    std::string abilityName = "VpnServiceExtAbility";
+    bool isAuthorized = false;
+    vpnService->allowVpnStartWithoutCheckPermissions_.emplace("");
+    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(isAuthorized);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnAbilityDisconnectDone001, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    auto vpnAbilityConnect = std::make_shared<NetworkVpnService::VpnAbilityConnect>(vpnService, "",
+        "VpnServiceExtAbility", 1099);
+    AppExecFwk::ElementName elememt;
+    elememt.SetBundleName("com.test.bundle");
+    vpnAbilityConnect->OnAbilityDisconnectDone(elememt, 0);
+    EXPECT_NE(elememt.GetBundleName(), "com.huawei.hmos.vpndialog");
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnAbilityDisconnectDone002, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    auto vpnAbilityConnect = std::make_shared<NetworkVpnService::VpnAbilityConnect>(vpnService, "",
+        "VpnServiceExtAbility", 1099);
+    AppExecFwk::ElementName elememt;
+    elememt.SetBundleName("com.huawei.hmos.vpndialog");
+    vpnAbilityConnect->OnAbilityDisconnectDone(elememt, 0);
+    EXPECT_EQ(elememt.GetBundleName(), "com.huawei.hmos.vpndialog");
+    EXPECT_NE(vpnAbilityConnect->service_.lock(), nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, OnAbilityDisconnectDone003, TestSize.Level1)
+{
+    std::shared_ptr<NetworkVpnService> vpnService = nullptr;
+    auto vpnAbilityConnect = std::make_shared<NetworkVpnService::VpnAbilityConnect>(vpnService, "",
+        "VpnServiceExtAbility", 1099);
+    AppExecFwk::ElementName elememt;
+    elememt.SetBundleName("com.huawei.hmos.vpndialog");
+    vpnAbilityConnect->OnAbilityDisconnectDone(elememt, 0);
+    EXPECT_EQ(elememt.GetBundleName(), "com.huawei.hmos.vpndialog");
+    EXPECT_EQ(vpnAbilityConnect->service_.lock(), nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CheckVpnExtPermission001, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    vpnService->vpnExtPermissionCache_.emplace("test_0", true);
+    auto ret = vpnService->CheckVpnExtPermission(1099, "test");
+    EXPECT_TRUE(ret);
+}
+
+HWTEST_F(NetworkVpnServiceTest, CheckVpnExtPermission002, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    auto ret = vpnService->CheckVpnExtPermission(1099, "test");
+    EXPECT_FALSE(ret);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
