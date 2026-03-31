@@ -2104,8 +2104,7 @@ bool NetworkVpnService::IsWantBundleNameValid(const AAFwk::Want &want, int32_t u
     std::string callingAppName;
     std::string callingBundleName;
     // LCOV_EXCL_START
-    if (GetAppNameByUid(uid, callingAppName, callingBundleName) != NETMANAGER_EXT_SUCCESS)
-    {
+    if (GetAppNameByUid(uid, callingAppName, callingBundleName) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("GetAppNameByUid failed");
         return false;
     }
