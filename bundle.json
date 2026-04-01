@@ -208,6 +208,16 @@
                         ],
                         "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
                     }
+                },
+                {
+                    "type": "so",
+                    "name": "//foundation/communication/netmanager_ext/interfaces/innerkits/netvpnclient:net_vpn_permission_if",
+                    "header": {
+                        "header_files": [
+                            "netvpnclient/include/networkvpn_permission_client.h"
+                        ],
+                        "header_base": "//foundation/communication/netmanager_ext/interfaces/innerkits"
+                    }
                 }
             ],
             "test": [

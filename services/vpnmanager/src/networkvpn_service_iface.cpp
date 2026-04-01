@@ -29,10 +29,12 @@ bool NetworkVpnServiceIface::IsAppUidInWhiteList(int32_t callingUid, int32_t app
     return DelayedSingleton<NetworkVpnService>::GetInstance()->IsAppUidInWhiteList(callingUid, appUid);
 }
 
-void NetworkVpnServiceIface::NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName)
+void NetworkVpnServiceIface::NotifyAllowConnectVpnBundleNameChanged(
+    std::set<std::string> &&allowConnectVpnBundleName,
+    std::set<std::string> &&allowVpnStartWithoutCheckPermissions)
 {
-    DelayedSingleton<NetworkVpnService>::GetInstance()->
-        NotifyAllowConnectVpnBundleNameChanged(std::move(allowConnectVpnBundleName));
+    DelayedSingleton<NetworkVpnService>::GetInstance()->NotifyAllowConnectVpnBundleNameChanged(
+        std::move(allowConnectVpnBundleName), std::move(allowVpnStartWithoutCheckPermissions));
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

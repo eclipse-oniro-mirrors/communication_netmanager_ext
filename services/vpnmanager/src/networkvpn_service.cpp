@@ -81,6 +81,7 @@ constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
 
 constexpr const char* const PERMISSION_MANAGE_EDM_POLICY = "ohos.permission.MANAGE_EDM_POLICY";
 constexpr const char *INNER_CHL_NAME = "inner-chl";
+constexpr const char *VPN_DIALOG_BUNDLENAME = "com.huawei.hmos.vpndialog";
 NetworkVpnService::NetworkVpnService() : SystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, true) {}
 NetworkVpnService::~NetworkVpnService()
 {
@@ -731,28 +732,58 @@ int32_t NetworkVpnService::IsSetUpReady(const std::string &vpnId, std::string &v
 
 bool NetworkVpnService::CheckVpnExtPermission(const std::string &bundleName)
 {
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    return CheckVpnExtPermission(uid, bundleName);
+}
+
+bool NetworkVpnService::CheckVpnExtPermission(int32_t uid, const std::string &bundleName)
+{
     int32_t ret = NETMANAGER_EXT_SUCCESS;
     std::string vpnExtMode;
-#ifdef SUPPORT_SYSVPN
+    std::string key = bundleName;
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    int32_t uid = IPCSkeleton::GetCallingUid();
+
+#ifdef SUPPORT_SYSVPN
     if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
         NETMGR_EXT_LOG_E("CheckSystemCall GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
         return false;
     }
-    std::string key = bundleName + "_" + std::to_string(userId);
-    NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s] userId = [%{public}d]",
-                     ret, bundleName.c_str(), userId);
+    key = bundleName + "_" + std::to_string(userId);
+#endif // SUPPORT_SYSVPN
+
+    // 尝试从缓存读取
+    {
+        std::shared_lock<ffrt::shared_mutex> lock(vpnExtPermissionCacheMutex_);
+        auto it = vpnExtPermissionCache_.find(key);
+        if (it != vpnExtPermissionCache_.end()) {
+            NETMGR_EXT_LOG_D("CheckVpnExtPermission cache hit, key = [%{public}s], result = [%{public}d]",
+                key.c_str(), it->second);
+            return it->second;
+        }
+    }
+
+    // 缓存未命中，从数据库读取（新方式）
+#ifdef SUPPORT_SYSVPN
     ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
+    NETMGR_EXT_LOG_D("ret = [%{public}d], bundleName = [%{public}s] userId = [%{public}d]", ret, bundleName.c_str(),
+        userId);
     if (ret == NETMANAGER_EXT_SUCCESS && vpnExtMode == "1") {
+        std::unique_lock<ffrt::shared_mutex> lock(vpnExtPermissionCacheMutex_);
+        vpnExtPermissionCache_[key] = true;
         return true;
     }
+    // 新方式失败，使用旧方式
+    key = bundleName;
 #endif // SUPPORT_SYSVPN
-    ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
+
+    // 旧方式或非SUPPORT_SYSVPN从数据库读取
+    ret = NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, key, vpnExtMode);
     if (ret != NETMANAGER_EXT_SUCCESS || vpnExtMode != "1") {
         NETMGR_EXT_LOG_E("query datebase fail.");
         return false;
     }
+    std::unique_lock<ffrt::shared_mutex> lock(vpnExtPermissionCacheMutex_);
+    vpnExtPermissionCache_[key] = true;
     return true;
 }
 
@@ -1776,10 +1807,33 @@ int32_t NetworkVpnService::SyncUnregisterVpnEvent(const sptr<IVpnEventCallback> 
     return NETMANAGER_EXT_ERR_OPERATION_FAILED;
 }
 
-void NetworkVpnService::NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName)
+void NetworkVpnService::NotifyAllowConnectVpnBundleNameChanged(
+    std::set<std::string> &&allowConnectVpnBundleName,
+    std::set<std::string> &&allowVpnStartWithoutCheckPermissions)
 {
     std::unique_lock<std::shared_mutex> lock(allowConnectVpnBundleNameMutex_);
     allowConnectVpnBundleName_ = std::move(allowConnectVpnBundleName);
+    allowVpnStartWithoutCheckPermissions_ = std::move(allowVpnStartWithoutCheckPermissions);
+}
+
+int32_t NetworkVpnService::StopVpnExtensionAbility(const std::string &bundleName, const std::string &abilityName)
+{
+    AAFwk::Want want;
+    AppExecFwk::ElementName elem;
+    elem.SetBundleName(bundleName);
+    elem.SetAbilityName(abilityName);
+    want.SetElement(elem);
+
+    auto abilityManager = OHOS::AAFwk::AbilityManagerClient::GetInstance();
+    // LCOV_EXCL_START
+    if (abilityManager == nullptr) {
+        NETMGR_EXT_LOG_E("AbilityManagerClient is nullptr");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    // LCOV_EXCL_STOP
+    ErrCode err = abilityManager->StopExtensionAbility(
+        want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+    return err;
 }
 
 void NetworkVpnService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
@@ -1965,9 +2019,19 @@ void NetworkVpnService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEve
             NETMGR_EXT_LOG_E("GetForegroundOsAccountLocalId error");
             return;
         }
-        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName + "_" + std::to_string(userId));
-#endif // SUPPORT_SYSVPN
+        std::string key = bundleName + "_" + std::to_string(userId);
+        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, key);
         NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName);
+        // 删除缓存（使用同一把锁保护两次删除操作，避免AA锁）
+        std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+        vpnService->vpnExtPermissionCache_.erase(key);
+        vpnService->vpnExtPermissionCache_.erase(bundleName);
+#else
+        NetDataShareHelperUtilsIface::Delete(VPNEXT_MODE_URI, bundleName);
+        // 删除缓存
+        std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+        vpnService->vpnExtPermissionCache_.erase(bundleName);
+#endif // SUPPORT_SYSVPN
     }
 }
 // LCOV_EXCL_STOP
@@ -1990,15 +2054,8 @@ int32_t NetworkVpnService::RegisterBundleName(const std::string &bundleName, con
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string &selfBundleName)
+int32_t NetworkVpnService::GetAppNameByUid(int32_t uid, std::string &appName, std::string &bundleName)
 {
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    return GetAppInfoByUid(uid, selfAppName, selfBundleName);
-}
-
-int32_t NetworkVpnService::GetAppInfoByUid(int32_t uid, std::string &selfAppName, std::string &selfBundleName)
-{
-    std::string bundleName;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
         NETMGR_EXT_LOG_E("Get ability manager failed");
@@ -2033,9 +2090,8 @@ int32_t NetworkVpnService::GetAppInfoByUid(int32_t uid, std::string &selfAppName
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     // LCOV_EXCL_STOP
-    NETMGR_EXT_LOG_I("StartVpnExtensionAbility bundleResourceInfo.label %{public}s", bundleResourceInfo.label.c_str());
-    selfAppName = bundleResourceInfo.label;
-    selfBundleName = bundleName;
+    NETMGR_EXT_LOG_I("GetAppNameByUid bundleResourceInfo.label %{public}s", bundleResourceInfo.label.c_str());
+    appName = bundleResourceInfo.label;
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -2044,11 +2100,20 @@ bool NetworkVpnService::IsWantBundleNameValid(const AAFwk::Want &want, int32_t u
     // Check if want is started from the same bundle name
     std::string callingAppName;
     std::string callingBundleName;
-    if (GetAppInfoByUid(uid, callingAppName, callingBundleName) != NETMANAGER_EXT_SUCCESS) {
+    // LCOV_EXCL_START
+    if (GetAppNameByUid(uid, callingAppName, callingBundleName) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("GetAppNameByUid failed");
         return false;
     }
+    // LCOV_EXCL_STOP
     std::string wantBundleName = want.GetElement().GetBundleName();
     return callingBundleName == wantBundleName;
+}
+
+int32_t NetworkVpnService::GetSelfAppName(std::string &selfAppName, std::string &selfBundleName)
+{
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    return GetAppNameByUid(uid, selfAppName, selfBundleName);
 }
 
 int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
@@ -2074,13 +2139,15 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         NETMGR_EXT_LOG_I("StartVpnExtensionAbility not allowed to start ability with different bundle name");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    if (!CheckVpnExtPermission(want.GetElement().GetBundleName())) {
+    auto vpnBundleName = want.GetElement().GetBundleName();
+    auto vpnAbilityName = want.GetElement().GetAbilityName();
+    if (!CheckVpnExtPermission(vpnBundleName)) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    auto vpnBundleName = want.GetElement().GetBundleName();
     std::shared_lock<std::shared_mutex> allowConnectVpnBundleNameLock(allowConnectVpnBundleNameMutex_);
     if (allowConnectVpnBundleName_.find(vpnBundleName) != allowConnectVpnBundleName_.end()) {
-        auto abilityConnection = sptr<NetworkVpnService::VpnAbilityConnect>::MakeSptr();
+        auto abilityConnection =
+            sptr<VpnAbilityConnect>::MakeSptr(shared_from_this(), vpnBundleName, vpnAbilityName, uid);
         auto ret = abilityManager->ConnectAbilityWithExtensionType(want,
             abilityConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
         if (ret != ERR_OK) {
@@ -2098,9 +2165,7 @@ int32_t NetworkVpnService::StartVpnExtensionAbility(const AAFwk::Want &want)
         want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
     NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
     if (err == 0) {
-        std::string wantBundleName = want.GetElement().GetBundleName();
-        std::string wantAbilityName = want.GetElement().GetAbilityName();
-        int32_t rst = RegisterBundleName(wantBundleName, wantAbilityName);
+        int32_t rst = RegisterBundleName(vpnBundleName, vpnAbilityName);
         NETMANAGER_EXT_LOGI("VPN RegisterBundleName result = %{public}d", rst);
     }
     return err;
@@ -2313,13 +2378,7 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     }
     if (isMainProc) {
         for (const auto &name : extensionAbilityName) {
-            AAFwk::Want want;
-            AppExecFwk::ElementName elem;
-            elem.SetBundleName(extensionBundleName);
-            elem.SetAbilityName(name);
-            want.SetElement(elem);
-            auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
-                want, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::VPN);
+            auto res = vpnService_.StopVpnExtensionAbility(extensionBundleName, name);
             NETMGR_EXT_LOG_I("VPN HAP is OnProcessDied StopExtensionAbility res= %{public}d", res);
         }
     }
@@ -2423,6 +2482,77 @@ void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, cons
         });
 }
 
+int32_t NetworkVpnService::RequestVpnPermission(int32_t uid, const std::string& bundleName,
+    const std::string& abilityName, bool &isAuthorized)
+{
+    isAuthorized = false;
+    std::string actualBundleName;
+    std::string appName;
+    GetAppNameByUid(uid, appName, actualBundleName);
+    if (bundleName != actualBundleName) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
+    // LCOV_EXCL_START
+    if (CheckVpnExtPermission(uid, bundleName)) {
+        NETMGR_EXT_LOG_D("VPN permission already authorized for bundleName: %{public}s", bundleName.c_str());
+        isAuthorized = true;
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    // LCOV_EXCL_STOP
+    NETMGR_EXT_LOG_I("VPN permission not authorized, show VPN dialog for bundleName: %{public}s", bundleName.c_str());
+    std::shared_lock<std::shared_mutex> lock(allowConnectVpnBundleNameMutex_);
+    if (allowVpnStartWithoutCheckPermissions_.find(bundleName) == allowVpnStartWithoutCheckPermissions_.end()) {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    lock.unlock();
+    isAuthorized = true;
+    ffrt::submit([wp = weak_from_this(), bundleName, abilityName, appName, uid] {
+        // LCOV_EXCL_START
+        auto sp = wp.lock();
+        if (sp == nullptr) {
+            return;
+        }
+        bool showDialogResult = sp->ShowVpnDialog(bundleName, abilityName, appName, uid);
+        if (!showDialogResult) {
+            NETMGR_EXT_LOG_E("Failed to show VPN dialog for bundleName: %{public}s", bundleName.c_str());
+            sp->StopVpnExtensionAbility(bundleName, abilityName);
+        }
+        // LCOV_EXCL_STOP
+    });
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+bool NetworkVpnService::ShowVpnDialog(const std::string &bundleName, const std::string &abilityName,
+    const std::string &appName, int32_t uid)
+{
+    NETMGR_EXT_LOG_D("ShowVpnDialog enter, bundleName: %{public}s, abilityName: %{public}s, appName: %{public}s",
+                     bundleName.c_str(), abilityName.c_str(), appName.c_str());
+
+    auto abmc = AAFwk::AbilityManagerClient::GetInstance();
+    // LCOV_EXCL_START
+    if (abmc == nullptr) {
+        NETMGR_EXT_LOG_E("GetInstance failed");
+        return false;
+    }
+
+    AAFwk::Want want;
+    want.SetElementName(VPN_DIALOG_BUNDLENAME, "VpnServiceExtAbility");
+    want.SetParam("bundleName", bundleName);
+    want.SetParam("abilityName", abilityName + "_ext");
+    want.SetParam("appName", appName);
+
+    auto vpnAbilityConn_ = sptr<VpnAbilityConnect>::MakeSptr(shared_from_this(), bundleName, abilityName, uid);
+    auto ret = abmc->ConnectAbility(want, vpnAbilityConn_, -1);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("ConnectAbility failed %{public}d", ret);
+        return false;
+    }
+    // LCOV_EXCL_STOP
+    NETMGR_EXT_LOG_I("ShowVpnDialog: waiting for user authorization");
+    return true;
+}
+
 #ifdef SUPPORT_SYSVPN
 void NetworkVpnService::OnMultiVpnConnStateChanged(const VpnConnectState &state, const std::string &vpnId,
     int32_t userId)
@@ -2437,6 +2567,24 @@ void NetworkVpnService::OnMultiVpnConnStateChanged(const VpnConnectState &state,
         });
 }
 #endif
+
+void NetworkVpnService::VpnAbilityConnect::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
+    int32_t resultCode)
+{
+    NETMANAGER_EXT_LOGI("disconnect done");
+    if (element.GetBundleName() != std::string(VPN_DIALOG_BUNDLENAME)) {
+        return;
+    }
+    auto service = service_.lock();
+    if (service == nullptr) {
+        return;
+    }
+    // LCOV_EXCL_START
+    if (!service->CheckVpnExtPermission(uid_, bundleName_)) {
+        service->StopVpnExtensionAbility(bundleName_, abilityName_);
+    }
+    // LCOV_EXCL_STOP
+}
 
 } // namespace NetManagerStandard
 } // namespace OHOS

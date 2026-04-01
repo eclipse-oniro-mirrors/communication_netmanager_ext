@@ -6,3 +6,5 @@ CMakeLists.txt
 Cargo.lock
 /target
 
+
+.codemate
