@@ -412,5 +412,37 @@ int32_t EthernetClient::LogOffEthEap(int32_t netId)
     return NETMANAGER_SUCCESS;
 #endif
 }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+int32_t EthernetClient::EnableEthernetInterface()
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->EnableEthernetInterface();
+}
+
+int32_t EthernetClient::DisableEthernetInterface()
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->DisableEthernetInterface();
+}
+
+int32_t EthernetClient::IsEthernetEnabled(int32_t &enabled)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->IsEthernetEnabled(enabled);
+}
+#endif
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -178,6 +178,11 @@ ohos_shared_library("ethernet_manager_if") {
     defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
   }
 
+  # Enable ethernet enable/disable feature conditionally
+  if (netmanager_ext_feature_net_firewall) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
+  }
+
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
   }

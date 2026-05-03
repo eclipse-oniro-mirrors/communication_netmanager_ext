@@ -23,6 +23,10 @@
 #include "get_iface_config_context.h"
 #include "is_iface_active_context.h"
 #include "set_iface_config_context.h"
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "enable_ethernet_context.h"
+#include "disable_ethernet_context.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -88,6 +92,29 @@ void GetDeviceInformationCallback(napi_env env, napi_status status, void *data)
     BaseAsyncWork::AsyncWorkCallback<GetDeviceInformationContext, EthernetExec::GetDeviceInformationCallback>(env,
         status, data);
 }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+void ExecEnableEthernet(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<EnableEthernetContext, EthernetExec::ExecEnableEthernet>(env, data);
+}
+
+void EnableEthernetCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<EnableEthernetContext, EthernetExec::EnableEthernetCallback>(env, status, data);
+}
+
+void ExecDisableEthernet(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<DisableEthernetContext, EthernetExec::ExecDisableEthernet>(env, data);
+}
+
+void DisableEthernetCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<DisableEthernetContext, EthernetExec::DisableEthernetCallback>(env, status,
+        data);
+}
+#endif
 } // namespace EthernetAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -16,6 +16,7 @@
 #include <napi/native_api.h>
 #include <napi/native_common.h>
 
+#include "netmanager_ext_log.h"
 #include "ethernet_async_work.h"
 #include "get_all_active_ifaces_context.h"
 #include "get_device_infomation.h"
@@ -26,6 +27,12 @@
 #include "interface_state_observer_wrapper.h"
 #include "is_iface_active_context.h"
 #include "set_iface_config_context.h"
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "enable_ethernet_context.h"
+#include "disable_ethernet_context.h"
+#include "ethernet_client.h"
+#include "ethernet_exec.h"
+#endif
 #include "module_template.h"
 #include "napi_utils.h"
 
@@ -45,6 +52,11 @@ constexpr const char *IP_SET_MODE = "IPSetMode";
 constexpr const char *FUNCTION_ON = "on";
 constexpr const char *FUNCTION_OFF = "off";
 constexpr const char *GET_DEVICE_INFO = "getEthernetDeviceInfos";
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+constexpr const char *ENABLE_ETHERNET = "enableEthernetInterface";
+constexpr const char *DISABLE_ETHERNET = "disableEthernetInterface";
+constexpr const char *IS_ETHERNET_ENABLED = "isEthernetEnabled";
+#endif
 
 napi_value GetMacAddress(napi_env env, napi_callback_info info)
 {
@@ -75,6 +87,40 @@ napi_value GetAllActiveIfaces(napi_env env, napi_callback_info info)
     return ModuleTemplate::Interface<GetAllActiveIfacesContext>(env, info, GET_ALL_IFACES, nullptr,
         EthernetAsyncWork::ExecGetAllActiveIfaces, EthernetAsyncWork::GetAllActiveIfacesCallback);
 }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+napi_value EnableEthernetInterface(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<EnableEthernetContext>(env, info, ENABLE_ETHERNET, nullptr,
+        EthernetAsyncWork::ExecEnableEthernet, EthernetAsyncWork::EnableEthernetCallback);
+}
+
+napi_value DisableEthernetInterface(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<DisableEthernetContext>(env, info, DISABLE_ETHERNET, nullptr,
+        EthernetAsyncWork::ExecDisableEthernet, EthernetAsyncWork::DisableEthernetCallback);
+}
+
+// 同步接口：直接返回布尔值
+napi_value IsEthernetEnabled(napi_env env, napi_callback_info info)
+{
+    size_t argc = 0;
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, &argc, nullptr, &thisVar, nullptr);
+
+    int32_t enabled = 0;
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->IsEthernetEnabled(enabled);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("IsEthernetEnabled error, errorCode: %{public}d", result);
+        int32_t napiCode = EthernetExec::MapToNapiErrorCode(result);
+        std::string errMsg = EthernetExec::GetNapiErrorMessage(napiCode);
+        std::string napiCodeStr = std::to_string(napiCode);
+        napi_throw_error(env, napiCodeStr.c_str(), errMsg.c_str());
+        return NapiUtils::GetBoolean(env, false);
+    }
+    return NapiUtils::GetBoolean(env, enabled != 0);
+}
+#endif
 } // namespace
 
 static napi_value DeclareEthernetData(napi_env env, napi_value exports)
@@ -113,6 +159,11 @@ static napi_value DeclareEthernetInterface(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
         DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
         DECLARE_NAPI_FUNCTION(GET_DEVICE_INFO, GetDeviceInformation),
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+        DECLARE_NAPI_FUNCTION(ENABLE_ETHERNET, EnableEthernetInterface),
+        DECLARE_NAPI_FUNCTION(DISABLE_ETHERNET, DisableEthernetInterface),
+        DECLARE_NAPI_FUNCTION(IS_ETHERNET_ENABLED, IsEthernetEnabled),
+#endif
     });
     return exports;
 }

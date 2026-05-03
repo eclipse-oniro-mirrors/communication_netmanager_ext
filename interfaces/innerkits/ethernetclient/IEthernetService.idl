@@ -44,4 +44,7 @@ interface OHOS.NetManagerStandard.IEthernetService {
     void NotifyWpaEapInterceptInfo([in] int netType, [in] sptr<EapData> eapData);
     void StartEthEap([in] int netId, [in] EthEapProfile profile);
     void LogOffEthEap([in] int netId);
+    [macrodef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE] void EnableEthernetInterface();
+    [macrodef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE] void DisableEthernetInterface();
+    [macrodef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE] void IsEthernetEnabled([out] int enabled);
 }

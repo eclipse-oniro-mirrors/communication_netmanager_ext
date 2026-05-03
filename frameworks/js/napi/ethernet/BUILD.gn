@@ -30,11 +30,11 @@ ohos_shared_library("ethernet") {
 
   sources = [
     "context/get_all_active_ifaces_context.cpp",
+    "context/get_device_infomation.cpp",
     "context/get_iface_config_context.cpp",
     "context/get_mac_address_context.cpp",
     "context/is_iface_active_context.cpp",
     "context/set_iface_config_context.cpp",
-    "context/get_device_infomation.cpp",
     "ethernet_async_work.cpp",
     "ethernet_exec.cpp",
     "ethernet_module.cpp",
@@ -42,7 +42,20 @@ ohos_shared_library("ethernet") {
     "interface_state_observer_wrapper.cpp",
   ]
 
+  # Add enable/disable sources conditionally
+  if (netmanager_ext_feature_net_firewall) {
+    sources += [
+      "context/disable_ethernet_context.cpp",
+      "context/enable_ethernet_context.cpp",
+    ]
+  }
+
   defines = [ "NETMGR_DEBUG" ]
+
+  # Enable ethernet enable/disable feature conditionally
+  if (netmanager_ext_feature_net_firewall) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
+  }
 
   cflags = [
     "-D_FORTIFY_SOURCE=2",

@@ -18,12 +18,16 @@
 
 #include <napi/native_api.h>
 
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "disable_ethernet_context.h"
+#include "enable_ethernet_context.h"
+#endif
 #include "get_all_active_ifaces_context.h"
 #include "get_device_infomation.h"
 #include "get_iface_config_context.h"
+#include "get_mac_address_context.h"
 #include "is_iface_active_context.h"
 #include "set_iface_config_context.h"
-#include "get_mac_address_context.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -45,6 +49,18 @@ napi_value GetAllActiveIfacesCallback(GetAllActiveIfacesContext *context);
 
 bool ExecGetDeviceInformation(GetDeviceInformationContext *context);
 napi_value GetDeviceInformationCallback(GetDeviceInformationContext *context);
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+bool ExecEnableEthernet(EnableEthernetContext *context);
+napi_value EnableEthernetCallback(EnableEthernetContext *context);
+
+bool ExecDisableEthernet(DisableEthernetContext *context);
+napi_value DisableEthernetCallback(DisableEthernetContext *context);
+
+// Error code mapping utilities
+int32_t MapToNapiErrorCode(int32_t internalCode);
+std::string GetNapiErrorMessage(int32_t napiCode);
+#endif
 } // namespace EthernetExec
 } // namespace NetManagerStandard
 } // namespace OHOS

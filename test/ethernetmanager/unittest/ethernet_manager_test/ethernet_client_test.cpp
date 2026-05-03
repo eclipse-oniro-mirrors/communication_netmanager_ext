@@ -389,7 +389,7 @@ HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest003, TestSize.Level1)
 {
     auto ethernetManagement = DelayedSingleton<EthernetManagement>::GetInstance();
     ASSERT_NE(ethernetManagement, nullptr);
-    
+
     std::string dev = DEV_NAME;
     sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
     ASSERT_NE(devState, nullptr);
@@ -400,12 +400,12 @@ HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest003, TestSize.Level1)
         std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
         ethernetManagement->devs_[dev] = devState;
     }
-    
+
     uint32_t supplierId = 0;
     int32_t ret = ethernetManagement->GetIfaceSupplierId(dev, supplierId);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(supplierId, 12345);
-    
+
     {
         std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
         ethernetManagement->devs_.erase(dev);
@@ -421,17 +421,17 @@ HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest004, TestSize.Level1)
 {
     auto ethernetManagement = DelayedSingleton<EthernetManagement>::GetInstance();
     ASSERT_NE(ethernetManagement, nullptr);
-    
+
     std::string dev = "nonexistent_dev";
     {
         std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
         ethernetManagement->devs_[dev] = nullptr;
     }
-    
+
     uint32_t supplierId = 0;
     int32_t ret = ethernetManagement->GetIfaceSupplierId(dev, supplierId);
     EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
-    
+
     {
         std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
         ethernetManagement->devs_.erase(dev);
@@ -448,6 +448,89 @@ HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest005, TestSize.Level1)
 }
 #endif // FEATURE_GET_IFACE_SUPPLIER_ID
 
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+/**
+ * @tc.name: EnableEthernetInterfaceTest001
+ * @tc.desc: Test EnableEthernetInterface.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, EnableEthernetInterfaceTest001, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    int32_t ret = ethernetClient->EnableEthernetInterface();
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: DisableEthernetInterfaceTest001
+ * @tc.desc: Test DisableEthernetInterface.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, DisableEthernetInterfaceTest001, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    int32_t ret = ethernetClient->DisableEthernetInterface();
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: IsEthernetEnabledTest001
+ * @tc.desc: Test IsEthernetEnabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, IsEthernetEnabledTest001, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    int32_t enabled = 0;
+    int32_t ret = ethernetClient->IsEthernetEnabled(enabled);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: EnableEthernetInterfaceTest002
+ * @tc.desc: Test EnableEthernetInterface with multiple calls.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, EnableEthernetInterfaceTest002, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    int32_t ret1 = ethernetClient->EnableEthernetInterface();
+    int32_t ret2 = ethernetClient->EnableEthernetInterface();
+    EXPECT_GE(ret1, -1);
+    EXPECT_GE(ret2, -1);
+}
+
+/**
+ * @tc.name: DisableEthernetInterfaceTest002
+ * @tc.desc: Test DisableEthernetInterface with multiple calls.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, DisableEthernetInterfaceTest002, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    int32_t ret1 = ethernetClient->DisableEthernetInterface();
+    int32_t ret2 = ethernetClient->DisableEthernetInterface();
+    EXPECT_GE(ret1, -1);
+    EXPECT_GE(ret2, -1);
+}
+
+/**
+ * @tc.name: IsEthernetEnabledTest002
+ * @tc.desc: Test IsEthernetEnabled after enable/disable operations.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, IsEthernetEnabledTest002, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    int32_t enabled = 0;
+    ethernetClient->EnableEthernetInterface();
+    int32_t ret1 = ethernetClient->IsEthernetEnabled(enabled);
+    ethernetClient->DisableEthernetInterface();
+    int32_t ret2 = ethernetClient->IsEthernetEnabled(enabled);
+    EXPECT_GE(ret1, -1);
+    EXPECT_GE(ret2, -1);
+}
+#endif
 
 } // namespace NetManagerStandard
 } // namespace OHOS

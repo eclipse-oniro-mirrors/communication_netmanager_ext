@@ -82,6 +82,9 @@
       "OHOS::NetManagerStandard::NetEapPostbackCallbackProxy::NetEapPostbackCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
       "OHOS::NetManagerStandard::EthernetClient::StartEthEap(int, OHOS::NetManagerStandard::EthEapProfile const&)";
       "OHOS::NetManagerStandard::EthernetClient::LogOffEthEap(int)";
+      "OHOS::NetManagerStandard::EthernetClient::EnableEthernetInterface()";
+      "OHOS::NetManagerStandard::EthernetClient::DisableEthernetInterface()";
+      "OHOS::NetManagerStandard::EthernetClient::IsEthernetEnabled(int&)";
       VTT?for?OHOS::NetManagerStandard::EthEapProfile;
       vtable?for?OHOS::NetManagerStandard::EthEapProfile;
     };

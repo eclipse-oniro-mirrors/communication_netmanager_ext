@@ -92,6 +92,11 @@ public:
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList) override;
     int32_t StartEthEap(int32_t netId, const EthEapProfile& profile) override;
     int32_t LogOffEthEap(int32_t netId) override;
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    int32_t EnableEthernetInterface() override;
+    int32_t DisableEthernetInterface() override;
+    int32_t IsEthernetEnabled(int32_t &enabled) override;
+#endif
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
