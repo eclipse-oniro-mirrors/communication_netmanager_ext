@@ -2,7 +2,7 @@
 
 ## Overview
 
-Network sharing management CLI tool for HarmonyOS. This tool provides commands to check network sharing support status, query current sharing state, and control network sharing (start/stop) for different sharing types including WiFi, USB, and Bluetooth.
+Network sharing management CLI tool for OpenHarmony. This tool provides commands to check network sharing support status, query current sharing state, and control network sharing (start/stop) for different sharing types including WiFi, USB, and Bluetooth.
 
 ## Features
 
@@ -131,7 +131,7 @@ The tool is installed to:
 
 ## Related Documentation
 
-- [HarmonyOS Network Sharing API](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-net-sharing)
+- [OpenHarmony Network Sharing API](https://gitee.com/openharmony/docs/blob/master/en/application-dev/reference/apis-network-kit/js-apis-net-sharing.md)
 - [Network Manager Extension Component](../README.md)
 
 ## License
