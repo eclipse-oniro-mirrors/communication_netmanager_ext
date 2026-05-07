@@ -103,7 +103,7 @@ export default struct ConfirmDialog {
                 parameters: parameters,
               };
               want.parameters.callingUid = globalThis.vpnCallingUid;
- 	            want.parameters.callingPid = globalThis.vpnCallingPid;
+              want.parameters.callingPid = globalThis.vpnCallingPid;
               vpnext.startVpnExtensionAbility(want);
               this.destruction();
             }
