@@ -193,11 +193,11 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
     }
 
     AAFwk::Want cachedwant = VpnMonitor::GetInstance().GetCachedWant();
- 	AAFwk::WantParams cachedParams = cachedwant.GetParams();
+    AAFwk::WantParams cachedParams = cachedwant.GetParams();
     AAFwk::Want want;
     AAFwk::WantParams wantParams = want.GetParams();
- 	wantParams.SetParam("myParams", AAFwk::WantParamWrapper::Box(cachedParams));
- 	want.SetParams(wantParams);
+    wantParams.SetParam("myParams", AAFwk::WantParamWrapper::Box(cachedParams));
+    want.SetParams(wantParams);
     want.SetElementName(VPN_DIALOG_BUNDLENAME, "VpnServiceExtAbility");
     want.SetParam("bundleName", bundleName);
     want.SetParam("abilityName", abilityName + VPN_DIALOG_POSTFIX);
