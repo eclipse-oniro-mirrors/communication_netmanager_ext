@@ -78,6 +78,10 @@ ohos_shared_library("ethernet_manager") {
     "NETWORK_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/ethernet_interfaces.json\"",
   ]
 
+  if (netmanager_ext_feature_iface_supplier_id) {
+    defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
+
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
     external_deps += [
@@ -159,6 +163,10 @@ ohos_static_library("ethernet_manager_static") {
     "USER_CONFIG_DIR = \"/data/service/el1/public/netmanager/ethernet\"",
     "NETWORK_CONFIG_PATH = \"/system/etc/communication/netmanager_ext/ethernet_interfaces.json\"",
   ]
+
+  if (netmanager_ext_feature_iface_supplier_id) {
+    defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
 
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]

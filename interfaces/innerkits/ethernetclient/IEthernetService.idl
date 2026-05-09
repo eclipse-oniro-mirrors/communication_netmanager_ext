@@ -28,6 +28,7 @@ interface OHOS.NetManagerStandard.IEthernetService {
     void GetIfaceConfig([in] String iface, [out] sptr<InterfaceConfiguration> ifaceConfig);
     void IsIfaceActive([in] String iface, [out] int activeStatus);
     void GetAllActiveIfaces([out] List<String> activeIfaces);
+    [macrodef FEATURE_GET_IFACE_SUPPLIER_ID] void GetIfaceSupplierId([in] String iface, [out] unsigned int supplierId);
     void ResetFactory();
     void RegisterIfacesStateChanged([in] InterfaceStateCallback cb);
     void UnregisterIfacesStateChanged([in] InterfaceStateCallback cb);

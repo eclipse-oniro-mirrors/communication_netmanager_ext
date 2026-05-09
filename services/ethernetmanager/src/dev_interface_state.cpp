@@ -218,6 +218,13 @@ void DevInterfaceState::RemoteUpdateNetSupplierInfo()
     NetManagerCenter::GetInstance().UpdateNetSupplierInfo(netSupplier_, netSupplierInfo_);
 }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+uint32_t DevInterfaceState::GetSupplierId() const
+{
+    return netSupplier_;
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 void DevInterfaceState::UpdateNetHttpProxy(const HttpProxy &httpProxy)
 {
     if (httpProxy == ifCfg_->httpProxy_) {

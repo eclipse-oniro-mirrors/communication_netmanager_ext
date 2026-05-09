@@ -384,6 +384,12 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
 
     result = ethernetService.ResetFactory();
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    uint32_t supplierId = 0;
+    result = ethernetService.GetIfaceSupplierId(iface, supplierId);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
 }
 
 HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
@@ -443,6 +449,12 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
 
     result = ethernetService.SetInterfaceUp(IFACE_NAME);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    uint32_t supplierId = 0;
+    result = ethernetService.GetIfaceSupplierId(iface, supplierId);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
 }
 
 HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)

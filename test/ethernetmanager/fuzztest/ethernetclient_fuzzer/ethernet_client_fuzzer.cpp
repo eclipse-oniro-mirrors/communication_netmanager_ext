@@ -243,6 +243,22 @@ void GetAllActiveIfacesFuzzTest(const uint8_t *data, size_t size)
     OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_ALL_ACTIVE_IFACES), parcel);
 }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+void GetIfaceSupplierIdFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    NetManagerExtAccessToken token;
+    MessageParcel parcel;
+    if (!IsDataAndWriteVaild(data, size, parcel)) {
+        return;
+    }
+    WriteInterfaceToken(parcel);
+    OnRemoteRequest(static_cast<uint32_t>(IEthernetServiceIpcCode::COMMAND_GET_IFACE_SUPPLIER_ID), parcel);
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 void ResetFactoryFuzzTest(const uint8_t *data, size_t size)
 {
     if (data == nullptr) {
@@ -592,6 +608,11 @@ void EthernetManagementFuzzTest(const uint8_t *data, size_t size)
     std::vector<std::string> result;
     ethernetManagement->GetAllActiveIfaces(result);
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    uint32_t supplierId = 0U;
+    ethernetManagement->GetIfaceSupplierId(iface, supplierId);
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
     ethernetManagement->ResetFactory();
     std::string devName = GetStringFromData(IFACE_LEN);
     ethernetManagement->DevInterfaceAdd(devName);
@@ -632,6 +653,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::GetIfaceConfigFuzzTest(data, size);
     OHOS::NetManagerStandard::IsIfaceActiveFuzzTest(data, size);
     OHOS::NetManagerStandard::GetAllActiveIfacesFuzzTest(data, size);
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    OHOS::NetManagerStandard::GetIfaceSupplierIdFuzzTest(data, size);
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
     OHOS::NetManagerStandard::ResetFactoryFuzzTest(data, size);
     OHOS::NetManagerStandard::UnregisterIfacesStateChangedFuzzTest(data, size);
     OHOS::NetManagerStandard::OnRegisterIfacesStateChangedFuzzTest(data, size);

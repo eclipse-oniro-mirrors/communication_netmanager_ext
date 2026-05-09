@@ -59,11 +59,13 @@ public:
     bool IsLanIface();
     void UpdateLanLinkInfo();
     void UpdateLanLinkInfo(const StaticConfiguration &config);
-
     void RemoteRegisterNetSupplier();
     void RemoteUnregisterNetSupplier();
     void RemoteUpdateNetLinkInfo();
     void RemoteUpdateNetSupplierInfo();
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    uint32_t GetSupplierId() const;
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
 
     void GetDumpInfo(std::string &info);
 

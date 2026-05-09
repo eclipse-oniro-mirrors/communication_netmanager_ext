@@ -73,6 +73,9 @@ public:
     int32_t GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig) override;
     int32_t IsIfaceActive(const std::string &iface, int32_t &activeStatus) override;
     int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces) override;
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    int32_t GetIfaceSupplierId(const std::string &iface, uint32_t &supplierId) override;
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
     int32_t ResetFactory() override;
     int32_t RegisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) override;
     int32_t UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback) override;

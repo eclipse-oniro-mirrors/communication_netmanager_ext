@@ -486,6 +486,22 @@ int32_t EthernetManagement::GetAllActiveIfaces(std::vector<std::string> &activeI
     return NETMANAGER_EXT_SUCCESS;
 }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+int32_t EthernetManagement::GetIfaceSupplierId(const std::string &iface, uint32_t &supplierId)
+{
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    auto dev = devs_.find(iface);
+    if (dev == devs_.end() || dev->second == nullptr) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device does not exist", iface.c_str());
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+
+    supplierId = dev->second->GetSupplierId();
+    NETMGR_EXT_LOG_I("get supplier id is %{public}u\n", supplierId);
+    return NETMANAGER_EXT_SUCCESS;
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 int32_t EthernetManagement::ResetFactory()
 {
     if (!ethConfiguration_->ClearAllUserConfiguration()) {

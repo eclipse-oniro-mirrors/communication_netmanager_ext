@@ -261,6 +261,22 @@ int32_t EthernetService::IsIfaceActive(const std::string &iface, int32_t &active
     return ethManagement_->IsIfaceActive(iface, activeStatus);
 }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+int32_t EthernetService::GetIfaceSupplierId(const std::string &iface, uint32_t &supplierId)
+{
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("Caller not have sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("EthernetService GetAllActiveIfaces no js permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
+    return ethManagement_->GetIfaceSupplierId(iface, supplierId);
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 int32_t EthernetService::GetAllActiveIfaces(std::vector<std::string> &activeIfaces)
 {
     if (!NetManagerPermission::IsSystemCaller()) {

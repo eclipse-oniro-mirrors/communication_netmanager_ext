@@ -1496,6 +1496,16 @@ HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)
     EXPECT_EQ(ethernetmanagement->IsIfaceActive(iface, activeStatus), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+HWTEST_F(EthernetManagerTest, GetIfaceSupplierIdTest001, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    std::string iface = "123";
+    uint32_t supplierId = 0U;
+    EXPECT_EQ(ethernetmanagement->GetIfaceSupplierId(iface, supplierId), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest003, TestSize.Level1)
 {
     auto ethernetmanagement = std::make_shared<EthernetManagement>();
@@ -1503,7 +1513,7 @@ HWTEST_F(EthernetManagerTest, DevInterfaceRemoveTest003, TestSize.Level1)
     ethernetmanagement->DevInterfaceRemove(devName);
     EXPECT_EQ(devName, "123");
 }
- 
+
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
  
 class NetRegisterEapCallbackTest : public NetRegisterEapCallbackStub {
