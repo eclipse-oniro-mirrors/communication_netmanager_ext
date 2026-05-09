@@ -1,0 +1,262 @@
+{
+  "name": "ohos-networkShare",
+  "version": "1.0.0",
+  "description": "网络共享管理CLI工具。用于查询和控制系统网络共享状态，如WiFi热点、USB tethering、蓝牙PAN等共享方式的启停控制和状态查询。不支持普通应用调用，仅限系统调用者使用。",
+  "executablePath": "/system/bin/cli_tool/executable/ohos-networkShare",
+  "requirePermissions": [
+    "ohos.permission.CONNECTIVITY_INTERNAL"
+  ],
+  "hasSubCommand": true,
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "subcommands": {
+    "is-supported": {
+      "description": "Check if network sharing is supported on the device. Used for querying device capabilities. Only available on devices with network sharing hardware support.",
+      "requirePermissions": [
+        "ohos.permission.CONNECTIVITY_INTERNAL"
+      ],
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "failed"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "supported": {
+                "type": "boolean",
+                "description": "Whether network sharing is supported on this device"
+              }
+            },
+            "required": ["supported"]
+          },
+          "errCode": {
+            "type": "string",
+            "description": "Error code when operation failed"
+          },
+          "errMsg": {
+            "type": "string",
+            "description": "Error message when operation failed"
+          }
+        },
+        "required": ["status"]
+      }
+    },
+    "is-sharing": {
+      "description": "Check if network sharing is currently active. Used for querying current network sharing status. Only reflects WiFi/USB/Bluetooth sharing states.",
+      "requirePermissions": [
+        "ohos.permission.CONNECTIVITY_INTERNAL"
+      ],
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "failed"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "sharing": {
+                "type": "boolean",
+                "description": "Whether network sharing is currently active"
+              }
+            },
+            "required": ["sharing"]
+          },
+          "errCode": {
+            "type": "string",
+            "description": "Error code when operation failed"
+          },
+          "errMsg": {
+            "type": "string",
+            "description": "Error message when operation failed"
+          }
+        },
+        "required": ["status"]
+      }
+    },
+    "start": {
+      "description": "Start network sharing of specified type. Used for enabling network sharing. Requires CONNECTIVITY_INTERNAL permission and system caller privilege.",
+      "requirePermissions": [
+        "ohos.permission.CONNECTIVITY_INTERNAL"
+      ],
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Sharing type to start",
+            "enum": ["wifi", "usb", "bluetooth"]
+          }
+        },
+        "required": ["type"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "failed"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "Operation result message"
+              },
+              "type": {
+                "type": "string",
+                "description": "The sharing type that was started"
+              }
+            },
+            "required": ["message", "type"]
+          },
+          "errCode": {
+            "type": "string",
+            "description": "Error code when operation failed"
+          },
+          "errMsg": {
+            "type": "string",
+            "description": "Error message when operation failed"
+          }
+        },
+        "required": ["status"]
+      }
+    },
+    "stop": {
+      "description": "Stop network sharing of specified type. Used for disabling network sharing. Requires CONNECTIVITY_INTERNAL permission and system caller privilege.",
+      "requirePermissions": [
+        "ohos.permission.CONNECTIVITY_INTERNAL"
+      ],
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Sharing type to stop",
+            "enum": ["wifi", "usb", "bluetooth"]
+          }
+        },
+        "required": ["type"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "failed"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "Operation result message"
+              },
+              "type": {
+                "type": "string",
+                "description": "The sharing type that was stopped"
+              }
+            },
+            "required": ["message", "type"]
+          },
+          "errCode": {
+            "type": "string",
+            "description": "Error code when operation failed"
+          },
+          "errMsg": {
+            "type": "string",
+            "description": "Error message when operation failed"
+          }
+        },
+        "required": ["status"]
+      }
+    },
+    "help": {
+      "description": "Show help information for commands. Used for displaying command usage. N/A.",
+      "requirePermissions": [],
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Optional command name to show detailed help"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["json"],
+            "description": "Output format, json for structured output"
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "failed"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "CLI tool name"
+              },
+              "commands": {
+                "type": "array",
+                "description": "List of available commands",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Command name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Command description"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "errCode": {
+            "type": "string",
+            "description": "Error code when operation failed"
+          },
+          "errMsg": {
+            "type": "string",
+            "description": "Error message when operation failed"
+          }
+        },
+        "required": ["status"]
+      }
+    }
+  },
+  "eventTypes": [],
+  "eventSchemas": {}
+}

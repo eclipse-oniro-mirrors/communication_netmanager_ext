@@ -122,7 +122,8 @@
 
                     "//foundation/communication/netmanager_ext/services/etc/init:UrspConfig2_xml",
                     "//foundation/communication/netmanager_ext/services/etc/init:reportUrsp",
-                    "//foundation/communication/netmanager_ext/frameworks/ets/ani:ani_package"
+                    "//foundation/communication/netmanager_ext/frameworks/ets/ani:ani_package",
+                    "//foundation/communication/netmanager_ext/tools/ohos-networkShare:ohos-networkShare"
 
                 ]
             },
