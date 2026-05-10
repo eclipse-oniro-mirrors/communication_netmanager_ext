@@ -2,7 +2,7 @@
 
 ## Overview
 
-Network sharing management CLI tool for HarmonyOS. This tool provides commands to check network sharing support status, query current sharing state, and control network sharing (start/stop) for different sharing types including WiFi, USB, and Bluetooth.
+Network sharing management CLI tool for OpenHarmony. This tool provides commands to check network sharing support status, query current sharing state, and control network sharing (start/stop) for different sharing types including WiFi, USB, and Bluetooth.
 
 ## Features
 
@@ -39,8 +39,8 @@ ohos-networkShare <command> [args]
 | help | Show help information | [command] [--format json] | None | None |
 | is-supported | Check if network sharing is supported | None | ohos.permission.CONNECTIVITY_INTERNAL | None |
 | is-sharing | Check if network sharing is currently active | None | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| start | Start network sharing | <wifi|usb|bluetooth> | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| stop | Stop network sharing | <wifi|usb|bluetooth> | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| start | Start network sharing | --type <wifi\|usb\|bluetooth> | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| stop | Stop network sharing | --type <wifi\|usb\|bluetooth> | ohos.permission.CONNECTIVITY_INTERNAL | None |
 
 **Prerequisites Description**:
 - **None**: The command can be executed directly without any prerequisites.
@@ -61,22 +61,22 @@ ohos-networkShare is-supported
 ohos-networkShare is-sharing
 
 # Start WiFi network sharing
-ohos-networkShare start wifi
+ohos-networkShare start --type wifi
 
 # Start USB network sharing
-ohos-networkShare start usb
+ohos-networkShare start --type usb
 
 # Start Bluetooth network sharing
-ohos-networkShare start bluetooth
+ohos-networkShare start --type bluetooth
 
 # Stop WiFi network sharing
-ohos-networkShare stop wifi
+ohos-networkShare stop --type wifi
 
 # Stop USB network sharing
-ohos-networkShare stop usb
+ohos-networkShare stop --type usb
 
 # Stop Bluetooth network sharing
-ohos-networkShare stop bluetooth
+ohos-networkShare stop --type bluetooth
 ```
 
 ## Output Format

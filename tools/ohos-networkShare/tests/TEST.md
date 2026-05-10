@@ -16,12 +16,12 @@
 | ohos-networkShare help stop --format json | Show help for stop in JSON | None | None |
 | ohos-networkShare is-supported | Check if network sharing is supported | ohos.permission.CONNECTIVITY_INTERNAL | None |
 | ohos-networkShare is-sharing | Check current sharing status | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| ohos-networkShare start wifi | Start WiFi sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| ohos-networkShare start usb | Start USB sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| ohos-networkShare start bluetooth | Start Bluetooth sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| ohos-networkShare stop wifi | Stop WiFi sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| ohos-networkShare stop usb | Stop USB sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
-| ohos-networkShare stop bluetooth | Stop Bluetooth sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| ohos-networkShare start --type wifi | Start WiFi sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| ohos-networkShare start --type usb | Start USB sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| ohos-networkShare start --type bluetooth | Start Bluetooth sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| ohos-networkShare stop --type wifi | Stop WiFi sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| ohos-networkShare stop --type usb | Stop USB sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
+| ohos-networkShare stop --type bluetooth | Stop Bluetooth sharing | ohos.permission.CONNECTIVITY_INTERNAL | None |
 
 ## Expected Outputs
 
@@ -76,26 +76,26 @@ Run 'ohos-networkShare <command> --help' for more information.
 ### start command
 
 ```bash
-# ohos-networkShare start wifi (success)
+# ohos-networkShare start --type wifi (success)
 {"type":"result","status":"success","data":{"message":"Network sharing started successfully","type":"wifi"}}
 
-# ohos-networkShare start usb (success)
+# ohos-networkShare start --type usb (success)
 {"type":"result","status":"success","data":{"message":"Network sharing started successfully","type":"usb"}}
 
-# ohos-networkShare start bluetooth (success)
+# ohos-networkShare start --type bluetooth (success)
 {"type":"result","status":"success","data":{"message":"Network sharing started successfully","type":"bluetooth"}}
 ```
 
 ### stop command
 
 ```bash
-# ohos-networkShare stop wifi (success)
+# ohos-networkShare stop --type wifi (success)
 {"type":"result","status":"success","data":{"message":"Network sharing stopped successfully","type":"wifi"}}
 
-# ohos-networkShare stop usb (success)
+# ohos-networkShare stop --type usb (success)
 {"type":"result","status":"success","data":{"message":"Network sharing stopped successfully","type":"usb"}}
 
-# ohos-networkShare stop bluetooth (success)
+# ohos-networkShare stop --type bluetooth (success)
 {"type":"result","status":"success","data":{"message":"Network sharing stopped successfully","type":"bluetooth"}}
 ```
 
@@ -105,19 +105,19 @@ Run 'ohos-networkShare <command> --help' for more information.
 
 ```bash
 # ohos-networkShare start (missing type)
-{"type":"result","status":"failed","errCode":"ERR_MISSING_PARAM","errMsg":"Missing required parameter: sharing type","suggestion":"Valid types: wifi, usb, bluetooth. Example: ohos-networkShare start wifi"}
+{"type":"result","status":"failed","errCode":"ERR_MISSING_PARAM","errMsg":"Missing required parameter: sharing type","suggestion":"Valid types: wifi, usb, bluetooth. Example: ohos-networkShare start --type wifi"}
 
 # ohos-networkShare stop (missing type)
-{"type":"result","status":"failed","errCode":"ERR_MISSING_PARAM","errMsg":"Missing required parameter: sharing type","suggestion":"Valid types: wifi, usb, bluetooth. Example: ohos-networkShare stop wifi"}
+{"type":"result","status":"failed","errCode":"ERR_MISSING_PARAM","errMsg":"Missing required parameter: sharing type","suggestion":"Valid types: wifi, usb, bluetooth. Example: ohos-networkShare stop --type wifi"}
 ```
 
 ### Invalid parameter
 
 ```bash
-# ohos-networkShare start invalid
+# ohos-networkShare start --type invalid
 {"type":"result","status":"failed","errCode":"ERR_INVALID_PARAM","errMsg":"Invalid sharing type: invalid","suggestion":"Valid types: wifi, usb, bluetooth"}
 
-# ohos-networkShare stop invalid
+# ohos-networkShare stop --type invalid
 {"type":"result","status":"failed","errCode":"ERR_INVALID_PARAM","errMsg":"Invalid sharing type: invalid","suggestion":"Valid types: wifi, usb, bluetooth"}
 ```
 
@@ -131,7 +131,7 @@ Run 'ohos-networkShare <command> --help' for more information.
 ### System caller check failed
 
 ```bash
-# ohos-networkShare start wifi (not system caller)
+# ohos-networkShare start --type wifi (not system caller)
 {"type":"result","status":"failed","errCode":"ERR_OPERATION_FAILED","errMsg":"System caller only. This tool must be run by system processes.","suggestion":"Ensure proper permissions and that the sharing type is available on this device."}
 ```
 
