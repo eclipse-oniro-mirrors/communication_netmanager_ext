@@ -48,6 +48,9 @@ public:
     MOCK_METHOD(int32_t, UpdateDualStackProbeTime, (int32_t dualStackProbeTimeOut), (override));
     MOCK_METHOD(ProbeUrls, GetDataShareUrl, (), (override));
     MOCK_METHOD(int32_t, UpdateUidDeadFlowReset, (const std::vector<std::string> &bundleNameVec), (override));
+    MOCK_METHOD(bool, RegisterNetRequestControlFunc, (std::function<bool(const NetRequest &)> func), (override));
+    MOCK_METHOD(bool, GetAllNetRequest, (std::vector<NetRequest> &netRequests), (override));
+    MOCK_METHOD(bool, UpdateNetRequestControlState, (const std::vector<NetRequest> &netRequests), (override));
 };
 
 } // namespace NetManagerStandard
