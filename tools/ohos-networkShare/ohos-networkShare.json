@@ -30,6 +30,11 @@
       "outputSchema": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["result"],
+            "description": "Event type, must be 'result'"
+          },
           "status": {
             "type": "string",
             "enum": ["success", "failed"]
@@ -51,9 +56,13 @@
           "errMsg": {
             "type": "string",
             "description": "Error message when operation failed"
+          },
+          "suggestion": {
+            "type": "string",
+            "description": "Suggested next steps when operation failed"
           }
         },
-        "required": ["status"]
+        "required": ["type", "status"]
       }
     },
     "is-sharing": {
@@ -69,6 +78,11 @@
       "outputSchema": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["result"],
+            "description": "Event type, must be 'result'"
+          },
           "status": {
             "type": "string",
             "enum": ["success", "failed"]
@@ -90,9 +104,13 @@
           "errMsg": {
             "type": "string",
             "description": "Error message when operation failed"
+          },
+          "suggestion": {
+            "type": "string",
+            "description": "Suggested next steps when operation failed"
           }
         },
-        "required": ["status"]
+        "required": ["type", "status"]
       }
     },
     "start": {
@@ -114,6 +132,11 @@
       "outputSchema": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["result"],
+            "description": "Event type, must be 'result'"
+          },
           "status": {
             "type": "string",
             "enum": ["success", "failed"]
@@ -139,9 +162,13 @@
           "errMsg": {
             "type": "string",
             "description": "Error message when operation failed"
+          },
+          "suggestion": {
+            "type": "string",
+            "description": "Suggested next steps when operation failed"
           }
         },
-        "required": ["status"]
+        "required": ["type", "status"]
       }
     },
     "stop": {
@@ -163,6 +190,11 @@
       "outputSchema": {
         "type": "object",
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["result"],
+            "description": "Event type, must be 'result'"
+          },
           "status": {
             "type": "string",
             "enum": ["success", "failed"]
@@ -188,9 +220,13 @@
           "errMsg": {
             "type": "string",
             "description": "Error message when operation failed"
+          },
+          "suggestion": {
+            "type": "string",
+            "description": "Suggested next steps when operation failed"
           }
         },
-        "required": ["status"]
+        "required": ["type", "status"]
       }
     }
   },
