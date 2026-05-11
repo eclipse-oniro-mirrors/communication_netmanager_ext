@@ -58,7 +58,7 @@ static void RegisterCommand(const Command& cmd)
     g_commands[cmd.name] = cmd;
 }
 
-int outputSuccess(const json& data)
+int OutputSuccess(const json& data)
 {
     json response;
     response["type"] = "result";
@@ -68,17 +68,14 @@ int outputSuccess(const json& data)
     return 0;
 }
 
-int outputError(const std::string& code, const std::string& message, const std::string& suggestion = "")
+int OutputError(const std::string& code, const std::string& message, const std::string& suggestion)
 {
     json response;
     response["type"] = "result";
     response["status"] = "failed";
-    response["data"] = "";
     response["errCode"] = code;
     response["errMsg"] = message;
-    if (!suggestion.empty()) {
-        response["suggestion"] = suggestion;
-    }
+    response["suggestion"] = suggestion;
     std::cout << response.dump() << std::endl;
     return 1;
 }
@@ -183,13 +180,13 @@ int CmdIsSupported(int argc, char** argv)
     int32_t ret = client->IsSharingSupported(supported);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         std::string errMsg = GetErrorMessage(ret);
-        return outputError("ERR_NET_INTERNAL_ERROR", errMsg,
+        return OutputError("ERR_NET_INTERNAL_ERROR", errMsg,
             "Ensure the device has network sharing capability and proper permissions.");
     }
 
     json data;
     data["supported"] = (supported == NETWORKSHARE_IS_SUPPORTED);
-    return outputSuccess(data);
+    return OutputSuccess(data);
 }
 
 /*
@@ -208,13 +205,13 @@ int CmdIsSharing(int argc, char** argv)
     int32_t ret = client->IsSharing(sharingStatus);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         std::string errMsg = GetErrorMessage(ret);
-        return outputError("ERR_NET_INTERNAL_ERROR", errMsg,
+        return OutputError("ERR_NET_INTERNAL_ERROR", errMsg,
             "Ensure the device is properly configured for network sharing.");
     }
 
     json data;
     data["sharing"] = (sharingStatus == NETWORKSHARE_IS_SHARING);
-    return outputSuccess(data);
+    return OutputSuccess(data);
 }
 
 /*
@@ -240,13 +237,13 @@ int CmdStart(int argc, char** argv)
     std::vector<std::string> args(argv, argv + argc);
     std::string typeStr = GetOption(args, "--type");
     if (typeStr.empty()) {
-        return outputError("ERR_ARG_MISSING", "Missing required parameter: sharing type",
+        return OutputError("ERR_ARG_MISSING", "Missing required parameter: sharing type",
             "Valid types: wifi, usb, bluetooth. Example: ohos-networkShare start --type wifi");
     }
 
     SharingIfaceType type = parseSharingType(typeStr);
     if (type == SharingIfaceType::SHARING_NONE) {
-        return outputError("ERR_ARG_INVALID", "Invalid sharing type: " + typeStr,
+        return OutputError("ERR_ARG_INVALID", "Invalid sharing type: " + typeStr,
             "Valid types: wifi, usb, bluetooth");
     }
 
@@ -254,14 +251,14 @@ int CmdStart(int argc, char** argv)
     int32_t ret = client->StartSharing(type);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         std::string errMsg = GetErrorMessage(ret);
-        return outputError("ERR_NET_INTERNAL_ERROR", errMsg,
+        return OutputError("ERR_NET_INTERNAL_ERROR", errMsg,
             "Ensure proper permissions and that the sharing type is available on this device.");
     }
 
     json data;
     data["message"] = "Network sharing started successfully";
     data["type"] = typeStr;
-    return outputSuccess(data);
+    return OutputSuccess(data);
 }
 
 /*
@@ -287,13 +284,13 @@ int CmdStop(int argc, char** argv)
     std::vector<std::string> args(argv, argv + argc);
     std::string typeStr = GetOption(args, "--type");
     if (typeStr.empty()) {
-        return outputError("ERR_ARG_MISSING", "Missing required parameter: sharing type",
+        return OutputError("ERR_ARG_MISSING", "Missing required parameter: sharing type",
             "Valid types: wifi, usb, bluetooth. Example: ohos-networkShare stop --type wifi");
     }
 
     SharingIfaceType type = parseSharingType(typeStr);
     if (type == SharingIfaceType::SHARING_NONE) {
-        return outputError("ERR_ARG_INVALID", "Invalid sharing type: " + typeStr,
+        return OutputError("ERR_ARG_INVALID", "Invalid sharing type: " + typeStr,
             "Valid types: wifi, usb, bluetooth");
     }
 
@@ -301,14 +298,14 @@ int CmdStop(int argc, char** argv)
     int32_t ret = client->StopSharing(type);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         std::string errMsg = GetErrorMessage(ret);
-        return outputError("ERR_NET_INTERNAL_ERROR", errMsg,
+        return OutputError("ERR_NET_INTERNAL_ERROR", errMsg,
             "Ensure proper permissions and that the specified sharing type was active.");
     }
 
     json data;
     data["message"] = "Network sharing stopped successfully";
     data["type"] = typeStr;
-    return outputSuccess(data);
+    return OutputSuccess(data);
 }
 
 void InitCommands()
@@ -346,8 +343,9 @@ void InitCommands()
 
 void PrintUsage(const char* prog)
 {
-    std::cerr << "[ERROR] Usage: " << prog << " <command> [options...]\n";
-    std::cerr << "[ERROR] Run '" << prog << " --help' for more information\n";
+    OutputError("ERR_ARG_MISSING",
+        std::string("Missing required subcommand"),
+        std::string("Run '") + prog + " --help' for more information");
 }
 
 static bool HasHelpFlag(int argc, char** argv)
@@ -370,7 +368,7 @@ static int HandleCommandHelp(const std::string& cmdName)
 {
     auto it = g_commands.find(cmdName);
     if (it == g_commands.end()) {
-        return outputError("ERR_ARG_INVALID", "Unknown command: " + cmdName,
+        return OutputError("ERR_ARG_INVALID", "Unknown command: " + cmdName,
             "Run 'ohos-networkShare --help' to list available commands.");
     }
     ShowCommandHelp(it->second);
@@ -407,7 +405,7 @@ int main(int argc, char** argv)
     // Execute the subcommand
     auto it = g_commands.find(cmdName);
     if (it == g_commands.end()) {
-        return outputError("ERR_ARG_INVALID", "Unknown command: " + cmdName,
+        return OutputError("ERR_ARG_INVALID", "Unknown command: " + cmdName,
             "Run 'ohos-networkShare --help' to list available commands.");
     }
 
