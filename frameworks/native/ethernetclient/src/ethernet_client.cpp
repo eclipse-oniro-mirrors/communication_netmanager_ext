@@ -105,6 +105,18 @@ int32_t EthernetClient::GetAllActiveIfaces(std::vector<std::string> &activeIface
     return proxy->GetAllActiveIfaces(activeIfaces);
 }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+int32_t EthernetClient::GetIfaceSupplierId(const std::string &iface, uint32_t &supplierId)
+{
+    sptr<IEthernetService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("proxy is nullptr");
+        return IPC_PROXY_ERR;
+    }
+    return proxy->GetIfaceSupplierId(iface, supplierId);
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 int32_t EthernetClient::ResetFactory()
 {
     sptr<IEthernetService> proxy = GetProxy();

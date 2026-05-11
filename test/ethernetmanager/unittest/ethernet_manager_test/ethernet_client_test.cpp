@@ -15,8 +15,15 @@
 
 #include <gtest/gtest.h>
 
+#ifdef GTEST_API_
+#define private public
+#define protected public
+#endif
+
 #include "ethernet_client.h"
 #include "net_manager_constants.h"
+#include "ethernet_management.h"
+#include "dev_interface_state.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -140,6 +147,42 @@ HWTEST_F(EthernetClientTest, SetIfaceConfigTest001, TestSize.Level1)
     int32_t ret = ethernetClient->SetIfaceConfig(DEV_NAME, ic);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
+
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+/**
+ * @tc.name: GetIfaceSupplierIdTest001
+ * @tc.desc: Test GetIfaceSupplierId with valid interface name.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest001, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    ASSERT_NE(ethernetClient, nullptr);
+
+    std::string iface = DEV_NAME;
+    uint32_t supplierId = 0;
+
+    int32_t ret = ethernetClient->GetIfaceSupplierId(iface, supplierId);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: GetIfaceSupplierIdTest002
+ * @tc.desc: Test GetIfaceSupplierId with empty interface name.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest002, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    ASSERT_NE(ethernetClient, nullptr);
+
+    std::string iface = "";
+    uint32_t supplierId = 0;
+
+    int32_t ret = ethernetClient->GetIfaceSupplierId(iface, supplierId);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
 
 /**
  * @tc.name: GetIfaceConfigTest001
@@ -335,6 +378,76 @@ HWTEST_F(EthernetClientTest, StartEthEapTest002, TestSize.Level1)
     int32_t ret = ethernetClient->StartEthEap(netId, profile);
     EXPECT_GE(ret, -1);
 }
+
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+/**
+ * @tc.name: GetIfaceSupplierIdTest003
+ * @tc.desc: Test GetIfaceSupplierId with valid device.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest003, TestSize.Level1)
+{
+    auto ethernetManagement = DelayedSingleton<EthernetManagement>::GetInstance();
+    ASSERT_NE(ethernetManagement, nullptr);
+    
+    std::string dev = DEV_NAME;
+    sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
+    ASSERT_NE(devState, nullptr);
+    devState->SetDevName(dev);
+    devState->netSupplier_ = 12345;
+
+    {
+        std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
+        ethernetManagement->devs_[dev] = devState;
+    }
+    
+    uint32_t supplierId = 0;
+    int32_t ret = ethernetManagement->GetIfaceSupplierId(dev, supplierId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(supplierId, 12345);
+    
+    {
+        std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
+        ethernetManagement->devs_.erase(dev);
+    }
+}
+
+/**
+ * @tc.name: GetIfaceSupplierIdTest004
+ * @tc.desc: Test GetIfaceSupplierId with nullptr device in map.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest004, TestSize.Level1)
+{
+    auto ethernetManagement = DelayedSingleton<EthernetManagement>::GetInstance();
+    ASSERT_NE(ethernetManagement, nullptr);
+    
+    std::string dev = "nonexistent_dev";
+    {
+        std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
+        ethernetManagement->devs_[dev] = nullptr;
+    }
+    
+    uint32_t supplierId = 0;
+    int32_t ret = ethernetManagement->GetIfaceSupplierId(dev, supplierId);
+    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    
+    {
+        std::unique_lock<std::shared_mutex> lock(ethernetManagement->mutex_);
+        ethernetManagement->devs_.erase(dev);
+    }
+}
+
+HWTEST_F(EthernetClientTest, GetIfaceSupplierIdTest005, TestSize.Level1)
+{
+    auto ethernetClient = DelayedSingleton<EthernetClient>::GetInstance();
+    std::string iface = "iface_test";
+    uint32_t supplierId = 0;
+    int32_t ret = ethernetClient->GetIfaceSupplierId(iface, supplierId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 
 } // namespace NetManagerStandard
 } // namespace OHOS

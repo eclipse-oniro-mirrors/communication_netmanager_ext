@@ -60,6 +60,13 @@ public:
         return 0;
     }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    int32_t GetIfaceSupplierId(const std::string &iface, uint32_t &supplierId) override
+    {
+        return 0;
+    }
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
     int32_t ResetFactory() override
     {
         return 0;

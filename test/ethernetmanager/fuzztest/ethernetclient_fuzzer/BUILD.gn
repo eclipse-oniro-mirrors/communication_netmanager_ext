@@ -87,6 +87,10 @@ ohos_fuzztest("EthernetClientFuzzTest") {
     "NETMGR_LOG_TAG = \"EthernetManager\"",
     "LOG_DOMAIN = 0xD0015B0",
   ]
+
+  if (netmanager_ext_feature_iface_supplier_id) {
+    defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
 }
 
 ###############################################################################

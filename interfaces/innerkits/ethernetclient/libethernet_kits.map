@@ -29,6 +29,7 @@
       "OHOS::NetManagerStandard::EthernetClient::SetIfaceConfig(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::sptr<OHOS::NetManagerStandard::InterfaceConfiguration>&)";
       "OHOS::NetManagerStandard::EthernetClient::IsIfaceActive(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
       "OHOS::NetManagerStandard::EthernetClient::GetAllActiveIfaces(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
+      "OHOS::NetManagerStandard::EthernetClient::GetIfaceSupplierId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int&)";
       "OHOS::NetManagerStandard::EthernetClient::~EthernetClient()";
       "OHOS::NetManagerStandard::InterfaceStateCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
       "OHOS::NetManagerStandard::EthernetClient::RegisterIfacesStateChanged(OHOS::sptr<OHOS::NetManagerStandard::InterfaceStateCallback> const&)";

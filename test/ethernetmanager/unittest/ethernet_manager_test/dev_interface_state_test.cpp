@@ -386,6 +386,14 @@ HWTEST_F(DevInterfaceStateTest, GetIpType001, TestSize.Level0)
     EXPECT_EQ(devInterfaceState.GetIpType(ip3), 0);
 }
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+HWTEST_F(DevInterfaceStateTest, GetSupplierIdTest001, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState{};
+    EXPECT_EQ(devInterfaceState.GetSupplierId(), 0);
+}
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
 HWTEST_F(DevInterfaceStateTest, CreateDefaultRouteTest001, TestSize.Level0)
 {
     DevInterfaceState devInterfaceState;

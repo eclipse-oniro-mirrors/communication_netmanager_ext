@@ -38,6 +38,11 @@ config("net_conn_manager_if_config") {
     cflags += [ "-DBUILD_PUBLIC_VERSION" ]
   }
 
+  defines = []
+  if (netmanager_ext_feature_iface_supplier_id) {
+    defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
+
   cflags += common_cflags
 
   cflags_cc = common_cflags
@@ -91,6 +96,10 @@ config("ethernet_service_interface_stub_config") {
     "include/proxy",
     "$EXT_INNERKITS_ROOT/include",
   ]
+  defines = []
+  if (netmanager_ext_feature_iface_supplier_id) {
+    defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
 }
  
 ohos_static_library("ethernet_service_interface_stub") {
@@ -163,6 +172,10 @@ ohos_shared_library("ethernet_manager_if") {
 
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
+  }
+
+  if (netmanager_ext_feature_iface_supplier_id) {
+    defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
   }
 
   if (netmanager_ext_extensible_authentication) {

@@ -74,6 +74,7 @@ declare_args() {
   netmanager_ext_share_traffic_limit_enable = false
   netmanager_ext_extensible_authentication = false
   netmanager_ext_feature_networkslice = false
+  netmanager_ext_feature_iface_supplier_id = false
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]

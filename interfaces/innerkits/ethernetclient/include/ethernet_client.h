@@ -84,6 +84,19 @@ public:
      */
     int32_t GetAllActiveIfaces(std::vector<std::string> &activeIfaces);
 
+#ifdef FEATURE_GET_IFACE_SUPPLIER_ID
+    /**
+     *  Gets the supplier id of iface
+     *
+     * @param in iface: iface name
+     * @param out supplierId: supplier Id of iface
+     * @return Return NETMANAGER_EXT_SUCCESS if getting supplier Id succ, others is error
+     * @permission ohos.permission.CONNECTIVITY_INTERNAL
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t GetIfaceSupplierId(const std::string &iface, uint32_t &supplierId);
+#endif // FEATURE_GET_IFACE_SUPPLIER_ID
+
     /**
      *  Reset all configuration information
      *
