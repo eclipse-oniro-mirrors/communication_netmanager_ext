@@ -1,7 +1,7 @@
 {
   "name": "ohos-networkShare",
   "version": "1.0.0",
-  "description": "网络共享管理CLI工具。用于查询和控制系统网络共享状态，如WiFi热点、USB tethering、蓝牙PAN等共享方式的启停控制和状态查询。不支持普通应用调用，仅限系统调用者使用。",
+  "description": "网络共享管理CLI工具。用于查询和控制系统网络共享状态（WiFi热点、USB tethering、蓝牙PAN）的启停和状态查询。仅限系统调用者使用，不支持普通应用调用。",
   "executablePath": "/system/bin/cli_tool/executable/ohos-networkShare",
   "requirePermissions": [
     "ohos.permission.CONNECTIVITY_INTERNAL"
@@ -180,69 +180,6 @@
               }
             },
             "required": ["message", "type"]
-          },
-          "errCode": {
-            "type": "string",
-            "description": "Error code when operation failed"
-          },
-          "errMsg": {
-            "type": "string",
-            "description": "Error message when operation failed"
-          }
-        },
-        "required": ["status"]
-      }
-    },
-    "help": {
-      "description": "Show help information for commands. Used for displaying command usage. N/A.",
-      "requirePermissions": [],
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "command": {
-            "type": "string",
-            "description": "Optional command name to show detailed help"
-          },
-          "format": {
-            "type": "string",
-            "enum": ["json"],
-            "description": "Output format, json for structured output"
-          }
-        },
-        "required": []
-      },
-      "outputSchema": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["success", "failed"]
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "command": {
-                "type": "string",
-                "description": "CLI tool name"
-              },
-              "commands": {
-                "type": "array",
-                "description": "List of available commands",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Command name"
-                    },
-                    "description": {
-                      "type": "string",
-                      "description": "Command description"
-                    }
-                  }
-                }
-              }
-            }
           },
           "errCode": {
             "type": "string",

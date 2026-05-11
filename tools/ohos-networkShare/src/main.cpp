@@ -48,11 +48,10 @@ struct Command {
 };
 
 static std::unordered_map<std::string, Command> g_commands;
-static const char* PROGRAM_NAME = "ohos-networkShare";
 
 constexpr int COMMAND_OFFSET = 2;
-constexpr int HELP_ARGC = 3;
-constexpr int JSON_INDENT = 2;
+constexpr int MIN_ARGC_WITH_SUBCOMMAND = 2;
+constexpr int ARGC_FOR_TOOL_HELP = 2;
 
 static void RegisterCommand(const Command& cmd)
 {
@@ -124,114 +123,59 @@ std::string GetOption(const std::vector<std::string>& args, const std::string& o
     return "";
 }
 
-static bool ParseHelpArgs(int argc, char** argv, bool& jsonFormat, std::string& targetCmd)
+static void ShowToolLevelHelp()
 {
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "--format") == 0 && i + 1 < argc && strcmp(argv[i + 1], "json") == 0) {
-            jsonFormat = true;
-        } else if (argv[i][0] != '-') {
-            targetCmd = argv[i];
-        }
-    }
-    return true;
+    std::cout << "ohos-networkShare - Network sharing management CLI tool\n\n";
+    std::cout << "Usage:\n";
+    std::cout << "  ohos-networkShare <command> [options]\n\n";
+    std::cout << "Parameters:\n";
+    std::cout << "  --help              Display this help message\n\n";
+    std::cout << "SubCommands:\n";
+    std::cout << "  is-supported        Check if network sharing is supported on the device\n";
+    std::cout << "  is-sharing          Check if network sharing is currently active\n";
+    std::cout << "  start               Start network sharing of specified type\n";
+    std::cout << "  stop                Stop network sharing of specified type\n\n";
+    std::cout << "Examples:\n";
+    std::cout << "  # Check if network sharing is supported\n";
+    std::cout << "  ohos-networkShare is-supported\n\n";
+    std::cout << "  # Start WiFi hotspot sharing\n";
+    std::cout << "  ohos-networkShare start --type wifi\n\n";
+    std::cout << "  # Stop USB tethering\n";
+    std::cout << "  ohos-networkShare stop --type usb\n\n";
+    std::cout << "  # View subcommand help\n";
+    std::cout << "  ohos-networkShare start --help\n";
 }
 
-static int ShowHelpListJson()
+static void ShowCommandHelp(const Command& cmd)
 {
-    json response;
-    response["type"] = "result";
-    response["status"] = "success";
-    json data;
-    data["command"] = PROGRAM_NAME;
-    json cmds = json::array();
-    for (const auto& pair : g_commands) {
-        json cmd;
-        cmd["name"] = pair.first;
-        cmd["description"] = pair.second.description ? pair.second.description : "";
-        cmds.push_back(cmd);
-    }
-    data["commands"] = cmds;
-    response["data"] = data;
-    std::cout << response.dump(JSON_INDENT) << std::endl;
-    return 0;
-}
+    std::cout << "ohos-networkShare " << cmd.name << " - "
+              << (cmd.description ? cmd.description : "N/A") << "\n\n";
 
-static void ShowHelpListText()
-{
-    std::cerr << PROGRAM_NAME << " <command> [args]\n";
-    std::cerr << "\nCommands:\n";
-    for (const auto& pair : g_commands) {
-        std::cerr << "    " << pair.first << "    "
-                  << (pair.second.description ? pair.second.description : "") << "\n";
-    }
-    std::cerr << "\nRun '" << PROGRAM_NAME << " <command> --help' for more information.\n";
-}
-
-static int ShowCommandHelpJson(const Command& cmd)
-{
-    json response;
-    response["type"] = "result";
-    response["status"] = "success";
-    json data;
-    data["command"] = cmd.name;
-    data["description"] = cmd.description ? cmd.description : "";
-    data["usage"] = cmd.usage ? cmd.usage : "";
-    data["parameters"] = cmd.parameters ? cmd.parameters : "";
-    data["examples"] = cmd.examples ? cmd.examples : "";
-    response["data"] = data;
-    std::cout << response.dump(JSON_INDENT) << std::endl;
-    return 0;
-}
-
-static void ShowCommandHelpText(const Command& cmd)
-{
-    std::cerr << "Command: " << cmd.name << "\n";
-    std::cerr << "Description: " << (cmd.description ? cmd.description : "N/A") << "\n";
     if (cmd.usage) {
-        std::cerr << "\nUsage:\n";
-        std::cerr << "    " << cmd.usage << "\n";
+        std::cout << "Usage:\n";
+        std::cout << "  " << cmd.usage << "\n\n";
     }
+
     if (cmd.parameters) {
-        std::cerr << "\nParameters:\n";
-        std::cerr << cmd.parameters << "\n";
+        std::cout << "Parameters:\n";
+        std::cout << cmd.parameters << "\n";
+        std::cout << "  --help              Display this help message\n\n";
     }
+
     if (cmd.examples) {
-        std::cerr << "\nExamples:\n";
-        std::cerr << cmd.examples << "\n";
+        std::cout << "Examples:\n";
+        std::cout << cmd.examples << "\n";
     }
 }
 
-int CmdHelp(int argc, char** argv)
-{
-    bool jsonFormat = false;
-    std::string targetCmd;
-    ParseHelpArgs(argc, argv, jsonFormat, targetCmd);
-
-    if (targetCmd.empty()) {
-        if (jsonFormat) {
-            return ShowHelpListJson();
-        } else {
-            ShowHelpListText();
-            return 0;
-        }
-    }
-
-    auto it = g_commands.find(targetCmd);
-    if (it == g_commands.end()) {
-        return outputError("ERR_NET_ARG_INVALID",
-            "Unknown command: " + targetCmd,
-            "Run '" + std::string(PROGRAM_NAME) + " help' to list available commands.");
-    }
-
-    const Command& cmd = it->second;
-    if (jsonFormat) {
-        return ShowCommandHelpJson(cmd);
-    }
-
-    ShowCommandHelpText(cmd);
-    return 0;
-}
-
+/*
+ * Check if network sharing is supported on the device.
+ * This function queries the system to determine whether the device has network sharing capability.
+ *
+ * Returns:
+ *   0 on success with JSON output containing "supported" boolean field
+ *   1 on failure with error details
+ */
 int CmdIsSupported(int argc, char** argv)
 {
     auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
@@ -248,6 +192,15 @@ int CmdIsSupported(int argc, char** argv)
     return outputSuccess(data);
 }
 
+/*
+ * Check if network sharing is currently active.
+ * This function queries the current network sharing status to determine if any sharing type
+ * (WiFi, USB, or Bluetooth) is currently active on the device.
+ *
+ * Returns:
+ *   0 on success with JSON output containing "sharing" boolean field
+ *   1 on failure with error details
+ */
 int CmdIsSharing(int argc, char** argv)
 {
     auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
@@ -264,13 +217,31 @@ int CmdIsSharing(int argc, char** argv)
     return outputSuccess(data);
 }
 
+/*
+ * Start network sharing for a specified type.
+ * This function initiates network sharing for WiFi hotspot, USB tethering, or Bluetooth PAN.
+ *
+ * Parameters:
+ *   --type: Sharing type (wifi, usb, or bluetooth)
+ *
+ * Permissions Required:
+ *   ohos.permission.CONNECTIVITY_INTERNAL
+ *
+ * System Requirements:
+ *   - Must be called by system processes
+ *   - EDM policy check for persist.edm.tethering_disallowed
+ *
+ * Returns:
+ *   0 on success with confirmation message
+ *   1 on failure with error details
+ */
 int CmdStart(int argc, char** argv)
 {
     std::vector<std::string> args(argv, argv + argc);
     std::string typeStr = GetOption(args, "--type");
     if (typeStr.empty()) {
         return outputError("ERR_ARG_MISSING", "Missing required parameter: sharing type",
-            "Valid types: wifi, usb, bluetooth. Example: ohos-networkShare start wifi");
+            "Valid types: wifi, usb, bluetooth. Example: ohos-networkShare start --type wifi");
     }
 
     SharingIfaceType type = parseSharingType(typeStr);
@@ -293,13 +264,31 @@ int CmdStart(int argc, char** argv)
     return outputSuccess(data);
 }
 
+/*
+ * Stop network sharing for a specified type.
+ * This function terminates active network sharing for WiFi hotspot, USB tethering, or Bluetooth PAN.
+ *
+ * Parameters:
+ *   --type: Sharing type (wifi, usb, or bluetooth)
+ *
+ * Permissions Required:
+ *   ohos.permission.CONNECTIVITY_INTERNAL
+ *
+ * System Requirements:
+ *   - Must be called by system processes
+ *   - The specified sharing type must be currently active
+ *
+ * Returns:
+ *   0 on success with confirmation message
+ *   1 on failure with error details
+ */
 int CmdStop(int argc, char** argv)
 {
     std::vector<std::string> args(argv, argv + argc);
     std::string typeStr = GetOption(args, "--type");
     if (typeStr.empty()) {
         return outputError("ERR_ARG_MISSING", "Missing required parameter: sharing type",
-            "Valid types: wifi, usb, bluetooth. Example: ohos-networkShare stop wifi");
+            "Valid types: wifi, usb, bluetooth. Example: ohos-networkShare stop --type wifi");
     }
 
     SharingIfaceType type = parseSharingType(typeStr);
@@ -324,14 +313,6 @@ int CmdStop(int argc, char** argv)
 
 void InitCommands()
 {
-    RegisterCommand({"help", "Show this help message",
-        "ohos-networkShare help [command] [--format json]",
-        "    command          Optional string. Show detailed help for a specific command.\n"
-        "    --format json    Optional flag. Output in JSON format.",
-        "    ohos-networkShare help\n"
-        "    ohos-networkShare help start --format json",
-        CmdHelp});
-
     RegisterCommand({"is-supported", "Check if network sharing is supported on the device",
         "ohos-networkShare is-supported",
         "    None",
@@ -345,72 +326,54 @@ void InitCommands()
         CmdIsSharing});
 
     RegisterCommand({"start", "Start network sharing",
-        "ohos-networkShare start <type>",
-        "    <type>           Required string. Sharing type.\n"
+        "ohos-networkShare start --type <wifi|usb|bluetooth>",
+        "    --type           Required string. Sharing type.\n"
         "                     Valid values: wifi, usb, bluetooth",
-        "    ohos-networkShare start wifi\n"
-        "    ohos-networkShare start usb\n"
-        "    ohos-networkShare start bluetooth",
+        "    ohos-networkShare start --type wifi\n"
+        "    ohos-networkShare start --type usb\n"
+        "    ohos-networkShare start --type bluetooth",
         CmdStart});
 
     RegisterCommand({"stop", "Stop network sharing",
-        "ohos-networkShare stop <type>",
-        "    <type>           Required string. Sharing type.\n"
+        "ohos-networkShare stop --type <wifi|usb|bluetooth>",
+        "    --type           Required string. Sharing type.\n"
         "                     Valid values: wifi, usb, bluetooth",
-        "    ohos-networkShare stop wifi\n"
-        "    ohos-networkShare stop usb\n"
-        "    ohos-networkShare stop bluetooth",
+        "    ohos-networkShare stop --type wifi\n"
+        "    ohos-networkShare stop --type usb\n"
+        "    ohos-networkShare stop --type bluetooth",
         CmdStop});
 }
 
 void PrintUsage(const char* prog)
 {
     std::cerr << "[ERROR] Usage: " << prog << " <command> [options...]\n";
-    std::cerr << "[ERROR] Run '" << prog << " help' for more information\n";
+    std::cerr << "[ERROR] Run '" << prog << " --help' for more information\n";
 }
 
-static bool HasGlobalHelpArg(int argc, char** argv, int& helpIndex)
+static bool HasHelpFlag(int argc, char** argv)
 {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0) {
-            helpIndex = i;
             return true;
         }
     }
     return false;
 }
 
-static int BuildHelpArgv(char** argv, int argc, int helpIndex)
+static int HandleToolLevelHelp()
 {
-    char* helpArgv[32] = {argv[0], const_cast<char*>("help")};
-    int helpArgc = COMMAND_OFFSET;
-    for (int j = 1; j < argc; j++) {
-        if (j != helpIndex) {
-            helpArgv[helpArgc++] = argv[j];
-        }
-    }
-    return CmdHelp(helpArgc, helpArgv);
-}
-
-static int CheckGlobalHelp(int argc, char** argv)
-{
-    int helpIndex = 0;
-    if (HasGlobalHelpArg(argc, argv, helpIndex)) {
-        return BuildHelpArgv(argv, argc, helpIndex);
-    }
+    ShowToolLevelHelp();
     return 0;
 }
 
-static int CheckCommandHelp(int argc, char* argv[], const std::string& cmdName)
+static int HandleCommandHelp(const std::string& cmdName)
 {
-    for (int i = COMMAND_OFFSET; i < argc; i++) {
-        if (strcmp(argv[i], "--help") == 0) {
-            char* helpArgv[32] = {argv[0], const_cast<char*>("help"),
-                                  const_cast<char*>(cmdName.c_str())};
-            CmdHelp(HELP_ARGC, helpArgv);
-            return 1;
-        }
+    auto it = g_commands.find(cmdName);
+    if (it == g_commands.end()) {
+        return outputError("ERR_ARG_INVALID", "Unknown command: " + cmdName,
+            "Run 'ohos-networkShare --help' to list available commands.");
     }
+    ShowCommandHelp(it->second);
     return 0;
 }
 
@@ -421,28 +384,31 @@ int main(int argc, char** argv)
 {
     using namespace OHOS::NetManagerStandard;
 
-    if (CheckGlobalHelp(argc, argv) != 0) {
-        return 0;
+    InitCommands();
+
+    // Handle tool-level --help: ohos-networkShare --help
+    if (argc == ARGC_FOR_TOOL_HELP && strcmp(argv[1], "--help") == 0) {
+        return HandleToolLevelHelp();
     }
 
-    if (argc < COMMAND_OFFSET) {
+    // Require at least a subcommand
+    if (argc < MIN_ARGC_WITH_SUBCOMMAND) {
         PrintUsage(argv[0]);
         return 1;
     }
-
-    InitCommands();
 
     std::string cmdName = argv[1];
 
-    if (CheckCommandHelp(argc, argv, cmdName) != 0) {
-        return 0;
+    // Handle subcommand --help: ohos-networkShare <subcommand> --help
+    if (HasHelpFlag(argc, argv)) {
+        return HandleCommandHelp(cmdName);
     }
 
+    // Execute the subcommand
     auto it = g_commands.find(cmdName);
     if (it == g_commands.end()) {
-        std::cerr << "[ERROR] Unknown command: " << cmdName << "\n";
-        PrintUsage(argv[0]);
-        return 1;
+        return outputError("ERR_ARG_INVALID", "Unknown command: " + cmdName,
+            "Run 'ohos-networkShare --help' to list available commands.");
     }
 
     return it->second.handler(argc - COMMAND_OFFSET, argv + COMMAND_OFFSET);
