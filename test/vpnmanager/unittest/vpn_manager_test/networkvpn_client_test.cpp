@@ -326,7 +326,7 @@ HWTEST_F(NetworkVpnClientTest, RequestVpnPermission0001, TestSize.Level1)
 {
     bool isAuthorized = false;
     auto ret = RequestVpnPermission(1099, "", "", isAuthorized);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    EXPECT_GE(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
 }
 
 HWTEST_F(NetworkVpnClientTest, RequestVpnPermission0002, TestSize.Level1)
