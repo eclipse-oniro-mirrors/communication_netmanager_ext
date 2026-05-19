@@ -18,7 +18,6 @@
 
 #include <atomic>
 #include <string>
-#include "ability_connect_callback_stub.h"
 #include "ipc_skeleton.h"
 #include "want.h"
 #include "want_params_wrapper.h"
