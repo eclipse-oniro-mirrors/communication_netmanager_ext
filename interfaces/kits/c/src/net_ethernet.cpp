@@ -95,7 +95,8 @@ int32_t OH_Ethernet_GetMacAddress(Ethernet_MacAddrInfoList *macAddrList)
 }
 
 // LCOV_EXCL_START
-void FillNetAddrListFromEthernet(Ethernet_NetAddrList* netAddrList, const NetLinkInfo& info) {
+void FillNetAddrListFromEthernet(Ethernet_NetAddrList* netAddrList, const NetLinkInfo& info)
+{
     if (netAddrList->netAddrListSize >= ETHERNET_MAX_NET_SIZE) {
         return;
     }
