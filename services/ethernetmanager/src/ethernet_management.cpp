@@ -33,7 +33,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-const std::string IFACE_MATCH = "(eth|usb)\\d";
+constexpr const char IFACE_MATCH[] = "(eth|usb)\\d";
 constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
 constexpr const char *SYS_CLASS_NET_PATH = "/sys/class/net/";
@@ -55,6 +55,7 @@ constexpr uint32_t INDEX_FOUR = 4;
 constexpr uint32_t INDEX_FIVE = 5;
 constexpr uint32_t BUFFER_SIZE = 64;
 constexpr const char *SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE = "persist.edm.set_ethernet_ip_disable";
+const std::regex IFACE_MATCH_PATTERM(IFACE_MATCH);
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
     auto sp = ethernetManagement_.lock();
@@ -83,8 +84,7 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAdded(const st
         return 0;
     }
 
-    std::regex re(IFACE_MATCH);
-    if (std::regex_search(iface, re)) {
+    if (std::regex_search(iface, IFACE_MATCH_PATTERM)) {
         sp->DevInterfaceAdd(iface);
         if (NetsysController::GetInstance().SetInterfaceUp(iface) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Iface[%{public}s] added set up fail!", iface.c_str());
@@ -100,8 +100,7 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceRemoved(const 
         return 0;
     }
 
-    std::regex re(IFACE_MATCH);
-    if (std::regex_search(iface, re)) {
+    if (std::regex_search(iface, IFACE_MATCH_PATTERM)) {
         sp->DevInterfaceRemove(iface);
         if (NetsysController::GetInstance().SetInterfaceDown(iface) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Iface[%{public}s] added set down fail!", iface.c_str());
@@ -122,8 +121,7 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceLinkStateChang
         return 0;
     }
     auto startTime = std::chrono::steady_clock::now();
-    std::regex re(IFACE_MATCH);
-    if (std::regex_search(ifName, re)) {
+    if (std::regex_search(ifName, IFACE_MATCH_PATTERM)) {
         sp->UpdateInterfaceState(ifName, up);
     }
     auto endTime = std::chrono::steady_clock::now();
@@ -211,14 +209,13 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
 
 int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
-    std::regex re(IFACE_MATCH);
     std::vector<std::string> ifaceLists = NetsysController::GetInstance().InterfaceGetList();
     if (ifaceLists.empty()) {
         NETMGR_EXT_LOG_E("EthernetManagement iface list is empty");
         return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
     for (const auto &iface : ifaceLists) {
-        if (std::regex_search(iface, re)) {
+        if (std::regex_search(iface, IFACE_MATCH_PATTERM)) {
             MacAddressInfo macAddressInfo;
             auto spMacAddr = GetMacAddr(iface);
             if (spMacAddr.c_str() == nullptr) {
@@ -526,7 +523,6 @@ void EthernetManagement::Init()
         ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
     }
     NetsysController::GetInstance().RegisterCallback(ethDevInterfaceStateCallback_);
-    std::regex re(IFACE_MATCH);
     std::vector<std::string> ifaces = NetsysController::GetInstance().InterfaceGetList();
     if (ifaces.empty()) {
         NETMGR_EXT_LOG_E("EthernetManagement link list is empty");
@@ -539,7 +535,7 @@ void EthernetManagement::Init()
     }
     for (const auto &devName : ifaces) {
         NETMGR_EXT_LOG_D("EthernetManagement devName[%{public}s]", devName.c_str());
-        if (!std::regex_search(devName, re)) {
+        if (!std::regex_search(devName, IFACE_MATCH_PATTERM)) {
             continue;
         }
         DevInterfaceAdd(devName);

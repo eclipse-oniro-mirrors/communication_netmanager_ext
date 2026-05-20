@@ -36,17 +36,17 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-const std::string IFACE_MATCH = "eth\\d";
-const std::string CONFIG_KEY_ETH_COMPONENT_FLAG = "config_ethernet_interfaces";
-const std::string CONFIG_KEY_ETH_IFACE = "iface";
-const std::string CONFIG_KEY_ETH_LANIFACE = "laniface";
-const std::string CONFIG_KEY_ETH_CAPS = "caps";
-const std::string CONFIG_KEY_ETH_IP = "ip";
-const std::string CONFIG_KEY_ETH_GATEWAY = "gateway";
-const std::string CONFIG_KEY_ETH_DNS = "dns";
-const std::string CONFIG_KEY_ETH_NETMASK = "netmask";
-const std::string CONFIG_KEY_ETH_ROUTE = "route";
-const std::string CONFIG_KEY_ETH_ROUTE_MASK = "routemask";
+constexpr const char IFACE_MATCH[] = "eth\\d";
+constexpr const char CONFIG_KEY_ETH_COMPONENT_FLAG[] = "config_ethernet_interfaces";
+constexpr const char CONFIG_KEY_ETH_IFACE[] = "iface";
+constexpr const char CONFIG_KEY_ETH_LANIFACE[] = "laniface";
+constexpr const char CONFIG_KEY_ETH_CAPS[] = "caps";
+constexpr const char CONFIG_KEY_ETH_IP[] = "ip";
+constexpr const char CONFIG_KEY_ETH_GATEWAY[] = "gateway";
+constexpr const char CONFIG_KEY_ETH_DNS[] = "dns";
+constexpr const char CONFIG_KEY_ETH_NETMASK[] = "netmask";
+constexpr const char CONFIG_KEY_ETH_ROUTE[] = "route";
+constexpr const char CONFIG_KEY_ETH_ROUTE_MASK[] = "routemask";
 constexpr int32_t MKDIR_ERR = -1;
 constexpr int32_t USER_PATH_LEN = 25;
 constexpr const char *FILE_OBLIQUE_LINE = "/";
@@ -72,6 +72,7 @@ constexpr const char *DEFAULT_IPV6_MAX_ADDRESS = "ffff:ffff:ffff:ffff:ffff:ffff:
 constexpr const char *EMPTY_NET_ADDR = "*";
 constexpr const char *ADDR_SEPARATOR = ",";
 constexpr const char *EXCLUSIONS_DELIMITER = ",";
+const std::regex IFACE_MATCH_PATTERM(IFACE_MATCH);
 } // namespace
 
 EthernetConfiguration::EthernetConfiguration()
@@ -90,16 +91,16 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
         }
         std::string iface;
         bool isLan = false;
-        cJSON *lanIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_LANIFACE.c_str());
+        cJSON *lanIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_LANIFACE);
         if (lanIface == nullptr) {
-            cJSON *ethIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IFACE.c_str());
+            cJSON *ethIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IFACE);
             iface = cJSON_GetStringValue(ethIface);
             isLan = false;
         } else {
             iface = cJSON_GetStringValue(lanIface);
             isLan = true;
         }
-        cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS.c_str());
+        cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS);
         std::set<NetCap> caps;
         for (int32_t j = 0; j < cJSON_GetArraySize(capsObj); j++) {
             cJSON *capsItem = cJSON_GetArrayItem(capsObj, j);
@@ -123,8 +124,7 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
             NETMGR_EXT_LOG_E("config is nullptr");
             return false;
         }
-        std::regex re(IFACE_MATCH);
-        if (cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IP.c_str()) && std::regex_search(iface, re)) {
+        if (cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IP) && std::regex_search(iface, IFACE_MATCH_PATTERM)) {
             devCfgs[iface] = config;
         }
     }
@@ -144,7 +144,7 @@ bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::s
         NETMGR_EXT_LOG_E("json parse failed!");
         return false;
     }
-    cJSON *jsonEth = cJSON_GetObjectItem(json, CONFIG_KEY_ETH_COMPONENT_FLAG.c_str());
+    cJSON *jsonEth = cJSON_GetObjectItem(json, CONFIG_KEY_ETH_COMPONENT_FLAG);
     if (jsonEth == nullptr) {
         NETMGR_EXT_LOG_E("ReadConfigData not find config_ethernet_interfaces!");
         cJSON_Delete(json);
@@ -168,17 +168,17 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     } else {
         config->mode_ = STATIC;
     }
-    std::string ip = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_IP.c_str())->valuestring;
-    std::string route = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE.c_str())->valuestring;
-    std::string gateway = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_GATEWAY.c_str())->valuestring;
-    std::string netmask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_NETMASK.c_str())->valuestring;
-    std::string dns = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_DNS.c_str())->valuestring;
+    std::string ip = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_IP)->valuestring;
+    std::string route = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE)->valuestring;
+    std::string gateway = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_GATEWAY)->valuestring;
+    std::string netmask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_NETMASK)->valuestring;
+    std::string dns = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_DNS)->valuestring;
     StaticConfiguration::ExtractNetAddrBySeparator(ip, config->ipStatic_.ipAddrList_);
     StaticConfiguration::ExtractNetAddrBySeparator(route, config->ipStatic_.routeList_);
     StaticConfiguration::ExtractNetAddrBySeparator(gateway, config->ipStatic_.gatewayList_);
     StaticConfiguration::ExtractNetAddrBySeparator(netmask, config->ipStatic_.netMaskList_);
     StaticConfiguration::ExtractNetAddrBySeparator(dns, config->ipStatic_.dnsServers_);
-    std::string routeMask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE_MASK.c_str())->valuestring;
+    std::string routeMask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE_MASK)->valuestring;
     ParserIfaceIpAndRoute(config, routeMask);
     return config;
 }
@@ -209,8 +209,7 @@ bool EthernetConfiguration::ReadUserConfiguration(std::map<std::string, sptr<Int
                 continue;
             }
             ParserFileConfig(fileContent, iface, cfg);
-            std::regex re(IFACE_MATCH);
-            if (!iface.empty() && std::regex_search(iface, re)) {
+            if (!iface.empty() && std::regex_search(iface, IFACE_MATCH_PATTERM)) {
                 NETMGR_EXT_LOG_D("ReadFileList devname[%{public}s]", iface.c_str());
                 devCfgs[iface] = cfg;
             }

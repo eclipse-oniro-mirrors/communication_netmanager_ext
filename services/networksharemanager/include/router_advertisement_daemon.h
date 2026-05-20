@@ -110,7 +110,7 @@ struct Icmpv6RdnsOpt {
 class RouterAdvertisementDaemon : public std::enable_shared_from_this<RouterAdvertisementDaemon> {
 public:
     RouterAdvertisementDaemon();
-    ~RouterAdvertisementDaemon() = default;
+    ~RouterAdvertisementDaemon();
     int32_t Init(const std::string &ifaceName);
     int32_t StartRa();
     void StopRa();
@@ -139,7 +139,7 @@ private:
     std::mutex mutex_;
     std::thread recvRsThread_;
     uint8_t sendRaTimes_ = 1;
-    volatile bool stopRaThread_ = false;
+    std::atomic<bool> stopRaThread_{false};
     uint8_t raPacket_[IPV6_MIN_MTU] = {};
     uint16_t raPacketLength_ = 0;
     std::shared_ptr<RaParams> raParams_;
