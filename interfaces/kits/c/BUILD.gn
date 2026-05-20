@@ -1,0 +1,72 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
+
+config("net_ethernet_config") {
+  include_dirs = [
+    "include",
+    "$EXT_INNERKITS_ROOT/include",
+    "$EXT_INNERKITS_ROOT/ethernetclient/include",
+  ]
+
+  cflags = [
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+    "-ffunction-sections",
+    "-fdata-sections",
+  ]
+
+  cflags_cc = [
+    "-D_FORTIFY_SOURCE=2",
+    "-Os",
+    "-ffunction-sections",
+    "-fdata-sections",
+  ]
+
+  ldflags = [
+    "-Wl,--gc-sections",
+    "-Wl,--exclude-libs=ALL",
+  ]
+}
+
+ohos_shared_library("net_ethernet_ndk") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
+  sources = [ "src/net_ethernet.cpp" ]
+
+  public_configs = [ ":net_ethernet_config" ]
+
+  deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "netmanager_base:net_conn_manager_if",
+  ]
+
+  output_name = "net_ethernet"
+  output_extension = "so"
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+  relative_install_dir = "ndk"
+}
