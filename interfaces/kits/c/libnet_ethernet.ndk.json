@@ -1,0 +1,10 @@
+[
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_Ethernet_GetMacAddress"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_Ethernet_GetNetAddress"
+    }
+]

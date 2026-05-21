@@ -65,6 +65,11 @@ RouterAdvertisementDaemon::RouterAdvertisementDaemon()
     raParams_ = std::make_shared<RaParams>();
 }
 
+RouterAdvertisementDaemon::~RouterAdvertisementDaemon()
+{
+    StopRa();
+}
+
 bool RouterAdvertisementDaemon::IsSocketValid()
 {
     return socket_ > 0;
@@ -98,15 +103,11 @@ int32_t RouterAdvertisementDaemon::StartRa()
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     stopRaThread_ = false;
-    std::weak_ptr<RouterAdvertisementDaemon> wp = shared_from_this();
-    recvRsThread_ = std::thread([wp]() {
-        auto sp = wp.lock();
-        if (sp != nullptr) {
-            sp->RunRecvRsThread();
-        }
+    recvRsThread_ = std::thread([this]() {
+        RunRecvRsThread();
     });
     pthread_setname_np(recvRsThread_.native_handle(), "OH_Net_RecvRs");
-    recvRsThread_.detach();
+    std::weak_ptr<RouterAdvertisementDaemon> wp = shared_from_this();
     auto callback = [wp]() {
         auto sp = wp.lock();
         if (sp != nullptr) {
@@ -126,6 +127,9 @@ void RouterAdvertisementDaemon::StopRa()
 {
     NETMGR_EXT_LOG_I("StopRa");
     HupRaThread();
+    if (recvRsThread_.joinable()) {
+        recvRsThread_.join();
+    }
     std::unique_lock<ffrt::shared_mutex> lock(sendRaFfrtQueueMutex_);
     if (taskHandle_ != nullptr) {
         if (sendRaFfrtQueue_ != nullptr) {

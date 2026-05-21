@@ -16,7 +16,6 @@
 #include "networkshare_notification.h"
 
 #include "ability_manager_ipc_interface_code.h"
-#include "extension_manager_client.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
 #include "system_ability_definition.h"

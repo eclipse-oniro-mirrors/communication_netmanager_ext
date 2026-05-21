@@ -40,6 +40,7 @@ ohos_unittest("ethernet_manager_test") {
     "ethernet_exec_test.cpp",
     "ethernet_lan_management_test.cpp",
     "ethernet_manager_test.cpp",
+    "ethernet_mac_ip_test.cpp",
     "ethernet_service_proxy_test.cpp",
     "ethernet_service_stub_test.cpp",
     "ethernet_service_test.cpp",
@@ -51,6 +52,7 @@ ohos_unittest("ethernet_manager_test") {
   ]
 
   include_dirs = [
+    "$NETMANAGER_EXT_ROOT/interfaces/kits/c/include",
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
@@ -64,6 +66,7 @@ ohos_unittest("ethernet_manager_test") {
   deps = [
     "$ETHERNETMANAGER_SOURCE_DIR:ethernet_manager_static",
     "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if",
+    "$NETMANAGER_EXT_ROOT/interfaces/kits/c:net_ethernet_ndk",
   ]
 
   external_deps = [
