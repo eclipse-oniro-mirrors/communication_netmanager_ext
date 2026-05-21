@@ -4,7 +4,8 @@
   "description": "网络共享管理CLI工具。用于查询和控制系统网络共享状态（WiFi热点、USB tethering、蓝牙PAN）的启停和状态查询。仅限系统调用者使用，不支持普通应用调用。",
   "executablePath": "/system/bin/cli_tool/executable/ohos-networkShare",
   "requirePermissions": [
-    "ohos.permission.CONNECTIVITY_INTERNAL"
+    "ohos.permission.cli.GET_HOTSPOT",
+    "ohos.permission.cli.SET_HOTSPOT"
   ],
   "hasSubCommand": true,
   "inputSchema": {
@@ -20,7 +21,7 @@
     "is-supported": {
       "description": "Check if network sharing is supported on the device. Used for querying device capabilities. Only available on devices with network sharing hardware support.",
       "requirePermissions": [
-        "ohos.permission.CONNECTIVITY_INTERNAL"
+        "ohos.permission.cli.GET_HOTSPOT"
       ],
       "inputSchema": {
         "type": "object",
@@ -68,7 +69,7 @@
     "is-sharing": {
       "description": "Check if network sharing is currently active. Used for querying current network sharing status. Only reflects WiFi/USB/Bluetooth sharing states.",
       "requirePermissions": [
-        "ohos.permission.CONNECTIVITY_INTERNAL"
+        "ohos.permission.cli.GET_HOTSPOT"
       ],
       "inputSchema": {
         "type": "object",
@@ -116,7 +117,7 @@
     "start": {
       "description": "Start network sharing of specified type. Used for enabling network sharing. Requires CONNECTIVITY_INTERNAL permission and system caller privilege.",
       "requirePermissions": [
-        "ohos.permission.CONNECTIVITY_INTERNAL"
+        "ohos.permission.cli.SET_HOTSPOT"
       ],
       "inputSchema": {
         "type": "object",
@@ -174,7 +175,7 @@
     "stop": {
       "description": "Stop network sharing of specified type. Used for disabling network sharing. Requires CONNECTIVITY_INTERNAL permission and system caller privilege.",
       "requirePermissions": [
-        "ohos.permission.CONNECTIVITY_INTERNAL"
+        "ohos.permission.cli.SET_HOTSPOT"
       ],
       "inputSchema": {
         "type": "object",
