@@ -2487,10 +2487,10 @@ int32_t NetworkVpnService::RequestVpnPermission(int32_t uid, const std::string& 
 {
     isAuthorized = false;
     // LCOV_EXCL_START
- 	if (!NetManagerPermission::IsSystemCaller()) {
- 	    return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
- 	}
- 	// LCOV_EXCL_STOP
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    // LCOV_EXCL_STOP
     std::string actualBundleName;
     std::string appName;
     GetAppNameByUid(uid, appName, actualBundleName);
