@@ -607,7 +607,7 @@ HWTEST_F(EtherNetServiceTest, OnInterfaceLinkStateChangedTest010, TestSize.Level
     ret = globalinterfacestatecallback.OnInterfaceLinkStateChanged(ifName, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
- 
+
 HWTEST_F(EtherNetServiceTest, OnInterfaceLinkStateChangedTest011, TestSize.Level1)
 {
     EthernetService ethernetservice;
@@ -619,6 +619,78 @@ HWTEST_F(EtherNetServiceTest, OnInterfaceLinkStateChangedTest011, TestSize.Level
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 #endif // NET_EXTENSIBLE_AUTHENTICATION
- 
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+HWTEST_F(EtherNetServiceTest, EnableEthernetInterfaceTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    int32_t ret = ethernetService.EnableEthernetInterface();
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, DisableEthernetInterfaceTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    int32_t ret = ethernetService.DisableEthernetInterface();
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, IsEthernetEnabledTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    int32_t enabled = 0;
+    int32_t ret = ethernetService.IsEthernetEnabled(enabled);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(EtherNetServiceTest, EnableEthernetInterfaceTest002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    EthernetService ethernetService;
+    ethernetService.InitManagement();
+    int32_t ret = ethernetService.EnableEthernetInterface();
+    EXPECT_GE(ret, -1);
+}
+
+HWTEST_F(EtherNetServiceTest, DisableEthernetInterfaceTest002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    EthernetService ethernetService;
+    ethernetService.InitManagement();
+    int32_t ret = ethernetService.DisableEthernetInterface();
+    EXPECT_GE(ret, -1);
+}
+
+HWTEST_F(EtherNetServiceTest, IsEthernetEnabledTest002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    EthernetService ethernetService;
+    ethernetService.InitManagement();
+    int32_t enabled = 0;
+    int32_t ret = ethernetService.IsEthernetEnabled(enabled);
+    EXPECT_GE(ret, -1);
+}
+
+HWTEST_F(EtherNetServiceTest, EnableDisableEthernetTest001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    EthernetService ethernetService;
+    ethernetService.InitManagement();
+
+    int32_t ret1 = ethernetService.EnableEthernetInterface();
+    int32_t enabled1 = 0;
+    int32_t ret2 = ethernetService.IsEthernetEnabled(enabled1);
+
+    int32_t ret3 = ethernetService.DisableEthernetInterface();
+    int32_t enabled2 = 0;
+    int32_t ret4 = ethernetService.IsEthernetEnabled(enabled2);
+
+    EXPECT_GE(ret1, -1);
+    EXPECT_GE(ret2, -1);
+    EXPECT_GE(ret3, -1);
+    EXPECT_GE(ret4, -1);
+}
+#endif
+
 } // namespace NetManagerStandard
 } // namespace OHOS

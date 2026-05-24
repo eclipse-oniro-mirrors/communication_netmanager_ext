@@ -60,6 +60,48 @@ std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList)
         });
 }
 } // namespace
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+// Error code mapping for ethernet APIs
+constexpr int32_t NETMANAGER_EXT_ERR_PERMISSION_DENIED = 201;
+constexpr int32_t NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL = 202;
+constexpr int32_t NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL = 2200002;
+constexpr int32_t NETMANAGER_EXT_ERR_INTERNAL = 2200003;
+#endif
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+// Map internal error code to NAPI error code
+int32_t MapToNapiErrorCode(int32_t internalCode)
+{
+    switch (internalCode) {
+        case NETMANAGER_EXT_ERR_PERMISSION_DENIED:
+            return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+        case NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL:
+            return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+        case NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL:
+            return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+        default:
+            return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+}
+
+// Get error message for NAPI error code
+std::string GetNapiErrorMessage(int32_t napiCode)
+{
+    switch (napiCode) {
+        case NETMANAGER_EXT_ERR_PERMISSION_DENIED:
+            return "Permission denied.";
+        case NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL:
+            return "Non-system applications use system APIs.";
+        case NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL:
+            return "Failed to connect to the service.";
+        case NETMANAGER_EXT_ERR_INTERNAL:
+            return "System internal error.";
+        default:
+            return "Unknown error.";
+    }
+}
+#endif
 bool ExecGetMacAddress(GetMacAddressContext *context)
 {
     int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(context->macAddrInfo_);
@@ -225,6 +267,42 @@ napi_value GetDeviceInformationCallback(GetDeviceInformationContext *context)
     }
     return deviceInfoList;
 }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+bool ExecEnableEthernet(EnableEthernetContext *context)
+{
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->EnableEthernetInterface();
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecEnableEthernet error, errorCode: %{public}d", result);
+        int32_t napiCode = MapToNapiErrorCode(result);
+        context->SetErrorCode(napiCode);
+        return false;
+    }
+    return true;
+}
+
+napi_value EnableEthernetCallback(EnableEthernetContext *context)
+{
+    return NapiUtils::GetUndefined(context->GetEnv());
+}
+
+bool ExecDisableEthernet(DisableEthernetContext *context)
+{
+    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->DisableEthernetInterface();
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("ExecDisableEthernet error, errorCode: %{public}d", result);
+        int32_t napiCode = MapToNapiErrorCode(result);
+        context->SetErrorCode(napiCode);
+        return false;
+    }
+    return true;
+}
+
+napi_value DisableEthernetCallback(DisableEthernetContext *context)
+{
+    return NapiUtils::GetUndefined(context->GetEnv());
+}
+#endif
 } // namespace EthernetExec
 } // namespace NetManagerStandard
 } // namespace OHOS

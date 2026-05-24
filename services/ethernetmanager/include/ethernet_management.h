@@ -28,9 +28,20 @@
 #include "netsys_controller_callback.h"
 #include "system_ability_definition.h"
 #include "ethernet_lan_management.h"
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "net_datashare_utils_iface.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+namespace {
+constexpr const char *ETHERNET_ENABLED_URI =
+    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?"
+    "Proxy=true&key=settings.netmanager.ethernet_enabled";
+constexpr const char *KEY_ETHERNET_ENABLED = "settings.netmanager.ethernet_enabled";
+}
+#endif
 class EthernetManagement : public std::enable_shared_from_this<EthernetManagement> {
 public:
     EthernetManagement();
@@ -51,6 +62,11 @@ public:
     void DevInterfaceAdd(const std::string &devName);
     void DevInterfaceRemove(const std::string &devName);
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList);
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    int32_t EnableEthernet();
+    int32_t DisableEthernet();
+    bool IsEthernetEnabled();
+#endif
 
 private:
     class EhternetDhcpNotifyCallback : public EthernetDhcpCallback {
@@ -103,6 +119,16 @@ private:
     void ClearEthernetConfig(StaticConfiguration &config);
     void MergeEthernetConfig(StaticConfiguration &config, StaticConfiguration &configV4,
         StaticConfiguration &configV6);
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    void EnableAllInterfaces();
+    void DisableAllInterfaces();
+    void ReinitializeNetwork();
+    void CleanupNetworkState();
+    void InitEthernetEnabledState();
+#endif
+    void RegisterCallbacks();
+    bool InitDeviceInterfaces();
+    void StartDeviceUpThread();
 
 private:
     std::map<std::string, std::set<NetCap>> devCaps_;
@@ -117,6 +143,9 @@ private:
     std::shared_mutex mutex_;
     std::map<std::string, StaticConfiguration> configsV4_;
     std::map<std::string, StaticConfiguration> configsV6_;
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    bool ethernetEnabled_ = true;
+#endif
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

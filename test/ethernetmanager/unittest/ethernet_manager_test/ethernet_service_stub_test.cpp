@@ -142,6 +142,23 @@ public:
     {
         return 0;
     }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    int32_t EnableEthernetInterface() override
+    {
+        return 0;
+    }
+
+    int32_t DisableEthernetInterface() override
+    {
+        return 0;
+    }
+
+    int32_t IsEthernetEnabled(int32_t &enabled) override
+    {
+        return 0;
+    }
+#endif
 };
 } // namespace
 

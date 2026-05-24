@@ -32,9 +32,12 @@ ohos_unittest("ethernet_manager_test") {
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/ethernet/ethernet_exec.cpp",
+    "$EXT_SECURITY_PATH/datashare/net_datashare_utils_iface_mock.cpp",
     "dev_interface_state_test.cpp",
     "ethernet_client_test.cpp",
     "ethernet_configuration_test.cpp",
+    "ethernet_exec_test.cpp",
     "ethernet_lan_management_test.cpp",
     "ethernet_manager_test.cpp",
     "ethernet_mac_ip_test.cpp",
@@ -56,6 +59,8 @@ ohos_unittest("ethernet_manager_test") {
     "$EXT_SECURITY_PATH/security",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include/stub",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/ethernet",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/ethernet/context",
   ]
 
   deps = [
@@ -71,16 +76,22 @@ ohos_unittest("ethernet_manager_test") {
     "access_token:libtoken_setproc",
     "bounds_checking_function:libsec_shared",
     "cJSON:cjson",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "dhcp:dhcp_sdk",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "napi:ace_napi",
+    "netmanager_base:napi_utils",
     "netmanager_base:netsys_controller",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_service_common",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "googletest:gmock_main",
+    "netmanager_base:net_data_share",
   ]
 
   defines = [
@@ -95,6 +106,10 @@ ohos_unittest("ethernet_manager_test") {
 
   if (netmanager_ext_feature_iface_supplier_id) {
     defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
+
+  if (netmanager_ext_feature_net_firewall) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
   }
 
   if (netmanager_ext_extensible_authentication) {

@@ -38,6 +38,14 @@ void GetAllActiveIfacesCallback(napi_env env, napi_status status, void *data);
 
 void ExecGetDeviceInformation(napi_env env, void *data);
 void GetDeviceInformationCallback(napi_env env, napi_status status, void *data);
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+void ExecEnableEthernet(napi_env env, void *data);
+void EnableEthernetCallback(napi_env env, napi_status status, void *data);
+
+void ExecDisableEthernet(napi_env env, void *data);
+void DisableEthernetCallback(napi_env env, napi_status status, void *data);
+#endif
 } // namespace EthernetAsyncWork
 } // namespace NetManagerStandard
 } // namespace OHOS

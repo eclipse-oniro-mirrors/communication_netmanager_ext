@@ -250,6 +250,30 @@ public:
      */
     int32_t LogOffEthEap(int32_t netId);
 
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    /**
+     * Enable ethernet globally.
+     *
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     */
+    int32_t EnableEthernetInterface();
+
+    /**
+     * Disable ethernet globally.
+     *
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     */
+    int32_t DisableEthernetInterface();
+
+    /**
+     * Check whether ethernet is enabled globally.
+     *
+     * @param enabled Output parameter, 1 if enabled, 0 if disabled.
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     */
+    int32_t IsEthernetEnabled(int32_t &enabled);
+#endif
+
 private:
     class EthernetDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

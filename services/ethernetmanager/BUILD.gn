@@ -93,9 +93,20 @@ ohos_shared_library("ethernet_manager") {
       "src/eap_hdi_wpa_manager.cpp"
     ]
   }
- 
+
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
+  }
+
+  # Enable ethernet enable/disable feature conditionally
+  if (netmanager_ext_feature_net_firewall) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
+    external_deps += [
+      "ability_base:want",
+      "data_share:datashare_common",
+      "data_share:datashare_consumer",
+      "netmanager_base:net_data_share",
+    ]
   }
 
   external_deps += [ "hilog:libhilog" ]
@@ -179,9 +190,20 @@ ohos_static_library("ethernet_manager_static") {
       "src/eap_hdi_wpa_manager.cpp"
     ]
   }
- 
+
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
+  }
+
+  # Enable ethernet enable/disable feature conditionally
+  if (netmanager_ext_feature_net_firewall) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
+    external_deps += [
+      "ability_base:want",
+      "data_share:datashare_common",
+      "data_share:datashare_consumer",
+      "netmanager_base:net_data_share"
+    ]
   }
 
   external_deps += [ "hilog:libhilog" ]

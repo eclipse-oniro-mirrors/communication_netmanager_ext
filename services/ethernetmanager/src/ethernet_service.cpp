@@ -549,5 +549,50 @@ int32_t EthernetService::LogOffEthEap(int32_t netId)
     return NETMANAGER_SUCCESS;
 }
 
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+int32_t EthernetService::EnableEthernetInterface()
+{
+    NETMGR_EXT_LOG_I("EnableEthernetInterface");
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("EnableEthernetInterface Caller no sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        NETMGR_EXT_LOG_E("EnableEthernetInterface no js permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    return ethManagement_->EnableEthernet();
+}
+
+int32_t EthernetService::DisableEthernetInterface()
+{
+    NETMGR_EXT_LOG_I("DisableEthernetInterface");
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("DisableEthernetInterface Caller no sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        NETMGR_EXT_LOG_E("DisableEthernetInterface no js permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    return ethManagement_->DisableEthernet();
+}
+
+int32_t EthernetService::IsEthernetEnabled(int32_t &enabled)
+{
+    NETMGR_EXT_LOG_I("IsEthernetEnabled");
+    if (!NetManagerPermission::IsSystemCaller()) {
+        NETMGR_EXT_LOG_E("IsEthernetEnabled Caller no sys permission");
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        NETMGR_EXT_LOG_E("IsEthernetEnabled no js permission");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    enabled = ethManagement_->IsEthernetEnabled() ? 1 : 0;
+    return NETMANAGER_EXT_SUCCESS;
+}
+#endif
+
 } // namespace NetManagerStandard
 } // namespace OHOS

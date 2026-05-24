@@ -86,6 +86,15 @@ int32_t EthernetManagement::DevInterfaceStateCallback::OnInterfaceAdded(const st
 
     if (std::regex_search(iface, IFACE_MATCH_PATTERM)) {
         sp->DevInterfaceAdd(iface);
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+        if (!sp->IsEthernetEnabled()) {
+            NETMGR_EXT_LOG_I("Ethernet disabled, ignore interface add: %{public}s", iface.c_str());
+            if (NetsysController::GetInstance().SetInterfaceDown(iface) != ERR_NONE) {
+                NETMGR_EXT_LOG_E("Iface[%{public}s] set down fail!", iface.c_str());
+            }
+            return 0;
+        }
+#endif
         if (NetsysController::GetInstance().SetInterfaceUp(iface) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Iface[%{public}s] added set up fail!", iface.c_str());
         }
@@ -513,6 +522,43 @@ void EthernetManagement::Init()
 {
     static const unsigned int SLEEP_TIME = 4;
     std::this_thread::sleep_for(std::chrono::seconds(SLEEP_TIME));
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    InitEthernetEnabledState();
+#endif
+    RegisterCallbacks();
+    if (!InitDeviceInterfaces()) {
+        return;
+    }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    if (!ethernetEnabled_) {
+        NETMGR_EXT_LOG_I("Ethernet is disabled, setting all interfaces down");
+        DisableAllInterfaces();
+        return;
+    }
+#endif
+
+    StartDeviceUpThread();
+}
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+void EthernetManagement::InitEthernetEnabledState()
+{
+    std::string value;
+    int32_t ret = NetDataShareHelperUtilsIface::Query(ETHERNET_ENABLED_URI, KEY_ETHERNET_ENABLED, value);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        ethernetEnabled_ = (value == "1" || value == "true");
+        NETMGR_EXT_LOG_I("EthernetManagement Init: ethernet enabled state = %{public}d", ethernetEnabled_);
+    } else {
+        NETMGR_EXT_LOG_W("Failed to query settingsdata, using default enabled state");
+        ethernetEnabled_ = true;
+    }
+}
+#endif
+
+void EthernetManagement::RegisterCallbacks()
+{
     if (ethDevInterfaceStateCallback_ == nullptr) {
         ethDevInterfaceStateCallback_ =
             sptr<DevInterfaceStateCallback>::MakeSptr(std::weak_ptr<EthernetManagement>(shared_from_this()));
@@ -523,15 +569,20 @@ void EthernetManagement::Init()
         ethDhcpController_->RegisterDhcpCallback(ethDhcpNotifyCallback_);
     }
     NetsysController::GetInstance().RegisterCallback(ethDevInterfaceStateCallback_);
+}
+
+bool EthernetManagement::InitDeviceInterfaces()
+{
+    std::regex re(IFACE_MATCH);
     std::vector<std::string> ifaces = NetsysController::GetInstance().InterfaceGetList();
     if (ifaces.empty()) {
         NETMGR_EXT_LOG_E("EthernetManagement link list is empty");
-        return;
+        return false;
     }
     NETMGR_EXT_LOG_D("EthernetManagement devs size[%{public}zd]", ifaces.size());
     if (!ethConfiguration_->ReadUserConfiguration(devCfgs_)) {
-        NETMGR_EXT_LOG_E("EthernetManagement read user configurations error! ");
-        return;
+        NETMGR_EXT_LOG_E("EthernetManagement read user configurations error!");
+        return false;
     }
     for (const auto &devName : ifaces) {
         NETMGR_EXT_LOG_D("EthernetManagement devName[%{public}s]", devName.c_str());
@@ -540,6 +591,11 @@ void EthernetManagement::Init()
         }
         DevInterfaceAdd(devName);
     }
+    return true;
+}
+
+void EthernetManagement::StartDeviceUpThread()
+{
     std::weak_ptr<EthernetManagement> wp = shared_from_this();
     std::thread t([wp]() {
         auto sp = wp.lock();
@@ -783,5 +839,128 @@ int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo>
     }
     return NETMANAGER_EXT_SUCCESS;
 }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+int32_t EthernetManagement::EnableEthernet()
+{
+    NETMGR_EXT_LOG_I("EnableEthernet start");
+    {
+        std::unique_lock<std::shared_mutex> lock(mutex_);
+
+        if (ethernetEnabled_) {
+            NETMGR_EXT_LOG_W("Ethernet is already enabled");
+            return NETMANAGER_EXT_SUCCESS;
+        }
+
+        ethernetEnabled_ = true;
+    }
+
+    int32_t ret = NetDataShareHelperUtilsIface::Update(ETHERNET_ENABLED_URI, KEY_ETHERNET_ENABLED, "1");
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Failed to update settingsdata: %{public}d", ret);
+    }
+
+    EnableAllInterfaces();
+    ReinitializeNetwork();
+
+    NETMGR_EXT_LOG_I("EnableEthernet success");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetManagement::DisableEthernet()
+{
+    NETMGR_EXT_LOG_I("DisableEthernet start");
+    {
+        std::unique_lock<std::shared_mutex> lock(mutex_);
+
+        if (!ethernetEnabled_) {
+            NETMGR_EXT_LOG_W("Ethernet is already disabled");
+            return NETMANAGER_EXT_SUCCESS;
+        }
+
+        CleanupNetworkState();
+        ethernetEnabled_ = false;
+    }
+
+    int32_t ret = NetDataShareHelperUtilsIface::Update(ETHERNET_ENABLED_URI, KEY_ETHERNET_ENABLED, "0");
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Failed to update settingsdata: %{public}d", ret);
+    }
+
+    DisableAllInterfaces();
+
+    NETMGR_EXT_LOG_I("DisableEthernet success");
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+bool EthernetManagement::IsEthernetEnabled()
+{
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    return ethernetEnabled_;
+}
+
+void EthernetManagement::EnableAllInterfaces()
+{
+    NETMGR_EXT_LOG_I("EnableAllInterfaces start");
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    for (auto &[devName, devState] : devs_) {
+        (void)devState;
+        if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
+            NETMGR_EXT_LOG_E("Failed to set interface up: %{public}s", devName.c_str());
+        }
+    }
+}
+
+void EthernetManagement::DisableAllInterfaces()
+{
+    NETMGR_EXT_LOG_I("DisableAllInterfaces start");
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    for (auto &[devName, devState] : devs_) {
+        (void)devState;
+        if (NetsysController::GetInstance().SetInterfaceDown(devName) != ERR_NONE) {
+            NETMGR_EXT_LOG_E("Failed to set interface down: %{public}s", devName.c_str());
+        }
+    }
+}
+
+void EthernetManagement::ReinitializeNetwork()
+{
+    NETMGR_EXT_LOG_I("ReinitializeNetwork start");
+    std::map<std::string, sptr<DevInterfaceState>> tempDevMap;
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    tempDevMap = devs_;
+    lock.unlock();
+
+    for (auto &[devName, devState] : tempDevMap) {
+        if (devState == nullptr) {
+            continue;
+        }
+        if (IsIfaceLinkUp(devName)) {
+            UpdateInterfaceState(devName, true);
+        }
+    }
+}
+
+void EthernetManagement::CleanupNetworkState()
+{
+    NETMGR_EXT_LOG_I("CleanupNetworkState start");
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    for (auto &[devName, devState] : devs_) {
+        if (devState == nullptr) {
+            continue;
+        }
+        StopDhcpClient(devName, devState);
+        if (devState->IsLanIface()) {
+            ethLanManageMent_->ReleaseLanNetLink(devState);
+        } else {
+            devState->RemoteUpdateNetSupplierInfo();
+        }
+    }
+
+    netLinkConfigs_.clear();
+    configsV4_.clear();
+    configsV6_.clear();
+}
+#endif
 } // namespace NetManagerStandard
 } // namespace OHOS
