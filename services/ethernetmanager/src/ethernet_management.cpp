@@ -881,9 +881,10 @@ int32_t EthernetManagement::DisableEthernet()
             return NETMANAGER_EXT_SUCCESS;
         }
 
-        CleanupNetworkState();
         ethernetEnabled_ = false;
     }
+
+    CleanupNetworkState();
 
     int32_t ret = NetDataShareHelperUtilsIface::Update(ETHERNET_ENABLED_URI, KEY_ETHERNET_ENABLED, "0");
     if (ret != NETMANAGER_EXT_SUCCESS) {
