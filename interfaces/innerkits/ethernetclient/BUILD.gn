@@ -100,6 +100,9 @@ config("ethernet_service_interface_stub_config") {
   if (netmanager_ext_feature_iface_supplier_id) {
     defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
   }
+  if (netmanager_ext_feature_net_firewall) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
+  }
 }
  
 ohos_static_library("ethernet_service_interface_stub") {
