@@ -336,8 +336,8 @@ sptr<IRemoteObject> JsVpnExtension::OnConnect(const AAFwk::Want &want,
     napi_env env = jsRuntime_.GetNapiEnv();
     napi_value result = CallOnConnect(want);
     // LCOV_EXCL_START
-    if (NapiUtils::GetValueType(env, result) == napi_undefined &&
-        want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1) == UID_NET_MANAGER) {
+    if ((NapiUtils::GetValueType(env, result) == napi_undefined || NapiUtils::GetValueType(env, result) == napi_null)
+        && want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1) == UID_NET_MANAGER) {
         return static_cast<sptr<IRemoteObject>>(new IPCObjectStub());
     }
     // LCOV_EXCL_STOP
