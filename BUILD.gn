@@ -30,9 +30,13 @@ group("ethernet_packages") {
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/ethernetclient:ethernet_manager_if",
       "$NETMANAGER_EXT_ROOT/interfaces/kits/c:net_ethernet_ndk",
       "$NETMANAGER_EXT_ROOT/services/ethernetmanager:ethernet_interfaces",
-      "$NETMANAGER_EXT_ROOT/services/ethernetmanager:ethernet_manager",
       "$NETMANAGER_EXT_ROOT/utils:net_event_report",
     ]
+    if (!netmanager_ext_fpga_mode_enable) {
+      deps += [
+        "$NETMANAGER_EXT_ROOT/services/ethernetmanager:ethernet_manager",
+      ]
+    }
   }
 }
 
@@ -42,9 +46,13 @@ group("share_packages") {
     deps += [
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/sharing:sharing",
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netshareclient:net_tether_manager_if",
-      "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager",
       "$NETMANAGER_EXT_ROOT/services/networksharemanager:network_share_config",
     ]
+    if (!netmanager_ext_fpga_mode_enable) {
+      deps += [
+        "$NETMANAGER_EXT_ROOT/services/networksharemanager:net_tether_manager",
+      ]
+    }
   }
 }
 
@@ -65,8 +73,12 @@ group("netfirewall_packages") {
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall:netfirewall",
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netfirewallclient:netfirewall_manager_if",
       "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_default_rule",
-      "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_manager",
     ]
+    if (!netmanager_ext_fpga_mode_enable) {
+      deps += [
+        "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_manager",
+      ]
+    }
   }
 }
 
@@ -75,8 +87,12 @@ group("vpn_packages") {
     deps = [
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn:vpn",
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
-      "$NETMANAGER_EXT_ROOT/services/vpnmanager:net_vpn_manager",
     ]
+    if (!netmanager_ext_fpga_mode_enable) {
+      deps += [
+        "$NETMANAGER_EXT_ROOT/services/vpnmanager:net_vpn_manager",
+      ]
+    }
   }
 }
 
@@ -98,8 +114,12 @@ group("wearable_distributed_net_packages") {
     deps = [
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/wearabledistributednetclient:wearable_distributed_net_manager_if",
       "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager:wearable_distributed_net_link_info",
-      "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager:wearable_distributed_net_manager",
     ]
+    if (!netmanager_ext_fpga_mode_enable) {
+      deps += [
+        "$NETMANAGER_EXT_ROOT/services/wearabledistributednetmanager:wearable_distributed_net_manager",
+      ]
+    }
   }
 }
 
@@ -107,7 +127,11 @@ group("networkslice_packages") {
   if (netmanager_ext_feature_networkslice) {
     deps = [
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/networksliceclient:networkslice_manager_if",
-      "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager",
     ]
+    if (!netmanager_ext_fpga_mode_enable) {
+      deps += [
+        "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager",
+      ]
+    }
   }
 }
