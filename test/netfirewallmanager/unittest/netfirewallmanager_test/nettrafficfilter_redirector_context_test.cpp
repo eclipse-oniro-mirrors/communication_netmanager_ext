@@ -30,6 +30,14 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
+const uint16_t RULE_PORT = 8080;
+const uint32_t TEST_NFQUEUE_LEN = 1024;
+const uint32_t TEST_UID = 1000;
+const uint32_t TEST_UID_END = 2000;
+const int32_t ADDR_BIT1 = 1;
+const int32_t ADDR_BIT2 = 2;
+const int32_t ADDR_BIT3 = 3;
+const uint8_t ADDR1 = 127;
 
 TrafficFilterRedirectRule CreateTestRule(uint32_t priority, TrafficFilterHookPoint hookPoint,
     uint8_t protocol = 6)
@@ -38,14 +46,14 @@ TrafficFilterRedirectRule CreateTestRule(uint32_t priority, TrafficFilterHookPoi
     rule.priority_ = priority;
     rule.hookPoint_ = static_cast<int32_t>(hookPoint);
     rule.protocol_ = protocol;
-    rule.uidStart_ = 1000;
-    rule.uidEnd_ = 2000;
+    rule.uidStart_ = TEST_UID;
+    rule.uidEnd_ = TEST_UID_END;
     rule.proxyIp_.family_ = static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4);
-    rule.proxyIp_.addr_[0] = 127;
-    rule.proxyIp_.addr_[1] = 0;
-    rule.proxyIp_.addr_[2] = 0;
-    rule.proxyIp_.addr_[3] = 1;
-    rule.proxyPort_ = 8080;
+    rule.proxyIp_.addr_[0] = ADDR1;
+    rule.proxyIp_.addr_[ADDR_BIT1] = 0;
+    rule.proxyIp_.addr_[ADDR_BIT2] = 0;
+    rule.proxyIp_.addr_[ADDR_BIT3] = 1;
+    rule.proxyPort_ = RULE_PORT;
     return rule;
 }
 
@@ -53,7 +61,7 @@ NetTrafficFilterConfig CreateTestConfig()
 {
     NetTrafficFilterConfig config;
     config.packetCopyLen = 0xFFFF;
-    config.nfqueueMaxlen = 1024;
+    config.nfqueueMaxlen = TEST_NFQUEUE_LEN;
     config.nfqueueFlags = 0;
     return config;
 }

@@ -34,18 +34,25 @@ using namespace testing::ext;
 constexpr uint32_t TEST_GROUP_ID = 1001;
 constexpr uint32_t TEST_PRIORITY = 100;
 constexpr uint32_t TEST_UID = 1000;
+constexpr uint32_t TEST_UID_END = 1050;
 constexpr int32_t TEST_PID = 1000;
 constexpr uint16_t TEST_PROXY_PORT = 8080;
 constexpr uint32_t INVALID_GROUP_ID = 0;
 constexpr uint32_t INVALID_PRIORITY_LOW = 0;
 constexpr uint32_t INVALID_PRIORITY_HIGH = 10001;
+constexpr uint32_t TEST_PACKET_LEN = 65535;
+constexpr uint32_t TEST_NFQUEUE_LEN = 1024;
+constexpr int32_t ADDR_BIT1 = 1;
+constexpr int32_t ADDR_BIT2 = 2;
+constexpr int32_t ADDR_BIT3 = 3;
+constexpr uint8_t ADDR1 = 127;
 
 TrafficFilterRedirectRule CreateTestRule(uint32_t priority = TEST_PRIORITY)
 {
     TrafficFilterRedirectRule rule;
     rule.priority_ = priority;
     rule.hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING);
-    rule.protocol_ = 6; // TCP
+    rule.protocol_ = NETTRAFFICFILTER_PROTO_TCP;
 
     rule.srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
     rule.dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
@@ -56,10 +63,10 @@ TrafficFilterRedirectRule CreateTestRule(uint32_t priority = TEST_PRIORITY)
     rule.uidEnd_ = static_cast<uint32_t>(-1);
 
     rule.proxyIp_.family_ = static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4);
-    rule.proxyIp_.addr_[0] = 127;
-    rule.proxyIp_.addr_[1] = 0;
-    rule.proxyIp_.addr_[2] = 0;
-    rule.proxyIp_.addr_[3] = 1;
+    rule.proxyIp_.addr_[0] = ADDR1;
+    rule.proxyIp_.addr_[ADDR_BIT1] = 0;
+    rule.proxyIp_.addr_[ADDR_BIT2] = 0;
+    rule.proxyIp_.addr_[ADDR_BIT3] = 1;
     rule.proxyPort_ = TEST_PROXY_PORT;
 
     return rule;
@@ -69,16 +76,16 @@ TrafficFilterRedirectRule CreateTestRuleWithUidMatch(uint32_t priority = TEST_PR
 {
     TrafficFilterRedirectRule rule = CreateTestRule(priority);
     rule.hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_OUTPUT);
-    rule.uidStart_ = 1000;
-    rule.uidEnd_ = 1050;
+    rule.uidStart_ = TEST_UID;
+    rule.uidEnd_ = TEST_UID_END;
     return rule;
 }
 
 NetTrafficFilterConfig CreateTestConfig()
 {
     NetTrafficFilterConfig config;
-    config.packetCopyLen = 65535;
-    config.nfqueueMaxlen = 1024;
+    config.packetCopyLen = TEST_PACKET_LEN;
+    config.nfqueueMaxlen = TEST_NFQUEUE_LEN;
     config.nfqueueFlags = 1;
     return config;
 }

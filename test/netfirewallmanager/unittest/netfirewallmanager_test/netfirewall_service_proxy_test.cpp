@@ -50,6 +50,9 @@ const uint16_t LOCAL_START_PORT = 10020;
 const uint16_t LOCAL_END_PORT = 1003;
 const uint16_t REMOTE_START_PORT = 1002;
 const uint16_t REMOTE_END_PORT = 10030;
+const uint16_t RULE_PORT = 8080;
+const uint32_t TEST_UID = 10042;
+const uint32_t TEST_PID = 12345;
 
 sptr<NetFirewallRule> GetNetFirewallRuleSptr()
 {
@@ -140,7 +143,7 @@ sptr<TrafficFilterRedirectRule> GetTrafficFilterRedirectRuleSptr()
     sptr<TrafficFilterRedirectRule> rule = (std::make_unique<TrafficFilterRedirectRule>()).release();
     rule->priority_ = 100;
     rule->hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING);
-    rule->protocol_ = 6; // TCP
+    rule->protocol_ = NETTRAFFICFILTER_PROTO_TCP;
 
     rule->srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
     rule->dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE);
@@ -150,12 +153,12 @@ sptr<TrafficFilterRedirectRule> GetTrafficFilterRedirectRuleSptr()
     rule->dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE);
     rule->dstPort_.single_ = 443;
 
-    rule->uidStart_ = 10042;
-    rule->uidEnd_ = 10042;
+    rule->uidStart_ = TEST_UID;
+    rule->uidEnd_ = TEST_UID;
 
     rule->proxyIp_.family_ = static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4);
     inet_pton(AF_INET, "127.0.0.1", rule->proxyIp_.addr_);
-    rule->proxyPort_ = 8080;
+    rule->proxyPort_ = RULE_PORT;
 
     return rule;
 }
@@ -230,8 +233,8 @@ public:
                 reply.WriteBool(true);
                 break;
             case static_cast<uint32_t>(INetFirewallService::QUERY_PROCESS):
-                reply.WriteUint32(10042);
-                reply.WriteUint32(12345);
+                reply.WriteUint32(TEST_UID);
+                reply.WriteUint32(TEST_PID);
                 break;
             default:
                 reply.WriteInt32(1);
@@ -462,8 +465,8 @@ HWTEST_F(NetFirewallServiceProxyTest, QueryProcess001, TestSize.Level1)
     uint32_t pid = 0;
     auto ret = instance_->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
-    EXPECT_EQ(uid, 10042);
-    EXPECT_EQ(pid, 12345);
+    EXPECT_EQ(uid, TEST_UID);
+    EXPECT_EQ(pid, TEST_PID);
 }
 
 HWTEST_F(NetFirewallServiceProxyTest, QueryProcess002, TestSize.Level1)
@@ -478,8 +481,8 @@ HWTEST_F(NetFirewallServiceProxyTest, QueryProcess002, TestSize.Level1)
     uint32_t pid = 0;
     auto ret = instance_->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
-    EXPECT_EQ(uid, 10042);
-    EXPECT_EQ(pid, 12345);
+    EXPECT_EQ(uid, TEST_UID);
+    EXPECT_EQ(pid, TEST_PID);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
