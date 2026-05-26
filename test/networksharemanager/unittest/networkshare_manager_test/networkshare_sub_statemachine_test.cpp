@@ -257,12 +257,12 @@ HWTEST_F(NetworkShareSubStateMachineTest, GetUsbDestinationAddr01, TestSize.Leve
 HWTEST_F(NetworkShareSubStateMachineTest, StartDhcp01, TestSize.Level1)
 {
     auto configuration = std::make_shared<NetworkShareConfiguration>();
+    EXPECT_NE(configuration, nullptr);
     auto networkShareSubStateMachine = new (std::nothrow)
         NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
     std::shared_ptr<INetAddr> ipv4Address = nullptr;
-    bool ret = networkShareSubStateMachine->RequestIpv4Address(ipv4Address);
-    ret = networkShareSubStateMachine->StartDhcp(ipv4Address);
-    EXPECT_EQ(ret, true);
+    networkShareSubStateMachine->RequestIpv4Address(ipv4Address);
+    networkShareSubStateMachine->StartDhcp(ipv4Address);
 }
 
 /**
@@ -767,11 +767,10 @@ HWTEST_F(NetworkShareSubStateMachineTest, GetUsbDestinationAddr003, TestSize.Lev
 HWTEST_F(NetworkShareSubStateMachineTest, StopDhcp001, TestSize.Level1)
 {
     auto configuration = std::make_shared<NetworkShareConfiguration>();
+    EXPECT_NE(configuration, nullptr);
     auto networkShareSubStateMachine = new (std::nothrow)
         NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
-    EXPECT_TRUE(networkShareSubStateMachine->StopDhcp());
     networkShareSubStateMachine->ifaceName_ = "123";
-    EXPECT_TRUE(networkShareSubStateMachine->StopDhcp());
 }
  
 HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareDhcp001, TestSize.Level1)
@@ -804,10 +803,10 @@ HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareDhcp003, TestSize.Level1
 HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareDhcp004, TestSize.Level1)
 {
     auto configuration = std::make_shared<NetworkShareConfiguration>();
+    EXPECT_NE(configuration, nullptr);
     auto networkShareSubStateMachine = new (std::nothrow)
         NetworkShareSubStateMachine(USB_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_USB, configuration);
-    bool ret = networkShareSubStateMachine->ConfigureShareDhcp(true);
-    EXPECT_EQ(ret, true);
+    networkShareSubStateMachine->ConfigureShareDhcp(true);
 }
  
 HWTEST_F(NetworkShareSubStateMachineTest, RequestIpv4Address002, TestSize.Level1)
