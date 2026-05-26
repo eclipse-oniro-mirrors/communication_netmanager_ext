@@ -23,6 +23,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 const std::string DNAT_TARGET = "DNAT";
 constexpr uint32_t UID_UNSPEC = static_cast<uint32_t>(-1);
+constexpr uint32_t PORT_MAX = 65535;
 
 void NetTrafficFilterIptablesCommandBuilder::AppendMatchConditions(
     std::ostringstream& cmd, const TrafficFilterRedirectRule& rule)
@@ -232,7 +233,7 @@ std::string NetTrafficFilterIptablesCommandBuilder::FormatPortMatch(
             break;
         }
         case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_RANGE): {
-            if (!portMatch.invert_ && portMatch.range_.startPort_ == 0 && portMatch.range_.endPort_ == 65535) {
+            if (!portMatch.invert_ && portMatch.range_.startPort_ == 0 && portMatch.range_.endPort_ == PORT_MAX) {
                 return "";
             }
             oss << " -m tcp ";

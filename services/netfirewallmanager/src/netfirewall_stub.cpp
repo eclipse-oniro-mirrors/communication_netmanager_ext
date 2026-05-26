@@ -470,9 +470,7 @@ int32_t NetFirewallStub::OnQueryProcess(MessageParcel &data, MessageParcel &repl
     uint8_t protocol = data.ReadUint8();
     uint32_t uid = 0;
     uint32_t pid = 0;
-
     int32_t ret = QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
-
     if (ret == TRAFFICFILTER_OK) {
         if (!reply.WriteUint32(uid)) {
             NETMGR_EXT_LOG_E("WriteUint32 uid failed");

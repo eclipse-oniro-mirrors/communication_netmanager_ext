@@ -215,7 +215,7 @@ struct TrafficFilterIPMatch final : public Parcelable {
 
     bool IsValidType() const
     {
-        return type_ >= 0 && type_ <= 4;
+        return type_ >= 0 && type_ <= static_cast<int32_t>(IP_MATCH_MULTI);
     }
 
     std::string GetErrorInfo() const
@@ -255,7 +255,7 @@ struct TrafficFilterPortMatch final : public Parcelable {
 
     bool IsValidType() const
     {
-        return type_ >= 0 && type_ <= 3;
+        return type_ >= 0 && type_ <= static_cast<int32_t>(PORT_MATCH_MULTI);
     }
 
     std::string GetErrorInfo() const

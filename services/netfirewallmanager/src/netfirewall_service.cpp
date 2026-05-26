@@ -495,10 +495,8 @@ int32_t NetFirewallService::CreateRedirector(uint32_t groupId, uint32_t priority
     nativeConfig.packetCopyLen = config->packetCopyLen;
     nativeConfig.nfqueueMaxlen = config->nfqueueMaxlen;
     nativeConfig.nfqueueFlags = config->nfqueueFlags;
-
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().CreateRedirector(
         bundleName, groupId, priority, &nativeConfig, redirectorId);
-
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("CreateRedirector failed, ret: %{public}d", ret);
     } else {
@@ -511,7 +509,6 @@ int32_t NetFirewallService::DestroyRedirector(const std::string& redirectorId)
 {
     NETMGR_EXT_LOG_I("DestroyRedirector: redirectorId=%{public}s", redirectorId.c_str());
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().DestroyRedirector(redirectorId);
-
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("DestroyRedirector failed, ret: %{public}d", ret);
     } else {
@@ -534,7 +531,6 @@ int32_t NetFirewallService::AddRedirectRule(const std::string& redirectorId,
     }
     TrafficFilterRedirectRule nativeRule = *rule;
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().AddRedirectRule(redirectorId, &nativeRule);
-
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("AddRedirectRule failed, ret: %{public}d", ret);
     } else {
@@ -546,9 +542,7 @@ int32_t NetFirewallService::AddRedirectRule(const std::string& redirectorId,
 int32_t NetFirewallService::ClearRedirectRule(const std::string& redirectorId)
 {
     NETMGR_EXT_LOG_I("ClearRedirectRule: redirectorId=%{public}s", redirectorId.c_str());
-
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().ClearRedirectRule(redirectorId);
-
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("ClearRedirectRule failed, ret: %{public}d", ret);
     } else {
@@ -561,7 +555,6 @@ int32_t NetFirewallService::GlobalEnableTrafficFilter()
 {
     NETMGR_EXT_LOG_I("GlobalEnableTrafficFilter");
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GlobalEnableTrafficFilter();
-
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter failed, ret: %{public}d", ret);
     } else {
@@ -574,7 +567,6 @@ int32_t NetFirewallService::GlobalDisableTrafficFilter()
 {
     NETMGR_EXT_LOG_I("GlobalDisableTrafficFilter");
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GlobalDisableTrafficFilter();
-
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("GlobalDisableTrafficFilter failed, ret: %{public}d", ret);
     } else {
@@ -587,7 +579,6 @@ int32_t NetFirewallService::GetTrafficFilterGlobalStatus(bool& isEnabled)
 {
     NETMGR_EXT_LOG_I("GetTrafficFilterGlobalStatus");
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GetTrafficFilterGlobalStatus(isEnabled);
-
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("GetTrafficFilterGlobalStatus failed, ret: %{public}d", ret);
     } else {
@@ -617,7 +608,6 @@ std::string NetFirewallService::GetBundleName()
         NETMGR_EXT_LOG_E("Get ability manager failed");
         return bundleName;
     }
-
     sptr<IRemoteObject> object = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
     if (object == nullptr) {
         NETMGR_EXT_LOG_E("object is NULL.");
@@ -628,7 +618,6 @@ std::string NetFirewallService::GetBundleName()
         NETMGR_EXT_LOG_E("bundle manager service is NULL.");
         return bundleName;
     }
-
     int32_t uid = IPCSkeleton::GetCallingUid();
     auto result = bms->GetNameForUid(uid, bundleName);
     if (result != NETMANAGER_EXT_SUCCESS) {
@@ -636,7 +625,6 @@ std::string NetFirewallService::GetBundleName()
         return bundleName;
     }
     NETMGR_EXT_LOG_I("bundle name is [%{public}s], uid = [%{public}d]", bundleName.c_str(), uid);
-
     return bundleName;
 }
 } // namespace NetManagerStandard

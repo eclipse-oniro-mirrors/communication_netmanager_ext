@@ -213,7 +213,7 @@ static bool ValidatePortMatchFields(const OH_TrafficFilter_RedirectRule* rule)
         if (rule->src_port.value.multi.portCount == 0 ||
             rule->src_port.value.multi.portCount > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
             NETMGR_EXT_LOG_E("Invalid src_port multi portCount: %{public}u (valid: 1-%{public}u)",
-               rule->src_port.value.multi.portCount, NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT);
+                rule->src_port.value.multi.portCount, NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT);
             return false;
         }
     }
@@ -348,17 +348,14 @@ int32_t RedirectorAdapterManager::CreateRedirector(uint32_t group_id, uint32_t p
     cppConfig->nfqueueFlags = config->nfqueue_flags;
     int32_t ret = NetFirewallClient::GetInstance().CreateRedirector(
         group_id, priority, cppConfig, redirectorId);
-
     if (ret != 0) {
         NETMGR_EXT_LOG_E("CreateRedirector: NetFirewallClient::CreateRedirector failed, ret=%{public}d", ret);
         return ret;
     }
-
     if (redirectorId.empty()) {
         NETMGR_EXT_LOG_E("CreateRedirector: redirectorId is empty after creation");
         return OH_TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
     }
-
     return AddRedirector(redirectorId, redirector);
 }
 
@@ -425,7 +422,6 @@ int32_t RedirectorAdapterManager::AddRedirectRule(
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
     int32_t ret = NetFirewallClient::GetInstance().AddRedirectRule(redirectorId, cppRule);
-
     if (ret != 0) {
         NETMGR_EXT_LOG_E("AddRedirectRule: NetFirewallClient::AddRedirectRule failed, ret=%{public}d", ret);
         return static_cast<int32_t>(ret);
@@ -481,12 +477,10 @@ int32_t RedirectorAdapterManager::QueryProcess(
 
     int32_t ret = NetFirewallClient::GetInstance().QueryProcess(
         srcIp, src_port, dstIp, dst_port, protocol, uid, pid);
-
     if (ret != OH_TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("QueryProcess: QueryProcess failed, ret=%{public}d", ret);
         return ret;
     }
-
     process_info->pid = pid;
     process_info->uid = uid;
     return OH_TRAFFICFILTER_OK;

@@ -28,6 +28,12 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr int32_t IPV6_PREFIX_MAX = 128;
+constexpr int32_t IPV4_PREFIX_MAX = 32;
+constexpr int32_t BUNDLE_LEN_MAX = 255;
+constexpr int32_t REDIRECTOR_ID_START = 1000;
+constexpr uint32_t NFQUEUE_LEN_MAX = 65535;
+
 static bool ValidateIPMatchType(int32_t type)
 {
     return type >= static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY) &&
@@ -48,9 +54,9 @@ static bool IsValidIPFamilyValue(int32_t family)
 static uint8_t GetMaxPrefixLenByFamily(int32_t family)
 {
     if (family == static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V6)) {
-        return 128;
+        return IPV6_PREFIX_MAX;
     }
-    return 32;
+    return IPV4_PREFIX_MAX;
 }
 
 void NetTrafficFilterRedirectManager::SortRedirectorList()
@@ -381,7 +387,7 @@ bool NetTrafficFilterRedirectManager::ValidateCreateRedirectorParams(
     if (bundleName.empty()) {
         return false;
     }
-    if (bundleName.length() > 255) {
+    if (bundleName.length() > BUNDLE_LEN_MAX) {
         return false;
     }
 
@@ -408,7 +414,7 @@ bool NetTrafficFilterRedirectManager::ValidateCreateRedirectorParams(
     }
 
     if (config->nfqueueMaxlen != 0) {
-        if (config->nfqueueMaxlen < 1 || config->nfqueueMaxlen > 65535) {
+        if (config->nfqueueMaxlen < 1 || config->nfqueueMaxlen > NFQUEUE_LEN_MAX) {
             return false;
         }
     }
@@ -442,7 +448,7 @@ NetTrafficFilterRedirectManager& NetTrafficFilterRedirectManager::GetInstance()
 }
 
 NetTrafficFilterRedirectManager::NetTrafficFilterRedirectManager()
-    : redirectorIdCounter_(1000)
+    : redirectorIdCounter_(REDIRECTOR_ID_START)
 {}
 
 NetTrafficFilterRedirectManager::~NetTrafficFilterRedirectManager() {}
@@ -1166,13 +1172,11 @@ int32_t NetTrafficFilterRedirectManager::ExecuteIptablesCommand(
     }
     int32_t ret = NetsysController::GetInstance().SetIptablesCommandForRes(
         command, respond, ipType);
-
     if (ret != 0) {
         NETMGR_EXT_LOG_E("Failed to execute iptables command: %{private}s, error: %{public}s",
             command.c_str(), respond.c_str());
         return -1;
     }
-
     NETMGR_EXT_LOG_I("Executed iptables command: %{private}s", command.c_str());
     return TRAFFICFILTER_OK;
 }
@@ -1376,12 +1380,10 @@ int32_t NetTrafficFilterRedirectManager::QueryProcess(const std::string& srcIp, 
 {
     NetPortStatesInfo netPortStatesInfo;
     int32_t ret = NetsysController::GetInstance().GetSystemNetPortStates(netPortStatesInfo);
-
     if (ret != 0) {
         NETMGR_EXT_LOG_E("QueryProcess: GetSystemNetPortStates failed, ret=%{public}d", ret);
         return ret;
     }
-
     if (protocol == NETTRAFFICFILTER_PROTO_TCP) {
         for (const auto& tcpInfo : netPortStatesInfo.tcpNetPortStatesInfo_) {
             if (MatchTcpConnection(tcpInfo, srcIp, srcPort, dstIp, dstPort)) {
@@ -1401,7 +1403,6 @@ int32_t NetTrafficFilterRedirectManager::QueryProcess(const std::string& srcIp, 
             }
         }
     }
-
     NETMGR_EXT_LOG_E("QueryProcess: no matching process found");
     return TRAFFICFILTER_ERROR_NOT_FOUND;
 }

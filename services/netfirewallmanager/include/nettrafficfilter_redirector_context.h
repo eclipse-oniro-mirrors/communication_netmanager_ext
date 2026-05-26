@@ -49,7 +49,8 @@ public:
     void SetPaused(bool paused) { isPaused_ = paused; }
     int32_t GetCallingUid() const { return callingUid_; }
     int32_t GetCallingPid() const { return callingPid_; }
-    void SetCallingInfo(int32_t uid, int32_t pid) {
+    void SetCallingInfo(int32_t uid, int32_t pid)
+    {
         callingUid_ = uid;
         callingPid_ = pid;
     }

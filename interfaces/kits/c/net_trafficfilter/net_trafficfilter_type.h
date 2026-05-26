@@ -252,7 +252,6 @@ typedef enum OH_TrafficFilter_IPMatchType {
      * @since 26.0.0
      */
     OH_TRAFFICFILTER_IP_MATCH_MULTI
-
 } OH_TrafficFilter_IPMatchType;
 
 /**
