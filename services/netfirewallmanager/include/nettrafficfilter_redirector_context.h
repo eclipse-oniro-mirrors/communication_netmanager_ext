@@ -29,7 +29,7 @@ namespace NetManagerStandard {
 class NetTrafficFilterRedirectorContext {
 public:
     NetTrafficFilterRedirectorContext(const std::string& redirectorId, const std::string& bundleName,
-        uint32_t groupId, uint32_t priority, const NetTrafficFilterConfig* config);
+        uint32_t groupId, uint32_t priority);
     ~NetTrafficFilterRedirectorContext();
 
     int32_t AddRuleWithPriority(const TrafficFilterRedirectRule& rule);
@@ -44,7 +44,6 @@ public:
     std::string GetBundleName() const { return bundleName_; }
     uint32_t GetGroupId() const { return groupId_; }
     uint32_t GetPriority() const { return priority_; }
-    NetTrafficFilterConfig GetConfig() const { return config_; }
     bool IsPaused() const { return isPaused_; }
     void SetPaused(bool paused) { isPaused_ = paused; }
     int32_t GetCallingUid() const { return callingUid_; }
@@ -60,7 +59,6 @@ private:
     std::string bundleName_;
     uint32_t groupId_;
     uint32_t priority_;
-    NetTrafficFilterConfig config_;
     std::vector<TrafficFilterRedirectRule> rules_;
     mutable std::mutex mutex_;
     bool isPaused_;

@@ -243,39 +243,6 @@ sptr<InterceptRecordPage> InterceptRecordPage::Unmarshalling(Parcel &parcel)
 }
 
 // Traffic redirect related structures
-bool NetTrafficFilterConfig::Marshalling(Parcel &parcel) const
-{
-    if (!parcel.WriteUint32(packetCopyLen)) {
-        return false;
-    }
-    if (!parcel.WriteUint32(nfqueueMaxlen)) {
-        return false;
-    }
-    if (!parcel.WriteUint32(nfqueueFlags)) {
-        return false;
-    }
-    return true;
-}
-
-sptr<NetTrafficFilterConfig> NetTrafficFilterConfig::Unmarshalling(Parcel &parcel)
-{
-    sptr<NetTrafficFilterConfig> ptr = new (std::nothrow) NetTrafficFilterConfig();
-    if (ptr == nullptr) {
-        NETMGR_EXT_LOG_E("NetTrafficFilterConfig ptr is null");
-        return nullptr;
-    }
-    if (!parcel.ReadUint32(ptr->packetCopyLen)) {
-        return nullptr;
-    }
-    if (!parcel.ReadUint32(ptr->nfqueueMaxlen)) {
-        return nullptr;
-    }
-    if (!parcel.ReadUint32(ptr->nfqueueFlags)) {
-        return nullptr;
-    }
-    return ptr;
-}
-
 bool TrafficFilterIPAddress::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteInt32(family_)) {

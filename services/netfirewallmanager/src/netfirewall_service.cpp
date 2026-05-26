@@ -481,22 +481,14 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
 }
 
 int32_t NetFirewallService::CreateRedirector(uint32_t groupId, uint32_t priority,
-    const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId)
+    std::string& redirectorId)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("CreateRedirector:config is null");
-        return TRAFFICFILTER_ERROR_INVALID_PARAM;
-    }
     std::string bundleName = GetBundleName();
     NETMGR_EXT_LOG_I("CreateRedirector:groupId=%{public}u, priority=%{public}u, bundleName=%{public}s",
         groupId, priority, bundleName.c_str());
 
-    NetTrafficFilterConfig nativeConfig;
-    nativeConfig.packetCopyLen = config->packetCopyLen;
-    nativeConfig.nfqueueMaxlen = config->nfqueueMaxlen;
-    nativeConfig.nfqueueFlags = config->nfqueueFlags;
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().CreateRedirector(
-        bundleName, groupId, priority, &nativeConfig, redirectorId);
+        bundleName, groupId, priority, redirectorId);
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("CreateRedirector failed, ret: %{public}d", ret);
     } else {

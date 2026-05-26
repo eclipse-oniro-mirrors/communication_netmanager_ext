@@ -321,7 +321,7 @@ RedirectorAdapterManager& RedirectorAdapterManager::GetInstance()
 }
 
 int32_t RedirectorAdapterManager::CreateRedirector(uint32_t group_id, uint32_t priority,
-    const OH_TrafficFilter_Config* config, OH_TrafficFilter_Redirector** redirector)
+    OH_TrafficFilter_Redirector** redirector)
 {
     if (priority < OH_TRAFFICFILTER_MIN_PRIORITY || priority > OH_TRAFFICFILTER_MAX_PRIORITY) {
         NETMGR_EXT_LOG_E("CreateRedirector: invalid priority %{public}u", priority);
@@ -336,18 +336,8 @@ int32_t RedirectorAdapterManager::CreateRedirector(uint32_t group_id, uint32_t p
     NETMGR_EXT_LOG_I("CreateRedirector: group_id=%{public}u, priority=%{public}u", group_id, priority);
 
     std::string redirectorId = "";
-
-    OHOS::sptr<NetTrafficFilterConfig> cppConfig = new (std::nothrow) NetTrafficFilterConfig();
-    if (cppConfig == nullptr) {
-        NETMGR_EXT_LOG_E("CreateRedirector: failed to create NetTrafficFilterConfig");
-        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
-    }
-
-    cppConfig->packetCopyLen = config->packet_copy_len;
-    cppConfig->nfqueueMaxlen = config->nfqueue_maxlen;
-    cppConfig->nfqueueFlags = config->nfqueue_flags;
     int32_t ret = NetFirewallClient::GetInstance().CreateRedirector(
-        group_id, priority, cppConfig, redirectorId);
+        group_id, priority, redirectorId);
     if (ret != 0) {
         NETMGR_EXT_LOG_E("CreateRedirector: NetFirewallClient::CreateRedirector failed, ret=%{public}d", ret);
         return ret;

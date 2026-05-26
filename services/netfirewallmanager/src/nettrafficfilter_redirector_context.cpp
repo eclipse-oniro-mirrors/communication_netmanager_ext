@@ -44,13 +44,11 @@ NetTrafficFilterRedirectorContext::NetTrafficFilterRedirectorContext(
     const std::string& redirectorId,
     const std::string& bundleName,
     uint32_t groupId,
-    uint32_t priority,
-    const NetTrafficFilterConfig* config)
+    uint32_t priority)
     : redirectorId_(redirectorId),
       bundleName_(bundleName),
       groupId_(groupId),
       priority_(priority),
-      config_(*config),
       isPaused_(false),
       callingUid_(-1),
       callingPid_(-1)

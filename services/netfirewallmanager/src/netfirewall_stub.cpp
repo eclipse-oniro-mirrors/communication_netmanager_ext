@@ -382,14 +382,8 @@ int32_t NetFirewallStub::OnCreateRedirector(MessageParcel &data, MessageParcel &
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    sptr<NetTrafficFilterConfig> config = NetTrafficFilterConfig::Unmarshalling(data);
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("Config unmarshalling failed");
-        return FIREWALL_ERR_INTERNAL;
-    }
-
     std::string redirectorId;
-    int32_t ret = CreateRedirector(groupId, priority, config, redirectorId);
+    int32_t ret = CreateRedirector(groupId, priority, redirectorId);
     if (ret == FIREWALL_SUCCESS) {
         if (!reply.WriteString(redirectorId)) {
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;

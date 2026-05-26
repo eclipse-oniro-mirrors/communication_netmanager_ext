@@ -161,10 +161,6 @@ void CreateRedirectorTest(const uint8_t *data, size_t size)
     }
     uint32_t groupId = GetData<uint32_t>();
     uint32_t priority = GetData<uint32_t>();
-    auto config = std::make_unique<NetTrafficFilterConfig>();
-    if (!config->Marshalling(parcel)) {
-        return;
-    }
     parcel.WriteUint32(groupId);
     parcel.WriteUint32(priority);
     OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::CREATE_REDIRECTOR), parcel);

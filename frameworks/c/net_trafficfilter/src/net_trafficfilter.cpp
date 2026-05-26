@@ -20,13 +20,9 @@
 using namespace OHOS::NetManagerStandard;
 
 int32_t OH_TrafficFilter_CreateRedirector(uint32_t group_id, uint32_t priority,
-    const OH_TrafficFilter_Config* config, OH_TrafficFilter_Redirector** redirector)
+    OH_TrafficFilter_Redirector** redirector)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("CreateRedirector: config parameter is NULL");
-        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
-    }
-    return RedirectorAdapterManager::GetInstance().CreateRedirector(group_id, priority, config, redirector);
+    return RedirectorAdapterManager::GetInstance().CreateRedirector(group_id, priority, redirector);
 }
 
 void OH_TrafficFilter_DestroyRedirector(OH_TrafficFilter_Redirector* redirector)

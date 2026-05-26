@@ -56,15 +56,6 @@ TrafficFilterRedirectRule CreateTestRule(uint32_t priority, TrafficFilterHookPoi
     rule.proxyPort_ = RULE_PORT;
     return rule;
 }
-
-NetTrafficFilterConfig CreateTestConfig()
-{
-    NetTrafficFilterConfig config;
-    config.packetCopyLen = 0xFFFF;
-    config.nfqueueMaxlen = TEST_NFQUEUE_LEN;
-    config.nfqueueFlags = 0;
-    return config;
-}
 }
 
 class NetTrafficFilterRedirectorContextTest : public testing::Test {
@@ -81,9 +72,8 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, Constructor001, TestSize.Level1)
     std::string bundleName = "com.example.test";
     uint32_t groupId = 1001;
     uint32_t priority = 100;
-    NetTrafficFilterConfig config = CreateTestConfig();
 
-    NetTrafficFilterRedirectorContext context(redirectorId, bundleName, groupId, priority, &config);
+    NetTrafficFilterRedirectorContext context(redirectorId, bundleName, groupId, priority);
 
     EXPECT_EQ(context.GetRedirectorId(), redirectorId);
     EXPECT_EQ(context.GetBundleName(), bundleName);
@@ -96,16 +86,14 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, Constructor001, TestSize.Level1)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, HasRules001, TestSize.Level0)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     EXPECT_FALSE(context.HasRules());
 }
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, HasRules002, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
     context.AddRuleWithPriority(rule);
@@ -115,8 +103,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, HasRules002, TestSize.Level1)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, HasRules003, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(200, TrafficFilterHookPoint::HOOK_OUTPUT);
@@ -132,8 +119,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, HasRules003, TestSize.Level1)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetUsedHookPoints001, TestSize.Level0)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     std::set<TrafficFilterHookPoint> usedHookPoints = context.GetUsedHookPoints();
 
@@ -142,8 +128,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetUsedHookPoints001, TestSize.L
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetUsedHookPoints002, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
     context.AddRuleWithPriority(rule1);
@@ -156,8 +141,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetUsedHookPoints002, TestSize.L
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetUsedHookPoints003, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(200, TrafficFilterHookPoint::HOOK_PREROUTING);
@@ -175,8 +159,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetUsedHookPoints003, TestSize.L
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority001, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
 
@@ -187,8 +170,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority001, TestSize
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority002, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(200, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
@@ -208,8 +190,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority002, TestSize
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority003, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     for (int i = 10; i > 0; i--) {
         TrafficFilterRedirectRule rule = CreateTestRule(i * 10, TrafficFilterHookPoint::HOOK_PREROUTING);
@@ -226,8 +207,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority003, TestSize
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority004, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING, 6);
     TrafficFilterRedirectRule rule2 = CreateTestRule(200, TrafficFilterHookPoint::HOOK_OUTPUT, 17);
@@ -247,8 +227,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, AddRuleWithPriority004, TestSize
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules001, TestSize.Level0)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     int32_t ret = context.ClearRules();
 
@@ -258,8 +237,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules001, TestSize.Level0)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules002, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(200, TrafficFilterHookPoint::HOOK_OUTPUT);
@@ -277,8 +255,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules002, TestSize.Level1)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules003, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     for (int i = 0; i < 10; i++) {
         TrafficFilterRedirectRule rule = CreateTestRule(i * 100, TrafficFilterHookPoint::HOOK_PREROUTING);
@@ -293,8 +270,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules003, TestSize.Level1)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules004, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
     context.AddRuleWithPriority(rule1);
@@ -307,8 +283,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, ClearRules004, TestSize.Level1)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetRules001, TestSize.Level0)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     std::vector<TrafficFilterRedirectRule> rules = context.GetRules();
 
@@ -317,8 +292,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetRules001, TestSize.Level0)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetRules002, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(200, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_OUTPUT);
@@ -332,8 +306,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetRules002, TestSize.Level1)
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules001, TestSize.Level0)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     std::vector<TrafficFilterRedirectRule> sortedRules = context.GetSortedRules();
 
@@ -342,8 +315,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules001, TestSize.Leve
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules002, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(300, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_OUTPUT);
@@ -363,8 +335,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules002, TestSize.Leve
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules003, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     std::vector<TrafficFilterRedirectRule> rules = context.GetRules();
     std::vector<TrafficFilterRedirectRule> sortedRules1 = context.GetSortedRules();
@@ -375,8 +346,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules003, TestSize.Leve
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules004, TestSize.Level2)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     for (int i = 0; i < 100; i++) {
         TrafficFilterRedirectRule rule = CreateTestRule(1000 - i * 10, TrafficFilterHookPoint::HOOK_PREROUTING);
@@ -393,8 +363,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, GetSortedRules004, TestSize.Leve
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules001, TestSize.Level0)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     std::vector<TrafficFilterRedirectRule> rules;
 
@@ -406,8 +375,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules001, TestSize.Level0
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules002, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     std::vector<TrafficFilterRedirectRule> rules;
     rules.push_back(CreateTestRule(200, TrafficFilterHookPoint::HOOK_PREROUTING));
@@ -428,8 +396,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules002, TestSize.Level1
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules003, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(200, TrafficFilterHookPoint::HOOK_OUTPUT);
@@ -450,8 +417,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules003, TestSize.Level1
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules004, TestSize.Level2)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     std::vector<TrafficFilterRedirectRule> rules;
     for (int i = 0; i < 50; i++) {
@@ -469,8 +435,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, RestoreRules004, TestSize.Level2
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, SetCallingInfo001, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     context.SetCallingInfo(98765, 54321);
 
@@ -480,8 +445,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, SetCallingInfo001, TestSize.Leve
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, SetPaused001, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     EXPECT_FALSE(context.IsPaused());
 
@@ -494,22 +458,9 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, SetPaused001, TestSize.Level1)
     EXPECT_FALSE(context.IsPaused());
 }
 
-HWTEST_F(NetTrafficFilterRedirectorContextTest, GetConfig001, TestSize.Level1)
-{
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
-
-    NetTrafficFilterConfig retrievedConfig = context.GetConfig();
-
-    EXPECT_EQ(retrievedConfig.packetCopyLen, config.packetCopyLen);
-    EXPECT_EQ(retrievedConfig.nfqueueMaxlen, config.nfqueueMaxlen);
-    EXPECT_EQ(retrievedConfig.nfqueueFlags, config.nfqueueFlags);
-}
-
 HWTEST_F(NetTrafficFilterRedirectorContextTest, EdgeCase_SamePriority001, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_PREROUTING, 6);
     TrafficFilterRedirectRule rule2 = CreateTestRule(100, TrafficFilterHookPoint::HOOK_OUTPUT, 17);
@@ -529,8 +480,7 @@ HWTEST_F(NetTrafficFilterRedirectorContextTest, EdgeCase_SamePriority001, TestSi
 
 HWTEST_F(NetTrafficFilterRedirectorContextTest, EdgeCase_LargePriority001, TestSize.Level1)
 {
-    NetTrafficFilterConfig config = CreateTestConfig();
-    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100, &config);
+    NetTrafficFilterRedirectorContext context("test_id", "com.test.app", 1001, 100);
 
     TrafficFilterRedirectRule rule1 = CreateTestRule(1, TrafficFilterHookPoint::HOOK_PREROUTING);
     TrafficFilterRedirectRule rule2 = CreateTestRule(10000, TrafficFilterHookPoint::HOOK_OUTPUT);

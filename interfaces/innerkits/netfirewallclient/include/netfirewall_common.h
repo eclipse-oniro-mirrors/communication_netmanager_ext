@@ -163,15 +163,6 @@ struct InterceptRecordPage : public Parcelable {
     static sptr<InterceptRecordPage> Unmarshalling(Parcel &parcel);
 };
 
-// Traffic redirect related structures
-struct NetTrafficFilterConfig : public Parcelable {
-    uint32_t packetCopyLen;
-    uint32_t nfqueueMaxlen;
-    uint32_t nfqueueFlags;
-    virtual bool Marshalling(Parcel &parcel) const override;
-    static sptr<NetTrafficFilterConfig> Unmarshalling(Parcel &parcel);
-};
-
 // Traffic filter structures for binary IPC transmission
 struct TrafficFilterIPAddress final : public Parcelable {
     int32_t family_;

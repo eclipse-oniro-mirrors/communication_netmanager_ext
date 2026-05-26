@@ -269,14 +269,14 @@ bool NetFirewallClient::RestartNetFirewallManagerSysAbility()
 }
 
 int32_t NetFirewallClient::CreateRedirector(uint32_t groupId, uint32_t priority,
-    const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId)
+    std::string& redirectorId)
 {
     sptr<INetFirewallService> proxy = GetProxy();
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("CreateRedirector proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    return proxy->CreateRedirector(groupId, priority, config, redirectorId);
+    return proxy->CreateRedirector(groupId, priority, redirectorId);
 }
 
 int32_t NetFirewallClient::DestroyRedirector(const std::string& redirectorId)

@@ -1308,18 +1308,6 @@ HWTEST_F(NetFirewallServiceTest, GetInterceptRecord002, TestSize.Level1)
 }
 
 namespace {
-sptr<NetTrafficFilterConfig> CreateTestTrafficFilterConfig()
-{
-    sptr<NetTrafficFilterConfig> config = new (std::nothrow) NetTrafficFilterConfig();
-    if (config == nullptr) {
-        return config;
-    }
-    config->packetCopyLen = TEST_COPY_LEN;
-    config->nfqueueMaxlen = TEST_NFQUEUE_LEN;
-    config->nfqueueFlags = 1;
-    return config;
-}
-
 sptr<TrafficFilterRedirectRule> CreateTestRedirectRule()
 {
     sptr<TrafficFilterRedirectRule> rule = new (std::nothrow) TrafficFilterRedirectRule();
@@ -1350,10 +1338,9 @@ HWTEST_F(NetFirewallServiceTest, CreateRedirector001, TestSize.Level1)
 {
     uint32_t groupId = 1001;
     uint32_t priority = 100;
-    sptr<NetTrafficFilterConfig> config = nullptr;
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(groupId, priority, config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(groupId, priority, redirectorId);
     EXPECT_NE(ret, FIREWALL_SUCCESS);
 }
 
@@ -1394,11 +1381,9 @@ HWTEST_F(NetFirewallServiceTest, AddRedirectRule002, TestSize.Level1)
 {
     uint32_t groupId = 1001;
     uint32_t priority = 100;
-    sptr<NetTrafficFilterConfig> config = CreateTestTrafficFilterConfig();
-    ASSERT_NE(config, nullptr);
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(groupId, priority, config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(groupId, priority, redirectorId);
 
     int32_t addRet = instance_->AddRedirectRule(redirectorId, nullptr);
     EXPECT_NE(addRet, FIREWALL_SUCCESS);

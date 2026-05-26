@@ -759,12 +759,6 @@ HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirectorReplyWriteFailure, TestSi
     data.WriteUint32(groupId);
     data.WriteUint32(priority);
 
-    sptr<NetTrafficFilterConfig> config = new (std::nothrow) NetTrafficFilterConfig();
-    config->packetCopyLen = 2048;
-    config->nfqueueMaxlen = 1000;
-    config->nfqueueFlags = 1;
-    config->Marshalling(data);
-
     int32_t ret = instance_->OnCreateRedirector(data, reply);
     if (ret == FIREWALL_SUCCESS) {
         std::string testRedirectorId = "";
@@ -841,12 +835,6 @@ HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirectorWithValidParams, TestSize
     uint32_t priority = 1;
     data.WriteUint32(groupId);
     data.WriteUint32(priority);
-
-    sptr<NetTrafficFilterConfig> config = new (std::nothrow) NetTrafficFilterConfig();
-    config->packetCopyLen = 4096;
-    config->nfqueueMaxlen = 2000;
-    config->nfqueueFlags = 2;
-    config->Marshalling(data);
 
     int32_t ret = instance_->OnCreateRedirector(data, reply);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);

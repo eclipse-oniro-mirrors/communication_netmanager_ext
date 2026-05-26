@@ -39,10 +39,9 @@ public:
     ~NetTrafficFilterRedirectManager();
 
     int32_t CreateRedirector(const std::string& bundleName, uint32_t groupId, uint32_t priority,
-                             const NetTrafficFilterConfig* config, std::string& redirectorId);
+        std::string& redirectorId);
     int32_t DestroyRedirector(const std::string& redirectorId);
-    int32_t AddRedirectRule(const std::string& redirectorId,
-                            const TrafficFilterRedirectRule* rule);
+    int32_t AddRedirectRule(const std::string& redirectorId, const TrafficFilterRedirectRule* rule);
     int32_t ClearRedirectRule(const std::string& redirectorId);
 
     int32_t DestroyRedirectorsByBundleName(const std::string& bundleName);
@@ -87,8 +86,7 @@ private:
     int32_t ExecuteIptablesCommand(const std::string& command, TrafficFilterIPFamily family);
     std::string GenerateRedirectorId();
     static bool ValidateRedirectRuleFields(const TrafficFilterRedirectRule& rule);
-    static bool ValidateCreateRedirectorParams(const std::string& bundleName, uint32_t groupId, uint32_t priority,
-                                               const NetTrafficFilterConfig* config);
+    static bool ValidateCreateRedirectorParams(const std::string& bundleName, uint32_t groupId, uint32_t priority);
     static bool ValidateIPFamilyConsistency(const TrafficFilterIPMatch& srcIp, const TrafficFilterIPMatch& dstIp);
     static TrafficFilterIPFamily DetermineRuleFamily(const TrafficFilterRedirectRule& rule);
     static TrafficFilterIPFamily GetIPFamilyFromMatch(const TrafficFilterIPMatch& ipMatch);

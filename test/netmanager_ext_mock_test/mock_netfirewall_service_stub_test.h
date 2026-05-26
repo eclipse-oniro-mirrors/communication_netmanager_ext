@@ -75,8 +75,7 @@ public:
         return 0;
     }
 
-    int32_t CreateRedirector(uint32_t groupId, uint32_t priority,
-        const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId) override
+    int32_t CreateRedirector(uint32_t groupId, uint32_t priority, std::string& redirectorId) override
     {
         return 0;
     }

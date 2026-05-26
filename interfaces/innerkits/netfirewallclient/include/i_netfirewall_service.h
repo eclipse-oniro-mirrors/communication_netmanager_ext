@@ -46,8 +46,7 @@ public:
     virtual int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) = 0;
 
-    virtual int32_t CreateRedirector(uint32_t groupId, uint32_t priority,
-        const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId) = 0;
+    virtual int32_t CreateRedirector(uint32_t groupId, uint32_t priority, std::string& redirectorId) = 0;
 
     virtual int32_t DestroyRedirector(const std::string& redirectorId) = 0;
 

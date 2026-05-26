@@ -353,12 +353,8 @@ int32_t NetFirewallProxy::UnregisterInterceptRecordsCallback(const sptr<INetInte
 }
 
 int32_t NetFirewallProxy::CreateRedirector(uint32_t groupId, uint32_t priority,
-    const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId)
+    std::string& redirectorId)
 {
-    if (config == nullptr) {
-        NETMGR_EXT_LOG_E("config is null");
-        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
-    }
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
@@ -371,10 +367,6 @@ int32_t NetFirewallProxy::CreateRedirector(uint32_t groupId, uint32_t priority,
     if (!data.WriteUint32(priority)) {
         NETMGR_EXT_LOG_E("WriteUint32 priority failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
-    }
-    if (!config->Marshalling(data)) {
-        NETMGR_EXT_LOG_E("proxy Marshalling config failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {

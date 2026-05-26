@@ -30,8 +30,7 @@ class RedirectorAdapterManager {
 public:
     static RedirectorAdapterManager& GetInstance();
 
-    int32_t CreateRedirector(uint32_t group_id, uint32_t priority,
-        const OH_TrafficFilter_Config* config, OH_TrafficFilter_Redirector** redirector);
+    int32_t CreateRedirector(uint32_t group_id, uint32_t priority, OH_TrafficFilter_Redirector** redirector);
 
     void DestroyRedirector(OH_TrafficFilter_Redirector* redirector);
 

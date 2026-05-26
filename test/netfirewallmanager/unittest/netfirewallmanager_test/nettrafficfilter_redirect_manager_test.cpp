@@ -80,15 +80,6 @@ TrafficFilterRedirectRule CreateTestRuleWithUidMatch(uint32_t priority = TEST_PR
     rule.uidEnd_ = TEST_UID_END;
     return rule;
 }
-
-NetTrafficFilterConfig CreateTestConfig()
-{
-    NetTrafficFilterConfig config;
-    config.packetCopyLen = TEST_PACKET_LEN;
-    config.nfqueueMaxlen = TEST_NFQUEUE_LEN;
-    config.nfqueueFlags = 1;
-    return config;
-}
 } // namespace
 
 class NetTrafficFilterRedirectManagerTest : public testing::Test {
@@ -120,10 +111,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector001, TestSize.Leve
     std::string bundleName = "";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -132,10 +122,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector002, TestSize.Leve
     std::string bundleName = "com.example.test";
     uint32_t groupId = INVALID_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -144,10 +133,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector003, TestSize.Leve
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = INVALID_PRIORITY_LOW;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -156,10 +144,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector004, TestSize.Leve
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = INVALID_PRIORITY_HIGH;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -170,7 +157,7 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector005, TestSize.Leve
     uint32_t priority = TEST_PRIORITY;
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, nullptr, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -179,11 +166,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector006, TestSize.Leve
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
-    config.packetCopyLen = 10; // Invalid: < 64
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -192,11 +177,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector007, TestSize.Leve
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
-    config.nfqueueMaxlen = 100000; // Invalid: > 65535
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -205,10 +188,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector008, TestSize.Leve
     std::string bundleName(256, 'a'); // Exceeds 255 char limit
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
@@ -241,10 +223,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, AddRedirectRule002, TestSize.Level
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     int32_t addRet = instance_->AddRedirectRule(redirectorId, nullptr);
     EXPECT_EQ(addRet, TRAFFICFILTER_ERROR_INVALID_PARAM);
 
@@ -257,10 +238,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, AddRedirectRule003, TestSize.Level
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     TrafficFilterRedirectRule rule = CreateTestRule();
     rule.priority_ = INVALID_PRIORITY_LOW;
 
@@ -276,10 +256,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, AddRedirectRule004, TestSize.Level
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     TrafficFilterRedirectRule rule = CreateTestRule();
     rule.protocol_ = 17; // UDP - invalid for current implementation
 
@@ -295,10 +274,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, AddRedirectRule005, TestSize.Level
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     TrafficFilterRedirectRule rule = CreateTestRule();
     rule.hookPoint_ = 99; // Invalid hook point
 
@@ -314,10 +292,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, AddRedirectRule006, TestSize.Level
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     TrafficFilterRedirectRule rule = CreateTestRule();
     rule.proxyPort_ = 0; // Invalid proxy port
 
@@ -333,10 +310,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, AddRedirectRule007, TestSize.Level
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     TrafficFilterRedirectRule rule = CreateTestRuleWithUidMatch();
     rule.hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING); // Not OUTPUT
 
@@ -352,10 +328,9 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, AddRedirectRule008, TestSize.Level
     std::string bundleName = "com.example.test";
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;
-    NetTrafficFilterConfig config = CreateTestConfig();
     std::string redirectorId;
 
-    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, &config, redirectorId);
+    int32_t createRet = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
     TrafficFilterRedirectRule rule = CreateTestRule();
     rule.uidStart_ = 2000;
     rule.uidEnd_ = 1000; // Start > End, invalid range

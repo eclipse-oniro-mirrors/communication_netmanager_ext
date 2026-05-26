@@ -72,8 +72,7 @@ public:
 
     int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback);
 
-    int32_t CreateRedirector(uint32_t groupId, uint32_t priority,
-        const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId);
+    int32_t CreateRedirector(uint32_t groupId, uint32_t priority, std::string& redirectorId);
 
     int32_t DestroyRedirector(const std::string& redirectorId);
 

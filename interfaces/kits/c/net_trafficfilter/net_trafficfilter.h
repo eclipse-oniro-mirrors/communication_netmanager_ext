@@ -172,7 +172,6 @@ int32_t OH_TrafficFilter_ClearPacketRule(OH_TrafficFilter_PacketController* cont
  * @param priority Priority
  *                  (determines execution order between different group_id chain, smaller number executes first).
  *                  Note: Redirector priority is higher than packet filter priority.
- * @param config Configuration parameters (can not be NULL)
  * @param redirector Output parameter, returns the redirection handle on success.
  * @return Returns {@link OH_TRAFFICFILTER_OK} on success,
  *         Returns {@link OH_TRAFFICFILTER_ERROR_PERMISSION_DENIED} if permission is denied,
@@ -186,7 +185,6 @@ int32_t OH_TrafficFilter_ClearPacketRule(OH_TrafficFilter_PacketController* cont
 int32_t OH_TrafficFilter_CreateRedirector(
     uint32_t group_id,
     uint32_t priority,
-    const OH_TrafficFilter_Config* config,
     OH_TrafficFilter_Redirector** redirector
 );
 

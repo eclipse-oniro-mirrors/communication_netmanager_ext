@@ -53,7 +53,6 @@ const uint16_t REMOTE_END_PORT = 10030;
 const uint16_t RULE_PORT = 8080;
 const uint32_t TEST_UID = 10042;
 const uint32_t TEST_PID = 12345;
-const uint32_t TEST_PACKET_LEN = 1024;
 const uint16_t TEST_DST_PORT = 443;
 const uint32_t TEST_PRIORITY = 100;
 
@@ -130,15 +129,6 @@ sptr<InterceptRecord> GetInterceptRecordSptr()
     record->protocol = 1;
     record->appUid = uid;
     return record;
-}
-
-sptr<NetTrafficFilterConfig> GetNetTrafficFilterConfigSptr()
-{
-    sptr<NetTrafficFilterConfig> config = (std::make_unique<NetTrafficFilterConfig>()).release();
-    config->packetCopyLen = TEST_PACKET_LEN;
-    config->nfqueueMaxlen = TEST_PACKET_LEN;
-    config->nfqueueFlags = 1;
-    return config;
 }
 
 sptr<TrafficFilterRedirectRule> GetTrafficFilterRedirectRuleSptr()
@@ -401,9 +391,8 @@ HWTEST_F(NetFirewallServiceProxyTest, CreateRedirector001, TestSize.Level1)
     NetManagerExtAccessToken token;
     uint32_t groupId = 1001;
     uint32_t priority = 100;
-    sptr<NetTrafficFilterConfig> config = GetNetTrafficFilterConfigSptr();
     std::string redirectorId;
-    auto ret = instance_->CreateRedirector(groupId, priority, config, redirectorId);
+    auto ret = instance_->CreateRedirector(groupId, priority, redirectorId);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_EQ(redirectorId, "redirector_test_123");
 }

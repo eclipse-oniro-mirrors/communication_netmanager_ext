@@ -56,14 +56,6 @@ public:
     void TearDown() {};
 };
 
-class NetTrafficFilterConfigTest : public testing::Test {
-public:
-    static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
-    void SetUp() {};
-    void TearDown() {};
-};
-
 class TrafficFilterIPTest : public testing::Test {
 public:
     static void SetUpTestCase() {};
@@ -263,48 +255,6 @@ HWTEST_F(InterceptRecordPageTest, Unmarshalling005, TestSize.Level0)
     parcel.WriteUint32(size);
     sptr<InterceptRecordPage> ptr = InterceptRecordPage::Unmarshalling(parcel);
     EXPECT_EQ(ptr, nullptr);
-}
-
-// NetTrafficFilterConfig tests
-HWTEST_F(NetTrafficFilterConfigTest, Unmarshalling001, TestSize.Level0)
-{
-    Parcel parcel;
-    sptr<NetTrafficFilterConfig> ptr = NetTrafficFilterConfig::Unmarshalling(parcel);
-    EXPECT_EQ(ptr, nullptr);
-}
-
-HWTEST_F(NetTrafficFilterConfigTest, Unmarshalling002, TestSize.Level0)
-{
-    Parcel parcel;
-    parcel.WriteUint32(1024);
-    sptr<NetTrafficFilterConfig> ptr = NetTrafficFilterConfig::Unmarshalling(parcel);
-    EXPECT_EQ(ptr, nullptr);
-}
-
-HWTEST_F(NetTrafficFilterConfigTest, Unmarshalling003, TestSize.Level0)
-{
-    Parcel parcel;
-    parcel.WriteUint32(1024);
-    parcel.WriteUint32(2048);
-    sptr<NetTrafficFilterConfig> ptr = NetTrafficFilterConfig::Unmarshalling(parcel);
-    EXPECT_EQ(ptr, nullptr);
-}
-
-HWTEST_F(NetTrafficFilterConfigTest, MarshallingAndUnmarshalling001, TestSize.Level0)
-{
-    NetTrafficFilterConfig config;
-    config.packetCopyLen = 1024;
-    config.nfqueueMaxlen = 2048;
-    config.nfqueueFlags = 0;
-
-    Parcel parcel;
-    EXPECT_TRUE(config.Marshalling(parcel));
-
-    sptr<NetTrafficFilterConfig> result = NetTrafficFilterConfig::Unmarshalling(parcel);
-    ASSERT_NE(result, nullptr);
-    EXPECT_EQ(result->packetCopyLen, 1024);
-    EXPECT_EQ(result->nfqueueMaxlen, 2048);
-    EXPECT_EQ(result->nfqueueFlags, 0);
 }
 
 // TrafficFilterIPAddress tests

@@ -32,7 +32,6 @@ constexpr int32_t IPV6_PREFIX_MAX = 128;
 constexpr int32_t IPV4_PREFIX_MAX = 32;
 constexpr int32_t BUNDLE_LEN_MAX = 255;
 constexpr int32_t REDIRECTOR_ID_START = 1000;
-constexpr uint32_t NFQUEUE_LEN_MAX = 65535;
 
 static bool ValidateIPMatchType(int32_t type)
 {
@@ -381,8 +380,7 @@ bool NetTrafficFilterRedirectManager::ValidateUidMatch(const TrafficFilterRedire
 }
 
 bool NetTrafficFilterRedirectManager::ValidateCreateRedirectorParams(
-    const std::string& bundleName, uint32_t groupId, uint32_t priority,
-    const NetTrafficFilterConfig* config)
+    const std::string& bundleName, uint32_t groupId, uint32_t priority)
 {
     if (bundleName.empty()) {
         return false;
@@ -397,26 +395,6 @@ bool NetTrafficFilterRedirectManager::ValidateCreateRedirectorParams(
 
     if (priority < NETTRAFFICFILTER_MIN_PRIORITY || priority > NETTRAFFICFILTER_MAX_PRIORITY) {
         return false;
-    }
-
-    if (config == nullptr) {
-        return false;
-    }
-
-    if (config->nfqueueFlags > 0xFF) {
-        return false;
-    }
-
-    bool validPacketCopyLen = (config->packetCopyLen == 0xFFFF) ||
-        (config->packetCopyLen >= 64 && config->packetCopyLen <= 0xFFFF);
-    if (!validPacketCopyLen) {
-        return false;
-    }
-
-    if (config->nfqueueMaxlen != 0) {
-        if (config->nfqueueMaxlen < 1 || config->nfqueueMaxlen > NFQUEUE_LEN_MAX) {
-            return false;
-        }
     }
     return true;
 }
@@ -454,11 +432,11 @@ NetTrafficFilterRedirectManager::NetTrafficFilterRedirectManager()
 NetTrafficFilterRedirectManager::~NetTrafficFilterRedirectManager() {}
 
 int32_t NetTrafficFilterRedirectManager::CreateRedirector(const std::string& bundleName,
-    uint32_t groupId, uint32_t priority, const NetTrafficFilterConfig* config, std::string& redirectorId)
+    uint32_t groupId, uint32_t priority, std::string& redirectorId)
 {
     NETMGR_EXT_LOG_I("CreateRedirector called: bundleName=%{public}s, groupId=%{public}u, priority=%{public}u",
         bundleName.c_str(), groupId, priority);
-    if (!ValidateCreateRedirectorParams(bundleName, groupId, priority, config)) {
+    if (!ValidateCreateRedirectorParams(bundleName, groupId, priority)) {
         NETMGR_EXT_LOG_E("CreateRedirector parameter validation failed");
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
@@ -483,7 +461,7 @@ int32_t NetTrafficFilterRedirectManager::CreateRedirector(const std::string& bun
     }
 
     auto redirector = std::make_shared<NetTrafficFilterRedirectorContext>(
-        redirectorId, bundleName, groupId, priority, config);
+        redirectorId, bundleName, groupId, priority);
     redirector->SetCallingInfo(callingUid, callingPid);
     redirectors_[redirectorId] = redirector;
     bundleNameToRedirectorsMap_[bundleName].push_back(redirectorId);
