@@ -68,6 +68,10 @@ constexpr uint16_t LOCAL_END_PORT = 1003;
 constexpr uint16_t REMOTE_START_PORT = 1002;
 constexpr uint16_t REMOTE_END_PORT = 10030;
 constexpr int32_t RECORD_CACHE_SIZE = 100;
+constexpr uint32_t TEST_PRIORITY = 100;
+constexpr uint16_t RULE_PORT = 8080;
+constexpr uint32_t TEST_COPY_LEN = 65535;
+constexpr uint32_t TEST_NFQUEUE_LEN = 1024;
 
 std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart)
 {
@@ -1310,8 +1314,8 @@ sptr<NetTrafficFilterConfig> CreateTestTrafficFilterConfig()
     if (config == nullptr) {
         return config;
     }
-    config->packetCopyLen = 65535;
-    config->nfqueueMaxlen = 1024;
+    config->packetCopyLen = TEST_COPY_LEN;
+    config->nfqueueMaxlen = TEST_NFQUEUE_LEN;
     config->nfqueueFlags = 1;
     return config;
 }
@@ -1322,9 +1326,9 @@ sptr<TrafficFilterRedirectRule> CreateTestRedirectRule()
     if (rule == nullptr) {
         return rule;
     }
-    rule->priority_ = 100;
+    rule->priority_ = TEST_PRIORITY;
     rule->hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING);
-    rule->protocol_ = 6; // TCP
+    rule->protocol_ = NETTRAFFICFILTER_PROTO_TCP;
     rule->srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
     rule->dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
     rule->srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
@@ -1332,7 +1336,7 @@ sptr<TrafficFilterRedirectRule> CreateTestRedirectRule()
     rule->uidStart_ = static_cast<uint32_t>(-1);
     rule->uidEnd_ = static_cast<uint32_t>(-1);
     rule->proxyIp_.family_ = static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4);
-    rule->proxyPort_ = 8080;
+    rule->proxyPort_ = RULE_PORT;
     return rule;
 }
 }

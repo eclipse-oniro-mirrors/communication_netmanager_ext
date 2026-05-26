@@ -53,6 +53,8 @@ const uint16_t REMOTE_END_PORT = 10030;
 const uint16_t RULE_PORT = 8080;
 const uint32_t TEST_UID = 10042;
 const uint32_t TEST_PID = 12345;
+const uint32_t TEST_PACKET_LEN = 1024;
+const uint16_t TEST_DST_PORT = 443;
 
 sptr<NetFirewallRule> GetNetFirewallRuleSptr()
 {
@@ -132,8 +134,8 @@ sptr<InterceptRecord> GetInterceptRecordSptr()
 sptr<NetTrafficFilterConfig> GetNetTrafficFilterConfigSptr()
 {
     sptr<NetTrafficFilterConfig> config = (std::make_unique<NetTrafficFilterConfig>()).release();
-    config->packetCopyLen = 1024;
-    config->nfqueueMaxlen = 1024;
+    config->packetCopyLen = TEST_PACKET_LEN;
+    config->nfqueueMaxlen = TEST_PACKET_LEN;
     config->nfqueueFlags = 1;
     return config;
 }
@@ -151,7 +153,7 @@ sptr<TrafficFilterRedirectRule> GetTrafficFilterRedirectRuleSptr()
 
     rule->srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
     rule->dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE);
-    rule->dstPort_.single_ = 443;
+    rule->dstPort_.single_ = TEST_DST_PORT;
 
     rule->uidStart_ = TEST_UID;
     rule->uidEnd_ = TEST_UID;
@@ -459,8 +461,8 @@ HWTEST_F(NetFirewallServiceProxyTest, QueryProcess001, TestSize.Level1)
     std::string srcIp = "192.168.1.100";
     uint16_t srcPort = 50000;
     std::string dstIp = "93.184.216.34";
-    uint16_t dstPort = 443;
-    uint8_t protocol = 6; // TCP
+    uint16_t dstPort = TEST_DST_PORT;
+    uint8_t protocol = NETTRAFFICFILTER_PROTO_TCP;
     uint32_t uid = 0;
     uint32_t pid = 0;
     auto ret = instance_->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
