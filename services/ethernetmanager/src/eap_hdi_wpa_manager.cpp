@@ -49,6 +49,8 @@ static constexpr const char* ITEM_CA_CERT = "ca_cert=";
 static constexpr const char* ITEM_CLIENT_CERT = "client_cert=";
 static constexpr const char* ITEM_PRIVATE_KEY = "private_key=";
 static const std::string ITEM_QUOTE = "\"";
+static constexpr const char* SET_NETWORK_CMD = "SET_NETWORK ";
+static constexpr const char* REAUTHENTICATE_CMD = "REAUTHENTICATE";
 
 static constexpr int8_t IDX_0 = 1;
 static constexpr int8_t IDX_1 = 2;
@@ -125,6 +127,8 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
     SetEapConfig(profile, ifName);
     RegisterEapEventCallback(ifName);
     int32_t ret = iEthernet_->StartEap(iEthernet_, ifName.c_str());
+    ret |= iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), setNetCmd_.c_str());
+    ret |= iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), REAUTHENTICATE_CMD);
     if (ret != HDF_SUCCESS) {
         NETMGR_EXT_LOG_E("StartEap fail %{public}d", ret);
         IEthernetReleaseInstance(ETHERNET_SERVICE_NAME, iEthernet_, false);
@@ -176,6 +180,7 @@ void EapHdiWpaManager::RemoveHistoryCtrl()
 
 int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::string& ifName)
 {
+    setNetCmd_ = SET_NETWORK_CMD;
     std::string fileContext;
     fileContext.append(ITEM_CTRL_IFACE);
     fileContext.append(ITEM_AP_SCAN);
@@ -185,31 +190,31 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
         fileContext.append(ITEM_EAP + EAP_METHOD_STR_MAP[config.eapMethod] + ITEM_LINE);
     }
     if (!config.identity.empty()) {
-        fileContext.append(ITEM_IDENTITY + ITEM_QUOTE + config.identity + ITEM_QUOTE + ITEM_LINE);
+        setNetCmd_.append(ITEM_IDENTITY + ITEM_QUOTE + config.identity + ITEM_QUOTE + ITEM_LINE);
     }
     if (!config.password.empty()) {
-        fileContext.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
+        setNetCmd_.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
     }
     switch (config.eapMethod) {
         case EapMethod::EAP_PEAP:
         case EapMethod::EAP_TTLS:
             if (!config.caPath.empty()) {
-                fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
             }
             if (config.phase2Method != Phase2Method::PHASE2_NONE) {
-                fileContext.append(ITEM_PHASE2 + ITEM_QUOTE + Phase2MethodToStr(config.eapMethod, config.phase2Method)
+                setNetCmd_.append(ITEM_PHASE2 + ITEM_QUOTE + Phase2MethodToStr(config.eapMethod, config.phase2Method)
                     + ITEM_QUOTE + ITEM_LINE);
             }
             break;
         case EapMethod::EAP_TLS:
             if (!config.caPath.empty()) {
-                fileContext.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
             }
             if (!config.clientCertAliases.empty()) {
-                fileContext.append(ITEM_CLIENT_CERT + ITEM_QUOTE + config.clientCertAliases + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_CLIENT_CERT + ITEM_QUOTE + config.clientCertAliases + ITEM_QUOTE + ITEM_LINE);
             }
             if (!config.certPassword.empty()) {
-                fileContext.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + config.certPassword + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + config.certPassword + ITEM_QUOTE + ITEM_LINE);
             }
             break;
         default:

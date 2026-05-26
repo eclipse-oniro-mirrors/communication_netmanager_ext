@@ -62,6 +62,7 @@ private:
     struct HDIDeviceManager *devMgr_ = nullptr;
     std::mutex wpaMutex_;
     struct IEthernetCallback ethCallback_;
+    std::string setNetCmd_;
 };
 }  // namespace NetManagerStandard
 }  // namespace OHOS
