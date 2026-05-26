@@ -55,6 +55,7 @@ const uint32_t TEST_UID = 10042;
 const uint32_t TEST_PID = 12345;
 const uint32_t TEST_PACKET_LEN = 1024;
 const uint16_t TEST_DST_PORT = 443;
+const uint32_t TEST_PRIORITY = 100;
 
 sptr<NetFirewallRule> GetNetFirewallRuleSptr()
 {
@@ -143,7 +144,7 @@ sptr<NetTrafficFilterConfig> GetNetTrafficFilterConfigSptr()
 sptr<TrafficFilterRedirectRule> GetTrafficFilterRedirectRuleSptr()
 {
     sptr<TrafficFilterRedirectRule> rule = (std::make_unique<TrafficFilterRedirectRule>()).release();
-    rule->priority_ = 100;
+    rule->priority_ = TEST_PRIORITY;
     rule->hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING);
     rule->protocol_ = NETTRAFFICFILTER_PROTO_TCP;
 
