@@ -152,6 +152,126 @@ void UnregisterInterceptRecordsCallbackTest(const uint8_t *data, size_t size)
     parcel.WriteRemoteObject(callback->AsObject());
     OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::UNREGISTER_INTERCEPT_RECORDS_CALLBACK), parcel);
 }
+
+void CreateRedirectorTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    uint32_t groupId = GetData<uint32_t>();
+    uint32_t priority = GetData<uint32_t>();
+    auto config = std::make_unique<NetTrafficFilterConfig>();
+    if (!config->Marshalling(parcel)) {
+        return;
+    }
+    parcel.WriteUint32(groupId);
+    parcel.WriteUint32(priority);
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::CREATE_REDIRECTOR), parcel);
+}
+
+void DestroyRedirectorTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    std::string redirectorId = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteString(redirectorId)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::DESTROY_REDIRECTOR), parcel);
+}
+
+void AddRedirectRuleTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    std::string redirectorId = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteString(redirectorId)) {
+        return;
+    }
+    auto rule = std::make_unique<TrafficFilterRedirectRule>();
+    if (!rule->Marshalling(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::ADD_REDIRECT_RULE), parcel);
+}
+
+void ClearRedirectRuleTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    std::string redirectorId = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteString(redirectorId)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::CLEAR_REDIRECT_RULE), parcel);
+}
+
+void GlobalEnableTrafficFilterTest(const uint8_t *data, size_t size)
+{
+    (void)size;
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::GLOBAL_ENABLE_TRAFFIC_FILTER), parcel);
+}
+
+void GlobalDisableTrafficFilterTest(const uint8_t *data, size_t size)
+{
+    (void)size;
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::GLOBAL_DISABLE_TRAFFIC_FILTER), parcel);
+}
+
+void GetTrafficFilterGlobalStatusTest(const uint8_t *data, size_t size)
+{
+    (void)size;
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::GET_TRAFFIC_FILTER_GLOBAL_STATUS), parcel);
+}
+
+void QueryProcessTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    std::string srcIp = GetStringFromData(IFACE_LEN);
+    uint16_t srcPort = GetData<uint16_t>();
+    std::string dstIp = GetStringFromData(IFACE_LEN);
+    uint16_t dstPort = GetData<uint16_t>();
+    uint8_t protocol = GetData<uint8_t>();
+
+    if (!parcel.WriteString(srcIp)) {
+        return;
+    }
+    if (!parcel.WriteUint16(srcPort)) {
+        return;
+    }
+    if (!parcel.WriteString(dstIp)) {
+        return;
+    }
+    if (!parcel.WriteUint16(dstPort)) {
+        return;
+    }
+    if (!parcel.WriteUint8(protocol)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::QUERY_PROCESS), parcel);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -160,5 +280,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::SetNetFirewallPolicyTest(data, size);
     OHOS::NetManagerStandard::RegisterInterceptRecordsCallbackTest(data, size);
     OHOS::NetManagerStandard::UnregisterInterceptRecordsCallbackTest(data, size);
+    OHOS::NetManagerStandard::CreateRedirectorTest(data, size);
+    OHOS::NetManagerStandard::DestroyRedirectorTest(data, size);
+    OHOS::NetManagerStandard::AddRedirectRuleTest(data, size);
+    OHOS::NetManagerStandard::ClearRedirectRuleTest(data, size);
+    OHOS::NetManagerStandard::GlobalEnableTrafficFilterTest(data, size);
+    OHOS::NetManagerStandard::GlobalDisableTrafficFilterTest(data, size);
+    OHOS::NetManagerStandard::GetTrafficFilterGlobalStatusTest(data, size);
+    OHOS::NetManagerStandard::QueryProcessTest(data, size);
     return 0;
 }

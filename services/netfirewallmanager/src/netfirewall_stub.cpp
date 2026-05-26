@@ -32,6 +32,7 @@ namespace NetManagerStandard {
 namespace {
 static constexpr const char *PERMISSION_MANAGE_NET_FIREWALL = "ohos.permission.MANAGE_NET_FIREWALL";
 static constexpr const char *PERMISSION_GET_NET_FIREWALL = "ohos.permission.GET_NET_FIREWALL";
+static constexpr const char *PERMISSION_TRAFFIC_FILTER = "ohos.permission.kernel.TRAFFIC_FILTER";
 }
 NetFirewallStub::NetFirewallStub()
 {
@@ -55,6 +56,22 @@ NetFirewallStub::NetFirewallStub()
         PERMISSION_GET_NET_FIREWALL, &NetFirewallStub::OnRegisterInterceptRecordsCallback};
     memberFuncMap_[static_cast<uint32_t>(UNREGISTER_INTERCEPT_RECORDS_CALLBACK)] = {
         PERMISSION_GET_NET_FIREWALL, &NetFirewallStub::OnUnregisterInterceptRecordsCallback};
+    memberFuncMap_[static_cast<uint32_t>(CREATE_REDIRECTOR)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnCreateRedirector};
+    memberFuncMap_[static_cast<uint32_t>(DESTROY_REDIRECTOR)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnDestroyRedirector};
+    memberFuncMap_[static_cast<uint32_t>(ADD_REDIRECT_RULE)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnAddRedirectRule};
+    memberFuncMap_[static_cast<uint32_t>(CLEAR_REDIRECT_RULE)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnClearRedirectRule};
+    memberFuncMap_[static_cast<uint32_t>(GLOBAL_ENABLE_TRAFFIC_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGlobalEnableTrafficFilter};
+    memberFuncMap_[static_cast<uint32_t>(GLOBAL_DISABLE_TRAFFIC_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGlobalDisableTrafficFilter};
+    memberFuncMap_[static_cast<uint32_t>(GET_TRAFFIC_FILTER_GLOBAL_STATUS)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGetTrafficFilterGlobalStatus};
+    memberFuncMap_[static_cast<uint32_t>(QUERY_PROCESS)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnQueryProcess};
 }
 
 int32_t NetFirewallStub::CheckFirewallPermission(std::string &strPermission)
@@ -353,5 +370,133 @@ int32_t NetFirewallStub::OnUnregisterInterceptRecordsCallback(MessageParcel &dat
     return ret;
 }
 
+int32_t NetFirewallStub::OnCreateRedirector(MessageParcel &data, MessageParcel &reply)
+{
+    uint32_t groupId;
+    if (!data.ReadUint32(groupId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    uint32_t priority;
+    if (!data.ReadUint32(priority)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    sptr<NetTrafficFilterConfig> config = NetTrafficFilterConfig::Unmarshalling(data);
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("Config unmarshalling failed");
+        return FIREWALL_ERR_INTERNAL;
+    }
+
+    std::string redirectorId;
+    int32_t ret = CreateRedirector(groupId, priority, config, redirectorId);
+    if (ret == FIREWALL_SUCCESS) {
+        if (!reply.WriteString(redirectorId)) {
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+    }
+    return ret;
+}
+
+int32_t NetFirewallStub::OnDestroyRedirector(MessageParcel &data, MessageParcel &reply)
+{
+    std::string redirectorId;
+    if (!data.ReadString(redirectorId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (redirectorId.empty()) {
+        NETMGR_EXT_LOG_E("RedirectorId is empty");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+
+    int32_t ret = DestroyRedirector(redirectorId);
+    return ret;
+}
+
+int32_t NetFirewallStub::OnAddRedirectRule(MessageParcel &data, MessageParcel &reply)
+{
+    std::string redirectorId;
+    if (!data.ReadString(redirectorId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (redirectorId.empty()) {
+        NETMGR_EXT_LOG_E("RedirectorId is empty");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+
+    sptr<TrafficFilterRedirectRule> rule = TrafficFilterRedirectRule::Unmarshalling(data);
+    if (rule == nullptr) {
+        NETMGR_EXT_LOG_E("Rule unmarshalling failed");
+        return FIREWALL_ERR_INTERNAL;
+    }
+
+    int32_t ret = AddRedirectRule(redirectorId, rule);
+    return ret;
+}
+
+int32_t NetFirewallStub::OnClearRedirectRule(MessageParcel &data, MessageParcel &reply)
+{
+    std::string redirectorId;
+    if (!data.ReadString(redirectorId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (redirectorId.empty()) {
+        NETMGR_EXT_LOG_E("RedirectorId is empty");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+
+    int32_t ret = ClearRedirectRule(redirectorId);
+    return ret;
+}
+
+int32_t NetFirewallStub::OnGlobalEnableTrafficFilter(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = GlobalEnableTrafficFilter();
+    return ret;
+}
+
+int32_t NetFirewallStub::OnGlobalDisableTrafficFilter(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = GlobalDisableTrafficFilter();
+    return ret;
+}
+
+int32_t NetFirewallStub::OnQueryProcess(MessageParcel &data, MessageParcel &reply)
+{
+    std::string srcIp = data.ReadString();
+    uint16_t srcPort = data.ReadUint16();
+    std::string dstIp = data.ReadString();
+    uint16_t dstPort = data.ReadUint16();
+    uint8_t protocol = data.ReadUint8();
+    uint32_t uid = 0;
+    uint32_t pid = 0;
+
+    int32_t ret = QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+
+    if (ret == TRAFFICFILTER_OK) {
+        if (!reply.WriteUint32(uid)) {
+            NETMGR_EXT_LOG_E("WriteUint32 uid failed");
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+        if (!reply.WriteUint32(pid)) {
+            NETMGR_EXT_LOG_E("WriteUint32 pid failed");
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+    }
+    return ret;
+}
+
+int32_t NetFirewallStub::OnGetTrafficFilterGlobalStatus(MessageParcel &data, MessageParcel &reply)
+{
+    bool isEnabled = false;
+    int32_t ret = GetTrafficFilterGlobalStatus(isEnabled);
+    if (ret == FIREWALL_SUCCESS) {
+        if (!reply.WriteBool(isEnabled)) {
+            NETMGR_EXT_LOG_E("WriteBool failed");
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+    }
+    return ret;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

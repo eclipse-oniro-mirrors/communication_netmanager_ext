@@ -46,6 +46,23 @@ public:
     virtual int32_t GetInterceptRecords(const int32_t userId, const sptr<RequestParam> &requestParam,
         sptr<InterceptRecordPage> &info) = 0;
 
+    virtual int32_t CreateRedirector(uint32_t groupId, uint32_t priority,
+        const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId) = 0;
+
+    virtual int32_t DestroyRedirector(const std::string& redirectorId) = 0;
+
+    virtual int32_t AddRedirectRule(const std::string& redirectorId,
+        const sptr<TrafficFilterRedirectRule> &rule) = 0;
+
+    virtual int32_t ClearRedirectRule(const std::string& redirectorId) = 0;
+
+    virtual int32_t GlobalEnableTrafficFilter() = 0;
+    virtual int32_t GlobalDisableTrafficFilter() = 0;
+    virtual int32_t GetTrafficFilterGlobalStatus(bool& isEnabled) = 0;
+
+    virtual int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
+        const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) = 0;
+
     enum {
         SET_NET_FIREWALL_STATUS,
         GET_NET_FIREWALL_STATUS,
@@ -57,6 +74,14 @@ public:
         GET_ALL_INTERCEPT_RECORDS,
         REGISTER_INTERCEPT_RECORDS_CALLBACK,
         UNREGISTER_INTERCEPT_RECORDS_CALLBACK,
+        CREATE_REDIRECTOR,
+        DESTROY_REDIRECTOR,
+        ADD_REDIRECT_RULE,
+        CLEAR_REDIRECT_RULE,
+        GLOBAL_ENABLE_TRAFFIC_FILTER,
+        GLOBAL_DISABLE_TRAFFIC_FILTER,
+        GET_TRAFFIC_FILTER_GLOBAL_STATUS,
+        QUERY_PROCESS,
     };
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetFirewallService");
 };

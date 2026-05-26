@@ -72,6 +72,21 @@ public:
 
     int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback);
 
+    int32_t CreateRedirector(uint32_t groupId, uint32_t priority,
+        const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId);
+
+    int32_t DestroyRedirector(const std::string& redirectorId);
+
+    int32_t AddRedirectRule(const std::string& redirectorId,
+        const sptr<TrafficFilterRedirectRule> &rule);
+
+    int32_t ClearRedirectRule(const std::string& redirectorId);
+    int32_t GlobalEnableTrafficFilter();
+    int32_t GlobalDisableTrafficFilter();
+    int32_t GetTrafficFilterGlobalStatus(bool& isEnabled);
+    int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
+        const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid);
+
 private:
     class MonitorPcfirewallServiceDead : public IRemoteObject::DeathRecipient {
     public:

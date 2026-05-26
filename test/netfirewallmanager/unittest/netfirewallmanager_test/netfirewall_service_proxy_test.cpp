@@ -125,6 +125,40 @@ sptr<InterceptRecord> GetInterceptRecordSptr()
     record->appUid = uid;
     return record;
 }
+
+sptr<NetTrafficFilterConfig> GetNetTrafficFilterConfigSptr()
+{
+    sptr<NetTrafficFilterConfig> config = (std::make_unique<NetTrafficFilterConfig>()).release();
+    config->packetCopyLen = 1024;
+    config->nfqueueMaxlen = 1024;
+    config->nfqueueFlags = 1;
+    return config;
+}
+
+sptr<TrafficFilterRedirectRule> GetTrafficFilterRedirectRuleSptr()
+{
+    sptr<TrafficFilterRedirectRule> rule = (std::make_unique<TrafficFilterRedirectRule>()).release();
+    rule->priority_ = 100;
+    rule->hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING);
+    rule->protocol_ = 6; // TCP
+
+    rule->srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule->dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE);
+    inet_pton(AF_INET, "93.184.216.34", rule->dstIp_.single_.addr_);
+
+    rule->srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule->dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE);
+    rule->dstPort_.single_ = 443;
+
+    rule->uidStart_ = 10042;
+    rule->uidEnd_ = 10042;
+
+    rule->proxyIp_.family_ = static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4);
+    inet_pton(AF_INET, "127.0.0.1", rule->proxyIp_.addr_);
+    rule->proxyPort_ = 8080;
+
+    return rule;
+}
 } // namespace
 
 class MockNetIRemoteObject : public IRemoteObject {
@@ -182,6 +216,23 @@ public:
                 }
                 break;
             }
+            case static_cast<uint32_t>(INetFirewallService::CREATE_REDIRECTOR):
+                reply.WriteString("redirector_test_123");
+                break;
+            case static_cast<uint32_t>(INetFirewallService::DESTROY_REDIRECTOR):
+            case static_cast<uint32_t>(INetFirewallService::ADD_REDIRECT_RULE):
+            case static_cast<uint32_t>(INetFirewallService::CLEAR_REDIRECT_RULE):
+            case static_cast<uint32_t>(INetFirewallService::GLOBAL_ENABLE_TRAFFIC_FILTER):
+            case static_cast<uint32_t>(INetFirewallService::GLOBAL_DISABLE_TRAFFIC_FILTER):
+                reply.WriteInt32(1);
+                break;
+            case static_cast<uint32_t>(INetFirewallService::GET_TRAFFIC_FILTER_GLOBAL_STATUS):
+                reply.WriteBool(true);
+                break;
+            case static_cast<uint32_t>(INetFirewallService::QUERY_PROCESS):
+                reply.WriteUint32(10042);
+                reply.WriteUint32(12345);
+                break;
             default:
                 reply.WriteInt32(1);
                 break;
@@ -337,6 +388,98 @@ HWTEST_F(NetFirewallServiceProxyTest, GetInterceptRecord001, TestSize.Level1)
     sptr<InterceptRecordPage> info = new (std::nothrow) InterceptRecordPage();
     auto ret = instance_->GetInterceptRecords(userId, param, info);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, CreateRedirector001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    sptr<NetTrafficFilterConfig> config = GetNetTrafficFilterConfigSptr();
+    std::string redirectorId;
+    auto ret = instance_->CreateRedirector(groupId, priority, config, redirectorId);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_EQ(redirectorId, "redirector_test_123");
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, DestroyRedirector001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::string redirectorId = "redirector_test_123";
+    auto ret = instance_->DestroyRedirector(redirectorId);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, AddRedirectRule001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::string redirectorId = "redirector_test_123";
+    sptr<TrafficFilterRedirectRule> rule = GetTrafficFilterRedirectRuleSptr();
+    auto ret = instance_->AddRedirectRule(redirectorId, rule);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, ClearRedirectRule001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::string redirectorId = "redirector_test_123";
+    auto ret = instance_->ClearRedirectRule(redirectorId);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, GlobalEnableTrafficFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto ret = instance_->GlobalEnableTrafficFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, GlobalDisableTrafficFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto ret = instance_->GlobalDisableTrafficFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, GetTrafficFilterGlobalStatus001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    bool isEnabled = false;
+    auto ret = instance_->GetTrafficFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(isEnabled);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, QueryProcess001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::string srcIp = "192.168.1.100";
+    uint16_t srcPort = 50000;
+    std::string dstIp = "93.184.216.34";
+    uint16_t dstPort = 443;
+    uint8_t protocol = 6; // TCP
+    uint32_t uid = 0;
+    uint32_t pid = 0;
+    auto ret = instance_->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_EQ(uid, 10042);
+    EXPECT_EQ(pid, 12345);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, QueryProcess002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::string srcIp = "192.168.1.100";
+    uint16_t srcPort = 50001;
+    std::string dstIp = "8.8.8.8";
+    uint16_t dstPort = 53;
+    uint8_t protocol = 17; // UDP
+    uint32_t uid = 0;
+    uint32_t pid = 0;
+    auto ret = instance_->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_EQ(uid, 10042);
+    EXPECT_EQ(pid, 12345);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

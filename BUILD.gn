@@ -79,6 +79,11 @@ group("netfirewall_packages") {
         "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_manager",
       ]
     }
+    if (netmanager_ext_feature_traffic_filter || netmanager_ext_feature_traffic_redirect) {
+      deps += [
+        "$NETMANAGER_EXT_ROOT/frameworks/c/net_trafficfilter:net_trafficfilter",
+      ]
+    }
   }
 }
 

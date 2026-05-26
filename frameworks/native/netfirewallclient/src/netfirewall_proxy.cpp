@@ -351,5 +351,252 @@ int32_t NetFirewallProxy::UnregisterInterceptRecordsCallback(const sptr<INetInte
     }
     return ret;
 }
+
+int32_t NetFirewallProxy::CreateRedirector(uint32_t groupId, uint32_t priority,
+    const sptr<NetTrafficFilterConfig> &config, std::string& redirectorId)
+{
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("config is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteUint32(groupId)) {
+        NETMGR_EXT_LOG_E("WriteUint32 groupId failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteUint32(priority)) {
+        NETMGR_EXT_LOG_E("WriteUint32 priority failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!config->Marshalling(data)) {
+        NETMGR_EXT_LOG_E("proxy Marshalling config failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(CREATE_REDIRECTOR), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    if (!reply.ReadString(redirectorId)) {
+        NETMGR_EXT_LOG_E("ReadString redirectorId failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallProxy::DestroyRedirector(const std::string& redirectorId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(redirectorId)) {
+        NETMGR_EXT_LOG_E("WriteString redirectorId failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(DESTROY_REDIRECTOR), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+    }
+    return ret;
+}
+
+int32_t NetFirewallProxy::AddRedirectRule(const std::string& redirectorId,
+    const sptr<TrafficFilterRedirectRule> &rule)
+{
+    if (rule == nullptr) {
+        NETMGR_EXT_LOG_E("rule is null");
+        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(redirectorId)) {
+        NETMGR_EXT_LOG_E("WriteString redirectorId failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!rule->Marshalling(data)) {
+        NETMGR_EXT_LOG_E("proxy Marshalling rule failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(ADD_REDIRECT_RULE), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallProxy::ClearRedirectRule(const std::string& redirectorId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(redirectorId)) {
+        NETMGR_EXT_LOG_E("WriteString redirectorId failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(CLEAR_REDIRECT_RULE), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+    }
+    return ret;
+}
+
+int32_t NetFirewallProxy::GlobalEnableTrafficFilter()
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(GLOBAL_ENABLE_TRAFFIC_FILTER), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+    }
+    return ret;
+}
+
+int32_t NetFirewallProxy::GlobalDisableTrafficFilter()
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(GLOBAL_DISABLE_TRAFFIC_FILTER), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+    }
+    return ret;
+}
+
+int32_t NetFirewallProxy::GetTrafficFilterGlobalStatus(bool& isEnabled)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(GET_TRAFFIC_FILTER_GLOBAL_STATUS), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    if (!reply.ReadBool(isEnabled)) {
+        NETMGR_EXT_LOG_E("ReadBool failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallProxy::QueryProcess(const std::string& srcIp, uint16_t srcPort,
+    const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(srcIp)) {
+        NETMGR_EXT_LOG_E("WriteString srcIp failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteUint16(srcPort)) {
+        NETMGR_EXT_LOG_E("WriteUint16 srcPort failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteString(dstIp)) {
+        NETMGR_EXT_LOG_E("WriteString dstIp failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteUint16(dstPort)) {
+        NETMGR_EXT_LOG_E("WriteUint16 dstPort failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteUint8(protocol)) {
+        NETMGR_EXT_LOG_E("WriteUint8 protocol failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(QUERY_PROCESS), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    if (!reply.ReadUint32(uid)) {
+        NETMGR_EXT_LOG_E("ReadUint32 uid failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    if (!reply.ReadUint32(pid)) {
+        NETMGR_EXT_LOG_E("ReadUint32 pid failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return FIREWALL_SUCCESS;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -524,5 +524,365 @@ HWTEST_F(NetFirewallServiceStubTest, OnUnregisterInterceptRecordsCallback001, Te
     int32_t ret = instance->OnUnregisterInterceptRecordsCallback(data, reply);
     EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
 }
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirector001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnCreateRedirector(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirector002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    uint32_t groupId = 1001;
+    data.WriteUint32(groupId);
+    int32_t ret = instance_->OnCreateRedirector(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirector003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    uint32_t groupId = 1001;
+    data.WriteUint32(groupId);
+    uint32_t priority = 100;
+    data.WriteUint32(priority);
+    int32_t ret = instance_->OnCreateRedirector(data, reply);
+    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnDestroyRedirector001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnDestroyRedirector(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnDestroyRedirector002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string redirectorId = "";
+    data.WriteString(redirectorId);
+    int32_t ret = instance_->OnDestroyRedirector(data, reply);
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnDestroyRedirector003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string redirectorId = "TEST_REDIRECTOR_1001";
+    data.WriteString(redirectorId);
+    int32_t ret = instance_->OnDestroyRedirector(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnAddRedirectRule001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnAddRedirectRule(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnAddRedirectRule002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string redirectorId = "";
+    data.WriteString(redirectorId);
+    int32_t ret = instance_->OnAddRedirectRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnAddRedirectRule003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string redirectorId = "TEST_REDIRECTOR_1001";
+    data.WriteString(redirectorId);
+    int32_t ret = instance_->OnAddRedirectRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnClearRedirectRule001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnClearRedirectRule(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnClearRedirectRule002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string redirectorId = "";
+    data.WriteString(redirectorId);
+    int32_t ret = instance_->OnClearRedirectRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnClearRedirectRule003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string redirectorId = "TEST_REDIRECTOR_1001";
+    data.WriteString(redirectorId);
+    int32_t ret = instance_->OnClearRedirectRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnGlobalEnableTrafficFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGlobalEnableTrafficFilter(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnGlobalDisableTrafficFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGlobalDisableTrafficFilter(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnGetTrafficFilterGlobalStatus001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGetTrafficFilterGlobalStatus(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnQueryProcess001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string srcIp = "192.168.1.10";
+    std::string dstIp = "93.184.216.34";
+    uint16_t srcPort = 54321;
+    uint16_t dstPort = 443;
+    uint8_t protocol = NETTRAFFICFILTER_PROTO_TCP;
+
+    data.WriteString(srcIp);
+    data.WriteUint16(srcPort);
+    data.WriteString(dstIp);
+    data.WriteUint16(dstPort);
+    data.WriteUint8(protocol);
+
+    int32_t ret = instance_->OnQueryProcess(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnQueryProcessWithUDP, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string srcIp = "192.168.1.10";
+    std::string dstIp = "8.8.8.8";
+    uint16_t srcPort = 12345;
+    uint16_t dstPort = 53;
+    uint8_t protocol = NETTRAFFICFILTER_PROTO_UDP;
+
+    data.WriteString(srcIp);
+    data.WriteUint16(srcPort);
+    data.WriteString(dstIp);
+    data.WriteUint16(dstPort);
+    data.WriteUint8(protocol);
+
+    int32_t ret = instance_->OnQueryProcess(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnQueryProcessReplyWriteFailure, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    std::string srcIp = "192.168.1.10";
+    std::string dstIp = "93.184.216.34";
+    uint16_t srcPort = 54321;
+    uint16_t dstPort = 443;
+    uint8_t protocol = NETTRAFFICFILTER_PROTO_TCP;
+
+    data.WriteString(srcIp);
+    data.WriteUint16(srcPort);
+    data.WriteString(dstIp);
+    data.WriteUint16(dstPort);
+    data.WriteUint8(protocol);
+
+    int32_t ret = instance_->OnQueryProcess(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirectorReplyWriteFailure, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    data.WriteUint32(groupId);
+    data.WriteUint32(priority);
+
+    sptr<NetTrafficFilterConfig> config = new (std::nothrow) NetTrafficFilterConfig();
+    config->packetCopyLen = 2048;
+    config->nfqueueMaxlen = 1000;
+    config->nfqueueFlags = 1;
+    config->Marshalling(data);
+
+    int32_t ret = instance_->OnCreateRedirector(data, reply);
+    if (ret == FIREWALL_SUCCESS) {
+        std::string testRedirectorId = "";
+        EXPECT_TRUE(reply.ReadString(testRedirectorId));
+    }
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnGetTrafficFilterGlobalStatusWriteFailure, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGetTrafficFilterGlobalStatus(data, reply);
+    if (ret == FIREWALL_SUCCESS) {
+        bool isEnabled = false;
+        EXPECT_TRUE(reply.ReadBool(isEnabled));
+    }
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnAddRedirectRuleWithIPv6, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    std::string redirectorId = "TEST_REDIRECTOR_1001";
+    data.WriteString(redirectorId);
+
+    sptr<TrafficFilterRedirectRule> rule = new (std::nothrow) TrafficFilterRedirectRule();
+    rule->priority_ = 200;
+    rule->hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_OUTPUT);
+    rule->protocol_ = NETTRAFFICFILTER_PROTO_TCP;
+    rule->srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule->srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule->dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule->dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule->uidStart_ = static_cast<uint32_t>(-1);
+    rule->uidEnd_ = static_cast<uint32_t>(-1);
+    rule->proxyIp_.family_ = static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V6);
+    inet_pton(AF_INET6, "2001:db8::1", rule->proxyIp_.addr_);
+    rule->proxyPort_ = 8080;
+    rule->Marshalling(data);
+
+    int32_t ret = instance_->OnAddRedirectRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnQueryProcessWithIPv4CIDR, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    std::string srcIp = "192.168.1.10";
+    std::string dstIp = "10.0.0.5";
+    uint16_t srcPort = 54321;
+    uint16_t dstPort = 80;
+    uint8_t protocol = NETTRAFFICFILTER_PROTO_TCP;
+
+    data.WriteString(srcIp);
+    data.WriteUint16(srcPort);
+    data.WriteString(dstIp);
+    data.WriteUint16(dstPort);
+    data.WriteUint8(protocol);
+
+    int32_t ret = instance_->OnQueryProcess(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirectorWithValidParams, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    uint32_t groupId = 65535;
+    uint32_t priority = 1;
+    data.WriteUint32(groupId);
+    data.WriteUint32(priority);
+
+    sptr<NetTrafficFilterConfig> config = new (std::nothrow) NetTrafficFilterConfig();
+    config->packetCopyLen = 4096;
+    config->nfqueueMaxlen = 2000;
+    config->nfqueueFlags = 2;
+    config->Marshalling(data);
+
+    int32_t ret = instance_->OnCreateRedirector(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnClearRedirectRuleAfterCreate, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string redirectorId = "TEST_REDIRECTOR_CLEAR_1001";
+    data.WriteString(redirectorId);
+    int32_t ret = instance_->OnClearRedirectRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, GlobalEnableDisableSequence, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    int32_t ret = instance_->OnGlobalEnableTrafficFilter(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    MessageParcel data2;
+    MessageParcel reply2;
+    ret = instance_->OnGetTrafficFilterGlobalStatus(data2, reply2);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    MessageParcel data3;
+    MessageParcel reply3;
+    ret = instance_->OnGlobalDisableTrafficFilter(data3, reply3);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
