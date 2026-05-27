@@ -21,12 +21,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-constexpr int32_t TYPE_CASE_0 = 0;
-constexpr int32_t TYPE_CASE_1 = 1;
-constexpr int32_t TYPE_CASE_2 = 2;
-constexpr int32_t TYPE_CASE_3 = 3;
-constexpr int32_t TYPE_CASE_4 = 4;
-
 // Firewall policy
 bool NetFirewallPolicy::Marshalling(Parcel &parcel) const
 {
@@ -398,27 +392,27 @@ bool TrafficFilterIPMatch::Marshalling(Parcel &parcel) const
         return false;
     }
     switch (type_) {
-        case TYPE_CASE_0:
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY):
             break;
-        case TYPE_CASE_1:
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE):
             if (!single_.Marshalling(parcel)) {
                 NETMGR_EXT_LOG_E("Write single IP failed");
                 return false;
             }
             break;
-        case TYPE_CASE_2:
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_CIDR):
             if (!cidr_.Marshalling(parcel)) {
                 NETMGR_EXT_LOG_E("Write CIDR failed");
                 return false;
             }
             break;
-        case TYPE_CASE_3:
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_RANGE):
             if (!range_.Marshalling(parcel)) {
                 NETMGR_EXT_LOG_E("Write IP range failed");
                 return false;
             }
             break;
-        case TYPE_CASE_4:
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_MULTI):
             if (!multi_.Marshalling(parcel)) {
                 NETMGR_EXT_LOG_E("Write IP multi failed");
                 return false;
@@ -434,9 +428,9 @@ bool TrafficFilterIPMatch::Marshalling(Parcel &parcel) const
 bool TrafficFilterIPMatch::UnmarshallingByType(Parcel &parcel)
 {
     switch (type_) {
-        case TYPE_CASE_0:
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY):
             return true;
-        case TYPE_CASE_1: {
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE): {
             sptr<TrafficFilterIPAddress> single = TrafficFilterIPAddress::Unmarshalling(parcel);
             if (single == nullptr) {
                 NETMGR_EXT_LOG_E("Read single IP failed");
@@ -445,7 +439,7 @@ bool TrafficFilterIPMatch::UnmarshallingByType(Parcel &parcel)
             single_ = *single;
             return true;
         }
-        case TYPE_CASE_2: {
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_CIDR): {
             sptr<TrafficFilterIPCidr> cidr = TrafficFilterIPCidr::Unmarshalling(parcel);
             if (cidr == nullptr) {
                 NETMGR_EXT_LOG_E("Read CIDR failed");
@@ -454,7 +448,7 @@ bool TrafficFilterIPMatch::UnmarshallingByType(Parcel &parcel)
             cidr_ = *cidr;
             return true;
         }
-        case TYPE_CASE_3: {
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_RANGE): {
             sptr<TrafficFilterIPRange> range = TrafficFilterIPRange::Unmarshalling(parcel);
             if (range == nullptr) {
                 NETMGR_EXT_LOG_E("Read IP range failed");
@@ -463,7 +457,7 @@ bool TrafficFilterIPMatch::UnmarshallingByType(Parcel &parcel)
             range_ = *range;
             return true;
         }
-        case TYPE_CASE_4: {
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_MULTI): {
             sptr<TrafficFilterIPMulti> multi = TrafficFilterIPMulti::Unmarshalling(parcel);
             if (multi == nullptr) {
                 NETMGR_EXT_LOG_E("Read IP multi failed");
@@ -592,21 +586,21 @@ bool TrafficFilterPortMatch::Marshalling(Parcel &parcel) const
         return false;
     }
     switch (type_) {
-        case TYPE_CASE_0:
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY):
             break;
-        case TYPE_CASE_1:
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE):
             if (!parcel.WriteUint16(single_)) {
                 NETMGR_EXT_LOG_E("Write single port failed");
                 return false;
             }
             break;
-        case TYPE_CASE_2:
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_RANGE):
             if (!range_.Marshalling(parcel)) {
                 NETMGR_EXT_LOG_E("Write port range failed");
                 return false;
             }
             break;
-        case TYPE_CASE_3:
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI):
             if (!multi_.Marshalling(parcel)) {
                 NETMGR_EXT_LOG_E("Write port multi failed");
                 return false;
@@ -622,16 +616,16 @@ bool TrafficFilterPortMatch::Marshalling(Parcel &parcel) const
 bool TrafficFilterPortMatch::UnmarshallingByType(Parcel &parcel)
 {
     switch (type_) {
-        case TYPE_CASE_0:
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY):
             return true;
-        case TYPE_CASE_1: {
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE): {
             if (!parcel.ReadUint16(single_)) {
                 NETMGR_EXT_LOG_E("Read single port failed");
                 return false;
             }
             return true;
         }
-        case TYPE_CASE_2: {
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_RANGE): {
             sptr<TrafficFilterPortRange> range = TrafficFilterPortRange::Unmarshalling(parcel);
             if (range == nullptr) {
                 NETMGR_EXT_LOG_E("Read port range failed");
@@ -640,7 +634,7 @@ bool TrafficFilterPortMatch::UnmarshallingByType(Parcel &parcel)
             range_ = *range;
             return true;
         }
-        case TYPE_CASE_3: {
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI): {
             sptr<TrafficFilterPortMulti> multi = TrafficFilterPortMulti::Unmarshalling(parcel);
             if (multi == nullptr) {
                 NETMGR_EXT_LOG_E("Read port multi failed");
