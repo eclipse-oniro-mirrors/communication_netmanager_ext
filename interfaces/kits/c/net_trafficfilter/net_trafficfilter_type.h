@@ -28,7 +28,6 @@
  *
  * @library libnet_trafficfilter.so
  * @kit NetworkKit
- * @permission ohos.permission.kernel.TRAFFIC_FILTER
  * @syscap SystemCapability.Communication.NetManager.NetFirewall
  * @since 26.0.0
  */
@@ -37,6 +36,7 @@
 #define NET_TRAFFICFILTER_TYPE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,14 +93,8 @@ extern "C" {
 #define OH_TRAFFICFILTER_NFQUEUE_FLAG_FAIL_OPEN  0x1
 
 /**
- * @brief Maximum length of process name
- * @since 26.0.0
- */
-#define OH_TRAFFICFILTER_MAX_PROCESS_NAME_LEN 64
-
-/**
  * @brief Maximum length of MAC address string (XX:XX:XX:XX:XX:XX)
- * @since 26.0.0
+ * @since 26.1.0
  */
 #define OH_TRAFFICFILTER_MAC_ADDRSTRLEN       18
 
@@ -146,7 +140,7 @@ extern "C" {
 
 /**
  * @brief TCP flag
- * @since 26.0.0
+ * @since 26.1.0
  */
 #define OH_TRAFFICFILTER_TCP_FLAG_SYN        0x01
 #define OH_TRAFFICFILTER_TCP_FLAG_ACK        0x02
@@ -159,7 +153,7 @@ extern "C" {
 
 /**
  * @brief Connection state bitmap
- * @since 26.0.0
+ * @since 26.1.0
  */
 #define OH_TRAFFICFILTER_CT_STATE_ANY         0x00
 #define OH_TRAFFICFILTER_CT_STATE_NEW         0x01
@@ -252,6 +246,7 @@ typedef enum OH_TrafficFilter_IPMatchType {
      * @since 26.0.0
      */
     OH_TRAFFICFILTER_IP_MATCH_MULTI
+
 } OH_TrafficFilter_IPMatchType;
 
 /**
@@ -550,22 +545,22 @@ typedef struct OH_TrafficFilter_PortMatch {
  *
  * Matches packets based on MAC address
  * Only source MAC is supported
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef struct OH_TrafficFilter_MACMatch {
     /**
      * @brief Enable MAC address matching
-     * @since 26.0.0
+     * @since 26.1.0
      */
     bool enable;
     /**
      * @brief Whether to invert the match result
-     * @since 26.0.0
+     * @since 26.1.0
      */
     bool invert;
     /**
      * @brief Source MAC address (XX:XX:XX:XX:XX:XX format)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     char src_mac[OH_TRAFFICFILTER_MAC_ADDRSTRLEN];
 } OH_TrafficFilter_MACMatch;
@@ -574,22 +569,22 @@ typedef struct OH_TrafficFilter_MACMatch {
  * @brief TCP flags match condition
  *
  * Matches TCP packets based on TCP flag settings
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef struct OH_TrafficFilter_TCPFlagsMatch {
     /**
      * @brief Enable TCP flags matching
-     * @since 26.0.0
+     * @since 26.1.0
      */
     bool enable;
     /**
      * @brief Flag mask (which flags to check, use OH_TRAFFICFILTER_TCP_FLAG_* constants)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint8_t flag_mask;
     /**
      * @brief Flag to compare (which flags must be set)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint8_t flag_comp;
 } OH_TrafficFilter_TCPFlagsMatch;
@@ -598,17 +593,17 @@ typedef struct OH_TrafficFilter_TCPFlagsMatch {
  * @brief Connection tracking match condition
  *
  * Matches packets based on connection tracking states
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef struct OH_TrafficFilter_ConntrackMatch {
     /**
      * @brief Enable conntrack matching
-     * @since 26.0.0
+     * @since 26.1.0
      */
     bool enable;
     /**
      * @brief Connection states (use OH_TRAFFICFILTER_CT_STATE_* bitmap)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint8_t state_mask;
 } OH_TrafficFilter_ConntrackMatch;
@@ -617,22 +612,27 @@ typedef struct OH_TrafficFilter_ConntrackMatch {
  * @brief NFQueue configuration structure
  *
  * This structure only contains NFQueue queue configuration, excluding application layer configuration
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef struct OH_TrafficFilter_Config {
     /**
+     * @brief the actual size of the structure allocated by the caller.
+     * @since 26.1.0
+     */
+    uint32_t size;
+    /**
      * @brief NFQueue packet copy length in bytes, 0xFFFF means entire packet, smaller values copy only header
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t packet_copy_len;
     /**
      * @brief NFQueue maximum queue length (number of packets), 0 means system default (1024)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t nfqueue_maxlen;
     /**
      * @brief NFQueue queue flags, see OH_TRAFFICFILTER_NFQUEUE_FLAG_* definitions
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t nfqueue_flags;
 } OH_TrafficFilter_Config;
@@ -646,10 +646,15 @@ typedef struct OH_TrafficFilter_Config {
  */
 typedef struct OH_TrafficFilter_ConnectionInfo {
     /**
+     * @brief the actual size of the structure allocated by the caller.
+     * @since 26.0.0
+     */
+    uint32_t size;
+    /**
      * @brief Source IP address, supports IPv4 and IPv6.
      * @since 26.0.0
      */
-    const char* src_ip;
+    OH_TrafficFilter_IPAddress src_ip;
     /**
      * @brief Source port. 0 means any source port.
      * @since 26.0.0
@@ -659,7 +664,7 @@ typedef struct OH_TrafficFilter_ConnectionInfo {
      * @brief Destination IP address, supports IPv4 and IPv6.
      * @since 26.0.0
      */
-    const char* dst_ip;
+    OH_TrafficFilter_IPAddress dst_ip;
     /**
      * @brief Destination port. 0 means any destination port.
      * @since 26.0.0
@@ -681,6 +686,11 @@ typedef struct OH_TrafficFilter_ConnectionInfo {
  */
 typedef struct OH_TrafficFilter_ProcessInfo {
     /**
+     * @brief the actual size of the structure allocated by the caller.
+     * @since 26.0.0
+     */
+    uint32_t size;
+    /**
      * @brief Process ID
      * @since 26.0.0
      */
@@ -694,23 +704,23 @@ typedef struct OH_TrafficFilter_ProcessInfo {
 
 /**
  * @brief Packet controller
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef struct OH_TrafficFilter_PacketController OH_TrafficFilter_PacketController;
 
 /**
  * @brief Packet decision type
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef enum OH_TrafficFilter_PacketDecision {
     /**
      * @brief Accept packet
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TRAFFICFILTER_DECISION_ACCEPT = 0,
     /**
      * @brief Drop packet
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TRAFFICFILTER_DECISION_DROP
 } OH_TrafficFilter_PacketDecision;
@@ -719,52 +729,52 @@ typedef enum OH_TrafficFilter_PacketDecision {
  * @brief Packet descriptor
  *
  * Contains five-tuple information and packet data
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef struct OH_TrafficFilter_PacketDesc {
     /**
      * @brief Packet ID (assigned by kernel when packet arrives at netfilter)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t packet_id;
     /**
      * @brief Protocol type
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint8_t protocol;
     /**
      * @brief Source IP address (supports IPv4 and IPv6)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_IPAddress src_ip;
     /**
      * @brief Source port
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint16_t src_port;
     /**
      * @brief Destination IP address (supports IPv4 and IPv6)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_IPAddress dst_ip;
     /**
      * @brief Destination port
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint16_t dst_port;
     /**
      * @brief Packet length
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t packet_len;
     /**
      * @brief Packet data pointer (user can modify, memory managed by system, valid only during callback)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint8_t* data;
     /**
      * @brief User data (used in callback)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     void* user_data;
 } OH_TrafficFilter_PacketDesc;
@@ -775,7 +785,7 @@ typedef struct OH_TrafficFilter_PacketDesc {
  * @param packet Packet descriptor
  * @param user_data User data
  * @return Packet decision (ACCEPT or DROP)
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef OH_TrafficFilter_PacketDecision (*OH_TrafficFilter_PacketCallback)(
     const OH_TrafficFilter_PacketDesc* packet,
@@ -786,77 +796,82 @@ typedef OH_TrafficFilter_PacketDecision (*OH_TrafficFilter_PacketCallback)(
  * @brief Packet filter rule
  *
  * Defines conditions for matching packets
- * @since 26.0.0
+ * @since 26.1.0
  */
 typedef struct OH_TrafficFilter_FilterRule {
     /**
+     * @brief the actual size of the structure allocated by the caller.
+     * @since 26.1.0
+     */
+    uint32_t size;
+    /**
      * @brief Priority (smaller number means higher priority)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t priority;
     /**
      * @brief Hook point
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_HookPoint hook_point;
     /**
      * @brief Protocol (0=any, 6=TCP, 17=UDP)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint8_t protocol;
     /**
      * @brief Source IP match condition
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_IPMatch src_ip;
     /**
      * @brief Source port match condition
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_PortMatch src_port;
     /**
      * @brief Destination IP match condition
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_IPMatch dst_ip;
     /**
      * @brief Destination port match condition
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_PortMatch dst_port;
     /**
      * @brief Incoming interface match condition
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_InterfaceMatch in_interface;
     /**
      * @brief Outgoing interface match condition
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_InterfaceMatch out_interface;
     /**
      * @brief Application UID range start (UINT32_MAX means any)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t uid_start;
     /**
      * @brief Application UID range end (UINT32_MAX means any)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     uint32_t uid_end;
     /**
      * @brief MAC address match condition (only source MAC)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_MACMatch mac_match;
     /**
      * @brief TCP flags match condition (valid only for TCP protocol)
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_TCPFlagsMatch tcp_flags_match;
     /**
      * @brief Connection tracking match condition
-     * @since 26.0.0
+     * @since 26.1.0
      */
     OH_TrafficFilter_ConntrackMatch conntrack_match;
 } OH_TrafficFilter_FilterRule;
@@ -874,6 +889,11 @@ typedef struct OH_TrafficFilter_Redirector OH_TrafficFilter_Redirector;
  * @since 26.0.0
  */
 typedef struct OH_TrafficFilter_RedirectRule {
+    /**
+     * @brief the actual size of the structure allocated by the caller.
+     * @since 26.0.0
+     */
+    uint32_t size;
     /**
      * @brief Priority (smaller number means higher priority, same rule as packet filter)
      * @since 26.0.0

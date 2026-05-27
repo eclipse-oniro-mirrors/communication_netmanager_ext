@@ -41,9 +41,13 @@ int32_t OH_TrafficFilter_AddRedirectRule(OH_TrafficFilter_Redirector* redirector
         NETMGR_EXT_LOG_E("AddRedirectRule: redirector is NULL");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-
     if (rule == nullptr) {
         NETMGR_EXT_LOG_E("AddRedirectRule: rule is NULL");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (rule->size < REDIRECT_RULE_MIN_SIZE) {
+        NETMGR_EXT_LOG_E("AddRedirectRule: invalid rule size=%{public}u, min=%{public}u",
+            rule->size, REDIRECT_RULE_MIN_SIZE);
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
     return RedirectorAdapterManager::GetInstance().AddRedirectRule(redirector, rule);
@@ -58,31 +62,47 @@ int32_t OH_TrafficFilter_ClearRedirectRule(OH_TrafficFilter_Redirector* redirect
     return RedirectorAdapterManager::GetInstance().ClearRedirectRule(redirector);
 }
 
-int32_t OH_TrafficFilter_QueryProcess(const OH_TrafficFilter_ConnectionInfo* connection_info,
-    OH_TrafficFilter_ProcessInfo* process_info)
+int32_t OH_TrafficFilter_QueryProcess(const OH_TrafficFilter_ConnectionInfo* connectionInfo,
+    OH_TrafficFilter_ProcessInfo* processInfo)
 {
-    if (connection_info == nullptr || process_info == nullptr) {
-        NETMGR_EXT_LOG_E("QueryProcess: invalid parameters, connection_info or process_info is null");
+    if (connectionInfo == nullptr || processInfo == nullptr) {
+        NETMGR_EXT_LOG_E("QueryProcess: connectionInfo or processInfo is null");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    if (connection_info->src_ip == nullptr || connection_info->dst_ip == nullptr) {
-        NETMGR_EXT_LOG_E("QueryProcess: invalid parameters, src_ip or dst_ip is null");
+    if (connectionInfo->size < CONNECTION_INFO_MIN_SIZE) {
+        NETMGR_EXT_LOG_E("QueryProcess: invalid connection size=%{public}u, min=%{public}u",
+            connectionInfo->size, CONNECTION_INFO_MIN_SIZE);
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    if (connection_info->src_ip[0] == '\0' || connection_info->dst_ip[0] == '\0') {
-        NETMGR_EXT_LOG_E("QueryProcess: invalid parameters, src_ip or dst_ip is empty");
+    if (processInfo->size < PROCESS_INFO_MIN_SIZE) {
+        NETMGR_EXT_LOG_E("QueryProcess: invalid processInfo size=%{public}u, min=%{public}u",
+            processInfo->size, PROCESS_INFO_MIN_SIZE);
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    if (connection_info->protocol != OH_TRAFFICFILTER_PROTO_TCP &&
-        connection_info->protocol != OH_TRAFFICFILTER_PROTO_UDP) {
-        NETMGR_EXT_LOG_E("QueryProcess: invalid protocol %{public}u", connection_info->protocol);
+    OH_TrafficFilter_IPFamily srcFamily = connectionInfo->src_ip.family;
+    OH_TrafficFilter_IPFamily dstFamily = connectionInfo->dst_ip.family;
+    if (static_cast<int32_t>(srcFamily) == 0) {
+        srcFamily = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    }
+    if (static_cast<int32_t>(dstFamily) == 0) {
+        dstFamily = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    }
+
+    if ((srcFamily != OH_TRAFFICFILTER_IP_FAMILY_V4 && srcFamily != OH_TRAFFICFILTER_IP_FAMILY_V6) ||
+        (dstFamily != OH_TRAFFICFILTER_IP_FAMILY_V4 && dstFamily != OH_TRAFFICFILTER_IP_FAMILY_V6)) {
+        NETMGR_EXT_LOG_E("QueryProcess: invalid family, src=%{public}d, dst=%{public}d",
+            static_cast<int32_t>(connectionInfo->src_ip.family),
+            static_cast<int32_t>(connectionInfo->dst_ip.family));
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    return RedirectorAdapterManager::GetInstance().QueryProcess(
-        connection_info->src_ip, connection_info->src_port, connection_info->dst_ip,
-        connection_info->dst_port, connection_info->protocol, process_info);
+    if (connectionInfo->protocol != OH_TRAFFICFILTER_PROTO_TCP &&
+        connectionInfo->protocol != OH_TRAFFICFILTER_PROTO_UDP) {
+        NETMGR_EXT_LOG_E("QueryProcess: invalid protocol=%{public}u", connectionInfo->protocol);
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return RedirectorAdapterManager::GetInstance().QueryProcess(connectionInfo, processInfo);
 }

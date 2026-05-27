@@ -25,6 +25,12 @@ struct OH_TrafficFilter_Redirector {
 
 namespace OHOS {
 namespace NetManagerStandard {
+constexpr uint32_t CONNECTION_INFO_MIN_SIZE =
+    static_cast<uint32_t>(offsetof(OH_TrafficFilter_ConnectionInfo, protocol) + sizeof(uint8_t));
+constexpr uint32_t PROCESS_INFO_MIN_SIZE =
+    static_cast<uint32_t>(offsetof(OH_TrafficFilter_ProcessInfo, size) + sizeof(uint32_t));
+constexpr uint32_t REDIRECT_RULE_MIN_SIZE =
+    static_cast<uint32_t>(offsetof(OH_TrafficFilter_RedirectRule, proxy_port) + sizeof(uint16_t));
 
 class RedirectorAdapterManager {
 public:
@@ -38,8 +44,8 @@ public:
 
     int32_t ClearRedirectRule(OH_TrafficFilter_Redirector* redirector);
 
-    int32_t QueryProcess(const char* src_ip, uint16_t src_port, const char* dst_ip,
-        uint16_t dst_port, uint8_t protocol, OH_TrafficFilter_ProcessInfo* process_info);
+    int32_t QueryProcess(const OH_TrafficFilter_ConnectionInfo* connectionInfo,
+        OH_TrafficFilter_ProcessInfo* processInfo);
 
 private:
     RedirectorAdapterManager() = default;

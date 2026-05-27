@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+#include <arpa/inet.h>
+#include <cstddef>
+#include <cstring>
+#include <string>
 #include "net_trafficfilter_adapter.h"
 #include "netfirewall_client.h"
 #include "netfirewall_common.h"
@@ -122,6 +126,54 @@ static bool ConvertCInterfaceMatchToInterfaceMatch(
     ipcMatch.ifName_ = std::string(cMatch.ifName, OH_TRAFFICFILTER_IFNAMSIZ);
     ipcMatch.ifName_.resize(strnlen(cMatch.ifName, OH_TRAFFICFILTER_IFNAMSIZ));
     return true;
+}
+
+bool ConvertTrafficFilterIpToString(const OH_TrafficFilter_IPAddress& ip, std::string& ipStr)
+{
+    ipStr.clear();
+    OH_TrafficFilter_IPFamily family = ip.family;
+    if (static_cast<int32_t>(family) == 0) {
+        family = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    }
+    char buf[INET6_ADDRSTRLEN] = {0};
+    if (family == OH_TRAFFICFILTER_IP_FAMILY_V4) {
+        if (inet_ntop(AF_INET, ip.addr, buf, sizeof(buf)) == nullptr) {
+            NETMGR_EXT_LOG_E("ConvertTrafficFilterIpToString: convert IPv4 failed");
+            return false;
+        }
+        ipStr = buf;
+        return true;
+    }
+    if (family == OH_TRAFFICFILTER_IP_FAMILY_V6) {
+        if (inet_ntop(AF_INET6, ip.addr, buf, sizeof(buf)) == nullptr) {
+            NETMGR_EXT_LOG_E("ConvertTrafficFilterIpToString: convert IPv6 failed");
+            return false;
+        }
+        ipStr = buf;
+        return true;
+    }
+    NETMGR_EXT_LOG_E("ConvertTrafficFilterIpToString: invalid family=%{public}d",
+        static_cast<int32_t>(ip.family));
+    return false;
+}
+
+static bool IsFieldInSize(uint32_t structSize, size_t fieldOffset, size_t fieldSize)
+{
+    return structSize >= fieldOffset + fieldSize;
+}
+
+static void FillProcessInfoBySize(OH_TrafficFilter_ProcessInfo* processInfo,
+    uint32_t pid, uint32_t uid)
+{
+    uint32_t structSize = processInfo->size;
+    if (IsFieldInSize(structSize, offsetof(OH_TrafficFilter_ProcessInfo, pid),
+        sizeof(processInfo->pid))) {
+        processInfo->pid = pid;
+    }
+    if (IsFieldInSize(structSize, offsetof(OH_TrafficFilter_ProcessInfo, uid),
+        sizeof(processInfo->uid))) {
+        processInfo->uid = uid;
+    }
 }
 
 static bool ValidateBasicRuleFields(const OH_TrafficFilter_RedirectRule* rule)
@@ -336,8 +388,7 @@ int32_t RedirectorAdapterManager::CreateRedirector(uint32_t group_id, uint32_t p
     NETMGR_EXT_LOG_I("CreateRedirector: group_id=%{public}u, priority=%{public}u", group_id, priority);
 
     std::string redirectorId = "";
-    int32_t ret = NetFirewallClient::GetInstance().CreateRedirector(
-        group_id, priority, redirectorId);
+    int32_t ret = NetFirewallClient::GetInstance().CreateRedirector(group_id, priority, redirectorId);
     if (ret != 0) {
         NETMGR_EXT_LOG_E("CreateRedirector: NetFirewallClient::CreateRedirector failed, ret=%{public}d", ret);
         return ret;
@@ -381,12 +432,15 @@ int32_t RedirectorAdapterManager::AddRedirectRule(
         NETMGR_EXT_LOG_E("AddRedirectRule: redirector is NULL");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-
     if (rule == nullptr) {
         NETMGR_EXT_LOG_E("AddRedirectRule: rule is NULL");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-
+    if (rule->size < REDIRECT_RULE_MIN_SIZE) {
+        NETMGR_EXT_LOG_E("AddRedirectRule: invalid rule size=%{public}u, min=%{public}u",
+            rule->size, REDIRECT_RULE_MIN_SIZE);
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
     if (!ValidateRedirectRule(rule)) {
         NETMGR_EXT_LOG_E("AddRedirectRule: rule validation failed");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
@@ -394,13 +448,11 @@ int32_t RedirectorAdapterManager::AddRedirectRule(
 
     NETMGR_EXT_LOG_I("AddRedirectRule: priority=%{public}u, hook_point=%{public}d",
         rule->priority, rule->hook_point);
-
     std::string redirectorId;
     if (!GetRedirectorId(redirector, redirectorId)) {
         NETMGR_EXT_LOG_E("AddRedirectRule: redirector handle not found in map");
         return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
     }
-
     OHOS::sptr<TrafficFilterRedirectRule> cppRule = new (std::nothrow) TrafficFilterRedirectRule();
     if (cppRule == nullptr) {
         NETMGR_EXT_LOG_E("AddRedirectRule: failed to create TrafficFilterRedirectRule");
@@ -445,34 +497,47 @@ int32_t RedirectorAdapterManager::ClearRedirectRule(OH_TrafficFilter_Redirector*
     return OH_TRAFFICFILTER_OK;
 }
 
-int32_t RedirectorAdapterManager::QueryProcess(
-    const char* src_ip, uint16_t src_port, const char* dst_ip,
-    uint16_t dst_port, uint8_t protocol,
-    OH_TrafficFilter_ProcessInfo* process_info)
+int32_t RedirectorAdapterManager::QueryProcess(const OH_TrafficFilter_ConnectionInfo* connectionInfo,
+    OH_TrafficFilter_ProcessInfo* processInfo)
 {
-    if (src_ip == nullptr || dst_ip == nullptr || process_info == nullptr) {
-        NETMGR_EXT_LOG_E("QueryProcess: invalid parameters");
+    if (connectionInfo == nullptr || processInfo == nullptr) {
+        NETMGR_EXT_LOG_E("QueryProcess: connectionInfo or processInfo is null");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (connectionInfo->size < CONNECTION_INFO_MIN_SIZE ||
+        processInfo->size < PROCESS_INFO_MIN_SIZE) {
+        NETMGR_EXT_LOG_E("QueryProcess: invalid struct size, connection=%{public}u, process=%{public}u",
+            connectionInfo->size, processInfo->size);
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (connectionInfo->protocol != OH_TRAFFICFILTER_PROTO_TCP &&
+        connectionInfo->protocol != OH_TRAFFICFILTER_PROTO_UDP) {
+        NETMGR_EXT_LOG_E("QueryProcess: invalid protocol=%{public}u", connectionInfo->protocol);
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    if (protocol != OH_TRAFFICFILTER_PROTO_TCP && protocol != OH_TRAFFICFILTER_PROTO_UDP) {
-        NETMGR_EXT_LOG_E("QueryProcess: invalid protocol %{public}u", protocol);
+    std::string srcIp;
+    std::string dstIp;
+    if (!ConvertTrafficFilterIpToString(connectionInfo->src_ip, srcIp)) {
+        NETMGR_EXT_LOG_E("QueryProcess: convert src_ip failed");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (!ConvertTrafficFilterIpToString(connectionInfo->dst_ip, dstIp)) {
+        NETMGR_EXT_LOG_E("QueryProcess: convert dst_ip failed");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    std::string srcIp(src_ip);
-    std::string dstIp(dst_ip);
     uint32_t uid = 0;
     uint32_t pid = 0;
-
     int32_t ret = NetFirewallClient::GetInstance().QueryProcess(
-        srcIp, src_port, dstIp, dst_port, protocol, uid, pid);
+        srcIp, connectionInfo->src_port, dstIp, connectionInfo->dst_port,
+        connectionInfo->protocol, uid, pid);
+
     if (ret != OH_TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("QueryProcess: QueryProcess failed, ret=%{public}d", ret);
         return ret;
     }
-    process_info->pid = pid;
-    process_info->uid = uid;
+    FillProcessInfoBySize(processInfo, pid, uid);
     return OH_TRAFFICFILTER_OK;
 }
 
