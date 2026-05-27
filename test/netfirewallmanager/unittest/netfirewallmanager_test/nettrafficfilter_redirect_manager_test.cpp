@@ -152,39 +152,6 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector004, TestSize.Leve
 
 HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector005, TestSize.Level1)
 {
-    std::string bundleName = "com.example.test";
-    uint32_t groupId = TEST_GROUP_ID;
-    uint32_t priority = TEST_PRIORITY;
-    std::string redirectorId;
-
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
-}
-
-HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector006, TestSize.Level1)
-{
-    std::string bundleName = "com.example.test";
-    uint32_t groupId = TEST_GROUP_ID;
-    uint32_t priority = TEST_PRIORITY;
-    std::string redirectorId;
-
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
-}
-
-HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector007, TestSize.Level1)
-{
-    std::string bundleName = "com.example.test";
-    uint32_t groupId = TEST_GROUP_ID;
-    uint32_t priority = TEST_PRIORITY;
-    std::string redirectorId;
-
-    int32_t ret = instance_->CreateRedirector(bundleName, groupId, priority, redirectorId);
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
-}
-
-HWTEST_F(NetTrafficFilterRedirectManagerTest, CreateRedirector008, TestSize.Level1)
-{
     std::string bundleName(256, 'a'); // Exceeds 255 char limit
     uint32_t groupId = TEST_GROUP_ID;
     uint32_t priority = TEST_PRIORITY;

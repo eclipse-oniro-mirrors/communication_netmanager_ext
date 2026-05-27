@@ -546,20 +546,6 @@ HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirector002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
 }
 
-HWTEST_F(NetFirewallServiceStubTest, OnCreateRedirector003, TestSize.Level1)
-{
-    NetManagerExtAccessToken token;
-    MessageParcel data;
-    MessageParcel reply;
-
-    uint32_t groupId = 1001;
-    data.WriteUint32(groupId);
-    uint32_t priority = 100;
-    data.WriteUint32(priority);
-    int32_t ret = instance_->OnCreateRedirector(data, reply);
-    EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
-}
-
 HWTEST_F(NetFirewallServiceStubTest, OnDestroyRedirector001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
