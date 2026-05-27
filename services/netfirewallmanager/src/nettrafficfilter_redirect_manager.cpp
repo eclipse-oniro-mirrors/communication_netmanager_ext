@@ -65,7 +65,8 @@ void NetTrafficFilterRedirectManager::SortRedirectorList()
         [this](const std::string& a, const std::string& b) {
             auto itA = redirectors_.find(a);
             auto itB = redirectors_.find(b);
-            if (itA == redirectors_.end() || itB == redirectors_.end()) {
+            if (itA == redirectors_.end() || itB == redirectors_.end() ||
+                itA->second == nullptr || itB->second == nullptr) {
                 return false;
             }
             return itA->second->GetPriority() < itB->second->GetPriority();
@@ -311,6 +312,13 @@ bool NetTrafficFilterRedirectManager::ValidatePortMatch(const TrafficFilterPortM
 {
     if (!ValidatePortMatchType(portMatch.type_)) {
         return false;
+    }
+    if (portMatch.type_ == static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_RANGE)) {
+        if (portMatch.range_.startPort_ > portMatch.range_.endPort_) {
+            NETMGR_EXT_LOG_E("invalid port range, start=%{public}u, end=%{public}u",
+                portMatch.range_.startPort_, portMatch.range_.endPort_);
+            return false;
+        }
     }
     if (portMatch.type_ == static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI)) {
         if (portMatch.multi_.portCount_ > MAX_RULE_PORT_COUNT) {
@@ -846,7 +854,7 @@ int32_t NetTrafficFilterRedirectManager::AddRedirectRule(const std::string& redi
     std::set<TrafficFilterHookPoint> affectedHookPoints = oldHookPoints;
     affectedHookPoints.insert(newHookPoint);
     int32_t addRet = redirector->AddRuleWithPriority(*rule);
-    if (addRet != TRAFFICFILTER_OK && addRet != TRAFFICFILTER_OK) {
+    if (addRet != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("AddRedirectRule failed to add rule with priority");
         redirector->RestoreRules(oldRules);
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
@@ -867,7 +875,7 @@ int32_t NetTrafficFilterRedirectManager::AddRedirectRule(const std::string& redi
     } else {
         NETMGR_EXT_LOG_I("Global disabled, rules added internally but not applied to iptables");
         if (redirector->HasRules() && !redirector->IsPaused()) {
-            const_cast<NetTrafficFilterRedirectorContext*>(redirector.get())->SetPaused(true);
+            redirector->SetPaused(true);
         }
     }
     NETMGR_EXT_LOG_I("Redirect rule added successfully");
@@ -926,6 +934,9 @@ int32_t NetTrafficFilterRedirectManager::PauseAllRedirectors()
     }
 
     for (const auto& [redirectorId, redirector] : redirectors_) {
+        if (redirector == nullptr) {
+            continue;
+        }
         if (redirector->IsPaused()) {
             NETMGR_EXT_LOG_I("Redirector %{public}s already paused, skip", redirectorId.c_str());
             continue;
@@ -948,7 +959,7 @@ int32_t NetTrafficFilterRedirectManager::PauseAllRedirectors()
             }
         }
 
-        const_cast<NetTrafficFilterRedirectorContext*>(redirector.get())->SetPaused(true);
+        redirector->SetPaused(true);
     }
 
     NETMGR_EXT_LOG_I("Paused all redirectors");
@@ -965,12 +976,15 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
     }
 
     for (const auto& [redirectorId, redirector] : redirectors_) {
+        if (redirector == nullptr) {
+            continue;
+        }
         if (!redirector->IsPaused()) {
             NETMGR_EXT_LOG_I("Redirector %{public}s not paused, skip resuming", redirectorId.c_str());
             continue;
         }
 
-        const_cast<NetTrafficFilterRedirectorContext*>(redirector.get())->SetPaused(false);
+        redirector->SetPaused(false);
     }
 
     std::set<TrafficFilterHookPoint> hookPointsToReorder;
@@ -1019,7 +1033,9 @@ int32_t NetTrafficFilterRedirectManager::PauseRedirectorsByBundleName(const std:
             continue;
         }
         auto& redirector = it->second;
-
+        if (redirector == nullptr) {
+            continue;
+        }
         if (redirector->IsPaused() || !redirector->HasRules()) {
             NETMGR_EXT_LOG_I("Redirector %{public}s already paused or has no rules, skip", redirectorId.c_str());
             continue;
@@ -1039,7 +1055,7 @@ int32_t NetTrafficFilterRedirectManager::PauseRedirectorsByBundleName(const std:
             }
         }
 
-        const_cast<NetTrafficFilterRedirectorContext*>(redirector.get())->SetPaused(true);
+        redirector->SetPaused(true);
     }
 
     NETMGR_EXT_LOG_I("Paused redirectors for bundleName: %{public}s", bundleName.c_str());
@@ -1063,11 +1079,14 @@ int32_t NetTrafficFilterRedirectManager::ResumeRedirectorStateByBundleName(const
             continue;
         }
         auto& redirector = it->second;
+        if (redirector == nullptr) {
+            continue;
+        }
         if (!redirector->IsPaused()) {
             NETMGR_EXT_LOG_I("Redirector %{public}s not paused, skip resuming", redirectorId.c_str());
             continue;
         }
-        const_cast<NetTrafficFilterRedirectorContext*>(redirector.get())->SetPaused(false);
+        redirector->SetPaused(false);
     }
     NETMGR_EXT_LOG_I("Resumed redirector state for bundleName: %{public}s", bundleName.c_str());
     return TRAFFICFILTER_OK;
@@ -1088,6 +1107,9 @@ int32_t NetTrafficFilterRedirectManager::RebuildRedirectorRulesByBundleName(cons
                 continue;
             }
             auto redirector = it->second;
+            if (redirector == nullptr) {
+                continue;
+            }
             if (!redirector->HasRules() || redirector->IsPaused()) {
                 continue;
             }
@@ -1163,7 +1185,7 @@ std::string NetTrafficFilterRedirectManager::GenerateRedirectorId()
 {
     uint32_t id = redirectorIdCounter_++;
     if (redirectorIdCounter_ == 0) {
-        redirectorIdCounter_ = NETTRAFFICFILTER_MIN_GROUP_ID;
+        redirectorIdCounter_ = REDIRECTOR_ID_START;
     }
     return "redir_" + std::to_string(id);
 }
@@ -1175,8 +1197,7 @@ bool NetTrafficFilterRedirectManager::ValidateRedirectRuleFields(
         rule.priority_ > NETTRAFFICFILTER_MAX_PRIORITY) {
         return false;
     }
-    if (rule.protocol_ != NETTRAFFICFILTER_PROTO_TCP &&
-        rule.protocol_ != NETTRAFFICFILTER_PROTO_ANY) {
+    if (rule.protocol_ != NETTRAFFICFILTER_PROTO_TCP) {
         return false;
     }
     if (rule.hookPoint_ != static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING) &&
@@ -1236,6 +1257,9 @@ int32_t NetTrafficFilterRedirectManager::CleanupRedirectorsByUid(int32_t uid, in
     {
         std::lock_guard<std::mutex> lock(mutex_);
         for (const auto& [redirectorId, redirector] : redirectors_) {
+            if (redirector == nullptr) {
+                continue;
+            }
             if (redirector->GetCallingUid() == uid) {
                 if (pid == 0 || redirector->GetCallingPid() == pid) {
                     toRemove.push_back(redirectorId);
@@ -1266,6 +1290,9 @@ int32_t NetTrafficFilterRedirectManager::CleanupRedirectorsByBundleName(
         for (const auto& redirectorId : it->second) {
             auto redirectorIt = redirectors_.find(redirectorId);
             if (redirectorIt == redirectors_.end()) {
+                continue;
+            }
+            if (redirectorIt->second == nullptr) {
                 continue;
             }
             if (redirectorIt->second->GetCallingUid() != uid) {
@@ -1388,20 +1415,28 @@ int32_t NetTrafficFilterRedirectManager::QueryProcess(const std::string& srcIp, 
 bool NetTrafficFilterRedirectManager::MatchTcpConnection(const TcpNetPortStatesInfo& tcpInfo,
     const std::string& srcIp, uint16_t srcPort, const std::string& dstIp, uint16_t dstPort)
 {
-    bool localMatch = (tcpInfo.tcpLocalIp_ == dstIp && tcpInfo.tcpLocalPort_ == dstPort) ||
-        (tcpInfo.tcpLocalIp_ == srcIp && tcpInfo.tcpLocalPort_ == srcPort);
-
-    bool remoteMatch = (tcpInfo.tcpRemoteIp_ == srcIp && tcpInfo.tcpRemotePort_ == srcPort) ||
-        (tcpInfo.tcpRemoteIp_ == dstIp && tcpInfo.tcpRemotePort_ == dstPort);
-
+    bool localMatch =
+        (tcpInfo.tcpLocalIp_ == dstIp &&
+            (dstPort == 0 || tcpInfo.tcpLocalPort_ == dstPort)) ||
+        (tcpInfo.tcpLocalIp_ == srcIp &&
+            (srcPort == 0 || tcpInfo.tcpLocalPort_ == srcPort));
+    bool remoteMatch =
+        (tcpInfo.tcpRemoteIp_ == srcIp &&
+            (srcPort == 0 || tcpInfo.tcpRemotePort_ == srcPort)) ||
+        (tcpInfo.tcpRemoteIp_ == dstIp &&
+            (dstPort == 0 || tcpInfo.tcpRemotePort_ == dstPort));
     return localMatch && remoteMatch;
 }
 
 bool NetTrafficFilterRedirectManager::MatchUdpConnection(const UdpNetPortStatesInfo& udpInfo,
     const std::string& srcIp, uint16_t srcPort, const std::string& dstIp, uint16_t dstPort)
 {
-    return (udpInfo.udpLocalIp_ == srcIp || udpInfo.udpLocalIp_ == dstIp) &&
-           (udpInfo.udpLocalPort_ == srcPort || udpInfo.udpLocalPort_ == dstPort);
+    bool srcMatch = udpInfo.udpLocalIp_ == srcIp &&
+        (srcPort == 0 || udpInfo.udpLocalPort_ == srcPort);
+
+    bool dstMatch = udpInfo.udpLocalIp_ == dstIp &&
+        (dstPort == 0 || udpInfo.udpLocalPort_ == dstPort);
+    return srcMatch || dstMatch;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
