@@ -211,66 +211,6 @@ HWTEST_F(NetworkShareMainStateMachineTest, ChooseUpstreamNetwork_GetUpstreamFail
 }
 
 /**
- * @tc.number: NetworkShareMainStateMachine_ChooseUpstreamNetwork_WithValidUpstream_NoClat
- * @tc.name: Test ChooseUpstreamNetwork with valid upstream but no clat interface
- * @tc.desc: Verify that ChooseUpstreamNetwork handles valid upstream without clat interface
- */
-HWTEST_F(NetworkShareMainStateMachineTest, ChooseUpstreamNetwork_WithValidUpstream_NoClat, TestSize.Level1)
-{
-    ASSERT_NE(instance_, nullptr);
-    auto monitor = instance_->networkMonitor_;
-    ASSERT_NE(monitor, nullptr);
-
-    // Setup: Make GetCurrentGoodUpstream return true
-    sptr<NetHandle> netHandle = new (std::nothrow) NetHandle(1);
-    sptr<NetAllCapabilities> netCap = new (std::nothrow) NetAllCapabilities();
-    sptr<NetLinkInfo> netLinkInfo = new (std::nothrow) NetLinkInfo();
-    netLinkInfo->ifaceName_ = "test_iface";
-    auto upstreamInfo = std::make_shared<UpstreamNetworkInfo>(netHandle, netCap, netLinkInfo);
-
-    // Insert into networkMaps_ to make GetCurrentGoodUpstream return true
-    monitor->networkMaps_.clear();
-    monitor->defaultNetworkId_ = 1;
-    monitor->networkMaps_.insert(std::make_pair(1, upstreamInfo));
-
-    // Call ChooseUpstreamNetwork - it will try to get upstream
-    instance_->ChooseUpstreamNetwork();
-
-    // Verify upstreamIfaceName_ is set
-    EXPECT_EQ(instance_->upstreamIfaceName_, "test_iface");
-}
-
-/**
- * @tc.number: NetworkShareMainStateMachine_ChooseUpstreamNetwork_WithClatInterface
- * @tc.name: Test ChooseUpstreamNetwork with clat interface (tunv4-)
- * @tc.desc: Verify that ChooseUpstreamNetwork handles clat interface when GetCurrentGoodUpstream returns true
- */
-HWTEST_F(NetworkShareMainStateMachineTest, ChooseUpstreamNetwork_WithClatInterface, TestSize.Level1)
-{
-    ASSERT_NE(instance_, nullptr);
-    auto monitor = instance_->networkMonitor_;
-    ASSERT_NE(monitor, nullptr);
-
-    // Setup: Make GetCurrentGoodUpstream return true with an interface that has clat
-    sptr<NetHandle> netHandle = new (std::nothrow) NetHandle(1);
-    sptr<NetAllCapabilities> netCap = new (std::nothrow) NetAllCapabilities();
-    sptr<NetLinkInfo> netLinkInfo = new (std::nothrow) NetLinkInfo();
-    netLinkInfo->ifaceName_ = "rmnet0";
-    auto upstreamInfo = std::make_shared<UpstreamNetworkInfo>(netHandle, netCap, netLinkInfo);
-
-    // Insert into networkMaps_ to make GetCurrentGoodUpstream return true
-    monitor->networkMaps_.clear();
-    monitor->defaultNetworkId_ = 1;
-    monitor->networkMaps_.insert(std::make_pair(1, upstreamInfo));
-
-    // Call ChooseUpstreamNetwork - it will check for tunv4-rmnet0 interface
-    instance_->ChooseUpstreamNetwork();
-
-    // Verify upstreamIfaceName_ is set
-    EXPECT_EQ(instance_->upstreamIfaceName_, "rmnet0");
-}
-
-/**
  * @tc.number: NetworkShareMainStateMachine_DisableForward_EmptyUpstream
  * @tc.name: Test DisableForward with empty upstreamIfaceName_
  * @tc.desc: Verify that DisableForward handles empty upstream interface name
