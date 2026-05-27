@@ -532,7 +532,6 @@ int32_t RedirectorAdapterManager::QueryProcess(const OH_TrafficFilter_Connection
     int32_t ret = NetFirewallClient::GetInstance().QueryProcess(
         srcIp, connectionInfo->src_port, dstIp, connectionInfo->dst_port,
         connectionInfo->protocol, uid, pid);
-
     if (ret != OH_TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("QueryProcess: QueryProcess failed, ret=%{public}d", ret);
         return ret;
