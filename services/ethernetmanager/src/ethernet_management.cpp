@@ -52,6 +52,7 @@ static constexpr const char *ITEM_COMMA = ",";
 static constexpr uint32_t INDEX_ZERO = 0;
 constexpr int SLEEP_TIME_S = 2;
 constexpr uint32_t INDEX_ONE = 1;
+constexpr uint32_t PCI_IDPREFIX_LEN = 2;
 constexpr uint32_t INDEX_TWO = 2;
 constexpr uint32_t INDEX_THREE = 3;
 constexpr uint32_t INDEX_FOUR = 4;
@@ -799,7 +800,8 @@ void EthernetManagement::PciIdsGetName(std::string &name, std::string &line, siz
     }
 }
 
-bool EthernetManagement::QueryPciIdsFile(const std::string &vendorHex, const std::string &deviceHex, +std::string &supplierName, std::string &deviceName)
+bool EthernetManagement::QueryPciIdsFile(const std::string &vendorHex, const std::string &deviceHex,
+    std::string &supplierName, std::string &deviceName)
 {
     std::ifstream infile(PCI_IDS_FILE_PATH);
     if (!infile.is_open()) {
@@ -881,15 +883,15 @@ void EthernetManagement::GetPciEthDeviceInfoExt(const std::string &iface, const 
     bool ret = GetSysNodeValue(devPath + ITEM_VENDOR, tempDeviceInfo.supplierId_);
     std::string devId;
     ret &= GetSysNodeValue(devPath + ITEM_DEVICE, devId);
-    if (tempDeviceInfo.supplierId_.size() > 2 &&
-        tempDeviceInfo.supplierId_.substr(0, 2) == PCI_ID_PREFIX) {
-        tempDeviceInfo.supplierId_ = tempDeviceInfo.supplierId_.substr(2);
+    if (tempDeviceInfo.supplierId_.size() > PCI_IDPREFIX_LEN &&
+        tempDeviceInfo.supplierId_.substr(0, PCI_IDPREFIX_LEN) == PCI_ID_PREFIX) {
+        tempDeviceInfo.supplierId_ = tempDeviceInfo.supplierId_.substr(PCI_IDPREFIX_LEN);
     }
-    if (devId.size() > 2 && devId.substr(0, 2) == PCI_ID_PREFIX) {
-        devId = devId.substr(2);
+    if (devId.size() > PCI_IDPREFIX_LEN && devId.substr(0, PCI_IDPREFIX_LEN) == PCI_ID_PREFIX) {
+        devId = devId.substr(PCI_IDPREFIX_LEN);
     }
     if (!QueryPciIdsFile(tempDeviceInfo.supplierId_, devId,
-            tempDeviceInfo.supplierName_, tempDeviceInfo.deviceName_)) {
+                        tempDeviceInfo.supplierName_, tempDeviceInfo.deviceName_)) {
         NETMGR_EXT_LOG_D("GetPciEthDeviceInfoExt device not in ids file");
         return;
     }
