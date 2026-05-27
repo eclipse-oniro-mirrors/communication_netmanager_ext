@@ -830,8 +830,7 @@ bool EthernetManagement::QueryPciIdsFile(const std::string &vendorHex, const std
                 PciIdsGetName(supplierName, line, idEnd);
                 vendorFound = true;
             }
-        }
-        else if (vendorFound && line.size() > 1 && line[0] == '\t' && line[1] != '\t') {
+        } else if (vendorFound && line.size() > 1 && line[0] == '\t' && line[1] != '\t') {
             std::string devLine = line.substr(1);
             size_t idEnd = devLine.find_first_of(" \t");
             if (idEnd == std::string::npos || idEnd == 0) {
@@ -891,7 +890,7 @@ void EthernetManagement::GetPciEthDeviceInfoExt(const std::string &iface, const 
         devId = devId.substr(PCI_IDPREFIX_LEN);
     }
     if (!QueryPciIdsFile(tempDeviceInfo.supplierId_, devId,
-                        tempDeviceInfo.supplierName_, tempDeviceInfo.deviceName_)) {
+        tempDeviceInfo.supplierName_, tempDeviceInfo.deviceName_)) {
         NETMGR_EXT_LOG_D("GetPciEthDeviceInfoExt device not in ids file");
         return;
     }
