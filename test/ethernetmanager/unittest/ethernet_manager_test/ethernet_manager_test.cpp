@@ -1640,6 +1640,91 @@ HWTEST_F(EthernetManagerTest, EthernetManagerGetDeviceInfoTest01, TestSize.Level
     EXPECT_GE(value.length(), 0);
 }
 
+HWTEST_F(EthernetManagerTest, GetPciEthDeviceInfoExtTest001, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string eth1 = "eth1";
+    std::string vendor = "vendor";
+    std::string device = "device";
+    std::string testPath = "/data/service/el1/public/eth1/";
+    std::vector<EthernetDeviceInfo> deviceInfoList;
+    std::filesystem::create_directories(std::filesystem::path(testPath + device + "/"));
+    std::ofstream outfile(testPath + device + "/" + vendor);
+    if (outfile.is_open()) {
+        outfile << "0x19e5";
+        outfile.close();
+    }
+    std::ofstream outfile2(testPath + device + "/" + device);
+    if (outfile2.is_open()) {
+        outfile2 << "0x0221";
+        outfile2.close();
+    }
+    ethernetManagement->GetPciEthDeviceInfoExt(eth1, testPath, deviceInfoList);
+    EXPECT_TRUE(deviceInfoList.empty());
+    std::filesystem::remove_all(std::filesystem::path(testPath + device + "/"));
+}
+
+HWTEST_F(EthernetManagerTest, GetPciEthDeviceInfoExtTest002, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string eth1 = "eth1";
+    std::string vendor = "vendor";
+    std::string device = "device";
+    std::string testPath = "/data/service/el1/public/eth1/";
+    std::vector<EthernetDeviceInfo> deviceInfoList;
+    std::filesystem::create_directories(std::filesystem::path(testPath + device + "/"));
+    std::ofstream outfile(testPath + device + "/" + vendor);
+    if (outfile.is_open()) {
+        outfile << "0x";
+        outfile.close();
+    }
+    std::ofstream outfile2(testPath + device + "/" + device);
+    if (outfile2.is_open()) {
+        outfile2 << "0x";
+        outfile2.close();
+    }
+    ethernetManagement->GetPciEthDeviceInfoExt(eth1, testPath, deviceInfoList);
+    EXPECT_TRUE(deviceInfoList.empty());
+    std::filesystem::remove_all(std::filesystem::path(testPath + device + "/"));
+}
+
+HWTEST_F(EthernetManagerTest, GetPciEthDeviceInfoExtTest003, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string eth1 = "eth1";
+    std::string vendor = "vendor";
+    std::string device = "device";
+    std::string testPath = "/data/service/el1/public/eth1/";
+    std::vector<EthernetDeviceInfo> deviceInfoList;
+    std::filesystem::create_directories(std::filesystem::path(testPath + device + "/"));
+    std::ofstream outfile(testPath + device + "/" + vendor);
+    if (outfile.is_open()) {
+        outfile << "xx1234";
+        outfile.close();
+    }
+    std::ofstream outfile2(testPath + device + "/" + device);
+    if (outfile2.is_open()) {
+        outfile2 << "xx1234";
+        outfile2.close();
+    }
+    ethernetManagement->GetPciEthDeviceInfoExt(eth1, testPath, deviceInfoList);
+    EXPECT_TRUE(deviceInfoList.empty());
+    std::filesystem::remove_all(std::filesystem::path(testPath + device + "/"));
+}
+
+HWTEST_F(EthernetManagerTest, PciIdsGetName001, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string name = "";
+    std::string line = " \t";
+    size_t idLen = 0;
+    ethernetManagement->PciIdsGetName(name, line, idLen);
+    EXPECT_EQ(name, line);
+    line = " xxxx";
+    ethernetManagement->PciIdsGetName(name, line, idLen);
+    EXPECT_EQ(name, "xxxx");
+}
+
 #ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
 HWTEST_F(EthernetManagerTest, EnableEthernetTest001, TestSize.Level1)
 {

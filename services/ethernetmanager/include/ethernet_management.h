@@ -108,7 +108,12 @@ private:
     bool IsIfaceLinkUp(const std::string &iface);
     bool ModeInputCheck(IPSetMode origin, IPSetMode input);
     bool GetSysNodeValue(const std::string &nodePath, std::string &nodeVal);
+    void PciIdsGetName(std::string &name, std::string &line, size_t idLen);
+    bool QueryPciIdsFile(const std::string &vendorHex, const std::string &deviceHex,
+        std::string &supplierName, std::string &deviceName);
     void GetPciEthDeviceInfo(const std::string &iface, std::string nodePath,
+        std::vector<EthernetDeviceInfo> &deviceInfoList);
+    void GetPciEthDeviceInfoExt(const std::string &iface, const std::string &nodePath,
         std::vector<EthernetDeviceInfo> &deviceInfoList);
     void GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
         std::vector<EthernetDeviceInfo> &deviceInfoList);
