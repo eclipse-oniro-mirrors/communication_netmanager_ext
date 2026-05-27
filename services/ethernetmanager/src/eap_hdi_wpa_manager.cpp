@@ -136,6 +136,7 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
         UnloadDeviceManager();
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
+    setNetCmd_.assign(setNetCmd_.size(), '\0');
     setNetCmd_.clear();
     NETMGR_EXT_LOG_I("StartEap succ");
     return EAP_ERRCODE_SUCCESS;
