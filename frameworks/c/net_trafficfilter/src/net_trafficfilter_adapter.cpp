@@ -123,8 +123,7 @@ static bool ConvertCInterfaceMatchToInterfaceMatch(
     ipcMatch.enabled_ = cMatch.enabled;
     ipcMatch.invert_ = cMatch.invert;
     ipcMatch.isPrefix_ = cMatch.isPrefix;
-    ipcMatch.ifName_ = std::string(cMatch.ifName, OH_TRAFFICFILTER_IFNAMSIZ);
-    ipcMatch.ifName_.resize(strnlen(cMatch.ifName, OH_TRAFFICFILTER_IFNAMSIZ));
+    ipcMatch.ifName_.assign(cMatch.ifName, strnlen(cMatch.ifName, OH_TRAFFICFILTER_IFNAMSIZ));
     return true;
 }
 
@@ -411,7 +410,6 @@ void RedirectorAdapterManager::DestroyRedirector(OH_TrafficFilter_Redirector* re
     std::string redirectorId;
     if (!GetRedirectorId(redirector, redirectorId)) {
         NETMGR_EXT_LOG_E("DestroyRedirector: redirector handle not found in map");
-        RemoveRedirector(redirector);
         return;
     }
 

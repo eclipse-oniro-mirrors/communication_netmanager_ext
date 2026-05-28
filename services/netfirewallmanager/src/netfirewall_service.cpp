@@ -584,7 +584,7 @@ int32_t NetFirewallService::QueryProcess(const std::string& srcIp, uint16_t srcP
 {
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().QueryProcess(
         srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
-    if (ret != TRAFFICFILTER_OK) {
+    if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("QueryProcess failed, ret: %{public}d", ret);
     } else {
         NETMGR_EXT_LOG_I("QueryProcess success: uid=%{public}u, pid=%{public}u", uid, pid);

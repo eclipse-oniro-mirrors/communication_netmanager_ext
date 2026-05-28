@@ -430,7 +430,7 @@ int32_t NetFirewallProxy::AddRedirectRule(const std::string& redirectorId,
     }
     if (!rule->Marshalling(data)) {
         NETMGR_EXT_LOG_E("proxy Marshalling rule failed");
-        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {

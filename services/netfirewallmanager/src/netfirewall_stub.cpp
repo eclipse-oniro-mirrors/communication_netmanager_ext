@@ -457,11 +457,26 @@ int32_t NetFirewallStub::OnGlobalDisableTrafficFilter(MessageParcel &data, Messa
 
 int32_t NetFirewallStub::OnQueryProcess(MessageParcel &data, MessageParcel &reply)
 {
-    std::string srcIp = data.ReadString();
-    uint16_t srcPort = data.ReadUint16();
-    std::string dstIp = data.ReadString();
-    uint16_t dstPort = data.ReadUint16();
-    uint8_t protocol = data.ReadUint8();
+    std::string srcIp;
+    if (!data.ReadString(srcIp)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    uint16_t srcPort;
+    if (!data.ReadUint16(srcPort)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    std::string dstIp;
+    if (!data.ReadString(dstIp)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    uint16_t dstPort;
+    if (!data.ReadUint16(dstPort)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    uint8_t protocol;
+    if (!data.ReadUint8(protocol)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
     uint32_t uid = 0;
     uint32_t pid = 0;
     int32_t ret = QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
