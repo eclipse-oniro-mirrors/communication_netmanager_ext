@@ -22,7 +22,7 @@
 #include <mutex>
 #include <set>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include "netfirewall_common.h"
 #include "nettrafficfilter_redirector_context.h"
@@ -125,12 +125,12 @@ private:
     bool MatchUdpConnection(const UdpNetPortStatesInfo& udpInfo,
         const std::string& srcIp, uint16_t srcPort, const std::string& dstIp, uint16_t dstPort);
 
-    std::unordered_map<std::string, std::shared_ptr<NetTrafficFilterRedirectorContext>> redirectors_;
-    std::unordered_map<std::string, std::vector<std::string>> bundleNameToRedirectorsMap_;
+    std::map<std::string, std::shared_ptr<NetTrafficFilterRedirectorContext>> redirectors_;
+    std::map<std::string, std::vector<std::string>> bundleNameToRedirectorsMap_;
     std::vector<std::string> redirectorIdList_;
     std::atomic<uint32_t> redirectorIdCounter_;
     mutable std::mutex mutex_;
-    std::unordered_map<int32_t, sptr<TrafficFilterHapObserver>> uidToObserverMap_;
+    std::map<int32_t, sptr<TrafficFilterHapObserver>> uidToObserverMap_;
     mutable std::mutex observerMutex_;
     bool isGloballyEnabled_ = true;
 };

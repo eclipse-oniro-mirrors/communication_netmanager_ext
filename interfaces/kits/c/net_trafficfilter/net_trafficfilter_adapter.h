@@ -18,7 +18,7 @@
 
 #include <mutex>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include "net_trafficfilter_type.h"
 struct OH_TrafficFilter_Redirector {
 };
@@ -56,7 +56,7 @@ private:
     void RemoveRedirector(OH_TrafficFilter_Redirector* redirector);
 
     std::mutex mapMutex_;
-    std::unordered_map<OH_TrafficFilter_Redirector*, std::string> redirectorIdMap_;
+    std::map<OH_TrafficFilter_Redirector*, std::string> redirectorIdMap_;
 };
 
 }
