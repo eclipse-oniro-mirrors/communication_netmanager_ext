@@ -53,9 +53,11 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_manager_if",
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_parcel",
     "$NETFIREWALLMANAGER_SOURCE_DIR:netfirewall_manager_static",
+    "$NETMANAGER_EXT_ROOT/utils:net_event_report",
   ]
 
   external_deps = [
+    "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken_shared",
     "access_token:libtoken_setproc",
@@ -66,6 +68,7 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
     "netmanager_base:netsys_controller",
@@ -74,6 +77,7 @@ ohos_fuzztest("netfirewallclient_fuzzer_test") {
     "netmanager_base:net_native_manager_if",
     "netmanager_base:net_service_common",
     "os_account:os_account_innerkits",
+    "preferences:native_preferences",
   ]
 
   defines = [

@@ -1,0 +1,46 @@
+[
+    {
+        "first_introduced": "26.1.0",
+        "name": "OH_TrafficFilter_CreatePacketController"
+    },
+    {
+        "first_introduced": "26.1.0",
+        "name": "OH_TrafficFilter_DestroyPacketController"
+    },
+    {
+        "first_introduced": "26.1.0",
+        "name": "OH_TrafficFilter_RegisterPacketCallback"
+    },
+    {
+        "first_introduced": "26.1.0",
+        "name": "OH_TrafficFilter_UnregisterPacketCallback"
+    },
+    {
+        "first_introduced": "26.1.0",
+        "name": "OH_TrafficFilter_SetPacketRule"
+    },
+    {
+        "first_introduced": "26.1.0",
+        "name": "OH_TrafficFilter_ClearPacketRule"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_TrafficFilter_CreateRedirector"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_TrafficFilter_DestroyRedirector"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_TrafficFilter_AddRedirectRule"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_TrafficFilter_ClearRedirectRule"
+    },
+    {
+        "first_introduced": "26.0.0",
+        "name": "OH_TrafficFilter_QueryProcess"
+    }
+]

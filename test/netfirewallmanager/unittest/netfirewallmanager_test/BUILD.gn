@@ -19,6 +19,16 @@ EXT_SECURITY_PATH = "../../.."
 ohos_unittest("netfirewallmanager_test") {
   module_out_path = "netmanager_ext/netmanager_ext/netfirewallmanager_test"
 
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
     "netfirewall_client_test.cpp",
@@ -30,6 +40,9 @@ ohos_unittest("netfirewallmanager_test") {
     "netfirewall_service_proxy_test.cpp",
     "netfirewall_service_stub_test.cpp",
     "netfirewall_service_test.cpp",
+    "nettrafficfilter_iptables_command_builder_test.cpp",
+    "nettrafficfilter_redirect_manager_test.cpp",
+    "nettrafficfilter_redirector_context_test.cpp",
   ]
 
   include_dirs = [
@@ -44,10 +57,12 @@ ohos_unittest("netfirewallmanager_test") {
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_manager_if",
     "$EXT_INNERKITS_ROOT/netfirewallclient:netfirewall_parcel",
     "$NETFIREWALLMANAGER_SOURCE_DIR:netfirewall_manager_static",
+    "$NETMANAGER_EXT_ROOT/utils:net_event_report",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken_shared",
     "access_token:libtoken_setproc",
@@ -58,12 +73,15 @@ ohos_unittest("netfirewallmanager_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "netmanager_base:netsys_controller",
     "netmanager_base:net_conn_manager_if",
+    "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "netmanager_base:net_service_common",
     "os_account:os_account_innerkits",
+    "preferences:native_preferences",
     "relational_store:native_rdb",
   ]
 

@@ -267,5 +267,92 @@ bool NetFirewallClient::RestartNetFirewallManagerSysAbility()
     NETMGR_EXT_LOG_E("Restart NetFirewallManager failed.");
     return false;
 }
+
+int32_t NetFirewallClient::CreateRedirector(uint32_t groupId, uint32_t priority,
+    std::string& redirectorId)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("CreateRedirector proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->CreateRedirector(groupId, priority, redirectorId);
+}
+
+int32_t NetFirewallClient::DestroyRedirector(const std::string& redirectorId)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("DestroyRedirector proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->DestroyRedirector(redirectorId);
+}
+
+int32_t NetFirewallClient::AddRedirectRule(const std::string& redirectorId,
+    const sptr<TrafficFilterRedirectRule> &rule)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("AddRedirectRule proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->AddRedirectRule(redirectorId, rule);
+}
+
+int32_t NetFirewallClient::ClearRedirectRule(const std::string& redirectorId)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("ClearRedirectRule proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->ClearRedirectRule(redirectorId);
+}
+
+int32_t NetFirewallClient::GlobalEnableTrafficFilter()
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GlobalEnableTrafficFilter();
+}
+
+int32_t NetFirewallClient::GlobalDisableTrafficFilter()
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GlobalDisableTrafficFilter proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GlobalDisableTrafficFilter();
+}
+
+int32_t NetFirewallClient::GetTrafficFilterGlobalStatus(bool& isEnabled)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetTrafficFilterGlobalStatus proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetTrafficFilterGlobalStatus(isEnabled);
+}
+
+int32_t NetFirewallClient::QueryProcess(const std::string& srcIp, uint16_t srcPort,
+    const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("QueryProcess proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    int32_t ret = proxy->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("QueryProcess: service call failed, ret=%{public}d", ret);
+    }
+    return ret;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

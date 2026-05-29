@@ -74,6 +74,46 @@ public:
     {
         return 0;
     }
+
+    int32_t CreateRedirector(uint32_t groupId, uint32_t priority, std::string& redirectorId) override
+    {
+        return 0;
+    }
+
+    int32_t DestroyRedirector(const std::string& redirectorId) override
+    {
+        return 0;
+    }
+
+    int32_t AddRedirectRule(const std::string& redirectorId,
+        const sptr<TrafficFilterRedirectRule> &rule) override
+    {
+        return 0;
+    }
+
+    int32_t ClearRedirectRule(const std::string& redirectorId) override
+    {
+        return 0;
+    }
+
+    int32_t GlobalEnableTrafficFilter() override
+    {
+        return 0;
+    }
+    int32_t GlobalDisableTrafficFilter() override
+    {
+        return 0;
+    }
+    int32_t GetTrafficFilterGlobalStatus(bool& isEnabled) override
+    {
+        return 0;
+    }
+
+    int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
+        const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) override
+    {
+        return 0;
+    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

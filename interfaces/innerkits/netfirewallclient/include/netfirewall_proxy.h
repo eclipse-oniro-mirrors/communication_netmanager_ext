@@ -47,6 +47,16 @@ public:
 
     int32_t UnregisterInterceptRecordsCallback(const sptr<INetInterceptRecordCallback> &callback) override;
 
+    int32_t CreateRedirector(uint32_t groupId, uint32_t priority, std::string& redirectorId) override;
+    int32_t DestroyRedirector(const std::string& redirectorId) override;
+    int32_t AddRedirectRule(const std::string& redirectorId,
+        const sptr<TrafficFilterRedirectRule> &rule) override;
+    int32_t ClearRedirectRule(const std::string& redirectorId) override;
+    int32_t GlobalEnableTrafficFilter() override;
+    int32_t GlobalDisableTrafficFilter() override;
+    int32_t GetTrafficFilterGlobalStatus(bool& isEnabled) override;
+    int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
+        const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) override;
     explicit NetFirewallProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<INetFirewallService>(impl) {}
     ~NetFirewallProxy() = default;
 

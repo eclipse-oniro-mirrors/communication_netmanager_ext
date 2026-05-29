@@ -31,6 +31,7 @@
 #include "netfirewall_rule_manager.h"
 #include "netfirewall_rule_native_helper.h"
 #include "ffrt.h"
+#include "nettrafficfilter_redirect_manager.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -161,6 +162,44 @@ public:
      */
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 
+    /**
+     * Create traffic redirector
+     */
+    int32_t CreateRedirector(uint32_t groupId, uint32_t priority, std::string& redirectorId) override;
+
+    /**
+     * Destroy traffic redirector
+     */
+    int32_t DestroyRedirector(const std::string& redirectorId) override;
+
+    /**
+     * Add redirect rule to redirector
+     */
+    int32_t AddRedirectRule(const std::string& redirectorId,
+                            const sptr<TrafficFilterRedirectRule> &rule) override;
+
+    /**
+     * Clear all rules from redirector
+     */
+    int32_t ClearRedirectRule(const std::string& redirectorId) override;
+
+    /**
+     * Global enable traffic filter
+     */
+    int32_t GlobalEnableTrafficFilter() override;
+
+    /**
+     * Global disable traffic filter
+     */
+    int32_t GlobalDisableTrafficFilter() override;
+
+    /**
+     * Get traffic filter global status
+     */
+    int32_t GetTrafficFilterGlobalStatus(bool& isEnabled) override;
+
+    int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
+        const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) override;
 protected:
     void OnStart() override;
 
@@ -202,6 +241,8 @@ private:
     void RegisterSubscribeCommonEvent();
 
     bool IsSameNetFirewallPolicy(const sptr<NetFirewallPolicy> &inPolicy, const sptr<NetFirewallPolicy> &outPolicy);
+
+    std::string GetBundleName();
 
 private:
     static std::shared_ptr<ffrt::queue> ffrtServiceHandler_;

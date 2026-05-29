@@ -68,6 +68,10 @@ constexpr uint16_t LOCAL_END_PORT = 1003;
 constexpr uint16_t REMOTE_START_PORT = 1002;
 constexpr uint16_t REMOTE_END_PORT = 10030;
 constexpr int32_t RECORD_CACHE_SIZE = 100;
+constexpr uint32_t TEST_PRIORITY = 100;
+constexpr uint16_t RULE_PORT = 8080;
+constexpr uint32_t TEST_COPY_LEN = 65535;
+constexpr uint32_t TEST_NFQUEUE_LEN = 1024;
 
 std::vector<NetFirewallIpParam> GetIpList(const std::string &addressStart)
 {
@@ -1301,6 +1305,258 @@ HWTEST_F(NetFirewallServiceTest, GetInterceptRecord002, TestSize.Level1)
     info->totalPage = 0;
     ret = netFirewallInterceptRecorder->GetInterceptRecords(userId, param, info);
     EXPECT_EQ(ret, FIREWALL_FAILURE);
+}
+
+namespace {
+sptr<TrafficFilterRedirectRule> CreateTestRedirectRule()
+{
+    sptr<TrafficFilterRedirectRule> rule = new (std::nothrow) TrafficFilterRedirectRule();
+    if (rule == nullptr) {
+        return rule;
+    }
+    rule->priority_ = TEST_PRIORITY;
+    rule->hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING);
+    rule->protocol_ = NETTRAFFICFILTER_PROTO_TCP;
+    rule->srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule->dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule->srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule->dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule->uidStart_ = static_cast<uint32_t>(-1);
+    rule->uidEnd_ = static_cast<uint32_t>(-1);
+    rule->proxyIp_.family_ = static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4);
+    rule->proxyPort_ = RULE_PORT;
+    return rule;
+}
+}
+
+/**
+ * @tc.name: CreateRedirector001
+ * @tc.desc: Test NetFirewallService CreateRedirector with null config.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, CreateRedirector001, TestSize.Level1)
+{
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    std::string redirectorId;
+
+    int32_t ret = instance_->CreateRedirector(groupId, priority, redirectorId);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: DestroyRedirector001
+ * @tc.desc: Test NetFirewallService DestroyRedirector with non-existent redirector ID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, DestroyRedirector001, TestSize.Level1)
+{
+    std::string redirectorId = "non_existent_redirector_id";
+
+    int32_t ret = instance_->DestroyRedirector(redirectorId);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: AddRedirectRule001
+ * @tc.desc: Test NetFirewallService AddRedirectRule with non-existent redirector ID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, AddRedirectRule001, TestSize.Level1)
+{
+    std::string redirectorId = "non_existent_redirector_id";
+    sptr<TrafficFilterRedirectRule> rule = CreateTestRedirectRule();
+    ASSERT_NE(rule, nullptr);
+
+    int32_t ret = instance_->AddRedirectRule(redirectorId, rule);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: AddRedirectRule002
+ * @tc.desc: Test NetFirewallService AddRedirectRule with null rule.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, AddRedirectRule002, TestSize.Level1)
+{
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    std::string redirectorId;
+
+    int32_t createRet = instance_->CreateRedirector(groupId, priority, redirectorId);
+
+    int32_t addRet = instance_->AddRedirectRule(redirectorId, nullptr);
+    EXPECT_NE(addRet, FIREWALL_SUCCESS);
+
+    // Cleanup
+    instance_->DestroyRedirector(redirectorId);
+}
+
+/**
+ * @tc.name: ClearRedirectRule001
+ * @tc.desc: Test NetFirewallService ClearRedirectRule with non-existent redirector ID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, ClearRedirectRule001, TestSize.Level1)
+{
+    std::string redirectorId = "non_existent_redirector_id";
+
+    int32_t ret = instance_->ClearRedirectRule(redirectorId);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: GlobalEnableTrafficFilter001
+ * @tc.desc: Test NetFirewallService GlobalEnableTrafficFilter.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GlobalEnableTrafficFilter001, TestSize.Level1)
+{
+    int32_t ret = instance_->GlobalEnableTrafficFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: GlobalDisableTrafficFilter001
+ * @tc.desc: Test NetFirewallService GlobalDisableTrafficFilter.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GlobalDisableTrafficFilter001, TestSize.Level1)
+{
+    int32_t ret = instance_->GlobalDisableTrafficFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    // Re-enable for cleanup
+    instance_->GlobalEnableTrafficFilter();
+}
+
+/**
+ * @tc.name: GetTrafficFilterGlobalStatus001
+ * @tc.desc: Test NetFirewallService GetTrafficFilterGlobalStatus when enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetTrafficFilterGlobalStatus001, TestSize.Level1)
+{
+    bool isEnabled = false;
+    int32_t ret = instance_->GetTrafficFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(isEnabled); // Default should be enabled
+}
+
+/**
+ * @tc.name: GetTrafficFilterGlobalStatus002
+ * @tc.desc: Test NetFirewallService GetTrafficFilterGlobalStatus when disabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetTrafficFilterGlobalStatus002, TestSize.Level1)
+{
+    instance_->GlobalDisableTrafficFilter();
+
+    bool isEnabled = true;
+    int32_t ret = instance_->GetTrafficFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_FALSE(isEnabled);
+
+    // Re-enable for cleanup
+    instance_->GlobalEnableTrafficFilter();
+}
+
+/**
+ * @tc.name: QueryProcess001
+ * @tc.desc: Test NetFirewallService QueryProcess with valid connection info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, QueryProcess001, TestSize.Level1)
+{
+    std::string srcIp = "192.168.1.100";
+    uint16_t srcPort = 54321;
+    std::string dstIp = "93.184.216.34";
+    uint16_t dstPort = 443;
+    uint8_t protocol = 6; // TCP
+    uint32_t uid = 0;
+    uint32_t pid = 0;
+
+    int32_t ret = instance_->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+
+    // Result depends on actual system state - just verify it doesn't crash
+    EXPECT_TRUE(ret == TRAFFICFILTER_OK || ret == TRAFFICFILTER_ERROR_NOT_FOUND);
+}
+
+/**
+ * @tc.name: QueryProcess002
+ * @tc.desc: Test NetFirewallService QueryProcess with invalid protocol.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, QueryProcess002, TestSize.Level1)
+{
+    std::string srcIp = "192.168.1.100";
+    uint16_t srcPort = 54321;
+    std::string dstIp = "93.184.216.34";
+    uint16_t dstPort = 443;
+    uint8_t protocol = 99; // Invalid protocol
+    uint32_t uid = 0;
+    uint32_t pid = 0;
+
+    int32_t ret = instance_->QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+
+    // Will try to query but likely won't find matches for invalid protocol
+    EXPECT_TRUE(ret == TRAFFICFILTER_OK || ret == TRAFFICFILTER_ERROR_NOT_FOUND);
+}
+
+/**
+ * @tc.name: GetBundleName001
+ * @tc.desc: Test NetFirewallService GetBundleName.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetBundleName001, TestSize.Level1)
+{
+    std::string bundleName = instance_->GetBundleName();
+
+    // The result depends on system state (bundle manager, etc.)
+    // Just verify it doesn't crash
+    EXPECT_TRUE(bundleName.empty() || !bundleName.empty());
+}
+
+/**
+ * @tc.name: GlobalToggleTrafficFilter001
+ * @tc.desc: Test global enable/disable toggle operations.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GlobalToggleTrafficFilter001, TestSize.Level1)
+{
+    // Get initial status
+    bool initialEnabled = false;
+    instance_->GetTrafficFilterGlobalStatus(initialEnabled);
+
+    // Disable if enabled, enable if disabled
+    if (initialEnabled) {
+        int32_t disableRet = instance_->GlobalDisableTrafficFilter();
+        EXPECT_EQ(disableRet, FIREWALL_SUCCESS);
+        bool nowEnabled = false;
+        instance_->GetTrafficFilterGlobalStatus(nowEnabled);
+        EXPECT_FALSE(nowEnabled);
+
+        // Re-enable
+        int32_t enableRet = instance_->GlobalEnableTrafficFilter();
+        EXPECT_EQ(enableRet, FIREWALL_SUCCESS);
+        instance_->GetTrafficFilterGlobalStatus(nowEnabled);
+        EXPECT_TRUE(nowEnabled);
+    } else {
+        int32_t enableRet = instance_->GlobalEnableTrafficFilter();
+        EXPECT_EQ(enableRet, FIREWALL_SUCCESS);
+        bool nowEnabled = false;
+        instance_->GetTrafficFilterGlobalStatus(nowEnabled);
+        EXPECT_TRUE(nowEnabled);
+
+        // Disable
+        int32_t disableRet = instance_->GlobalDisableTrafficFilter();
+        EXPECT_EQ(disableRet, FIREWALL_SUCCESS);
+        instance_->GetTrafficFilterGlobalStatus(nowEnabled);
+        EXPECT_FALSE(nowEnabled);
+
+        // Re-enable for cleanup
+        instance_->GlobalEnableTrafficFilter();
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

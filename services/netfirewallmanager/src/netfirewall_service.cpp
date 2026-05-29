@@ -33,6 +33,8 @@
 #include "system_ability_definition.h"
 #include "netsys_controller.h"
 #include "netfirewall_intercept_recorder.h"
+#include "bundle_mgr_interface.h"
+#include "iservice_registry.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -476,6 +478,146 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         NETMGR_EXT_LOG_I("NetFirewallService: deletedUid %{public}d", deletedUid);
         NetFirewallRuleManager::GetInstance().DeleteNetFirewallRuleByAppId(deletedUid);
     }
+}
+
+int32_t NetFirewallService::CreateRedirector(uint32_t groupId, uint32_t priority,
+    std::string& redirectorId)
+{
+    std::string bundleName = GetBundleName();
+    NETMGR_EXT_LOG_I("CreateRedirector:groupId=%{public}u, priority=%{public}u, bundleName=%{public}s",
+        groupId, priority, bundleName.c_str());
+
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().CreateRedirector(
+        bundleName, groupId, priority, redirectorId);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("CreateRedirector failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Redirector created successfully, redirectorId: %{public}s", redirectorId.c_str());
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::DestroyRedirector(const std::string& redirectorId)
+{
+    NETMGR_EXT_LOG_I("DestroyRedirector: redirectorId=%{public}s", redirectorId.c_str());
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().DestroyRedirector(redirectorId);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("DestroyRedirector failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Redirector destroyed successfully");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::AddRedirectRule(const std::string& redirectorId,
+    const sptr<TrafficFilterRedirectRule> &rule)
+{
+    NETMGR_EXT_LOG_I("AddRedirectRule: redirectorId=%{public}s", redirectorId.c_str());
+    if (redirectorId.empty()) {
+        NETMGR_EXT_LOG_E("AddRedirectRule failed: redirectorId is empty");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (rule == nullptr) {
+        NETMGR_EXT_LOG_E("AddRedirectRule failed: rule is null");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    TrafficFilterRedirectRule nativeRule = *rule;
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().AddRedirectRule(redirectorId, &nativeRule);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("AddRedirectRule failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Redirect rule added successfully");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::ClearRedirectRule(const std::string& redirectorId)
+{
+    NETMGR_EXT_LOG_I("ClearRedirectRule: redirectorId=%{public}s", redirectorId.c_str());
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().ClearRedirectRule(redirectorId);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("ClearRedirectRule failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Redirect rules cleared successfully");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::GlobalEnableTrafficFilter()
+{
+    NETMGR_EXT_LOG_I("GlobalEnableTrafficFilter");
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GlobalEnableTrafficFilter();
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Traffic filter globally enabled successfully");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::GlobalDisableTrafficFilter()
+{
+    NETMGR_EXT_LOG_I("GlobalDisableTrafficFilter");
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GlobalDisableTrafficFilter();
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GlobalDisableTrafficFilter failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Traffic filter globally disabled successfully");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::GetTrafficFilterGlobalStatus(bool& isEnabled)
+{
+    NETMGR_EXT_LOG_I("GetTrafficFilterGlobalStatus");
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GetTrafficFilterGlobalStatus(isEnabled);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GetTrafficFilterGlobalStatus failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Got traffic filter global status: %{public}d", isEnabled);
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::QueryProcess(const std::string& srcIp, uint16_t srcPort,
+    const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid)
+{
+    int32_t ret = NetTrafficFilterRedirectManager::GetInstance().QueryProcess(
+        srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("QueryProcess failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("QueryProcess success: uid=%{public}u, pid=%{public}u", uid, pid);
+    }
+    return ret;
+}
+
+std::string NetFirewallService::GetBundleName()
+{
+    std::string bundleName;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgr == nullptr) {
+        NETMGR_EXT_LOG_E("Get ability manager failed");
+        return bundleName;
+    }
+    sptr<IRemoteObject> object = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (object == nullptr) {
+        NETMGR_EXT_LOG_E("object is NULL.");
+        return bundleName;
+    }
+    sptr<OHOS::AppExecFwk::IBundleMgr> bms = iface_cast<OHOS::AppExecFwk::IBundleMgr>(object);
+    if (bms == nullptr) {
+        NETMGR_EXT_LOG_E("bundle manager service is NULL.");
+        return bundleName;
+    }
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    auto result = bms->GetNameForUid(uid, bundleName);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
+        return bundleName;
+    }
+    NETMGR_EXT_LOG_I("bundle name is [%{public}s], uid = [%{public}d]", bundleName.c_str(), uid);
+    return bundleName;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

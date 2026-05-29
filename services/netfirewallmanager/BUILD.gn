@@ -48,11 +48,18 @@ netfirewall_manager_sources = [
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_intercept_record_callback_proxy.cpp",
 ]
 
+net_traffic_filter_sources = [
+  "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_iptables_command_builder.cpp",
+  "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_redirect_manager.cpp",
+  "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_redirector_context.cpp",
+]
+
 netfirewall_manager_deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]
 
 netfirewall_manager_external_deps = [
   "ability_base:want",
   "ability_base:zuri",
+  "ability_runtime:app_manager",
   "bundle_framework:appexecfwk_base",
   "bundle_framework:appexecfwk_core",
   "cJSON:cjson",
@@ -90,6 +97,9 @@ ohos_shared_library("netfirewall_manager") {
   ]
 
   sources = netfirewall_manager_sources
+  if (netmanager_ext_feature_traffic_filter || netmanager_ext_feature_traffic_redirect) {
+    sources += net_traffic_filter_sources
+  }
   deps = netfirewall_manager_deps
   external_deps = netfirewall_manager_external_deps
 
@@ -120,6 +130,9 @@ ohos_static_library("netfirewall_manager_static") {
   ]
 
   sources = netfirewall_manager_sources
+  if (netmanager_ext_feature_traffic_filter || netmanager_ext_feature_traffic_redirect) {
+    sources += net_traffic_filter_sources
+  }
   deps = netfirewall_manager_deps
   external_deps = netfirewall_manager_external_deps
 

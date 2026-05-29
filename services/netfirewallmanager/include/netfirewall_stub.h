@@ -61,6 +61,22 @@ private:
 
     int32_t OnUnregisterInterceptRecordsCallback(MessageParcel &data, MessageParcel &reply);
 
+    int32_t OnCreateRedirector(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnDestroyRedirector(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnAddRedirectRule(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnClearRedirectRule(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnGlobalEnableTrafficFilter(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnGlobalDisableTrafficFilter(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnGetTrafficFilterGlobalStatus(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnQueryProcess(MessageParcel &data, MessageParcel &reply);
+
     int32_t CheckFirewallPermission(std::string &strPermission);
 
 private:

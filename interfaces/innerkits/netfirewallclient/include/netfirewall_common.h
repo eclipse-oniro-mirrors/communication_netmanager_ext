@@ -67,6 +67,48 @@ const std::string NET_FIREWALL_ORDER_TYPE = "orderType";
 const std::string NET_FIREWALL_TOTAL_PAGE = "totalPage";
 const std::string NET_FIREWALL_PAGE_DATA = "data";
 }
+// Traffic filter related constants
+constexpr uint8_t NETTRAFFICFILTER_IP_ADDRLEN = 16;
+constexpr uint8_t NETTRAFFICFILTER_MAX_MULTI_IP_COUNT = 16;
+constexpr uint8_t NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT = 64;
+constexpr uint8_t NETTRAFFICFILTER_IFNAMSIZ = 32;
+constexpr int32_t NETTRAFFICFILTER_MIN_GROUP_ID = 1;
+constexpr int32_t NETTRAFFICFILTER_MAX_GROUP_ID = 65535;
+constexpr int32_t NETTRAFFICFILTER_MIN_PRIORITY = 1;
+constexpr int32_t NETTRAFFICFILTER_MAX_PRIORITY = 10000;
+constexpr uint8_t NETTRAFFICFILTER_PROTO_ANY = 0;
+constexpr uint8_t NETTRAFFICFILTER_PROTO_TCP = 6;
+constexpr uint8_t NETTRAFFICFILTER_PROTO_UDP = 17;
+
+enum class TrafficFilterIPFamily {
+    IP_FAMILY_UNSPEC = 0,
+    IP_FAMILY_V4 = 1,
+    IP_FAMILY_V6 = 2,
+    IP_FAMILY_V4V6
+};
+
+enum class TrafficFilterIPMatchType {
+    IP_MATCH_ANY = 0,
+    IP_MATCH_SINGLE,
+    IP_MATCH_CIDR,
+    IP_MATCH_RANGE,
+    IP_MATCH_MULTI
+};
+
+enum class TrafficFilterPortMatchType {
+    PORT_MATCH_ANY = 0,
+    PORT_MATCH_SINGLE,
+    PORT_MATCH_RANGE,
+    PORT_MATCH_MULTI
+};
+
+enum class TrafficFilterHookPoint {
+    HOOK_INPUT = 0,
+    HOOK_OUTPUT = 1,
+    HOOK_FORWARD = 2,
+    HOOK_PREROUTING = 3,
+    HOOK_POSTROUTING = 4
+};
 
 // Sort by rule name or interception time
 enum class NetFirewallOrderField {
@@ -119,6 +161,139 @@ struct InterceptRecordPage : public Parcelable {
     std::vector<InterceptRecord> data; // Page data
     virtual bool Marshalling(Parcel &parcel) const override;
     static sptr<InterceptRecordPage> Unmarshalling(Parcel &parcel);
+};
+
+// Traffic filter structures for binary IPC transmission
+struct TrafficFilterIPAddress final : public Parcelable {
+    int32_t family_;
+    uint8_t addr_[16];
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterIPAddress> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterIPCidr final : public Parcelable {
+    TrafficFilterIPAddress base_;
+    uint8_t prefixLen_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterIPCidr> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterIPRange final : public Parcelable {
+    TrafficFilterIPAddress start_;
+    TrafficFilterIPAddress end_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterIPRange> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterIPMulti final : public Parcelable {
+    uint32_t ipCount_;
+    TrafficFilterIPAddress ips_[16];
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterIPMulti> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterIPMatch final : public Parcelable {
+    int32_t type_;
+    bool invert_;
+    TrafficFilterIPAddress single_;
+    TrafficFilterIPCidr cidr_;
+    TrafficFilterIPRange range_;
+    TrafficFilterIPMulti multi_;
+
+    bool IsValidType() const
+    {
+        return type_ >= static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY) &&
+            type_ <= static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_MULTI);
+    }
+
+    std::string GetErrorInfo() const
+    {
+        return "Invalid IPMatch type: " + std::to_string(type_);
+    }
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterIPMatch> Unmarshalling(Parcel &parcel);
+
+private:
+    bool UnmarshallingByType(Parcel &parcel);
+};
+
+struct TrafficFilterPortRange final : public Parcelable {
+    uint16_t startPort_;
+    uint16_t endPort_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterPortRange> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterPortMulti final : public Parcelable {
+    uint32_t portCount_;
+    uint16_t ports_[64];
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterPortMulti> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterPortMatch final : public Parcelable {
+    int32_t type_;
+    bool invert_;
+    uint16_t single_;
+    TrafficFilterPortRange range_;
+    TrafficFilterPortMulti multi_;
+
+    bool IsValidType() const
+    {
+        return type_ >= static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY) &&
+            type_ <= static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI);
+    }
+
+    std::string GetErrorInfo() const
+    {
+        return "Invalid PortMatch type: " + std::to_string(type_);
+    }
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterPortMatch> Unmarshalling(Parcel &parcel);
+
+private:
+    bool UnmarshallingByType(Parcel &parcel);
+};
+
+struct TrafficFilterInterfaceMatch final : public Parcelable {
+    bool enabled_;
+    bool invert_;
+    bool isPrefix_;
+    std::string ifName_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterInterfaceMatch> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterRedirectRule final : public Parcelable {
+    uint32_t priority_;
+    int32_t hookPoint_;
+    uint8_t protocol_;
+    TrafficFilterIPMatch srcIp_;
+    TrafficFilterPortMatch srcPort_;
+    TrafficFilterIPMatch dstIp_;
+    TrafficFilterPortMatch dstPort_;
+    TrafficFilterInterfaceMatch inInterface_;
+    TrafficFilterInterfaceMatch outInterface_;
+    uint32_t uidStart_;
+    uint32_t uidEnd_;
+    TrafficFilterIPAddress proxyIp_;
+    uint16_t proxyPort_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterRedirectRule> Unmarshalling(Parcel &parcel);
+
+private:
+    bool MarshallingUidAndProxyFields(Parcel &parcel) const;
+    bool UnmarshalMatchAndInterfaceFields(Parcel &parcel);
 };
 
 inline uint64_t GetCurrentMilliseconds()
