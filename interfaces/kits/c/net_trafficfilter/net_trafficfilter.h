@@ -196,11 +196,15 @@ int32_t OH_TrafficFilter_CreateRedirector(
  * The handle becomes invalid after this call.
  *
  * @param redirector OH_TrafficFilter_Redirector handle
+ * @return <ul><li>{@link OH_TRAFFICFILTER_OK} on success.</li>
+ *     <li>{@link OH_TRAFFICFILTER_ERROR_PERMISSION_DENIED} if permission is denied.</li>
+ *     <li>{@link OH_TRAFFICFILTER_ERROR_INVALID_PARAM} if redirector is NULL.</li>
+ *     <li>{@link OH_TRAFFICFILTER_ERROR_NOT_FOUND} if the specified redirector handle is not found.</li></ul>
  *
  * @permission ohos.permission.kernel.TRAFFIC_FILTER
  * @since 26.0.0
  */
-void OH_TrafficFilter_DestroyRedirector(OH_TrafficFilter_Redirector* redirector);
+int32_t OH_TrafficFilter_DestroyRedirector(OH_TrafficFilter_Redirector* redirector);
 
 /**
  * @brief Adds a redirection rule

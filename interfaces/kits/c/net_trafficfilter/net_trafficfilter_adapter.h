@@ -38,7 +38,7 @@ public:
 
     int32_t CreateRedirector(uint32_t group_id, uint32_t priority, OH_TrafficFilter_Redirector** redirector);
 
-    void DestroyRedirector(OH_TrafficFilter_Redirector* redirector);
+    int32_t DestroyRedirector(OH_TrafficFilter_Redirector* redirector);
 
     int32_t AddRedirectRule(OH_TrafficFilter_Redirector* redirector, const OH_TrafficFilter_RedirectRule* rule);
 

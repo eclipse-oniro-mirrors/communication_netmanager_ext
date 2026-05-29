@@ -399,18 +399,18 @@ int32_t RedirectorAdapterManager::CreateRedirector(uint32_t group_id, uint32_t p
     return AddRedirector(redirectorId, redirector);
 }
 
-void RedirectorAdapterManager::DestroyRedirector(OH_TrafficFilter_Redirector* redirector)
+int32_t RedirectorAdapterManager::DestroyRedirector(OH_TrafficFilter_Redirector* redirector)
 {
     if (redirector == nullptr) {
         NETMGR_EXT_LOG_E("DestroyRedirector: redirector is NULL");
-        return;
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
     NETMGR_EXT_LOG_I("DestroyRedirector");
 
     std::string redirectorId;
     if (!GetRedirectorId(redirector, redirectorId)) {
         NETMGR_EXT_LOG_E("DestroyRedirector: redirector handle not found in map");
-        return;
+        return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
     }
 
     int32_t ret = NetFirewallClient::GetInstance().DestroyRedirector(redirectorId);
@@ -421,6 +421,7 @@ void RedirectorAdapterManager::DestroyRedirector(OH_TrafficFilter_Redirector* re
     }
 
     RemoveRedirector(redirector);
+    return ret;
 }
 
 int32_t RedirectorAdapterManager::AddRedirectRule(

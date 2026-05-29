@@ -640,7 +640,19 @@ typedef struct OH_TrafficFilter_Config {
  * @brief Connection information structure
  *
  * Describes five-tuple connection information used to query process information.
+ * 
+ * Initialization rule:
+ * Before calling {@link OH_TrafficFilter_QueryProcess}, the caller must clear this structure
+ * to zero, for example by using memset, and then set {@link size} to the actual size of the
+ * structure allocated by the caller, usually sizeof(OH_TrafficFilter_ConnectionInfo).
  *
+ * ABI compatibility rule:
+ * The library uses {@link size} to determine which fields can be safely read.
+ * If {@link size} is smaller than the minimum size required by the current API, the function
+ * returns {@link OH_TRAFFICFILTER_ERROR_INVALID_PARAM}. If {@link size} is larger than the
+ * size known by the library, the extra fields are ignored. Newly added fields in future
+ * versions should remain zero-initialized when not used.
+ * 
  * @since 26.0.0
  */
 typedef struct OH_TrafficFilter_ConnectionInfo {
@@ -680,7 +692,27 @@ typedef struct OH_TrafficFilter_ConnectionInfo {
 } OH_TrafficFilter_ConnectionInfo;
 
 /**
- * @brief Process information structure
+ * @brief Process information structure.
+ *
+ * Stores process information returned by {@link OH_TrafficFilter_QueryProcess}.
+ *
+ * Initialization rule:
+ * Before calling {@link OH_TrafficFilter_QueryProcess}, the caller must clear this structure
+ * to zero, for example by using memset, and then set {@link size} to the actual size of the
+ * structure allocated by the caller, usually sizeof(OH_TrafficFilter_ProcessInfo).
+ *
+ * ABI compatibility rule:
+ * The library uses {@link size} to determine which output fields can be safely written.
+ * Only fields fully covered by {@link size} are written by the library. If {@link size} is
+ * smaller than the minimum size required to read the {@link size} field itself, the function
+ * returns {@link OH_TRAFFICFILTER_ERROR_INVALID_PARAM}. If {@link size} is larger than the
+ * size known by the library, the extra fields are ignored.
+ *
+ * Output validity rule:
+ * When {@link OH_TrafficFilter_QueryProcess} returns {@link OH_TRAFFICFILTER_OK}, fields
+ * covered by {@link size} contain valid output values. When the function returns an error,
+ * the caller must not rely on the values of output fields other than {@link size}.
+ *
  * @since 26.0.0
  */
 typedef struct OH_TrafficFilter_ProcessInfo {
@@ -882,9 +914,27 @@ typedef struct OH_TrafficFilter_FilterRule {
 typedef struct OH_TrafficFilter_Redirector OH_TrafficFilter_Redirector;
 
 /**
- * @brief Traffic redirection rule
+ * @brief Traffic redirection rule.
  *
- * Defines TCP traffic redirection rule to redirect matched traffic to specified proxy server
+ * Defines a TCP traffic redirection rule to redirect matched traffic to the specified proxy server.
+ *
+ * Initialization rule:
+ * Before calling {@link OH_TrafficFilter_AddRedirectRule}, the caller must clear this structure
+ * to zero, for example by using memset, and then set {@link size} to the actual size of the
+ * structure allocated by the caller, usually sizeof(OH_TrafficFilter_RedirectRule).
+ *
+ * ABI compatibility rule:
+ * The library uses {@link size} to determine which fields can be safely read.
+ * If {@link size} is smaller than the minimum size required by the current API, the function
+ * returns {@link OH_TRAFFICFILTER_ERROR_INVALID_PARAM}. If {@link size} is larger than the
+ * size known by the library, the extra fields are ignored. Newly added fields in future
+ * versions should remain zero-initialized when not used.
+ *
+ * Failure rule:
+ * If {@link OH_TrafficFilter_AddRedirectRule} returns an error, the rule is not guaranteed
+ * to be added or applied. The caller should check the return value before assuming that the
+ * rule takes effect.
+ *
  * @since 26.0.0
  */
 typedef struct OH_TrafficFilter_RedirectRule {

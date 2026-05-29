@@ -25,13 +25,13 @@ int32_t OH_TrafficFilter_CreateRedirector(uint32_t group_id, uint32_t priority,
     return RedirectorAdapterManager::GetInstance().CreateRedirector(group_id, priority, redirector);
 }
 
-void OH_TrafficFilter_DestroyRedirector(OH_TrafficFilter_Redirector* redirector)
+int32_t OH_TrafficFilter_DestroyRedirector(OH_TrafficFilter_Redirector* redirector)
 {
     if (redirector == nullptr) {
         NETMGR_EXT_LOG_E("DestroyRedirector: redirector is NULL");
-        return;
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-    RedirectorAdapterManager::GetInstance().DestroyRedirector(redirector);
+    return RedirectorAdapterManager::GetInstance().DestroyRedirector(redirector);
 }
 
 int32_t OH_TrafficFilter_AddRedirectRule(OH_TrafficFilter_Redirector* redirector,
