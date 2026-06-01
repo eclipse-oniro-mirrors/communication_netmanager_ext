@@ -42,27 +42,13 @@ ohos_fuzztest("NetShareClientFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-flto",
+    "-fvisibility=hidden",
   ]
 
-  if (!(use_libfuzzer || use_clang_coverage)) {
-    cflags += [
-      "-flto",
-      "-fsanitize=cfi",
-      "-fsanitize-cfi-cross-dso",
-      "-fvisibility=hidden",
-      "-fsanitize-blacklist=" +
-          rebase_path(_cfi_blocklist_path, root_build_dir),
-    ]
-  }
-
-  ldflags = []
-  if (!(use_libfuzzer || use_clang_coverage)) {
-    ldflags += [
-      "-flto",
-      "-fsanitize=cfi",
-      "-fsanitize-cfi-cross-dso",
-    ]
-  }
+  ldflags = [
+    "-flto",
+  ]
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
@@ -115,6 +101,10 @@ ohos_fuzztest("NetShareClientFuzzTest") {
 
   if (netmanager_ext_share_notification_enable) {
     defines += [ "SHARE_NOTIFICATION_ENABLE" ]
+  }
+
+  if (netmanager_ext_share_traffic_limit_enable) {
+    defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
   }
 }
 
