@@ -63,6 +63,8 @@ int32_t InterfaceStateObserver::OnInterfaceChanged(const std::string &iface, boo
 
 napi_value InterfaceStateObserver::CreateIfaceChangedParam(napi_env env, void *data)
 {
+    auto closeScope = [env](napi_handle_scope scope) { NapiUtils::CloseScope(env, scope); };
+    std::unique_ptr<napi_handle_scope__, decltype(closeScope)> scope(NapiUtils::OpenScope(env), closeScope);
     auto pair(reinterpret_cast<std::pair<std::string, bool> *>(data));
     napi_value obj = NapiUtils::CreateObject(env);
     if (pair != nullptr) {
