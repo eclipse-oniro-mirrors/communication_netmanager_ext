@@ -30,7 +30,7 @@ constexpr uint32_t CONNECTION_INFO_MIN_SIZE =
 constexpr uint32_t PROCESS_INFO_MIN_SIZE =
     static_cast<uint32_t>(offsetof(OH_TrafficFilter_ProcessInfo, size) + sizeof(uint32_t));
 constexpr uint32_t REDIRECT_RULE_MIN_SIZE =
-    static_cast<uint32_t>(offsetof(OH_TrafficFilter_RedirectRule, proxy_port) + sizeof(uint16_t));
+    static_cast<uint32_t>(offsetof(OH_TrafficFilter_RedirectRule, proxyPort) + sizeof(uint16_t));
 
 class RedirectorAdapterManager {
 public:

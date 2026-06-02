@@ -76,8 +76,6 @@ declare_args() {
   netmanager_ext_feature_networkslice = false
   netmanager_ext_feature_iface_supplier_id = false
   netmanager_ext_fpga_mode_enable = false
-  netmanager_ext_feature_traffic_filter = true
-  netmanager_ext_feature_traffic_redirect = true
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]

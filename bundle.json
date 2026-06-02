@@ -43,9 +43,7 @@
             "netmanager_ext_feature_iface_supplier_id",
             "netmanager_ext_extensible_authentication",
             "netmanager_ext_share_notification_enable",
-            "netmanager_ext_fpga_mode_enable",
-            "netmanager_ext_feature_traffic_filter",
-            "netmanager_ext_feature_traffic_redirect"
+            "netmanager_ext_fpga_mode_enable"
         ],
         "adapted_system_type": [
             "standard"
