@@ -45,7 +45,7 @@ extern "C" {
 /**
  * @brief Creates a packet controller instance.
  * Creates a packet controller for intercepting and filtering network packets
- * Resource Management: This instance occupies system resources. 
+ * Resource Management: This instance occupies system resources.
  * You must call {@link OH_TrafficFilter_DestroyPacketController} to release resources.
  * If this function fails, no valid controller is returned.
  * 
