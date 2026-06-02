@@ -82,8 +82,8 @@ int32_t OH_TrafficFilter_QueryProcess(const OH_TrafficFilter_ConnectionInfo* con
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    OH_TrafficFilter_IPFamily srcFamily = connectionInfo->src_ip.family;
-    OH_TrafficFilter_IPFamily dstFamily = connectionInfo->dst_ip.family;
+    OH_TrafficFilter_IPFamily srcFamily = connectionInfo->srcIp.family;
+    OH_TrafficFilter_IPFamily dstFamily = connectionInfo->dstIp.family;
     if (static_cast<int32_t>(srcFamily) == 0) {
         srcFamily = OH_TRAFFICFILTER_IP_FAMILY_V4;
     }
@@ -94,8 +94,8 @@ int32_t OH_TrafficFilter_QueryProcess(const OH_TrafficFilter_ConnectionInfo* con
     if ((srcFamily != OH_TRAFFICFILTER_IP_FAMILY_V4 && srcFamily != OH_TRAFFICFILTER_IP_FAMILY_V6) ||
         (dstFamily != OH_TRAFFICFILTER_IP_FAMILY_V4 && dstFamily != OH_TRAFFICFILTER_IP_FAMILY_V6)) {
         NETMGR_EXT_LOG_E("QueryProcess: invalid family, src=%{public}d, dst=%{public}d",
-            static_cast<int32_t>(connectionInfo->src_ip.family),
-            static_cast<int32_t>(connectionInfo->dst_ip.family));
+            static_cast<int32_t>(connectionInfo->srcIp.family),
+            static_cast<int32_t>(connectionInfo->dstIp.family));
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
