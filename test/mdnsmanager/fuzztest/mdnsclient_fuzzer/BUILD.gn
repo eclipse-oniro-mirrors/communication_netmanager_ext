@@ -35,26 +35,14 @@ ohos_fuzztest("MDnsClientFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-flto",
+    "-fvisibility=hidden",
   ]
 
-  if (!(use_libfuzzer || use_clang_coverage)) {
-    cflags += [
-      "-flto",
-      "-fsanitize=cfi",
-      "-fsanitize-cfi-cross-dso",
-      "-fvisibility=hidden",
-      "-fsanitize-blacklist=" +
-          rebase_path(_cfi_blocklist_path, root_build_dir),
-    ]
-  }
-  ldflags = []
-  if (!(use_libfuzzer || use_clang_coverage)) {
-    ldflags += [
-      "-flto",
-      "-fsanitize=cfi",
-      "-fsanitize-cfi-cross-dso",
-    ]
-  }
+  ldflags = [
+    "-flto",
+  ]
+
   sources = [ "mdns_client_fuzzer.cpp" ]
 
   deps = [

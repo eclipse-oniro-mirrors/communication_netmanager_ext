@@ -129,6 +129,10 @@ ohos_unittest("networkshare_manager_test") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
+  if (netmanager_ext_share_traffic_limit_enable) {
+    defines += [ "SHARE_TRAFFIC_LIMIT_ENABLE" ]
+  }
+
   external_deps += [ "hilog:libhilog" ]
 
   part_name = "netmanager_ext"
