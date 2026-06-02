@@ -333,15 +333,15 @@ HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
 
     INetAddr netAddr;
     netAddr.address_ = "10.1.0.12";
-    sptr<VpnConfig> vpnConfig = new (std::nothrow) VpnConfig();
+    sptr<IpsecVpnConfig> vpnConfig = new (std::nothrow) IpsecVpnConfig();
     if (vpnConfig == nullptr) {
         return;
     }
     message = R"({"updateconfig":{"remoteip":"192.168.1.21","address":"10.1.0.12",
         "netmask":"255.255.255.0", "mtu":1400, "phyifname":"xfrm"}})";
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
-    ipsecControl_->vpnConfig_ = vpnConfig;
-    ipsecControl_->vpnConfig_->addresses_.push_back(netAddr);
+    ipsecControl_->ipsecVpnConfig_ = vpnConfig;
+    ipsecControl_->ipsecVpnConfig_->localAddresses_.push_back(netAddr);
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
     MultiVpnHelper::GetInstance().CreateMultiVpnInfo(
         "1000", VpnType::L2TP_IPSEC_PSK, ipsecControl_->multiVpnInfo_);
@@ -349,7 +349,7 @@ HWTEST_F(IpsecVpnCtlTest, UpdateConfigTest002, TestSize.Level1)
     ipsecControl_->multiVpnInfo_->localAddress = "10.1.0.12";
     MultiVpnHelper::GetInstance().AddMultiVpnInfo(ipsecControl_->multiVpnInfo_);
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_ERR_INTERNAL);
-    ipsecControl_->vpnConfig_ = nullptr;
+    ipsecControl_->ipsecVpnConfig_ = nullptr;
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
     ipsecControl_->multiVpnInfo_ = nullptr;
     EXPECT_EQ(ipsecControl_->UpdateConfig(message), NETMANAGER_EXT_SUCCESS);
@@ -517,5 +517,41 @@ HWTEST_F(IpsecVpnCtlTest, HandleIpsecConnectFailed001, TestSize.Level1)
     ipsecControl_->HandleIpsecConnectFailed(code);
     EXPECT_TRUE(ipsecControl_->state_ == IpsecVpnStateCode::STATE_DISCONNECTED);
 }
+
+HWTEST_F(IpsecVpnCtlTest, LocalAddressesTest001, TestSize.Level1)
+{
+    ASSERT_NE(ipsecControl_, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    netAddr->address_ = "192.168.1.100";
+    netAddr->prefixlen_ = 24;
+    ipsecControl_->ipsecVpnConfig_->localAddresses_.clear();
+    ipsecControl_->ipsecVpnConfig_->localAddresses_.push_back(*netAddr);
+    EXPECT_EQ(ipsecControl_->ipsecVpnConfig_->localAddresses_[0].address_, "192.168.1.100");
+}
+
+HWTEST_F(IpsecVpnCtlTest, LocalAddressesTest002, TestSize.Level1)
+{
+    ASSERT_NE(ipsecControl_, nullptr);
+    ipsecControl_->ipsecVpnConfig_->localAddresses_.clear();
+    EXPECT_TRUE(ipsecControl_->ipsecVpnConfig_->localAddresses_.empty());
+}
+
+HWTEST_F(IpsecVpnCtlTest, LocalAddressesTest003, TestSize.Level1)
+{
+    ASSERT_NE(ipsecControl_, nullptr);
+    sptr<INetAddr> netAddr1 = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr1, nullptr);
+    netAddr1->address_ = "192.168.1.100";
+    netAddr1->prefixlen_ = 24;
+    sptr<INetAddr> netAddr2 = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr2, nullptr);
+    netAddr2->address_ = "192.168.1.101";
+    netAddr2->prefixlen_ = 24;
+    ipsecControl_->ipsecVpnConfig_->localAddresses_.push_back(*netAddr1);
+    ipsecControl_->ipsecVpnConfig_->localAddresses_.push_back(*netAddr2);
+    EXPECT_EQ(ipsecControl_->ipsecVpnConfig_->localAddresses_[1].address_, "192.168.1.101");
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

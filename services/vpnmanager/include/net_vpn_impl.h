@@ -54,6 +54,7 @@ public:
     virtual int32_t NotifyConnectStage(const std::string &stage, const int32_t &result);
     virtual int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri);
     virtual bool IsSystemVpn();
+    virtual sptr<SysVpnConfig> GetSysVpnConfig();
 #endif // SUPPORT_SYSVPN
     int32_t RegisterConnectStateChangedCb(std::shared_ptr<IVpnConnStateCb> callback);
     virtual void NotifyConnectState(const VpnConnectState &state);
@@ -105,6 +106,7 @@ public:
 
 protected:
     bool UpdateNetLinkInfo();
+    void UpdateAddress(sptr<NetLinkInfo>& linkInfo);
     bool RegisterNetSupplier(NetConnClient &netConnClientIns, bool isInternalChannel = false);
     void UnregisterNetSupplier(NetConnClient &netConnClientIns);
     bool UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isAvailable);

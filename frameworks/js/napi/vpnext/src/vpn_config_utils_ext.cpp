@@ -90,7 +90,6 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
             vpnConfig->isAcceptIPv6_ = isIpv6;
         }
     }
-
     // parse routes.
     if (NapiUtils::HasNamedProperty(env, config, CONFIG_ROUTES)) {
         napi_value routes = NapiUtils::GetNamedProperty(env, config, CONFIG_ROUTES);
@@ -107,6 +106,29 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
             }
             vpnConfig->routes_.emplace_back(routeInfo);
         }
+    }
+    return ParseExtLocalAddressesFromConfig(env, config, vpnConfig);
+}
+
+bool ParseExtLocalAddressesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
+{
+    if (!NapiUtils::HasNamedProperty(env, config, CONFIG_LOCAL_ADDRESSES)) {
+        return true;
+    }
+    
+    napi_value localAddrArray = NapiUtils::GetNamedProperty(env, config, CONFIG_LOCAL_ADDRESSES);
+    if (!NapiUtils::IsArray(env, localAddrArray)) {
+        return false;
+    }
+    
+    uint32_t localAddrLength = NapiUtils::GetArrayLength(env, localAddrArray);
+    for (uint32_t i = 0; i < localAddrLength; ++i) {
+        INetAddr iNetAddr;
+        if (!ParseAddress(env, NapiUtils::GetArrayElement(env, localAddrArray, i), iNetAddr)) {
+            NETMGR_EXT_LOG_E("ParseLocalAddress failed");
+            return false;
+        }
+        vpnConfig->localAddresses_.emplace_back(iNetAddr);
     }
     return true;
 }
@@ -149,6 +171,7 @@ bool ParseSystemVpnParams(napi_env env, napi_value config, sptr<SysVpnConfig> sy
         GetStringFromJsOptionItem(env, config, CONFIG_PK12_PASSWORD, sysVpnConfig->pkcs12Password_);
         GetU8VectorFromJsOptionItem(env, config, CONFIG_PK12_FILE_DATA, sysVpnConfig->pkcs12FileData_);
     }
+    ParseOptionArrayString(env, config, CONFIG_REMOTE_ADDRS, sysVpnConfig->remoteAddresses_);
     return true;
 }
 
@@ -385,10 +408,11 @@ bool ParseGateway(napi_env env, napi_value jsRoute, struct INetAddr &iNetAddr)
         return false;
     }
 
-    if (!GetStringFromJsMandatoryItem(env, gateway, NET_ADDRESS, iNetAddr.address_)) {
+    if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, gateway, NET_ADDRESS)) != napi_string) {
         NETMGR_EXT_LOG_E("get gateway-address failed");
         return false;
     }
+    iNetAddr.address_ = NapiUtils::GetStringPropertyUtf8(env, gateway, NET_ADDRESS);
 
     GetUint8FromJsOptionItem(env, gateway, NET_FAMILY, iNetAddr.family_);
     GetUint8FromJsOptionItem(env, gateway, NET_PORT, iNetAddr.port_);
@@ -517,6 +541,7 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
         NETMGR_EXT_LOG_E("CreateNapiSysVpnConfig failed, param is null");
         return NapiUtils::GetUndefined(env);
     }
+    
     napi_value config = NapiUtils::CreateObject(env);
     std::vector<INetAddr> addresses = sysVpnConfig->addresses_;
     if (!addresses.empty()) {
@@ -528,6 +553,12 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
         NapiUtils::SetUint32Property(env, linkAddr, NET_PREFIXLENGTH, 1);
         NapiUtils::SetArrayElement(env, linkAddresses, 0, linkAddr);
         NapiUtils::SetNamedProperty(env, config, CONFIG_ADDRESSES, linkAddresses);
+    }
+    std::vector<std::string> remoteAddrs = sysVpnConfig->remoteAddresses_;
+    if (!remoteAddrs.empty()) {
+        napi_value remoteArray = NapiUtils::CreateArray(env, 1);
+        NapiUtils::SetArrayElement(env, remoteArray, 0, NapiUtils::CreateStringUtf8(env, remoteAddrs[0]));
+        NapiUtils::SetNamedProperty(env, config, CONFIG_REMOTE_ADDRS, remoteArray);
     }
     std::vector<std::string> dnsAddresses = sysVpnConfig->dnsAddresses_;
     if (!dnsAddresses.empty()) {
@@ -548,7 +579,26 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
     NapiUtils::SetBooleanProperty(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_ == 0 ? false : true);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
+    SetExtLocalAddressesProperty(env, config, sysVpnConfig->localAddresses_);
     return config;
+}
+
+void SetExtLocalAddressesProperty(napi_env env, napi_value config, const std::vector<INetAddr> &localAddresses)
+{
+    if (localAddresses.empty()) {
+        return;
+    }
+    
+    napi_value localAddrArray = NapiUtils::CreateArray(env, localAddresses.size());
+    for (size_t i = 0; i < localAddresses.size(); i++) {
+        napi_value netAddr = NapiUtils::CreateObject(env);
+        NapiUtils::SetStringPropertyUtf8(env, netAddr, NET_ADDRESS, localAddresses[i].address_);
+        napi_value linkAddr = NapiUtils::CreateObject(env);
+        NapiUtils::SetNamedProperty(env, linkAddr, NET_ADDRESS, netAddr);
+        NapiUtils::SetUint32Property(env, linkAddr, NET_PREFIXLENGTH, localAddresses[i].prefixlen_);
+        NapiUtils::SetArrayElement(env, localAddrArray, i, linkAddr);
+    }
+    NapiUtils::SetNamedProperty(env, config, CONFIG_LOCAL_ADDRESSES, localAddrArray);
 }
 
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)

@@ -168,5 +168,69 @@ HWTEST_F(NetVpnImplTest, GenerateUidRanges001, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetVpnImplTest, GetVpnIfAddr001, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    
+    INetAddr netAddr;
+    netAddr.address_ = "192.168.1.100";
+    netAddr.prefixlen_ = 24;
+    netVpnImpl_->vpnConfig_->addresses_.push_back(netAddr);
+    
+    std::string ifAddr = netVpnImpl_->GetVpnIfAddr();
+    EXPECT_EQ(ifAddr, "192.168.1.100");
+}
+
+HWTEST_F(NetVpnImplTest, GetVpnIfAddr002, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    
+    INetAddr netAddr1;
+    netAddr1.address_ = "192.168.1.100";
+    netAddr1.prefixlen_ = 24;
+    INetAddr netAddr2;
+    netAddr2.address_ = "192.168.1.101";
+    netAddr2.prefixlen_ = 24;
+    netVpnImpl_->vpnConfig_->addresses_.push_back(netAddr1);
+    netVpnImpl_->vpnConfig_->addresses_.push_back(netAddr2);
+    
+    std::string ifAddr = netVpnImpl_->GetVpnIfAddr();
+    EXPECT_EQ(ifAddr, "192.168.1.101");
+}
+
+HWTEST_F(NetVpnImplTest, GetVpnIfAddr003, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    
+    netVpnImpl_->vpnConfig_->addresses_.clear();
+    
+    std::string ifAddr = netVpnImpl_->GetVpnIfAddr();
+    EXPECT_TRUE(ifAddr.empty());
+}
+
+HWTEST_F(NetVpnImplTest, UpdateNetLinkInfo002, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    
+    INetAddr netAddr1;
+    netAddr1.address_ = "192.168.1.100";
+    netAddr1.prefixlen_ = 24;
+    INetAddr netAddr2;
+    netAddr2.address_ = "192.168.1.101";
+    netAddr2.prefixlen_ = 24;
+    netVpnImpl_->vpnConfig_->addresses_.push_back(netAddr1);
+    netVpnImpl_->vpnConfig_->addresses_.push_back(netAddr2);
+    
+    bool result = netVpnImpl_->UpdateNetLinkInfo();
+    EXPECT_TRUE(result);
+
+    sptr<SysVpnConfig> sysVpnConfig = netVpnImpl_->GetSysVpnConfig();
+    EXPECT_EQ(sysVpnConfig, nullptr);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
