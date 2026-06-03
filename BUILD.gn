@@ -73,15 +73,11 @@ group("netfirewall_packages") {
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall:netfirewall",
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netfirewallclient:netfirewall_manager_if",
       "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_default_rule",
+      "$NETMANAGER_EXT_ROOT/frameworks/c/net_trafficfilter:net_trafficfilter",
     ]
     if (!netmanager_ext_fpga_mode_enable) {
       deps += [
         "$NETMANAGER_EXT_ROOT/services/netfirewallmanager:netfirewall_manager",
-      ]
-    }
-    if (netmanager_ext_feature_traffic_filter || netmanager_ext_feature_traffic_redirect) {
-      deps += [
-        "$NETMANAGER_EXT_ROOT/frameworks/c/net_trafficfilter:net_trafficfilter",
       ]
     }
   }

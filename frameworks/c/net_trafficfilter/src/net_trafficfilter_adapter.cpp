@@ -193,10 +193,10 @@ static bool ValidateBasicRuleFields(const OH_TrafficFilter_RedirectRule* rule)
         return false;
     }
 
-    if (rule->hook_point != OH_TRAFFICFILTER_HOOK_PREROUTING &&
-        rule->hook_point != OH_TRAFFICFILTER_HOOK_OUTPUT) {
-        NETMGR_EXT_LOG_E("Invalid hook_point: %{public}d (must be PREROUTING=3 or OUTPUT=1)",
-            rule->hook_point);
+    if (rule->hookPoint != OH_TRAFFICFILTER_HOOK_PREROUTING &&
+        rule->hookPoint != OH_TRAFFICFILTER_HOOK_OUTPUT) {
+        NETMGR_EXT_LOG_E("Invalid hookPoint: %{public}d (must be PREROUTING=3 or OUTPUT=1)",
+            rule->hookPoint);
         return false;
     }
 
@@ -205,29 +205,29 @@ static bool ValidateBasicRuleFields(const OH_TrafficFilter_RedirectRule* rule)
 
 static bool ValidateIPMatchFields(const OH_TrafficFilter_RedirectRule* rule)
 {
-    if (rule->src_ip.type < OH_TRAFFICFILTER_IP_MATCH_ANY ||
-        rule->src_ip.type > OH_TRAFFICFILTER_IP_MATCH_MULTI) {
-        NETMGR_EXT_LOG_E("Invalid src_ip type: %{public}d", rule->src_ip.type);
+    if (rule->srcIp.type < OH_TRAFFICFILTER_IP_MATCH_ANY ||
+        rule->srcIp.type > OH_TRAFFICFILTER_IP_MATCH_MULTI) {
+        NETMGR_EXT_LOG_E("Invalid srcIp type: %{public}d", rule->srcIp.type);
         return false;
     }
-    if (rule->dst_ip.type < OH_TRAFFICFILTER_IP_MATCH_ANY ||
-        rule->dst_ip.type > OH_TRAFFICFILTER_IP_MATCH_MULTI) {
-        NETMGR_EXT_LOG_E("Invalid dst_ip type: %{public}d", rule->dst_ip.type);
+    if (rule->dstIp.type < OH_TRAFFICFILTER_IP_MATCH_ANY ||
+        rule->dstIp.type > OH_TRAFFICFILTER_IP_MATCH_MULTI) {
+        NETMGR_EXT_LOG_E("Invalid dstIp type: %{public}d", rule->dstIp.type);
         return false;
     }
-    if (rule->src_ip.type == OH_TRAFFICFILTER_IP_MATCH_MULTI) {
-        if (rule->src_ip.value.multi.ipCount == 0 ||
-            rule->src_ip.value.multi.ipCount > NETTRAFFICFILTER_MAX_MULTI_IP_COUNT) {
-            NETMGR_EXT_LOG_E("Invalid src_ip multi ipCount: %{public}u (valid: 1-%{public}u)",
-                rule->src_ip.value.multi.ipCount, OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT);
+    if (rule->srcIp.type == OH_TRAFFICFILTER_IP_MATCH_MULTI) {
+        if (rule->srcIp.value.multi.ipCount == 0 ||
+            rule->srcIp.value.multi.ipCount > NETTRAFFICFILTER_MAX_MULTI_IP_COUNT) {
+            NETMGR_EXT_LOG_E("Invalid srcIp multi ipCount: %{public}u (valid: 1-%{public}u)",
+                rule->srcIp.value.multi.ipCount, OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT);
             return false;
         }
     }
-    if (rule->dst_ip.type == OH_TRAFFICFILTER_IP_MATCH_MULTI) {
-        if (rule->dst_ip.value.multi.ipCount == 0 ||
-            rule->dst_ip.value.multi.ipCount > NETTRAFFICFILTER_MAX_MULTI_IP_COUNT) {
-            NETMGR_EXT_LOG_E("Invalid dst_ip multi ipCount: %{public}u (valid: 1-%{public}u)",
-                rule->dst_ip.value.multi.ipCount, OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT);
+    if (rule->dstIp.type == OH_TRAFFICFILTER_IP_MATCH_MULTI) {
+        if (rule->dstIp.value.multi.ipCount == 0 ||
+            rule->dstIp.value.multi.ipCount > NETTRAFFICFILTER_MAX_MULTI_IP_COUNT) {
+            NETMGR_EXT_LOG_E("Invalid dstIp multi ipCount: %{public}u (valid: 1-%{public}u)",
+                rule->dstIp.value.multi.ipCount, OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT);
             return false;
         }
     }
@@ -236,43 +236,43 @@ static bool ValidateIPMatchFields(const OH_TrafficFilter_RedirectRule* rule)
 
 static bool ValidatePortMatchFields(const OH_TrafficFilter_RedirectRule* rule)
 {
-    if (rule->src_port.type < OH_TRAFFICFILTER_PORT_MATCH_ANY ||
-        rule->src_port.type > OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
-        NETMGR_EXT_LOG_E("Invalid src_port type: %{public}d", rule->src_port.type);
+    if (rule->srcPort.type < OH_TRAFFICFILTER_PORT_MATCH_ANY ||
+        rule->srcPort.type > OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
+        NETMGR_EXT_LOG_E("Invalid srcPort type: %{public}d", rule->srcPort.type);
         return false;
     }
-    if (rule->dst_port.type < OH_TRAFFICFILTER_PORT_MATCH_ANY ||
-        rule->dst_port.type > OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
-        NETMGR_EXT_LOG_E("Invalid dst_port type: %{public}d", rule->dst_port.type);
+    if (rule->dstPort.type < OH_TRAFFICFILTER_PORT_MATCH_ANY ||
+        rule->dstPort.type > OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
+        NETMGR_EXT_LOG_E("Invalid dstPort type: %{public}d", rule->dstPort.type);
         return false;
     }
-    if (rule->src_port.type == OH_TRAFFICFILTER_PORT_MATCH_RANGE) {
-        if (rule->src_port.value.range.startPort > rule->src_port.value.range.endPort) {
-            NETMGR_EXT_LOG_E("Invalid src_port range: start(%{public}u) > end(%{public}u)",
-                rule->src_port.value.range.startPort, rule->src_port.value.range.endPort);
+    if (rule->srcPort.type == OH_TRAFFICFILTER_PORT_MATCH_RANGE) {
+        if (rule->srcPort.value.range.startPort > rule->srcPort.value.range.endPort) {
+            NETMGR_EXT_LOG_E("Invalid srcPort range: start(%{public}u) > end(%{public}u)",
+                rule->srcPort.value.range.startPort, rule->srcPort.value.range.endPort);
             return false;
         }
     }
-    if (rule->dst_port.type == OH_TRAFFICFILTER_PORT_MATCH_RANGE) {
-        if (rule->dst_port.value.range.startPort > rule->dst_port.value.range.endPort) {
-            NETMGR_EXT_LOG_E("Invalid dst_port range: start(%{public}u) > end(%{public}u)",
-                rule->dst_port.value.range.startPort, rule->dst_port.value.range.endPort);
+    if (rule->dstPort.type == OH_TRAFFICFILTER_PORT_MATCH_RANGE) {
+        if (rule->dstPort.value.range.startPort > rule->dstPort.value.range.endPort) {
+            NETMGR_EXT_LOG_E("Invalid dstPort range: start(%{public}u) > end(%{public}u)",
+                rule->dstPort.value.range.startPort, rule->dstPort.value.range.endPort);
             return false;
         }
     }
-    if (rule->src_port.type == OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
-        if (rule->src_port.value.multi.portCount == 0 ||
-            rule->src_port.value.multi.portCount > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
-            NETMGR_EXT_LOG_E("Invalid src_port multi portCount: %{public}u (valid: 1-%{public}u)",
-                rule->src_port.value.multi.portCount, NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT);
+    if (rule->srcPort.type == OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
+        if (rule->srcPort.value.multi.portCount == 0 ||
+            rule->srcPort.value.multi.portCount > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
+            NETMGR_EXT_LOG_E("Invalid srcPort multi portCount: %{public}u (valid: 1-%{public}u)",
+                rule->srcPort.value.multi.portCount, NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT);
             return false;
         }
     }
-    if (rule->dst_port.type == OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
-        if (rule->dst_port.value.multi.portCount == 0 ||
-            rule->dst_port.value.multi.portCount > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
-            NETMGR_EXT_LOG_E("Invalid dst_port multi portCount: %{public}u (valid: 1-%{public}u)",
-                rule->dst_port.value.multi.portCount, NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT);
+    if (rule->dstPort.type == OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
+        if (rule->dstPort.value.multi.portCount == 0 ||
+            rule->dstPort.value.multi.portCount > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
+            NETMGR_EXT_LOG_E("Invalid dstPort multi portCount: %{public}u (valid: 1-%{public}u)",
+                rule->dstPort.value.multi.portCount, NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT);
             return false;
         }
     }
@@ -281,20 +281,20 @@ static bool ValidatePortMatchFields(const OH_TrafficFilter_RedirectRule* rule)
 
 static bool ValidateRuleAttributes(const OH_TrafficFilter_RedirectRule* rule)
 {
-    if (rule->uid_start > rule->uid_end) {
+    if (rule->uidStart > rule->uidEnd) {
         NETMGR_EXT_LOG_E("Invalid UID range: start(%{public}u) > end(%{public}u)",
-            rule->uid_start, rule->uid_end);
+            rule->uidStart, rule->uidEnd);
         return false;
     }
 
-    bool hasValidProxyIpFamily = (rule->proxy_ip.family == OH_TRAFFICFILTER_IP_FAMILY_V4 ||
-        rule->proxy_ip.family == OH_TRAFFICFILTER_IP_FAMILY_V6);
+    bool hasValidProxyIpFamily = (rule->proxyIp.family == OH_TRAFFICFILTER_IP_FAMILY_V4 ||
+        rule->proxyIp.family == OH_TRAFFICFILTER_IP_FAMILY_V6);
     if (!hasValidProxyIpFamily) {
-        NETMGR_EXT_LOG_E("Invalid proxy_ip family: %{public}d", rule->proxy_ip.family);
+        NETMGR_EXT_LOG_E("Invalid proxyIp family: %{public}d", rule->proxyIp.family);
         return false;
     }
-    if (rule->proxy_port == 0) {
-        NETMGR_EXT_LOG_E("Invalid proxy_port");
+    if (rule->proxyPort == 0) {
+        NETMGR_EXT_LOG_E("Invalid proxyPort");
         return false;
     }
 
@@ -326,41 +326,41 @@ static bool ConvertCRedirectRuleToIPCRule(
     }
 
     ipcRule.priority_ = cRule->priority;
-    ipcRule.hookPoint_ = static_cast<int32_t>(cRule->hook_point);
+    ipcRule.hookPoint_ = static_cast<int32_t>(cRule->hookPoint);
     ipcRule.protocol_ = cRule->protocol;
 
-    if (!ConvertCIPMatchToIPCMATCH(cRule->src_ip, ipcRule.srcIp_)) {
+    if (!ConvertCIPMatchToIPCMATCH(cRule->srcIp, ipcRule.srcIp_)) {
         return false;
     }
 
-    if (!ConvertCPortMatchToPortMatch(cRule->src_port, ipcRule.srcPort_)) {
+    if (!ConvertCPortMatchToPortMatch(cRule->srcPort, ipcRule.srcPort_)) {
         return false;
     }
 
-    if (!ConvertCIPMatchToIPCMATCH(cRule->dst_ip, ipcRule.dstIp_)) {
+    if (!ConvertCIPMatchToIPCMATCH(cRule->dstIp, ipcRule.dstIp_)) {
         return false;
     }
 
-    if (!ConvertCPortMatchToPortMatch(cRule->dst_port, ipcRule.dstPort_)) {
+    if (!ConvertCPortMatchToPortMatch(cRule->dstPort, ipcRule.dstPort_)) {
         return false;
     }
 
-    if (!ConvertCInterfaceMatchToInterfaceMatch(cRule->in_interface, ipcRule.inInterface_)) {
+    if (!ConvertCInterfaceMatchToInterfaceMatch(cRule->inInterface, ipcRule.inInterface_)) {
         return false;
     }
 
-    if (!ConvertCInterfaceMatchToInterfaceMatch(cRule->out_interface, ipcRule.outInterface_)) {
+    if (!ConvertCInterfaceMatchToInterfaceMatch(cRule->outInterface, ipcRule.outInterface_)) {
         return false;
     }
 
-    ipcRule.uidStart_ = cRule->uid_start;
-    ipcRule.uidEnd_ = cRule->uid_end;
+    ipcRule.uidStart_ = cRule->uidStart;
+    ipcRule.uidEnd_ = cRule->uidEnd;
 
-    if (!ConvertCIPAddressToIPC(cRule->proxy_ip, ipcRule.proxyIp_)) {
+    if (!ConvertCIPAddressToIPC(cRule->proxyIp, ipcRule.proxyIp_)) {
         return false;
     }
 
-    ipcRule.proxyPort_ = cRule->proxy_port;
+    ipcRule.proxyPort_ = cRule->proxyPort;
 
     return true;
 }
@@ -445,8 +445,8 @@ int32_t RedirectorAdapterManager::AddRedirectRule(
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    NETMGR_EXT_LOG_I("AddRedirectRule: priority=%{public}u, hook_point=%{public}d",
-        rule->priority, rule->hook_point);
+    NETMGR_EXT_LOG_I("AddRedirectRule: priority=%{public}u, hookPoint=%{public}d",
+        rule->priority, rule->hookPoint);
     std::string redirectorId;
     if (!GetRedirectorId(redirector, redirectorId)) {
         NETMGR_EXT_LOG_E("AddRedirectRule: redirector handle not found in map");
@@ -517,19 +517,19 @@ int32_t RedirectorAdapterManager::QueryProcess(const OH_TrafficFilter_Connection
 
     std::string srcIp;
     std::string dstIp;
-    if (!ConvertTrafficFilterIpToString(connectionInfo->src_ip, srcIp)) {
-        NETMGR_EXT_LOG_E("QueryProcess: convert src_ip failed");
+    if (!ConvertTrafficFilterIpToString(connectionInfo->srcIp, srcIp)) {
+        NETMGR_EXT_LOG_E("QueryProcess: convert srcIp failed");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-    if (!ConvertTrafficFilterIpToString(connectionInfo->dst_ip, dstIp)) {
-        NETMGR_EXT_LOG_E("QueryProcess: convert dst_ip failed");
+    if (!ConvertTrafficFilterIpToString(connectionInfo->dstIp, dstIp)) {
+        NETMGR_EXT_LOG_E("QueryProcess: convert dstIp failed");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
     uint32_t uid = 0;
     uint32_t pid = 0;
     int32_t ret = NetFirewallClient::GetInstance().QueryProcess(
-        srcIp, connectionInfo->src_port, dstIp, connectionInfo->dst_port,
+        srcIp, connectionInfo->srcPort, dstIp, connectionInfo->dstPort,
         connectionInfo->protocol, uid, pid);
     if (ret != OH_TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("QueryProcess: QueryProcess failed, ret=%{public}d", ret);

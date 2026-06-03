@@ -169,9 +169,15 @@ int32_t OH_TrafficFilter_ClearPacketRule(OH_TrafficFilter_PacketController* cont
  *     This is the logical grouping ID within the application.
  *     Multiple redirectors within the same application can use different group_id.
  *     The same group_id from different applications will be automatically isolated.
- * @param priority Priority
- *     (determines execution order between different group_id chain, smaller number executes first).
+ *     The valid range is [{@link OH_TRAFFICFILTER_MIN_GROUP_ID}, {@link OH_TRAFFICFILTER_MAX_GROUP_ID}],
+ *     including both boundaries. If group_id is outside this range, this function returns
+ *     {@link OH_TRAFFICFILTER_ERROR_INVALID_PARAM}.
+ * @param priority Priority.
+ *     Determines execution order between different group_id chains. A smaller number executes first.
  *     Note: Redirector priority is higher than packet filter priority.
+ *     The valid range is [{@link OH_TRAFFICFILTER_MIN_PRIORITY}, {@link OH_TRAFFICFILTER_MAX_PRIORITY}],
+ *     including both boundaries. If priority is outside this range, this function returns
+ *     {@link OH_TRAFFICFILTER_ERROR_INVALID_PARAM}.
  *
  * @param redirector Output parameter, the redirection handle on success.
  * @return <ul><li>{@link OH_TRAFFICFILTER_OK} on success.</li>
