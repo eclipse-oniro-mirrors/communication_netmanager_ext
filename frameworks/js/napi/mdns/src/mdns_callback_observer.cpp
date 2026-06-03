@@ -144,6 +144,8 @@ int32_t MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceI
 
 napi_value CreateCallbackParam(const MDnsServiceInfo &serviceInfo, napi_env env)
 {
+    auto closeScope = [env](napi_handle_scope scope) { NapiUtils::CloseScope(env, scope); };
+    std::unique_ptr<napi_handle_scope__, decltype(closeScope)> scope(NapiUtils::OpenScope(env), closeScope);
     napi_value object = NapiUtils::CreateObject(env);
     NapiUtils::SetStringPropertyUtf8(env, object, SERVICEINFO_TYPE, serviceInfo.type);
     NapiUtils::SetStringPropertyUtf8(env, object, SERVICEINFO_NAME, serviceInfo.name);
@@ -161,6 +163,8 @@ napi_value CreateCallbackParam(const MDnsServiceInfo &serviceInfo, napi_env env)
 
 napi_value MDnsDiscoveryObserver::CreateServiceWithError(napi_env env, void *data)
 {
+    auto closeScope = [env](napi_handle_scope scope) { NapiUtils::CloseScope(env, scope); };
+    std::unique_ptr<napi_handle_scope__, decltype(closeScope)> scope(NapiUtils::OpenScope(env), closeScope);
     auto pair = static_cast<std::pair<int32_t, MDnsServiceInfo> *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
     NapiUtils::SetUint32Property(env, obj, ERRCODE, pair->first);
@@ -177,6 +181,8 @@ void MDnsDiscoveryObserver::ServiceCallbackWithError(uv_work_t *work, int32_t st
 
 napi_value MDnsDiscoveryObserver::CreateService(napi_env env, void *data)
 {
+    auto closeScope = [env](napi_handle_scope scope) { NapiUtils::CloseScope(env, scope); };
+    std::unique_ptr<napi_handle_scope__, decltype(closeScope)> scope(NapiUtils::OpenScope(env), closeScope);
     auto serviceInfo = static_cast<MDnsServiceInfo *>(data);
     napi_value obj = CreateCallbackParam(*serviceInfo, env);
     napi_value infoObj = CreateCallbackParam(*serviceInfo, env);
