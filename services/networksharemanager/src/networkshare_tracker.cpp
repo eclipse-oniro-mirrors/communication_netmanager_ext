@@ -812,7 +812,7 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
         NETMGR_EXT_LOG_I("register bluetooth pan callback.");
         RegisterBtPanCallback();
     }
-    bool ret = profile->SetTethering(enable);
+    bool ret = (profile->SetTethering(enable) == 0);
     if (ret) {
         NETMGR_EXT_LOG_I("SetBluetoothNetworkSharing(%{public}s) is success.", enable ? "true" : "false");
         if (enable && bluetoothShareCount_ < INT32_MAX) {
