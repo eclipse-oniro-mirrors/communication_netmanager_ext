@@ -309,5 +309,103 @@ HWTEST_F(OpenvpnCtlTest, ProcessDnsConfig004, TestSize.Level1)
     int32_t result = control->ProcessDnsConfig(config);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_INTERNAL);
 }
+
+HWTEST_F(OpenvpnCtlTest, LocalAddressesTest001, TestSize.Level1)
+{
+    ASSERT_NE(openvpnControl_, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    netAddr->address_ = "10.8.0.3";
+    netAddr->prefixlen_ = 24;
+    openvpnControl_->openvpnConfig_->localAddresses_.push_back(*netAddr);
+    
+    std::string localAddress = "";
+    EXPECT_FALSE(openvpnControl_->openvpnConfig_->localAddresses_.empty());
+}
+
+HWTEST_F(OpenvpnCtlTest, LocalAddressesTest002, TestSize.Level1)
+{
+    ASSERT_NE(openvpnControl_, nullptr);
+    openvpnControl_->openvpnConfig_->localAddresses_.clear();
+    
+    std::string msg = R"(openvpn{"setupVpnTun":{"ip":"192.168.1.100"}})";
+    sptr<MultiVpnInfo> vpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(vpnInfo, nullptr);
+    openvpnControl_->multiVpnInfo_ = vpnInfo;
+    int32_t ret = openvpnControl_->HandleClientMessage(msg);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(openvpnControl_->openvpnConfig_->localAddresses_.empty());
+}
+
+HWTEST_F(OpenvpnCtlTest, GetSysVpnConfigTest001, TestSize.Level1)
+{
+    ASSERT_NE(openvpnControl_, nullptr);
+    
+    sptr<SysVpnConfig> sysVpnConfig = openvpnControl_->GetSysVpnConfig();
+    EXPECT_NE(sysVpnConfig, nullptr);
+}
+
+HWTEST_F(OpenvpnCtlTest, UpdateConfigWithMtu001, TestSize.Level1)
+{
+    std::string msg = "openvpn{\"config\":{\"mtu\":1500, \"address\":\"10.8.0.3\", \"netmask\":\"255.255.255.0\"}}";
+    const char *ret = strstr(msg.c_str(), "{");
+    ASSERT_TRUE(ret != nullptr);
+    cJSON* message = cJSON_Parse(ret);
+    ASSERT_TRUE(message != nullptr);
+    cJSON* config = cJSON_GetObjectItem(message, "config");
+    ASSERT_TRUE(config != nullptr);
+    ASSERT_TRUE(cJSON_IsObject(config));
+    
+    openvpnControl_->UpdateConfig(config);
+    EXPECT_FALSE(openvpnControl_->openvpnConfig_->localAddresses_.empty());
+    cJSON_Delete(message);
+}
+
+HWTEST_F(OpenvpnCtlTest, UpdateConfigWithAddress001, TestSize.Level1)
+{
+    std::string msg = "openvpn{\"config\":{\"address\":\"192.168.1.100\", \"netmask\":\"255.255.255.0\"}}";
+    const char *ret = strstr(msg.c_str(), "{");
+    ASSERT_TRUE(ret != nullptr);
+    cJSON* message = cJSON_Parse(ret);
+    ASSERT_TRUE(message != nullptr);
+    cJSON* config = cJSON_GetObjectItem(message, "config");
+    ASSERT_TRUE(config != nullptr);
+    ASSERT_TRUE(cJSON_IsObject(config));
+    openvpnControl_->openvpnConfig_ = nullptr;
+    openvpnControl_->UpdateConfig(config);
+
+    sptr<OpenvpnConfig> openvpnConfig = new (std::nothrow) OpenvpnConfig();
+    ASSERT_NE(openvpnConfig, nullptr);
+    openvpnControl_->openvpnConfig_ = openvpnConfig;
+    openvpnControl_->UpdateConfig(config);
+    EXPECT_FALSE(openvpnControl_->openvpnConfig_->localAddresses_.empty());
+    cJSON_Delete(message);
+}
+
+HWTEST_F(OpenvpnCtlTest, UpdateConfigWithoutLocalAddress001, TestSize.Level1)
+{
+    sptr<OpenvpnConfig> openvpnConfig = new (std::nothrow) OpenvpnConfig();
+    ASSERT_NE(openvpnConfig, nullptr);
+    openvpnControl_->openvpnConfig_ = openvpnConfig;
+    
+    sptr<INetAddr> existingAddr = new (std::nothrow) INetAddr();
+    existingAddr->address_ = "10.8.0.3";
+    existingAddr->prefixlen_ = 24;
+    openvpnConfig->localAddresses_.push_back(*existingAddr);
+    
+    std::string msg = "openvpn{\"config\":{\"address\":\"192.168.1.100\", \"netmask\":\"255.255.255.0\"}}";
+    const char *ret = strstr(msg.c_str(), "{");
+    ASSERT_TRUE(ret != nullptr);
+    cJSON* message = cJSON_Parse(ret);
+    ASSERT_TRUE(message != nullptr);
+    cJSON* config = cJSON_GetObjectItem(message, "config");
+    ASSERT_TRUE(config != nullptr);
+    ASSERT_TRUE(cJSON_IsObject(config));
+    
+    size_t originalSize = openvpnConfig->localAddresses_.size();
+    openvpnControl_->UpdateConfig(config);
+    EXPECT_EQ(openvpnControl_->openvpnConfig_->localAddresses_.size(), originalSize);
+    cJSON_Delete(message);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

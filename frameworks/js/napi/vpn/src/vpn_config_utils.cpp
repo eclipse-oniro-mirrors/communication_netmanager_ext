@@ -119,6 +119,29 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
             vpnConfig->routes_.emplace_back(routeInfo);
         }
     }
+    return ParseLocalAddressesFromConfig(env, config, vpnConfig);
+}
+
+bool ParseLocalAddressesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
+{
+    if (!NapiUtils::HasNamedProperty(env, config, CONFIG_LOCAL_ADDRESSES)) {
+        return true;
+    }
+    
+    napi_value localAddrArray = NapiUtils::GetNamedProperty(env, config, CONFIG_LOCAL_ADDRESSES);
+    if (!NapiUtils::IsArray(env, localAddrArray)) {
+        return false;
+    }
+    
+    uint32_t localAddrLength = NapiUtils::GetArrayLength(env, localAddrArray);
+    for (uint32_t i = 0; i < localAddrLength; ++i) {
+        INetAddr iNetAddr;
+        if (!ParseAddress(env, NapiUtils::GetArrayElement(env, localAddrArray, i), iNetAddr)) {
+            NETMGR_EXT_LOG_E("ParseLocalAddress failed");
+            return false;
+        }
+        vpnConfig->localAddresses_.emplace_back(iNetAddr);
+    }
     return true;
 }
 
@@ -520,7 +543,26 @@ napi_value CreateNapiSysVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_PASSWORD, sysVpnConfig->password_);
     NapiUtils::SetBooleanProperty(env, config, CONFIG_SAVE_LOGIN, sysVpnConfig->saveLogin_ == 0 ? false : true);
     NapiUtils::SetStringPropertyUtf8(env, config, CONFIG_FORWARDED_ROUTES, sysVpnConfig->forwardingRoutes_);
+    SetLocalAddressesProperty(env, config, sysVpnConfig->localAddresses_);
     return config;
+}
+
+void SetLocalAddressesProperty(napi_env env, napi_value config, const std::vector<INetAddr> &localAddresses)
+{
+    if (localAddresses.empty()) {
+        return;
+    }
+    
+    napi_value localAddrArray = NapiUtils::CreateArray(env, localAddresses.size());
+    for (size_t i = 0; i < localAddresses.size(); i++) {
+        napi_value netAddr = NapiUtils::CreateObject(env);
+        NapiUtils::SetStringPropertyUtf8(env, netAddr, NET_ADDRESS, localAddresses[i].address_);
+        napi_value linkAddr = NapiUtils::CreateObject(env);
+        NapiUtils::SetNamedProperty(env, linkAddr, NET_ADDRESS, netAddr);
+        NapiUtils::SetUint32Property(env, linkAddr, NET_PREFIXLENGTH, localAddresses[i].prefixlen_);
+        NapiUtils::SetArrayElement(env, localAddrArray, i, linkAddr);
+    }
+    NapiUtils::SetNamedProperty(env, config, CONFIG_LOCAL_ADDRESSES, localAddrArray);
 }
 
 napi_value CreateNapiIpsecVpnConfig(napi_env env, sptr<SysVpnConfig> &sysVpnConfig)

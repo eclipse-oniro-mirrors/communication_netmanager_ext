@@ -175,6 +175,11 @@ int32_t L2tpVpnCtl::GetSysVpnCertUri(const int32_t certType, std::string &certUr
     return NETMANAGER_EXT_SUCCESS;
 }
 
+sptr<SysVpnConfig> L2tpVpnCtl::GetSysVpnConfig()
+{
+    return l2tpVpnConfig_;
+}
+
 int32_t L2tpVpnCtl::GetVpnCertData(const int32_t certType, std::vector<int8_t> &certData)
 {
     if (l2tpVpnConfig_ == nullptr) {

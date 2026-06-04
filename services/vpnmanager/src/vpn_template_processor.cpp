@@ -132,7 +132,12 @@ void VpnTemplateProcessor::GenOptionsL2tpdClient(sptr<L2tpVpnConfig> &config)
     if (configType == VpnType::L2TP_IPSEC_PSK || configType == VpnType::L2TP_IPSEC_RSA
             || configType == VpnType::L2TP) {
         std::ostringstream oss;
-        oss << "ipcp-accept-local\nipcp-accept-remote\nrefuse-eap\nrequire-mschap-v2\n";
+        if (config->localAddresses_.empty()) {
+            oss << "ipcp-accept-local\n";
+        } else {
+            oss << config->localAddresses_[0].address_ << ":0.0.0.0\n";
+        }
+        oss << "ipcp-accept-remote\nrefuse-eap\nrequire-mschap-v2\n";
         oss << "noccp\nnoauth\nidle 1800\nmtu 1410\nmru 1410\n";
         oss << "defaultroute\nusepeerdns\ndebug\nconnect-delay 3000\n";
         oss << "name " << config->userName_ << " \npassword " << config->password_;
@@ -219,7 +224,10 @@ void VpnTemplateProcessor::GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t
     std::string ipsecId = ipsecConfig->ipsecIdentifier_.empty() ? "%any" : ipsecConfig->ipsecIdentifier_;
     std::string children = "children {\n home {\n if_id_in=" + std::to_string(ifNameId) + "\n if_id_out="
         + std::to_string(ifNameId) + "\nremote_ts=0.0.0.0/0\n esp_proposals = default\n}\n}";
-    outConnect = homeElement + " {\n remote_addrs = " + ipsecConfig->addresses_[0].address_ + "\n vips = 0.0.0.0\n";
+    std::string vips = ipsecConfig->localAddresses_.empty()
+        ? "0.0.0.0" : ipsecConfig->localAddresses_[0].address_;
+    outConnect = homeElement + " {\n remote_addrs = " + ipsecConfig->addresses_[0].address_
+        + "\n vips = " + vips + "\n";
     std::ostringstream oss;
     switch (ipsecConfig->vpnType_) {
         case VpnType::IKEV2_IPSEC_MSCHAPv2:

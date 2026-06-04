@@ -736,6 +736,36 @@ bool NetworkVpnService::CheckVpnExtPermission(const std::string &bundleName)
     return CheckVpnExtPermission(uid, bundleName);
 }
 
+#ifdef SUPPORT_SYSVPN
+bool NetworkVpnService::CheckVpnHasLocalAddr(const std::shared_ptr<NetVpnImpl> &vpnObj)
+{
+    if (vpnObj == nullptr) {
+        return false;
+    }
+    if (vpnObj->IsSystemVpn()) {
+        sptr<SysVpnConfig> sysConfig = vpnObj->GetSysVpnConfig();
+        return sysConfig != nullptr && !sysConfig->localAddresses_.empty();
+    }
+    return vpnObj->GetVpnConfig() != nullptr &&
+           vpnObj->GetVpnConfig()->addresses_.size() > VPN_LOCAL_IP_INDEX;
+}
+
+bool NetworkVpnService::CheckMultiVpnAddrMatched(const std::shared_ptr<NetVpnImpl> &vpnObj,
+    const std::string &addr)
+{
+    if (vpnObj == nullptr || vpnObj->GetVpnConfig() == nullptr) {
+        return false;
+    }
+    if (vpnObj->IsSystemVpn()) {
+        sptr<SysVpnConfig> sysConfig = vpnObj->GetSysVpnConfig();
+        return sysConfig != nullptr && !sysConfig->localAddresses_.empty() &&
+               sysConfig->localAddresses_.back().address_ == addr;
+    }
+    return vpnObj->GetVpnConfig()->addresses_.size() > VPN_LOCAL_IP_INDEX &&
+           vpnObj->GetVpnConfig()->addresses_[VPN_LOCAL_IP_INDEX].address_ == addr;
+}
+#endif
+
 bool NetworkVpnService::CheckVpnExtPermission(int32_t uid, const std::string &bundleName)
 {
     int32_t ret = NETMANAGER_EXT_SUCCESS;
@@ -1155,20 +1185,11 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
         case VpnType::IPSEC_XAUTH_PSK:
         case VpnType::IPSEC_XAUTH_RSA:
         case VpnType::IPSEC_HYBRID_RSA:
-            if (isVpnExtCall) {
-                return CreateIpsecVpnCtl(config, userId, activeUserIds);
-            } else {
-                return CreateIpsecVpnCtl(VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(vpnBean), userId,
-                    activeUserIds);
-            }
+            return CreateIpsecVpnCtlWithType(config, userId, activeUserIds, isVpnExtCall, vpnBean);
         case VpnType::L2TP:
         case VpnType::L2TP_IPSEC_PSK:
         case VpnType::L2TP_IPSEC_RSA:
-            if (isVpnExtCall) {
-                return CreateL2tpCtl(config, userId, activeUserIds);
-            } else {
-                return CreateL2tpCtl(VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(vpnBean), userId, activeUserIds);
-            }
+            return CreateL2tpVpnCtlWithType(config, userId, activeUserIds, isVpnExtCall, vpnBean);
         case VpnType::OPENVPN:
             if (isVpnExtCall) {
                 return CreateOpenvpnCtl(config, userId, activeUserIds);
@@ -1269,6 +1290,35 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateVirtualCtl(const sptr<SysVp
     return virtualVpnCtl;
 }
 
+void NetworkVpnService::RemoteAddrParseToConfigAddr(const sptr<SysVpnConfig> &config)
+{
+    if (config == nullptr || !config->remoteAddresses_.size()) {
+        NETMGR_EXT_LOG_E("Parse failed, config is error");
+        return;
+    }
+
+    INetAddr iNetAddr;
+    in_addr addr;
+    if (inet_pton(AF_INET, config->remoteAddresses_[0].c_str(), &addr)) {
+        iNetAddr.address_ = config->remoteAddresses_[0];
+    } else {
+        AddrInfo hints;
+        std::vector<AddrInfo> ipAddrs;
+        NetsysController::GetInstance().GetAddrInfo(config->remoteAddresses_[0], "", hints, 0, ipAddrs);
+        for (const auto &ipAddr : ipAddrs) {
+            if (ipAddr.aiFamily == AF_INET) {
+                char ipstr[IP_ADDR_LEN_MAX] = { 0 };
+                const struct sockaddr_in *s = &(ipAddr.aiAddr.sin);
+                (void)inet_ntop(AF_INET, &(s->sin_addr), ipstr, sizeof(ipstr));
+                iNetAddr.address_ = ipstr;
+                break;
+            }
+        }
+    }
+    config->addresses_.emplace_back(iNetAddr);
+    NETMGR_EXT_LOG_I("RemoteAddrParseToConfigAddr size %{public}d", static_cast<int32_t>(config->addresses_.size()));
+}
+
 std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtl(const sptr<SysVpnConfig> &config,
     int32_t userId, std::vector<int32_t> &activeUserIds)
 {
@@ -1310,6 +1360,29 @@ void NetworkVpnService::TryParseSysRemoteAddr(sptr<VpnDataBean> &vpnBean)
         vpnBean->vpnAddress_ = ipstr;
     }
     NETMGR_EXT_LOG_I("ParseSysRemoteAddr len %{public}d", static_cast<int32_t>(vpnBean->vpnAddress_.length()));
+}
+
+std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateIpsecVpnCtlWithType(const sptr<SysVpnConfig> &config,
+    int32_t userId, std::vector<int32_t> &activeUserIds, bool isVpnExtCall, sptr<VpnDataBean> &vpnBean)
+{
+    if (isVpnExtCall) {
+        RemoteAddrParseToConfigAddr(config);
+        return CreateIpsecVpnCtl(config, userId, activeUserIds);
+    } else {
+        return CreateIpsecVpnCtl(VpnDataBean::ConvertVpnBeanToIpsecVpnConfig(vpnBean), userId,
+            activeUserIds);
+    }
+}
+
+std::shared_ptr<IpsecVpnCtl> NetworkVpnService::CreateL2tpVpnCtlWithType(const sptr<SysVpnConfig> &config,
+    int32_t userId, std::vector<int32_t> &activeUserIds, bool isVpnExtCall, sptr<VpnDataBean> &vpnBean)
+{
+    if (isVpnExtCall) {
+        RemoteAddrParseToConfigAddr(config);
+        return CreateL2tpCtl(config, userId, activeUserIds);
+    } else {
+        return CreateL2tpCtl(VpnDataBean::ConvertVpnBeanToL2tpVpnConfig(vpnBean), userId, activeUserIds);
+    }
 }
 
 int32_t NetworkVpnService::AddSysVpnConfig(const sptr<SysVpnConfig> &config)
@@ -1479,8 +1552,7 @@ int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const in
     std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
     if (stage.find(DISCONNECT_TAG) != std::string::npos) {
         NETMGR_EXT_LOG_I("service disconnect");
-        if ((vpnObj_ != nullptr) && (vpnObj_->GetVpnConfig()->addresses_.size() > VPN_LOCAL_IP_INDEX) &&
-            (vpnObj_->Destroy() == NETMANAGER_EXT_SUCCESS)) {
+        if (vpnObj_ != nullptr && CheckVpnHasLocalAddr(vpnObj_) && vpnObj_->Destroy() == NETMANAGER_EXT_SUCCESS) {
             vpnObj_ = nullptr;
             NETMGR_EXT_LOG_I("destroy vpn is ok");
             return NETMANAGER_EXT_SUCCESS;
@@ -1491,8 +1563,7 @@ int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const in
             if (vpnObjTemp.second == nullptr || vpnObjTemp.second->GetVpnConfig() == nullptr) {
                 continue;
             }
-            if ((vpnObjTemp.second->GetVpnConfig()->addresses_.size() > VPN_LOCAL_IP_INDEX) &&
-                vpnObjTemp.second->GetVpnConfig()->addresses_[VPN_LOCAL_IP_INDEX].address_ == addr) {
+            if (CheckMultiVpnAddrMatched(vpnObjTemp.second, addr)) {
                 return DestroyMultiVpn(vpnObjTemp.second);
             }
         }
@@ -2596,3 +2667,4 @@ void NetworkVpnService::VpnAbilityConnect::OnAbilityDisconnectDone(const AppExec
 
 } // namespace NetManagerStandard
 } // namespace OHOS
+

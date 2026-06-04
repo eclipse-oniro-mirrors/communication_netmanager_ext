@@ -167,6 +167,9 @@ void OpenvpnCtl::UpdateConfig(cJSON *jConfig)
         NETMGR_EXT_LOG_I("UpdateConfig prefixlen %{public}d", destination.prefixlen_);
     }
     vpnConfig_->addresses_.emplace_back(iNetAddr);
+    if (openvpnConfig_ != nullptr && openvpnConfig_->localAddresses_.empty()) {
+        openvpnConfig_->localAddresses_.emplace_back(iNetAddr);
+    }
 
     iRoute.iface_ = GetInterfaceName();
     iRoute.isDefaultRoute_ = true;
@@ -260,6 +263,11 @@ int32_t OpenvpnCtl::GetVpnCertData(const int32_t certType, std::vector<int8_t> &
 bool OpenvpnCtl::IsSystemVpn()
 {
     return true;
+}
+
+sptr<SysVpnConfig> OpenvpnCtl::GetSysVpnConfig()
+{
+    return openvpnConfig_;
 }
 
 int32_t OpenvpnCtl::Destroy()

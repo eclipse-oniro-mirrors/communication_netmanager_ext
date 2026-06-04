@@ -299,6 +299,7 @@ private:
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state, int32_t vpnType = 0) const;
     bool IsNeedNotify(const VpnConnectState &state, const std::string &vpnId);
+
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds, bool isVpnExtCall);
@@ -306,6 +307,10 @@ private:
         std::vector<int32_t> &activeUserIds);
     std::shared_ptr<IpsecVpnCtl> CreateIpsecVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
+    std::shared_ptr<IpsecVpnCtl> CreateIpsecVpnCtlWithType(const sptr<SysVpnConfig> &config,
+        int32_t userId, std::vector<int32_t> &activeUserIds, bool isVpnExtCall, sptr<VpnDataBean> &vpnBean);
+    std::shared_ptr<IpsecVpnCtl> CreateL2tpVpnCtlWithType(const sptr<SysVpnConfig> &config,
+        int32_t userId, std::vector<int32_t> &activeUserIds, bool isVpnExtCall, sptr<VpnDataBean> &vpnBean);
     int32_t QueryVpnData(const sptr<SysVpnConfig> config, sptr<VpnDataBean> &vpnBean);
     std::shared_ptr<IpsecVpnCtl> CreateL2tpCtl(const sptr<SysVpnConfig> &config, int32_t userId,
         std::vector<int32_t> &activeUserIds);
@@ -318,6 +323,9 @@ private:
     int32_t InitMultiVpnInfo(const std::string &vpnId, int32_t vpnType,
         std::string &vpnBundleName, int32_t userId, std::shared_ptr<NetVpnImpl> &vpnObj);
     void TryParseSysRemoteAddr(sptr<VpnDataBean> &config);
+    void RemoteAddrParseToConfigAddr(const sptr<SysVpnConfig> &config);
+    bool CheckVpnHasLocalAddr(const std::shared_ptr<NetVpnImpl> &vpnObj);
+    bool CheckMultiVpnAddrMatched(const std::shared_ptr<NetVpnImpl> &vpnObj, const std::string &addr);
 #endif // SUPPORT_SYSVPN
     int32_t IsSetUpReady(const std::string &vpnId, std::string &vpnBundleName,
         int32_t &userId, std::vector<int32_t> &activeUserIds);

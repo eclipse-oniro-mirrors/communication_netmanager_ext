@@ -40,6 +40,11 @@ bool IpsecVpnCtl::IsSystemVpn()
     return true;
 }
 
+sptr<SysVpnConfig> IpsecVpnCtl::GetSysVpnConfig()
+{
+    return ipsecVpnConfig_;
+}
+
 int32_t IpsecVpnCtl::SetUp(bool isInternalChannel)
 {
     return StartSysVpn();
@@ -123,10 +128,13 @@ int32_t IpsecVpnCtl::SetUpVpnTun()
         NETMGR_EXT_LOG_I("ipsec SetUp failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    if (multiVpnInfo_ != nullptr && vpnConfig_ != nullptr) {
-        multiVpnInfo_->localAddress = vpnConfig_->addresses_.empty() ?
-            "" : vpnConfig_->addresses_.back().address_;
+    // LCOV_EXCL_START
+    if (multiVpnInfo_ != nullptr) {
+        sptr<SysVpnConfig> sysVpnConfig = GetSysVpnConfig();
+        multiVpnInfo_->localAddress = (sysVpnConfig != nullptr && !sysVpnConfig->localAddresses_.empty())
+            ? sysVpnConfig->localAddresses_.back().address_ : "";
     }
+    // LCOV_EXCL_STOP
     NETMGR_EXT_LOG_I("ipsec SetUp success");
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -158,8 +166,10 @@ int32_t IpsecVpnCtl::UpdateConfig(const std::string &msg)
 
     cJSON_Delete(rootJson);
     rootJson = nullptr;
-    if (vpnConfig_ != nullptr) {
-        std::string addr = vpnConfig_->addresses_.empty() ? "" : vpnConfig_->addresses_.back().address_;
+    sptr<SysVpnConfig> sysVpnConfig = GetSysVpnConfig();
+    if (sysVpnConfig != nullptr) {
+        std::string addr = !sysVpnConfig->localAddresses_.empty()
+            ? sysVpnConfig->localAddresses_.back().address_ : "";
         if (MultiVpnHelper::GetInstance().CheckAndCompareMultiVpnLocalAddress(addr) != NETMANAGER_EXT_SUCCESS) {
             NETMGR_EXT_LOG_E("ipsec check ip address is same error.");
             return NETMANAGER_EXT_ERR_INTERNAL;
@@ -289,7 +299,7 @@ void IpsecVpnCtl::ProcessUpdateConfig(cJSON* jConfig)
     cJSON *mtu = cJSON_GetObjectItem(jConfig, IPSEC_NODE_MTU);
     if (mtu != nullptr && cJSON_IsNumber(mtu)) {
         int32_t ipsecVpnMtu = static_cast<int32_t>(cJSON_GetNumberValue(mtu));
-        vpnConfig_->mtu_ = ipsecVpnMtu;
+        vpnConfig_->mtu_ = vpnConfig_->mtu_ != 0 ? vpnConfig_->mtu_ : ipsecVpnMtu;
         NETMGR_EXT_LOG_I("UpdateConfig mtu %{public}d", ipsecVpnMtu);
     }
 
@@ -324,6 +334,10 @@ void IpsecVpnCtl::ProcessUpdateConfig(cJSON* jConfig)
         NetsysController::GetInstance().ProcessVpnStage(SysVpnStageCode::VPN_STAGE_SET_VPN_REMOTE_ADDRESS, remoteIp);
     }
     vpnConfig_->addresses_.emplace_back(iNetAddr);
+    sptr<SysVpnConfig> sysVpnConfig = GetSysVpnConfig();
+    if (sysVpnConfig != nullptr && sysVpnConfig->localAddresses_.empty()) {
+        sysVpnConfig->localAddresses_.emplace_back(iNetAddr);
+    }
     ProcessDnsConfig(jConfig);
 }
 

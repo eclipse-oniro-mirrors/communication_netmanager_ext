@@ -134,7 +134,16 @@ bool NetVpnImpl::IsGlobalVpn()
 std::string NetVpnImpl::GetVpnIfAddr()
 {
     std::string ifAddr = "";
-
+#ifdef SUPPORT_SYSVPN
+// LCOV_EXCL_START
+    if (IsSystemVpn()) {
+        sptr<SysVpnConfig> sysVpnConfig = GetSysVpnConfig();
+        if (sysVpnConfig != nullptr && !sysVpnConfig->localAddresses_.empty()) {
+            ifAddr = sysVpnConfig->localAddresses_.back().address_;
+        }
+// LCOV_EXCL_STOP
+    } else
+#endif
     if (vpnConfig_ != nullptr && !vpnConfig_->addresses_.empty()) {
         ifAddr = vpnConfig_->addresses_.back().address_;
     }
@@ -338,17 +347,17 @@ bool NetVpnImpl::IsSystemVpn()
     return false;
 }
 
+sptr<SysVpnConfig> NetVpnImpl::GetSysVpnConfig()
+{
+    return nullptr;
+}
+
 void NetVpnImpl::ProcessUpRules(bool isUp)
 {
     if (vpnConfig_ != nullptr && !vpnConfig_->addresses_.empty()) {
         std::vector<std::string> extMessages;
-        if (multiVpnInfo_ != nullptr && multiVpnInfo_->isVpnExtCall) {
-            INetAddr netAddr = vpnConfig_->addresses_.back();
-            extMessages.emplace_back(netAddr.address_);
-        } else {
-            INetAddr netAddr = vpnConfig_->addresses_.front();
-            extMessages.emplace_back(netAddr.address_);
-        }
+        INetAddr netAddr = vpnConfig_->addresses_.front();
+        extMessages.emplace_back(netAddr.address_);
         NetsysController::GetInstance().UpdateVpnRules(netId_, extMessages, isUp);
     }
 }
@@ -403,6 +412,24 @@ bool NetVpnImpl::UpdateNetSupplierInfo(NetConnClient &netConnClientIns, bool isA
     return true;
 }
 
+void NetVpnImpl::UpdateAddress(sptr<NetLinkInfo>& linkInfo)
+{
+#ifdef SUPPORT_SYSVPN
+// LCOV_EXCL_START
+    if (IsSystemVpn()) {
+        sptr<SysVpnConfig> sysVpnConfig = GetSysVpnConfig();
+        if (sysVpnConfig != nullptr && !sysVpnConfig->localAddresses_.empty()) {
+            linkInfo->netAddrList_.assign(sysVpnConfig->localAddresses_.begin(),
+                sysVpnConfig->localAddresses_.end());
+        }
+// LCOV_EXCL_STOP
+    } else {
+#endif
+        linkInfo->netAddrList_.assign(vpnConfig_->addresses_.begin(), vpnConfig_->addresses_.end());
+#ifdef SUPPORT_SYSVPN
+    }
+#endif
+}
 bool NetVpnImpl::UpdateNetLinkInfo()
 {
     if (vpnConfig_ == nullptr) {
@@ -415,8 +442,7 @@ bool NetVpnImpl::UpdateNetLinkInfo()
         return false;
     }
     linkInfo->ifaceName_ = GetInterfaceName();
-    linkInfo->netAddrList_.assign(vpnConfig_->addresses_.begin(), vpnConfig_->addresses_.end());
-
+    UpdateAddress(linkInfo);
     if (vpnConfig_->routes_.empty()) {
         if (vpnConfig_->isAcceptIPv4_ == true) {
             Route ipv4DefaultRoute;
@@ -584,14 +610,6 @@ int32_t NetVpnImpl::GenerateUidRanges(int32_t userId, std::vector<int32_t> &begi
     if (userId == AppExecFwk::Constants::INVALID_USERID) {
         userId = AppExecFwk::Constants::START_USERID;
     }
-#ifdef SUPPORT_SYSVPN
-    if (multiVpnInfo_ != nullptr && multiVpnInfo_->isVpnExtCall) {
-        if (vpnConfig_->acceptedApplications_.size() == 0) {
-            NETMGR_EXT_LOG_W("GenerateUidRangesMark is vpn ext call, but not accept uid ranges");
-            return NETMANAGER_EXT_SUCCESS;
-        }
-    }
-#endif // SUPPORT_SYSVPN
     if (vpnConfig_->acceptedApplications_.size()) {
         std::set<int32_t> uids = GetAppsUids(userId, vpnConfig_->acceptedApplications_);
         GenerateUidRangesByAcceptedApps(uids, beginUids, endUids);

@@ -69,6 +69,7 @@ public:
     int32_t NotifyConnectStage(const std::string &stage, const int32_t &result) override;
     int32_t GetSysVpnCertUri(const int32_t certType, std::string &certUri) override;
     bool IsSystemVpn() override;
+    sptr<SysVpnConfig> GetSysVpnConfig() override;
     sptr<OpenvpnConfig> openvpnConfig_;
 
 private:

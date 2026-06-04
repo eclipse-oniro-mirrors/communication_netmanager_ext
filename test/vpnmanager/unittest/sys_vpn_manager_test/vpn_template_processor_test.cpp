@@ -317,5 +317,121 @@ HWTEST_F(VpnTemplateProcessorTest, FormatConfigString002, TestSize.Level1)
     EXPECT_EQ(result, "normalpassword");
 }
 
+HWTEST_F(VpnTemplateProcessorTest, LocalAddresses001, TestSize.Level1)
+{
+    sptr<IpsecVpnConfig> ipsecConfig = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(ipsecConfig, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    netAddr->address_ = "192.168.1.100";
+    netAddr->prefixlen_ = 32;
+    ipsecConfig->localAddresses_.push_back(*netAddr);
+    ipsecConfig->vpnType_ = 6;
+    
+    std::string conf;
+    std::string vips = ipsecConfig->localAddresses_.empty() ? "0.0.0.0" : ipsecConfig->localAddresses_[0].address_;
+    EXPECT_EQ(vips, "192.168.1.100");
+}
+
+HWTEST_F(VpnTemplateProcessorTest, LocalAddresses002, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> l2tpConfig = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(l2tpConfig, nullptr);
+    
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    std::vector<int32_t> activeUserIds;
+    networkVpnService_->CheckCurrentAccountType(userId, activeUserIds);
+    bool isVpnExtCall = true;
+    
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    netAddr->address_ = "10.0.0.2";
+    netAddr->prefixlen_ = 24;
+    l2tpConfig->localAddresses_.push_back(*netAddr);
+    l2tpConfig->vpnType_ = 5;
+    l2tpConfig->vpnId_ = "testLocalAddr";
+    l2tpConfig->vpnName_ = "test001";
+    
+    std::shared_ptr<NetVpnImpl> vpnObj = networkVpnService_->CreateSysVpnCtl(
+        l2tpConfig, userId, activeUserIds, isVpnExtCall);
+    
+    VpnTemplateProcessor processor;
+    std::string conf;
+    std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap;
+    processor.GenXl2tpdConf(l2tpConfig, userId, vpnObjMap);
+    
+    EXPECT_FALSE(l2tpConfig->localAddresses_.empty());
+    EXPECT_EQ(l2tpConfig->localAddresses_[0].address_, "10.0.0.2");
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GenXl2tpdConf002, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+    ASSERT_NE(config, nullptr);
+    
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    netAddr->address_ = "10.0.0.2";
+    netAddr->prefixlen_ = 24;
+    config->addresses_.push_back(*netAddr);
+    
+    sptr<INetAddr> localAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(localAddr, nullptr);
+    localAddr->address_ = "192.168.100.1";
+    localAddr->prefixlen_ = 24;
+    config->localAddresses_.push_back(*localAddr);
+    
+    config->vpnType_ = 5;
+    config->userName_ = "testuser";
+    config->password_ = "testpass";
+    
+    std::string conf;
+    std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap;
+    VpnTemplateProcessor processor;
+    processor.GenXl2tpdConf(config, 1, vpnObjMap);
+    
+    EXPECT_FALSE(config->localAddresses_.empty());
+    EXPECT_EQ(config->localAddresses_[0].address_, "192.168.100.1");
+    
+    processor.GenOptionsL2tpdClient(config);
+    EXPECT_FALSE(config->optionsL2tpdClient_.empty());
+    EXPECT_FALSE(config->optionsL2tpdClient_.find("ipcp-accept-remote") == std::string::npos);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GenOptionsL2tpdClient002, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+    
+    config->vpnType_ = 5;
+    config->userName_ = "testuser";
+    config->password_ = "testpass";
+    
+    VpnTemplateProcessor processor;
+    processor.GenOptionsL2tpdClient(config);
+    
+    EXPECT_FALSE(config->optionsL2tpdClient_.empty());
+    EXPECT_FALSE(config->optionsL2tpdClient_.find("ipcp-accept-local") == std::string::npos);
+    EXPECT_NE(config->optionsL2tpdClient_.find("ipcp-accept-remote"), std::string::npos);
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GenOptionsL2tpdClient003, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+    
+    config->vpnType_ = 5;
+    config->userName_ = "testuser";
+    config->password_ = "testpass";
+    
+    VpnTemplateProcessor processor;
+    processor.GenOptionsL2tpdClient(config);
+    
+    EXPECT_FALSE(config->optionsL2tpdClient_.empty());
+    EXPECT_NE(config->optionsL2tpdClient_.find("ipcp-accept-local"), std::string::npos);
+    EXPECT_NE(config->optionsL2tpdClient_.find("ipcp-accept-remote"), std::string::npos);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

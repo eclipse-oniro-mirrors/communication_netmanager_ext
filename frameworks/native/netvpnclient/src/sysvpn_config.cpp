@@ -43,6 +43,16 @@ bool SysVpnConfig::Marshalling(Parcel &parcel) const
     for (uint8_t byte : pkcs12FileData_) {
         allOK = allOK && parcel.WriteUint8(byte);
     }
+
+    allOK = allOK && parcel.WriteInt32(static_cast<int32_t>(localAddresses_.size()));
+    for (auto addr : localAddresses_) {
+        // LCOV_EXCL_START
+        if (!addr.Marshalling(parcel)) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
+    }
+
     if (!allOK) {
         NETMGR_EXT_LOG_I("sysvpn SysVpnConfig Marshalling failed");
     }
@@ -99,6 +109,26 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
         allOK = allOK && parcel.ReadUint8(data);
         ptr->pkcs12FileData_.push_back(data);
     }
+
+    int32_t localAddrSize = 0;
+    allOK = allOK && parcel.ReadInt32(localAddrSize);
+    // LCOV_EXCL_START
+    if (localAddrSize > MAX_LOCAL_ADDR_SIZE) {
+        NETMGR_EXT_LOG_E("localAddrSize is too large");
+        return false;
+    }
+    // LCOV_EXCL_STOP
+    for (int32_t i = 0; i < localAddrSize && allOK; i++) {
+        sptr<INetAddr> address = INetAddr::Unmarshalling(parcel);
+        // LCOV_EXCL_START
+        if (address == nullptr) {
+            NETMGR_EXT_LOG_E("address is null");
+            return false;
+        }
+        // LCOV_EXCL_STOP
+        ptr->localAddresses_.push_back(*address);
+    }
+
     if (!allOK) {
         NETMGR_EXT_LOG_I("sysvpn SysVpnConfig Unmarshalling failed");
     }

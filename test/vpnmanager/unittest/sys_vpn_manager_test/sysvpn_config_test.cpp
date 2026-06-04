@@ -199,5 +199,72 @@ HWTEST_F(SysVpnConfigTest, Unmarshalling010, TestSize.Level1)
     sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
     EXPECT_TRUE(result != nullptr);
 }
+
+HWTEST_F(SysVpnConfigTest, LocalAddresses001, TestSize.Level1)
+{
+    IpsecVpnConfig info = GetIpsecVpnConfigData();
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    netAddr->address_ = "192.168.1.100";
+    netAddr->prefixlen_ = 24;
+    info.localAddresses_.push_back(*netAddr);
+    
+    Parcel parcel;
+    EXPECT_TRUE(info.Marshalling(parcel));
+    sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_FALSE(result->localAddresses_.empty());
+    EXPECT_EQ(result->localAddresses_[0].address_, "192.168.1.100");
+}
+
+HWTEST_F(SysVpnConfigTest, LocalAddresses002, TestSize.Level1)
+{
+    IpsecVpnConfig info = GetIpsecVpnConfigData();
+    sptr<INetAddr> netAddr1 = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr1, nullptr);
+    netAddr1->address_ = "192.168.1.100";
+    netAddr1->prefixlen_ = 24;
+    sptr<INetAddr> netAddr2 = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr2, nullptr);
+    netAddr2->address_ = "192.168.1.101";
+    netAddr2->prefixlen_ = 24;
+    info.localAddresses_.push_back(*netAddr1);
+    info.localAddresses_.push_back(*netAddr2);
+    
+    Parcel parcel;
+    EXPECT_TRUE(info.Marshalling(parcel));
+    sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->localAddresses_.size(), 2);
+}
+
+HWTEST_F(SysVpnConfigTest, LocalAddresses003, TestSize.Level1)
+{
+    IpsecVpnConfig info = GetIpsecVpnConfigData();
+    EXPECT_TRUE(info.localAddresses_.empty());
+    
+    Parcel parcel;
+    EXPECT_TRUE(info.Marshalling(parcel));
+    sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_TRUE(result->localAddresses_.empty());
+}
+
+HWTEST_F(SysVpnConfigTest, LocalAddresses004, TestSize.Level1)
+{
+    L2tpVpnConfig info = GetL2tpVpnConfigData();
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    netAddr->address_ = "10.0.0.2";
+    netAddr->prefixlen_ = 24;
+    info.localAddresses_.push_back(*netAddr);
+    
+    Parcel parcel;
+    EXPECT_TRUE(info.Marshalling(parcel));
+    sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_FALSE(result->localAddresses_.empty());
+    EXPECT_EQ(result->localAddresses_[0].address_, "10.0.0.2");
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
