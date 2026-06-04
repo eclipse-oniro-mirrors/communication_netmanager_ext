@@ -111,7 +111,7 @@ if (defined(global_parts_info) &&
 if (defined(global_parts_info) &&
     defined(global_parts_info.communication_bluetooth) &&
     global_parts_info.communication_bluetooth) {
-  communication_bluetooth_switch_enable = false
+  communication_bluetooth_switch_enable = true
 }
 
 if (defined(global_parts_info) && defined(global_parts_info.usb_usb_manager) &&
