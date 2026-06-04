@@ -82,8 +82,6 @@ napi_value NetShareCallbackObserver::CreateSharingStateChangedParam(napi_env env
     if (data == nullptr) {
         return nullptr;
     }
-    auto closeScope = [env](napi_handle_scope scope) { NapiUtils::CloseScope(env, scope); };
-    std::unique_ptr<napi_handle_scope__, decltype(closeScope)> scope(NapiUtils::OpenScope(env), closeScope);
     auto inputBoolean = static_cast<bool *>(data);
     napi_value boolean = NapiUtils::GetBoolean(env, *inputBoolean);
     delete inputBoolean;
@@ -95,8 +93,6 @@ napi_value NetShareCallbackObserver::CreateInterfaceSharingStateChangedParam(nap
     if (data == nullptr) {
         return nullptr;
     }
-    auto closeScope = [env](napi_handle_scope scope) { NapiUtils::CloseScope(env, scope); };
-    std::unique_ptr<napi_handle_scope__, decltype(closeScope)> scope(NapiUtils::OpenScope(env), closeScope);
     auto sharingState = static_cast<SharingState *>(data);
     napi_value obj = NapiUtils::CreateObject(env);
     NapiUtils::SetInt32Property(env, obj, "type", static_cast<int32_t>(sharingState->type));
