@@ -635,5 +635,68 @@ HWTEST_F(NetFirewallClientTest, UnregisterInterceptRecordsCallbackProxy001, Test
     int32_t ret = proxy->UnregisterInterceptRecordsCallback(callback);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL);
 }
+
+HWTEST_F(NetFirewallClientTest, CreateRedirector001, TestSize.Level1)
+{
+    std::string redirectorId;
+    uint32_t groupId = 1;
+    uint32_t priority = 1;
+    int32_t ret = netfirewallClient_.CreateRedirector(groupId, priority, redirectorId);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, DestroyRedirector001, TestSize.Level1)
+{
+    std::string redirectorId = "test_redirector";
+    int32_t ret = netfirewallClient_.DestroyRedirector(redirectorId);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, AddRedirectRule001, TestSize.Level1)
+{
+    sptr<TrafficFilterRedirectRule> redirectRule = new (std::nothrow) TrafficFilterRedirectRule();
+    std::string redirectorId = "redirector1";
+    int32_t ret = netfirewallClient_.AddRedirectRule(redirectorId, redirectRule);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, ClearRedirectRule001, TestSize.Level1)
+{
+    std::string redirectorId = "redirector1";
+    int32_t ret = netfirewallClient_.ClearRedirectRule(redirectorId);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, GlobalEnableTrafficFilter001, TestSize.Level1)
+{
+    int32_t ret = netfirewallClient_.GlobalEnableTrafficFilter();
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, GlobalDisableTrafficFilter001, TestSize.Level1)
+{
+    int32_t ret = netfirewallClient_.GlobalDisableTrafficFilter();
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, GetTrafficFilterGlobalStatus001, TestSize.Level1)
+{
+    bool isEnabled;
+    int32_t ret = netfirewallClient_.GetTrafficFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, QueryProcess001, TestSize.Level1)
+{
+    std::string srcIp = "192.168.1.1";
+    uint16_t srcPort = 1;
+    std::string dstIp = "192.168.1.2";
+    uint16_t dstPort = 1;
+    uint8_t protocol = 0;
+    uint32_t uid = 0;
+    uint32_t pid = 0;
+    int32_t ret = netfirewallClient_.QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
