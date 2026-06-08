@@ -568,8 +568,6 @@ napi_value RegisterVpnExtModule(napi_env env, napi_value exports)
 #ifdef SUPPORT_SYSVPN
     InitSysVpnType(env, exports);
 #endif // SUPPORT_SYSVPN
-    NapiUtils::SetEnvValid(env);
-    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
     return exports;
 }
 
