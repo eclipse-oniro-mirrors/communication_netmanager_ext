@@ -38,10 +38,11 @@ constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
 constexpr const char *SYS_CLASS_NET_PATH = "/sys/class/net/";
 static constexpr const char *MDIO_BUS_DEV_INFO_PATH = "/sys/bus/mdio_bus/devices/bf800000.xge-0:01/dev_info";
-static constexpr const char *PCI_IDS_FILE_PATH = "/usr/share/misc/pci.ids";
-constexpr const char *PCI_ID_PREFIX = "0x";
+static constexpr const char *PCI_IDS_FILE_PATH = "/vendor/etc/pci/pci.ids";
+static constexpr const char *PCI_ID_PREFIX = "0x";
+static constexpr const char *PCI_ID_LEN = "0x";
 constexpr const char *ITEM_DEVICE = "/device";
-constexpr const char *ITEM_VENDOR = "/vendor";
+static constexpr const char *ITEM_VENDOR = "/vendor";
 constexpr const char *ITEM_USB = "usb";
 constexpr const char *ITEM_DEVICE_NAME = "/product";
 constexpr const char *ITEM_SUPPLIER_ID = "/idVendor";
@@ -889,10 +890,11 @@ void EthernetManagement::GetPciEthDeviceInfoExt(const std::string &iface, const 
     ret &= GetSysNodeValue(devPath + ITEM_DEVICE, devId);
     if (tempDeviceInfo.supplierId_.size() > PCI_IDPREFIX_LEN &&
         tempDeviceInfo.supplierId_.substr(0, PCI_IDPREFIX_LEN) == PCI_ID_PREFIX) {
-        tempDeviceInfo.supplierId_ = tempDeviceInfo.supplierId_.substr(PCI_IDPREFIX_LEN);
+        tempDeviceInfo.supplierId_ =
+            tempDeviceInfo.supplierId_.substr(PCI_IDPREFIX_LEN, PCI_ID_LEN);
     }
     if (devId.size() > PCI_IDPREFIX_LEN && devId.substr(0, PCI_IDPREFIX_LEN) == PCI_ID_PREFIX) {
-        devId = devId.substr(PCI_IDPREFIX_LEN);
+        devId = devId.substr(PCI_IDPREFIX_LEN, PCI_ID_LEN);
     }
     for (int i = 0; i < deviceInfoList.size(); i++) {
         if (deviceInfoList[i].supplierId_ == tempDeviceInfo.supplierId_) {
