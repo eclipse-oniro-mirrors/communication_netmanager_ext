@@ -86,6 +86,8 @@ group("netfirewall_packages") {
 group("vpn_packages") {
   if (netmanager_ext_feature_vpn) {
     deps = [
+      "$NETMANAGER_EXT_ROOT/frameworks/ets/ani/vpn:vpn_ani",
+      "$NETMANAGER_EXT_ROOT/frameworks/ets/ani/vpn:vpn_etc",
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn:vpn",
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/netvpnclient:net_vpn_manager_if",
     ]
@@ -100,6 +102,8 @@ group("vpn_packages") {
 group("vpn_ext_packages") {
   if (netmanager_ext_feature_vpnext) {
     deps = [
+      "$NETMANAGER_EXT_ROOT/frameworks/ets/ani/vpnextension:vpnextension_etc",
+      "$NETMANAGER_EXT_ROOT/frameworks/ets/ani/vpnextensionability:vpnextensionability_etc",
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensionability:vpnextensionability",
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensionability:vpnextensionability_napi",
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensioncontext:vpnextensioncontext_napi",
