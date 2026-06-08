@@ -42,6 +42,7 @@ static constexpr const char *PCI_IDS_FILE_PATH = "/vendor/etc/pci/pci.ids";
 static constexpr const char *PCI_ID_PREFIX = "0x";
 constexpr const char *ITEM_DEVICE = "/device";
 static constexpr const char *ITEM_VENDOR = "/vendor";
+static constexpr const char *ITEM_PCI = "pci";
 constexpr const char *ITEM_USB = "usb";
 constexpr const char *ITEM_DEVICE_NAME = "/product";
 constexpr const char *ITEM_SUPPLIER_ID = "/idVendor";
@@ -53,7 +54,7 @@ static constexpr uint32_t INDEX_ZERO = 0;
 static constexpr const uint32_t PCI_ID_LEN = 4;
 constexpr int SLEEP_TIME_S = 2;
 constexpr uint32_t INDEX_ONE = 1;
-constexpr uint32_t PCI_IDPREFIX_LEN = 2;
+static constexpr uint32_t PCI_IDPREFIX_LEN = 2;
 constexpr uint32_t INDEX_TWO = 2;
 constexpr uint32_t INDEX_THREE = 3;
 constexpr uint32_t INDEX_FOUR = 4;
@@ -938,7 +939,9 @@ int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo>
             GetUsbEthDeviceInfo(iface, netDevNodePath, deviceInfoList);
         } else {
             GetPciEthDeviceInfo(iface, MDIO_BUS_DEV_INFO_PATH, deviceInfoList);
-            GetPciEthDeviceInfoExt(iface, SYS_CLASS_NET_PATH + iface, deviceInfoList);
+            if (netDevNodePath.find(ITEM_PCI) != std::string::npos) {
+                GetPciEthDeviceInfoExt(iface, SYS_CLASS_NET_PATH + iface, deviceInfoList);
+            }
         }
     }
     if (deviceInfoList.size() == 0) {
