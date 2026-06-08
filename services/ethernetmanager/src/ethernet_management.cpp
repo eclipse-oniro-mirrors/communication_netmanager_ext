@@ -38,7 +38,11 @@ constexpr const char *IFACE_LINK_UP = "up";
 constexpr const char *IFACE_RUNNING = "running";
 constexpr const char *SYS_CLASS_NET_PATH = "/sys/class/net/";
 static constexpr const char *MDIO_BUS_DEV_INFO_PATH = "/sys/bus/mdio_bus/devices/bf800000.xge-0:01/dev_info";
+static constexpr const char *PCI_IDS_FILE_PATH = "/vendor/etc/pci/pci.ids";
+static constexpr const char *PCI_ID_PREFIX = "0x";
 constexpr const char *ITEM_DEVICE = "/device";
+static constexpr const char *ITEM_VENDOR = "/vendor";
+static constexpr const char *ITEM_PCI = "pci";
 constexpr const char *ITEM_USB = "usb";
 constexpr const char *ITEM_DEVICE_NAME = "/product";
 constexpr const char *ITEM_SUPPLIER_ID = "/idVendor";
@@ -47,8 +51,10 @@ constexpr const char *ITEM_MAXIMUM_RATE = "/speed";
 constexpr const char *ITEM_UNIT_MBS = " Mb/s";
 static constexpr const char *ITEM_COMMA = ",";
 static constexpr uint32_t INDEX_ZERO = 0;
+static constexpr const uint32_t PCI_ID_LEN = 4;
 constexpr int SLEEP_TIME_S = 2;
 constexpr uint32_t INDEX_ONE = 1;
+static constexpr uint32_t PCI_IDPREFIX_LEN = 2;
 constexpr uint32_t INDEX_TWO = 2;
 constexpr uint32_t INDEX_THREE = 3;
 constexpr uint32_t INDEX_FOUR = 4;
@@ -786,7 +792,68 @@ void EthernetManagement::GetUsbEthDeviceInfo(const std::string &iface, std::stri
         deviceInfoList.push_back(tempDeviceInfo);
     }
 }
- 
+
+void EthernetManagement::PciIdsGetName(std::string &name, std::string &line, size_t idLen)
+{
+    name = line.substr(idLen);
+    size_t start = name.find_first_not_of(" \t");
+    if (start != std::string::npos) {
+        name = name.substr(start);
+    }
+}
+
+bool EthernetManagement::QueryPciIdsFile(const std::string &vendorHex, const std::string &deviceHex,
+    std::string &supplierName, std::string &deviceName)
+{
+    std::ifstream infile(PCI_IDS_FILE_PATH);
+    if (!infile.is_open()) {
+        return false;
+    }
+    // LCOV_EXCL_START
+    std::string line;
+    bool vendorFound = false;
+    while (getline(infile, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        if (line[0] != '\t') {
+            if (vendorFound) {
+                break;
+            }
+            size_t idEnd = line.find_first_of(" \t");
+            if (idEnd == std::string::npos || idEnd == 0) {
+                continue;
+            }
+            std::string curVendor = line.substr(0, idEnd);
+            if (curVendor > vendorHex) {
+                break;
+            }
+            if (curVendor == vendorHex) {
+                PciIdsGetName(supplierName, line, idEnd);
+                vendorFound = true;
+            }
+        } else if (vendorFound && line.size() > 1 && line[0] == '\t' && line[1] != '\t') {
+            std::string devLine = line.substr(1);
+            size_t idEnd = devLine.find_first_of(" \t");
+            if (idEnd == std::string::npos || idEnd == 0) {
+                continue;
+            }
+            std::string curDevice = devLine.substr(0, idEnd);
+            if (curDevice > deviceHex) {
+                break;
+            }
+            if (curDevice == deviceHex) {
+                PciIdsGetName(deviceName, devLine, idEnd);
+                infile.close();
+                return true;
+            }
+        }
+    }
+    // LCOV_EXCL_STOP
+    infile.close();
+    return false;
+}
+
 void EthernetManagement::GetPciEthDeviceInfo(const std::string &iface, std::string nodePath,
     std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
@@ -806,7 +873,48 @@ void EthernetManagement::GetPciEthDeviceInfo(const std::string &iface, std::stri
     tempDeviceInfo.supplierName_ = valVec[INDEX_TWO];
     tempDeviceInfo.maximumRate_ = valVec[INDEX_THREE] + ITEM_UNIT_MBS;
     tempDeviceInfo.productName_ = tempDeviceInfo.deviceName_;
+    for (int i = 0; i < deviceInfoList.size(); i++) {
+        if (deviceInfoList[i].supplierId_ == tempDeviceInfo.supplierId_) {
+            return;
+        }
+    }
     deviceInfoList.push_back(tempDeviceInfo);
+}
+ 
+void EthernetManagement::GetPciEthDeviceInfoExt(const std::string &iface, const std::string &nodePath,
+    std::vector<EthernetDeviceInfo> &deviceInfoList)
+{
+    std::string devPath = nodePath + ITEM_DEVICE;
+    EthernetDeviceInfo tempDeviceInfo;
+    bool ret = GetSysNodeValue(devPath + ITEM_VENDOR, tempDeviceInfo.supplierId_);
+    std::string devId;
+    ret &= GetSysNodeValue(devPath + ITEM_DEVICE, devId);
+    if (tempDeviceInfo.supplierId_.size() > PCI_IDPREFIX_LEN &&
+        tempDeviceInfo.supplierId_.substr(0, PCI_IDPREFIX_LEN) == PCI_ID_PREFIX) {
+        tempDeviceInfo.supplierId_ =
+            tempDeviceInfo.supplierId_.substr(PCI_IDPREFIX_LEN, PCI_ID_LEN);
+    }
+    if (devId.size() > PCI_IDPREFIX_LEN && devId.substr(0, PCI_IDPREFIX_LEN) == PCI_ID_PREFIX) {
+        devId = devId.substr(PCI_IDPREFIX_LEN, PCI_ID_LEN);
+    }
+    for (int i = 0; i < deviceInfoList.size(); i++) {
+        if (deviceInfoList[i].supplierId_ == tempDeviceInfo.supplierId_) {
+            return;
+        }
+    }
+    if (!QueryPciIdsFile(tempDeviceInfo.supplierId_, devId,
+        tempDeviceInfo.supplierName_, tempDeviceInfo.deviceName_)) {
+        NETMGR_EXT_LOG_D("GetPciEthDeviceInfoExt device not in ids file");
+        return;
+    }
+    ret &= GetSysNodeValue(nodePath + ITEM_MAXIMUM_RATE, tempDeviceInfo.maximumRate_);
+    tempDeviceInfo.ifaceName_ = iface;
+    tempDeviceInfo.connectionMode_ = BUILT_IN;
+    tempDeviceInfo.maximumRate_ += ITEM_UNIT_MBS;
+    tempDeviceInfo.productName_ = tempDeviceInfo.deviceName_;
+    if (ret) {
+        deviceInfoList.push_back(tempDeviceInfo);
+    }
 }
  
 int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
@@ -831,6 +939,9 @@ int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo>
             GetUsbEthDeviceInfo(iface, netDevNodePath, deviceInfoList);
         } else {
             GetPciEthDeviceInfo(iface, MDIO_BUS_DEV_INFO_PATH, deviceInfoList);
+            if (netDevNodePath.find(ITEM_PCI) != std::string::npos) {
+                GetPciEthDeviceInfoExt(iface, SYS_CLASS_NET_PATH + iface, deviceInfoList);
+            }
         }
     }
     if (deviceInfoList.size() == 0) {
