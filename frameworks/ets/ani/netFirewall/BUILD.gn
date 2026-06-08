@@ -1,0 +1,122 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+
+rust_cxx("netFirewall_ani_cxx") {
+  sources = [ "src/wrapper.rs" ]
+}
+
+ohos_static_library("netFirewall_ani_static") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  include_dirs = [
+    "include",
+    "${target_gen_dir}/src",
+  ]
+  sources = [ "src/cxx/netFirewall_ani.cpp" ]
+  sources += get_target_outputs(":netFirewall_ani_cxx")
+
+  deps = [
+    ":netFirewall_ani_cxx",
+    "//foundation/communication/netmanager_ext/interfaces/innerkits/netfirewallclient:netfirewall_manager_if",
+    "//foundation/communication/netmanager_ext/interfaces/innerkits/netfirewallclient:netfirewall_parcel",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "netmanager_base:net_manager_common",
+    "netmanager_base:net_native_manager_if",
+    "rust_cxx:cxx_cppdeps",
+  ]
+
+  cflags = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-O3",
+    "-flto",
+    "-fno-exceptions",  # 禁用异常处理
+    "-fno-rtti",        # 禁用RTTI
+  ]
+
+  branch_protector_ret = "pac_ret"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+ohos_rust_shared_library("netFirewall_ani") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+
+  ldflags = [
+    "-Wl,--exclude-libs=ALL",
+    "-Wl,--gc-sections",
+    "-Wl,--strip-all",
+    "-flto",
+  ]
+
+  rustflags = [
+    "-C", "opt-level=3",
+    "-C", "debuginfo=0",
+    "-C", "link-arg=-ffunction-sections",
+    "-C", "link-arg=-fdata-sections",
+    "-C", "link-arg=-Wl,--gc-sections",
+    "-C", "link-arg=-Wl,--strip-all",
+    "-Z", "dylib-lto",
+    "-Z", "stack-protector=all",
+    "-C", "codegen-units=1",  # 减少代码生成单元
+  ]
+
+  sources = [ "src/lib.rs" ]
+
+  external_deps = [
+    "runtime_core:ani",
+    "hilog:hilog_rust",
+    "netmanager_base:ani_rs",
+    "rust_cxx:lib"
+  ]
+  deps = [
+    ":netFirewall_ani_static",
+    "//third_party/rust/crates/serde/serde:lib"
+  ]
+  clippy_lints = "none"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+  output_extension = "so"
+}
+
+generate_static_abc("netFirewall") {
+  base_url = "./ets"
+  files = [ "ets/@ohos.net.netFirewall.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/netFirewall.abc"
+}
+
+ohos_prebuilt_etc("netFirewall_etc") {
+  source = "$target_out_dir/netFirewall.abc"
+  module_install_dir = "framework"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+  deps = [ ":netFirewall" ]
+}
