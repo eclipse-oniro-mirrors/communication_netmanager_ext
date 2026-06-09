@@ -37,5 +37,11 @@ group("ani_package") {
     "vpnextension:vpnextension",
     "vpnextension:vpnextension_etc",
     "vpnextensionability:vpnextensionability_etc",
+    "ethernet:ethernet_ani",
+    "ethernet:ethernet",
+    "ethernet:ethernet_etc",
+    "eap:eap_ani",
+    "eap:eap",
+    "eap:eap_etc",
   ]
 }
