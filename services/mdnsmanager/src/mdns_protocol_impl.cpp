@@ -300,6 +300,9 @@ MDnsConfig MDnsProtocolImpl::GetConfig()
 std::string MDnsProtocolImpl::Decorated(const std::string &name)
 {
     std::shared_lock<std::shared_mutex> lock(configMutex_);
+    if (config_.topDomain == MDNS_TOP_DOMAIN_DEFAULT && !name.empty() && name.back() == MDNS_DOMAIN_SPLITER) {
+        return name + config_.topDomain.substr(1);
+    }
     return name + config_.topDomain;
 }
 

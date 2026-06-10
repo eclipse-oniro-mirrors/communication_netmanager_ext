@@ -1861,5 +1861,77 @@ HWTEST_F(MDnsServiceTest, RemoveALLServiceDeathRecipientTest001, TestSize.Level1
 
     delete mDnsService;
 }
+
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest001, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = MDNS_TOP_DOMAIN_DEFAULT;
+    std::string nameWithDot = "_http._tcp.";
+    std::string result = mDnsProtocolImpl->Decorated(nameWithDot);
+    EXPECT_EQ(result, "_http._tcp.local");
+}
+ 
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest002, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = MDNS_TOP_DOMAIN_DEFAULT;
+    std::string nameWithoutDot = "_http._tcp";
+    std::string result = mDnsProtocolImpl->Decorated(nameWithoutDot);
+    EXPECT_EQ(result, "_http._tcp.local");
+}
+ 
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest003, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = ".example.com";
+    std::string nameWithDot = "_http._tcp.";
+    std::string result = mDnsProtocolImpl->Decorated(nameWithDot);
+    EXPECT_EQ(result, "_http._tcp..example.com");
+}
+ 
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest004, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = ".example.com";
+    std::string nameWithoutDot = "_http._tcp";
+    std::string result = mDnsProtocolImpl->Decorated(nameWithoutDot);
+    EXPECT_EQ(result, "_http._tcp.example.com");
+}
+ 
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest005, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = MDNS_TOP_DOMAIN_DEFAULT;
+    std::string emptyName = "";
+    std::string result = mDnsProtocolImpl->Decorated(emptyName);
+    EXPECT_EQ(result, ".local");
+}
+ 
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest006, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = MDNS_TOP_DOMAIN_DEFAULT;
+    std::string singleDotName = ".";
+    std::string result = mDnsProtocolImpl->Decorated(singleDotName);
+    EXPECT_EQ(result, ".local");
+}
+ 
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest007, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = MDNS_TOP_DOMAIN_DEFAULT;
+    std::string serviceName = "MyService._http._tcp.";
+    std::string result = mDnsProtocolImpl->Decorated(serviceName);
+    EXPECT_EQ(result, "MyService._http._tcp.local");
+}
+ 
+HWTEST_F(MDnsProtocolImplTest, DecoratedTest008, TestSize.Level1)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->config_.topDomain = MDNS_TOP_DOMAIN_DEFAULT;
+    std::string serviceName = "MyService._http._tcp";
+    std::string result = mDnsProtocolImpl->Decorated(serviceName);
+    EXPECT_EQ(result, "MyService._http._tcp.local");
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
