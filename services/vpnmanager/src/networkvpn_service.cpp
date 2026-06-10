@@ -2388,6 +2388,10 @@ bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainPr
     if (pid == currSetUpVpnPid_) {
         return true;
     }
+    if (uid == hasOpenedVpnUid_ && hasOpenedVpnUid_ != 0) {
+        isMainProc = true;
+        return true;
+    }
     // LCOV_EXCL_STOP
     return false;
 }
@@ -2431,15 +2435,8 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     bool isMainProc = false;
     bool isCurrentVpnPid = vpnService_.IsCurrentVpnPid(processData.uid, processData.pid, isMainProc);
     if (!isCurrentVpnPid) {
-        if (processData.uid == vpnService_.hasOpenedVpnUid_ && vpnService_.hasOpenedVpnUid_ != 0) {
-            isCurrentVpnPid = true;
-            isMainProc = true;
-            NETMGR_EXT_LOG_I("OnProcessDied recovered by hasOpenedVpnUid_ uid:%{public}d pid:%{public}d",
-                processData.uid, processData.pid);
-        } else {
-            NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
-            return;
-        }
+        NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
+        return;
     }
     if (processData.pid == vpnService_.currSetUpVpnPid_ || processData.uid == vpnService_.hasOpenedVpnUid_) {
         if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {

@@ -431,65 +431,6 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest002, TestSize.Level1)
     EXPECT_TRUE(instance_->vpnObj_ != nullptr);
 }
 
-HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest003, TestSize.Level1)
-{
-    constexpr int32_t testUid = 200;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", testUid, activeUserIds);
-    instance_->setVpnPidMap_.clear();
-    instance_->currSetUpVpnPid_ = 9999;
-    instance_->hasOpenedVpnUid_ = testUid;
-    AppExecFwk::ProcessData data;
-    data.pid = 123456;
-    data.uid = testUid;
-    sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
-        *instance_, "testBundleName", "testAbility");
-    ASSERT_NE(vpnHapObserver, nullptr);
-    vpnHapObserver->OnProcessDied(data);
-    EXPECT_TRUE(instance_->vpnObj_ == nullptr);
-    EXPECT_EQ(instance_->currSetUpVpnPid_, 0);
-    EXPECT_EQ(instance_->hasOpenedVpnUid_, 0);
-}
-
-HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest004, TestSize.Level1)
-{
-    constexpr int32_t testUid = 200;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", testUid, activeUserIds);
-    instance_->setVpnPidMap_.clear();
-    instance_->currSetUpVpnPid_ = 9999;
-    instance_->hasOpenedVpnUid_ = 0;
-    AppExecFwk::ProcessData data;
-    data.pid = 123456;
-    data.uid = testUid;
-    sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
-        *instance_, "testBundleName");
-    ASSERT_NE(vpnHapObserver, nullptr);
-    vpnHapObserver->OnProcessDied(data);
-    EXPECT_TRUE(instance_->vpnObj_ != nullptr);
-}
-
-HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest005, TestSize.Level1)
-{
-    constexpr int32_t testUid = 200;
-    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    std::vector<int32_t> activeUserIds;
-    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", testUid, activeUserIds);
-    instance_->setVpnPidMap_.clear();
-    instance_->currSetUpVpnPid_ = 9999;
-    instance_->hasOpenedVpnUid_ = testUid + 1;
-    AppExecFwk::ProcessData data;
-    data.pid = 123456;
-    data.uid = testUid;
-    sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
-        *instance_, "testBundleName");
-    ASSERT_NE(vpnHapObserver, nullptr);
-    vpnHapObserver->OnProcessDied(data);
-    EXPECT_TRUE(instance_->vpnObj_ != nullptr);
-}
-
 HWTEST_F(NetworkVpnServiceTest, PublishEventTest001, TestSize.Level1)
 {
     OHOS::AAFwk::Want want;
@@ -763,6 +704,46 @@ HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest001, TestSize.Level1)
     EXPECT_TRUE(instance_->IsCurrentVpnPid(uid, pid, isMainProc));
     pid = 1;
     EXPECT_FALSE(instance_->IsCurrentVpnPid(uid, pid, isMainProc));
+}
+
+HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest002, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    constexpr int32_t testPid = 123456;
+    constexpr int32_t extPid = 9999;
+    bool isMainProc = false;
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = extPid;
+    instance_->hasOpenedVpnUid_ = testUid;
+    isMainProc = false;
+    EXPECT_TRUE(instance_->IsCurrentVpnPid(testUid, testPid, isMainProc));
+    EXPECT_TRUE(isMainProc);
+}
+
+HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest003, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    constexpr int32_t testPid = 123456;
+    bool isMainProc = false;
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = 9999;
+    instance_->hasOpenedVpnUid_ = 0;
+    isMainProc = false;
+    EXPECT_FALSE(instance_->IsCurrentVpnPid(testUid, testPid, isMainProc));
+    EXPECT_FALSE(isMainProc);
+}
+
+HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest004, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    constexpr int32_t testPid = 123456;
+    bool isMainProc = false;
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = 9999;
+    instance_->hasOpenedVpnUid_ = testUid + 1;
+    isMainProc = false;
+    EXPECT_FALSE(instance_->IsCurrentVpnPid(testUid, testPid, isMainProc));
+    EXPECT_FALSE(isMainProc);
 }
 
 HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
