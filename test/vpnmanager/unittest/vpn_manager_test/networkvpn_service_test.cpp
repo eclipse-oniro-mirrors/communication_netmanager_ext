@@ -431,6 +431,65 @@ HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest002, TestSize.Level1)
     EXPECT_TRUE(instance_->vpnObj_ != nullptr);
 }
 
+HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest003, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", testUid, activeUserIds);
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = 9999;
+    instance_->hasOpenedVpnUid_ = testUid;
+    AppExecFwk::ProcessData data;
+    data.pid = 123456;
+    data.uid = testUid;
+    sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
+        *instance_, "testBundleName", "testAbility");
+    ASSERT_NE(vpnHapObserver, nullptr);
+    vpnHapObserver->OnProcessDied(data);
+    EXPECT_TRUE(instance_->vpnObj_ == nullptr);
+    EXPECT_EQ(instance_->currSetUpVpnPid_, 0);
+    EXPECT_EQ(instance_->hasOpenedVpnUid_, 0);
+}
+
+HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest004, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", testUid, activeUserIds);
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = 9999;
+    instance_->hasOpenedVpnUid_ = 0;
+    AppExecFwk::ProcessData data;
+    data.pid = 123456;
+    data.uid = testUid;
+    sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
+        *instance_, "testBundleName");
+    ASSERT_NE(vpnHapObserver, nullptr);
+    vpnHapObserver->OnProcessDied(data);
+    EXPECT_TRUE(instance_->vpnObj_ != nullptr);
+}
+
+HWTEST_F(NetworkVpnServiceTest, VpnHapObserverTest005, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", testUid, activeUserIds);
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = 9999;
+    instance_->hasOpenedVpnUid_ = testUid + 1;
+    AppExecFwk::ProcessData data;
+    data.pid = 123456;
+    data.uid = testUid;
+    sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
+        *instance_, "testBundleName");
+    ASSERT_NE(vpnHapObserver, nullptr);
+    vpnHapObserver->OnProcessDied(data);
+    EXPECT_TRUE(instance_->vpnObj_ != nullptr);
+}
+
 HWTEST_F(NetworkVpnServiceTest, PublishEventTest001, TestSize.Level1)
 {
     OHOS::AAFwk::Want want;
