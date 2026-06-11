@@ -33,6 +33,10 @@
 #include "route.h"
 #include "securec.h"
 
+#ifdef FEATURE_READ_CCM_JSON
+#include "config_policy_utils.h"
+#endif
+
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
@@ -73,6 +77,7 @@ constexpr const char *EMPTY_NET_ADDR = "*";
 constexpr const char *ADDR_SEPARATOR = ",";
 constexpr const char *EXCLUSIONS_DELIMITER = ",";
 const std::regex IFACE_MATCH_PATTERM(IFACE_MATCH);
+constexpr const char *CONFIG_FILE_NAME = "etc/communication/netmanager_ext/ethernet_interfaces.json";
 } // namespace
 
 EthernetConfiguration::EthernetConfiguration()
@@ -134,7 +139,31 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
 bool EthernetConfiguration::ReadSystemConfiguration(std::map<std::string, std::set<NetCap>> &devCaps,
                                                     std::map<std::string, sptr<InterfaceConfiguration>> &devCfgs)
 {
+#ifdef FEATURE_READ_CCM_JSON
+    char buf[PATH_MAX] = {0};
+    char realPath[PATH_MAX] = {0};
+
+    char* cfgFilePath = GetOneCfgFile(CONFIG_FILE_NAME, buf, PATH_MAX);
+    if (!cfgFilePath || strnlen(cfgFilePath, PATH_MAX) == 0 || strnlen(cfgFilePath, PATH_MAX) >= PATH_MAX ||
+        !realpath(cfgFilePath, realPath)) {
+        NETMGR_LOG_E("file does not exist");
+        return false;
+    }
+
+    struct stat st;
+    if (stat(realPath, &st) != 0) {
+        NETMGR_LOG_E("stat file fail");
+        return false;
+    }
+
+    NETMGR_LOG_I("GetOneCfgFile json path is %{public}s", realPath);
+
+    std::string jsonPath(realPath);
+    const auto &jsonStr = ReadJsonFile(jsonPath);
+#else
     const auto &jsonStr = ReadJsonFile(NETWORK_CONFIG_PATH);
+#endif
+
     if (jsonStr.length() == 0) {
         NETMGR_EXT_LOG_E("ReadConfigData config file is return empty!");
         return false;
