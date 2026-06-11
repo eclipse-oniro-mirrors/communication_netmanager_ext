@@ -108,6 +108,9 @@ bool NetworkShareService::Init()
     AddSystemAbilityListener(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
     AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
     AddSystemAbilityListener(WIFI_HOTSPOT_SYS_ABILITY_ID);
+    // LCOV_EXCL_START
+    AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
+    // LCOV_EXCL_STOP
     SubscribeCommonEvent();
 #ifdef SHARE_NOTIFICATION_ENABLE
     SubscribeWifiShareNtfEvent();
@@ -429,6 +432,11 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
         NetworkShareTracker::GetInstance().RegisterWifiApCallback();
     }
 #endif
+    // LCOV_EXCL_START
+    if (systemAbilityId == COMMON_EVENT_SERVICE_ID && commonEventSubscriber_ == nullptr) {
+        SubscribeCommonEvent();
+    }
+    // LCOV_EXCL_STOP
 }
 
 void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
@@ -436,6 +444,11 @@ void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const s
     NETMGR_EXT_LOG_D("OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         hasSARemoved_ = true;
+    // LCOV_EXCL_START
+    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID && commonEventSubscriber_ != nullptr) {
+        EventFwk::CommonEventManager::UnSubscribeCommonEvent(commonEventSubscriber_);
+        commonEventSubscriber_ = nullptr;
+    // LCOV_EXCL_STOP
     }
 }
 
@@ -502,6 +515,16 @@ void NetworkShareService::DisAllowNetworkShareEventCallback(const char *key, con
 
 void NetworkShareService::SubscribeCommonEvent()
 {
+    // LCOV_EXCL_START
+    if (commonEventSubscriber_ != nullptr) {
+        return;
+    }
+    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrClient == nullptr || samgrClient->CheckSystemAbility(COMMON_EVENT_SERVICE_ID) == nullptr) {
+        NETMGR_EXT_LOG_E("Subscribe common event failed, CES SA not ready");
+        return;
+    }
+    // LCOV_EXCL_STOP
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_CONNECTED);
     matchingSkills.AddEvent(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_POWER_DISCONNECTED);
@@ -521,6 +544,9 @@ void NetworkShareService::SubscribeCommonEvent()
     bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(commonEventSubscriber_);
     if (!ret) {
         NETMGR_EXT_LOG_E("Subscribe common event fail:%{public}d", ret);
+        // LCOV_EXCL_START
+        commonEventSubscriber_ = nullptr;
+        // LCOV_EXCL_STOP
     }
 }
 
