@@ -2388,6 +2388,10 @@ bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainPr
     if (pid == currSetUpVpnPid_) {
         return true;
     }
+    if (uid == hasOpenedVpnUid_ && hasOpenedVpnUid_ != 0) {
+        isMainProc = true;
+        return true;
+    }
     // LCOV_EXCL_STOP
     return false;
 }
