@@ -765,8 +765,7 @@ HWTEST_F(NetworkShareTrackerTest, NetworkShareTrackerBranchTest01, TestSize.Leve
     int32_t role = 1;
     observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTING), cause,
                                        role);
-    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTED), cause,
-                                       role);
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTED), cause, role);
     observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTING), cause,
                                        role);
     observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTED), cause,
