@@ -43,7 +43,8 @@
             "netmanager_ext_feature_iface_supplier_id",
             "netmanager_ext_extensible_authentication",
             "netmanager_ext_share_notification_enable",
-            "netmanager_ext_fpga_mode_enable"
+            "netmanager_ext_fpga_mode_enable",
+            "netmanager_ext_feature_read_ccm_json"
         ],
         "adapted_system_type": [
             "standard"
@@ -94,7 +95,8 @@
                 "json",
                 "hiappevent",
                 "runtime_core",
-                "rust_cxx"
+                "rust_cxx",
+                "config_policy"
             ]
         },
         "build": {

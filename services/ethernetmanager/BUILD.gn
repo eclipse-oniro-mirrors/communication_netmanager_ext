@@ -71,6 +71,10 @@ ohos_shared_library("ethernet_manager") {
     "samgr:samgr_proxy",
   ]
 
+  if (netmanager_ext_feature_iface_supplier_id) {
+    external_deps += [ "config_policy:configpolicy_util" ]
+  }
+
   defines = [
     "NETMGR_LOG_TAG = \"EthernetManager\"",
     "LOG_DOMAIN = 0xD0015B0",
@@ -80,6 +84,10 @@ ohos_shared_library("ethernet_manager") {
 
   if (netmanager_ext_feature_iface_supplier_id) {
     defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
+
+  if (netmanager_ext_feature_read_ccm_json) {
+    defines += [ "FEATURE_READ_CCM_JSON" ]
   }
 
   if (netmanager_ext_extensible_authentication) {
@@ -168,6 +176,10 @@ ohos_static_library("ethernet_manager_static") {
     "samgr:samgr_proxy",
   ]
 
+  if (netmanager_ext_feature_iface_supplier_id) {
+    external_deps += [ "config_policy:configpolicy_util" ]
+  }
+
   defines = [
     "NETMGR_LOG_TAG = \"EthernetManager\"",
     "LOG_DOMAIN = 0xD0015B0",
@@ -177,6 +189,10 @@ ohos_static_library("ethernet_manager_static") {
 
   if (netmanager_ext_feature_iface_supplier_id) {
     defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
+  }
+
+  if (netmanager_ext_feature_read_ccm_json) {
+    defines += [ "FEATURE_READ_CCM_JSON" ]
   }
 
   if (netmanager_ext_extensible_authentication) {
