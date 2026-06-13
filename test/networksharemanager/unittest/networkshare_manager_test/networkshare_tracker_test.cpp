@@ -762,12 +762,16 @@ HWTEST_F(NetworkShareTrackerTest, NetworkShareTrackerBranchTest01, TestSize.Leve
         std::make_shared<NetworkShareTracker::SharingPanObserver>();
     Bluetooth::BluetoothRemoteDevice device;
     int32_t cause = 0;
-    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTING), cause);
-    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTED), cause);
-    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTING), cause);
-    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTED), cause);
+    int32_t role = 1;
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTING), cause,
+                                       role);
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTED), cause, role);
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTING), cause,
+                                       role);
+    observer->OnConnectionStateChanged(device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTED), cause,
+                                       role);
     int32_t invalidValue = 100;
-    observer->OnConnectionStateChanged(device, invalidValue, cause);
+    observer->OnConnectionStateChanged(device, invalidValue, cause, role);
 #endif
 }
 

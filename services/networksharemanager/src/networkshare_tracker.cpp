@@ -179,9 +179,9 @@ NetworkShareTracker::NetSharingSubSmState::NetSharingSubSmState(
 
 #ifdef BLUETOOTH_MODOULE
 void NetworkShareTracker::SharingPanObserver::OnConnectionStateChanged(const Bluetooth::BluetoothRemoteDevice &device,
-                                                                       int state, int cause)
+                                                                       int state, int cause, int role)
 {
-    NETMGR_EXT_LOG_I("Recieve bt-pan state changed event, state[%{public}d].", state);
+    NETMGR_EXT_LOG_I("Recieve bt-pan state changed event, state[%{public}d] role[%{public}d].", state, role);
     Bluetooth::BTConnectState curState = static_cast<Bluetooth::BTConnectState>(state);
     NetworkShareTracker::GetInstance().SetBluetoothState(curState);
     switch (curState) {
