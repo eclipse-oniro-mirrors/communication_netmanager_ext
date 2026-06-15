@@ -216,15 +216,15 @@ sptr<IRemoteObject> NetFirewallClient::LoadSaOnDemand()
             NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
             return nullptr;
         }
-        int32_t result = sam->LoadSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID, loadCallback_);
+        int32_t result = sam->GetSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID, loadCallback_);
         if (result != ERR_OK) {
-            NETMGR_EXT_LOG_E("LoadSystemAbility failed : [%{public}d]", result);
+            NETMGR_EXT_LOG_E("GetSystemAbility failed : [%{public}d]", result);
             return nullptr;
         }
         std::unique_lock<std::mutex> lk(g_mutexCv);
         if (!g_cv.wait_for(lk, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
             [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
-            NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
+            NETMGR_EXT_LOG_E("GetSystemAbility timeout");
             return nullptr;
         }
     }
