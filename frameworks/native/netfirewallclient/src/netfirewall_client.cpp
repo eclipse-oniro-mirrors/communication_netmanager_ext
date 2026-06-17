@@ -210,25 +210,8 @@ sptr<INetFirewallService> NetFirewallClient::GetProxy()
 sptr<IRemoteObject> NetFirewallClient::LoadSaOnDemand()
 {
     NETMGR_EXT_LOG_D("NetFirewallClient OnRemoteDied");
-    if (loadCallback_->GetRemoteObject() == nullptr) {
-        sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sam == nullptr) {
-            NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
-            return nullptr;
-        }
-        int32_t result = sam->GetSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID, loadCallback_);
-        if (result != ERR_OK) {
-            NETMGR_EXT_LOG_E("GetSystemAbility failed : [%{public}d]", result);
-            return nullptr;
-        }
-        std::unique_lock<std::mutex> lk(g_mutexCv);
-        if (!g_cv.wait_for(lk, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
-            [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
-            NETMGR_EXT_LOG_E("GetSystemAbility timeout");
-            return nullptr;
-        }
-    }
-    return loadCallback_->GetRemoteObject();
+    sptr<OHOS::IRemoteObject> result = sam->GetSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID);
+    return result;
 }
 
 void NetFirewallClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
