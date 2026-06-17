@@ -42,42 +42,5 @@ void VpnExtensionContext::ClearFailedCallConnection(const std::shared_ptr<Caller
     }
     localCallContainer_->ClearFailedCallConnection(callback);
 }
-
-ErrCode VpnExtensionContext::ConnectAbility(
-    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
-{
-    NETMGR_EXT_LOG_I("Connect ability begin, ability:%{public}s.", want.GetElement().GetAbilityName().c_str());
-    ErrCode ret =
-        ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
-    NETMGR_EXT_LOG_I("VpnExtensionContext::ConnectAbility ErrorCode = %{public}d", ret);
-    return ret;
-}
-
-ErrCode VpnExtensionContext::StartVpnExtensionAbility(const AAFwk::Want &want, int32_t accountId) const
-{
-    NETMGR_EXT_LOG_D("%{public}s begin.", __func__);
-    if (OHOS::system::GetBoolParameter("persist.edm.vpn_disable", false)) {
-        NETMGR_EXT_LOG_E("persist.edm.vpn_disable disallowed setting up vpn");
-        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-    }
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
-        want, token_, accountId, AppExecFwk::ExtensionAbilityType::VPN);
-    if (err != ERR_OK) {
-        NETMGR_EXT_LOG_E("VpnContext::StartVpnExtensionAbility is failed %{public}d", err);
-    }
-    return err;
-}
-
-ErrCode VpnExtensionContext::StopVpnExtensionAbility(const AAFwk::Want& want, int32_t accountId) const
-{
-    NETMGR_EXT_LOG_D("%{public}s begin.", __func__);
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
-        want, token_, accountId, AppExecFwk::ExtensionAbilityType::UNSPECIFIED);
-    if (err != ERR_OK) {
-        NETMGR_EXT_LOG_E("VpnContext::StopVpnExtensionAbility is failed %{public}d", err);
-    }
-    return err;
-}
-
 }  // namespace NetManagerStandard
 }  // namespace OHOS
