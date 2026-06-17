@@ -29,17 +29,6 @@ class VpnExtensionContext extends ExtensionContext {
   constructor(obj) {
     super(obj);
   }
-  startVpnExtensionAbility(want, callback) {
-    console.log('startVpnExtensionAbility');
-    return this.__context_impl__.startVpnExtensionAbility(want, callback);
-  }
-
-
-  stopVpnExtensionAbility(want, callback) {
-    console.log('stopVpnExtensionAbility');
-    return this.__context_impl__.stopVpnExtensionAbility(want, callback);
-  }
-
 }
 
 export default VpnExtensionContext;
