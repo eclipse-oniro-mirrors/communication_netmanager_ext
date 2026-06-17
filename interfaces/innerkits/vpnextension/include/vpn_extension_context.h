@@ -50,22 +50,6 @@ public:
      */
     void ClearFailedCallConnection(const std::shared_ptr<CallerCallBack> &callback) const;
 
-    /**
-     * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
-     *
-     * @param want Indicates the want containing information about the ability to connect
-     *
-     * @param conn Indicates the callback object when the target ability is connected.
-     *
-     * @return Returns zero on success, others on failure.
-     */
-    ErrCode ConnectAbility(
-        const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
-
-    ErrCode StartVpnExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) const;
-
-    ErrCode StopVpnExtensionAbility(const AAFwk::Want& want, int32_t accountId = -1) const;
-
     using SelfType = VpnExtensionContext;
     static const size_t CONTEXT_TYPE_ID;
 
