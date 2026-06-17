@@ -148,7 +148,7 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
         return nullptr;
     }
     
-    int32_t result = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
+    sptr<OHOS::IRemoteObject> result = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
     if (result != ERR_OK) {
         NETMGR_EXT_LOG_E("GetSystemAbility failed : [%{public}d]", result);
         return nullptr;
