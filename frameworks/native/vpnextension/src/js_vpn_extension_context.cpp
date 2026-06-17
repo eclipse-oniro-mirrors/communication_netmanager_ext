@@ -114,12 +114,7 @@ private:
                     task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                     return;
                 }
-                auto innerErrorCode = context->StartVpnExtensionAbility(want);
-                if (innerErrorCode == 0) {
-                    task.Resolve(env, CreateJsUndefined(env));
-                } else {
-                    task.Reject(env, CreateJsErrorByNativeErr(env, innerErrorCode));
-                }
+                task.Resolve(env, CreateJsUndefined(env));
             };
 
         napi_value lastParam = (info.argc <= ARGC_ONE) ? nullptr : info.argv[ARGC_ONE];
