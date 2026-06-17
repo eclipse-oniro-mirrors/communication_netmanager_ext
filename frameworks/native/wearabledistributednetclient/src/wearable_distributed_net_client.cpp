@@ -147,12 +147,8 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
         NETMGR_EXT_LOG_E("WearableDistributedNetClient get SystemAbilityManager failed: sam is null");
         return nullptr;
     }
-    sptr<WearableDistributedNetLoadCallback> callback = new (std::nothrow) WearableDistributedNetLoadCallback;
-    if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Failed to create WearableDistributedNetLoadCallback instance");
-        return nullptr;
-    }
-    int32_t result = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID, callback);
+    
+    int32_t result = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
     if (result != ERR_OK) {
         NETMGR_EXT_LOG_E("GetSystemAbility failed : [%{public}d]", result);
         return nullptr;
