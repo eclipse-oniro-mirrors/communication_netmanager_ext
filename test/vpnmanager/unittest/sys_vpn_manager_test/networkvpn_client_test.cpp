@@ -392,5 +392,13 @@ HWTEST_F(NetworkVpnClientTest, OnMultiVpnStateChanged_01, TestSize.Level1)
     int result = networkVpnClient_.vpnEventCallback_->OnMultiVpnStateChanged(isConnected, bundleName, vpnId);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnClientTest, GetVpnConfigToAnco001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    std::vector<std::string> dnsAddresses;
+    auto ret = networkVpnClient_.GetVpnConfigToAnco(dnsAddresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

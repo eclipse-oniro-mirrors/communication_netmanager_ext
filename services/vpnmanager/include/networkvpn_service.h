@@ -195,6 +195,8 @@ public:
      * unregister multi vpn callback
      */
     int32_t UnregisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback) override;
+
+    int32_t GetVpnConfigToAnco(std::vector<std::string>& dnsAddresses) override;
 #endif // SUPPORT_SYSVPN
 
     /**
