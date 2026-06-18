@@ -25,18 +25,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class WearableDistributedNetLoadCallback : public SystemAbilityLoadCallbackStub {
-public:
-    void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject) override;
-    void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
-    bool IsFailed();
-    const sptr<IRemoteObject> &GetRemoteObject() const;
-
-private:
-    std::atomic_bool loadSAFailed_ = false;
-    sptr<IRemoteObject> remoteObject_ = nullptr;
-    std::mutex loadMutex_;
-};
 
 class WearableDistributedNetClient {
 public:
