@@ -24,34 +24,9 @@
 namespace OHOS {
 namespace NetManagerStandard {
 static std::condition_variable g_cv;
-static constexpr uint32_t WAIT_REMOTE_TIME_SEC = 10;
 static constexpr uint32_t GET_SERVICE_MAX_TIMES = 5;
 static constexpr uint32_t WAIT_FOR_SERVICE_TIME_SEC = 10;
 
-void WearableDistributedNetLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId,
-                                                                    const sptr<IRemoteObject> &remoteObject)
-{
-    NETMGR_EXT_LOG_I("Loading system ability succeeded");
-    std::unique_lock<std::mutex> lock(loadMutex_);
-    remoteObject_ = remoteObject;
-    g_cv.notify_one();
-}
-
-void WearableDistributedNetLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
-{
-    NETMGR_EXT_LOG_I("Loading system ability failed");
-    loadSAFailed_ = true;
-}
-
-bool WearableDistributedNetLoadCallback::IsFailed()
-{
-    return loadSAFailed_;
-}
-
-const sptr<IRemoteObject> &WearableDistributedNetLoadCallback::GetRemoteObject() const
-{
-    return remoteObject_;
-}
 
 int32_t WearableDistributedNetClient::SetupWearableDistributedNet(const int32_t tcpPortId, const int32_t udpPortId,
                                                                   const bool isMetered)
