@@ -210,6 +210,11 @@ sptr<INetFirewallService> NetFirewallClient::GetProxy()
 sptr<IRemoteObject> NetFirewallClient::LoadSaOnDemand()
 {
     NETMGR_EXT_LOG_D("NetFirewallClient OnRemoteDied");
+    sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();	 
+    if (sam == nullptr) { 
+             NETMGR_EXT_LOG_E("GetSystemAbilityManager failed"); 
+             return nullptr; 
+    }
     sptr<OHOS::IRemoteObject> result = sam->GetSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID);
     return result;
 }
