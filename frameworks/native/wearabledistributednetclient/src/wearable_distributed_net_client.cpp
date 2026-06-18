@@ -147,14 +147,7 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
         NETMGR_EXT_LOG_E("WearableDistributedNetClient get SystemAbilityManager failed: sam is null");
         return nullptr;
     }
-    sptr<OHOS::IRemoteObject> result = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
-    {
-        std::unique_lock<std::mutex> uniqueLock(loadSaMutex_);
-        g_cv.wait_for(uniqueLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
-            [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
-    }
-
-    auto remote = callback->GetRemoteObject();
+    auto remote = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
