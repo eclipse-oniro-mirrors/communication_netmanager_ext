@@ -147,7 +147,7 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
         NETMGR_EXT_LOG_E("WearableDistributedNetClient get SystemAbilityManager failed: sam is null");
         return nullptr;
     }
-    auto remote = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
+    sptr<IRemoteObject> remote = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
