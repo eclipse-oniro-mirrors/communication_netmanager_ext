@@ -1342,6 +1342,7 @@ HWTEST_F(NetworkVpnServiceTest, CreateL2tpVpnCtlWithType003, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, GetVpnConfigToAnco001, TestSize.Level1)
 {
+    NetManagerExtAccessToken access;
     std::vector<std::string> dnsAddresses;
     std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
     instance_->vpnObj_ = nullptr;
