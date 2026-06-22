@@ -179,11 +179,6 @@ sptr<INetFirewallService> NetFirewallClient::GetProxy()
     if (netfirewallService_ != nullptr) {
         return netfirewallService_;
     }
-    loadCallback_ = new (std::nothrow) NetFirewallLoadCallback;
-    if (loadCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("loadCallback_ is nullptr");
-        return nullptr;
-    }
     sptr<IRemoteObject> remote = LoadSaOnDemand();
     if (remote == nullptr || !remote->IsProxyObject()) {
         NETMGR_EXT_LOG_E("get Remote service failed");
