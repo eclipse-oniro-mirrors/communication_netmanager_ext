@@ -27,11 +27,8 @@ using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr size_t WAIT_REMOTE_TIME_SEC = 15;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
-std::condition_variable g_cv;
-std::mutex g_mutexCv;
 } // namespace
 
 void NetFirewallLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId,
@@ -207,8 +204,8 @@ sptr<IRemoteObject> NetFirewallClient::LoadSaOnDemand()
     NETMGR_EXT_LOG_D("NetFirewallClient OnRemoteDied");
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (sam == nullptr) {
-            NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
-            return nullptr;
+        NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
+        return nullptr;
     }
     sptr<OHOS::IRemoteObject> result = sam->GetSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID);
     return result;
