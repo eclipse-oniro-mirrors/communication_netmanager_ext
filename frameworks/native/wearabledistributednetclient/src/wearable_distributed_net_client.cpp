@@ -23,35 +23,9 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-static std::condition_variable g_cv;
-static constexpr uint32_t WAIT_REMOTE_TIME_SEC = 10;
 static constexpr uint32_t GET_SERVICE_MAX_TIMES = 5;
 static constexpr uint32_t WAIT_FOR_SERVICE_TIME_SEC = 10;
 
-void WearableDistributedNetLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId,
-                                                                    const sptr<IRemoteObject> &remoteObject)
-{
-    NETMGR_EXT_LOG_I("Loading system ability succeeded");
-    std::unique_lock<std::mutex> lock(loadMutex_);
-    remoteObject_ = remoteObject;
-    g_cv.notify_one();
-}
-
-void WearableDistributedNetLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
-{
-    NETMGR_EXT_LOG_I("Loading system ability failed");
-    loadSAFailed_ = true;
-}
-
-bool WearableDistributedNetLoadCallback::IsFailed()
-{
-    return loadSAFailed_;
-}
-
-const sptr<IRemoteObject> &WearableDistributedNetLoadCallback::GetRemoteObject() const
-{
-    return remoteObject_;
-}
 
 int32_t WearableDistributedNetClient::SetupWearableDistributedNet(const int32_t tcpPortId, const int32_t udpPortId,
                                                                   const bool isMetered)
@@ -147,23 +121,7 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
         NETMGR_EXT_LOG_E("WearableDistributedNetClient get SystemAbilityManager failed: sam is null");
         return nullptr;
     }
-    sptr<WearableDistributedNetLoadCallback> callback = new (std::nothrow) WearableDistributedNetLoadCallback;
-    if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("Failed to create WearableDistributedNetLoadCallback instance");
-        return nullptr;
-    }
-    int32_t result = sam->LoadSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID, callback);
-    if (result != ERR_OK) {
-        NETMGR_EXT_LOG_E("LoadSystemAbility failed : [%{public}d]", result);
-        return nullptr;
-    }
-    {
-        std::unique_lock<std::mutex> uniqueLock(loadSaMutex_);
-        g_cv.wait_for(uniqueLock, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
-            [&callback]() { return callback->GetRemoteObject() != nullptr || callback->IsFailed(); });
-    }
-
-    auto remote = callback->GetRemoteObject();
+    sptr<IRemoteObject> remote = sam->GetSystemAbility(COMM_WEARABLE_DISTRIBUTED_NET_ABILITY_ID);
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
