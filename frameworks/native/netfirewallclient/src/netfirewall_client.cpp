@@ -31,32 +31,6 @@ constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
 } // namespace
 
-void NetFirewallLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId,
-    const sptr<IRemoteObject> &remoteObject)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
-    std::unique_lock<std::mutex> lock(g_mutexCv);
-    remoteObject_ = remoteObject;
-    g_cv.notify_one();
-}
-
-void NetFirewallLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
-    loadSAFailed_ = true;
-}
-
-bool NetFirewallLoadCallback::IsFailed()
-{
-    return loadSAFailed_;
-}
-
-const sptr<IRemoteObject> &NetFirewallLoadCallback::GetRemoteObject() const
-{
-    return remoteObject_;
-}
-
-
 NetFirewallClient &NetFirewallClient::GetInstance()
 {
     static NetFirewallClient instance;
