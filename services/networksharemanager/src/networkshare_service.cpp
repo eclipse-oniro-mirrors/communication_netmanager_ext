@@ -436,6 +436,11 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
     if (systemAbilityId == COMMON_EVENT_SERVICE_ID && commonEventSubscriber_ == nullptr) {
         SubscribeCommonEvent();
     }
+#ifdef SHARE_NOTIFICATION_ENABLE
+    if (systemAbilityId == COMMON_EVENT_SERVICE_ID && wifiShareNtfSubscriber_ == nullptr) {
+        SubscribeWifiShareNtfEvent();
+    }
+#endif
     // LCOV_EXCL_STOP
 }
 
@@ -445,9 +450,17 @@ void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const s
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         hasSARemoved_ = true;
     // LCOV_EXCL_START
-    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID && commonEventSubscriber_ != nullptr) {
-        EventFwk::CommonEventManager::UnSubscribeCommonEvent(commonEventSubscriber_);
-        commonEventSubscriber_ = nullptr;
+    } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID) {
+        if (commonEventSubscriber_ != nullptr) {
+            EventFwk::CommonEventManager::UnSubscribeCommonEvent(commonEventSubscriber_);
+            commonEventSubscriber_ = nullptr;
+        }
+#ifdef SHARE_NOTIFICATION_ENABLE
+        if (wifiShareNtfSubscriber_ != nullptr) {
+            EventFwk::CommonEventManager::UnSubscribeCommonEvent(wifiShareNtfSubscriber_);
+            wifiShareNtfSubscriber_ = nullptr;
+        }
+#endif
     // LCOV_EXCL_STOP
     }
 }
@@ -578,6 +591,16 @@ void NetworkShareService::CommonEventSubscriber::OnReceiveEvent(const EventFwk::
 #ifdef SHARE_NOTIFICATION_ENABLE
 void NetworkShareService::SubscribeWifiShareNtfEvent()
 {
+    // LCOV_EXCL_START
+    if (wifiShareNtfSubscriber_ != nullptr) {
+        return;
+    }
+    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrClient == nullptr || samgrClient->CheckSystemAbility(COMMON_EVENT_SERVICE_ID) == nullptr) {
+        NETMGR_EXT_LOG_E("Subscribe wifi share ntf event failed, CES SA not ready");
+        return;
+    }
+    // LCOV_EXCL_STOP
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(IDLE_AP_USER_RESTART_NOTIFICATION);
     matchingSkills.AddEvent(EVENT_THERMAL_STOP_AP);
@@ -594,6 +617,9 @@ void NetworkShareService::SubscribeWifiShareNtfEvent()
     bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(wifiShareNtfSubscriber_);
     if (!ret) {
         NETMGR_EXT_LOG_E("Subscribe common event fail:%{public}d", ret);
+        // LCOV_EXCL_START
+        wifiShareNtfSubscriber_ = nullptr;
+        // LCOV_EXCL_STOP
     }
 }
 
