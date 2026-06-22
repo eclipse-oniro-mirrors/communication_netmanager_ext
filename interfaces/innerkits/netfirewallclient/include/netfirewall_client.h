@@ -112,7 +112,6 @@ private:
     std::mutex mutex_;
     sptr<INetFirewallService> netfirewallService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    sptr<NetFirewallLoadCallback> loadCallback_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
