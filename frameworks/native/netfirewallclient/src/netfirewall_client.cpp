@@ -27,38 +27,9 @@ using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr size_t WAIT_REMOTE_TIME_SEC = 15;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
-std::condition_variable g_cv;
-std::mutex g_mutexCv;
 } // namespace
-
-void NetFirewallLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId,
-    const sptr<IRemoteObject> &remoteObject)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
-    std::unique_lock<std::mutex> lock(g_mutexCv);
-    remoteObject_ = remoteObject;
-    g_cv.notify_one();
-}
-
-void NetFirewallLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
-    loadSAFailed_ = true;
-}
-
-bool NetFirewallLoadCallback::IsFailed()
-{
-    return loadSAFailed_;
-}
-
-const sptr<IRemoteObject> &NetFirewallLoadCallback::GetRemoteObject() const
-{
-    return remoteObject_;
-}
-
 
 NetFirewallClient &NetFirewallClient::GetInstance()
 {
@@ -179,11 +150,6 @@ sptr<INetFirewallService> NetFirewallClient::GetProxy()
     if (netfirewallService_ != nullptr) {
         return netfirewallService_;
     }
-    loadCallback_ = new (std::nothrow) NetFirewallLoadCallback;
-    if (loadCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("loadCallback_ is nullptr");
-        return nullptr;
-    }
     sptr<IRemoteObject> remote = LoadSaOnDemand();
     if (remote == nullptr || !remote->IsProxyObject()) {
         NETMGR_EXT_LOG_E("get Remote service failed");
@@ -210,25 +176,13 @@ sptr<INetFirewallService> NetFirewallClient::GetProxy()
 sptr<IRemoteObject> NetFirewallClient::LoadSaOnDemand()
 {
     NETMGR_EXT_LOG_D("NetFirewallClient OnRemoteDied");
-    if (loadCallback_->GetRemoteObject() == nullptr) {
-        sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sam == nullptr) {
-            NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
-            return nullptr;
-        }
-        int32_t result = sam->LoadSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID, loadCallback_);
-        if (result != ERR_OK) {
-            NETMGR_EXT_LOG_E("LoadSystemAbility failed : [%{public}d]", result);
-            return nullptr;
-        }
-        std::unique_lock<std::mutex> lk(g_mutexCv);
-        if (!g_cv.wait_for(lk, std::chrono::seconds(WAIT_REMOTE_TIME_SEC),
-            [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
-            NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
-            return nullptr;
-        }
+    sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (sam == nullptr) {
+        NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
+        return nullptr;
     }
-    return loadCallback_->GetRemoteObject();
+    sptr<OHOS::IRemoteObject> result = sam->GetSystemAbility(COMM_FIREWALL_MANAGER_SYS_ABILITY_ID);
+    return result;
 }
 
 void NetFirewallClient::OnRemoteDied(const wptr<IRemoteObject> &remote)

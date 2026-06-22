@@ -24,21 +24,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-// Firewall load callback
-class NetFirewallLoadCallback : public SystemAbilityLoadCallbackStub {
-public:
-    void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject) override;
-
-    void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
-
-    bool IsFailed();
-
-    const sptr<IRemoteObject> &GetRemoteObject() const;
-
-private:
-    bool loadSAFailed_ = false;
-    sptr<IRemoteObject> remoteObject_ = nullptr;
-};
 
 class NetFirewallClient {
 public:
@@ -112,7 +97,6 @@ private:
     std::mutex mutex_;
     sptr<INetFirewallService> netfirewallService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    sptr<NetFirewallLoadCallback> loadCallback_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
