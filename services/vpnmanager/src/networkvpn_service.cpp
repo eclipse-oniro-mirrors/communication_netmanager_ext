@@ -2649,6 +2649,25 @@ void NetworkVpnService::OnMultiVpnConnStateChanged(const VpnConnectState &state,
             }
         });
 }
+
+int32_t NetworkVpnService::GetVpnConfigToAnco(std::vector<std::string>& dnsAddresses)
+{
+    // LCOV_EXCL_START
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_ERR_NOT_SYSTEM_CALL;
+    }
+    // LCOV_EXCL_STOP
+    std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
+    if (vpnObj_ == nullptr || vpnObj_->GetVpnConfig() == nullptr) {
+        NETMGR_EXT_LOG_E("GetVpnConfigToAnco failed, vpnObj_ is null");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (vpnObj_->GetVpnConfig()->acceptedApplications_.size() > 0) {
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    dnsAddresses = vpnObj_->GetVpnConfig()->dnsAddresses_;
+    return NETMANAGER_EXT_SUCCESS;
+}
 #endif
 
 void NetworkVpnService::VpnAbilityConnect::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element,

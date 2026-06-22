@@ -1340,5 +1340,78 @@ HWTEST_F(NetworkVpnServiceTest, CreateL2tpVpnCtlWithType003, TestSize.Level1)
     EXPECT_TRUE(result != nullptr);
 }
 
+HWTEST_F(NetworkVpnServiceTest, GetVpnConfigToAnco001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    std::vector<std::string> dnsAddresses;
+    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
+    instance_->vpnObj_ = nullptr;
+    auto ret = instance_->GetVpnConfigToAnco(dnsAddresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    instance_->vpnObj_ = tmp;
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetVpnConfigToAnco002, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = "testAnco1";
+    config->vpnName_ = "testAncoVpn1";
+    config->vpnType_ = 1;
+    
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    
+    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
+    instance_->vpnObj_ = sysVpnCtl;
+    instance_->vpnObj_->GetVpnConfig()->acceptedApplications_.push_back("com.test.app");
+
+    std::vector<std::string> dnsAddresses;
+    auto ret = instance_->GetVpnConfigToAnco(dnsAddresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    instance_->vpnObj_->GetVpnConfig()->acceptedApplications_.clear();
+    instance_->vpnObj_ = tmp;
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetVpnConfigToAnco003, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    sptr<INetAddr> netAddr = new (std::nothrow) INetAddr();
+    ASSERT_NE(netAddr, nullptr);
+    std::string ip = "1.1.1.1";
+    netAddr->address_ = ip;
+    netAddr->prefixlen_ = 1;
+    config->addresses_.push_back(*netAddr);
+    config->vpnId_ = "testAnco2";
+    config->vpnName_ = "testAncoVpn2";
+    config->vpnType_ = 1;
+    
+    int32_t userId = 0;
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> sysVpnCtl = instance_->CreateSysVpnCtl(config, userId, activeUserIds, true);
+    ASSERT_NE(sysVpnCtl, nullptr);
+    
+    std::shared_ptr<NetVpnImpl> tmp = instance_->vpnObj_;
+    instance_->vpnObj_ = sysVpnCtl;
+    
+    std::vector<std::string> dnsAddresses;
+    auto ret = instance_->GetVpnConfigToAnco(dnsAddresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    
+    instance_->vpnObj_ = tmp;
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

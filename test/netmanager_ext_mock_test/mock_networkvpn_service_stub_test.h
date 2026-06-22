@@ -109,6 +109,11 @@ public:
     {
         return 0;
     }
+
+    int32_t GetVpnConfigToAnco(std::vector<std::string>& dnsAddresses) override
+    {
+        return 0;
+    }
 #endif // SUPPORT_SYSVPN
 
     int32_t RegisterVpnEvent(const sptr<IVpnEventCallback>& callback) override

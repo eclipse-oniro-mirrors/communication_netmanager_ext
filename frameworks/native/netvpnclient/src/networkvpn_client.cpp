@@ -490,6 +490,18 @@ void NetworkVpnClient::UnregisterMultiVpnEventCbCollection()
         proxy->UnregisterMultiVpnEvent(multiVpnEventCbCollection_);
     }
 }
+
+int32_t NetworkVpnClient::GetVpnConfigToAnco(std::vector<std::string> &dnsAddresses)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetVpnConfigToAnco proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    return proxy->GetVpnConfigToAnco(dnsAddresses);
+}
 #endif // SUPPORT_SYSVPN
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)

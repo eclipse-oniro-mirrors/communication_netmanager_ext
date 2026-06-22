@@ -254,6 +254,8 @@ public:
      */
     int32_t UnregisterMultiVpnEvent(sptr<IVpnEventCallback> callback);
 
+    int32_t GetVpnConfigToAnco(std::vector<std::string>& dnsAddresses);
+
 #endif // SUPPORT_SYSVPN
 
     /**
