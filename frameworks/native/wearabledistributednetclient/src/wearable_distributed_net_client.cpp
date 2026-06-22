@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-static std::condition_variable g_cv;
 static constexpr uint32_t GET_SERVICE_MAX_TIMES = 5;
 static constexpr uint32_t WAIT_FOR_SERVICE_TIME_SEC = 10;
 
