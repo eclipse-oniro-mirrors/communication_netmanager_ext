@@ -114,12 +114,7 @@ private:
                     task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                     return;
                 }
-                auto innerErrorCode = context->StartVpnExtensionAbility(want);
-                if (innerErrorCode == 0) {
-                    task.Resolve(env, CreateJsUndefined(env));
-                } else {
-                    task.Reject(env, CreateJsErrorByNativeErr(env, innerErrorCode));
-                }
+                task.Resolve(env, CreateJsUndefined(env));
             };
 
         napi_value lastParam = (info.argc <= ARGC_ONE) ? nullptr : info.argv[ARGC_ONE];
@@ -151,12 +146,7 @@ private:
                     task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                     return;
                 }
-                auto innerErrorCode = context->StopVpnExtensionAbility(want);
-                if (innerErrorCode == 0) {
-                    task.Resolve(env, CreateJsUndefined(env));
-                } else {
-                    task.Reject(env, CreateJsErrorByNativeErr(env, innerErrorCode));
-                }
+                task.Resolve(env, CreateJsUndefined(env));
             };
 
         napi_value lastParam = (info.argc <= ARGC_ONE) ? nullptr : info.argv[ARGC_ONE];
@@ -179,12 +169,6 @@ napi_value CreateJsVpnExtensionContext(napi_env env, std::shared_ptr<VpnExtensio
 
     std::unique_ptr<JsVpnExtensionContext> jsContext = std::make_unique<JsVpnExtensionContext>(context);
     napi_wrap(env, object, jsContext.release(), JsVpnExtensionContext::Finalizer, nullptr, nullptr);
-
-    const char *moduleName = "JsVpnExtensionContext";
-    BindNativeFunction(env, object, "startVpnExtensionAbility", moduleName,
-        JsVpnExtensionContext::StartVpnExtensionAbility);
-    BindNativeFunction(env, object, "stopVpnExtensionAbility", moduleName,
-        JsVpnExtensionContext::StopVpnExtensionAbility);
     return object;
 }
 
