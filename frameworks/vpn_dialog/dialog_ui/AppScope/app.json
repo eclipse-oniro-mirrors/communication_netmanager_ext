@@ -2,12 +2,12 @@
   "app": {
     "bundleName": "com.ohos.vpndialog",
     "vendor": "ohos",
-    "versionCode": 1000003,
-    "versionName": "1.0.3",
+    "versionCode": 1000004,
+    "versionName": "1.0.4",
     "icon": "$media:app_icon",
     "label": "$string:app_name",
-    "minAPIVersion": 11,
-    "targetAPIVersion": 11,
+    "minAPIVersion": 14,
+    "targetAPIVersion": 14,
     "distributedNotificationEnabled": true
   }
 }

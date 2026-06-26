@@ -25,7 +25,6 @@ import GlobalContext from '../MainAbility/GlobalContext.ts';
 @Extend(Text)
 function controlBtn(fontColor : string) {
   .fontColor(fontColor)
-  .backgroundColor(0xffffff)
   .width(100)
   .height(56)
   .fontSize(20)
@@ -34,7 +33,6 @@ function controlBtn(fontColor : string) {
 
 @Extend(Text)
 function controlText() {
-    .backgroundColor(0xffffff)
     .height(56)
     .fontSize(20)
     .textAlign(TextAlign.Center);
@@ -84,8 +82,10 @@ export default struct ConfirmDialog {
             vpnext.updateVpnAuthorizedState(bundleName + '**vpndialog**');
             this.destruction();
           });
-        Text('|')
-          .fontSize(20);
+        Divider()
+          .vertical(true)
+          .strokeWidth(1)
+          .height(40);
         Text($r('app.string.allowButton'))
           .controlBtn(this.allowFontColor)
           .onClick(() => {
