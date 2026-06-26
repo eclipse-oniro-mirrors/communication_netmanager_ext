@@ -2301,7 +2301,6 @@ bool NetworkVpnService::IsAppUidInWhiteList(int32_t callingUid, int32_t appUid)
             return true;
         }
     }
-    return false;
 #endif // SUPPORT_SYSVPN
 
     if (vpnObj_ != nullptr) {
