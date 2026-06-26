@@ -32,6 +32,7 @@ public:
         std::string route2;
         std::string dns1;
         std::string dns2;
+        std::string randIpv6Addr;
     };
 
 public:

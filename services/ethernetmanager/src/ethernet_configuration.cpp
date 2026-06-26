@@ -290,6 +290,14 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
                             : static_cast<uint8_t>(CommonUtils::Ipv4PrefixLen(dhcpResult.subNet));
     config.ipAddrList_.push_back(ipAddr);
 
+    if (ipAddr.family_ == AF_INET6 && !dhcpResult.randIpv6Addr.empty()) {
+        INetAddr randAddr;
+        randAddr.address_ = dhcpResult.randIpv6Addr;
+        randAddr.family_ = static_cast<uint8_t>(AF_INET6);
+        randAddr.prefixlen_ = ipAddr.prefixlen_;
+        config.ipAddrList_.push_back(randAddr);
+    }
+
     INetAddr netMask;
     netMask.address_ = dhcpResult.subNet;
     config.netMaskList_.push_back(netMask);
