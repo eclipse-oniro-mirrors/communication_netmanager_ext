@@ -9,6 +9,15 @@
       },
       {
         "name": "ohos.permission.SYSTEM_FLOAT_WINDOW"
+      },
+      {
+        "name": "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED"
+      },
+      {
+        "name": "ohos.permission.GET_BUNDLE_RESOURCES"
+      },
+      {
+        "name": "ohos.permission.GET_RUNNING_INFO"
       }
     ],
     "name": "vpn_dialog",
