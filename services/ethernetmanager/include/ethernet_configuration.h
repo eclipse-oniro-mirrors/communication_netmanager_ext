@@ -70,7 +70,8 @@ private:
     std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList);
     
     void AddRandIpv6Addr(const EthernetDhcpCallback::DhcpResult &dhcpResult,
-        const INetAddr &ipAddr, StaticConfiguration &config);bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
+        const INetAddr &ipAddr, StaticConfiguration &config);
+    bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
     std::string GetIfaceMode(IPSetMode mode);
     std::vector<INetAddr> GetGatewayFromMap(const std::unordered_map<std::string, INetAddr> &temp);
     std::vector<INetAddr> GetGatewayFromRouteList(const std::list<Route> &routeList);
