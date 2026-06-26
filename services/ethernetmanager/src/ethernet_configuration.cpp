@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,6 +275,18 @@ bool EthernetConfiguration::ClearAllUserConfiguration()
     return DelDir(USER_CONFIG_DIR);
 }
 
+
+void EthernetConfiguration::AddRandIpv6Addr(const EthernetDhcpCallback::DhcpResult &dhcpResult,
+    const INetAddr &ipAddr, StaticConfiguration &config)
+{
+    if (ipAddr.family_ == AF_INET6 && !dhcpResult.randIpv6Addr.empty()) {
+        INetAddr randAddr;
+        randAddr.address_ = dhcpResult.randIpv6Addr;
+        randAddr.family_ = static_cast<uint8_t>(AF_INET6);
+        randAddr.prefixlen_ = ipAddr.prefixlen_;
+        config.ipAddrList_.push_back(randAddr);
+    }
+}
 bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::DhcpResult &dhcpResult,
                                                    StaticConfiguration &config)
 {
@@ -289,6 +301,8 @@ bool EthernetConfiguration::ConvertToConfiguration(const EthernetDhcpCallback::D
                             ? static_cast<uint8_t>(CommonUtils::Ipv6PrefixLen(dhcpResult.subNet))
                             : static_cast<uint8_t>(CommonUtils::Ipv4PrefixLen(dhcpResult.subNet));
     config.ipAddrList_.push_back(ipAddr);
+
+    AddRandIpv6Addr(dhcpResult, ipAddr, config);
 
     INetAddr netMask;
     netMask.address_ = dhcpResult.subNet;

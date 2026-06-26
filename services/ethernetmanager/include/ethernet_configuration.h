@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,9 @@ private:
     void GenCfgContent(const std::string &iface, sptr<InterfaceConfiguration> cfg, std::string &fileContent);
     void GenHttpProxyContent(const sptr<InterfaceConfiguration> &cfg, std::string &fileContent);
     std::string AccumulateNetAddress(const std::vector<INetAddr> &netAddrList);
+    
+    void AddRandIpv6Addr(const EthernetDhcpCallback::DhcpResult &dhcpResult,
+        const INetAddr &ipAddr, StaticConfiguration &config);
     bool IsValidDhcpResult(const EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
     std::string GetIfaceMode(IPSetMode mode);
     std::vector<INetAddr> GetGatewayFromMap(const std::unordered_map<std::string, INetAddr> &temp);

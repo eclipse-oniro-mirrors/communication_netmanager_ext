@@ -101,6 +101,7 @@ void EthernetDhcpController::OnDhcpSuccess(const std::string &iface, DhcpResult 
     dhcpResult.route2 = result->strOptRouter2;
     dhcpResult.dns1 = result->strOptDns1;
     dhcpResult.dns2 = result->strOptDns2;
+    dhcpResult.randIpv6Addr = result->strOptRandIpv6Addr;
     cbObject_->OnDhcpSuccess(dhcpResult);
 }
 
