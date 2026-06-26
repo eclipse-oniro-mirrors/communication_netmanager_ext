@@ -107,10 +107,16 @@ private:
     static int32_t CheckRuleObjectParams(napi_env env, napi_value object, const NetFirewallRuleType &type);
 
     // Verify firewall rule name
-    static int32_t CheckRuleName(napi_env env, napi_value object);
+    static int32_t CheckRuleStringParam(napi_env env, napi_value object);
 
     // Verify properties with rule type number
     static int32_t CheckRuleNumberParam(napi_env env, napi_value object, const std::string &propertyName);
+
+    // Verify network interface name
+    static int32_t CheckInterface(napi_env env, napi_value object);
+
+    // Verify single interface name format
+    static int32_t CheckInterfaceName(const std::string &interfaceName);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

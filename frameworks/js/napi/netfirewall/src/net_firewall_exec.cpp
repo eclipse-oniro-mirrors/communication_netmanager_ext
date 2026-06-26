@@ -222,6 +222,7 @@ napi_value GetNetFirewallRulesCallback(GetNetFirewallRulesContext *context)
     uint32_t index = 0;
     for (const auto &iface : context->pageInfo_->data) {
         napi_value rule = NapiUtils::CreateObject(context->GetEnv());
+        NETMANAGER_EXT_LOGE("GetNetFirewallRulesCallback interface %{public}s", iface.interface.c_str());
         NetFirewallRuleParse::SetRuleParams(context->GetEnv(), rule, iface);
         NapiUtils::SetArrayElement(context->GetEnv(), list, index++, rule);
     }

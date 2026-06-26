@@ -58,7 +58,8 @@ constexpr const char *CREATE_FIREWALL_TABLE = "CREATE TABLE IF NOT EXISTS [firew
     "[remotePorts] BLOB, "
     "[domainNum] INTEGER, "
     "[fuzzyDomainNum] INTEGER, "
-    "[domains] BLOB );";
+    "[domains] BLOB, "
+    "[interface] TEXT );";
 
 constexpr const char *CREATE_RECORD_TABLE = "CREATE TABLE IF NOT EXISTS [interceptRecord]("
     "[id] INTEGER PRIMARY KEY, "

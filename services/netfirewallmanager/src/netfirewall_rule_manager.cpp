@@ -179,7 +179,6 @@ int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByUserId(const int32_t user
 
 int32_t NetFirewallRuleManager::DeleteNetFirewallRuleByAppId(const int32_t appUid)
 {
-    NETMGR_EXT_LOG_I("DeleteNetFirewallRuleByAppId");
     std::lock_guard<std::shared_mutex> locker(setFirewallRuleMutex_);
     std::vector<NetFirewallRule> rules;
     NetFirewallDbHelper::GetInstance().QueryEnabledFirewallRules(GetCurrentAccountId(), appUid, rules);
@@ -300,6 +299,7 @@ int32_t NetFirewallRuleManager::GetNetFirewallRule(const int32_t userId, const i
         rule->remoteIps.assign(outRule.remoteIps.begin(), outRule.remoteIps.end());
         rule->localPorts.assign(outRule.localPorts.begin(), outRule.localPorts.end());
         rule->remotePorts.assign(outRule.remotePorts.begin(), outRule.remotePorts.end());
+        rule->interface = outRule.interface;
     } else {
         NETMGR_EXT_LOG_E("QueryFirewallRuleRecord size is 0");
         return FIREWALL_ERR_NO_RULE;
@@ -428,6 +428,7 @@ bool NetFirewallRuleManager::ExtractIpRules(const std::vector<NetFirewallRule> &
         ipRule->protocol = rule.protocol;
         ipRule->localPorts = rule.localPorts;
         ipRule->remotePorts = rule.remotePorts;
+        ipRule->interface = rule.interface;
         ipRules.emplace_back(std::move(ipRule));
     }
     return ipRules.size() > 0;

@@ -28,6 +28,7 @@ const std::regex DOMAIN_PATTERN { "^([a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\\.[a-zA-Z0-9
 const std::regex WILDCARD_DOMAIN_PATTERN {
     "^(([a-zA-Z0-9][-a-zA-Z0-9]{0,62}|\\*)(\\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\\.?)$"
 };
+const std::regex INTERFACE_NAME_PATTERN { "^[a-zA-Z][a-zA-Z0-9_-]{0,14}$" };
 
 int32_t NetFirewallParamCheck::CheckFirewallRulePolicy(napi_env env, napi_value object)
 {
@@ -466,7 +467,7 @@ int32_t NetFirewallParamCheck::CheckFirewallRule(napi_env env, napi_value object
             return ret;
         }
     }
-    ret = CheckRuleName(env, object);
+    ret = CheckRuleStringParam(env, object);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
@@ -537,7 +538,7 @@ int32_t NetFirewallParamCheck::CheckRuleObjectParamValue(napi_env env, napi_valu
     return FIREWALL_SUCCESS;
 }
 
-int32_t NetFirewallParamCheck::CheckRuleName(napi_env env, napi_value object)
+int32_t NetFirewallParamCheck::CheckRuleStringParam(napi_env env, napi_value object)
 {
     if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_RULE_NAME)) {
         if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_NAME)) !=
@@ -565,6 +566,11 @@ int32_t NetFirewallParamCheck::CheckRuleName(napi_env env, napi_value object)
             NETMANAGER_EXT_LOGE("ruleDescription size=%{public}zu is too long", ruleDescription.size());
             return FIREWALL_ERR_INVALID_PARAMETER;
         }
+    }
+
+    if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_INTERFACE)) {
+        NETMANAGER_EXT_LOGE("CheckRuleObjectParamValue NET_FIREWALL_INTERFACE");
+        return CheckInterface(env, object);
     }
     return FIREWALL_SUCCESS;
 }
@@ -604,6 +610,35 @@ int32_t NetFirewallParamCheck::CheckRuleNumberParam(napi_env env, napi_value obj
         return value < 0 ? FIREWALL_ERR_INVALID_PARAMETER : FIREWALL_SUCCESS;
     }
     return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallParamCheck::CheckInterfaceName(const std::string &interfaceName)
+{
+    if (interfaceName.empty()) {
+        NETMANAGER_EXT_LOGE("interface name is empty");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+    if (interfaceName.size() > MAX_INTERFACE_NAME_LEN) {
+        NETMANAGER_EXT_LOGE("interface name length more than %{public}d", MAX_INTERFACE_NAME_LEN);
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+    if (!std::regex_match(interfaceName, INTERFACE_NAME_PATTERN)) {
+        NETMANAGER_EXT_LOGE("interface name format invalid: %{public}s", interfaceName.c_str());
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+    return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallParamCheck::CheckInterface(napi_env env, napi_value object)
+{
+    napi_value interfaceValue = NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_INTERFACE);
+    if (NapiUtils::GetValueType(env, interfaceValue) != napi_string) {
+        NETMANAGER_EXT_LOGE("interface is not a string");
+        return FIREWALL_ERR_PARAMETER_ERROR;
+    }
+    std::string interfaceName = NapiUtils::GetStringFromValueUtf8(env, interfaceValue);
+    NETMANAGER_EXT_LOGI("CheckInterface interfaceName:%{public}s", interfaceName.c_str());
+    return CheckInterfaceName(interfaceName);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -17,6 +17,17 @@
 #include <arpa/inet.h>
 
 #include "netfirewall_common.h"
+#include <regex>
+
+namespace OHOS {
+namespace NetManagerStandard {
+// Forward declaration to test CheckInterfaceName
+class NetFirewallParamCheck {
+public:
+    static int32_t CheckInterfaceName(const std::string &interfaceName);
+};
+} // namespace NetManagerStandard
+} // namespace OHOS
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -73,6 +84,14 @@ public:
 };
 
 class TrafficFilterRedirectRuleTest : public testing::Test {
+public:
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
+    void SetUp() {};
+    void TearDown() {};
+};
+
+class InterfaceNameValidationTest : public testing::Test {
 public:
     static void SetUpTestCase() {};
     static void TearDownTestCase() {};
@@ -814,6 +833,123 @@ HWTEST_F(TrafficFilterRedirectRuleTest, MarshallingAndUnmarshalling002, TestSize
     EXPECT_EQ(result->outInterface_.isPrefix_, true);
     EXPECT_EQ(result->outInterface_.ifName_, "eth");
     EXPECT_EQ(result->proxyPort_, 5353);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName001, TestSize.Level0)
+{
+    std::regex pattern {"^[a-zA-Z][a-zA-Z0-9_-]{0,14}$"};
+    EXPECT_TRUE(std::regex_match("wlan0", pattern));
+    EXPECT_TRUE(std::regex_match("eth0", pattern));
+    EXPECT_TRUE(std::regex_match("lo", pattern));
+    EXPECT_TRUE(std::regex_match("en0", pattern));
+    EXPECT_TRUE(std::regex_match("usb0", pattern));
+    EXPECT_TRUE(std::regex_match("br-lan", pattern));
+    EXPECT_TRUE(std::regex_match("docker0", pattern));
+    EXPECT_TRUE(std::regex_match("eth0_1", pattern));
+    EXPECT_TRUE(std::regex_match("wg0-server", pattern));
+}
+ 
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName002, TestSize.Level0)
+{
+    std::regex pattern {"^[a-zA-Z][a-zA-Z0-9_-]{0,14}$"};
+    EXPECT_FALSE(std::regex_match("", pattern));
+    EXPECT_FALSE(std::regex_match("0wlan", pattern));
+    EXPECT_FALSE(std::regex_match("_eth0", pattern));
+    EXPECT_FALSE(std::regex_match("-br0", pattern));
+    EXPECT_FALSE(std::regex_match(".lo", pattern));
+    EXPECT_FALSE(std::regex_match("wlan@0", pattern));
+    EXPECT_FALSE(std::regex_match("eth 0", pattern));
+    EXPECT_FALSE(std::regex_match("wlan0.100", pattern));
+    EXPECT_FALSE(std::regex_match("a123456789012345", pattern));
+}
+ 
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName003, TestSize.Level0)
+{
+    std::regex pattern {"^[a-zA-Z][a-zA-Z0-9_-]{0,14}$"};
+    EXPECT_TRUE(std::regex_match("WLAN0", pattern));
+    EXPECT_TRUE(std::regex_match("Eth0", pattern));
+    EXPECT_TRUE(std::regex_match("a", pattern));
+    EXPECT_TRUE(std::regex_match("Z9", pattern));
+    EXPECT_TRUE(std::regex_match("A", pattern));
+    EXPECT_TRUE(std::regex_match("a12345678901234", pattern));
+    EXPECT_FALSE(std::regex_match("a123456789012345", pattern));
+    EXPECT_FALSE(std::regex_match("a_b-c0d_e1f2g3h4i", pattern));
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName004, TestSize.Level0)
+{
+    EXPECT_EQ(MAX_INTERFACE_NAME_LEN, 16);
+    EXPECT_EQ(MAX_RULE_INTERFACE_COUNT, 10);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName005, TestSize.Level0)
+{
+    std::regex pattern {"^[a-zA-Z][a-zA-Z0-9_-]{0,14}$"};
+    // valid names with underscore
+    EXPECT_TRUE(std::regex_match("a_1", pattern));
+    EXPECT_TRUE(std::regex_match("test_iface", pattern));
+    EXPECT_TRUE(std::regex_match("my_network_0", pattern));
+    // valid names with hyphen
+    EXPECT_TRUE(std::regex_match("br-lan0", pattern));
+    EXPECT_TRUE(std::regex_match("docker-br", pattern));
+    // mixed special chars
+    EXPECT_TRUE(std::regex_match("a-b_c", pattern));
+    EXPECT_TRUE(std::regex_match("x_y-z", pattern));
+    // invalid special chars
+    EXPECT_FALSE(std::regex_match("eth0!", pattern));
+    EXPECT_FALSE(std::regex_match("eth0#", pattern));
+    EXPECT_FALSE(std::regex_match("eth0%", pattern));
+    EXPECT_FALSE(std::regex_match("eth0^", pattern));
+    EXPECT_FALSE(std::regex_match("eth0*", pattern));
+    EXPECT_FALSE(std::regex_match("eth0+", pattern));
+    EXPECT_FALSE(std::regex_match("eth0=", pattern));
+    EXPECT_FALSE(std::regex_match("eth0/", pattern));
+    EXPECT_FALSE(std::regex_match("eth0\\", pattern));
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName006, TestSize.Level0)
+{
+    int32_t ret = NetFirewallParamCheck::CheckInterfaceName("");
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("invalid_with_special_@");
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("0eth0");
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("eth0");
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName007, TestSize.Level0)
+{
+    int32_t ret = NetFirewallParamCheck::CheckInterfaceName("a1234567890123456");
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("a12345678901234");
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("a123456789012345");
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("a");
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName008, TestSize.Level0)
+{
+    int32_t ret = NetFirewallParamCheck::CheckInterfaceName("eth_0");
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("br-lan");
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("eth0!");
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+
+    ret = NetFirewallParamCheck::CheckInterfaceName("eth0.");
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
 }
 }
 }

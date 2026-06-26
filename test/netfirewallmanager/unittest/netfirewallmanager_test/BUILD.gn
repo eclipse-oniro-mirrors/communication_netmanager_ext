@@ -31,6 +31,7 @@ ohos_unittest("netfirewallmanager_test") {
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall/src/context/net_firewall_param_check.cpp",
     "netfirewall_client_test.cpp",
     "netfirewall_common_test.cpp",
     "netfirewall_default_rule_parser_test.cpp",
@@ -51,6 +52,8 @@ ohos_unittest("netfirewallmanager_test") {
     "$NETFIREWALLMANAGER_SOURCE_DIR/include",
     "$EXT_INNERKITS_ROOT/netfirewallclient/include",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall/include",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall/include/context",
   ]
 
   deps = [
@@ -75,6 +78,8 @@ ohos_unittest("netfirewallmanager_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "napi:ace_napi",
+    "netmanager_base:napi_utils",
     "netmanager_base:netsys_controller",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
