@@ -156,6 +156,142 @@ bool ConvertTrafficFilterIpToString(const OH_TrafficFilter_IPAddress& ip, std::s
     return false;
 }
 
+static bool IsValidIPAddress(const OH_TrafficFilter_IPAddress& ip)
+{
+    OH_TrafficFilter_IPFamily family = ip.family;
+    if (static_cast<int32_t>(family) == 0) {
+        family = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    }
+    char buf[INET6_ADDRSTRLEN] = {0};
+    if (family == OH_TRAFFICFILTER_IP_FAMILY_V4) {
+        if (inet_ntop(AF_INET, ip.addr, buf, sizeof(buf)) == nullptr) {
+            NETMGR_EXT_LOG_E("IsValidIPAddress: invalid IPv4 bytes");
+            return false;
+        }
+        for (int i = IPV4_ADDR_LEN; i < OH_TRAFFICFILTER_IP_ADDRLEN; i++) {
+            if (ip.addr[i] != 0) {
+                NETMGR_EXT_LOG_E("IsValidIPAddress: IPv4 has non-zero high bytes at index %{public}d", i);
+                return false;
+            }
+        }
+        return true;
+    }
+    if (family == OH_TRAFFICFILTER_IP_FAMILY_V6) {
+        if (inet_ntop(AF_INET6, ip.addr, buf, sizeof(buf)) == nullptr) {
+            NETMGR_EXT_LOG_E("IsValidIPAddress: invalid IPv6 bytes");
+            return false;
+        }
+        return true;
+    }
+    NETMGR_EXT_LOG_E("IsValidIPAddress: invalid family=%{public}d", static_cast<int32_t>(ip.family));
+    return false;
+}
+
+static bool IsAllZeroIP(const OH_TrafficFilter_IPAddress& ip)
+{
+    for (int i = 0; i < OH_TRAFFICFILTER_IP_ADDRLEN; i++) {
+        if (ip.addr[i] != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool CompareIPBytes(const OH_TrafficFilter_IPAddress& start, const OH_TrafficFilter_IPAddress& end)
+{
+    for (int i = 0; i < OH_TRAFFICFILTER_IP_ADDRLEN; i++) {
+        if (start.addr[i] != end.addr[i]) {
+            return start.addr[i] < end.addr[i];
+        }
+    }
+    return true;
+}
+
+static bool ValidateSingleIP(const OH_TrafficFilter_IPAddress& ip)
+{
+    if (!IsValidIPAddress(ip)) {
+        NETMGR_EXT_LOG_E("ValidateSingleIP: invalid IP bytes");
+        return false;
+    }
+    return true;
+}
+
+static bool ValidateCidrMatch(const OH_TrafficFilter_IPCidr& cidr)
+{
+    if (!IsValidIPAddress(cidr.base)) {
+        NETMGR_EXT_LOG_E("ValidateCidrMatch: invalid CIDR base IP bytes");
+        return false;
+    }
+    OH_TrafficFilter_IPFamily family = cidr.base.family;
+    if (static_cast<int32_t>(family) == 0) {
+        family = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    }
+    uint8_t maxPrefix = (family == OH_TRAFFICFILTER_IP_FAMILY_V6) ? IPV6_PREFIX_MAX : IPV4_PREFIX_MAX;
+    if (cidr.prefixLen > maxPrefix) {
+        NETMGR_EXT_LOG_E("ValidateCidrMatch: invalid prefixLen=%{public}u (max=%{public}u)",
+            cidr.prefixLen, maxPrefix);
+        return false;
+    }
+    return true;
+}
+
+static bool ValidateRangeMatch(const OH_TrafficFilter_IPRange& range)
+{
+    if (!IsValidIPAddress(range.start)) {
+        NETMGR_EXT_LOG_E("ValidateRangeMatch: invalid range start IP bytes");
+        return false;
+    }
+    if (!IsValidIPAddress(range.end)) {
+        NETMGR_EXT_LOG_E("ValidateRangeMatch: invalid range end IP bytes");
+        return false;
+    }
+    if (range.start.family != range.end.family) {
+        NETMGR_EXT_LOG_E("ValidateRangeMatch: range family mismatch, start=%{public}d, end=%{public}d",
+            static_cast<int32_t>(range.start.family), static_cast<int32_t>(range.end.family));
+        return false;
+    }
+    if (!CompareIPBytes(range.end, range.start)) {
+        NETMGR_EXT_LOG_E("ValidateRangeMatch: range start > end");
+        return false;
+    }
+    return true;
+}
+
+static bool ValidateMultiMatch(const OH_TrafficFilter_IPMulti& multi)
+{
+    for (uint32_t i = 0; i < multi.ipCount; i++) {
+        if (!IsValidIPAddress(multi.ips[i])) {
+            NETMGR_EXT_LOG_E("ValidateMultiMatch: invalid multi IP[%{public}u] bytes", i);
+            return false;
+        }
+        if (i > 0 && multi.ips[i].family != multi.ips[0].family) {
+            NETMGR_EXT_LOG_E("ValidateMultiMatch: multi IP family mismatch at index %{public}u", i);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ValidateIPMatchValue(const OH_TrafficFilter_IPMatch& ipMatch)
+{
+    switch (ipMatch.type) {
+        case OH_TRAFFICFILTER_IP_MATCH_ANY:
+            return true;
+        case OH_TRAFFICFILTER_IP_MATCH_SINGLE:
+            return ValidateSingleIP(ipMatch.value.single);
+        case OH_TRAFFICFILTER_IP_MATCH_CIDR:
+            return ValidateCidrMatch(ipMatch.value.cidr);
+        case OH_TRAFFICFILTER_IP_MATCH_RANGE:
+            return ValidateRangeMatch(ipMatch.value.range);
+        case OH_TRAFFICFILTER_IP_MATCH_MULTI:
+            return ValidateMultiMatch(ipMatch.value.multi);
+        default:
+            NETMGR_EXT_LOG_E("ValidateIPMatchValue: invalid match type: %{public}d",
+                static_cast<int32_t>(ipMatch.type));
+            return false;
+    }
+}
+
 static bool IsFieldInSize(uint32_t structSize, size_t fieldOffset, size_t fieldSize)
 {
     return structSize >= fieldOffset + fieldSize;
@@ -231,6 +367,14 @@ static bool ValidateIPMatchFields(const OH_TrafficFilter_RedirectRule* rule)
             return false;
         }
     }
+    if (!ValidateIPMatchValue(rule->srcIp)) {
+        NETMGR_EXT_LOG_E("Invalid srcIp value");
+        return false;
+    }
+    if (!ValidateIPMatchValue(rule->dstIp)) {
+        NETMGR_EXT_LOG_E("Invalid dstIp value");
+        return false;
+    }
     return true;
 }
 
@@ -291,6 +435,14 @@ static bool ValidateRuleAttributes(const OH_TrafficFilter_RedirectRule* rule)
         rule->proxyIp.family == OH_TRAFFICFILTER_IP_FAMILY_V6);
     if (!hasValidProxyIpFamily) {
         NETMGR_EXT_LOG_E("Invalid proxyIp family: %{public}d", rule->proxyIp.family);
+        return false;
+    }
+    if (!IsValidIPAddress(rule->proxyIp)) {
+        NETMGR_EXT_LOG_E("Invalid proxyIp bytes");
+        return false;
+    }
+    if (IsAllZeroIP(rule->proxyIp)) {
+        NETMGR_EXT_LOG_E("Invalid proxyIp: all zero");
         return false;
     }
     if (rule->proxyPort == 0) {
@@ -544,6 +696,10 @@ int32_t RedirectorAdapterManager::AddRedirector(
 {
     if (redirectorId.empty()) {
         NETMGR_EXT_LOG_E("AddRedirector: redirectorId is empty");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (redirector == nullptr) {
+        NETMGR_EXT_LOG_E("AddRedirector: redirector output ptr is NULL");
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 

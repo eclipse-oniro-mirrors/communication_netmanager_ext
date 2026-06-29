@@ -31,6 +31,9 @@ constexpr uint32_t PROCESS_INFO_MIN_SIZE =
     static_cast<uint32_t>(offsetof(OH_TrafficFilter_ProcessInfo, size) + sizeof(uint32_t));
 constexpr uint32_t REDIRECT_RULE_MIN_SIZE =
     static_cast<uint32_t>(offsetof(OH_TrafficFilter_RedirectRule, proxyPort) + sizeof(uint16_t));
+constexpr uint8_t IPV4_ADDR_LEN = 4;
+constexpr uint8_t IPV4_PREFIX_MAX = 32;
+constexpr uint8_t IPV6_PREFIX_MAX = 128;
 
 class RedirectorAdapterManager {
 public:

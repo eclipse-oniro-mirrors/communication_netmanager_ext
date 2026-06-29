@@ -266,7 +266,7 @@ bool NetTrafficFilterRedirectManager::ValidateRangeIPMatch(
 bool NetTrafficFilterRedirectManager::ValidateMultiIPMatch(
     const TrafficFilterIPMatch& ipMatch)
 {
-    if (ipMatch.multi_.ipCount_ == 0 || ipMatch.multi_.ipCount_ > MAX_RULE_IP_COUNT) {
+    if (ipMatch.multi_.ipCount_ == 0 || ipMatch.multi_.ipCount_ > NETTRAFFICFILTER_MAX_MULTI_IP_COUNT) {
         return false;
     }
     int32_t firstFamily = ipMatch.multi_.ips_[0].family_;
@@ -321,7 +321,7 @@ bool NetTrafficFilterRedirectManager::ValidatePortMatch(const TrafficFilterPortM
         }
     }
     if (portMatch.type_ == static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI)) {
-        if (portMatch.multi_.portCount_ > MAX_RULE_PORT_COUNT) {
+        if (portMatch.multi_.portCount_ > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
             return false;
         }
         if (portMatch.multi_.portCount_ == 0) {

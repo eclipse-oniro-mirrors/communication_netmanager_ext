@@ -22,6 +22,10 @@ using namespace OHOS::NetManagerStandard;
 int32_t OH_TrafficFilter_CreateRedirector(uint32_t group_id, uint32_t priority,
     OH_TrafficFilter_Redirector** redirector)
 {
+    if (redirector == nullptr) {
+        NETMGR_EXT_LOG_E("CreateRedirector: redirector is NULL");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
     return RedirectorAdapterManager::GetInstance().CreateRedirector(group_id, priority, redirector);
 }
 
