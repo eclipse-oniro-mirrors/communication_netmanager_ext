@@ -873,8 +873,8 @@ void EthernetManagement::GetPciEthDeviceInfo(const std::string &iface, std::stri
     tempDeviceInfo.supplierName_ = valVec[INDEX_TWO];
     tempDeviceInfo.maximumRate_ = valVec[INDEX_THREE] + ITEM_UNIT_MBS;
     tempDeviceInfo.productName_ = tempDeviceInfo.deviceName_;
-    for (int i = 0; i < deviceInfoList.size(); i++) {
-        if (deviceInfoList[i].supplierId_ == tempDeviceInfo.supplierId_) {
+    for (const auto &devInfo : deviceInfoList) {
+        if (devInfo.supplierId_ == tempDeviceInfo.supplierId_) {
             return;
         }
     }
@@ -897,8 +897,8 @@ void EthernetManagement::GetPciEthDeviceInfoExt(const std::string &iface, const 
     if (devId.size() > PCI_IDPREFIX_LEN && devId.substr(0, PCI_IDPREFIX_LEN) == PCI_ID_PREFIX) {
         devId = devId.substr(PCI_IDPREFIX_LEN, PCI_ID_LEN);
     }
-    for (int i = 0; i < deviceInfoList.size(); i++) {
-        if (deviceInfoList[i].supplierId_ == tempDeviceInfo.supplierId_) {
+    for (const auto &devInfo : deviceInfoList) {
+        if (devInfo.supplierId_ == tempDeviceInfo.supplierId_) {
             return;
         }
     }
