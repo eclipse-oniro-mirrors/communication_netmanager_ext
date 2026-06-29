@@ -33,7 +33,6 @@ public:
     MDnsDiscoveryInstance GetDiscover();
 
 private:
-    bool CheckParamsType(napi_value *params, size_t paramsCount);
     std::string serviceType_;
     wptr<MDnsDiscoveryObserver> observer_;
     MDnsDiscoveryInstance discover_;
