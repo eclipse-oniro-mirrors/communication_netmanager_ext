@@ -14,88 +14,46 @@
  */
 
 #include "uuid.h"
-
-#include <cerrno>
-#include <ctime>
-#include <regex>
-
-#include "sys/time.h"
-
-#define CONSTANT_ZERO 0
-#define CONSTANT_ONE 1
-#define CONSTANT_TWO 2
-#define CONSTANT_THREE 3
-#define CONSTANT_FOUR 4
-#define CONSTANT_FIVE 5
-#define CONSTANT_SIX 6
-#define CONSTANT_SEVEN 7
-#define CONSTANT_EIGHT 8
-#define CONSTANT_NINE 9
-#define CONSTANT_TEN 10
-#define CONSTANT_ELEVEN 11
-#define CONSTANT_TWELVE 12
-#define CONSTANT_THIRTEEN 13
-#define CONSTANT_FOURTEEN 14
-#define CONSTANT_FIFTEEN 15
-#define CONSTANT_SIXTEEN 16
-#define CONSTANT_TWENTY 20
-#define CONSTANT_TWENTY_FOUR 24
-#define CONSTANT_THIRTY_TWO 32
-#define CONSTANT_FOURTY 40
-#define CONSTANT_FOURTY_EIGHT 48
-#define CONSTANT_FIFTY_SIX 56
+#include "sys/random.h"
+#include "netmanager_ext_log.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 
+static constexpr std::size_t UUID_STRING_LENGTH = 36;
+static constexpr std::size_t UUID_DASH_POS_1 = 4;
+static constexpr std::size_t UUID_DASH_POS_2 = 6;
+static constexpr std::size_t UUID_DASH_POS_3 = 8;
+static constexpr std::size_t UUID_DASH_POS_4 = 10;
+static constexpr std::size_t HALF_BYTE_SHIFT = 4;
+
 UUID UUID::RandomUUID()
 {
     UUID random;
-
-    struct timeval tv;
-    struct timezone tz;
-    struct tm randomTime;
-    unsigned int randNum = 0;
-
-    rand_r(&randNum);
-    gettimeofday(&tv, &tz);
-    localtime_r(&tv.tv_sec, &randomTime);
-    random.uuid_[CONSTANT_FIFTEEN] = static_cast<uint8_t>(tv.tv_usec & 0x00000000000000FF);
-    random.uuid_[CONSTANT_FOURTEEN] = static_cast<uint8_t>((tv.tv_usec & 0x000000000000FF00) >> CONSTANT_EIGHT);
-    random.uuid_[CONSTANT_THIRTEEN] = static_cast<uint8_t>((tv.tv_usec & 0x0000000000FF0000) >> CONSTANT_SIXTEEN);
-    random.uuid_[CONSTANT_TWELVE] = static_cast<uint8_t>((tv.tv_usec & 0x00000000FF000000) >> CONSTANT_TWENTY_FOUR);
-    random.uuid_[CONSTANT_TEN] = static_cast<uint8_t>((tv.tv_usec & 0x000000FF00000000) >> CONSTANT_THIRTY_TWO);
-    random.uuid_[CONSTANT_NINE] = static_cast<uint8_t>((tv.tv_usec & 0x0000FF0000000000) >> CONSTANT_FOURTY);
-    random.uuid_[CONSTANT_EIGHT] = static_cast<uint8_t>((tv.tv_usec & 0x00FF000000000000) >> CONSTANT_FOURTY_EIGHT);
-    random.uuid_[CONSTANT_SEVEN] = static_cast<uint8_t>((tv.tv_usec & 0xFF00000000000000) >> CONSTANT_FIFTY_SIX);
-    random.uuid_[CONSTANT_SIX] = static_cast<uint8_t>((randomTime.tm_sec + static_cast<int>(randNum)) & 0xFF);
-    random.uuid_[CONSTANT_FIVE] = static_cast<uint8_t>((randomTime.tm_min + (randNum >> CONSTANT_EIGHT)) & 0xFF);
-    random.uuid_[CONSTANT_FOUR] = static_cast<uint8_t>((randomTime.tm_hour + (randNum >> CONSTANT_SIXTEEN)) & 0xFF);
-    random.uuid_[CONSTANT_THREE] = static_cast<uint8_t>((randomTime.tm_mday +
-        (randNum >> CONSTANT_TWENTY_FOUR)) & 0xFF);
-    random.uuid_[CONSTANT_TWO] = static_cast<uint8_t>(randomTime.tm_mon & 0xFF);
-    random.uuid_[CONSTANT_ONE] = static_cast<uint8_t>(randomTime.tm_year & 0xFF);
-    random.uuid_[CONSTANT_ZERO] = static_cast<uint8_t>((randomTime.tm_year & 0xFF00) >> CONSTANT_EIGHT);
+    auto ret = getrandom(random.uuid_.data(), random.uuid_.size(), 0);
+    if (ret < 0) {
+        NETMANAGER_BASE_LOGE("get random failed");
+    }
     return random;
 }
 
 std::string UUID::ToString() const
 {
-    std::string tmp = "";
-    std::string ret = "";
-    static const char *hex = "0123456789ABCDEF";
+    std::string ret;
+    ret.reserve(UUID_STRING_LENGTH);
 
-    for (auto it = this->uuid_.begin(); it != this->uuid_.end(); it++) {
-        tmp.push_back(hex[(((*it) >> CONSTANT_FOUR) & 0xF)]);
-        tmp.push_back(hex[(*it) & 0xF]);
+    static const char hex[] = "0123456789abcdef";
+
+    for (std::size_t i = 0; i < UUID128_BYTES_LEN; ++i) {
+        if (i == UUID_DASH_POS_1 || i == UUID_DASH_POS_2 ||
+            i == UUID_DASH_POS_3 || i == UUID_DASH_POS_4) {
+            ret.push_back('-');
+        }
+        ret.push_back(hex[uuid_[i] >> HALF_BYTE_SHIFT]);
+        ret.push_back(hex[uuid_[i] & 0xF]);
     }
-    ret = tmp.substr(CONSTANT_ZERO, CONSTANT_EIGHT) + "-" +
-            tmp.substr(CONSTANT_EIGHT, CONSTANT_FOUR) + "-" +
-            tmp.substr(CONSTANT_TWELVE, CONSTANT_FOUR) + "-" +
-            tmp.substr(CONSTANT_SIXTEEN, CONSTANT_FOUR) + "-" +
-            tmp.substr(CONSTANT_TWENTY);
 
     return ret;
 }
-}
-}
+} // namespace NetManagerStandard
+} // namespace OHOS

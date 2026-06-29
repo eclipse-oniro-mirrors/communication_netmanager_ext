@@ -53,16 +53,4 @@ void MDnsStartSearchingContext::ParseParams(napi_value *params, size_t paramsCou
     SetParseOK(true);
 }
 
-bool MDnsStartSearchingContext::CheckParamsType(napi_value *params, size_t paramsCount)
-{
-    if (paramsCount == PARAM_JUST_OPTIONS) {
-        return NapiUtils::GetValueType(GetEnv(), params[0]) == napi_function;
-    }
-
-    if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
-        return NapiUtils::GetValueType(GetEnv(), params[0]) == napi_object &&
-               NapiUtils::GetValueType(GetEnv(), params[1]) == napi_function;
-    }
-    return false;
-}
 } // namespace OHOS::NetManagerStandard

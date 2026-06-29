@@ -72,7 +72,7 @@ export default class VpnDialogAbility extends extension {
 
   onConnect(want: Want): rpc.RemoteObject {
     console.log('onConnect is triggered');
-  
+
     globalThis.extensionContext = this.context;
     const stub = new VpnDialogStub('VpnRightDialog');
     if (want?.parameters) {
@@ -156,6 +156,7 @@ export default class VpnDialogAbility extends extension {
       dis = display.getDefaultDisplaySync();
     } catch (err) {
       console.error('getDefaultDisplaySync failed!');
+      return;
     }
     let navigationBarRect: NavigationBarRect = {
       left: 0,
