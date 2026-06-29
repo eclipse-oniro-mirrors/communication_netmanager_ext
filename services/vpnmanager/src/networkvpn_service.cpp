@@ -1202,7 +1202,7 @@ std::shared_ptr<NetVpnImpl> NetworkVpnService::CreateSysVpnCtl(
             }
             return nullptr;
         default:
-            NETMGR_EXT_LOG_E("vpn type is invalid, %{public}d", vpnBean->vpnType_);
+            NETMGR_EXT_LOG_E("vpn type is invalid, %{public}d", type);
             return nullptr;
     }
 }

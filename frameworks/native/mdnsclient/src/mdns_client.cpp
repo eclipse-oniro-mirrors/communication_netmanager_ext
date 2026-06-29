@@ -38,9 +38,8 @@ std::condition_variable g_cv;
 void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
     NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
-    g_loadMutex.lock();
+    std::lock_guard<std::mutex> lock(g_loadMutex);
     remoteObject_ = remoteObject;
-    g_loadMutex.unlock();
     g_cv.notify_one();
 }
 
