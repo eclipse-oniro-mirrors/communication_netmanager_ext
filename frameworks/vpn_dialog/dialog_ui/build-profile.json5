@@ -31,18 +31,6 @@
   },
   "modules": [
     {
-      "name": "entry",
-      "srcPath": "./entry",
-      "targets": [
-        {
-          "name": "default",
-          "applyToProducts": [
-            "default"
-          ]
-        }
-      ]
-    },
-    {
       "name": "vpn_dialog",
       "srcPath": "./vpn_dialog",
       "targets": [
