@@ -16,6 +16,7 @@
 #ifndef NETWORK_VPN_SERVICE_H
 #define NETWORK_VPN_SERVICE_H
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include "event_handler.h"
@@ -445,7 +446,7 @@ private:
     std::mutex vpnNameMutex_;
     std::mutex cesMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    bool registeredCommonEvent_ = false;
+    std::atomic<bool> registeredCommonEvent_ = false;
     int32_t hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
     ffrt::shared_mutex vpnPidMapMutex_;
