@@ -56,6 +56,10 @@ constexpr size_t MAX_FUZZY_DOMAIN_NAME_LEN = 63;
 constexpr int32_t RECORD_MAX_SAVE_TIME = 8 * 24 * 60 * 60;
 // Intercept log aging: Save maximum number of entries
 constexpr int32_t RECORD_MAX_DATA_NUM = 1000;
+// Maximum number of interface for all users
+constexpr int32_t MAX_RULE_INTERFACE_COUNT = 10;
+// Maximum length of interface
+constexpr int32_t MAX_INTERFACE_NAME_LEN = 16;
 
 constexpr uint8_t IPV4_MASK_MAX = 32;
 constexpr uint8_t IPV6_MASK_MAX = 128;

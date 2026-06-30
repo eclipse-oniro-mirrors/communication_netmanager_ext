@@ -115,6 +115,15 @@ void NetFirewallRuleParse::ParseDomainList(napi_env env, napi_value params, std:
     }
 }
 
+void NetFirewallRuleParse::ParseInterface(napi_env env, napi_value params, std::string &interfaceName)
+{
+    if (NapiUtils::GetValueType(env, params) != napi_string) {
+        NETMANAGER_EXT_LOGE("ParseInterface: interface is not a string");
+        return;
+    }
+    interfaceName = NapiUtils::GetStringFromValueUtf8(env, params);
+}
+
 void NetFirewallRuleParse::ParseRuleParams(napi_env env, napi_value object, const sptr<NetFirewallRule> &rule)
 {
     rule->ruleId = NapiUtils::GetInt32Property(env, object, NET_FIREWALL_RULE_ID);
@@ -133,6 +142,10 @@ void NetFirewallRuleParse::ParseRuleParams(napi_env env, napi_value object, cons
         rule->protocol = static_cast<NetworkProtocol>(NapiUtils::GetInt32Property(env, object, NET_FIREWALL_PROTOCOL));
         ParsePortList(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_LOCAL_PORT), rule->localPorts);
         ParsePortList(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_REMOTE_PORT), rule->remotePorts);
+        if (NapiUtils::HasNamedProperty(env, object, NET_FIREWALL_INTERFACE)) {
+            ParseInterface(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_INTERFACE), rule->interface);
+            NETMANAGER_EXT_LOGI("ParseRuleParams interface :%{public}s", rule->interface.c_str());
+        }
     } else if (rule->ruleType == NetFirewallRuleType::RULE_DOMAIN) {
         ParseDomainList(env, NapiUtils::GetNamedProperty(env, object, NET_FIREWALL_RULE_DOMAIN), rule->domains);
     } else {
@@ -194,6 +207,15 @@ void NetFirewallRuleParse::SetDomainList(napi_env env, napi_value object, const 
     NapiUtils::SetNamedProperty(env, object, propertyName, domenList);
 }
 
+void NetFirewallRuleParse::SetInterface(napi_env env, napi_value object, const std::string &propertyName,
+    const std::string &interfaceName)
+{
+    if (!interfaceName.empty()) {
+        NETMANAGER_EXT_LOGI("SetInterface interfaceName:%{public}s", interfaceName.c_str());
+        NapiUtils::SetStringPropertyUtf8(env, object, propertyName, interfaceName);
+    }
+}
+
 void NetFirewallRuleParse::SetRuleParams(napi_env env, napi_value object, const NetFirewallRule &rule)
 {
     NapiUtils::SetInt32Property(env, object, NET_FIREWALL_RULE_ID, rule.ruleId);
@@ -208,8 +230,13 @@ void NetFirewallRuleParse::SetRuleParams(napi_env env, napi_value object, const 
         SetIpList(env, object, NET_FIREWALL_LOCAL_IP, rule.localIps);
         SetIpList(env, object, NET_FIREWALL_REMOTE_IP, rule.remoteIps);
         NapiUtils::SetInt32Property(env, object, NET_FIREWALL_PROTOCOL, static_cast<int32_t>(rule.protocol));
+        NETMANAGER_EXT_LOGE("SetRuleParams protocol:%{public}d", static_cast<int32_t>(rule.protocol));
         SetPortList(env, object, NET_FIREWALL_LOCAL_PORT, rule.localPorts);
         SetPortList(env, object, NET_FIREWALL_REMOTE_PORT, rule.remotePorts);
+        if (!rule.interface.empty()) {
+            NETMANAGER_EXT_LOGI("SetRuleParams interfaces:%{public}s", rule.interface.c_str());
+            SetInterface(env, object, NET_FIREWALL_INTERFACE, rule.interface);
+        }
     } else if (rule.ruleType == NetFirewallRuleType::RULE_DOMAIN) {
         SetDomainList(env, object, NET_FIREWALL_RULE_DOMAIN, rule.domains);
     } else {

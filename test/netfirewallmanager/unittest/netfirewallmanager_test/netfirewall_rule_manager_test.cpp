@@ -157,5 +157,117 @@ HWTEST_F(NetFirewallRuleManagerTest, GetNetFirewallRules001, TestSize.Level1)
     ret = instance_->GetNetFirewallRules(userId, param, info);
     EXPECT_EQ(ret, FIREWALL_ERR_INTERNAL);
 }
+
+HWTEST_F(NetFirewallRuleManagerTest, AddNetFirewallRuleWithInterface001, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
+    rule->interfaces = "wlan0";
+    int32_t ruleId;
+    rule->isEnabled = false;
+    int32_t ret = instance_->AddNetFirewallRule(rule, ruleId);
+    EXPECT_NE(ruleId, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallRuleManagerTest, AddNetFirewallRuleWithInterface002, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
+    rule->interfaces = "lo";
+    int32_t ruleId;
+    rule->isEnabled = false;
+    int32_t ret = instance_->AddNetFirewallRule(rule, ruleId);
+    EXPECT_NE(ruleId, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallRuleManagerTest, AddNetFirewallRuleNoInterface001, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
+    int32_t ruleId;
+    rule->isEnabled = false;
+    int32_t ret = instance_->AddNetFirewallRule(rule, ruleId);
+    EXPECT_NE(ruleId, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallRuleManagerTest, UpdateNetFirewallRuleWithInterface001, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
+    rule->interfaces = "wlan0";
+    int32_t ruleId;
+    rule->isEnabled = false;
+    int32_t ret = instance_->AddNetFirewallRule(rule, ruleId);
+    EXPECT_NE(ruleId, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    rule->ruleId = ruleId;
+    rule->interfaces = "eth0";
+    ret = instance_->UpdateNetFirewallRule(rule);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    instance_->DeleteNetFirewallRule(rule->userId, ruleId);
+}
+
+HWTEST_F(NetFirewallRuleManagerTest, GetNetFirewallRuleWithInterface001, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
+    rule->interfaces = "wlan0";
+    int32_t ruleId;
+    rule->isEnabled = false;
+    int32_t ret = instance_->AddNetFirewallRule(rule, ruleId);
+    EXPECT_NE(ruleId, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    sptr<NetFirewallRule> getRule = nullptr;
+    ret = instance_->GetNetFirewallRule(rule->userId, ruleId, getRule);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    ASSERT_NE(getRule, nullptr);
+    EXPECT_EQ(getRule->interfaces, "wlan0");
+
+    instance_->DeleteNetFirewallRule(rule->userId, ruleId);
+}
+
+HWTEST_F(NetFirewallRuleManagerTest, GetNetFirewallRuleWithInterface002, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
+    int32_t ruleId;
+    rule->isEnabled = false;
+    int32_t ret = instance_->AddNetFirewallRule(rule, ruleId);
+    EXPECT_NE(ruleId, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    sptr<NetFirewallRule> getRule = nullptr;
+    ret = instance_->GetNetFirewallRule(rule->userId, ruleId, getRule);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    ASSERT_NE(getRule, nullptr);
+    EXPECT_TRUE(getRule->interfaces.empty());
+
+    instance_->DeleteNetFirewallRule(rule->userId, ruleId);
+}
+
+HWTEST_F(NetFirewallRuleManagerTest, GetEnabledNetFirewallRulesWithInterface001, TestSize.Level1)
+{
+    sptr<NetFirewallRule> rule = GetNetFirewallRuleSptr(NetFirewallRuleType::RULE_IP);
+    rule->interfaces = "eth0";
+    int32_t ruleId;
+    int32_t ret = instance_->AddNetFirewallRule(rule, ruleId);
+    EXPECT_NE(ruleId, 0);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    std::vector<NetFirewallRule> enabledRules;
+    ret = instance_->GetEnabledNetFirewallRules(enabledRules);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    bool found = false;
+    for (const auto &enabledRule : enabledRules) {
+        if (enabledRule.ruleId == ruleId) {
+            EXPECT_EQ(enabledRule.interfaces, "eth0");
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
+
+    instance_->DeleteNetFirewallRule(rule->userId, ruleId);
+}
 }
 }

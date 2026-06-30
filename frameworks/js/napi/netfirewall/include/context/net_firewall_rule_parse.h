@@ -41,6 +41,9 @@ private:
 
     static void ParseDomainList(napi_env env, napi_value params, std::vector<NetFirewallDomainParam> &list);
 
+    // Parse interface name
+    static void ParseInterface(napi_env env, napi_value params, std::string &interfaceName);
+
     static void SetIpList(napi_env env, napi_value object, const std::string &propertyName,
         const std::vector<NetFirewallIpParam> &list);
 
@@ -50,6 +53,10 @@ private:
     // Set domain name list
     static void SetDomainList(napi_env env, napi_value object, const std::string &propertyName,
         const std::vector<NetFirewallDomainParam> &list);
+
+    // Set interface name
+    static void SetInterface(napi_env env, napi_value object, const std::string &propertyName,
+        const std::string &interfaceName);
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

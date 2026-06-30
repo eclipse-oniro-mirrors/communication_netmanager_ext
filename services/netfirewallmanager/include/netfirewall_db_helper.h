@@ -52,6 +52,7 @@ struct NetFirewallRuleInfo {
     int32_t remotePortsIndex;
     int32_t domainsIndex;
     int32_t userIdIndex;
+    int32_t interfaceIndex;
 };
 
 // Intercept the structure of records in the database
@@ -66,6 +67,7 @@ struct NetInterceptRecordInfo {
     int32_t protocolIndex;
     int32_t appUidIndex;
     int32_t domainIndex;
+    int32_t interfaceIndex;
 };
 
 // save to database @see NetFirewallIpParam

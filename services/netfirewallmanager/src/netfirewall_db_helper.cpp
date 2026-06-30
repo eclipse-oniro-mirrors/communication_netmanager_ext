@@ -171,6 +171,8 @@ int32_t NetFirewallDbHelper::FillValuesOfFirewallRule(ValuesBucket &values, cons
             FirewallPortToDbPort(rule.remotePorts, dbPorts);
             ListToBlob(dbPorts, blob);
             values.PutBlob(NET_FIREWALL_REMOTE_PORT, blob);
+            values.PutString(NET_FIREWALL_INTERFACE, rule.interface);
+
             break;
         }
         case NetFirewallRuleType::RULE_DNS: {
@@ -278,6 +280,10 @@ void NetFirewallDbHelper::GetParamRuleInfoFormResultSet(std::string &columnName,
         table.remotePortsIndex = index;
         return;
     }
+    if (columnName == NET_FIREWALL_INTERFACE) {
+        table.interfaceIndex = index;
+        return;
+    }
     if (columnName == NET_FIREWALL_RULE_DOMAIN) {
         table.domainsIndex = index;
         return;
@@ -299,46 +305,31 @@ int32_t NetFirewallDbHelper::GetResultSetTableInfo(const std::shared_ptr<OHOS::N
         NETMGR_EXT_LOG_E("get table info failed");
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
+    static const std::pair<const std::string, int32_t NetFirewallRuleInfo::*> COLUMN_MAP[] = {
+        {RULE_ID, &NetFirewallRuleInfo::ruleIdIndex},
+        {NET_FIREWALL_USER_ID, &NetFirewallRuleInfo::userIdIndex},
+        {NET_FIREWALL_RULE_NAME, &NetFirewallRuleInfo::ruleNameIndex},
+        {NET_FIREWALL_RULE_DESC, &NetFirewallRuleInfo::ruleDescriptionIndex},
+        {NET_FIREWALL_RULE_DIR, &NetFirewallRuleInfo::ruleDirectionIndex},
+        {NET_FIREWALL_RULE_ACTION, &NetFirewallRuleInfo::ruleActionIndex},
+        {NET_FIREWALL_RULE_TYPE, &NetFirewallRuleInfo::ruleTypeIndex},
+        {NET_FIREWALL_IS_ENABLED, &NetFirewallRuleInfo::isEnabledIndex},
+        {NET_FIREWALL_APP_ID, &NetFirewallRuleInfo::appUidIndex},
+        {NET_FIREWALL_INTERFACE, &NetFirewallRuleInfo::interfaceIndex},
+    };
     int32_t columnNamesCount = static_cast<int32_t>(columnNames.size());
     for (int32_t i = 0; i < columnNamesCount; i++) {
-        std::string &columnName = columnNames.at(i);
-        if (columnName == RULE_ID) {
-            table.ruleIdIndex = i;
-            continue;
+        bool matched = false;
+        for (const auto &entry : COLUMN_MAP) {
+            if (columnNames[i] == entry.first) {
+                table.*(entry.second) = i;
+                matched = true;
+                break;
+            }
         }
-        if (columnName == NET_FIREWALL_USER_ID) {
-            table.userIdIndex = i;
-            continue;
+        if (!matched) {
+            GetParamRuleInfoFormResultSet(columnNames[i], i, table);
         }
-        if (columnName == NET_FIREWALL_RULE_NAME) {
-            table.ruleNameIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RULE_DESC) {
-            table.ruleDescriptionIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RULE_DIR) {
-            table.ruleDirectionIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RULE_ACTION) {
-            table.ruleActionIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RULE_TYPE) {
-            table.ruleTypeIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_IS_ENABLED) {
-            table.isEnabledIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_APP_ID) {
-            table.appUidIndex = i;
-            continue;
-        }
-        GetParamRuleInfoFormResultSet(columnName, i, table);
     }
     return FIREWALL_OK;
 }
@@ -346,48 +337,31 @@ int32_t NetFirewallDbHelper::GetResultSetTableInfo(const std::shared_ptr<OHOS::N
 int32_t NetFirewallDbHelper::GetResultSetTableInfo(const std::shared_ptr<OHOS::NativeRdb::ResultSet> &resultSet,
     NetInterceptRecordInfo &table)
 {
-    int32_t rowCount = 0;
     std::vector<std::string> columnNames;
-    if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GetAllColumnNames(columnNames) != E_OK) {
+    if (resultSet->GetRowCount(table.rowCount) != E_OK || resultSet->GetAllColumnNames(columnNames) != E_OK) {
         NETMGR_EXT_LOG_E("get table info failed");
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
+    static const std::pair<const std::string, int32_t NetInterceptRecordInfo::*> COLUMN_MAP[] = {
+        {NET_FIREWALL_RECORD_TIME, &NetInterceptRecordInfo::timeIndex},
+        {NET_FIREWALL_RECORD_LOCAL_IP, &NetInterceptRecordInfo::localIpIndex},
+        {NET_FIREWALL_RECORD_REMOTE_IP, &NetInterceptRecordInfo::remoteIpIndex},
+        {NET_FIREWALL_RECORD_LOCAL_PORT, &NetInterceptRecordInfo::localPortIndex},
+        {NET_FIREWALL_RECORD_REMOTE_PORT, &NetInterceptRecordInfo::remotePortIndex},
+        {NET_FIREWALL_RECORD_PROTOCOL, &NetInterceptRecordInfo::protocolIndex},
+        {NET_FIREWALL_INTERFACE, &NetInterceptRecordInfo::interfaceIndex},
+        {NET_FIREWALL_RECORD_UID, &NetInterceptRecordInfo::appUidIndex},
+        {NET_FIREWALL_DOMAIN, &NetInterceptRecordInfo::domainIndex},
+    };
     int32_t columnNamesCount = static_cast<int32_t>(columnNames.size());
     for (int32_t i = 0; i < columnNamesCount; i++) {
-        std::string &columnName = columnNames.at(i);
-        if (columnName == NET_FIREWALL_RECORD_TIME) {
-            table.timeIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RECORD_LOCAL_IP) {
-            table.localIpIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RECORD_REMOTE_IP) {
-            table.remoteIpIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RECORD_LOCAL_PORT) {
-            table.localPortIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RECORD_REMOTE_PORT) {
-            table.remotePortIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RECORD_PROTOCOL) {
-            table.protocolIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_RECORD_UID) {
-            table.appUidIndex = i;
-            continue;
-        }
-        if (columnName == NET_FIREWALL_DOMAIN) {
-            table.domainIndex = i;
+        for (const auto &entry : COLUMN_MAP) {
+            if (columnNames[i] == entry.first) {
+                table.*(entry.second) = i;
+                break;
+            }
         }
     }
-    table.rowCount = rowCount;
     return FIREWALL_OK;
 }
 
@@ -444,6 +418,7 @@ void NetFirewallDbHelper::GetRuleListParamFromResultSet(const std::shared_ptr<OH
             resultSet->GetBlob(table.remotePortsIndex, value);
             BlobToList(value, dbPorts);
             DbPortToFirewallPort(dbPorts, info.remotePorts);
+            resultSet->GetString(table.interfaceIndex, info.interface);
             break;
         }
         case NetFirewallRuleType::RULE_DNS: {
@@ -536,8 +511,6 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     int32_t index = 0;
     resultSet->GetRowIndex(index);
     resultSet->IsEnded(endFlag);
-    NETMGR_EXT_LOG_I("row=%{public}d pos=%{public}d ret=%{public}zu end=%{public}s", table.rowCount, index,
-        rules.size(), (endFlag ? "yes" : "no"));
 
     resultSet->Close();
     return rules.size();
@@ -625,7 +598,6 @@ int32_t NetFirewallDbHelper::QueryFirewallRuleRecord(const NativeRdb::RdbPredica
         NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule empty");
         return FIREWALL_OK;
     }
-    NETMGR_EXT_LOG_I("QueryFirewallRuleRecord rule size: %{public}zu", size);
     return FIREWALL_OK;
 }
 
