@@ -159,6 +159,31 @@ HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest003, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
+HWTEST_F(IpsecVpnCtlTest, NotifyConnectStageTest004, TestSize.Level1)
+{
+    ASSERT_NE(ipsecControl_, nullptr);
+    std::string stage;
+    int32_t errorCode = NETMANAGER_EXT_SUCCESS;
+    int32_t ret = 0;
+
+    ipsecControl_->state_ = IpsecVpnStateCode::STATE_CONNECTED;
+    stage = "stageTest";
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    stage = IPSEC_CONNECT_TAG;
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+
+    stage = "{\"updateconfig\":{\"test\":\"192.168.1.1\"}}";
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+
+    stage = "updateconfig";
+    ret = ipsecControl_->NotifyConnectStage(stage, errorCode);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
 HWTEST_F(IpsecVpnCtlTest, GetSysVpnCertUriTest001, TestSize.Level1)
 {
     sptr<IpsecVpnConfig> config = new (std::nothrow) IpsecVpnConfig();

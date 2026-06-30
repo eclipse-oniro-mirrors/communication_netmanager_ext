@@ -211,6 +211,13 @@ int32_t IpsecVpnCtl::NotifyConnectStage(const std::string &stage, const int32_t 
                 }
             }
             break;
+        case IpsecVpnStateCode::STATE_CONNECTED:
+            if (stage.find(IPSEC_NODE_UPDATE_CONFIG) != std::string::npos) {
+                if (HandleUpdateConfig(stage) != NETMANAGER_EXT_SUCCESS) {
+                    return NETMANAGER_EXT_ERR_INTERNAL;
+                }
+            }
+            break;
         default:
             NETMGR_EXT_LOG_E("invalid state: %{public}d", state_);
             return NETMANAGER_EXT_ERR_INTERNAL;
