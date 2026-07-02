@@ -864,7 +864,7 @@ int64_t NetworkVpnService::GetCurTimestamp()
         std::chrono::system_clock::now().time_since_epoch()).count();
 }
  
-VpnTrace NetworkVpnService::CreateVpnTrace(std::string bundleName,
+VpnTrace NetworkVpnService::CreateVpnTrace(std::string &bundleName,
     uint8_t operatorType, int32_t errorCode, VpnConfig vpnConfig)
 {
     VpnTrace vpnTrace;
@@ -966,18 +966,6 @@ int32_t NetworkVpnService::Protect(bool isVpnExtCall)
     NETMGR_EXT_LOG_I("Protect vpn tunnel successfully.");
     return NETMANAGER_EXT_SUCCESS;
 }
-
-std::string NetworkVpnService::SerializeStringVector(const std::vector<std::string>& vec)
-{
-    std::stringstream ss;
-    ss << "\"";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        ss << vec[i];
-        if (i + 1 < vec.size()) ss << ",";
-    }
-    ss << "\"";
-    return ss.str();
-}
  
 std::string NetworkVpnService::SerializeAddresses(const std::vector<INetAddr>& vec)
 {
@@ -1018,10 +1006,10 @@ std::string NetworkVpnService::SerializeVpnConfig(const VpnConfig& config)
     ss << "\"isLegacy\":" << bool_str(config.isLegacy_) << ",";
     ss << "\"isMetered\":" << bool_str(config.isMetered_) << ",";
     ss << "\"isBlocking\":" << bool_str(config.isBlocking_) << ",";
-    ss << "\"dnsAddresses\":" << SerializeStringVector(config.dnsAddresses_) << ",";
-    ss << "\"searchDomains\":" << SerializeStringVector(config.searchDomains_) << ",";
-    ss << "\"acceptedApplications\":" << SerializeStringVector(config.acceptedApplications_) << ",";
-    ss << "\"refusedApplications\":" << SerializeStringVector(config.refusedApplications_);
+    ss << "\"dnsAddresses\":" << CommonUtils::SerializeStringVector(config.dnsAddresses_) << ",";
+    ss << "\"searchDomains\":" << CommonUtils::SerializeStringVector(config.searchDomains_) << ",";
+    ss << "\"acceptedApplications\":" << CommonUtils::SerializeStringVector(config.acceptedApplications_) << ",";
+    ss << "\"refusedApplications\":" << CommonUtils::SerializeStringVector(config.refusedApplications_);
     ss << "}";
     return ss.str();
 }
