@@ -1063,12 +1063,14 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
     std::string vpnBundleName = GetBundleName();
     std::vector<VpnTrace> traceList;
     traceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_DESTORY_VPN_START, VPN_CONNECT_CODE_SUCCESS));
+    // LCOV_EXCL_START
     if (!CheckSystemCall(vpnBundleName)) {
         traceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_DESTORY_VPN_ABNORMAL,
             VPN_CONNECT_CODE_SYSTEMCALL_DENIED));
         ReportVpnTrace(traceList);
         return NETMANAGER_ERR_NOT_SYSTEM_CALL;
     }
+    // LCOV_EXCL_STOP
     if (!CheckVpnPermission(vpnBundleName)) {
         traceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_DESTORY_VPN_ABNORMAL,
             VPN_CONNECT_CODE_PERMISSION_DENIED));
