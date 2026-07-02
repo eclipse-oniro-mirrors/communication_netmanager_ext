@@ -1133,7 +1133,7 @@ int32_t NetworkVpnService::DestroyVpnExt()
     // remove vpn config
     remove(VPN_CONFIG_FILE);
 
-    NETMGR_EXT_LOG_I("cxy Destroy vpn successfully.");
+    NETMGR_EXT_LOG_I("Destroy vpn successfully.");
     currSetUpVpnPid_ = 0;
     return NETMANAGER_EXT_SUCCESS;
 }
@@ -1192,7 +1192,6 @@ int32_t NetworkVpnService::DestroyVpn(const std::string &vpnId)
         ReportVpnTrace(traceList);
         return ret;
     }
-    NETMGR_EXT_LOG_I("DestroyVpn vpnId = %{public}s", vpnId.c_str());
     NETMGR_EXT_LOG_I("DestroyVpn vpnId = %{public}s", vpnId.c_str());
     ret = DestroyVpnIdExt(vpnId);
     if (NETMANAGER_EXT_SUCCESS != ret) {
