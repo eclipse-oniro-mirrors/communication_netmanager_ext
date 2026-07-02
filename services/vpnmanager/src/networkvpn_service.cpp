@@ -2375,7 +2375,8 @@ void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::
 }
 // LCOV_EXCL_STOP
 
-bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc)
+bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc,
+    AppExecFwk::ProcessType processType, AppExecFwk::ExtensionAbilityType extensionType)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
     auto it = setVpnPidMap_.find(uid);
