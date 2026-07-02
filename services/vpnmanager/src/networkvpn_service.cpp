@@ -907,7 +907,7 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isV
     if (!config.vpnId_.empty() &&
         InitMultiVpnInfo(config.vpnId_, vpnType, vpnBundleName, userId, vpnObj) != NETMANAGER_EXT_SUCCESS) {
         vpnTraceList.push_back(
-        CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_ABNORMAL, VPN_CONNECT_CODE_INIT_MULTI_ERROR, config));
+            CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_ABNORMAL, VPN_CONNECT_CODE_INIT_MULTI_ERROR, config));
         ReportVpnTrace(vpnTraceList);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
