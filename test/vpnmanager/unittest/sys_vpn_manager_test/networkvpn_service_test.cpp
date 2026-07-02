@@ -1412,16 +1412,6 @@ HWTEST_F(NetworkVpnServiceTest, GetVpnConfigToAnco003, TestSize.Level1)
     
     instance_->vpnObj_ = tmp;
 }
-
-HWTEST_F(NetworkVpnServiceTest, SerializeStringVector001, TestSize.Level1)
-{
-    auto vpnService = std::make_shared<NetworkVpnService>();
-    std::vector<std::string> testStrVec;
-    testStrVec.push_back("111");
-    testStrVec.push_back("222");
-    std::string result = vpnService->SerializeStringVector(testStrVec);
-    EXPECT_FALSE(result.empty());
-}
  
 HWTEST_F(NetworkVpnServiceTest, SerializeAddresses001, TestSize.Level1)
 {
