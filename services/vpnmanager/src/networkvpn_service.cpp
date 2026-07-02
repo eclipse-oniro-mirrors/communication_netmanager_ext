@@ -2375,7 +2375,8 @@ void NetworkVpnService::VpnHapObserver::OnProcessStateChanged(const AppExecFwk::
 }
 // LCOV_EXCL_STOP
 
-bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc)
+bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc,
+    AppExecFwk::ProcessType processType, AppExecFwk::ExtensionAbilityType extensionType)
 {
     std::shared_lock<ffrt::shared_mutex> lock(vpnPidMapMutex_);
     auto it = setVpnPidMap_.find(uid);
@@ -2385,6 +2386,19 @@ bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainPr
     }
     // LCOV_EXCL_START
     if (pid == currSetUpVpnPid_) {
+        return true;
+    }
+    if (uid == hasOpenedVpnUid_ && hasOpenedVpnUid_ != 0) {
+        if (extensionType == AppExecFwk::ExtensionAbilityType::VPN) {
+            NETMGR_EXT_LOG_I("IsCurrentVpnPid skip vpn extension process, pid: %{public}d", pid);
+            return false;
+        }
+        if (processType != AppExecFwk::ProcessType::NORMAL) {
+            NETMGR_EXT_LOG_I("IsCurrentVpnPid skip non-main process, pid: %{public}d, processType: %{public}d",
+                pid, static_cast<int32_t>(processType));
+            return false;
+        }
+        isMainProc = true;
         return true;
     }
     // LCOV_EXCL_STOP
@@ -2426,9 +2440,12 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     } else {
         extensionAbilityName = vpnService_.GetCurrentVpnAbilityName();
     }
-    NETMGR_EXT_LOG_I("vpn OnProcessDied %{public}d, %{public}d", processData.uid, processData.pid);
+    NETMGR_EXT_LOG_I("vpn OnProcessDied %{public}d, %{public}d, processType: %{public}d, extType: %{public}d",
+        processData.uid, processData.pid, static_cast<int32_t>(processData.processType),
+        static_cast<int32_t>(processData.extensionType));
     bool isMainProc = false;
-    bool isCurrentVpnPid = vpnService_.IsCurrentVpnPid(processData.uid, processData.pid, isMainProc);
+    bool isCurrentVpnPid = vpnService_.IsCurrentVpnPid(processData.uid, processData.pid, isMainProc,
+        processData.processType, processData.extensionType);
     if (!isCurrentVpnPid) {
         NETMGR_EXT_LOG_I("OnProcessDied not vpn uid and pid");
         return;

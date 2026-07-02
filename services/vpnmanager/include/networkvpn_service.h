@@ -339,7 +339,9 @@ private:
     std::set<std::string> GetCurrentVpnAbilityName();
     void ClearCurrentVpnUserInfo(int32_t uid, bool fromSetupVpn);
     void UnregVpnHpObserver(const sptr<NetworkVpnService::VpnHapObserver> &VpnHapObserver);
-    bool IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc);
+    bool IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainProc,
+        AppExecFwk::ProcessType processType = AppExecFwk::ProcessType::NORMAL,
+        AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED);
     bool CheckVpnPermission(const std::string &bundleName);
     void OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState);
 #ifdef SUPPORT_SYSVPN
