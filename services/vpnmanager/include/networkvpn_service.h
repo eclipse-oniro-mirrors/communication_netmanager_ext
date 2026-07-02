@@ -284,7 +284,7 @@ public:
         std::set<std::string> &&allowVpnStartWithoutCheckPermissions);
     int32_t StopVpnExtensionAbility(const std::string &bundleName, const std::string &abilityName);
     void ReportVpnTrace(std::vector<VpnTrace> &traceList);
-    VpnTrace CreateVpnTrace(std::string bundleName, uint8_t operatorType, int32_t errorCode, VpnConfig vpnConfig = {});
+    VpnTrace CreateVpnTrace(std::string &bundleName, uint8_t operatorType, int32_t errorCode, VpnConfig vpnConfig = {});
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -343,7 +343,6 @@ private:
     std::string SerializeVpnConfig(const VpnConfig& config);
     std::string SerializeRoutes(const std::vector<Route>& vec);
     std::string SerializeAddresses(const std::vector<INetAddr>& vec);
-    std::string SerializeStringVector(const std::vector<std::string>& vec);
     bool PublishVpnTraceEvent(const OHOS::AAFwk::Want &want);
 
 #ifdef SUPPORT_SYSVPN
