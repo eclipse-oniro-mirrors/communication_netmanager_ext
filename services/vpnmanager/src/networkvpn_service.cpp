@@ -1099,16 +1099,6 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
         }
     }
 
-    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    std::vector<int32_t> activeUserIds;
-    int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
-    // LCOV_EXCL_START
-    if (NETMANAGER_EXT_SUCCESS != ret) {
-        traceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_DESTORY_VPN_ABNORMAL,
-            VPN_CONNECT_CODE_ACCOUNT_ERROR));
-        ReportVpnTrace(traceList);
-        return ret;
-    }
     int32_t ret = DestroyVpnExt();
     if (NETMANAGER_EXT_SUCCESS != ret) {
         traceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_DESTORY_VPN_ABNORMAL,
