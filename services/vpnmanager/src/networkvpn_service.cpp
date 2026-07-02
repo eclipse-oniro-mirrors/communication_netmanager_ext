@@ -2698,6 +2698,7 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
         DestroyMultiVpnByUserId(userId, bundleName);
         vpnTraceList.push_back(CreateVpnTrace(bundleName, OPERATOR_DESTORY_VPN_SUCCESS,
             VPN_CONNECT_CODE_SUCCESS));
+        ReportVpnTrace(vpnTraceList);
         return;
     }
 #endif // SUPPORT_SYSVPN
@@ -2721,6 +2722,7 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
         vpnObj_ = nullptr;
         vpnTraceList.push_back(CreateVpnTrace(bundleName, OPERATOR_DESTORY_VPN_SUCCESS,
             VPN_CONNECT_CODE_SUCCESS));
+        ReportVpnTrace(vpnTraceList);
     }
 }
 // LCOV_EXCL_STOP
