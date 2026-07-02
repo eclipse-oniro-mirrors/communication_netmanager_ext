@@ -706,6 +706,51 @@ HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest001, TestSize.Level1)
     EXPECT_FALSE(instance_->IsCurrentVpnPid(uid, pid, isMainProc));
 }
 
+HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest002, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    constexpr int32_t testPid = 123456;
+    constexpr int32_t extPid = 9999;
+    bool isMainProc = false;
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = extPid;
+    instance_->hasOpenedVpnUid_ = testUid;
+    isMainProc = false;
+    EXPECT_FALSE(instance_->IsCurrentVpnPid(testUid, testPid, isMainProc,
+        AppExecFwk::ProcessType::EXTENSION, AppExecFwk::ExtensionAbilityType::VPN));
+    EXPECT_FALSE(isMainProc);
+}
+
+HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest003, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    constexpr int32_t testPid = 123456;
+    constexpr int32_t extPid = 9999;
+    bool isMainProc = false;
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = extPid;
+    instance_->hasOpenedVpnUid_ = testUid;
+    isMainProc = false;
+    EXPECT_FALSE(instance_->IsCurrentVpnPid(testUid, testPid, isMainProc,
+        AppExecFwk::ProcessType::RENDER, AppExecFwk::ExtensionAbilityType::UNSPECIFIED));
+    EXPECT_FALSE(isMainProc);
+}
+
+HWTEST_F(NetworkVpnServiceTest, IsCurrentVpnPidTest004, TestSize.Level1)
+{
+    constexpr int32_t testUid = 200;
+    constexpr int32_t testPid = 123456;
+    constexpr int32_t extPid = 9999;
+    bool isMainProc = false;
+    instance_->setVpnPidMap_.clear();
+    instance_->currSetUpVpnPid_ = extPid;
+    instance_->hasOpenedVpnUid_ = testUid;
+    isMainProc = false;
+    EXPECT_TRUE(instance_->IsCurrentVpnPid(testUid, testPid, isMainProc,
+        AppExecFwk::ProcessType::NORMAL, AppExecFwk::ExtensionAbilityType::UNSPECIFIED));
+    EXPECT_TRUE(isMainProc);
+}
+
 HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
 {
     OHOS::AAFwk::Want want;
