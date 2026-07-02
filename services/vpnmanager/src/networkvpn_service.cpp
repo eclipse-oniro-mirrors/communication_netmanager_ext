@@ -2685,12 +2685,12 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
         return;
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
-#ifdef SUPPORT_SYSVPN
-    int32_t userId = -1;
     std::string bundleName = GetBundleName();
     std::vector<VpnTrace> vpnTraceList;
     vpnTraceList.push_back(CreateVpnTrace(bundleName, OPERATOR_REMOTE_DIE_DESTORY_VPN_START,
         VPN_CONNECT_CODE_SUCCESS));
+#ifdef SUPPORT_SYSVPN
+    int32_t userId = -1;
     if (RemoteUnregisterMultiVpnEvent(callback, userId, bundleName) == 0) {
         NETMGR_EXT_LOG_I("RemoteUnregisterMultiVpnEvent userId:%{public}d bundleName:%{public}s.",
             userId, bundleName.c_str());
