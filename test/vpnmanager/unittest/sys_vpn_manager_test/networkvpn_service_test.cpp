@@ -1413,5 +1413,34 @@ HWTEST_F(NetworkVpnServiceTest, GetVpnConfigToAnco003, TestSize.Level1)
     instance_->vpnObj_ = tmp;
 }
 
+HWTEST_F(NetworkVpnServiceTest, SerializeAddresses001, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::vector<INetAddr> testVec;
+    INetAddr ipv4Addr;
+    ipv4Addr.type_ = INetAddr::IPV4;
+    ipv4Addr.family_ = 0x01;
+    ipv4Addr.prefixlen_ = 0x01;
+    ipv4Addr.address_ = "172.17.5.234";
+    ipv4Addr.netMask_ = "255.255.254.0";
+    ipv4Addr.hostName_ = "netAddr";
+    testVec.push_back(ipv4Addr);
+    testVec.push_back(ipv4Addr);
+    std::string result = vpnService->SerializeAddresses(testVec);
+    EXPECT_FALSE(result.empty());
+}
+ 
+HWTEST_F(NetworkVpnServiceTest, SerializeRoutes001, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::vector<Route> testVec;
+    Route testRoute;
+    testRoute.destination_.type_ = INetAddr::IPV4;
+    testRoute.destination_.address_ = "192.168.2.0";
+    testVec.push_back(testRoute);
+    testVec.push_back(testRoute);
+    std::string result = vpnService->SerializeRoutes(testVec);
+    EXPECT_FALSE(result.empty());
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

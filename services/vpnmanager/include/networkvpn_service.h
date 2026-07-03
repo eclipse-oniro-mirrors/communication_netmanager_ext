@@ -51,6 +51,36 @@ constexpr const char *KEY_ALWAYS_ON_VPN = "settings.netmanager.always_on_vpn";
 
 } // namespace
 using namespace OHOS::EventFwk;
+
+struct VpnTrace {
+    std::string bundleName;
+    uint8_t operatorType;
+    int64_t timestamp;
+    int32_t errorCode;
+    VpnConfig vpnConfig;
+};
+ 
+enum {
+    VPN_CONNECT_CODE_SUCCESS,
+    VPN_CONNECT_CODE_SYSTEMCALL_DENIED,
+    VPN_CONNECT_CODE_PERMISSION_DENIED,
+    VPN_CONNECT_CODE_DESTORY_MULTI_ERROR,
+    VPN_CONNECT_CODE_NOT_SAME_ERROR,
+    VPN_CONNECT_CODE_ACCOUNT_ERROR,
+    VPN_CONNECT_CODE_INIT_MULTI_ERROR,
+};
+ 
+enum {
+    OPERATOR_SETUP_VPN_START = 1,
+    OPERATOR_SETUP_VPN_SUCCESS,
+    OPERATOR_SETUP_VPN_ABNORMAL,
+    OPERATOR_DESTORY_VPN_START,
+    OPERATOR_REMOTE_DIE_DESTORY_VPN_START,
+    OPERATOR_PROCESS_DIE_VPN_START,
+    OPERATOR_DESTORY_VPN_SUCCESS,
+    OPERATOR_DESTORY_VPN_ABNORMAL,
+};
+
 class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, protected NoCopyable,
     public std::enable_shared_from_this<NetworkVpnService> {
     DECLARE_DELAYED_SINGLETON(NetworkVpnService)
@@ -69,6 +99,7 @@ class NetworkVpnService : public SystemAbility, public NetworkVpnServiceStub, pr
         LOWPOWER_MODE,
         POWER_MODE_MAX = LOWPOWER_MODE
     };
+
     class VpnHapObserver;
     class VpnConnStateCb : public IVpnConnStateCb {
     public:
@@ -252,6 +283,8 @@ public:
     void NotifyAllowConnectVpnBundleNameChanged(std::set<std::string> &&allowConnectVpnBundleName,
         std::set<std::string> &&allowVpnStartWithoutCheckPermissions);
     int32_t StopVpnExtensionAbility(const std::string &bundleName, const std::string &abilityName);
+    void ReportVpnTrace(std::vector<VpnTrace> &traceList);
+    VpnTrace CreateVpnTrace(std::string &bundleName, uint8_t operatorType, int32_t errorCode, VpnConfig vpnConfig = {});
 
 protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
@@ -302,6 +335,15 @@ private:
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;
     void PublishVpnConnectionStateEvent(const VpnConnectState &state, int32_t vpnType = 0) const;
     bool IsNeedNotify(const VpnConnectState &state, const std::string &vpnId);
+    void SetUpVpnExt(std::string &vpnBundleName, std::shared_ptr<NetVpnImpl> &vpnObj, VpnConfig &config);
+    int32_t DestroyVpnExt();
+    int32_t DestroyVpnIdExt(std::string vpnId);
+    int64_t GetCurTimestamp();
+    std::string ConvertVpnTracesToJsonString(const std::vector<VpnTrace>& traces);
+    std::string SerializeVpnConfig(const VpnConfig& config);
+    std::string SerializeRoutes(const std::vector<Route>& vec);
+    std::string SerializeAddresses(const std::vector<INetAddr>& vec);
+    bool PublishVpnTraceEvent(const OHOS::AAFwk::Want &want);
 
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> CreateSysVpnCtl(const sptr<SysVpnConfig> &config, int32_t userId,
