@@ -1412,7 +1412,7 @@ HWTEST_F(NetworkVpnServiceTest, GetVpnConfigToAnco003, TestSize.Level1)
     
     instance_->vpnObj_ = tmp;
 }
- 
+
 HWTEST_F(NetworkVpnServiceTest, SerializeAddresses001, TestSize.Level1)
 {
     auto vpnService = std::make_shared<NetworkVpnService>();
