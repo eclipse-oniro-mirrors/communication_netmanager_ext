@@ -77,7 +77,7 @@ const bool REGISTER_LOCAL_RESULT_NETVPN =
 
 constexpr const int INVALID_CODE = -1;
 const std::vector<std::string> ACCESS_PERMISSION {"ohos.permission.GET_NETWORK_INFO"};
-const std::vector<std::int32_t> HIVIEW_UID = {1201};
+constexpr const int32_t HIVIEW_UID = 1201;
 constexpr const char *const PARAM_KEY_STATE = "state";
 constexpr const char *const PARAM_KEY_VPN_TYPE = "vpnType";
 constexpr const char *const COMMON_EVENT_VPN_CONNECT_STATUS_VALUE =
@@ -206,7 +206,7 @@ bool NetworkVpnService::PublishVpnTraceEvent(const OHOS::AAFwk::Want &want)
     OHOS::EventFwk::CommonEventData data;
     data.SetWant(want);
     OHOS::EventFwk::CommonEventPublishInfo publishInfo;
-    publishInfo.SetSubscriberUid(HIVIEW_UID);
+    publishInfo.SetSubscriberUid({HIVIEW_UID});
     return OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data, publishInfo);
 }
 
