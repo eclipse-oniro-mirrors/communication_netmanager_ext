@@ -30,5 +30,12 @@ group("ani_package") {
     "sharing:sharing_ani",
     "sharing:sharing",
     "sharing:sharing_etc",
+    "vpn:vpn_ani",
+    "vpn:vpn",
+    "vpn:vpn_etc",
+    "vpnextension:vpnextension_ani",
+    "vpnextension:vpnextension",
+    "vpnextension:vpnextension_etc",
+    "vpnextensionability:vpnextensionability_etc",
   ]
 }
