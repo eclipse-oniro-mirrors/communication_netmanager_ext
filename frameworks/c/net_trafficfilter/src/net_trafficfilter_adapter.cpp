@@ -250,7 +250,7 @@ static bool ValidateRangeMatch(const OH_TrafficFilter_IPRange& range)
             static_cast<int32_t>(range.start.family), static_cast<int32_t>(range.end.family));
         return false;
     }
-    if (!CompareIPBytes(range.end, range.start)) {
+    if (!CompareIPBytes(range.start, range.end)) {
         NETMGR_EXT_LOG_E("ValidateRangeMatch: range start > end");
         return false;
     }
