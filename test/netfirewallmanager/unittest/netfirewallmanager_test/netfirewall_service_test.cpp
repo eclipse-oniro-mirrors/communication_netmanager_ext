@@ -753,8 +753,63 @@ HWTEST_F(NetFirewallServiceTest, OnUpgrade001, TestSize.Level1)
     NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
     std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
         OHOS::NativeRdb::RdbHelper::GetRdbStore(config, NEW_VERSION, sqliteOpenHelperCallback, errCode);
-    int32_t ret = dbCallBack->OnUpgrade(*(store_), OLD_VERSION, NEW_VERSION);
+    int32_t ret = dbCallBack->OnUpgrade(*(store_), OLD_VERSION, OLD_VERSION);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: OnUpgrade002
+ * @tc.desc: Test NetFirewallServiceTest OnUpgrade when interface column does not exist and exist.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, OnUpgrade002, TestSize.Level1)
+{
+    auto dbCallBack = new (std::nothrow) NetFirewallDataBaseCallBack();
+    std::string testDatabaseName = FIREWALL_DB_PATH + "netfirewall_upgrade_test.db";
+    OHOS::NativeRdb::RdbHelper::DeleteRdbStore(testDatabaseName);
+    int32_t errCode = OHOS::NativeRdb::E_OK;
+    OHOS::NativeRdb::RdbStoreConfig config(testDatabaseName);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
+        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, OLD_VERSION, sqliteOpenHelperCallback, errCode);
+    ASSERT_NE(store_, nullptr);
+    EXPECT_EQ(errCode, OHOS::NativeRdb::E_OK);
+
+    std::string dropSql = "DROP TABLE IF EXISTS " + std::string(FIREWALL_TABLE_NAME);
+    int32_t ret = store_->ExecuteSql(dropSql);
+    EXPECT_EQ(ret, OHOS::NativeRdb::E_OK);
+
+    std::string createOldTableSql =
+        "CREATE TABLE IF NOT EXISTS [firewallRule]("
+        "[ruleId] INTEGER PRIMARY KEY, "
+        "[name] TEXT NOT NULL, "
+        "[description] TEXT, "
+        "[userId] INTEGER NOT NULL, "
+        "[direction] INTEGER NOT NULL, "
+        "[action] INTEGER NOT NULL, "
+        "[type] INTEGER NOT NULL, "
+        "[isEnabled] INTEGER NOT NULL, "
+        "[appUid] INTEGER, "
+        "[protocol] INTEGER, "
+        "[primaryDns] TEXT, "
+        "[standbyDns] TEXT, "
+        "[localIps] BLOB, "
+        "[remoteIps] BLOB, "
+        "[localPorts] BLOB, "
+        "[remotePorts] BLOB, "
+        "[domainNum] INTEGER, "
+        "[fuzzyDomainNum] INTEGER, "
+        "[domains] BLOB);";
+    ret = store_->ExecuteSql(createOldTableSql);
+    EXPECT_EQ(ret, OHOS::NativeRdb::E_OK);
+
+    ret = dbCallBack->OnUpgrade(*(store_), OLD_VERSION, NEW_VERSION);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    ret = dbCallBack->OnUpgrade(*(store_), OLD_VERSION, NEW_VERSION);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    OHOS::NativeRdb::RdbHelper::DeleteRdbStore(testDatabaseName);
 }
 
 /**
