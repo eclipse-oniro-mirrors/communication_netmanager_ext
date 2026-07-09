@@ -1573,6 +1573,10 @@ void NetworkShareTracker::HandleHotSpotStaJoin()
     NETMGR_EXT_LOG_I("Receive hotspot sta join");
     staConnected_ = true;
     NetworkShareTracker::GetInstance().HandleIdleApStopTimer();
+#ifdef SHARE_NOTIFICATION_ENABLE
+    NetworkShareNotification::GetInstance().PublishNetworkShareNotification(
+        NotificationId::HOTSPOT_STA_JOIN_NOTIFICATION_ID);
+#endif
 }
 
 void NetworkShareTracker::HandleHotSpotStaLeave()
