@@ -309,6 +309,26 @@ int32_t NetFirewallClient::QueryProcess(const std::string& srcIp, uint16_t srcPo
     return ret;
 }
 
+int32_t NetFirewallClient::AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("AddPacketRule proxy is nullptr");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return proxy->AddPacketRule(controllerId, rule);
+}
+
+int32_t NetFirewallClient::ClearPacketRule(const std::string& controllerId)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("ClearPacketRule proxy is nullptr");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return proxy->ClearPacketRule(controllerId);
+}
+
 int32_t NetFirewallClient::CreatePacketController(uint32_t groupId,
     uint32_t priority,
     const sptr<TrafficFilterConfig>& config,

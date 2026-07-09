@@ -47,6 +47,16 @@ public:
     static std::string GenerateChainName(int32_t uid, uint32_t groupId);
     static std::string GetHookPointName(TrafficFilterHookPoint hookPoint);
     static int32_t ExecuteIptablesCommand(const std::string& command, TrafficFilterIPFamily family);
+
+    static std::string BuildPacketFilterCommand(const TrafficFilterPacketRule& rule,
+        const std::string& chainName, int32_t queueNum);
+    static std::vector<std::string> BuildPacketFilterCommands(
+        const TrafficFilterPacketRule& rule, const std::string& chainName, int32_t queueNum);
+    static std::string BuildPacketFilterCommand(const TrafficFilterPacketRule& rule,
+        const TrafficFilterIPMatch& srcIp, const TrafficFilterIPMatch& dstIp,
+        const TrafficFilterPortMatch& srcPort, const TrafficFilterPortMatch& dstPort,
+        const std::string& chainName, const std::string& action);
+
 private:
     static void AppendMatchConditions(std::ostringstream& cmd, const TrafficFilterRedirectRule& rule);
     static bool AppendRedirectTarget(std::ostringstream& cmd, const TrafficFilterRedirectRule& rule);
@@ -57,6 +67,15 @@ private:
     static std::string FormatInterfaceMatch(const TrafficFilterInterfaceMatch& ifMatch, bool isIncoming);
     static std::string FormatIPAddress(const TrafficFilterIPAddress& ipAddr);
     static std::string FormatNatAddressWithPort(const TrafficFilterIPAddress& ipAddr, uint16_t port);
+    static std::string BuildPacketFilterCommand(const TrafficFilterPacketRule& rule,
+        const TrafficFilterPortMatch& srcPort, const TrafficFilterPortMatch& dstPort,
+        const std::string& chainName, int32_t queueNum);
+    static std::string FormatMacMatch(const TrafficFilterMACMatch& macMatch);
+    static std::string FormatTcpFlagsMatch(const TrafficFilterTCPFlagsMatch& tcpFlags);
+    static std::string FormatConntrackMatch(const TrafficFilterConntrackMatch& ctMatch);
+    static void AppendPacketMatchConditions(std::string& cmd, const TrafficFilterPacketRule& rule,
+        const TrafficFilterIPMatch& srcIp, const TrafficFilterIPMatch& dstIp,
+        const TrafficFilterPortMatch& srcPort, const TrafficFilterPortMatch& dstPort);
 };
 
 } // namespace NetManagerStandard

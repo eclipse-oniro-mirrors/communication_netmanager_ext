@@ -61,6 +61,9 @@ public:
 
     virtual int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
         const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) = 0;
+    virtual int32_t AddPacketRule(const std::string& controllerId,
+        const sptr<TrafficFilterPacketRule>& rule) = 0;
+    virtual int32_t ClearPacketRule(const std::string& controllerId) = 0;
 
     virtual int32_t CreatePacketController(uint32_t groupId, uint32_t priority,
         const sptr<TrafficFilterConfig>& config, std::string& packetControllerId, int32_t& fd) = 0;
@@ -86,6 +89,8 @@ public:
         GLOBAL_DISABLE_TRAFFIC_FILTER,
         GET_TRAFFIC_FILTER_GLOBAL_STATUS,
         QUERY_PROCESS,
+        ADD_PACKET_RULE,
+        CLEAR_PACKET_RULE,
         CREATE_PACKET_CONTROLLER,
         DESTROY_PACKET_CONTROLLER,
     };

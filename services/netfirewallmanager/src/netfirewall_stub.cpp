@@ -76,6 +76,10 @@ NetFirewallStub::NetFirewallStub()
         &NetFirewallStub::OnCreatePacketController};
     memberFuncMap_[static_cast<uint32_t>(DESTROY_PACKET_CONTROLLER)] = {PERMISSION_TRAFFIC_FILTER,
         &NetFirewallStub::OnDestroyPacketController};
+    memberFuncMap_[static_cast<uint32_t>(ADD_PACKET_RULE)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnAddPacketRule};
+    memberFuncMap_[static_cast<uint32_t>(CLEAR_PACKET_RULE)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnClearPacketRule};
 }
 
 int32_t NetFirewallStub::CheckFirewallPermission(std::string &strPermission)
@@ -538,6 +542,39 @@ int32_t NetFirewallStub::OnDestroyPacketController(MessageParcel &data, MessageP
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     return DestroyPacketController(packetControllerId);
+}
+
+int32_t NetFirewallStub::OnAddPacketRule(MessageParcel &data, MessageParcel &reply)
+{
+    std::string controllerId;
+    if (!data.ReadString(controllerId)) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (controllerId.empty()) {
+        NETMGR_EXT_LOG_E("ControllerId is empty");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    sptr<TrafficFilterPacketRule> rule = TrafficFilterPacketRule::Unmarshalling(data);
+    if (rule == nullptr) {
+        NETMGR_EXT_LOG_E("rule is nullptr.");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    int32_t ret = AddPacketRule(controllerId, rule);
+    return ret;
+}
+
+int32_t NetFirewallStub::OnClearPacketRule(MessageParcel &data, MessageParcel &reply)
+{
+    std::string controllerId;
+    if (!data.ReadString(controllerId)) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (controllerId.empty()) {
+        NETMGR_EXT_LOG_E("ControllerId is empty");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    int32_t ret = ClearPacketRule(controllerId);
+    return ret;
 }
 
 int32_t NetFirewallStub::OnGetTrafficFilterGlobalStatus(MessageParcel &data, MessageParcel &reply)

@@ -114,6 +114,15 @@ public:
     {
         return 0;
     }
+
+    int32_t AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule) override
+    {
+        return 0;
+    }
+    int32_t ClearPacketRule(const std::string& controllerId) override
+    {
+        return 0;
+    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

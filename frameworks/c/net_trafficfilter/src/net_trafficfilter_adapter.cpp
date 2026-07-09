@@ -14,6 +14,7 @@
  */
 
 #include <arpa/inet.h>
+#include <cctype>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -517,6 +518,268 @@ static bool ConvertCRedirectRuleToIPCRule(
     return true;
 }
 
+static bool ValidateMacAddress(const std::string& mac)
+{
+    if (mac.length() != MAC_ADDRESS_LENGTH) {
+        return false;
+    }
+    for (int i = 0; i < MAC_ADDRESS_LENGTH; i++) {
+        if (i % MAC_ADDRESS_GROUP_SIZE == MAC_ADDRESS_SEP_INDEX_OFFSET) {
+            if (mac[i] != ':') {
+                return false;
+            }
+        } else {
+            if (!std::isxdigit(static_cast<unsigned char>(mac[i]))) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+static bool ValidateIPAddress(const OH_TrafficFilter_IPAddress& addr)
+{
+    if (addr.family != OH_TRAFFICFILTER_IP_FAMILY_V4 &&
+        addr.family != OH_TRAFFICFILTER_IP_FAMILY_V6) {
+        NETMGR_EXT_LOG_E("Invalid packet rule family: %{public}d", addr.family);
+        return false;
+    }
+    if (addr.family == OH_TRAFFICFILTER_IP_FAMILY_V4) {
+        for (int i = IPV4_ADDR_LEN; i < OH_TRAFFICFILTER_IP_ADDRLEN; i++) {
+            if (addr.addr[i] != 0) {
+                NETMGR_EXT_LOG_E(
+                    "Invalid packet rule: IPv4 bytes 4-15 must be zero");
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static bool ValidatePacketRuleIPMatch(const OH_TrafficFilter_IPMatch& ipMatch)
+{
+    if (ipMatch.type < OH_TRAFFICFILTER_IP_MATCH_ANY || ipMatch.type > OH_TRAFFICFILTER_IP_MATCH_MULTI) {
+        NETMGR_EXT_LOG_E("Invalid packet type: %{public}d", ipMatch.type);
+        return false;
+    }
+    switch (ipMatch.type) {
+        case OH_TRAFFICFILTER_IP_MATCH_SINGLE:
+            return ValidateIPAddress(ipMatch.value.single);
+        case OH_TRAFFICFILTER_IP_MATCH_CIDR: {
+            uint8_t maxLen = (ipMatch.value.cidr.base.family == OH_TRAFFICFILTER_IP_FAMILY_V6)
+                ? IPV6_PREFIX_MAX : IPV4_PREFIX_MAX;
+            if (ipMatch.value.cidr.prefixLen > maxLen) {
+                NETMGR_EXT_LOG_E("Invalid packet rule %{public}s CIDR prefixLen: %{public}u (max: %{public}u)",
+                    fieldName, ipMatch.value.cidr.prefixLen, maxLen);
+                return false;
+            }
+            return ValidateIPAddress(ipMatch.value.cidr.base);
+        }
+        case OH_TRAFFICFILTER_IP_MATCH_RANGE:
+            if (ipMatch.value.range.start.family != ipMatch.value.range.end.family) {
+                NETMGR_EXT_LOG_E(
+                    "Invalid packet rule %{public}s range: family mismatch(start=%{public}d, end=%{public}d)",
+                    fieldName, ipMatch.value.range.start.family, ipMatch.value.range.end.family);
+                return false;
+            }
+            return ValidateIPAddress(ipMatch.value.range.start) && ValidateIPAddress(ipMatch.value.range.end);
+        case OH_TRAFFICFILTER_IP_MATCH_MULTI: {
+            if (ipMatch.value.multi.ipCount == 0 ||
+                ipMatch.value.multi.ipCount > OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT) {
+                NETMGR_EXT_LOG_E("Invalid packet rule %{public}s multi ipCount: %{public}u (valid: 1-%{public}u)",
+                    fieldName, ipMatch.value.multi.ipCount, OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT);
+                return false;
+            }
+            for (uint32_t i = 0; i < ipMatch.value.multi.ipCount; i++) {
+                if (!ValidateIPAddress(ipMatch.value.multi.ips[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        default:
+            return true;
+    }
+}
+
+static bool ValidatePacketRulePortMatch(const OH_TrafficFilter_PortMatch& portMatch)
+{
+    if (portMatch.type < OH_TRAFFICFILTER_PORT_MATCH_ANY || portMatch.type > OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
+        NETMGR_EXT_LOG_E("Invalid packet rule type: %{public}d", portMatch.type);
+        return false;
+    }
+    if (portMatch.type == OH_TRAFFICFILTER_PORT_MATCH_RANGE) {
+        if (portMatch.value.range.startPort > portMatch.value.range.endPort) {
+            return false;
+        }
+    }
+    if (portMatch.type == OH_TRAFFICFILTER_PORT_MATCH_MULTI) {
+        if (portMatch.value.multi.portCount == 0 ||
+            portMatch.value.multi.portCount > OH_TRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ValidatePacketRuleBasicFields(const OH_TrafficFilter_FilterRule* rule)
+{
+    if (rule->priority < OH_TRAFFICFILTER_MIN_PRIORITY || rule->priority > OH_TRAFFICFILTER_MAX_PRIORITY) {
+        NETMGR_EXT_LOG_E("Invalid packet rule priority: %{public}u (valid range: %{public}u-%{public}u)",
+            rule->priority, OH_TRAFFICFILTER_MIN_PRIORITY, OH_TRAFFICFILTER_MAX_PRIORITY);
+        return false;
+    }
+    if (rule->hookPoint < OH_TRAFFICFILTER_HOOK_INPUT || rule->hookPoint > OH_TRAFFICFILTER_HOOK_POSTROUTING) {
+        NETMGR_EXT_LOG_E("Invalid packet rule hookPoint: %{public}d", rule->hookPoint);
+        return false;
+    }
+    if (rule->protocol != OH_TRAFFICFILTER_PROTO_ANY && rule->protocol != OH_TRAFFICFILTER_PROTO_TCP &&
+        rule->protocol != OH_TRAFFICFILTER_PROTO_UDP) {
+        NETMGR_EXT_LOG_E("Invalid packet rule protocol: %{public}u (only 0,6,17 supported)", rule->protocol);
+        return false;
+    }
+    return true;
+}
+
+static bool ValidatePacketRuleInterfaces(const OH_TrafficFilter_FilterRule* rule)
+{
+    if ((rule->inInterface.enabled && rule->inInterface.ifName[0] == '\0') ||
+        (rule->outInterface.enabled && rule->outInterface.ifName[0] == '\0')) {
+        NETMGR_EXT_LOG_E("Invalid packet rule: interface enabled but ifName is empty");
+        return false;
+    }
+    return true;
+}
+
+static bool ValidatePacketRuleMacAndTcpFlags(const OH_TrafficFilter_FilterRule* rule)
+{
+    if (rule->macMatch.enable) {
+        std::string mac(rule->macMatch.srcMac, strnlen(rule->macMatch.srcMac, OH_TRAFFICFILTER_MAC_ADDRSTRLEN));
+        if (!ValidateMacAddress(mac)) {
+            return false;
+        }
+    }
+    if (rule->tcpFlagsMatch.enable && ((rule->tcpFlagsMatch.flagComp & ~rule->tcpFlagsMatch.flagMask) != 0 ||
+        (rule->tcpFlagsMatch.flagMask & OH_TRAFFICFILTER_TCP_FLAG_ALL) != rule->tcpFlagsMatch.flagMask)) {
+        return false;
+    }
+    return true;
+}
+
+static bool ValidatePacketRule(const OH_TrafficFilter_FilterRule* rule)
+{
+    if (rule == nullptr) {
+        return false;
+    }
+    if (!ValidatePacketRuleBasicFields(rule)) {
+        return false;
+    }
+    if (!ValidatePacketRuleIPMatch(rule->srcIp) || !ValidatePacketRuleIPMatch(rule->dstIp) ||
+        !ValidatePacketRulePortMatch(rule->srcPort) || !ValidatePacketRulePortMatch(rule->dstPort)) {
+        return false;
+    }
+    if (rule->uidStart > rule->uidEnd) {
+        NETMGR_EXT_LOG_E("Invalid packet rule UID range: start(%{public}u) > end(%{public}u)",
+            rule->uidStart, rule->uidEnd);
+        return false;
+    }
+    if (!ValidatePacketRuleInterfaces(rule) || !ValidatePacketRuleMacAndTcpFlags(rule)) {
+        return false;
+    }
+    return true;
+}
+
+static bool ConvertCMACMatchToIPC(const OH_TrafficFilter_MACMatch& cMatch, TrafficFilterMACMatch& ipcMatch)
+{
+    if (!cMatch.enable) {
+        ipcMatch.enable_ = false;
+        return true;
+    }
+    ipcMatch.enable_ = true;
+    ipcMatch.invert_ = cMatch.invert;
+    ipcMatch.srcMac_ = std::string(cMatch.srcMac, strnlen(cMatch.srcMac, OH_TRAFFICFILTER_MAC_ADDRSTRLEN));
+    return ValidateMacAddress(ipcMatch.srcMac_);
+}
+
+static bool ConvertCTcpFlagsMatchToIPC(const OH_TrafficFilter_TCPFlagsMatch& cMatch,
+    TrafficFilterTCPFlagsMatch& ipcMatch)
+{
+    if (!cMatch.enable) {
+        ipcMatch.enable_ = false;
+        return true;
+    }
+    ipcMatch.enable_ = true;
+    ipcMatch.flagMask_ = cMatch.flagMask;
+    ipcMatch.flagComp_ = cMatch.flagComp;
+    if ((ipcMatch.flagComp_ & ~ipcMatch.flagMask_) != 0) {
+        return false;
+    }
+    return true;
+}
+
+static bool ConvertCConntrackMatchToIPC(const OH_TrafficFilter_ConntrackMatch& cMatch,
+    TrafficFilterConntrackMatch& ipcMatch)
+{
+    if (!cMatch.enable) {
+        ipcMatch.enable_ = false;
+        return true;
+    }
+    ipcMatch.enable_ = true;
+    ipcMatch.stateMask_ = cMatch.stateMask;
+    return true;
+}
+
+static bool ConvertCPacketRuleToIPC(const OH_TrafficFilter_FilterRule* cRule, sptr<TrafficFilterPacketRule> ipcRule)
+{
+    if (cRule == nullptr) {
+        return false;
+    }
+
+    ipcRule->priority_ = cRule->priority;
+    ipcRule->hookPoint_ = static_cast<int32_t>(cRule->hookPoint);
+    ipcRule->protocol_ = cRule->protocol;
+
+    if (!ConvertCIPMatchToIPCMATCH(cRule->srcIp, ipcRule->srcIp_)) {
+        return false;
+    }
+
+    if (!ConvertCPortMatchToPortMatch(cRule->srcPort, ipcRule->srcPort_)) {
+        return false;
+    }
+
+    if (!ConvertCIPMatchToIPCMATCH(cRule->dstIp, ipcRule->dstIp_)) {
+        return false;
+    }
+
+    if (!ConvertCPortMatchToPortMatch(cRule->dstPort, ipcRule->dstPort_)) {
+        return false;
+    }
+
+    if (!ConvertCInterfaceMatchToInterfaceMatch(cRule->inInterface, ipcRule->inInterface_)) {
+        return false;
+    }
+
+    if (!ConvertCInterfaceMatchToInterfaceMatch(cRule->outInterface, ipcRule->outInterface_)) {
+        return false;
+    }
+
+    ipcRule->uidStart_ = cRule->uidStart;
+    ipcRule->uidEnd_ = cRule->uidEnd;
+
+    if (!ConvertCMACMatchToIPC(cRule->macMatch, ipcRule->macMatch_)) {
+        return false;
+    }
+
+    if (!ConvertCTcpFlagsMatchToIPC(cRule->tcpFlagsMatch, ipcRule->tcpFlagsMatch_)) {
+        return false;
+    }
+
+    if (!ConvertCConntrackMatchToIPC(cRule->conntrackMatch, ipcRule->conntrackMatch_)) {
+        return false;
+    }
+
+    return true;
+}
+
 RedirectorAdapterManager& RedirectorAdapterManager::GetInstance()
 {
     static RedirectorAdapterManager instance;
@@ -918,6 +1181,65 @@ void PacketControllerAdapterManager::RemovePacketController(OH_TrafficFilter_Pac
             delete controller;
         }
     }
+}
+
+int32_t PacketControllerAdapterManager::AddPacketRule(OH_TrafficFilter_PacketController* controller,
+    const OH_TrafficFilter_FilterRule* rule)
+{
+    if (controller == nullptr || rule == nullptr) {
+        NETMGR_EXT_LOG_E("AddPacketRule: controller or rule is NULL");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (rule->size < PACKET_RULE_MIN_SIZE) {
+        NETMGR_EXT_LOG_E("AddPacketRule: invalid rule size=%{public}u", rule->size);
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (!ValidatePacketRule(rule)) {
+        NETMGR_EXT_LOG_E("AddPacketRule: rule validation failed");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    PacketInfo packetInfo;
+    if (!GetPacketInfo(controller, packetInfo)) {
+        NETMGR_EXT_LOG_E("AddPacketRule: controller handle not found");
+        return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    sptr<TrafficFilterPacketRule> cppRule = new (std::nothrow) TrafficFilterPacketRule();
+    if (cppRule == nullptr) {
+        NETMGR_EXT_LOG_E("AddPacketRule: failed to create TrafficFilterPacketRule");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (!ConvertCPacketRuleToIPC(rule, cppRule)) {
+        NETMGR_EXT_LOG_E("AddPacketRule: failed to convert C struct to IPC struct");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    int32_t ret = NetFirewallClient::GetInstance().AddPacketRule(packetInfo.packetControllerId, cppRule);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("AddPacketRule: NetFirewallClient::AddPacketRule failed, ret=%{public}d", ret);
+        return static_cast<int32_t>(ret);
+    }
+    NETMGR_EXT_LOG_I("AddPacketRule: success");
+    return OH_TRAFFICFILTER_OK;
+}
+
+int32_t PacketControllerAdapterManager::ClearPacketRule(OH_TrafficFilter_PacketController* controller)
+{
+    if (controller == nullptr) {
+        NETMGR_EXT_LOG_E("ClearPacketRule: controller is NULL");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    PacketInfo packetInfo;
+    if (!GetPacketInfo(controller, packetInfo)) {
+        NETMGR_EXT_LOG_E("ClearPacketRule: controller handle not found");
+
+        return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    int32_t ret = NetFirewallClient::GetInstance().ClearPacketRule(packetInfo.packetControllerId);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("ClearPacketRule: NetFirewallClient::ClearPacketRule failed, ret=%{public}d", ret);
+        return static_cast<int32_t>(ret);
+    }
+    NETMGR_EXT_LOG_I("ClearPacketRule: success");
+    return OH_TRAFFICFILTER_OK;
 }
 }
 }

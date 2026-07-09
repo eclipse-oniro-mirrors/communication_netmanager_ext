@@ -40,6 +40,11 @@ constexpr uint32_t NFQUEUE_MAXLEN = 0xFFFF;
 constexpr uint8_t IPV4_ADDR_LEN = 4;
 constexpr uint8_t IPV4_PREFIX_MAX = 32;
 constexpr uint8_t IPV6_PREFIX_MAX = 128;
+constexpr uint32_t PACKET_RULE_MIN_SIZE = static_cast<uint32_t>(offsetof(
+    OH_TrafficFilter_FilterRule, conntrackMatch) + sizeof(OH_TrafficFilter_ConntrackMatch));
+constexpr uint32_t MAC_ADDRESS_LENGTH = 17;
+constexpr uint32_t MAC_ADDRESS_GROUP_SIZE = 3;
+constexpr uint32_t MAC_ADDRESS_SEP_INDEX_OFFSET = 2;
 
 class RedirectorAdapterManager {
 public:
@@ -76,6 +81,9 @@ public:
         const OH_TrafficFilter_Config* config, OH_TrafficFilter_PacketController** controller);
 
     int32_t DestroyPacketController(OH_TrafficFilter_PacketController* controller);
+    int32_t AddPacketRule(OH_TrafficFilter_PacketController* controller, const OH_TrafficFilter_FilterRule* rule);
+
+    int32_t ClearPacketRule(OH_TrafficFilter_PacketController* controller);
 
 private:
     PacketControllerAdapterManager() = default;

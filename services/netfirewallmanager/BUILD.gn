@@ -19,6 +19,7 @@ config("netfirewall_manager_config") {
     "$EXT_INNERKITS_ROOT/include",
     "$EXT_INNERKITS_ROOT/netfirewallclient/include",
     "$NETFIREWALLMANAGER_SOURCE_DIR/include",
+    "$NETFIREWALLMANAGER_SOURCE_DIR/include/manager",
     "$NETWORKSHAREMANAGER_UTILS_DIR/event_report/include",
   ]
 
@@ -51,6 +52,7 @@ netfirewall_manager_sources = [
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_redirect_manager.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_redirector_context.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_uid_rule_generator.cpp",
+  "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_packetrule_manager.cpp",
 ]
 
 netfirewall_manager_deps = [ "$NETMANAGER_EXT_ROOT/utils:net_event_report" ]

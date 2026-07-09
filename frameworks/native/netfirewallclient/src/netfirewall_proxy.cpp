@@ -668,5 +668,64 @@ int32_t NetFirewallProxy::DestroyPacketController(const std::string& packetContr
     }
     return ret;
 }
+
+int32_t NetFirewallProxy::AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule)
+{
+    if (rule == nullptr) {
+        NETMGR_EXT_LOG_E("rule is null");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    if (!data.WriteString(controllerId)) {
+        NETMGR_EXT_LOG_E("WriteString controllerId failed");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (!rule->Marshalling(data)) {
+        NETMGR_EXT_LOG_E("proxy Marshalling rule failed");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(ADD_PACKET_RULE), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    return FIREWALL_SUCCESS;
+}
+
+int32_t NetFirewallProxy::ClearPacketRule(const std::string& controllerId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    if (!data.WriteString(controllerId)) {
+        NETMGR_EXT_LOG_E("WriteString controllerId failed");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(CLEAR_PACKET_RULE), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+    }
+    return ret;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

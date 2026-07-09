@@ -83,6 +83,10 @@ private:
 
     int32_t CheckFirewallPermission(std::string &strPermission);
 
+    int32_t OnAddPacketRule(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnClearPacketRule(MessageParcel &data, MessageParcel &reply);
+
 private:
     std::map<uint32_t, ServicePermissionAndFunc> memberFuncMap_;
 };
