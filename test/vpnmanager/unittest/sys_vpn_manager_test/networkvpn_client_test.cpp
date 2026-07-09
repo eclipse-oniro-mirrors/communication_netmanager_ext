@@ -400,5 +400,14 @@ HWTEST_F(NetworkVpnClientTest, GetVpnConfigToAnco001, TestSize.Level1)
     auto ret = networkVpnClient_.GetVpnConfigToAnco(dnsAddresses);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
+
+HWTEST_F(NetworkVpnClientTest, GetVpnConfigToAnco002, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    networkVpnClient_.SetVpnSaState(false);
+    std::vector<std::string> dnsAddresses;
+    auto ret = networkVpnClient_.GetVpnConfigToAnco(dnsAddresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
