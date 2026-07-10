@@ -41,7 +41,7 @@ NetFirewallDataBase::NetFirewallDataBase()
     OHOS::NativeRdb::RdbStoreConfig config(firewallDatabaseName);
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
-    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
+    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_NEW_VERSION, sqliteOpenHelperCallback, errCode);
     if (errCode == OHOS::NativeRdb::E_SQLITE_CORRUPT) {
         if (!RestoreDatabaseWhenInit()) {
             NETMGR_EXT_LOG_E("Create and restore db error");
@@ -254,7 +254,7 @@ bool NetFirewallDataBase::RestoreDatabaseWhenInit()
     OHOS::NativeRdb::RdbStoreConfig config(firewallFile);
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
-    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_OPEN_VERSION, sqliteOpenHelperCallback, errCode);
+    store_ = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, DATABASE_NEW_VERSION, sqliteOpenHelperCallback, errCode);
     if (errCode != OHOS::NativeRdb::E_OK) {
         NETMGR_EXT_LOG_E("Restore GetRdbStore errCode :%{public}d", errCode);
         return false;
@@ -306,9 +306,40 @@ int32_t NetFirewallDataBaseCallBack::OnCreate(OHOS::NativeRdb::RdbStore &store)
 int32_t NetFirewallDataBaseCallBack::OnUpgrade(OHOS::NativeRdb::RdbStore &store, int32_t oldVersion, int32_t newVersion)
 {
     NETMGR_EXT_LOG_D("DB OnUpgrade Enter");
-    (void)store;
-    (void)oldVersion;
-    (void)newVersion;
+    if (newVersion != DATABASE_NEW_VERSION) {
+        return FIREWALL_OK;
+    }
+
+    const std::string columnName = "interface";
+    std::string checkSql = "PRAGMA table_info(" + std::string(FIREWALL_TABLE_NAME) + ")";
+    bool columnExists = false;
+    auto resultSet = store.QuerySql(checkSql);
+    if (resultSet != nullptr && resultSet->GoToFirstRow() == OHOS::NativeRdb::E_OK) {
+        do {
+            std::string name;
+            resultSet->GetString(1, name);
+            if (name == columnName) {
+                columnExists = true;
+                NETMGR_EXT_LOG_I("OnUpgrade column '%{public}s' already exists, skip add.", columnName.c_str());
+                break;
+            }
+        } while (resultSet->GoToNextRow() == OHOS::NativeRdb::E_OK);
+    }
+
+    if (resultSet) {
+        resultSet->Close();
+    }
+
+    if (!columnExists) {
+        std::string alterSql = "ALTER TABLE " + std::string(FIREWALL_TABLE_NAME) +
+            " ADD COLUMN " + columnName + " TEXT";
+        int32_t ret = store.ExecuteSql(alterSql);
+        if (ret != OHOS::NativeRdb::E_OK) {
+            NETMGR_EXT_LOG_E("OnUpgrade add interface column failed: %{public}d", ret);
+            return ret;
+        }
+        NETMGR_EXT_LOG_I("OnUpgrade add interface column success");
+    }
     return FIREWALL_OK;
 }
 
