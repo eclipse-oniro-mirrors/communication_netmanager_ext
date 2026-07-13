@@ -53,6 +53,37 @@ public:
         return;
     }
 };
+
+class SharingEventRecordCallback : public SharingEventCallbackStub {
+public:
+    SharingEventRecordCallback() = default;
+    ~SharingEventRecordCallback() override = default;
+
+    inline void OnSharingStateChanged(const bool &isRunning) override
+    {
+        stateChangedCount_++;
+        lastIsRunning_ = isRunning;
+    }
+    inline void OnInterfaceSharingStateChanged(const SharingIfaceType &type, const std::string &iface,
+                                               const SharingIfaceState &state) override
+    {
+        ifaceChangedCount_++;
+        lastType_ = type;
+        lastIface_ = iface;
+        lastIfaceState_ = state;
+    }
+    inline void OnSharingUpstreamChanged(const sptr<NetHandle> netHandle) override
+    {
+        return;
+    }
+
+    int32_t stateChangedCount_ = 0;
+    int32_t ifaceChangedCount_ = 0;
+    bool lastIsRunning_ = false;
+    SharingIfaceType lastType_ = SharingIfaceType::SHARING_NONE;
+    std::string lastIface_;
+    SharingIfaceState lastIfaceState_ = SharingIfaceState::SHARING_NIC_CAN_SERVER;
+};
 } // namespace
 
 class NetworkShareTrackerTest : public testing::Test {
@@ -385,6 +416,44 @@ HWTEST_F(NetworkShareTrackerTest, RegisterSharingEvent02, TestSize.Level1)
         });
     NetworkShareTracker::GetInstance().UnregisterSharingEvent(callback);
     EXPECT_EQ(NetworkShareTracker::GetInstance().sharingEventCallback_.size(), 0);
+}
+
+/**
+ * @tc.name: RegisterSharingEvent03
+ * @tc.desc: Test NetworkShareTracker RegisterSharingEvent notifies current state to the new callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareTrackerTest, RegisterSharingEvent03, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    networksharetracker.configuration_ = configuration;
+
+    auto subSM = std::make_shared<NetworkShareSubStateMachine>(WIFI_AP_DEFAULT_IFACE_NAME,
+                                                               SharingIfaceType::SHARING_WIFI, configuration);
+    auto wifiState = std::make_shared<NetworkShareTracker::NetSharingSubSmState>(subSM, false);
+    wifiState->lastState_ = SUB_SM_STATE_SHARED;
+    networksharetracker.subStateMachineMap_[WIFI_AP_DEFAULT_IFACE_NAME] = wifiState;
+
+    auto unknownSubSM = std::make_shared<NetworkShareSubStateMachine>(TEST_IFACE_NAME,
+                                                                      SharingIfaceType::SHARING_NONE,
+                                                                      configuration);
+    auto unknownState = std::make_shared<NetworkShareTracker::NetSharingSubSmState>(unknownSubSM, false);
+    networksharetracker.subStateMachineMap_[TEST_IFACE_NAME] = unknownState;
+    networksharetracker.subStateMachineMap_[USB_AP_DEFAULT_IFACE_NAME] = nullptr;
+
+    sptr<SharingEventRecordCallback> callback = new (std::nothrow) SharingEventRecordCallback();
+    int32_t ret = networksharetracker.RegisterSharingEvent(callback);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(callback->stateChangedCount_, 1);
+    EXPECT_FALSE(callback->lastIsRunning_);
+    EXPECT_EQ(callback->ifaceChangedCount_, 1);
+    EXPECT_EQ(callback->lastIface_, WIFI_AP_DEFAULT_IFACE_NAME);
+    EXPECT_EQ(callback->lastType_, SharingIfaceType::SHARING_WIFI);
+    EXPECT_EQ(callback->lastIfaceState_, SharingIfaceState::SHARING_NIC_SERVING);
+
+    networksharetracker.UnregisterSharingEvent(callback);
+    EXPECT_EQ(networksharetracker.sharingEventCallback_.size(), 0);
 }
 
 /**
