@@ -32,6 +32,8 @@ ohos_unittest("netfirewallmanager_test") {
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
     "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall/src/context/net_firewall_param_check.cpp",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/netfirewall/src/context/net_firewall_rule_parse.cpp",
+    "mock_napi.cpp",
     "netfirewall_client_test.cpp",
     "netfirewall_common_test.cpp",
     "netfirewall_default_rule_parser_test.cpp",
@@ -93,6 +95,8 @@ ohos_unittest("netfirewallmanager_test") {
   defines = [
     "NETMGR_LOG_TAG = \"NetFirewallManagerTest\"",
     "LOG_DOMAIN = 0xD0015B0",
+    "private = public",
+    "protected = public",
   ]
 
   if (enable_netmgr_ext_debug) {

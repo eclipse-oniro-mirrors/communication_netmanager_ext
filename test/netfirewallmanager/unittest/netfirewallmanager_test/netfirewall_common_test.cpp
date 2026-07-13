@@ -16,18 +16,14 @@
 #include <gtest/gtest.h>
 #include <arpa/inet.h>
 
+#include "napi_utils.h"
 #include "netfirewall_common.h"
+#include "net_manager_constants.h"
 #include <regex>
 
-namespace OHOS {
-namespace NetManagerStandard {
-// Forward declaration to test CheckInterfaceName
-class NetFirewallParamCheck {
-public:
-    static int32_t CheckInterfaceName(const std::string &interfaceName);
-};
-} // namespace NetManagerStandard
-} // namespace OHOS
+#include "net_firewall_rule_parse.h"
+#include "net_firewall_param_check.h"
+#include "mock_napi.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -835,6 +831,26 @@ HWTEST_F(TrafficFilterRedirectRuleTest, MarshallingAndUnmarshalling002, TestSize
     EXPECT_EQ(result->proxyPort_, 5353);
 }
 
+HWTEST_F(InterfaceNameValidationTest, CheckRuleStringParamInterface001, TestSize.Level0)
+{
+    SetMockHasStringProperties(false);
+    SetMockHasInterface(true);
+    napi_env env = nullptr;
+    napi_value object = nullptr;
+    int32_t ret = NetFirewallParamCheck::CheckRuleStringParam(env, object);
+    EXPECT_EQ(ret, FIREWALL_ERR_PARAMETER_ERROR);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckRuleStringParamInterface002, TestSize.Level0)
+{
+    SetMockHasStringProperties(false);
+    SetMockHasInterface(false);
+    napi_env env = nullptr;
+    napi_value object = nullptr;
+    int32_t ret = NetFirewallParamCheck::CheckRuleStringParam(env, object);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
 HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName001, TestSize.Level0)
 {
     std::regex pattern {"^[a-zA-Z][a-zA-Z0-9_-]{0,14}$"};
@@ -950,6 +966,79 @@ HWTEST_F(InterfaceNameValidationTest, CheckInterfaceName008, TestSize.Level0)
 
     ret = NetFirewallParamCheck::CheckInterfaceName("eth0.");
     EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterface001, TestSize.Level0)
+{
+    SetMockHasStringProperties(false);
+    SetMockHasInterface(true);
+    SetMockValueType(napi_undefined);
+    napi_env env = nullptr;
+    napi_value object = nullptr;
+    int32_t ret = NetFirewallParamCheck::CheckInterface(env, object);
+    EXPECT_EQ(ret, FIREWALL_ERR_PARAMETER_ERROR);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterface002, TestSize.Level0)
+{
+    SetMockHasStringProperties(false);
+    SetMockHasInterface(true);
+    SetMockValueType(napi_string);
+    SetMockStringResult("");
+    napi_env env = nullptr;
+    napi_value object = nullptr;
+    int32_t ret = NetFirewallParamCheck::CheckInterface(env, object);
+    EXPECT_EQ(ret, FIREWALL_ERR_PARAMETER_ERROR);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterface003, TestSize.Level0)
+{
+    SetMockHasStringProperties(false);
+    SetMockHasInterface(true);
+    SetMockValueType(napi_string);
+    SetMockStringResult("eth0");
+    napi_env env = nullptr;
+    napi_value object = nullptr;
+    int32_t ret = NetFirewallParamCheck::CheckInterface(env, object);
+    EXPECT_EQ(ret, FIREWALL_ERR_PARAMETER_ERROR);
+}
+
+HWTEST_F(InterfaceNameValidationTest, CheckInterface004, TestSize.Level0)
+{
+    SetMockHasStringProperties(false);
+    SetMockHasInterface(true);
+    SetMockValueType(napi_string);
+    SetMockStringResult("invalid!");
+    napi_env env = nullptr;
+    napi_value object = nullptr;
+    int32_t ret = NetFirewallParamCheck::CheckInterface(env, object);
+    EXPECT_EQ(ret, FIREWALL_ERR_PARAMETER_ERROR);
+}
+
+class NetFirewallRuleParseTest : public testing::Test {
+public:
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
+    void SetUp() {};
+    void TearDown() {};
+};
+
+HWTEST_F(NetFirewallRuleParseTest, ParseInterface001, TestSize.Level0)
+{
+    napi_env env = nullptr;
+    napi_value value = nullptr;
+    std::string interfaceName = "initial";
+    NetFirewallRuleParse::ParseInterface(env, value, interfaceName);
+    EXPECT_EQ(interfaceName, "initial");
+}
+
+HWTEST_F(NetFirewallRuleParseTest, ParseInterface002, TestSize.Level0)
+{
+    napi_env env = nullptr;
+    napi_value value = nullptr;
+    std::string interfaceName;
+    NetFirewallRuleParse::ParseInterface(env, value, interfaceName);
+    EXPECT_TRUE(interfaceName.empty());
 }
 }
 }

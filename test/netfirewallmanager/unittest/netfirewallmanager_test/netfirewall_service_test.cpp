@@ -1613,5 +1613,155 @@ HWTEST_F(NetFirewallServiceTest, GlobalToggleTrafficFilter001, TestSize.Level1)
         instance_->GlobalEnableTrafficFilter();
     }
 }
+/**
+ * @tc.name: GetParamRuleInfoFormResultSet
+ * @tc.desc: Test NetFirewallDbHelper GetParamRuleInfoFormResultSet interface branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetParamRuleInfoFormResultSetInterface001, TestSize.Level0)
+{
+    NetFirewallRuleInfo table;
+    table.interfaceIndex = -1;
+    std::string columnName = NET_FIREWALL_INTERFACE;
+    int32_t index = 5;
+    NetFirewallDbHelper::GetInstance().GetParamRuleInfoFormResultSet(columnName, index, table);
+    EXPECT_EQ(table.interfaceIndex, 5);
+}
+
+/**
+ * @tc.name: GetParamRuleInfoFormResultSet
+ * @tc.desc: Test NetFirewallDbHelper GetParamRuleInfoFormResultSet non-interface branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetParamRuleInfoFormResultSetNonInterface001, TestSize.Level0)
+{
+    NetFirewallRuleInfo table;
+    table.interfaceIndex = -1;
+    std::string columnName = "otherColumn";
+    int32_t index = 10;
+    NetFirewallDbHelper::GetInstance().GetParamRuleInfoFormResultSet(columnName, index, table);
+    EXPECT_EQ(table.interfaceIndex, -1);
+}
+/**
+ * @tc.name: GetResultSetTableInfo
+ * @tc.desc: Test GetResultSetTableInfo with NetFirewallRuleInfo success path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetResultSetTableInfoRuleInfo001, TestSize.Level1)
+{
+    auto dbCallBack = new (std::nothrow) NetFirewallDataBaseCallBack();
+    std::string firewallDatabaseName = FIREWALL_DB_PATH + FIREWALL_DB_NAME;
+    int32_t errCode = OHOS::NativeRdb::E_OK;
+    OHOS::NativeRdb::RdbStoreConfig config(firewallDatabaseName);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
+        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, OLD_VERSION, sqliteOpenHelperCallback, errCode);
+    ASSERT_NE(store_, nullptr);
+    int32_t onCreateRet = dbCallBack->OnCreate(*(store_));
+    ASSERT_EQ(onCreateRet, FIREWALL_OK);
+
+    auto resultSet = store_->QuerySql(std::string("SELECT * FROM firewallRule"), std::vector<std::string>{});
+    ASSERT_NE(resultSet, nullptr);
+
+    NetFirewallRuleInfo table;
+    int32_t ret = NetFirewallDbHelper::GetInstance().GetResultSetTableInfo(resultSet, table);
+    EXPECT_EQ(ret, FIREWALL_OK);
+    EXPECT_EQ(table.ruleIdIndex, 0);
+    EXPECT_GE(table.interfaceIndex, 0);
+    EXPECT_GE(table.userIdIndex, 0);
+    EXPECT_GE(table.protocolIndex, 0);
+}
+
+/**
+ * @tc.name: GetResultSetTableInfo
+ * @tc.desc: Test GetResultSetTableInfo with NetFirewallRuleInfo error path (closed ResultSet).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetResultSetTableInfoRuleInfo002, TestSize.Level1)
+{
+    auto dbCallBack = new (std::nothrow) NetFirewallDataBaseCallBack();
+    std::string firewallDatabaseName = FIREWALL_DB_PATH + FIREWALL_DB_NAME;
+    int32_t errCode = OHOS::NativeRdb::E_OK;
+    OHOS::NativeRdb::RdbStoreConfig config(firewallDatabaseName);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
+        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, OLD_VERSION, sqliteOpenHelperCallback, errCode);
+    ASSERT_NE(store_, nullptr);
+    int32_t onCreateRet = dbCallBack->OnCreate(*(store_));
+    ASSERT_EQ(onCreateRet, FIREWALL_OK);
+
+    auto resultSet = store_->QuerySql(std::string("SELECT * FROM firewallRule"), std::vector<std::string>{});
+    ASSERT_NE(resultSet, nullptr);
+    resultSet->Close();
+
+    NetFirewallRuleInfo table;
+    int32_t ret = NetFirewallDbHelper::GetInstance().GetResultSetTableInfo(resultSet, table);
+    EXPECT_EQ(ret, FIREWALL_RDB_EXECUTE_FAILTURE);
+}
+
+/**
+ * @tc.name: GetResultSetTableInfo
+ * @tc.desc: Test GetResultSetTableInfo with NetInterceptRecordInfo success path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetResultSetTableInfoInterceptRecord001, TestSize.Level1)
+{
+    auto dbCallBack = new (std::nothrow) NetFirewallDataBaseCallBack();
+    std::string firewallDatabaseName = FIREWALL_DB_PATH + FIREWALL_DB_NAME;
+    int32_t errCode = OHOS::NativeRdb::E_OK;
+    OHOS::NativeRdb::RdbStoreConfig config(firewallDatabaseName);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
+        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, OLD_VERSION, sqliteOpenHelperCallback, errCode);
+    ASSERT_NE(store_, nullptr);
+    int32_t onCreateRet = dbCallBack->OnCreate(*(store_));
+    ASSERT_EQ(onCreateRet, FIREWALL_OK);
+
+    auto resultSet = store_->QuerySql(std::string("SELECT * FROM interceptRecord"), std::vector<std::string>{});
+    ASSERT_NE(resultSet, nullptr);
+
+    NetInterceptRecordInfo table;
+    int32_t ret = NetFirewallDbHelper::GetInstance().GetResultSetTableInfo(resultSet, table);
+    EXPECT_EQ(ret, FIREWALL_OK);
+    EXPECT_GE(table.timeIndex, 0);
+    EXPECT_GE(table.localIpIndex, 0);
+    EXPECT_GE(table.remoteIpIndex, 0);
+    EXPECT_GE(table.localPortIndex, 0);
+    EXPECT_GE(table.remotePortIndex, 0);
+    EXPECT_GE(table.protocolIndex, 0);
+    EXPECT_GE(table.appUidIndex, 0);
+    EXPECT_GE(table.domainIndex, 0);
+}
+
+/**
+ * @tc.name: GetResultSetTableInfo
+ * @tc.desc: Test GetResultSetTableInfo with NetInterceptRecordInfo error path (closed ResultSet).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetResultSetTableInfoInterceptRecord002, TestSize.Level1)
+{
+    auto dbCallBack = new (std::nothrow) NetFirewallDataBaseCallBack();
+    std::string firewallDatabaseName = FIREWALL_DB_PATH + FIREWALL_DB_NAME;
+    int32_t errCode = OHOS::NativeRdb::E_OK;
+    OHOS::NativeRdb::RdbStoreConfig config(firewallDatabaseName);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    NetFirewallDataBaseCallBack sqliteOpenHelperCallback;
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> store_ =
+        OHOS::NativeRdb::RdbHelper::GetRdbStore(config, OLD_VERSION, sqliteOpenHelperCallback, errCode);
+    ASSERT_NE(store_, nullptr);
+    int32_t onCreateRet = dbCallBack->OnCreate(*(store_));
+    ASSERT_EQ(onCreateRet, FIREWALL_OK);
+
+    auto resultSet = store_->QuerySql(std::string("SELECT * FROM interceptRecord"), std::vector<std::string>{});
+    ASSERT_NE(resultSet, nullptr);
+    resultSet->Close();
+
+    NetInterceptRecordInfo table;
+    int32_t ret = NetFirewallDbHelper::GetInstance().GetResultSetTableInfo(resultSet, table);
+    EXPECT_EQ(ret, FIREWALL_RDB_EXECUTE_FAILTURE);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
