@@ -493,6 +493,9 @@ void NetworkVpnClient::UnregisterMultiVpnEventCbCollection()
 
 int32_t NetworkVpnClient::GetVpnConfigToAnco(std::vector<std::string> &dnsAddresses)
 {
+    if (!saStart_) {
+        return NETMANAGER_EXT_SUCCESS;
+    }
     sptr<INetworkVpnService> proxy = GetProxy();
     // LCOV_EXCL_START
     if (proxy == nullptr) {
