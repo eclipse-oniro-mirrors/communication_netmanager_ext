@@ -16,6 +16,7 @@
 #ifndef NET_FIREWALL_SERVICE_H
 #define NET_FIREWALL_SERVICE_H
 
+#include <mutex>
 #include <string>
 
 #include "os_account_manager.h"
@@ -44,6 +45,12 @@ class NetFirewallService : public SystemAbility,
     enum class ServiceRunningState {
         STATE_NOT_START,
         STATE_RUNNING
+    };
+
+    enum SpaceType {
+        UNKNOWN = 0,
+        PERSONAL = 1,
+        ENTERPRISE = 2,
     };
 
 public:
@@ -244,6 +251,11 @@ private:
 
     std::string GetBundleName();
 
+    SpaceType GetUserSpaceType(int32_t userId);
+
+    void HandleSpaceSwitched(int32_t userId);
+
+    int32_t UpdateTrafficFilterBySpaceType(SpaceType spaceType);
 private:
     static std::shared_ptr<ffrt::queue> ffrtServiceHandler_;
     std::atomic<uint64_t> currentSetRuleSecond_ = 0;
@@ -254,6 +266,8 @@ private:
     bool isServicePublished_ = false;
     bool hasSaRemoved_ = false;
     std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
+    SpaceType currentSpaceType_ = SpaceType::UNKNOWN;
+    std::mutex spaceTypeMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

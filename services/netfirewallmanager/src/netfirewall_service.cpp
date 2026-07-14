@@ -467,6 +467,7 @@ void NetFirewallService::ReceiveMessage::OnReceiveEvent(const EventFwk::CommonEv
         // Old user cache cleaning
         NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
         netfirewallService_->SetCurrentUserId(userId);
+        netfirewallService_->HandleSpaceSwitched(userId);
         return;
     }
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
@@ -618,6 +619,47 @@ std::string NetFirewallService::GetBundleName()
     }
     NETMGR_EXT_LOG_I("bundle name is [%{public}s], uid = [%{public}d]", bundleName.c_str(), uid);
     return bundleName;
+}
+
+NetFirewallService::SpaceType NetFirewallService::GetUserSpaceType(int32_t userId)
+{
+    AccountSA::DomainAccountInfo domainInfo;
+    ErrCode ret = AccountSA::OsAccountManager::GetOsAccountDomainInfo(userId, domainInfo);
+    if (ret == ERR_OK && !domainInfo.domain_.empty()) {
+        return SpaceType::ENTERPRISE;
+    } else {
+        return SpaceType::PERSONAL;
+    }
+}
+
+void NetFirewallService::HandleSpaceSwitched(int32_t userId)
+{
+    SpaceType newSpaceType = GetUserSpaceType(userId);
+    std::lock_guard<std::mutex> lock(spaceTypeMutex_);
+    if (currentSpaceType_ == newSpaceType) {
+        return;
+    }
+    int32_t ret = UpdateTrafficFilterBySpaceType(newSpaceType);
+    if (ret != FIREWALL_SUCCESS) {
+        return;
+    }
+    currentSpaceType_ = newSpaceType;
+}
+
+int32_t NetFirewallService::UpdateTrafficFilterBySpaceType(SpaceType spaceType)
+{
+    int32_t ret = FIREWALL_SUCCESS;
+    switch (spaceType) {
+        case SpaceType::ENTERPRISE:
+            ret = GlobalEnableTrafficFilter();
+            break;
+        case SpaceType::PERSONAL:
+            ret = GlobalDisableTrafficFilter();
+            break;
+        default:
+            break;
+    }
+    return ret;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
