@@ -19,7 +19,7 @@ let TAG = 'VpnRightDialog_MainAbility:';
 
 export default class MainAbility extends Ability {
   onCreate(want, launchParam): void {
-    console.log(TAG + 'MainAbility onCreate, ability name is ' + want.abilityName + '.');
+    console.log(TAG + 'MainAbility onCreate.');
     globalThis.context = this.context;
   }
 

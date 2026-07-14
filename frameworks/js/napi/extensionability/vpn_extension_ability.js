@@ -17,15 +17,15 @@ let ExtensionAbility = requireNapi('app.ability.ExtensionAbility');
 
 class VpnExtensionAbility extends ExtensionAbility {
   onCreate(want) {
-    console.log('onCreate, want:' + want.abilityName);
+    console.log('onCreate');
   }
 
   onRequest(want, startId) {
-    console.log('onRequest, want:' + want.abilityName + ', startId:' + startId);
+    console.log('onRequest');
   }
 
   onConnect(want) {
-    console.log('onConnect, want:' + want.abilityName);
+    console.log('onConnect');
   }
 
   onDisconnect(want) {
