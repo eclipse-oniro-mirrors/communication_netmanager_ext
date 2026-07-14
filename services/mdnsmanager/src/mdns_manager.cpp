@@ -41,6 +41,7 @@ void MDnsManager::RestartMDnsProtocolImpl()
     NETMGR_EXT_LOG_D("mdns_log Network switching");
     impl_->Init();
     RestartDiscoverService();
+    RestartRegisterService();
 }
 
 bool MDnsManager::IsSupportIpV6()
@@ -69,7 +70,7 @@ int32_t MDnsManager::RegisterService(const MDnsServiceInfo &serviceInfo, const s
 
     if (err == NETMANAGER_EXT_SUCCESS) {
         std::lock_guard<std::recursive_mutex> guard(registerMutex_);
-        registerMap_.emplace(cb, serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type);
+        registerMap_.emplace(cb, serviceInfo);
     }
     return err;
 }
@@ -89,11 +90,38 @@ int32_t MDnsManager::UnRegisterService(const sptr<IRegistrationCallback> &cb)
         return NET_MDNS_ERR_CALLBACK_NOT_FOUND;
     }
 
-    int32_t err = impl_->UnRegister(itr->second);
+    int32_t err = impl_->UnRegister(itr->second.name + MDNS_DOMAIN_SPLITER_STR + itr->second.type);
     if (err == NETMANAGER_EXT_SUCCESS) {
         registerMap_.erase(itr);
     }
     return err;
+}
+
+void MDnsManager::RestartRegisterService()
+{
+    NETMGR_EXT_LOG_I("mdns_log RestartRegisterService");
+    std::lock_guard<std::recursive_mutex> guard(registerMutex_);
+    for (const auto &it : registerMap_) {
+        if (it.first == nullptr || it.first->AsObject() == nullptr) {
+            NETMGR_EXT_LOG_E("mdns_log RestartRegisterService callback is nullptr");
+            continue;
+        }
+        auto serviceInfo = it.second;
+        auto cb = it.first;
+        int32_t err = impl_->UnRegister(serviceInfo.name + MDNS_DOMAIN_SPLITER_STR + serviceInfo.type);
+        NETMGR_EXT_LOG_I("mdns_log RestartRegisterService UnRegister %{public}d", err);
+
+        MDnsProtocolImpl::Result result{.serviceName = serviceInfo.name,
+                                        .serviceType = serviceInfo.type,
+                                        .port = serviceInfo.port,
+                                        .txt = serviceInfo.txtRecord};
+        err = impl_->Register(result);
+        NETMGR_EXT_LOG_I("mdns_log RestartRegisterService Register %{public}d", err);
+        impl_->AddTask([this, cb, serviceInfo, err]() {
+            cb->HandleRegisterResult(serviceInfo, err);
+            return true;
+        });
+    }
 }
 
 int32_t MDnsManager::StartDiscoverService(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb)
