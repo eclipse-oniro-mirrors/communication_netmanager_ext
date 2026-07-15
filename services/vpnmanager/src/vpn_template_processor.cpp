@@ -222,8 +222,16 @@ void VpnTemplateProcessor::GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t
     }
     std::string homeElement = "home" + std::to_string(ifNameId);
     std::string ipsecId = ipsecConfig->ipsecIdentifier_.empty() ? "%any" : ipsecConfig->ipsecIdentifier_;
+    std::string espProposals = "aes128-sha256, aes192-sha256, aes256-sha256, aes128-sha384, aes192-sha384, "
+        "aes256-sha384, aes128-sha512, aes192-sha512, aes256-sha512, aes128-sha1, aes192-sha1, aes256-sha1";
+    std::string proposals = "aes128-sha256-ecp256, aes192-sha256-ecp256, aes256-sha256-ecp256, "
+        "aes128-sha384-ecp384, aes192-sha384-ecp384, aes256-sha384-ecp384, aes128-sha512-ecp521, "
+        "aes192-sha512-ecp521, aes256-sha512-ecp521, aes128-sha256-modp2048, aes192-sha256-modp2048, "
+        "aes256-sha256-modp2048, aes128-sha384-modp3072, aes192-sha384-modp3072, aes256-sha384-modp3072, "
+        "aes128-sha512-modp4096, aes192-sha512-modp4096, aes256-sha512-modp4096, aes128-sha1-modp2048, "
+        "aes192-sha1-modp2048, aes256-sha1-modp2048, 3des-sha1-modp1024";
     std::string children = "children {\n home {\n if_id_in=" + std::to_string(ifNameId) + "\n if_id_out="
-        + std::to_string(ifNameId) + "\nremote_ts=0.0.0.0/0\n esp_proposals = default\n}\n}";
+        + std::to_string(ifNameId) + "\nremote_ts=0.0.0.0/0\n esp_proposals = " + espProposals + "\n}\n}";
     std::string vips = ipsecConfig->localAddresses_.empty()
         ? "0.0.0.0" : ipsecConfig->localAddresses_[0].address_;
     outConnect = homeElement + " {\n remote_addrs = " + ipsecConfig->addresses_[0].address_
@@ -246,18 +254,18 @@ void VpnTemplateProcessor::GetConnect(sptr<IpsecVpnConfig> &ipsecConfig, int32_t
             oss << "local {\n auth = psk\n id = " << ipsecId << "\n}\n";
             oss << "local-xauth {\n auth = xauth\n xauth_id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "remote {\n auth = psk\n id = " << ipsecId << "\n}\n";
-            oss << children << "\n version = 1\n proposals = default\n aggressive=yes\n}\n";
+            oss << children << "\n version = 1\n proposals = " << proposals << "\n aggressive=yes\n}\n";
             break;
         case VpnType::IPSEC_XAUTH_RSA:
             oss << "local {\n auth = pubkey\n id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "local-xauth {\n auth = xauth\n}\n remote {\n auth = pubkey\n}\n";
-            oss << "children {\n home {\n remote_ts=0.0.0.0/0\n esp_proposals = default\n}\n}\n";
-            oss << "version = 1\n proposals = default\n}\n";
+            oss << "children {\n home {\n remote_ts=0.0.0.0/0\n esp_proposals = " << espProposals <<"\n}\n}\n";
+            oss << "version = 1\n proposals = " << proposals << "\n}\n";
             break;
         case VpnType::IPSEC_HYBRID_RSA:
             oss << "local {\n auth = xauth\n xauth_id = " << ipsecConfig->userName_ << "\n}\n";
             oss << "remote {\n auth = pubkey\n}\n";
-            oss << children << "\n version = 1\n proposals = default\n}\n";
+            oss << children << "\n version = 1\n proposals = " << proposals << "\n}\n";
             break;
         default:
             break;
