@@ -97,7 +97,13 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
                  parcel.ReadString(ptr->forwardingRoutes_) &&
                  parcel.ReadString(ptr->pkcs12Password_) &&
                  VpnConfig::UnmarshallingVectorString(parcel, ptr->remoteAddresses_, MAX_REMOTE_ADDR_SIZE);
-
+    if (!allOK || !ptr->IsValidVpnType(ptr->vpnType_)) {
+        // Theoretically, vpnType should be exactly equal to the first, but this check is enough to
+        // prevent crash.
+        NETMGR_EXT_LOG_E("parse SysVpnConfig common part failed");
+        return false;
+    }
+    
     int32_t pkcs12FileDataSize = 0;
     uint8_t data = 0;
     allOK = allOK && parcel.ReadInt32(pkcs12FileDataSize);
