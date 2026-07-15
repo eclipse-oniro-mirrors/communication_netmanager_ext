@@ -34,6 +34,7 @@ struct OpenvpnConfig : SysVpnConfig {
 
     bool Marshalling(Parcel &parcel) const override;
     static OpenvpnConfig* Unmarshalling(Parcel &parcel);
+    bool IsValidVpnType(int32_t type) const override;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
