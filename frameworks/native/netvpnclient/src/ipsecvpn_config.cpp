@@ -63,5 +63,20 @@ IpsecVpnConfig* IpsecVpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadString(ptr->ipsecPublicServerCertFilePath_);
     return allOK ? ptr.release() : nullptr;
 }
+
+bool IpsecVpnConfig::IsValidVpnType(int32_t type) const
+{
+    switch (type) {
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
+            return true;
+        default:
+            return false;
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
