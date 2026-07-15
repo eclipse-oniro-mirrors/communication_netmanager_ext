@@ -39,6 +39,7 @@ struct IpsecVpnConfig : SysVpnConfig {
 
     bool Marshalling(Parcel &parcel) const override;
     static IpsecVpnConfig* Unmarshalling(Parcel &parcel);
+    bool IsValidVpnType(int32_t type) const override;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
