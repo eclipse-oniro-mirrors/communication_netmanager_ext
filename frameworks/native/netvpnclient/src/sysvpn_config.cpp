@@ -140,5 +140,24 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
     }
     return allOK;
 }
+
+bool SysVpnConfig::IsValidVpnType(int32_t type) const
+{
+    switch (type) {
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
+        case VpnType::OPENVPN:
+        case VpnType::L2TP:
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
+            return true;
+        default:
+            return false;
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
