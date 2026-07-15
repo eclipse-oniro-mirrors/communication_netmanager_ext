@@ -111,5 +111,10 @@ OpenvpnConfig* OpenvpnConfig::Unmarshalling(Parcel &parcel)
     }
     return ptr.release();
 }
+
+bool OpenvpnConfig::IsValidVpnType(int32_t type) const
+{
+    return type == VpnType::OPENVPN;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

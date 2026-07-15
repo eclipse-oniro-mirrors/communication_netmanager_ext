@@ -97,7 +97,13 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
                  parcel.ReadString(ptr->forwardingRoutes_) &&
                  parcel.ReadString(ptr->pkcs12Password_) &&
                  VpnConfig::UnmarshallingVectorString(parcel, ptr->remoteAddresses_, MAX_REMOTE_ADDR_SIZE);
-
+    if (!allOK || !ptr->IsValidVpnType(ptr->vpnType_)) {
+        // Theoretically, vpnType should be exactly equal to the first, but this check is enough to
+        // prevent crash.
+        NETMGR_EXT_LOG_E("parse SysVpnConfig common part failed");
+        return false;
+    }
+    
     int32_t pkcs12FileDataSize = 0;
     uint8_t data = 0;
     allOK = allOK && parcel.ReadInt32(pkcs12FileDataSize);
@@ -133,6 +139,25 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
         NETMGR_EXT_LOG_I("sysvpn SysVpnConfig Unmarshalling failed");
     }
     return allOK;
+}
+
+bool SysVpnConfig::IsValidVpnType(int32_t type) const
+{
+    switch (type) {
+        case VpnType::IKEV2_IPSEC_MSCHAPv2:
+        case VpnType::IKEV2_IPSEC_PSK:
+        case VpnType::IKEV2_IPSEC_RSA:
+        case VpnType::IPSEC_XAUTH_PSK:
+        case VpnType::IPSEC_XAUTH_RSA:
+        case VpnType::IPSEC_HYBRID_RSA:
+        case VpnType::OPENVPN:
+        case VpnType::L2TP:
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
+            return true;
+        default:
+            return false;
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -55,6 +55,7 @@ struct SysVpnConfig : public VpnConfig {
     bool Marshalling(Parcel &parcel) const override;
     static SysVpnConfig* Unmarshalling(Parcel &parcel);
     static bool Unmarshalling(Parcel &parcel, SysVpnConfig* ptr);
+    virtual bool IsValidVpnType(int32_t type) const;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
