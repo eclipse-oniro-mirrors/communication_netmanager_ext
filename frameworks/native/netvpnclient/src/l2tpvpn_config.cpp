@@ -71,5 +71,17 @@ L2tpVpnConfig* L2tpVpnConfig::Unmarshalling(Parcel &parcel)
                  parcel.ReadString(ptr->ipsecPublicServerCertFilePath_);
     return allOK ? ptr.release() : nullptr;
 }
+
+bool L2tpVpnConfig::IsValidVpnType(int32_t type) const
+{
+    switch (type) {
+        case VpnType::L2TP:
+        case VpnType::L2TP_IPSEC_PSK:
+        case VpnType::L2TP_IPSEC_RSA:
+            return true;
+        default:
+            return false;
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
