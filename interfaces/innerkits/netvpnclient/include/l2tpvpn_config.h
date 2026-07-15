@@ -44,6 +44,7 @@ struct L2tpVpnConfig : SysVpnConfig {
 
     bool Marshalling(Parcel &parcel) const override;
     static L2tpVpnConfig* Unmarshalling(Parcel &parcel);
+    bool IsValidVpnType(int32_t type) const override;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
