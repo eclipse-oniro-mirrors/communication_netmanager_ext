@@ -31,73 +31,73 @@
 #include "mdns_service_info.h"
 
 namespace OHOS {
-namespace NetManagerAni {
+namespace AbilityRuntime {
+class Context;
+}
 
-struct MDnsServiceInfoFFI {
-    rust::String name;
-    rust::String type_;
-    int32_t family;
-    rust::String addr;
-    int32_t port;
-    rust::Vec<rust::String> attr_keys;
-    rust::Vec<uint8_t> attr_values;
-    rust::Vec<int32_t> attr_value_lengths;
+namespace NetManagerStandard {
+
+struct AniEnv;
+struct AniObject;
+struct MDnsServiceInfoAni;
+
+class MDnsRegistrationCallbackAni : public RegistrationCallbackStub {
+public:
+    int32_t HandleRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleUnRegister(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleRegisterResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
 };
 
-class MDnsRegistrationCallbackAni : public NetManagerStandard::RegistrationCallbackStub {
+class MDnsDiscoveryCallbackAni : public DiscoveryCallbackStub {
 public:
-    int32_t HandleRegister(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    int32_t HandleUnRegister(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    int32_t HandleRegisterResult(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    void SetNativePtr(int64_t nativePtr) { nativePtr_ = nativePtr; }
+    int64_t GetNativePtr() const { return nativePtr_; }
+
+    int32_t HandleStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+
+private:
+    int64_t nativePtr_ = 0;
 };
 
-class MDnsDiscoveryCallbackAni : public NetManagerStandard::DiscoveryCallbackStub {
+class MDnsResolveCallbackAni : public ResolveCallbackStub {
 public:
-    int32_t HandleStartDiscover(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    int32_t HandleStopDiscover(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    int32_t HandleServiceFound(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-    int32_t HandleServiceLost(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
-};
-
-class MDnsResolveCallbackAni : public NetManagerStandard::ResolveCallbackStub {
-public:
-    int32_t HandleResolveResult(const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode) override;
+    int32_t HandleResolveResult(const MDnsServiceInfo &serviceInfo, int32_t retCode) override;
     void ResetResolveState();
 
     std::mutex mutex_;
     std::condition_variable cv_;
     bool resolved_ = false;
-    NetManagerStandard::MDnsServiceInfo resolvedServiceInfo_;
+    MDnsServiceInfo resolvedServiceInfo_;
     int32_t resolvedRetCode_ = -1;
 };
 
-// Callback map for RegisterService/UnRegisterService pairing
-// Key format: "bundleName\x01serviceName\x02serviceType" (using safe separators to avoid key conflicts)
 std::map<std::string, sptr<MDnsRegistrationCallbackAni>>& GetRegisterCallbackMap();
 std::mutex& GetRegisterMutex();
 
-// Callback map for StartDiscoverService/StopDiscoverService pairing
-// Key: serviceType
-std::map<std::string, sptr<MDnsDiscoveryCallbackAni>>& GetDiscoveryCallbackMap();
-std::mutex& GetDiscoveryMutex();
-
-// Callback map for ResolveService, cleaned up in HandleResolveResult
-// Key: "serviceName\x01serviceType" (using safe separator to avoid key conflicts)
 std::map<std::string, sptr<MDnsResolveCallbackAni>>& GetResolveCallbackMap();
 std::mutex& GetResolveMutex();
 
-MDnsServiceInfoFFI RegisterService(const rust::String &bundleName, const MDnsServiceInfoFFI &serviceInfo,
+MDnsServiceInfoAni RegisterService(const rust::String &bundleName, const MDnsServiceInfoAni &serviceInfo,
     int32_t &ret);
-int32_t UnRegisterService(const rust::String &bundleName, const MDnsServiceInfoFFI &serviceInfo, int32_t &ret);
-int32_t StartDiscoverService(const rust::String &serviceType, int32_t &ret);
-int32_t StopDiscoverService(const rust::String &serviceType, int32_t &ret);
-MDnsServiceInfoFFI ResolveService(const MDnsServiceInfoFFI &serviceInfo, int32_t &ret);
-
-int32_t MDnsObserverRegister();
-int32_t MDnsObserverUnRegister();
+MDnsServiceInfoAni UnRegisterService(const rust::String &bundleName, const MDnsServiceInfoAni &serviceInfo,
+    int32_t &ret);
+int32_t StartSearchingMDNSAni(int64_t nativePtr);
+int32_t StopSearchingMDNSAni(int64_t nativePtr);
+MDnsServiceInfoAni ResolveService(const MDnsServiceInfoAni &serviceInfo, int32_t &ret);
 
 rust::String GetErrorCodeAndMessage(int32_t &errorCode);
 
-} // namespace NetManagerAni
+bool IsStageContext(AniEnv *env, AniObject *obj);
+std::shared_ptr<AbilityRuntime::Context> GetStageModeContext(AniEnv **env, AniObject *obj);
+rust::String GetBundleName(std::shared_ptr<AbilityRuntime::Context> context);
+
+int64_t CreateDiscoveryServiceAni(const rust::String &serviceType);
+rust::String GetServiceTypeFromPtr(int64_t nativePtr);
+void DestroyDiscoveryServiceAni(int64_t nativePtr);
+
+} // namespace NetManagerStandard
 } // namespace OHOS
 #endif // NET_MDNS_ANI_H

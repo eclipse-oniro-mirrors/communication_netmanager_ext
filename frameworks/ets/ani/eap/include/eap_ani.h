@@ -22,20 +22,33 @@
 
 #include "cxx.h"
 #include "net_eap_callback_stub.h"
+#include "system_ability_status_change_stub.h"
+#include "iservice_registry.h"
 
 namespace OHOS {
 namespace NetManagerAni {
 
-int32_t RegCustomEapHandler(int32_t net_type, int32_t eap_code, int32_t eap_type);
-int32_t UnregCustomEapHandler(int32_t net_type, int32_t eap_code, int32_t eap_type);
+struct EthEapProfileAni;
+struct EapDataAni;
+struct EapCodeTypeAni;
+
+bool IsEapExtensibleAuthenticationEnabled();
+int32_t ValidateEapParams(int32_t net_type, int32_t eap_code, int32_t eap_type);
+int32_t RegCustomEapHandler(int32_t triggerMode, int32_t net_type,
+    const rust::Vec<EapCodeTypeAni> &regItems);
 int32_t ReplyCustomEapData(int32_t result, int32_t msg_id, int32_t buffer_len, const rust::Vec<uint8_t> &eap_buffer);
-struct EthEapConfig;
-int32_t StartEthEap(int32_t net_id, EthEapConfig config);
-int32_t LogOffEthEap(int32_t net_id);
+int32_t StartEthEap(int32_t netId, EthEapProfileAni profileAni);
+int32_t LogOffEthEap(int32_t netId);
 
-struct EapAniData;
+void InitEapAniSaListener();
 
-class EapCallbackObserverAni : public NetManagerStandard::NetEapPostbackCallbackStub {
+class NetManagerAniAbilityStatusChange : public SystemAbilityStatusChangeStub {
+public:
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+    void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+};
+
+class NetEapPostBackCallbackAni : public NetManagerStandard::NetEapPostbackCallbackStub {
 public:
     int32_t OnEapSupplicantPostback(NetManagerStandard::NetType netType,
                                      const sptr<NetManagerStandard::EapData> &eapData) override;

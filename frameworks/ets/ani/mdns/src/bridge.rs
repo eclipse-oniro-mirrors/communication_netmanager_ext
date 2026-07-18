@@ -11,14 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[ani_rs::ani(path = "@ohos.net.mdns.mdns.ServiceAttribute")]
+#[ani_rs::ani(path = "@ohos.net.mdns.mdns.Cleaner")]
+pub struct Cleaner {
+    pub nativePtr: i64,
+}
+
+#[ani_rs::ani(path = "@ohos.net.mdns.mdns.ServiceAttributeInner")]
 #[derive(Clone)]
 pub struct ServiceAttribute {
     pub key: String,
-    pub value: Vec<u8>,
+    pub value: Vec<i32>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.mdns.mdns.LocalServiceInfo")]
+#[ani_rs::ani(path = "@ohos.net.mdns.mdns.LocalServiceInfoInner")]
 #[derive(Clone)]
 pub struct LocalServiceInfo {
     pub service_type: String,
@@ -28,7 +33,7 @@ pub struct LocalServiceInfo {
     pub service_attribute: Option<Vec<ServiceAttribute>>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.mdns.mdns.NetAddress")]
+#[ani_rs::ani(path = "@ohos.net.connection.connection.NetAddressInner")]
 #[derive(Clone)]
 pub struct NetAddress {
     pub address: String,
@@ -36,21 +41,17 @@ pub struct NetAddress {
     pub port: Option<i32>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.mdns.mdns.DiscoveryEventInfo")]
+#[ani_rs::ani(path = "@ohos.net.mdns.mdns.DiscoveryEventInfoInner")]
 #[derive(Clone)]
 pub struct DiscoveryEventInfo {
     pub service_info: LocalServiceInfo,
     pub error_code: Option<i32>,
 }
 
-#[ani_rs::ani(path = "application.Context")]
+#[ani_rs::ani(path = "@ohos.net.sharing.sharing.MdnsError")]
 #[derive(Clone)]
-pub struct Context {
-    pub application_info: ApplicationInfo,
-}
-
-#[ani_rs::ani(path = "application.ApplicationInfo")]
-#[derive(Clone)]
-pub struct ApplicationInfo {
-    pub name: String,
+pub enum MdnsError {
+    InternalError = 0,
+    AlreadyActive = 1,
+    MaxLimit = 2,
 }

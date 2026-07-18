@@ -14,110 +14,155 @@
 use crate::bridge;
 use ani_rs::business_error::BusinessError;
 
+#[repr(transparent)]
+pub struct AniEnv {
+    pub inner: ani_rs::AniEnv<'static>,
+}
+
+#[repr(transparent)]
+pub struct AniObject {
+    pub inner: ani_rs::objects::AniObject<'static>,
+}
+
 pub struct VpnExtClient;
 
 impl VpnExtClient {
-    pub fn start_vpn_extension_ability(bundle_name: String, ability_name: String) -> Result<i32, i32> {
-        let mut ret = 0;
-        let result = ffi::StartVpnExtensionAbility(&bundle_name, &ability_name, &mut ret);
+
+    pub fn start_vpn_extension_ability<'local>(
+        env: &ani_rs::AniEnv<'local>,
+        want_object: &ani_rs::objects::AniObject<'local>,
+    ) -> Result<(), i32> {
+        let env = env as *const ani_rs::AniEnv as *mut ani_rs::AniEnv as *mut *mut AniEnv;
+        let want_object = want_object as *const ani_rs::objects::AniObject as *mut ani_rs::objects::AniObject
+            as *mut AniObject;
+        let ret = unsafe { ffi::StartVpnExtensionAbility(env, want_object) };
         if ret != 0 {
             return Err(ret);
         }
-        Ok(result)
+        Ok(())
     }
 
-    pub fn stop_vpn_extension_ability(bundle_name: String, ability_name: String) -> Result<i32, i32> {
-        let mut ret = 0;
-        let result = ffi::StopVpnExtensionAbility(&bundle_name, &ability_name, &mut ret);
+    pub fn stop_vpn_extension_ability<'local>(
+        env: &ani_rs::AniEnv<'local>,
+        want_object: &ani_rs::objects::AniObject<'local>,
+    ) -> Result<(), i32> {
+        let env = env as *const ani_rs::AniEnv as *mut ani_rs::AniEnv as *mut *mut AniEnv;
+        let want_object = want_object as *const ani_rs::objects::AniObject as *mut ani_rs::objects::AniObject
+            as *mut AniObject;
+        let ret = unsafe { ffi::StopVpnExtensionAbility(env, want_object) };
         if ret != 0 {
             return Err(ret);
         }
-        Ok(result)
+        Ok(())
     }
 
-    pub fn set_always_on_vpn_enabled(enable: bool, bundle_name: String) -> Result<i32, i32> {
+    pub fn set_always_on_vpn_enabled(enable: bool, bundle_name: String) -> Result<(), i32> {
         let ret = ffi::SetAlwaysOnVpnEnabled(enable, &bundle_name);
         if ret != 0 {
             return Err(ret);
         }
-        Ok(ret)
+        Ok(())
     }
 
     pub fn is_always_on_vpn_enabled(bundle_name: String) -> Result<bool, i32> {
-        let mut ret = 0;
-        let result = ffi::IsAlwaysOnVpnEnabled(&bundle_name, &mut ret);
+        let mut is_enabled = false;
+        let ret = ffi::IsAlwaysOnVpnEnabled(&bundle_name, &mut is_enabled);
         if ret != 0 {
             return Err(ret);
         }
-        Ok(result)
+        Ok(is_enabled)
     }
 
     pub fn update_vpn_authorized_state(bundle_name: String) -> Result<bool, i32> {
-        if ffi::UpdateVpnAuthorizedState(&bundle_name) {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    }
-
-    pub fn create_vpn_connection() -> Result<i32, i32> {
-        let mut ret = 0;
-        ffi::CreateVpnConnection(&mut ret);
+        let mut state = false;
+        let ret = ffi::UpdateVpnAuthorizedState(&bundle_name, &mut state);
         if ret != 0 {
             return Err(ret);
         }
-        Ok(ret)
+        Ok(state)
     }
 
-    pub fn create(config: bridge::VpnConfig) -> Result<i32, i32> {
-        let mut fd = -1;
+    pub fn create_vpn_connection<'local>(
+        env: &ani_rs::AniEnv<'local>,
+        context_object: &ani_rs::objects::AniObject<'local>,
+    ) -> Result<i64, i32> {
+        let env = env as *const ani_rs::AniEnv as *mut ani_rs::AniEnv as *mut *mut AniEnv;
+        let context_object = context_object as *const ani_rs::objects::AniObject as *mut ani_rs::objects::AniObject
+            as *mut AniObject;
+        let mut native_ptr = 0;
+        let ret = unsafe { ffi::CreateVpnConnection(env, context_object, &mut native_ptr) };
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(native_ptr)
+    }
+
+    pub fn destroy_vpn_connection(native_ptr: i64) -> Result<(), i32> {
+        let ret = ffi::DestroyVpnConnection(native_ptr);
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(())
+    }
+
+    pub fn create_vpn_observer() -> Result<i64, i32> {
+        let mut native_ptr = 0;
+        let ret = ffi::CreateVpnObserver(&mut native_ptr);
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(native_ptr)
+    }
+
+    pub fn destroy_vpn_observer(native_ptr: i64) -> Result<(), i32> {
+        let ret = ffi::DestroyVpnObserver(native_ptr);
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(())
+    }
+
+    pub fn create(vpn_connection_ptr: i64, config: bridge::VpnConfig) -> Result<i32, i32> {
+        let mut fd: i32 = -1;
         let config_data: ffi::VpnConfigData = (&config).into();
-        let ret = ffi::Create(&config_data, &mut fd);
+        let ret = ffi::Create(vpn_connection_ptr, &config_data, &mut fd);
         if ret != 0 {
             return Err(ret);
         }
         Ok(fd)
     }
 
-    pub fn protect(socket_fd: i32) -> Result<i32, i32> {
-        let ret = ffi::Protect(socket_fd);
-        if ret != 0 {
-            return Err(ret);
-        }
-        Ok(ret)
-    }
-
-    pub fn destroy() -> Result<i32, i32> {
-        let ret = ffi::Destroy();
-        if ret != 0 {
-            return Err(ret);
-        }
-        Ok(ret)
-    }
-
-    pub fn destroy_by_vpn_id(vpn_id: String) -> Result<i32, i32> {
-        let ret = ffi::DestroyVpn(&vpn_id);
-        if ret != 0 {
-            return Err(ret);
-        }
-        Ok(ret)
-    }
-
-    pub fn protect_process_net() -> Result<i32, i32> {
-        let ret = ffi::ProtectProcessNet();
-        if ret != 0 {
-            return Err(ret);
-        }
-        Ok(ret)
-    }
-
-    pub fn generate_vpn_id() -> Result<String, i32> {
-        let mut ret = 0;
-        let vpn_id = ffi::GenerateVpnId(&mut ret);
+    pub fn generate_vpn_id(vpn_connection_ptr: i64) -> Result<String, i32> {
+        let mut vpn_id = String::new();
+        let ret = ffi::GenerateVpnId(vpn_connection_ptr, &mut vpn_id);
         if ret != 0 {
             return Err(ret);
         }
         Ok(vpn_id)
+    }
+
+    pub fn protect(vpn_connection_ptr: i64, socket_fd: i32) -> Result<(), i32> {
+        let ret = ffi::Protect(vpn_connection_ptr, socket_fd);
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(())
+    }
+
+    pub fn destroy(vpn_connection_ptr: i64, vpn_id: String) -> Result<(), i32> {
+        let ret = ffi::DestroyVpn(vpn_connection_ptr, &vpn_id);
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(())
+    }
+
+    pub fn protect_process_net(vpn_connection_ptr: i64) -> Result<(), i32> {
+        let ret = ffi::ProtectProcessNet(vpn_connection_ptr);
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(())
     }
 }
 
@@ -135,7 +180,7 @@ impl From<&bridge::LinkAddress> for ffi::LinkAddressData {
     fn from(addr: &bridge::LinkAddress) -> Self {
         Self {
             address: (&addr.address).into(),
-            prefix_length: addr.prefixLength,
+            prefix_length: addr.prefix_length,
         }
     }
 }
@@ -146,8 +191,8 @@ impl From<&bridge::RouteInfo> for ffi::RouteInfoData {
             iface: route.iface.clone(),
             destination: (&route.destination).into(),
             gateway: (&route.gateway).into(),
-            has_gateway: route.hasGateway,
-            is_default_route: route.isDefaultRoute,
+            has_gateway: route.has_gateway,
+            is_default_route: route.is_default_route,
         }
     }
 }
@@ -155,18 +200,24 @@ impl From<&bridge::RouteInfo> for ffi::RouteInfoData {
 impl From<&bridge::VpnConfig> for ffi::VpnConfigData {
     fn from(config: &bridge::VpnConfig) -> Self {
         Self {
-            vpn_id: config.vpnId.clone().unwrap_or_default(),
+            vpn_id: config.vpn_id.clone().unwrap_or_default(),
             addresses: config.addresses.iter().map(Into::into).collect(),
-            routes: config.routes.as_ref().unwrap_or(&vec![]).iter().map(Into::into).collect(),
-            dns_addresses: config.dnsAddresses.clone().unwrap_or_default(),
-            search_domains: config.searchDomains.clone().unwrap_or_default(),
+            routes: config
+                .routes
+                .as_ref()
+                .unwrap_or(&vec![])
+                .iter()
+                .map(Into::into)
+                .collect(),
+            dns_addresses: config.dns_addresses.clone().unwrap_or_default(),
+            search_domains: config.search_domains.clone().unwrap_or_default(),
             mtu: config.mtu.unwrap_or(1500),
-            is_ipv4_accepted: config.isIPv4Accepted.unwrap_or(true),
-            is_ipv6_accepted: config.isIPv6Accepted.unwrap_or(false),
-            is_internal: config.isInternal.unwrap_or(false),
-            is_blocking: config.isBlocking.unwrap_or(false),
-            trusted_applications: config.trustedApplications.clone().unwrap_or_default(),
-            blocked_applications: config.blockedApplications.clone().unwrap_or_default(),
+            is_ipv4_accepted: config.is_i_pv4_accepted.unwrap_or(true),
+            is_ipv6_accepted: config.is_i_pv6_accepted.unwrap_or(false),
+            is_internal: config.is_internal.unwrap_or(false),
+            is_blocking: config.is_blocking.unwrap_or(false),
+            trusted_applications: config.trusted_applications.clone().unwrap_or_default(),
+            blocked_applications: config.blocked_applications.clone().unwrap_or_default(),
         }
     }
 }
@@ -215,43 +266,50 @@ pub(crate) mod ffi {
     }
 
     extern "Rust" {
+        type AniEnv;
+        type AniObject;
+
         fn execute_vpn_ext_authorization_result(authorized: bool);
     }
 
     unsafe extern "C++" {
         include!("vpnextension_ani.h");
 
-        fn StartVpnExtensionAbility(
-            bundleName: &String,
-            abilityName: &String,
-            ret: &mut i32,
+        unsafe fn CreateVpnConnection(
+            env: *mut *mut AniEnv,
+            context: *mut AniObject,
+            nativePtr: &mut i64,
         ) -> i32;
 
-        fn StopVpnExtensionAbility(
-            bundleName: &String,
-            abilityName: &String,
-            ret: &mut i32,
+        fn DestroyVpnConnection(nativePtr: i64) -> i32;
+
+        fn CreateVpnObserver(nativePtr: &mut i64) -> i32;
+
+        fn DestroyVpnObserver(nativePtr: i64) -> i32;
+
+        unsafe fn StartVpnExtensionAbility(
+            env: *mut *mut AniEnv,
+            want_object: *mut AniObject,
+        ) -> i32;
+
+        unsafe fn StopVpnExtensionAbility(
+            env: *mut *mut AniEnv,
+            want_object: *mut AniObject,
         ) -> i32;
 
         fn SetAlwaysOnVpnEnabled(enable: bool, bundleName: &String) -> i32;
 
-        fn IsAlwaysOnVpnEnabled(bundleName: &String, ret: &mut i32) -> bool;
+        fn IsAlwaysOnVpnEnabled(bundleName: &String, isEnabled: &mut bool) -> i32;
 
-        fn UpdateVpnAuthorizedState(bundleName: &String) -> bool;
+        fn UpdateVpnAuthorizedState(bundleName: &String, state: &mut bool) -> i32;
 
-        fn CreateVpnConnection(ret: &mut i32) -> bool;
-
-        fn Create(config: &VpnConfigData, fd: &mut i32) -> i32;
-        fn Protect(socketFd: i32) -> i32;
-        fn Destroy() -> i32;
-        fn DestroyVpn(vpnId: &String) -> i32;
-        fn ProtectProcessNet() -> i32;
-        fn GenerateVpnId(ret: &mut i32) -> String;
+        fn Create(ptr: i64, config: &VpnConfigData, fd: &mut i32) -> i32;
+        fn Protect(ptr: i64, socketFd: i32) -> i32;
+        fn DestroyVpn(ptr: i64, vpnId: &String) -> i32;
+        fn ProtectProcessNet(ptr: i64) -> i32;
+        fn GenerateVpnId(ptr: i64, vpnId: &mut String) -> i32;
 
         fn GetErrorCodeAndMessage(error_code: &mut i32) -> String;
-
-        fn VpnExtObserverRegister() -> i32;
-        fn VpnExtObserverUnRegister() -> i32;
     }
 }
 

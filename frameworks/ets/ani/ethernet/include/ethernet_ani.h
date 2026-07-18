@@ -26,15 +26,19 @@
 namespace OHOS {
 namespace NetManagerAni {
 
-bool IsEthernetEnabled(int32_t &ret);
+struct InterfaceConfigurationAni;
+struct EthernetDeviceInfosAni;
+struct MacAddressInfoAni;
+
+int32_t IsEthernetEnabled(bool &enabled);
 int32_t DisableEthernetInterface();
 int32_t EnableEthernetInterface();
 int32_t g_getAllActiveIfaces(rust::Vec<rust::String> &activeIfaces);
 int32_t IsIfaceActive(const rust::String &iface, int32_t &activeStatus);
-rust::String GetIfaceConfig(const rust::String &iface, int32_t &ret);
-int32_t SetIfaceConfig(const rust::String &iface, const rust::String &configStr);
-rust::String GetDeviceInformation(int32_t &ret);
-rust::String GetMacAddress(int32_t &ret);
+int32_t GetIfaceConfig(const rust::String &iface, InterfaceConfigurationAni &ifaceConfig);
+int32_t SetIfaceConfig(const rust::String &iface, const InterfaceConfigurationAni &ifaceConfig);
+int32_t GetDeviceInformation(rust::Vec<EthernetDeviceInfosAni> &deviceInfos);
+int32_t GetMacAddress(rust::Vec<MacAddressInfoAni> &macAddrs);
 int32_t RegisterInterfaceStateCallback();
 int32_t UnregisterInterfaceStateCallback();
 rust::String GetErrorCodeAndMessage(int32_t &errorCode);

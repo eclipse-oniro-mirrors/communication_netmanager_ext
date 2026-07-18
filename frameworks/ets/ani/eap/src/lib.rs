@@ -11,31 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod log;
 mod bridge;
 mod eap;
-pub mod log;
 mod register;
 pub mod wrapper;
-
-use std::ffi::{c_char, CString};
-use std::panic;
-use std::sync::OnceLock;
-
-static PANIC_HOOK_INSTALLED: OnceLock<()> = OnceLock::new();
-
-#[no_mangle]
-extern "C" fn EapAniRegister() {
-    PANIC_HOOK_INSTALLED.get_or_init(|| {
-        panic::set_hook(Box::new(|info| {
-            let location = info.location().map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
-                .unwrap_or_else(|| "unknown".to_string());
-            let message = info.payload().downcast_ref::<&str>().map(|s| s.to_string())
-                .or_else(|| info.payload().downcast_ref::<String>().cloned())
-                .unwrap_or_else(|| "unknown".to_string());
-            eap_error!("Panic occurred at {}: {}", location, message);
-        }));
-    });
-}
 
 ani_rs::ani_constructor! {
     namespace "@ohos.net.eap.eap"
@@ -47,3 +27,21 @@ ani_rs::ani_constructor! {
         "logOffEthEapSync": eap::log_off_eth_eap,
     ]
 }
+
+const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
+    log_type: hilog_rust::LogType::LogCore,
+    domain: 0xD0015B0,
+    tag: "NETMANAGER_EXT",
+};
+
+#[used]
+#[link_section = ".init_array"]
+static G_EAP_PANIC_HOOK: extern "C" fn() = {
+    #[link_section = ".text.startup"]
+    extern "C" fn init() {
+        std::panic::set_hook(Box::new(|info| {
+            eap_error!("Panic occurred: {:?}", info);
+        }));
+    }
+    init
+};

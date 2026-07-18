@@ -26,16 +26,36 @@ ani_rs::ani_constructor! {
         "isAlwaysOnVpnEnabledSync": vpnext::is_always_on_vpn_enabled,
         "updateVpnAuthorizedStateSync": vpnext::update_vpn_authorized_state,
         "createVpnConnectionSync": vpnext::create_vpn_connection,
+        "createVpnObserverSync": vpnext::create_vpn_observer,
+    ]
+    class "@ohos.net.vpnExtension.vpnExtension.VpnObserverInner"
+    [
+        "onAuthorizationResultSync": register::on_authorization_result,
+        "offAuthorizationResultSync": register::off_authorization_result,
+    ]
+    class "@ohos.net.vpnExtension.vpnExtension.VpnConnectionInner"
+    [
         "createSync": vpnext::create,
+        "generateVpnIdSync": vpnext::generate_vpn_id,
         "protectSync": vpnext::protect,
         "destroySync": vpnext::destroy,
-        "destroyVpnSync": vpnext::destroy_by_vpn_id,
         "protectProcessNetSync": vpnext::protect_process_net,
-        "generateVpnIdSync": vpnext::generate_vpn_id,
-        "registOnAuthResult": register::regist_on_auth_result,
-        "unregistOnAuthResult": register::unregist_on_auth_result,
+    ]
+    class "@ohos.net.vpnExtension.vpnExtension.VpnObserverCleaner"
+    [
+        "native_clean" : vpnext::destroy_vpn_observer,
+    ]
+    class "@ohos.net.vpnExtension.vpnExtension.VpnConnectionCleaner"
+    [
+        "native_clean" : vpnext::destroy_vpn_connection,
     ]
 }
+
+const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
+    log_type: hilog_rust::LogType::LogCore,
+    domain: 0xD0015B0,
+    tag: "NETMANAGER_EXT",
+};
 
 #[used]
 #[link_section = ".init_array"]

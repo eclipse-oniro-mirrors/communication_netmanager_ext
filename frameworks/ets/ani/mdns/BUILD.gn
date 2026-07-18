@@ -25,6 +25,15 @@ ohos_static_library("mdns_ani_static") {
     debug = false
   }
 
+  cflags = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-O3",
+    "-flto",
+    "-fno-exceptions",
+    "-fno-rtti",
+  ]
+
   include_dirs = [
     "include",
     "${target_gen_dir}/src",
@@ -38,20 +47,14 @@ ohos_static_library("mdns_ani_static") {
     "../../../../interfaces/innerkits/mdnsclient:mdns_manager_if",
   ]
   external_deps = [
+    "ability_runtime:ani_base_context",
+    "ability_runtime:app_context",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "runtime_core:ani",
     "samgr:samgr_proxy",
     "rust_cxx:cxx_cppdeps",
-  ]
-
-  cflags = [
-    "-fdata-sections",
-    "-ffunction-sections",
-    "-O3",
-    "-flto",
-    "-fno-exceptions",  # 禁用异常处理
-    "-fno-rtti",        # 禁用RTTI
   ]
 
   branch_protector_ret = "pac_ret"
@@ -74,7 +77,7 @@ ohos_rust_shared_library("mdns_ani") {
   ]
 
   rustflags = [
-    "-C", "opt-level=3",
+    "-C", "opt-level=z",
     "-C", "debuginfo=0",
     "-C", "link-arg=-ffunction-sections",
     "-C", "link-arg=-fdata-sections",
@@ -82,7 +85,12 @@ ohos_rust_shared_library("mdns_ani") {
     "-C", "link-arg=-Wl,--strip-all",
     "-Z", "dylib-lto",
     "-Z", "stack-protector=all",
-    "-C", "codegen-units=1",  # 减少代码生成单元
+    "-C", "codegen-units=1",
+    "-C", "link-arg=-flto",
+    "-C", "overflow-checks=no",
+    "-C", "code-model=small",
+    "-Z", "location-detail=none",
+    "-Z", "dump-mir=deadcode",
   ]
 
   sources = [ "src/lib.rs" ]
@@ -90,6 +98,7 @@ ohos_rust_shared_library("mdns_ani") {
   external_deps = [
     "runtime_core:ani",
     "hilog:hilog_rust",
+    "hilog:libhilog",
     "netmanager_base:ani_rs",
     "rust_cxx:lib"
   ]

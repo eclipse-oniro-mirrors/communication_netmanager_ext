@@ -18,39 +18,37 @@ mod ethernet;
 mod register;
 pub mod wrapper;
 
-use std::ffi::{c_char, CString};
-use std::panic;
-use std::sync::OnceLock;
-
-static PANIC_HOOK_INSTALLED: OnceLock<()> = OnceLock::new();
-
-#[no_mangle]
-extern "C" fn EthernetAniRegister() {
-    PANIC_HOOK_INSTALLED.get_or_init(|| {
-        panic::set_hook(Box::new(|info| {
-            let location = info.location().map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
-                .unwrap_or_else(|| "unknown".to_string());
-            let message = info.payload().downcast_ref::<&str>().map(|s| s.to_string())
-                .or_else(|| info.payload().downcast_ref::<String>().cloned())
-                .unwrap_or_else(|| "unknown".to_string());
-            ethernet_error!("Panic occurred at {}: {}", location, message);
-        }));
-    });
-}
-
 ani_rs::ani_constructor! {
     namespace "@ohos.net.ethernet.ethernet"
     [
-        "isEthernetEnabledSyncNative": ethernet::is_ethernet_enabled,
-        "disableEthernetInterfaceSyncNative": ethernet::disable_ethernet_interface,
-        "enableEthernetInterfaceSyncNative": ethernet::enable_ethernet_interface,
-        "getAllActiveIfacesSyncNative": ethernet::get_all_active_ifaces,
-        "isIfaceActiveSyncNative": ethernet::is_iface_active,
-        "getIfaceConfigSyncNative": ethernet::get_iface_config,
-        "setIfaceConfigSyncNative": ethernet::set_iface_config,
-        "getEthernetDeviceInfosSyncNative": ethernet::get_ethernet_device_infos,
-        "getMacAddressSyncNative": ethernet::get_mac_address,
+        "isEthernetEnabledNative": ethernet::is_ethernet_enabled,
+        "disableEthernetInterfaceNative": ethernet::disable_ethernet_interface,
+        "enableEthernetInterfaceNative": ethernet::enable_ethernet_interface,
+        "getAllActiveIfacesNative": ethernet::get_all_active_ifaces,
+        "isIfaceActiveNative": ethernet::is_iface_active,
+        "getIfaceConfigNative": ethernet::get_iface_config,
+        "setIfaceConfigNative": ethernet::set_iface_config,
+        "getEthernetDeviceInfosNative": ethernet::get_ethernet_device_infos,
+        "getMacAddressNative": ethernet::get_mac_address,
         "onInterfaceStateChangeNative": register::on_interface_state_change,
         "offInterfaceStateChangeNative": register::off_interface_state_change,
     ]
 }
+
+const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
+    log_type: hilog_rust::LogType::LogCore,
+    domain: 0xD0015B0,
+    tag: "NETMANAGER_EXT",
+};
+
+#[used]
+#[link_section = ".init_array"]
+static G_ETHERNET_PANIC_HOOK: extern "C" fn() = {
+    #[link_section = ".text.startup"]
+    extern "C" fn init() {
+        std::panic::set_hook(Box::new(|info| {
+            ethernet_error!("Panic occurred: {:?}", info);
+        }));
+    }
+    init
+};

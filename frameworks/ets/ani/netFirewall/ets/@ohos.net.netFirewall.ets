@@ -18,16 +18,117 @@ import { BusinessError }  from '@ohos.base';
 export default namespace netFirewall {
   loadLibrary("netFirewall_ani")
 
-  function toBusinessError(err: Error): BusinessError {
-    let businessErr = new BusinessError();
-    businessErr.code = err.code ?? 0;
-    businessErr.message = err.message ?? '';
-    businessErr.stack = err.stack ?? '';
-    businessErr.cause = err;
-    return businessErr;
+  export native function setNetFirewallPolicySync(userId: int, policy: NetFirewallPolicy): void;
+
+  export function setNetFirewallPolicy(userId: int, policy: NetFirewallPolicy): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        taskpool.execute((): void => {
+            return setNetFirewallPolicySync(userId, policy);
+        }).then(() => {
+            resolve(undefined);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
   }
 
-  // ==================== Enums ====================
+  export native function getNetFirewallPolicySync(userId: int): NetFirewallPolicy;
+
+  export function getNetFirewallPolicy(userId: int): Promise<NetFirewallPolicy> {
+    return new Promise<NetFirewallPolicy>((resolve, reject) => {
+        taskpool.execute((): NetFirewallPolicy => {
+            return getNetFirewallPolicySync(userId);
+        }).then((content: Any) => {
+            resolve(content as NetFirewallPolicy);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
+  }
+
+  export native function addNetFirewallRuleSync(rule: NetFirewallRule): int;
+
+  export function addNetFirewallRule(rule: NetFirewallRule): Promise<int> {
+    return new Promise<int>((resolve, reject) => {
+        taskpool.execute((): int => {
+            return addNetFirewallRuleSync(rule);
+        }).then((content: Any) => {
+            resolve(content as int);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
+  }
+
+  export native function updateNetFirewallRuleSync(rule: NetFirewallRule): void;
+
+  export function updateNetFirewallRule(rule: NetFirewallRule): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        taskpool.execute((): void => {
+            return updateNetFirewallRuleSync(rule);
+        }).then(() => {
+            resolve(undefined);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
+  }
+
+  export native function removeNetFirewallRuleSync(userId: int, ruleId: int): void;
+
+  export function removeNetFirewallRule(userId: int, ruleId: int): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        taskpool.execute((): void => {
+            return removeNetFirewallRuleSync(userId, ruleId);
+        }).then(() => {
+            resolve(undefined);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
+  }
+
+  export native function getNetFirewallRulesSync(userId: int, requestParam: RequestParam): FirewallRulePage;
+
+  export function getNetFirewallRules(userId: int, requestParam: RequestParam): Promise<FirewallRulePage> {
+    return new Promise<FirewallRulePage>((resolve, reject) => {
+        taskpool.execute((): FirewallRulePage => {
+            return getNetFirewallRulesSync(userId, requestParam);
+        }).then((content: Any) => {
+            resolve(content as FirewallRulePage);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
+  }
+
+  export native function getNetFirewallRuleSync(userId: int, ruleId: int): NetFirewallRule;
+
+  export function getNetFirewallRule(userId: int, ruleId: int): Promise<NetFirewallRule> {
+    return new Promise<NetFirewallRule>((resolve, reject) => {
+        taskpool.execute((): NetFirewallRule => {
+            return getNetFirewallRuleSync(userId, ruleId);
+        }).then((content: Any) => {
+            resolve(content as NetFirewallRule);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
+  }
+
+  export native function getInterceptedRecordsSync(userId: int, requestParam: RequestParam): InterceptedRecordPage;
+
+  export function getInterceptedRecords(userId: int, requestParam: RequestParam): Promise<InterceptedRecordPage> {
+    return new Promise<InterceptedRecordPage>((resolve, reject) => {
+        taskpool.execute((): InterceptedRecordPage => {
+            return getInterceptedRecordsSync(userId, requestParam);
+        }).then((content: Any) => {
+            resolve(content as InterceptedRecordPage);
+        }, (err: Error): void => {
+            reject(err as BusinessError);
+        });
+    });
+  }
 
   export enum NetFirewallRuleDirection {
     RULE_IN = 1,
@@ -55,18 +156,16 @@ export default namespace netFirewall {
     ORDER_DESC = 100
   }
 
-  // ==================== Interfaces ====================
-
-  export interface RequestParam {
-    page: int;
-    pageSize: int;
-    orderField: NetFirewallOrderField;
-    orderType: NetFirewallOrderType;
+  export interface NetFirewallPolicy {
+    isOpen: boolean;
+    inAction: FirewallRuleAction;
+    outAction: FirewallRuleAction;
   }
 
-  export interface NetFirewallDnsParams {
-    primaryDns: string;
-    standbyDns?: string;
+  export class NetFirewallPolicyInner implements NetFirewallPolicy {
+    isOpen: boolean;
+    inAction: FirewallRuleAction;
+    outAction: FirewallRuleAction;
   }
 
   export interface NetFirewallIpParams {
@@ -78,14 +177,43 @@ export default namespace netFirewall {
     endIp?: string;
   }
 
-  export interface NetFirewallDomainParams {
-    isWildcard: boolean;
-    domain: string;
+  export class NetFirewallIpParamsInner implements NetFirewallIpParams {
+    type: int;
+    family?: int;
+    address?: string;
+    mask?: int;
+    startIp?: string;
+    endIp?: string;
   }
 
   export interface NetFirewallPortParams {
     startPort: int;
     endPort: int;
+  }
+
+  export class NetFirewallPortParamsInner implements NetFirewallPortParams {
+    startPort: int;
+    endPort: int;
+  }
+
+  export interface NetFirewallDomainParams {
+    isWildcard: boolean;
+    domain: string;
+  }
+
+  export class NetFirewallDomainParamsInner implements NetFirewallDomainParams {
+    isWildcard: boolean;
+    domain: string;
+  }
+
+  export interface NetFirewallDnsParams {
+    primaryDns: string;
+    standbyDns?: string;
+  }
+
+  export class NetFirewallDnsParamsInner implements NetFirewallDnsParams {
+    primaryDns: string;
+    standbyDns?: string;
   }
 
   export interface NetFirewallRule {
@@ -105,16 +233,31 @@ export default namespace netFirewall {
     remotePorts?: Array<NetFirewallPortParams>;
     domains?: Array<NetFirewallDomainParams>;
     dns?: NetFirewallDnsParams;
+    iface?: string;
   }
 
-  export interface NetFirewallPolicy {
-    isOpen: boolean;
-    inAction: FirewallRuleAction;
-    outAction: FirewallRuleAction;
+  export class NetFirewallRuleInner implements NetFirewallRule {
+    userId: int;
+    name: string;
+    direction: NetFirewallRuleDirection;
+    action: FirewallRuleAction;
+    type: NetFirewallRuleType;
+    isEnabled: boolean;
+    id?: int;
+    description?: string;
+    appUid?: int;
+    localIps?: Array<NetFirewallIpParams>;
+    remoteIps?: Array<NetFirewallIpParams>;
+    protocol?: int;
+    localPorts?: Array<NetFirewallPortParams>;
+    remotePorts?: Array<NetFirewallPortParams>;
+    domains?: Array<NetFirewallDomainParams>;
+    dns?: NetFirewallDnsParams;
+    iface?: string;
   }
 
   export interface InterceptedRecord {
-    time: int;
+    time: long;
     localIp?: string;
     remoteIp?: string;
     localPort?: int;
@@ -124,7 +267,39 @@ export default namespace netFirewall {
     domain?: string;
   }
 
+  export class InterceptedRecordInner implements InterceptedRecord {
+    time: long;
+    localIp?: string;
+    remoteIp?: string;
+    localPort?: int;
+    remotePort?: int;
+    protocol?: int;
+    appUid?: int;
+    domain?: string;
+  }
+
+  export interface RequestParam {
+    page: int;
+    pageSize: int;
+    orderField: NetFirewallOrderField;
+    orderType: NetFirewallOrderType;
+  }
+
+  export class RequestParamInner implements RequestParam {
+    page: int;
+    pageSize: int;
+    orderField: NetFirewallOrderField;
+    orderType: NetFirewallOrderType;
+  }
+
   export interface FirewallRulePage {
+    page: int;
+    pageSize: int;
+    totalPage: int;
+    data: Array<NetFirewallRule>;
+  }
+
+  export class FirewallRulePageInner implements FirewallRulePage {
     page: int;
     pageSize: int;
     totalPage: int;
@@ -138,120 +313,10 @@ export default namespace netFirewall {
     data: Array<InterceptedRecord>;
   }
 
-  // ==================== Native Sync Functions ====================
-
-  export native function setNetFirewallPolicySync(userId: int, policy: NetFirewallPolicy): void;
-  export native function getNetFirewallPolicySync(userId: int): NetFirewallPolicy;
-  export native function addNetFirewallRuleSync(rule: NetFirewallRule): int;
-  export native function updateNetFirewallRuleSync(rule: NetFirewallRule): void;
-  export native function removeNetFirewallRuleSync(userId: int, ruleId: int): void;
-  export native function getNetFirewallRulesSync(userId: int, requestParam: RequestParam): FirewallRulePage;
-  export native function getNetFirewallRuleSync(userId: int, ruleId: int): NetFirewallRule;
-  export native function getInterceptedRecordsSync(userId: int, requestParam: RequestParam): InterceptedRecordPage;
-
-  // ==================== Async Functions ====================
-
-  // ---------- setNetFirewallPolicy ----------
-  export function setNetFirewallPolicy(userId: int, policy: NetFirewallPolicy): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-            setNetFirewallPolicySync(userId, policy);
-        }).then(() => {
-            resolve(undefined);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
-  }
-
-  // ---------- getNetFirewallPolicy ----------
-  export function getNetFirewallPolicy(userId: int): Promise<NetFirewallPolicy> {
-    return new Promise<NetFirewallPolicy>((resolve, reject) => {
-        taskpool.execute(() => {
-            return getNetFirewallPolicySync(userId);
-        }).then((content: Any) => {
-            resolve(content as NetFirewallPolicy);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
-  }
-
-  // ---------- addNetFirewallRule ----------
-  export function addNetFirewallRule(rule: NetFirewallRule): Promise<int> {
-    return new Promise<int>((resolve, reject) => {
-        taskpool.execute(() => {
-            return addNetFirewallRuleSync(rule);
-        }).then((content: Any) => {
-            resolve(content as int);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
-  }
-
-  // ---------- updateNetFirewallRule ----------
-  export function updateNetFirewallRule(rule: NetFirewallRule): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-            updateNetFirewallRuleSync(rule);
-        }).then(() => {
-            resolve(undefined);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
-  }
-
-  // ---------- removeNetFirewallRule ----------
-  export function removeNetFirewallRule(userId: int, ruleId: int): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-            removeNetFirewallRuleSync(userId, ruleId);
-        }).then(() => {
-            resolve(undefined);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
-  }
-
-  // ---------- getNetFirewallRules ----------
-  export function getNetFirewallRules(userId: int, requestParam: RequestParam): Promise<FirewallRulePage> {
-    return new Promise<FirewallRulePage>((resolve, reject) => {
-        taskpool.execute(() => {
-            return getNetFirewallRulesSync(userId, requestParam);
-        }).then((content: Any) => {
-            resolve(content as FirewallRulePage);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
-  }
-
-  // ---------- getNetFirewallRule ----------
-  export function getNetFirewallRule(userId: int, ruleId: int): Promise<NetFirewallRule> {
-    return new Promise<NetFirewallRule>((resolve, reject) => {
-        taskpool.execute(() => {
-            return getNetFirewallRuleSync(userId, ruleId);
-        }).then((content: Any) => {
-            resolve(content as NetFirewallRule);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
-  }
-
-  // ---------- getInterceptedRecords ----------
-  export function getInterceptedRecords(userId: int, requestParam: RequestParam): Promise<InterceptedRecordPage> {
-    return new Promise<InterceptedRecordPage>((resolve, reject) => {
-        taskpool.execute(() => {
-            return getInterceptedRecordsSync(userId, requestParam);
-        }).then((content: Any) => {
-            resolve(content as InterceptedRecordPage);
-        }, (err: Error): void => {
-            reject(toBusinessError(err));
-        });
-    });
+  export class InterceptedRecordPageInner implements InterceptedRecordPage {
+    page: int;
+    pageSize: int;
+    totalPage: int;
+    data: Array<InterceptedRecord>;
   }
 }

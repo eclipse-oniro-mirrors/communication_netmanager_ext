@@ -13,203 +13,101 @@
  * limitations under the License.
  */
 
-
 import type { AsyncCallback, Callback } from '@ohos.base';
 import type connection from '@ohos.net.connection';
-import { BusinessError }  from '@ohos.base';
-
-function toBusinessError(err: Error): BusinessError {
-  let businessErr = new BusinessError();
-  businessErr.code = err.code ?? 0;
-  businessErr.message = err.message ?? '';
-  businessErr.stack = err.stack ?? '';
-  businessErr.cause = err;
-  return businessErr;
-}
+import UIAbilityContext from 'application.UIAbilityContext';
+import { BusinessError } from '@ohos.base';
 
 export default namespace vpn {
-  export type AbilityContext = Object;
+  loadLibrary('vpn_ani');
+
   export type NetAddress = connection.NetAddress;
   export type LinkAddress = connection.LinkAddress;
   export type RouteInfo = connection.RouteInfo;
 
-  loadLibrary("vpn_ani")
+  export class Cleaner {
+    private nativePtr: long = 0;
 
-  export native function createVpnConnectionSync():int;
-
-  export function createVpnConnection(context: AbilityContext): VpnConnection {
-    let ret = createVpnConnectionSync();
-    if (ret != 0) {
-      throw new BusinessError(ret, 'System internal error.');
+    constructor(nativePtr: long) {
+      this.nativePtr = nativePtr;
     }
-    return new VpnConnection();
+
+    native clean(): void;
   }
 
-  export native function setUpSync(config: VpnConfig):int;
-
-  export function setUp(config: VpnConfig, callback: AsyncCallback<int>): void {
-    let p1 = taskpool.execute((): int => {
-      return setUpSync(config);
-    })
-    p1.then((content: Any) => {
-      callback(null, content as int);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), 0);
+  let destroyRegister: FinalizationRegistry<Cleaner> =
+    new FinalizationRegistry<Cleaner>((cleaner: Cleaner): void => {
+      cleaner.clean();
     });
+  let unregisterToken: object = new Object();
+
+  export native function createVpnConnectionSync(context: UIAbilityContext): VpnConnection;
+
+  export function createVpnConnection(context: UIAbilityContext): VpnConnection {
+    return createVpnConnectionSync(context);
   }
 
-  export function setUp(config: VpnConfig): Promise<int> {
-    return new Promise<int>((resolve, reject) => {
-      taskpool.execute((): int => {
-        return setUpSync(config);
-      }).then((content: Any) => {
-        resolve(content as int);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
-      });
-    });
+  export native function onConnectSync(callback: Callback<VpnConnectState>): void;
+
+  export function onConnect(callback: Callback<VpnConnectState>): void {
+    return onConnectSync(callback);
   }
 
-  export native function protectSync(socketFd: int):int;
+  export native function onConnectMultiSync(callback: Callback<MultiVpnConnectState>): void;
 
-  export function protect(socketFd: int, callback: AsyncCallback<void>): void {
-    let p1 = taskpool.execute(() => {
-      protectSync(socketFd);
-    })
-    p1.then(() => {
-      callback(null, undefined);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
-    });
+  export function onConnectMulti(callback: Callback<MultiVpnConnectState>): void {
+    return onConnectMultiSync(callback);
   }
 
-  export function protect(socketFd: int): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      taskpool.execute(() => {
-        protectSync(socketFd);
-      }).then(() => {
-        resolve(undefined);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
-      });
-    });
-  }
+  export native function offConnectSync(callback?: Callback<VpnConnectState>): void;
 
-  export native function destroySync():int;
-
-  export function destroy(callback: AsyncCallback<void>): void {
-    let p1 = taskpool.execute(() => {
-      destroySync();
-    })
-    p1.then(() => {
-      callback(null, undefined);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
-    });
-  }
-
-  export function destroy(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      taskpool.execute(() => {
-        destroySync();
-      }).then(() => {
-        resolve(undefined);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
-      });
-    });
-  }
-
-  export native function addSysVpnConfigSync(config: SysVpnConfig):int;
-
-  export function addSysVpnConfig(config: SysVpnConfig, callback: AsyncCallback<void>): void {
-    let password = config.password;
-    let pkcs12Password = config.pkcs12Password;
-    if (password && password.length > 256) {
-      callback(new BusinessError(401, 'Parameter error: password too long'), undefined);
-      return;
+  export function offConnect(callback?: Callback<VpnConnectState>): void {
+    if (callback === undefined) {
+      offConnectSync();
+    } else {
+      offConnectSync(callback);
     }
-    if (pkcs12Password && pkcs12Password.length > 256) {
-      callback(new BusinessError(401, 'Parameter error: pkcs12Password too long'), undefined);
-      return;
-    }
-    let p1 = taskpool.execute(() => {
-      addSysVpnConfigSync(config);
-    })
-    p1.then(() => {
-      callback(null, undefined);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
-    });
   }
+
+  export native function offConnectMultiSync(callback?: Callback<MultiVpnConnectState>): void;
+
+  export function offConnectMulti(callback?: Callback<MultiVpnConnectState>): void {
+    if (callback === undefined) {
+      offConnectMultiSync();
+    } else {
+      offConnectMultiSync(callback);
+    }
+  }
+
+  export native function addSysVpnConfigSync(config: SysVpnConfig): void;
 
   export function addSysVpnConfig(config: SysVpnConfig): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      let password = config.password;
-      let pkcs12Password = config.pkcs12Password;
-      if (password && password.length > 256) {
-        reject(new BusinessError(401, 'Parameter error: password too long'));
-      } else if (pkcs12Password && pkcs12Password.length > 256) {
-        reject(new BusinessError(401, 'Parameter error: pkcs12Password too long'));
-      } else {
-        taskpool.execute(() => {
-          addSysVpnConfigSync(config);
-        }).then(() => {
-          resolve(undefined);
-        }).catch((err: Error) => {
-          reject(toBusinessError(err));
-        });
-      }
-    });
-  }
-
-  export native function deleteSysVpnConfigSync(vpnId: string):int;
-
-  export function deleteSysVpnConfig(vpnId: string, callback: AsyncCallback<void>): void {
-    if (!vpnId || vpnId.length === 0) {
-      let err = new BusinessError(401, 'Invalid parameter: vpnId is empty or undefined');
-      callback(err, undefined);
-      return;
-    }
-    let p1 = taskpool.execute(() => {
-      deleteSysVpnConfigSync(vpnId);
-    })
-    p1.then(() => {
-      callback(null, undefined);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
-    });
-  }
-
-  export function deleteSysVpnConfig(vpnId: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (!vpnId || vpnId.length === 0) {
-        let err = new BusinessError(401, 'Invalid parameter: vpnId is empty or undefined');
-        reject(err);
-        return;
-      }
-      taskpool.execute(() => {
-        deleteSysVpnConfigSync(vpnId);
-      }).then(() => {
+      taskpool.execute((): void => {
+        return addSysVpnConfigSync(config);
+      }).then((content: Any) => {
         resolve(undefined);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
+      }, (err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
-  export native function getSysVpnConfigListSync():Array<SysVpnConfig>;
+  export native function deleteSysVpnConfigSync(vpnId: string): void;
 
-  export function getSysVpnConfigList(callback: AsyncCallback<Array<SysVpnConfig>>): void {
-    let p1 = taskpool.execute((): Array<SysVpnConfig> => {
-      return getSysVpnConfigListSync();
-    })
-    p1.then((content: Any) => {
-      callback(null, content as Array<SysVpnConfig>);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
+  export function deleteSysVpnConfig(vpnId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      taskpool.execute((): void => {
+        return deleteSysVpnConfigSync(vpnId);
+      }).then((content: Any) => {
+        resolve(undefined);
+      }, (err: Error): void => {
+        reject(err as BusinessError);
+      });
     });
   }
+
+  export native function getSysVpnConfigListSync(): Array<SysVpnConfig>;
 
   export function getSysVpnConfigList(): Promise<Array<SysVpnConfig>> {
     return new Promise<Array<SysVpnConfig>>((resolve, reject) => {
@@ -217,59 +115,27 @@ export default namespace vpn {
         return getSysVpnConfigListSync();
       }).then((content: Any) => {
         resolve(content as Array<SysVpnConfig>);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
+      }, (err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
-  export native function getSysVpnConfigSync(vpnId: string):SysVpnConfig;
-
-  export function getSysVpnConfig(vpnId: string, callback: AsyncCallback<SysVpnConfig>): void {
-    if (!vpnId || vpnId.length === 0) {
-      let err = new BusinessError(401, 'Invalid parameter: vpnId is empty or undefined');
-      callback(err, undefined);
-      return;
-    }
-    let p1 = taskpool.execute((): SysVpnConfig => {
-      return getSysVpnConfigSync(vpnId);
-    })
-    p1.then((content: Any) => {
-      callback(null, content as SysVpnConfig);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
-    });
-  }
+  export native function getSysVpnConfigSync(vpnId: string): SysVpnConfig;
 
   export function getSysVpnConfig(vpnId: string): Promise<SysVpnConfig> {
     return new Promise<SysVpnConfig>((resolve, reject) => {
-      if (!vpnId || vpnId.length === 0) {
-        let err = new BusinessError(401, 'Invalid parameter: vpnId is empty or undefined');
-        reject(err);
-        return;
-      }
       taskpool.execute((): SysVpnConfig => {
         return getSysVpnConfigSync(vpnId);
       }).then((content: Any) => {
         resolve(content as SysVpnConfig);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
+      }, (err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
-  export native function getConnectedSysVpnConfigSync():SysVpnConfig;
-
-  export function getConnectedSysVpnConfig(callback: AsyncCallback<SysVpnConfig>): void {
-    let p1 = taskpool.execute((): SysVpnConfig => {
-      return getConnectedSysVpnConfigSync();
-    })
-    p1.then((content: Any) => {
-      callback(null, content as SysVpnConfig);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
-    });
-  }
+  export native function getConnectedSysVpnConfigSync(): SysVpnConfig;
 
   export function getConnectedSysVpnConfig(): Promise<SysVpnConfig> {
     return new Promise<SysVpnConfig>((resolve, reject) => {
@@ -277,24 +143,13 @@ export default namespace vpn {
         return getConnectedSysVpnConfigSync();
       }).then((content: Any) => {
         resolve(content as SysVpnConfig);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
+      }, (err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
-  export native function getConnectedVpnAppInfoSync():Array<string>;
-
-  export function getConnectedVpnAppInfo(callback: AsyncCallback<Array<string>>): void {
-    let p1 = taskpool.execute((): Array<string> => {
-      return getConnectedVpnAppInfoSync();
-    })
-    p1.then((content: Any) => {
-      callback(null, content as Array<string>);
-    }).catch((err: Error) => {
-      callback(toBusinessError(err), undefined);
-    });
-  }
+  export native function getConnectedVpnAppInfoSync(): Array<string>;
 
   export function getConnectedVpnAppInfo(): Promise<Array<string>> {
     return new Promise<Array<string>>((resolve, reject) => {
@@ -302,119 +157,133 @@ export default namespace vpn {
         return getConnectedVpnAppInfoSync();
       }).then((content: Any) => {
         resolve(content as Array<string>);
-      }).catch((err: Error) => {
-        reject(toBusinessError(err));
+      }, (err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
-  export function on(type: 'connect' | 'connectMulti', callback: Callback<VpnConnectState | MultiVpnConnectState>): void {
-    if (type == 'connect') {
-      onConnect(callback as Callback<VpnConnectState>);
-    } else if (type == 'connectMulti') {
-      onConnectMulti(callback as Callback<MultiVpnConnectState>);
-    }
+  export interface VpnConnection {
+    setUp(config: VpnConfig, callback: AsyncCallback<int>): void;
+    setUp(config: VpnConfig): Promise<int>;
+    protect(socketFd: int, callback: AsyncCallback<void>): void;
+    protect(socketFd: int): Promise<void>;
+    destroy(callback: AsyncCallback<void>): void;
+    destroy(): Promise<void>;
   }
 
-  export function off(type: 'connect' | 'connectMulti', callback?: Callback<VpnConnectState | MultiVpnConnectState>): void {
-    if (type == 'connect') {
-      offConnect(callback as Callback<VpnConnectState>);
-    } else if (type == 'connectMulti') {
-      offConnectMulti(callback as Callback<MultiVpnConnectState>);
+  export class VpnConnectionInner implements VpnConnection {
+    private nativePtr: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    constructor(context: long) {
+      if (this.nativePtr === 0) {
+        this.nativePtr = context;
+      }
+      this.registerCleaner(this.nativePtr);
     }
-  }
 
-  export native function onConnect(callback: Callback<VpnConnectState>): void;
+    registerCleaner(nativePtr: long): void {
+      this.cleaner = new Cleaner(nativePtr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
 
-  export native function offConnect(callback?: Callback<VpnConnectState>): void;
+    unregisterCleaner(): void {
+      destroyRegister.unregister(unregisterToken);
+    }
 
-  export native function onConnectMulti(callback: Callback<MultiVpnConnectState>): void;
+    native setUpSync(config: VpnConfig): int;
 
-  export native function offConnectMulti(callback?: Callback<MultiVpnConnectState>): void;
-
-  export class VpnConnection {
     setUp(config: VpnConfig, callback: AsyncCallback<int>): void {
       let p1 = taskpool.execute((): int => {
-        return setUpSync(config);
-      })
+        return this.setUpSync(config);
+      });
       p1.then((content: Any) => {
-        callback(null, content as int);
-      }).catch((err: Error) => {
-        callback(toBusinessError(err), 0);
+        callback(new BusinessError(), content as int);
+      }, (err: Error): void => {
+        callback(err as BusinessError, 0);
       });
     }
 
     setUp(config: VpnConfig): Promise<int> {
       return new Promise<int>((resolve, reject) => {
         taskpool.execute((): int => {
-          return setUpSync(config);
+          return this.setUpSync(config);
         }).then((content: Any) => {
           resolve(content as int);
-        }).catch((err: Error) => {
-          reject(toBusinessError(err));
+        }, (err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     }
 
+    native protectSync(socketFd: int): void;
+
     protect(socketFd: int, callback: AsyncCallback<void>): void {
-      let p1 = taskpool.execute(() => {
-        protectSync(socketFd);
-      })
-      p1.then(() => {
-        callback(null, undefined);
-      }).catch((err: Error) => {
-        callback(toBusinessError(err), undefined);
+      let p1 = taskpool.execute((): void => {
+        return this.protectSync(socketFd);
+      });
+      p1.then((content: Any) => {
+        callback(new BusinessError(), undefined);
+      }, (err: Error): void => {
+        callback(err as BusinessError, undefined);
       });
     }
 
     protect(socketFd: int): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-          protectSync(socketFd);
-        }).then(() => {
+        taskpool.execute((): void => {
+          return this.protectSync(socketFd);
+        }).then((content: Any) => {
           resolve(undefined);
-        }).catch((err: Error) => {
-          reject(toBusinessError(err));
+        }, (err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     }
 
+    native destroySync(): void;
+
     destroy(callback: AsyncCallback<void>): void {
-      let p1 = taskpool.execute(() => {
-        destroySync();
-      })
-      p1.then(() => {
-        callback(null, undefined);
-      }).catch((err: Error) => {
-        callback(toBusinessError(err), undefined);
+      let p1 = taskpool.execute((): void => {
+        return this.destroySync();
+      });
+      p1.then((content: Any) => {
+        callback(new BusinessError(), undefined);
+      }, (err: Error): void => {
+        callback(err as BusinessError, undefined);
       });
     }
 
     destroy(): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-          destroySync();
-        }).then(() => {
+        taskpool.execute((): void => {
+          return this.destroySync();
+        }).then((content: Any) => {
           resolve(undefined);
-        }).catch((err: Error) => {
-          reject(toBusinessError(err));
+        }, (err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     }
   }
 
-  export enum VpnConnectState {
-    CONNECTED = 0,
-    DISCONNECTED = 1,
-  }
-
-  export interface MultiVpnConnectState {
-    isConnected: boolean;
-    bundleName: string;
-    vpnId: string;
-  }
-
   export interface VpnConfig {
+    vpnId?: string;
+    addresses: Array<LinkAddress>;
+    routes?: Array<RouteInfo>;
+    dnsAddresses?: Array<string>;
+    searchDomains?: Array<string>;
+    mtu?: int;
+    isIPv4Accepted?: boolean;
+    isIPv6Accepted?: boolean;
+    isLegacy?: boolean;
+    isBlocking?: boolean;
+    trustedApplications?: Array<string>;
+    blockedApplications?: Array<string>;
+  }
+
+  export class VpnConfigInner implements VpnConfig {
     vpnId?: string;
     addresses: Array<LinkAddress>;
     routes?: Array<RouteInfo>;
@@ -444,6 +313,32 @@ export default namespace vpn {
     pkcs12FileData?: Uint8Array;
   }
 
+  export class SysVpnConfigInner implements SysVpnConfig {
+    addresses: Array<LinkAddress>;
+    routes?: Array<RouteInfo>;
+    dnsAddresses?: Array<string>;
+    searchDomains?: Array<string>;
+    mtu?: int;
+    isIPv4Accepted?: boolean;
+    isIPv6Accepted?: boolean;
+    isLegacy?: boolean;
+    isBlocking?: boolean;
+    trustedApplications?: Array<string>;
+    blockedApplications?: Array<string>;
+    vpnId?: string;
+    vpnName?: string;
+    vpnType?: SysVpnType;
+    userName?: string;
+    password?: string;
+    saveLogin?: boolean;
+    userId?: int;
+    forwardingRoutes?: string;
+    remoteAddresses?: Array<string>;
+    localAddresses?: Array<LinkAddress>;
+    pkcs12Password?: string;
+    pkcs12FileData?: Uint8Array;
+  }
+
   export interface OpenVpnConfig extends SysVpnConfig {
     ovpnPort?: string;
     ovpnProtocol?: int;
@@ -456,7 +351,82 @@ export default namespace vpn {
     ovpnPrivateKeyFilePath?: string;
   }
 
+  export class OpenVpnConfigInner implements OpenVpnConfig {
+    addresses: Array<LinkAddress>;
+    routes?: Array<RouteInfo>;
+    dnsAddresses?: Array<string>;
+    searchDomains?: Array<string>;
+    mtu?: int;
+    isIPv4Accepted?: boolean;
+    isIPv6Accepted?: boolean;
+    isLegacy?: boolean;
+    isBlocking?: boolean;
+    trustedApplications?: Array<string>;
+    blockedApplications?: Array<string>;
+    vpnId?: string;
+    vpnName?: string;
+    vpnType?: SysVpnType;
+    userName?: string;
+    password?: string;
+    saveLogin?: boolean;
+    userId?: int;
+    forwardingRoutes?: string;
+    remoteAddresses?: Array<string>;
+    localAddresses?: Array<LinkAddress>;
+    pkcs12Password?: string;
+    pkcs12FileData?: Uint8Array;
+    ovpnPort?: string;
+    ovpnProtocol?: int;
+    ovpnConfig?: string;
+    ovpnAuthType?: int;
+    askpass?: string;
+    ovpnConfigFilePath?: string;
+    ovpnCaCertFilePath?: string;
+    ovpnUserCertFilePath?: string;
+    ovpnPrivateKeyFilePath?: string;
+  }
+
   export interface IpsecVpnConfig extends SysVpnConfig {
+    ipsecPreSharedKey?: string;
+    ipsecIdentifier?: string;
+    swanctlConfig?: string;
+    strongSwanConfig?: string;
+    ipsecCaCertConfig?: string;
+    ipsecPrivateUserCertConfig?: string;
+    ipsecPublicUserCertConfig?: string;
+    ipsecPrivateServerCertConfig?: string;
+    ipsecPublicServerCertConfig?: string;
+    ipsecCaCertFilePath?: string;
+    ipsecPrivateUserCertFilePath?: string;
+    ipsecPublicUserCertFilePath?: string;
+    ipsecPrivateServerCertFilePath?: string;
+    ipsecPublicServerCertFilePath?: string;
+  }
+
+  export class IpsecVpnConfigInner implements IpsecVpnConfig {
+    addresses: Array<LinkAddress>;
+    routes?: Array<RouteInfo>;
+    dnsAddresses?: Array<string>;
+    searchDomains?: Array<string>;
+    mtu?: int;
+    isIPv4Accepted?: boolean;
+    isIPv6Accepted?: boolean;
+    isLegacy?: boolean;
+    isBlocking?: boolean;
+    trustedApplications?: Array<string>;
+    blockedApplications?: Array<string>;
+    vpnId?: string;
+    vpnName?: string;
+    vpnType?: SysVpnType;
+    userName?: string;
+    password?: string;
+    saveLogin?: boolean;
+    userId?: int;
+    forwardingRoutes?: string;
+    remoteAddresses?: Array<string>;
+    localAddresses?: Array<LinkAddress>;
+    pkcs12Password?: string;
+    pkcs12FileData?: Uint8Array;
     ipsecPreSharedKey?: string;
     ipsecIdentifier?: string;
     swanctlConfig?: string;
@@ -494,8 +464,7 @@ export default namespace vpn {
     l2tpSharedKey?: string;
   }
 
-  export class VpnConfigInner implements VpnConfig {
-    vpnId?: string;
+  export class L2tpVpnConfigInner implements L2tpVpnConfig {
     addresses: Array<LinkAddress>;
     routes?: Array<RouteInfo>;
     dnsAddresses?: Array<string>;
@@ -507,9 +476,6 @@ export default namespace vpn {
     isBlocking?: boolean;
     trustedApplications?: Array<string>;
     blockedApplications?: Array<string>;
-  }
-
-  export class SysVpnConfigInner implements SysVpnConfig {
     vpnId?: string;
     vpnName?: string;
     vpnType?: SysVpnType;
@@ -522,81 +488,8 @@ export default namespace vpn {
     localAddresses?: Array<LinkAddress>;
     pkcs12Password?: string;
     pkcs12FileData?: Uint8Array;
-    addresses: Array<LinkAddress>;
-    routes?: Array<RouteInfo>;
-    dnsAddresses?: Array<string>;
-    searchDomains?: Array<string>;
-    mtu?: int;
-    isIPv4Accepted?: boolean;
-    isIPv6Accepted?: boolean;
-    isLegacy?: boolean;
-    isBlocking?: boolean;
-    trustedApplications?: Array<string>;
-    blockedApplications?: Array<string>;
-  }
-
-  export class OpenVpnConfigInner implements SysVpnConfig {
-    vpnId?: string;
-    vpnName?: string;
-    vpnType?: SysVpnType;
-    userName?: string;
-    password?: string;
-    saveLogin?: boolean;
-    userId?: int;
-    forwardingRoutes?: string;
-    remoteAddresses?: Array<string>;
-    localAddresses?: Array<LinkAddress>;
-    pkcs12Password?: string;
-    pkcs12FileData?: Uint8Array;
-    addresses: Array<LinkAddress>;
-    routes?: Array<RouteInfo>;
-    dnsAddresses?: Array<string>;
-    searchDomains?: Array<string>;
-    mtu?: int;
-    isIPv4Accepted?: boolean;
-    isIPv6Accepted?: boolean;
-    isLegacy?: boolean;
-    isBlocking?: boolean;
-    trustedApplications?: Array<string>;
-    blockedApplications?: Array<string>;
-    ovpnPort?: string;
-    ovpnProtocol?: int;
-    ovpnConfig?: string;
-    ovpnAuthType?: int;
-    askpass?: string;
-    ovpnConfigFilePath?: string;
-    ovpnCaCertFilePath?: string;
-    ovpnUserCertFilePath?: string;
-    ovpnPrivateKeyFilePath?: string;
-  }
-
-  export class IpsecVpnConfigInner implements SysVpnConfig {
-    vpnId?: string;
-    vpnName?: string;
-    vpnType?: SysVpnType;
-    userName?: string;
-    password?: string;
-    saveLogin?: boolean;
-    userId?: int;
-    forwardingRoutes?: string;
-    remoteAddresses?: Array<string>;
-    localAddresses?: Array<LinkAddress>;
-    pkcs12Password?: string;
-    pkcs12FileData?: Uint8Array;
-    addresses: Array<LinkAddress>;
-    routes?: Array<RouteInfo>;
-    dnsAddresses?: Array<string>;
-    searchDomains?: Array<string>;
-    mtu?: int;
-    isIPv4Accepted?: boolean;
-    isIPv6Accepted?: boolean;
-    isLegacy?: boolean;
-    isBlocking?: boolean;
-    trustedApplications?: Array<string>;
-    blockedApplications?: Array<string>;
     ipsecPreSharedKey?: string;
     ipsecIdentifier?: string;
-    swanctlConfig?: string;
     strongSwanConfig?: string;
     ipsecCaCertConfig?: string;
     ipsecPrivateUserCertConfig?: string;
@@ -608,32 +501,6 @@ export default namespace vpn {
     ipsecPublicUserCertFilePath?: string;
     ipsecPrivateServerCertFilePath?: string;
     ipsecPublicServerCertFilePath?: string;
-  }
-
-  export class L2tpVpnConfigInner implements SysVpnConfig {
-    vpnId?: string;
-    vpnName?: string;
-    vpnType?: SysVpnType;
-    userName?: string;
-    password?: string;
-    saveLogin?: boolean;
-    userId?: int;
-    forwardingRoutes?: string;
-    remoteAddresses?: Array<string>;
-    localAddresses?: Array<LinkAddress>;
-    pkcs12Password?: string;
-    pkcs12FileData?: Uint8Array;
-    addresses: Array<LinkAddress>;
-    routes?: Array<RouteInfo>;
-    dnsAddresses?: Array<string>;
-    searchDomains?: Array<string>;
-    mtu?: int;
-    isIPv4Accepted?: boolean;
-    isIPv6Accepted?: boolean;
-    isLegacy?: boolean;
-    isBlocking?: boolean;
-    trustedApplications?: Array<string>;
-    blockedApplications?: Array<string>;
     ipsecConfig?: string;
     ipsecSecrets?: string;
     optionsL2tpdClient?: string;
@@ -650,6 +517,23 @@ export default namespace vpn {
     IPSEC_XAUTH_PSK = 6,
     IPSEC_XAUTH_RSA = 7,
     IPSEC_HYBRID_RSA = 8,
-    OPENVPN = 9,
+    OPENVPN = 9
+  }
+
+  export enum VpnConnectState {
+    VPN_CONNECTED = 1,
+    VPN_DISCONNECTED,
+  }
+
+  export interface MultiVpnConnectState {
+    isConnected: boolean;
+    bundleName: string;
+    vpnId: string;
+  }
+
+  export class MultiVpnConnectStateInner implements MultiVpnConnectState {
+    isConnected: boolean;
+    bundleName: string;
+    vpnId: string;
   }
 }

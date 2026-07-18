@@ -12,29 +12,30 @@
 // limitations under the License.
 
 use std::{
+    collections::HashMap,
     ops::Deref,
     sync::{Mutex, OnceLock},
 };
 
 use ani_rs::{
     business_error::BusinessError,
-    objects::{AniFnObject, GlobalRefCallback},
+    objects::{AniFnObject, AniObject, GlobalRefCallback},
     AniEnv,
 };
 
 use crate::{
     bridge,
-    wrapper::{convert_to_business_error, ffi, MDnsClient},
+    wrapper::{convert_to_business_error, ffi, get_native_ptr},
 };
 
 struct Register {
-    inner: Mutex<Vec<CallbackFlavor>>,
+    inner: Mutex<HashMap<i64, Vec<CallbackFlavor>>>,
 }
 
 impl Register {
     fn new() -> Self {
         Self {
-            inner: Mutex::new(Vec::new()),
+            inner: Mutex::new(HashMap::new()),
         }
     }
 
@@ -43,196 +44,152 @@ impl Register {
         INSTANCE.get_or_init(Register::new)
     }
 
-    pub fn register(&self, callback: CallbackFlavor) -> Result<(), i32> {
+    pub fn register(&self, native_ptr: i64, callback: CallbackFlavor) -> Result<(), i32> {
         let mut inner = self.inner.lock().unwrap();
-
-        if inner.is_empty() {
-            MDnsClient::register_mdns_observer()?;
-        }
-
-        inner.push(callback);
+        inner.entry(native_ptr).or_default().retain(|c| *c != callback);
+        inner.entry(native_ptr).or_default().push(callback);
         Ok(())
     }
 
     pub fn unregister(
         &self,
+        native_ptr: i64,
         callback_ref: Option<CallbackFlavor>,
         event: MdnsEventType,
     ) -> Result<(), i32> {
         let mut inner = self.inner.lock().unwrap();
-        if let Some(callback) = callback_ref {
-            inner.retain(|c| *c != callback)
-        } else {
-            inner.retain(|c| match event {
-                MdnsEventType::EventDiscoveryStart => {
-                    matches!(c, CallbackFlavor::DiscoveryStart(_))
-                }
-                MdnsEventType::EventDiscoveryStop => {
-                    matches!(c, CallbackFlavor::DiscoveryStop(_))
-                }
-                MdnsEventType::EventServiceFound => {
-                    matches!(c, CallbackFlavor::ServiceFound(_))
-                }
-                MdnsEventType::EventServiceLost => {
-                    matches!(c, CallbackFlavor::ServiceLost(_))
-                }
-                MdnsEventType::EventRegisterResult => {
-                    matches!(c, CallbackFlavor::RegisterResult(_))
-                }
-                MdnsEventType::EventResolveResult => {
-                    matches!(c, CallbackFlavor::ResolveResult(_))
-                }
-            })
+        let entry = inner.get_mut(&native_ptr);
+        if let Some(callbacks) = entry {
+            if let Some(callback) = callback_ref {
+                callbacks.retain(|c| *c != callback);
+            } else {
+                callbacks.retain(|c| !event.matches(c));
+            }
+            if callbacks.is_empty() {
+                inner.remove(&native_ptr);
+            }
         }
-
-        if inner.is_empty() {
-            MDnsClient::unregister_mdns_observer()?;
-        }
-
         Ok(())
     }
 
-    pub fn on_discovery_start(&self, info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
+    pub fn on_discovery_start(&self, info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
         let inner = self.inner.lock().unwrap();
         let service_info = bridge::LocalServiceInfo::from(info);
         let event_info = bridge::DiscoveryEventInfo {
             service_info,
             error_code: if ret_code != 0 { Some(ret_code) } else { None },
         };
-        for listen in inner.deref() {
-            if let CallbackFlavor::DiscoveryStart(callback) = listen {
-                callback.execute((event_info.clone(),));
+        if let Some(callbacks) = inner.get(&native_ptr) {
+            for listen in callbacks.deref() {
+                if let CallbackFlavor::DiscoveryStart(callback) = listen {
+                    callback.execute((event_info.clone(),));
+                }
             }
         }
     }
 
-    pub fn on_discovery_stop(&self, info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
+    pub fn on_discovery_stop(&self, info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
         let inner = self.inner.lock().unwrap();
         let service_info = bridge::LocalServiceInfo::from(info);
         let event_info = bridge::DiscoveryEventInfo {
             service_info,
             error_code: if ret_code != 0 { Some(ret_code) } else { None },
         };
-        for listen in inner.deref() {
-            if let CallbackFlavor::DiscoveryStop(callback) = listen {
-                callback.execute((event_info.clone(),));
+        if let Some(callbacks) = inner.get(&native_ptr) {
+            for listen in callbacks.deref() {
+                if let CallbackFlavor::DiscoveryStop(callback) = listen {
+                    callback.execute((event_info.clone(),));
+                }
             }
         }
     }
 
-    pub fn on_service_found(&self, info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
+    pub fn on_service_found(&self, info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
         let inner = self.inner.lock().unwrap();
+        let _ = ret_code;
         let param = bridge::LocalServiceInfo::from(info);
-        for listen in inner.deref() {
-            if let CallbackFlavor::ServiceFound(callback) = listen {
-                callback.execute((param.clone(),));
+        if let Some(callbacks) = inner.get(&native_ptr) {
+            for listen in callbacks.deref() {
+                if let CallbackFlavor::ServiceFound(callback) = listen {
+                    callback.execute((param.clone(),));
+                }
             }
         }
     }
 
-    pub fn on_service_lost(&self, info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
+    pub fn on_service_lost(&self, info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
         let inner = self.inner.lock().unwrap();
+        let _ = ret_code;
         let param = bridge::LocalServiceInfo::from(info);
-        for listen in inner.deref() {
-            if let CallbackFlavor::ServiceLost(callback) = listen {
-                callback.execute((param.clone(),));
-            }
-        }
-    }
-
-    pub fn on_register_result(&self, info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-        let inner = self.inner.lock().unwrap();
-        let event_info = bridge::DiscoveryEventInfo {
-            service_info: bridge::LocalServiceInfo::from(info),
-            error_code: if ret_code != 0 { Some(ret_code) } else { None },
-        };
-        for listen in inner.deref() {
-            if let CallbackFlavor::RegisterResult(callback) = listen {
-                callback.execute((event_info.clone(),));
-            }
-        }
-    }
-
-    pub fn on_resolve_result(&self, info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-        let inner = self.inner.lock().unwrap();
-        let event_info = bridge::DiscoveryEventInfo {
-            service_info: bridge::LocalServiceInfo::from(info),
-            error_code: if ret_code != 0 { Some(ret_code) } else { None },
-        };
-        for listen in inner.deref() {
-            if let CallbackFlavor::ResolveResult(callback) = listen {
-                callback.execute((event_info.clone(),));
+        if let Some(callbacks) = inner.get(&native_ptr) {
+            for listen in callbacks.deref() {
+                if let CallbackFlavor::ServiceLost(callback) = listen {
+                    callback.execute((param.clone(),));
+                }
             }
         }
     }
 }
 
-// ---- FFI callbacks from C++ ----
-
-pub fn execute_discovery_start(info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-    Register::get_instance().on_discovery_start(info, ret_code);
+pub fn execute_discovery_start(info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
+    Register::get_instance().on_discovery_start(info, ret_code, native_ptr);
 }
 
-pub fn execute_discovery_stop(info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-    Register::get_instance().on_discovery_stop(info, ret_code);
+pub fn execute_discovery_stop(info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
+    Register::get_instance().on_discovery_stop(info, ret_code, native_ptr);
 }
 
-pub fn execute_service_found(info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-    Register::get_instance().on_service_found(info, ret_code);
+pub fn execute_service_found(info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
+    Register::get_instance().on_service_found(info, ret_code, native_ptr);
 }
 
-pub fn execute_service_lost(info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-    Register::get_instance().on_service_lost(info, ret_code);
+pub fn execute_service_lost(info: ffi::MDnsServiceInfoAni, ret_code: i32, native_ptr: i64) {
+    Register::get_instance().on_service_lost(info, ret_code, native_ptr);
 }
-
-pub fn execute_register_result(info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-    Register::get_instance().on_register_result(info, ret_code);
-}
-
-pub fn execute_resolve_result(info: ffi::MDnsServiceInfoFFI, ret_code: i32) {
-    Register::get_instance().on_resolve_result(info, ret_code);
-}
-
-// ---- ANI native functions ----
 
 #[ani_rs::native]
-pub fn on_discovery_start(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn on_discovery_start(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::DiscoveryStart(callback);
     Register::get_instance()
-        .register(flavor)
+        .register(native_ptr, flavor)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn on_discovery_stop(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn on_discovery_stop(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::DiscoveryStop(callback);
     Register::get_instance()
-        .register(flavor)
+        .register(native_ptr, flavor)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn on_service_found(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn on_service_found(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::ServiceFound(callback);
     Register::get_instance()
-        .register(flavor)
+        .register(native_ptr, flavor)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn on_service_lost(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn on_service_lost(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::ServiceLost(callback);
     Register::get_instance()
-        .register(flavor)
+        .register(native_ptr, flavor)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn off_discovery_start(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn off_discovery_start(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback_flavor = if env.is_undefined(&callback).unwrap() {
         None
     } else {
@@ -241,12 +198,13 @@ pub fn off_discovery_start(env: &AniEnv, callback: AniFnObject) -> Result<(), Bu
     };
 
     Register::get_instance()
-        .unregister(callback_flavor, MdnsEventType::EventDiscoveryStart)
+        .unregister(native_ptr, callback_flavor, MdnsEventType::EventDiscoveryStart)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn off_discovery_stop(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn off_discovery_stop(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback_flavor = if env.is_undefined(&callback).unwrap() {
         None
     } else {
@@ -255,12 +213,13 @@ pub fn off_discovery_stop(env: &AniEnv, callback: AniFnObject) -> Result<(), Bus
     };
 
     Register::get_instance()
-        .unregister(callback_flavor, MdnsEventType::EventDiscoveryStop)
+        .unregister(native_ptr, callback_flavor, MdnsEventType::EventDiscoveryStop)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn off_service_found(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn off_service_found(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback_flavor = if env.is_undefined(&callback).unwrap() {
         None
     } else {
@@ -269,12 +228,13 @@ pub fn off_service_found(env: &AniEnv, callback: AniFnObject) -> Result<(), Busi
     };
 
     Register::get_instance()
-        .unregister(callback_flavor, MdnsEventType::EventServiceFound)
+        .unregister(native_ptr, callback_flavor, MdnsEventType::EventServiceFound)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn off_service_lost(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+pub fn off_service_lost(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
     let callback_flavor = if env.is_undefined(&callback).unwrap() {
         None
     } else {
@@ -283,53 +243,7 @@ pub fn off_service_lost(env: &AniEnv, callback: AniFnObject) -> Result<(), Busin
     };
 
     Register::get_instance()
-        .unregister(callback_flavor, MdnsEventType::EventServiceLost)
-        .map_err(convert_to_business_error)
-}
-
-#[ani_rs::native]
-pub fn on_register_result(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback = callback.into_global_callback(env).unwrap();
-    let flavor = CallbackFlavor::RegisterResult(callback);
-    Register::get_instance()
-        .register(flavor)
-        .map_err(convert_to_business_error)
-}
-
-#[ani_rs::native]
-pub fn on_resolve_result(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback = callback.into_global_callback(env).unwrap();
-    let flavor = CallbackFlavor::ResolveResult(callback);
-    Register::get_instance()
-        .register(flavor)
-        .map_err(convert_to_business_error)
-}
-
-#[ani_rs::native]
-pub fn off_register_result(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback_flavor = if env.is_undefined(&callback).unwrap() {
-        None
-    } else {
-        let callback_global = callback.into_global_callback(env).unwrap();
-        Some(CallbackFlavor::RegisterResult(callback_global))
-    };
-
-    Register::get_instance()
-        .unregister(callback_flavor, MdnsEventType::EventRegisterResult)
-        .map_err(convert_to_business_error)
-}
-
-#[ani_rs::native]
-pub fn off_resolve_result(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback_flavor = if env.is_undefined(&callback).unwrap() {
-        None
-    } else {
-        let callback_global = callback.into_global_callback(env).unwrap();
-        Some(CallbackFlavor::ResolveResult(callback_global))
-    };
-
-    Register::get_instance()
-        .unregister(callback_flavor, MdnsEventType::EventResolveResult)
+        .unregister(native_ptr, callback_flavor, MdnsEventType::EventServiceLost)
         .map_err(convert_to_business_error)
 }
 
@@ -339,8 +253,6 @@ pub enum CallbackFlavor {
     DiscoveryStop(GlobalRefCallback<(bridge::DiscoveryEventInfo,)>),
     ServiceFound(GlobalRefCallback<(bridge::LocalServiceInfo,)>),
     ServiceLost(GlobalRefCallback<(bridge::LocalServiceInfo,)>),
-    RegisterResult(GlobalRefCallback<(bridge::DiscoveryEventInfo,)>),
-    ResolveResult(GlobalRefCallback<(bridge::DiscoveryEventInfo,)>),
 }
 
 pub enum MdnsEventType {
@@ -348,6 +260,23 @@ pub enum MdnsEventType {
     EventDiscoveryStop,
     EventServiceFound,
     EventServiceLost,
-    EventRegisterResult,
-    EventResolveResult,
+}
+
+impl MdnsEventType {
+    fn matches(&self, flavor: &CallbackFlavor) -> bool {
+        match self {
+            MdnsEventType::EventDiscoveryStart => {
+                matches!(flavor, CallbackFlavor::DiscoveryStart(_))
+            }
+            MdnsEventType::EventDiscoveryStop => {
+                matches!(flavor, CallbackFlavor::DiscoveryStop(_))
+            }
+            MdnsEventType::EventServiceFound => {
+                matches!(flavor, CallbackFlavor::ServiceFound(_))
+            }
+            MdnsEventType::EventServiceLost => {
+                matches!(flavor, CallbackFlavor::ServiceLost(_))
+            }
+        }
+    }
 }

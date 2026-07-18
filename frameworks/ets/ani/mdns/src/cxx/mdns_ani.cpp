@@ -15,17 +15,21 @@
 
 #include "mdns_ani.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 
+#include "ani_base_context.h"
+#include "context.h"
 #include "cxx.h"
 #include "net_manager_ext_constants.h"
 #include "net_manager_constants.h"
 #include "errorcode_convertor.h"
 #include "wrapper.rs.h"
+#include "mdns_common.h"
 
 namespace OHOS {
-namespace NetManagerAni {
+namespace NetManagerStandard {
 
 // Accessor functions for callback maps and mutexes.
 // Using local static variables (Meyers' singleton) ensures deterministic initialization
@@ -36,17 +40,6 @@ std::map<std::string, sptr<MDnsRegistrationCallbackAni>>& GetRegisterCallbackMap
     return map;
 }
 std::mutex& GetRegisterMutex()
-{
-    static std::mutex mtx;
-    return mtx;
-}
-
-std::map<std::string, sptr<MDnsDiscoveryCallbackAni>>& GetDiscoveryCallbackMap()
-{
-    static std::map<std::string, sptr<MDnsDiscoveryCallbackAni>> map;
-    return map;
-}
-std::mutex& GetDiscoveryMutex()
 {
     static std::mutex mtx;
     return mtx;
@@ -63,31 +56,26 @@ std::mutex& GetResolveMutex()
     return mtx;
 }
 
-static sptr<MDnsDiscoveryCallbackAni> g_mdnsDiscCallback = nullptr;
-static bool g_isMDnsObserverRegistered = false;
-static std::mutex g_observerMutex;
 
-// ---- Attribute conversion helpers ----
-
-static void SetServiceInfoAttrs(const MDnsServiceInfoFFI &ffiInfo, NetManagerStandard::MDnsServiceInfo &info)
+static void SetServiceInfoAttrs(const MDnsServiceInfoAni &infoAni, MDnsServiceInfo &info)
 {
-    if (ffiInfo.attr_keys.empty()) {
+    if (infoAni.attr_keys.empty()) {
         return;
     }
-    NetManagerStandard::TxtRecord attrMap;
+    TxtRecord attrMap;
     size_t offset = 0;
-    for (size_t i = 0; i < ffiInfo.attr_keys.size(); ++i) {
-        if (i >= ffiInfo.attr_value_lengths.size()) {
+    for (size_t i = 0; i < infoAni.attr_keys.size(); ++i) {
+        if (i >= infoAni.attr_value_lengths.size()) {
             break;
         }
-        int32_t len = ffiInfo.attr_value_lengths[i];
-        if (len <= 0 || offset + static_cast<size_t>(len) > ffiInfo.attr_values.size()) {
+        int32_t len = infoAni.attr_value_lengths[i];
+        if (len <= 0 || offset + static_cast<size_t>(len) > infoAni.attr_values.size()) {
             break;
         }
-        std::string key = std::string(ffiInfo.attr_keys[i]);
+        std::string key = std::string(infoAni.attr_keys[i]);
         std::vector<uint8_t> val(
-            ffiInfo.attr_values.data() + offset,
-            ffiInfo.attr_values.data() + offset + static_cast<size_t>(len)
+            infoAni.attr_values.data() + offset,
+            infoAni.attr_values.data() + offset + static_cast<size_t>(len)
         );
         attrMap[key] = std::move(val);
         offset += static_cast<size_t>(len);
@@ -95,23 +83,21 @@ static void SetServiceInfoAttrs(const MDnsServiceInfoFFI &ffiInfo, NetManagerSta
     info.SetAttrMap(attrMap);
 }
 
-static void GetServiceInfoAttrs(const NetManagerStandard::MDnsServiceInfo &info, MDnsServiceInfoFFI &ffiInfo)
+static void GetServiceInfoAttrs(const MDnsServiceInfo &info, MDnsServiceInfoAni &infoAni)
 {
-    // GetAttrMap() is not const, but we only read the map
-    NetManagerStandard::TxtRecord attrMap = const_cast<NetManagerStandard::MDnsServiceInfo &>(info).GetAttrMap();
+    TxtRecord attrMap = const_cast<MDnsServiceInfo &>(info).GetAttrMap();
     for (const auto &[key, val] : attrMap) {
-        ffiInfo.attr_keys.push_back(rust::String(key));
+        infoAni.attr_keys.push_back(rust::String(key));
         for (uint8_t b : val) {
-            ffiInfo.attr_values.push_back(b);
+            infoAni.attr_values.push_back(b);
         }
-        ffiInfo.attr_value_lengths.push_back(static_cast<int32_t>(val.size()));
+        infoAni.attr_value_lengths.push_back(static_cast<int32_t>(val.size()));
     }
 }
 
-// ---- Build FFI struct from MDnsServiceInfo (used by callbacks) ----
-static MDnsServiceInfoFFI BuildServiceInfoFFI(const NetManagerStandard::MDnsServiceInfo &serviceInfo)
+static MDnsServiceInfoAni BuildServiceInfoAni(const MDnsServiceInfo &serviceInfo)
 {
-    MDnsServiceInfoFFI info{};
+    MDnsServiceInfoAni info{};
     info.name = rust::String(serviceInfo.name);
     info.type_ = rust::String(serviceInfo.type);
     info.family = serviceInfo.family;
@@ -119,165 +105,6 @@ static MDnsServiceInfoFFI BuildServiceInfoFFI(const NetManagerStandard::MDnsServ
     info.port = serviceInfo.port;
     GetServiceInfoAttrs(serviceInfo, info);
     return info;
-}
-
-// ---- Error code / message ----
-
-rust::String GetErrorCodeAndMessage(int32_t &errorCode)
-{
-    NetManagerStandard::NetBaseErrorCodeConvertor convertor;
-    rust::String result(convertor.ConvertErrorCode(errorCode));
-    return result;
-}
-
-// ---- FFI Functions ----
-
-MDnsServiceInfoFFI RegisterService(const rust::String &bundleName, const MDnsServiceInfoFFI &serviceInfo,
-    int32_t &ret)
-{
-    auto client = DelayedSingleton<NetManagerStandard::MDnsClient>::GetInstance();
-    NetManagerStandard::MDnsServiceInfo info;
-    info.name = std::string(serviceInfo.name);
-    info.type = std::string(serviceInfo.type_);
-    info.family = serviceInfo.family;
-    info.addr = std::string(serviceInfo.addr);
-    info.port = serviceInfo.port;
-    SetServiceInfoAttrs(serviceInfo, info);
-
-    std::string bName = std::string(bundleName);
-    // Validate inputs do not contain separator characters
-    if (bName.find('\x01') != std::string::npos || bName.find('\x02') != std::string::npos ||
-        info.name.find('\x01') != std::string::npos || info.name.find('\x02') != std::string::npos ||
-        info.type.find('\x01') != std::string::npos || info.type.find('\x02') != std::string::npos) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-        return serviceInfo;
-    }
-
-    std::string key = bName + "\x01" + info.name + "\x02" + info.type;
-
-    sptr<MDnsRegistrationCallbackAni> cb;
-    bool isNewCallback = false;
-    {
-        std::lock_guard<std::mutex> lock(GetRegisterMutex());
-        auto it = GetRegisterCallbackMap().find(key);
-        if (it != GetRegisterCallbackMap().end()) {
-            cb = it->second;
-        } else {
-            cb = new (std::nothrow) MDnsRegistrationCallbackAni();
-            if (cb == nullptr) {
-                ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-                return serviceInfo;
-            }
-            GetRegisterCallbackMap()[key] = cb;
-            isNewCallback = true;
-        }
-    }
-
-    ret = client->RegisterService(info, cb);
-    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS && isNewCallback) {
-        std::lock_guard<std::mutex> lock(GetRegisterMutex());
-        GetRegisterCallbackMap().erase(key);
-        // Release the local sptr reference so the object is properly freed
-        cb = nullptr;
-    }
-    return serviceInfo;
-}
-
-int32_t UnRegisterService(const rust::String &bundleName, const MDnsServiceInfoFFI &serviceInfo, int32_t &ret)
-{
-    auto client = DelayedSingleton<NetManagerStandard::MDnsClient>::GetInstance();
-    NetManagerStandard::MDnsServiceInfo info;
-    info.name = std::string(serviceInfo.name);
-    info.type = std::string(serviceInfo.type_);
-    info.family = serviceInfo.family;
-    info.addr = std::string(serviceInfo.addr);
-    info.port = serviceInfo.port;
-
-    std::string bName = std::string(bundleName);
-    // Validate inputs do not contain separator characters
-    if (bName.find('\x01') != std::string::npos || bName.find('\x02') != std::string::npos ||
-        info.name.find('\x01') != std::string::npos || info.name.find('\x02') != std::string::npos ||
-        info.type.find('\x01') != std::string::npos || info.type.find('\x02') != std::string::npos) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-        return ret;
-    }
-
-    std::string key = bName + "\x01" + info.name + "\x02" + info.type;
-
-    sptr<NetManagerStandard::IRegistrationCallback> cb;
-    {
-        std::lock_guard<std::mutex> lock(GetRegisterMutex());
-        auto it = GetRegisterCallbackMap().find(key);
-        if (it != GetRegisterCallbackMap().end()) {
-            cb = it->second;
-        }
-    }
-
-    if (cb == nullptr) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-        return ret;
-    }
-
-    ret = client->UnRegisterService(cb);
-    std::lock_guard<std::mutex> lock(GetRegisterMutex());
-    GetRegisterCallbackMap().erase(key);
-    return ret;
-}
-
-int32_t StartDiscoverService(const rust::String &serviceType, int32_t &ret)
-{
-    auto client = DelayedSingleton<NetManagerStandard::MDnsClient>::GetInstance();
-
-    sptr<MDnsDiscoveryCallbackAni> cb;
-    bool isNewCallback = false;
-    {
-        std::lock_guard<std::mutex> lock(GetDiscoveryMutex());
-        auto it = GetDiscoveryCallbackMap().find(std::string(serviceType));
-        if (it != GetDiscoveryCallbackMap().end()) {
-            cb = it->second;
-        } else {
-            cb = new (std::nothrow) MDnsDiscoveryCallbackAni();
-            if (cb == nullptr) {
-                ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-                return ret;
-            }
-            GetDiscoveryCallbackMap()[std::string(serviceType)] = cb;
-            isNewCallback = true;
-        }
-    }
-
-    ret = client->StartDiscoverService(std::string(serviceType), cb);
-    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS && isNewCallback) {
-        std::lock_guard<std::mutex> lock(GetDiscoveryMutex());
-        GetDiscoveryCallbackMap().erase(std::string(serviceType));
-        // Release the local sptr reference so the object is properly freed
-        cb = nullptr;
-    }
-    return ret;
-}
-
-int32_t StopDiscoverService(const rust::String &serviceType, int32_t &ret)
-{
-    auto client = DelayedSingleton<NetManagerStandard::MDnsClient>::GetInstance();
-
-    sptr<NetManagerStandard::IDiscoveryCallback> cb;
-    {
-        std::lock_guard<std::mutex> lock(GetDiscoveryMutex());
-        auto it = GetDiscoveryCallbackMap().find(std::string(serviceType));
-        if (it != GetDiscoveryCallbackMap().end()) {
-            cb = it->second;
-        }
-    }
-
-    if (cb == nullptr) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-        return ret;
-    }
-
-    ret = client->StopDiscoverService(cb);
-    std::lock_guard<std::mutex> lock(GetDiscoveryMutex());
-    GetDiscoveryCallbackMap().erase(std::string(serviceType));
-    return ret;
 }
 
 static sptr<MDnsResolveCallbackAni> GetOrCreateResolveCallback(const std::string &key,
@@ -288,9 +115,10 @@ static sptr<MDnsResolveCallbackAni> GetOrCreateResolveCallback(const std::string
     if (it != GetResolveCallbackMap().end()) {
         return it->second;
     }
-    auto cb = sptr<MDnsResolveCallbackAni>(new (std::nothrow) MDnsResolveCallbackAni());
+    auto cb =
+        sptr<MDnsResolveCallbackAni>(new (std::nothrow) MDnsResolveCallbackAni());
     if (cb == nullptr) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+        ret = NET_MDNS_ERR_UNKNOWN;
         return nullptr;
     }
     GetResolveCallbackMap()[key] = cb;
@@ -298,24 +126,81 @@ static sptr<MDnsResolveCallbackAni> GetOrCreateResolveCallback(const std::string
     return cb;
 }
 
-MDnsServiceInfoFFI ResolveService(const MDnsServiceInfoFFI &serviceInfo, int32_t &ret)
+rust::String GetErrorCodeAndMessage(int32_t &errorCode)
 {
-    auto client = DelayedSingleton<NetManagerStandard::MDnsClient>::GetInstance();
-    NetManagerStandard::MDnsServiceInfo info;
+    NetBaseErrorCodeConvertor convertor;
+    rust::String result(convertor.ConvertErrorCode(errorCode));
+    return result;
+}
+
+MDnsServiceInfoAni RegisterService(const rust::String &bundleName, const MDnsServiceInfoAni &serviceInfo,
+    int32_t &ret)
+{
+    MDnsServiceInfo info;
+    info.name = std::string(serviceInfo.name);
+    info.type = std::string(serviceInfo.type_);
+    info.family = serviceInfo.family;
+    info.addr = std::string(serviceInfo.addr);
+    info.port = serviceInfo.port;
+    SetServiceInfoAttrs(serviceInfo, info);
+
+    std::string bName = std::string(bundleName);
+    std::string key = bName + MDNS_HOSTPORT_SPLITER_STR + info.name + MDNS_DOMAIN_SPLITER_STR + info.type;
+
+    std::lock_guard<std::mutex> lock(GetRegisterMutex());
+    sptr<MDnsRegistrationCallbackAni> cb;
+    auto it = GetRegisterCallbackMap().find(key);
+    if (it != GetRegisterCallbackMap().end()) {
+        cb = it->second;
+    } else {
+        cb = new (std::nothrow) MDnsRegistrationCallbackAni();
+        if (cb == nullptr) {
+            ret = NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+            return serviceInfo;
+        }
+        GetRegisterCallbackMap()[key] = cb;
+    }
+
+    ret = DelayedSingleton<MDnsClient>::GetInstance()->RegisterService(info, cb);
+    return serviceInfo;
+}
+
+MDnsServiceInfoAni UnRegisterService(const rust::String &bundleName, const MDnsServiceInfoAni &serviceInfo,
+    int32_t &ret)
+{
+    MDnsServiceInfo info;
     info.name = std::string(serviceInfo.name);
     info.type = std::string(serviceInfo.type_);
     info.family = serviceInfo.family;
     info.addr = std::string(serviceInfo.addr);
     info.port = serviceInfo.port;
 
-    // Validate inputs do not contain separator characters
-    if (info.name.find('\x01') != std::string::npos || info.name.find('\x02') != std::string::npos ||
-        info.type.find('\x01') != std::string::npos || info.type.find('\x02') != std::string::npos) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    std::string bName = std::string(bundleName);
+    std::string key = bName + MDNS_HOSTPORT_SPLITER_STR + info.name + MDNS_DOMAIN_SPLITER_STR + info.type;
+
+    std::lock_guard<std::mutex> lock(GetRegisterMutex());
+    auto it = GetRegisterCallbackMap().find(key);
+    if (it == GetRegisterCallbackMap().end()) {
+        ret = NET_MDNS_ERR_ILLEGAL_ARGUMENT;
         return serviceInfo;
     }
+    sptr<MDnsRegistrationCallbackAni> cb = it->second;
+    GetRegisterCallbackMap().erase(it);
 
-    std::string key = info.name + "\x01" + info.type;
+    ret = DelayedSingleton<MDnsClient>::GetInstance()->UnRegisterService(cb);
+    return serviceInfo;
+}
+
+MDnsServiceInfoAni ResolveService(const MDnsServiceInfoAni &serviceInfo, int32_t &ret)
+{
+    MDnsServiceInfo info;
+    info.name = std::string(serviceInfo.name);
+    info.type = std::string(serviceInfo.type_);
+    info.family = serviceInfo.family;
+    info.addr = std::string(serviceInfo.addr);
+    info.port = serviceInfo.port;
+
+    std::string key = info.name + MDNS_DOMAIN_SPLITER_STR + info.type;
     bool isNewCallback = false;
     auto cb = GetOrCreateResolveCallback(key, isNewCallback, ret);
     if (cb == nullptr) {
@@ -323,8 +208,8 @@ MDnsServiceInfoFFI ResolveService(const MDnsServiceInfoFFI &serviceInfo, int32_t
     }
 
     cb->ResetResolveState();
-    ret = client->ResolveService(info, cb);
-    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+    ret = DelayedSingleton<MDnsClient>::GetInstance()->ResolveService(info, cb);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         if (isNewCallback) {
             std::lock_guard<std::mutex> lock(GetResolveMutex());
             GetResolveCallbackMap().erase(key);
@@ -333,83 +218,135 @@ MDnsServiceInfoFFI ResolveService(const MDnsServiceInfoFFI &serviceInfo, int32_t
         return serviceInfo;
     }
 
-    // Wait for async result from HandleResolveResult
     {
         std::unique_lock<std::mutex> lk(cb->mutex_);
-        if (!cb->cv_.wait_for(lk, std::chrono::seconds(NetManagerStandard::SYNC_TIMEOUT),
+        if (!cb->cv_.wait_for(lk, std::chrono::seconds(SYNC_TIMEOUT),
                               [&cb]() { return cb->resolved_; })) {
             if (isNewCallback) {
                 std::lock_guard<std::mutex> lock(GetResolveMutex());
                 GetResolveCallbackMap().erase(key);
                 cb = nullptr;
             }
-            ret = NetManagerStandard::NET_MDNS_ERR_TIMEOUT;
+            ret = NET_MDNS_ERR_TIMEOUT;
             return serviceInfo;
         }
     }
 
     ret = cb->resolvedRetCode_;
-    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+    if (ret != NETMANAGER_EXT_SUCCESS) {
         return serviceInfo;
     }
 
-    MDnsServiceInfoFFI result = BuildServiceInfoFFI(cb->resolvedServiceInfo_);
+    MDnsServiceInfoAni result = BuildServiceInfoAni(cb->resolvedServiceInfo_);
     return result;
 }
 
-// ---- Registration Callback ----
+struct DiscoveryInstanceInfo {
+    std::string serviceType;
+    sptr<MDnsDiscoveryCallbackAni> callback;
+};
+
+static std::mutex &GetDiscoveryInstanceMutex()
+{
+    static std::mutex mtx;
+    return mtx;
+}
+
+static std::map<int64_t, DiscoveryInstanceInfo> &GetDiscoveryInstanceMap()
+{
+    static std::map<int64_t, DiscoveryInstanceInfo> map;
+    return map;
+}
+
+static std::atomic<int64_t> g_nextDiscoveryPtr{1};
+
+int32_t StartSearchingMDNSAni(int64_t nativePtr)
+{
+    std::lock_guard<std::mutex> lock(GetDiscoveryInstanceMutex());
+    auto it = GetDiscoveryInstanceMap().find(nativePtr);
+    if (it == GetDiscoveryInstanceMap().end()) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    std::string serviceType = it->second.serviceType;
+    sptr<MDnsDiscoveryCallbackAni> cb = it->second.callback;
+    if (cb == nullptr) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    int32_t ret = DelayedSingleton<MDnsClient>::GetInstance()->StartDiscoverService(serviceType, cb);
+    MDnsServiceInfo info;
+    info.type = serviceType;
+    cb->HandleStartDiscover(info, ret);
+    return ret;
+}
+
+int32_t StopSearchingMDNSAni(int64_t nativePtr)
+{
+    std::lock_guard<std::mutex> lock(GetDiscoveryInstanceMutex());
+    auto it = GetDiscoveryInstanceMap().find(nativePtr);
+    if (it == GetDiscoveryInstanceMap().end()) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    std::string serviceType = it->second.serviceType;
+    sptr<MDnsDiscoveryCallbackAni> cb = it->second.callback;
+    if (cb == nullptr) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    int32_t ret = DelayedSingleton<MDnsClient>::GetInstance()->StopDiscoverService(cb);
+    MDnsServiceInfo info;
+    info.type = serviceType;
+    cb->HandleStopDiscover(info, ret);
+    return ret;
+}
 
 int32_t MDnsRegistrationCallbackAni::HandleRegister(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    execute_register_result(BuildServiceInfoFFI(serviceInfo), retCode);
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t MDnsRegistrationCallbackAni::HandleUnRegister(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t MDnsRegistrationCallbackAni::HandleRegisterResult(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    execute_register_result(BuildServiceInfoFFI(serviceInfo), retCode);
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-// ---- Discovery Callback ----
-
 int32_t MDnsDiscoveryCallbackAni::HandleStartDiscover(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    execute_discovery_start(BuildServiceInfoFFI(serviceInfo), retCode);
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    MDnsServiceInfoAni info = BuildServiceInfoAni(serviceInfo);
+    execute_discovery_start(info, retCode, nativePtr_);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t MDnsDiscoveryCallbackAni::HandleStopDiscover(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    execute_discovery_stop(BuildServiceInfoFFI(serviceInfo), retCode);
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    MDnsServiceInfoAni info = BuildServiceInfoAni(serviceInfo);
+    execute_discovery_stop(info, retCode, nativePtr_);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t MDnsDiscoveryCallbackAni::HandleServiceFound(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    execute_service_found(BuildServiceInfoFFI(serviceInfo), retCode);
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    MDnsServiceInfoAni info = BuildServiceInfoAni(serviceInfo);
+    execute_service_found(info, retCode, nativePtr_);
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t MDnsDiscoveryCallbackAni::HandleServiceLost(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    execute_service_lost(BuildServiceInfoFFI(serviceInfo), retCode);
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    MDnsServiceInfoAni info = BuildServiceInfoAni(serviceInfo);
+    execute_service_lost(info, retCode, nativePtr_);
+    return NETMANAGER_EXT_SUCCESS;
 }
-
-// ---- Resolve Callback ----
 
 void MDnsResolveCallbackAni::ResetResolveState()
 {
@@ -418,9 +355,8 @@ void MDnsResolveCallbackAni::ResetResolveState()
 }
 
 int32_t MDnsResolveCallbackAni::HandleResolveResult(
-    const NetManagerStandard::MDnsServiceInfo &serviceInfo, int32_t retCode)
+    const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    // Notify the synchronous waiter in ResolveService
     {
         std::lock_guard<std::mutex> lock(mutex_);
         resolvedRetCode_ = retCode;
@@ -429,49 +365,71 @@ int32_t MDnsResolveCallbackAni::HandleResolveResult(
     }
     cv_.notify_one();
 
-    // Also fire the Rust callback for any registered listeners
-    execute_resolve_result(BuildServiceInfoFFI(serviceInfo), retCode);
-
-    // Clean up callback map
-    std::string key = serviceInfo.name + "\x01" + serviceInfo.type;
-    {
-        std::lock_guard<std::mutex> lock(GetResolveMutex());
-        GetResolveCallbackMap().erase(key);
-    }
-
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
-// ---- Observer Register/Unregister ----
-
-int32_t MDnsObserverRegister()
+bool IsStageContext(AniEnv *env, AniObject *obj)
 {
-    std::lock_guard<std::mutex> lock(g_observerMutex);
-    if (g_isMDnsObserverRegistered) {
-        return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    if (env == nullptr || obj == nullptr) {
+        return false;
     }
-
-    // Release existing callback before creating a new one to prevent memory leaks
-    if (g_mdnsDiscCallback != nullptr) {
-        g_mdnsDiscCallback = nullptr;
+    ani_boolean stageMode;
+    ani_status status = AbilityRuntime::IsStageContext(reinterpret_cast<ani_env *>(env),
+        *reinterpret_cast<ani_object *>(obj), stageMode);
+    if (status != ANI_OK) {
+        return false;
     }
-    g_mdnsDiscCallback =
-        sptr<MDnsDiscoveryCallbackAni>(new (std::nothrow) MDnsDiscoveryCallbackAni());
-    if (g_mdnsDiscCallback == nullptr) {
-        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
-    }
-
-    g_isMDnsObserverRegistered = true;
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    return stageMode == 1;
 }
 
-int32_t MDnsObserverUnRegister()
+std::shared_ptr<AbilityRuntime::Context> GetStageModeContext(AniEnv **env, AniObject *obj)
 {
-    std::lock_guard<std::mutex> lock(g_observerMutex);
-    g_isMDnsObserverRegistered = false;
-    g_mdnsDiscCallback = nullptr;
-    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+    if (env == nullptr || *env == nullptr || obj == nullptr) {
+        return nullptr;
+    }
+    return AbilityRuntime::GetStageModeContext(reinterpret_cast<ani_env *>(*env),
+                                               *reinterpret_cast<ani_object *>(obj));
 }
 
-} // namespace NetManagerAni
+rust::String GetBundleName(std::shared_ptr<AbilityRuntime::Context> context)
+{
+    if (context == nullptr) {
+        return rust::String();
+    }
+    return rust::String(context->GetBundleName());
+}
+
+int64_t CreateDiscoveryServiceAni(const rust::String &serviceType)
+{
+    std::lock_guard<std::mutex> lock(GetDiscoveryInstanceMutex());
+    int64_t ptr = g_nextDiscoveryPtr.fetch_add(1);
+    auto cb = sptr<MDnsDiscoveryCallbackAni>(new (std::nothrow) MDnsDiscoveryCallbackAni());
+    if (cb == nullptr) {
+        return 0;
+    }
+    cb->SetNativePtr(ptr);
+    GetDiscoveryInstanceMap()[ptr] = {std::string(serviceType), cb};
+    return ptr;
+}
+
+rust::String GetServiceTypeFromPtr(int64_t nativePtr)
+{
+    std::lock_guard<std::mutex> lock(GetDiscoveryInstanceMutex());
+    auto it = GetDiscoveryInstanceMap().find(nativePtr);
+    if (it == GetDiscoveryInstanceMap().end()) {
+        return rust::String();
+    }
+    return rust::String(it->second.serviceType);
+}
+
+void DestroyDiscoveryServiceAni(int64_t nativePtr)
+{
+    if (nativePtr == 0) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(GetDiscoveryInstanceMutex());
+    GetDiscoveryInstanceMap().erase(nativePtr);
+}
+
+} // namespace NetManagerStandard
 } // namespace OHOS

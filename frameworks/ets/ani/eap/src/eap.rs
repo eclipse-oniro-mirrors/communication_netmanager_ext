@@ -20,10 +20,8 @@ pub(crate) fn reply_custom_eap_data(
     result: bridge::CustomResult,
     data: bridge::EapData,
 ) -> Result<(), BusinessError> {
-    if data.buffer_len < 0 || data.buffer_len as usize != data.eap_buffer.len() {
-        return Err(BusinessError::new(-1, "buffer length mismatch".to_string()));
-    }
-    NetConnClient::reply_custom_eap_data(result, data.msg_id, data.buffer_len, data.eap_buffer)
+    let buffer = data.eap_buffer.to_vec();
+    NetConnClient::reply_custom_eap_data(result, data.msg_id, data.buffer_len, buffer)
         .map_err(convert_to_business_error)
 }
 

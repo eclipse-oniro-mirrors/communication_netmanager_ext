@@ -18,7 +18,7 @@ rust_cxx("vpnextension_ani_cxx") {
   sources = [ "src/wrapper.rs" ]
 }
 
-ohos_static_library("vpnextension_ani_static") {
+ohos_static_library("vpn_extension_ani_static") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -53,7 +53,10 @@ ohos_static_library("vpnextension_ani_static") {
     "include",
     "${target_gen_dir}/src",
   ]
-  sources = [ "src/cxx/vpnextension_ani.cpp" ]
+  sources = [
+    "src/cxx/vpnextension_ani.cpp",
+    "src/cxx/uuid.cpp",
+  ]
   sources += get_target_outputs(":vpnextension_ani_cxx")
 
   deps = [
@@ -64,11 +67,15 @@ ohos_static_library("vpnextension_ani_static") {
     "ability_base:want",
     "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_manager",
+    "ability_runtime:ani_common",
+    "ability_runtime:ani_base_context",
     "bundle_framework:appexecfwk_base",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_data_share",
     "os_account:os_account_innerkits",
+    "runtime_core:ani",
     "samgr:samgr_proxy",
     "rust_cxx:cxx_cppdeps"
   ]
@@ -77,36 +84,12 @@ ohos_static_library("vpnextension_ani_static") {
   subsystem_name = "communication"
 }
 
-ohos_rust_shared_library("vpnextension_ani") {
+ohos_rust_shared_library("vpn_extension_ani") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
     debug = false
   }
-
-  sources = [ "src/lib.rs" ]
-
-  external_deps = [
-    "runtime_core:ani",
-    "netmanager_base:ani_rs",
-    "rust_cxx:lib",
-  ]
-  deps = [
-    ":vpnextension_ani_static",
-    "//third_party/rust/crates/serde/serde:lib"
-  ]
-  clippy_lints = "none"
-  part_name = "netmanager_ext"
-  subsystem_name = "communication"
-  output_extension = "so"
-  rustflags = [
-    "-C", "codegen-units=1",
-    "-C", "opt-level=z",
-    "-C", "debuginfo=0",
-    "-Zstack-protector=all",
-    "-C", "link-arg=-Wl,--defsym=__build_id_start=0",
-    "-C", "link-arg=-Wl,--defsym=__build_id_end=0",
-  ]
 
   ldflags = [
     "-Wl,--exclude-libs=ALL",
@@ -117,19 +100,53 @@ ohos_rust_shared_library("vpnextension_ani") {
     "-Wl,--no-export-dynamic",
     "-Wl,--icf=all",
   ]
+
+  rustflags = [
+    "-C", "opt-level=z",
+    "-C", "debuginfo=0",
+    "-C", "link-arg=-ffunction-sections",
+    "-C", "link-arg=-fdata-sections",
+    "-C", "link-arg=-Wl,--gc-sections",
+    "-C", "link-arg=-Wl,--strip-all",
+    "-Z", "dylib-lto",
+    "-Z", "stack-protector=all",
+    "-C", "codegen-units=1",
+    "-C", "link-arg=-flto",
+    "-C", "overflow-checks=no",
+    "-C", "code-model=small",
+    "-Z", "location-detail=none",
+    "-Z", "dump-mir=deadcode",
+  ]
+
+  sources = [ "src/lib.rs" ]
+
+  external_deps = [
+    "runtime_core:ani",
+    "hilog:hilog_rust",
+    "hilog:libhilog",
+    "netmanager_base:ani_rs",
+    "rust_cxx:lib",
+  ]
+  deps = [
+    ":vpn_extension_ani_static",
+    "//third_party/rust/crates/serde/serde:lib"
+  ]
+  clippy_lints = "none"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+  output_extension = "so"
 }
 
-generate_static_abc("vpnextension") {
+generate_static_abc("vpn_extension_ets") {
   base_url = "./ets"
   files = [ "ets/@ohos.net.vpnExtension.ets" ]
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/vpnextension.abc"
+  device_dst_file = "/system/framework/vpn_extension_ets.abc"
 }
-
-ohos_prebuilt_etc("vpnextension_etc") {
-  source = "$target_out_dir/vpnextension.abc"
+ohos_prebuilt_etc("vpn_extension_etc") {
+  source = "$target_out_dir/vpn_extension_ets.abc"
   module_install_dir = "framework"
   part_name = "netmanager_ext"
   subsystem_name = "communication"
-  deps = [ ":vpnextension" ]
+  deps = [ ":vpn_extension_ets" ]
 }

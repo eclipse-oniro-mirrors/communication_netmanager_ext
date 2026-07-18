@@ -81,7 +81,7 @@ ohos_rust_shared_library("ethernet_ani") {
   ]
 
   rustflags = [
-    "-C", "opt-level=3",
+    "-C", "opt-level=z",
     "-C", "debuginfo=0",
     "-C", "link-arg=-ffunction-sections",
     "-C", "link-arg=-fdata-sections",
@@ -90,6 +90,11 @@ ohos_rust_shared_library("ethernet_ani") {
     "-Z", "dylib-lto",
     "-Z", "stack-protector=all",
     "-C", "codegen-units=1",
+    "-C", "link-arg=-flto",
+    "-C", "overflow-checks=no",
+    "-C", "code-model=small",
+    "-Z", "location-detail=none",
+    "-Z", "dump-mir=deadcode",
   ]
 
   sources = [ "src/lib.rs" ]
@@ -97,6 +102,7 @@ ohos_rust_shared_library("ethernet_ani") {
   external_deps = [
     "runtime_core:ani",
     "hilog:hilog_rust",
+    "hilog:libhilog",
     "netmanager_base:ani_rs",
     "rust_cxx:lib"
   ]

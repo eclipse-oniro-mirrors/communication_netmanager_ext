@@ -13,6 +13,59 @@
 
 use ani_rs;
 
+#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.IPSetMode")]
+#[repr(i32)]
+#[derive(Debug, Clone)]
+pub enum IPSetMode {
+    Static = 0,
+    Dhcp = 1,
+    LanStatic = 2,
+    LanDhcp = 3,
+}
+
+impl From<i32> for IPSetMode {
+    fn from(value: i32) -> Self {
+        match value {
+            0 => Self::Static,
+            1 => Self::Dhcp,
+            2 => Self::LanStatic,
+            3 => Self::LanDhcp,
+            _ => Self::Static,
+        }
+    }
+}
+
+impl From<IPSetMode> for i32 {
+    fn from(value: IPSetMode) -> Self {
+        value as i32
+    }
+}
+
+#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.DeviceConnectionType")]
+#[repr(i32)]
+#[derive(Debug, Clone)]
+pub enum DeviceConnectionType {
+    BuildIn = 0,
+    External = 1,
+}
+
+impl From<i32> for DeviceConnectionType {
+    fn from(value: i32) -> Self {
+        match value {
+            0 => Self::BuildIn,
+            1 => Self::External,
+            _ => Self::BuildIn,
+        }
+    }
+}
+
+impl From<DeviceConnectionType> for i32 {
+    fn from(value: DeviceConnectionType) -> Self {
+        value as i32
+    }
+}
+
+
 #[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.HttpProxyInner")]
 #[derive(Clone, Default)]
 pub struct HttpProxy {
@@ -20,44 +73,27 @@ pub struct HttpProxy {
     pub port: i32,
     pub exclusion_list: Vec<String>,
     pub username: Option<String>,
-    // SECURITY: This field stores the password in plaintext for FFI bridge compatibility.
-    // It MUST NEVER be logged, serialized to JSON, or transmitted over the network.
-    // Use `sanitize()` when debugging or displaying this struct.
     pub password: Option<String>,
 }
 
-impl HttpProxy {
-    /// Returns a sanitized copy with the password field replaced by "***".
-    /// Use this for any diagnostic output, logging, or display purposes.
-    pub fn sanitize(&self) -> HttpProxy {
-        HttpProxy {
-            host: self.host.clone(),
-            port: self.port,
-            exclusion_list: self.exclusion_list.clone(),
-            username: self.username.clone(),
-            password: self.password.as_ref().map(|_| "***".to_string()),
-        }
-    }
-}
-
-#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.MacAddressInfo")]
+#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.MacAddressInfoInner")]
 #[derive(Clone)]
 pub struct MacAddressInfo {
     pub iface: String,
     pub mac_address: String,
 }
 
-#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.InterfaceStateInfo")]
+#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.InterfaceStateInfoInner")]
 #[derive(Clone)]
 pub struct InterfaceStateInfo {
     pub iface: String,
     pub active: bool,
 }
 
-#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.InterfaceConfiguration")]
+#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.InterfaceConfigurationInner")]
 #[derive(Clone)]
 pub struct InterfaceConfiguration {
-    pub mode: i32,
+    pub mode: IPSetMode,
     pub ip_addr: String,
     pub route: String,
     pub gateway: String,
@@ -66,12 +102,12 @@ pub struct InterfaceConfiguration {
     pub http_proxy: Option<HttpProxy>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.EthernetDeviceInfos")]
+#[ani_rs::ani(path = "@ohos.net.ethernet.ethernet.EthernetDeviceInfosInner")]
 #[derive(Clone)]
 pub struct EthernetDeviceInfos {
     pub iface_name: String,
     pub device_name: String,
-    pub connection_mode: i32,
+    pub connection_mode: DeviceConnectionType,
     pub supplier_name: String,
     pub supplier_id: String,
     pub product_name: String,

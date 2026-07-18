@@ -72,11 +72,15 @@ ohos_static_library("vpn_ani_static") {
     "../../../../interfaces/innerkits/netvpnclient:net_vpn_manager_if",
   ]
   external_deps = [
-    "ability_base:want",
-    "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
+    "ability_runtime:ani_base_context",
+    "ability_runtime:app_context",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "runtime_core:ani",
     "samgr:samgr_proxy",
-    "rust_cxx:cxx_cppdeps"
+    "rust_cxx:cxx_cppdeps",
   ]
 
   part_name = "netmanager_ext"
@@ -90,10 +94,39 @@ ohos_rust_shared_library("vpn_ani") {
     debug = false
   }
 
+  ldflags = [
+    "-Wl,--exclude-libs=ALL",
+    "-Wl,--gc-sections",
+    "-Wl,-s",
+    "-Wl,--strip-all",
+    "-Wl,--discard-all",
+    "-Wl,--no-export-dynamic",
+    "-Wl,--icf=all",
+  ]
+
+  rustflags = [
+    "-C", "opt-level=z",
+    "-C", "debuginfo=0",
+    "-C", "link-arg=-ffunction-sections",
+    "-C", "link-arg=-fdata-sections",
+    "-C", "link-arg=-Wl,--gc-sections",
+    "-C", "link-arg=-Wl,--strip-all",
+    "-Z", "dylib-lto",
+    "-Z", "stack-protector=all",
+    "-C", "codegen-units=1",
+    "-C", "link-arg=-flto",
+    "-C", "overflow-checks=no",
+    "-C", "code-model=small",
+    "-Z", "location-detail=none",
+    "-Z", "dump-mir=deadcode",
+  ]
+
   sources = [ "src/lib.rs" ]
 
   external_deps = [
     "runtime_core:ani",
+    "hilog:hilog_rust",
+    "hilog:libhilog",
     "netmanager_base:ani_rs",
     "rust_cxx:lib"
   ]
@@ -105,24 +138,6 @@ ohos_rust_shared_library("vpn_ani") {
   part_name = "netmanager_ext"
   subsystem_name = "communication"
   output_extension = "so"
-  rustflags = [
-    "-C", "codegen-units=1",
-    "-C", "opt-level=z",
-    "-C", "debuginfo=0" ,
-    "-Zstack-protector=all",
-    "-C", "link-arg=-Wl,--defsym=__build_id_start=0",
-    "-C", "link-arg=-Wl,--defsym=__build_id_end=0",
-  ]
-
-  ldflags = [
-    "-Wl,--exclude-libs=ALL",
-    "-Wl,--gc-sections",
-    "-Wl,-s",
-    "-Wl,--strip-all",
-    "-Wl,--discard-all",
-    "-Wl,--no-export-dynamic",
-    "-Wl,--icf=all",
-  ]
 }
 
 generate_static_abc("vpn") {

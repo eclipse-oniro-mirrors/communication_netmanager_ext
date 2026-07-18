@@ -11,12 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub(crate) const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
-    log_type: hilog_rust::LogType::LogCore,
-    domain: 0xD0015B1,
-    tag: "NetFirewallAni",
-};
-
 #[macro_export]
 macro_rules! netfw_debug {
     ($fmt: literal $(, $args:expr)* $(,)?) => {{

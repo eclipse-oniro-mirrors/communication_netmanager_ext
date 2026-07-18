@@ -12,27 +12,30 @@
 // limitations under the License.
 
 use std::{
+    collections::HashMap,
     ops::Deref,
     sync::{Mutex, OnceLock},
 };
 
 use ani_rs::{
     business_error::BusinessError,
-    objects::{AniFnObject, GlobalRefCallback},
+    objects::{AniFnObject, AniObject, GlobalRefCallback},
     AniEnv,
 };
 
-use crate::wrapper::{convert_to_business_error, ffi};
-use crate::vpnext_error;
+use crate::{
+    vpnext::get_native_ptr,
+    wrapper::convert_to_business_error,
+};
 
 struct Register {
-    inner: Mutex<Vec<GlobalRefCallback<(bool,)>>>,
+    inner: Mutex<HashMap<i64, Vec<GlobalRefCallback<(bool,)>>>>,
 }
 
 impl Register {
     fn new() -> Self {
         Self {
-            inner: Mutex::new(Vec::new()),
+            inner: Mutex::new(HashMap::new()),
         }
     }
 
@@ -41,57 +44,44 @@ impl Register {
         INSTANCE.get_or_init(Register::new)
     }
 
-    pub fn register(&self, callback: GlobalRefCallback<(bool,)>) -> Result<(), i32> {
-        let mut inner = self.inner.lock().map_err(|_| {
-            vpnext_error!("Mutex lock poisoned in register");
-            1
-        })?;
-        if inner.is_empty() {
-            let ret = ffi::VpnExtObserverRegister();
-            if ret != 0 {
-                return Err(ret);
-            }
-        }
-        inner.push(callback);
+    pub fn register(&self, native_ptr: i64, callback: GlobalRefCallback<(bool,)>) -> Result<(), i32> {
+        let mut inner = self.inner.lock().unwrap();
+        inner.entry(native_ptr).or_default().retain(|c| *c != callback);
+        inner.entry(native_ptr).or_default().push(callback);
         Ok(())
     }
 
-    pub fn unregister(&self, callback: Option<GlobalRefCallback<(bool,)>>) -> Result<(), i32> {
-        let mut inner = self.inner.lock().map_err(|_| {
-            vpnext_error!("Mutex lock poisoned in unregister");
-            1
-        })?;
-        if let Some(callback) = callback {
-            inner.retain(|c| *c != callback)
-        } else {
-            inner.clear()
-        }
-
-        if inner.is_empty() {
-            let ret = ffi::VpnExtObserverUnRegister();
-            if ret != 0 {
-                return Err(ret);
+    pub fn unregister(
+        &self,
+        native_ptr: i64,
+        callback: Option<GlobalRefCallback<(bool,)>>,
+    ) -> Result<(), i32> {
+        let mut inner = self.inner.lock().unwrap();
+        if let Some(listeners) = inner.get_mut(&native_ptr) {
+            if let Some(callback) = callback {
+                listeners.retain(|c| *c != callback);
+            } else {
+                listeners.clear();
+            }
+            if listeners.is_empty() {
+                inner.remove(&native_ptr);
             }
         }
-
         Ok(())
     }
 
     pub fn on_authorization_result(&self, authorized: bool) {
-        let callbacks = match self.inner.lock() {
-            Ok(guard) => {
-                let cbs: Vec<_> = guard.deref().iter().cloned().collect();
-                cbs
+        let inner = self.inner.lock().unwrap();
+        for listeners in inner.values() {
+            for callback in listeners.deref() {
+                callback.execute((authorized,));
             }
-            Err(_) => {
-                vpnext_error!("Mutex lock poisoned in on_authorization_result, skip callback");
-                return;
-            }
-        };
-        for callback in &callbacks {
-            callback.execute((authorized,));
         }
     }
+}
+
+pub fn unregister_all(native_ptr: i64) {
+    let _ = Register::get_instance().unregister(native_ptr, None);
 }
 
 pub fn execute_vpn_ext_authorization_result(authorized: bool) {
@@ -99,32 +89,25 @@ pub fn execute_vpn_ext_authorization_result(authorized: bool) {
 }
 
 #[ani_rs::native]
-pub fn regist_on_auth_result(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback = callback.into_global_callback(env).map_err(|e| {
-        vpnext_error!("into_global_callback failed: {:?}", e);
-        convert_to_business_error(0)
-    })?;
+pub fn on_authorization_result(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
+    let callback = callback.into_global_callback(env).unwrap();
     Register::get_instance()
-        .register(callback)
+        .register(native_ptr, callback)
         .map_err(convert_to_business_error)
 }
 
 #[ani_rs::native]
-pub fn unregist_on_auth_result(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback_flavor = if env.is_undefined(&callback).map_err(|e| {
-        vpnext_error!("is_undefined check failed: {:?}", e);
-        convert_to_business_error(0)
-    })? {
+pub fn off_authorization_result(env: &AniEnv, this: AniObject, callback: AniFnObject) -> Result<(), BusinessError> {
+    let native_ptr = get_native_ptr(env, &this);
+    let callback_flavor = if env.is_undefined(&callback).unwrap() {
         None
     } else {
-        let callback_global = callback.into_global_callback(env).map_err(|e| {
-            vpnext_error!("into_global_callback failed: {:?}", e);
-            convert_to_business_error(0)
-        })?;
+        let callback_global = callback.into_global_callback(env).unwrap();
         Some(callback_global)
     };
 
     Register::get_instance()
-        .unregister(callback_flavor)
+        .unregister(native_ptr, callback_flavor)
         .map_err(convert_to_business_error)
 }

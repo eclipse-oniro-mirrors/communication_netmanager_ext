@@ -15,83 +15,54 @@
 
 import type { AsyncCallback, Callback } from '@ohos.base';
 import type connection from '@ohos.net.connection';
+import type VpnExtensionContext from 'application.VpnExtensionContext';
 import type Want from '@ohos.app.ability.Want';
 import { BusinessError }  from '@ohos.base';
 
-function ensureBusinessError(err: Error): BusinessError {
-  if (err instanceof BusinessError) {
-    return new BusinessError(err.code, err.message || 'Unknown error');
-  }
-  return new BusinessError(2010001, err.message || 'Unknown error');
-}
-
 export default namespace vpnExtension {
+  loadLibrary("vpn_extension_ani")
+
   export type LinkAddress = connection.LinkAddress;
   export type RouteInfo = connection.RouteInfo;
-  export type VpnExtensionContext = Object;
-  loadLibrary("vpnextension_ani")
 
-  export native function startVpnExtensionAbilitySync(bundleName: string, abilityName: string): int;
+  export native function startVpnExtensionAbilitySync(want: Want): void;
 
   export function startVpnExtensionAbility(want: Want): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      if (!want.bundleName || !want.abilityName) {
-        reject(new BusinessError(401, 'Parameter error: bundleName and abilityName are required'));
-      } else {
-        taskpool.execute((): int => {
-          return startVpnExtensionAbilitySync(want.bundleName ?? "", want.abilityName ?? "");
-        }).then((content: Any) => {
-          let ret = content as int;
-          if (ret != 0) {
-            reject(new BusinessError(ret, 'System internal error.'));
-          } else {
-            resolve(undefined);
-          }
-        }, (err: Error): void => {
-          reject(ensureBusinessError(err));
-        });
-      }
+      taskpool.execute((): void => {
+        return startVpnExtensionAbilitySync(want);
+      }).then((content: Any) => {
+        resolve(undefined);
+      }, (err: Error): void => {
+        reject(err as BusinessError);
+      });
     });
   }
 
-  export native function stopVpnExtensionAbilitySync(bundleName: string, abilityName: string):int;
+  export native function stopVpnExtensionAbilitySync(want: Want): void;
 
   export function stopVpnExtensionAbility(want: Want): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      if (!want.bundleName || !want.abilityName) {
-        reject(new BusinessError(401, 'Parameter error: bundleName and abilityName are required'));
-      } else {
-        taskpool.execute((): int => {
-          return stopVpnExtensionAbilitySync(want.bundleName ?? "", want.abilityName ?? "");
-        }).then((content: Any) => {
-          let ret = content as int;
-          if (ret != 0) {
-            reject(new BusinessError(ret, 'System internal error.'));
-          } else {
-            resolve(undefined);
-          }
-        }, (err: Error): void => {
-          reject(ensureBusinessError(err));
-        });
-      }
+      taskpool.execute((): void => {
+        return stopVpnExtensionAbilitySync(want);
+      }).then((content: Any) => {
+        resolve(undefined);
+      }, (err: Error): void => {
+        reject(err as BusinessError);
+      });
     });
   }
 
-  export native function setAlwaysOnVpnEnabledSync(enable: boolean, bundleName: string):int;
+  export native function setAlwaysOnVpnEnabledSync(enable: boolean, bundleName: string): void;
 
   export function setAlwaysOnVpnEnabled(enable: boolean, bundleName: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      taskpool.execute((): int => {
+      taskpool.execute((): void => {
         return setAlwaysOnVpnEnabledSync(enable, bundleName);
       }).then((content: Any) => {
-        let ret = content as int;
-        if (ret != 0) {
-          reject(new BusinessError(ret, 'System internal error.'));
-        } else {
-          resolve(undefined);
-        }
+        resolve(undefined);
       }, (err: Error): void => {
-        reject(ensureBusinessError(err));
+        reject(err as BusinessError);
       });
     });
   }
@@ -105,7 +76,7 @@ export default namespace vpnExtension {
       }).then((content: Any) => {
         resolve(content as boolean);
       }, (err: Error): void => {
-        reject(ensureBusinessError(err));
+        reject(err as BusinessError);
       });
     });
   }
@@ -116,130 +87,195 @@ export default namespace vpnExtension {
     return updateVpnAuthorizedStateSync(bundleName);
   }
 
-  export native function createVpnConnectionSync():int;
+  export native function createVpnConnectionSync(context: VpnExtensionContext): VpnConnection;
 
   export function createVpnConnection(context: VpnExtensionContext): VpnConnection {
-    let ret = createVpnConnectionSync();
-    if (ret != 0) {
-      throw new BusinessError(ret, 'System internal error.');
-    }
-    return new VpnConnection();
+    return createVpnConnectionSync(context);
   }
+
+  export native function createVpnObserverSync(): VpnObserver;
 
   export function createVpnObserver(): VpnObserver {
-    return new VpnObserver();
+    return createVpnObserverSync();
   }
 
-  export native function createSync(config: VpnConfig):int;
+  class VpnObserverCleaner {
+    private nativePtr: long = 0
+    constructor(ptr:long) {
+      this.nativePtr = ptr
+    }
+    native native_clean(): void
+  }
 
-  export native function generateVpnIdSync():string;
+  let vpnObserverDestroyRegister: FinalizationRegistry<VpnObserverCleaner> =
+    new FinalizationRegistry<VpnObserverCleaner>((cleaner: VpnObserverCleaner) => {cleaner.native_clean()})
+  let vpnObserverUnregisterToken: Object = new Object()
 
-  export native function protectSync(socketFd: int):int;
+  export interface VpnObserver {
+    onAuthorizationResult(callback: Callback<boolean>): void;
+    offAuthorizationResult(callback?: Callback<boolean>): void;
+  }
 
-  export native function destroySync():int;
+  class VpnObserverInner implements VpnObserver {
+    private nativePtr: long = 0
+    private cleaner: VpnObserverCleaner | null = null;
 
-  export native function destroyVpnSync(vpnId: string):int;
+    constructor(nativePtr: long) {
+        if(this.nativePtr == 0){
+            this.nativePtr = nativePtr;
+        }
+        this.registerCleaner(this.nativePtr)
+    }
 
-  export native function protectProcessNetSync():int;
+    registerCleaner(ptr: long): void {
+        this.cleaner = new VpnObserverCleaner(ptr)
+        vpnObserverDestroyRegister.register(this, this.cleaner!, vpnObserverUnregisterToken);
+    }
 
-  export class VpnConnection {
+    unregisterCleaner(): void {
+        vpnObserverDestroyRegister.unregister(vpnObserverUnregisterToken);
+    }
+
+    native onAuthorizationResultSync(callback: Callback<boolean>): void;
+    native offAuthorizationResultSync(callback?: Callback<boolean>): void;
+
+    onAuthorizationResult(callback: Callback<boolean>): void {
+      this.onAuthorizationResultSync(callback);
+    }
+
+    offAuthorizationResult(callback?: Callback<boolean>): void {
+      if (callback == undefined) {
+        this.offAuthorizationResultSync();
+      } else {
+        this.offAuthorizationResultSync(callback);
+      }
+    }
+  }
+
+  class VpnConnectionCleaner {
+    private nativePtr: long = 0
+    constructor(ptr:long) {
+      this.nativePtr = ptr
+    }
+    native native_clean(): void
+  }
+
+  let vpnConnectionDestroyRegister: FinalizationRegistry<VpnConnectionCleaner> =
+    new FinalizationRegistry<VpnConnectionCleaner>((cleaner: VpnConnectionCleaner) => {cleaner.native_clean()})
+  let vpnConnectionUnregisterToken: Object = new Object()
+
+  export interface VpnConnection {
+    create(config: VpnConfig): Promise<int>;
+    generateVpnId(): Promise<string>;
+    protect(socketFd: int): Promise<void>;
+    destroy(): Promise<void>;
+    destroy(vpnId: string): Promise<void>;
+    protectProcessNet(): Promise<void>;  
+  }
+
+  export class VpnConnectionInner implements VpnConnection {
+    private nativePtr: long = 0;
+    private cleaner: VpnConnectionCleaner | null = null;
+
+    constructor(context: long) {
+        if (this.nativePtr == 0) {
+            this.nativePtr = context;
+        }
+        this.registerCleaner(this.nativePtr);
+    }
+
+    registerCleaner(ptr: long): void {
+        this.cleaner = new VpnConnectionCleaner(ptr);
+        vpnConnectionDestroyRegister.register(this, this.cleaner!, vpnConnectionUnregisterToken);
+    }
+    unregisterCleaner(): void {
+        vpnConnectionDestroyRegister.unregister(vpnConnectionUnregisterToken);
+    }
+
+    native createSync(config: VpnConfig): int;
+
+    native generateVpnIdSync(): string;
+
+    native protectSync(socketFd: int): void;
+
+    native destroySync(vpnId?: string): void;
+
+    native protectProcessNetSync(): void;
+
     create(config: VpnConfig): Promise<int> {
       return new Promise<int>((resolve, reject) => {
-        if (!config.addresses || config.addresses.length === 0) {
-          reject(new BusinessError(401, 'Parameter error: addresses is required'));
-        } else {
-          taskpool.execute((): int => {
-            return createSync(config);
-          }).then((content: Any) => {
-            let fd = content as int;
-            if (fd < 0) {
-              reject(new BusinessError(fd, 'Failed to create VPN connection.'));
-            } else {
-              resolve(fd);
-            }
-          }, (err: Error): void => {
-            reject(ensureBusinessError(err));
-          });
-        }
+        taskpool.execute((): int => {
+          return this.createSync(config);
+        }).then((content: Any) => {
+          resolve(content as int);
+        }, (err: Error): void => {
+          reject(err as BusinessError);
+        });
       });
     }
 
     generateVpnId(): Promise<string> {
       return new Promise<string>((resolve, reject) => {
         taskpool.execute((): string => {
-          return generateVpnIdSync();
+          return this.generateVpnIdSync();
         }).then((content: Any) => {
           resolve(content as string);
         }, (err: Error): void => {
-          reject(ensureBusinessError(err));
+          reject(err as BusinessError);
         });
       });
     }
 
     protect(socketFd: int): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-          protectSync(socketFd);
+        taskpool.execute((): void => {
+          return this.protectSync(socketFd);
         }).then(() => {
           resolve(undefined);
         }, (err: Error): void => {
-          reject(ensureBusinessError(err));
+          reject(err as BusinessError);
         });
       });
     }
 
     destroy(): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-          destroySync();
+        taskpool.execute((): void => {
+          return this.destroySync();
         }).then(() => {
           resolve(undefined);
         }, (err: Error): void => {
-          reject(ensureBusinessError(err));
+          reject(err as BusinessError);
         });
       });
     }
 
     destroy(vpnId: string): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-          destroyVpnSync(vpnId);
+        taskpool.execute((): void => {
+          return this.destroySync(vpnId);
         }).then(() => {
           resolve(undefined);
         }, (err: Error): void => {
-          reject(ensureBusinessError(err));
+          reject(err as BusinessError);
         });
       });
     }
 
     protectProcessNet(): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        taskpool.execute(() => {
-          protectProcessNetSync();
+        taskpool.execute((): void => {
+          return this.protectProcessNetSync();
         }).then(() => {
           resolve(undefined);
         }, (err: Error): void => {
-          reject(ensureBusinessError(err));
+          reject(err as BusinessError);
         });
       });
     }
   }
 
-  export native function registOnAuthResult(callback: Callback<boolean>):void;
-
-  export native function unregistOnAuthResult(callback?: Callback<boolean>):void;
-
-  export class VpnObserver {
-    onAuthorizationResult(callback: Callback<boolean>): void {
-      registOnAuthResult(callback);
-    }
-
-    offAuthorizationResult(callback?: Callback<boolean>): void {
-      unregistOnAuthResult(callback);
-    }
-  }
-
-  export class VpnConfigInner implements VpnConfig {
+  export interface VpnConfig {
     vpnId?: string;
     addresses: Array<LinkAddress>;
     routes?: Array<RouteInfo>;
@@ -254,7 +290,7 @@ export default namespace vpnExtension {
     blockedApplications?: Array<string>;
   }
 
-  export interface VpnConfig {
+  export class VpnConfigInner implements VpnConfig {
     vpnId?: string;
     addresses: Array<LinkAddress>;
     routes?: Array<RouteInfo>;
