@@ -57,6 +57,8 @@
                 "ipc",
                 "safwk",
                 "napi",
+                "node",
+                "libuv",
                 "dhcp",
                 "hilog",
                 "netmanager_base",
