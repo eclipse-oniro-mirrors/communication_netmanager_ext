@@ -60,9 +60,11 @@ ohos_shared_library("sharing") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "libuv:uv",
     "napi:ace_napi",
     "netmanager_base:napi_utils",
     "netmanager_base:net_manager_common",
+    "node:node_header_notice",
     "samgr:samgr_proxy",
   ]
 
