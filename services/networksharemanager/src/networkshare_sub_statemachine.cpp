@@ -251,14 +251,6 @@ void NetworkShareSubStateMachine::InitStateEnter()
     }
     NETMGR_EXT_LOG_I("Enter Sub StateMachine[%{public}s] Init State.", ifaceName_.c_str());
     trackerCallback_->OnUpdateInterfaceState(shared_from_this(), SUB_SM_STATE_AVAILABLE, lastError_);
-#ifdef SHARE_TRAFFIC_LIMIT_ENABLE
-    if (networkShareTrafficLimit_ == nullptr) {
-        return;
-    }
-    if (netShareType_ == SharingIfaceType::SHARING_WIFI) {
-        networkShareTrafficLimit_->EndHandleSharingLimitEvent();
-    }
-#endif
 }
 
 void NetworkShareSubStateMachine::InitStateExit()
