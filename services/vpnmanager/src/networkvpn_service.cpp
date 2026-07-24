@@ -2589,6 +2589,11 @@ bool NetworkVpnService::IsCurrentVpnPid(int32_t uid, int32_t pid, bool &isMainPr
         return true;
     }
     if (uid == hasOpenedVpnUid_ && hasOpenedVpnUid_ != 0) {
+        if (it != setVpnPidMap_.end()) {
+            NETMGR_EXT_LOG_I("IsCurrentVpnPid skip uid fallback, vpn pid record exists, pid: %{public}d, "
+                "recordedPid: %{public}d", pid, it->second);
+            return false;
+        }
         if (extensionType == AppExecFwk::ExtensionAbilityType::VPN) {
             NETMGR_EXT_LOG_I("IsCurrentVpnPid skip vpn extension process, pid: %{public}d", pid);
             return false;
