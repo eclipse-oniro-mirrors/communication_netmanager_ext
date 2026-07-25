@@ -749,11 +749,9 @@ void RedirectorAdapterManager::RemoveRedirector(OH_TrafficFilter_Redirector* red
         if (it != redirectorIdMap_.end()) {
             redirectorId = it->second;
             redirectorIdMap_.erase(it);
+            delete redirector;
         }
     }
-
-    delete redirector;
-    NETMGR_EXT_LOG_I("RemoveRedirector: redirectorId=%{public}s", redirectorId.c_str());
 }
 }
 }

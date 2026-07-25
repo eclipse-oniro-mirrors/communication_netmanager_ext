@@ -56,6 +56,7 @@ napi_value InterfaceStateObserverWrapper::On(napi_env env, napi_callback_info in
     if (std::find(events.begin(), events.end(), event) == events.end()) {
         return NapiUtils::GetUndefined(env);
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!registered_) {
         int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(observer_);
         NETMANAGER_EXT_LOGI("ret = [%{public}d]", ret);
@@ -103,6 +104,7 @@ napi_value InterfaceStateObserverWrapper::Off(napi_env env, napi_callback_info i
         return NapiUtils::GetUndefined(env);
     }
 
+    std::lock_guard<std::mutex> lock(mutex_);
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
         manager_->DeleteListener(event, params[ARG_INDEX_1]);
     } else {

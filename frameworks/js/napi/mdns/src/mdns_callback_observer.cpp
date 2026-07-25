@@ -65,7 +65,7 @@ int32_t MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &service
 
 void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
@@ -87,7 +87,7 @@ void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo
 
 void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return;
@@ -108,7 +108,7 @@ void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo,
 
 int32_t MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return NETMANAGER_EXT_ERR_INTERNAL;
@@ -126,7 +126,7 @@ int32_t MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &service
 
 int32_t MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
-    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::discoverInstanceMap_[this];
+    MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
         return NETMANAGER_EXT_ERR_INTERNAL;
