@@ -17,6 +17,7 @@
 #define INTERFACE_OBSERVER_WRAPPER_H
 
 #include <initializer_list>
+#include <mutex>
 #include <string>
 
 #include <napi/native_api.h>
@@ -52,6 +53,7 @@ private:
     sptr<InterfaceStateObserver> observer_ = nullptr;
     std::shared_ptr<EventManager> manager_ = nullptr;
     bool registered_ = false;
+    std::mutex mutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

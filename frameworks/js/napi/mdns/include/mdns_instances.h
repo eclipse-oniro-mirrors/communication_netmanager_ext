@@ -32,6 +32,7 @@ public:
 
     static MDnsDiscoveryInstance *MakeMDnsDiscovery(std::shared_ptr<EventManager>& eventManager);
     static void DeleteMDnsDiscovery(MDnsDiscoveryInstance *mDnsDiscovery);
+    static MDnsDiscoveryInstance *GetDiscoveryInstance(MDnsDiscoveryObserver *observer);
 
     std::string context_;
     std::string serviceType_;

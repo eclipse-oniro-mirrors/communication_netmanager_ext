@@ -63,4 +63,17 @@ std::shared_ptr<EventManager> MDnsDiscoveryInstance::GetEventManager() const
 {
     return manager_;
 }
+
+MDnsDiscoveryInstance *MDnsDiscoveryInstance::GetDiscoveryInstance(MDnsDiscoveryObserver *observer)
+{
+    if (observer == nullptr) {
+        return nullptr;
+    }
+    std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
+    auto it = discoverInstanceMap_.find(observer);
+    if (it == discoverInstanceMap_.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
 } // namespace OHOS::NetManagerStandard
