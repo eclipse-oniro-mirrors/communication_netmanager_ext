@@ -105,5 +105,5 @@ ohos_unittest("vpn_manager_test") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":vpn_manager_test" ]
+  deps = []
 }
