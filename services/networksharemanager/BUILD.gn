@@ -68,6 +68,7 @@ ohos_shared_library("net_tether_manager") {
   ldflags = memory_optimization_ldflags
 
   external_deps = [
+    "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:wantagent_innerkits",
