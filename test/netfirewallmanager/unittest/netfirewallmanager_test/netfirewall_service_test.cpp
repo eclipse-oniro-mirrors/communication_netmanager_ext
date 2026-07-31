@@ -1763,5 +1763,136 @@ HWTEST_F(NetFirewallServiceTest, GetResultSetTableInfoInterceptRecord002, TestSi
     int32_t ret = NetFirewallDbHelper::GetInstance().GetResultSetTableInfo(resultSet, table);
     EXPECT_EQ(ret, FIREWALL_RDB_EXECUTE_FAILTURE);
 }
+
+/**
+ * @tc.name: GetUserSpaceType001
+ * @tc.desc: Test NetFirewallService GetUserSpaceType with current user.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetUserSpaceType001, TestSize.Level1)
+{
+    int32_t userId = instance_->GetCurrentAccountId();
+    NetFirewallService::SpaceType spaceType = instance_->GetUserSpaceType(userId);
+    EXPECT_TRUE(spaceType == NetFirewallService::SpaceType::PERSONAL ||
+                spaceType == NetFirewallService::SpaceType::ENTERPRISE);
+}
+
+/**
+ * @tc.name: GetUserSpaceType002
+ * @tc.desc: Test NetFirewallService GetUserSpaceType with non-existent user.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetUserSpaceType002, TestSize.Level1)
+{
+    int32_t nonExistentUserId = 99999;
+    NetFirewallService::SpaceType spaceType = instance_->GetUserSpaceType(nonExistentUserId);
+    EXPECT_EQ(spaceType, NetFirewallService::SpaceType::PERSONAL);
+}
+
+/**
+ * @tc.name: UpdateTrafficFilterBySpaceType001
+ * @tc.desc: Test UpdateTrafficFilterBySpaceType with ENTERPRISE space.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UpdateTrafficFilterBySpaceType001, TestSize.Level1)
+{
+    instance_->GlobalDisableTrafficFilter();
+    int32_t ret = instance_->UpdateTrafficFilterBySpaceType(NetFirewallService::SpaceType::ENTERPRISE);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    bool isEnabled = false;
+    ret = instance_->GetTrafficFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(isEnabled);
+}
+
+/**
+ * @tc.name: UpdateTrafficFilterBySpaceType002
+ * @tc.desc: Test UpdateTrafficFilterBySpaceType with PERSONAL space.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UpdateTrafficFilterBySpaceType002, TestSize.Level1)
+{
+    instance_->GlobalEnableTrafficFilter();
+    int32_t ret = instance_->UpdateTrafficFilterBySpaceType(NetFirewallService::SpaceType::PERSONAL);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    bool isEnabled = true;
+    ret = instance_->GetTrafficFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_FALSE(isEnabled);
+    instance_->GlobalEnableTrafficFilter();
+}
+
+/**
+ * @tc.name: UpdateTrafficFilterBySpaceType003
+ * @tc.desc: Test UpdateTrafficFilterBySpaceType with UNKNOWN space.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, UpdateTrafficFilterBySpaceType003, TestSize.Level1)
+{
+    int32_t ret = instance_->UpdateTrafficFilterBySpaceType(NetFirewallService::SpaceType::UNKNOWN);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: HandleSpaceSwitched001
+ * @tc.desc: Test HandleSpaceSwitched with same space type (no change).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, HandleSpaceSwitched001, TestSize.Level1)
+{
+    int32_t userId = instance_->GetCurrentAccountId();
+    NetFirewallService::SpaceType currentType = instance_->GetUserSpaceType(userId);
+    {
+        std::lock_guard<std::mutex> lock(instance_->spaceTypeMutex_);
+        instance_->currentSpaceType_ = currentType;
+    }
+    instance_->HandleSpaceSwitched(userId);
+    {
+        std::lock_guard<std::mutex> lock(instance_->spaceTypeMutex_);
+        EXPECT_EQ(instance_->currentSpaceType_, currentType);
+    }
+}
+
+/**
+ * @tc.name: HandleSpaceSwitched002
+ * @tc.desc: Test HandleSpaceSwitched with different space type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, HandleSpaceSwitched002, TestSize.Level1)
+{
+    int32_t userId = instance_->GetCurrentAccountId();
+    NetFirewallService::SpaceType actualType = instance_->GetUserSpaceType(userId);
+    NetFirewallService::SpaceType initialType = (actualType == NetFirewallService::SpaceType::ENTERPRISE)
+        ? NetFirewallService::SpaceType::PERSONAL : NetFirewallService::SpaceType::ENTERPRISE;
+    {
+        std::lock_guard<std::mutex> lock(instance_->spaceTypeMutex_);
+        instance_->currentSpaceType_ = initialType;
+    }
+    instance_->HandleSpaceSwitched(userId);
+    {
+        std::lock_guard<std::mutex> lock(instance_->spaceTypeMutex_);
+        EXPECT_EQ(instance_->currentSpaceType_, actualType);
+    }
+}
+
+/**
+ * @tc.name: HandleSpaceSwitched003
+ * @tc.desc: Test HandleSpaceSwitched with UNKNOWN initial state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, HandleSpaceSwitched003, TestSize.Level1)
+{
+    int32_t userId = instance_->GetCurrentAccountId();
+    {
+        std::lock_guard<std::mutex> lock(instance_->spaceTypeMutex_);
+        instance_->currentSpaceType_ = NetFirewallService::SpaceType::UNKNOWN;
+    }
+    NetFirewallService::SpaceType actualType = instance_->GetUserSpaceType(userId);
+    instance_->HandleSpaceSwitched(userId);
+    {
+        std::lock_guard<std::mutex> lock(instance_->spaceTypeMutex_);
+        EXPECT_EQ(instance_->currentSpaceType_, actualType);
+    }
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
