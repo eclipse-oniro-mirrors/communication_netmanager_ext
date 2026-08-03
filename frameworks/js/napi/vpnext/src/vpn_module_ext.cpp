@@ -522,6 +522,7 @@ napi_value VpnObserverExt::OffAuthorization(napi_env env, napi_callback_info inf
         return NapiUtils::GetUndefined(env);
     }
     if (paramsCount == 0) {
+        NETMANAGER_EXT_LOGI("SubEvent op=off_all kit=networkKit event=%{public}s", EVENT_AUTHORIZATION);
         manager->DeleteListener(EVENT_AUTHORIZATION);
         return NapiUtils::GetUndefined(env);
     }

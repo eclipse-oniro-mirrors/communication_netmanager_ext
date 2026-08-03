@@ -272,6 +272,7 @@ void VpnMonitor::Unregister(napi_env env, const std::string &event)
         NETMANAGER_EXT_LOGE("manager_ is nullptr");
         return;
     }
+    NETMANAGER_EXT_LOGI("SubEvent op=off_all kit=networkKit event=%{public}s", event.c_str());
     manager_->DeleteListener(event);
     if (CONNECT == event) {
         NetworkVpnClient::GetInstance().UnregisterVpnEvent(eventCallback_);
@@ -335,6 +336,7 @@ void VpnMonitor::Unregister(napi_env env)
         NETMANAGER_EXT_LOGE("manager_ is nullptr");
         return;
     }
+    NETMANAGER_EXT_LOGI("SubEvent op=off_all kit=networkKit event=%{public}s", CONNECT);
     manager_->DeleteListener(CONNECT);
     NetworkVpnClient::GetInstance().UnregisterVpnEvent(eventCallback_);
 }

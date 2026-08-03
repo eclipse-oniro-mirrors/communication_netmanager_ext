@@ -179,6 +179,7 @@ void VpnMonitor::Unregister(napi_env env)
         NETMANAGER_EXT_LOGE("vpnClient is nullptr");
         return;
     }
+    NETMANAGER_EXT_LOGI("SubEvent op=off_all kit=networkKit event=%{public}s", CONNECT);
     manager_->DeleteListener(CONNECT);
     vpnClient->UnregisterVpnEvent(eventCallback_);
 }
