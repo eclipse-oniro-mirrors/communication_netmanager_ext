@@ -92,7 +92,7 @@ int32_t StartEthEap(int32_t net_id, EthEapConfig config)
     profile.phase2Method = phase2Method;
     profile.identity = std::string(config.identity);
     profile.anonymousIdentity = std::string(config.anonymous_identity);
-    profile.password = std::string(config.password);
+    profile.password.append(config.password.data(), config.password.size());
     profile.caCertAliases = std::string(config.ca_cert_aliases);
     profile.caPath = std::string(config.ca_path);
     profile.clientCertAliases = std::string(config.client_cert_aliases);
