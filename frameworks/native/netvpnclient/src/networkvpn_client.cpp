@@ -640,8 +640,8 @@ void NetworkVpnClient::RecoverCallback()
     if (proxy != nullptr &&  clientVpnConfig_.config != nullptr) {
         VpnConfigRawData rawdata;
         if (!rawdata.SerializeFromVpnConfig(*clientVpnConfig_.config)) {
-            NETMGR_EXT_LOG_I("SetUpVpn SerializeFromVpnConfig fail");
-            proxy = nullptr;
+            NETMGR_EXT_LOG_E("SetUpVpn SerializeFromVpnConfig fail");
+            return;
         }
         proxy->SetUpVpn(rawdata,
             clientVpnConfig_.isVpnExtCall,  clientVpnConfig_.isInternalChannel);
