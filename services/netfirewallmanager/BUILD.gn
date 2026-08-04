@@ -47,6 +47,7 @@ netfirewall_manager_sources = [
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_stub.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/netfirewall_intercept_record_callback_proxy.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_iptables_command_builder.cpp",
+  "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_nfqueue_core.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_redirect_manager.cpp",
   "$NETFIREWALLMANAGER_SOURCE_DIR/src/nettrafficfilter_redirector_context.cpp",
 ]

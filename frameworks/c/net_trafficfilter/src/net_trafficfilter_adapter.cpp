@@ -753,5 +753,166 @@ void RedirectorAdapterManager::RemoveRedirector(OH_TrafficFilter_Redirector* red
         }
     }
 }
+
+static void ConvertCConfigToIPCCfg(
+    const OH_TrafficFilter_Config* cConfig, TrafficFilterConfig& ipcConfig)
+{
+    if (cConfig == nullptr) {
+        return;
+    }
+    ipcConfig.size_ = cConfig->size;
+    ipcConfig.packetCopyMode_ = cConfig->packetCopyMode;
+    ipcConfig.packetCopyLen_ = cConfig->packetCopyLen;
+    ipcConfig.nfqueueMaxlen_ = cConfig->nfqueueMaxlen;
+    ipcConfig.nfqueueFlags_ = cConfig->nfqueueFlags;
+}
+
+PacketControllerAdapterManager& PacketControllerAdapterManager::GetInstance()
+{
+    static PacketControllerAdapterManager instance;
+    return instance;
+}
+
+bool PacketControllerAdapterManager::GetPacketInfo(OH_TrafficFilter_PacketController* controller,
+    PacketInfo& packetInfo)
+{
+    if (controller == nullptr) {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    auto it = controllerIdMap_.find(controller);
+    if (it == controllerIdMap_.end()) {
+        NETMGR_EXT_LOG_E("GetPacketInfo: packetController handle not found in map");
+        return false;
+    }
+    packetInfo = it->second;
+    return true;
+}
+
+int32_t PacketControllerAdapterManager::CheckConfig(const OH_TrafficFilter_Config* config)
+{
+    if (config == nullptr) {
+        return OH_TRAFFICFILTER_OK;
+    }
+    if (config->size < PACKET_CONTROLLER_MIN_SIZE) {
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (config->packetCopyMode < OH_TRAFFICFILTER_COPY_MODE_META ||
+        config->packetCopyMode > OH_TRAFFICFILTER_COPY_MODE_MAXLEN) {
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (config->packetCopyLen > PACKET_COPY_LEN_MAX ||
+        (config->packetCopyMode != OH_TRAFFICFILTER_COPY_MODE_META && config->packetCopyLen == 0)) {
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    if (config->nfqueueMaxlen > NFQUEUE_MAXLEN) {
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return OH_TRAFFICFILTER_OK;
+}
+
+int32_t PacketControllerAdapterManager::CreatePacketController(
+    uint32_t group_id,
+    uint32_t priority,
+    const OH_TrafficFilter_Config* config,
+    OH_TrafficFilter_PacketController** controller)
+{
+    if (group_id < OH_TRAFFICFILTER_MIN_GROUP_ID || group_id > OH_TRAFFICFILTER_MAX_GROUP_ID) {
+        NETMGR_EXT_LOG_E("CreatePacketController: invalid group_id=%{public}u", group_id);
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
+    if (priority < OH_TRAFFICFILTER_MIN_PRIORITY || priority > OH_TRAFFICFILTER_MAX_PRIORITY) {
+        NETMGR_EXT_LOG_E("CreatePacketController: invalid priority=%{public}u", priority);
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
+    OHOS::sptr<TrafficFilterConfig> cppConfig = nullptr;
+    uint32_t packetCopyMode = OH_TRAFFICFILTER_COPY_MODE_FULL;
+    int32_t ret = CheckConfig(config);
+    if (ret != OH_TRAFFICFILTER_OK) {
+        return ret;
+    }
+    if (config != nullptr) {
+        cppConfig = new (std::nothrow) TrafficFilterConfig();
+        if (cppConfig == nullptr) {
+            NETMGR_EXT_LOG_E("CreatePacketController: failed to convert C struct to IPC struct");
+            return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+        }
+        ConvertCConfigToIPCCfg(config, *cppConfig);
+        packetCopyMode = cppConfig->packetCopyMode_;
+    }
+    std::string packetControllerId = "";
+    int32_t fd = -1;
+    ret = NetFirewallClient::GetInstance().CreatePacketController(group_id, priority,
+        cppConfig, packetControllerId, fd);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("CreatePacketController: failed, ret=%{public}d", ret);
+        return ret;
+    }
+    PacketInfo packetInfo {
+        .packetControllerId = packetControllerId,
+        .fd = fd,
+        .packetCopyMode = packetCopyMode
+    };
+    return AddPacketController(packetInfo, controller);
+}
+
+int32_t PacketControllerAdapterManager::AddPacketController(const PacketInfo& packetInfo,
+    OH_TrafficFilter_PacketController** controller)
+{
+    if (packetInfo.packetControllerId.empty()) {
+        NETMGR_EXT_LOG_E("AddPacketController: packetControllerId is empty");
+        return OH_TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
+    }
+
+    OH_TrafficFilter_PacketController* handle = new (std::nothrow) OH_TrafficFilter_PacketController();
+    if (handle == nullptr) {
+        NETMGR_EXT_LOG_E("AddPacketController: failed to allocate handle memory");
+        return OH_TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mapMutex_);
+        controllerIdMap_[handle] = packetInfo;
+    }
+
+    *controller = handle;
+    return OH_TRAFFICFILTER_OK;
+}
+
+int32_t PacketControllerAdapterManager::DestroyPacketController(OH_TrafficFilter_PacketController* controller)
+{
+    PacketInfo packetInfo;
+    if (!GetPacketInfo(controller, packetInfo)) {
+        NETMGR_EXT_LOG_E("DestroyPacketController: packetController handle not found in map");
+        return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    int32_t ret = NetFirewallClient::GetInstance().DestroyPacketController(packetInfo.packetControllerId);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("DestroyPacketController: failed, ret=%{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("DestroyPacketController: success");
+    }
+    RemovePacketController(controller);
+    return ret;
+}
+
+void PacketControllerAdapterManager::RemovePacketController(OH_TrafficFilter_PacketController* controller)
+{
+    if (controller == nullptr) {
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mapMutex_);
+        auto it = controllerIdMap_.find(controller);
+        if (it != controllerIdMap_.end()) {
+            controllerIdMap_.erase(it);
+            delete controller;
+        }
+    }
+}
 }
 }

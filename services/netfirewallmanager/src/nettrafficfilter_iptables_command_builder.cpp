@@ -15,6 +15,7 @@
 
 #include "nettrafficfilter_iptables_command_builder.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "netsys_controller.h"
 #include <arpa/inet.h>
 #include <sstream>
 #include <securec.h>
@@ -24,6 +25,7 @@ namespace NetManagerStandard {
 const std::string DNAT_TARGET = "DNAT";
 constexpr uint32_t UID_UNSPEC = static_cast<uint32_t>(-1);
 constexpr uint32_t PORT_MAX = 65535;
+constexpr uint32_t DEFAULT_IPTABLE_LEN = 128;
 
 void NetTrafficFilterIptablesCommandBuilder::AppendMatchConditions(
     std::ostringstream& cmd, const TrafficFilterRedirectRule& rule)
@@ -103,34 +105,69 @@ std::string NetTrafficFilterIptablesCommandBuilder::BuildRedirectCommandWithPosi
     return BuildRedirectCommandBase(rule, chainName, "-I", std::to_string(position));
 }
 
-std::string NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(const std::string& chainName)
+std::string NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(const std::string& chainName,
+    const IptablesName tableName)
 {
-    return "-t nat -F " + chainName;
+    const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append("-t ")
+        .append(tblName)
+        .append(" -F ")
+        .append(chainName);
+    return result;
 }
 
-std::string NetTrafficFilterIptablesCommandBuilder::BuildCreateChainCommand(const std::string& chainName)
+std::string NetTrafficFilterIptablesCommandBuilder::BuildCreateChainCommand(const std::string& chainName,
+    const IptablesName tableName)
 {
-    return "-t nat -N " + chainName;
+    const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append("-t ")
+        .append(tblName)
+        .append(" -N ")
+        .append(chainName);
+    return result;
 }
 
-std::string NetTrafficFilterIptablesCommandBuilder::BuildDeleteChainCommand(const std::string& chainName)
+std::string NetTrafficFilterIptablesCommandBuilder::BuildDeleteChainCommand(const std::string& chainName,
+    const IptablesName tableName)
 {
-    return "-t nat -X " + chainName;
+    const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append("-t ")
+        .append(tblName)
+        .append(" -X ")
+        .append(chainName);
+    return result;
 }
 
 std::string NetTrafficFilterIptablesCommandBuilder::BuildInsertJumpToChainCommand(
-    const std::string& fromHook, const std::string& chainName)
+    const std::string& fromHook, const std::string& chainName, const IptablesName tableName)
 {
-    return BuildInsertJumpToChainCommand(fromHook, chainName, 1);
+    return BuildInsertJumpToChainCommand(fromHook, chainName, 1, tableName);
 }
 
 std::string NetTrafficFilterIptablesCommandBuilder::BuildInsertJumpToChainCommand(
-    const std::string& fromHook, const std::string& chainName, uint32_t position)
+    const std::string& fromHook, const std::string& chainName, uint32_t position, const IptablesName tableName)
 {
     if (fromHook.empty() || chainName.empty() || position == 0) {
         return "";
     }
-    return "-t nat -I " + fromHook + " " + std::to_string(position) + " -j " + chainName;
+    const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append("-t ")
+        .append(tblName)
+        .append(" -I ")
+        .append(fromHook)
+        .append(" ")
+        .append(std::to_string(position))
+        .append(" -j ")
+        .append(chainName);
+    return result;
 }
 
 std::string NetTrafficFilterIptablesCommandBuilder::BuildAppendRedirectCommand(
@@ -145,9 +182,18 @@ std::string NetTrafficFilterIptablesCommandBuilder::BuildAppendPauseRuleCommand(
 }
 
 std::string NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
-    const std::string& fromHook, const std::string& chainName)
+    const std::string& fromHook, const std::string& chainName, const IptablesName tableName)
 {
-    return "-t nat -D " + fromHook + " -j " + chainName;
+    const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append("-t ")
+        .append(tblName)
+        .append(" -D ")
+        .append(fromHook)
+        .append(" -j ")
+        .append(chainName);
+    return result;
 }
 
 std::string NetTrafficFilterIptablesCommandBuilder::BuildInsertPauseRuleCommand(const std::string& chainName)
@@ -312,6 +358,8 @@ std::string NetTrafficFilterIptablesCommandBuilder::GetHookPointName(TrafficFilt
             return "OUTPUT";
         case TrafficFilterHookPoint::HOOK_POSTROUTING:
             return "POSTROUTING";
+        case TrafficFilterHookPoint::HOOK_FORWARD:
+            return "FORWARD";
         default:
             NETMGR_EXT_LOG_W("Unknown hook point: %{public}d", static_cast<int32_t>(hookPoint));
             return "";
@@ -336,5 +384,41 @@ std::string NetTrafficFilterIptablesCommandBuilder::FormatNatAddressWithPort(
     return "";
 }
 
+int32_t NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+    const std::string& command, TrafficFilterIPFamily family)
+{
+    if (command.empty()) {
+        NETMGR_EXT_LOG_E("empty iptables command");
+        return -1;
+    }
+    std::string respond;
+    NetsysNative::IptablesType ipType = NetsysNative::IptablesType::IPTYPE_IPV4;
+    switch (family) {
+        case TrafficFilterIPFamily::IP_FAMILY_UNSPEC:
+            ipType = NetsysNative::IptablesType::IPTYPE_IPV4V6;
+            break;
+        case TrafficFilterIPFamily::IP_FAMILY_V4:
+            ipType = NetsysNative::IptablesType::IPTYPE_IPV4;
+            break;
+        case TrafficFilterIPFamily::IP_FAMILY_V6:
+            ipType = NetsysNative::IptablesType::IPTYPE_IPV6;
+            break;
+        case TrafficFilterIPFamily::IP_FAMILY_V4V6:
+            ipType = NetsysNative::IptablesType::IPTYPE_IPV4V6;
+            break;
+        default:
+            NETMGR_EXT_LOG_E("invalid ipType");
+            return -1;
+    }
+    int32_t ret = NetsysController::GetInstance().SetIptablesCommandForRes(
+        command, respond, ipType);
+    if (ret != 0) {
+        NETMGR_EXT_LOG_E("Failed to execute iptables command: %{private}s, error: %{public}s",
+            command.c_str(), respond.c_str());
+        return -1;
+    }
+    NETMGR_EXT_LOG_I("Executed iptables command: %{private}s", command.c_str());
+    return 0;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

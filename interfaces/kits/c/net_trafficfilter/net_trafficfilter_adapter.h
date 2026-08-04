@@ -22,6 +22,8 @@
 #include "net_trafficfilter_type.h"
 struct OH_TrafficFilter_Redirector {
 };
+struct OH_TrafficFilter_PacketController {
+};
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -31,6 +33,10 @@ constexpr uint32_t PROCESS_INFO_MIN_SIZE =
     static_cast<uint32_t>(offsetof(OH_TrafficFilter_ProcessInfo, size) + sizeof(uint32_t));
 constexpr uint32_t REDIRECT_RULE_MIN_SIZE =
     static_cast<uint32_t>(offsetof(OH_TrafficFilter_RedirectRule, proxyPort) + sizeof(uint16_t));
+constexpr uint32_t PACKET_CONTROLLER_MIN_SIZE =
+    static_cast<uint32_t>(offsetof(OH_TrafficFilter_Config, nfqueueFlags) + sizeof(uint32_t));
+constexpr uint32_t PACKET_COPY_LEN_MAX = 0xFFFF;
+constexpr uint32_t NFQUEUE_MAXLEN = 0xFFFF;
 constexpr uint8_t IPV4_ADDR_LEN = 4;
 constexpr uint8_t IPV4_PREFIX_MAX = 32;
 constexpr uint8_t IPV6_PREFIX_MAX = 128;
@@ -62,6 +68,30 @@ private:
     std::map<OH_TrafficFilter_Redirector*, std::string> redirectorIdMap_;
 };
 
+class PacketControllerAdapterManager {
+public:
+    static PacketControllerAdapterManager& GetInstance();
+
+    int32_t CreatePacketController(uint32_t groupId, uint32_t priority,
+        const OH_TrafficFilter_Config* config, OH_TrafficFilter_PacketController** controller);
+
+    int32_t DestroyPacketController(OH_TrafficFilter_PacketController* controller);
+
+private:
+    PacketControllerAdapterManager() = default;
+    ~PacketControllerAdapterManager() = default;
+    void RemovePacketController(OH_TrafficFilter_PacketController* controller);
+    struct PacketInfo {
+        std::string packetControllerId;
+        int32_t fd;
+        uint32_t packetCopyMode;
+    };
+    int32_t CheckConfig(const OH_TrafficFilter_Config* config);
+    int32_t AddPacketController(const PacketInfo& packetInfo, OH_TrafficFilter_PacketController** controller);
+    bool GetPacketInfo(OH_TrafficFilter_PacketController* controller, PacketInfo& packetInfo);
+    std::mutex mapMutex_;
+    std::map<OH_TrafficFilter_PacketController*, PacketInfo> controllerIdMap_;
+};
 }
 }
 

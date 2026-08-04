@@ -590,5 +590,83 @@ int32_t NetFirewallProxy::QueryProcess(const std::string& srcIp, uint16_t srcPor
     }
     return FIREWALL_SUCCESS;
 }
+
+int32_t NetFirewallProxy::CreatePacketController(uint32_t groupId,
+    uint32_t priority,
+    const sptr<TrafficFilterConfig>& config,
+    std::string& packetControllerId, int32_t& fd)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteUint32(groupId)) {
+        NETMGR_EXT_LOG_E("WriteUint32 groupId failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteUint32(priority)) {
+        NETMGR_EXT_LOG_E("WriteUint32 priority failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    bool isConfigNull = (config == nullptr);
+    if (!data.WriteBool(isConfigNull)) {
+        NETMGR_EXT_LOG_E("WriteBool configNull failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!isConfigNull && !config->Marshalling(data)) {
+        NETMGR_EXT_LOG_E("proxy Marshalling rule failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(CREATE_PACKET_CONTROLLER), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    if (!reply.ReadString(packetControllerId)) {
+        NETMGR_EXT_LOG_E("ReadString packetControllerId failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    fd = reply.ReadFileDescriptor();
+    if (-1 == fd) {
+        NETMGR_EXT_LOG_E("ReadFileDescriptor fd failed");
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return ret;
+}
+
+int32_t NetFirewallProxy::DestroyPacketController(const std::string& packetControllerId)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("DestroyPacketController: WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteString(packetControllerId)) {
+        NETMGR_EXT_LOG_E("DestroyPacketController: WriteString packetControllerId failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("DestroyPacketController: Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(DESTROY_PACKET_CONTROLLER), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+    }
+    return ret;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

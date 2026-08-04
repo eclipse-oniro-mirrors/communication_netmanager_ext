@@ -308,5 +308,28 @@ int32_t NetFirewallClient::QueryProcess(const std::string& srcIp, uint16_t srcPo
     }
     return ret;
 }
+
+int32_t NetFirewallClient::CreatePacketController(uint32_t groupId,
+    uint32_t priority,
+    const sptr<TrafficFilterConfig>& config,
+    std::string& packetControllerId, int32_t& fd)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("CreatePacketController proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->CreatePacketController(groupId, priority, config, packetControllerId, fd);
+}
+
+int32_t NetFirewallClient::DestroyPacketController(const std::string& packetControllerId)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("DestroyPacketController proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->DestroyPacketController(packetControllerId);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

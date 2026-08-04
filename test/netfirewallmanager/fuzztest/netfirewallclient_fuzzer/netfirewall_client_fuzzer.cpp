@@ -270,6 +270,45 @@ void QueryProcessTest(const uint8_t *data, size_t size)
     OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::QUERY_PROCESS), parcel);
 }
 
+void CreatePacketControllerTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    uint32_t groupId = GetData<uint32_t>();
+    uint32_t priority = GetData<uint32_t>();
+    OH_TrafficFilter_Config config;
+    config.packetCopyLen = GetData<uint32_t>();
+    config.nfqueueMaxlen = GetData<uint32_t>();
+    config.nfqueueFlags = GetData<uint32_t>();
+    config.size = GetData<uint32_t>();
+
+    if (!parcel.WriteUint32(groupId)) {
+        return;
+    }
+    if (!parcel.WriteUint32(priority)) {
+        return;
+    }
+    if (!parcel.WriteRawData(&config, sizeof(OH_TrafficFilter_Config))) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::CREATE_PACKET_CONTROLLER), parcel);
+}
+
+void DestroyPacketControllerTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    std::string packetControllerId = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteString(packetControllerId)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::DESTROY_PACKET_CONTROLLER), parcel);
+}
+
 void CheckRuleStringParam001FuzzTest(const uint8_t *data, size_t size)
 {
     (void)data;
@@ -667,6 +706,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::GlobalDisableTrafficFilterTest(data, size);
     OHOS::NetManagerStandard::GetTrafficFilterGlobalStatusTest(data, size);
     OHOS::NetManagerStandard::QueryProcessTest(data, size);
+    OHOS::NetManagerStandard::CreatePacketControllerTest(data, size);
+    OHOS::NetManagerStandard::DestroyPacketControllerTest(data, size);
     OHOS::NetManagerStandard::CheckRuleStringParam001FuzzTest(data, size);
     OHOS::NetManagerStandard::CheckRuleStringParam002FuzzTest(data, size);
     OHOS::NetManagerStandard::CheckInterfaceName001FuzzTest(data, size);

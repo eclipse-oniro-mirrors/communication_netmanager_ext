@@ -79,11 +79,15 @@ int32_t OH_TrafficFilter_CreatePacketController(
  * After calling this function, the handle is invalid. Do not use it again.
  *
  * @param controller OH_TrafficFilter_PacketController handle
+ * @return <ul><li>{@link OH_TRAFFICFILTER_OK} on success.</li>
+ *     <li>{@link OH_TRAFFICFILTER_ERROR_PERMISSION_DENIED} if permission is denied.</li>
+ *     <li>{@link OH_TRAFFICFILTER_ERROR_INVALID_PARAM} if controller is NULL.</li>
+ *     <li>{@link OH_TRAFFICFILTER_ERROR_NOT_FOUND} if the specified controller handle is not found.</li></ul>
  *
  * @permission ohos.permission.kernel.TRAFFIC_FILTER
  * @since 26.1.0
  */
-void OH_TrafficFilter_DestroyPacketController(OH_TrafficFilter_PacketController* controller);
+int32_t OH_TrafficFilter_DestroyPacketController(OH_TrafficFilter_PacketController* controller);
 
 /**
  * @brief Register a packet callback function.

@@ -330,6 +330,33 @@ typedef enum OH_TrafficFilter_HookPoint {
 } OH_TrafficFilter_HookPoint;
 
 /**
+ * @brief NFQueue packet copy mode
+ * @since 26.0.0
+ */
+typedef enum OH_TrafficFilter_PacketCopyMode {
+    /**
+    * @brief Copy only metadata (no packet data)
+    * @since 26.0.0
+    */
+    OH_TRAFFICFILTER_COPY_MODE_META = 0,
+    /**
+    * @brief Copy packet header only (specified by packetCopyLen)
+    * @since 26.0.0
+    */
+    OH_TRAFFICFILTER_COPY_MODE_HEADER = 1,
+    /**
+    * @brief Copy entire packet
+    * @since 26.0.0
+    */
+    OH_TRAFFICFILTER_COPY_MODE_FULL = 2,
+    /**
+    * @brief Copy packet with specified maximum length
+    * @since 26.0.0
+    */
+    OH_TRAFFICFILTER_COPY_MODE_MAXLEN = 3
+} OH_TrafficFilter_PacketCopyMode;
+
+/**
  * @brief IP address in binary form, supports both IPv4 and IPv6
  * @since 26.0.0
  */
@@ -643,6 +670,11 @@ typedef struct OH_TrafficFilter_Config {
      * @since 26.1.0
      */
     uint32_t size;
+    /**
+    * @brief NFQueue packet copy mode, see OH_TrafficFilter_PacketCopyMode
+    * @since 26.1.0
+    */
+    uint32_t packetCopyMode;
     /**
      * @brief NFQueue packet copy length in bytes, 0xFFFF means entire packet, smaller values copy only header
      * @since 26.1.0

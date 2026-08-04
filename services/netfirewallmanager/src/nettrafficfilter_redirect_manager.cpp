@@ -132,7 +132,7 @@ int32_t NetTrafficFilterRedirectManager::RemoveJumpRulesFromHookPoint(
         std::string chainName = NetTrafficFilterIptablesCommandBuilder::GenerateChainName(
             redirector->GetCallingUid(), redirector->GetGroupId());
         std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(hookPointName, chainName);
-        if (ExecuteIptablesCommand(jumpCmd, family) != TRAFFICFILTER_OK) {
+        if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(jumpCmd, family) != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_I("Jump rule not found or already removed, hookPoint=%{public}d, chain=%{public}s",
                 static_cast<int32_t>(hookPoint), chainName.c_str());
         }
@@ -171,7 +171,7 @@ int32_t NetTrafficFilterRedirectManager::UpdateGlobalJumpRules(
             NETMGR_EXT_LOG_E("empty add jump command");
             return -1;
         }
-        int32_t ret = ExecuteIptablesCommand(addJumpCmd, family);
+        int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(addJumpCmd, family);
         if (ret != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to add jump rule for redirector %{public}s, position=%{public}u",
                 redirectorId.c_str(), position);
@@ -462,7 +462,8 @@ int32_t NetTrafficFilterRedirectManager::CreateRedirector(const std::string& bun
     redirectorId = GenerateRedirectorId();
     std::string chainName = NetTrafficFilterIptablesCommandBuilder::GenerateChainName(callingUid, groupId);
     std::string createChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildCreateChainCommand(chainName);
-    int32_t ret = ExecuteIptablesCommand(createChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+    int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+        createChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
     if (ret != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("Failed to create iptables chain for redirector");
         return -1;
@@ -511,19 +512,22 @@ int32_t NetTrafficFilterRedirectManager::CleanupRedirectorIptablesResources(cons
         std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
         std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
             hookPointName, chainName);
-        if (ExecuteIptablesCommand(jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+        if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+            jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                 static_cast<int32_t>(hookPoint));
         }
     }
 
     std::string clearChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(chainName);
-    if (ExecuteIptablesCommand(clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+    if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+        clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("Failed to flush chain");
     }
 
     std::string deleteChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteChainCommand(chainName);
-    if (ExecuteIptablesCommand(deleteChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+    if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+        deleteChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_W("Failed to delete chain");
     }
 
@@ -747,7 +751,8 @@ int32_t NetTrafficFilterRedirectManager::ApplyRulesToChain(
         return -1;
     }
     std::string clearChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(chainName);
-    int32_t ret = ExecuteIptablesCommand(clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+    int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+        clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
     if (ret != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("Failed to flush chain: %{public}s", clearChainCmd.c_str());
         return -1;
@@ -759,7 +764,8 @@ int32_t NetTrafficFilterRedirectManager::ApplyRulesToChain(
             NETMGR_EXT_LOG_E("Empty append pause command");
             return -1;
         }
-        ret = ExecuteIptablesCommand(pauseCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+        ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+            pauseCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
         if (ret != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to append pause rule: %{private}s", pauseCmd.c_str());
             return -1;
@@ -793,7 +799,8 @@ int32_t NetTrafficFilterRedirectManager::AppendRedirectRulesToChain(
             failedCount++;
             continue;
         }
-        int32_t ret = ExecuteIptablesCommand(addCmd, ruleFamily);
+        int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+            addCmd, ruleFamily);
         if (ret != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to append redirect rule, continue next. family=%{public}d, command=%{private}s",
                 static_cast<int32_t>(ruleFamily), addCmd.c_str());
@@ -903,7 +910,8 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
         std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
         std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
             hookPointName, chainName);
-        if (ExecuteIptablesCommand(jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+        if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+            jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                 static_cast<int32_t>(hookPoint));
         }
@@ -911,7 +919,8 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
 
     std::string clearChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(chainName);
     NETMGR_EXT_LOG_I("Flushing chain for clear rules: %{public}s", chainName.c_str());
-    int32_t ret = ExecuteIptablesCommand(clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+    int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+        clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
     if (ret != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("Failed to flush chain during clear rules");
         return -1;
@@ -953,7 +962,8 @@ int32_t NetTrafficFilterRedirectManager::PauseAllRedirectors()
             std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
             std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
                 hookPointName, chainName);
-            if (ExecuteIptablesCommand(jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+            if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+                jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
                 NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                     static_cast<int32_t>(hookPoint));
             }
@@ -1049,7 +1059,8 @@ int32_t NetTrafficFilterRedirectManager::PauseRedirectorsByBundleName(const std:
             std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
             std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
                 hookPointName, chainName);
-            if (ExecuteIptablesCommand(jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+            if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+                jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
                 NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                     static_cast<int32_t>(hookPoint));
             }
@@ -1142,43 +1153,6 @@ int32_t NetTrafficFilterRedirectManager::ResumeRedirectorsByBundleName(const std
         return ret;
     }
     return RebuildRedirectorRulesByBundleName(bundleName);
-}
-
-int32_t NetTrafficFilterRedirectManager::ExecuteIptablesCommand(
-    const std::string& command, TrafficFilterIPFamily family)
-{
-    if (command.empty()) {
-        NETMGR_EXT_LOG_E("empty iptables command");
-        return -1;
-    }
-    std::string respond;
-    NetsysNative::IptablesType ipType = NetsysNative::IptablesType::IPTYPE_IPV4;
-    switch (family) {
-        case TrafficFilterIPFamily::IP_FAMILY_UNSPEC:
-            ipType = NetsysNative::IptablesType::IPTYPE_IPV4V6;
-            break;
-        case TrafficFilterIPFamily::IP_FAMILY_V4:
-            ipType = NetsysNative::IptablesType::IPTYPE_IPV4;
-            break;
-        case TrafficFilterIPFamily::IP_FAMILY_V6:
-            ipType = NetsysNative::IptablesType::IPTYPE_IPV6;
-            break;
-        case TrafficFilterIPFamily::IP_FAMILY_V4V6:
-            ipType = NetsysNative::IptablesType::IPTYPE_IPV4V6;
-            break;
-        default:
-            NETMGR_EXT_LOG_E("invalid ipType");
-            return -1;
-    }
-    int32_t ret = NetsysController::GetInstance().SetIptablesCommandForRes(
-        command, respond, ipType);
-    if (ret != 0) {
-        NETMGR_EXT_LOG_E("Failed to execute iptables command: %{private}s, error: %{public}s",
-            command.c_str(), respond.c_str());
-        return -1;
-    }
-    NETMGR_EXT_LOG_I("Executed iptables command: %{private}s", command.c_str());
-    return TRAFFICFILTER_OK;
 }
 
 std::string NetTrafficFilterRedirectManager::GenerateRedirectorId()

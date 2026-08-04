@@ -35,6 +35,7 @@
 #include "netfirewall_intercept_recorder.h"
 #include "bundle_mgr_interface.h"
 #include "iservice_registry.h"
+#include "nettrafficfilter_nfqueue_core.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -591,6 +592,44 @@ int32_t NetFirewallService::QueryProcess(const std::string& srcIp, uint16_t srcP
         NETMGR_EXT_LOG_I("QueryProcess success: uid=%{public}u, pid=%{public}u", uid, pid);
     }
     return ret;
+}
+
+int32_t NetFirewallService::CreatePacketController(uint32_t groupId, uint32_t priority,
+    const sptr<TrafficFilterConfig>& config, std::string& packetControllerId, int32_t& fd)
+{
+    std::string bundleName = GetBundleName();
+    if (bundleName.empty()) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    int32_t queueNum = NetTrafficFilterNFQueueCore::GetInstance().AllocateQueueNumber(bundleName, groupId);
+    if (queueNum == -1) {
+        return TRAFFICFILTER_ERROR_GROUP_ID_IN_USE;
+    }
+    int32_t ret = NetTrafficFilterNFQueueCore::GetInstance().CreateQueue(groupId, priority,
+        queueNum, bundleName, config);
+    if (ret != TRAFFICFILTER_OK) {
+        return ret;
+    }
+    QueueInfo info = NetTrafficFilterNFQueueCore::GetInstance().GetQueueInfo(queueNum);
+    packetControllerId = info.packetControllerId;
+    fd = info.fd;
+    return ret;
+}
+
+int32_t NetFirewallService::DestroyPacketController(const std::string& packetControllerId)
+{
+    std::string::size_type pos1 = packetControllerId.find(':');
+    if (pos1 == std::string::npos) {
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    std::string bundleName = GetBundleName();
+    std::string bundleNameInId = packetControllerId.substr(0, pos1);
+    if (bundleName != bundleNameInId) {
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    std::string queueNumStr = packetControllerId.substr(pos1 + 1);
+    uint32_t queueNum = std::stoi(queueNumStr);
+    return NetTrafficFilterNFQueueCore::GetInstance().DestroyQueue(queueNum);
 }
 
 std::string NetFirewallService::GetBundleName()

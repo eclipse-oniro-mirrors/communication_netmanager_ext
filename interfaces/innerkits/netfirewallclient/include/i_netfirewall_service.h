@@ -62,6 +62,11 @@ public:
     virtual int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
         const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) = 0;
 
+    virtual int32_t CreatePacketController(uint32_t groupId, uint32_t priority,
+        const sptr<TrafficFilterConfig>& config, std::string& packetControllerId, int32_t& fd) = 0;
+
+    virtual int32_t DestroyPacketController(const std::string& packetControllerId) = 0;
+
     enum {
         SET_NET_FIREWALL_STATUS,
         GET_NET_FIREWALL_STATUS,
@@ -81,6 +86,8 @@ public:
         GLOBAL_DISABLE_TRAFFIC_FILTER,
         GET_TRAFFIC_FILTER_GLOBAL_STATUS,
         QUERY_PROCESS,
+        CREATE_PACKET_CONTROLLER,
+        DESTROY_PACKET_CONTROLLER,
     };
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.NetManagerStandard.INetFirewallService");
 };
