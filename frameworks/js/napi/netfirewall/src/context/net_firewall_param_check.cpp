@@ -26,7 +26,11 @@ namespace NetManagerStandard {
 constexpr int32_t MAX_RULE_PORT = 65535;
 const std::regex DOMAIN_PATTERN { "^([a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\\.?)$" };
 const std::regex WILDCARD_DOMAIN_PATTERN {
-    "^(([a-zA-Z0-9][-a-zA-Z0-9]{0,62}|\\*)(\\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\\.?)$"
+    "^(?:(?:[a-zA-Z0-9][-a-zA-Z0-9]{0,62}|\\*[a-zA-Z0-9][-a-zA-Z0-9]{0,61}|[a-zA-Z0-9][-a-zA-Z0-9]{0,61}\\*)"
+    "(?:\\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\\."
+    "(?:[a-zA-Z0-9][-a-zA-Z0-9]{0,62}|\\*[a-zA-Z0-9][-a-zA-Z0-9]{0,61}|[a-zA-Z0-9][-a-zA-Z0-9]{0,61}\\*|\\*)"
+    "|\\*(?:\\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\\."
+    "(?:[a-zA-Z0-9][-a-zA-Z0-9]{0,62}|\\*[a-zA-Z0-9][-a-zA-Z0-9]{0,61}|[a-zA-Z0-9][-a-zA-Z0-9]{0,61}\\*))\\.?$"
 };
 const std::regex INTERFACE_NAME_PATTERN { "^[a-zA-Z][a-zA-Z0-9_-]{0,14}$" };
 
