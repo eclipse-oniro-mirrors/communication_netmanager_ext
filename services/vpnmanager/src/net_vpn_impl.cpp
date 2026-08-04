@@ -153,6 +153,10 @@ std::string NetVpnImpl::GetVpnIfAddr()
 
 void NetVpnImpl::SetNetSupplierInfoIdent(const std::string &ident)
 {
+    if (netSupplierInfo_ == nullptr) {
+        NETMGR_EXT_LOG_E("SetNetSupplierInfoIdent netSupplierInfo_ is nullptr");
+        return;
+    }
     netSupplierInfo_->ident_ = ident;
 }
 
