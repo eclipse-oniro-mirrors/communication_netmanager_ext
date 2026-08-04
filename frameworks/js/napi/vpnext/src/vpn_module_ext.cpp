@@ -148,6 +148,7 @@ static napi_value CreateObserveDataSharePromise(napi_env env, const std::string 
     int32_t uid = IPCSkeleton::GetCallingUid();
     if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
         NETMANAGER_EXT_LOGE("CreateObserveDataSharePromise::GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
+        napi_reject_deferred(env, deferred, NapiUtils::GetUndefined(env));
         return NapiUtils::GetUndefined(env);
     }
     key = bundleName + "_" + std::to_string(userId);
@@ -405,6 +406,13 @@ static napi_value CreateVpnConnection(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::NewInstance(env, info, VPN_CONNECTION_EXT, MakeDataExt, [](napi_env, void *data, void *) {
         NETMANAGER_EXT_LOGI("finalize VpnConnection");
+        auto sharedManager = static_cast<std::shared_ptr<EventManager> *>(data);
+        if (sharedManager == nullptr || *sharedManager == nullptr) {
+            return;
+        }
+        auto manager = *sharedManager;
+        manager->DeleteAllListener();
+        delete sharedManager;
     });
 }
 
@@ -427,10 +435,6 @@ static napi_value CreateVpnObserver(napi_env env, napi_callback_info info)
         auto *vpnObserverInstance = static_cast<VpnObserverInstance *>(data);
         if (vpnObserverInstance == nullptr) {
             return;
-        }
-        auto manager = vpnObserverInstance->GetEventManager();
-        if (manager != nullptr) {
-            manager->DeleteAllListener();
         }
         VpnObserverInstance::DeleteVpnObserver(vpnObserverInstance);
     });

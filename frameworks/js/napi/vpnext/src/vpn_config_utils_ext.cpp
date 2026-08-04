@@ -357,7 +357,7 @@ bool ParseAddress(napi_env env, napi_value address, struct INetAddr &iNetAddr)
         NETMGR_EXT_LOG_E("prefixlen_ error");
         return false;
     }
-    if (!isIpv6) {
+    if (!isIpv6 && prefix != NET_MASK_MAX_LENGTH) {
         uint32_t maskUint = (0xFFFFFFFF << (NET_MASK_MAX_LENGTH - prefix));
         uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(iNetAddr.address_);
         uint32_t subNetAddress = ipAddrUint & maskUint;
