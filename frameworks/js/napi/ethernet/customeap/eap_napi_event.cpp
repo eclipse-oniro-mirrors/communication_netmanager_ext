@@ -266,16 +266,14 @@ napi_value StartEthEap(napi_env env, napi_callback_info info)
     profile.phase2Method = static_cast<Phase2Method>(tmpVal);
     profile.identity = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "identity");
     profile.anonymousIdentity = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "anonymousIdentity");
-    std::string pwd = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "password");
-    profile.password.append(pwd.c_str(), pwd.size());
-    (void)memset_s(pwd.data(), pwd.size(), 0, pwd.size());
+    profile.password.append(NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "password").c_str(),
+        NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "password").size());
     profile.caCertAliases = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "caCertAliases");
     profile.caPath = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "caPath");
     profile.clientCertAliases = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "clientCertAliases");
     GetU8VectorFromJsOptionItem(env, argv[ARG_INDEX_1], "certEntry", profile.certEntry);
-    pwd = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "certPassword");
-    profile.certPassword.append(pwd.c_str(), pwd.size());
-    (void)memset_s(pwd.data(), pwd.size(), 0, pwd.size());
+    profile.certPassword.append(NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "certPassword").c_str(),
+        NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "certPassword").size());
     profile.altSubjectMatch = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "altSubjectMatch");
     profile.domainSuffixMatch = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "domainSuffixMatch");
     profile.realm = NapiUtils::GetStringPropertyUtf8(env, argv[ARG_INDEX_1], "realm");
