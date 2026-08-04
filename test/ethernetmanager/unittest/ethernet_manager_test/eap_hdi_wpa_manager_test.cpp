@@ -110,7 +110,8 @@ HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest002, TestSize.Level1)
     std::string ifName = "eth0";
     profile.identity = "identity";
     EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
-    profile.password = "password";
+    std::string pwd = "password";
+    profile.password.append(pwd.c_str(), pwd.size());
     EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
     profile.eapMethod = EapMethod::EAP_PEAP;
     profile.caPath = "";
@@ -130,9 +131,11 @@ HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest002, TestSize.Level1)
     EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
     profile.clientCertAliases = "clientCertAliases";
     EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
-    profile.certPassword = "";
+    pwd = "";
+    profile.certPassword.append(pwd.c_str(), pwd.size());
     EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
-    profile.certPassword = "certPassword";
+    pwd = "certPassword";
+    profile.certPassword.append(pwd.c_str(), pwd.size());
     EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
 }
  
