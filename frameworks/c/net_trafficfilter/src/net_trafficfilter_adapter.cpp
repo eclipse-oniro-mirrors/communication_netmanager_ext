@@ -548,7 +548,12 @@ int32_t RedirectorAdapterManager::CreateRedirector(uint32_t group_id, uint32_t p
         NETMGR_EXT_LOG_E("CreateRedirector: redirectorId is empty after creation");
         return OH_TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
     }
-    return AddRedirector(redirectorId, redirector);
+    ret = AddRedirector(redirectorId, redirector);
+    if (ret != OH_TRAFFICFILTER_OK) {
+        NETMGR_EXT_LOG_E("CreateRedirector: AddRedirector failed, rollback server redirector, ret=%{public}d", ret);
+        NetFirewallClient::GetInstance().DestroyRedirector(redirectorId);
+    }
+    return ret;
 }
 
 int32_t RedirectorAdapterManager::DestroyRedirector(OH_TrafficFilter_Redirector* redirector)
