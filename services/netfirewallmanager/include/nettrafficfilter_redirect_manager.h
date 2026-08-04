@@ -83,7 +83,6 @@ private:
     void UnregisterTrafficFilterObserver(int32_t uid, const sptr<TrafficFilterHapObserver>& observer);
     int32_t CleanupRedirectorsByUid(int32_t uid, int32_t pid);
     int32_t CleanupRedirectorsByBundleName(const std::string& bundleName, int32_t uid, int32_t pid);
-    int32_t ExecuteIptablesCommand(const std::string& command, TrafficFilterIPFamily family);
     std::string GenerateRedirectorId();
     static bool ValidateRedirectRuleFields(const TrafficFilterRedirectRule& rule);
     static bool ValidateCreateRedirectorParams(const std::string& bundleName, uint32_t groupId, uint32_t priority);

@@ -21,23 +21,32 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-
+enum IptablesName {
+    NAT = 0,
+    FILTER
+};
 class NetTrafficFilterIptablesCommandBuilder {
 public:
     static std::string BuildRedirectCommandWithPosition(const TrafficFilterRedirectRule& rule,
         const std::string& chainName, uint32_t position);
-    static std::string BuildFlushChainCommand(const std::string& chainName);
-    static std::string BuildCreateChainCommand(const std::string& chainName);
-    static std::string BuildDeleteChainCommand(const std::string& chainName);
-    static std::string BuildInsertJumpToChainCommand(const std::string& fromHook, const std::string& chainName);
+    static std::string BuildFlushChainCommand(const std::string& chainName,
+        const IptablesName tableName = IptablesName::NAT);
+    static std::string BuildCreateChainCommand(const std::string& chainName,
+        const IptablesName tableName = IptablesName::NAT);
+    static std::string BuildDeleteChainCommand(const std::string& chainName,
+        const IptablesName tableName = IptablesName::NAT);
     static std::string BuildInsertJumpToChainCommand(const std::string& fromHook, const std::string& chainName,
-        uint32_t position);
+        const IptablesName tableName = IptablesName::NAT);
+    static std::string BuildInsertJumpToChainCommand(const std::string& fromHook, const std::string& chainName,
+        uint32_t position, const IptablesName tableName = IptablesName::NAT);
     static std::string BuildAppendRedirectCommand(const TrafficFilterRedirectRule& rule, const std::string& chainName);
     static std::string BuildAppendPauseRuleCommand(const std::string& chainName);
-    static std::string BuildDeleteJumpCommand(const std::string& fromHook, const std::string& chainName);
+    static std::string BuildDeleteJumpCommand(const std::string& fromHook, const std::string& chainName,
+        const IptablesName tableName = IptablesName::NAT);
     static std::string BuildInsertPauseRuleCommand(const std::string& chainName);
     static std::string GenerateChainName(int32_t uid, uint32_t groupId);
     static std::string GetHookPointName(TrafficFilterHookPoint hookPoint);
+    static int32_t ExecuteIptablesCommand(const std::string& command, TrafficFilterIPFamily family);
 private:
     static void AppendMatchConditions(std::ostringstream& cmd, const TrafficFilterRedirectRule& rule);
     static bool AppendRedirectTarget(std::ostringstream& cmd, const TrafficFilterRedirectRule& rule);

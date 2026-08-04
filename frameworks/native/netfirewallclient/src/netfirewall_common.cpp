@@ -890,5 +890,61 @@ sptr<TrafficFilterRedirectRule> TrafficFilterRedirectRule::Unmarshalling(Parcel 
 
     return ptr;
 }
+
+bool TrafficFilterConfig::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteUint32(size_)) {
+        NETMGR_EXT_LOG_E("Write size failed");
+        return false;
+    }
+    if (!parcel.WriteUint32(packetCopyMode_)) {
+        NETMGR_EXT_LOG_E("Write packetCopyMode failed");
+        return false;
+    }
+    if (!parcel.WriteUint32(packetCopyLen_)) {
+        NETMGR_EXT_LOG_E("Write packetCopyLen failed");
+        return false;
+    }
+    if (!parcel.WriteUint32(nfqueueMaxlen_)) {
+        NETMGR_EXT_LOG_E("Write nfqueueMaxlen failed");
+        return false;
+    }
+    if (!parcel.WriteUint32(nfqueueFlags_)) {
+        NETMGR_EXT_LOG_E("Write nfqueueFlags failed");
+        return false;
+    }
+    return true;
+}
+
+sptr<TrafficFilterConfig> TrafficFilterConfig::Unmarshalling(Parcel &parcel)
+{
+    sptr<TrafficFilterConfig> ptr = new (std::nothrow) TrafficFilterConfig();
+    if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("Create TrafficFilterConfig failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint32(ptr->size_)) {
+        NETMGR_EXT_LOG_E("Read size failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint32(ptr->packetCopyMode_)) {
+        NETMGR_EXT_LOG_E("Read packetCopyMode failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint32(ptr->packetCopyLen_)) {
+        NETMGR_EXT_LOG_E("Read packetCopyLen failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint32(ptr->nfqueueMaxlen_)) {
+        NETMGR_EXT_LOG_E("Read nfqueueMaxlen failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint32(ptr->nfqueueFlags_)) {
+        NETMGR_EXT_LOG_E("Read nfqueueFlags failed");
+        return nullptr;
+    }
+    return ptr;
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

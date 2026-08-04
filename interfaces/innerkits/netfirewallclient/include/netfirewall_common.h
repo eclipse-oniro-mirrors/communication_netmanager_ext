@@ -300,6 +300,16 @@ private:
     bool UnmarshalMatchAndInterfaceFields(Parcel &parcel);
 };
 
+struct TrafficFilterConfig final : public Parcelable {
+    uint32_t size_;
+    uint32_t packetCopyMode_;
+    uint32_t packetCopyLen_;
+    uint32_t nfqueueMaxlen_;
+    uint32_t nfqueueFlags_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterConfig> Unmarshalling(Parcel &parcel);
+};
 inline uint64_t GetCurrentMilliseconds()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())

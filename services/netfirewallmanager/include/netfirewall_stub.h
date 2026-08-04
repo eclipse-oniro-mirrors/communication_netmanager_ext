@@ -77,6 +77,10 @@ private:
 
     int32_t OnQueryProcess(MessageParcel &data, MessageParcel &reply);
 
+    int32_t OnCreatePacketController(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnDestroyPacketController(MessageParcel &data, MessageParcel &reply);
+
     int32_t CheckFirewallPermission(std::string &strPermission);
 
 private:

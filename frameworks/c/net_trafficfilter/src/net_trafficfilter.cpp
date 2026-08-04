@@ -110,3 +110,27 @@ int32_t OH_TrafficFilter_QueryProcess(const OH_TrafficFilter_ConnectionInfo* con
     }
     return RedirectorAdapterManager::GetInstance().QueryProcess(connectionInfo, processInfo);
 }
+
+int32_t OH_TrafficFilter_CreatePacketController(
+    uint32_t group_id,
+    uint32_t priority,
+    const OH_TrafficFilter_Config* config,
+    OH_TrafficFilter_PacketController** controller)
+{
+    if (controller == nullptr) {
+        NETMGR_EXT_LOG_E("CreatePacketController: controller is NULL");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return PacketControllerAdapterManager::GetInstance().CreatePacketController(group_id, priority, config, controller);
+}
+
+int32_t OH_TrafficFilter_DestroyPacketController(OH_TrafficFilter_PacketController* controller)
+{
+    if (controller == nullptr) {
+        NETMGR_EXT_LOG_E("DestroyPacketController: controller is NULL");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
+    NETMGR_EXT_LOG_I("DestroyPacketController");
+    return PacketControllerAdapterManager::GetInstance().DestroyPacketController(controller);
+}

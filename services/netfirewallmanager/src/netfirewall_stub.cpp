@@ -72,6 +72,10 @@ NetFirewallStub::NetFirewallStub()
         &NetFirewallStub::OnGetTrafficFilterGlobalStatus};
     memberFuncMap_[static_cast<uint32_t>(QUERY_PROCESS)] = {PERMISSION_TRAFFIC_FILTER,
         &NetFirewallStub::OnQueryProcess};
+    memberFuncMap_[static_cast<uint32_t>(CREATE_PACKET_CONTROLLER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnCreatePacketController};
+    memberFuncMap_[static_cast<uint32_t>(DESTROY_PACKET_CONTROLLER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnDestroyPacketController};
 }
 
 int32_t NetFirewallStub::CheckFirewallPermission(std::string &strPermission)
@@ -491,6 +495,49 @@ int32_t NetFirewallStub::OnQueryProcess(MessageParcel &data, MessageParcel &repl
         }
     }
     return ret;
+}
+
+int32_t NetFirewallStub::OnCreatePacketController(MessageParcel &data, MessageParcel &reply)
+{
+    uint32_t groupId;
+    if (!data.ReadUint32(groupId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    uint32_t priority;
+    if (!data.ReadUint32(priority)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    bool isConfigNull = true;
+    if (!data.ReadBool(isConfigNull)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    sptr<TrafficFilterConfig> config = nullptr;
+    if (!isConfigNull) {
+        config = TrafficFilterConfig::Unmarshalling(data);
+    }
+    std::string packetControllerId;
+    int32_t fd = -1;
+    int32_t ret = CreatePacketController(groupId, priority, config, packetControllerId, fd);
+    if (ret == FIREWALL_SUCCESS) {
+        if (!reply.WriteString(packetControllerId)) {
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+        if (!reply.WriteFileDescriptor(fd)) {
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+    }
+    return ret;
+}
+
+int32_t NetFirewallStub::OnDestroyPacketController(MessageParcel &data, MessageParcel &reply)
+{
+    std::string packetControllerId;
+    if (!data.ReadString(packetControllerId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    return DestroyPacketController(packetControllerId);
 }
 
 int32_t NetFirewallStub::OnGetTrafficFilterGlobalStatus(MessageParcel &data, MessageParcel &reply)
