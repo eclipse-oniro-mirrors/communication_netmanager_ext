@@ -92,12 +92,12 @@ int32_t StartEthEap(int32_t net_id, EthEapConfig config)
     profile.phase2Method = phase2Method;
     profile.identity = std::string(config.identity);
     profile.anonymousIdentity = std::string(config.anonymous_identity);
-    profile.password = std::string(config.password);
+    profile.password.append(config.password.data(), config.password.size());
     profile.caCertAliases = std::string(config.ca_cert_aliases);
     profile.caPath = std::string(config.ca_path);
     profile.clientCertAliases = std::string(config.client_cert_aliases);
     profile.certEntry = std::vector<uint8_t>(config.cert_entry.begin(), config.cert_entry.end());
-    profile.certPassword = std::string(config.cert_password);
+    profile.certPassword.append(config.cert_password.data(), config.cert_password.size());
     profile.altSubjectMatch = std::string(config.alt_subject_match);
     profile.domainSuffixMatch = std::string(config.domain_suffix_match);
     profile.realm = std::string(config.realm);
@@ -105,19 +105,6 @@ int32_t StartEthEap(int32_t net_id, EthEapConfig config)
     profile.eapSubId = config.eap_sub_id;
     int32_t ret =
         DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->StartEthEap(net_id, profile);
-
-    // Clear sensitive data from memory after use using memset_s for secure erasure
-    if (!profile.password.empty()) {
-        memset_s(profile.password.data(), profile.password.size(), 0, profile.password.size());
-    }
-    profile.password.clear();
-    profile.password.shrink_to_fit();
-    if (!profile.certPassword.empty()) {
-        memset_s(profile.certPassword.data(), profile.certPassword.size(), 0, profile.certPassword.size());
-    }
-    profile.certPassword.clear();
-    profile.certPassword.shrink_to_fit();
-
     return ret;
 }
 

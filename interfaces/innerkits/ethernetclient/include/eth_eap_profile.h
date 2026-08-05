@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
  
+#include "netmanager_secure_data.h"
 #include "parcel.h"
  
 namespace OHOS {
@@ -52,12 +53,12 @@ struct EthEapProfile : public Parcelable {
     Phase2Method phase2Method;      /* Second stage authentication method */
     std::string identity;           /* Identity information */
     std::string anonymousIdentity;  /* Anonymous identity information */
-    std::string password;           /* EAP mode password */
+    SecureData password;           /* EAP mode password */
     std::string caCertAliases;      /* CA certificate alias */
     std::string caPath;             /* CA certificate path */
     std::string clientCertAliases;  /* Client certificate alias */
     std::vector<uint8_t> certEntry; /* CA certificate entry */
-    std::string certPassword;       /* Certificate password */
+    SecureData certPassword;       /* Certificate password */
     std::string altSubjectMatch;    /* Alternative topic matching */
     std::string domainSuffixMatch;  /* Domain suffix matching */
     std::string realm;              /* The field of passport credentials */
