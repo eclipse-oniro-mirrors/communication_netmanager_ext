@@ -77,9 +77,7 @@ NetworkShareClient::~NetworkShareClient()
 
     if (deathRecipient_) {
         serviceRemote->RemoveDeathRecipient(deathRecipient_);
-        deathRecipient_ = nullptr;
     }
-    networkShareService_ = nullptr;
 }
 
 int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
