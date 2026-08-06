@@ -46,6 +46,7 @@ void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, c
 void OnDemandLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
 {
     NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
+    loadSAFailed_ = true;
     g_cv.notify_one();
 }
 
@@ -54,10 +55,16 @@ const sptr<IRemoteObject> &OnDemandLoadCallback::GetRemoteObject() const
     return remoteObject_;
 }
 
+bool OnDemandLoadCallback::IsFailed() const
+{
+    return loadSAFailed_;
+}
+
 MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr) {}
 
 MDnsClient::~MDnsClient()
 {
+    std::lock_guard lock(mutex_);
     NETMGR_EXT_LOG_E("~MDnsClient : Destroy MDnsClient");
     sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
@@ -204,12 +211,15 @@ sptr<IRemoteObject> MDnsClient::LoadSaOnDemand()
         }
         std::unique_lock<std::mutex> lk(g_loadMutex);
         if (!g_cv.wait_for(lk, std::chrono::seconds(LOAD_SA_TIMEOUT),
-                           [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
+                            [this]() { return loadCallback_->GetRemoteObject() != nullptr
+                                             || loadCallback_->IsFailed(); })) {
             NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
-            lk.unlock();
             return nullptr;
         }
-        lk.unlock();
+        if (loadCallback_->IsFailed()) {
+            NETMGR_EXT_LOG_E("LoadSystemAbility failed");
+            return nullptr;
+        }
     }
     return loadCallback_->GetRemoteObject();
 }
@@ -243,6 +253,10 @@ sptr<IMdnsService> MDnsClient::GetProxy()
     mdnsService_ = iface_cast<IMdnsService>(remote);
     if (mdnsService_ == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service proxy failed");
+        if (remote->IsProxyObject() && deathRecipient_ != nullptr) {
+            remote->RemoveDeathRecipient(deathRecipient_);
+        }
+        deathRecipient_ = nullptr;
         return nullptr;
     }
     return mdnsService_;

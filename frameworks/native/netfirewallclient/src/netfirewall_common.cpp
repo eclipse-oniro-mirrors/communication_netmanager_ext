@@ -54,6 +54,16 @@ sptr<NetFirewallPolicy> NetFirewallPolicy::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadInt32(outAction)) {
         return nullptr;
     }
+    if (inAction < static_cast<int32_t>(FirewallRuleAction::DEFAULT) ||
+        inAction > static_cast<int32_t>(FirewallRuleAction::ALLOW)) {
+        NETMGR_EXT_LOG_E("inAction cross the border");
+        return nullptr;
+    }
+    if (outAction < static_cast<int32_t>(FirewallRuleAction::DEFAULT) ||
+        outAction > static_cast<int32_t>(FirewallRuleAction::ALLOW)) {
+        NETMGR_EXT_LOG_E("outAction cross the border");
+        return nullptr;
+    }
     ptr->inAction = static_cast<FirewallRuleAction>(inAction);
     ptr->outAction = static_cast<FirewallRuleAction>(outAction);
     return ptr;
@@ -527,6 +537,10 @@ sptr<TrafficFilterPortRange> TrafficFilterPortRange::Unmarshalling(Parcel &parce
     }
     if (!parcel.ReadUint16(ptr->endPort_)) {
         NETMGR_EXT_LOG_E("Read endPort failed");
+        return nullptr;
+    }
+    if (ptr->startPort_ > ptr->endPort_) {
+        NETMGR_EXT_LOG_E("endPort less than startPort");
         return nullptr;
     }
     return ptr;

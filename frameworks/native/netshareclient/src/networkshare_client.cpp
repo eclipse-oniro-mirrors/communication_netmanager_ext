@@ -62,7 +62,9 @@ NetworkShareClient::NetworkShareClient()
 
 NetworkShareClient::~NetworkShareClient()
 {
+    isDestroyed_ = true;
     NETMGR_EXT_LOG_I("~NetworkShareClient : Destroy NetworkShareClient");
+    std::lock_guard lock(mutex_);
     sptr<INetworkShareService> proxy = GetProxy();
     if (proxy == nullptr) {
         return;
@@ -75,7 +77,9 @@ NetworkShareClient::~NetworkShareClient()
 
     if (deathRecipient_) {
         serviceRemote->RemoveDeathRecipient(deathRecipient_);
+        deathRecipient_ = nullptr;
     }
+    networkShareService_ = nullptr;
 }
 
 int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
@@ -139,6 +143,7 @@ int32_t NetworkShareClient::RegisterSharingEvent(sptr<ISharingEventCallback> cal
     int32_t ret = proxy->RegisterSharingEvent(callback);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_D("RegisterSharingEvent success, save callback.");
+        std::lock_guard lock(mutex_);
         callback_ = callback;
     }
 
@@ -162,6 +167,7 @@ int32_t NetworkShareClient::UnregisterSharingEvent(sptr<ISharingEventCallback> c
     int32_t ret = proxy->UnregisterSharingEvent(callback);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_D("UnRegisterSharingEvent success, delete callback.");
+        std::lock_guard lock(mutex_);
         callback_ = nullptr;
     }
 
@@ -277,6 +283,10 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
     networkShareService_ = iface_cast<INetworkShareService>(remote);
     if (networkShareService_ == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service proxy failed");
+        if (remote->IsProxyObject() && deathRecipient_ != nullptr) {
+            remote->RemoveDeathRecipient(deathRecipient_);
+        }
+        deathRecipient_ = nullptr;
         return nullptr;
     }
     return networkShareService_;
@@ -286,13 +296,24 @@ void NetworkShareClient::RecoverCallback()
 {
     uint32_t count = 0;
     while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+        if (isDestroyed_) {
+            return;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_SERVICE_TIME_MS));
         count++;
     }
+    if (isDestroyed_) {
+        return;
+    }
     auto proxy = GetProxy();
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
-    if (proxy != nullptr && callback_ != nullptr) {
-        int32_t ret = proxy->RegisterSharingEvent(callback_);
+    sptr<ISharingEventCallback> localCallback;
+    {
+        std::lock_guard lock(mutex_);
+        localCallback = callback_;
+    }
+    if (proxy != nullptr && localCallback != nullptr) {
+        int32_t ret = proxy->RegisterSharingEvent(localCallback);
         NETMGR_EXT_LOG_D("Register result %{public}d", ret);
     }
 }
@@ -304,6 +325,7 @@ void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         NETMGR_EXT_LOG_E("remote object is nullptr");
         return;
     }
+    sptr<ISharingEventCallback> localCallback;
     {
         std::lock_guard lock(mutex_);
         if (networkShareService_ == nullptr) {
@@ -317,11 +339,12 @@ void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         }
         local->RemoveDeathRecipient(deathRecipient_);
         networkShareService_ = nullptr;
+        localCallback = callback_;
     }
 
     std::thread([this]() { this->RestartNetTetheringManagerSysAbility(); }).detach();
 
-    if (callback_ != nullptr) {
+    if (localCallback != nullptr) {
         NETMGR_EXT_LOG_D("on remote died recover callback");
         std::thread t([this]() {
             RecoverCallback();
@@ -336,6 +359,10 @@ void NetworkShareClient::RestartNetTetheringManagerSysAbility()
 {
     for (uint32_t i = 0; i < MAX_GET_SERVICE_COUNT; ++i) {
         std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
+        if (isDestroyed_) {
+            NETMGR_EXT_LOG_E("Restart NetTetheringManager destroyed.");
+            return;
+        }
         sptr<INetworkShareService> proxy = GetProxy();
         if (proxy) {
             NETMGR_EXT_LOG_I("Restart NetTetheringManager success.");

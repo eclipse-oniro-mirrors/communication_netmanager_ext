@@ -168,6 +168,10 @@ sptr<INetFirewallService> NetFirewallClient::GetProxy()
     netfirewallService_ = iface_cast<INetFirewallService>(remote);
     if (netfirewallService_ == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service proxy failed");
+        if (remote->IsProxyObject() && deathRecipient_ != nullptr) {
+            remote->RemoveDeathRecipient(deathRecipient_);
+        }
+        deathRecipient_ = nullptr;
         return nullptr;
     }
     return netfirewallService_;
