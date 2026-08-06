@@ -196,7 +196,7 @@ void EapHdiWpaManager::RemoveHistoryCtrl()
     if (!std::filesystem::exists(filePath)) {
         return;
     }
-     auto truePath = std::filesystem::canonical(filePath, ec);
+    auto truePath = std::filesystem::canonical(filePath, ec);
     if (ec) {
         return;
     }
@@ -243,10 +243,12 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
                 setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + EscapeWpaValue(config.caPath) + ITEM_QUOTE + ITEM_LINE);
             }
             if (!config.clientCertAliases.empty()) {
-                setNetCmd_.append(ITEM_CLIENT_CERT + ITEM_QUOTE + EscapeWpaValue(config.clientCertAliases) + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_CLIENT_CERT + ITEM_QUOTE + EscapeWpaValue(config.clientCertAliases)
+                    + ITEM_QUOTE + ITEM_LINE);
             }
             if (!config.certPassword.empty()) {
-                setNetCmd_.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + EscapeWpaValue(config.certPassword) + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + EscapeWpaValue(config.certPassword)
+                    + ITEM_QUOTE + ITEM_LINE);
             }
             break;
         default:
@@ -355,7 +357,7 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
     }
     std::string decodeEapBuf = Base64::Decode(vecEapDatas[IDX_4]);
     notifyEapData->eapBuffer.assign(decodeEapBuf.begin(), decodeEapBuf.end());
-    if (notifyEapData->bufferLen > MAX_EAP_DATA_LENGTH 
+    if (notifyEapData->bufferLen > MAX_EAP_DATA_LENGTH
         || static_cast<size_t>(notifyEapData->bufferLen) != notifyEapData->eapBuffer.size()) {
         NETMGR_EXT_LOG_E("OnEapEventReport bufferLen err");
         return NETMANAGER_EXT_ERR_INTERNAL;
