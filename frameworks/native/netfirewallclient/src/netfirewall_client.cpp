@@ -351,5 +351,15 @@ int32_t NetFirewallClient::DestroyPacketController(const std::string& packetCont
     }
     return proxy->DestroyPacketController(packetControllerId);
 }
+
+int32_t NetFirewallClient::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("SendVerdict proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->SendVerdict(queueNum, packetId, verdict, mark);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

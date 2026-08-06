@@ -249,9 +249,20 @@ int32_t NetTrafficFilterNFQueueCore::CreateQueue(uint32_t groupId, uint32_t prio
         return TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
     }
 #endif
+    UpdateNFQHandleFromBundleName(bundleName, nfqHandle);
     queues_[queueNum] = info;
     HandleTrafficFilterObserverRegistration(bundleName, queueNum, callingUid, callingPid);
     return TRAFFICFILTER_OK;
+}
+
+void NetTrafficFilterNFQueueCore::UpdateNFQHandleFromBundleName(const std::string &bundleName,
+    const OHOS::sptr<NfqCtx>& nfqHandle)
+{
+    for (auto iterator = queues_.begin(); iterator != queues_.end(); ++iterator) {
+        if (iterator->second.bundleName == bundleName) {
+            iterator->second.nfqHandle = nfqHandle;
+        }
+    }
 }
 
 void NetTrafficFilterNFQueueCore::HandleTrafficFilterObserverRegistration(
@@ -380,10 +391,6 @@ int32_t NetTrafficFilterNFQueueCore::DestroyByBundleName(const std::string &bund
     for (const auto& queueNum : queueNums) {
         DestroyQueue(queueNum);
     }
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        NetsysController::GetInstance().NfqClose(handle);
-    }
     return TRAFFICFILTER_OK;
 }
 
@@ -394,13 +401,27 @@ int32_t NetTrafficFilterNFQueueCore::DestroyQueue(uint16_t queueNum)
     if (it == queues_.end()) {
         return TRAFFICFILTER_ERROR_NOT_FOUND;
     }
+    bool handleInUse = false;
+    for (auto iterator = queues_.begin(); iterator != queues_.end(); ++iterator) {
+        if (it == iterator) {
+            continue;
+        }
+        if (iterator->second.nfqHandle == it->second.nfqHandle) {
+            handleInUse = true;
+            break;
+        }
+    }
     if (it->second.qh != nullptr) {
         NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(it->second.packetControllerId);
         NetsysController::GetInstance().NfqQueueDestroy(it->second.nfqHandle, it->second.qh);
+        UpdateNFQHandleFromBundleName(it->second.bundleName, it->second.nfqHandle);
     }
 #ifndef NETMANAGER_TEST
     DestroyIptables(it->second);
 #endif
+    if (!handleInUse) {
+        NetsysController::GetInstance().NfqClose(it->second.nfqHandle);
+    }
     queues_.erase(it);
     return TRAFFICFILTER_OK;
 }

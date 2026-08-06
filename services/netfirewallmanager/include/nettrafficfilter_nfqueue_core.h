@@ -80,7 +80,8 @@ private:
     uint32_t GetQueueFlags(const OHOS::sptr<TrafficFilterConfig>& config);
     bool ConfigureNFQueue(OHOS::sptr<NfqCtx>& ctx,
         OHOS::sptr<NfqQueue>& qh, const OHOS::sptr<TrafficFilterConfig>& config);
-    OHOS::sptr<NfqCtx> GetNFQHandleFromBundleName(const std::string &bundleName);
+    void UpdateNFQHandleFromBundleName(const std::string &bundleName, const OHOS::sptr<NfqCtx>& nfqHandle);
+    OHOS::sptr<NfqCtx> GetNFQHandleFromBundleName(const std::string& bundleName);
     std::map<int32_t, QueueInfo> queues_;
 
     std::mutex mutex_;

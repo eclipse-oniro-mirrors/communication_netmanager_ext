@@ -80,6 +80,8 @@ NetFirewallStub::NetFirewallStub()
         &NetFirewallStub::OnAddPacketRule};
     memberFuncMap_[static_cast<uint32_t>(CLEAR_PACKET_RULE)] = {PERMISSION_TRAFFIC_FILTER,
         &NetFirewallStub::OnClearPacketRule};
+    memberFuncMap_[static_cast<uint32_t>(SEND_VERDICT)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnSendVerdict};
 }
 
 int32_t NetFirewallStub::CheckFirewallPermission(std::string &strPermission)
@@ -587,6 +589,31 @@ int32_t NetFirewallStub::OnGetTrafficFilterGlobalStatus(MessageParcel &data, Mes
             return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
         }
     }
+    return ret;
+}
+
+int32_t NetFirewallStub::OnSendVerdict(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t queueNum;
+    if (!data.ReadInt32(queueNum)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    uint32_t packetId;
+    if (!data.ReadUint32(packetId)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    int32_t verdict;
+    if (!data.ReadInt32(verdict)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+
+    int32_t mark;
+    if (!data.ReadInt32(mark)) {
+        return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
+    }
+    int32_t ret = SendVerdict(queueNum, packetId, verdict, mark);
     return ret;
 }
 } // namespace NetManagerStandard
