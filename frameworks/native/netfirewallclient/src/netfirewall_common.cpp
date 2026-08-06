@@ -54,13 +54,13 @@ sptr<NetFirewallPolicy> NetFirewallPolicy::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadInt32(outAction)) {
         return nullptr;
     }
-    if (inAction < static_cast<int32_t>(FirewallRuleAction::DEFAULT) ||
-        inAction > static_cast<int32_t>(FirewallRuleAction::ALLOW)) {
+    if (inAction < static_cast<int32_t>(FirewallRuleAction::RULE_ALLOW) ||
+        inAction > static_cast<int32_t>(FirewallRuleAction::RULE_DENY)) {
         NETMGR_EXT_LOG_E("inAction cross the border");
         return nullptr;
     }
-    if (outAction < static_cast<int32_t>(FirewallRuleAction::DEFAULT) ||
-        outAction > static_cast<int32_t>(FirewallRuleAction::ALLOW)) {
+    if (outAction < static_cast<int32_t>(FirewallRuleAction::RULE_ALLOW) ||
+        outAction > static_cast<int32_t>(FirewallRuleAction::RULE_DENY)) {
         NETMGR_EXT_LOG_E("outAction cross the border");
         return nullptr;
     }
