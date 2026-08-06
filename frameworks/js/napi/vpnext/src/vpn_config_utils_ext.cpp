@@ -298,9 +298,10 @@ bool GetU8VectorFromJsOptionItem(const napi_env env, const napi_value config, co
     napi_typedarray_type type;
     napi_value buffer = nullptr;
     NAPI_CALL_BASE(env, napi_get_typedarray_info(env, array, &type, &length, nullptr, &buffer, &offset), {});
-    if (type != napi_uint8_array || buffer == nullptr) {
+    bool isBufferNull = (buffer == nullptr);
+    if (type != napi_uint8_array || isBufferNull) {
         NETMGR_EXT_LOG_E("JsObjectToU8Vector, %{public}s, buffer is nullptr: %{public}d",
-            key.c_str(), (int)(buffer == nullptr));
+            key.c_str(), isBufferNull);
         return false;
     }
 
