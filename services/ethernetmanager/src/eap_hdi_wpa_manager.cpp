@@ -20,6 +20,9 @@
 #include <charconv>
 #include <codecvt>
 #include <fstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "base64_utils.h"
 #include "net_eap_handler.h"
@@ -59,6 +62,7 @@ static constexpr int8_t IDX_3 = 4;
 static constexpr int8_t IDX_4 = 5;
 static constexpr int8_t BASE_10 = 10;
 static constexpr int8_t WPA_EVENT_REPORT_PARAM_CNT = 6;
+static constexpr uint32_t MAX_EAP_DATA_LENGTH = 4096;
 
 static std::map<Phase2Method, std::string> PHASE2_METHOD_STR_MAP = {
     { Phase2Method::PHASE2_NONE, "NONE" },
@@ -81,6 +85,20 @@ static std::map<EapMethod, std::string> EAP_METHOD_STR_MAP = {
     { EapMethod::EAP_AKA_PRIME, "AKA'" },
     { EapMethod::EAP_UNAUTH_TLS, "AKA" },
 };
+
+static std::string EscapeWpaValue(const std::string &val)
+
+{
+    std::string res;
+    res.reserve(val.size());
+    for (char c : val) {
+        if (c == '"' || c == '\n' || c == '\r') {
+            res += '\\';
+        }
+        res += c;
+    }
+    return res;
+}
 
 EapHdiWpaManager::EapHdiWpaManager()
 {
@@ -124,8 +142,16 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     RemoveHistoryCtrl();
-    SetEapConfig(profile, ifName);
-    RegisterEapEventCallback(ifName);
+    if (SetEapConfig(profile, ifName) != EAP_ERRCODE_SUCCESS) {
+        setNetCmd_.assign(setNetCmd_.size(), '\0');
+        setNetCmd_.clear();
+        return EAP_ERRCODE_INTERNAL_ERROR;
+    }
+    if (RegisterEapEventCallback(ifName) != EAP_ERRCODE_SUCCESS) {
+        setNetCmd_.assign(setNetCmd_.size(), '\0');
+        setNetCmd_.clear();
+        return EAP_ERRCODE_INTERNAL_ERROR;
+    }
     int32_t ret = iEthernet_->StartEap(iEthernet_, ifName.c_str());
     ret |= iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), setNetCmd_.c_str());
     ret |= iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), REAUTHENTICATE_CMD);
@@ -165,11 +191,15 @@ int32_t EapHdiWpaManager::StopEap(const std::string& ifName)
 
 void EapHdiWpaManager::RemoveHistoryCtrl()
 {
+    std::error_code ec;
     std::filesystem::path filePath(ETH_CONFIG_ROOR_DIR);
     if (!std::filesystem::exists(filePath)) {
         return;
     }
-    auto truePath = std::filesystem::canonical(filePath);
+     auto truePath = std::filesystem::canonical(filePath, ec);
+    if (ec) {
+        return;
+    }
     for (const auto& entry : std::filesystem::directory_iterator(truePath)) {
         if (entry.is_regular_file()) {
             std::string filename = entry.path().filename().string();
@@ -192,16 +222,16 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
         fileContext.append(ITEM_EAP + EAP_METHOD_STR_MAP[config.eapMethod] + ITEM_LINE);
     }
     if (!config.identity.empty()) {
-        setNetCmd_.append(ITEM_IDENTITY + ITEM_QUOTE + config.identity + ITEM_QUOTE + ITEM_LINE);
+        setNetCmd_.append(ITEM_IDENTITY + ITEM_QUOTE + EscapeWpaValue(config.identity) + ITEM_QUOTE + ITEM_LINE);
     }
     if (!config.password.empty()) {
-        setNetCmd_.append(ITEM_PASSWORD + ITEM_QUOTE + config.password + ITEM_QUOTE + ITEM_LINE);
+        setNetCmd_.append(ITEM_PASSWORD + ITEM_QUOTE + EscapeWpaValue(config.password) + ITEM_QUOTE + ITEM_LINE);
     }
     switch (config.eapMethod) {
         case EapMethod::EAP_PEAP:
         case EapMethod::EAP_TTLS:
             if (!config.caPath.empty()) {
-                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + EscapeWpaValue(config.caPath) + ITEM_QUOTE + ITEM_LINE);
             }
             if (config.phase2Method != Phase2Method::PHASE2_NONE) {
                 setNetCmd_.append(ITEM_PHASE2 + ITEM_QUOTE + Phase2MethodToStr(config.eapMethod, config.phase2Method)
@@ -210,13 +240,13 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
             break;
         case EapMethod::EAP_TLS:
             if (!config.caPath.empty()) {
-                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + config.caPath + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + EscapeWpaValue(config.caPath) + ITEM_QUOTE + ITEM_LINE);
             }
             if (!config.clientCertAliases.empty()) {
-                setNetCmd_.append(ITEM_CLIENT_CERT + ITEM_QUOTE + config.clientCertAliases + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_CLIENT_CERT + ITEM_QUOTE + EscapeWpaValue(config.clientCertAliases) + ITEM_QUOTE + ITEM_LINE);
             }
             if (!config.certPassword.empty()) {
-                setNetCmd_.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + config.certPassword + ITEM_QUOTE + ITEM_LINE);
+                setNetCmd_.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + EscapeWpaValue(config.certPassword) + ITEM_QUOTE + ITEM_LINE);
             }
             break;
         default:
@@ -272,14 +302,24 @@ std::string EapHdiWpaManager::Phase2MethodToStr(EapMethod eap, Phase2Method meth
 bool EapHdiWpaManager::WriteEapConfigToFile(const std::string &fileContext)
 {
     std::string destPath = ETH_WPA_CONFIG_PATH;
+    struct stat pathStat;
+    if (lstat(destPath.c_str(), &pathStat) == 0 && S_ISLNK(pathStat.st_mode)) {
+        NETMGR_EXT_LOG_E("WriteEapConfig path is a symlink");
+        return false;
+    }
     std::ofstream file;
     file.open(destPath, std::ios::out);
     if (!file.is_open()) {
-        NETMGR_EXT_LOG_E("WriteEapConfig fail");
+        NETMGR_EXT_LOG_E("WriteEapConfig open fail");
         return false;
     }
     file << fileContext << std::endl;
+    if (file.fail()) {
+        NETMGR_EXT_LOG_E("WriteEapConfig write fail");
+        return false;
+    }
     file.close();
+    chmod(destPath.c_str(), S_IRUSR | S_IWUSR);
     return true;
 }
 
@@ -315,6 +355,11 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
     }
     std::string decodeEapBuf = Base64::Decode(vecEapDatas[IDX_4]);
     notifyEapData->eapBuffer.assign(decodeEapBuf.begin(), decodeEapBuf.end());
+    if (notifyEapData->bufferLen > MAX_EAP_DATA_LENGTH 
+        || static_cast<size_t>(notifyEapData->bufferLen) != notifyEapData->eapBuffer.size()) {
+        NETMGR_EXT_LOG_E("OnEapEventReport bufferLen err");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     return NetEapHandler::GetInstance().NotifyWpaEapInterceptInfo(NetType::ETH0, notifyEapData);
 }
 
@@ -351,12 +396,20 @@ int32_t EapHdiWpaManager::ReplyCustomEapData(const std::string &ifName, int32_t 
         NETMGR_EXT_LOG_E("ReplyEapData iEthernet_ null");
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
+    if (eapData == nullptr) {
+        NETMGR_EXT_LOG_E("ReplyEapData eapData null");
+        return EAP_ERRCODE_INTERNAL_ERROR;
+    }
+    if (static_cast<uint32_t>(eapData->eapBuffer.size()) != eapData->bufferLen) {
+        NETMGR_EXT_LOG_E("ReplyEapData bufferLen err");
+        return EAP_ERRCODE_INTERNAL_ERROR;
+    }
     std::string replyCmd = "EXT_AUTH_DATA " + std::to_string(result) + ":";
     replyCmd.append(std::to_string(eapData->msgId) + ":");
     replyCmd.append(std::to_string(eapData->bufferLen) + ":");
     std::string encodeEapBuf = Base64::Encode(std::string(eapData->eapBuffer.begin(), eapData->eapBuffer.end()));
     replyCmd.append(encodeEapBuf);
-    NETMGR_EXT_LOG_I("ReplyEapData cmd = %{public}s", replyCmd.c_str());
+    NETMGR_EXT_LOG_I("ReplyEapData cmdLen = %{public}d", static_cast<int32_t>(replyCmd.size()));
     int32_t ret = iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), replyCmd.c_str());
     if (ret != HDF_SUCCESS) {
         NETMGR_EXT_LOG_E("ReplyEapData fail %{public}d", ret);

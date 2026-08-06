@@ -51,7 +51,7 @@ void DevInterfaceState::SetNetCaps(const std::set<NetCap> &netCaps)
 
 void DevInterfaceState::SetLinkUp(bool up)
 {
-    linkUp_ = up;
+    linkUp_.store(up);
 }
 
 void DevInterfaceState::SetlinkInfo(sptr<NetLinkInfo> &linkInfo)
@@ -67,6 +67,7 @@ void DevInterfaceState::SetIfcfg(sptr<InterfaceConfiguration> &ifCfg)
         return;
     }
     // LCOV_EXCL_STOP
+    std::unique_lock<std::shared_mutex> lock(ifCfgMutex_);
     ifCfg_ = ifCfg;
     if (ifCfg_->mode_ == STATIC) {
         UpdateLinkInfo();
@@ -83,6 +84,7 @@ void DevInterfaceState::SetLancfg(sptr<InterfaceConfiguration> &ifCfg)
         return;
     }
     // LCOV_EXCL_STOP
+    std::unique_lock<std::shared_mutex> lock(ifCfgMutex_);
     ifCfg_ = ifCfg;
     if (ifCfg_->mode_ == LAN_STATIC) {
         UpdateLanLinkInfo();
@@ -91,7 +93,7 @@ void DevInterfaceState::SetLancfg(sptr<InterfaceConfiguration> &ifCfg)
 
 void DevInterfaceState::SetDhcpReqState(bool dhcpReqState)
 {
-    dhcpReqState_ = dhcpReqState;
+    dhcpReqState_.store(dhcpReqState);
 }
 
 std::string DevInterfaceState::GetDevName() const
@@ -111,7 +113,7 @@ std::set<NetCap> DevInterfaceState::GetNetCaps()
 
 bool DevInterfaceState::GetLinkUp() const
 {
-    return linkUp_;
+    return linkUp_.load();
 }
 
 bool DevInterfaceState::GetLinkInfo(NetLinkInfo &linkInfo)
@@ -126,11 +128,13 @@ bool DevInterfaceState::GetLinkInfo(NetLinkInfo &linkInfo)
 
 sptr<InterfaceConfiguration> DevInterfaceState::GetIfcfg() const
 {
+    std::shared_lock<std::shared_mutex> lock(ifCfgMutex_);
     return ifCfg_;
 }
 
 bool DevInterfaceState::IsLanIface()
 {
+    std::shared_lock<std::shared_mutex> lock(ifCfgMutex_);
     if (ifCfg_ == nullptr) {
         return false;
     }
@@ -142,6 +146,7 @@ bool DevInterfaceState::IsLanIface()
 
 IPSetMode DevInterfaceState::GetIPSetMode() const
 {
+    std::shared_lock<std::shared_mutex> lock(ifCfgMutex_);
     if (ifCfg_ == nullptr) {
         return IPSetMode::STATIC;
     }
@@ -150,7 +155,7 @@ IPSetMode DevInterfaceState::GetIPSetMode() const
 
 bool DevInterfaceState::GetDhcpReqState() const
 {
-    return dhcpReqState_;
+    return dhcpReqState_.load();
 }
 
 void DevInterfaceState::RemoteRegisterNetSupplier()
@@ -186,7 +191,7 @@ void DevInterfaceState::RemoteUpdateNetLinkInfo()
         NETMGR_EXT_LOG_E("DevInterfaceCfg RemoteUpdateNetLinkInfo regState_:LINK_UNAVAILABLE");
         return;
     }
-    std::shared_lock<std::shared_mutex> lock(linkInfoMutex_);
+    std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ == nullptr) {
         NETMGR_EXT_LOG_E("DevInterfaceCfg RemoteUpdateNetLinkInfo linkInfo_ is nullptr");
         return;
@@ -227,11 +232,16 @@ uint32_t DevInterfaceState::GetSupplierId() const
 
 void DevInterfaceState::UpdateNetHttpProxy(const HttpProxy &httpProxy)
 {
+    std::unique_lock<std::shared_mutex> cfgLock(ifCfgMutex_);
+    if (ifCfg_ == nullptr) {
+        return;
+    }
     if (httpProxy == ifCfg_->httpProxy_) {
         NETMGR_EXT_LOG_E("The currently set http proxy is the same as the entered http proxy");
         return;
     }
     ifCfg_->httpProxy_ = httpProxy;
+    cfgLock.unlock();
     if (connLinkState_ == LINK_AVAILABLE) {
         std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
         if (linkInfo_ == nullptr) {
@@ -358,6 +368,12 @@ void DevInterfaceState::UpdateLanLinkInfo(const StaticConfiguration &config)
 
 void DevInterfaceState::UpdateLinkInfo(const StaticConfiguration &config)
 {
+    std::shared_lock<std::shared_mutex> cfglock(ifCfgMutex_);
+    HttpProxy httpProxy;
+    if (ifCfg_) {
+        httpProxy = ifCfg_->httpProxy_;
+    }
+    cfglock.unlock();
     std::unique_lock<std::shared_mutex> lock(linkInfoMutex_);
     if (linkInfo_ == nullptr) {
         linkInfo_ = new (std::nothrow) NetLinkInfo();
@@ -391,9 +407,7 @@ void DevInterfaceState::UpdateLinkInfo(const StaticConfiguration &config)
         }
         linkInfo_->dnsList_.push_back(dnsServer);
     }
-    if (ifCfg_) {
-        linkInfo_->httpProxy_ = ifCfg_->httpProxy_;
-    }
+    linkInfo_->httpProxy_ = httpProxy;
 }
 
 void DevInterfaceState::UpdateSupplierAvailable()
@@ -401,8 +415,8 @@ void DevInterfaceState::UpdateSupplierAvailable()
     if (netSupplierInfo_ == nullptr) {
         return;
     }
-    netSupplierInfo_->isAvailable_ = linkUp_;
-    connLinkState_ = linkUp_ ? LINK_AVAILABLE : LINK_UNAVAILABLE;
+    netSupplierInfo_->isAvailable_ = linkUp_.load();
+    connLinkState_ = linkUp_.load() ? LINK_AVAILABLE : LINK_UNAVAILABLE;
 }
 
 void DevInterfaceState::CreateLocalRoute(const std::string &iface, const std::vector<INetAddr> &ipAddrList,
@@ -444,6 +458,9 @@ void DevInterfaceState::GetTargetNetAddrWithSameFamily(const std::string &bySrcA
                                                        INetAddr &targetNetAddr)
 {
     auto family = CommonUtils::GetAddrFamily(bySrcAddr);
+    if (family == 0) {
+        return;
+    }
     for (const auto &addr : fromAddrList) {
         if (family != CommonUtils::GetAddrFamily(addr.address_)) {
             continue;
@@ -464,6 +481,7 @@ void DevInterfaceState::GetRoutePrefixlen(const std::string &bySrcAddr,
             targetNetAddr.prefixlen_ = (route_family == AF_INET6)
                 ? static_cast<uint32_t>(CommonUtils::Ipv6PrefixLen(netMask.address_))
                 : static_cast<uint32_t>(CommonUtils::Ipv4PrefixLen(netMask.address_));
+            break;
         }
     }
 }
@@ -474,8 +492,8 @@ void DevInterfaceState::GetDumpInfo(std::string &info)
     std::list<std::string> dumpInfo = {
         "DevName: " + devName_,
         "ConnLinkState: " + std::to_string(connLinkState_),
-        "LinkUp: " + std::to_string(linkUp_),
-        "DHCPReqState: " + std::to_string(dhcpReqState_),
+        "LinkUp: " + std::to_string(linkUp_.load()),
+        "DHCPReqState: " + std::to_string(dhcpReqState_.load()),
     };
     std::string data = "DevInterfaceState: \n";
     std::for_each(dumpInfo.begin(), dumpInfo.end(),
@@ -488,6 +506,7 @@ void DevInterfaceState::GetDumpInfo(std::string &info)
     if (netSupplierInfo_ != nullptr) {
         data.append(netSupplierInfo_->ToString(TAB) + "\n");
     }
+    std::shared_lock<std::shared_mutex> cfglock(ifCfgMutex_);
     if (ifCfg_ != nullptr) {
         data.append("\n" + TAB + TAB + "InterfaceConfig: \n" + TAB + TAB + TAB +
                     "Mode: " + std::to_string(ifCfg_->mode_) + "\n");
@@ -536,6 +555,9 @@ uint8_t DevInterfaceState::GetIpType(const std::string& ipAddr)
 void DevInterfaceState::CreateDefaultRoute(
     const std::vector<INetAddr> &gatewayList, bool hasIpv4Addr, bool hasIpv6Addr)
 {
+    if (linkInfo_ == nullptr) {
+        return;
+    }
     for (const auto &gateway : gatewayList) {
         Route route;
         auto ipType = GetIpType(gateway.address_);
