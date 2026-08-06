@@ -87,7 +87,6 @@ static std::map<EapMethod, std::string> EAP_METHOD_STR_MAP = {
 };
 
 static std::string EscapeWpaValue(const std::string &val)
-
 {
     std::string res;
     res.reserve(val.size());
