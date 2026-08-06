@@ -57,6 +57,8 @@ public:
     int32_t GetTrafficFilterGlobalStatus(bool& isEnabled) override;
     int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
         const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) override;
+    int32_t AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule) override;
+    int32_t ClearPacketRule(const std::string& controllerId) override;
     int32_t CreatePacketController(uint32_t groupId, uint32_t priority,
         const sptr<TrafficFilterConfig>& config, std::string& packetControllerId, int32_t& fd) override;
     int32_t DestroyPacketController(const std::string& packetControllerId) override;

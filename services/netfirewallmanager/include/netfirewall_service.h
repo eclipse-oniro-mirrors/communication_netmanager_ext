@@ -33,6 +33,7 @@
 #include "netfirewall_rule_native_helper.h"
 #include "ffrt.h"
 #include "nettrafficfilter_redirect_manager.h"
+#include "nettrafficfilter_packetrule_manager.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -218,6 +219,17 @@ public:
      * Destroy packet controller
      */
     int32_t DestroyPacketController(const std::string& packetControllerId) override;
+
+    /**
+     * Add packet rule to packet controller
+     */
+    int32_t AddPacketRule(const std::string& controllerId,
+                          const sptr<TrafficFilterPacketRule> &rule) override;
+
+    /**
+     * Clear all rules from packet controller
+     */
+    int32_t ClearPacketRule(const std::string& controllerId) override;
 protected:
     void OnStart() override;
 

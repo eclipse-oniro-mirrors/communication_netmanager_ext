@@ -110,6 +110,16 @@ int32_t OH_TrafficFilter_QueryProcess(const OH_TrafficFilter_ConnectionInfo* con
     }
     return RedirectorAdapterManager::GetInstance().QueryProcess(connectionInfo, processInfo);
 }
+int32_t OH_TrafficFilter_AddPacketRule(OH_TrafficFilter_PacketController* controller,
+    const OH_TrafficFilter_FilterRule* rule)
+{
+    return PacketControllerAdapterManager::GetInstance().AddPacketRule(controller, rule);
+}
+
+int32_t OH_TrafficFilter_ClearPacketRule(OH_TrafficFilter_PacketController* controller)
+{
+    return PacketControllerAdapterManager::GetInstance().ClearPacketRule(controller);
+}
 
 int32_t OH_TrafficFilter_CreatePacketController(
     uint32_t group_id,

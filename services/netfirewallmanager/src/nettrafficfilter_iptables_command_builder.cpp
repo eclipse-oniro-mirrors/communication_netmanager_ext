@@ -27,6 +27,112 @@ constexpr uint32_t UID_UNSPEC = static_cast<uint32_t>(-1);
 constexpr uint32_t PORT_MAX = 65535;
 constexpr uint32_t DEFAULT_IPTABLE_LEN = 128;
 
+static const char* GetTcpFlagName(uint8_t bit)
+{
+    switch (bit) {
+        case 0x01: return "SYN";
+        case 0x02: return "ACK";
+        case 0x04: return "FIN";
+        case 0x08: return "RST";
+        case 0x10: return "PSH";
+        case 0x20: return "URG";
+        default: return "";
+    }
+}
+
+static const char* GetConntrackStateName(uint8_t bit)
+{
+    switch (bit) {
+        case 0x01: return "NEW";
+        case 0x02: return "ESTABLISHED";
+        case 0x04: return "RELATED";
+        case 0x08: return "INVALID";
+        case 0x10: return "UNTRACKED";
+        default: return "";
+    }
+}
+
+constexpr uint8_t BIT_FLAG_START = 0x01;
+constexpr uint8_t BIT_SHIFT_STEP = 1;
+
+static constexpr const char* FILTER_TABLE_APPEND = "-t filter -A ";
+static constexpr const char* TARGET_JUMP_PREFIX = " -j ";
+static constexpr const char* NFQUEUE_ACTION_PREFIX = "NFQUEUE --queue-num ";
+static constexpr const char* RETURN_TARGET = "RETURN";
+static constexpr const char* TCP_FLAGS_MATCH_PREFIX = " -m tcp --tcp-flags ";
+static constexpr const char* CONNTRACK_MATCH_PREFIX = " -m conntrack --ctstate ";
+static constexpr const char* MAC_MATCH_PREFIX = " -m mac";
+static constexpr const char* MAC_SOURCE_PREFIX = " --mac-source ";
+static constexpr const char* PROTO_TCP_FLAG = " -p tcp";
+static constexpr const char* PROTO_PREFIX = " -p ";
+static constexpr const char* OWNER_MATCH_PREFIX = " -m owner --uid-owner ";
+static constexpr const char* UID_RANGE_SEPARATOR = "-";
+
+static std::string BuildNfqueueAction(int32_t queueNum)
+{
+    return std::string(NFQUEUE_ACTION_PREFIX) + std::to_string(queueNum);
+}
+
+static std::string FormatBitMask(uint8_t mask, const char* (*getBitName)(uint8_t))
+{
+    std::string result;
+    for (uint8_t bit = BIT_FLAG_START; bit != 0; bit <<= BIT_SHIFT_STEP) {
+        if (mask & bit) {
+            if (!result.empty()) {
+                result += ",";
+            }
+            result += getBitName(bit);
+        }
+    }
+    return result;
+}
+
+static std::vector<TrafficFilterPortMatch> SplitPortMatch(
+    const TrafficFilterPortMatch& portMatch, uint32_t maxCount)
+{
+    std::vector<TrafficFilterPortMatch> result;
+    if (portMatch.type_ != static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI) ||
+        portMatch.multi_.portCount_ <= maxCount) {
+        result.push_back(portMatch);
+        return result;
+    }
+    uint32_t count = portMatch.multi_.portCount_;
+    for (uint32_t i = 0; i < count; i += maxCount) {
+        TrafficFilterPortMatch split;
+        split.type_ = portMatch.type_;
+        split.invert_ = portMatch.invert_;
+        uint32_t end = std::min(i + maxCount, count);
+        split.multi_.portCount_ = end - i;
+        for (uint32_t j = 0; j < split.multi_.portCount_; j++) {
+            split.multi_.ports_[j] = portMatch.multi_.ports_[i + j];
+        }
+        result.push_back(split);
+    }
+    return result;
+}
+
+static bool IsMultiIPMatch(const TrafficFilterIPMatch& ipMatch)
+{
+    return ipMatch.type_ == static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_MULTI);
+}
+
+static std::vector<TrafficFilterIPMatch> ExpandMultiIPMatch(const TrafficFilterIPMatch& ipMatch)
+{
+    std::vector<TrafficFilterIPMatch> result;
+    if (!IsMultiIPMatch(ipMatch)) {
+        result.push_back(ipMatch);
+        return result;
+    }
+    for (uint32_t i = 0; i < ipMatch.multi_.ipCount_; ++i) {
+        TrafficFilterIPMatch single;
+        single.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE);
+        single.invert_ = false;
+        single.single_ = ipMatch.multi_.ips_[i];
+        result.push_back(single);
+    }
+    return result;
+}
+
 void NetTrafficFilterIptablesCommandBuilder::AppendMatchConditions(
     std::ostringstream& cmd, const TrafficFilterRedirectRule& rule)
 {
@@ -419,6 +525,192 @@ int32_t NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
     }
     NETMGR_EXT_LOG_I("Executed iptables command: %{private}s", command.c_str());
     return 0;
+}
+
+std::string NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(
+    const TrafficFilterPacketRule& rule, const std::string& chainName, int32_t queueNum)
+{
+    return BuildPacketFilterCommand(rule, rule.srcIp_, rule.dstIp_, rule.srcPort_, rule.dstPort_, chainName,
+        BuildNfqueueAction(queueNum));
+}
+
+std::string NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(
+    const TrafficFilterPacketRule& rule, const TrafficFilterPortMatch& srcPort,
+    const TrafficFilterPortMatch& dstPort, const std::string& chainName, int32_t queueNum)
+{
+    return BuildPacketFilterCommand(rule, rule.srcIp_, rule.dstIp_, srcPort, dstPort, chainName,
+        BuildNfqueueAction(queueNum));
+}
+
+std::string NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(
+    const TrafficFilterPacketRule& rule, const TrafficFilterIPMatch& srcIp,
+    const TrafficFilterIPMatch& dstIp, const TrafficFilterPortMatch& srcPort,
+    const TrafficFilterPortMatch& dstPort, const std::string& chainName,
+    const std::string& action)
+{
+    std::string cmd;
+    cmd.reserve(DEFAULT_IPTABLE_LEN);
+    cmd.append(FILTER_TABLE_APPEND).append(chainName);
+    AppendPacketMatchConditions(cmd, rule, srcIp, dstIp, srcPort, dstPort);
+    cmd.append(TARGET_JUMP_PREFIX).append(action);
+    return cmd;
+}
+
+void NetTrafficFilterIptablesCommandBuilder::AppendPacketMatchConditions(std::string& cmd,
+    const TrafficFilterPacketRule& rule, const TrafficFilterIPMatch& srcIp, const TrafficFilterIPMatch& dstIp,
+    const TrafficFilterPortMatch& srcPort, const TrafficFilterPortMatch& dstPort)
+{
+    bool needTcp = (rule.protocol_ == NETTRAFFICFILTER_PROTO_TCP) ||
+                   (rule.protocol_ == NETTRAFFICFILTER_PROTO_ANY && rule.tcpFlagsMatch_.enable_);
+    if (needTcp) {
+        cmd.append(PROTO_TCP_FLAG);
+    } else if (rule.protocol_ != NETTRAFFICFILTER_PROTO_ANY) {
+        cmd.append(PROTO_PREFIX).append(std::to_string(rule.protocol_));
+    }
+
+    auto appendIfNotEmpty = [&](const std::string& match) {
+        if (!match.empty()) {
+            cmd.append(match);
+        }
+    };
+
+    appendIfNotEmpty(FormatIPMatch(srcIp, true));
+    appendIfNotEmpty(FormatIPMatch(dstIp, false));
+    appendIfNotEmpty(FormatPortMatch(srcPort, true));
+    appendIfNotEmpty(FormatPortMatch(dstPort, false));
+    appendIfNotEmpty(FormatInterfaceMatch(rule.inInterface_, true));
+    appendIfNotEmpty(FormatInterfaceMatch(rule.outInterface_, false));
+    appendIfNotEmpty(FormatMacMatch(rule.macMatch_));
+    appendIfNotEmpty(FormatTcpFlagsMatch(rule.tcpFlagsMatch_));
+    appendIfNotEmpty(FormatConntrackMatch(rule.conntrackMatch_));
+
+    if (rule.uidStart_ != UID_UNSPEC && rule.uidEnd_ != UID_UNSPEC &&
+        rule.hookPoint_ == static_cast<int32_t>(TrafficFilterHookPoint::HOOK_OUTPUT)) {
+        cmd.append(OWNER_MATCH_PREFIX).append(std::to_string(rule.uidStart_));
+        if (rule.uidStart_ != rule.uidEnd_) {
+            cmd.append(UID_RANGE_SEPARATOR).append(std::to_string(rule.uidEnd_));
+        }
+    }
+}
+
+std::string NetTrafficFilterIptablesCommandBuilder::FormatMacMatch(const TrafficFilterMACMatch& macMatch)
+{
+    if (!macMatch.enable_ || macMatch.srcMac_.empty()) {
+        return "";
+    }
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append(MAC_MATCH_PREFIX);
+    if (macMatch.invert_) {
+        result.append(" !");
+    }
+    result.append(MAC_SOURCE_PREFIX).append(macMatch.srcMac_);
+    return result;
+}
+
+std::string NetTrafficFilterIptablesCommandBuilder::FormatTcpFlagsMatch(const TrafficFilterTCPFlagsMatch& tcpFlags)
+{
+    if (!tcpFlags.enable_ || tcpFlags.flagMask_ == 0) {
+        return "";
+    }
+    std::string maskStr = FormatBitMask(tcpFlags.flagMask_, GetTcpFlagName);
+    uint8_t comp = tcpFlags.flagComp_ & tcpFlags.flagMask_;
+    std::string compStr = FormatBitMask(comp, GetTcpFlagName);
+    if (compStr.empty()) {
+        compStr = "NONE";
+    }
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append(TCP_FLAGS_MATCH_PREFIX).append(maskStr).append(" ").append(compStr);
+    return result;
+}
+
+std::string NetTrafficFilterIptablesCommandBuilder::FormatConntrackMatch(const TrafficFilterConntrackMatch& ctMatch)
+{
+    if (!ctMatch.enable_ || ctMatch.stateMask_ == 0) {
+        return "";
+    }
+    std::string states = FormatBitMask(ctMatch.stateMask_, GetConntrackStateName);
+    if (states.empty()) {
+        return "";
+    }
+    std::string result;
+    result.reserve(DEFAULT_IPTABLE_LEN);
+    result.append(CONNTRACK_MATCH_PREFIX).append(states);
+    return result;
+}
+
+static void AppendPacketFilterForAllPorts(std::vector<std::string>& commands,
+    const TrafficFilterPacketRule& rule, const TrafficFilterIPMatch& srcIp,
+    const TrafficFilterIPMatch& dstIp, const std::vector<TrafficFilterPortMatch>& srcPortSplits,
+    const std::vector<TrafficFilterPortMatch>& dstPortSplits, const std::string& chainName,
+    const std::string& action)
+{
+    for (const auto& srcPort : srcPortSplits) {
+        for (const auto& dstPort : dstPortSplits) {
+            commands.push_back(NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(
+                rule, srcIp, dstIp, srcPort, dstPort, chainName, action));
+        }
+    }
+}
+
+static std::vector<TrafficFilterIPMatch> GetBlockIPOptions(const TrafficFilterIPMatch& ipMatch)
+{
+    return (IsMultiIPMatch(ipMatch) && ipMatch.invert_) ? ExpandMultiIPMatch(ipMatch)
+                                                        : std::vector<TrafficFilterIPMatch>{};
+}
+
+static std::vector<TrafficFilterIPMatch> GetTargetIPOptions(const TrafficFilterIPMatch& ipMatch)
+{
+    if (IsMultiIPMatch(ipMatch) && !ipMatch.invert_) {
+        return ExpandMultiIPMatch(ipMatch);
+    }
+    if (IsMultiIPMatch(ipMatch) && ipMatch.invert_) {
+        return std::vector<TrafficFilterIPMatch>{TrafficFilterIPMatch()};
+    }
+    return std::vector<TrafficFilterIPMatch>{ipMatch};
+}
+
+static TrafficFilterIPMatch GetDefaultIPMatch(const TrafficFilterIPMatch& ipMatch)
+{
+    return IsMultiIPMatch(ipMatch) ? TrafficFilterIPMatch() : ipMatch;
+}
+
+std::vector<std::string> NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommands(
+    const TrafficFilterPacketRule& rule, const std::string& chainName, int32_t queueNum)
+{
+    constexpr uint32_t MAX_MULTIPORT = 15;
+    std::vector<std::string> commands;
+    auto srcPortSplits = SplitPortMatch(rule.srcPort_, MAX_MULTIPORT);
+    auto dstPortSplits = SplitPortMatch(rule.dstPort_, MAX_MULTIPORT);
+    auto srcBlock = GetBlockIPOptions(rule.srcIp_);
+    auto dstBlock = GetBlockIPOptions(rule.dstIp_);
+    auto srcTarget = GetTargetIPOptions(rule.srcIp_);
+    auto dstTarget = GetTargetIPOptions(rule.dstIp_);
+    bool srcNonInvMulti = IsMultiIPMatch(rule.srcIp_) && !rule.srcIp_.invert_;
+    bool dstNonInvMulti = IsMultiIPMatch(rule.dstIp_) && !rule.dstIp_.invert_;
+
+    auto appendAll = [&](const std::vector<TrafficFilterIPMatch>& srcIps,
+                         const std::vector<TrafficFilterIPMatch>& dstIps,
+                         const std::string& action) {
+        for (const auto& srcIp : srcIps) {
+            for (const auto& dstIp : dstIps) {
+                AppendPacketFilterForAllPorts(commands, rule, srcIp, dstIp,
+                    srcPortSplits, dstPortSplits, chainName, action);
+            }
+        }
+    };
+
+    appendAll(srcBlock, dstTarget, RETURN_TARGET);
+    appendAll(srcTarget, dstBlock, RETURN_TARGET);
+    appendAll(srcTarget, dstTarget, BuildNfqueueAction(queueNum));
+
+    if (srcNonInvMulti || dstNonInvMulti) {
+        appendAll(std::vector<TrafficFilterIPMatch>{GetDefaultIPMatch(rule.srcIp_)},
+                  std::vector<TrafficFilterIPMatch>{GetDefaultIPMatch(rule.dstIp_)}, RETURN_TARGET);
+    }
+
+    return commands;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

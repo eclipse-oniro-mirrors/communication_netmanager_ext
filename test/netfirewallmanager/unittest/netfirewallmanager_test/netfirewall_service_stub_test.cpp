@@ -858,5 +858,91 @@ HWTEST_F(NetFirewallServiceStubTest, GlobalEnableDisableSequence, TestSize.Level
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
+HWTEST_F(NetFirewallServiceStubTest, OnAddPacketRule001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnAddPacketRule(data, reply);
+    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnAddPacketRule002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string controllerId = "";
+    data.WriteString(controllerId);
+    int32_t ret = instance_->OnAddPacketRule(data, reply);
+    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnAddPacketRule003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string controllerId = "TEST_CONTROLLER_1001";
+    data.WriteString(controllerId);
+    int32_t ret = instance_->OnAddPacketRule(data, reply);
+    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnClearPacketRule001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnClearPacketRule(data, reply);
+    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnClearPacketRule002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string controllerId = "";
+    data.WriteString(controllerId);
+    int32_t ret = instance_->OnClearPacketRule(data, reply);
+    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnClearPacketRule003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string controllerId = "TEST_CONTROLLER_1001";
+    data.WriteString(controllerId);
+    int32_t ret = instance_->OnClearPacketRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnAddPacketRule004, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string controllerId = "TEST_CONTROLLER_1001";
+    data.WriteString(controllerId);
+
+    sptr<TrafficFilterPacketRule> rule = new (std::nothrow) TrafficFilterPacketRule();
+    ASSERT_NE(rule, nullptr);
+    rule->srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule->dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule->srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule->dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule->Marshalling(data);
+
+    int32_t ret = instance_->OnAddPacketRule(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

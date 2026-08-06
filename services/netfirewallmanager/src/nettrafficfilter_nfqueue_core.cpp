@@ -16,6 +16,7 @@
 #include "nettrafficfilter_nfqueue_core.h"
 #include "nettrafficfilter_iptables_command_builder.h"
 #include "net_manager_constants.h"
+#include "nettrafficfilter_packetrule_manager.h"
 #include "ipc_skeleton.h"
 #include "singleton.h"
 #include "app_mgr_client.h"
@@ -394,6 +395,7 @@ int32_t NetTrafficFilterNFQueueCore::DestroyQueue(uint16_t queueNum)
         return TRAFFICFILTER_ERROR_NOT_FOUND;
     }
     if (it->second.qh != nullptr) {
+        NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(it->second.packetControllerId);
         NetsysController::GetInstance().NfqQueueDestroy(it->second.nfqHandle, it->second.qh);
     }
 #ifndef NETMANAGER_TEST

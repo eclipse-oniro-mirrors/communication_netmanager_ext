@@ -946,5 +946,218 @@ sptr<TrafficFilterConfig> TrafficFilterConfig::Unmarshalling(Parcel &parcel)
     return ptr;
 }
 
+bool TrafficFilterMACMatch::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteBool(enable_)) {
+        NETMGR_EXT_LOG_E("Write mac enable failed");
+        return false;
+    }
+    if (!parcel.WriteBool(invert_)) {
+        NETMGR_EXT_LOG_E("Write mac invert failed");
+        return false;
+    }
+    if (!parcel.WriteString(srcMac_)) {
+        NETMGR_EXT_LOG_E("Write mac srcMac failed");
+        return false;
+    }
+    return true;
+}
+
+sptr<TrafficFilterMACMatch> TrafficFilterMACMatch::Unmarshalling(Parcel &parcel)
+{
+    sptr<TrafficFilterMACMatch> ptr = new (std::nothrow) TrafficFilterMACMatch();
+    if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("Create TrafficFilterMACMatch failed");
+        return nullptr;
+    }
+    if (!parcel.ReadBool(ptr->enable_)) {
+        NETMGR_EXT_LOG_E("Read mac enable failed");
+        return nullptr;
+    }
+    if (!parcel.ReadBool(ptr->invert_)) {
+        NETMGR_EXT_LOG_E("Read mac invert failed");
+        return nullptr;
+    }
+    if (!parcel.ReadString(ptr->srcMac_)) {
+        NETMGR_EXT_LOG_E("Read mac srcMac failed");
+        return nullptr;
+    }
+    return ptr;
+}
+
+bool TrafficFilterTCPFlagsMatch::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteBool(enable_)) {
+        NETMGR_EXT_LOG_E("Write tcpflags enable failed");
+        return false;
+    }
+    if (!parcel.WriteUint8(flagMask_)) {
+        NETMGR_EXT_LOG_E("Write tcpflags flagMask failed");
+        return false;
+    }
+    if (!parcel.WriteUint8(flagComp_)) {
+        NETMGR_EXT_LOG_E("Write tcpflags flagComp failed");
+        return false;
+    }
+    return true;
+}
+
+sptr<TrafficFilterTCPFlagsMatch> TrafficFilterTCPFlagsMatch::Unmarshalling(Parcel &parcel)
+{
+    sptr<TrafficFilterTCPFlagsMatch> ptr = new (std::nothrow) TrafficFilterTCPFlagsMatch();
+    if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("Create TrafficFilterTCPFlagsMatch failed");
+        return nullptr;
+    }
+    if (!parcel.ReadBool(ptr->enable_)) {
+        NETMGR_EXT_LOG_E("Read tcpflags enable failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint8(ptr->flagMask_)) {
+        NETMGR_EXT_LOG_E("Read tcpflags flagMask failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint8(ptr->flagComp_)) {
+        NETMGR_EXT_LOG_E("Read tcpflags flagComp failed");
+        return nullptr;
+    }
+    return ptr;
+}
+
+bool TrafficFilterConntrackMatch::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteBool(enable_)) {
+        NETMGR_EXT_LOG_E("Write conntrack enable failed");
+        return false;
+    }
+    if (!parcel.WriteUint8(stateMask_)) {
+        NETMGR_EXT_LOG_E("Write conntrack stateMask failed");
+        return false;
+    }
+    return true;
+}
+
+sptr<TrafficFilterConntrackMatch> TrafficFilterConntrackMatch::Unmarshalling(Parcel &parcel)
+{
+    sptr<TrafficFilterConntrackMatch> ptr = new (std::nothrow) TrafficFilterConntrackMatch();
+    if (ptr == nullptr) {
+        NETMGR_EXT_LOG_E("Create TrafficFilterConntrackMatch failed");
+        return nullptr;
+    }
+    if (!parcel.ReadBool(ptr->enable_)) {
+        NETMGR_EXT_LOG_E("Read conntrack enable failed");
+        return nullptr;
+    }
+    if (!parcel.ReadUint8(ptr->stateMask_)) {
+        NETMGR_EXT_LOG_E("Read conntrack stateMask failed");
+        return nullptr;
+    }
+    return ptr;
+}
+
+bool TrafficFilterPacketRule::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteUint32(priority_)) {
+        return false;
+    }
+    if (!parcel.WriteInt32(hookPoint_)) {
+        return false;
+    }
+    if (!parcel.WriteUint8(protocol_)) {
+        return false;
+    }
+    if (!srcIp_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!srcPort_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!dstIp_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!dstPort_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!inInterface_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!outInterface_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!parcel.WriteUint32(uidStart_)) {
+        return false;
+    }
+    if (!parcel.WriteUint32(uidEnd_)) {
+        return false;
+    }
+    if (!macMatch_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!tcpFlagsMatch_.Marshalling(parcel)) {
+        return false;
+    }
+    if (!conntrackMatch_.Marshalling(parcel)) {
+        return false;
+    }
+    return true;
+}
+
+static bool UnmarshalMatchFields(Parcel &parcel, TrafficFilterPacketRule& rule)
+{
+    sptr<TrafficFilterIPMatch> srcIp = TrafficFilterIPMatch::Unmarshalling(parcel);
+    sptr<TrafficFilterPortMatch> srcPort = TrafficFilterPortMatch::Unmarshalling(parcel);
+    sptr<TrafficFilterIPMatch> dstIp = TrafficFilterIPMatch::Unmarshalling(parcel);
+    sptr<TrafficFilterPortMatch> dstPort = TrafficFilterPortMatch::Unmarshalling(parcel);
+    sptr<TrafficFilterInterfaceMatch> inIf = TrafficFilterInterfaceMatch::Unmarshalling(parcel);
+    sptr<TrafficFilterInterfaceMatch> outIf = TrafficFilterInterfaceMatch::Unmarshalling(parcel);
+    if (!parcel.ReadUint32(rule.uidStart_) || !parcel.ReadUint32(rule.uidEnd_)) {
+        NETMGR_EXT_LOG_E("UnmarshalMatchFields: failed to read uidStart or uidEnd");
+        return false;
+    }
+    sptr<TrafficFilterMACMatch> macMatch = TrafficFilterMACMatch::Unmarshalling(parcel);
+    sptr<TrafficFilterTCPFlagsMatch> tcpFlags = TrafficFilterTCPFlagsMatch::Unmarshalling(parcel);
+    sptr<TrafficFilterConntrackMatch> ctMatch = TrafficFilterConntrackMatch::Unmarshalling(parcel);
+
+    if (srcIp == nullptr || srcPort == nullptr || dstIp == nullptr || dstPort == nullptr ||
+        inIf == nullptr || outIf == nullptr || macMatch == nullptr || tcpFlags == nullptr || ctMatch == nullptr) {
+        NETMGR_EXT_LOG_E("UnmarshalMatchFields: one or more match objects are null");
+        return false;
+    }
+    rule.srcIp_ = *srcIp;
+    rule.srcPort_ = *srcPort;
+    rule.dstIp_ = *dstIp;
+    rule.dstPort_ = *dstPort;
+    rule.inInterface_ = *inIf;
+    rule.outInterface_ = *outIf;
+    rule.macMatch_ = *macMatch;
+    rule.tcpFlagsMatch_ = *tcpFlags;
+    rule.conntrackMatch_ = *ctMatch;
+    return true;
+}
+
+sptr<TrafficFilterPacketRule> TrafficFilterPacketRule::Unmarshalling(Parcel &parcel)
+{
+    sptr<TrafficFilterPacketRule> ptr = new (std::nothrow) TrafficFilterPacketRule();
+    if (ptr == nullptr) {
+        return nullptr;
+}
+
+    if (!parcel.ReadUint32(ptr->priority_)) {
+        return nullptr;
+    }
+
+    if (!parcel.ReadInt32(ptr->hookPoint_)) {
+        return nullptr;
+    }
+
+    if (!parcel.ReadUint8(ptr->protocol_)) {
+        return nullptr;
+    }
+
+    if (!UnmarshalMatchFields(parcel, *ptr)) {
+        return nullptr;
+    }
+    return ptr;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

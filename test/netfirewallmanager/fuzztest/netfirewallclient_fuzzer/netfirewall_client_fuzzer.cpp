@@ -690,6 +690,46 @@ void GetResultSetTableInfoInterceptRecord002FuzzTest(const uint8_t *data, size_t
     NetInterceptRecordInfo table;
     NetFirewallDbHelper::GetInstance().GetResultSetTableInfo(resultSet, table);
 }
+
+void AddPacketRuleTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+
+    std::string controllerId = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteString(controllerId)) {
+        return;
+    }
+    auto rule = std::make_unique<TrafficFilterPacketRule>();
+    if (!rule->Marshalling(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::ADD_PACKET_RULE), parcel);
+}
+
+void ClearPacketRuleTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+
+    g_baseFuzzData = data;
+    g_baseFuzzSize = size;
+    g_baseFuzzPos = 0;
+
+    std::string controllerId = GetStringFromData(IFACE_LEN);
+    if (!parcel.WriteString(controllerId)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::CLEAR_PACKET_RULE), parcel);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -730,5 +770,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::GetResultSetTableInfoRuleInfo002FuzzTest(data, size);
     OHOS::NetManagerStandard::GetResultSetTableInfoInterceptRecord001FuzzTest(data, size);
     OHOS::NetManagerStandard::GetResultSetTableInfoInterceptRecord002FuzzTest(data, size);
+    OHOS::NetManagerStandard::AddPacketRuleTest(data, size);
+    OHOS::NetManagerStandard::ClearPacketRuleTest(data, size);
     return 0;
 }

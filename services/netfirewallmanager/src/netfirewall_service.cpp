@@ -551,6 +551,13 @@ int32_t NetFirewallService::GlobalEnableTrafficFilter()
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GlobalEnableTrafficFilter();
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter failed, ret: %{public}d", ret);
+        return ret;
+    } else {
+        NETMGR_EXT_LOG_I("Traffic filter globally enabled successfully");
+    }
+    ret = NetTrafficFilterPacketRuleManager::GetInstance().ResumeAllRules();
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter PacketRuleManager failed, ret: %{public}d", ret);
     } else {
         NETMGR_EXT_LOG_I("Traffic filter globally enabled successfully");
     }
@@ -563,6 +570,12 @@ int32_t NetFirewallService::GlobalDisableTrafficFilter()
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GlobalDisableTrafficFilter();
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("GlobalDisableTrafficFilter failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Traffic filter globally disabled successfully");
+    }
+    ret = NetTrafficFilterPacketRuleManager::GetInstance().PauseAllRules();
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GlobalDisableTrafficFilter PacketRuleManager failed, ret: %{public}d", ret);
     } else {
         NETMGR_EXT_LOG_I("Traffic filter globally disabled successfully");
     }
@@ -697,6 +710,28 @@ int32_t NetFirewallService::UpdateTrafficFilterBySpaceType(SpaceType spaceType)
             break;
         default:
             break;
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule)
+{
+    int32_t ret = NetTrafficFilterPacketRuleManager::GetInstance().AddPacketRule(controllerId, rule);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("AddPacketRule failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("AddPacketRule success");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::ClearPacketRule(const std::string& controllerId)
+{
+    int32_t ret = NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(controllerId);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("ClearPacketRule failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("ClearPacketRule success");
     }
     return ret;
 }

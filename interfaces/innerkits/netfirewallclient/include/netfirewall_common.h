@@ -315,6 +315,51 @@ inline uint64_t GetCurrentMilliseconds()
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
         .count();
 }
+struct TrafficFilterMACMatch final : public Parcelable {
+    bool enable_ = false;
+    bool invert_ = false;
+    std::string srcMac_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterMACMatch> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterTCPFlagsMatch final : public Parcelable {
+    bool enable_ = false;
+    uint8_t flagMask_ = 0;
+    uint8_t flagComp_ = 0;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterTCPFlagsMatch> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterConntrackMatch final : public Parcelable {
+    bool enable_ = false;
+    uint8_t stateMask_ = 0;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterConntrackMatch> Unmarshalling(Parcel &parcel);
+};
+
+struct TrafficFilterPacketRule final : public Parcelable {
+    uint32_t priority_ = 0;
+    int32_t hookPoint_ = 0;
+    uint8_t protocol_ = 0;
+    TrafficFilterIPMatch srcIp_;
+    TrafficFilterPortMatch srcPort_;
+    TrafficFilterIPMatch dstIp_;
+    TrafficFilterPortMatch dstPort_;
+    TrafficFilterInterfaceMatch inInterface_;
+    TrafficFilterInterfaceMatch outInterface_;
+    uint32_t uidStart_ = static_cast<uint32_t>(-1);
+    uint32_t uidEnd_ = static_cast<uint32_t>(-1);
+    TrafficFilterMACMatch macMatch_;
+    TrafficFilterTCPFlagsMatch tcpFlagsMatch_;
+    TrafficFilterConntrackMatch conntrackMatch_;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static sptr<TrafficFilterPacketRule> Unmarshalling(Parcel &parcel);
+};
 } // namespace NetManagerStandard
 } // namespace OHOS
 

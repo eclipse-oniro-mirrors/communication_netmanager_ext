@@ -75,6 +75,9 @@ public:
 
     int32_t DestroyPacketController(const std::string& packetControllerId);
 
+    int32_t AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule);
+    int32_t ClearPacketRule(const std::string& controllerId);
+
 private:
     class MonitorPcfirewallServiceDead : public IRemoteObject::DeathRecipient {
     public:
