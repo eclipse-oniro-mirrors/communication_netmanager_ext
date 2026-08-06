@@ -42,7 +42,6 @@ EthernetClient::~EthernetClient()
 {
     isDestroyed_ = true;
     NETMGR_EXT_LOG_I("~EthernetClient : Destroy EthernetClient");
-    std::lock_guard lock(mutex_);
     sptr<IEthernetService> proxy = GetProxy();
     if (proxy == nullptr) {
         return;
