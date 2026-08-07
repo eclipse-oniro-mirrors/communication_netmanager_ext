@@ -233,7 +233,7 @@ int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrLi
         if (std::regex_search(iface, IFACE_MATCH_PATTERM)) {
             MacAddressInfo macAddressInfo;
             auto spMacAddr = GetMacAddr(iface);
-            if (spMacAddr.c_str() == nullptr) {
+            if (spMacAddr.empty()) {
                 NETMGR_EXT_LOG_E("The iface[%{public}s] device does not find MAC address", iface.c_str());
                 continue;
             }
@@ -336,6 +336,10 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
 
 bool EthernetManagement::CanModifyCheck(IPSetMode origin, IPSetMode input)
 {
+    if (input < STATIC || input > LAN_DHCP) {
+        NETMGR_EXT_LOG_E("Invalid IPSetMode: %{public}d", static_cast<int32_t>(input));
+        return false;
+    }
     std::string param(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE);
     bool isSetEthernetIpDisabled = OHOS::system::GetBoolParameter(param, false);
     NETMGR_EXT_LOG_D("Set ethernet ip is disabled: %{public}d, origin mode: %{public}d, input mode: %{public}d",
@@ -424,10 +428,6 @@ int32_t EthernetManagement::UpdataEthernetConfig(EthernetDhcpCallback::DhcpResul
 
 void EthernetManagement::ClearEthernetConfig(StaticConfiguration &config)
 {
-    if (config.ipAddrList_.empty()) {
-        NETMGR_EXT_LOG_E("config is empty");
-        return;
-    }
     config.ipAddrList_.clear();
     config.routeList_.clear();
     config.gatewayList_.clear();
@@ -491,6 +491,9 @@ int32_t EthernetManagement::GetAllActiveIfaces(std::vector<std::string> &activeI
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);
     for (auto it = devs_.begin(); it != devs_.end(); ++it) {
+        if (it->second == nullptr) {
+            continue;
+        }
         if (it->second->GetLinkUp()) {
             activeIfaces.push_back(it->first);
         }
@@ -553,6 +556,7 @@ void EthernetManagement::InitEthernetEnabledState()
 {
     std::string value;
     int32_t ret = NetDataShareHelperUtilsIface::Query(ETHERNET_ENABLED_URI, KEY_ETHERNET_ENABLED, value);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     if (ret == NETMANAGER_EXT_SUCCESS) {
         ethernetEnabled_ = (value == "1" || value == "true");
         NETMGR_EXT_LOG_I("EthernetManagement Init: ethernet enabled state = %{public}d", ethernetEnabled_);
@@ -694,11 +698,7 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
         devState->RemoteRegisterNetSupplier();
         devState->SetIfcfg(fitCfg->second);
     } else {
-        sptr<InterfaceConfiguration> ifCfg = new (std::nothrow) InterfaceConfiguration();
-        if (ifCfg == nullptr) {
-            NETMGR_EXT_LOG_E("ifCfg is nullptr");
-            return;
-        }
+        sptr<InterfaceConfiguration> ifCfg = sptr<InterfaceConfiguration>::MakeSptr();
         ifCfg->mode_ = DHCP;
         devState->RemoteRegisterNetSupplier();
         devState->SetIfcfg(ifCfg);
@@ -725,7 +725,11 @@ void EthernetManagement::DevInterfaceRemove(const std::string &devName)
 void EthernetManagement::GetDumpInfo(std::string &info)
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);
-    std::for_each(devs_.begin(), devs_.end(), [&info](const auto &dev) { dev.second->GetDumpInfo(info); });
+    std::for_each(devs_.begin(), devs_.end(), [&info](const auto &dev) {
+        if (dev.second != nullptr) {
+            dev.second->GetDumpInfo(info);
+        }
+    });
 }
 
 bool EthernetManagement::ModeInputCheck(IPSetMode origin, IPSetMode input)

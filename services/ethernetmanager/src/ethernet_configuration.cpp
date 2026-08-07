@@ -453,7 +453,10 @@ bool EthernetConfiguration::DelDir(const std::string &dirPath)
     }
     while ((entry = readdir(dir)) != nullptr) {
         std::string filePath = dirPath + FILE_OBLIQUE_LINE + entry->d_name;
-        lstat(filePath.c_str(), &statbuf);
+        if (lstat(filePath.c_str(), &statbuf) != 0) {
+            NETMGR_EXT_LOG_E("DelDir lstat failed: %{public}s", filePath.c_str());
+            continue;
+        }
         if (S_ISREG(statbuf.st_mode)) {
             remove(filePath.c_str());
         }
