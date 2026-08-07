@@ -494,7 +494,7 @@ bool NetTrafficFilterRedirectManager::IsRedirectorExists(
 
     for (const auto& existingRedirectorId : bundleMapIt->second) {
         auto existingRedirectorIt = redirectors_.find(existingRedirectorId);
-        if (existingRedirectorIt != redirectors_.end()) {
+        if (existingRedirectorIt != redirectors_.end() && existingRedirectorIt->second != nullptr) {
             if (existingRedirectorIt->second->GetGroupId() == groupId) {
                 return true;
             }
@@ -601,14 +601,19 @@ int32_t NetTrafficFilterRedirectManager::RollbackRedirectorRules(
         NETMGR_EXT_LOG_E("Rollback failed: failed to restore old rules to iptables chain");
         return -1;
     }
+    bool globalJumpFailed = false;
     for (auto hookPoint : affectedHookPoints) {
         ret = ApplyGlobalJumpRules(hookPoint);
         if (ret != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E(
                 "Rollback failed: failed to rebuild global jump rules, hookPoint=%{public}d",
                 static_cast<int32_t>(hookPoint));
-            return -1;
+            globalJumpFailed = true;
         }
+    }
+    if (globalJumpFailed) {
+        NETMGR_EXT_LOG_W("Rollback completed with some global jump rule failures");
+        return -1;
     }
     NETMGR_EXT_LOG_I("Rollback redirector rules completed");
     return TRAFFICFILTER_OK;
@@ -651,6 +656,9 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
         if (callingUid != -1) {
             bool hasOtherRedirectorsForUid = false;
             for (const auto& [id, redir] : redirectors_) {
+                if (redir == nullptr) {
+                    continue;
+                }
                 if (redir->GetCallingUid() == callingUid) {
                     hasOtherRedirectorsForUid = true;
                     break;
@@ -830,7 +838,12 @@ int32_t NetTrafficFilterRedirectManager::ApplyGlobalJumpRules(TrafficFilterHookP
     }
     ret = UpdateGlobalJumpRules(hookPoint, TrafficFilterIPFamily::IP_FAMILY_V6);
     if (ret != TRAFFICFILTER_OK) {
-        NETMGR_EXT_LOG_E("Failed to update jump rules");
+        NETMGR_EXT_LOG_E("Failed to update V6 jump rules, rolling back V4");
+        int32_t rollbackRet = UpdateGlobalJumpRules(hookPoint, TrafficFilterIPFamily::IP_FAMILY_V4);
+        if (rollbackRet != TRAFFICFILTER_OK) {
+            NETMGR_EXT_LOG_E("V4 rollback also failed for hookPoint=%{public}d",
+                static_cast<int32_t>(hookPoint));
+        }
         return -1;
     }
     return TRAFFICFILTER_OK;
@@ -1026,53 +1039,6 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
     return TRAFFICFILTER_OK;
 }
 
-int32_t NetTrafficFilterRedirectManager::PauseRedirectorsByBundleName(const std::string& bundleName)
-{
-    NETMGR_EXT_LOG_I("PauseRedirectorsByBundleName called: bundleName=%{public}s", bundleName.c_str());
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    auto mapIt = bundleNameToRedirectorsMap_.find(bundleName);
-    if (mapIt == bundleNameToRedirectorsMap_.end()) {
-        NETMGR_EXT_LOG_I("No redirectors found for bundleName: %{public}s", bundleName.c_str());
-        return TRAFFICFILTER_OK;
-    }
-
-    for (const auto& redirectorId : mapIt->second) {
-        auto it = redirectors_.find(redirectorId);
-        if (it == redirectors_.end()) {
-            continue;
-        }
-        auto& redirector = it->second;
-        if (redirector == nullptr) {
-            continue;
-        }
-        if (redirector->IsPaused() || !redirector->HasRules()) {
-            NETMGR_EXT_LOG_I("Redirector %{public}s already paused or has no rules, skip", redirectorId.c_str());
-            continue;
-        }
-
-        std::string chainName = NetTrafficFilterIptablesCommandBuilder::GenerateChainName(
-            redirector->GetCallingUid(), redirector->GetGroupId());
-
-        auto usedHookPoints = redirector->GetUsedHookPoints();
-        for (auto hookPoint : usedHookPoints) {
-            std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
-            std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
-                hookPointName, chainName);
-            if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
-                jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
-                NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
-                    static_cast<int32_t>(hookPoint));
-            }
-        }
-
-        redirector->SetPaused(true);
-    }
-
-    NETMGR_EXT_LOG_I("Paused redirectors for bundleName: %{public}s", bundleName.c_str());
-    return TRAFFICFILTER_OK;
-}
-
 int32_t NetTrafficFilterRedirectManager::ResumeRedirectorStateByBundleName(const std::string& bundleName)
 {
     NETMGR_EXT_LOG_I("ResumeRedirectorStateByBundleName called: bundleName=%{public}s", bundleName.c_str());
@@ -1219,6 +1185,7 @@ void NetTrafficFilterRedirectManager::UnregisterTrafficFilterObserver(
     std::lock_guard<std::mutex> lock(observerMutex_);
     auto it = uidToObserverMap_.find(uid);
     if (it != uidToObserverMap_.end() && it->second == observer) {
+        Singleton<AppExecFwk::AppMgrClient>::GetInstance().UnregisterApplicationStateObserver(it->second);
         uidToObserverMap_.erase(it);
         NETMGR_EXT_LOG_I("TrafficFilter observer unregistered: uid=%{public}d", uid);
     }

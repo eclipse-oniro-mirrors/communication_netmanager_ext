@@ -2797,10 +2797,14 @@ int32_t NetworkVpnService::RequestVpnPermission(int32_t uid, const std::string& 
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    // LCOV_EXCL_STOP
+
     std::string actualBundleName;
     std::string appName;
-    GetAppNameByUid(uid, appName, actualBundleName);
+    if (GetAppNameByUid(uid, appName, actualBundleName) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("RequestVpnPermission: GetAppNameByUid failed for uid=%{public}d", uid);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    // LCOV_EXCL_STOP
     if (bundleName != actualBundleName) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
