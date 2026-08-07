@@ -2703,10 +2703,6 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
         return;
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
-    if (callback == nullptr) {
-        NETMGR_EXT_LOG_E("OnRemoteDied callback is null after iface_cast");
-        return;
-    }
     std::string bundleName = GetBundleName();
     std::vector<VpnTrace> vpnTraceList;
     vpnTraceList.push_back(CreateVpnTrace(bundleName, OPERATOR_REMOTE_DIE_DESTORY_VPN_START,
