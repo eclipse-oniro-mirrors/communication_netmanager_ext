@@ -1715,6 +1715,10 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std
         return result;
     }
     config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("ConvertVpnBeanToSysVpnConfig failed, vpnId=%{public}s", vpnId.c_str());
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -1823,6 +1827,10 @@ int32_t NetworkVpnService::UnregisterMultiVpnEvent(const sptr<IVpnEventCallback>
 int32_t NetworkVpnService::RemoteUnregisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback,
     int32_t &userId, std::string &bundleName)
 {
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("RemoteUnregisterMultiVpnEvent callback is null");
+        return -1;
+    }
     std::string vpnBundleName = GetBundleName();
     NETMGR_EXT_LOG_I("RemoteUnregisterMultiVpnEvent vpnBundleName %{public}s.", vpnBundleName.c_str());
     // LCOV_EXCL_START
@@ -2695,6 +2703,10 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
         return;
     }
     sptr<IVpnEventCallback> callback = iface_cast<IVpnEventCallback>(diedRemoted);
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("OnRemoteDied callback is null after iface_cast");
+        return;
+    }
     std::string bundleName = GetBundleName();
     std::vector<VpnTrace> vpnTraceList;
     vpnTraceList.push_back(CreateVpnTrace(bundleName, OPERATOR_REMOTE_DIE_DESTORY_VPN_START,
@@ -2747,6 +2759,10 @@ bool NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &c
         NETMGR_EXT_LOG_E("deathRecipient is null");
         return false;
     }
+    if (callback == nullptr || callback->AsObject() == nullptr) {
+        NETMGR_EXT_LOG_E("AddClientDeathRecipient callback or AsObject is null");
+        return false;
+    }
     if (!callback->AsObject()->AddDeathRecipient(deathRecipient_)) {
         NETMGR_EXT_LOG_E("AddClientDeathRecipient failed");
         return false;
@@ -2767,8 +2783,12 @@ void NetworkVpnService::RemoveClientDeathRecipient(const sptr<IVpnEventCallback>
 void NetworkVpnService::RemoveALLClientDeathRecipient()
 {
     std::unique_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
-    for (auto &item : vpnEventCallbacks_) {
-        item->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    if (deathRecipient_ != nullptr) {
+        for (auto &item : vpnEventCallbacks_) {
+            if (item != nullptr && item->AsObject() != nullptr) {
+                item->AsObject()->RemoveDeathRecipient(deathRecipient_);
+            }
+        }
     }
     vpnEventCallbacks_.clear();
     deathRecipient_ = nullptr;
