@@ -967,7 +967,7 @@ int32_t NetTrafficFilterRedirectManager::PauseAllRedirectors()
                 jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
                 NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                     static_cast<int32_t>(hookPoint));
-                 allDeleteSuccess = false;
+                allDeleteSuccess = false;
             }
         }
 
