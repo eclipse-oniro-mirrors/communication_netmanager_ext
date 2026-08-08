@@ -194,6 +194,11 @@ int32_t NetFirewallService::GetInterceptRecords(const int32_t userId, const sptr
     sptr<InterceptRecordPage> &info)
 {
     NETMGR_EXT_LOG_I("GetInterceptRecords");
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != userId && callingUid != 0) {
+        NETMGR_EXT_LOG_E("GetInterceptRecords permission denied");
+        return FIREWALL_ERR_PERMISSION_DENIED;
+    }
     int32_t ret = CheckUserExist(userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
@@ -372,7 +377,16 @@ void NetFirewallService::InitQueryUserId(int32_t times)
     bool ret = InitUsersOnBoot();
     if (!ret && times > 0) {
         NETMGR_EXT_LOG_I("InitQueryUserId failed");
-        ffrtServiceHandler_->submit([this, times]() { InitQueryUserId(times); },
+        std::shared_ptr<ffrt::queue> handler;
+        {
+            std::lock_guard<std::mutex> lock(handlerMutex_);
+            handler = ffrtServiceHandler_;
+        }
+        if (handler == nullptr) {
+            NETMGR_EXT_LOG_E("handler is nullptr");
+            return;
+        }
+        handler->submit([this, times]() { InitQueryUserId(times); },
             ffrt::task_attr().delay(QUERY_USER_ID_DELAY_TIME_MS).name("InitQueryUserId"));
     }
 }
@@ -385,6 +399,7 @@ void NetFirewallService::InitQueryNetFirewallRules()
 
 void NetFirewallService::InitServiceHandler()
 {
+    std::lock_guard<std::mutex> lock(handlerMutex_);
     if (ffrtServiceHandler_ != nullptr) {
         NETMGR_EXT_LOG_E("InitServiceHandler already init.");
         return;
@@ -400,8 +415,12 @@ void NetFirewallService::OnStop()
         return;
     }
     NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
-    ffrtServiceHandler_.reset();
-    ffrtServiceHandler_ = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(handlerMutex_);
+        ffrtServiceHandler_.reset();
+        ffrtServiceHandler_ = nullptr;
+    }
+
     if (subscriber_ != nullptr) {
         bool unSubscribeResult = OHOS::EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
         subscriber_ = nullptr;

@@ -999,6 +999,9 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
 
     std::set<TrafficFilterHookPoint> hookPointsToReorder;
     for (const auto& [redirectorId, redirector] : redirectors_) {
+        if (redirector == nullptr) {
+            continue;
+        }
         if (redirector->HasRules() && !redirector->IsPaused()) {
             auto usedHookPoints = redirector->GetUsedHookPoints();
             for (auto hookPoint : usedHookPoints) {
