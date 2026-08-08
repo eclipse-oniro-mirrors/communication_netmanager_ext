@@ -690,11 +690,9 @@ int32_t NetworkShareTracker::GetSharedSubSMTraffic(const TrafficType &type, int3
         }
     }
 
-    kbByte = static_cast<int32_t>(bytes / BYTE_TRANSFORM_KB);
-    if (kbByte > std::numeric_limits<int32_t>::max()) {
-        NETMGR_EXT_LOG_I("GetBytes [%{public}s] is above max.", std::to_string(kbByte).c_str());
-        kbByte = std::numeric_limits<int32_t>::max();
-    }
+    int64_t kbByte64 = bytes / BYTE_TRANSFORM_KB;
+    kbByte = kbByte64 > std::numeric_limits<int32_t>::max()
+        ? std::numeric_limits<int32_t>::max() : static_cast<int32_t>(kbByte64);
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -1464,6 +1462,9 @@ void NetworkShareTracker::RestartResume()
         ret = NetsysController::GetInstance().StartDnsProxyListen();
         if (ret != NETSYS_SUCCESS) {
             NETMGR_EXT_LOG_E("StartDnsProxy error, result[%{public}d].", ret);
+            if (mainStateMachine_ == nullptr) {
+                return;
+            }
             mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
             return;
         }
@@ -1474,6 +1475,9 @@ void NetworkShareTracker::RestartResume()
     ret = NetsysController::GetInstance().ShareDnsSet(netId_);
     if (ret != NETSYS_SUCCESS) {
         NETMGR_EXT_LOG_E("SetDns error, result[%{public}d].", ret);
+        if (mainStateMachine_ == nullptr) {
+            return;
+        }
         mainStateMachine_->SwitcheToErrorState(CMD_SET_DNS_FORWARDERS_ERROR);
         return;
     }

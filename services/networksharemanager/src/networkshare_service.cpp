@@ -71,15 +71,21 @@ void NetworkShareService::OnStart()
 
 void NetworkShareService::OnStop()
 {
+    EdmParameterUtils::GetInstance().UnRegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM);
     NetworkShareTracker::GetInstance().Uninit();
     state_ = STATE_STOPPED;
     registerToService_ = false;
-    EdmParameterUtils::GetInstance().UnRegisterEdmParameterChangeEvent(NETWORK_SHARE_POLICY_PARAM);
     NETMGR_EXT_LOG_I("OnStop successful");
 }
 
 int32_t NetworkShareService::Dump(int32_t fd, const std::vector<std::u16string> &args)
 {
+    if (!NetManagerPermission::IsSystemCaller()) {
+        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
     NETMGR_EXT_LOG_I("Start Dump, fd: %{public}d", fd);
     std::string result;
     GetDumpMessage(result);
@@ -110,6 +116,7 @@ bool NetworkShareService::Init()
     AddSystemAbilityListener(WIFI_HOTSPOT_SYS_ABILITY_ID);
     // LCOV_EXCL_START
     AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
+    std::lock_guard<ffrt::mutex> lock(subscriberMutex_);
     // LCOV_EXCL_STOP
     SubscribeCommonEvent();
 #ifdef SHARE_NOTIFICATION_ENABLE
@@ -417,6 +424,7 @@ int32_t NetworkShareService::SetConfigureForShare(bool enabled)
 
 void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
+    std::lock_guard<ffrt::mutex> lock(subscriberMutex_);
     NETMGR_EXT_LOG_D("OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         if (hasSARemoved_) {
@@ -446,6 +454,7 @@ void NetworkShareService::OnAddSystemAbility(int32_t systemAbilityId, const std:
 
 void NetworkShareService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
+    std::lock_guard<ffrt::mutex> lock(subscriberMutex_);
     NETMGR_EXT_LOG_D("OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         hasSARemoved_ = true;

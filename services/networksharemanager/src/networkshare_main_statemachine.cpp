@@ -275,6 +275,9 @@ void NetworkShareMainStateMachine::ChooseUpstreamNetwork()
     std::shared_ptr<UpstreamNetworkInfo> netInfoPtr =
         std::make_shared<UpstreamNetworkInfo>(pNetHandle, pNetCapabilities, pNetLinkInfo);
     if (networkMonitor_ != nullptr && networkMonitor_->GetCurrentGoodUpstream(netInfoPtr)) {
+        if (netInfoPtr->netLinkPro_ == nullptr) {
+            return;
+        }
         upstreamIfaceName_ = netInfoPtr->netLinkPro_->ifaceName_;
         std::string tunv4UpstreamIfaceName = "tunv4-" + upstreamIfaceName_;
         int32_t result = NetsysController::GetInstance().EnableNat(FAKE_DOWNSTREAM_IFACENAME, upstreamIfaceName_);
