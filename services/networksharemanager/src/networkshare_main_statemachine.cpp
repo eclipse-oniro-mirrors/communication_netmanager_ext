@@ -81,6 +81,7 @@ NetworkShareMainStateMachine::NetworkShareMainStateMachine(std::shared_ptr<Netwo
 
 void NetworkShareMainStateMachine::MainSmStateSwitch(int newState)
 {
+    std::lock_guard<ffrt::recursive_mutex> lock(mutex_);
     int oldState = curState_;
     curState_ = newState;
     NETMGR_EXT_LOG_I("MainSmStateSwitch from[%{public}d] to[%{public}d].", oldState, newState);
