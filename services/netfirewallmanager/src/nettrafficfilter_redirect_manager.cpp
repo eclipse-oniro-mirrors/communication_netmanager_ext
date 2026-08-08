@@ -937,7 +937,7 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
                 static_cast<int32_t>(hookPoint));
         } else {
             NETMGR_EXT_LOG_I("Jump rule for hook point deleted success %{public}d",
-            static_cast<int32_t>(hookPoint));
+                static_cast<int32_t>(hookPoint));
             deletedHookPoints.insert(hookPoint);
         }
     }
