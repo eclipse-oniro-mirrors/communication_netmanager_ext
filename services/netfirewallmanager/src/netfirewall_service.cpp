@@ -67,9 +67,9 @@ NetFirewallService::~NetFirewallService()
 void NetFirewallService::SetCurrentUserId(int32_t userId)
 {
     currentUserId_ = userId;
-    NetFirewallInterceptRecorder::GetInstance()->SetCurrentUserId(currentUserId_);
+    NetFirewallInterceptRecorder::GetInstance()->SetCurrentUserId(userId);
     // set current userid to native
-    NetFirewallRuleNativeHelper::GetInstance().SetCurrentUserId(currentUserId_);
+    NetFirewallRuleNativeHelper::GetInstance().SetCurrentUserId(userId);
 }
 
 int32_t NetFirewallService::GetCurrentAccountId()
@@ -155,8 +155,7 @@ int32_t NetFirewallService::GetNetFirewallPolicy(const int32_t userId, sptr<NetF
     if (ret != FIREWALL_SUCCESS) {
         return ret;
     }
-    NetFirewallPolicyManager::GetInstance().GetNetFirewallPolicy(userId, policy);
-    return FIREWALL_SUCCESS;
+    return NetFirewallPolicyManager::GetInstance().GetNetFirewallPolicy(userId, policy);
 }
 
 int32_t NetFirewallService::AddNetFirewallRule(const sptr<NetFirewallRule> &rule, int32_t &ruleId)
@@ -330,6 +329,7 @@ int32_t NetFirewallService::OnInit()
 {
     InitServiceHandler();
     InitQueryUserId(QUERY_USER_MAX_RETRY_TIMES);
+    std::lock_guard<std::mutex> lock(saMutex_);
     SubscribeCommonEvent();
     NetFirewallInterceptRecorder::GetInstance()->RegisterInterceptCallback();
     return FIREWALL_SUCCESS;
@@ -338,6 +338,7 @@ int32_t NetFirewallService::OnInit()
 void NetFirewallService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
     NETMGR_EXT_LOG_I("OnAddSystemAbility systemAbilityId:%{public}d added!", systemAbilityId);
+    std::lock_guard<std::mutex> lock(saMutex_);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         if (hasSaRemoved_) {
             NETMGR_EXT_LOG_I("native reboot, reset firewall rules.");
@@ -402,10 +403,13 @@ void NetFirewallService::OnStop()
     NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
     ffrtServiceHandler_.reset();
     ffrtServiceHandler_ = nullptr;
-    if (subscriber_ != nullptr) {
-        bool unSubscribeResult = OHOS::EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
-        subscriber_ = nullptr;
-        NETMGR_EXT_LOG_I("UnregisterSubscriber end, unSubscribeResult = %{public}d", unSubscribeResult);
+    {
+        std::lock_guard<std::mutex> lock(saMutex_);
+        if (subscriber_ != nullptr) {
+            bool unSubscribeResult = OHOS::EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+            subscriber_ = nullptr;
+            NETMGR_EXT_LOG_I("UnregisterSubscriber end, unSubscribeResult = %{public}d", unSubscribeResult);
+        }
     }
     NetFirewallInterceptRecorder::GetInstance()->UnRegisterInterceptCallback();
     state_ = ServiceRunningState::STATE_NOT_START;
@@ -414,6 +418,7 @@ void NetFirewallService::OnStop()
 
 void NetFirewallService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
+    std::lock_guard<std::mutex> lock(saMutex_);
     NETMGR_EXT_LOG_I("OnRemoveSystemAbility systemAbilityId:%{public}d removed!", systemAbilityId);
     if (systemAbilityId == COMM_NETSYS_NATIVE_SYS_ABILITY_ID) {
         hasSaRemoved_ = true;

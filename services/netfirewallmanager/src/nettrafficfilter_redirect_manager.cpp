@@ -333,8 +333,19 @@ bool NetTrafficFilterRedirectManager::ValidatePortMatch(const TrafficFilterPortM
 
 bool NetTrafficFilterRedirectManager::ValidateInterfaceMatch(const TrafficFilterInterfaceMatch& ifMatch)
 {
-    if (ifMatch.enabled_ && ifMatch.ifName_.empty()) {
-        return false;
+    if (ifMatch.enabled_) {
+        if (ifMatch.ifName_.empty()) {
+            return false;
+        }
+        if (ifMatch.ifName_.length() > IFNAMSIZ -1) {
+            return false;
+        }
+        for (char c : ifMatch.ifName_) {
+            if (!isalnum(c) && c != '_' && c != '-' && c != ':' && c != '.') {
+                return false;
+            }
+        }
+        return true;
     }
     return true;
 }
@@ -634,6 +645,11 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
         auto& redirector = it->second;
         bundleName = redirector->GetBundleName();
         callingUid = redirector->GetCallingUid();
+        int32_t callerUid = IPCSkeleton::GetCallingUid();
+        if (callerUid != callingUid) {
+            NETMGR_EXT_LOG_E("permission denied");
+            return TRAFFICFILTER_ERROR_PERMISSION_DENIED;
+        }
         chainName = NetTrafficFilterIptablesCommandBuilder::GenerateChainName(
             callingUid, redirector->GetGroupId());
 
@@ -735,7 +751,7 @@ bool NetTrafficFilterRedirectManager::ValidateRuleForAdd(const TrafficFilterRedi
         NETMGR_EXT_LOG_E("AddRedirectRule proxy family consistency validation failed");
         return false;
     }
-    if (rule.proxyPort_ == 0 || rule.proxyPort_ > 0xFFFF) {
+    if (rule.proxyPort_ == 0) {
         NETMGR_EXT_LOG_E("AddRedirectRule proxy port validation failed");
         return false;
     }
@@ -901,11 +917,16 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
     }
 
     auto& redirector = it->second;
+    if (redirector->GetCallingUid() != IPCSkeleton::GetCallingUid()) {
+        NETMGR_EXT_LOG_E("permission denied");
+        return -1;
+    }
     std::string chainName = NetTrafficFilterIptablesCommandBuilder::GenerateChainName(
         redirector->GetCallingUid(), redirector->GetGroupId());
 
     NETMGR_EXT_LOG_I("Removing jump rules for hookPoints");
     std::set<TrafficFilterHookPoint> usedHookPoints = redirector->GetUsedHookPoints();
+    std::set<TrafficFilterHookPoint> deletedHookPoints;
     for (auto hookPoint : usedHookPoints) {
         std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
         std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
@@ -914,6 +935,10 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
             jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                 static_cast<int32_t>(hookPoint));
+        } else {
+            NETMGR_EXT_LOG_I("Jump rule for hook point deleted success %{public}d",
+            static_cast<int32_t>(hookPoint));
+            deletedHookPoints.insert(hookPoint);
         }
     }
 
@@ -923,6 +948,10 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
         clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
     if (ret != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("Failed to flush chain during clear rules");
+        for (auto hookPoint : deletedHookPoints) {
+            NETMGR_EXT_LOG_E("restore %{public}d", static_cast<int32_t>(hookPoint));
+            ApplyGlobalJumpRules(hookPoint);
+        }
         return -1;
     }
 
@@ -1207,7 +1236,12 @@ void NetTrafficFilterRedirectManager::HandleTrafficFilterObserverRegistration(
     std::vector<std::string> list = {bundleName, bundleName + ":trafficfilter"};
     sptr<TrafficFilterHapObserver> observer =
         new TrafficFilterHapObserver(*this, bundleName, uid);
-    Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(observer, list);
+    int32_t ret = Singleton<AppExecFwk::AppMgrClient>::GetInstance()
+        .RegisterApplicationStateObserver(observer, list);
+    if (ret != ERR_OK) {
+        NETMGR_EXT_LOG_I("RegisterApplicationStateObserver failed uid %{public}d", uid);
+        return;
+    }
     uidToObserverMap_[uid] = observer;
     NETMGR_EXT_LOG_I("TrafficFilter observer registered: bundleName=%{public}s, uid=%{public}d, pid=%{public}d",
         bundleName.c_str(), uid, pid);

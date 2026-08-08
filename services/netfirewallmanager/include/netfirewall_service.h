@@ -289,6 +289,7 @@ private:
     bool isServicePublished_ = false;
     bool hasSaRemoved_ = false;
     std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
+    mutable std::mutex saMutex_;
     SpaceType currentSpaceType_ = SpaceType::UNKNOWN;
     std::mutex spaceTypeMutex_;
 };

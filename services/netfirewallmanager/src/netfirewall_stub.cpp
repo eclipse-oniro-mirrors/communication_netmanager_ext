@@ -84,7 +84,7 @@ NetFirewallStub::NetFirewallStub()
 
 int32_t NetFirewallStub::CheckFirewallPermission(std::string &strPermission)
 {
-    if (!strPermission.empty() && !NetManagerPermission::CheckPermission(strPermission)) {
+    if (!NetManagerPermission::CheckPermission(strPermission)) {
         NETMGR_EXT_LOG_E("Permission denied permission: %{public}s", strPermission.c_str());
         return FIREWALL_ERR_PERMISSION_DENIED;
     }
