@@ -727,5 +727,43 @@ int32_t NetFirewallProxy::ClearPacketRule(const std::string& controllerId)
     }
     return ret;
 }
+
+int32_t NetFirewallProxy::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
+        return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
+    }
+    if (!data.WriteInt32(queueNum)) {
+        NETMGR_EXT_LOG_E("WriteInt32 queueNum failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteUint32(packetId)) {
+        NETMGR_EXT_LOG_E("WriteUint32 packetId failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteInt32(verdict)) {
+        NETMGR_EXT_LOG_E("WriteInt32 verdict failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    if (!data.WriteInt32(mark)) {
+        NETMGR_EXT_LOG_E("WriteInt32 mark failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        NETMGR_EXT_LOG_E("Remote is null");
+        return NETMANAGER_EXT_ERR_IPC_CONNECT_STUB_FAIL;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    int32_t ret = remote->SendRequest(static_cast<uint32_t>(SEND_VERDICT), data, reply, option);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("proxy SendRequest failed, error code: [%{public}d]", ret);
+        return ret;
+    }
+    return ret;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

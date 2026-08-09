@@ -698,5 +698,32 @@ HWTEST_F(NetFirewallClientTest, QueryProcess001, TestSize.Level1)
     int32_t ret = netfirewallClient_.QueryProcess(srcIp, srcPort, dstIp, dstPort, protocol, uid, pid);
     EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
 }
+
+HWTEST_F(NetFirewallClientTest, CreatePacketController001, TestSize.Level1)
+{
+    std::string packetControllerId;
+    uint32_t groupId = 1;
+    uint32_t priority = 1;
+    OHOS::sptr<TrafficFilterConfig> config = new (std::nothrow) TrafficFilterConfig();
+    int32_t fd = -1;
+    int32_t ret = netfirewallClient_.CreatePacketController(groupId, priority,
+        config, packetControllerId, fd);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, DestroyPacketController001, TestSize.Level1)
+{
+    std::string packetControllerId = "test_packet_controller";
+    int32_t ret = netfirewallClient_.DestroyPacketController(packetControllerId);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, SendVerdict001, TestSize.Level1)
+{
+    std::shared_ptr<NetFirewallClient> netFirewallClient = std::make_shared<NetFirewallClient>();
+    ASSERT_NE(netFirewallClient, nullptr);
+    int32_t ret = netFirewallClient->SendVerdict(0, 0, 0, 0);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

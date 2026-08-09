@@ -144,3 +144,22 @@ int32_t OH_TrafficFilter_DestroyPacketController(OH_TrafficFilter_PacketControll
     NETMGR_EXT_LOG_I("DestroyPacketController");
     return PacketControllerAdapterManager::GetInstance().DestroyPacketController(controller);
 }
+
+int32_t OH_TrafficFilter_RegisterPacketCallback(OH_TrafficFilter_PacketController* controller,
+    OH_TrafficFilter_PacketCallback callback, void* user_data)
+{
+    if (controller == nullptr || callback == nullptr) {
+        NETMGR_EXT_LOG_E("RegisterPacketCallback: invalid parameter");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return PacketControllerAdapterManager::GetInstance().RegisterPacketCallback(controller, callback, user_data);
+}
+
+int32_t OH_TrafficFilter_UnregisterPacketCallback(OH_TrafficFilter_PacketController* controller)
+{
+    if (controller == nullptr) {
+        NETMGR_EXT_LOG_E("UnregisterPacketCallback: invalid parameter");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return PacketControllerAdapterManager::GetInstance().UnregisterPacketCallback(controller);
+}

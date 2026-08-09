@@ -944,5 +944,173 @@ HWTEST_F(NetFirewallServiceStubTest, OnAddPacketRule004, TestSize.Level1)
     int32_t ret = instance_->OnAddPacketRule(data, reply);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreatePacketController001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    data.WriteUint32(groupId);
+    data.WriteUint32(priority);
+    data.WriteBool(true);
+
+    instance_->OnCreatePacketController(data, reply);
+    std::string testPacketControllerId;
+    EXPECT_TRUE(reply.ReadString(testPacketControllerId));
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreatePacketController002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    data.WriteUint32(groupId);
+    data.WriteUint32(priority);
+    data.WriteBool(false);
+
+    sptr<TrafficFilterConfig> config = new (std::nothrow) TrafficFilterConfig();
+    config->packetCopyMode_ = 2;
+    config->packetCopyLen_ = 0xFFFF;
+    config->nfqueueMaxlen_ = 1024;
+    config->nfqueueFlags_ = 1;
+    config->size_ = sizeof(TrafficFilterConfig);
+    config->Marshalling(data);
+
+    instance_->OnCreatePacketController(data, reply);
+    std::string testPacketControllerId;
+    EXPECT_TRUE(reply.ReadString(testPacketControllerId));
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreatePacketController003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    int32_t ret = instance_->OnCreatePacketController(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreatePacketController004, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    uint32_t groupId = 1001;
+    data.WriteUint32(groupId);
+    int32_t ret = instance_->OnCreatePacketController(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnCreatePacketController005, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    data.WriteUint32(groupId);
+    data.WriteUint32(priority);
+    int32_t ret = instance_->OnCreatePacketController(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnDestroyPacketController001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string packetControllerId = "TEST_PC_1001";
+    data.WriteString(packetControllerId);
+
+    int32_t ret = instance_->OnDestroyPacketController(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnDestroyPacketController002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    int32_t ret = instance_->OnDestroyPacketController(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnDestroyPacketController003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+
+    std::string packetControllerId = "";
+    data.WriteString(packetControllerId);
+    int32_t ret = instance_->OnDestroyPacketController(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnSendVerdict001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnSendVerdict(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnSendVerdict002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInt32(0);
+    int32_t ret = instance_->OnSendVerdict(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnSendVerdict003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInt32(0);
+    data.WriteUint32(100);
+    int32_t ret = instance_->OnSendVerdict(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnSendVerdict004, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInt32(0);
+    data.WriteUint32(100);
+    data.WriteInt32(1);
+    int32_t ret = instance_->OnSendVerdict(data, reply);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnSendVerdictFullParams, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInt32(0);
+    data.WriteUint32(100);
+    data.WriteInt32(1);
+    data.WriteInt32(0);
+    int32_t ret = instance_->OnSendVerdict(data, reply);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -1894,5 +1894,67 @@ HWTEST_F(NetFirewallServiceTest, HandleSpaceSwitched003, TestSize.Level1)
         EXPECT_EQ(instance_->currentSpaceType_, actualType);
     }
 }
+
+/**
+ * @tc.name: CreatePacketController001
+ * @tc.desc: Test NetFirewallService CreatePacketController with null config.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, CreatePacketController001, TestSize.Level1)
+{
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    std::string packetControllerId;
+    int32_t fd = -1;
+
+    int32_t ret = instance_->CreatePacketController(groupId, priority, nullptr, packetControllerId, fd);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: DestroyPacketController001
+ * @tc.desc: Test NetFirewallService DestroyPacketController with non-existent packet controller ID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, DestroyPacketController001, TestSize.Level1)
+{
+    std::string packetControllerId = "non_existent_packet_controller_id";
+    int32_t ret = instance_->DestroyPacketController(packetControllerId);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+
+    packetControllerId = ":23";
+    ret = instance_->DestroyPacketController(packetControllerId);
+    EXPECT_NE(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: SendVerdict001
+ * @tc.desc: Test NetFirewallService SendVerdict with invalid queueNum.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, SendVerdict001, TestSize.Level1)
+{
+    int32_t queueNum = 9999;
+    uint32_t packetId = 100;
+    int32_t verdict = 1;
+    int32_t mark = 0;
+    int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: SendVerdict002
+ * @tc.desc: Test NetFirewallService SendVerdict with zero queueNum.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, SendVerdict002, TestSize.Level1)
+{
+    int32_t queueNum = 0;
+    uint32_t packetId = 0;
+    int32_t verdict = 0;
+    int32_t mark = 0;
+    int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

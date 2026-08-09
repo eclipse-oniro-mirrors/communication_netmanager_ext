@@ -229,6 +229,13 @@ public:
                 reply.WriteUint32(TEST_UID);
                 reply.WriteUint32(TEST_PID);
                 break;
+            case static_cast<uint32_t>(INetFirewallService::CREATE_PACKET_CONTROLLER):
+                reply.WriteString("packet_controller_test_123");
+                reply.WriteFileDescriptor(1);
+                break;
+            case static_cast<uint32_t>(INetFirewallService::DESTROY_PACKET_CONTROLLER):
+            case static_cast<uint32_t>(INetFirewallService::SEND_VERDICT):
+                break;
             default:
                 reply.WriteInt32(1);
                 break;
@@ -475,6 +482,37 @@ HWTEST_F(NetFirewallServiceProxyTest, QueryProcess002, TestSize.Level1)
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_EQ(uid, TEST_UID);
     EXPECT_EQ(pid, TEST_PID);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, CreatePacketController001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    uint32_t groupId = 1001;
+    uint32_t priority = 100;
+    std::string packetControllerId;
+    int32_t fd = -1;
+    auto ret = instance_->CreatePacketController(groupId, priority, nullptr, packetControllerId, fd);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_EQ(packetControllerId, "packet_controller_test_123");
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, DestroyPacketController001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    std::string packetControllerId = "packet_controller_test_123";
+    auto ret = instance_->DestroyPacketController(packetControllerId);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, SendVerdict001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    int32_t queueNum = 0;
+    uint32_t packetId = 100;
+    int32_t verdict = 1;
+    int32_t mark = 0;
+    auto ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
