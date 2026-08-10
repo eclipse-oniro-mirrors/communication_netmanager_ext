@@ -61,15 +61,15 @@ static uint8_t GetMaxPrefixLenByFamily(int32_t family)
 void NetTrafficFilterRedirectManager::SortRedirectorList()
 {
     NETMGR_EXT_LOG_I("SortRedirectorList started with %{public}zu redirectors", redirectorIdList_.size());
-    auto newEnd = std::remove_if(redirectorIdList_.begin(), redirectorIdList_.end(),
-        [this](const std::string& id) {
-            auto it = redirectors_.find(id);
-            return it == redirectors_.end() || it->second == nullptr;
-        });
-    redirectorIdList_.erase(newEnd, redirectorIdList_.end());
-    std::sort(redirectorIdList_.begin(), redirectorIdList_.end(),
+    std::sort(redirectorIdList_.begin(), redirectorIdList_.end(),	 
         [this](const std::string& a, const std::string& b) {
-            return redirectors_[a]->GetPriority() < redirectors_[b]->GetPriority();
+            auto itA = redirectors_.find(a);
+            auto itB = redirectors_.find(b);
+            if (itA == redirectors_.end() || itB == redirectors_.end() ||
+                itA->second == nullptr || itB->second == nullptr) {
+                return false;
+            }
+            return itA->second->GetPriority() < itB->second->GetPriority();
         });
     NETMGR_EXT_LOG_I("SortRedirectorList completed");
 }
@@ -958,7 +958,6 @@ int32_t NetTrafficFilterRedirectManager::PauseAllRedirectors()
             redirector->GetCallingUid(), redirector->GetGroupId());
 
         auto usedHookPoints = redirector->GetUsedHookPoints();
-        bool allDeleteSuccess = true;
         for (auto hookPoint : usedHookPoints) {
             std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
             std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
@@ -967,13 +966,10 @@ int32_t NetTrafficFilterRedirectManager::PauseAllRedirectors()
                 jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
                 NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                     static_cast<int32_t>(hookPoint));
-                allDeleteSuccess = false;
             }
         }
 
-        if (allDeleteSuccess) {
-            redirector->SetPaused(true);
-        }
+        redirector->SetPaused(true);
     }
 
     NETMGR_EXT_LOG_I("Paused all redirectors");
@@ -1011,34 +1007,21 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
             }
         }
     }
-    bool isUpdateGlobalJumpRulesSucc = true;
     for (auto hookPoint : hookPointsToReorder) {
         int32_t retV4 = UpdateGlobalJumpRules(hookPoint, TrafficFilterIPFamily::IP_FAMILY_V4);
         if (retV4 != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to update IPv4 jump rules for hook point %{public}d",
                 static_cast<int32_t>(hookPoint));
-            isUpdateGlobalJumpRulesSucc = false;
-            break;
+            return -1;
         }
         int32_t retV6 = UpdateGlobalJumpRules(hookPoint, TrafficFilterIPFamily::IP_FAMILY_V6);
         if (retV6 != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to update IPv6 jump rules for hook point %{public}d",
                 static_cast<int32_t>(hookPoint));
-            isUpdateGlobalJumpRulesSucc = false;
-            break;
+            return -1;
         }
     }
-    if (!isUpdateGlobalJumpRulesSucc) {
-        NETMGR_EXT_LOG_I("Failed to update jump rules reset IsPaused");
-        for (const auto id : toResume) {
-            auto it = redirectors_.find(id);
-            if (it == redirectors_.end() || it->second == nullptr) {
-                continue;
-            }
-            it->second->SetPaused(true);
-        }
-        return -1;
-    }
+    it->second->SetPaused(true);
 
     NETMGR_EXT_LOG_I("Resumed all redirectors");
     return TRAFFICFILTER_OK;
