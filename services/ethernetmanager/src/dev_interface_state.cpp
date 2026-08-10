@@ -458,9 +458,6 @@ void DevInterfaceState::GetTargetNetAddrWithSameFamily(const std::string &bySrcA
                                                        INetAddr &targetNetAddr)
 {
     auto family = CommonUtils::GetAddrFamily(bySrcAddr);
-    if (family == 0) {
-        return;
-    }
     for (const auto &addr : fromAddrList) {
         if (family != CommonUtils::GetAddrFamily(addr.address_)) {
             continue;
