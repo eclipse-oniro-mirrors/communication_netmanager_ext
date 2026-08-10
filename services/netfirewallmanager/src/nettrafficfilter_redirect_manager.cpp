@@ -61,7 +61,7 @@ static uint8_t GetMaxPrefixLenByFamily(int32_t family)
 void NetTrafficFilterRedirectManager::SortRedirectorList()
 {
     NETMGR_EXT_LOG_I("SortRedirectorList started with %{public}zu redirectors", redirectorIdList_.size());
-    std::sort(redirectorIdList_.begin(), redirectorIdList_.end(),	 
+    std::sort(redirectorIdList_.begin(), redirectorIdList_.end(),
         [this](const std::string& a, const std::string& b) {
             auto itA = redirectors_.find(a);
             auto itB = redirectors_.find(b);
@@ -985,7 +985,6 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
         return TRAFFICFILTER_OK;
     }
 
-    std::vector<std::string> toResume;
     for (const auto& [redirectorId, redirector] : redirectors_) {
         if (redirector == nullptr) {
             continue;
@@ -994,7 +993,6 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
             NETMGR_EXT_LOG_I("Redirector %{public}s not paused, skip resuming", redirectorId.c_str());
             continue;
         }
-        toResume.push_back(redirectorId);
         redirector->SetPaused(false);
     }
 
