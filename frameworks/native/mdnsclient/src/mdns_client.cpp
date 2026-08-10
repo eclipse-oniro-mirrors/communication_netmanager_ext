@@ -205,11 +205,11 @@ sptr<IRemoteObject> MDnsClient::LoadSaOnDemand()
         }
         std::unique_lock<std::mutex> lk(g_loadMutex);
         if (!g_cv.wait_for(lk, std::chrono::seconds(LOAD_SA_TIMEOUT),
-                        [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {	 
+                        [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
             NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
             lk.unlock();
             return nullptr;
-        }	 
+        }
         lk.unlock();
     }
     return loadCallback_->GetRemoteObject();
