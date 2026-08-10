@@ -377,16 +377,11 @@ void NetFirewallService::InitQueryUserId(int32_t times)
     bool ret = InitUsersOnBoot();
     if (!ret && times > 0) {
         NETMGR_EXT_LOG_I("InitQueryUserId failed");
-        std::shared_ptr<ffrt::queue> handler;
-        {
-            std::lock_guard<std::mutex> lock(handlerMutex_);
-            handler = ffrtServiceHandler_;
-        }
-        if (handler == nullptr) {
-            NETMGR_EXT_LOG_E("handler is nullptr");
+        if (ffrtServiceHandler_ == nullptr) {
+            NETMGR_EXT_LOG_E("ffrtServiceHandler_ is nullptr");
             return;
         }
-        handler->submit([this, times]() { InitQueryUserId(times); },
+        ffrtServiceHandler_->submit([this, times]() { InitQueryUserId(times); },
             ffrt::task_attr().delay(QUERY_USER_ID_DELAY_TIME_MS).name("InitQueryUserId"));
     }
 }
