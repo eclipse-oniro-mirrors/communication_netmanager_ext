@@ -34,11 +34,9 @@ public:
     void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject) override;
     void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
     const sptr<IRemoteObject> &GetRemoteObject() const;
-    bool IsFailed() const;
 
 private:
     sptr<IRemoteObject> remoteObject_ = nullptr;
-    bool loadSAFailed_ = false;
 };
 
 class MDnsClient {
