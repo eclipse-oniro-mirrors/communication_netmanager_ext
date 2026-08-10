@@ -288,7 +288,6 @@ private:
     std::atomic<ServiceRunningState> state_;
     bool isServicePublished_ = false;
     bool hasSaRemoved_ = false;
-    mutable std::mutex handlerMutex_;
     std::shared_ptr<ReceiveMessage> subscriber_ = nullptr;
     SpaceType currentSpaceType_ = SpaceType::UNKNOWN;
     std::mutex spaceTypeMutex_;
