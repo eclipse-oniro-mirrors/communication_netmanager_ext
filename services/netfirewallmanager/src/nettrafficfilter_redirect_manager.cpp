@@ -993,6 +993,7 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
             NETMGR_EXT_LOG_I("Redirector %{public}s not paused, skip resuming", redirectorId.c_str());
             continue;
         }
+
         redirector->SetPaused(false);
     }
 
@@ -1005,6 +1006,7 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
             }
         }
     }
+
     for (auto hookPoint : hookPointsToReorder) {
         int32_t retV4 = UpdateGlobalJumpRules(hookPoint, TrafficFilterIPFamily::IP_FAMILY_V4);
         if (retV4 != TRAFFICFILTER_OK) {
@@ -1019,7 +1021,6 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
             return -1;
         }
     }
-    it->second->SetPaused(true);
 
     NETMGR_EXT_LOG_I("Resumed all redirectors");
     return TRAFFICFILTER_OK;
