@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 #include <sstream>
 #include <iomanip>
+#include "netmanager_base_common_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -334,16 +335,8 @@ bool NetTrafficFilterRedirectManager::ValidatePortMatch(const TrafficFilterPortM
 bool NetTrafficFilterRedirectManager::ValidateInterfaceMatch(const TrafficFilterInterfaceMatch& ifMatch)
 {
     if (ifMatch.enabled_) {
-        if (ifMatch.ifName_.empty()) {
+        if (!CommonUtils::CheckIfaceName(ifMatch.ifname_)) {
             return false;
-        }
-        if (ifMatch.ifName_.length() > IFNAMSIZ -1) {
-            return false;
-        }
-        for (char c : ifMatch.ifName_) {
-            if (!isalnum(c) && c != '_' && c != '-' && c != ':' && c != '.') {
-                return false;
-            }
         }
         return true;
     }
@@ -926,7 +919,6 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
 
     NETMGR_EXT_LOG_I("Removing jump rules for hookPoints");
     std::set<TrafficFilterHookPoint> usedHookPoints = redirector->GetUsedHookPoints();
-    std::set<TrafficFilterHookPoint> deletedHookPoints;
     for (auto hookPoint : usedHookPoints) {
         std::string hookPointName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hookPoint);
         std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
@@ -935,10 +927,6 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
             jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_I("Jump rule not found for hook point %{public}d",
                 static_cast<int32_t>(hookPoint));
-        } else {
-            NETMGR_EXT_LOG_I("Jump rule for hook point deleted success %{public}d",
-                static_cast<int32_t>(hookPoint));
-            deletedHookPoints.insert(hookPoint);
         }
     }
 
@@ -948,10 +936,6 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
         clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
     if (ret != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("Failed to flush chain during clear rules");
-        for (auto hookPoint : deletedHookPoints) {
-            NETMGR_EXT_LOG_E("restore %{public}d", static_cast<int32_t>(hookPoint));
-            ApplyGlobalJumpRules(hookPoint);
-        }
         return -1;
     }
 
