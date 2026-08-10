@@ -335,7 +335,7 @@ bool NetTrafficFilterRedirectManager::ValidatePortMatch(const TrafficFilterPortM
 bool NetTrafficFilterRedirectManager::ValidateInterfaceMatch(const TrafficFilterInterfaceMatch& ifMatch)
 {
     if (ifMatch.enabled_) {
-        if (!CommonUtils::CheckIfaceName(ifMatch.ifname_)) {
+        if (!CommonUtils::CheckIfaceName(ifMatch.ifName_)) {
             return false;
         }
         return true;
