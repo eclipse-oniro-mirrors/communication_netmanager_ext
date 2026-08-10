@@ -33,11 +33,11 @@
 namespace OHOS {
 namespace NetManagerStandard {
  
-static constexpr const char* ETHERNET_SERVICE_NAME = "ethernet_service";
 class EapHdiWpaManager : public std::enable_shared_from_this<EapHdiWpaManager> {
 public:
     EapHdiWpaManager();
     ~EapHdiWpaManager() = default;
+
     int32_t LoadEthernetHdiService();
     int32_t StartEap(const std::string& ifName, const EthEapProfile& profile);
     int32_t StopEap(const std::string& ifName);
