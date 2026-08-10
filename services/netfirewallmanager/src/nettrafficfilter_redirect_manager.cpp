@@ -1423,17 +1423,13 @@ bool NetTrafficFilterRedirectManager::MatchTcpConnection(const TcpNetPortStatesI
 bool NetTrafficFilterRedirectManager::MatchUdpConnection(const UdpNetPortStatesInfo& udpInfo,
     const std::string& srcIp, uint16_t srcPort, const std::string& dstIp, uint16_t dstPort)
 {
-    bool localMatch =
-        (udpInfo.udpLocalIp_ == dstIp &&
-            (dstPort == 0 || udpInfo.udpLocalPort_ == dstPort)) ||
-        (udpInfo.udpLocalIp_ == srcIp &&
-            (srcPort == 0 || udpInfo.udpLocalPort_ == srcPort));
-    bool remoteMatch =
-        (udpInfo.udpRemoteIp_ == srcIp &&
-            (srcPort == 0 || udpInfo.udpRemotePort_ == srcPort)) ||
-        (udpInfo.udpRemoteIp_ == dstIp &&
-            (dstPort == 0 || udpInfo.udpRemotePort_ == dstPort));
-    return localMatch && remoteMatch;
+    bool srcMatch = udpInfo.udpLocalIp_ == srcIp &&	 
+        (srcPort == 0 || udpInfo.udpLocalPort_ == srcPort);	 
+ 
+ 
+    bool dstMatch = udpInfo.udpLocalIp_ == dstIp &&	 
+        (dstPort == 0 || udpInfo.udpLocalPort_ == dstPort);	 
+    return srcMatch || dstMatch;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
