@@ -36,6 +36,15 @@ NetEapHandler::NetEapHandler()
 #endif
 }
 
+NetEapHandler::~NetEapHandler()
+{
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+    if (eapHdiWpaManager_ != nullptr) {
+        eapHdiWpaManager_->StopEap(ethEapIfName_);
+    }
+#endif
+}
+
 NetEapHandler &NetEapHandler::GetInstance()
 {
     static NetEapHandler gNetEap;
