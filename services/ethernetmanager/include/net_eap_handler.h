@@ -31,14 +31,7 @@ namespace NetManagerStandard {
 class NetEapHandler : public std::enable_shared_from_this<NetEapHandler> {
 public:
     NetEapHandler();
-    ~NetEapHandler()
-    {
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
-    if (eapHdiWpaManager_ != nullptr) {
-        eapHdiWpaManager_->StopEap(ethEapIfName_);
-    }
-#endif
-    }
+    ~NetEapHandler() = default;
  
     static NetEapHandler &GetInstance();
     int32_t RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);
