@@ -389,7 +389,6 @@ void NetFirewallService::InitQueryNetFirewallRules()
 
 void NetFirewallService::InitServiceHandler()
 {
-    std::lock_guard<std::mutex> lock(handlerMutex_);
     if (ffrtServiceHandler_ != nullptr) {
         NETMGR_EXT_LOG_E("InitServiceHandler already init.");
         return;
@@ -405,12 +404,6 @@ void NetFirewallService::OnStop()
         return;
     }
     NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
-    {
-        std::lock_guard<std::mutex> lock(handlerMutex_);
-        ffrtServiceHandler_.reset();
-        ffrtServiceHandler_ = nullptr;
-    }
-
     if (subscriber_ != nullptr) {
         bool unSubscribeResult = OHOS::EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
         subscriber_ = nullptr;
