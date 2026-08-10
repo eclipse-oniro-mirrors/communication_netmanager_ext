@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
+static constexpr const char* ETHERNET_SERVICE_NAME = "ethernet_service";
 static constexpr const char* ITEM_WPA_CTRL = "wpa_ctrl_";
 static constexpr const char* ETH_CONFIG_ROOR_DIR = "/data/service/el1/public/eth";
 static constexpr const char* ETH_WPA_CONFIG_PATH = "/data/service/el1/public/eth/eth_wpa_supplicant.conf";
