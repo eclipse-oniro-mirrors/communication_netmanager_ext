@@ -194,11 +194,6 @@ int32_t NetFirewallService::GetInterceptRecords(const int32_t userId, const sptr
     sptr<InterceptRecordPage> &info)
 {
     NETMGR_EXT_LOG_I("GetInterceptRecords");
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid != userId && callingUid != 0) {
-        NETMGR_EXT_LOG_E("GetInterceptRecords permission denied");
-        return FIREWALL_ERR_PERMISSION_DENIED;
-    }
     int32_t ret = CheckUserExist(userId);
     if (ret != FIREWALL_SUCCESS) {
         return ret;
