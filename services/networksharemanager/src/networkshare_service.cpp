@@ -80,12 +80,6 @@ void NetworkShareService::OnStop()
 
 int32_t NetworkShareService::Dump(int32_t fd, const std::vector<std::u16string> &args)
 {
-    if (!NetManagerPermission::IsSystemCaller()) {
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
-    if (!NetManagerPermission::CheckPermission(Permission::CONNECTIVITY_INTERNAL)) {
-        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-    }
     NETMGR_EXT_LOG_I("Start Dump, fd: %{public}d", fd);
     std::string result;
     GetDumpMessage(result);
