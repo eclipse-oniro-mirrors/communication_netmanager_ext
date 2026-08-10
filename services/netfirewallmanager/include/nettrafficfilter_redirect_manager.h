@@ -48,7 +48,6 @@ public:
 
     int32_t PauseAllRedirectors();
     int32_t ResumeAllRedirectors();
-    int32_t PauseRedirectorsByBundleName(const std::string& bundleName);
     int32_t ResumeRedirectorsByBundleName(const std::string& bundleName);
 
     int32_t GlobalEnableTrafficFilter();
