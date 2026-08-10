@@ -46,18 +46,12 @@ void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, c
 void OnDemandLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
 {
     NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
-    loadSAFailed_ = true;
     g_cv.notify_one();
 }
 
 const sptr<IRemoteObject> &OnDemandLoadCallback::GetRemoteObject() const
 {
     return remoteObject_;
-}
-
-bool OnDemandLoadCallback::IsFailed() const
-{
-    return loadSAFailed_;
 }
 
 MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr) {}
@@ -211,15 +205,12 @@ sptr<IRemoteObject> MDnsClient::LoadSaOnDemand()
         }
         std::unique_lock<std::mutex> lk(g_loadMutex);
         if (!g_cv.wait_for(lk, std::chrono::seconds(LOAD_SA_TIMEOUT),
-                            [this]() { return loadCallback_->GetRemoteObject() != nullptr
-                                             || loadCallback_->IsFailed(); })) {
+                        [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {	 
             NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
+            lk.unlock();
             return nullptr;
-        }
-        if (loadCallback_->IsFailed()) {
-            NETMGR_EXT_LOG_E("LoadSystemAbility failed");
-            return nullptr;
-        }
+        }	 
+        lk.unlock();
     }
     return loadCallback_->GetRemoteObject();
 }
