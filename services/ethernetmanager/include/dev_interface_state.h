@@ -32,6 +32,7 @@
 #include "net_specifier.h"
 #include "net_supplier_info.h"
 #include "refbase.h"
+#include <atomic>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -87,8 +88,8 @@ private:
     ConnLinkState connLinkState_ = UNREGISTERED;
     uint32_t netSupplier_ = 0;
     std::string devName_;
-    bool linkUp_ = false;
-    bool dhcpReqState_ = false;
+    std::atomic<bool> linkUp_{false};
+    std::atomic<bool> dhcpReqState_{false};
     std::shared_mutex linkInfoMutex_;
     sptr<NetLinkInfo> linkInfo_ = nullptr;
     sptr<NetSupplierInfo> netSupplierInfo_ = nullptr;
@@ -96,6 +97,7 @@ private:
     sptr<MacAddressInfo> macAddrInfo_ = nullptr;
     std::set<NetCap> netCaps_;
     NetBearType bearerType_ = BEARER_ETHERNET;
+    mutable std::shared_mutex ifCfgMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
