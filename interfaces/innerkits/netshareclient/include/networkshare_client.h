@@ -203,6 +203,7 @@ private:
     sptr<INetworkShareService> networkShareService_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<ISharingEventCallback> callback_;
+    std::atomic<bool> isDestroyed_{false};
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

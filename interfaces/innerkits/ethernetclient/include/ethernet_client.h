@@ -16,6 +16,7 @@
 #ifndef ETHERNET_CLIENT_H
 #define ETHERNET_CLIENT_H
 
+#include <atomic>
 #include <string>
 
 #include "eth_eap_profile.h"
@@ -298,6 +299,7 @@ private:
     sptr<IEthernetService> ethernetService_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<InterfaceStateCallback> callback_;
+    std::atomic<bool> isDestroyed_{false};
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
