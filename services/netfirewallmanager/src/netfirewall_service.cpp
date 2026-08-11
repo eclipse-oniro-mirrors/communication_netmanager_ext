@@ -372,6 +372,10 @@ void NetFirewallService::InitQueryUserId(int32_t times)
     bool ret = InitUsersOnBoot();
     if (!ret && times > 0) {
         NETMGR_EXT_LOG_I("InitQueryUserId failed");
+        if (ffrtServiceHandler_ == nullptr) {
+            NETMGR_EXT_LOG_E("ffrtServiceHandler_ is nullptr");
+            return;
+        }
         ffrtServiceHandler_->submit([this, times]() { InitQueryUserId(times); },
             ffrt::task_attr().delay(QUERY_USER_ID_DELAY_TIME_MS).name("InitQueryUserId"));
     }
@@ -400,8 +404,6 @@ void NetFirewallService::OnStop()
         return;
     }
     NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
-    ffrtServiceHandler_.reset();
-    ffrtServiceHandler_ = nullptr;
     if (subscriber_ != nullptr) {
         bool unSubscribeResult = OHOS::EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
         subscriber_ = nullptr;
