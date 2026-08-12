@@ -29,15 +29,6 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-class OnDemandLoadCallback : public SystemAbilityLoadCallbackStub {
-public:
-    void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject) override;
-    void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
-    const sptr<IRemoteObject> &GetRemoteObject() const;
-
-private:
-    sptr<IRemoteObject> remoteObject_ = nullptr;
-};
 
 class MDnsClient {
     DECLARE_DELAYED_SINGLETON(MDnsClient);
@@ -123,7 +114,6 @@ private:
     std::mutex mutex_;
     sptr<IMdnsService> mdnsService_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    sptr<OnDemandLoadCallback> loadCallback_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

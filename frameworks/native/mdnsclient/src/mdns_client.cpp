@@ -32,29 +32,7 @@
 namespace OHOS {
 namespace NetManagerStandard {
 
-std::mutex g_loadMutex;
-std::condition_variable g_cv;
-
-void OnDemandLoadCallback::OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
-    std::lock_guard<std::mutex> lock(g_loadMutex);
-    remoteObject_ = remoteObject;
-    g_cv.notify_one();
-}
-
-void OnDemandLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
-    g_cv.notify_one();
-}
-
-const sptr<IRemoteObject> &OnDemandLoadCallback::GetRemoteObject() const
-{
-    return remoteObject_;
-}
-
-MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr) {}
+MDnsClient::MDnsClient() : mdnsService_(nullptr) {}
 
 MDnsClient::~MDnsClient()
 {
@@ -192,27 +170,17 @@ int32_t MDnsClient::ResolveService(const MDnsServiceInfo &serviceInfo, const spt
 
 sptr<IRemoteObject> MDnsClient::LoadSaOnDemand()
 {
-    if (loadCallback_->GetRemoteObject() == nullptr) {
-        sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sam == nullptr) {
-            NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
-            return nullptr;
-        }
-        int32_t result = sam->LoadSystemAbility(COMM_MDNS_MANAGER_SYS_ABILITY_ID, loadCallback_);
-        if (result != ERR_OK) {
-            NETMGR_EXT_LOG_E("LoadSystemAbility failed : [%{public}d]", result);
-            return nullptr;
-        }
-        std::unique_lock<std::mutex> lk(g_loadMutex);
-        if (!g_cv.wait_for(lk, std::chrono::seconds(LOAD_SA_TIMEOUT),
-                           [this]() { return loadCallback_->GetRemoteObject() != nullptr; })) {
-            NETMGR_EXT_LOG_E("LoadSystemAbility timeout");
-            lk.unlock();
-            return nullptr;
-        }
-        lk.unlock();
+    sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (sam == nullptr) {
+        NETMGR_EXT_LOG_E("GetSystemAbilityManager failed");
+        return nullptr;
     }
-    return loadCallback_->GetRemoteObject();
+    sptr<IRemoteObject> result = sam->GetSystemAbility(COMM_MDNS_MANAGER_SYS_ABILITY_ID);
+    if (result == nullptr) {
+        NETMGR_EXT_LOG_E("GetSystemAbility failed");
+        return nullptr;
+    }
+    return result;
 }
 
 sptr<IMdnsService> MDnsClient::GetProxy()
@@ -221,11 +189,6 @@ sptr<IMdnsService> MDnsClient::GetProxy()
     if (mdnsService_ != nullptr) {
         NETMGR_EXT_LOG_D("get proxy is ok");
         return mdnsService_;
-    }
-    loadCallback_ = new (std::nothrow) OnDemandLoadCallback();
-    if (loadCallback_ == nullptr) {
-        NETMGR_EXT_LOG_E("loadCallback_ is nullptr");
-        return nullptr;
     }
     sptr<IRemoteObject> remote = LoadSaOnDemand();
     if (remote == nullptr) {
