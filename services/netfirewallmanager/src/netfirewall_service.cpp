@@ -405,8 +405,6 @@ void NetFirewallService::OnStop()
         return;
     }
     NetFirewallInterceptRecorder::GetInstance()->SyncRecordCache();
-    ffrtServiceHandler_.reset();
-    ffrtServiceHandler_ = nullptr;
     {
         std::lock_guard<std::mutex> lock(saMutex_);
         if (subscriber_ != nullptr) {
