@@ -31,7 +31,7 @@ namespace NetManagerStandard {
 class NetEapHandler : public std::enable_shared_from_this<NetEapHandler> {
 public:
     NetEapHandler();
-    ~NetEapHandler() = default;
+    ~NetEapHandler();
  
     static NetEapHandler &GetInstance();
     int32_t RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);

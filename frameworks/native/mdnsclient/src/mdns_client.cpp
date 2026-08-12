@@ -58,6 +58,7 @@ MDnsClient::MDnsClient() : mdnsService_(nullptr), loadCallback_(nullptr) {}
 
 MDnsClient::~MDnsClient()
 {
+    std::lock_guard lock(mutex_);
     NETMGR_EXT_LOG_E("~MDnsClient : Destroy MDnsClient");
     sptr<IMdnsService> proxy = GetProxy();
     if (proxy == nullptr) {
@@ -243,6 +244,10 @@ sptr<IMdnsService> MDnsClient::GetProxy()
     mdnsService_ = iface_cast<IMdnsService>(remote);
     if (mdnsService_ == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service proxy failed");
+        if (remote->IsProxyObject() && deathRecipient_ != nullptr) {
+            remote->RemoveDeathRecipient(deathRecipient_);
+        }
+        deathRecipient_ = nullptr;
         return nullptr;
     }
     return mdnsService_;

@@ -62,6 +62,7 @@ public:
     int32_t CreatePacketController(uint32_t groupId, uint32_t priority,
         const sptr<TrafficFilterConfig>& config, std::string& packetControllerId, int32_t& fd) override;
     int32_t DestroyPacketController(const std::string& packetControllerId) override;
+    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark) override;
     explicit NetFirewallProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<INetFirewallService>(impl) {}
     ~NetFirewallProxy() = default;
 

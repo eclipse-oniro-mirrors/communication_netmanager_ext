@@ -23,10 +23,49 @@
 #include "netfirewall_common.h"
 #include "netmgr_ext_log_wrapper.h"
 
+#include <poll.h>
+#include <sys/socket.h>
+#include <linux/netlink.h>
+
 using namespace OHOS::NetManagerStandard;
 
 namespace OHOS {
 namespace NetManagerStandard {
+
+static constexpr uint8_t IP_VERSION_V4 = 4;
+static constexpr uint8_t IP_VERSION_V6 = 6;
+static constexpr uint8_t IP_VERSION_MASK = 0x0F;
+static constexpr uint8_t IP_IHL_MASK = 0x0F;
+static constexpr uint16_t IPV4_HEADER_MIN_LEN = 20;
+static constexpr uint16_t IPV6_HEADER_LEN = 40;
+static constexpr uint8_t IPV4_PROTOCOL_OFFSET = 9;
+static constexpr uint8_t IPV4_SRC_IP_OFFSET = 12;
+static constexpr uint8_t IPV4_DST_IP_OFFSET = 16;
+static constexpr uint8_t IPV6_PROTOCOL_OFFSET = 6;
+static constexpr uint8_t IPV6_SRC_IP_OFFSET = 8;
+static constexpr uint8_t IPV6_DST_IP_OFFSET = 24;
+static constexpr uint8_t IPV6_ADDR_LEN = 16;
+static constexpr uint8_t TRANSPORT_PORT_LEN = 4;
+static constexpr uint8_t TRANSPORT_SRC_PORT_OFFSET = 0;
+static constexpr uint8_t TRANSPORT_DST_PORT_OFFSET = 2;
+static constexpr uint8_t PORT_BYTE_SHIFT = 8;
+
+static constexpr int32_t NFNL_SUBSYS_QUEUE = 3;
+static constexpr int32_t NFQ_MSG_PACKET = 0;
+static constexpr int32_t NUMBER_TWO = 2;
+static constexpr uint8_t NUMBER_EIGHT = 8;
+
+static constexpr uint8_t TCP_MIN_HEADER_LEN = 20;
+static constexpr uint8_t UDP_HEADER_LEN = 8;
+static constexpr uint8_t TCP_DATA_OFFSET_MASK = 0xF0;
+static constexpr uint8_t TCP_DATA_OFFSET_SHIFT = 4;
+static constexpr uint8_t TCP_DATA_OFFSET_UNIT = 4;
+static constexpr uint16_t MAX_PACKET_HEADER_SIZE = 256;
+
+static inline uint16_t NfqNlType(uint8_t subsys, uint8_t msg)
+{
+    return (static_cast<uint16_t>(subsys) << NUMBER_EIGHT) | msg;
+}
 
 static bool ConvertCIPAddressToIPC(const OH_TrafficFilter_IPAddress& cAddr, TrafficFilterIPAddress& ipcAddr)
 {
@@ -1070,8 +1109,7 @@ int32_t PacketControllerAdapterManager::CheckConfig(const OH_TrafficFilter_Confi
         config->packetCopyMode > OH_TRAFFICFILTER_COPY_MODE_MAXLEN) {
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-    if (config->packetCopyLen > PACKET_COPY_LEN_MAX ||
-        (config->packetCopyMode != OH_TRAFFICFILTER_COPY_MODE_META && config->packetCopyLen == 0)) {
+    if (config->packetCopyLen > PACKET_COPY_LEN_MAX) {
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
     if (config->nfqueueMaxlen > NFQUEUE_MAXLEN) {
@@ -1098,6 +1136,7 @@ int32_t PacketControllerAdapterManager::CreatePacketController(
 
     OHOS::sptr<TrafficFilterConfig> cppConfig = nullptr;
     uint32_t packetCopyMode = OH_TRAFFICFILTER_COPY_MODE_FULL;
+    uint32_t nfqueueFlags = OH_TRAFFICFILTER_NFQUEUE_FLAG_FAIL_OPEN;
     int32_t ret = CheckConfig(config);
     if (ret != OH_TRAFFICFILTER_OK) {
         return ret;
@@ -1110,6 +1149,7 @@ int32_t PacketControllerAdapterManager::CreatePacketController(
         }
         ConvertCConfigToIPCCfg(config, *cppConfig);
         packetCopyMode = cppConfig->packetCopyMode_;
+        nfqueueFlags = cppConfig->nfqueueFlags_;
     }
     std::string packetControllerId = "";
     int32_t fd = -1;
@@ -1122,7 +1162,8 @@ int32_t PacketControllerAdapterManager::CreatePacketController(
     PacketInfo packetInfo {
         .packetControllerId = packetControllerId,
         .fd = fd,
-        .packetCopyMode = packetCopyMode
+        .packetCopyMode = packetCopyMode,
+        .nfqueueFlags = nfqueueFlags
     };
     return AddPacketController(packetInfo, controller);
 }
@@ -1157,6 +1198,7 @@ int32_t PacketControllerAdapterManager::DestroyPacketController(OH_TrafficFilter
         NETMGR_EXT_LOG_E("DestroyPacketController: packetController handle not found in map");
         return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
     }
+    UnregisterPacketCallback(controller);
     int32_t ret = NetFirewallClient::GetInstance().DestroyPacketController(packetInfo.packetControllerId);
     if (ret != 0) {
         NETMGR_EXT_LOG_E("DestroyPacketController: failed, ret=%{public}d", ret);
@@ -1239,6 +1281,490 @@ int32_t PacketControllerAdapterManager::ClearPacketRule(OH_TrafficFilter_PacketC
         return static_cast<int32_t>(ret);
     }
     NETMGR_EXT_LOG_I("ClearPacketRule: success");
+    return OH_TRAFFICFILTER_OK;
+}
+
+static inline const struct nlattr *NlaGetNext(const struct nlattr *nla, int *remaining)
+{
+    int aligned = NLA_ALIGN(nla->nla_len);
+    *remaining -= aligned;
+    return reinterpret_cast<const struct nlattr *>(reinterpret_cast<const char *>(nla) + aligned);
+}
+
+static inline int NlaIsValid(const struct nlattr *nla, int remaining)
+{
+    return remaining >= static_cast<int>(NLA_HDRLEN) &&
+           nla->nla_len >= static_cast<int>(NLA_HDRLEN) &&
+           nla->nla_len <= remaining;
+}
+
+static inline int NlaPayloadLen(const struct nlattr *nla)
+{
+    return nla->nla_len - NLA_HDRLEN;
+}
+
+static inline void *NlaPayload(const struct nlattr *nla)
+{
+    return reinterpret_cast<void *>(reinterpret_cast<char *>(nla) + NLA_HDRLEN);
+}
+
+static void NfqParsePacketHdr(NfqPkt *pkt, const void *data, int dlen)
+{
+    if (dlen >= static_cast<int>(sizeof(struct NfqPhdr))) {
+        const struct NfqPhdr *ph = static_cast<const struct NfqPhdr *>(data);
+        pkt->packetId = ntohl(ph->packetId);
+        pkt->hwProtocol = ntohs(ph->hwProtocol);
+        pkt->hook = ph->hook;
+    }
+}
+
+static void NfqParseTimestamp(NfqPkt *pkt, const void *data, int dlen)
+{
+    if (dlen >= static_cast<int>(NUMBER_TWO * sizeof(uint64_t))) {
+        const uint64_t *ts = static_cast<const uint64_t *>(data);
+        pkt->ts.tv_sec = static_cast<long>(be64toh(ts[0]));
+        pkt->ts.tv_usec = static_cast<long>(be64toh(ts[1]));
+        pkt->hasTs = 1;
+    }
+}
+
+static void NfqPktParseAttrs(NfqPkt *pkt, const struct nlattr *start, int remaining)
+{
+    for (const struct nlattr *nla = start; NlaIsValid(nla, remaining); nla = NlaGetNext(nla, &remaining)) {
+        const void *data = NlaPayload(nla);
+        int dlen = NlaPayloadLen(nla);
+
+        switch (nla->nla_type) {
+            case NFQA_PACKET_HDR:
+                NfqParsePacketHdr(pkt, data, dlen);
+                break;
+            case NFQA_PAYLOAD:
+                pkt->payload = data;
+                pkt->payloadLen = dlen;
+                break;
+            case NFQA_MARK:
+                if (dlen >= static_cast<int>(sizeof(uint32_t))) {
+                    pkt->mark = ntohl(*reinterpret_cast<const uint32_t *>(data));
+                }
+                break;
+            case NFQA_IFINDEX_INDEV:
+                if (dlen >= static_cast<int>(sizeof(uint32_t))) {
+                    pkt->indev = ntohl(*reinterpret_cast<const uint32_t *>(data));
+                }
+                break;
+            case NFQA_IFINDEX_OUTDEV:
+                if (dlen >= static_cast<int>(sizeof(uint32_t))) {
+                    pkt->outdev = ntohl(*reinterpret_cast<const uint32_t *>(data));
+                }
+                break;
+            case NFQA_HWADDR:
+                if (dlen >= static_cast<int>(sizeof(struct NfqHwaddr))) {
+                    const struct NfqHwaddr *hw = static_cast<const struct NfqHwaddr *>(data);
+                    pkt->hwAddrlen = ntohs(hw->hwAddrlen);
+                    memcpy_s(pkt->hwAddr, sizeof(pkt->hwAddr), hw->hwAddr, NUMBER_EIGHT);
+                }
+                break;
+            case NFQA_TIMESTAMP:
+                NfqParseTimestamp(pkt, data, dlen);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+static uint32_t NfqPktId(const NfqPkt *pkt)
+{
+    return pkt ? pkt->packetId : 0;
+}
+
+static inline uint16_t ParsePort(const uint8_t *transportHeader, uint8_t offset)
+{
+    return (transportHeader[offset] << PORT_BYTE_SHIFT) | transportHeader[offset + 1];
+}
+
+static int NfqPktPayload(const NfqPkt *pkt, const void **data, size_t *len)
+{
+    if (!pkt || !pkt->payload) {
+        return -1;
+    }
+    *data = pkt->payload;
+    *len = pkt->payloadLen;
+    return 0;
+}
+
+static bool ParseIPv4PacketPayload(uint8_t *payload, uint16_t payloadLen,
+    OH_TrafficFilter_PacketDesc &packet)
+{
+    uint8_t ihl = payload[0] & IP_IHL_MASK;
+    uint16_t ipHeaderLen = ihl * IPV4_ADDR_LEN;
+    if (payloadLen < ipHeaderLen || ipHeaderLen < IPV4_HEADER_MIN_LEN) {
+        return false;
+    }
+    packet.protocol = payload[IPV4_PROTOCOL_OFFSET];
+    packet.srcIp.family = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    memset_s(packet.srcIp.addr, OH_TRAFFICFILTER_IP_ADDRLEN, 0, OH_TRAFFICFILTER_IP_ADDRLEN);
+    memcpy_s(packet.srcIp.addr, OH_TRAFFICFILTER_IP_ADDRLEN, payload + IPV4_SRC_IP_OFFSET, IPV4_ADDR_LEN);
+    packet.dstIp.family = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    memset_s(packet.dstIp.addr, OH_TRAFFICFILTER_IP_ADDRLEN, 0, OH_TRAFFICFILTER_IP_ADDRLEN);
+    memcpy_s(packet.dstIp.addr, OH_TRAFFICFILTER_IP_ADDRLEN, payload + IPV4_DST_IP_OFFSET, IPV4_ADDR_LEN);
+    packet.packetLen = payloadLen;
+    if (packet.protocol == OH_TRAFFICFILTER_PROTO_TCP || packet.protocol == OH_TRAFFICFILTER_PROTO_UDP) {
+        if (payloadLen < ipHeaderLen + TRANSPORT_PORT_LEN) {
+            return false;
+        }
+        const uint8_t *transportHeader = payload + ipHeaderLen;
+        packet.srcPort = ParsePort(transportHeader, TRANSPORT_SRC_PORT_OFFSET);
+        packet.dstPort = ParsePort(transportHeader, TRANSPORT_DST_PORT_OFFSET);
+    } else {
+        packet.srcPort = 0;
+        packet.dstPort = 0;
+    }
+    return true;
+}
+
+static bool ParseIPv6PacketPayload(uint8_t *payload, uint16_t payloadLen,
+    OH_TrafficFilter_PacketDesc &packet)
+{
+    if (payloadLen < IPV6_HEADER_LEN) {
+        return false;
+    }
+    packet.protocol = payload[IPV6_PROTOCOL_OFFSET];
+    packet.srcIp.family = OH_TRAFFICFILTER_IP_FAMILY_V6;
+    memcpy_s(packet.srcIp.addr, OH_TRAFFICFILTER_IP_ADDRLEN, payload + IPV6_SRC_IP_OFFSET, IPV6_ADDR_LEN);
+    packet.dstIp.family = OH_TRAFFICFILTER_IP_FAMILY_V6;
+    memcpy_s(packet.dstIp.addr, OH_TRAFFICFILTER_IP_ADDRLEN, payload + IPV6_DST_IP_OFFSET, IPV6_ADDR_LEN);
+    packet.packetLen = payloadLen;
+    if (packet.protocol == OH_TRAFFICFILTER_PROTO_TCP || packet.protocol == OH_TRAFFICFILTER_PROTO_UDP) {
+        if (payloadLen < IPV6_HEADER_LEN + TRANSPORT_PORT_LEN) {
+            return false;
+        }
+        const uint8_t *transportHeader = payload + IPV6_HEADER_LEN;
+        packet.srcPort = ParsePort(transportHeader, TRANSPORT_SRC_PORT_OFFSET);
+        packet.dstPort = ParsePort(transportHeader, TRANSPORT_DST_PORT_OFFSET);
+    } else {
+        packet.srcPort = 0;
+        packet.dstPort = 0;
+    }
+    return true;
+}
+
+static bool ParsePacketPayload(uint8_t *payload, uint16_t payloadLen, OH_TrafficFilter_PacketDesc &packet)
+{
+    if (payload == nullptr || payloadLen < IPV4_HEADER_MIN_LEN) {
+        return false;
+    }
+    uint8_t ipVersion = (payload[0] >> IP_VERSION_V4) & IP_VERSION_MASK;
+    if (ipVersion == IP_VERSION_V4) {
+        return ParseIPv4PacketPayload(payload, payloadLen, packet);
+    } else if (ipVersion == IP_VERSION_V6) {
+        return ParseIPv6PacketPayload(payload, payloadLen, packet);
+    } else {
+        return false;
+    }
+}
+
+static bool ParseIPHeaderLength(uint8_t *payload, uint16_t payloadLen, uint16_t &ipHeaderLen, uint8_t &protocol)
+{
+    uint8_t ipVersion = (payload[0] >> IP_VERSION_V4) & IP_VERSION_MASK;
+    if (ipVersion == IP_VERSION_V4) {
+        uint8_t ihl = payload[0] & IP_IHL_MASK;
+        ipHeaderLen = ihl * IPV4_ADDR_LEN;
+        if (ipHeaderLen < IPV4_HEADER_MIN_LEN || payloadLen < ipHeaderLen) {
+            return false;
+        }
+        protocol = payload[IPV4_PROTOCOL_OFFSET];
+    } else if (ipVersion == IP_VERSION_V6) {
+        ipHeaderLen = IPV6_HEADER_LEN;
+        if (payloadLen < ipHeaderLen) {
+            return false;
+        }
+        protocol = payload[IPV6_PROTOCOL_OFFSET];
+    } else {
+        return false;
+    }
+    return true;
+}
+
+static uint16_t GetTransportHeaderLength(uint8_t *payload, uint16_t payloadLen,
+    uint16_t ipHeaderLen, uint8_t protocol)
+{
+    if (protocol == OH_TRAFFICFILTER_PROTO_TCP) {
+        if (payloadLen < ipHeaderLen + TCP_MIN_HEADER_LEN) {
+            return 0;
+        }
+        uint8_t dataOffset = (payload[ipHeaderLen + 12] & TCP_DATA_OFFSET_MASK) >> TCP_DATA_OFFSET_SHIFT;
+        uint16_t tcpHeaderLen = dataOffset * TCP_DATA_OFFSET_UNIT;
+        return (tcpHeaderLen < TCP_MIN_HEADER_LEN) ? TCP_MIN_HEADER_LEN : tcpHeaderLen;
+    } else if (protocol == OH_TRAFFICFILTER_PROTO_UDP) {
+        return UDP_HEADER_LEN;
+    }
+    return 0;
+}
+
+static uint16_t ClampHeaderLength(uint16_t totalHeaderLen, uint16_t payloadLen)
+{
+    if (totalHeaderLen > payloadLen) {
+        totalHeaderLen = payloadLen;
+    }
+    if (totalHeaderLen > MAX_PACKET_HEADER_SIZE) {
+        totalHeaderLen = MAX_PACKET_HEADER_SIZE;
+    }
+    return totalHeaderLen;
+}
+
+static bool AllocateAndCopyHeader(uint8_t *payload, uint16_t headerLen, uint8_t **headerBuffer)
+{
+    if (payload == nullptr || headerBuffer == nullptr || headerLen == 0 || headerLen > MAX_PACKET_HEADER_SIZE) {
+        return false;
+    }
+    *headerBuffer = new (std::nothrow) uint8_t[headerLen];
+    if (*headerBuffer == nullptr) {
+        return false;
+    }
+    if (memcpy_s(*headerBuffer, headerLen, payload, headerLen) != 0) {
+        delete[] *headerBuffer;
+        *headerBuffer = nullptr;
+        return false;
+    }
+    return true;
+}
+
+static bool ExtractPacketHeader(uint8_t *payload, uint16_t payloadLen, uint8_t **headerBuffer, uint16_t *headerLen)
+{
+    if (payload == nullptr || payloadLen < IPV4_HEADER_MIN_LEN || headerBuffer == nullptr || headerLen == nullptr) {
+        return false;
+    }
+    uint16_t ipHeaderLen = 0;
+    uint8_t protocol = 0;
+    if (!ParseIPHeaderLength(payload, payloadLen, ipHeaderLen, protocol)) {
+        return false;
+    }
+    uint16_t transportHeaderLen = GetTransportHeaderLength(payload, payloadLen, ipHeaderLen, protocol);
+    uint16_t totalHeaderLen = ClampHeaderLength(ipHeaderLen + transportHeaderLen, payloadLen);
+    if (!AllocateAndCopyHeader(payload, totalHeaderLen, headerBuffer)) {
+        return false;
+    }
+    *headerLen = totalHeaderLen;
+    return true;
+}
+
+static void FreePacketHeader(uint8_t *headerBuffer)
+{
+    if (headerBuffer != nullptr) {
+        delete[] headerBuffer;
+    }
+}
+
+static void DetectPacketIdGap(OH_TrafficFilter_PacketController *controller, uint32_t packetId)
+{
+    if (controller->isFirstPacket) {
+        controller->isFirstPacket = false;
+        controller->lastPacketId = packetId;
+    } else {
+        int32_t diff = static_cast<int32_t>(packetId - controller->lastPacketId);
+        if (diff != 1 && !(controller->lastPacketId == 0xFFFFFFFFU && packetId == 0)) {
+            if (controller->nfqueueFlags == OH_TRAFFICFILTER_NFQUEUE_FLAG_FAIL_OPEN) {
+                NETMGR_EXT_LOG_I("Packet ID gap detected: last=%{public}u, current=%{public}u ,packets is accepted",
+                    controller->lastPacketId, packetId);
+            } else {
+                NETMGR_EXT_LOG_I("Packet ID gap detected: last=%{public}u, current=%{public}u ,packets is dropped",
+                    controller->lastPacketId, packetId);
+            }
+        }
+        controller->lastPacketId = packetId;
+    }
+}
+
+static int32_t HandlePacketMessage(OH_TrafficFilter_PacketController *controller, struct nlmsghdr *nlh)
+{
+    struct NfqNfg *nfg = static_cast<struct NfqNfg *>(NLMSG_DATA(nlh));
+    uint16_t queueNum = ntohs(nfg->resId);
+    NfqPkt pkt;
+    memset_s(&pkt, sizeof(pkt), 0, sizeof(pkt));
+    int hdrLen = NLMSG_LENGTH(sizeof(struct NfqNfg));
+    int attrRemaining = static_cast<int>(nlh->nlmsg_len) - hdrLen;
+    const struct nlattr *attrStart =
+        reinterpret_cast<const struct nlattr *>(reinterpret_cast<const char *>(nfg) + sizeof(struct NfqNfg));
+    NfqPktParseAttrs(&pkt, attrStart, attrRemaining);
+
+    uint32_t packetId = NfqPktId(&pkt);
+    DetectPacketIdGap(controller, packetId);
+    const void *payload = nullptr;
+    size_t payloadLen = 0;
+    if (NfqPktPayload(&pkt, &payload, &payloadLen) < 0 || payload == nullptr) {
+        NETMGR_EXT_LOG_W("NFQA_PAYLOAD missing or truncated, accepting standard packet");
+        PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, 0, 0);
+        return OH_TRAFFICFILTER_OK;
+    }
+    OH_TrafficFilter_PacketDesc packet = {};
+    uint8_t *headerBuffer = nullptr;
+    uint16_t headerLen = 0;
+    if (controller->packetCopyMode == OH_TRAFFICFILTER_COPY_MODE_HEADER) {
+        if (!ExtractPacketHeader(static_cast<uint8_t*>(const_cast<void*>(payload)),
+            static_cast<uint16_t>(payloadLen), &headerBuffer, &headerLen)) {
+            PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, 0, 0);
+            return OH_TRAFFICFILTER_OK;
+        }
+        packet.data = headerBuffer;
+        packet.packetLen = headerLen;
+        payloadLen = headerLen;
+    } else {
+        packet.data = static_cast<uint8_t*>(const_cast<void*>(payload));
+    }
+    packet.userData = controller->userData;
+    if (!ParsePacketPayload(static_cast<uint8_t*>(const_cast<void*>(payload)),
+        static_cast<uint16_t>(payloadLen), packet)) {
+        FreePacketHeader(headerBuffer);
+        PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, 0, 0);
+        return OH_TRAFFICFILTER_OK;
+    }
+
+    int verdict = controller->callback(&packet, controller->userData) == OH_TRAFFICFILTER_DECISION_ACCEPT? 1 : 0;
+    FreePacketHeader(headerBuffer);
+    return PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, verdict, 0);
+}
+
+static bool HandleNetlinkError(struct nlmsghdr *nlh, int &remainingLen)
+{
+    struct nlmsgerr *err = static_cast<struct nlmsgerr *>(NLMSG_DATA(nlh));
+    if (err->error == 0) {
+        nlh = NLMSG_NEXT(nlh, remainingLen);
+        return true;
+    }
+    int realErrno = -err->error;
+    NETMGR_EXT_LOG_E("FATAL: Kernel rejected us! errno = %{public}d, description = %{public}s",
+                     realErrno, strerror(realErrno));
+    return false;
+}
+
+static void ProcessNetlinkMessage(OH_TrafficFilter_PacketController *controller,
+    struct nlmsghdr *nlh, int &remainingLen)
+{
+    if (nlh->nlmsg_type == NLMSG_ERROR) {
+        if (!HandleNetlinkError(nlh, remainingLen)) {
+            return;
+        }
+    } else if (nlh->nlmsg_type == NLMSG_DONE) {
+        nlh = NLMSG_NEXT(nlh, remainingLen);
+    } else if (nlh->nlmsg_type == NfqNlType(NFNL_SUBSYS_QUEUE, NFQ_MSG_PACKET)) {
+        HandlePacketMessage(controller, nlh);
+        nlh = NLMSG_NEXT(nlh, remainingLen);
+    } else {
+        NETMGR_EXT_LOG_W("filtered unexpected netlink message type: %{public}d", nlh->nlmsg_type);
+        nlh = NLMSG_NEXT(nlh, remainingLen);
+    }
+}
+
+static void *PacketWorkerThread(void *arg)
+{
+    OH_TrafficFilter_PacketController *controller = static_cast<OH_TrafficFilter_PacketController *>(arg);
+    if (!controller || controller->fd < 0) {
+        return nullptr;
+    }
+    int fd = controller->fd;
+    alignas(NLMSG_ALIGNTO) char buf[65536];
+    struct pollfd pfd{ fd, POLLIN, 0 };
+    while (controller->running.load()) {
+        int ret = poll(&pfd, 1, 500);
+        if (ret < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            break;
+        }
+        if (ret == 0 || !(pfd.revents & POLLIN)) {
+            continue;
+        }
+        ssize_t recvLen = recv(fd, buf, sizeof(buf), 0);
+        if (recvLen <= 0) {
+            if (recvLen < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                continue;
+            }
+            break;
+        }
+        struct nlmsghdr *nlh = reinterpret_cast<struct nlmsghdr *>(buf);
+        int remainingLen = static_cast<int>(recvLen);
+        while (NLMSG_OK(nlh, remainingLen)) {
+            ProcessNetlinkMessage(controller, nlh, remainingLen);
+        }
+    }
+    controller->running.store(false);
+    controller->callbackRegistered.store(false);
+    return nullptr;
+}
+
+int32_t PacketControllerAdapterManager::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+{
+    NETMGR_EXT_LOG_D("PacketControllerAdapterManager::SendVerdict");
+    int32_t ret = NetFirewallClient::GetInstance().SendVerdict(queueNum, packetId, verdict, mark);
+    return ret;
+}
+
+int32_t PacketControllerAdapterManager::RegisterPacketCallback(OH_TrafficFilter_PacketController* controller,
+    OH_TrafficFilter_PacketCallback callback, void* userData)
+{
+    if (controller == nullptr || callback == nullptr) {
+        NETMGR_EXT_LOG_E("RegisterPacketCallback: invalid parameter");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    PacketInfo packetInfo;
+    if (!GetPacketInfo(controller, packetInfo)) {
+        NETMGR_EXT_LOG_E("RegisterPacketCallback: controller handle not found");
+        return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+    if (controller->running.load()) {
+        controller->running.store(false);
+        controller->callbackRegistered.store(false);
+        if (controller->workerThread != 0) {
+            pthread_join(controller->workerThread, nullptr);
+            controller->workerThread = 0;
+        }
+    }
+    callbackMap_[controller] = {callback, userData};
+    controller->callback = callback;
+    controller->userData = userData;
+    controller->callbackRegistered.store(true);
+    controller->running.store(true);
+    controller->fd = packetInfo.fd;
+    controller->packetCopyMode = packetInfo.packetCopyMode;
+    controller->nfqueueFlags = packetInfo.nfqueueFlags;
+    int pthreadRet = pthread_create(&controller->workerThread, nullptr, PacketWorkerThread, controller);
+    if (pthreadRet != 0) {
+        NETMGR_EXT_LOG_E("pthread_create failed: %{public}s", strerror(pthreadRet));
+        controller->running.store(false);
+        controller->callbackRegistered.store(false);
+        controller->workerThread = 0;
+        callbackMap_.erase(controller);
+        return OH_TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
+    }
+    NETMGR_EXT_LOG_I("RegisterPacketCallback: success");
+    return OH_TRAFFICFILTER_OK;
+}
+
+int32_t PacketControllerAdapterManager::UnregisterPacketCallback(OH_TrafficFilter_PacketController* controller)
+{
+    if (controller == nullptr) {
+        NETMGR_EXT_LOG_E("UnregisterPacketCallback: invalid parameter");
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    PacketInfo packetInfo;
+    if (!GetPacketInfo(controller, packetInfo)) {
+        NETMGR_EXT_LOG_E("UnregisterPacketCallback: controller handle not found");
+        return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
+    }
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+    callbackMap_.erase(controller);
+    if (controller->running.load()) {
+        controller->running.store(false);
+        controller->callbackRegistered.store(false);
+        if (controller->workerThread != 0) {
+            pthread_join(controller->workerThread, nullptr);
+            controller->workerThread = 0;
+        }
+    }
+    NETMGR_EXT_LOG_I("UnregisterPacketCallback: success");
     return OH_TRAFFICFILTER_OK;
 }
 }

@@ -1715,6 +1715,10 @@ int32_t NetworkVpnService::GetSysVpnConfig(sptr<SysVpnConfig> &config, const std
         return result;
     }
     config = VpnDataBean::ConvertVpnBeanToSysVpnConfig(vpnBean);
+    if (config == nullptr) {
+        NETMGR_EXT_LOG_E("ConvertVpnBeanToSysVpnConfig failed, vpnId=%{public}s", vpnId.c_str());
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -1823,6 +1827,10 @@ int32_t NetworkVpnService::UnregisterMultiVpnEvent(const sptr<IVpnEventCallback>
 int32_t NetworkVpnService::RemoteUnregisterMultiVpnEvent(const sptr<IVpnEventCallback> &callback,
     int32_t &userId, std::string &bundleName)
 {
+    if (callback == nullptr) {
+        NETMGR_EXT_LOG_E("RemoteUnregisterMultiVpnEvent callback is null");
+        return -1;
+    }
     std::string vpnBundleName = GetBundleName();
     NETMGR_EXT_LOG_I("RemoteUnregisterMultiVpnEvent vpnBundleName %{public}s.", vpnBundleName.c_str());
     // LCOV_EXCL_START
@@ -2747,6 +2755,10 @@ bool NetworkVpnService::AddClientDeathRecipient(const sptr<IVpnEventCallback> &c
         NETMGR_EXT_LOG_E("deathRecipient is null");
         return false;
     }
+    if (callback == nullptr || callback->AsObject() == nullptr) {
+        NETMGR_EXT_LOG_E("AddClientDeathRecipient callback or AsObject is null");
+        return false;
+    }
     if (!callback->AsObject()->AddDeathRecipient(deathRecipient_)) {
         NETMGR_EXT_LOG_E("AddClientDeathRecipient failed");
         return false;
@@ -2767,8 +2779,12 @@ void NetworkVpnService::RemoveClientDeathRecipient(const sptr<IVpnEventCallback>
 void NetworkVpnService::RemoveALLClientDeathRecipient()
 {
     std::unique_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
-    for (auto &item : vpnEventCallbacks_) {
-        item->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    if (deathRecipient_ != nullptr) {
+        for (auto &item : vpnEventCallbacks_) {
+            if (item != nullptr && item->AsObject() != nullptr) {
+                item->AsObject()->RemoveDeathRecipient(deathRecipient_);
+            }
+        }
     }
     vpnEventCallbacks_.clear();
     deathRecipient_ = nullptr;
@@ -2797,10 +2813,14 @@ int32_t NetworkVpnService::RequestVpnPermission(int32_t uid, const std::string& 
     if (!NetManagerPermission::IsSystemCaller()) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    // LCOV_EXCL_STOP
+
     std::string actualBundleName;
     std::string appName;
-    GetAppNameByUid(uid, appName, actualBundleName);
+    if (GetAppNameByUid(uid, appName, actualBundleName) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("RequestVpnPermission: GetAppNameByUid failed for uid=%{public}d", uid);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    // LCOV_EXCL_STOP
     if (bundleName != actualBundleName) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }

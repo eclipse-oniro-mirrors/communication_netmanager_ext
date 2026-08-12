@@ -373,6 +373,10 @@ void NetFirewallService::InitQueryUserId(int32_t times)
     bool ret = InitUsersOnBoot();
     if (!ret && times > 0) {
         NETMGR_EXT_LOG_I("InitQueryUserId failed");
+        if (ffrtServiceHandler_ == nullptr) {
+            NETMGR_EXT_LOG_E("ffrtServiceHandler_ is nullptr");
+            return;
+        }
         ffrtServiceHandler_->submit([this, times]() { InitQueryUserId(times); },
             ffrt::task_attr().delay(QUERY_USER_ID_DELAY_TIME_MS).name("InitQueryUserId"));
     }
@@ -738,6 +742,17 @@ int32_t NetFirewallService::ClearPacketRule(const std::string& controllerId)
     } else {
         NETMGR_EXT_LOG_I("ClearPacketRule success");
     }
+    return ret;
+}
+
+int32_t NetFirewallService::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+{
+    QueueInfo info = NetTrafficFilterNFQueueCore::GetInstance().GetQueueInfo(queueNum);
+    if (info.nfqHandle == nullptr || info.qh == nullptr) {
+        NETMGR_EXT_LOG_E("SendVerdict: invalid queue info, queueNum=%{public}d", queueNum);
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    int32_t ret = NetsysController::GetInstance().NfqPktVerdictMark(info.nfqHandle, info.qh, packetId, verdict, mark);
     return ret;
 }
 } // namespace NetManagerStandard

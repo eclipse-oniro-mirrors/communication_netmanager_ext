@@ -309,6 +309,32 @@ void DestroyPacketControllerTest(const uint8_t *data, size_t size)
     OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::DESTROY_PACKET_CONTROLLER), parcel);
 }
 
+void SendVerdictTest(const uint8_t *data, size_t size)
+{
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    int32_t queueNum = GetData<int32_t>();
+    uint32_t packetId = GetData<uint32_t>();
+    int32_t verdict = GetData<int32_t>();
+    int32_t mark = GetData<int32_t>();
+
+    if (!parcel.WriteInt32(queueNum)) {
+        return;
+    }
+    if (!parcel.WriteUint32(packetId)) {
+        return;
+    }
+    if (!parcel.WriteInt32(verdict)) {
+        return;
+    }
+    if (!parcel.WriteInt32(mark)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::SEND_VERDICT), parcel);
+}
+
 void CheckRuleStringParam001FuzzTest(const uint8_t *data, size_t size)
 {
     (void)data;
@@ -748,6 +774,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::QueryProcessTest(data, size);
     OHOS::NetManagerStandard::CreatePacketControllerTest(data, size);
     OHOS::NetManagerStandard::DestroyPacketControllerTest(data, size);
+    OHOS::NetManagerStandard::SendVerdictTest(data, size);
     OHOS::NetManagerStandard::CheckRuleStringParam001FuzzTest(data, size);
     OHOS::NetManagerStandard::CheckRuleStringParam002FuzzTest(data, size);
     OHOS::NetManagerStandard::CheckInterfaceName001FuzzTest(data, size);

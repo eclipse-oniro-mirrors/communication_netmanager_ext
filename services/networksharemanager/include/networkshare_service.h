@@ -167,6 +167,7 @@ private:
     int32_t setConfigTimes_ = 0;
     ffrt::mutex setConfigureMutex_;
     ffrt::mutex openFileMutex_;
+    ffrt::mutex subscriberMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

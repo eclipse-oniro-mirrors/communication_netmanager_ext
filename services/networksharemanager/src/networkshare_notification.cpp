@@ -32,20 +32,29 @@ NetworkShareNotification &NetworkShareNotification::GetInstance()
 
 void NetworkShareNotification::PublishNetworkShareNotification(NotificationId notificationId)
 {
+    bool expected = false;
+    if (!isNtfPublished.compare_exchange_strong(expected, true)) {
+        // 如果已经是 true，说明已发布，直接返回
+        return;
+    }
     NETMGR_EXT_LOG_I("Publishing notification, id [%{public}d]", static_cast<int>(notificationId));
     AAFwk::Want want;
     want.SetElementName("com.ohos.locationdialog", "HotSpotServiceAbility");
     want.SetParam("operateType", static_cast<int>(NotificationOpetationType::PUBLISH));
     want.SetParam("notificationId", static_cast<int>(notificationId));
     auto result = StartAbility(want);
-    isNtfPublished = true;
+    if (result != 0) {
+        isNtfPublished = false;
+    }
     NETMGR_EXT_LOG_I("Publishing notification End, result = %{public}d", result);
 }
 
 void NetworkShareNotification::CancelNetworkShareNotification(NotificationId notificationId)
 {
     NETMGR_EXT_LOG_I("Cancel notification, id [%{public}d]", static_cast<int>(notificationId));
-    if (!isNtfPublished) {
+    bool expected = true;
+    if (!isNtfPublished.compare_exchange_strong(expected, false)) {
+        NETMGR_EXT_LOG_I("Notification not published or already being cancelled");
         return;
     }
     AAFwk::Want want;
@@ -53,7 +62,9 @@ void NetworkShareNotification::CancelNetworkShareNotification(NotificationId not
     want.SetParam("operateType", static_cast<int>(NotificationOpetationType::CANCEL));
     want.SetParam("notificationId", static_cast<int>(notificationId));
     auto result = StartAbility(want);
-    isNtfPublished = false;
+    if (result != 0) {
+        isNtfPublished = true;
+    }
     NETMGR_EXT_LOG_I("Cancel notification End, result = %{public}d", result);
 }
 
