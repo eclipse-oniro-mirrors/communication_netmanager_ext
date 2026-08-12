@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 #include <sstream>
 #include <iomanip>
+#include "netmanager_base_common_utils.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -333,8 +334,11 @@ bool NetTrafficFilterRedirectManager::ValidatePortMatch(const TrafficFilterPortM
 
 bool NetTrafficFilterRedirectManager::ValidateInterfaceMatch(const TrafficFilterInterfaceMatch& ifMatch)
 {
-    if (ifMatch.enabled_ && ifMatch.ifName_.empty()) {
-        return false;
+    if (ifMatch.enabled_) {
+        if (!CommonUtils::CheckIfaceName(ifMatch.ifName_)) {
+            return false;
+        }
+        return true;
     }
     return true;
 }
@@ -639,6 +643,11 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
         auto& redirector = it->second;
         bundleName = redirector->GetBundleName();
         callingUid = redirector->GetCallingUid();
+        int32_t callerUid = IPCSkeleton::GetCallingUid();
+        if (callerUid != callingUid) {
+            NETMGR_EXT_LOG_E("permission denied");
+            return TRAFFICFILTER_ERROR_PERMISSION_DENIED;
+        }
         chainName = NetTrafficFilterIptablesCommandBuilder::GenerateChainName(
             callingUid, redirector->GetGroupId());
 
@@ -743,7 +752,7 @@ bool NetTrafficFilterRedirectManager::ValidateRuleForAdd(const TrafficFilterRedi
         NETMGR_EXT_LOG_E("AddRedirectRule proxy family consistency validation failed");
         return false;
     }
-    if (rule.proxyPort_ == 0 || rule.proxyPort_ > 0xFFFF) {
+    if (rule.proxyPort_ == 0) {
         NETMGR_EXT_LOG_E("AddRedirectRule proxy port validation failed");
         return false;
     }
@@ -914,6 +923,10 @@ int32_t NetTrafficFilterRedirectManager::ClearRedirectRule(const std::string& re
     }
 
     auto& redirector = it->second;
+    if (redirector->GetCallingUid() != IPCSkeleton::GetCallingUid()) {
+        NETMGR_EXT_LOG_E("permission denied");
+        return -1;
+    }
     std::string chainName = NetTrafficFilterIptablesCommandBuilder::GenerateChainName(
         redirector->GetCallingUid(), redirector->GetGroupId());
 
@@ -1176,7 +1189,12 @@ void NetTrafficFilterRedirectManager::HandleTrafficFilterObserverRegistration(
     std::vector<std::string> list = {bundleName, bundleName + ":trafficfilter"};
     sptr<TrafficFilterHapObserver> observer =
         new TrafficFilterHapObserver(*this, bundleName, uid);
-    Singleton<AppExecFwk::AppMgrClient>::GetInstance().RegisterApplicationStateObserver(observer, list);
+    int32_t ret = Singleton<AppExecFwk::AppMgrClient>::GetInstance()
+        .RegisterApplicationStateObserver(observer, list);
+    if (ret != ERR_OK) {
+        NETMGR_EXT_LOG_I("RegisterApplicationStateObserver failed uid %{public}d", uid);
+        return;
+    }
     uidToObserverMap_[uid] = observer;
     NETMGR_EXT_LOG_I("TrafficFilter observer registered: bundleName=%{public}s, uid=%{public}d, pid=%{public}d",
         bundleName.c_str(), uid, pid);
