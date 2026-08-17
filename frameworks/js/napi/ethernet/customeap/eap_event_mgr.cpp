@@ -304,6 +304,7 @@ int32_t EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32
             NETMANAGER_EXT_LOGE("%{public}s, not composeParam %{public}d handler", __func__, composeParam);
             return EAP_ERRCODE_INTERNAL_ERROR;
         }
+        NETMANAGER_EXT_LOGI("SubEvent op=off_all kit=networkKit event=customEapHandler");
         auto new_end = std::remove_if(mapObjIter->second.begin(), mapObjIter->second.end(),
             [env](RegObj& obj) {
                 if (obj.m_regEnv == env && obj.refCount_ > 0) {
