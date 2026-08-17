@@ -60,11 +60,19 @@ void broadcast_proxy::Subscribe()
         NETMGR_EXT_LOG_E("statusChangeListener_ is nullptr");
         return;
     }
-    samgrProxy->SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, statusChangeListener_);
-    samgrProxy->SubscribeSystemAbility(APP_MGR_SERVICE_ID, statusChangeListener_);
-    samgrProxy->SubscribeSystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, statusChangeListener_);
-    samgrProxy->SubscribeSystemAbility(WIFI_DEVICE_SYS_ABILITY_ID, statusChangeListener_);
-    samgrProxy->SubscribeSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, statusChangeListener_);
+    static const int32_t abilityIds[] = {
+        COMMON_EVENT_SERVICE_ID,
+        APP_MGR_SERVICE_ID,
+        COMM_VPN_MANAGER_SYS_ABILITY_ID,
+        WIFI_DEVICE_SYS_ABILITY_ID,
+        COMM_NETSYS_NATIVE_SYS_ABILITY_ID,
+    };
+    for (auto abilityId : abilityIds) {
+        int32_t ret = samgrProxy->SubscribeSystemAbility(abilityId, statusChangeListener_);
+        if (ret != 0) {
+            NETMGR_EXT_LOG_E("SubscribeSystemAbility %{public}d failed: %{public}d", abilityId, ret);
+        }
+    }
 }
  
 void broadcast_proxy::UnSubscribe()
@@ -78,8 +86,10 @@ void broadcast_proxy::UnSubscribe()
             samgrProxy->UnSubscribeSystemAbility(COMM_VPN_MANAGER_SYS_ABILITY_ID, statusChangeListener_);
             samgrProxy->UnSubscribeSystemAbility(WIFI_DEVICE_SYS_ABILITY_ID, statusChangeListener_);
             samgrProxy->UnSubscribeSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID, statusChangeListener_);
+            statusChangeListener_ = nullptr;
+        } else {
+            NETMGR_EXT_LOG_E("UnSubscribe: samgrProxy is nullptr, cannot unsubscribe");
         }
-        statusChangeListener_ = nullptr;
     }
 }
  
@@ -100,17 +110,20 @@ void broadcast_proxy::SubscribeCommonEvent()
 
 void broadcast_proxy::UnSubscribeCommonEvent()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (subscriber_ == nullptr) {
         return;
     }
     if (!EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_)) {
         NETMGR_EXT_LOG_E("system event unregister fail.");
+        return;
     }
     subscriber_ = nullptr;
 }
  
 void broadcast_proxy::SubscribeApplicationState()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (appAwareObserver_ == nullptr) {
         appAwareObserver_ = sptr<AppAwareObserver>::MakeSptr();
     }
@@ -123,14 +136,16 @@ void broadcast_proxy::SubscribeApplicationState()
         NETMGR_EXT_LOG_E("GetSystemAbilityManager failed!");
         return;
     }
- 
+
     sptr<AppExecFwk::IAppMgr> iAppMgr =
         iface_cast<AppExecFwk::IAppMgr>(samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
     if (iAppMgr == nullptr) {
         NETMGR_EXT_LOG_E("Subscribe:iAppMgr SA not ready, wait for the SA Added callback");
         return;
     }
-    iAppMgr->RegisterApplicationStateObserver(appAwareObserver_);
+    if (iAppMgr->RegisterApplicationStateObserver(appAwareObserver_) != ERR_OK) {
+        NETMGR_EXT_LOG_E("RegisterApplicationStateObserver failed");
+    }
 }
  
 void broadcast_proxy::UnSubscribeApplicationState()
@@ -143,7 +158,7 @@ void broadcast_proxy::UnSubscribeApplicationState()
         NETMGR_EXT_LOG_E("GetSystemAbilityManager failed!");
         return;
     }
- 
+
     sptr<AppExecFwk::IAppMgr> iAppMgr =
         iface_cast<AppExecFwk::IAppMgr>(samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
     if (iAppMgr != nullptr) {
@@ -168,12 +183,12 @@ void broadcast_proxy::SystemAbilityListener::RegisterVpnEventCallback()
 
 void broadcast_proxy::SystemAbilityListener::RegisterDnsResultCallback()
 {
-    NETMGR_EXT_LOG_E("RegisterDnsResultCallback start.");
+    NETMGR_EXT_LOG_I("RegisterDnsResultCallback start.");
     if (dnsResultCallback_ == nullptr) {
         dnsResultCallback_ = std::make_unique<DnsResultCallback>().release();
         NetsysController::GetInstance().RegisterDnsResultCallback(dnsResultCallback_, 0);
     }
-    NETMGR_EXT_LOG_E("RegisterVpnEventCallback success.");
+    NETMGR_EXT_LOG_I("RegisterVpnEventCallback success.");
 }
 
 int32_t broadcast_proxy::VpnEventObserver::OnVpnStateChanged(bool isConnected, const sptr<VpnState> &vpnState)
@@ -258,6 +273,7 @@ void broadcast_proxy::BroadcastEventSubscriber::OnReceiveEvent(const EventFwk::C
  
 void broadcast_proxy::AppAwareObserver::OnForegroundApplicationChanged(const AppExecFwk::AppStateData& appStateData)
 {
+    std::lock_guard<std::mutex> lock(appStateMutex_);
     NETMGR_EXT_LOG_I("AppAwareObserver::OnForegroundApplicationChanged ");
     int32_t uid = appStateData.uid;
     int32_t pid = appStateData.pid;
@@ -276,7 +292,6 @@ void broadcast_proxy::AppAwareObserver::OnForegroundApplicationChanged(const App
             lastAppStateData.state = static_cast<int32_t>(AppExecFwk::ApplicationState::APP_STATE_BACKGROUND);
             NETMGR_EXT_LOG_I("publish lastAppStateData, bundleName: %{public}s, %{public}d",
                 lastAppStateData.bundleName.c_str(), lastAppStateData.state);
-            auto callback = std::make_shared<AppExecFwk::AppStateData>(lastAppStateData);
         }
         lastAppStateData = appStateData;
     }
@@ -300,6 +315,18 @@ void broadcast_proxy::HandleSimStateEvent(const EventFwk::CommonEventData& event
         simState->slotId, simState->simStatus);
     if (simState->simStatus == (int)OHOS::Telephony::SimState::SIM_STATE_LOADED) {
         Singleton<NetworkSliceMsgCenter>::GetInstance().Publish(EVENT_HANDLE_SIM_STATE_CHANGED, simState);
+    }
+}
+
+broadcast_proxy::SystemAbilityListener::~SystemAbilityListener()
+{
+    if (vpnEventObserver_ != nullptr) {
+        NetManagerStandard::NetworkVpnClient::GetInstance().UnregisterVpnEvent(vpnEventObserver_);
+        vpnEventObserver_ = nullptr;
+    }
+    if (dnsResultCallback_ != nullptr) {
+        NetsysController::GetInstance().UnregisterDnsResultCallback(dnsResultCallback_);
+        dnsResultCallback_ = nullptr;
     }
 }
 

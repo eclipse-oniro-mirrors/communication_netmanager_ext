@@ -17,6 +17,7 @@
 
 #pragma once
 #include <memory>
+#include <mutex>
 #include "system_ability_status_change_stub.h"
 #include "application_state_observer_stub.h"
 #include "common_event_subscriber.h"
@@ -103,10 +104,11 @@ private:
     public:
         AppAwareObserver() = default;
         ~AppAwareObserver() = default;
- 
+
         void OnForegroundApplicationChanged(const AppExecFwk::AppStateData& appStateData) override;
     private:
         AppExecFwk::AppStateData lastAppStateData;
+        std::mutex appStateMutex_;
     };
     class VpnEventObserver : public NetManagerStandard::VpnSetUpEventCallback {
     public:
@@ -118,7 +120,7 @@ private:
     class SystemAbilityListener : public SystemAbilityStatusChangeStub {
     public:
         SystemAbilityListener() = default;
-        ~SystemAbilityListener() = default;
+        ~SystemAbilityListener();
         void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
         void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
     private:
@@ -136,6 +138,7 @@ private:
     sptr<AppAwareObserver> appAwareObserver_ = nullptr;
     int32_t WifiConnected = 4;
     int32_t WifiDisconnected = 6;
+    std::mutex mutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
