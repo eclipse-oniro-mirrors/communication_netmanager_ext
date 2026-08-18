@@ -85,6 +85,7 @@ constexpr uint8_t NET_FAMILY_IPV4 = 1;
 constexpr uint8_t NET_FAMILY_IPV6 = 2;
 constexpr uint32_t DHCP_IPV6_ENABLE = 1;
 constexpr int32_t MAC_SSCANF_SPACE = 3;
+constexpr int32_t MAX_OCTET_VALUE = 255;
 constexpr const char* CELLULAR_IFACE_NAME = "rmnet";
 } // namespace
 
@@ -871,7 +872,7 @@ bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &net
     std::string ipHead = ipAddr.substr(0, pos);
     std::string ipEnd = ipAddr.substr(pos + 1);
     int64_t lastOctet = 0;
-    if (!NetworkShareUtils::ConvertToInt64(ipEnd, lastOctet) || lastOctet >= 255) {
+    if (!NetworkShareUtils::ConvertToInt64(ipEnd, lastOctet) || lastOctet >= MAX_OCTET_VALUE) {
         NETMGR_EXT_LOG_E("StartDhcp ipEnd is invalid or exceeds range after increment.");
         return false;
     }
