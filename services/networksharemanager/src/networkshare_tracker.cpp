@@ -15,6 +15,7 @@
 
 #include "networkshare_tracker.h"
 
+#include <cinttypes>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <regex>
@@ -143,7 +144,12 @@ void NetworkShareTracker::MainSmUpstreamCallback::OnUpstreamStateChanged(int32_t
     temp.cmd_ = param1;
     temp.upstreamInfo_ = nullptr;
     NETMGR_EXT_LOG_I("NOTIFY TO Main SM EVENT_UPSTREAM_CALLBACK with one param.");
-    NetworkShareTracker::GetInstance().GetMainStateMachine()->MainSmEventHandle(EVENT_UPSTREAM_CALLBACK, temp);
+    auto mainSm = NetworkShareTracker::GetInstance().GetMainStateMachine();
+    if (mainSm == nullptr) {
+        NETMGR_EXT_LOG_E("mainStateMachine_ is null");
+        return;
+    }
+    mainSm->MainSmEventHandle(EVENT_UPSTREAM_CALLBACK, temp);
 }
 
 void NetworkShareTracker::MainSmUpstreamCallback::OnUpstreamStateChanged(int32_t msgName, int32_t param1,
@@ -159,7 +165,12 @@ void NetworkShareTracker::MainSmUpstreamCallback::OnUpstreamStateChanged(int32_t
     temp.cmd_ = param1;
     temp.upstreamInfo_ = upstreamInfo;
     NETMGR_EXT_LOG_I("NOTIFY TO Main SM EVENT_UPSTREAM_CALLBACK with two param.");
-    NetworkShareTracker::GetInstance().GetMainStateMachine()->MainSmEventHandle(EVENT_UPSTREAM_CALLBACK, temp);
+    auto mainSm = NetworkShareTracker::GetInstance().GetMainStateMachine();
+    if (mainSm == nullptr) {
+        NETMGR_EXT_LOG_E("mainStateMachine_ is null");
+        return;
+    }
+    mainSm->MainSmEventHandle(EVENT_UPSTREAM_CALLBACK, temp);
 }
 
 void NetworkShareTracker::SubSmUpstreamCallback::OnUpdateInterfaceState(
@@ -254,14 +265,19 @@ void NetworkShareTracker::RecoverSharingType()
     std::set<uint32_t> sharingTypeIsOn;
     int32_t ret = NetsysController::GetInstance().GetNetworkSharingType(sharingTypeIsOn);
     if (ret == NETMANAGER_EXT_SUCCESS) {
-        clientRequestsBitMask_ = 0;
+        clientRequestsBitMask_.store(0, std::memory_order_relaxed);
         for (auto mem : sharingTypeIsOn) {
-            clientRequestsBitMask_ |= (1U << mem);
+            if (mem >= static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH) + 1) {
+                NETMGR_EXT_LOG_E("invalid sharing type [%{public}u], skip", mem);
+                continue;
+            }
+            clientRequestsBitMask_.fetch_or(1U << mem, std::memory_order_relaxed);
             NETMGR_EXT_LOG_D("clientRequestsBitMask_ add mask [%{public}u]", mem);
             EnableNetSharingInternal(static_cast<SharingIfaceType>(mem), false);
             EnableNetSharingInternal(static_cast<SharingIfaceType>(mem), true);
         }
-        NETMGR_EXT_LOG_I("now clientRequestsBitMask_ =  [%{public}u], ret = [%{public}d]", clientRequestsBitMask_, ret);
+        NETMGR_EXT_LOG_I("now clientRequestsBitMask_ =  [%{public}u], ret = [%{public}d]",
+                         clientRequestsBitMask_.load(std::memory_order_relaxed), ret);
     }
 }
 
@@ -276,6 +292,10 @@ bool NetworkShareTracker::Init()
 
     std::shared_ptr<NetworkShareUpstreamMonitor> upstreamNetworkMonitor =
         DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance();
+    if (upstreamNetworkMonitor == nullptr) {
+        NETMGR_EXT_LOG_E("upstreamNetworkMonitor is null");
+        return false;
+    }
     upstreamNetworkMonitor->SetOptionData(EVENT_UPSTREAM_CALLBACK);
     upstreamNetworkMonitor->RegisterUpstreamChangedCallback(std::make_shared<MainSmUpstreamCallback>());
     mainStateMachine_ = std::make_shared<NetworkShareMainStateMachine>(upstreamNetworkMonitor);
@@ -300,11 +320,12 @@ bool NetworkShareTracker::Init()
 void NetworkShareTracker::OnChangeSharingState(const SharingIfaceType &type, bool state)
 {
     if (state) {
-        clientRequestsBitMask_ |= (1U << static_cast<uint32_t>(type));
+        clientRequestsBitMask_.fetch_or(1U << static_cast<uint32_t>(type), std::memory_order_relaxed);
     } else {
-        clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
+        clientRequestsBitMask_.fetch_and(~(1U << static_cast<uint32_t>(type)), std::memory_order_relaxed);
     }
-    NETMGR_EXT_LOG_I("Hotspot OnChangeSharing, clientRequestsBitMask_ [%{public}u]", clientRequestsBitMask_);
+    NETMGR_EXT_LOG_I("Hotspot OnChangeSharing, clientRequestsBitMask_ [%{public}u]",
+                     clientRequestsBitMask_.load(std::memory_order_relaxed));
 }
 
 #ifdef WIFI_MODOULE
@@ -377,6 +398,7 @@ void NetworkShareTracker::SetWifiState(const Wifi::ApState &state)
 #ifdef BLUETOOTH_MODOULE
 void NetworkShareTracker::SetBluetoothState(const Bluetooth::BTConnectState &state)
 {
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     curBluetoothState_ = state;
 }
 #endif
@@ -409,7 +431,6 @@ void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<
     } else {
         NETMGR_EXT_LOG_W("iface=%{public}s is not find", (who->GetInterfaceName()).c_str());
     }
-
     if (lastError == NETWORKSHARE_ERROR_INTERNAL_ERROR) {
         SendMainSMEvent(who, CMD_CLEAR_ERROR, 0);
     }
@@ -482,8 +503,9 @@ int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
     if (static_cast<uint32_t>(type) > static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH)) {
         return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
     }
-    NETMGR_EXT_LOG_I("NetworkShare start sharing,clientRequestsBitMask_ = %{public}u.", clientRequestsBitMask_);
-    if (clientRequestsBitMask_ & (1U << static_cast<uint32_t>(type))) {
+    NETMGR_EXT_LOG_I("NetworkShare start sharing,clientRequestsBitMask_ = %{public}u.",
+                     clientRequestsBitMask_.load(std::memory_order_relaxed));
+    if (clientRequestsBitMask_.load(std::memory_order_relaxed) & (1U << static_cast<uint32_t>(type))) {
         NETMGR_EXT_LOG_I("type[%{public}d] is sharing, will close", type);
         int32_t ret = EnableNetSharingInternal(type, false);
         if (ret != NETMANAGER_EXT_SUCCESS) {
@@ -491,7 +513,7 @@ int32_t NetworkShareTracker::StartNetworkSharing(const SharingIfaceType &type)
             return ret;
         }
     } else {
-        clientRequestsBitMask_ |= (1U << static_cast<uint32_t>(type));
+        clientRequestsBitMask_.fetch_or(1U << static_cast<uint32_t>(type), std::memory_order_relaxed);
     }
     return EnableNetSharingInternal(type, true);
 }
@@ -501,8 +523,9 @@ int32_t NetworkShareTracker::StopNetworkSharing(const SharingIfaceType &type)
     if (static_cast<uint32_t>(type) > static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH)) {
         return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
     }
-    NETMGR_EXT_LOG_I("NetworkShare stop sharing,clientRequestsBitMask_ = %{public}u.", clientRequestsBitMask_);
-    clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
+    NETMGR_EXT_LOG_I("NetworkShare stop sharing,clientRequestsBitMask_ = %{public}u.",
+                     clientRequestsBitMask_.load(std::memory_order_relaxed));
+    clientRequestsBitMask_.fetch_and(~(1U << static_cast<uint32_t>(type)), std::memory_order_relaxed);
     return EnableNetSharingInternal(type, false);
 }
 
@@ -721,12 +744,11 @@ int32_t NetworkShareTracker::EnableNetSharingInternal(const SharingIfaceType &ty
             break;
         default:
             NETMGR_EXT_LOG_E("Invalid networkshare type.");
-            result = NETWORKSHARE_ERROR_UNKNOWN_TYPE;
-            break;
+            return NETWORKSHARE_ERROR_UNKNOWN_TYPE;
     }
     NETMGR_EXT_LOG_I("NetSharing EnableNetSharingInternal result is %{public}d.", result);
     if (result != NETMANAGER_EXT_SUCCESS) {
-        clientRequestsBitMask_ &= ~(1U << static_cast<uint32_t>(type));
+        clientRequestsBitMask_.fetch_and(~(1U << static_cast<uint32_t>(type)), std::memory_order_relaxed);
     } else {
         result = NetsysController::GetInstance().UpdateNetworkSharingType(static_cast<uint32_t>(type), enable);
     }
@@ -749,11 +771,12 @@ int32_t NetworkShareTracker::SetWifiNetworkSharing(bool enable)
                 NetworkShareEventType::SETUP_EVENT);
         } else {
             NETMGR_EXT_LOG_I("EnableHotspot successfull.");
-            if (wifiShareCount_ < INT32_MAX) {
-                wifiShareCount_++;
+            if (wifiShareCount_.load(std::memory_order_relaxed) < INT32_MAX) {
+                wifiShareCount_.fetch_add(1, std::memory_order_relaxed);
             }
-            NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(wifiShareCount_, SharingIfaceType::SHARING_WIFI);
-            NETMGR_EXT_LOG_E("wifiShareCount_[%{public}d].", wifiShareCount_);
+            NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(wifiShareCount_.load(std::memory_order_relaxed),
+                                                                    SharingIfaceType::SHARING_WIFI);
+            NETMGR_EXT_LOG_E("wifiShareCount_[%{public}d].", wifiShareCount_.load(std::memory_order_relaxed));
         }
     } else {
         int32_t ret = DisableHotspot();
@@ -788,10 +811,11 @@ int32_t NetworkShareTracker::SetUsbNetworkSharing(bool enable)
             NETMGR_EXT_LOG_E("SetCurrentFunctions error[%{public}d].", ret);
             return NETWORKSHARE_ERROR_USB_SHARING;
         }
-        if (usbShareCount_ < INT32_MAX) {
-            usbShareCount_++;
+        if (usbShareCount_.load(std::memory_order_relaxed) < INT32_MAX) {
+            usbShareCount_.fetch_add(1, std::memory_order_relaxed);
         }
-        NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_, SharingIfaceType::SHARING_USB);
+        NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(usbShareCount_.load(std::memory_order_relaxed),
+                                                                SharingIfaceType::SHARING_USB);
     } else {
         if (curUsbState_ != UsbShareState::USB_SHARING) {
             return NETMANAGER_EXT_SUCCESS;
@@ -822,10 +846,10 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
     bool ret = (profile->SetTethering(enable) == 0);
     if (ret) {
         NETMGR_EXT_LOG_I("SetBluetoothNetworkSharing(%{public}s) is success.", enable ? "true" : "false");
-        if (enable && bluetoothShareCount_ < INT32_MAX) {
-            bluetoothShareCount_++;
+        if (enable && bluetoothShareCount_.load(std::memory_order_relaxed) < INT32_MAX) {
+            bluetoothShareCount_.fetch_add(1, std::memory_order_relaxed);
         }
-        NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(bluetoothShareCount_,
+        NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(bluetoothShareCount_.load(std::memory_order_relaxed),
                                                                 SharingIfaceType::SHARING_BLUETOOTH);
         return NETMANAGER_EXT_SUCCESS;
     }
@@ -847,7 +871,7 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
 
 int32_t NetworkShareTracker::Sharing(const std::string &iface, int32_t reqState)
 {
-    std::shared_ptr<NetSharingSubSmState> subSMState = nullptr;
+    std::shared_ptr<NetworkShareSubStateMachine> subSM = nullptr;
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
         std::map<std::string, std::shared_ptr<NetSharingSubSmState>>::iterator iter = subStateMachineMap_.find(iface);
@@ -855,21 +879,20 @@ int32_t NetworkShareTracker::Sharing(const std::string &iface, int32_t reqState)
             NETMGR_EXT_LOG_E("Try to share an unknown iface:%{public}s, ignore.", iface.c_str());
             return NETWORKSHARE_ERROR_UNKNOWN_IFACE;
         }
-        subSMState = iter->second;
+        if (iter->second == nullptr) {
+            NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
+            return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
+        }
+        if (iter->second->lastState_ != SUB_SM_STATE_AVAILABLE) {
+            NETMGR_EXT_LOG_E("Try to share an unavailable iface:%{public}s, ignore.", iface.c_str());
+            return NETWORKSHARE_ERROR_UNAVAIL_IFACE;
+        }
+        subSM = iter->second->subStateMachine_;
     }
-    if (subSMState == nullptr) {
-        NETMGR_EXT_LOG_E("NetSharingSubSmState is null.");
-        return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
-    }
-    if (subSMState->lastState_ != SUB_SM_STATE_AVAILABLE) {
-        NETMGR_EXT_LOG_E("Try to share an unavailable iface:%{public}s, ignore.", iface.c_str());
-        return NETWORKSHARE_ERROR_UNAVAIL_IFACE;
-    }
-
-    if (subSMState->subStateMachine_ != nullptr) {
+    if (subSM != nullptr) {
         NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_REQUESTED.",
-                         subSMState->subStateMachine_->GetInterfaceName().c_str());
-        subSMState->subStateMachine_->SubSmEventHandle(CMD_NETSHARE_REQUESTED, reqState);
+                         subSM->GetInterfaceName().c_str());
+        subSM->SubSmEventHandle(CMD_NETSHARE_REQUESTED, reqState);
         return NETMANAGER_EXT_SUCCESS;
     }
 
@@ -918,6 +941,11 @@ bool NetworkShareTracker::FindSubStateMachine(const std::string &iface, const Sh
 
 void NetworkShareTracker::EnableWifiSubStateMachine()
 {
+    std::lock_guard<ffrt::mutex> lock(apStopTimerMutex_);
+    if (mApIfaceName_.empty()) {
+        NETMGR_EXT_LOG_E("mApIfaceName_ is empty, cannot enable wifi sub state machine.");
+        return;
+    }
     int32_t ret = CreateSubStateMachine(mApIfaceName_, SharingIfaceType::SHARING_WIFI, false);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("create wifi sub SM failed, error[%{public}d].", ret);
@@ -1063,11 +1091,16 @@ int32_t NetworkShareTracker::CreateSubStateMachine(const std::string &iface, con
 
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
+        if (subStateMachineMap_.count(iface) != 0) {
+            NETMGR_EXT_LOG_W("iface[%{public}s] has added, ignoring", iface.c_str());
+            return NETMANAGER_EXT_SUCCESS;
+        }
         std::shared_ptr<NetSharingSubSmState> netShareState = std::make_shared<NetSharingSubSmState>(subSm, isNcm);
         subStateMachineMap_.insert(std::make_pair(iface, netShareState));
+        NETMGR_EXT_LOG_I("adding subSM[%{public}s], type[%{public}d], current subSM count[%{public}s]", iface.c_str(),
+                         static_cast<SharingIfaceType>(interfaceType),
+                         std::to_string(subStateMachineMap_.size()).c_str());
     }
-    NETMGR_EXT_LOG_I("adding subSM[%{public}s], type[%{public}d], current subSM count[%{public}s]", iface.c_str(),
-                     static_cast<SharingIfaceType>(interfaceType), std::to_string(subStateMachineMap_.size()).c_str());
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -1278,9 +1311,9 @@ void NetworkShareTracker::SendGlobalSharingStateChange()
         }
     }
     NETMGR_EXT_LOG_I("send global sharing state change, isNetworkSharing_[%{public}d] isSharing[%{public}d].",
-                     isNetworkSharing_, isSharing);
-    if (isNetworkSharing_ != isSharing) {
-        isNetworkSharing_ = isSharing;
+                     isNetworkSharing_.load(std::memory_order_relaxed), isSharing);
+    if (isNetworkSharing_.load(std::memory_order_relaxed) != isSharing) {
+        isNetworkSharing_.store(isSharing, std::memory_order_relaxed);
         std::lock_guard<ffrt::mutex> lock(callbackMutex_);
         for_each(sharingEventCallback_.begin(), sharingEventCallback_.end(),
                  [isSharing](sptr<ISharingEventCallback> &callback) {
@@ -1463,7 +1496,7 @@ void NetworkShareTracker::HandleClatInterfaceRemoved(const std::string &clatIfac
 // LCOV_EXCL_START
 void NetworkShareTracker::RestartResume()
 {
-    if (clientRequestsBitMask_ == 0) {
+    if (clientRequestsBitMask_.load(std::memory_order_relaxed) == 0) {
         NETMGR_EXT_LOG_E("RestartResume, no StartDnsProxy.");
         return;
     }
@@ -1545,17 +1578,20 @@ void NetworkShareTracker::OnPowerDisConnected()
 #ifdef WIFI_MODOULE
 void NetworkShareTracker::HandleHotSpotStarted()
 {
-    if (NetworkShareTracker::GetInstance().mApIfaceName_.empty()) {
-        std::string ifaceName = WIFI_AP_DEFAULT_IFACE_NAME;
-        auto WifiHostInstance = Wifi::WifiHotspot::GetInstance(WIFI_HOTSPOT_ABILITY_ID);
-        int32_t ret = -1;
-        if (WifiHostInstance != nullptr) {
-            ret = WifiHostInstance->GetApIfaceName(ifaceName);
+    {
+        std::lock_guard<ffrt::mutex> lock(apStopTimerMutex_);
+        if (mApIfaceName_.empty()) {
+            std::string ifaceName = WIFI_AP_DEFAULT_IFACE_NAME;
+            auto WifiHostInstance = Wifi::WifiHotspot::GetInstance(WIFI_HOTSPOT_ABILITY_ID);
+            int32_t ret = -1;
+            if (WifiHostInstance != nullptr) {
+                ret = WifiHostInstance->GetApIfaceName(ifaceName);
+            }
+            if (ret != Wifi::WIFI_OPT_SUCCESS) {
+                NETMGR_EXT_LOG_E("get AP ifcace name failed! use default value");
+            }
+            mApIfaceName_ = ifaceName;
         }
-        if (ret != Wifi::WIFI_OPT_SUCCESS) {
-            NETMGR_EXT_LOG_E("get AP ifcace name failed! use default value");
-        }
-        NetworkShareTracker::GetInstance().mApIfaceName_ = ifaceName;
     }
     NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, true);
     NetworkShareTracker::GetInstance().EnableWifiSubStateMachine();
@@ -1580,9 +1616,12 @@ void NetworkShareTracker::HandleHotSpotClosed()
         NetworkShareTracker::GetInstance().HandleIdleApStopTimer();
     }
     NetworkShareTracker::GetInstance().OnChangeSharingState(SharingIfaceType::SHARING_WIFI, false);
-    NetworkShareTracker::GetInstance().StopSubStateMachine(NetworkShareTracker::GetInstance().mApIfaceName_,
-        SharingIfaceType::SHARING_WIFI);
-    NetworkShareTracker::GetInstance().mApIfaceName_ = "";
+    {
+        std::lock_guard<ffrt::mutex> lock(apStopTimerMutex_);
+        NetworkShareTracker::GetInstance().StopSubStateMachine(mApIfaceName_,
+            SharingIfaceType::SHARING_WIFI);
+        mApIfaceName_ = "";
+    }
     DelayedSingleton<NetworkShareUpstreamMonitor>::GetInstance()->SetHotSpotStatus(false);
 }
 
@@ -1626,9 +1665,9 @@ void NetworkShareTracker::GetPowerConnected()
 void NetworkShareTracker::HandleIdleApStopTimer()
 {
     NETMGR_EXT_LOG_I("Current powerConnected:%{public}d, staConnected:%{public}d, apStarted:%{public}d",
-        powerConnected_, staConnected_, curWifiState_);
+        powerConnected_, staConnected_, curWifiState_.load());
     bool startTimer = !powerConnected_ && !staConnected_ &&
-        curWifiState_ == Wifi::ApState::AP_STATE_STARTED;
+        curWifiState_.load() == Wifi::ApState::AP_STATE_STARTED;
     if (startTimer) {
         NetworkShareTracker::GetInstance().StartIdleApStopTimer();
     } else {
@@ -1639,7 +1678,7 @@ void NetworkShareTracker::HandleIdleApStopTimer()
 void NetworkShareTracker::StartIdleApStopTimer()
 {
     if (idleApStopTimerId_ != 0) {
-        NETMGR_EXT_LOG_I("IdleApStopTimer exist, id:%{public}u", idleApStopTimerId_);
+        NETMGR_EXT_LOG_I("IdleApStopTimer exist, id:%{public}" PRIu64, idleApStopTimerId_);
         return;
     }
 
@@ -1657,12 +1696,12 @@ void NetworkShareTracker::StartIdleApStopTimer()
     int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
     MiscServices::TimeServiceClient::GetInstance()->StartTimer(idleApStopTimerId_,
         currentTime + IDLE_SOFTAP_STOP_INTERVAL_MS);
-    NETMGR_EXT_LOG_I("Start new IdleApStopTimer, id:%{public}u", idleApStopTimerId_);
+    NETMGR_EXT_LOG_I("Start new IdleApStopTimer, id:%{public}" PRIu64, idleApStopTimerId_);
 }
 
 void NetworkShareTracker::StopIdleApStopTimer()
 {
-    NETMGR_EXT_LOG_I("Stop IdleApStopTimer, id:%{public}u", idleApStopTimerId_);
+    NETMGR_EXT_LOG_I("Stop IdleApStopTimer, id:%{public}" PRIu64, idleApStopTimerId_);
     if (idleApStopTimerId_ == 0) {
         return;
     }

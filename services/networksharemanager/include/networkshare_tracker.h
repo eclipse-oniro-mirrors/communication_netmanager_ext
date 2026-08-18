@@ -297,29 +297,29 @@ private:
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
     std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;
     ffrt::mutex callbackMutex_;
-    bool isNetworkSharing_ = false;
+    std::atomic<bool> isNetworkSharing_{false};
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
-    uint32_t clientRequestsBitMask_ = 0;
+    std::atomic<uint32_t> clientRequestsBitMask_{0};
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
     ffrt::mutex sharedSubSmMutex_;
 #ifdef WIFI_MODOULE
-    int32_t wifiShareCount_ = 0;
+    std::atomic<int32_t> wifiShareCount_{0};
     sptr<WifiHotspotCallback> wifiHotspotCallback_ = nullptr;
-    Wifi::ApState curWifiState_ = Wifi::ApState::AP_STATE_NONE;
-    uint32_t idleApStopTimerId_ = 0;
+    std::atomic<Wifi::ApState> curWifiState_{Wifi::ApState::AP_STATE_NONE};
+    uint64_t idleApStopTimerId_ = 0;
     ffrt::mutex apStopTimerMutex_;
     bool powerConnected_ = false;
     bool staConnected_ = false;
 #endif
 #ifdef BLUETOOTH_MODOULE
     std::shared_ptr<SharingPanObserver> panObserver_ = nullptr;
-    int32_t bluetoothShareCount_ = 0;
-    Bluetooth::BTConnectState curBluetoothState_ = Bluetooth::BTConnectState::DISCONNECTED;
+    std::atomic<int32_t> bluetoothShareCount_{0};
+    std::atomic<Bluetooth::BTConnectState> curBluetoothState_{Bluetooth::BTConnectState::DISCONNECTED};
 #endif
 #ifdef USB_MODOULE
-    int32_t usbShareCount_ = 0;
-    UsbShareState curUsbState_ = UsbShareState::USB_NONE;
+    std::atomic<int32_t> usbShareCount_{0};
+    std::atomic<UsbShareState> curUsbState_{UsbShareState::USB_NONE};
     int32_t previousFuncs_ = 512;
 #endif
     std::atomic_bool isInit = false;

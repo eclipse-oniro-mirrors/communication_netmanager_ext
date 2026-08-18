@@ -20,6 +20,7 @@
 #include "netsys_controller.h"
 #include "networkshare_sub_statemachine.h"
 #include "networkshare_tracker.h"
+#include "networkshare_utils.h"
 #include "route_utils.h"
 #include <ifaddrs.h>
 #include <random>
@@ -84,6 +85,7 @@ constexpr uint8_t NET_FAMILY_IPV4 = 1;
 constexpr uint8_t NET_FAMILY_IPV6 = 2;
 constexpr uint32_t DHCP_IPV6_ENABLE = 1;
 constexpr int32_t MAC_SSCANF_SPACE = 3;
+constexpr int32_t MAX_OCTET_VALUE = 255;
 constexpr const char* CELLULAR_IFACE_NAME = "rmnet";
 } // namespace
 
@@ -274,7 +276,7 @@ int NetworkShareSubStateMachine::HandleInitInterfaceDown(const std::any &message
 bool NetworkShareSubStateMachine::GetShareIpv6Prefix(const std::string &iface)
 {
     ifaddrs *ifaddr = nullptr;
-    char ipv6Addr[INET6_ADDRSTRLEN] = {};
+    char ipv6Addr[NI_MAXHOST] = {};
     if (getifaddrs(&ifaddr)) {
         NETMGR_EXT_LOG_E("getifaddrs err!");
         return false;
@@ -291,8 +293,11 @@ bool NetworkShareSubStateMachine::GetShareIpv6Prefix(const std::string &iface)
             continue;
         }
         IpPrefix ipPrefix;
-        inet_pton(AF_INET6, ipv6Addr, &ipPrefix.address);
-        inet_pton(AF_INET6, ipv6Addr, &ipPrefix.prefix);
+        if (inet_pton(AF_INET6, ipv6Addr, &ipPrefix.address) != 1 ||
+            inet_pton(AF_INET6, ipv6Addr, &ipPrefix.prefix) != 1) {
+            NETMGR_EXT_LOG_E("inet_pton failed for ipv6 addr");
+            continue;
+        }
         if (memset_s(ipPrefix.prefix.s6_addr + HALF_IN6ADDR, HALF_IN6ADDR, 0, HALF_IN6ADDR) != EOK) {
             NETMGR_EXT_LOG_E("Failed memset_s");
             break;
@@ -332,9 +337,16 @@ std::string NetworkShareSubStateMachine::MacToEui64Addr(std::string &mac)
 
 int32_t NetworkShareSubStateMachine::GenerateIpv6(const std::string &iface)
 {
-    std::string eui64Addr = std::string("::") + MacToEui64Addr(lastRaParams_.macAddr_);
+    std::string macEui64 = MacToEui64Addr(lastRaParams_.macAddr_);
+    if (macEui64.empty()) {
+        NETMGR_EXT_LOG_E("MacToEui64Addr returned empty, cannot generate ipv6");
+        return NETWORKSHARE_ERROR_INTERNAL_ERROR;
+    }
+    std::string eui64Addr = std::string("::") + macEui64;
     in6_addr eui64 = IN6ADDR_ANY_INIT;
-    inet_pton(AF_INET6, eui64Addr.c_str(), &eui64);
+    if (inet_pton(AF_INET6, eui64Addr.c_str(), &eui64) != 1) {
+        return NETWORKSHARE_ERROR_INTERNAL_ERROR;
+    }
     for (IpPrefix &prefix : lastRaParams_.prefixes_) {
         for (int32_t index = HALF_IN6ADDR; index < MAX_IPV6_PREFIX_LENGTH / BYTE_BIT; ++index) {
             prefix.address.s6_addr[index] = eui64.s6_addr[index];
@@ -359,6 +371,7 @@ void NetworkShareSubStateMachine::StartIpv6()
     }
     if (raDaemon_->Init(ifaceName_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("Init ipv6 share failed");
+        raDaemon_ = nullptr;
         return;
     }
     int32_t mtu = NetsysController::GetInstance().GetInterfaceMtu(ifaceName_);
@@ -563,6 +576,7 @@ void NetworkShareSubStateMachine::ConfigureShareIpv6(const sptr<NetLinkInfo> &up
 }
 void NetworkShareSubStateMachine::HandleConnection()
 {
+    std::lock_guard<ffrt::recursive_mutex> lock(getUsefulMutex());
     tunv4UpstreamIfaceName_ = "tunv4-" + upstreamIfaceName_;
     uint32_t tunv4IfIndex = NetworkShareTracker::GetInstance().GetInterfaceIndexByName(tunv4UpstreamIfaceName_);
     int32_t result = NETSYS_SUCCESS;
@@ -601,7 +615,7 @@ void NetworkShareSubStateMachine::HandleConnection()
         NETMGR_EXT_LOG_E(
             "Sub StateMachine[%{public}s] SharedState NetworkAddInterface newIface[%{public}s] error[%{public}d].",
             ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
-        if (tunv4IfIndex != 0) {
+        if (!tunv4UpstreamIfaceName_.empty()) {
             NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
         }
         NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
@@ -857,7 +871,12 @@ bool NetworkShareSubStateMachine::StartDhcp(const std::shared_ptr<INetAddr> &net
     }
     std::string ipHead = ipAddr.substr(0, pos);
     std::string ipEnd = ipAddr.substr(pos + 1);
-    std::string startIp = std::to_string(atoi(ipEnd.c_str()) + 1);
+    int64_t lastOctet = 0;
+    if (!NetworkShareUtils::ConvertToInt64(ipEnd, lastOctet) || lastOctet >= MAX_OCTET_VALUE) {
+        NETMGR_EXT_LOG_E("StartDhcp ipEnd is invalid or exceeds range after increment.");
+        return false;
+    }
+    std::string startIp = std::to_string(lastOctet + 1);
 
     std::string strStartip = ipHead + "." + startIp;
     std::string strEndip = ipHead + "." + endIp;
@@ -1001,6 +1020,11 @@ bool NetworkShareSubStateMachine::RequestIpv4Address(std::shared_ptr<INetAddr> &
 
     if (netAddr->address_.empty() || netAddr->hostName_.empty()) {
         NETMGR_EXT_LOG_E("Failed to get ipv4 Address or dhcp server name.");
+        return false;
+    }
+    struct in_addr addrCheck;
+    if (inet_pton(AF_INET, netAddr->address_.c_str(), &addrCheck) != 1) {
+        NETMGR_EXT_LOG_E("RequestIpv4Address address_ is invalid ipv4 addr.");
         return false;
     }
     return true;
