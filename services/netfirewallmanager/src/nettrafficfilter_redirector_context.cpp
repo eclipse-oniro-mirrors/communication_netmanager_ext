@@ -79,7 +79,7 @@ int32_t NetTrafficFilterRedirectorContext::AddRuleWithPriority(const TrafficFilt
 int32_t NetTrafficFilterRedirectorContext::ClearRules()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    int32_t count = rules_.size();
+    int32_t count = static_cast<int32_t>(rules_.size());
     rules_.clear();
     NETMGR_EXT_LOG_I("Cleared %{public}d rules from redirector %{public}s", count, redirectorId_.c_str());
     return NETFIREWALL_SUCCESS;
