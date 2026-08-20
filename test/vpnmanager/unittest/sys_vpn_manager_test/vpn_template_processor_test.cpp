@@ -433,5 +433,36 @@ HWTEST_F(VpnTemplateProcessorTest, GenOptionsL2tpdClient003, TestSize.Level1)
     EXPECT_NE(config->optionsL2tpdClient_.find("ipcp-accept-remote"), std::string::npos);
 }
 
+HWTEST_F(VpnTemplateProcessorTest, FormatConfigString001, TestSize.Level1)
+{
+    VpnTemplateProcessor processor;
+    EXPECT_EQ(processor.FormatConfigString("normaluser"), "normaluser");
+    EXPECT_EQ(processor.FormatConfigString("pass#word"), "password");
+    EXPECT_EQ(processor.FormatConfigString("a;b"), "ab");
+    EXPECT_EQ(processor.FormatConfigString("line1\nline2"), "line1line2");
+    EXPECT_EQ(processor.FormatConfigString("line1\r\nline2"), "line1line2");
+    EXPECT_EQ(processor.FormatConfigString("x\npty /tmp/evil.sh\n#"), "xpty /tmp/evil.sh");
+    EXPECT_EQ(processor.FormatConfigString(""), "");
+}
+
+HWTEST_F(VpnTemplateProcessorTest, GenOptionsL2tpdClientInjection001, TestSize.Level1)
+{
+    sptr<L2tpVpnConfig> config = new (std::nothrow) L2tpVpnConfig();
+    ASSERT_NE(config, nullptr);
+
+    config->vpnType_ = 5;
+    config->userName_ = "x\npty /data/local/tmp/evil.sh\n#";
+    config->password_ = "pass\nword";
+
+    VpnTemplateProcessor processor;
+    processor.GenOptionsL2tpdClient(config);
+
+    EXPECT_FALSE(config->optionsL2tpdClient_.empty());
+    EXPECT_EQ(config->optionsL2tpdClient_.find("\npty "), std::string::npos);
+    EXPECT_EQ(config->optionsL2tpdClient_.find("name x\n"), std::string::npos);
+    EXPECT_NE(config->optionsL2tpdClient_.find("name xpty /data/local/tmp/evil.sh"), std::string::npos);
+    EXPECT_NE(config->optionsL2tpdClient_.find("password password"), std::string::npos);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS
