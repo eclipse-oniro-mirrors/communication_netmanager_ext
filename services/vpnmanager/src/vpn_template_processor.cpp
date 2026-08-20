@@ -140,7 +140,8 @@ void VpnTemplateProcessor::GenOptionsL2tpdClient(sptr<L2tpVpnConfig> &config)
         oss << "ipcp-accept-remote\nrefuse-eap\nrequire-mschap-v2\n";
         oss << "noccp\nnoauth\nidle 1800\nmtu 1410\nmru 1410\n";
         oss << "defaultroute\nusepeerdns\ndebug\nconnect-delay 3000\n";
-        oss << "name " << config->userName_ << " \npassword " << config->password_;
+        oss << "name " << FormatConfigString(config->userName_)
+            << " \npassword " << FormatConfigString(config->password_);
         config->optionsL2tpdClient_ = oss.str();
     }
 }
@@ -169,10 +170,13 @@ void VpnTemplateProcessor::CreateXl2tpdConf(sptr<L2tpVpnConfig> &config, int32_t
 
 std::string VpnTemplateProcessor::FormatConfigString(const std::string &value)
 {
-    if (value.find('#') != std::string::npos) {
-        return "\"" + value + "\"";
+    std::string out;
+    for (char c : value) {
+        if (c != '\n' && c != '\r') {
+            out += c;
+        }
     }
-    return value;
+    return "\"" + out + "\"";
 }
 
 void VpnTemplateProcessor::GetSecret(sptr<IpsecVpnConfig> &ipsecConfig, int32_t ifNameId, std::string &outSecret)
