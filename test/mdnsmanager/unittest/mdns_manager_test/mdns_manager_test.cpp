@@ -959,6 +959,16 @@ HWTEST_F(MDnsProtocolImplTest, ProcessQuestionTest, TestSize.Level1) {
     EXPECT_EQ(mDnsProtocolImpl->lastRunTime, -1);
 }
 
+HWTEST_F(MDnsProtocolImplTest, ProcessQuestionTest002, TestSize.Level1) {
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->Init();
+    int sock = 0;
+    MDnsMessage msg;
+    msg.header.qdcount = 1;
+    mDnsProtocolImpl->ProcessQuestion(sock, msg);
+    EXPECT_EQ(mDnsProtocolImpl->lastRunTime, -1);
+}
+
 HWTEST_F(MDnsProtocolImplTest, ProcessQuestionRecordTest, TestSize.Level1) {
     auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
     mDnsProtocolImpl->Init();

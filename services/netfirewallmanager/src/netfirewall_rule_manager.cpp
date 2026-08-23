@@ -397,6 +397,7 @@ bool NetFirewallRuleManager::CheckAccountExist(int32_t userId)
 
     if (accountInfo.GetType() == AccountSA::OsAccountType::GUEST) {
         NETMGR_EXT_LOG_W("The guest account.");
+        return false;
     }
     return true;
 }
@@ -568,7 +569,10 @@ int32_t NetFirewallRuleManager::SetRulesToNativeByType(const NetFirewallRuleType
 {
     int32_t ret = FIREWALL_SUCCESS;
     std::vector<NetFirewallRule> rules;
-    GetEnabledNetFirewallRules(rules, type);
+    ret = GetEnabledNetFirewallRules(rules, type);
+    if (ret != FIREWALL_SUCCESS) {
+        return ret;
+    }
     switch (type) {
         case NetFirewallRuleType::RULE_IP:
             ret = HandleIpTypeForDistributeRules(rules);

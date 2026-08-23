@@ -481,8 +481,8 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
     int32_t remotePort = 0;
     int32_t protocol = 0;
     int32_t time = 0;
-    InterceptRecord info;
     for (int32_t i = 0; (i < table.rowCount) && !endFlag; i++) {
+        InterceptRecord info;
         if (resultSet->GoToRow(i) != E_OK) {
             NETMGR_EXT_LOG_E("GetResultRightRecordEx GoToRow %{public}d", i);
             break;
@@ -504,7 +504,7 @@ int32_t NetFirewallDbHelper::GetResultRightRecordEx(const std::shared_ptr<OHOS::
         resultSet->GetInt(table.appUidIndex, info.appUid);
         resultSet->GetString(table.domainIndex, info.domain);
         if (info.time > 0) {
-            rules.emplace_back(std::move(info));
+            rules.emplace_back(info);
         }
         resultSet->IsEnded(endFlag);
     }
@@ -756,7 +756,7 @@ int32_t NetFirewallDbHelper::QuerySql(const std::string &sql)
     if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GoToRow(0) != E_OK) {
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
-    int32_t value = 0;
+    int32_t value = -1;
     resultSet->GetInt(0, value);
     return value;
 }
