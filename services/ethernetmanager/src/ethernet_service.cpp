@@ -116,19 +116,19 @@ bool EthernetService::Init()
         }
         registerToService_ = true;
     }
-    AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
-    AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
     interfaceStateCallback_ = new (std::nothrow) GlobalInterfaceStateCallback(*this);
     if (interfaceStateCallback_ == nullptr) {
         NETMGR_EXT_LOG_E("allInterfaceStateCallback_ is nullptr");
         return false;
     }
-    NetsysController::GetInstance().RegisterCallback(interfaceStateCallback_);
     serviceComm_ = new (std::nothrow) EthernetServiceCommon();
     if (serviceComm_ == nullptr) {
         NETMGR_EXT_LOG_E("serviceComm_ is nullptr");
         return false;
     }
+    AddSystemAbilityListener(COMM_NET_CONN_MANAGER_SYS_ABILITY_ID);
+    AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
+    NetsysController::GetInstance().RegisterCallback(interfaceStateCallback_);
     NetManagerCenter::GetInstance().RegisterEthernetService(serviceComm_);
     ethernetServiceFfrtQueue_ = std::make_shared<ffrt::queue>("EthernetService");
     return true;
@@ -474,6 +474,10 @@ int32_t EthernetService::RegCustomEapHandler(int netType, const std::string &reg
 int32_t EthernetService::ReplyCustomEapData(int eapResult, const sptr<EapData> &eapData)
 {
     NETMGR_EXT_LOG_D("Enter ReplyCustomEapData");
+    if (eapData == nullptr) {
+        NETMGR_EXT_LOG_E("ReplyCustomEapData eapData nullptr");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return EAP_ERRCODE_PERMISSION_DENIED;
@@ -505,6 +509,10 @@ int32_t EthernetService::UnRegisterCustomEapCallback(int netType,
 int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData)
 {
     NETMGR_EXT_LOG_D("Enter NotifyWpaEapInterceptInfo");
+    if (eapData == nullptr) {
+        NETMGR_EXT_LOG_E("NotifyWpaEapInterceptInfo eapData nullptr");
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
