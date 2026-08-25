@@ -98,6 +98,10 @@ int32_t MDnsService::OnIdle(const SystemAbilityOnDemandReason &idleReason)
     if (!remoteCallback_.empty()) {
         return NETMANAGER_ERROR;
     }
+    std::lock_guard<std::mutex> serviceLock(serviceRemoteMutex_);
+    if (!serviceRemoteCallback_.empty()) {
+        return NETMANAGER_ERROR;
+    }
     return UNLOAD_IMMEDIATELY;
 }
 
@@ -201,7 +205,7 @@ void MDnsService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
         return;
     }
     sptr<IDiscoveryCallback> cb = iface_cast<IDiscoveryCallback>(diedRemoted);
-    RemoveClientDeathRecipient(cb);
+    StopDiscoverService(cb);
 }
 
 void MDnsService::OnServiceRemoteDied(const wptr<IRemoteObject> &remoteObject)
@@ -213,7 +217,7 @@ void MDnsService::OnServiceRemoteDied(const wptr<IRemoteObject> &remoteObject)
         return;
     }
     sptr<IRegistrationCallback> cb = iface_cast<IRegistrationCallback>(diedRemoted);
-    RemoveServiceDeathRecipient(cb);
+    UnRegisterService(cb);
 }
 
 void MDnsService::AddClientDeathRecipient(const sptr<IDiscoveryCallback> &cb)
