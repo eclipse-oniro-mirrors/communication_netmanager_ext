@@ -61,9 +61,10 @@ private:
         }
     };
     void RestartDiscoverService();
+    void RestartRegisterService();
 
     std::shared_ptr<MDnsProtocolImpl> impl_ = std::make_shared<MDnsProtocolImpl>();
-    std::map<sptr<IRegistrationCallback>, std::string, CompareSmartPointer> registerMap_;
+    std::map<sptr<IRegistrationCallback>, MDnsServiceInfo, CompareSmartPointer> registerMap_;
     std::map<sptr<IDiscoveryCallback>, std::string, CompareSmartPointer> discoveryMap_;
     std::recursive_mutex registerMutex_;
     std::shared_mutex discoveryMutex_;
