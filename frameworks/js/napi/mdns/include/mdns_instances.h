@@ -17,6 +17,7 @@
 #define NETMANAGER_EXT_MDNS_INSTANCES_H
 
 #include <map>
+#include <shared_mutex>
 
 #include "event_manager.h"
 
@@ -38,6 +39,7 @@ public:
     std::string serviceType_;
     sptr<MDnsDiscoveryObserver> observer_;
     static std::map<MDnsDiscoveryObserver *, MDnsDiscoveryInstance *> discoverInstanceMap_;
+    static std::shared_mutex discoverMutex_;
 
 private:
     std::shared_ptr<EventManager> manager_ = nullptr;
