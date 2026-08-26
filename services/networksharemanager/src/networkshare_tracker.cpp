@@ -254,11 +254,6 @@ NetworkShareTracker &NetworkShareTracker::GetInstance()
     return instance;
 }
 
-NetworkShareTracker::~NetworkShareTracker()
-{
-    Uninit();
-}
-
 void NetworkShareTracker::RecoverSharingType()
 {
     NETMGR_EXT_LOG_I("NetworkShareTracker::RecoverSharingType in");
@@ -368,9 +363,6 @@ void NetworkShareTracker::RegisterBtPanCallback()
 
 void NetworkShareTracker::Uninit()
 {
-    if (!isInit) {
-        return;
-    }
     isInit = false;
 #ifdef BLUETOOTH_MODOULE
     Bluetooth::Pan *profile = Bluetooth::Pan::GetProfile();
@@ -689,7 +681,6 @@ int32_t NetworkShareTracker::UnregisterSharingEvent(sptr<ISharingEventCallback> 
 
 int32_t NetworkShareTracker::GetSharedSubSMTraffic(const TrafficType &type, int32_t &kbByte)
 {
-    std::lock_guard<ffrt::mutex> lock(sharedSubSmMutex_);
     int64_t bytes = 0;
     NETMGR_EXT_LOG_I("GetSharedSubSMTraffic start, type is %{public}d", type);
     for (auto &subSM : sharedSubSM_) {
@@ -973,14 +964,12 @@ void NetworkShareTracker::EnableBluetoothSubStateMachine()
 
 bool NetworkShareTracker::UpstreamWanted()
 {
-    std::lock_guard<ffrt::mutex> lock(sharedSubSmMutex_);
     return sharedSubSM_.size() != 0;
 }
 
 void NetworkShareTracker::ModifySharedSubStateMachineList(bool isAdd,
                                                           const std::shared_ptr<NetworkShareSubStateMachine> &subSm)
 {
-    std::lock_guard<ffrt::mutex> lock(sharedSubSmMutex_);
     if (isAdd) {
         std::vector<std::shared_ptr<NetworkShareSubStateMachine>>::iterator iter =
             find(sharedSubSM_.begin(), sharedSubSM_.end(), subSm);
@@ -1057,7 +1046,6 @@ void NetworkShareTracker::StopDnsProxy()
 
 void NetworkShareTracker::NotifyDownstreamsHasNewUpstreamIface(const std::shared_ptr<UpstreamNetworkInfo> &netinfo)
 {
-    std::lock_guard<ffrt::mutex> lock(sharedSubSmMutex_);
     upstreamInfo_ = netinfo;
     for_each(sharedSubSM_.begin(), sharedSubSM_.end(), [netinfo](std::shared_ptr<NetworkShareSubStateMachine> subsm) {
         if (subsm != nullptr) {
@@ -1413,7 +1401,6 @@ void NetworkShareTracker::HandleClatInterfaceAdded(const std::string &clatIface)
         return;
     }
 
-    std::lock_guard<ffrt::mutex> lock(sharedSubSmMutex_);
     for (auto &subSM : sharedSubSM_) {
         if (subSM == nullptr) {
             continue;
@@ -1453,7 +1440,6 @@ void NetworkShareTracker::HandleClatInterfaceRemoved(const std::string &clatIfac
         return;
     }
 
-    std::lock_guard<ffrt::mutex> lock(sharedSubSmMutex_);
     for (auto &subSM : sharedSubSM_) {
         if (subSM == nullptr) {
             continue;
@@ -1531,7 +1517,6 @@ void NetworkShareTracker::RestartResume()
 
     NETMGR_EXT_LOG_I("SetDns netId[%{public}d] success.", netId_);
 
-    std::lock_guard<ffrt::mutex> lock(sharedSubSmMutex_);
     for (auto &subsm : sharedSubSM_) {
         if (subsm != nullptr) {
             NETMGR_EXT_LOG_I("NOTIFY TO SUB SM [%{public}s] CMD_NETSHARE_CONNECTION_CHANGED.",

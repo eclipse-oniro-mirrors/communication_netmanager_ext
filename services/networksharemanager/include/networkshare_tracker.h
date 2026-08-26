@@ -125,7 +125,7 @@ private:
 
 public:
     static NetworkShareTracker &GetInstance();
-    ~NetworkShareTracker();
+    ~NetworkShareTracker() = default;
 
     /**
      * Init
@@ -302,7 +302,6 @@ private:
     std::atomic<uint32_t> clientRequestsBitMask_{0};
     std::vector<std::shared_ptr<NetworkShareSubStateMachine>> sharedSubSM_;
     bool isStartDnsProxy_ = false;
-    ffrt::mutex sharedSubSmMutex_;
 #ifdef WIFI_MODOULE
     std::atomic<int32_t> wifiShareCount_{0};
     sptr<WifiHotspotCallback> wifiHotspotCallback_ = nullptr;
@@ -323,7 +322,7 @@ private:
     int32_t previousFuncs_ = 512;
 #endif
     std::atomic_bool isInit = false;
-    int32_t netId_ = 0;
+    int32_t netId_;
     std::string mApIfaceName_;
 };
 } // namespace NetManagerStandard
