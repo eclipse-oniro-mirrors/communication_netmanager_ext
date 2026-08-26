@@ -577,20 +577,50 @@ static bool ValidateMacAddress(const std::string& mac)
 }
 static bool ValidateIPAddress(const OH_TrafficFilter_IPAddress& addr)
 {
-    if (addr.family != OH_TRAFFICFILTER_IP_FAMILY_V4 &&
-        addr.family != OH_TRAFFICFILTER_IP_FAMILY_V6) {
-        NETMGR_EXT_LOG_E("Invalid packet rule family: %{public}d", addr.family);
+    OH_TrafficFilter_IPFamily family = addr.family;
+    if (static_cast<int32_t>(family) == 0) {
+        family = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    }
+
+    if (IsAllZeroIP(addr)) {
         return false;
     }
-    if (addr.family == OH_TRAFFICFILTER_IP_FAMILY_V4) {
-        for (int i = IPV4_ADDR_LEN; i < OH_TRAFFICFILTER_IP_ADDRLEN; i++) {
-            if (addr.addr[i] != 0) {
-                NETMGR_EXT_LOG_E(
-                    "Invalid packet rule: IPv4 bytes 4-15 must be zero");
-                return false;
+
+    if (family == OH_TRAFFICFILTER_IP_FAMILY_V4) {
+        if ((addr.addr[0] & 0xF0) == 0xE0) {
+            return false;
+        }
+        if (addr.addr[0] == 0x7F) {
+            return false;
+        }
+        bool allOne = true;
+        for (int i = 0; i < IPV4_ADDR_LEN; i++) {
+            if (addr.addr[i] != 0xFF) {
+                allOne = false;
+                break;
             }
         }
+        if (allOne) {
+            return false;
+        }
     }
+
+    if (family == OH_TRAFFICFILTER_IP_FAMILY_V6) {
+        if (addr.addr[0] == 0xFF) {
+            return false;
+        }
+        bool isLoopback = true;
+        for (int i = 0; i < OH_TRAFFICFILTER_IP_ADDRLEN - 1; i++) {
+            if (addr.addr[i] != 0) {
+                isLoopback = false;
+                break;
+            }
+        }
+        if (isLoopback && addr.addr[OH_TRAFFICFILTER_IP_ADDRLEN - 1] == 1) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -600,34 +630,18 @@ static bool ValidatePacketRuleIPMatch(const OH_TrafficFilter_IPMatch& ipMatch)
         NETMGR_EXT_LOG_E("Invalid packet type: %{public}d", ipMatch.type);
         return false;
     }
+    if (!ValidateIPMatchValue(ipMatch)) {
+        return false;
+    }
     switch (ipMatch.type) {
         case OH_TRAFFICFILTER_IP_MATCH_SINGLE:
             return ValidateIPAddress(ipMatch.value.single);
-        case OH_TRAFFICFILTER_IP_MATCH_CIDR: {
-            uint8_t maxLen = (ipMatch.value.cidr.base.family == OH_TRAFFICFILTER_IP_FAMILY_V6)
-                ? IPV6_PREFIX_MAX : IPV4_PREFIX_MAX;
-            if (ipMatch.value.cidr.prefixLen > maxLen) {
-                NETMGR_EXT_LOG_E("Invalid packet rule %{public}s CIDR prefixLen: %{public}u (max: %{public}u)",
-                    fieldName, ipMatch.value.cidr.prefixLen, maxLen);
-                return false;
-            }
+        case OH_TRAFFICFILTER_IP_MATCH_CIDR:
             return ValidateIPAddress(ipMatch.value.cidr.base);
-        }
         case OH_TRAFFICFILTER_IP_MATCH_RANGE:
-            if (ipMatch.value.range.start.family != ipMatch.value.range.end.family) {
-                NETMGR_EXT_LOG_E(
-                    "Invalid packet rule %{public}s range: family mismatch(start=%{public}d, end=%{public}d)",
-                    fieldName, ipMatch.value.range.start.family, ipMatch.value.range.end.family);
-                return false;
-            }
-            return ValidateIPAddress(ipMatch.value.range.start) && ValidateIPAddress(ipMatch.value.range.end);
+            return ValidateIPAddress(ipMatch.value.range.start) &&
+                   ValidateIPAddress(ipMatch.value.range.end);
         case OH_TRAFFICFILTER_IP_MATCH_MULTI: {
-            if (ipMatch.value.multi.ipCount == 0 ||
-                ipMatch.value.multi.ipCount > OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT) {
-                NETMGR_EXT_LOG_E("Invalid packet rule %{public}s multi ipCount: %{public}u (valid: 1-%{public}u)",
-                    fieldName, ipMatch.value.multi.ipCount, OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT);
-                return false;
-            }
             for (uint32_t i = 0; i < ipMatch.value.multi.ipCount; i++) {
                 if (!ValidateIPAddress(ipMatch.value.multi.ips[i])) {
                     return false;
@@ -686,6 +700,14 @@ static bool ValidatePacketRuleInterfaces(const OH_TrafficFilter_FilterRule* rule
         NETMGR_EXT_LOG_E("Invalid packet rule: interface enabled but ifName is empty");
         return false;
     }
+    if (rule->inInterface.enabled &&
+        strnlen(rule->inInterface.ifName, OH_TRAFFICFILTER_IFNAMSIZ) >= OH_TRAFFICFILTER_IFNAMSIZ) {
+        return false;
+    }
+    if (rule->outInterface.enabled &&
+        strnlen(rule->outInterface.ifName, OH_TRAFFICFILTER_IFNAMSIZ) >= OH_TRAFFICFILTER_IFNAMSIZ) {
+        return false;
+    }
     return true;
 }
 
@@ -696,6 +718,9 @@ static bool ValidatePacketRuleMacAndTcpFlags(const OH_TrafficFilter_FilterRule* 
         if (!ValidateMacAddress(mac)) {
             return false;
         }
+    }
+    if (rule->tcpFlagsMatch.enable && rule->protocol != OH_TRAFFICFILTER_PROTO_TCP) {
+        return false;
     }
     if (rule->tcpFlagsMatch.enable && ((rule->tcpFlagsMatch.flagComp & ~rule->tcpFlagsMatch.flagMask) != 0 ||
         (rule->tcpFlagsMatch.flagMask & OH_TRAFFICFILTER_TCP_FLAG_ALL) != rule->tcpFlagsMatch.flagMask)) {
@@ -716,12 +741,26 @@ static bool ValidatePacketRule(const OH_TrafficFilter_FilterRule* rule)
         !ValidatePacketRulePortMatch(rule->srcPort) || !ValidatePacketRulePortMatch(rule->dstPort)) {
         return false;
     }
+    if (rule->protocol == OH_TRAFFICFILTER_PROTO_ANY &&
+        (rule->srcPort.type != OH_TRAFFICFILTER_PORT_MATCH_ANY ||
+         rule->dstPort.type != OH_TRAFFICFILTER_PORT_MATCH_ANY)) {
+        return false;
+    }
     if (rule->uidStart > rule->uidEnd) {
         NETMGR_EXT_LOG_E("Invalid packet rule UID range: start(%{public}u) > end(%{public}u)",
             rule->uidStart, rule->uidEnd);
         return false;
     }
     if (!ValidatePacketRuleInterfaces(rule) || !ValidatePacketRuleMacAndTcpFlags(rule)) {
+        return false;
+    }
+    if (rule->hookPoint == OH_TRAFFICFILTER_HOOK_INPUT && rule->outInterface.enabled) {
+        return false;
+    }
+    if (rule->hookPoint == OH_TRAFFICFILTER_HOOK_OUTPUT && rule->inInterface.enabled) {
+        return false;
+    }
+    if (rule->conntrackMatch.enable && (rule->conntrackMatch.stateMask & ~0x1F) != 0) {
         return false;
     }
     return true;
