@@ -418,7 +418,13 @@ void NetworkShareTracker::HandleSubSmUpdateInterfaceState(const std::shared_ptr<
         shareState->lastError_ = lastError;
         if (shareState->lastState_ != state) {
             shareState->lastState_ = state;
-            SendIfaceSharingStateChange(who->GetNetShareType(), ifaceName, SubSmStateToExportState(state));
+            if (who->GetNetShareType() == SharingIfaceType::SHARING_BLUETOOTH &&
+                (clientRequestsBitMask_.load(std::memory_order_relaxed) &
+                 (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH)))) {
+                NETMGR_EXT_LOG_I("bluetooth sharing switch still on, skip state change callback.");
+            } else {
+                SendIfaceSharingStateChange(who->GetNetShareType(), ifaceName, SubSmStateToExportState(state));
+            }
         }
     } else {
         NETMGR_EXT_LOG_W("iface=%{public}s is not find", (who->GetInterfaceName()).c_str());
@@ -837,9 +843,24 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
     bool ret = (profile->SetTethering(enable) == 0);
     if (ret) {
         NETMGR_EXT_LOG_I("SetBluetoothNetworkSharing(%{public}s) is success.", enable ? "true" : "false");
-        if (enable && bluetoothShareCount_.load(std::memory_order_relaxed) < INT32_MAX) {
-            bluetoothShareCount_.fetch_add(1, std::memory_order_relaxed);
+        // LCOV_EXCL_START
+        if (enable) {
+            OnChangeSharingState(SharingIfaceType::SHARING_BLUETOOTH, true);
+            SendIfaceSharingStateChange(SharingIfaceType::SHARING_BLUETOOTH, BLUETOOTH_DEFAULT_IFACE_NAME,
+                                        SharingIfaceState::SHARING_NIC_SERVING);
+            if (bluetoothShareCount_.load(std::memory_order_relaxed) < INT32_MAX) {
+                bluetoothShareCount_.fetch_add(1, std::memory_order_relaxed);
+            }
+        } else {
+            bool hasSubSM = (subStateMachineMap_.count(BLUETOOTH_DEFAULT_IFACE_NAME) > 0);
+            OnChangeSharingState(SharingIfaceType::SHARING_BLUETOOTH, false);
+            StopSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH);
+            if (!hasSubSM) {
+                SendIfaceSharingStateChange(SharingIfaceType::SHARING_BLUETOOTH, BLUETOOTH_DEFAULT_IFACE_NAME,
+                                            SharingIfaceState::SHARING_NIC_CAN_SERVER);
+            }
         }
+        // LCOV_EXCL_STOP
         NetworkShareHisysEvent::GetInstance().SendBehaviorEvent(bluetoothShareCount_.load(std::memory_order_relaxed),
                                                                 SharingIfaceType::SHARING_BLUETOOTH);
         return NETMANAGER_EXT_SUCCESS;
