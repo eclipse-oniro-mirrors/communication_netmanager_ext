@@ -17,6 +17,7 @@
 #include <cctype>
 #include <cstddef>
 #include <cstring>
+#include <securec.h>
 #include <string>
 #include "net_trafficfilter_adapter.h"
 #include "netfirewall_client.h"
@@ -578,8 +579,8 @@ static bool ValidateMacAddress(const std::string& mac)
 static bool ValidateIPAddress(const OH_TrafficFilter_IPAddress& addr)
 {
     OH_TrafficFilter_IPFamily family = addr.family;
-    if (static_cast<int32_t>(family) == 0) {
-        family = OH_TRAFFICFILTER_IP_FAMILY_V4;
+    if (family != OH_TRAFFICFILTER_IP_FAMILY_V4 && family != OH_TRAFFICFILTER_IP_FAMILY_V6) {
+        return false;
     }
 
     if (IsAllZeroIP(addr)) {
@@ -603,9 +604,7 @@ static bool ValidateIPAddress(const OH_TrafficFilter_IPAddress& addr)
         if (allOne) {
             return false;
         }
-    }
-
-    if (family == OH_TRAFFICFILTER_IP_FAMILY_V6) {
+    } else if (family == OH_TRAFFICFILTER_IP_FAMILY_V6) {
         if (addr.addr[0] == 0xFF) {
             return false;
         }
