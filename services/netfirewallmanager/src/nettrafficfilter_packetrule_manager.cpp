@@ -33,6 +33,7 @@ constexpr int32_t HOOK_POINTS[] = {
     static_cast<int32_t>(TrafficFilterHookPoint::HOOK_FORWARD)
 };
 constexpr size_t HOOK_POINT_COUNT = sizeof(HOOK_POINTS) / sizeof(HOOK_POINTS[0]);
+constexpr uint32_t MAX_PACKET_RULE_COUNT = 2000;
 constexpr TrafficFilterIPFamily FAMILIES[] = {
     TrafficFilterIPFamily::IP_FAMILY_V4,
     TrafficFilterIPFamily::IP_FAMILY_V6
@@ -283,6 +284,15 @@ bool NetTrafficFilterPacketRuleManager::ParseAndValidateControllerId(const std::
     return true;
 }
 
+uint32_t NetTrafficFilterPacketRuleManager::GetQueueRuleCountLocked(uint32_t queueNum) const
+{
+    auto qIt = queueNumToRules_.find(queueNum);
+    if (qIt == queueNumToRules_.end()) {
+        return 0;
+    }
+    return qIt->second.input.size() + qIt->second.output.size() + qIt->second.forward.size();
+}
+
 int32_t NetTrafficFilterPacketRuleManager::AddPacketRule(const std::string& controllerId,
     const sptr<TrafficFilterPacketRule>& rule)
 {
@@ -311,6 +321,9 @@ int32_t NetTrafficFilterPacketRuleManager::AddPacketRule(const std::string& cont
             ctx.chainNameOut = info.chainNameOut;
             ctx.chainNameFwd = info.chainNameFwd;
             queueNumToRuleCtx_[queueNum] = std::move(ctx);
+        }
+        if (GetQueueRuleCountLocked(queueNum) >= MAX_PACKET_RULE_COUNT) {
+            return TRAFFICFILTER_ERROR_TOO_MANY_RULES;
         }
         auto* ruleList = GetRulesByHookPoint(queueNumToRules_[queueNum], hookPoint);
         if (ruleList != nullptr) {
@@ -397,15 +410,9 @@ void NetTrafficFilterPacketRuleManager::CleanPhysicalRules(const QueueInfo& info
         DeleteChainForIpFamilies(*chain);
     }
 }
-int32_t NetTrafficFilterPacketRuleManager::ClearPacketRule(const std::string& controllerId)
+int32_t NetTrafficFilterPacketRuleManager::ClearPacketRule(const QueueInfo& info)
 {
-    int32_t queueNum = 0;
-    if (!ParseAndValidateControllerId(controllerId, queueNum)) {
-        NETMGR_EXT_LOG_E("ClearPacketRule: invalid controllerId");
-        return TRAFFICFILTER_ERROR_INVALID_PARAM;
-    }
-
-    QueueInfo info = NetTrafficFilterNFQueueCore::GetInstance().GetQueueInfo(queueNum);
+    int32_t queueNum = info.queueNum;
     std::set<int32_t> hookPoints;
     {
         std::lock_guard<std::mutex> lock(mutex_);

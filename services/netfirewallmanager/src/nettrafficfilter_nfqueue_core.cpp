@@ -412,7 +412,7 @@ int32_t NetTrafficFilterNFQueueCore::DestroyQueue(uint16_t queueNum)
         }
     }
     if (it->second.qh != nullptr) {
-        NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(it->second.packetControllerId);
+        NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(it->second);
         NetsysController::GetInstance().NfqQueueDestroy(it->second.nfqHandle, it->second.qh);
         UpdateNFQHandleFromBundleName(it->second.bundleName, it->second.nfqHandle);
     }

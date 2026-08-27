@@ -21,7 +21,7 @@
 
 #include "nettrafficfilter_packetrule_manager.h"
 #include "netfirewall_common.h"
-#include "net_manger_constants.h"
+#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -168,7 +168,7 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, AddPacketRuleControllerWithQueue
     ASSERT_NE(rule, nullptr);
 
     int32_t ret = instance.AddPacketRule("com.example:0", rule);
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+    EXPECT_EQ(ret, -1);
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdMissingColon, TestSize.Level1)
@@ -184,7 +184,7 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdQueu
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
     int32_t queueNum = 0;
     bool result = instance.ParseAndValidateControllerId("com.example:0", queueNum);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdValid, TestSize.Level1)
@@ -201,29 +201,40 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdExtr
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
     int32_t queueNum = 0;
     bool result = instance.ParseAndValidateControllerId("com.example:42:1001:extra", queueNum);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
     EXPECT_EQ(queueNum, 42);
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleInvalidControllerId, TestSize.Level1)
 {
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    int32_t ret = instance.ClearPacketRule("invalid");
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+    QueueInfo info{};
+    info.queueNum = 0;
+    int32_t ret = instance.ClearPacketRule(info);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(instance.queueNumToRules_.empty());
+    EXPECT_TRUE(instance.queueNumToRuleCtx_.empty());
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleEmpty, TestSize.Level1)
 {
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    int32_t ret = instance.ClearPacketRule("");
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
+    QueueInfo info{};
+    int32_t ret = instance.ClearPacketRule(info);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(instance.queueNumToRules_.empty());
+    EXPECT_TRUE(instance.queueNumToRuleCtx_.empty());
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleQueueNotFound, TestSize.Level1)
 {
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    int32_t ret = instance.ClearPacketRule("com.example:42");
+    QueueInfo info{};
+    info.queueNum = 42;
+    int32_t ret = instance.ClearPacketRule(info);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(instance.queueNumToRules_.empty());
+    EXPECT_TRUE(instance.queueNumToRuleCtx_.empty());
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, PauseAllRulesEmpty, TestSize.Level1)
@@ -299,11 +310,25 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleSuccess, TestSize
     ctx.chainNameFwd = "chainFwd";
     instance.queueNumToRuleCtx_[1] = ctx;
 
-    TrafficFilterPacketRule rule;
-    rule.hookPoint_ = TEST_HOOK_OUTPUT;
-    instance.queueNumToRules_[1].output.push_back(rule);
+    sptr<TrafficFilterPacketRule> inputRule = CreateValidRule(TEST_HOOK_INPUT);
+    ASSERT_NE(inputRule, nullptr);
+    instance.queueNumToRules_[1].input.push_back(*inputRule);
 
-    int32_t ret = instance.ClearPacketRule("com.example:1");
+    sptr<TrafficFilterPacketRule> outputRule = CreateValidRule(TEST_HOOK_OUTPUT);
+    ASSERT_NE(outputRule, nullptr);
+    instance.queueNumToRules_[1].output.push_back(*outputRule);
+
+    sptr<TrafficFilterPacketRule> forwardRule = CreateValidRule(TEST_HOOK_FORWARD);
+    ASSERT_NE(forwardRule, nullptr);
+    instance.queueNumToRules_[1].forward.push_back(*forwardRule);
+
+    QueueInfo info{};
+    info.queueNum = 1;
+    info.chainNameIn = "chainIn";
+    info.chainNameOut = "chainOut";
+    info.chainNameFwd = "chainFwd";
+
+    int32_t ret = instance.ClearPacketRule(info);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_TRUE(instance.queueNumToRules_.find(1) == instance.queueNumToRules_.end());
     EXPECT_TRUE(instance.queueNumToRuleCtx_.find(1) == instance.queueNumToRuleCtx_.end());

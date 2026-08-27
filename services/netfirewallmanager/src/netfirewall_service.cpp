@@ -734,7 +734,12 @@ int32_t NetFirewallService::AddPacketRule(const std::string& controllerId, const
 
 int32_t NetFirewallService::ClearPacketRule(const std::string& controllerId)
 {
-    int32_t ret = NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(controllerId);
+    int32_t queNum = 0;
+    if (!NetTrafficFilterPacketRuleManager::GetInstance().ParseAndValidateControllerId(controllerId, queNum)) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    QueueInfo info = NetTrafficFilterNFQueueCore::GetInstance().GetQueueInfo(queNum);
+    int32_t ret = NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(info);
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("ClearPacketRule failed, ret: %{public}d", ret);
     } else {

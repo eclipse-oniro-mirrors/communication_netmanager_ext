@@ -63,7 +63,8 @@ private:
     static std::string BuildRedirectCommandBase(const TrafficFilterRedirectRule& rule, const std::string& chainName,
         const std::string& action, const std::string& position = "");
     static std::string FormatIPMatch(const TrafficFilterIPMatch& ipMatch, bool isSource);
-    static std::string FormatPortMatch(const TrafficFilterPortMatch& portMatch, bool isSource);
+    static std::string FormatPortMatch(const TrafficFilterPortMatch& portMatch, bool isSource,
+        uint8_t protocol = NETTRAFFICFILTER_PROTO_TCP);
     static std::string FormatInterfaceMatch(const TrafficFilterInterfaceMatch& ifMatch, bool isIncoming);
     static std::string FormatIPAddress(const TrafficFilterIPAddress& ipAddr);
     static std::string FormatNatAddressWithPort(const TrafficFilterIPAddress& ipAddr, uint16_t port);

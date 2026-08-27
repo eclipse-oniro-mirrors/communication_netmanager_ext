@@ -147,11 +147,11 @@ void NetTrafficFilterIptablesCommandBuilder::AppendMatchConditions(
     if (!dstIpMatch.empty()) {
         cmd << dstIpMatch;
     }
-    std::string srcPortMatch = FormatPortMatch(rule.srcPort_, true);
+    std::string srcPortMatch = FormatPortMatch(rule.srcPort_, true, rule.protocol_);
     if (!srcPortMatch.empty()) {
         cmd << srcPortMatch;
     }
-    std::string dstPortMatch = FormatPortMatch(rule.dstPort_, false);
+    std::string dstPortMatch = FormatPortMatch(rule.dstPort_, false, rule.protocol_);
     if (!dstPortMatch.empty()) {
         cmd << dstPortMatch;
     }
@@ -367,32 +367,33 @@ std::string NetTrafficFilterIptablesCommandBuilder::FormatIPMatch(const TrafficF
 }
 
 std::string NetTrafficFilterIptablesCommandBuilder::FormatPortMatch(
-    const TrafficFilterPortMatch& portMatch, bool isSource)
+    const TrafficFilterPortMatch& portMatch, bool isSource, uint8_t protocol)
 {
     if (portMatch.type_ == static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY)) {
         return "";
     }
     std::ostringstream oss;
-    const std::string tcpPortOpt = isSource ? "--sport " : "--dport ";
+    const std::string portModule = (protocol == NETTRAFFICFILTER_PROTO_UDP) ? "udp" : "tcp";
+    const std::string portOpt = isSource ? "--sport " : "--dport ";
     const std::string multiPortOpt = isSource ? "--sports " : "--dports ";
     switch (portMatch.type_) {
         case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE): {
-            oss << " -m tcp ";
+            oss << " -m " << portModule << " ";
             if (portMatch.invert_) {
                 oss << "! ";
             }
-            oss << tcpPortOpt << portMatch.single_;
+            oss << portOpt << portMatch.single_;
             break;
         }
         case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_RANGE): {
             if (!portMatch.invert_ && portMatch.range_.startPort_ == 0 && portMatch.range_.endPort_ == PORT_MAX) {
                 return "";
             }
-            oss << " -m tcp ";
+            oss << " -m " << portModule << " ";
             if (portMatch.invert_) {
                 oss << "! ";
             }
-            oss << tcpPortOpt << portMatch.range_.startPort_ << ":" << portMatch.range_.endPort_;
+            oss << portOpt << portMatch.range_.startPort_ << ":" << portMatch.range_.endPort_;
             break;
         }
         case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI): {
@@ -576,8 +577,8 @@ void NetTrafficFilterIptablesCommandBuilder::AppendPacketMatchConditions(std::st
 
     appendIfNotEmpty(FormatIPMatch(srcIp, true));
     appendIfNotEmpty(FormatIPMatch(dstIp, false));
-    appendIfNotEmpty(FormatPortMatch(srcPort, true));
-    appendIfNotEmpty(FormatPortMatch(dstPort, false));
+    appendIfNotEmpty(FormatPortMatch(srcPort, true, rule.protocol_));
+    appendIfNotEmpty(FormatPortMatch(dstPort, false, rule.protocol_));
     appendIfNotEmpty(FormatInterfaceMatch(rule.inInterface_, true));
     appendIfNotEmpty(FormatInterfaceMatch(rule.outInterface_, false));
     appendIfNotEmpty(FormatMacMatch(rule.macMatch_));

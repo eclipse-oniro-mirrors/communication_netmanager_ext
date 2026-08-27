@@ -51,10 +51,11 @@ public:
     static NetTrafficFilterPacketRuleManager& GetInstance();
 
     int32_t AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule);
-    int32_t ClearPacketRule(const std::string& controllerId);
+    int32_t ClearPacketRule(const QueueInfo& info);
 
     int32_t PauseAllRules();
     int32_t ResumeAllRules();
+    bool ParseAndValidateControllerId(const std::string& controllerId, int32_t& queueNum);
 
 private:
     NetTrafficFilterPacketRuleManager();
@@ -62,7 +63,7 @@ private:
     NetTrafficFilterPacketRuleManager(const NetTrafficFilterPacketRuleManager&) = delete;
     NetTrafficFilterPacketRuleManager& operator=(const NetTrafficFilterPacketRuleManager&) = delete;
 
-    bool ParseAndValidateControllerId(const std::string& controllerId, int32_t& queueNum);
+    uint32_t GetQueueRuleCountLocked(uint32_t queueNum) const;
 
     int32_t ExecuteRulesForIpFamily(const std::vector<TrafficFilterPacketRule>& rules, const std::string& chainName,
         int32_t queueNum, TrafficFilterIPFamily family);

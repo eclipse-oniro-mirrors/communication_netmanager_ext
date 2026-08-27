@@ -113,6 +113,9 @@ int32_t OH_TrafficFilter_QueryProcess(const OH_TrafficFilter_ConnectionInfo* con
 int32_t OH_TrafficFilter_AddPacketRule(OH_TrafficFilter_PacketController* controller,
     const OH_TrafficFilter_FilterRule* rule)
 {
+    if (controller == nullptr || rule == nullptr) {
+        return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
     return PacketControllerAdapterManager::GetInstance().AddPacketRule(controller, rule);
 }
 
