@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <shared_mutex>
 #include <vector>
 
 #include "net_manager_constants.h"
@@ -65,6 +66,7 @@ int32_t MDnsDiscoveryObserver::HandleStopDiscover(const MDnsServiceInfo &service
 
 void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
+    std::shared_lock<std::shared_mutex> lock(MDnsDiscoveryInstance::discoverMutex_);
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
@@ -87,6 +89,7 @@ void MDnsDiscoveryObserver::EmitStartDiscover(const MDnsServiceInfo &serviceInfo
 
 void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
+    std::shared_lock<std::shared_mutex> lock(MDnsDiscoveryInstance::discoverMutex_);
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
@@ -108,6 +111,7 @@ void MDnsDiscoveryObserver::EmitStopDiscover(const MDnsServiceInfo &serviceInfo,
 
 int32_t MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
+    std::shared_lock<std::shared_mutex> lock(MDnsDiscoveryInstance::discoverMutex_);
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");
@@ -126,6 +130,7 @@ int32_t MDnsDiscoveryObserver::HandleServiceFound(const MDnsServiceInfo &service
 
 int32_t MDnsDiscoveryObserver::HandleServiceLost(const MDnsServiceInfo &serviceInfo, int32_t retCode)
 {
+    std::shared_lock<std::shared_mutex> lock(MDnsDiscoveryInstance::discoverMutex_);
     MDnsDiscoveryInstance *mdnsDisdicover = MDnsDiscoveryInstance::GetDiscoveryInstance(this);
     if (mdnsDisdicover == nullptr || mdnsDisdicover->GetEventManager() == nullptr) {
         NETMANAGER_EXT_LOGE("can not find MDnsDiscoveryInstance handle");

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include <mutex>
+#include <shared_mutex>
 
 #include "mdns_instances.h"
 #include "net_manager_constants.h"
@@ -21,7 +21,7 @@
 
 namespace OHOS::NetManagerStandard {
 std::map<MDnsDiscoveryObserver *, MDnsDiscoveryInstance *> MDnsDiscoveryInstance::discoverInstanceMap_;
-std::mutex g_mDNSDiscoverMutex;
+std::shared_mutex MDnsDiscoveryInstance::discoverMutex_;
 
 MDnsDiscoveryInstance::MDnsDiscoveryInstance(std::shared_ptr<EventManager>& eventManager)
     : observer_(sptr<MDnsDiscoveryObserver>::MakeSptr()), manager_(eventManager)
@@ -32,7 +32,7 @@ MDnsDiscoveryInstance::MDnsDiscoveryInstance() {}
 
 MDnsDiscoveryInstance *MDnsDiscoveryInstance::MakeMDnsDiscovery(std::shared_ptr<EventManager>& eventManager)
 {
-    std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
+    std::lock_guard<std::shared_mutex> lock(discoverMutex_);
     auto mdnsDiscovery = new MDnsDiscoveryInstance(eventManager);
     if (mdnsDiscovery->observer_ == nullptr) {
         NETMANAGER_EXT_LOGE("mdnsDiscovery->observer_ is nullptr");
@@ -45,7 +45,7 @@ MDnsDiscoveryInstance *MDnsDiscoveryInstance::MakeMDnsDiscovery(std::shared_ptr<
 
 void MDnsDiscoveryInstance::DeleteMDnsDiscovery(MDnsDiscoveryInstance *mdnsDiscovery)
 {
-    std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
+    std::lock_guard<std::shared_mutex> lock(discoverMutex_);
     if (mdnsDiscovery->observer_ == nullptr) {
         NETMANAGER_EXT_LOGE("mdnsDiscovery->observer_ is nullptr");
         return;
@@ -69,7 +69,6 @@ MDnsDiscoveryInstance *MDnsDiscoveryInstance::GetDiscoveryInstance(MDnsDiscovery
     if (observer == nullptr) {
         return nullptr;
     }
-    std::lock_guard<std::mutex> lock(g_mDNSDiscoverMutex);
     auto it = discoverInstanceMap_.find(observer);
     if (it == discoverInstanceMap_.end()) {
         return nullptr;
