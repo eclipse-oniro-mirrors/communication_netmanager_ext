@@ -208,7 +208,6 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdExtr
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleInvalidControllerId, TestSize.Level1)
 {
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    // ClearPacketRule no longer parses controllerId; test queueNum=0 boundary
     QueueInfo info{};
     info.queueNum = 0;
     int32_t ret = instance.ClearPacketRule(info);
@@ -220,7 +219,6 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleInvalidController
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleEmpty, TestSize.Level1)
 {
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    // ClearPacketRule no longer parses controllerId; test empty QueueInfo
     QueueInfo info{};
     int32_t ret = instance.ClearPacketRule(info);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
