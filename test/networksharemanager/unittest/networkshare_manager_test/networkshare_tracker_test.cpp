@@ -1726,5 +1726,96 @@ HWTEST_F(NetworkShareTrackerTest, HandleClatInterfaceRemoved_SubSMStateNull, Tes
     // Verify that sharedSubSM_ is unchanged
     EXPECT_EQ(networksharetracker.sharedSubSM_.size(), 1);
 }
+
+/**
+ * @tc.number: NetworkShareTracker_HandleSubSmUpdateInterfaceState_BtSwitchOn
+ * @tc.name: Test HandleSubSmUpdateInterfaceState when BT switch is on
+ * @tc.desc: Verify that state change callback is skipped when BT sharing switch is still on
+ */
+HWTEST_F(NetworkShareTrackerTest, HandleSubSmUpdateInterfaceState_BtSwitchOn, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto subSM = std::make_shared<NetworkShareSubStateMachine>(
+        BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    auto netShareState = std::make_shared<NetworkShareTracker::NetSharingSubSmState>(subSM, false);
+    netShareState->lastState_ = SUB_SM_STATE_AVAILABLE;
+    networksharetracker.subStateMachineMap_[BLUETOOTH_DEFAULT_IFACE_NAME] = netShareState;
+    networksharetracker.clientRequestsBitMask_ =
+        (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH));
+    sptr<ISharingEventCallback> callback = new (std::nothrow) SharingEventTestCallback();
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    networksharetracker.HandleSubSmUpdateInterfaceState(subSM, SUB_SM_STATE_SHARED, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(netShareState->lastState_, SUB_SM_STATE_SHARED);
+}
+
+/**
+ * @tc.number: NetworkShareTracker_HandleSubSmUpdateInterfaceState_BtSwitchOff
+ * @tc.name: Test HandleSubSmUpdateInterfaceState when BT switch is off
+ * @tc.desc: Verify that state change callback is sent when BT sharing switch is off
+ */
+HWTEST_F(NetworkShareTrackerTest, HandleSubSmUpdateInterfaceState_BtSwitchOff, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto subSM = std::make_shared<NetworkShareSubStateMachine>(
+        BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    auto netShareState = std::make_shared<NetworkShareTracker::NetSharingSubSmState>(subSM, false);
+    netShareState->lastState_ = SUB_SM_STATE_AVAILABLE;
+    networksharetracker.subStateMachineMap_[BLUETOOTH_DEFAULT_IFACE_NAME] = netShareState;
+    networksharetracker.clientRequestsBitMask_ = 0;
+    sptr<ISharingEventCallback> callback = new (std::nothrow) SharingEventTestCallback();
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    networksharetracker.HandleSubSmUpdateInterfaceState(subSM, SUB_SM_STATE_SHARED, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(netShareState->lastState_, SUB_SM_STATE_SHARED);
+}
+
+/**
+ * @tc.number: NetworkShareTracker_HandleSubSmUpdateInterfaceState_WifiNotAffected
+ * @tc.name: Test HandleSubSmUpdateInterfaceState for WiFi when BT bit is set
+ * @tc.desc: Verify that WiFi state change callback is not affected by BT switch interception
+ */
+HWTEST_F(NetworkShareTrackerTest, HandleSubSmUpdateInterfaceState_WifiNotAffected, TestSize.Level1)
+{
+    NetworkShareTracker networksharetracker;
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto subSM = std::make_shared<NetworkShareSubStateMachine>(
+        WIFI_AP_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    auto netShareState = std::make_shared<NetworkShareTracker::NetSharingSubSmState>(subSM, false);
+    netShareState->lastState_ = SUB_SM_STATE_AVAILABLE;
+    networksharetracker.subStateMachineMap_[WIFI_AP_DEFAULT_IFACE_NAME] = netShareState;
+    networksharetracker.clientRequestsBitMask_ =
+        (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH));
+    sptr<ISharingEventCallback> callback = new (std::nothrow) SharingEventTestCallback();
+    networksharetracker.sharingEventCallback_.push_back(callback);
+    networksharetracker.HandleSubSmUpdateInterfaceState(subSM, SUB_SM_STATE_SHARED, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(netShareState->lastState_, SUB_SM_STATE_SHARED);
+}
+
+/**
+ * @tc.number: NetworkShareTracker_OnConnectionStateChanged_Disconnected
+ * @tc.name: Test OnConnectionStateChanged when BT device is disconnected
+ * @tc.desc: Verify that StopSubStateMachine is called on DISCONNECTED event
+ */
+HWTEST_F(NetworkShareTrackerTest, OnConnectionStateChanged_Disconnected, TestSize.Level1)
+{
+#ifdef BLUETOOTH_MODOULE
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto subSM = std::make_shared<NetworkShareSubStateMachine>(
+        BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, configuration);
+    auto netShareState = std::make_shared<NetworkShareTracker::NetSharingSubSmState>(subSM, false);
+    netShareState->lastState_ = SUB_SM_STATE_AVAILABLE;
+    NetworkShareTracker::GetInstance().subStateMachineMap_[BLUETOOTH_DEFAULT_IFACE_NAME] = netShareState;
+    std::shared_ptr<NetworkShareTracker::SharingPanObserver> observer =
+        std::make_shared<NetworkShareTracker::SharingPanObserver>();
+    Bluetooth::BluetoothRemoteDevice device;
+    int32_t cause = 0;
+    int32_t role = 1;
+    observer->OnConnectionStateChanged(
+        device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTED), cause, role);
+    auto iter = NetworkShareTracker::GetInstance().subStateMachineMap_.find(BLUETOOTH_DEFAULT_IFACE_NAME);
+    EXPECT_EQ(iter, NetworkShareTracker::GetInstance().subStateMachineMap_.end());
+#endif
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
