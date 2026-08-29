@@ -1257,6 +1257,9 @@ void PacketControllerAdapterManager::RemovePacketController(OH_TrafficFilter_Pac
         std::lock_guard<std::mutex> lock(mapMutex_);
         auto it = controllerIdMap_.find(controller);
         if (it != controllerIdMap_.end()) {
+            if (it->second.fd >= 0) {
+                close(it->second.fd);
+            }
             controllerIdMap_.erase(it);
             delete controller;
         }
