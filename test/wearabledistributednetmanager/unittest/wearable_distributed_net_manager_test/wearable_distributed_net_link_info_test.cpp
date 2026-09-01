@@ -328,5 +328,88 @@ HWTEST_F(WearableDistributedNetLinkInfoTest, SetInterfaceDummyDown002, TestSize.
     int32_t result = info.SetInterfaceDummyDown();
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseDnsListsNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, DNSLISTS_FIRST.c_str(), 123);
+    cJSON_AddNumberToObject(json, DNSLISTS_SECOND.c_str(), 456);
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseDnsLists(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseDnsListsPartialNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, DNSLISTS_FIRST.c_str(), "114.114.114.114");
+    cJSON_AddNumberToObject(json, DNSLISTS_SECOND.c_str(), 456);
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseDnsLists(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseIfaceNameNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, IFACENAME.c_str(), 123);
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseIfaceName(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseDefaultNetMaskNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNullToObject(json, DEFAULT_NET_MASK.c_str());
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseDefaultNetMask(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseNetIfaceAddressNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, NET_IFACE_ADDRESS.c_str(), 0);
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseNetIfaceAddress(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseIpv4DeRouteAddrNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNullToObject(json, IPV4_DEFAULT_ROUTE_ADDR.c_str());
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseIpv4DeRouteAddr(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseDummyAddressNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, DUMMY_ADDRESS.c_str(), 0);
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseDummyAddress(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseIpv4AddrNetMaskNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNullToObject(json, IPV4_ADDR_NET_MASK.c_str());
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseIpv4AddrNetMask(*json), false);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(WearableDistributedNetLinkInfoTest, ParseRouteDestinationAddrNonString, TestSize.Level1)
+{
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json, ROUTE_DESTINATION_ADDR.c_str(), 0);
+    WearableDistributedNetLinkInfo info;
+    EXPECT_EQ(info.ParseRouteDestinationAddr(*json), false);
+    cJSON_Delete(json);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
