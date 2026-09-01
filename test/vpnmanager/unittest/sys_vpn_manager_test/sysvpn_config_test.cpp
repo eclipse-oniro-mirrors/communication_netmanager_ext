@@ -266,5 +266,12 @@ HWTEST_F(SysVpnConfigTest, LocalAddresses004, TestSize.Level1)
     EXPECT_FALSE(result->localAddresses_.empty());
     EXPECT_EQ(result->localAddresses_[0].address_, "10.0.0.2");
 }
+
+HWTEST_F(SysVpnConfigTest, UnmarshallingEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    sptr<SysVpnConfig> result = SysVpnConfig::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
