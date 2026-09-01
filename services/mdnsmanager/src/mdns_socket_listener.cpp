@@ -452,7 +452,8 @@ void MDnsSocketListener::ReceiveInSock(int sock)
     if (if_indextoname(static_cast<unsigned>(ifIndex), ifName) == nullptr) {
         NETMGR_EXT_LOG_E("mdns_log if_indextoname failed, errno:[%{public}d]", errno);
     }
-    if (ifName == iface_[sock] && recvLen > 0 && recv_) {
+    auto ifaceIt = iface_.find(sock);
+    if (ifaceIt != iface_.end() && ifName == ifaceIt->second && recvLen > 0 && recv_) {
         payload.resize(static_cast<size_t>(recvLen));
         recv_(sock, payload);
     }
