@@ -17,6 +17,7 @@
 
 #include "string_ex.h"
 #include "net_manager_constants.h"
+#include "netmgr_ext_log_wrapper.h"
 #include "networkshare_constants.h"
 
 namespace OHOS {
@@ -49,7 +50,7 @@ int32_t SharingEventCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &
             if (!data.ReadInt32(netId)) {
                 return IPC_PROXY_ERR;
             }
-            sptr<NetHandle> netHandle = new NetHandle(netId);
+            sptr<NetHandle> netHandle = sptr<NetHandle>::MakeSptr(netId);
             OnSharingUpstreamChanged(netHandle);
             break;
         }
