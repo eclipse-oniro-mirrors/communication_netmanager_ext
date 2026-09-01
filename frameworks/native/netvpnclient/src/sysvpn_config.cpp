@@ -63,7 +63,10 @@ SysVpnConfig* SysVpnConfig::Unmarshalling(Parcel &parcel)
 {
     // get vpnType first
     int32_t type = -1;
-    parcel.ReadInt32(type);
+    if (!parcel.ReadInt32(type)) {
+        NETMGR_EXT_LOG_E("sysvpn SysVpnConfig Unmarshalling read type failed");
+        return nullptr;
+    }
 
     switch (type) {
         case VpnType::IKEV2_IPSEC_MSCHAPv2:
