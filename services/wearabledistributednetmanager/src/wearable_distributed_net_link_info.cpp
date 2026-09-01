@@ -86,8 +86,14 @@ bool WearableDistributedNetLinkInfo::ParseDnsLists(const cJSON &json)
         NETMGR_EXT_LOG_E("Failed to find dnslists information!");
         return false;
     }
-    primaryDnsLists_ = cJSON_GetStringValue(dnsListsFirst);
-    secondDnsLists_ = cJSON_GetStringValue(dnsListsSecond);
+    char *primaryVal = cJSON_GetStringValue(dnsListsFirst);
+    char *secondVal = cJSON_GetStringValue(dnsListsSecond);
+    if (primaryVal == nullptr || secondVal == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get dnslists string value!");
+        return false;
+    }
+    primaryDnsLists_ = primaryVal;
+    secondDnsLists_ = secondVal;
     return true;
 }
 
@@ -98,7 +104,12 @@ bool WearableDistributedNetLinkInfo::ParseIfaceName(const cJSON &json)
         NETMGR_EXT_LOG_E("Failed to find ifacename information!");
         return false;
     }
-    ifaceName_ = cJSON_GetStringValue(ifaceNameItem);
+    char *val = cJSON_GetStringValue(ifaceNameItem);
+    if (val == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get ifacename string value!");
+        return false;
+    }
+    ifaceName_ = val;
     return true;
 }
 
@@ -109,7 +120,12 @@ bool WearableDistributedNetLinkInfo::ParseDefaultNetMask(const cJSON &json)
         NETMGR_EXT_LOG_E("Failed to find defaultNetMask information!");
         return false;
     }
-    defaultNetMask_ = cJSON_GetStringValue(defaultNetmaskItem);
+    char *val = cJSON_GetStringValue(defaultNetmaskItem);
+    if (val == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get defaultNetMask string value!");
+        return false;
+    }
+    defaultNetMask_ = val;
     return true;
 }
 
@@ -120,7 +136,12 @@ bool WearableDistributedNetLinkInfo::ParseNetIfaceAddress(const cJSON &json)
         NETMGR_EXT_LOG_E("Failed to find netifaceaddress information!");
         return false;
     }
-    netIfaceAddress_ = cJSON_GetStringValue(networkInterfaceAddressItem);
+    char *val = cJSON_GetStringValue(networkInterfaceAddressItem);
+    if (val == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get netifaceaddress string value!");
+        return false;
+    }
+    netIfaceAddress_ = val;
     return true;
 }
 
@@ -131,7 +152,12 @@ bool WearableDistributedNetLinkInfo::ParseIpv4DeRouteAddr(const cJSON &json)
         NETMGR_EXT_LOG_E("Failed to find ipv4derouteaddr information!");
         return false;
     }
-    ipv4DeRouteAddr_ = cJSON_GetStringValue(ipv4DefaultRouteAddressItem);
+    char *val = cJSON_GetStringValue(ipv4DefaultRouteAddressItem);
+    if (val == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get ipv4derouteaddr string value!");
+        return false;
+    }
+    ipv4DeRouteAddr_ = val;
     return true;
 }
 
@@ -142,7 +168,12 @@ bool WearableDistributedNetLinkInfo::ParseDummyAddress(const cJSON &json)
         NETMGR_EXT_LOG_E("Failed to find dummyaddress information!");
         return false;
     }
-    dummyAddress_ = cJSON_GetStringValue(dummyAddressItem);
+    char *val = cJSON_GetStringValue(dummyAddressItem);
+    if (val == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get dummyaddress string value!");
+        return false;
+    }
+    dummyAddress_ = val;
     return true;
 }
 
@@ -153,7 +184,12 @@ bool WearableDistributedNetLinkInfo::ParseIpv4AddrNetMask(const cJSON &json)
         NETMGR_EXT_LOG_E("Failed to find ipv4addrnetmask information!");
         return false;
     }
-    ipv4AddrNetMask_ = cJSON_GetStringValue(ipv4AddressNetMaskItem);
+    char *val = cJSON_GetStringValue(ipv4AddressNetMaskItem);
+    if (val == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get ipv4addrnetmask string value!");
+        return false;
+    }
+    ipv4AddrNetMask_ = val;
     return true;
 }
 
@@ -164,7 +200,12 @@ bool WearableDistributedNetLinkInfo::ParseRouteDestinationAddr(const cJSON &json
         NETMGR_EXT_LOG_E("Failed to find routedestinationaddr information!");
         return false;
     }
-    routeDestinationAddr_ = cJSON_GetStringValue(routeDestinationAddrItem);
+    char *val = cJSON_GetStringValue(routeDestinationAddrItem);
+    if (val == nullptr) {
+        NETMGR_EXT_LOG_E("Failed to get routedestinationaddr string value!");
+        return false;
+    }
+    routeDestinationAddr_ = val;
     return true;
 }
 
