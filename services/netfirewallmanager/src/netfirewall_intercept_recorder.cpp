@@ -255,7 +255,12 @@ void NetFirewallInterceptRecorder::FirewallCallback::ReportInterceptWithoutSkip(
 
     auto flushCallback = [this]() { FlushRecordCacheWithoutSkip(); };
 
-    if (recorder_->recordCacheWithoutSkip_.size() >= RECORD_CACHE_SIZE) {
+    size_t cacheSize = 0;
+    {
+        std::lock_guard<std::mutex> locker(recorder_->setRecordWithoutSkipMutex_);
+        cacheSize = recorder_->recordCacheWithoutSkip_.size();
+    }
+    if (cacheSize >= RECORD_CACHE_SIZE) {
         FlushRecordCacheWithoutSkip();
     } else {
         recordWithoutSkipTaskHandle_ = ffrtQueue_->submit_h(
