@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "cJSON.h"
 #include "gtest/gtest-message.h"
 #include "gtest/gtest-test-part.h"
 #include "gtest/hwext/gtest-ext.h"
@@ -453,6 +454,96 @@ HWTEST_F(EthernetConfigurationTest, ParserIfaceIpAndRouteTest001, TestSize.Level
     for (const auto &route : cfg->ipStatic_.routeList_) {
         EXPECT_EQ(route.prefixlen_, 0);
     }
+}
+
+HWTEST_F(EthernetConfigurationTest, ConvertJsonToConfigurationMissingFields, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "ip", "192.168.1.1");
+    auto result = ethernetConfiguration.ConvertJsonToConfiguration(json, false);
+    EXPECT_EQ(result, nullptr);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, ConvertJsonToConfigurationAllFields, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "ip", "192.168.1.1");
+    cJSON_AddStringToObject(json, "route", "192.168.1.0");
+    cJSON_AddStringToObject(json, "gateway", "192.168.1.254");
+    cJSON_AddStringToObject(json, "netmask", "255.255.255.0");
+    cJSON_AddStringToObject(json, "dns", "8.8.8.8");
+    cJSON_AddStringToObject(json, "routeMask", "255.255.255.0");
+    auto result = ethernetConfiguration.ConvertJsonToConfiguration(json, false);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->mode_, STATIC);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, ConvertJsonToConfigurationLanMode, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "ip", "192.168.1.1");
+    cJSON_AddStringToObject(json, "route", "192.168.1.0");
+    cJSON_AddStringToObject(json, "gateway", "192.168.1.254");
+    cJSON_AddStringToObject(json, "netmask", "255.255.255.0");
+    cJSON_AddStringToObject(json, "dns", "8.8.8.8");
+    cJSON_AddStringToObject(json, "routeMask", "255.255.255.0");
+    auto result = ethernetConfiguration.ConvertJsonToConfiguration(json, true);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->mode_, LAN_STATIC);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, ReadEthernetInterfacesNonStringIface, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, std::set<NetCap>> devCaps;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    cJSON *json = cJSON_CreateArray();
+    cJSON *item = cJSON_CreateObject();
+    cJSON_AddNumberToObject(item, "iface", 123);
+    cJSON_AddItemToArray(json, item);
+
+    bool result = ethernetConfiguration.ReadEthernetInterfaces(devCaps, devCfgs, json);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(devCfgs.size(), 0);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, ReadEthernetInterfacesNonStringLanIface, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, std::set<NetCap>> devCaps;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    cJSON *json = cJSON_CreateArray();
+    cJSON *item = cJSON_CreateObject();
+    cJSON_AddNumberToObject(item, "laniface", 123);
+    cJSON_AddItemToArray(json, item);
+
+    bool result = ethernetConfiguration.ReadEthernetInterfaces(devCaps, devCfgs, json);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(devCfgs.size(), 0);
+    cJSON_Delete(json);
+}
+
+HWTEST_F(EthernetConfigurationTest, ReadEthernetInterfacesMissingIface, TestSize.Level1)
+{
+    EthernetConfiguration ethernetConfiguration;
+    std::map<std::string, std::set<NetCap>> devCaps;
+    std::map<std::string, sptr<InterfaceConfiguration>> devCfgs;
+    cJSON *json = cJSON_CreateArray();
+    cJSON *item = cJSON_CreateObject();
+    cJSON_AddStringToObject(item, "other", "value");
+    cJSON_AddItemToArray(json, item);
+
+    bool result = ethernetConfiguration.ReadEthernetInterfaces(devCaps, devCfgs, json);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(devCfgs.size(), 0);
+    cJSON_Delete(json);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
