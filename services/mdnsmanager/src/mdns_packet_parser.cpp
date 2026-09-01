@@ -28,6 +28,7 @@ constexpr uint8_t DNS_STR_PTR_U8_MASK = 0xc0;
 constexpr uint16_t DNS_STR_PTR_U16_MASK = 0xc000;
 constexpr uint16_t DNS_STR_PTR_LENGTH = 0x3f;
 constexpr uint8_t DNS_STR_EOL = '\0';
+constexpr uint16_t MDNS_MAX_RECORD_COUNT = 256;
 
 template <class T> void WriteRawData(const T &data, MDnsPayload &payload)
 {
@@ -135,6 +136,13 @@ const uint8_t *MDnsPayloadParser::ParseHeader(const uint8_t *begin, const MDnsPa
     begin = ReadNUint16(begin, header.ancount);
     begin = ReadNUint16(begin, header.nscount);
     begin = ReadNUint16(begin, header.arcount);
+    if (header.qdcount > MDNS_MAX_RECORD_COUNT || header.ancount > MDNS_MAX_RECORD_COUNT ||
+        header.nscount > MDNS_MAX_RECORD_COUNT || header.arcount > MDNS_MAX_RECORD_COUNT) {
+        NETMGR_EXT_LOG_E("mdns_log header count exceeds limit: qd=%{public}u an=%{public}u ns=%{public}u ar=%{public}u",
+                         header.qdcount, header.ancount, header.nscount, header.arcount);
+        errorFlags_ |= PARSE_ERROR_BAD_SIZE;
+        return begin;
+    }
     return begin;
 }
 
