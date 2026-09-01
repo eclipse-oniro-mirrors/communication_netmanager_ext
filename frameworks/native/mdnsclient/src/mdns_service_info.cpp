@@ -78,6 +78,7 @@ TxtRecord MDnsServiceInfo::GetAttrMap()
         pos += 1;
         if (recordLen == 0) {
             NETMGR_EXT_LOG_W("Zero sized txt record detected");
+            continue;
         } else if (pos + recordLen > txtRecord.size()) {
             NETMGR_EXT_LOG_W("Bad record size");
             recordLen = txtRecord.size() - pos;
