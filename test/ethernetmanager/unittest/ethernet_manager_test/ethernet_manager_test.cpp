@@ -1406,6 +1406,19 @@ HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfgTest001, TestSize.Level1)
     EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceCfg(iface, cfg), NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(EthernetManagerTest, UpdateDevInterfaceCfgNullIfcfg, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    std::string iface = "null_ifcfg_iface";
+    ethernetmanagement->DevInterfaceAdd(iface);
+    ethernetmanagement->UpdateInterfaceState(iface, true);
+    auto devState = ethernetmanagement->devs_[iface];
+    ASSERT_NE(devState, nullptr);
+    devState->ifCfg_ = nullptr;
+    sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
+    EXPECT_EQ(ethernetmanagement->UpdateDevInterfaceCfg(iface, cfg), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+}
+
 HWTEST_F(EthernetManagerTest, UpdateDevInterfaceLinkInfoTest001, TestSize.Level1)
 {
     auto ethernetmanagement = std::make_shared<EthernetManagement>();
@@ -1486,6 +1499,33 @@ HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgTest001, TestSize.Level1)
     std::string iface = "123";
     sptr<InterfaceConfiguration> ifaceConfig = new InterfaceConfiguration();
     EXPECT_EQ(ethernetmanagement->GetDevInterfaceCfg(iface, ifaceConfig), ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+}
+
+HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgNullIfcfgLinkDown, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    std::string iface = "null_ifcfg_linkdown";
+    ethernetmanagement->DevInterfaceAdd(iface);
+    auto devState = ethernetmanagement->devs_[iface];
+    ASSERT_NE(devState, nullptr);
+    devState->ifCfg_ = nullptr;
+    sptr<InterfaceConfiguration> ifaceConfig;
+    EXPECT_EQ(ethernetmanagement->GetDevInterfaceCfg(iface, ifaceConfig),
+              ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+}
+
+HWTEST_F(EthernetManagerTest, GetDevInterfaceCfgNullIfcfgLinkUp, TestSize.Level1)
+{
+    auto ethernetmanagement = std::make_shared<EthernetManagement>();
+    std::string iface = "null_ifcfg_linkup";
+    ethernetmanagement->DevInterfaceAdd(iface);
+    ethernetmanagement->UpdateInterfaceState(iface, true);
+    auto devState = ethernetmanagement->devs_[iface];
+    ASSERT_NE(devState, nullptr);
+    devState->ifCfg_ = nullptr;
+    sptr<InterfaceConfiguration> ifaceConfig;
+    EXPECT_EQ(ethernetmanagement->GetDevInterfaceCfg(iface, ifaceConfig),
+              ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 }
 
 HWTEST_F(EthernetManagerTest, IsIfaceActiveTest001, TestSize.Level1)

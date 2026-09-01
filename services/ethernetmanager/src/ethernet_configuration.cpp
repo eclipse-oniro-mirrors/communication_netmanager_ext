@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,9 +99,17 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
         cJSON *lanIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_LANIFACE);
         if (lanIface == nullptr) {
             cJSON *ethIface = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_IFACE);
+            if (ethIface == nullptr || cJSON_GetStringValue(ethIface) == nullptr) {
+                NETMGR_EXT_LOG_E("ReadEthernetInterfaces iface field missing or invalid");
+                continue;
+            }
             iface = cJSON_GetStringValue(ethIface);
             isLan = false;
         } else {
+            if (cJSON_GetStringValue(lanIface) == nullptr) {
+                NETMGR_EXT_LOG_E("ReadEthernetInterfaces laniface value invalid");
+                continue;
+            }
             iface = cJSON_GetStringValue(lanIface);
             isLan = true;
         }
@@ -197,17 +205,28 @@ sptr<InterfaceConfiguration> EthernetConfiguration::ConvertJsonToConfiguration(c
     } else {
         config->mode_ = STATIC;
     }
-    std::string ip = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_IP)->valuestring;
-    std::string route = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE)->valuestring;
-    std::string gateway = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_GATEWAY)->valuestring;
-    std::string netmask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_NETMASK)->valuestring;
-    std::string dns = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_DNS)->valuestring;
+    cJSON *ipItem = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_IP);
+    cJSON *routeItem = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE);
+    cJSON *gatewayItem = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_GATEWAY);
+    cJSON *netmaskItem = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_NETMASK);
+    cJSON *dnsItem = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_DNS);
+    cJSON *routeMaskItem = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE_MASK);
+    if (ipItem == nullptr || routeItem == nullptr || gatewayItem == nullptr ||
+        netmaskItem == nullptr || dnsItem == nullptr || routeMaskItem == nullptr) {
+        NETMGR_EXT_LOG_E("ConvertJsonToConfiguration required field missing");
+        return nullptr;
+    }
+    std::string ip = ipItem->valuestring;
+    std::string route = routeItem->valuestring;
+    std::string gateway = gatewayItem->valuestring;
+    std::string netmask = netmaskItem->valuestring;
+    std::string dns = dnsItem->valuestring;
     StaticConfiguration::ExtractNetAddrBySeparator(ip, config->ipStatic_.ipAddrList_);
     StaticConfiguration::ExtractNetAddrBySeparator(route, config->ipStatic_.routeList_);
     StaticConfiguration::ExtractNetAddrBySeparator(gateway, config->ipStatic_.gatewayList_);
     StaticConfiguration::ExtractNetAddrBySeparator(netmask, config->ipStatic_.netMaskList_);
     StaticConfiguration::ExtractNetAddrBySeparator(dns, config->ipStatic_.dnsServers_);
-    std::string routeMask = cJSON_GetObjectItem(jsonData, CONFIG_KEY_ETH_ROUTE_MASK)->valuestring;
+    std::string routeMask = routeMaskItem->valuestring;
     ParserIfaceIpAndRoute(config, routeMask);
     return config;
 }

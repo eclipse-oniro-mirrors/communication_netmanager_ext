@@ -137,5 +137,27 @@ HWTEST_F(MDnsProtocolTest, MDnsPayloadParserTest006, TestSize.Level1)
     auto msg = parser.FromBytes(payload);
     EXPECT_NE(parser.GetError(), ERR_OK);
 }
+
+HWTEST_F(MDnsProtocolTest, MDnsPayloadParserTest007, TestSize.Level1)
+{
+    MDnsPayloadParser parser;
+    uint16_t exceedCount = htons(257);
+    MDnsPayload payload;
+    payload.push_back(0x00);
+    payload.push_back(0x00);
+    payload.push_back(0x00);
+    payload.push_back(0x00);
+    payload.push_back(0x00);
+    payload.push_back(0x01);
+    auto *p = reinterpret_cast<const uint8_t *>(&exceedCount);
+    payload.push_back(*p);
+    payload.push_back(*(p + 1));
+    payload.push_back(0x00);
+    payload.push_back(0x00);
+    payload.push_back(0x00);
+    payload.push_back(0x00);
+    auto msg = parser.FromBytes(payload);
+    EXPECT_NE(parser.GetError(), ERR_OK);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

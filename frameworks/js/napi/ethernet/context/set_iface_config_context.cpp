@@ -55,11 +55,7 @@ void SetIfaceConfigContext::ParseParams(napi_value *params, size_t paramsCount)
         return;
     }
     iface_ = NapiUtils::GetStringFromValueUtf8(GetEnv(), params[ARG_NUM_0]);
-    config_ = new (std::nothrow) InterfaceConfiguration();
-    if (config_ == nullptr) {
-        SetParseOK(false);
-        return;
-    }
+    config_ = sptr<InterfaceConfiguration>::MakeSptr();
     config_->mode_ = static_cast<IPSetMode>(NapiUtils::GetInt32Property(GetEnv(), params[ARG_NUM_1], "mode"));
     std::string ipAddresses = NapiUtils::GetStringPropertyUtf8(GetEnv(), params[ARG_NUM_1], "ipAddr");
     StaticConfiguration::ExtractNetAddrBySeparator(ipAddresses, config_->ipStatic_.ipAddrList_);

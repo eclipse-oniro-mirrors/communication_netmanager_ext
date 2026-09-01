@@ -305,11 +305,16 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is unlink", iface.c_str());
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
-    if (!ModeInputCheck(devState->GetIfcfg()->mode_, cfg->mode_)) {
+    sptr<InterfaceConfiguration> devIfcfg = devState->GetIfcfg();
+    if (devIfcfg == nullptr) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device ifcfg is nullptr", iface.c_str());
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    if (!ModeInputCheck(devIfcfg->mode_, cfg->mode_)) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device can not exchange between WAN and LAN", iface.c_str());
         return NETMANAGER_ERR_INVALID_PARAMETER;
     }
-    if (!CanModifyCheck(devState->GetIfcfg()->mode_, cfg->mode_)) {
+    if (!CanModifyCheck(devIfcfg->mode_, cfg->mode_)) {
         NETMGR_EXT_LOG_E("The iface[%{public}s] device is not allowed to update", iface.c_str());
         return NETMANAGER_ERR_PERMISSION_DENIED;
     }
@@ -317,7 +322,7 @@ int32_t EthernetManagement::UpdateDevInterfaceCfg(const std::string &iface, sptr
         NETMGR_EXT_LOG_E("EthernetManagement write user configurations error!");
         return ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL;
     }
-    if (devState->GetIfcfg()->mode_ != cfg->mode_) {
+    if (devIfcfg->mode_ != cfg->mode_) {
         ProcessChangeMode(iface, devState, cfg);
     } else if (cfg->mode_ == DHCP) {
         devState->UpdateNetHttpProxy(cfg->httpProxy_);
@@ -460,14 +465,24 @@ int32_t EthernetManagement::GetDevInterfaceCfg(const std::string &iface, sptr<In
         return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
     if (!fit->second->GetLinkUp()) {
-        ifaceConfig = fit->second->GetIfcfg();
+        sptr<InterfaceConfiguration> ifcfg = fit->second->GetIfcfg();
+        if (ifcfg == nullptr) {
+            NETMGR_EXT_LOG_E("The iface[%{public}s] device ifcfg is nullptr", iface.c_str());
+            return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+        }
+        ifaceConfig = ifcfg;
         return NETMANAGER_EXT_SUCCESS;
     }
     NetLinkInfo netLinkInfo;
     if (!fit->second->GetLinkInfo(netLinkInfo)) {
         return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
-    auto temp = ethConfiguration_->MakeInterfaceConfiguration(fit->second->GetIfcfg(), netLinkInfo);
+    sptr<InterfaceConfiguration> devIfcfg = fit->second->GetIfcfg();
+    if (devIfcfg == nullptr) {
+        NETMGR_EXT_LOG_E("The iface[%{public}s] device ifcfg is nullptr", iface.c_str());
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    auto temp = ethConfiguration_->MakeInterfaceConfiguration(devIfcfg, netLinkInfo);
     if (temp == nullptr) {
         return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
     }
