@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "sharing_event_callback_stub.h"
+#include "net_manager_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -65,6 +66,30 @@ HWTEST_F(SharingEventCallbackStubTest, OnRemoteRequest, TestSize.Level1)
     EXPECT_NE(result, RESULT_ZERO);
     result = instance_->OnRemoteRequest(1, data, reply, option);
     EXPECT_NE(result, RESULT_ZERO);
+}
+
+HWTEST_F(SharingEventCallbackStubTest, OnSharingUpstreamChanged, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(ISharingEventCallback::GetDescriptor());
+    int32_t netId = 100;
+    data.WriteInt32(netId);
+    int32_t result = instance_->OnRemoteRequest(
+        static_cast<uint32_t>(TetheringEventInterfaceCode::SHARING_UPSTREAM_CHANGED), data, reply, option);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(SharingEventCallbackStubTest, OnSharingUpstreamChangedReadFail, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(ISharingEventCallback::GetDescriptor());
+    int32_t result = instance_->OnRemoteRequest(
+        static_cast<uint32_t>(TetheringEventInterfaceCode::SHARING_UPSTREAM_CHANGED), data, reply, option);
+    EXPECT_EQ(result, IPC_PROXY_ERR);
 }
 
 } // namespace NetManagerStandard
