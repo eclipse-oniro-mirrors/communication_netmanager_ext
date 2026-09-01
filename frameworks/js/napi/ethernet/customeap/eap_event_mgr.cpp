@@ -70,15 +70,10 @@ napi_value NetEapPostBackCallback::CreateResult(const napi_env& env, const sptr<
 bool NetEapPostBackCallback::CheckAndNotifyApp(NetType netType, const int32_t key, const sptr<EapData> &eapData)
 {
     std::shared_lock<std::shared_mutex> lock(g_regInfoMutex);
+    auto regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
     auto &regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
-    auto netTypeIter = regInfo.find(asyncEvent->netType_);
-    if (netTypeIter == regInfo.end()) {
-        NETMANAGER_EXT_LOGE("%{public}s, netType %{public}d not find register info.", __func__, asyncEvent->netType_);
-        EndSendTask(asyncEvent, false, refCount);
-        return;
-    }
-    auto it = netTypeIter->second.find(asyncEvent->key_);
-    if (it == netTypeIter->second.end()) {
+    auto netTypeIter = regInfo.find(netType);
+        if (netTypeIter == regInfo.end()) {
         NETMANAGER_EXT_LOGE("%{public}s, netType %{public}d not find register info.", __func__, netType);
         return false;
     }
@@ -105,9 +100,16 @@ void NetEapPostBackCallback::SendTask(const std::shared_ptr<AsyncEventData> &asy
     uint32_t refCount = INVALID_REF_COUNT;
     napi_status res;
     InitScope(asyncEvent);
-    auto regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
-    auto it = regInfo[asyncEvent->netType_].find(asyncEvent->key_);
-    if (it == regInfo[asyncEvent->netType_].end()) {
+    std::shared_lock<std::shared_mutex> lock(g_regInfoMutex);
+    auto &regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
+    auto netTypeIter = regInfo.find(asyncEvent->netType_);
+    if (netTypeIter == regInfo.end()) {
+        NETMANAGER_EXT_LOGE("%{public}s, netType %{public}d not find register info.", __func__, asyncEvent->netType_);
+        EndSendTask(asyncEvent, false, refCount);
+        return;
+    }
+    auto it = netTypeIter->second.find(asyncEvent->key_);
+    if (it == netTypeIter->second.end()) {
         NETMANAGER_EXT_LOGE("%{public}s, event has been unregistered.", __func__);
         EndSendTask(asyncEvent, false, refCount);
         return;
