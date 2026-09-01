@@ -70,9 +70,15 @@ napi_value NetEapPostBackCallback::CreateResult(const napi_env& env, const sptr<
 bool NetEapPostBackCallback::CheckAndNotifyApp(NetType netType, const int32_t key, const sptr<EapData> &eapData)
 {
     std::shared_lock<std::shared_mutex> lock(g_regInfoMutex);
-    auto regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
-    auto netTypeIter = regInfo.find(netType);
+    auto &regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
+    auto netTypeIter = regInfo.find(asyncEvent->netType_);
     if (netTypeIter == regInfo.end()) {
+        NETMANAGER_EXT_LOGE("%{public}s, netType %{public}d not find register info.", __func__, asyncEvent->netType_);
+        EndSendTask(asyncEvent, false, refCount);
+        return;
+    }
+    auto it = netTypeIter->second.find(asyncEvent->key_);
+    if (it == netTypeIter->second.end()) {
         NETMANAGER_EXT_LOGE("%{public}s, netType %{public}d not find register info.", __func__, netType);
         return false;
     }
