@@ -71,9 +71,8 @@ bool NetEapPostBackCallback::CheckAndNotifyApp(NetType netType, const int32_t ke
 {
     std::shared_lock<std::shared_mutex> lock(g_regInfoMutex);
     auto regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
-    auto &regInfo = EapEventMgr::GetInstance().GetRegisterInfoMap();
     auto netTypeIter = regInfo.find(netType);
-        if (netTypeIter == regInfo.end()) {
+    if (netTypeIter == regInfo.end()) {
         NETMANAGER_EXT_LOGE("%{public}s, netType %{public}d not find register info.", __func__, netType);
         return false;
     }
