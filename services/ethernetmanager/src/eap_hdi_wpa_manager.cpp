@@ -99,6 +99,15 @@ static std::string EscapeWpaValue(const std::string &val)
     return res;
 }
 
+static void SecureClearString(std::string &str)
+{
+    if (!str.empty()) {
+        volatile char *ptr = &(str[0]);
+        memset_s(const_cast<char *>(ptr), str.size(), 0, str.size());
+    }
+    str.clear();
+}
+
 EapHdiWpaManager::EapHdiWpaManager()
 {
     memset_s(&ethCallback_, sizeof(ethCallback_), 0, sizeof(ethCallback_));

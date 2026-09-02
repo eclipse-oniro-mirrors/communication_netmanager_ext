@@ -234,7 +234,7 @@ int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrLi
             MacAddressInfo macAddressInfo;
             auto spMacAddr = GetMacAddr(iface);
             if (spMacAddr.empty()) {
-                NETMGR_EXT_LOG_E("The iface[%{public}s] device does not find MAC address", iface.c_str());
+                NETMGR_EXT_LOG_E("The iface[%{private}s] device does not find MAC address", iface.c_str());
                 continue;
             }
             macAddressInfo.iface_ = iface;
@@ -251,7 +251,7 @@ int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrLi
 
 std::string EthernetManagement::GetMacAddr(const std::string &iface)
 {
-    NETMGR_EXT_LOG_D("GetMacAddr when iface is [%{public}s]", iface.c_str());
+    NETMGR_EXT_LOG_D("GetMacAddr when iface is [%{private}s]", iface.c_str());
     int fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
     if (fd < 0) {
         NETMGR_EXT_LOG_E("create unix SOCK_STREAM socket error: %{public}d", errno);

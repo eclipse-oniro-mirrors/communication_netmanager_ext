@@ -102,6 +102,7 @@ private:
         const std::set<TrafficFilterHookPoint>& usedHookPoints);
     void RemoveRedirectorFromDataStructures(const std::string& redirectorId, const std::string& bundleName);
     void RebuildGlobalJumpRulesAfterDestroy(const std::set<TrafficFilterHookPoint>& usedHookPoints);
+    bool HasOtherRedirectorsForUid(int32_t callingUid);
     int32_t RollbackRedirectorRules(const std::shared_ptr<NetTrafficFilterRedirectorContext>& redirector,
         const std::string& chainName, const std::vector<TrafficFilterRedirectRule>& oldRules,
         const std::set<TrafficFilterHookPoint>& affectedHookPoints);
@@ -130,7 +131,7 @@ private:
     mutable std::mutex mutex_;
     std::map<int32_t, sptr<TrafficFilterHapObserver>> uidToObserverMap_;
     mutable std::mutex observerMutex_;
-    bool isGloballyEnabled_ = true;
+    std::atomic<bool> isGloballyEnabled_{true};
 };
 
 } // namespace NetManagerStandard

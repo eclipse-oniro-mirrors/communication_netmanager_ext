@@ -292,7 +292,10 @@ int32_t NetFirewallProxy::RegisterInterceptRecordsCallback(const sptr<INetInterc
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     // LCOV_EXCL_STOP
-    data.WriteRemoteObject(callback->AsObject());
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        NETMGR_EXT_LOG_E("RegisterInterceptRecordsCallback WriteRemoteObject failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
 
     //LCOV_EXCL_START
     sptr<IRemoteObject> remote = Remote();
@@ -329,7 +332,10 @@ int32_t NetFirewallProxy::UnregisterInterceptRecordsCallback(const sptr<INetInte
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
     }
     // LCOV_EXCL_STOP
-    data.WriteRemoteObject(callback->AsObject());
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        NETMGR_EXT_LOG_E("UnregisterInterceptRecordsCallback WriteRemoteObject failed");
+        return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
+    }
 
     sptr<IRemoteObject> remote = Remote();
     // LCOV_EXCL_START
