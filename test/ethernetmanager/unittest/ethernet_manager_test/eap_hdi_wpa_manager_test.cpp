@@ -89,51 +89,123 @@ HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest001, TestSize.Level1)
 {
     std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
     EthEapProfile profile;
-    std::string ifName = "eth0";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+ 
     profile.eapMethod = EapMethod::EAP_PEAP;
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.eapMethod = EapMethod::EAP_TTLS;
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.eapMethod = EapMethod::EAP_TLS;
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.eapMethod = EapMethod::EAP_PWD;
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.eapMethod = EapMethod::EAP_NONE;
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
 }
-
+ 
 HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest002, TestSize.Level1)
 {
     std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
     EthEapProfile profile;
-    std::string ifName = "eth0";
     profile.identity = "identity";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.password.append("password", strlen("password"));
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.eapMethod = EapMethod::EAP_PEAP;
     profile.caPath = "";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.caPath = "caPath";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.phase2Method = Phase2Method::PHASE2_NONE;
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.phase2Method = Phase2Method::PHASE2_PAP;
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.eapMethod = EapMethod::EAP_TLS;
     profile.caPath = "";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.caPath = "caPath";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.clientCertAliases = "";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.clientCertAliases = "clientCertAliases";
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.certPassword.clear();
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
     profile.certPassword.append("certPassword", strlen("certPassword"));
-    EXPECT_EQ(manager_->SetEapConfig(profile, ifName), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+}
+ 
+HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest003, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthEapProfile profile;
+    profile.eapMethod = EapMethod::EAP_UNAUTH_TLS;
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+    profile.caCertAliases = "caCertAliases";
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+    profile.altSubjectMatch = "altSubjectMatch";
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+    profile.domainSuffixMatch = "domainSuffixMatch";
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+    profile.eapMethod = EapMethod::EAP_SIM;
+    profile.realm = "realm";
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+    profile.eapMethod = EapMethod::EAP_AKA;
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+    profile.eapMethod = EapMethod::EAP_AKA_PRIME;
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+}
+ 
+HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest004, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthEapProfile profile;
+    profile.eapMethod = EapMethod::EAP_PEAP;
+    profile.anonymousIdentity = "anonymousIdentity";
+    profile.caCertAliases = "caCertAliases";
+    profile.altSubjectMatch = "altSubjectMatch";
+    profile.domainSuffixMatch = "domainSuffixMatch";
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+    profile.eapMethod = EapMethod::EAP_TTLS;
+    EXPECT_EQ(manager_->SetEapConfig(profile), NETMANAGER_EXT_SUCCESS);
+}
+ 
+HWTEST_F(EapHdiWpaManagerTest, AppendIfNotEmptyTest001, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    manager_->setNetCmd_.clear();
+    manager_->AppendIfNotEmpty("key=", "");
+    EXPECT_TRUE(manager_->setNetCmd_.empty());
+    manager_->AppendIfNotEmpty("key=", "value");
+    EXPECT_FALSE(manager_->setNetCmd_.empty());
+}
+ 
+HWTEST_F(EapHdiWpaManagerTest, AppendCommonTlsParamsTest001, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthEapProfile profile;
+    manager_->setNetCmd_.clear();
+    manager_->AppendCommonTlsParams(profile);
+    EXPECT_TRUE(manager_->setNetCmd_.empty());
+    profile.caPath = "caPath";
+    manager_->AppendCommonTlsParams(profile);
+    EXPECT_FALSE(manager_->setNetCmd_.empty());
+    profile.caCertAliases = "caCertAliases";
+    manager_->setNetCmd_.clear();
+    manager_->AppendCommonTlsParams(profile);
+    EXPECT_FALSE(manager_->setNetCmd_.empty());
+    profile.altSubjectMatch = "altSubjectMatch";
+    profile.domainSuffixMatch = "domainSuffixMatch";
+    manager_->AppendCommonTlsParams(profile);
+    EXPECT_FALSE(manager_->setNetCmd_.empty());
+}
+
+HWTEST_F(EapHdiWpaManagerTest, Phase2MethodToStrTest002, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EXPECT_EQ(manager_->Phase2MethodToStr(EapMethod::EAP_PEAP, Phase2Method::PHASE2_AKA_PRIME), "auth=AKA'");
+    EXPECT_EQ(manager_->Phase2MethodToStr(EapMethod::EAP_PEAP, Phase2Method::PHASE2_AKA), "auth=AKA");
+    EXPECT_EQ(manager_->Phase2MethodToStr(EapMethod::EAP_TTLS, Phase2Method::PHASE2_GTC), "autheap=GTC");
 }
  
 HWTEST_F(EapHdiWpaManagerTest, RemoveHistoryCtrl001, TestSize.Level1)

@@ -51,6 +51,11 @@ static constexpr const char* ITEM_PASSWORD = "password=";
 static constexpr const char* ITEM_CA_CERT = "ca_cert=";
 static constexpr const char* ITEM_CLIENT_CERT = "client_cert=";
 static constexpr const char* ITEM_PRIVATE_KEY = "private_key=";
+static constexpr const char* ITEM_PRIVATE_KEY_PASSWD = "private_key_passwd=";
+static constexpr const char* ITEM_ANONYMOUS_IDENTITY = "anonymous_identity=";
+static constexpr const char* ITEM_ALT_SUBJECT_MATCH = "altsubject_match=";
+static constexpr const char* ITEM_DOMAIN_SUFFIX_MATCH = "domain_suffix_match=";
+static constexpr const char* ITEM_REALM = "realm=";
 static const std::string ITEM_QUOTE = "\"";
 static constexpr const char* SET_NETWORK_CMD = "SET_NETWORK ";
 static constexpr const char* REAUTHENTICATE_CMD = "REAUTHENTICATE";
@@ -72,7 +77,7 @@ static std::map<Phase2Method, std::string> PHASE2_METHOD_STR_MAP = {
     { Phase2Method::PHASE2_GTC, "GTC" },
     { Phase2Method::PHASE2_SIM, "SIM" },
     { Phase2Method::PHASE2_AKA, "AKA" },
-    { Phase2Method::PHASE2_AKA_PRIME, "AKA" },
+    { Phase2Method::PHASE2_AKA_PRIME, "AKA'" },
 };
 static std::map<EapMethod, std::string> EAP_METHOD_STR_MAP = {
     { EapMethod::EAP_NONE, "NONE" },
@@ -141,7 +146,7 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     RemoveHistoryCtrl();
-    if (SetEapConfig(profile, ifName) != EAP_ERRCODE_SUCCESS) {
+    if (SetEapConfig(profile) != EAP_ERRCODE_SUCCESS) {
         setNetCmd_.assign(setNetCmd_.size(), '\0');
         setNetCmd_.clear();
         return EAP_ERRCODE_INTERNAL_ERROR;
@@ -209,7 +214,25 @@ void EapHdiWpaManager::RemoveHistoryCtrl()
     }
 }
 
-int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::string& ifName)
+void EapHdiWpaManager::AppendIfNotEmpty(const std::string& key, const std::string& value)
+{
+    if (!value.empty()) {
+        setNetCmd_.append(key + ITEM_QUOTE + EscapeWpaValue(value) + ITEM_QUOTE + ITEM_LINE);
+    }
+}
+ 
+void EapHdiWpaManager::AppendCommonTlsParams(const EthEapProfile& config)
+{
+    if (!config.caCertAliases.empty()) {
+        AppendIfNotEmpty(ITEM_CA_CERT, config.caCertAliases);
+    } else {
+        AppendIfNotEmpty(ITEM_CA_CERT, config.caPath);
+    }
+    AppendIfNotEmpty(ITEM_ALT_SUBJECT_MATCH, config.altSubjectMatch);
+    AppendIfNotEmpty(ITEM_DOMAIN_SUFFIX_MATCH, config.domainSuffixMatch);
+}
+ 
+int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config)
 {
     setNetCmd_ = SET_NETWORK_CMD;
     std::string fileContext;
@@ -220,35 +243,30 @@ int32_t EapHdiWpaManager::SetEapConfig(const EthEapProfile& config, const std::s
     if (EAP_METHOD_STR_MAP.find(config.eapMethod) != EAP_METHOD_STR_MAP.end()) {
         fileContext.append(ITEM_EAP + EAP_METHOD_STR_MAP[config.eapMethod] + ITEM_LINE);
     }
-    if (!config.identity.empty()) {
-        setNetCmd_.append(ITEM_IDENTITY + ITEM_QUOTE + EscapeWpaValue(config.identity) + ITEM_QUOTE + ITEM_LINE);
-    }
-    if (!config.password.empty()) {
-        setNetCmd_.append(ITEM_PASSWORD + ITEM_QUOTE + EscapeWpaValue(config.password) + ITEM_QUOTE + ITEM_LINE);
-    }
+    AppendIfNotEmpty(ITEM_IDENTITY, config.identity);
+    AppendIfNotEmpty(ITEM_PASSWORD, config.password);
     switch (config.eapMethod) {
         case EapMethod::EAP_PEAP:
         case EapMethod::EAP_TTLS:
-            if (!config.caPath.empty()) {
-                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + EscapeWpaValue(config.caPath) + ITEM_QUOTE + ITEM_LINE);
-            }
+            AppendIfNotEmpty(ITEM_ANONYMOUS_IDENTITY, config.anonymousIdentity);
+            AppendCommonTlsParams(config);
             if (config.phase2Method != Phase2Method::PHASE2_NONE) {
                 setNetCmd_.append(ITEM_PHASE2 + ITEM_QUOTE + Phase2MethodToStr(config.eapMethod, config.phase2Method)
                     + ITEM_QUOTE + ITEM_LINE);
             }
             break;
         case EapMethod::EAP_TLS:
-            if (!config.caPath.empty()) {
-                setNetCmd_.append(ITEM_CA_CERT + ITEM_QUOTE + EscapeWpaValue(config.caPath) + ITEM_QUOTE + ITEM_LINE);
-            }
-            if (!config.clientCertAliases.empty()) {
-                setNetCmd_.append(ITEM_CLIENT_CERT + ITEM_QUOTE + EscapeWpaValue(config.clientCertAliases)
-                    + ITEM_QUOTE + ITEM_LINE);
-            }
-            if (!config.certPassword.empty()) {
-                setNetCmd_.append(ITEM_PRIVATE_KEY + ITEM_QUOTE + EscapeWpaValue(config.certPassword)
-                    + ITEM_QUOTE + ITEM_LINE);
-            }
+            AppendIfNotEmpty(ITEM_CLIENT_CERT, config.clientCertAliases);
+            AppendIfNotEmpty(ITEM_PRIVATE_KEY, config.clientCertAliases);
+            AppendIfNotEmpty(ITEM_PRIVATE_KEY_PASSWD, config.certPassword);
+            [[fallthrough]];
+        case EapMethod::EAP_UNAUTH_TLS:
+            AppendCommonTlsParams(config);
+            break;
+        case EapMethod::EAP_SIM:
+        case EapMethod::EAP_AKA:
+        case EapMethod::EAP_AKA_PRIME:
+            AppendIfNotEmpty(ITEM_REALM, config.realm);
             break;
         default:
             break;
