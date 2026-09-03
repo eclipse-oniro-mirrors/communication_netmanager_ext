@@ -93,6 +93,10 @@ void NetVpnImpl::NotifyConnectState(const VpnConnectState &state)
         connChangedCb_->OnMultiVpnConnStateChanged(state, vpnId);
     }
 #endif // SUPPORT_SYSVPN
+    if (vpnConfig_ == nullptr) {
+        NETMGR_EXT_LOG_E("NotifyConnectState vpnConfig_ is null.");
+        return;
+    }
     sptr<VpnState> vpnState = sptr<VpnState>::MakeSptr(GetInterfaceName(), GetVpnIfAddr(), vpnId,
                                                        IsGlobalVpn(), vpnConfig_->routes_,
                                                        vpnConfig_->dnsAddresses_);
