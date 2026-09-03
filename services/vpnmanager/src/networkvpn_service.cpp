@@ -2797,6 +2797,8 @@ void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, cons
         std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
         callbacks = vpnEventCallbacks_;
     }
+    std::string bundleName = GetBundleName();
+
     std::for_each(callbacks.begin(), callbacks.end(),
         [&state, &vpnState, &bundleName](const auto &callback) {
             sptr<VpnState> vpnStateBak(vpnState);
