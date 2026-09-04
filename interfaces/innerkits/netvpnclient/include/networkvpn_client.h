@@ -16,6 +16,7 @@
 #ifndef NETWORKVPN_CLIENT_H
 #define NETWORKVPN_CLIENT_H
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -339,7 +340,7 @@ private:
     std::shared_mutex clientVpnConfigmutex_;
     RecoverCallbackPara clientVpnConfig_;
     bool saStart_ = false;
-    bool isVpnSetUp_ = false;
+    std::atomic<bool> isVpnSetUp_ = false;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

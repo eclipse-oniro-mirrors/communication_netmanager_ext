@@ -2792,10 +2792,14 @@ void NetworkVpnService::RemoveALLClientDeathRecipient()
 
 void NetworkVpnService::OnVpnConnStateChanged(const VpnConnectState &state, const sptr<VpnState> &vpnState)
 {
-    std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
+    std::vector<sptr<IVpnEventCallback>> callbacks;
+    {
+        std::shared_lock<ffrt::shared_mutex> lock(vpnEventCallbacksMutex_);
+        callbacks = vpnEventCallbacks_;
+    }
     std::string bundleName = GetBundleName();
 
-    std::for_each(vpnEventCallbacks_.begin(), vpnEventCallbacks_.end(),
+    std::for_each(callbacks.begin(), callbacks.end(),
         [&state, &vpnState, &bundleName](const auto &callback) {
             sptr<VpnState> vpnStateBak(vpnState);
             vpnStateBak->vpnPacketName_ = bundleName;

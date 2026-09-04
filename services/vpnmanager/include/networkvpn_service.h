@@ -491,11 +491,11 @@ private:
     std::mutex cesMutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     std::atomic<bool> registeredCommonEvent_ = false;
-    int32_t hasOpenedVpnUid_ = 0;
+    std::atomic<int32_t> hasOpenedVpnUid_ = 0;
     std::string currentVpnBundleName_;
     ffrt::shared_mutex vpnPidMapMutex_;
     std::map<int32_t, int32_t> setVpnPidMap_;
-    int32_t currSetUpVpnPid_ = 0;
+    std::atomic<int32_t> currSetUpVpnPid_ = 0;
     std::set<std::string> currentVpnAbilityName_;
     std::shared_mutex allowConnectVpnBundleNameMutex_;
     std::set<std::string> allowConnectVpnBundleName_;

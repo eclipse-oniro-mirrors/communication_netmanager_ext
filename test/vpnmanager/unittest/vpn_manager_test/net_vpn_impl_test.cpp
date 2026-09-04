@@ -335,5 +335,20 @@ HWTEST_F(NetVpnImplTest, IsAppUidInWhiteList003, TestSize.Level1)
     bool ret = netVpnImpl_->IsAppUidInWhiteList(callingUid + 1, AppExecFwk::Constants::BASE_USER_RANGE + 300);
     EXPECT_FALSE(ret);
 }
+
+HWTEST_F(NetVpnImplTest, NotifyConnectState001, TestSize.Level1)
+{
+    sptr<VpnConfig> config = new VpnConfig();
+    int32_t userId = 100;
+    std::vector<int32_t> activeUserIds;
+    auto netVpnImplPtr = std::make_shared<NetVpnImplInstance>(config, "pkg", userId, activeUserIds);
+    std::shared_ptr<VpnConnStateCbTest> callback = std::make_shared<VpnConnStateCbTest>();
+    netVpnImplPtr->RegisterConnectStateChangedCb(callback);
+    VpnConnectState state = VpnConnectState::VPN_CONNECTED;
+    netVpnImplPtr->isInternalChannel_ = false;
+    netVpnImplPtr->vpnConfig_ = nullptr;
+    netVpnImplPtr->NotifyConnectState(state);
+    EXPECT_FALSE(netVpnImplPtr->isInternalChannel_);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
