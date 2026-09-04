@@ -493,7 +493,7 @@ int32_t NetFirewallService::CreateRedirector(uint32_t groupId, uint32_t priority
     std::string& redirectorId)
 {
     std::string bundleName = GetBundleName();
-    NETMGR_EXT_LOG_I("CreateRedirector:groupId=%{public}u, priority=%{public}u, bundleName=%{private}s",
+    NETMGR_EXT_LOG_I("CreateRedirector:groupId=%{public}u, priority=%{public}u, bundleName=%{public}s",
         groupId, priority, bundleName.c_str());
 
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().CreateRedirector(
@@ -676,7 +676,7 @@ std::string NetFirewallService::GetBundleName()
         NETMGR_EXT_LOG_E("Error GetBundleNameForUid fail");
         return bundleName;
     }
-    NETMGR_EXT_LOG_I("bundle name is [%{private}s], uid = [%{public}d]", bundleName.c_str(), uid);
+    NETMGR_EXT_LOG_I("bundle name is [%{public}s], uid = [%{public}d]", bundleName.c_str(), uid);
     return bundleName;
 }
 
