@@ -45,7 +45,9 @@ public:
     int32_t ReplyCustomEapData(const std::string &ifName, int32_t result, const sptr<EapData> &eapData);
  
 private:
-    int32_t SetEapConfig(const EthEapProfile& config, const std::string& ifName);
+    int32_t SetEapConfig(const EthEapProfile& config);
+    void AppendCommonTlsParams(const EthEapProfile& config);
+    void AppendIfNotEmpty(const std::string& key, const std::string& value);
     int32_t EapShellCmd(const std::string& ifName, const std::string& cmd);
     int32_t RegisterEapEventCallback(const std::string& ifName);
     int32_t UnregisterEapEventCallback(const std::string& ifName);
