@@ -78,6 +78,83 @@ static bool IsIpMatchV4(const TrafficFilterIPMatch& ipMatch)
     }
 }
 
+static TrafficFilterIPFamily GetIPFamilyFromMatch(const TrafficFilterIPMatch& ipMatch)
+{
+    switch (ipMatch.type_) {
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE):
+            return static_cast<TrafficFilterIPFamily>(ipMatch.single_.family_);
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_CIDR):
+            return static_cast<TrafficFilterIPFamily>(ipMatch.cidr_.base_.family_);
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_RANGE):
+            return static_cast<TrafficFilterIPFamily>(ipMatch.range_.start_.family_);
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_MULTI):
+            if (ipMatch.multi_.ipCount_ > 0) {
+                return static_cast<TrafficFilterIPFamily>(ipMatch.multi_.ips_[0].family_);
+            }
+            return TrafficFilterIPFamily::IP_FAMILY_UNSPEC;
+        default:
+            return TrafficFilterIPFamily::IP_FAMILY_UNSPEC;
+    }
+}
+
+static bool IsValidIPFamilyForPacketRule(int32_t family)
+{
+    return family == static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4) ||
+           family == static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V6);
+}
+
+static bool ValidateIPMatchForPacketRule(const TrafficFilterIPMatch& ipMatch)
+{
+    switch (ipMatch.type_) {
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY):
+            return true;
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE):
+            return IsValidIPFamilyForPacketRule(ipMatch.single_.family_);
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_CIDR):
+            return IsValidIPFamilyForPacketRule(ipMatch.cidr_.base_.family_);
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_RANGE): {
+            int32_t startFamily = ipMatch.range_.start_.family_;
+            int32_t endFamily = ipMatch.range_.end_.family_;
+            return IsValidIPFamilyForPacketRule(startFamily) &&
+                   IsValidIPFamilyForPacketRule(endFamily) &&
+                   startFamily == endFamily;
+        }
+        case static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_MULTI): {
+            if (ipMatch.multi_.ipCount_ == 0 ||
+                ipMatch.multi_.ipCount_ > NETTRAFFICFILTER_MAX_MULTI_IP_COUNT) {
+                NETMGR_EXT_LOG_E("invalid multi ip count %{public}u", ipMatch.multi_.ipCount_);
+                return false;
+            }
+            int32_t firstFamily = ipMatch.multi_.ips_[0].family_;
+            if (!IsValidIPFamilyForPacketRule(firstFamily)) {
+                return false;
+            }
+            for (uint32_t i = 1; i < ipMatch.multi_.ipCount_; i++) {
+                if (!IsValidIPFamilyForPacketRule(ipMatch.multi_.ips_[i].family_) ||
+                    ipMatch.multi_.ips_[i].family_ != firstFamily) {
+                    NETMGR_EXT_LOG_E("multi IP family mismatch at index %{public}u", i);
+                    return false;
+                }
+            }
+            return true;
+        }
+        default:
+            return false;
+    }
+}
+
+static bool ValidateIPFamilyConsistencyForPacketRule(
+    const TrafficFilterIPMatch& srcIp, const TrafficFilterIPMatch& dstIp)
+{
+    TrafficFilterIPFamily srcFamily = GetIPFamilyFromMatch(srcIp);
+    TrafficFilterIPFamily dstFamily = GetIPFamilyFromMatch(dstIp);
+    if (srcFamily == TrafficFilterIPFamily::IP_FAMILY_UNSPEC ||
+        dstFamily == TrafficFilterIPFamily::IP_FAMILY_UNSPEC) {
+        return true;
+    }
+    return srcFamily == dstFamily;
+}
+
 static bool PacketRulePriorityLess(const TrafficFilterPacketRule& a, const TrafficFilterPacketRule& b)
 {
     return a.priority_ < b.priority_;
@@ -166,28 +243,65 @@ static bool IsRuleForFamily(const TrafficFilterPacketRule& rule, TrafficFilterIP
     if (family == TrafficFilterIPFamily::IP_FAMILY_V6) {
         return !HasV4Address(rule) || HasV6Address(rule);
     }
-    return true;
+    NETMGR_EXT_LOG_E("IsRuleForFamily: unsupported family=%{public}d", static_cast<int32_t>(family));
+    return false;
+}
+
+static const std::string IPTABLES_APPEND_ACTION = " -A ";
+static const std::string IPTABLES_DELETE_ACTION = " -D ";
+
+static std::string BuildDeleteCommandFromAppend(const std::string& appendCmd)
+{
+    std::string deleteCmd = appendCmd;
+    size_t pos = deleteCmd.find(IPTABLES_APPEND_ACTION);
+    if (pos != std::string::npos) {
+        deleteCmd.replace(pos, IPTABLES_APPEND_ACTION.length(), IPTABLES_DELETE_ACTION);
+    }
+    return deleteCmd;
+}
+
+static void RollbackAppliedCommands(const std::vector<std::string>& appliedCommands,
+    TrafficFilterIPFamily family)
+{
+    for (auto it = appliedCommands.rbegin(); it != appliedCommands.rend(); ++it) {
+        std::string deleteCmd = BuildDeleteCommandFromAppend(*it);
+        NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(deleteCmd, family);
+    }
+}
+
+static int32_t ExecuteCommandsForRule(const std::vector<std::string>& commands,
+    std::vector<std::string>& appliedCommands, TrafficFilterIPFamily family)
+{
+    for (const auto& cmd : commands) {
+        if (cmd.empty()) {
+            continue;
+        }
+        int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(cmd, family);
+        if (ret != FIREWALL_SUCCESS) {
+            NETMGR_EXT_LOG_E("insert rule failed, ret=%{public}d, rollback %{public}zu commands",
+                ret, appliedCommands.size());
+            RollbackAppliedCommands(appliedCommands, family);
+            return ret;
+        }
+        appliedCommands.push_back(cmd);
+    }
+    return FIREWALL_SUCCESS;
 }
 
 int32_t NetTrafficFilterPacketRuleManager::ExecuteRulesForIpFamily(
     const std::vector<TrafficFilterPacketRule>& rules, const std::string& chainName, int32_t queueNum,
     TrafficFilterIPFamily family)
 {
+    std::vector<std::string> appliedCommands;
     for (const auto& rule : rules) {
         if (!IsRuleForFamily(rule, family)) {
             continue;
         }
         std::vector<std::string> commands =
             NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommands(rule, chainName, queueNum);
-        for (const auto& cmd : commands) {
-            if (cmd.empty()) {
-                continue;
-            }
-            int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(cmd, family);
-            if (ret != FIREWALL_SUCCESS) {
-                NETMGR_EXT_LOG_E("insert rule failed, ret=%{public}d", ret);
-                return ret;
-            }
+        int32_t ret = ExecuteCommandsForRule(commands, appliedCommands, family);
+        if (ret != FIREWALL_SUCCESS) {
+            return ret;
         }
     }
     return FIREWALL_SUCCESS;
@@ -196,6 +310,12 @@ int32_t NetTrafficFilterPacketRuleManager::ExecuteRulesForIpFamily(
 int32_t NetTrafficFilterPacketRuleManager::ApplyRulesForHookPoint(int32_t queueNum, int32_t hookPoint,
     const std::string& chainName, TrafficFilterIPFamily family)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (chainName.empty()) {
+        NETMGR_EXT_LOG_E("ApplyRulesForHookPoint failed: chainName is empty");
+        return FIREWALL_ERR_INVALID_PARAMETER;
+    }
+
     std::string flushCmd = NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(
         chainName, IptablesName::FILTER);
     int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(flushCmd, family);
@@ -206,7 +326,6 @@ int32_t NetTrafficFilterPacketRuleManager::ApplyRulesForHookPoint(int32_t queueN
 
     std::vector<TrafficFilterPacketRule> rules;
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         auto qIt = queueNumToRules_.find(queueNum);
         if (qIt != queueNumToRules_.end()) {
             const auto* ruleList = GetRulesByHookPoint(qIt->second, hookPoint);
@@ -250,6 +369,14 @@ bool NetTrafficFilterPacketRuleManager::ValidateRuleParam(const sptr<TrafficFilt
         NETMGR_EXT_LOG_E("rule is null");
         return false;
     }
+    if (!ValidateIPMatchForPacketRule(rule->srcIp_) || !ValidateIPMatchForPacketRule(rule->dstIp_)) {
+        NETMGR_EXT_LOG_E("invalid src or dst IP match");
+        return false;
+    }
+    if (!ValidateIPFamilyConsistencyForPacketRule(rule->srcIp_, rule->dstIp_)) {
+        NETMGR_EXT_LOG_E("src/dst IP family mismatch");
+        return false;
+    }
     if (!rule->srcIp_.IsValidType() || !rule->dstIp_.IsValidType() ||
         !rule->srcPort_.IsValidType() || !rule->dstPort_.IsValidType()) {
         NETMGR_EXT_LOG_E("invalid ip or port type");
@@ -277,8 +404,7 @@ bool NetTrafficFilterPacketRuleManager::ParseAndValidateControllerId(const std::
     const char* strStart = controllerId.data() + pos1 + 1;
     const char* strEnd = controllerId.data() + controllerId.size();
     auto [ptr, ec] = std::from_chars(strStart, strEnd, queueNum);
-    if (ptr != strEnd || ec != std::errc() || queueNum < 0) {
-        NETMGR_EXT_LOG_E("invalid queueNum");
+    if (ptr != strEnd || ec != std::errc() || queueNum <= 0) {
         return false;
     }
     return true;
@@ -361,44 +487,19 @@ static const std::string& GetChainNameByHookPoint(const std::string& chainNameIn
     }
 }
 
-void NetTrafficFilterPacketRuleManager::DeleteJumpRulesForHookPoints(
-    const std::set<int32_t>& hookPoints, const std::string& chainNameIn,
-    const std::string& chainNameOut, const std::string& chainNameFwd)
-{
-    for (int32_t hookPoint : hookPoints) {
-        std::string hookName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(
-            static_cast<TrafficFilterHookPoint>(hookPoint));
-        if (hookName.empty()) {
-            continue;
-        }
-        const std::string& chainName = GetChainNameByHookPoint(chainNameIn, chainNameOut, chainNameFwd, hookPoint);
-        if (chainName.empty()) {
-            continue;
-        }
-        std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
-            hookName, chainName, IptablesName::FILTER);
-        if (!jumpCmd.empty()) {
-            ExecuteIptablesForFamilies(jumpCmd, false, "delete jump rule");
-        }
-    }
-}
-
 void NetTrafficFilterPacketRuleManager::FlushChainForIpFamilies(const std::string& chainName)
 {
+    if (chainName.empty()) {
+        NETMGR_EXT_LOG_E("FlushChainForIpFamilies failed: chainName is empty");
+        return;
+    }
     std::string flushCmd = NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(
         chainName, IptablesName::FILTER);
     ExecuteIptablesForFamilies(flushCmd, false, "flush chain");
 }
 
-void NetTrafficFilterPacketRuleManager::DeleteChainForIpFamilies(const std::string& chainName)
-{
-    std::string deleteCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteChainCommand(
-        chainName, IptablesName::FILTER);
-    ExecuteIptablesForFamilies(deleteCmd, false, "delete chain");
-}
 void NetTrafficFilterPacketRuleManager::CleanPhysicalRules(const QueueInfo& info, const std::set<int32_t>& hookPoints)
 {
-    DeleteJumpRulesForHookPoints(hookPoints, info.chainNameIn, info.chainNameOut, info.chainNameFwd);
     if (UidRuleGenerator::GetInstance().HandleClearUidRules(info) != FIREWALL_SUCCESS) {
 #ifdef NETMGR_DEBUG
         NETMGR_EXT_LOG_W("uid rule clear warning");
@@ -407,15 +508,15 @@ void NetTrafficFilterPacketRuleManager::CleanPhysicalRules(const QueueInfo& info
     const std::string* chains[] = {&info.chainNameIn, &info.chainNameOut, &info.chainNameFwd};
     for (const std::string* chain : chains) {
         FlushChainForIpFamilies(*chain);
-        DeleteChainForIpFamilies(*chain);
     }
 }
+
 int32_t NetTrafficFilterPacketRuleManager::ClearPacketRule(const QueueInfo& info)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     int32_t queueNum = info.queueNum;
     std::set<int32_t> hookPoints;
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         auto qIt = queueNumToRules_.find(queueNum);
         if (qIt != queueNumToRules_.end()) {
             for (size_t i = 0; i < HOOK_POINT_COUNT; ++i) {
@@ -430,7 +531,6 @@ int32_t NetTrafficFilterPacketRuleManager::ClearPacketRule(const QueueInfo& info
 
     CleanPhysicalRules(info, hookPoints);
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         queueNumToRules_.erase(queueNum);
         queueNumToRuleCtx_.erase(queueNum);
     }

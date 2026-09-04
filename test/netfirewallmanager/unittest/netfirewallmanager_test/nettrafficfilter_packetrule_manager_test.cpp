@@ -168,7 +168,7 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, AddPacketRuleControllerWithQueue
     ASSERT_NE(rule, nullptr);
 
     int32_t ret = instance.AddPacketRule("com.example:0", rule);
-    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdMissingColon, TestSize.Level1)
@@ -184,7 +184,7 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdQueu
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
     int32_t queueNum = 0;
     bool result = instance.ParseAndValidateControllerId("com.example:0", queueNum);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ParseAndValidateControllerIdValid, TestSize.Level1)

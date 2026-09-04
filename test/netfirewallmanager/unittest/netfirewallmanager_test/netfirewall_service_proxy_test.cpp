@@ -234,7 +234,6 @@ public:
                 reply.WriteFileDescriptor(1);
                 break;
             case static_cast<uint32_t>(INetFirewallService::DESTROY_PACKET_CONTROLLER):
-            case static_cast<uint32_t>(INetFirewallService::SEND_VERDICT):
                 break;
             default:
                 reply.WriteInt32(1);
@@ -501,17 +500,6 @@ HWTEST_F(NetFirewallServiceProxyTest, DestroyPacketController001, TestSize.Level
     NetManagerExtAccessToken token;
     std::string packetControllerId = "packet_controller_test_123";
     auto ret = instance_->DestroyPacketController(packetControllerId);
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
-}
-
-HWTEST_F(NetFirewallServiceProxyTest, SendVerdict001, TestSize.Level1)
-{
-    NetManagerExtAccessToken token;
-    int32_t queueNum = 0;
-    uint32_t packetId = 100;
-    int32_t verdict = 1;
-    int32_t mark = 0;
-    auto ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 } // namespace NetManagerStandard

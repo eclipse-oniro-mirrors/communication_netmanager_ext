@@ -46,9 +46,9 @@ NetTrafficFilterNFQueueCore &NetTrafficFilterNFQueueCore::GetInstance()
     return instance;
 }
 
-OHOS::sptr<NfqCtx> NetTrafficFilterNFQueueCore::GetNFQHandleFromBundleName(const std::string &bundleName)
+OHOS::sptr<NfqCtx> NetTrafficFilterNFQueueCore::GetNFQHandleFromBundleNameLocked(const std::string &bundleName)
 {
-    for (const auto it : queues_) {
+    for (const auto &it : queues_) {
         if (it.second.bundleName == bundleName) {
             return it.second.nfqHandle;
         }
@@ -58,7 +58,7 @@ OHOS::sptr<NfqCtx> NetTrafficFilterNFQueueCore::GetNFQHandleFromBundleName(const
 
 OHOS::sptr<NfqCtx> NetTrafficFilterNFQueueCore::CreateNFQHandle(const std::string &bundleName)
 {
-    OHOS::sptr<NfqCtx> nfqHandle = GetNFQHandleFromBundleName(bundleName);
+    OHOS::sptr<NfqCtx> nfqHandle = GetNFQHandleFromBundleNameLocked(bundleName);
     if (nfqHandle != nullptr) {
         return nfqHandle;
     }
@@ -85,7 +85,7 @@ OHOS::sptr<NfqCtx> NetTrafficFilterNFQueueCore::CreateNFQHandle(const std::strin
 int32_t NetTrafficFilterNFQueueCore::AllocateQueueNumber(const std::string &bundleName, uint32_t groupId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (const auto it : queues_) {
+    for (const auto &it : queues_) {
         if (it.second.groupId == groupId && it.second.bundleName == bundleName) {
             return -1;
         }
@@ -130,7 +130,7 @@ void NetTrafficFilterNFQueueCore::Cleanup()
         NetsysController::GetInstance().NfqQueueDestroy(pair.second.nfqHandle, pair.second.qh);
     }
     for (auto it : bundleNames) {
-        OHOS::sptr<NfqCtx> nfqHandle = GetNFQHandleFromBundleName(it);
+        OHOS::sptr<NfqCtx> nfqHandle = GetNFQHandleFromBundleNameLocked(it);
         if (nfqHandle) {
             NetsysController::GetInstance().NfqClose(nfqHandle);
         }
@@ -231,11 +231,16 @@ int32_t NetTrafficFilterNFQueueCore::CreateQueue(uint32_t groupId, uint32_t prio
     }
     OHOS::sptr<NfqQueue> qh = NetsysController::GetInstance().NfqQueueCreate(nfqHandle, queueNum);
     if (qh == nullptr) {
-        NetsysController::GetInstance().NfqClose(nfqHandle);
+        if (!IsHandleInUseLocked(queueNum)) {
+            NetsysController::GetInstance().NfqClose(nfqHandle);
+        }
         return TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
     }
     if (!ConfigureNFQueue(nfqHandle, qh, config)) {
         NetsysController::GetInstance().NfqQueueDestroy(nfqHandle, qh);
+        if (!IsHandleInUseLocked(queueNum)) {
+            NetsysController::GetInstance().NfqClose(nfqHandle);
+        }
         return TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
     }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
@@ -246,21 +251,24 @@ int32_t NetTrafficFilterNFQueueCore::CreateQueue(uint32_t groupId, uint32_t prio
     if (!CreateIptables(priority, info, callingUid, groupId)) {
         DestroyIptables(info);
         NetsysController::GetInstance().NfqQueueDestroy(nfqHandle, qh);
+        if (!IsHandleInUseLocked(queueNum)) {
+            NetsysController::GetInstance().NfqClose(nfqHandle);
+        }
         return TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
     }
 #endif
-    UpdateNFQHandleFromBundleName(bundleName, nfqHandle);
+    UpdateNFQHandleFromBundleNameLocked(bundleName, nfqHandle);
     queues_[queueNum] = info;
     HandleTrafficFilterObserverRegistration(bundleName, queueNum, callingUid, callingPid);
     return TRAFFICFILTER_OK;
 }
 
-void NetTrafficFilterNFQueueCore::UpdateNFQHandleFromBundleName(const std::string &bundleName,
+void NetTrafficFilterNFQueueCore::UpdateNFQHandleFromBundleNameLocked(const std::string &bundleName,
     const OHOS::sptr<NfqCtx>& nfqHandle)
 {
-    for (auto iterator = queues_.begin(); iterator != queues_.end(); ++iterator) {
-        if (iterator->second.bundleName == bundleName) {
-            iterator->second.nfqHandle = nfqHandle;
+    for (auto &it : queues_) {
+        if (it.second.bundleName == bundleName) {
+            it.second.nfqHandle = nfqHandle;
         }
     }
 }
@@ -374,10 +382,9 @@ void NetTrafficFilterNFQueueCore::DestroyIptables(const QueueInfo &info)
 int32_t NetTrafficFilterNFQueueCore::DestroyByBundleName(const std::string &bundleName)
 {
     std::vector<uint16_t> queueNums;
-    OHOS::sptr<NfqCtx> handle = nullptr;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        handle = GetNFQHandleFromBundleName(bundleName);
+        OHOS::sptr<NfqCtx> handle = GetNFQHandleFromBundleNameLocked(bundleName);
         if (handle == nullptr) {
             return TRAFFICFILTER_ERROR_NOT_FOUND;
         }
@@ -387,9 +394,9 @@ int32_t NetTrafficFilterNFQueueCore::DestroyByBundleName(const std::string &bund
             }
             queueNums.emplace_back(handle->queues[i]->queueNum);
         }
-    }
-    for (const auto& queueNum : queueNums) {
-        DestroyQueue(queueNum);
+        for (const auto& queueNum : queueNums) {
+            DestroyQueueLocked(queueNum);
+        }
     }
     return TRAFFICFILTER_OK;
 }
@@ -397,29 +404,41 @@ int32_t NetTrafficFilterNFQueueCore::DestroyByBundleName(const std::string &bund
 int32_t NetTrafficFilterNFQueueCore::DestroyQueue(uint16_t queueNum)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    return DestroyQueueLocked(queueNum);
+}
+
+bool NetTrafficFilterNFQueueCore::IsHandleInUseLocked(uint16_t queueNum)
+{
     auto it = queues_.find(queueNum);
     if (it == queues_.end()) {
-        return TRAFFICFILTER_ERROR_NOT_FOUND;
+        return true;
     }
-    bool handleInUse = false;
     for (auto iterator = queues_.begin(); iterator != queues_.end(); ++iterator) {
         if (it == iterator) {
             continue;
         }
         if (iterator->second.nfqHandle == it->second.nfqHandle) {
-            handleInUse = true;
-            break;
+            return true;
         }
+    }
+    return false;
+}
+
+int32_t NetTrafficFilterNFQueueCore::DestroyQueueLocked(uint16_t queueNum)
+{
+    auto it = queues_.find(queueNum);
+    if (it == queues_.end()) {
+        return TRAFFICFILTER_ERROR_NOT_FOUND;
     }
     if (it->second.qh != nullptr) {
         NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(it->second);
         NetsysController::GetInstance().NfqQueueDestroy(it->second.nfqHandle, it->second.qh);
-        UpdateNFQHandleFromBundleName(it->second.bundleName, it->second.nfqHandle);
+        UpdateNFQHandleFromBundleNameLocked(it->second.bundleName, it->second.nfqHandle);
     }
 #ifndef NETMANAGER_TEST
     DestroyIptables(it->second);
 #endif
-    if (!handleInUse) {
+    if (!IsHandleInUseLocked(queueNum)) {
         NetsysController::GetInstance().NfqClose(it->second.nfqHandle);
     }
     queues_.erase(it);

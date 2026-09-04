@@ -52,19 +52,20 @@ struct NfqNfg {
     uint8_t  family;
     uint8_t  version;
     uint16_t resId;
-};
+} __attribute__((packed));
 
 struct NfqPhdr {
     uint32_t packetId;
     uint16_t hwProtocol;
     uint8_t  hook;
-};
+} __attribute__((packed));
 
 struct NfqHwaddr {
     uint16_t hwAddrlen;
     uint16_t pad;
     uint8_t  hwAddr[8];
-};
+} __attribute__((packed));
+
 struct NfqPkt {
     uint32_t packetId;
     uint16_t hwProtocol;
@@ -79,6 +80,18 @@ struct NfqPkt {
     struct timeval ts;
     uint8_t  hasTs;
 };
+
+struct NfqVerdictParams {
+    uint16_t qnum;
+    uint32_t pktId;
+    uint32_t verdict;
+    uint32_t mark;
+};
+
+struct NfqVhdr {
+    uint32_t verdict;
+    uint32_t id;
+} __attribute__((packed));
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -143,7 +156,7 @@ public:
         OH_TrafficFilter_PacketCallback callback, void* userData);
 
     int32_t UnregisterPacketCallback(OH_TrafficFilter_PacketController* controller);
-    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark);
+    int32_t SendVerdict(int32_t fd, int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark);
 
 private:
     PacketControllerAdapterManager() = default;

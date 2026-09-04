@@ -58,7 +58,8 @@ public:
         UidRuleGenerator& generator = UidRuleGenerator::GetInstance();
         std::lock_guard<std::recursive_mutex> lock(generator.mutex_);
         generator.uidRuleContexts_.clear();
-        generator.uidToIsolationKeys_.clear();
+        generator.uidIntervals_.clear();
+        generator.keyToIntervalStarts_.clear();
         generator.markToIsolationKey_.clear();
         generator.nextMark_ = 0x01;
     }
@@ -243,7 +244,8 @@ HWTEST_F(UidRuleGeneratorTest, CreateOrUpdateContext001, TestSize.Level1)
 {
     UidRuleGenerator& generator = UidRuleGenerator::GetInstance();
     QueueInfo info = CreateTestQueueInfo("com.example.app", 100);
-    auto ctx = generator.CreateOrUpdateContext(info, 1000, 2000, 50);
+    std::shared_ptr<UidRuleContext> ctx = nullptr;
+    generator.CreateOrUpdateContext(info, 1000, 2000, 50, ctx);
     EXPECT_NE(ctx, nullptr);
     EXPECT_EQ(ctx->bundleName, "com.example.app");
     EXPECT_EQ(ctx->groupId, 100u);
@@ -258,26 +260,25 @@ HWTEST_F(UidRuleGeneratorTest, CreateOrUpdateContext002, TestSize.Level1)
 {
     UidRuleGenerator& generator = UidRuleGenerator::GetInstance();
     QueueInfo info = CreateTestQueueInfo("com.example.app", 100);
-    auto ctx1 = generator.CreateOrUpdateContext(info, 1000, 2000, 50);
-    EXPECT_NE(ctx1, nullptr);
-    auto ctx2 = generator.CreateOrUpdateContext(info, 3000, 4000, 60);
-    EXPECT_EQ(ctx1, ctx2);
-    EXPECT_EQ(ctx2->uidStart, 3000u);
-    EXPECT_EQ(ctx2->uidEnd, 4000u);
-    EXPECT_EQ(ctx2->queueNum, 60);
+    std::shared_ptr<UidRuleContext> ctx = nullptr;
+    auto ret = generator.CreateOrUpdateContext(info, 1000, 2000, 50, ctx);
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+    generator.CreateOrUpdateContext(info, 3000, 4000, 60, ctx);
+    EXPECT_EQ(ctx->uidStart, 3000u);
+    EXPECT_EQ(ctx->uidEnd, 4000u);
+    EXPECT_EQ(ctx->queueNum, 60);
 }
 
 HWTEST_F(UidRuleGeneratorTest, HandleAddUidRule001, TestSize.Level1)
 {
     UidRuleGenerator& generator = UidRuleGenerator::GetInstance();
     sptr<TrafficFilterPacketRule> rule = new TrafficFilterPacketRule();
-    rule->uidStart_ = 0;
-    rule->uidEnd_ = 0;
+    rule->uidStart_ = -1;
+    rule->uidEnd_ = -1;
     QueueInfo info = CreateTestQueueInfo();
     int32_t ret = generator.HandleAddUidRule(info, rule, TEST_QUEUE_NUM);
     EXPECT_EQ(ret, TRAFFICFILTER_OK);
 }
-
 
 HWTEST_F(UidRuleGeneratorTest, HandleAddUidRule002, TestSize.Level1)
 {
@@ -352,7 +353,7 @@ HWTEST_F(UidRuleGeneratorTest, AllocateNextMark002, TestSize.Level1)
         }
     }
     uint32_t mark = generator.AllocateNextMark();
-    EXPECT_EQ(mark, 0u);
+    EXPECT_EQ(mark, 1u);
 }
 
 HWTEST_F(UidRuleGeneratorTest, RemoveUidFromMapping001, TestSize.Level1)
@@ -367,11 +368,12 @@ HWTEST_F(UidRuleGeneratorTest, RemoveUidFromMapping001, TestSize.Level1)
     ctx->uidEnd = 2000;
     ctx->ctMarkValue = 1;
     generator.uidRuleContexts_[isolationKey] = ctx;
-    for (uint32_t uid = 1000; uid <= 2000; uid++) {
-        generator.uidToIsolationKeys_[uid].insert(isolationKey);
-    }
-    generator.RemoveUidFromMapping(isolationKey, 1000, 2000);
-    EXPECT_TRUE(generator.uidToIsolationKeys_.find(1500) == generator.uidToIsolationKeys_.end());
+    generator.uidIntervals_[1000] = {2000, isolationKey};
+    generator.keyToIntervalStarts_[isolationKey].insert(1000);
+    generator.RemoveUidFromMapping(isolationKey);
+    EXPECT_TRUE(generator.uidIntervals_.find(1000) == generator.uidIntervals_.end());
+    EXPECT_TRUE(generator.uidIntervals_.find(1500) == generator.uidIntervals_.end());
+    EXPECT_TRUE(generator.keyToIntervalStarts_.find(isolationKey) == generator.keyToIntervalStarts_.end());
 }
 
 HWTEST_F(UidRuleGeneratorTest, GenerateCreateMangleRulesCommands001, TestSize.Level1)

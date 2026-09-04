@@ -134,11 +134,6 @@ public:
     {
         return 0;
     }
-
-    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark) override
-    {
-        return 0;
-    }
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

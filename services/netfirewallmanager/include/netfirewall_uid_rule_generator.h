@@ -23,12 +23,19 @@
 #include <memory>
 #include <vector>
 #include <utility>
+#include <unordered_map>
 #include <refbase.h>
 #include "netfirewall_common.h"
 #include "nettrafficfilter_nfqueue_core.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
+
+struct UidInterval {
+    uint32_t end;
+    std::string isolationKey;
+};
+
 constexpr uint32_t MAX_MARK = 0xFF;
 constexpr uint32_t MARK_MASK = 0xFF;
 
@@ -70,6 +77,15 @@ private:
     UidRuleGenerator& operator=(const UidRuleGenerator&) = delete;
     bool HasUidCondition(const sptr<TrafficFilterPacketRule>& rule);
 
+    static std::vector<std::pair<uint32_t, uint32_t>> ClipToRealUidRanges(uint32_t start, uint32_t end);
+
+    void ClearIntervalsForKey(const std::string& isolationKey);
+
+    void AddIntervalsForKey(const std::string& isolationKey,
+                            const std::vector<std::pair<uint32_t, uint32_t>>& ranges);
+
+    int32_t SyncUidIntervals(const std::string& isolationKey, uint32_t uidStart, uint32_t uidEnd);
+
     std::string GenerateCTMarkMatchParam(uint32_t markValue);
 
     std::string BuildInputCtmarkRule(
@@ -84,13 +100,11 @@ private:
 
     uint32_t AllocateNextMark();
 
-    void RemoveUidFromMapping(const std::string& isolationKey,
-                              uint32_t uidStart,
-                              uint32_t uidEnd);
+    void RemoveUidFromMapping(const std::string& isolationKey);
 
-    void UpdateUidRangeIfNeeded(const std::string& isolationKey,
-                                uint32_t uidStart,
-                                uint32_t uidEnd);
+    int32_t UpdateUidRangeIfNeeded(const std::string& isolationKey,
+                                   uint32_t uidStart,
+                                   uint32_t uidEnd);
 
     int32_t AllocateMarkForUidRange(
         const std::string& bundleName,
@@ -144,17 +158,19 @@ private:
         const sptr<TrafficFilterPacketRule>& rule,
         int32_t queueNum);
 
-    std::shared_ptr<UidRuleContext> CreateOrUpdateContext(
+    int32_t CreateOrUpdateContext(
         const QueueInfo& info,
         uint32_t uidStart,
         uint32_t uidEnd,
-        int32_t queueNum);
+        int32_t queueNum,
+        std::shared_ptr<UidRuleContext>& ctx);
 
     int32_t ExecuteCmd(std::string cmd);
 
     std::recursive_mutex mutex_;
     std::map<std::string, std::shared_ptr<UidRuleContext>> uidRuleContexts_;
-    std::map<uint32_t, std::set<std::string>> uidToIsolationKeys_;
+    std::map<uint32_t, UidInterval> uidIntervals_;
+    std::unordered_map<std::string, std::set<uint32_t>> keyToIntervalStarts_;
     std::map<uint32_t, std::string> markToIsolationKey_;
     uint32_t nextMark_ = 0x01;
 };

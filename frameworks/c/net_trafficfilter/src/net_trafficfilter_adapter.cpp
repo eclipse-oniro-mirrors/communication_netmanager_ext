@@ -53,6 +53,7 @@ static constexpr uint8_t PORT_BYTE_SHIFT = 8;
 
 static constexpr int32_t NFNL_SUBSYS_QUEUE = 3;
 static constexpr int32_t NFQ_MSG_PACKET = 0;
+static constexpr int32_t NFQ_MSG_VERDICT = 1;
 static constexpr int32_t NUMBER_TWO = 2;
 static constexpr uint8_t NUMBER_EIGHT = 8;
 
@@ -62,15 +63,39 @@ static constexpr uint8_t TCP_DATA_OFFSET_MASK = 0xF0;
 static constexpr uint8_t TCP_DATA_OFFSET_SHIFT = 4;
 static constexpr uint8_t TCP_DATA_OFFSET_UNIT = 4;
 static constexpr uint16_t MAX_PACKET_HEADER_SIZE = 256;
+static constexpr int32_t BUFFER_SIZE = 256;
 
 static inline uint16_t NfqNlType(uint8_t subsys, uint8_t msg)
 {
     return (static_cast<uint16_t>(subsys) << NUMBER_EIGHT) | msg;
 }
 
+static OH_TrafficFilter_IPFamily NormalizeIPFamily(OH_TrafficFilter_IPFamily family)
+{
+    if (static_cast<int32_t>(family) == 0) {
+        return OH_TRAFFICFILTER_IP_FAMILY_V4;
+    }
+    return family;
+}
+
+static constexpr uint8_t IPV4_MAPPED_PREFIX_LEN = 10;
+static constexpr uint8_t IPV4_MAPPED_MARKER = 0xFF;
+
+static bool IsIPv4MappedAddress(const uint8_t addr[NETTRAFFICFILTER_IP_ADDRLEN])
+{
+    for (uint8_t i = 0; i < IPV4_MAPPED_PREFIX_LEN; i++) {
+        if (addr[i] != 0) {
+            return false;
+        }
+    }
+    return addr[IPV4_MAPPED_PREFIX_LEN] == IPV4_MAPPED_MARKER &&
+           addr[IPV4_MAPPED_PREFIX_LEN + 1] == IPV4_MAPPED_MARKER;
+}
+
 static bool ConvertCIPAddressToIPC(const OH_TrafficFilter_IPAddress& cAddr, TrafficFilterIPAddress& ipcAddr)
 {
-    ipcAddr.family_ = static_cast<int32_t>((cAddr.family == OH_TRAFFICFILTER_IP_FAMILY_V4) ?
+    OH_TrafficFilter_IPFamily family = NormalizeIPFamily(cAddr.family);
+    ipcAddr.family_ = static_cast<int32_t>((family == OH_TRAFFICFILTER_IP_FAMILY_V4) ?
         TrafficFilterIPFamily::IP_FAMILY_V4 : TrafficFilterIPFamily::IP_FAMILY_V6);
     for (int i = 0; i < NETTRAFFICFILTER_IP_ADDRLEN; i++) {
         ipcAddr.addr_[i] = cAddr.addr[i];
@@ -300,6 +325,10 @@ static bool ValidateRangeMatch(const OH_TrafficFilter_IPRange& range)
 
 static bool ValidateMultiMatch(const OH_TrafficFilter_IPMulti& multi)
 {
+    if (multi.ipCount == 0 || multi.ipCount > OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT) {
+        NETMGR_EXT_LOG_E("ValidateMultiMatch: invalid ipCount %{public}u", multi.ipCount);
+        return false;
+    }
     for (uint32_t i = 0; i < multi.ipCount; i++) {
         if (!IsValidIPAddress(multi.ips[i])) {
             NETMGR_EXT_LOG_E("ValidateMultiMatch: invalid multi IP[%{public}u] bytes", i);
@@ -576,9 +605,70 @@ static bool ValidateMacAddress(const std::string& mac)
     }
     return true;
 }
+static constexpr uint8_t IPV4_MULTICAST_MASK = 0xF0;
+static constexpr uint8_t IPV4_MULTICAST_PREFIX = 0xE0;
+static constexpr uint8_t IPV4_LOOPBACK_PREFIX = 0x7F;
+static constexpr uint8_t BYTE_ALL_ONES = 0xFF;
+static constexpr uint8_t IPV4_MAPPED_ADDR_OFFSET = 12;
+
+static bool ValidateIPv4AddressBytes(const uint8_t addr[NETTRAFFICFILTER_IP_ADDRLEN])
+{
+    if ((addr[0] & IPV4_MULTICAST_MASK) == IPV4_MULTICAST_PREFIX) {
+        return false;
+    }
+    if (addr[0] == IPV4_LOOPBACK_PREFIX) {
+        return false;
+    }
+    bool allOne = true;
+    for (int i = 0; i < IPV4_ADDR_LEN; i++) {
+        if (addr[i] != BYTE_ALL_ONES) {
+            allOne = false;
+            break;
+        }
+    }
+    return !allOne;
+}
+
+static bool IsIPv4MappedBroadcast(const uint8_t addr[NETTRAFFICFILTER_IP_ADDRLEN])
+{
+    for (uint8_t i = IPV4_MAPPED_ADDR_OFFSET; i < NETTRAFFICFILTER_IP_ADDRLEN; i++) {
+        if (addr[i] != BYTE_ALL_ONES) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ValidateIPv4MappedBytes(const uint8_t addr[NETTRAFFICFILTER_IP_ADDRLEN])
+{
+    uint8_t firstByte = addr[IPV4_MAPPED_ADDR_OFFSET];
+    if (firstByte == IPV4_LOOPBACK_PREFIX || (firstByte & IPV4_MULTICAST_MASK) == IPV4_MULTICAST_PREFIX) {
+        return false;
+    }
+    return !IsIPv4MappedBroadcast(addr);
+}
+
+static bool ValidateIPv6AddressBytes(const uint8_t addr[NETTRAFFICFILTER_IP_ADDRLEN])
+{
+    if (addr[0] == BYTE_ALL_ONES) {
+        return false;
+    }
+    bool isLoopback = true;
+    for (int i = 0; i < OH_TRAFFICFILTER_IP_ADDRLEN - 1; i++) {
+        if (addr[i] != 0) {
+            isLoopback = false;
+            break;
+        }
+    }
+    if (isLoopback && addr[OH_TRAFFICFILTER_IP_ADDRLEN - 1] == 1) {
+        return false;
+    }
+    return !IsIPv4MappedAddress(addr) || ValidateIPv4MappedBytes(addr);
+}
+
 static bool ValidateIPAddress(const OH_TrafficFilter_IPAddress& addr)
 {
-    OH_TrafficFilter_IPFamily family = addr.family;
+    OH_TrafficFilter_IPFamily family = NormalizeIPFamily(addr.family);
     if (family != OH_TRAFFICFILTER_IP_FAMILY_V4 && family != OH_TRAFFICFILTER_IP_FAMILY_V6) {
         return false;
     }
@@ -588,39 +678,9 @@ static bool ValidateIPAddress(const OH_TrafficFilter_IPAddress& addr)
     }
 
     if (family == OH_TRAFFICFILTER_IP_FAMILY_V4) {
-        if ((addr.addr[0] & 0xF0) == 0xE0) {
-            return false;
-        }
-        if (addr.addr[0] == 0x7F) {
-            return false;
-        }
-        bool allOne = true;
-        for (int i = 0; i < IPV4_ADDR_LEN; i++) {
-            if (addr.addr[i] != 0xFF) {
-                allOne = false;
-                break;
-            }
-        }
-        if (allOne) {
-            return false;
-        }
-    } else if (family == OH_TRAFFICFILTER_IP_FAMILY_V6) {
-        if (addr.addr[0] == 0xFF) {
-            return false;
-        }
-        bool isLoopback = true;
-        for (int i = 0; i < OH_TRAFFICFILTER_IP_ADDRLEN - 1; i++) {
-            if (addr.addr[i] != 0) {
-                isLoopback = false;
-                break;
-            }
-        }
-        if (isLoopback && addr.addr[OH_TRAFFICFILTER_IP_ADDRLEN - 1] == 1) {
-            return false;
-        }
+        return ValidateIPv4AddressBytes(addr.addr);
     }
-
-    return true;
+    return ValidateIPv6AddressBytes(addr.addr);
 }
 
 static bool ValidatePacketRuleIPMatch(const OH_TrafficFilter_IPMatch& ipMatch)
@@ -641,6 +701,12 @@ static bool ValidatePacketRuleIPMatch(const OH_TrafficFilter_IPMatch& ipMatch)
             return ValidateIPAddress(ipMatch.value.range.start) &&
                    ValidateIPAddress(ipMatch.value.range.end);
         case OH_TRAFFICFILTER_IP_MATCH_MULTI: {
+            if (ipMatch.value.multi.ipCount == 0 ||
+                ipMatch.value.multi.ipCount > OH_TRAFFICFILTER_MAX_MULTI_IP_COUNT) {
+                NETMGR_EXT_LOG_E("ValidatePacketRuleIPMatch: invalid ipCount %{public}u",
+                    ipMatch.value.multi.ipCount);
+                return false;
+            }
             for (uint32_t i = 0; i < ipMatch.value.multi.ipCount; i++) {
                 if (!ValidateIPAddress(ipMatch.value.multi.ips[i])) {
                     return false;
@@ -1147,7 +1213,7 @@ int32_t PacketControllerAdapterManager::CheckConfig(const OH_TrafficFilter_Confi
         config->packetCopyMode > OH_TRAFFICFILTER_COPY_MODE_MAXLEN) {
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-    if (config->packetCopyLen > PACKET_COPY_LEN_MAX) {
+    if (config->packetCopyLen == 0 || config->packetCopyLen > PACKET_COPY_LEN_MAX) {
         return OH_TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
     if (config->nfqueueMaxlen > NFQUEUE_MAXLEN) {
@@ -1597,6 +1663,19 @@ static void FreePacketHeader(uint8_t *headerBuffer)
     }
 }
 
+static int32_t SendDefaultVerdict(OH_TrafficFilter_PacketController *controller,
+    uint16_t queueNum, uint32_t packetId)
+{
+    int32_t verdict = (controller->nfqueueFlags == OH_TRAFFICFILTER_NFQUEUE_FLAG_FAIL_OPEN) ? 1 : 0;
+    int32_t ret = PacketControllerAdapterManager::GetInstance().SendVerdict(
+        controller->fd, queueNum, packetId, verdict, 0);
+    if (ret != OH_TRAFFICFILTER_OK) {
+        NETMGR_EXT_LOG_E("SendDefaultVerdict failed, packetId=%{public}u, ret=%{public}d",
+            packetId, ret);
+    }
+    return ret;
+}
+
 static void DetectPacketIdGap(OH_TrafficFilter_PacketController *controller, uint32_t packetId)
 {
     if (controller->isFirstPacket) {
@@ -1634,9 +1713,8 @@ static int32_t HandlePacketMessage(OH_TrafficFilter_PacketController *controller
     const void *payload = nullptr;
     size_t payloadLen = 0;
     if (NfqPktPayload(&pkt, &payload, &payloadLen) < 0 || payload == nullptr) {
-        NETMGR_EXT_LOG_W("NFQA_PAYLOAD missing or truncated, accepting standard packet");
-        PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, 0, 0);
-        return OH_TRAFFICFILTER_OK;
+        NETMGR_EXT_LOG_W("NFQA_PAYLOAD missing or truncated, using default verdict");
+        return SendDefaultVerdict(controller, queueNum, packetId);
     }
     OH_TrafficFilter_PacketDesc packet = {};
     uint8_t *headerBuffer = nullptr;
@@ -1644,8 +1722,7 @@ static int32_t HandlePacketMessage(OH_TrafficFilter_PacketController *controller
     if (controller->packetCopyMode == OH_TRAFFICFILTER_COPY_MODE_HEADER) {
         if (!ExtractPacketHeader(static_cast<uint8_t*>(const_cast<void*>(payload)),
             static_cast<uint16_t>(payloadLen), &headerBuffer, &headerLen)) {
-            PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, 0, 0);
-            return OH_TRAFFICFILTER_OK;
+            return SendDefaultVerdict(controller, queueNum, packetId);
         }
         packet.data = headerBuffer;
         packet.packetLen = headerLen;
@@ -1657,43 +1734,34 @@ static int32_t HandlePacketMessage(OH_TrafficFilter_PacketController *controller
     if (!ParsePacketPayload(static_cast<uint8_t*>(const_cast<void*>(payload)),
         static_cast<uint16_t>(payloadLen), packet)) {
         FreePacketHeader(headerBuffer);
-        PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, 0, 0);
-        return OH_TRAFFICFILTER_OK;
+        return SendDefaultVerdict(controller, queueNum, packetId);
     }
-
-    int verdict = controller->callback(&packet, controller->userData) == OH_TRAFFICFILTER_DECISION_ACCEPT? 1 : 0;
+    packet.packetId = packetId;
+    int verdict = controller->callback(&packet, controller->userData) == OH_TRAFFICFILTER_DECISION_ACCEPT ? 1 : 0;
     FreePacketHeader(headerBuffer);
-    return PacketControllerAdapterManager::GetInstance().SendVerdict(queueNum, packetId, verdict, 0);
-}
-
-static bool HandleNetlinkError(struct nlmsghdr *nlh, int &remainingLen)
-{
-    struct nlmsgerr *err = static_cast<struct nlmsgerr *>(NLMSG_DATA(nlh));
-    if (err->error == 0) {
-        nlh = NLMSG_NEXT(nlh, remainingLen);
-        return true;
+    int32_t ret = PacketControllerAdapterManager::GetInstance().SendVerdict(
+        controller->fd, queueNum, packetId, verdict, 0);
+    if (ret != OH_TRAFFICFILTER_OK) {
+        NETMGR_EXT_LOG_E("SendVerdict failed, packetId=%{public}u, ret=%{public}d", packetId, ret);
     }
-    int realErrno = -err->error;
-    NETMGR_EXT_LOG_E("FATAL: Kernel rejected us! errno = %{public}d, description = %{public}s",
-                     realErrno, strerror(realErrno));
-    return false;
+    return ret;
 }
 
-static void ProcessNetlinkMessage(OH_TrafficFilter_PacketController *controller,
-    struct nlmsghdr *nlh, int &remainingLen)
+static void ProcessNetlinkMessage(OH_TrafficFilter_PacketController *controller, struct nlmsghdr *nlh)
 {
     if (nlh->nlmsg_type == NLMSG_ERROR) {
-        if (!HandleNetlinkError(nlh, remainingLen)) {
-            return;
+        struct nlmsgerr *err = static_cast<struct nlmsgerr *>(NLMSG_DATA(nlh));
+        int realErrno = -err->error;
+        if (err->error != 0) {
+            NETMGR_EXT_LOG_E("FATAL: Kernel rejected us! errno = %{public}d, description = %{public}s",
+                realErrno, strerror(realErrno));
         }
     } else if (nlh->nlmsg_type == NLMSG_DONE) {
-        nlh = NLMSG_NEXT(nlh, remainingLen);
+        NETMGR_EXT_LOG_D("Netlink dump completed");
     } else if (nlh->nlmsg_type == NfqNlType(NFNL_SUBSYS_QUEUE, NFQ_MSG_PACKET)) {
         HandlePacketMessage(controller, nlh);
-        nlh = NLMSG_NEXT(nlh, remainingLen);
     } else {
         NETMGR_EXT_LOG_W("filtered unexpected netlink message type: %{public}d", nlh->nlmsg_type);
-        nlh = NLMSG_NEXT(nlh, remainingLen);
     }
 }
 
@@ -1704,7 +1772,8 @@ static void *PacketWorkerThread(void *arg)
         return nullptr;
     }
     int fd = controller->fd;
-    alignas(NLMSG_ALIGNTO) char buf[65536];
+    static constexpr size_t nfqRecvBufferSize = 131072;
+    alignas(NLMSG_ALIGNTO) char buf[nfqRecvBufferSize];
     struct pollfd pfd{ fd, POLLIN, 0 };
     while (controller->running.load()) {
         int ret = poll(&pfd, 1, 500);
@@ -1727,7 +1796,8 @@ static void *PacketWorkerThread(void *arg)
         struct nlmsghdr *nlh = reinterpret_cast<struct nlmsghdr *>(buf);
         int remainingLen = static_cast<int>(recvLen);
         while (NLMSG_OK(nlh, remainingLen)) {
-            ProcessNetlinkMessage(controller, nlh, remainingLen);
+            ProcessNetlinkMessage(controller, nlh);
+            nlh = NLMSG_NEXT(nlh, remainingLen);
         }
     }
     controller->running.store(false);
@@ -1735,11 +1805,85 @@ static void *PacketWorkerThread(void *arg)
     return nullptr;
 }
 
-int32_t PacketControllerAdapterManager::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+static int32_t SendToKernel(int fd, struct nlmsghdr *nlh)
+{
+    struct sockaddr_nl addr = { .nl_family = AF_NETLINK };
+    struct iovec iov = { .iov_base = nlh, .iov_len = nlh->nlmsg_len };
+    struct msghdr msg = {
+        .msg_name = &addr, .msg_namelen = sizeof(addr),
+        .msg_iov = &iov, .msg_iovlen = 1,
+    };
+    return sendmsg(fd, &msg, 0) >= 0 ? 0 : -1;
+}
+
+static int32_t NlaAppend(struct nlmsghdr *nlh, size_t buflen, uint16_t type,
+    const void *data, size_t dataLen)
+{
+    size_t need = NLA_HDRLEN + dataLen;
+    size_t alignedLen = NLMSG_ALIGN(nlh->nlmsg_len) + NLA_ALIGN(need);
+    if (alignedLen > buflen) {
+        return -1;
+    }
+    struct nlattr *nla = reinterpret_cast<struct nlattr *>(
+        reinterpret_cast<char *>(nlh) + NLMSG_ALIGN(nlh->nlmsg_len));
+    nla->nla_len = NLA_HDRLEN + dataLen;
+    nla->nla_type = type;
+    if (data != nullptr && dataLen > 0) {
+        if (memcpy_s(reinterpret_cast<char *>(nla) + NLA_HDRLEN,
+            buflen - NLMSG_ALIGN(nlh->nlmsg_len) - NLA_HDRLEN, data, dataLen) != 0) {
+            return -1;
+        }
+    }
+    nlh->nlmsg_len = alignedLen;
+    return 0;
+}
+
+static int32_t BuildVerdict(struct nlmsghdr *nlh, size_t cap, const struct NfqVerdictParams *params)
+{
+    errno_t ret = memset_s(nlh, cap, 0, NLMSG_LENGTH(sizeof(struct NfqNfg)));
+    if (ret != 0) {
+        return -1;
+    }
+    nlh->nlmsg_len = NLMSG_LENGTH(sizeof(struct NfqNfg));
+    nlh->nlmsg_type = NfqNlType(NFNL_SUBSYS_QUEUE, NFQ_MSG_VERDICT);
+    nlh->nlmsg_flags = NLM_F_REQUEST;
+    nlh->nlmsg_seq = 0;
+
+    struct NfqNfg *nfg = reinterpret_cast<struct NfqNfg *>(NLMSG_DATA(nlh));
+    nfg->family = AF_UNSPEC;
+    nfg->version = 0;
+    nfg->resId = htons(params->qnum);
+
+    struct NfqVhdr vh = { .verdict = htonl(params->verdict), .id = htonl(params->pktId) };
+    if (NlaAppend(nlh, cap, NFQA_VERDICT_HDR, &vh, sizeof(vh)) < 0) {
+        return -1;
+    }
+
+    if (params->mark != 0) {
+        uint32_t beMark = htonl(params->mark);
+        if (NlaAppend(nlh, cap, NFQA_MARK, &beMark, sizeof(beMark)) < 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int32_t PacketControllerAdapterManager::SendVerdict(int32_t fd, int32_t queueNum,
+    uint32_t packetId, int32_t verdict, int32_t mark)
 {
     NETMGR_EXT_LOG_D("PacketControllerAdapterManager::SendVerdict");
-    int32_t ret = NetFirewallClient::GetInstance().SendVerdict(queueNum, packetId, verdict, mark);
-    return ret;
+    char buf[BUFFER_SIZE];
+    struct nlmsghdr *nlh = reinterpret_cast<struct nlmsghdr *>(buf);
+    struct NfqVerdictParams params;
+    params.qnum = queueNum;
+    params.pktId = packetId;
+    params.verdict = verdict;
+    params.mark = mark;
+    if (BuildVerdict(nlh, sizeof(buf), &params) < 0) {
+        return -1;
+    }
+    return SendToKernel(fd, nlh);
 }
 
 int32_t PacketControllerAdapterManager::RegisterPacketCallback(OH_TrafficFilter_PacketController* controller,
@@ -1754,16 +1898,18 @@ int32_t PacketControllerAdapterManager::RegisterPacketCallback(OH_TrafficFilter_
         NETMGR_EXT_LOG_E("RegisterPacketCallback: controller handle not found");
         return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
     }
-    std::lock_guard<std::mutex> lock(callbackMutex_);
-    if (controller->running.load()) {
+    pthread_t oldThread = 0;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
         controller->running.store(false);
         controller->callbackRegistered.store(false);
-        if (controller->workerThread != 0) {
-            pthread_join(controller->workerThread, nullptr);
-            controller->workerThread = 0;
-        }
+        oldThread = controller->workerThread;
+        controller->workerThread = 0;
+        callbackMap_[controller] = {callback, userData};
     }
-    callbackMap_[controller] = {callback, userData};
+    if (oldThread != 0) {
+        pthread_join(oldThread, nullptr);
+    }
     controller->callback = callback;
     controller->userData = userData;
     controller->callbackRegistered.store(true);
@@ -1777,7 +1923,10 @@ int32_t PacketControllerAdapterManager::RegisterPacketCallback(OH_TrafficFilter_
         controller->running.store(false);
         controller->callbackRegistered.store(false);
         controller->workerThread = 0;
-        callbackMap_.erase(controller);
+        {
+            std::lock_guard<std::mutex> lock(callbackMutex_);
+            callbackMap_.erase(controller);
+        }
         return OH_TRAFFICFILTER_ERROR_NFQUEUE_ERROR;
     }
     NETMGR_EXT_LOG_I("RegisterPacketCallback: success");
@@ -1795,15 +1944,17 @@ int32_t PacketControllerAdapterManager::UnregisterPacketCallback(OH_TrafficFilte
         NETMGR_EXT_LOG_E("UnregisterPacketCallback: controller handle not found");
         return OH_TRAFFICFILTER_ERROR_NOT_FOUND;
     }
-    std::lock_guard<std::mutex> lock(callbackMutex_);
-    callbackMap_.erase(controller);
-    if (controller->running.load()) {
+    pthread_t oldThread = 0;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        callbackMap_.erase(controller);
         controller->running.store(false);
         controller->callbackRegistered.store(false);
-        if (controller->workerThread != 0) {
-            pthread_join(controller->workerThread, nullptr);
-            controller->workerThread = 0;
-        }
+        oldThread = controller->workerThread;
+        controller->workerThread = 0;
+    }
+    if (oldThread != 0) {
+        pthread_join(oldThread, nullptr);
     }
     NETMGR_EXT_LOG_I("UnregisterPacketCallback: success");
     return OH_TRAFFICFILTER_OK;

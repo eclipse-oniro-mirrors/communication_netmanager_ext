@@ -17,6 +17,7 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include <arpa/inet.h>
+#include <cctype>
 #include <sstream>
 #include <securec.h>
 
@@ -26,6 +27,9 @@ const std::string DNAT_TARGET = "DNAT";
 constexpr uint32_t UID_UNSPEC = static_cast<uint32_t>(-1);
 constexpr uint32_t PORT_MAX = 65535;
 constexpr uint32_t DEFAULT_IPTABLE_LEN = 128;
+constexpr uint32_t MAC_ADDRESS_STR_LEN = 17;
+constexpr uint32_t MAC_GROUP_STRIDE = 3;
+constexpr uint32_t MAC_SEPARATOR_OFFSET = 2;
 
 static const char* GetTcpFlagName(uint8_t bit)
 {
@@ -96,6 +100,10 @@ static std::vector<TrafficFilterPortMatch> SplitPortMatch(
         result.push_back(portMatch);
         return result;
     }
+    if (portMatch.multi_.portCount_ == 0 || portMatch.multi_.portCount_ > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
+        NETMGR_EXT_LOG_E("SplitPortMatch invalid portCount %{public}u", portMatch.multi_.portCount_);
+        return result;
+    }
     uint32_t count = portMatch.multi_.portCount_;
     for (uint32_t i = 0; i < count; i += maxCount) {
         TrafficFilterPortMatch split;
@@ -121,6 +129,10 @@ static std::vector<TrafficFilterIPMatch> ExpandMultiIPMatch(const TrafficFilterI
     std::vector<TrafficFilterIPMatch> result;
     if (!IsMultiIPMatch(ipMatch)) {
         result.push_back(ipMatch);
+        return result;
+    }
+    if (ipMatch.multi_.ipCount_ == 0 || ipMatch.multi_.ipCount_ > NETTRAFFICFILTER_MAX_MULTI_IP_COUNT) {
+        NETMGR_EXT_LOG_E("ExpandMultiIPMatch invalid ipCount %{public}u", ipMatch.multi_.ipCount_);
         return result;
     }
     for (uint32_t i = 0; i < ipMatch.multi_.ipCount_; ++i) {
@@ -214,6 +226,10 @@ std::string NetTrafficFilterIptablesCommandBuilder::BuildRedirectCommandWithPosi
 std::string NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(const std::string& chainName,
     const IptablesName tableName)
 {
+    if (chainName.empty()) {
+        NETMGR_EXT_LOG_E("BuildFlushChainCommand failed: chainName is empty");
+        return "";
+    }
     const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
     std::string result;
     result.reserve(DEFAULT_IPTABLE_LEN);
@@ -227,6 +243,10 @@ std::string NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(const
 std::string NetTrafficFilterIptablesCommandBuilder::BuildCreateChainCommand(const std::string& chainName,
     const IptablesName tableName)
 {
+    if (chainName.empty()) {
+        NETMGR_EXT_LOG_E("BuildCreateChainCommand failed: chainName is empty");
+        return "";
+    }
     const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
     std::string result;
     result.reserve(DEFAULT_IPTABLE_LEN);
@@ -240,6 +260,10 @@ std::string NetTrafficFilterIptablesCommandBuilder::BuildCreateChainCommand(cons
 std::string NetTrafficFilterIptablesCommandBuilder::BuildDeleteChainCommand(const std::string& chainName,
     const IptablesName tableName)
 {
+    if (chainName.empty()) {
+        NETMGR_EXT_LOG_E("BuildDeleteChainCommand failed: chainName is empty");
+        return "";
+    }
     const char* tblName = (tableName == IptablesName::FILTER) ? "filter" : "nat";
     std::string result;
     result.reserve(DEFAULT_IPTABLE_LEN);
@@ -366,54 +390,74 @@ std::string NetTrafficFilterIptablesCommandBuilder::FormatIPMatch(const TrafficF
     return oss.str();
 }
 
+static std::string FormatSinglePortMatch(const TrafficFilterPortMatch& portMatch,
+    const std::string& portModule, const std::string& portOpt)
+{
+    std::ostringstream oss;
+    oss << " -m " << portModule << " ";
+    if (portMatch.invert_) {
+        oss << "! ";
+    }
+    oss << portOpt << portMatch.single_;
+    return oss.str();
+}
+
+static std::string FormatRangePortMatch(const TrafficFilterPortMatch& portMatch,
+    const std::string& portModule, const std::string& portOpt)
+{
+    if (!portMatch.invert_ && portMatch.range_.startPort_ == 0 && portMatch.range_.endPort_ == PORT_MAX) {
+        return "";
+    }
+    std::ostringstream oss;
+    oss << " -m " << portModule << " ";
+    if (portMatch.invert_) {
+        oss << "! ";
+    }
+    oss << portOpt << portMatch.range_.startPort_ << ":" << portMatch.range_.endPort_;
+    return oss.str();
+}
+
+static std::string FormatMultiPortMatch(const TrafficFilterPortMatch& portMatch,
+    const std::string& multiPortOpt)
+{
+    std::ostringstream oss;
+    oss << " -m multiport ";
+    if (portMatch.invert_) {
+        oss << "! ";
+    }
+    oss << multiPortOpt;
+    for (uint32_t i = 0; i < portMatch.multi_.portCount_; i++) {
+        if (i > 0) {
+            oss << ",";
+        }
+        oss << portMatch.multi_.ports_[i];
+    }
+    return oss.str();
+}
+
 std::string NetTrafficFilterIptablesCommandBuilder::FormatPortMatch(
     const TrafficFilterPortMatch& portMatch, bool isSource, uint8_t protocol)
 {
     if (portMatch.type_ == static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY)) {
         return "";
     }
-    std::ostringstream oss;
+    if (protocol != NETTRAFFICFILTER_PROTO_TCP && protocol != NETTRAFFICFILTER_PROTO_UDP) {
+        NETMGR_EXT_LOG_W("FormatPortMatch: port match ignored for non-TCP/UDP protocol %{public}u", protocol);
+        return "";
+    }
     const std::string portModule = (protocol == NETTRAFFICFILTER_PROTO_UDP) ? "udp" : "tcp";
     const std::string portOpt = isSource ? "--sport " : "--dport ";
     const std::string multiPortOpt = isSource ? "--sports " : "--dports ";
     switch (portMatch.type_) {
-        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE): {
-            oss << " -m " << portModule << " ";
-            if (portMatch.invert_) {
-                oss << "! ";
-            }
-            oss << portOpt << portMatch.single_;
-            break;
-        }
-        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_RANGE): {
-            if (!portMatch.invert_ && portMatch.range_.startPort_ == 0 && portMatch.range_.endPort_ == PORT_MAX) {
-                return "";
-            }
-            oss << " -m " << portModule << " ";
-            if (portMatch.invert_) {
-                oss << "! ";
-            }
-            oss << portOpt << portMatch.range_.startPort_ << ":" << portMatch.range_.endPort_;
-            break;
-        }
-        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI): {
-            oss << " -m multiport ";
-            if (portMatch.invert_) {
-                oss << "! ";
-            }
-            oss << multiPortOpt;
-            for (uint32_t i = 0; i < portMatch.multi_.portCount_; i++) {
-                if (i > 0) {
-                    oss << ",";
-                }
-                oss << portMatch.multi_.ports_[i];
-            }
-            break;
-        }
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_SINGLE):
+            return FormatSinglePortMatch(portMatch, portModule, portOpt);
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_RANGE):
+            return FormatRangePortMatch(portMatch, portModule, portOpt);
+        case static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI):
+            return FormatMultiPortMatch(portMatch, multiPortOpt);
         default:
-            break;
+            return "";
     }
-    return oss.str();
 }
 
 std::string NetTrafficFilterIptablesCommandBuilder::FormatInterfaceMatch(
@@ -549,6 +593,10 @@ std::string NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(
     const TrafficFilterPortMatch& dstPort, const std::string& chainName,
     const std::string& action)
 {
+    if (chainName.empty()) {
+        NETMGR_EXT_LOG_E("BuildPacketFilterCommand failed: chainName is empty");
+        return "";
+    }
     std::string cmd;
     cmd.reserve(DEFAULT_IPTABLE_LEN);
     cmd.append(FILTER_TABLE_APPEND).append(chainName);
@@ -594,9 +642,27 @@ void NetTrafficFilterIptablesCommandBuilder::AppendPacketMatchConditions(std::st
     }
 }
 
+static bool IsValidMacAddress(const std::string& mac)
+{
+    if (mac.size() != MAC_ADDRESS_STR_LEN) {
+        return false;
+    }
+    for (size_t i = 0; i < mac.size(); ++i) {
+        char c = mac[i];
+        if (i % MAC_GROUP_STRIDE == MAC_SEPARATOR_OFFSET) {
+            if (c != ':') {
+                return false;
+            }
+        } else if (!std::isxdigit(static_cast<unsigned char>(c))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string NetTrafficFilterIptablesCommandBuilder::FormatMacMatch(const TrafficFilterMACMatch& macMatch)
 {
-    if (!macMatch.enable_ || macMatch.srcMac_.empty()) {
+    if (!macMatch.enable_ || macMatch.srcMac_.empty() || !IsValidMacAddress(macMatch.srcMac_)) {
         return "";
     }
     std::string result;

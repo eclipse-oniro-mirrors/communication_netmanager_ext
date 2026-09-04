@@ -68,15 +68,12 @@ private:
     int32_t ExecuteRulesForIpFamily(const std::vector<TrafficFilterPacketRule>& rules, const std::string& chainName,
         int32_t queueNum, TrafficFilterIPFamily family);
     bool ValidateRuleParam(const sptr<TrafficFilterPacketRule>& rule);
-    void DeleteJumpRulesForHookPoints(const std::set<int32_t>& hookPoints, const std::string& chainNameIn,
-        const std::string& chainNameOut, const std::string& chainNameFwd);
     void FlushChainForIpFamilies(const std::string& chainName);
     int32_t ApplyRulesForHookPoint(int32_t queueNum, int32_t hookPoint, const std::string& chainName,
         TrafficFilterIPFamily family);
     int32_t ApplyRulesForHookPointBothFamilies(int32_t queueNum, int32_t hookPoint,
         const std::string& chainName, bool needV6);
     void CleanPhysicalRules(const QueueInfo& info, const std::set<int32_t>& hookPoints);
-    void DeleteChainForIpFamilies(const std::string& chainName);
     std::vector<ResumeEntry> CollectResumeEntries();
     int32_t ResumeJumpRules(const std::vector<ResumeEntry>& entries);
 

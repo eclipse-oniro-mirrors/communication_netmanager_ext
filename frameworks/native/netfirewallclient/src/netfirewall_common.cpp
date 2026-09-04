@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cctype>
 #include <sstream>
 
 #include "netmgr_ext_log_wrapper.h"
@@ -957,6 +958,14 @@ sptr<TrafficFilterConfig> TrafficFilterConfig::Unmarshalling(Parcel &parcel)
         NETMGR_EXT_LOG_E("Read nfqueueFlags failed");
         return nullptr;
     }
+    if (ptr->packetCopyLen_ > NETTRAFFICFILTER_MAX_PACKET_COPY_LEN) {
+        NETMGR_EXT_LOG_E("Invalid packetCopyLen %{public}u", ptr->packetCopyLen_);
+        return nullptr;
+    }
+    if (ptr->nfqueueMaxlen_ > NETTRAFFICFILTER_MAX_NFQUEUE_LEN) {
+        NETMGR_EXT_LOG_E("Invalid nfqueueMaxlen %{public}u", ptr->nfqueueMaxlen_);
+        return nullptr;
+    }
     return ptr;
 }
 
@@ -973,6 +982,28 @@ bool TrafficFilterMACMatch::Marshalling(Parcel &parcel) const
     if (!parcel.WriteString(srcMac_)) {
         NETMGR_EXT_LOG_E("Write mac srcMac failed");
         return false;
+    }
+    return true;
+}
+
+constexpr uint32_t MAC_ADDRESS_STR_LEN = 17;
+constexpr uint32_t MAC_GROUP_STRIDE = 3;
+constexpr uint32_t MAC_SEPARATOR_OFFSET = 2;
+
+static bool IsValidMacAddress(const std::string &mac)
+{
+    if (mac.size() != MAC_ADDRESS_STR_LEN) {
+        return false;
+    }
+    for (size_t i = 0; i < mac.size(); ++i) {
+        char c = mac[i];
+        if (i % MAC_GROUP_STRIDE == MAC_SEPARATOR_OFFSET) {
+            if (c != ':') {
+                return false;
+            }
+        } else if (!std::isxdigit(static_cast<unsigned char>(c))) {
+            return false;
+        }
     }
     return true;
 }
@@ -994,6 +1025,10 @@ sptr<TrafficFilterMACMatch> TrafficFilterMACMatch::Unmarshalling(Parcel &parcel)
     }
     if (!parcel.ReadString(ptr->srcMac_)) {
         NETMGR_EXT_LOG_E("Read mac srcMac failed");
+        return nullptr;
+    }
+    if (!ptr->srcMac_.empty() && !IsValidMacAddress(ptr->srcMac_)) {
+        NETMGR_EXT_LOG_E("Invalid mac address %{public}s", ptr->srcMac_.c_str());
         return nullptr;
     }
     return ptr;
