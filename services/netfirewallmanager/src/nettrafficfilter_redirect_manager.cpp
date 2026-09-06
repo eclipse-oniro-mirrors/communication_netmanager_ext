@@ -661,6 +661,7 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
         RemoveRedirectorFromDataStructures(redirectorId, bundleName);
 
         RebuildGlobalJumpRulesAfterDestroy(usedHookPoints);
+    }
 
         if (callingUid != -1) {
             bool hasOtherRedirectorsForUid = false;
@@ -679,7 +680,6 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
                 NETMGR_EXT_LOG_I("Cleaned up observer for uid=%{public}d (last redirector destroyed)", callingUid);
             }
         }
-    }
 
     NETMGR_EXT_LOG_I("Redirector destroyed: id=%{public}s, bundleName=%{public}s",
         redirectorId.c_str(), bundleName.c_str());
@@ -1006,6 +1006,11 @@ int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectors()
 {
     NETMGR_EXT_LOG_I("ResumeAllRedirectors called");
     std::lock_guard<std::mutex> lock(mutex_);
+    return ResumeAllRedirectorsLocked();
+}
+
+int32_t NetTrafficFilterRedirectManager::ResumeAllRedirectorsLocked()
+{
     if (redirectors_.empty()) {
         NETMGR_EXT_LOG_I("No redirectors to resume");
         return TRAFFICFILTER_OK;
@@ -1297,7 +1302,7 @@ int32_t NetTrafficFilterRedirectManager::GlobalEnableTrafficFilter()
             return TRAFFICFILTER_OK;
         }
     }
-    int32_t ret = ResumeAllRedirectors();
+    int32_t ret = ResumeAllRedirectorsLocked();
     if (ret != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter failed to resume redirectors, ret: %{public}d", ret);
         return ret;

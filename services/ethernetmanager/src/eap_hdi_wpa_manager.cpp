@@ -149,11 +149,17 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
     if (SetEapConfig(profile) != EAP_ERRCODE_SUCCESS) {
         setNetCmd_.assign(setNetCmd_.size(), '\0');
         setNetCmd_.clear();
+        IEthernetReleaseInstance(ETHERNET_SERVICE_NAME, iEthernet_, false);
+        iEthernet_ = nullptr;
+        UnloadDeviceManager();
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     if (RegisterEapEventCallback(ifName) != EAP_ERRCODE_SUCCESS) {
         setNetCmd_.assign(setNetCmd_.size(), '\0');
         setNetCmd_.clear();
+        IEthernetReleaseInstance(ETHERNET_SERVICE_NAME, iEthernet_, false);
+        iEthernet_ = nullptr;
+        UnloadDeviceManager();
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     int32_t ret = iEthernet_->StartEap(iEthernet_, ifName.c_str());
