@@ -64,6 +64,7 @@ ohos_shared_library("netfirewall") {
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
     "node:node_header_notice",
+    "samgr:samgr_proxy",
   ]
 
   if (product_name != "qemu-arm-linux-min") {
