@@ -72,6 +72,7 @@ ohos_shared_library("net_trafficfilter") {
     "ipc:ipc_core",
     "netmanager_base:net_manager_common",
     "netmanager_base:net_native_manager_if",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "netmanager_ext"
