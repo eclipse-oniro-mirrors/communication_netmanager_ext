@@ -852,7 +852,11 @@ int32_t NetworkShareTracker::SetBluetoothNetworkSharing(bool enable)
                 bluetoothShareCount_.fetch_add(1, std::memory_order_relaxed);
             }
         } else {
-            bool hasSubSM = (subStateMachineMap_.count(BLUETOOTH_DEFAULT_IFACE_NAME) > 0);
+            bool hasSubSM = false;
+            {
+                std::lock_guard<ffrt::mutex> lock(mutex_);
+                hasSubSM = (subStateMachineMap_.count(BLUETOOTH_DEFAULT_IFACE_NAME) > 0);
+            }
             OnChangeSharingState(SharingIfaceType::SHARING_BLUETOOTH, false);
             StopSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH);
             if (!hasSubSM) {
