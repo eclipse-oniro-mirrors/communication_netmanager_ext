@@ -1441,11 +1441,17 @@ void NetworkShareTracker::HandleClatInterfaceAdded(const std::string &clatIface)
             subSM->GetInterfaceName().c_str(), downIface.c_str(), upIface.c_str());
 
         // First do removal operations
-        NetsysController::GetInstance().DisableNat(downIface, clatIface);
-        NetsysController::GetInstance().IpfwdRemoveInterfaceForward(downIface, clatIface);
+        int32_t ret = NetsysController::GetInstance().DisableNat(downIface, clatIface);
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("HandleClatInterfaceAdded DisableNat failed, ret[%{public}d]", ret);
+        }
+        ret = NetsysController::GetInstance().IpfwdRemoveInterfaceForward(downIface, clatIface);
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("HandleClatInterfaceAdded IpfwdRemoveInterfaceForward failed, ret[%{public}d]", ret);
+        }
 
         // Then do addition operations
-        int32_t ret = NetsysController::GetInstance().IpfwdAddInterfaceForward(downIface, clatIface);
+        ret = NetsysController::GetInstance().IpfwdAddInterfaceForward(downIface, clatIface);
         if (ret != NETMANAGER_EXT_SUCCESS) {
             NETMGR_EXT_LOG_E("HandleClatInterfaceAdded IpfwdAddInterfaceForward failed, ret[%{public}d]", ret);
         }

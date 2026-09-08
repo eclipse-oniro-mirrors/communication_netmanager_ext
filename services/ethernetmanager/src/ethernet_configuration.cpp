@@ -80,6 +80,24 @@ const std::regex IFACE_MATCH_PATTERM(IFACE_MATCH);
 constexpr const char *CONFIG_FILE_NAME = "etc/communication/netmanager_ext/ethernet_interfaces.json";
 } // namespace
 
+static void ParseNetCaps(const cJSON* const item, std::set<NetCap>& caps)
+{
+    cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS);
+    if (capsObj == nullptr) {
+        NETMGR_EXT_LOG_D("capsObj is null, skip caps parsing");
+        return;
+    }
+    for (int32_t j = 0; j < cJSON_GetArraySize(capsObj); j++) {
+        cJSON *capsItem = cJSON_GetArrayItem(capsObj, j);
+        if (capsItem == nullptr) {
+            continue;
+        }
+        const auto capsValue = capsItem->valueint;
+        NETMGR_EXT_LOG_D("ReadConfigData capsValue : %{public}d", capsValue);
+        caps.insert(NetCap(capsValue));
+    }
+}
+
 EthernetConfiguration::EthernetConfiguration()
 {
     CreateDir(USER_CONFIG_DIR);
@@ -113,17 +131,8 @@ bool EthernetConfiguration::ReadEthernetInterfaces(std::map<std::string, std::se
             iface = cJSON_GetStringValue(lanIface);
             isLan = true;
         }
-        cJSON *capsObj = cJSON_GetObjectItem(item, CONFIG_KEY_ETH_CAPS);
         std::set<NetCap> caps;
-        for (int32_t j = 0; j < cJSON_GetArraySize(capsObj); j++) {
-            cJSON *capsItem = cJSON_GetArrayItem(capsObj, j);
-            if (capsItem == nullptr) {
-                continue;
-            }
-            const auto capsValue = capsItem->valueint;
-            NETMGR_EXT_LOG_D("ReadConfigData capsValue : %{public}d", capsValue);
-            caps.insert(NetCap(capsValue));
-        }
+        ParseNetCaps(item, caps);
         if (!caps.empty()) {
             devCaps[iface] = caps;
         }
