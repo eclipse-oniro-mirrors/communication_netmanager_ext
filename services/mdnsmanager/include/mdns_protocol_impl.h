@@ -35,7 +35,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 
 struct MDnsConfig {
-    bool ipv6Support = false;
+    bool ipv6Support = true;
     int configAllIface = true;
     int configLo = true;
     std::string topDomain = MDNS_TOP_DOMAIN_DEFAULT;

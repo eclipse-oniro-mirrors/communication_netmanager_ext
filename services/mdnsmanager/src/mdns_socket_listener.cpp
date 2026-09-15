@@ -315,8 +315,7 @@ inline bool InetAddrV6IsLoopback(const in6_addr *addr6)
 
 uint32_t MDnsSocketListener::OpenSocketV6(ifaddrs *ifa, bool ipv6Support)
 {
-    if (!ipv6Support || IN6_IS_ADDR_LOOPBACK(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr) ||
-        (reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_scope_id != 0)) {
+    if (!ipv6Support || IN6_IS_ADDR_LOOPBACK(&reinterpret_cast<sockaddr_in6 *>(ifa->ifa_addr)->sin6_addr)) {
         NETMGR_EXT_LOG_D("mdns_log ipv6 not supported");
         return BOOL_VALUE_FALSE;
     }
