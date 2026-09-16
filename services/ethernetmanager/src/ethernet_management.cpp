@@ -30,6 +30,12 @@
 #include "netsys_controller.h"
 #include "parameters.h"
 #include "securec.h"
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "cJSON.h"
+#include "event_info.h"
+#include "ipc_skeleton.h"
+#include "sg_collect_client.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -61,6 +67,11 @@ constexpr uint32_t INDEX_FOUR = 4;
 constexpr uint32_t INDEX_FIVE = 5;
 constexpr uint32_t BUFFER_SIZE = 64;
 constexpr const char *SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE = "persist.edm.set_ethernet_ip_disable";
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+constexpr int64_t SECURITY_GUARD_EVENT_ID = 0x3600000A;
+constexpr const char *SECURITY_GUARD_EVENT_VERSION = "1.0";
+constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;
+#endif
 const std::regex IFACE_MATCH_PATTERM(IFACE_MATCH);
 int32_t EthernetManagement::EhternetDhcpNotifyCallback::OnDhcpSuccess(EthernetDhcpCallback::DhcpResult &dhcpResult)
 {
@@ -350,10 +361,47 @@ bool EthernetManagement::CanModifyCheck(IPSetMode origin, IPSetMode input)
     NETMGR_EXT_LOG_D("Set ethernet ip is disabled: %{public}d, origin mode: %{public}d, input mode: %{public}d",
         isSetEthernetIpDisabled, origin, input);
     if (isSetEthernetIpDisabled && origin == STATIC && (input == DHCP || input == STATIC)) {
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+        ReportSetEthIpIntercept();
+#endif
         return false;
     }
     return true;
 }
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+// LCOV_EXCL_START
+void EthernetManagement::ReportSetEthIpIntercept()
+{
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    uint64_t happenTime = CommonUtils::GetCurrentMilliSecond();
+ 
+    cJSON *root = cJSON_CreateObject();
+    if (root == nullptr) {
+        NETMGR_EXT_LOG_E("ReportSetEthIpIntercept create fail");
+        return;
+    }
+    cJSON_AddNumberToObject(root, "userId", userId);
+    cJSON_AddNumberToObject(root, "happenTime", static_cast<double>(happenTime));
+    cJSON_AddStringToObject(root, "appUid", std::to_string(callingUid).c_str());
+    char *contentStr = cJSON_PrintUnformatted(root);
+    if (contentStr == nullptr) {
+        NETMGR_EXT_LOG_E("ReportSetEthIpIntercept print fail");
+        cJSON_Delete(root);
+        return;
+    }
+    std::string content(contentStr);
+    cJSON_free(contentStr);
+    cJSON_Delete(root);
+ 
+    auto eventInfo = std::make_shared<Security::SecurityGuard::EventInfo>(SECURITY_GUARD_EVENT_ID,
+        SECURITY_GUARD_EVENT_VERSION, content);
+    int32_t ret = Security::SecurityGuard::NativeDataCollectKit::ReportSecurityInfoAsync(eventInfo);
+    NETMGR_EXT_LOG_I("ReportSetEthIpIntercept %{public}s, ret %{public}d", content.c_str(), ret);
+}
+// LCOV_EXCL_STOP
+#endif
 
 void EthernetManagement::ProcessChangeMode(
     const std::string &iface, sptr<DevInterfaceState> devState, sptr<InterfaceConfiguration> cfg)

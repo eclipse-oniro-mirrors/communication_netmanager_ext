@@ -118,6 +118,9 @@ private:
     void GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
         std::vector<EthernetDeviceInfo> &deviceInfoList);
     bool CanModifyCheck(IPSetMode origin, IPSetMode input);
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    void ReportSetEthIpIntercept();
+#endif
     void ProcessChangeMode(
         const std::string &iface, sptr<DevInterfaceState> devState, sptr<InterfaceConfiguration> cfg);
     int32_t UpdataEthernetConfig(EthernetDhcpCallback::DhcpResult &dhcpResult, StaticConfiguration &config);
