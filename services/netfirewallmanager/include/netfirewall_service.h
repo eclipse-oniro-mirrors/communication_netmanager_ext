@@ -230,7 +230,6 @@ public:
      * Clear all rules from packet controller
      */
     int32_t ClearPacketRule(const std::string& controllerId) override;
-    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark) override;
 protected:
     void OnStart() override;
 
@@ -274,6 +273,8 @@ private:
     bool IsSameNetFirewallPolicy(const sptr<NetFirewallPolicy> &inPolicy, const sptr<NetFirewallPolicy> &outPolicy);
 
     std::string GetBundleName();
+
+    int32_t ValidateBundleOwnership(const std::string &controllerId);
 
     SpaceType GetUserSpaceType(int32_t userId);
 

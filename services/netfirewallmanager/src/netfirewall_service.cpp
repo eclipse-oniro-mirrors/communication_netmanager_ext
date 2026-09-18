@@ -15,6 +15,7 @@
 
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <charconv>
 
 #include "netfirewall_service.h"
 #include "ipc_skeleton.h"
@@ -648,7 +649,14 @@ int32_t NetFirewallService::DestroyPacketController(const std::string& packetCon
         return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
     }
     std::string queueNumStr = packetControllerId.substr(pos1 + 1);
-    uint32_t queueNum = std::stoi(queueNumStr);
+    uint16_t queueNum = 0;
+    const char *strStart = queueNumStr.data();
+    const char *strEnd = queueNumStr.data() + queueNumStr.size();
+    auto [ptr, ec] = std::from_chars(strStart, strEnd, queueNum);
+    if (ptr != strEnd || ec != std::errc() || queueNum == 0) {
+        NETMGR_EXT_LOG_E("DestroyPacketController invalid queueNum");
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
     return NetTrafficFilterNFQueueCore::GetInstance().DestroyQueue(queueNum);
 }
 
@@ -680,12 +688,35 @@ std::string NetFirewallService::GetBundleName()
     return bundleName;
 }
 
+int32_t NetFirewallService::ValidateBundleOwnership(const std::string &controllerId)
+{
+    std::string bundleName = GetBundleName();
+    if (bundleName.empty()) {
+        NETMGR_EXT_LOG_E("ValidateBundleOwnership: failed to get bundle name");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    std::string::size_type pos = controllerId.find(':');
+    if (pos == std::string::npos) {
+        NETMGR_EXT_LOG_E("ValidateBundleOwnership: invalid controllerId");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    std::string bundleNameInId = controllerId.substr(0, pos);
+    if (bundleNameInId.empty() || bundleName != bundleNameInId) {
+        NETMGR_EXT_LOG_E("ValidateBundleOwnership: bundle name mismatch");
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    return FIREWALL_SUCCESS;
+}
+
 NetFirewallService::SpaceType NetFirewallService::GetUserSpaceType(int32_t userId)
 {
     AccountSA::DomainAccountInfo domainInfo;
     ErrCode ret = AccountSA::OsAccountManager::GetOsAccountDomainInfo(userId, domainInfo);
     if (ret == ERR_OK && !domainInfo.domain_.empty()) {
         return SpaceType::ENTERPRISE;
+    } else if (ret != ERR_OK) {
+        NETMGR_EXT_LOG_E("GetUserSpaceType failed, userId: %{public}d, ret: %{public}d", userId, ret);
+        return SpaceType::UNKNOWN;
     } else {
         return SpaceType::PERSONAL;
     }
@@ -694,6 +725,10 @@ NetFirewallService::SpaceType NetFirewallService::GetUserSpaceType(int32_t userI
 void NetFirewallService::HandleSpaceSwitched(int32_t userId)
 {
     SpaceType newSpaceType = GetUserSpaceType(userId);
+    if (newSpaceType == SpaceType::UNKNOWN) {
+        NETMGR_EXT_LOG_E("HandleSpaceSwitched unknown space type, userId: %{public}d", userId);
+        return;
+    }
     std::lock_guard<std::mutex> lock(spaceTypeMutex_);
     if (currentSpaceType_ == newSpaceType) {
         return;
@@ -716,6 +751,8 @@ int32_t NetFirewallService::UpdateTrafficFilterBySpaceType(SpaceType spaceType)
             ret = GlobalDisableTrafficFilter();
             break;
         default:
+            NETMGR_EXT_LOG_E("UpdateTrafficFilterBySpaceType invalid space type");
+            ret = FIREWALL_ERR_INVALID_PARAMETER;
             break;
     }
     return ret;
@@ -723,7 +760,12 @@ int32_t NetFirewallService::UpdateTrafficFilterBySpaceType(SpaceType spaceType)
 
 int32_t NetFirewallService::AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule)
 {
-    int32_t ret = NetTrafficFilterPacketRuleManager::GetInstance().AddPacketRule(controllerId, rule);
+    int32_t ret = ValidateBundleOwnership(controllerId);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("AddPacketRule ownership validation failed, ret: %{public}d", ret);
+        return ret;
+    }
+    ret = NetTrafficFilterPacketRuleManager::GetInstance().AddPacketRule(controllerId, rule);
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("AddPacketRule failed, ret: %{public}d", ret);
     } else {
@@ -734,28 +776,22 @@ int32_t NetFirewallService::AddPacketRule(const std::string& controllerId, const
 
 int32_t NetFirewallService::ClearPacketRule(const std::string& controllerId)
 {
+    int32_t ret = ValidateBundleOwnership(controllerId);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("ClearPacketRule ownership validation failed, ret: %{public}d", ret);
+        return ret;
+    }
     int32_t queNum = 0;
     if (!NetTrafficFilterPacketRuleManager::GetInstance().ParseAndValidateControllerId(controllerId, queNum)) {
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
     QueueInfo info = NetTrafficFilterNFQueueCore::GetInstance().GetQueueInfo(queNum);
-    int32_t ret = NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(info);
+    ret = NetTrafficFilterPacketRuleManager::GetInstance().ClearPacketRule(info);
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("ClearPacketRule failed, ret: %{public}d", ret);
     } else {
         NETMGR_EXT_LOG_I("ClearPacketRule success");
     }
-    return ret;
-}
-
-int32_t NetFirewallService::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
-{
-    QueueInfo info = NetTrafficFilterNFQueueCore::GetInstance().GetQueueInfo(queueNum);
-    if (info.nfqHandle == nullptr || info.qh == nullptr) {
-        NETMGR_EXT_LOG_E("SendVerdict: invalid queue info, queueNum=%{public}d", queueNum);
-        return TRAFFICFILTER_ERROR_INVALID_PARAM;
-    }
-    int32_t ret = NetsysController::GetInstance().NfqPktVerdictMark(info.nfqHandle, info.qh, packetId, verdict, mark);
     return ret;
 }
 } // namespace NetManagerStandard

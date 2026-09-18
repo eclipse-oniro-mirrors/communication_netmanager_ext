@@ -15,14 +15,25 @@
 #include <cstdint>
 #include <sstream>
 #include <algorithm>
+#include <iterator>
 #include <system_error>
 #include "netfirewall_uid_rule_generator.h"
 #include "nettrafficfilter_iptables_command_builder.h"
 #include "net_manager_constants.h"
 
 namespace OHOS {
-namespace NetManagerStandard {
+struct RealUidRange {
+    uint32_t start;
+    uint32_t end;
+};
 
+const std::vector<RealUidRange> REAL_UID_RANGES = {
+    {0, 65535},
+    {100000, 165535},
+    {20000000, 20065535},
+    {30000000, 30065535},
+};
+namespace NetManagerStandard {
 UidRuleGenerator& UidRuleGenerator::GetInstance()
 {
     static UidRuleGenerator instance;
@@ -40,7 +51,65 @@ std::string UidRuleGenerator::GenerateIsolationKey(
 
 bool UidRuleGenerator::HasUidCondition(const sptr<TrafficFilterPacketRule>& rule)
 {
+    if (rule == nullptr) {
+        return false;
+    }
     return rule->uidStart_ != static_cast<uint32_t>(-1) || rule->uidEnd_ != static_cast<uint32_t>(-1);
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> UidRuleGenerator::ClipToRealUidRanges(
+    uint32_t start, uint32_t end)
+{
+    std::vector<std::pair<uint32_t, uint32_t>> result;
+    for (const auto& range : REAL_UID_RANGES) {
+        uint32_t s = std::max(start, range.start);
+        uint32_t e = std::min(end, range.end);
+        if (s <= e) {
+            result.emplace_back(s, e);
+        }
+    }
+    return result;
+}
+
+void UidRuleGenerator::ClearIntervalsForKey(const std::string& isolationKey)
+{
+    auto it = keyToIntervalStarts_.find(isolationKey);
+    if (it == keyToIntervalStarts_.end()) {
+        return;
+    }
+    for (uint32_t start : it->second) {
+        uidIntervals_.erase(start);
+    }
+    keyToIntervalStarts_.erase(it);
+}
+
+void UidRuleGenerator::AddIntervalsForKey(const std::string& isolationKey,
+    const std::vector<std::pair<uint32_t, uint32_t>>& ranges)
+{
+    for (const auto& [start, end] : ranges) {
+        uidIntervals_[start] = {end, isolationKey};
+        keyToIntervalStarts_[isolationKey].insert(start);
+    }
+}
+
+int32_t UidRuleGenerator::SyncUidIntervals(const std::string& isolationKey,
+    uint32_t uidStart, uint32_t uidEnd)
+{
+    auto ranges = ClipToRealUidRanges(uidStart, uidEnd);
+    if (ranges.empty()) {
+        NETMGR_EXT_LOG_E("SyncUidIntervals no real uid in range %{public}u-%{public}u", uidStart, uidEnd);
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
+    ClearIntervalsForKey(isolationKey);
+    AddIntervalsForKey(isolationKey, ranges);
+
+    auto ctxIt = uidRuleContexts_.find(isolationKey);
+    if (ctxIt != uidRuleContexts_.end()) {
+        ctxIt->second->uidStart = ranges.front().first;
+        ctxIt->second->uidEnd = ranges.back().second;
+    }
+    return TRAFFICFILTER_OK;
 }
 
 std::string UidRuleGenerator::GenerateCTMarkMatchParam(uint32_t markValue)
@@ -55,13 +124,18 @@ bool UidRuleGenerator::IsUidRangeOverlap(
     uint32_t uidEnd,
     const std::string& excludeIsolationKey)
 {
-    for (const auto& [isolationKey, ctx] : uidRuleContexts_) {
-        if (isolationKey == excludeIsolationKey) {
-            continue;
-        }
-        if (uidStart <= ctx->uidEnd && uidEnd >= ctx->uidStart) {
+    auto it = uidIntervals_.lower_bound(uidStart);
+    if (it != uidIntervals_.begin()) {
+        auto prev = std::prev(it);
+        if (prev->second.end >= uidStart && prev->second.isolationKey != excludeIsolationKey) {
             return true;
         }
+    }
+    while (it != uidIntervals_.end() && it->first <= uidEnd) {
+        if (it->second.isolationKey != excludeIsolationKey) {
+            return true;
+        }
+        ++it;
     }
     return false;
 }
@@ -91,16 +165,25 @@ int32_t UidRuleGenerator::AllocateMarkForUidRange(
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
+    auto ranges = ClipToRealUidRanges(uidStart, uidEnd);
+    if (ranges.empty()) {
+        NETMGR_EXT_LOG_E("AllocateMarkForUidRange no real uid in range %{public}u-%{public}u", uidStart, uidEnd);
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
     std::string isolationKey = GenerateIsolationKey(bundleName, groupId);
     auto it = uidRuleContexts_.find(isolationKey);
     if (it != uidRuleContexts_.end()) {
         markValue = it->second->ctMarkValue;
-        UpdateUidRangeIfNeeded(isolationKey, uidStart, uidEnd);
-        return TRAFFICFILTER_OK;
+        return UpdateUidRangeIfNeeded(isolationKey, uidStart, uidEnd);
     }
-    if (IsUidRangeOverlap(uidStart, uidEnd)) {
-        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+
+    for (const auto& [start, end] : ranges) {
+        if (IsUidRangeOverlap(start, end)) {
+            return TRAFFICFILTER_ERROR_INVALID_PARAM;
+        }
     }
+
     uint32_t newMark = AllocateNextMark();
     if (newMark == 0) {
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
@@ -108,57 +191,55 @@ int32_t UidRuleGenerator::AllocateMarkForUidRange(
     auto ctx = std::make_shared<UidRuleContext>();
     ctx->bundleName = bundleName;
     ctx->groupId = groupId;
-    ctx->uidStart = uidStart;
-    ctx->uidEnd = uidEnd;
     ctx->ctMarkValue = newMark;
     uidRuleContexts_[isolationKey] = ctx;
     markToIsolationKey_[newMark] = isolationKey;
-    for (uint32_t uid = uidStart; uid <= uidEnd; uid++) {
-        uidToIsolationKeys_[uid].insert(isolationKey);
+
+    int32_t ret = SyncUidIntervals(isolationKey, uidStart, uidEnd);
+    if (ret != TRAFFICFILTER_OK) {
+        uidRuleContexts_.erase(isolationKey);
+        markToIsolationKey_.erase(newMark);
+        return ret;
     }
 
     markValue = newMark;
     return TRAFFICFILTER_OK;
 }
 
-void UidRuleGenerator::UpdateUidRangeIfNeeded(
+int32_t UidRuleGenerator::UpdateUidRangeIfNeeded(
     const std::string& isolationKey,
     uint32_t uidStart,
     uint32_t uidEnd)
 {
+    if (uidStart > uidEnd) {
+        NETMGR_EXT_LOG_E("UpdateUidRangeIfNeeded invalid range %{public}u-%{public}u", uidStart, uidEnd);
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
     auto ctxIt = uidRuleContexts_.find(isolationKey);
     if (ctxIt == uidRuleContexts_.end()) {
-        return;
+        return TRAFFICFILTER_OK;
     }
 
     auto& ctx = ctxIt->second;
-    if (ctx->uidStart == uidStart && ctx->uidEnd == uidEnd) {
-        return;
+    auto ranges = ClipToRealUidRanges(uidStart, uidEnd);
+    if (ranges.empty()) {
+        NETMGR_EXT_LOG_E("UpdateUidRangeIfNeeded no real uid in range %{public}u-%{public}u", uidStart, uidEnd);
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    RemoveUidFromMapping(isolationKey, ctx->uidStart, ctx->uidEnd);
-    ctx->uidStart = uidStart;
-    ctx->uidEnd = uidEnd;
-    for (uint32_t uid = uidStart; uid <= uidEnd; uid++) {
-        uidToIsolationKeys_[uid].insert(isolationKey);
+    for (const auto& [start, end] : ranges) {
+        if (IsUidRangeOverlap(start, end, isolationKey)) {
+            NETMGR_EXT_LOG_E("UpdateUidRangeIfNeeded range overlaps with other context");
+            return TRAFFICFILTER_ERROR_INVALID_PARAM;
+        }
     }
+
+    return SyncUidIntervals(isolationKey, uidStart, uidEnd);
 }
 
-void UidRuleGenerator::RemoveUidFromMapping(
-    const std::string& isolationKey,
-    uint32_t uidStart,
-    uint32_t uidEnd)
+void UidRuleGenerator::RemoveUidFromMapping(const std::string& isolationKey)
 {
-    for (uint32_t uid = uidStart; uid <= uidEnd; uid++) {
-        auto setIt = uidToIsolationKeys_.find(uid);
-        if (setIt == uidToIsolationKeys_.end()) {
-            continue;
-        }
-        setIt->second.erase(isolationKey);
-        if (setIt->second.empty()) {
-            uidToIsolationKeys_.erase(setIt);
-        }
-    }
+    ClearIntervalsForKey(isolationKey);
 }
 
 int32_t UidRuleGenerator::ReleaseMarkForUidRange(
@@ -170,19 +251,9 @@ int32_t UidRuleGenerator::ReleaseMarkForUidRange(
     if (ctxIt == uidRuleContexts_.end()) {
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-    auto& ctx = ctxIt->second;
-    uint32_t markValue = ctx->ctMarkValue;
-    for (uint32_t uid = ctx->uidStart; uid <= ctx->uidEnd; uid++) {
-        auto setIt = uidToIsolationKeys_.find(uid);
-        if (setIt == uidToIsolationKeys_.end()) {
-            continue;
-        }
-        setIt->second.erase(isolationKey);
-        if (setIt->second.empty()) {
-            uidToIsolationKeys_.erase(setIt);
-        }
-    }
+    uint32_t markValue = ctxIt->second->ctMarkValue;
 
+    ClearIntervalsForKey(isolationKey);
     markToIsolationKey_.erase(markValue);
     uidRuleContexts_.erase(ctxIt);
     return TRAFFICFILTER_OK;
@@ -190,13 +261,21 @@ int32_t UidRuleGenerator::ReleaseMarkForUidRange(
 
 int32_t UidRuleGenerator::GetMarkByUid(uint32_t uid, uint32_t& markValue)
 {
-    auto it = uidToIsolationKeys_.find(uid);
-    if (it == uidToIsolationKeys_.end() || it->second.empty()) {
+    auto clipped = ClipToRealUidRanges(uid, uid);
+    if (clipped.empty()) {
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    const std::string& isolationKey = *it->second.begin();
-    auto ctxIt = uidRuleContexts_.find(isolationKey);
+    auto it = uidIntervals_.upper_bound(uid);
+    if (it == uidIntervals_.begin()) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+    --it;
+    if (uid > it->second.end) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
+    auto ctxIt = uidRuleContexts_.find(it->second.isolationKey);
     if (ctxIt == uidRuleContexts_.end()) {
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
@@ -210,13 +289,35 @@ int32_t UidRuleGenerator::GetMarkByUidRange(
     uint32_t uidEnd,
     uint32_t& markValue)
 {
-    for (const auto& [isolationKey, ctx] : uidRuleContexts_) {
-        if (uidStart == ctx->uidStart && uidEnd == ctx->uidEnd) {
-            markValue = ctx->ctMarkValue;
-            return TRAFFICFILTER_OK;
+    auto ranges = ClipToRealUidRanges(uidStart, uidEnd);
+    if (ranges.empty()) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
+    std::string isolationKey;
+    for (const auto& [start, end] : ranges) {
+        auto it = uidIntervals_.upper_bound(start);
+        if (it == uidIntervals_.begin()) {
+            return TRAFFICFILTER_ERROR_INVALID_PARAM;
+        }
+        --it;
+        if (start < it->first || end > it->second.end) {
+            return TRAFFICFILTER_ERROR_INVALID_PARAM;
+        }
+        if (isolationKey.empty()) {
+            isolationKey = it->second.isolationKey;
+        } else if (isolationKey != it->second.isolationKey) {
+            return TRAFFICFILTER_ERROR_INVALID_PARAM;
         }
     }
-    return TRAFFICFILTER_ERROR_INVALID_PARAM;
+
+    auto ctxIt = uidRuleContexts_.find(isolationKey);
+    if (ctxIt == uidRuleContexts_.end()) {
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
+    markValue = ctxIt->second->ctMarkValue;
+    return TRAFFICFILTER_OK;
 }
 
 int32_t UidRuleGenerator::GenerateDeleteMangleChainCommands(const QueueInfo& info)
@@ -319,6 +420,13 @@ int32_t UidRuleGenerator::GenerateCreateMangleRulesCommands(
     uint32_t uidEnd,
     uint32_t markValue)
 {
+    auto ranges = ClipToRealUidRanges(uidStart, uidEnd);
+    if (ranges.empty()) {
+        NETMGR_EXT_LOG_E("GenerateCreateMangleRulesCommands no real uid in range %{public}u-%{public}u",
+            uidStart, uidEnd);
+        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    }
+
     const std::string chainName = info.chainNameOut;
     std::ostringstream markStr;
     markStr << "0x" << std::hex << markValue;
@@ -332,9 +440,11 @@ int32_t UidRuleGenerator::GenerateCreateMangleRulesCommands(
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
 
-    if (AddMangleMarkRule(chainName, uidStart, uidEnd, markStr.str()) != TRAFFICFILTER_OK) {
-        RollbackMangleChainCreation(chainName, static_cast<int32_t>(MangleChainStage::STAGE_JUMP_INSERTED));
-        return TRAFFICFILTER_ERROR_INVALID_PARAM;
+    for (const auto& [start, end] : ranges) {
+        if (AddMangleMarkRule(chainName, start, end, markStr.str()) != TRAFFICFILTER_OK) {
+            RollbackMangleChainCreation(chainName, static_cast<int32_t>(MangleChainStage::STAGE_JUMP_INSERTED));
+            return TRAFFICFILTER_ERROR_INVALID_PARAM;
+        }
     }
 
     if (AddMangleConnmarkRule(chainName, markStr.str()) != TRAFFICFILTER_OK) {
@@ -357,22 +467,23 @@ std::string UidRuleGenerator::BuildInputCtmarkRule(
     return rule.str();
 }
 
-std::shared_ptr<UidRuleContext> UidRuleGenerator::CreateOrUpdateContext(
+int32_t UidRuleGenerator::CreateOrUpdateContext(
     const QueueInfo& info,
     uint32_t uidStart,
     uint32_t uidEnd,
-    int32_t queueNum)
+    int32_t queueNum,
+    std::shared_ptr<UidRuleContext>& ctx)
 {
     std::string isolationKey = GenerateIsolationKey(info.bundleName, info.groupId);
     auto it = uidRuleContexts_.find(isolationKey);
     if (it != uidRuleContexts_.end()) {
-        auto ctx = it->second;
+        ctx = it->second;
         ctx->uidStart = uidStart;
         ctx->uidEnd = uidEnd;
         ctx->queueNum = queueNum;
-        return ctx;
+        return TRAFFICFILTER_OK;
     }
-    auto ctx = std::make_shared<UidRuleContext>();
+    ctx = std::make_shared<UidRuleContext>();
     ctx->bundleName = info.bundleName;
     ctx->groupId = info.groupId;
     ctx->uidStart = uidStart;
@@ -381,7 +492,7 @@ std::shared_ptr<UidRuleContext> UidRuleGenerator::CreateOrUpdateContext(
     ctx->filterChainName = info.chainNameOut;
     ctx->mangleChainName = info.chainNameOut;
     uidRuleContexts_[isolationKey] = ctx;
-    return ctx;
+    return TRAFFICFILTER_OK;
 }
 
 int32_t UidRuleGenerator::HandleOutputUidRule(
@@ -396,7 +507,12 @@ int32_t UidRuleGenerator::HandleOutputUidRule(
     if (ret != TRAFFICFILTER_OK) {
         return ret;
     }
-    auto ctx = CreateOrUpdateContext(info, rule->uidStart_, rule->uidEnd_, queueNum);
+    std::shared_ptr<UidRuleContext> ctx = nullptr;
+    ret = CreateOrUpdateContext(info, rule->uidStart_, rule->uidEnd_, queueNum, ctx);
+    if (ret != TRAFFICFILTER_OK) {
+        ReleaseMarkForUidRange(info.bundleName, info.groupId);
+        return ret;
+    }
     ctx->ctMarkValue = markValue;
     ctx->hasOutputRule = true;
     ret = GenerateCreateMangleRulesCommands(
@@ -444,17 +560,27 @@ int32_t UidRuleGenerator::HandleInputUidRule(
     if (ret != TRAFFICFILTER_OK) {
         return TRAFFICFILTER_ERROR_INVALID_PARAM;
     }
-    auto it = uidRuleContexts_.find(isolationKey);
     std::shared_ptr<UidRuleContext> ctx = nullptr;
     bool isNewContext = false;
+    auto it = uidRuleContexts_.find(isolationKey);
     if (it != uidRuleContexts_.end()) {
+        ret = UpdateUidRangeIfNeeded(isolationKey, rule->uidStart_, rule->uidEnd_);
+        if (ret != TRAFFICFILTER_OK) {
+            return ret;
+        }
         ctx = it->second;
-        ctx->uidStart = rule->uidStart_;
-        ctx->uidEnd = rule->uidEnd_;
         ctx->queueNum = queueNum;
     } else {
-        ctx = CreateOrUpdateContext(info, rule->uidStart_, rule->uidEnd_, queueNum);
+        ret = CreateOrUpdateContext(info, rule->uidStart_, rule->uidEnd_, queueNum, ctx);
+        if (ret != TRAFFICFILTER_OK) {
+            return ret;
+        }
         ctx->ctMarkValue = markValue;
+        ret = SyncUidIntervals(isolationKey, rule->uidStart_, rule->uidEnd_);
+        if (ret != TRAFFICFILTER_OK) {
+            uidRuleContexts_.erase(isolationKey);
+            return ret;
+        }
         isNewContext = true;
     }
     std::string filterCmd = BuildInputCtmarkRule(info.chainNameIn, queueNum, markValue);

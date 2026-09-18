@@ -87,8 +87,6 @@ private:
 
     int32_t OnClearPacketRule(MessageParcel &data, MessageParcel &reply);
 
-    int32_t OnSendVerdict(MessageParcel &data, MessageParcel &reply);
-
 private:
     std::map<uint32_t, ServicePermissionAndFunc> memberFuncMap_;
 };

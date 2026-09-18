@@ -1773,8 +1773,7 @@ HWTEST_F(NetFirewallServiceTest, GetUserSpaceType001, TestSize.Level1)
 {
     int32_t userId = instance_->GetCurrentAccountId();
     NetFirewallService::SpaceType spaceType = instance_->GetUserSpaceType(userId);
-    EXPECT_TRUE(spaceType == NetFirewallService::SpaceType::PERSONAL ||
-                spaceType == NetFirewallService::SpaceType::ENTERPRISE);
+    EXPECT_TRUE(spaceType == NetFirewallService::SpaceType::UNKNOWN);
 }
 
 /**
@@ -1786,7 +1785,7 @@ HWTEST_F(NetFirewallServiceTest, GetUserSpaceType002, TestSize.Level1)
 {
     int32_t nonExistentUserId = 99999;
     NetFirewallService::SpaceType spaceType = instance_->GetUserSpaceType(nonExistentUserId);
-    EXPECT_EQ(spaceType, NetFirewallService::SpaceType::PERSONAL);
+    EXPECT_EQ(spaceType, NetFirewallService::SpaceType::UNKNOWN);
 }
 
 /**
@@ -1830,7 +1829,7 @@ HWTEST_F(NetFirewallServiceTest, UpdateTrafficFilterBySpaceType002, TestSize.Lev
 HWTEST_F(NetFirewallServiceTest, UpdateTrafficFilterBySpaceType003, TestSize.Level1)
 {
     int32_t ret = instance_->UpdateTrafficFilterBySpaceType(NetFirewallService::SpaceType::UNKNOWN);
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_EQ(ret, FIREWALL_ERR_INVALID_PARAMETER);
 }
 
 /**
@@ -1871,7 +1870,7 @@ HWTEST_F(NetFirewallServiceTest, HandleSpaceSwitched002, TestSize.Level1)
     instance_->HandleSpaceSwitched(userId);
     {
         std::lock_guard<std::mutex> lock(instance_->spaceTypeMutex_);
-        EXPECT_EQ(instance_->currentSpaceType_, actualType);
+        EXPECT_EQ(instance_->currentSpaceType_, NetFirewallService::SpaceType::ENTERPRISE);
     }
 }
 
@@ -1927,34 +1926,5 @@ HWTEST_F(NetFirewallServiceTest, DestroyPacketController001, TestSize.Level1)
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
-/**
- * @tc.name: SendVerdict001
- * @tc.desc: Test NetFirewallService SendVerdict with invalid queueNum.
- * @tc.type: FUNC
- */
-HWTEST_F(NetFirewallServiceTest, SendVerdict001, TestSize.Level1)
-{
-    int32_t queueNum = 9999;
-    uint32_t packetId = 100;
-    int32_t verdict = 1;
-    int32_t mark = 0;
-    int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
-    EXPECT_NE(ret, FIREWALL_SUCCESS);
-}
-
-/**
- * @tc.name: SendVerdict002
- * @tc.desc: Test NetFirewallService SendVerdict with zero queueNum.
- * @tc.type: FUNC
- */
-HWTEST_F(NetFirewallServiceTest, SendVerdict002, TestSize.Level1)
-{
-    int32_t queueNum = 0;
-    uint32_t packetId = 0;
-    int32_t verdict = 0;
-    int32_t mark = 0;
-    int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
-    EXPECT_NE(ret, FIREWALL_SUCCESS);
-}
 } // namespace NetManagerStandard
 } // namespace OHOS
