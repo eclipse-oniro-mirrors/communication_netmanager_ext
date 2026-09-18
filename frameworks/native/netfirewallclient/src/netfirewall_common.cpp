@@ -311,6 +311,16 @@ sptr<TrafficFilterIPCidr> TrafficFilterIPCidr::Unmarshalling(Parcel &parcel)
         NETMGR_EXT_LOG_E("Read prefixLen failed");
         return nullptr;
     }
+    if (ptr->base_.family_ == static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V4) &&
+        ptr->prefixLen_ > IPV4_MASK_MAX) {
+        NETMGR_EXT_LOG_E("Read invalid IPv4 prefixLen");
+        return nullptr;
+    }
+    if (ptr->base_.family_ == static_cast<int32_t>(TrafficFilterIPFamily::IP_FAMILY_V6) &&
+        ptr->prefixLen_ > IPV6_MASK_MAX) {
+        NETMGR_EXT_LOG_E("Read invalid IPv6 prefixLen");
+        return nullptr;
+    }
     return ptr;
 }
 
@@ -868,6 +878,10 @@ sptr<TrafficFilterRedirectRule> TrafficFilterRedirectRule::Unmarshalling(Parcel 
         NETMGR_EXT_LOG_E("Read hookPoint failed");
         return nullptr;
     }
+    if (ptr->hookPoint_ < static_cast<int32_t>(TrafficFilterHookPoint::HOOK_INPUT) ||
+        ptr->hookPoint_ > static_cast<int32_t>(TrafficFilterHookPoint::HOOK_POSTROUTING)) {
+        return nullptr;
+    }
 
     if (!parcel.ReadUint8(ptr->protocol_)) {
         NETMGR_EXT_LOG_E("Read protocol failed");
@@ -1161,6 +1175,10 @@ sptr<TrafficFilterPacketRule> TrafficFilterPacketRule::Unmarshalling(Parcel &par
     }
 
     if (!parcel.ReadInt32(ptr->hookPoint_)) {
+        return nullptr;
+    }
+    if (ptr->hookPoint_ < static_cast<int32_t>(TrafficFilterHookPoint::HOOK_INPUT) ||
+        ptr->hookPoint_ > static_cast<int32_t>(TrafficFilterHookPoint::HOOK_POSTROUTING)) {
         return nullptr;
     }
 
