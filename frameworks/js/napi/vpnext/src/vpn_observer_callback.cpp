@@ -34,8 +34,8 @@ struct VpnAuthorizationContext {
     ~VpnAuthorizationContext() = default;
 };
 
-static bool CheckVpnObserverInstance(VpnObserver *observer, VpnObserverInstance *&instance,
-    std::shared_ptr<EventManager> &manager)
+static bool CheckVpnObserverInstance(
+    VpnObserver *observer, VpnObserverInstance *&instance, std::shared_ptr<EventManager> &manager)
 {
     std::lock_guard<std::mutex> lock{VpnObserverInstance::g_vpnObserverMutex};
     auto it = VpnObserverInstance::observerInstanceMap_.find(observer);
