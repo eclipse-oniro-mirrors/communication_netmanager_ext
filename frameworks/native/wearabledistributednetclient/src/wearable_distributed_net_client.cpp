@@ -138,6 +138,10 @@ sptr<IWearableDistributedNet> WearableDistributedNetClient::GetProxy()
     wearableDistributedNetService_ = iface_cast<IWearableDistributedNet>(remote);
     if (wearableDistributedNetService_ == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service proxy failed");
+        if (remote->IsProxyObject()) {
+            remote->RemoveDeathRecipient(deathRecipient_);
+            deathRecipient_ = nullptr;
+        }
         return nullptr;
     }
     NETMGR_EXT_LOG_I("WearableDistributedNetClient GetProxy finish");
