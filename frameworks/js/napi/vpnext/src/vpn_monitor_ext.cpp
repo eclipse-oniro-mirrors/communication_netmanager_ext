@@ -194,6 +194,10 @@ bool VpnMonitor::ShowVpnDialog(const std::string &bundleName, const std::string 
     }
 
     AAFwk::Want cachedwant = VpnMonitor::GetInstance().GetCachedWant();
+    if (cachedWant.GetElement().GetBundleName().empty()) {
+        NETMANAGER_EXT_LOGE("GetCachedWant empty");
+        return false;
+    }
     AAFwk::WantParams cachedParams = cachedwant.GetParams();
     AAFwk::Want want;
     AAFwk::WantParams wantParams = want.GetParams();
