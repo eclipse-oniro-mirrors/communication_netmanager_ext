@@ -537,38 +537,6 @@ int32_t NetTrafficFilterPacketRuleManager::ClearPacketRule(const QueueInfo& info
     return FIREWALL_SUCCESS;
 }
 
-int32_t NetTrafficFilterPacketRuleManager::PauseAllRules()
-{
-    std::vector<FilterRuleCtx> ctxList;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        for (const auto& [queueNum, ctx] : queueNumToRuleCtx_) {
-            ctxList.push_back(ctx);
-        }
-    }
-    for (const auto& ctx : ctxList) {
-        for (size_t i = 0; i < HOOK_POINT_COUNT; ++i) {
-            int32_t hookPoint = HOOK_POINTS[i];
-            const std::string& chainName = GetChainNameByHookPoint(
-                ctx.chainNameIn, ctx.chainNameOut, ctx.chainNameFwd, hookPoint);
-            if (chainName.empty()) {
-                continue;
-            }
-            std::string hookName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(
-                static_cast<TrafficFilterHookPoint>(hookPoint));
-            if (hookName.empty()) {
-                continue;
-            }
-            std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
-                hookName, chainName, IptablesName::FILTER);
-            if (!jumpCmd.empty()) {
-                ExecuteIptablesForFamilies(jumpCmd, false, nullptr);
-            }
-        }
-    }
-    return FIREWALL_SUCCESS;
-}
-
 static bool CheckNeedV6Rule(const std::map<uint32_t, HookPointRules>& rulesMap,
     int32_t queueNum, int32_t hookPoint)
 {
@@ -586,61 +554,6 @@ static bool CheckNeedV6Rule(const std::map<uint32_t, HookPointRules>& rulesMap,
         }
     }
     return false;
-}
-
-std::vector<ResumeEntry> NetTrafficFilterPacketRuleManager::CollectResumeEntries()
-{
-    std::vector<ResumeEntry> entries;
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (const auto& [queueNum, ctx] : queueNumToRuleCtx_) {
-        for (size_t i = 0; i < HOOK_POINT_COUNT; ++i) {
-            int32_t hookPoint = HOOK_POINTS[i];
-            const std::string& chainName = GetChainNameByHookPoint(
-                ctx.chainNameIn, ctx.chainNameOut, ctx.chainNameFwd, hookPoint);
-            if (chainName.empty()) {
-                continue;
-            }
-            ResumeEntry entry{queueNum, chainName, hookPoint, ctx.priority, false};
-            entry.needV6 = CheckNeedV6Rule(queueNumToRules_, queueNum, hookPoint);
-            entries.push_back(std::move(entry));
-        }
-    }
-    return entries;
-}
-
-int32_t NetTrafficFilterPacketRuleManager::ResumeJumpRules(const std::vector<ResumeEntry>& entries)
-{
-    for (const auto& entry : entries) {
-        std::string hookName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(
-            static_cast<TrafficFilterHookPoint>(entry.hookPoint));
-        std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildInsertJumpToChainCommand(
-            hookName, entry.chainName, entry.priority, IptablesName::FILTER);
-        if (jumpCmd.empty()) {
-            continue;
-        }
-        if (ExecuteIptablesForFamilies(jumpCmd, true, "ResumeJumpRules") != FIREWALL_SUCCESS) {
-            NETMGR_EXT_LOG_E("ResumeJumpRules failed, hook=%{public}d", entry.hookPoint);
-            return TRAFFICFILTER_ERROR_INVALID_PARAM;
-        }
-    }
-    return FIREWALL_SUCCESS;
-}
-
-int32_t NetTrafficFilterPacketRuleManager::ResumeAllRules()
-{
-    std::vector<ResumeEntry> entries = CollectResumeEntries();
-
-    int32_t ret = ResumeJumpRules(entries);
-    if (ret != FIREWALL_SUCCESS) return ret;
-
-    for (const auto& entry : entries) {
-        ret = ApplyRulesForHookPointBothFamilies(entry.queueNum, entry.hookPoint,
-            entry.chainName, entry.needV6);
-        if (ret != FIREWALL_SUCCESS) {
-            return ret;
-        }
-    }
-    return FIREWALL_SUCCESS;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

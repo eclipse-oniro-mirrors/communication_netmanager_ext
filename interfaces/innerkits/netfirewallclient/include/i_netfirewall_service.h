@@ -55,9 +55,14 @@ public:
 
     virtual int32_t ClearRedirectRule(const std::string& redirectorId) = 0;
 
+    // TrafficFilter only controls traffic redirection.
     virtual int32_t GlobalEnableTrafficFilter() = 0;
     virtual int32_t GlobalDisableTrafficFilter() = 0;
     virtual int32_t GetTrafficFilterGlobalStatus(bool& isEnabled) = 0;
+    // PacketFilter only controls packet filtering.
+    virtual int32_t GlobalEnablePacketFilter() = 0;
+    virtual int32_t GlobalDisablePacketFilter() = 0;
+    virtual int32_t GetPacketFilterGlobalStatus(bool& isEnabled) = 0;
 
     virtual int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
         const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) = 0;
@@ -88,6 +93,9 @@ public:
         GLOBAL_ENABLE_TRAFFIC_FILTER,
         GLOBAL_DISABLE_TRAFFIC_FILTER,
         GET_TRAFFIC_FILTER_GLOBAL_STATUS,
+        GLOBAL_ENABLE_PACKET_FILTER,
+        GLOBAL_DISABLE_PACKET_FILTER,
+        GET_PACKET_FILTER_GLOBAL_STATUS,
         QUERY_PROCESS,
         ADD_PACKET_RULE,
         CLEAR_PACKET_RULE,

@@ -206,6 +206,21 @@ public:
      */
     int32_t GetTrafficFilterGlobalStatus(bool& isEnabled) override;
 
+    /**
+     * Global enable packet filter
+     */
+    int32_t GlobalEnablePacketFilter() override;
+
+    /**
+     * Global disable packet filter
+     */
+    int32_t GlobalDisablePacketFilter() override;
+
+    /**
+     * Get packet filter global status
+     */
+    int32_t GetPacketFilterGlobalStatus(bool& isEnabled) override;
+
     int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
         const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) override;
 

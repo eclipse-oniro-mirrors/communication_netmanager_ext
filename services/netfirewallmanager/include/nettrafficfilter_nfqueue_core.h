@@ -50,6 +50,9 @@ public:
 
     int32_t AllocateQueueNumber(const std::string &bundleName, uint32_t groupId);
     QueueInfo GetQueueInfo(uint16_t queueNum);
+    int32_t GlobalEnablePacketFilter();
+    int32_t GlobalDisablePacketFilter();
+    int32_t GetPacketFilterGlobalStatus(bool& isEnabled);
 
 private:
     class TrafficFilterHapObserver : public AppExecFwk::ApplicationStateObserverStub {
@@ -80,6 +83,10 @@ private:
     uint32_t GetQueueFlags(const OHOS::sptr<TrafficFilterConfig>& config);
     bool ConfigureNFQueue(OHOS::sptr<NfqCtx>& ctx,
         OHOS::sptr<NfqQueue>& qh, const OHOS::sptr<TrafficFilterConfig>& config);
+    int32_t PauseAllRules();
+    int32_t DeleteJumpToChain(const QueueInfo& info);
+    int32_t ResumeAllRules();
+    int32_t InsertJumpToChain(const QueueInfo& info, uint32_t pos);
     void UpdateNFQHandleFromBundleNameLocked(const std::string &bundleName, const OHOS::sptr<NfqCtx>& nfqHandle);
     OHOS::sptr<NfqCtx> GetNFQHandleFromBundleNameLocked(const std::string& bundleName);
     int32_t DestroyQueueLocked(uint16_t queueNum);
@@ -90,6 +97,7 @@ private:
     std::map<int32_t, OHOS::sptr<TrafficFilterHapObserver>> uidToObserverMap_;
     mutable std::mutex observerMutex_;
     uint16_t nextQueueId_ = 0;
+    std::atomic<bool> isGloballyEnabled_{true};
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

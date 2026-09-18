@@ -1613,6 +1613,62 @@ HWTEST_F(NetFirewallServiceTest, GlobalToggleTrafficFilter001, TestSize.Level1)
         instance_->GlobalEnableTrafficFilter();
     }
 }
+
+/**
+ * @tc.name: GlobalEnablePacketFilter001
+ * @tc.desc: Test NetFirewallService GlobalEnablePacketFilter.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GlobalEnablePacketFilter001, TestSize.Level1)
+{
+    int32_t ret = instance_->GlobalEnablePacketFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: GlobalDisablePacketFilter001
+ * @tc.desc: Test NetFirewallService GlobalDisablePacketFilter.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GlobalDisablePacketFilter001, TestSize.Level1)
+{
+    int32_t ret = instance_->GlobalDisablePacketFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+
+    // Re-enable for cleanup
+    instance_->GlobalEnablePacketFilter();
+}
+
+/**
+ * @tc.name: GetPacketFilterGlobalStatus001
+ * @tc.desc: Test NetFirewallService GetPacketFilterGlobalStatus when enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetPacketFilterGlobalStatus001, TestSize.Level1)
+{
+    bool isEnabled = false;
+    int32_t ret = instance_->GetPacketFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(isEnabled);
+}
+
+/**
+ * @tc.name: GetPacketFilterGlobalStatus002
+ * @tc.desc: Test NetFirewallService GetPacketFilterGlobalStatus when disabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, GetPacketFilterGlobalStatus002, TestSize.Level1)
+{
+    instance_->GlobalDisablePacketFilter();
+
+    bool isEnabled = true;
+    int32_t ret = instance_->GetPacketFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_FALSE(isEnabled);
+
+    // Re-enable for cleanup
+    instance_->GlobalEnablePacketFilter();
+}
 /**
  * @tc.name: GetParamRuleInfoFormResultSet
  * @tc.desc: Test NetFirewallDbHelper GetParamRuleInfoFormResultSet interface branch.
@@ -1818,7 +1874,11 @@ HWTEST_F(NetFirewallServiceTest, UpdateTrafficFilterBySpaceType002, TestSize.Lev
     ret = instance_->GetTrafficFilterGlobalStatus(isEnabled);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_FALSE(isEnabled);
+    ret = instance_->GetPacketFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_FALSE(isEnabled);
     instance_->GlobalEnableTrafficFilter();
+    instance_->GlobalEnablePacketFilter();
 }
 
 /**

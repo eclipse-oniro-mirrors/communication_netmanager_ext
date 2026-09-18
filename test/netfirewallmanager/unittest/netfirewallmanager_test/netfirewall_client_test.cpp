@@ -686,6 +686,25 @@ HWTEST_F(NetFirewallClientTest, GetTrafficFilterGlobalStatus001, TestSize.Level1
     EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
 }
 
+HWTEST_F(NetFirewallClientTest, GlobalEnablePacketFilter001, TestSize.Level1)
+{
+    int32_t ret = netfirewallClient_.GlobalEnablePacketFilter();
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, GlobalDisablePacketFilter001, TestSize.Level1)
+{
+    int32_t ret = netfirewallClient_.GlobalDisablePacketFilter();
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetFirewallClientTest, GetPacketFilterGlobalStatus001, TestSize.Level1)
+{
+    bool isEnabled;
+    int32_t ret = netfirewallClient_.GetPacketFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_ERR_PERMISSION_DENIED);
+}
+
 HWTEST_F(NetFirewallClientTest, QueryProcess001, TestSize.Level1)
 {
     std::string srcIp = "192.168.1.1";
