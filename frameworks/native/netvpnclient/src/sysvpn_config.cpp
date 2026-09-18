@@ -110,11 +110,11 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
     int32_t pkcs12FileDataSize = 0;
     uint8_t data = 0;
     allOK = allOK && parcel.ReadInt32(pkcs12FileDataSize);
-    if (pkcs12FileDataSize > MAX_LEN_CERTIFICATE_CHAIN) {
-        NETMGR_EXT_LOG_E("pkcs12FileDataSize is too large");
+    if (pkcs12FileDataSize < 0 || pkcs12FileDataSize > MAX_LEN_CERTIFICATE_CHAIN) {
+        NETMGR_EXT_LOG_E("pkcs12FileDataSize is invalid");
         return false;
     }
-    for (int32_t i = 0; i < pkcs12FileDataSize; i++) {
+    for (int32_t i = 0; i < pkcs12FileDataSize && allOK; i++) {
         allOK = allOK && parcel.ReadUint8(data);
         ptr->pkcs12FileData_.push_back(data);
     }
@@ -122,8 +122,8 @@ bool SysVpnConfig::Unmarshalling(Parcel &parcel, SysVpnConfig* ptr)
     int32_t localAddrSize = 0;
     allOK = allOK && parcel.ReadInt32(localAddrSize);
     // LCOV_EXCL_START
-    if (localAddrSize > MAX_LOCAL_ADDR_SIZE) {
-        NETMGR_EXT_LOG_E("localAddrSize is too large");
+    if (localAddrSize < 0 || localAddrSize > MAX_LOCAL_ADDR_SIZE) {
+        NETMGR_EXT_LOG_E("localAddrSize invalid");
         return false;
     }
     // LCOV_EXCL_STOP
