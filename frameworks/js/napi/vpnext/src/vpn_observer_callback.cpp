@@ -34,7 +34,8 @@ struct VpnAuthorizationContext {
     ~VpnAuthorizationContext() = default;
 };
 
-static bool GetVpnObserverInstance(VpnObserver *observer, VpnObserverInstance *&instance)
+static bool CheckVpnObserverInstance(VpnObserver *observer, VpnObserverInstance *&instance,
+    std::shared_ptr<EventManager> &manager)
 {
     std::lock_guard<std::mutex> lock{VpnObserverInstance::g_vpnObserverMutex};
     auto it = VpnObserverInstance::observerInstanceMap_.find(observer);
@@ -42,13 +43,8 @@ static bool GetVpnObserverInstance(VpnObserver *observer, VpnObserverInstance *&
         NETMANAGER_EXT_LOGE("can not find VpnObserverInstance handle");
         return false;
     }
-    instance = it->second;
-    return true;
-}
 
-static bool CheckVpnObserverInstance(
-    VpnObserverInstance *instance, napi_env &env, std::shared_ptr<EventManager> &manager)
-{
+    VpnObserverInstance *instance = it->second;
     if (instance == nullptr) {
         NETMANAGER_EXT_LOGE("HandleResult vpnObserverInstance is nullptr");
         return false;
@@ -85,14 +81,9 @@ static std::shared_ptr<VpnAuthorizationContext> CreateAuthorizationContext(
 
 int32_t VpnObserver::HandleAuthorizeResult(bool isAuthorized)
 {
-    VpnObserverInstance *vpnObserverInstance = nullptr;
-    if (!GetVpnObserverInstance(this, vpnObserverInstance)) {
-        return 0;
-    }
-
     napi_env env = nullptr;
     std::shared_ptr<EventManager> manager = nullptr;
-    if (!CheckVpnObserverInstance(vpnObserverInstance, env, manager)) {
+    if (!CheckVpnObserverInstance(this, env, manager)) {
         return 0;
     }
 
