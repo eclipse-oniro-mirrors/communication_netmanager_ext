@@ -72,58 +72,77 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
         NETMGR_EXT_LOG_E("vpnConfig is null");
         return false;
     }
-    // parse addresses.
-    if (NapiUtils::HasNamedProperty(env, config, CONFIG_ADDRESSES)) {
-        napi_value addrArray = NapiUtils::GetNamedProperty(env, config, CONFIG_ADDRESSES);
-        if (!NapiUtils::IsArray(env, addrArray)) {
-            NETMGR_EXT_LOG_E("addresses is not array");
-            return false;
-        }
-        uint32_t addrLength = NapiUtils::GetArrayLength(env, addrArray);
-        if (addrLength > MAX_PARSE_ADDR_SIZE) {
-            NETMGR_EXT_LOG_E("addresses size too large");
-            return false;
-        }
-        for (uint32_t i = 0; i < addrLength; ++i) { // set length limit.
-            INetAddr iNetAddr;
-            if (!ParseAddress(env, NapiUtils::GetArrayElement(env, addrArray, i), iNetAddr)) {
-                NETMGR_EXT_LOG_E("ParseAddress failed");
-                return false;
-            }
-            vpnConfig->addresses_.emplace_back(iNetAddr);
-        }
-        if (!vpnConfig->address_.empty()) {
-            vpnConfig->isAcceptIPv4_ = false;
-            vpnConfig->isAcceptIPv6_ = false;
-            for (const INetAddr &addr : vpnConfig->addresses_) {
-                bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
-                vpnConfig->isAcceptIPv4_ = vpnConfig->isAcceptIpv4_ || !isIpv6;
-                vpnConfig->isAcceptIPv6_ = vpnConfig->isAcceptIPv6_ || isIpv6;
-            }
-        }
-    }
-    // parse routes.
-    if (NapiUtils::HasNamedProperty(env, config, CONFIG_ROUTES)) {
-        napi_value routes = NapiUtils::GetNamedProperty(env, config, CONFIG_ROUTES);
-        if (!NapiUtils::IsArray(env, routes)) {
-            NETMGR_EXT_LOG_E("routes is not array");
-            return false;
-        }
-        uint32_t routesLength = NapiUtils::GetArrayLength(env, routes);
-        if (routesLength > MAX_PARSE_ROUTE_SIZE) {
-            NETMGR_EXT_LOG_E("route size is too large");
-            return false;
-        }
-        for (uint32_t idx = 0; idx < routesLength; ++idx) { // set length limit.
-            struct Route routeInfo;
-            if (!ParseRoute(env, NapiUtils::GetArrayElement(env, routes, idx), routeInfo)) {
-                NETMGR_EXT_LOG_E("ParseRoute failed");
-                return false;
-            }
-            vpnConfig->routes_.emplace_back(routeInfo);
-        }
+    if (!ParseAddressesFromConfig(env, config, vpnConfig) || !ParseRoutesFromConfig(env, config, vpnConfig)) {
+        return false;
     }
     return ParseExtLocalAddressesFromConfig(env, config, vpnConfig);
+}
+
+bool ParseAddressesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
+{
+    if (!NapiUtils::HasNamedProperty(env, config, CONFIG_ADDRESSES)) {
+        return true;
+    }
+    napi_value addrArray = NapiUtils::GetNamedProperty(env, config, CONFIG_ADDRESSES);
+    if (!NapiUtils::IsArray(env, addrArray)) {
+        NETMGR_EXT_LOG_E("addresses is not array");
+        return false;
+    }
+    uint32_t addrLength = NapiUtils::GetArrayLength(env, addrArray);
+    if (addrLength > MAX_PARSE_ADDR_SIZE) {
+        NETMGR_EXT_LOG_E("addresses size %{public}u is too large", addrLength);
+        return false;
+    }
+    for (uint32_t i = 0; i < addrLength; ++i) {
+        INetAddr iNetAddr;
+        if (!ParseAddress(env, NapiUtils::GetArrayElement(env, addrArray, i), iNetAddr)) {
+            NETMGR_EXT_LOG_E("ParseAddress failed");
+            return false;
+        }
+        vpnConfig->addresses_.emplace_back(iNetAddr);
+    }
+    UpdateAcceptFlagsFromAddresses(vpnConfig);
+    return true;
+}
+
+void UpdateAcceptFlagsFromAddresses(sptr<SysVpnConfig> &vpnConfig)
+{
+    if (vpnConfig->addresses_.empty()) {
+        return;
+    }
+    vpnConfig->isAcceptIPv4_ = false;
+    vpnConfig->isAcceptIPv6_ = false;
+    for (const INetAddr &addr : vpnConfig->addresses_) {
+        bool isIpv6 = CommonUtils::IsValidIPV6(addr.address_);
+        vpnConfig->isAcceptIPv4_ = vpnConfig->isAcceptIPv4_ || !isIpv6;
+        vpnConfig->isAcceptIPv6_ = vpnConfig->isAcceptIPv6_ || isIpv6;
+    }
+}
+
+bool ParseRoutesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
+{
+    if (!NapiUtils::HasNamedProperty(env, config, CONFIG_ROUTES)) {
+        return true;
+    }
+    napi_value routes = NapiUtils::GetNamedProperty(env, config, CONFIG_ROUTES);
+    if (!NapiUtils::IsArray(env, routes)) {
+        NETMGR_EXT_LOG_E("routes is not array");
+        return false;
+    }
+    uint32_t routesLength = NapiUtils::GetArrayLength(env, routes);
+    if (routesLength > MAX_PARSE_ROUTE_SIZE) {
+        NETMGR_EXT_LOG_E("routes size %{public}u is too large", routesLength);
+        return false;
+    }
+    for (uint32_t idx = 0; idx < routesLength; ++idx) {
+        struct Route routeInfo;
+        if (!ParseRoute(env, NapiUtils::GetArrayElement(env, routes, idx), routeInfo)) {
+            NETMGR_EXT_LOG_E("ParseRoute failed");
+            return false;
+        }
+        vpnConfig->routes_.emplace_back(routeInfo);
+    }
+    return true;
 }
 
 bool ParseExtLocalAddressesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig)
