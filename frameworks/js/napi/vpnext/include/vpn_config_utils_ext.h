@@ -98,6 +98,9 @@ constexpr const char *CONFIG_LOCAL_ADDRESSES = "localAddresses";
 
 bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpnConfig);
 bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
+bool ParseAddressesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
+void UpdateAcceptFlagsFromAddresses(sptr<SysVpnConfig> &vpnConfig);
+bool ParseRoutesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseChoiceableParams(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 bool ParseExtLocalAddressesFromConfig(napi_env env, napi_value config, sptr<SysVpnConfig> &vpnConfig);
 void SetExtLocalAddressesProperty(napi_env env, napi_value config, const std::vector<INetAddr> &localAddresses);
