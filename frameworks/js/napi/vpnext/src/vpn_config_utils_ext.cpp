@@ -24,6 +24,8 @@
 namespace OHOS {
 namespace NetManagerStandard {
 namespace VpnConfigUtilsExt {
+constexpr uint32_t MAX_PARSE_ADDR_SIZE = 2000;
+constexpr uint32_t MAX_PARSE_ROUTE_SIZE = 20000;
 bool ParseSysVpnConfig(napi_env env, napi_value *params, sptr<SysVpnConfig> &vpnConfig)
 {
     if (params == nullptr) {
@@ -78,6 +80,10 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
             return false;
         }
         uint32_t addrLength = NapiUtils::GetArrayLength(env, addrArray);
+        if (addrLength > MAX_PARSE_ADDR_SIZE) {
+            NETMGR_EXT_LOG_E("addresses size too large");
+            return false;
+        }
         for (uint32_t i = 0; i < addrLength; ++i) { // set length limit.
             INetAddr iNetAddr;
             if (!ParseAddress(env, NapiUtils::GetArrayElement(env, addrArray, i), iNetAddr)) {
@@ -85,9 +91,15 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
                 return false;
             }
             vpnConfig->addresses_.emplace_back(iNetAddr);
-            bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
-            vpnConfig->isAcceptIPv4_ = !isIpv6;
-            vpnConfig->isAcceptIPv6_ = isIpv6;
+        }
+        if (!vpnConfig->address_.empty()) {
+            vpnConfig->isAcceptIPv4_ = false;
+            vpnConfig->isAcceptIPv6_ = false;
+            for (const INetAddr &addr : vpnConfig->addresses_) {
+                bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
+                vpnConfig->isAcceptIPv4_ = vpnConfig->isAcceptIpv4_ || !isIpv6;
+                vpnConfig->isAcceptIPv6_ = vpnConfig->isAcceptIPv6_ || isIpv6;
+            }
         }
     }
     // parse routes.
@@ -98,6 +110,10 @@ bool ParseAddrRouteParams(napi_env env, napi_value config, sptr<SysVpnConfig> &v
             return false;
         }
         uint32_t routesLength = NapiUtils::GetArrayLength(env, routes);
+        if (routesLength > MAX_PARSE_ROUTE_SIZE) {
+            NETMGR_EXT_LOG_E("route size is too large");
+            return false;
+        }
         for (uint32_t idx = 0; idx < routesLength; ++idx) { // set length limit.
             struct Route routeInfo;
             if (!ParseRoute(env, NapiUtils::GetArrayElement(env, routes, idx), routeInfo)) {
