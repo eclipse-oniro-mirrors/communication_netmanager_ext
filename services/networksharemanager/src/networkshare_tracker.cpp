@@ -976,6 +976,11 @@ void NetworkShareTracker::EnableWifiSubStateMachine()
 
 void NetworkShareTracker::EnableBluetoothSubStateMachine()
 {
+    if (!(clientRequestsBitMask_.load(std::memory_order_relaxed) &
+          (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH)))) {
+        NETMGR_EXT_LOG_I("bluetooth sharing switch is off, ignore pan client connected event.");
+        return;
+    }
     int32_t ret = CreateSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_BLUETOOTH, false);
     if (ret != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("create bluetooth sub SM failed, error[%{public}d].", ret);

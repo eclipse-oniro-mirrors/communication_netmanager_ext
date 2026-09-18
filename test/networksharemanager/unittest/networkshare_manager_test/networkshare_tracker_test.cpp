@@ -599,6 +599,8 @@ HWTEST_F(NetworkShareTrackerTest, EnableWifiSubStateMachine01, TestSize.Level1)
 
 HWTEST_F(NetworkShareTrackerTest, EnableBluetoothSubStateMachine01, TestSize.Level1)
 {
+    NetworkShareTracker::GetInstance().clientRequestsBitMask_ =
+        (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_BLUETOOTH));
     NetworkShareTracker::GetInstance().EnableBluetoothSubStateMachine();
     auto iter = NetworkShareTracker::GetInstance().subStateMachineMap_.find(BLUETOOTH_DEFAULT_IFACE_NAME);
     EXPECT_NE(iter, NetworkShareTracker::GetInstance().subStateMachineMap_.end());
@@ -1813,6 +1815,29 @@ HWTEST_F(NetworkShareTrackerTest, OnConnectionStateChanged_Disconnected, TestSiz
     int32_t role = 1;
     observer->OnConnectionStateChanged(
         device, static_cast<int32_t>(Bluetooth::BTConnectState::DISCONNECTED), cause, role);
+    auto iter = NetworkShareTracker::GetInstance().subStateMachineMap_.find(BLUETOOTH_DEFAULT_IFACE_NAME);
+    EXPECT_EQ(iter, NetworkShareTracker::GetInstance().subStateMachineMap_.end());
+#endif
+}
+
+/**
+ * @tc.number: NetworkShareTracker_OnConnectionStateChanged_ConnectedSwitchOff
+ * @tc.name: Test OnConnectionStateChanged when BT device connected but sharing switch is off
+ * @tc.desc: Verify that sub state machine is not created and no SHARED state is reported
+ */
+HWTEST_F(NetworkShareTrackerTest, OnConnectionStateChanged_ConnectedSwitchOff, TestSize.Level1)
+{
+#ifdef BLUETOOTH_MODOULE
+    NetworkShareTracker::GetInstance().clientRequestsBitMask_ = 0;
+    NetworkShareTracker::GetInstance().subStateMachineMap_.erase(BLUETOOTH_DEFAULT_IFACE_NAME);
+    std::shared_ptr<NetworkShareTracker::SharingPanObserver> observer =
+        std::make_shared<NetworkShareTracker::SharingPanObserver>();
+    Bluetooth::BluetoothRemoteDevice device;
+    int32_t cause = 0;
+    int32_t role = 1;
+    observer->OnConnectionStateChanged(
+        device, static_cast<int32_t>(Bluetooth::BTConnectState::CONNECTED), cause, role);
+    EXPECT_EQ(NetworkShareTracker::GetInstance().curBluetoothState_, Bluetooth::BTConnectState::CONNECTED);
     auto iter = NetworkShareTracker::GetInstance().subStateMachineMap_.find(BLUETOOTH_DEFAULT_IFACE_NAME);
     EXPECT_EQ(iter, NetworkShareTracker::GetInstance().subStateMachineMap_.end());
 #endif
