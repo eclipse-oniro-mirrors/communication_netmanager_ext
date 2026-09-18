@@ -31,14 +31,13 @@ VpnObserverInstance::VpnObserverInstance(napi_env env, std::shared_ptr<EventMana
 VpnObserverInstance *VpnObserverInstance::MakeVpnObserver(napi_env env, std::shared_ptr<EventManager>& eventManager)
 {
     std::lock_guard<std::mutex> lock{VpnObserverInstance::g_vpnObserverMutex};
-    auto vpnObserverInstance = new VpnObserverInstance(env, eventManager);
-    if (vpnObserverInstance->observer_ == nullptr) {
+    auto vpnObserverInstance = std::make_unique<VpnObserverInstance>(env, eventManager);
+    if (vpnObserverInstance == nullptr || vpnObserverInstance->observer_ == nullptr) {
         NETMANAGER_EXT_LOGE("vpnObserverInstance->observer_ is nullptr");
-        delete vpnObserverInstance;
         return nullptr;
     }
-    observerInstanceMap_[vpnObserverInstance->observer_.GetRefPtr()] = vpnObserverInstance;
-    return vpnObserverInstance;
+    observerInstanceMap_[vpnObserverInstance->observer_.GetRefPtr()] = vpnObserverInstance.get();
+    return vpnObserverInstance.release();
 }
 
 void VpnObserverInstance::DeleteVpnObserver(VpnObserverInstance *vpnObserverInstance)
