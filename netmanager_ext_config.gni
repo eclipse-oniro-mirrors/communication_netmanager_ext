@@ -77,6 +77,7 @@ declare_args() {
   netmanager_ext_feature_iface_supplier_id = false
   netmanager_ext_fpga_mode_enable = false
   netmanager_ext_feature_read_ccm_json = false
+  netmanager_ext_feature_automotive_disable_static_route_config = false
 }
 
 sysvpn_flags = [ "-DSUPPORT_SYSVPN" ]

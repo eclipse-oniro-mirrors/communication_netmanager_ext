@@ -539,7 +539,9 @@ void NetworkShareSubStateMachine::ConfigureShareIpv4(const sptr<NetLinkInfo> &up
         }
     }
     if (hasIpv4) {
+#ifndef AUTOMOTIVE_DISABLE_STATIC_ROUTE_CONFIG
         AddRoutesToLocalNetwork();
+#endif
         ConfigureShareDhcp(true);
     }
 }
@@ -1034,7 +1036,9 @@ void NetworkShareSubStateMachine::CleanupUpstreamInterface()
 {
     NETMGR_EXT_LOG_I("Clearn Forward, downstream Iface[%{public}s], upstream iface[%{public}s].", ifaceName_.c_str(),
                      upstreamIfaceName_.c_str());
+#ifndef AUTOMOTIVE_DISABLE_STATIC_ROUTE_CONFIG
     RemoveRoutesToLocalNetwork();
+#endif
     NetsysController::GetInstance().NetworkRemoveInterface(LOCAL_NET_ID, ifaceName_);
     if (!tunv4UpstreamIfaceName_.empty()) {
         NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);

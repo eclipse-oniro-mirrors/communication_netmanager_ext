@@ -146,6 +146,10 @@ ohos_shared_library("net_tether_manager") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
+  if (netmanager_ext_feature_automotive_disable_static_route_config) {
+    defines += [ "AUTOMOTIVE_DISABLE_STATIC_ROUTE_CONFIG" ]
+  }
+
   external_deps += [ "hilog:libhilog" ]
 
   part_name = "netmanager_ext"
@@ -264,6 +268,10 @@ ohos_static_library("net_tether_manager_static") {
 
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
+  }
+
+  if (netmanager_ext_feature_automotive_disable_static_route_config) {
+    defines += [ "AUTOMOTIVE_DISABLE_STATIC_ROUTE_CONFIG" ]
   }
 
   external_deps += [ "hilog:libhilog" ]
