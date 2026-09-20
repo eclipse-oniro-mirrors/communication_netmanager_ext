@@ -44,7 +44,8 @@
             "netmanager_ext_extensible_authentication",
             "netmanager_ext_share_notification_enable",
             "netmanager_ext_fpga_mode_enable",
-            "netmanager_ext_feature_read_ccm_json"
+            "netmanager_ext_feature_read_ccm_json",
+            "netmanager_ext_feature_automotive_disable_static_route_config"
         ],
         "adapted_system_type": [
             "standard"
