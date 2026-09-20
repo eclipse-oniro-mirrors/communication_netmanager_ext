@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <sys/socket.h>
+
 #include <gtest/gtest.h>
 
 #include "gtest/gtest-message.h"
@@ -234,6 +236,36 @@ HWTEST_F(DevInterfaceStateTest, RemoteUpdateNetLinkInfoTest001, TestSize.Level0)
     devInterfaceState.SetlinkInfo(linkInfo1);
     devInterfaceState.RemoteUpdateNetLinkInfo();
     EXPECT_EQ(devInterfaceState.connLinkState_, DevInterfaceState::UNREGISTERED);
+}
+
+HWTEST_F(DevInterfaceStateTest, RemoteUpdateNetLinkInfoTest002, TestSize.Level0)
+{
+    DevInterfaceState devInterfaceState;
+    devInterfaceState.connLinkState_ = DevInterfaceState::ConnLinkState::LINK_AVAILABLE;
+    sptr<NetLinkInfo> linkInfo = new NetLinkInfo();
+    INetAddr ipv4Addr;
+    ipv4Addr.address_ = "192.168.1.100";
+    ipv4Addr.family_ = static_cast<uint8_t>(AF_INET);
+    INetAddr ipv6Addr;
+    ipv6Addr.address_ = "fe80::2eb1";
+    ipv6Addr.family_ = static_cast<uint8_t>(AF_INET6);
+    INetAddr invalidAddr;
+    invalidAddr.address_ = "invalid";
+    invalidAddr.family_ = static_cast<uint8_t>(AF_INET);
+    linkInfo->netAddrList_.push_back(ipv4Addr);
+    linkInfo->netAddrList_.push_back(ipv6Addr);
+    linkInfo->netAddrList_.push_back(invalidAddr);
+    devInterfaceState.SetlinkInfo(linkInfo);
+
+    for (int32_t i = 0; i < 5; ++i) {
+        devInterfaceState.RemoteUpdateNetLinkInfo();
+        auto it = linkInfo->netAddrList_.begin();
+        EXPECT_EQ(it->family_, static_cast<uint8_t>(INetAddr::IpType::IPV4));
+        ++it;
+        EXPECT_EQ(it->family_, static_cast<uint8_t>(INetAddr::IpType::IPV6));
+        ++it;
+        EXPECT_EQ(it->family_, static_cast<uint8_t>(INetAddr::IpType::UNKNOWN));
+    }
 }
 
 HWTEST_F(DevInterfaceStateTest, UpdateNetHttpProxyTest001, TestSize.Level0)
