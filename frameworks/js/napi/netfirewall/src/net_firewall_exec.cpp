@@ -219,9 +219,15 @@ napi_value GetNetFirewallRulesCallback(GetNetFirewallRulesContext *context)
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_PAGE_SIZE, context->pageInfo_->pageSize);
     NapiUtils::SetInt32Property(context->GetEnv(), pageInfo, NET_FIREWALL_TOTAL_PAGE, context->pageInfo_->totalPage);
     napi_value list = NapiUtils::CreateArray(context->GetEnv(), context->pageInfo_->data.size());
+    if (list == nullptr) {
+        return nullptr;
+    }
     uint32_t index = 0;
     for (const auto &iface : context->pageInfo_->data) {
         napi_value rule = NapiUtils::CreateObject(context->GetEnv());
+        if (rule == nullptr) {
+            return nullptr;
+        }
         NETMANAGER_EXT_LOGE("GetNetFirewallRulesCallback interface %{public}s", iface.interface.c_str());
         NetFirewallRuleParse::SetRuleParams(context->GetEnv(), rule, iface);
         NapiUtils::SetArrayElement(context->GetEnv(), list, index++, rule);
