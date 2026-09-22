@@ -16,6 +16,9 @@
 #include <gtest/gtest.h>
 #include <thread>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #ifdef GTEST_API_
 #define private public
@@ -48,7 +51,7 @@ constexpr int TIME_FIVE_MS = 5;
 constexpr uint32_t DEFAULT_LOST_MS = 20000;
 constexpr const char *DEMO_NAME = "ala";
 constexpr const char *DEMO_TYPE = "_hellomdns._tcp";
-bool g_isScreenOn = true;
+constexpr int CLOSED_PORT = 1;
 constexpr int PHASE_PTR = 1;
 constexpr int PHASE_DOMAIN = 3;
 
@@ -154,6 +157,32 @@ public:
         return NETMANAGER_EXT_SUCCESS;
     }
     MDnsServiceInfo expected_;
+};
+
+class MDnsCountingDiscoveryCallback : public DiscoveryCallbackStub {
+public:
+    MDnsCountingDiscoveryCallback() = default;
+    virtual ~MDnsCountingDiscoveryCallback() = default;
+    int32_t HandleStartDiscover(const MDnsServiceInfo &info, int32_t retCode) override
+    {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    int32_t HandleStopDiscover(const MDnsServiceInfo &info, int32_t retCode) override
+    {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    int32_t HandleServiceFound(const MDnsServiceInfo &info, int32_t retCode) override
+    {
+        foundCount++;
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    int32_t HandleServiceLost(const MDnsServiceInfo &info, int32_t retCode) override
+    {
+        lostCount++;
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    int foundCount = 0;
+    int lostCount = 0;
 };
 
 class MDnsClientResumeTest : public testing::Test {
@@ -558,20 +587,68 @@ HWTEST_F(MDnsProtocolImplTest, BrowseTest001, TestSize.Level0)
     auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
     mDnsProtocolImpl->Init();
     mDnsProtocolImpl->lastRunTime = -1;
-    g_isScreenOn = true;
+    MDnsProtocolImpl::SetScreenState(true);
     bool ret = mDnsProtocolImpl->Browse();
     EXPECT_EQ(ret, false);
-    g_isScreenOn = false;
+    MDnsProtocolImpl::SetScreenState(false);
     ret = mDnsProtocolImpl->Browse();
     EXPECT_EQ(ret, false);
 
     mDnsProtocolImpl->lastRunTime = 1;
-    g_isScreenOn = true;
+    MDnsProtocolImpl::SetScreenState(true);
     ret = mDnsProtocolImpl->Browse();
     EXPECT_EQ(ret, false);
-    g_isScreenOn = false;
+    MDnsProtocolImpl::SetScreenState(false);
     ret = mDnsProtocolImpl->Browse();
     EXPECT_EQ(ret, false);
+    MDnsProtocolImpl::SetScreenState(true);
+}
+
+/**
+ * @tc.name: BrowseTest002
+ * @tc.desc: Test Browse with screen off: cleanup continues while query multicast is skipped
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsProtocolImplTest, BrowseTest002, TestSize.Level0)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->Init();
+    mDnsProtocolImpl->browserMap_.clear();
+    mDnsProtocolImpl->nameCbMap_.clear();
+    mDnsProtocolImpl->cacheMap_.clear();
+
+    std::string key = "_test._tcp.local";
+    MDnsProtocolImpl::Result expired;
+    expired.serviceName = "svc";
+    expired.serviceType = "_test._tcp";
+    expired.state = MDnsProtocolImpl::State::LIVE;
+    mDnsProtocolImpl->lastRunTime = MilliSecondsSinceEpochTest();
+    expired.refrehTime = mDnsProtocolImpl->lastRunTime - DEFAULT_LOST_MS - 1;
+    mDnsProtocolImpl->browserMap_[key].push_back(expired);
+
+    MDnsProtocolImpl::SetScreenState(false);
+    mDnsProtocolImpl->lastRunTime = -1;
+    bool ret = mDnsProtocolImpl->Browse();
+    EXPECT_EQ(ret, false);
+    EXPECT_TRUE(mDnsProtocolImpl->browserMap_[key].empty());
+
+    mDnsProtocolImpl->browserMap_[key].push_back(expired);
+    MDnsProtocolImpl::SetScreenState(true);
+    mDnsProtocolImpl->lastRunTime = -1;
+    ret = mDnsProtocolImpl->Browse();
+    EXPECT_EQ(ret, false);
+    EXPECT_TRUE(mDnsProtocolImpl->browserMap_[key].empty());
+
+    mDnsProtocolImpl->browserMap_[key].push_back(expired);
+    sptr<IDiscoveryCallback> cb = new (std::nothrow) MDnsCountingDiscoveryCallback();
+    mDnsProtocolImpl->nameCbMap_[key] = cb;
+    mDnsProtocolImpl->lastRunTime = -1;
+    ret = mDnsProtocolImpl->Browse();
+    EXPECT_EQ(ret, false);
+    EXPECT_TRUE(mDnsProtocolImpl->browserMap_[key].empty());
+
+    mDnsProtocolImpl->nameCbMap_.clear();
+    MDnsProtocolImpl::SetScreenState(true);
 }
 
 HWTEST_F(MDnsProtocolImplTest, ConnectControlTest001, TestSize.Level0)
@@ -608,6 +685,134 @@ HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest001, TestSize.Level0)
     res.push_back(result);
     mDnsProtocolImpl->handleOfflineService("test_key", res);
     EXPECT_EQ(mDnsProtocolImpl->lastRunTime, -1);
+}
+
+/**
+ * @tc.name: HandleOfflineServiceTest002
+ * @tc.desc: Test handleOfflineService erases DEAD entries regardless of refresh time
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest002, TestSize.Level0)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->Init();
+    mDnsProtocolImpl->browserMap_.clear();
+    mDnsProtocolImpl->nameCbMap_.clear();
+    mDnsProtocolImpl->cacheMap_.clear();
+    mDnsProtocolImpl->lastRunTime = MilliSecondsSinceEpochTest();
+
+    MDnsProtocolImpl::Result dead;
+    dead.serviceName = "deadsvc";
+    dead.serviceType = "_test._tcp";
+    dead.state = MDnsProtocolImpl::State::DEAD;
+    dead.refrehTime = MilliSecondsSinceEpochTest();
+    std::string fullName =
+        mDnsProtocolImpl->Decorated(dead.serviceName + MDNS_DOMAIN_SPLITER_STR + dead.serviceType);
+    mDnsProtocolImpl->cacheMap_[fullName].addr = "127.0.0.1";
+
+    MDnsProtocolImpl::Result alive;
+    alive.serviceName = "livesvc";
+    alive.serviceType = "_test._tcp";
+    alive.state = MDnsProtocolImpl::State::LIVE;
+    alive.refrehTime = MilliSecondsSinceEpochTest();
+
+    std::vector<MDnsProtocolImpl::Result> res;
+    res.push_back(dead);
+    res.push_back(alive);
+    mDnsProtocolImpl->handleOfflineService("test_key", res);
+    EXPECT_EQ(res.size(), 1);
+    EXPECT_EQ(res[0].serviceName, "livesvc");
+    EXPECT_EQ(mDnsProtocolImpl->cacheMap_.find(fullName), mDnsProtocolImpl->cacheMap_.end());
+}
+
+/**
+ * @tc.name: HandleOfflineServiceTest003
+ * @tc.desc: Test handleOfflineService defers entries beyond connectivity check limit per round
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest003, TestSize.Level0)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->Init();
+    mDnsProtocolImpl->browserMap_.clear();
+    mDnsProtocolImpl->nameCbMap_.clear();
+    mDnsProtocolImpl->cacheMap_.clear();
+    mDnsProtocolImpl->lastRunTime = MilliSecondsSinceEpochTest();
+
+    sptr<IDiscoveryCallback> cb = new (std::nothrow) MDnsCountingDiscoveryCallback();
+    mDnsProtocolImpl->nameCbMap_["test_key"] = cb;
+
+    constexpr int entryCount = 9;
+    std::vector<MDnsProtocolImpl::Result> res;
+    for (int i = 0; i < entryCount; ++i) {
+        MDnsProtocolImpl::Result r;
+        r.serviceName = "svc" + std::to_string(i);
+        r.serviceType = "_test._tcp";
+        r.state = MDnsProtocolImpl::State::LIVE;
+        r.refrehTime = mDnsProtocolImpl->lastRunTime - DEFAULT_LOST_MS - 1;
+        res.push_back(r);
+        std::string fullName =
+            mDnsProtocolImpl->Decorated(r.serviceName + MDNS_DOMAIN_SPLITER_STR + r.serviceType);
+        mDnsProtocolImpl->cacheMap_[fullName].addr = "";
+        mDnsProtocolImpl->cacheMap_[fullName].port = CLOSED_PORT;
+    }
+
+    mDnsProtocolImpl->handleOfflineService("test_key", res);
+    EXPECT_EQ(res.size(), 1);
+    EXPECT_EQ(res[0].serviceName, "svc8");
+
+    mDnsProtocolImpl->handleOfflineService("test_key", res);
+    EXPECT_TRUE(res.empty());
+
+    auto countingCb = static_cast<MDnsCountingDiscoveryCallback *>(cb.GetRefPtr());
+    ASSERT_NE(countingCb, nullptr);
+    EXPECT_EQ(countingCb->lostCount, entryCount);
+    mDnsProtocolImpl->nameCbMap_.clear();
+}
+
+/**
+ * @tc.name: HandleOfflineServiceTest004
+ * @tc.desc: Test handleOfflineService keeps expired entry when connectivity check succeeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsProtocolImplTest, HandleOfflineServiceTest004, TestSize.Level0)
+{
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->Init();
+    mDnsProtocolImpl->browserMap_.clear();
+    mDnsProtocolImpl->nameCbMap_.clear();
+    mDnsProtocolImpl->cacheMap_.clear();
+    mDnsProtocolImpl->lastRunTime = MilliSecondsSinceEpochTest();
+
+    int listenFd = socket(AF_INET, SOCK_STREAM, 0);
+    ASSERT_GE(listenFd, 0);
+    struct sockaddr_in listenAddr {};
+    listenAddr.sin_family = AF_INET;
+    listenAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    listenAddr.sin_port = 0;
+    ASSERT_EQ(bind(listenFd, reinterpret_cast<sockaddr *>(&listenAddr), sizeof(listenAddr)), 0);
+    ASSERT_EQ(listen(listenFd, 1), 0);
+    socklen_t addrLen = sizeof(listenAddr);
+    ASSERT_EQ(getsockname(listenFd, reinterpret_cast<sockaddr *>(&listenAddr), &addrLen), 0);
+    int listenPort = ntohs(listenAddr.sin_port);
+
+    MDnsProtocolImpl::Result r;
+    r.serviceName = "reachsvc";
+    r.serviceType = "_test._tcp";
+    r.state = MDnsProtocolImpl::State::LIVE;
+    r.refrehTime = mDnsProtocolImpl->lastRunTime - DEFAULT_LOST_MS - 1;
+    std::string fullName = mDnsProtocolImpl->Decorated(r.serviceName + MDNS_DOMAIN_SPLITER_STR + r.serviceType);
+    mDnsProtocolImpl->cacheMap_[fullName].addr = "127.0.0.1";
+    mDnsProtocolImpl->cacheMap_[fullName].port = listenPort;
+
+    std::vector<MDnsProtocolImpl::Result> res;
+    res.push_back(r);
+    mDnsProtocolImpl->handleOfflineService("test_key", res);
+    EXPECT_EQ(res.size(), 1);
+    EXPECT_EQ(res[0].state, MDnsProtocolImpl::State::LIVE);
+    EXPECT_NE(mDnsProtocolImpl->cacheMap_.find(fullName), mDnsProtocolImpl->cacheMap_.end());
+
+    close(listenFd);
 }
 
 HWTEST_F(MDnsProtocolImplTest, RegisterAndUnregisterTest001, TestSize.Level0)
@@ -1113,6 +1318,47 @@ HWTEST_F(MDnsProtocolImplTest, UpdatePtrTest003, TestSize.Level1) {
     EXPECT_EQ(changed.size(), 1);
     EXPECT_EQ(changed.count("test"), 1);
     EXPECT_EQ(mDnsProtocolImpl->browserMap_["test"][0].state, MDnsProtocolImpl::State::REMOVE);
+}
+
+/**
+ * @tc.name: UpdatePtrTest004
+ * @tc.desc: Test UpdatePtr drops new instances when results reach the per-type limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(MDnsProtocolImplTest, UpdatePtrTest004, TestSize.Level1) {
+    auto mDnsProtocolImpl = std::make_shared<MDnsProtocolImpl>();
+    mDnsProtocolImpl->Init();
+    mDnsProtocolImpl->browserMap_.clear();
+    DNSProto::ResourceRecord rr;
+    rr.name = "_cap._tcp.local";
+    rr.ttl = 100;
+    rr.length = 0;
+    mDnsProtocolImpl->browserMap_[rr.name] = std::vector<MDnsProtocolImpl::Result>();
+    std::set<std::string> changed;
+
+    constexpr int maxResultsPerType = 1024;
+    for (int i = 0; i < maxResultsPerType; ++i) {
+        rr.rdata = std::string("inst" + std::to_string(i) + "._cap._tcp.local");
+        mDnsProtocolImpl->UpdatePtr(false, rr, changed);
+    }
+    EXPECT_EQ(mDnsProtocolImpl->browserMap_[rr.name].size(), static_cast<size_t>(maxResultsPerType));
+
+    rr.rdata = std::string("overflow._cap._tcp.local");
+    mDnsProtocolImpl->UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl->browserMap_[rr.name].size(), static_cast<size_t>(maxResultsPerType));
+    bool overflowDropped = true;
+    for (auto &elem : mDnsProtocolImpl->browserMap_[rr.name]) {
+        if (elem.serviceName == "overflow") {
+            overflowDropped = false;
+        }
+    }
+    EXPECT_TRUE(overflowDropped);
+
+    rr.rdata = std::string("inst0._cap._tcp.local");
+    rr.ttl = 0;
+    mDnsProtocolImpl->UpdatePtr(false, rr, changed);
+    EXPECT_EQ(mDnsProtocolImpl->browserMap_[rr.name].size(), static_cast<size_t>(maxResultsPerType));
+    EXPECT_EQ(mDnsProtocolImpl->browserMap_[rr.name].front().state, MDnsProtocolImpl::State::REMOVE);
 }
 
 HWTEST_F(MDnsProtocolImplTest, UpdateSrvTest001, TestSize.Level1) {

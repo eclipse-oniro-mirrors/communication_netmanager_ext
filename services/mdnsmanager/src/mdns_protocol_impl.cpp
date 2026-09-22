@@ -37,6 +37,8 @@ constexpr uint32_t DEFAULT_INTEVAL_MS = 2000;
 constexpr uint32_t DEFAULT_LOST_MS = 20000;
 constexpr uint32_t DEFAULT_TTL = 120;
 constexpr uint16_t MDNS_FLUSH_CACHE_BIT = 0x8000;
+constexpr size_t MAX_RESULTS_PER_TYPE = 1024;
+constexpr uint32_t MAX_CONNECTIVITY_CHECK_PER_ROUND = 8;
 
 constexpr int PHASE_PTR = 1;
 constexpr int PHASE_SRV = 2;
@@ -154,18 +156,21 @@ void MDnsProtocolImpl::SetScreenState(bool isOn)
 
 bool MDnsProtocolImpl::Browse()
 {
-    if ((lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS) || !g_isScreenOn) {
+    if (lastRunTime != -1 && MilliSecondsSinceEpoch() - lastRunTime < DEFAULT_INTEVAL_MS) {
         return false;
     }
     lastRunTime = MilliSecondsSinceEpoch();
     std::lock_guard<std::recursive_mutex> guard(mutex_);
     for (auto &&[key, res] : browserMap_) {
         NETMGR_EXT_LOG_D("mdns_log Browse browserMap_ key[%{public}s] res.size[%{public}zu]", key.c_str(), res.size());
+        handleOfflineService(key, res);
+        if (!g_isScreenOn) {
+            continue;
+        }
         if (nameCbMap_.find(key) != nameCbMap_.end() &&
             !MDnsManager::GetInstance().IsAvailableCallback(nameCbMap_[key])) {
             continue;
         }
-        handleOfflineService(key, res);
         MDnsPayloadParser parser;
         MDnsMessage msg{};
         msg.questions.emplace_back(DNSProto::Question{
@@ -263,13 +268,26 @@ bool MDnsProtocolImpl::IsConnectivity(const std::string &ip, int32_t port)
 void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<Result> &res)
 {
     NETMGR_EXT_LOG_D("mdns_log handleOfflineService key:[%{public}s]", key.c_str());
+    uint32_t checkCount = 0;
     for (auto it = res.begin(); it != res.end();) {
+        if (it->state == State::DEAD) {
+            std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
+            it = res.erase(it);
+            cacheMap_.erase(fullName);
+            continue;
+        }
         if (lastRunTime - it->refrehTime > DEFAULT_LOST_MS && it->state == State::LIVE) {
             std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
-            if ((cacheMap_.find(fullName) != cacheMap_.end()) &&
-                IsConnectivity(cacheMap_[fullName].addr, cacheMap_[fullName].port)) {
-                it++;
-                continue;
+            if (cacheMap_.find(fullName) != cacheMap_.end()) {
+                if (checkCount >= MAX_CONNECTIVITY_CHECK_PER_ROUND) {
+                    it++;
+                    continue;
+                }
+                checkCount++;
+                if (IsConnectivity(cacheMap_[fullName].addr, cacheMap_[fullName].port)) {
+                    it++;
+                    continue;
+                }
             }
 
             it->state = State::DEAD;
@@ -780,6 +798,11 @@ void MDnsProtocolImpl::UpdatePtr(bool v6, const DNSProto::ResourceRecord &rr, st
     auto res =
         std::find_if(results.begin(), results.end(), [&](const auto &elem) { return elem.serviceName == srvName; });
     if (res == results.end()) {
+        if (results.size() >= MAX_RESULTS_PER_TYPE) {
+            NETMGR_EXT_LOG_W("mdns_log UpdatePtr results reach limit:[%{public}zu], drop new instance:[%{public}s]",
+                             MAX_RESULTS_PER_TYPE, srvName.c_str());
+            return;
+        }
         results.emplace_back(Result{
             .serviceName = srvName,
             .serviceType = srvType,
