@@ -672,6 +672,33 @@ HWTEST_F(NetFirewallServiceStubTest, OnGetTrafficFilterGlobalStatus001, TestSize
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
 
+HWTEST_F(NetFirewallServiceStubTest, OnGlobalEnablePacketFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGlobalEnablePacketFilter(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnGlobalDisablePacketFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGlobalDisablePacketFilter(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnGetPacketFilterGlobalStatus001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGetPacketFilterGlobalStatus(data, reply);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
 HWTEST_F(NetFirewallServiceStubTest, OnQueryProcess001, TestSize.Level1)
 {
     NetManagerExtAccessToken token;
@@ -757,6 +784,17 @@ HWTEST_F(NetFirewallServiceStubTest, OnGetTrafficFilterGlobalStatusWriteFailure,
     MessageParcel data;
     MessageParcel reply;
     int32_t ret = instance_->OnGetTrafficFilterGlobalStatus(data, reply);
+    if (ret == FIREWALL_SUCCESS) {
+        bool isEnabled = false;
+        EXPECT_TRUE(reply.ReadBool(isEnabled));
+    }
+}
+
+HWTEST_F(NetFirewallServiceStubTest, OnGetPacketFilterGlobalStatusWriteFailure, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t ret = instance_->OnGetPacketFilterGlobalStatus(data, reply);
     if (ret == FIREWALL_SUCCESS) {
         bool isEnabled = false;
         EXPECT_TRUE(reply.ReadBool(isEnabled));

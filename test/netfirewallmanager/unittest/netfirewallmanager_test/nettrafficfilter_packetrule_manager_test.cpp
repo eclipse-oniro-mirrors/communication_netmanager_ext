@@ -39,7 +39,6 @@ constexpr int32_t TEST_HOOK_PREROUTING =
     static_cast<int32_t>(TrafficFilterHookPoint::HOOK_PREROUTING);
 constexpr int32_t TEST_HOOK_POSTROUTING =
     static_cast<int32_t>(TrafficFilterHookPoint::HOOK_POSTROUTING);
-constexpr size_t TEST_HOOK_POINT_COUNT = 3;
 
 void SetupIPv4Address(TrafficFilterIPAddress& ipAddr, const char* ipv4Str)
 {
@@ -237,69 +236,6 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleQueueNotFound, Te
     EXPECT_TRUE(instance.queueNumToRuleCtx_.empty());
 }
 
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, PauseAllRulesEmpty, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    int32_t ret = instance.PauseAllRules();
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
-}
-
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ResumeAllRulesEmpty, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    int32_t ret = instance.ResumeAllRules();
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
-}
-
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, PauseAllRulesWithCtx, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    FilterRuleCtx ctx;
-    ctx.priority = TEST_PRIORITY;
-    ctx.chainNameIn = "chainIn";
-    ctx.chainNameOut = "chainOut";
-    ctx.chainNameFwd = "chainFwd";
-    instance.queueNumToRuleCtx_[1] = ctx;
-
-    int32_t ret = instance.PauseAllRules();
-    EXPECT_EQ(ret, FIREWALL_SUCCESS);
-}
-
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ResumeAllRulesWithCtxNoRules, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    FilterRuleCtx ctx;
-    ctx.priority = TEST_PRIORITY;
-    ctx.chainNameIn = "chainIn";
-    ctx.chainNameOut = "chainOut";
-    ctx.chainNameFwd = "chainFwd";
-    instance.queueNumToRuleCtx_[1] = ctx;
-
-    int32_t ret = instance.ResumeAllRules();
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
-}
-
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ResumeAllRulesWithRulesAndNeedV6, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    FilterRuleCtx ctx;
-    ctx.priority = TEST_PRIORITY;
-    ctx.chainNameIn = "chainIn";
-    ctx.chainNameOut = "chainOut";
-    ctx.chainNameFwd = "chainFwd";
-    instance.queueNumToRuleCtx_[1] = ctx;
-
-    TrafficFilterPacketRule rule;
-    rule.hookPoint_ = TEST_HOOK_OUTPUT;
-    rule.srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
-    rule.dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE);
-    SetupIPv6Address(rule.dstIp_.single_, "2001:db8::1");
-    instance.queueNumToRules_[1].output.push_back(rule);
-
-    int32_t ret = instance.ResumeAllRules();
-    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_INVALID_PARAM);
-}
-
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleSuccess, TestSize.Level1)
 {
     auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
@@ -332,74 +268,6 @@ HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ClearPacketRuleSuccess, TestSize
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_TRUE(instance.queueNumToRules_.find(1) == instance.queueNumToRules_.end());
     EXPECT_TRUE(instance.queueNumToRuleCtx_.find(1) == instance.queueNumToRuleCtx_.end());
-}
-
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, CollectResumeEntriesWithEmptyChain, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    FilterRuleCtx ctx;
-    ctx.priority = TEST_PRIORITY;
-    ctx.chainNameIn = "";
-    ctx.chainNameOut = "";
-    ctx.chainNameFwd = "";
-    instance.queueNumToRuleCtx_[1] = ctx;
-
-    auto entries = instance.CollectResumeEntries();
-    EXPECT_TRUE(entries.empty());
-}
-
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, CollectResumeEntriesNeedV4, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    FilterRuleCtx ctx;
-    ctx.priority = TEST_PRIORITY;
-    ctx.chainNameIn = "chainIn";
-    ctx.chainNameOut = "chainOut";
-    ctx.chainNameFwd = "chainFwd";
-    instance.queueNumToRuleCtx_[1] = ctx;
-
-    TrafficFilterPacketRule rule;
-    rule.srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
-    rule.dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
-    instance.queueNumToRules_[1].output.push_back(rule);
-
-    auto entries = instance.CollectResumeEntries();
-    EXPECT_EQ(entries.size(), TEST_HOOK_POINT_COUNT);
-    bool foundV6 = false;
-    for (const auto& entry : entries) {
-        if (entry.needV6) {
-            foundV6 = true;
-            break;
-        }
-    }
-    EXPECT_TRUE(foundV6);
-}
-
-HWTEST_F(NetTrafficFilterPacketRuleManagerTest, CollectResumeEntriesNeedV6, TestSize.Level1)
-{
-    auto& instance = NetTrafficFilterPacketRuleManager::GetInstance();
-    FilterRuleCtx ctx;
-    ctx.priority = TEST_PRIORITY;
-    ctx.chainNameIn = "chainIn";
-    ctx.chainNameOut = "chainOut";
-    ctx.chainNameFwd = "chainFwd";
-    instance.queueNumToRuleCtx_[1] = ctx;
-
-    TrafficFilterPacketRule rule;
-    rule.srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
-    rule.dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_SINGLE);
-    SetupIPv6Address(rule.dstIp_.single_, "2001:db8::1");
-    instance.queueNumToRules_[1].output.push_back(rule);
-
-    auto entries = instance.CollectResumeEntries();
-    bool foundV6 = false;
-    for (const auto& entry : entries) {
-        if (entry.hookPoint == TEST_HOOK_OUTPUT && entry.needV6) {
-            foundV6 = true;
-            break;
-        }
-    }
-    EXPECT_TRUE(foundV6);
 }
 
 HWTEST_F(NetTrafficFilterPacketRuleManagerTest, ApplyRulesForHookPointFlushFailure, TestSize.Level1)

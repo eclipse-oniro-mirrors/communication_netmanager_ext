@@ -108,6 +108,18 @@ public:
     {
         return 0;
     }
+    int32_t GlobalEnablePacketFilter() override
+    {
+        return 0;
+    }
+    int32_t GlobalDisablePacketFilter() override
+    {
+        return 0;
+    }
+    int32_t GetPacketFilterGlobalStatus(bool& isEnabled) override
+    {
+        return 0;
+    }
 
     int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
         const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid) override

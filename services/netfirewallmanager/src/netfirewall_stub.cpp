@@ -34,6 +34,23 @@ static constexpr const char *PERMISSION_MANAGE_NET_FIREWALL = "ohos.permission.M
 static constexpr const char *PERMISSION_GET_NET_FIREWALL = "ohos.permission.GET_NET_FIREWALL";
 static constexpr const char *PERMISSION_TRAFFIC_FILTER = "ohos.permission.kernel.TRAFFIC_FILTER";
 }
+
+void NetFirewallStub::InitGlobalFilterFuncMap()
+{
+    memberFuncMap_[static_cast<uint32_t>(GLOBAL_ENABLE_TRAFFIC_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGlobalEnableTrafficFilter};
+    memberFuncMap_[static_cast<uint32_t>(GLOBAL_DISABLE_TRAFFIC_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGlobalDisableTrafficFilter};
+    memberFuncMap_[static_cast<uint32_t>(GET_TRAFFIC_FILTER_GLOBAL_STATUS)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGetTrafficFilterGlobalStatus};
+    memberFuncMap_[static_cast<uint32_t>(GLOBAL_ENABLE_PACKET_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGlobalEnablePacketFilter};
+    memberFuncMap_[static_cast<uint32_t>(GLOBAL_DISABLE_PACKET_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGlobalDisablePacketFilter};
+    memberFuncMap_[static_cast<uint32_t>(GET_PACKET_FILTER_GLOBAL_STATUS)] = {PERMISSION_TRAFFIC_FILTER,
+        &NetFirewallStub::OnGetPacketFilterGlobalStatus};
+}
+
 NetFirewallStub::NetFirewallStub()
 {
     memberFuncMap_[static_cast<uint32_t>(SET_NET_FIREWALL_STATUS)] = {PERMISSION_MANAGE_NET_FIREWALL,
@@ -64,12 +81,7 @@ NetFirewallStub::NetFirewallStub()
         &NetFirewallStub::OnAddRedirectRule};
     memberFuncMap_[static_cast<uint32_t>(CLEAR_REDIRECT_RULE)] = {PERMISSION_TRAFFIC_FILTER,
         &NetFirewallStub::OnClearRedirectRule};
-    memberFuncMap_[static_cast<uint32_t>(GLOBAL_ENABLE_TRAFFIC_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
-        &NetFirewallStub::OnGlobalEnableTrafficFilter};
-    memberFuncMap_[static_cast<uint32_t>(GLOBAL_DISABLE_TRAFFIC_FILTER)] = {PERMISSION_TRAFFIC_FILTER,
-        &NetFirewallStub::OnGlobalDisableTrafficFilter};
-    memberFuncMap_[static_cast<uint32_t>(GET_TRAFFIC_FILTER_GLOBAL_STATUS)] = {PERMISSION_TRAFFIC_FILTER,
-        &NetFirewallStub::OnGetTrafficFilterGlobalStatus};
+    InitGlobalFilterFuncMap();
     memberFuncMap_[static_cast<uint32_t>(QUERY_PROCESS)] = {PERMISSION_TRAFFIC_FILTER,
         &NetFirewallStub::OnQueryProcess};
     memberFuncMap_[static_cast<uint32_t>(CREATE_PACKET_CONTROLLER)] = {PERMISSION_TRAFFIC_FILTER,
@@ -460,6 +472,31 @@ int32_t NetFirewallStub::OnGlobalEnableTrafficFilter(MessageParcel &data, Messag
 int32_t NetFirewallStub::OnGlobalDisableTrafficFilter(MessageParcel &data, MessageParcel &reply)
 {
     int32_t ret = GlobalDisableTrafficFilter();
+    return ret;
+}
+
+int32_t NetFirewallStub::OnGlobalEnablePacketFilter(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = GlobalEnablePacketFilter();
+    return ret;
+}
+
+int32_t NetFirewallStub::OnGlobalDisablePacketFilter(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = GlobalDisablePacketFilter();
+    return ret;
+}
+
+int32_t NetFirewallStub::OnGetPacketFilterGlobalStatus(MessageParcel &data, MessageParcel &reply)
+{
+    bool isEnabled = false;
+    int32_t ret = GetPacketFilterGlobalStatus(isEnabled);
+    if (ret == FIREWALL_SUCCESS) {
+        if (!reply.WriteBool(isEnabled)) {
+            NETMGR_EXT_LOG_E("WriteBool failed");
+            return NETMANAGER_EXT_ERR_WRITE_REPLY_FAIL;
+        }
+    }
     return ret;
 }
 

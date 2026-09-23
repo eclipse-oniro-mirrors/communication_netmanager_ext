@@ -41,6 +41,8 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
+    void InitGlobalFilterFuncMap();
+
     int32_t OnSetNetFirewallPolicy(MessageParcel &data, MessageParcel &reply);
 
     int32_t OnGetNetFirewallPolicy(MessageParcel &data, MessageParcel &reply);
@@ -74,6 +76,12 @@ private:
     int32_t OnGlobalDisableTrafficFilter(MessageParcel &data, MessageParcel &reply);
 
     int32_t OnGetTrafficFilterGlobalStatus(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnGlobalEnablePacketFilter(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnGlobalDisablePacketFilter(MessageParcel &data, MessageParcel &reply);
+
+    int32_t OnGetPacketFilterGlobalStatus(MessageParcel &data, MessageParcel &reply);
 
     int32_t OnQueryProcess(MessageParcel &data, MessageParcel &reply);
 

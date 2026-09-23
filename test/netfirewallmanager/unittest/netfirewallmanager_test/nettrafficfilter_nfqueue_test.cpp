@@ -61,6 +61,7 @@ void NFQueueCoreTest::TearDownTestCase() {}
 void NFQueueCoreTest::SetUp()
 {
     instance_ = &NetTrafficFilterNFQueueCore::GetInstance();
+    instance_->isGloballyEnabled_ = true;
 }
 
 void NFQueueCoreTest::TearDown()
@@ -210,6 +211,132 @@ HWTEST_F(NFQueueCoreTest, Observer, TestSize.Level1)
     EXPECT_EQ(instance_->uidToObserverMap_.size(), 1);
     instance_->Cleanup();
     EXPECT_EQ(instance_->nextQueueId_, 0);
+}
+
+HWTEST_F(NFQueueCoreTest, PauseAllRulesEmpty, TestSize.Level1)
+{
+    int32_t ret = instance_->PauseAllRules();
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+}
+
+HWTEST_F(NFQueueCoreTest, ResumeAllRulesEmpty, TestSize.Level1)
+{
+    int32_t ret = instance_->ResumeAllRules();
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+}
+
+HWTEST_F(NFQueueCoreTest, PauseAllRulesWithQueue, TestSize.Level1)
+{
+    QueueInfo info{};
+    info.groupId = TEST_GROUP_ID;
+    info.priority = TEST_PRIORITY;
+    info.queueNum = TEST_QUEUE_NUM;
+    info.bundleName = TEST_BUNDLE_NAME;
+    info.chainNameIn = "chainIn";
+    info.chainNameOut = "chainOut";
+    info.chainNameFwd = "chainFwd";
+    instance_->queues_[TEST_QUEUE_NUM] = info;
+
+    int32_t ret = instance_->PauseAllRules();
+    EXPECT_NE(ret, TRAFFICFILTER_OK);
+}
+
+HWTEST_F(NFQueueCoreTest, ResumeAllRulesWithQueue, TestSize.Level1)
+{
+    QueueInfo info{};
+    info.groupId = TEST_GROUP_ID;
+    info.priority = TEST_PRIORITY;
+    info.queueNum = TEST_QUEUE_NUM;
+    info.bundleName = TEST_BUNDLE_NAME;
+    info.chainNameIn = "chainIn";
+    info.chainNameOut = "chainOut";
+    info.chainNameFwd = "chainFwd";
+    instance_->queues_[TEST_QUEUE_NUM] = info;
+
+    int32_t ret = instance_->ResumeAllRules();
+    EXPECT_NE(ret, TRAFFICFILTER_OK);
+}
+
+HWTEST_F(NFQueueCoreTest, GlobalEnablePacketFilter001, TestSize.Level1)
+{
+    int32_t ret = instance_->GlobalEnablePacketFilter();
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+
+    instance_->isGloballyEnabled_ = false;
+    ret = instance_->GlobalEnablePacketFilter();
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+    EXPECT_TRUE(instance_->isGloballyEnabled_);
+}
+
+HWTEST_F(NFQueueCoreTest, GlobalEnablePacketFilter002, TestSize.Level1)
+{
+    QueueInfo info{};
+    info.groupId = TEST_GROUP_ID;
+    info.priority = TEST_PRIORITY;
+    info.queueNum = TEST_QUEUE_NUM;
+    info.bundleName = TEST_BUNDLE_NAME;
+    info.chainNameIn = "chainIn";
+    info.chainNameOut = "chainOut";
+    info.chainNameFwd = "chainFwd";
+    instance_->queues_[TEST_QUEUE_NUM] = info;
+
+    instance_->isGloballyEnabled_ = false;
+    int32_t ret = instance_->GlobalEnablePacketFilter();
+    EXPECT_NE(ret, TRAFFICFILTER_OK);
+    EXPECT_FALSE(instance_->isGloballyEnabled_);
+
+    instance_->queues_.clear();
+    ret = instance_->GlobalEnablePacketFilter();
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+    EXPECT_TRUE(instance_->isGloballyEnabled_);
+}
+
+HWTEST_F(NFQueueCoreTest, GlobalDisablePacketFilter001, TestSize.Level1)
+{
+    int32_t ret = instance_->GlobalDisablePacketFilter();
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+    EXPECT_FALSE(instance_->isGloballyEnabled_);
+
+    ret = instance_->GlobalDisablePacketFilter();
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+    EXPECT_FALSE(instance_->isGloballyEnabled_);
+}
+
+HWTEST_F(NFQueueCoreTest, GlobalDisablePacketFilter002, TestSize.Level1)
+{
+    QueueInfo info{};
+    info.groupId = TEST_GROUP_ID;
+    info.priority = TEST_PRIORITY;
+    info.queueNum = TEST_QUEUE_NUM;
+    info.bundleName = TEST_BUNDLE_NAME;
+    info.chainNameIn = "chainIn";
+    info.chainNameOut = "chainOut";
+    info.chainNameFwd = "chainFwd";
+    instance_->queues_[TEST_QUEUE_NUM] = info;
+
+    int32_t ret = instance_->GlobalDisablePacketFilter();
+    EXPECT_NE(ret, TRAFFICFILTER_OK);
+    EXPECT_TRUE(instance_->isGloballyEnabled_);
+}
+
+HWTEST_F(NFQueueCoreTest, GetPacketFilterGlobalStatus001, TestSize.Level1)
+{
+    bool isEnabled = false;
+    int32_t ret = instance_->GetPacketFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+    EXPECT_TRUE(isEnabled);
+}
+
+HWTEST_F(NFQueueCoreTest, GetPacketFilterGlobalStatus002, TestSize.Level1)
+{
+    instance_->GlobalDisablePacketFilter();
+
+    bool isEnabled = true;
+    int32_t ret = instance_->GetPacketFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, TRAFFICFILTER_OK);
+    EXPECT_FALSE(isEnabled);
+
+    instance_->GlobalEnablePacketFilter();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

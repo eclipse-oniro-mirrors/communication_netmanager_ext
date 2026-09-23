@@ -240,6 +240,36 @@ void GetTrafficFilterGlobalStatusTest(const uint8_t *data, size_t size)
     OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::GET_TRAFFIC_FILTER_GLOBAL_STATUS), parcel);
 }
 
+void GlobalEnablePacketFilterTest(const uint8_t *data, size_t size)
+{
+    (void)size;
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::GLOBAL_ENABLE_PACKET_FILTER), parcel);
+}
+
+void GlobalDisablePacketFilterTest(const uint8_t *data, size_t size)
+{
+    (void)size;
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::GLOBAL_DISABLE_PACKET_FILTER), parcel);
+}
+
+void GetPacketFilterGlobalStatusTest(const uint8_t *data, size_t size)
+{
+    (void)size;
+    MessageParcel parcel;
+    if (!WriteInterfaceToken(parcel)) {
+        return;
+    }
+    OnRemoteRequest(static_cast<uint32_t>(INetFirewallService::GET_PACKET_FILTER_GLOBAL_STATUS), parcel);
+}
+
 void QueryProcessTest(const uint8_t *data, size_t size)
 {
     MessageParcel parcel;
@@ -745,6 +775,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::GlobalEnableTrafficFilterTest(data, size);
     OHOS::NetManagerStandard::GlobalDisableTrafficFilterTest(data, size);
     OHOS::NetManagerStandard::GetTrafficFilterGlobalStatusTest(data, size);
+    OHOS::NetManagerStandard::GlobalEnablePacketFilterTest(data, size);
+    OHOS::NetManagerStandard::GlobalDisablePacketFilterTest(data, size);
+    OHOS::NetManagerStandard::GetPacketFilterGlobalStatusTest(data, size);
     OHOS::NetManagerStandard::QueryProcessTest(data, size);
     OHOS::NetManagerStandard::CreatePacketControllerTest(data, size);
     OHOS::NetManagerStandard::DestroyPacketControllerTest(data, size);

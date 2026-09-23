@@ -32,14 +32,6 @@ struct FilterRuleCtx {
     std::string chainNameFwd;
 };
 
-struct ResumeEntry {
-    int32_t queueNum;
-    std::string chainName;
-    int32_t hookPoint;
-    int32_t priority;
-    bool needV6;
-};
-
 struct HookPointRules {
     std::vector<TrafficFilterPacketRule> input;
     std::vector<TrafficFilterPacketRule> output;
@@ -52,9 +44,6 @@ public:
 
     int32_t AddPacketRule(const std::string& controllerId, const sptr<TrafficFilterPacketRule>& rule);
     int32_t ClearPacketRule(const QueueInfo& info);
-
-    int32_t PauseAllRules();
-    int32_t ResumeAllRules();
     bool ParseAndValidateControllerId(const std::string& controllerId, int32_t& queueNum);
 
 private:
@@ -74,8 +63,6 @@ private:
     int32_t ApplyRulesForHookPointBothFamilies(int32_t queueNum, int32_t hookPoint,
         const std::string& chainName, bool needV6);
     void CleanPhysicalRules(const QueueInfo& info, const std::set<int32_t>& hookPoints);
-    std::vector<ResumeEntry> CollectResumeEntries();
-    int32_t ResumeJumpRules(const std::vector<ResumeEntry>& entries);
 
     std::mutex mutex_;
     std::map<uint32_t, HookPointRules> queueNumToRules_;

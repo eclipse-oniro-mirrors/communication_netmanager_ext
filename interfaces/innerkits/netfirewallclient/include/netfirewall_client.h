@@ -68,6 +68,9 @@ public:
     int32_t GlobalEnableTrafficFilter();
     int32_t GlobalDisableTrafficFilter();
     int32_t GetTrafficFilterGlobalStatus(bool& isEnabled);
+    int32_t GlobalEnablePacketFilter();
+    int32_t GlobalDisablePacketFilter();
+    int32_t GetPacketFilterGlobalStatus(bool& isEnabled);
     int32_t QueryProcess(const std::string& srcIp, uint16_t srcPort,
         const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid);
     int32_t CreatePacketController(uint32_t groupId, uint32_t priority,

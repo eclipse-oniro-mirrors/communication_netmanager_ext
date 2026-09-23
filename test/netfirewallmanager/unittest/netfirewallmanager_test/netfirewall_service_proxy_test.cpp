@@ -220,9 +220,12 @@ public:
             case static_cast<uint32_t>(INetFirewallService::CLEAR_REDIRECT_RULE):
             case static_cast<uint32_t>(INetFirewallService::GLOBAL_ENABLE_TRAFFIC_FILTER):
             case static_cast<uint32_t>(INetFirewallService::GLOBAL_DISABLE_TRAFFIC_FILTER):
+            case static_cast<uint32_t>(INetFirewallService::GLOBAL_ENABLE_PACKET_FILTER):
+            case static_cast<uint32_t>(INetFirewallService::GLOBAL_DISABLE_PACKET_FILTER):
                 reply.WriteInt32(1);
                 break;
             case static_cast<uint32_t>(INetFirewallService::GET_TRAFFIC_FILTER_GLOBAL_STATUS):
+            case static_cast<uint32_t>(INetFirewallService::GET_PACKET_FILTER_GLOBAL_STATUS):
                 reply.WriteBool(true);
                 break;
             case static_cast<uint32_t>(INetFirewallService::QUERY_PROCESS):
@@ -447,6 +450,29 @@ HWTEST_F(NetFirewallServiceProxyTest, GetTrafficFilterGlobalStatus001, TestSize.
     NetManagerExtAccessToken token;
     bool isEnabled = false;
     auto ret = instance_->GetTrafficFilterGlobalStatus(isEnabled);
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+    EXPECT_TRUE(isEnabled);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, GlobalEnablePacketFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto ret = instance_->GlobalEnablePacketFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, GlobalDisablePacketFilter001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto ret = instance_->GlobalDisablePacketFilter();
+    EXPECT_EQ(ret, FIREWALL_SUCCESS);
+}
+
+HWTEST_F(NetFirewallServiceProxyTest, GetPacketFilterGlobalStatus001, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    bool isEnabled = false;
+    auto ret = instance_->GetPacketFilterGlobalStatus(isEnabled);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
     EXPECT_TRUE(isEnabled);
 }

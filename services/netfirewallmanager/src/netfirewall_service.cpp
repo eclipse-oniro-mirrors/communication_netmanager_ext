@@ -559,13 +559,6 @@ int32_t NetFirewallService::GlobalEnableTrafficFilter()
     int32_t ret = NetTrafficFilterRedirectManager::GetInstance().GlobalEnableTrafficFilter();
     if (ret != FIREWALL_SUCCESS) {
         NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter failed, ret: %{public}d", ret);
-        return ret;
-    } else {
-        NETMGR_EXT_LOG_I("Traffic filter globally enabled successfully");
-    }
-    ret = NetTrafficFilterPacketRuleManager::GetInstance().ResumeAllRules();
-    if (ret != FIREWALL_SUCCESS) {
-        NETMGR_EXT_LOG_E("GlobalEnableTrafficFilter PacketRuleManager failed, ret: %{public}d", ret);
     } else {
         NETMGR_EXT_LOG_I("Traffic filter globally enabled successfully");
     }
@@ -581,12 +574,6 @@ int32_t NetFirewallService::GlobalDisableTrafficFilter()
     } else {
         NETMGR_EXT_LOG_I("Traffic filter globally disabled successfully");
     }
-    ret = NetTrafficFilterPacketRuleManager::GetInstance().PauseAllRules();
-    if (ret != FIREWALL_SUCCESS) {
-        NETMGR_EXT_LOG_E("GlobalDisableTrafficFilter PacketRuleManager failed, ret: %{public}d", ret);
-    } else {
-        NETMGR_EXT_LOG_I("Traffic filter globally disabled successfully");
-    }
     return ret;
 }
 
@@ -598,6 +585,42 @@ int32_t NetFirewallService::GetTrafficFilterGlobalStatus(bool& isEnabled)
         NETMGR_EXT_LOG_E("GetTrafficFilterGlobalStatus failed, ret: %{public}d", ret);
     } else {
         NETMGR_EXT_LOG_I("Got traffic filter global status: %{public}d", isEnabled);
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::GlobalEnablePacketFilter()
+{
+    NETMGR_EXT_LOG_I("GlobalEnablePacketFilter");
+    int32_t ret = NetTrafficFilterNFQueueCore::GetInstance().GlobalEnablePacketFilter();
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GlobalEnablePacketFilter failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Packet filter globally enabled successfully");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::GlobalDisablePacketFilter()
+{
+    NETMGR_EXT_LOG_I("GlobalDisablePacketFilter");
+    int32_t ret = NetTrafficFilterNFQueueCore::GetInstance().GlobalDisablePacketFilter();
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GlobalDisablePacketFilter failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Packet filter globally disabled successfully");
+    }
+    return ret;
+}
+
+int32_t NetFirewallService::GetPacketFilterGlobalStatus(bool& isEnabled)
+{
+    NETMGR_EXT_LOG_I("GetPacketFilterGlobalStatus");
+    int32_t ret = NetTrafficFilterNFQueueCore::GetInstance().GetPacketFilterGlobalStatus(isEnabled);
+    if (ret != FIREWALL_SUCCESS) {
+        NETMGR_EXT_LOG_E("GetPacketFilterGlobalStatus failed, ret: %{public}d", ret);
+    } else {
+        NETMGR_EXT_LOG_I("Got packet filter global status: %{public}d", isEnabled);
     }
     return ret;
 }
@@ -746,9 +769,15 @@ int32_t NetFirewallService::UpdateTrafficFilterBySpaceType(SpaceType spaceType)
     switch (spaceType) {
         case SpaceType::ENTERPRISE:
             ret = GlobalEnableTrafficFilter();
+            if (ret == FIREWALL_SUCCESS) {
+                ret = GlobalEnablePacketFilter();
+            }
             break;
         case SpaceType::PERSONAL:
             ret = GlobalDisableTrafficFilter();
+            if (ret == FIREWALL_SUCCESS) {
+                ret = GlobalDisablePacketFilter();
+            }
             break;
         default:
             NETMGR_EXT_LOG_E("UpdateTrafficFilterBySpaceType invalid space type");

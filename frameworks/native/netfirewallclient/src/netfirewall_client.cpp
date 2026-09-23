@@ -298,6 +298,36 @@ int32_t NetFirewallClient::GetTrafficFilterGlobalStatus(bool& isEnabled)
     return proxy->GetTrafficFilterGlobalStatus(isEnabled);
 }
 
+int32_t NetFirewallClient::GlobalEnablePacketFilter()
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GlobalEnablePacketFilter proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GlobalEnablePacketFilter();
+}
+
+int32_t NetFirewallClient::GlobalDisablePacketFilter()
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GlobalDisablePacketFilter proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GlobalDisablePacketFilter();
+}
+
+int32_t NetFirewallClient::GetPacketFilterGlobalStatus(bool& isEnabled)
+{
+    sptr<INetFirewallService> proxy = GetProxy();
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetPacketFilterGlobalStatus proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    return proxy->GetPacketFilterGlobalStatus(isEnabled);
+}
+
 int32_t NetFirewallClient::QueryProcess(const std::string& srcIp, uint16_t srcPort,
     const std::string& dstIp, uint16_t dstPort, uint8_t protocol, uint32_t& uid, uint32_t& pid)
 {

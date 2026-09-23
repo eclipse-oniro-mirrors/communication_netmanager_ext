@@ -328,44 +328,25 @@ bool NetTrafficFilterNFQueueCore::CreateIptables(uint32_t priority, QueueInfo &i
             return false;
         }
     }
+    if (!isGloballyEnabled_.load()) {
+        return true;
+    }
     uint32_t pos = 1;
     for (const auto& pair : queues_) {
         if (pair.second.priority < priority) {
             pos++;
         }
     }
-    std::map<TrafficFilterHookPoint, std::string> hookToChain = {
-        {TrafficFilterHookPoint::HOOK_INPUT,    info.chainNameIn},
-        {TrafficFilterHookPoint::HOOK_OUTPUT,   info.chainNameOut},
-        {TrafficFilterHookPoint::HOOK_FORWARD,  info.chainNameFwd},
-    };
-    for (const auto& [hook, chain] : hookToChain) {
-        std::string hookName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hook);
-        std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildInsertJumpToChainCommand(
-            hookName, chain, pos, IptablesName::FILTER);
-        int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
-            jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
-        if (ret != TRAFFICFILTER_OK) {
-            return false;
-        }
+    int32_t ret = InsertJumpToChain(info, pos);
+    if (ret != TRAFFICFILTER_OK) {
+        return false;
     }
     return true;
 }
 
 void NetTrafficFilterNFQueueCore::DestroyIptables(const QueueInfo &info)
 {
-    std::map<TrafficFilterHookPoint, std::string> hookToChain = {
-        {TrafficFilterHookPoint::HOOK_INPUT,    info.chainNameIn},
-        {TrafficFilterHookPoint::HOOK_OUTPUT,   info.chainNameOut},
-        {TrafficFilterHookPoint::HOOK_FORWARD,  info.chainNameFwd},
-    };
-    for (const auto& [hook, chain] : hookToChain) {
-        std::string hookName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hook);
-        std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
-            hookName, chain, IptablesName::FILTER);
-        NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
-            jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
-    }
+    DeleteJumpToChain(info);
     for (const auto& chain : {info.chainNameIn, info.chainNameOut, info.chainNameFwd}) {
         std::string flushChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(chain,
             IptablesName::FILTER);
@@ -442,5 +423,114 @@ int32_t NetTrafficFilterNFQueueCore::DestroyQueueLocked(uint16_t queueNum)
         NetsysController::GetInstance().NfqClose(it->second.nfqHandle);
     }
     queues_.erase(it);
+    return TRAFFICFILTER_OK;
+}
+
+int32_t NetTrafficFilterNFQueueCore::GlobalEnablePacketFilter()
+{
+    bool expected = false;
+    if (!isGloballyEnabled_.compare_exchange_strong(expected, true)) {
+        NETMGR_EXT_LOG_I("Global packet filter already enabled");
+        return TRAFFICFILTER_OK;
+    }
+    int32_t ret = ResumeAllRules();
+    if (ret != TRAFFICFILTER_OK) {
+        isGloballyEnabled_.store(false);
+        return ret;
+    }
+    return TRAFFICFILTER_OK;
+}
+
+int32_t NetTrafficFilterNFQueueCore::GlobalDisablePacketFilter()
+{
+    bool expected = true;
+    if (!isGloballyEnabled_.compare_exchange_strong(expected, false)) {
+        NETMGR_EXT_LOG_I("Global packet filter already disabled");
+        return TRAFFICFILTER_OK;
+    }
+    int32_t ret = PauseAllRules();
+    if (ret != TRAFFICFILTER_OK) {
+        isGloballyEnabled_.store(true);
+        return ret;
+    }
+    return TRAFFICFILTER_OK;
+}
+
+int32_t NetTrafficFilterNFQueueCore::GetPacketFilterGlobalStatus(bool& isEnabled)
+{
+    isEnabled = isGloballyEnabled_.load();
+    return TRAFFICFILTER_OK;
+}
+
+int32_t NetTrafficFilterNFQueueCore::PauseAllRules()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto& pair : queues_) {
+        int32_t ret = DeleteJumpToChain(pair.second);
+        if (ret != TRAFFICFILTER_OK) {
+            return ret;
+        }
+    }
+    return TRAFFICFILTER_OK;
+}
+
+int32_t NetTrafficFilterNFQueueCore::DeleteJumpToChain(const QueueInfo& info)
+{
+    std::map<TrafficFilterHookPoint, std::string> hookToChain = {
+        {TrafficFilterHookPoint::HOOK_INPUT,    info.chainNameIn},
+        {TrafficFilterHookPoint::HOOK_OUTPUT,   info.chainNameOut},
+        {TrafficFilterHookPoint::HOOK_FORWARD,  info.chainNameFwd},
+    };
+    for (const auto& [hook, chain] : hookToChain) {
+        std::string hookName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hook);
+        std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteJumpCommand(
+            hookName, chain, IptablesName::FILTER);
+        int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+            jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+        if (ret != TRAFFICFILTER_OK) {
+            return ret;
+        }
+    }
+    return TRAFFICFILTER_OK;
+}
+
+int32_t NetTrafficFilterNFQueueCore::ResumeAllRules()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<const QueueInfo*> sortedQueues;
+    sortedQueues.reserve(queues_.size());
+    for (const auto& [queueNum, info] : queues_) {
+        sortedQueues.push_back(&info);
+    }
+    std::sort(sortedQueues.begin(), sortedQueues.end(), [](const QueueInfo* a, const QueueInfo* b) {
+        return a->priority < b->priority;
+    });
+    uint32_t pos = 1;
+    for (const auto* info : sortedQueues) {
+        int32_t ret = InsertJumpToChain(*info, pos++);
+        if (ret != TRAFFICFILTER_OK) {
+            return ret;
+        }
+    }
+    return TRAFFICFILTER_OK;
+}
+
+int32_t NetTrafficFilterNFQueueCore::InsertJumpToChain(const QueueInfo& info, uint32_t pos)
+{
+    std::map<TrafficFilterHookPoint, std::string> hookToChain = {
+        {TrafficFilterHookPoint::HOOK_INPUT,    info.chainNameIn},
+        {TrafficFilterHookPoint::HOOK_OUTPUT,   info.chainNameOut},
+        {TrafficFilterHookPoint::HOOK_FORWARD,  info.chainNameFwd},
+    };
+    for (const auto& [hook, chain] : hookToChain) {
+        std::string hookName = NetTrafficFilterIptablesCommandBuilder::GetHookPointName(hook);
+        std::string jumpCmd = NetTrafficFilterIptablesCommandBuilder::BuildInsertJumpToChainCommand(
+            hookName, chain, pos, IptablesName::FILTER);
+        int32_t ret = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+            jumpCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+        if (ret != TRAFFICFILTER_OK) {
+            return ret;
+        }
+    }
     return TRAFFICFILTER_OK;
 }
