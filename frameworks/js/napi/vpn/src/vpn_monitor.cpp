@@ -229,6 +229,8 @@ bool VpnMonitor::ParseParams(napi_env env, napi_callback_info info, std::string 
     event = eventType;
     if (paramsCount == PARAM_OPTIONS_AND_CALLBACK) {
         callback_ = params[1];
+    } else {
+        callback_ = nullptr;
     }
     return true;
 }
@@ -315,6 +317,10 @@ void VpnMonitor::Register(napi_env env)
 {
     if (manager_ == nullptr) {
         NETMANAGER_EXT_LOGE("manager_ is nullptr");
+        return;
+    }
+    if (callback_ == nullptr) {
+        NETMANAGER_EXT_LOGE("callback_ is nullptr");
         return;
     }
     manager_->AddListener(env, CONNECT, callback_, false, false);
