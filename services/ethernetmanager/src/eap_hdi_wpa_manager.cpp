@@ -67,7 +67,7 @@ static constexpr int8_t IDX_3 = 4;
 static constexpr int8_t IDX_4 = 5;
 static constexpr int8_t BASE_10 = 10;
 static constexpr int8_t WPA_EVENT_REPORT_PARAM_CNT = 6;
-static constexpr uint32_t MAX_EAP_DATA_LENGTH = 4096;
+static constexpr int32_t MAX_EAP_DATA_LENGTH = 4096;
 
 static std::map<Phase2Method, std::string> PHASE2_METHOD_STR_MAP = {
     { Phase2Method::PHASE2_NONE, "NONE" },
@@ -419,7 +419,7 @@ int32_t EapHdiWpaManager::ReplyCustomEapData(const std::string &ifName, int32_t 
         NETMGR_EXT_LOG_E("ReplyEapData eapData null");
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    if (static_cast<uint32_t>(eapData->eapBuffer.size()) != eapData->bufferLen) {
+    if (static_cast<int32_t>(eapData->eapBuffer.size()) != eapData->bufferLen) {
         NETMGR_EXT_LOG_E("ReplyEapData bufferLen err");
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
