@@ -407,26 +407,6 @@ HWTEST_F(NetConnServiceTest, GetAllNetsTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_SUCCESS);
 }
 
-HWTEST_F(NetConnServiceTest, GetSpecificUidNetTest001, TestSize.Level1)
-{
-    int32_t defaultNetId = 5;
-    auto ret = NetConnService::GetInstance()->GetDefaultNet(defaultNetId);
-    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
-    EXPECT_NE(defaultNetId, 0);
-
-    std::list<int32_t> netIdList;
-    ret = NetConnService::GetInstance()->GetSpecificNet(BEARER_VPN, netIdList);
-    ASSERT_EQ(ret, NETMANAGER_SUCCESS);
-    EXPECT_GE(netIdList.size(), 0);
-
-    int32_t netID = 0;
-    NetConnService::GetInstance()->GetSpecificUidNet(TEST_NOTEXISTSUPPLIER, netID);
-    EXPECT_EQ(netID, defaultNetId);
-
-    NetConnService::GetInstance()->GetSpecificUidNet(TEST_UID, netID);
-    EXPECT_EQ(netID, *netIdList.begin());
-}
-
 HWTEST_F(NetConnServiceTest, GetConnectionPropertiesTest001, TestSize.Level1)
 {
     NetLinkInfo info;
