@@ -60,7 +60,6 @@ public:
     MOCK_METHOD(int32_t, GetSpecificNetByIdent, (NetBearType bearerType, const std::string &ident,
                                                std::list<int32_t> &netIdList), (override));
     MOCK_METHOD(int32_t, GetAllNets, (std::list<int32_t> &netIdList), (override));
-    MOCK_METHOD(int32_t, GetSpecificUidNet, (int32_t uid, int32_t &netId), (override));
     MOCK_METHOD(int32_t, GetConnectionProperties, (int32_t netId, NetLinkInfo &info), (override));
     MOCK_METHOD(int32_t, GetNetCapabilities, (int32_t netId, NetAllCapabilities &netAllCap), (override));
     MOCK_METHOD(int32_t, SetAirplaneMode, (bool state), (override));
