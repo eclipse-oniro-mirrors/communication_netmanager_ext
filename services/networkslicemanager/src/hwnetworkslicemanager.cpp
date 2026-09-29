@@ -817,12 +817,14 @@ void HwNetworkSliceManager::FillRsdIntoNetworkRequest(const sptr<NetSpecifier> r
     NETMGR_EXT_LOG_I("FillRsdIntoNetworkRequest snssai = %{public}s", rsd.getSnssai().c_str());
     NETMGR_EXT_LOG_I("FillRsdIntoNetworkRequest pdusession = %{public}d", rsd.getPduSessionType());
     NETMGR_EXT_LOG_I("FillRsdIntoNetworkRequest routebitmap = %{public}d", tds.getRouteBitmap());
+    std::lock_guard<ffrt::mutex> locker(networkSliceParasMutex_);
     networkSliceParas[*request->netCapabilities_.netCaps_.begin()] = bundle;
 }
 
 void HwNetworkSliceManager::GetRSDByNetCap(int32_t netcap, std::map<std::string, std::string>& sliceParasbyNetcap)
 {
     NETMGR_EXT_LOG_I("GetRSDByNetCap");
+    std::lock_guard<ffrt::mutex> locker(networkSliceParasMutex_);
     auto it = networkSliceParas.find(netcap);
     if (it != networkSliceParas.end()) {
         sliceParasbyNetcap = it->second;
@@ -1018,6 +1020,7 @@ void HwNetworkSliceManager::CleanEnvironment()
     }
     mNetworkSliceInfos.clear();
     InitNetworkSliceInfos();
+    std::lock_guard<ffrt::mutex> locker(networkSliceParasMutex_);
     networkSliceParas.clear();
     NETMGR_EXT_LOG_I("Clean Environment done");
 }
