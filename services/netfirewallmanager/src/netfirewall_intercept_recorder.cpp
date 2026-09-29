@@ -210,7 +210,7 @@ int32_t NetFirewallInterceptRecorder::FirewallCallback::OnIntercept(sptr<Interce
         ffrtQueue_->cancel(recordTaskHandle_);
         recordTaskHandle_ = nullptr;
     }
-    auto callback = [this]() { recorder_->SyncRecordCache(); };
+    if (recorder_->GetRecordCacheSize() < RECORD_CACHE_SIZE) {
         // Write every three minutes when dissatisfied
         recordTaskHandle_ =
             ffrtQueue_->submit_h(callback, ffrt::task_attr().delay(RECORD_TASK_DELAY_TIME_MS).name("OnIntercept"));
