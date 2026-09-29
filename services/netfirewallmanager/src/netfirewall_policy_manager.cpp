@@ -41,7 +41,7 @@ NetFirewallPolicyManager::~NetFirewallPolicyManager()
 
 int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, const sptr<NetFirewallPolicy> &policy)
 {
-    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
+    std::unique_lock<ffrt::shared_mutex> locker(setPolicyMutex_);
     if (policy == nullptr) {
         NETMGR_EXT_LOG_E("SetNetFirewallPolicy failed, policy is nullptr.");
         return FIREWALL_ERR_PARAMETER_ERROR;
@@ -65,7 +65,7 @@ int32_t NetFirewallPolicyManager::SetNetFirewallPolicy(const int32_t userId, con
 
 bool NetFirewallPolicyManager::IsFirewallOpen()
 {
-    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
+    std::unique_lock<ffrt::shared_mutex> locker(setPolicyMutex_);
     std::vector<int32_t> accountIds;
     GetAllUserId(accountIds);
     for (auto &accountId : accountIds) {
@@ -95,7 +95,7 @@ std::string NetFirewallPolicyManager::FirewallPreferencePathOfUser(int32_t userI
 
 int32_t NetFirewallPolicyManager::InitNetfirewallPolicy()
 {
-    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
+    std::unique_lock<ffrt::shared_mutex> locker(setPolicyMutex_);
     std::vector<int32_t> accountIds;
     GetAllUserId(accountIds);
     NETMGR_EXT_LOG_I("InitNetfirewallPolicy accountIds size =%{public}zu", accountIds.size());
@@ -119,6 +119,7 @@ int32_t NetFirewallPolicyManager::InitNetfirewallPolicy()
 
 int32_t NetFirewallPolicyManager::GetNetFirewallPolicy(const int32_t userId, sptr<NetFirewallPolicy> &policy)
 {
+    std::shared_lock<ffrt::shared_mutex> locker(setPolicyMutex_);
     if (policy == nullptr) {
         NETMGR_EXT_LOG_E("GetNetFirewallPolicy failed, policy is nullptr.");
         return FIREWALL_ERR_INTERNAL;
@@ -129,7 +130,7 @@ int32_t NetFirewallPolicyManager::GetNetFirewallPolicy(const int32_t userId, spt
 
 bool NetFirewallPolicyManager::GetNetFirewallStatus(const int32_t userId)
 {
-    std::unique_lock<std::shared_mutex> locker(setPolicyMutex_);
+    std::unique_lock<ffrt::shared_mutex> locker(setPolicyMutex_);
     return IsNetFirewallOpen(userId);
 }
 

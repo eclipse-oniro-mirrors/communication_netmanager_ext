@@ -17,9 +17,12 @@
 #define HWNETWORKSLICEMANAGER_H
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 #include <set>
+
+#include "ffrt.h"
 
 #include "urspconfig.h"
 #include "networkslice_service.h"
@@ -127,6 +130,7 @@ private:
     std::atomic<bool> mIsMatchAllRequsted = false;
     bool mIsUrspAvailable = false;
     bool mIsMatchRequesting = false;
+    ffrt::mutex networkSliceParasMutex_;
     std::map<int, std::map<std::string, std::string>> networkSliceParas;
     std::vector<HwOsAppId> mWhiteListForOsAppId = std::vector<HwOsAppId>();
     std::vector<std::string> mWhiteListForDnn = std::vector<std::string>();

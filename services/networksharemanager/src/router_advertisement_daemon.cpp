@@ -144,6 +144,7 @@ void RouterAdvertisementDaemon::StopRa()
 bool RouterAdvertisementDaemon::CreateRASocket()
 {
     NETMGR_EXT_LOG_I("CreateRASocket Start");
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     socket_ = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
     if (socket_ < 0) {
         NETMGR_EXT_LOG_E("CreateRASocket fail, errno[%{public}d]", errno);
@@ -210,12 +211,15 @@ bool RouterAdvertisementDaemon::MaybeSendRa(sockaddr_in6 &dest)
 
 void RouterAdvertisementDaemon::ProcessSendRaPacket()
 {
-    if (!IsSocketValid() || stopRaThread_) {
-        NETMGR_EXT_LOG_E("socket closed or stopRaThread!");
-        return;
-    }
-    if (AssembleRaLocked()) {
-        MaybeSendRa(dstIpv6Addr_);
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        if (!IsSocketValid() || stopRaThread_) {
+            NETMGR_EXT_LOG_E("socket closed or stopRaThread!");
+            return;
+        }
+        if (AssembleRaLocked()) {
+            MaybeSendRa(dstIpv6Addr_);
+        }
     }
     ResetRaRetryInterval();
 }
@@ -239,10 +243,19 @@ void RouterAdvertisementDaemon::RunRecvRsThread()
         if (solicitation[0] != ICMPV6_ND_ROUTER_SOLICIT_TYPE) {
             continue;
         }
-        if (AssembleRaLocked()) {
-            MaybeSendRa(solicitor);
+        {
+            std::lock_guard<ffrt::mutex> lock(mutex_);
+            // LCOV_EXCL_START
+            if (!IsSocketValid()) {
+                break;
+            }
+            // LCOV_EXCL_STOP
+            if (AssembleRaLocked()) {
+                MaybeSendRa(solicitor);
+            }
         }
     }
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     CloseRaSocket();
     raParams_ = nullptr;
 }
@@ -265,7 +278,10 @@ RaParams RouterAdvertisementDaemon::GetDeprecatedRaParams(RaParams &oldRa, RaPar
 
 void RouterAdvertisementDaemon::BuildNewRa(const RaParams &newRa)
 {
-    raParams_->Set(newRa);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    if (raParams_ != nullptr) {
+        raParams_->Set(newRa);
+    }
 }
 
 void RouterAdvertisementDaemon::ResetRaRetryInterval()
@@ -291,6 +307,10 @@ void RouterAdvertisementDaemon::ResetRaRetryInterval()
 bool RouterAdvertisementDaemon::AssembleRaLocked()
 {
     NETMGR_EXT_LOG_D("Generate Ra package start");
+    if (raParams_ == nullptr) {
+        NETMGR_EXT_LOG_E("Generate Ra package fail due to raParams_ is nullptr");
+        return false;
+    }
     uint8_t raBuf[IPV6_MIN_MTU] = {};
     uint8_t *ptr = raBuf;
     uint16_t raHeadLen = PutRaHeader(ptr);

@@ -48,6 +48,7 @@ public:
         void ReportInterceptWithoutSkip(sptr<InterceptRecord> &record);
         void FlushRecordCacheWithoutSkip();
         std::shared_ptr<NetFirewallInterceptRecorder> recorder_ = nullptr;
+        ffrt::mutex taskHandleMutex_;
         ffrt::task_handle recordWithoutSkipTaskHandle_;
         ffrt::task_handle recordTaskHandle_;
         std::shared_ptr<ffrt::queue> ffrtQueue_;
@@ -145,8 +146,9 @@ public:
 private:
     std::shared_mutex setRecordMutex_;
     std::mutex setRecordWithoutSkipMutex_;
-    std::shared_mutex callbackMutex_;
-    std::mutex interceptRecordCallbackMutex_;
+    ffrt::shared_mutex callbackMutex_;
+    ffrt::mutex interceptRecordCallbackMutex_;
+    ffrt::mutex oldRecordMutex_;
     std::atomic<int32_t> currentUserId_ = 0;
     std::vector<sptr<InterceptRecord>> recordCache_;
     std::vector<sptr<InterceptRecord>> recordCacheWithoutSkip_;

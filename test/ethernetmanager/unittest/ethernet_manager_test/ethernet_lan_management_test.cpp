@@ -20,6 +20,11 @@
 #include "gtest/hwext/gtest-ext.h"
 #include "gtest/hwext/gtest-tag.h"
 
+#ifdef GTEST_API_
+#define private public
+#define protected public
+#endif
+
 #include "ethernet_client.h"
 #include "dev_interface_state.h"
 #include "ethernet_lan_management.h"

@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
-struct HksParam g_genParam[] = {
+static const struct HksParam g_genParam[] = {
     { .tag = HKS_TAG_SPECIFIC_USER_ID, .int32Param = 0 },
     { .tag = HKS_TAG_KEY_STORAGE_FLAG, .uint32Param = HKS_STORAGE_PERSISTENT },
     { .tag = HKS_TAG_ALGORITHM, .uint32Param = HKS_ALG_AES },
@@ -167,13 +167,19 @@ int32_t VpnBuildHksParamSet(struct HksParamSet **paramSet, int32_t userId, uint8
     struct HksParam IVParam[] = {
         { .tag = HKS_TAG_NONCE, .blob = { .size = nonceSize, .data = nonce } },
     };
-    g_genParam[0].int32Param = userId;
+    struct HksParam genParam[sizeof(g_genParam) / sizeof(HksParam)];
+    // LCOV_EXCL_START
+    for (size_t i = 0; i < sizeof(g_genParam) / sizeof(HksParam); ++i) {
+        genParam[i] = g_genParam[i];
+    }
+    // LCOV_EXCL_STOP
+    genParam[0].int32Param = userId;
     int32_t ret = HksInitParamSet(paramSet);
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("HksInitParamSet failed");
         return ret;
     }
-    ret = HksAddParams(*paramSet, g_genParam, sizeof(g_genParam) / sizeof(HksParam));
+    ret = HksAddParams(*paramSet, genParam, sizeof(genParam) / sizeof(HksParam));
     // LCOV_EXCL_START
     if (ret != HKS_SUCCESS) {
         NETMGR_EXT_LOG_E("HksAddParams g_genParam failed");

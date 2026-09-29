@@ -17,6 +17,7 @@
 #define ETHERNET_LAN_MANAGEMENT_H
 
 #include "dev_interface_state.h"
+#include "ffrt.h"
 #include "interface_configuration.h"
 #include "net_link_info.h"
 
@@ -26,15 +27,17 @@ class EthernetLanManagement {
 public:
     EthernetLanManagement();
     ~EthernetLanManagement() = default;
-    int32_t SetIp(const NetLinkInfo &newNetLinkInfo);
-    int32_t DelIp(const NetLinkInfo &newNetLinkInfo);
-    int32_t SetRoute(const NetLinkInfo &newNetLinkInfo);
-    int32_t DelRoute(const NetLinkInfo &newNetLinkInfo);
     int32_t UpdateLanLinkInfo(sptr<DevInterfaceState> &devState);
     int32_t ReleaseLanNetLink(sptr<DevInterfaceState> &devState);
     void GetOldLinkInfo(sptr<DevInterfaceState> &devState);
 
 private:
+    int32_t SetIp(const NetLinkInfo &newNetLinkInfo);
+    int32_t DelIp(const NetLinkInfo &newNetLinkInfo);
+    int32_t SetRoute(const NetLinkInfo &newNetLinkInfo);
+    int32_t DelRoute(const NetLinkInfo &newNetLinkInfo);
+
+    ffrt::mutex netLinkInfoMutex_;
     NetLinkInfo netLinkInfo_;
 };
 } // namespace NetManagerStandard

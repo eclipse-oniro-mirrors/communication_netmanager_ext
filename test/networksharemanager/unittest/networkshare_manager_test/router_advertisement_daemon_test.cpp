@@ -231,6 +231,23 @@ HWTEST_F(RouterAdvertisementDaemonTest, BuildNewRaTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BuildNewRaTest002
+ * @tc.desc: Test RouterAdvertisementDaemon BuildNewRa with null raParams_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, BuildNewRaTest002, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    routerAdvertiseDaemon->raParams_ = nullptr;
+    RaParams newRa;
+    newRa.hasDefaultRoute_ = true;
+    newRa.hopLimit_ = 255;
+    newRa.mtu_ = 1500;
+    routerAdvertiseDaemon->BuildNewRa(newRa);
+    EXPECT_EQ(routerAdvertiseDaemon->raParams_, nullptr);
+}
+
+/**
  * @tc.name: ResetRaRetryIntervalTest
  * @tc.desc: Test RouterAdvertisementDaemon
  * ResetRaRetryIntervalTest.Test the delay time of the next message
@@ -403,6 +420,19 @@ HWTEST_F(RouterAdvertisementDaemonTest, AssembleRaLockedTest, TestSize.Level1)
     auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
     bool ret = routerAdvertiseDaemon->AssembleRaLocked();
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: AssembleRaLockedTest002
+ * @tc.desc: Test RouterAdvertisementDaemon AssembleRaLocked with null raParams_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, AssembleRaLockedTest002, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    routerAdvertiseDaemon->raParams_ = nullptr;
+    bool ret = routerAdvertiseDaemon->AssembleRaLocked();
+    EXPECT_EQ(ret, false);
 }
 
 /**

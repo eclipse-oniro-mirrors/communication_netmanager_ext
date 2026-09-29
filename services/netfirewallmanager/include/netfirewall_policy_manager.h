@@ -19,6 +19,7 @@
 #include <string>
 #include <shared_mutex>
 
+#include "ffrt.h"
 #include "netfirewall_common.h"
 #include "netfirewall_preference_helper.h"
 
@@ -100,7 +101,7 @@ private:
     void GetAllUserId(std::vector<int32_t> &accountIds);
     std::string FirewallPreferencePathOfUser(int32_t userId);
 private:
-    std::shared_mutex setPolicyMutex_;
+    ffrt::shared_mutex setPolicyMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

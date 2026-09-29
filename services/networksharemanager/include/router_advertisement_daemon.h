@@ -36,6 +36,7 @@
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
+#include "ffrt.h"
 #include "ffrt_timer.h"
 
 namespace OHOS {
@@ -136,7 +137,7 @@ private:
 private:
     sockaddr_in6 dstIpv6Addr_ = {};
     int socket_ = -1;
-    std::mutex mutex_;
+    ffrt::mutex mutex_;
     std::thread recvRsThread_;
     uint8_t sendRaTimes_ = 1;
     std::atomic<bool> stopRaThread_{false};

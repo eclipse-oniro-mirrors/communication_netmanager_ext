@@ -37,6 +37,7 @@ void EthernetLanManagement::GetOldLinkInfo(sptr<DevInterfaceState> &devState)
         NETMGR_EXT_LOG_D("EthernetLanManagement:GetOldLinkInfo fail due to devState is nullptr");
         return;
     }
+    std::lock_guard<ffrt::mutex> locker(netLinkInfoMutex_);
     if (!devState->GetLinkInfo(netLinkInfo_)) {
         NETMGR_EXT_LOG_W("EthernetLanManagement:GetOldLinkInfo fail due to linkInfo is NULL");
         netLinkInfo_.Initialize();
@@ -54,6 +55,7 @@ int32_t EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devSta
         NETMGR_EXT_LOG_D("EthernetLanManagement:UpdateLanLinkInfo fail due to not link up");
         return ETHERNET_ERR_DEVICE_NOT_LINK;
     }
+    std::lock_guard<ffrt::mutex> locker(netLinkInfoMutex_);
     NetLinkInfo newNetLinkInfo;
     if (!devState->GetLinkInfo(newNetLinkInfo)) {
         NETMGR_EXT_LOG_E("EthernetLanManagement:UpdateLanLinkInfo fail due to newNetLinkInfo is NULL");
