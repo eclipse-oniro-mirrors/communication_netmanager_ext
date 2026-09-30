@@ -114,6 +114,7 @@ ohos_shared_library("ethernet_manager") {
       "data_share:datashare_common",
       "data_share:datashare_consumer",
       "netmanager_base:net_data_share",
+      "security_guard:libsg_collect_sdk",
     ]
   }
 
@@ -218,6 +219,7 @@ ohos_static_library("ethernet_manager_static") {
       "ability_base:want",
       "data_share:datashare_common",
       "data_share:datashare_consumer",
+      "security_guard:libsg_collect_sdk",
       "netmanager_base:net_data_share"
     ]
   }

@@ -98,6 +98,7 @@
                 "json",
                 "hiappevent",
                 "runtime_core",
+                "security_guard",
                 "rust_cxx",
                 "config_policy"
             ]

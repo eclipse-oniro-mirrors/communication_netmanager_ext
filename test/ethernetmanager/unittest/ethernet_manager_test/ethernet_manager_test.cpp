@@ -2017,5 +2017,67 @@ HWTEST_F(EthernetManagerTest, InitFailureTest001, TestSize.Level1)
     EXPECT_NE(ethernetManagement->ethConfiguration_, nullptr);
 }
 
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+/**
+ * @tc.name: CanModifyCheckTest001
+ * @tc.desc: Test EthernetManagement::CanModifyCheck with invalid input mode
+ * @tc.type: FUNC
+ * @tc.require: Coverage for input < STATIC and input > LAN_DHCP branches
+ */
+HWTEST_F(EthernetManagerTest, CanModifyCheckTest001, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    EXPECT_FALSE(ethernetManagement->CanModifyCheck(STATIC, static_cast<IPSetMode>(-1)));
+    EXPECT_FALSE(ethernetManagement->CanModifyCheck(STATIC, static_cast<IPSetMode>(LAN_DHCP + 1)));
+}
+ 
+/**
+ * @tc.name: CanModifyCheckTest002
+ * @tc.desc: Test EthernetManagement::CanModifyCheck when system param is not set
+ * @tc.type: FUNC
+ * @tc.require: Coverage for isSetEthernetIpDisabled false branch
+ */
+HWTEST_F(EthernetManagerTest, CanModifyCheckTest002, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
+    EXPECT_TRUE(ethernetManagement->CanModifyCheck(STATIC, DHCP));
+    EXPECT_TRUE(ethernetManagement->CanModifyCheck(STATIC, STATIC));
+    EXPECT_TRUE(ethernetManagement->CanModifyCheck(DHCP, STATIC));
+}
+ 
+/**
+ * @tc.name: CanModifyCheckTest003
+ * @tc.desc: Test EthernetManagement::CanModifyCheck when set eth ip is intercepted
+ * @tc.type: FUNC
+ * @tc.require: Coverage for isSetEthernetIpDisabled true and intercepted branches
+ */
+HWTEST_F(EthernetManagerTest, CanModifyCheckTest003, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
+    EXPECT_FALSE(ethernetManagement->CanModifyCheck(STATIC, DHCP));
+    EXPECT_FALSE(ethernetManagement->CanModifyCheck(STATIC, STATIC));
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
+}
+ 
+/**
+ * @tc.name: CanModifyCheckTest004
+ * @tc.desc: Test EthernetManagement::CanModifyCheck when set eth ip is disabled but not intercepted
+ * @tc.type: FUNC
+ * @tc.require: Coverage for isSetEthernetIpDisabled true but origin/input not intercepted branches
+ */
+HWTEST_F(EthernetManagerTest, CanModifyCheckTest004, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "true");
+    EXPECT_TRUE(ethernetManagement->CanModifyCheck(DHCP, STATIC));
+    EXPECT_TRUE(ethernetManagement->CanModifyCheck(LAN_STATIC, LAN_DHCP));
+    EXPECT_TRUE(ethernetManagement->CanModifyCheck(STATIC, LAN_DHCP));
+    EXPECT_TRUE(ethernetManagement->CanModifyCheck(LAN_DHCP, LAN_STATIC));
+    OHOS::system::SetParameter(SYS_PARAM_PERSIST_EDM_SET_ETHERNET_IP_DISABLE, "false");
+}
+#endif // NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+
 } // namespace NetManagerStandard
 } // namespace OHOS
