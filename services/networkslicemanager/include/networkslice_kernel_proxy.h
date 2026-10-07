@@ -29,6 +29,7 @@ namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 constexpr int32_t NETLINK_SOCKET_DEFAULT = -1;
+constexpr int32_t MAX_KERNEL_MSG_LEN = 2048;
 }
 
 enum KernelReqMsgType {

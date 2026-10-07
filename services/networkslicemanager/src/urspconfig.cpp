@@ -400,6 +400,10 @@ bool UrspConfig::ParseOsAppId(xmlNodePtr node, TrafficDescriptor& trafficDescrip
 {
     xmlChar *trafficDescriptorvalue = xmlGetProp(node,
         reinterpret_cast<const xmlChar *>(ATTR_TRAFFICDESCRIPTORVALUE.c_str()));
+    if (trafficDescriptorvalue == nullptr) {
+        NETMGR_EXT_LOG_E("ParseOsAppId xmlGetProp returned null");
+        return false;
+    }
     std::string trafficDescriptorValue = (std::string)reinterpret_cast<char *>(trafficDescriptorvalue);
     xmlFree(trafficDescriptorvalue);
     std::vector<std::string> values;
@@ -479,8 +483,20 @@ bool UrspConfig::ParseRemotePortRange(xmlNodePtr node, TrafficDescriptor& traffi
         return false;
     }
     RemotePortRange portRang;
-    portRang.setPortRangeLowLimit(std::stoi(values[0]));
-    portRang.setPortRangeHighLimit(std::stoi(values[1]));
+    try {
+        int32_t lowLimit = std::stoi(values[0]);
+        int32_t highLimit = std::stoi(values[1]);
+        if (lowLimit < 0 || lowLimit > 65535 || highLimit < 0 || highLimit > 65535 || lowLimit > highLimit) {
+            NETMGR_EXT_LOG_E("ParseRemotePortRange invalid port range: low=%{public}d, high=%{public}d",
+                lowLimit, highLimit);
+            return false;
+        }
+        portRang.setPortRangeLowLimit(lowLimit);
+        portRang.setPortRangeHighLimit(highLimit);
+    } catch (const std::exception& e) {
+        NETMGR_EXT_LOG_E("ParseRemotePortRange stoi exception: %{public}s", e.what());
+        return false;
+    }
 
     trafficDescriptor.remotePortRanges.push_back(portRang);
     return true;

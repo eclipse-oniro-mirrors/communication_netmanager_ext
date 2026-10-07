@@ -406,6 +406,10 @@ void NetworkSliceManager::BindProcessToNetworkByFullPara(std::shared_ptr<std::ma
     int startIndex = 0;
     short type = GetShort(startIndex, buffer);
     short len = GetShort(startIndex, buffer);
+    if (len <= 0 || len > MAX_KERNEL_MSG_LEN) {
+        NETMGR_EXT_LOG_E("BindProcessToNetworkByFullPara invalid len: %{public}d", len);
+        return;
+    }
     std::vector<uint8_t> msgData;
     for (int i = startIndex; i < (int)buffer.size(); ++i) {
         msgData.push_back(buffer[i]);
@@ -415,8 +419,14 @@ void NetworkSliceManager::BindProcessToNetworkByFullPara(std::shared_ptr<std::ma
     requestMsg->type = type;
     requestMsg->len = len;
     size_t dataLen = msgData.size();
-    if (memcpy_s(reinterpret_cast<char *>(requestMsg->buf), dataLen, msgData.data(), dataLen) != EOK) {
+    size_t bufAvailable = static_cast<size_t>(len) - sizeof(KernelBindMsg);
+    if (dataLen > bufAvailable) {
+        NETMGR_EXT_LOG_E("BindProcessToNetworkByFullPara dataLen exceeds buffer capacity");
+        return;
+    }
+    if (memcpy_s(reinterpret_cast<char *>(requestMsg->buf), bufAvailable, msgData.data(), dataLen) != EOK) {
         NETMGR_EXT_LOG_E("BindProcessToNetworkByFullPara memcpy_s error");
+        return;
     }
     int ret = DelayedSingleton<NetworkSliceKernelProxy>::GetInstance()->SendDataToKernel(
         reinterpret_cast<KernelMsg &>(*requestMsg));
