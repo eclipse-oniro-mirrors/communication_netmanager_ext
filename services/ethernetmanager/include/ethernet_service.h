@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <iosfwd>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <vector>
 
@@ -27,12 +29,12 @@
 #include "ethernet_service_common.h"
 #include "ethernet_service_stub.h"
 #include "event_handler.h"
+#include "iremote_object.h"
 #include "netsys_controller_callback.h"
 #include "net_eap_handler.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "system_ability.h"
-#include "ffrt.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -109,12 +111,22 @@ private:
 
     using OnFunctionT = std::function<void(const sptr<InterfaceStateCallback> &callback)>;
 
+    class IfaceCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit IfaceCallbackDeathRecipient(std::weak_ptr<EthernetService> service) : service_(service) {}
+        ~IfaceCallbackDeathRecipient() override = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+    private:
+        std::weak_ptr<EthernetService> service_;
+    };
+
     bool Init();
     void InitManagement();
 
-    int32_t RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
-    int32_t UnregisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
-    void NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction);
+    int32_t RegisterMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback);
+    int32_t UnregisterMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback);
+    void NotifyMonitorIfaceCallback(OnFunctionT onFunction);
+    void OnIfaceCallbackRemoteDied(const wptr<IRemoteObject> &remote);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -124,7 +136,8 @@ private:
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
     sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
     std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
-    std::shared_ptr<ffrt::queue> ethernetServiceFfrtQueue_ = nullptr;
+    sptr<IRemoteObject::DeathRecipient> ifaceCallbackDeathRecipient_ = nullptr;
+    std::shared_mutex ifaceCallbacksMutex_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

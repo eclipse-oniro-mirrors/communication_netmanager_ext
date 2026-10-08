@@ -39,6 +39,7 @@ int32_t InterfaceStateCallbackProxy::OnInterfaceAdded(const std::string &ifName)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(InterfaceStateCallback::GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
@@ -68,6 +69,7 @@ int32_t InterfaceStateCallbackProxy::OnInterfaceRemoved(const std::string &ifNam
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(InterfaceStateCallback::GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;
@@ -97,6 +99,7 @@ int32_t InterfaceStateCallbackProxy::OnInterfaceChanged(const std::string &ifNam
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(InterfaceStateCallback::GetDescriptor())) {
         NETMGR_EXT_LOG_E("WriteInterfaceToken failed");
         return NETMANAGER_EXT_ERR_WRITE_DESCRIPTOR_TOKEN_FAIL;

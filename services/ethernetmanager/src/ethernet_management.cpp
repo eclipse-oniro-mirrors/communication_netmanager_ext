@@ -1081,9 +1081,15 @@ bool EthernetManagement::IsEthernetEnabled()
 void EthernetManagement::EnableAllInterfaces()
 {
     NETMGR_EXT_LOG_I("EnableAllInterfaces start");
-    std::shared_lock<std::shared_mutex> lock(mutex_);
-    for (auto &[devName, devState] : devs_) {
-        (void)devState;
+    std::vector<std::string> devNames;
+    {
+        std::shared_lock<std::shared_mutex> lock(mutex_);
+        for (auto &[devName, devState] : devs_) {
+            (void)devState;
+            devNames.push_back(devName);
+        }
+    }
+    for (const auto &devName : devNames) {
         if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Failed to set interface up: %{public}s", devName.c_str());
         }
@@ -1093,9 +1099,15 @@ void EthernetManagement::EnableAllInterfaces()
 void EthernetManagement::DisableAllInterfaces()
 {
     NETMGR_EXT_LOG_I("DisableAllInterfaces start");
-    std::shared_lock<std::shared_mutex> lock(mutex_);
-    for (auto &[devName, devState] : devs_) {
-        (void)devState;
+    std::vector<std::string> devNames;
+    {
+        std::shared_lock<std::shared_mutex> lock(mutex_);
+        for (auto &[devName, devState] : devs_) {
+            (void)devState;
+            devNames.push_back(devName);
+        }
+    }
+    for (const auto &devName : devNames) {
         if (NetsysController::GetInstance().SetInterfaceDown(devName) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Failed to set interface down: %{public}s", devName.c_str());
         }
