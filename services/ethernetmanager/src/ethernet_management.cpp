@@ -701,6 +701,12 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
     devs_.insert(std::make_pair(devName, devState));
     devState->SetDevName(devName);
+
+    auto fitCap = devCaps_.find(devName);
+    if (fitCap != devCaps_.end()) {
+        devState->SetNetCaps(fitCap->second);
+    }
+
     auto fitCfg = devCfgs_.find(devName);
     if (fitCfg != devCfgs_.end()) {
         if (fitCfg->second->mode_ == LAN_STATIC || fitCfg->second->mode_ == LAN_DHCP) {
@@ -717,10 +723,6 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
         ifCfg->mode_ = DHCP;
         devState->RemoteRegisterNetSupplier();
         devState->SetIfcfg(ifCfg);
-    }
-    auto fitCap = devCaps_.find(devName);
-    if (fitCap != devCaps_.end()) {
-        devState->SetNetCaps(fitCap->second);
     }
 }
 

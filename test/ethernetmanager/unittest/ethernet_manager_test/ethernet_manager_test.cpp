@@ -1269,6 +1269,40 @@ HWTEST_F(EthernetManagerTest, DevInterfaceAddTest001, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(EthernetManagerTest, DevInterfaceAddTest002, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string dev = "eth_dev_cap";
+    sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
+    cfg->mode_ = LAN_STATIC;
+    ethernetManagement->devCfgs_[dev] = cfg;
+    ethernetManagement->devCaps_[dev] = {NET_CAPABILITY_OEM_PAID};
+
+    ethernetManagement->DevInterfaceAdd(dev);
+
+    auto fitDev = ethernetManagement->devs_.find(dev);
+    ASSERT_NE(fitDev, ethernetManagement->devs_.end());
+    ASSERT_NE(fitDev->second, nullptr);
+    EXPECT_EQ(fitDev->second->GetNetCaps().count(NET_CAPABILITY_OEM_PAID), 1);
+}
+
+HWTEST_F(EthernetManagerTest, DevInterfaceAddTest003, TestSize.Level1)
+{
+    auto ethernetManagement = std::make_shared<EthernetManagement>();
+    std::string dev = "eth_without_cap";
+    sptr<InterfaceConfiguration> cfg = new InterfaceConfiguration();
+    cfg->mode_ = LAN_STATIC;
+    ethernetManagement->devCfgs_[dev] = cfg;
+    ethernetManagement->devCaps_["other_eth"] = {NET_CAPABILITY_OEM_PAID};
+
+    ethernetManagement->DevInterfaceAdd(dev);
+
+    auto fitDev = ethernetManagement->devs_.find(dev);
+    ASSERT_NE(fitDev, ethernetManagement->devs_.end());
+    ASSERT_NE(fitDev->second, nullptr);
+    EXPECT_TRUE(fitDev->second->GetNetCaps().empty());
+}
+
 HWTEST_F(EthernetManagerTest, EthernetDhcpControllerOnSuccessTest001, TestSize.Level1)
 {
     EthernetDhcpController dhcpController;
