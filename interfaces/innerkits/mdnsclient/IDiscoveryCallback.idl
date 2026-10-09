@@ -16,8 +16,8 @@
 sequenceable MdnsServiceInfo..OHOS.NetManagerStandard.MDnsServiceInfo;
 package OHOS.NetManagerStandard;
 [callback] interface IDiscoveryCallback {
-    void HandleStartDiscover([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-    void HandleStopDiscover([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-    void HandleServiceFound([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-    void HandleServiceLost([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-}
+    [oneway] void HandleStartDiscover([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+    [oneway] void HandleStopDiscover([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+    [oneway] void HandleServiceFound([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+    [oneway] void HandleServiceLost([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+}

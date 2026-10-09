@@ -23,6 +23,7 @@
 #include "net_manager_constants.h"
 #include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "system_ability_definition.h"
 #define private public
 #include "networkshare_client.h"
 #undef private
@@ -81,24 +82,6 @@ void TestSharingEventCallback::OnInterfaceSharingStateChanged(const SharingIface
 void TestSharingEventCallback::OnSharingUpstreamChanged(const sptr<NetHandle> netHandle)
 {
     std::cout << "TestSharingEventCallback::OnSharingUpstreamChanged netId = " << netHandle->GetNetId() << std::endl;
-}
-
-HWTEST_F(NetworkShareManagerTest, OnLoadSystemAbilitySuccess, TestSize.Level1)
-{
-    int32_t systemAbilityId = 0;
-    sptr<IRemoteObject> remoteObject;
-    DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->OnLoadSystemAbilitySuccess(systemAbilityId,
-                                                                                            remoteObject);
-    auto ret = DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->GetRemoteObject();
-    EXPECT_EQ(ret, nullptr);
-}
-
-HWTEST_F(NetworkShareManagerTest, OnLoadSystemAbilityFail, TestSize.Level1)
-{
-    int32_t systemAbilityId = 0;
-    DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->OnLoadSystemAbilityFail(systemAbilityId);
-    auto ret = DelayedSingleton<NetworkShareLoadCallback>::GetInstance()->IsFailed();
-    EXPECT_EQ(ret, true);
 }
 
 HWTEST_F(NetworkShareManagerTest, IsSharingSupported, TestSize.Level1)
@@ -295,5 +278,137 @@ HWTEST_F(NetworkShareManagerTest, OnRemoteDied, TestSize.Level1)
     DelayedSingleton<NetworkShareClient>::GetInstance()->OnRemoteDied(remote);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 }
+
+HWTEST_F(NetworkShareManagerTest, RegisterSharingEvent003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    auto sizeBefore = client->callbacks_.size();
+    int32_t result = client->RegisterSharingEvent(g_sharingEventCb);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(client->callbacks_.size(), sizeBefore + 1);
+    result = client->RegisterSharingEvent(g_sharingEventCb);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(client->callbacks_.size(), sizeBefore + 1);
+    result = client->UnregisterSharingEvent(g_sharingEventCb);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(client->callbacks_.size(), sizeBefore);
+}
+
+HWTEST_F(NetworkShareManagerTest, SaListenerOnAddSystemAbility001, TestSize.Level1)
+{
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    ASSERT_NE(client->saStatusChangeListener_, nullptr);
+    auto before = client->networkShareService_;
+    client->saStatusChangeListener_->OnAddSystemAbility(-1, "");
+    client->saStatusChangeListener_->OnAddSystemAbility(COMMON_EVENT_SERVICE_ID, "");
+    EXPECT_EQ(client->networkShareService_, before);
+}
+
+HWTEST_F(NetworkShareManagerTest, SaListenerOnAddSystemAbility002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    int32_t supported = 0;
+    int32_t result = client->IsSharingSupported(supported);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_NE(client->networkShareService_, nullptr);
+    ASSERT_NE(client->saStatusChangeListener_, nullptr);
+    result = client->RegisterSharingEvent(g_sharingEventCb);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    client->saStatusChangeListener_->OnAddSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, "");
+    EXPECT_NE(client->networkShareService_, nullptr);
+    result = client->UnregisterSharingEvent(g_sharingEventCb);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, SaListenerOnRemoveSystemAbility001, TestSize.Level1)
+{
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    ASSERT_NE(client->saStatusChangeListener_, nullptr);
+    auto before = client->networkShareService_;
+    client->saStatusChangeListener_->OnRemoveSystemAbility(-1, "");
+    client->saStatusChangeListener_->OnRemoveSystemAbility(COMMON_EVENT_SERVICE_ID, "");
+    EXPECT_EQ(client->networkShareService_, before);
+}
+
+HWTEST_F(NetworkShareManagerTest, SaListenerOnRemoveSystemAbility002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    int32_t supported = 0;
+    int32_t result = client->IsSharingSupported(supported);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_NE(client->networkShareService_, nullptr);
+    client->saStatusChangeListener_->OnRemoveSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, "");
+    EXPECT_EQ(client->networkShareService_, nullptr);
+}
+
+HWTEST_F(NetworkShareManagerTest, SaListenerOnRemoveSystemAbility003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    int32_t supported = 0;
+    int32_t result = client->IsSharingSupported(supported);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_NE(client->networkShareService_, nullptr);
+    client->saStatusChangeListener_->OnRemoveSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, "");
+    EXPECT_EQ(client->networkShareService_, nullptr);
+    client->saStatusChangeListener_->OnRemoveSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, "");
+    EXPECT_EQ(client->networkShareService_, nullptr);
+    result = client->IsSharingSupported(supported);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_NE(client->networkShareService_, nullptr);
+    client->deathRecipient_ = nullptr;
+    client->saStatusChangeListener_->OnRemoveSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, "");
+    EXPECT_EQ(client->networkShareService_, nullptr);
+}
+
+HWTEST_F(NetworkShareManagerTest, OnRemoteDied002, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    int32_t supported = 0;
+    int32_t result = client->IsSharingSupported(supported);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_NE(client->saStatusChangeListener_, nullptr);
+    client->saStatusChangeListener_->OnRemoveSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, "");
+    ASSERT_EQ(client->networkShareService_, nullptr);
+    wptr<IRemoteObject> remote = g_sharingEventCb->AsObject();
+    client->OnRemoteDied(remote);
+    EXPECT_EQ(client->networkShareService_, nullptr);
+}
+
+HWTEST_F(NetworkShareManagerTest, OnRemoteDied003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    int32_t supported = 0;
+    int32_t result = client->IsSharingSupported(supported);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_NE(client->networkShareService_, nullptr);
+    wptr<IRemoteObject> remote = g_sharingEventCb->AsObject();
+    client->OnRemoteDied(remote);
+    EXPECT_NE(client->networkShareService_, nullptr);
+}
+
+HWTEST_F(NetworkShareManagerTest, OnRemoteDied004, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    int32_t supported = 0;
+    int32_t result = client->IsSharingSupported(supported);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_NE(client->networkShareService_, nullptr);
+    result = client->RegisterSharingEvent(g_sharingEventCb);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    wptr<IRemoteObject> remote = client->networkShareService_->AsObject();
+    client->OnRemoteDied(remote);
+    sleep(TWO_SECONDS);
+    EXPECT_NE(client->networkShareService_, nullptr);
+    result = client->UnregisterSharingEvent(g_sharingEventCb);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -16,5 +16,5 @@
 sequenceable MdnsServiceInfo..OHOS.NetManagerStandard.MDnsServiceInfo;
 package OHOS.NetManagerStandard;
 [callback] interface IResolveCallback {
-    void HandleResolveResult([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-};
+    [oneway] void HandleResolveResult([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+};

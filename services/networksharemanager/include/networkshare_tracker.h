@@ -289,14 +289,14 @@ private:
     void HandleClatInterfaceRemoved(const std::string &clatIface);
 
 private:
-    ffrt::mutex mutex_;
+    ffrt::shared_mutex mutex_;
     std::shared_ptr<NetworkShareConfiguration> configuration_ = nullptr;
     sptr<NetsysControllerCallback> netsysCallback_ = nullptr;
     std::shared_ptr<ffrt::queue> networkShareTrackerFfrtQueue_ = nullptr;
     std::shared_ptr<NetworkShareMainStateMachine> mainStateMachine_ = nullptr;
     std::map<std::string, std::shared_ptr<NetSharingSubSmState>> subStateMachineMap_;
     std::vector<sptr<ISharingEventCallback>> sharingEventCallback_;
-    ffrt::mutex callbackMutex_;
+    ffrt::shared_mutex callbackMutex_;
     std::atomic<bool> isNetworkSharing_{false};
     std::shared_ptr<UpstreamNetworkInfo> upstreamInfo_ = nullptr;
     std::atomic<uint32_t> clientRequestsBitMask_{0};

@@ -23,20 +23,10 @@
 #include "parcel.h"
 #include "singleton.h"
 #include "system_ability_load_callback_stub.h"
+#include "system_ability_status_change_stub.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
-class NetworkShareLoadCallback : public SystemAbilityLoadCallbackStub {
-public:
-    void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject) override;
-    void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
-    bool IsFailed();
-    const sptr<IRemoteObject> &GetRemoteObject() const;
-
-private:
-    bool loadSAFailed_ = false;
-    sptr<IRemoteObject> remoteObject_ = nullptr;
-};
 class NetworkShareClient {
     DECLARE_DELAYED_SINGLETON(NetworkShareClient)
 
@@ -177,9 +167,6 @@ public:
     int32_t SetConfigureForShare(bool enabled);
 
 private:
-    void RestartNetTetheringManagerSysAbility();
-
-private:
     class NetshareDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit NetshareDeathRecipient(NetworkShareClient &client) : client_(client) {}
@@ -193,16 +180,31 @@ private:
         NetworkShareClient &client_;
     };
 
+    class NetworkShareSaListener : public SystemAbilityStatusChangeStub {
+    public:
+        explicit NetworkShareSaListener(NetworkShareClient &client) : client_(client) {}
+        ~NetworkShareSaListener() override = default;
+        void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+        void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+
+    private:
+        NetworkShareClient &client_;
+    };
+
 private:
-    sptr<INetworkShareService> GetProxy();
+    sptr<INetworkShareService> GetProxy(bool triggerLoad);
     void RecoverCallback();
     void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void SubscribeSaStatus();
+    void UnsubscribeSaStatus();
 
 private:
     std::mutex mutex_;
     sptr<INetworkShareService> networkShareService_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
-    sptr<ISharingEventCallback> callback_;
+    std::vector<sptr<ISharingEventCallback>> callbacks_;
+    std::mutex callbackMutex_;
+    sptr<ISystemAbilityStatusChange> saStatusChangeListener_ = nullptr;
     std::atomic<bool> isDestroyed_{false};
 };
 } // namespace NetManagerStandard

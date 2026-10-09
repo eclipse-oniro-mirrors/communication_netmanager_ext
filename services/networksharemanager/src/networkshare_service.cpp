@@ -46,7 +46,7 @@ constexpr const char *NETWORK_SHARE_POLICY_PARAM = "persist.edm.tethering_disall
 constexpr const char *IDLE_AP_USER_RESTART_NOTIFICATION = "ohos.event.notification.wifi.TAP_ENABLE_HOTSPOT";
 constexpr const char *EVENT_THERMAL_STOP_AP = "usual.event.thermal.WIFI_POLICY";
 
-NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, true) {}
+NetworkShareService::NetworkShareService() : SystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, false) {}
 
 NetworkShareService::~NetworkShareService(){};
 

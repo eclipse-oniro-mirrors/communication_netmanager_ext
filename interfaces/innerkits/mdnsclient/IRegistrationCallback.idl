@@ -16,7 +16,7 @@
 sequenceable MdnsServiceInfo..OHOS.NetManagerStandard.MDnsServiceInfo;
 package OHOS.NetManagerStandard;
 [callback] interface IRegistrationCallback {
-    void HandleRegister([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-    void HandleUnRegister([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-    void HandleRegisterResult([in] MDnsServiceInfo serviceInfo, [in] int retCode);
-}
+    [oneway] void HandleRegister([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+    [oneway] void HandleUnRegister([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+    [oneway] void HandleRegisterResult([in] MDnsServiceInfo serviceInfo, [in] int retCode);
+}

@@ -22,54 +22,31 @@
 #include "net_manager_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "network_share_service_proxy.h"
+#include "networkshare_constants.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
-constexpr uint32_t WAIT_FOR_SERVICE_TIME_S = 1;
 constexpr uint32_t WAIT_FOR_SERVICE_TIME_MS = 500;
 constexpr uint32_t MAX_GET_SERVICE_COUNT = 10;
-std::condition_variable g_cv;
-std::mutex g_mutexCv;
 } // namespace
-void NetworkShareLoadCallback::OnLoadSystemAbilitySuccess(
-    int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilitySuccess systemAbilityId: [%{public}d]", systemAbilityId);
-    std::unique_lock<std::mutex> lock(g_mutexCv);
-    remoteObject_ = remoteObject;
-    g_cv.notify_one();
-}
-
-void NetworkShareLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
-{
-    NETMGR_EXT_LOG_D("OnLoadSystemAbilityFail: [%{public}d]", systemAbilityId);
-    loadSAFailed_ = true;
-}
-
-bool NetworkShareLoadCallback::IsFailed()
-{
-    return loadSAFailed_;
-}
-
-const sptr<IRemoteObject> &NetworkShareLoadCallback::GetRemoteObject() const
-{
-    return remoteObject_;
-}
 
 NetworkShareClient::NetworkShareClient()
-    : networkShareService_(nullptr), deathRecipient_(nullptr), callback_(nullptr) {}
+    : networkShareService_(nullptr), deathRecipient_(nullptr)
+{
+    SubscribeSaStatus();
+}
 
 NetworkShareClient::~NetworkShareClient()
 {
     isDestroyed_ = true;
     NETMGR_EXT_LOG_I("~NetworkShareClient : Destroy NetworkShareClient");
-    sptr<INetworkShareService> proxy = GetProxy();
-    if (proxy == nullptr) {
+    UnsubscribeSaStatus();
+    std::lock_guard lock(mutex_);
+    if (networkShareService_ == nullptr || deathRecipient_ == nullptr) {
         return;
     }
- 
-    auto serviceRemote = proxy->AsObject();
+    sptr<IRemoteObject> serviceRemote = networkShareService_->AsObject();
     if (serviceRemote == nullptr) {
         return;
     }
@@ -79,10 +56,42 @@ NetworkShareClient::~NetworkShareClient()
     }
 }
 
+void NetworkShareClient::SubscribeSaStatus()
+{
+    // LCOV_EXCL_START
+    if (saStatusChangeListener_ != nullptr) {
+        return;
+    }
+    // LCOV_EXCL_STOP
+    auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    // LCOV_EXCL_START
+    if (samgrProxy == nullptr) {
+        NETMGR_EXT_LOG_E("SubscribeSaStatus samgrProxy is nullptr");
+        return;
+    }
+    // LCOV_EXCL_STOP
+    saStatusChangeListener_ = sptr<NetworkShareSaListener>::MakeSptr(*this);
+    samgrProxy->SubscribeSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, saStatusChangeListener_);
+}
+
+void NetworkShareClient::UnsubscribeSaStatus()
+{
+    // LCOV_EXCL_START
+    if (saStatusChangeListener_ == nullptr) {
+        return;
+    }
+    // LCOV_EXCL_STOP
+    auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrProxy != nullptr) {
+        samgrProxy->UnSubscribeSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID, saStatusChangeListener_);
+    }
+    saStatusChangeListener_ = nullptr;
+}
+
 int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
 {
     NETMGR_EXT_LOG_I("NetworkShare StartSharing type= %{public}d", type);
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(true);
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("StartSharing proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
@@ -93,18 +102,19 @@ int32_t NetworkShareClient::StartSharing(const SharingIfaceType &type)
 int32_t NetworkShareClient::StopSharing(const SharingIfaceType &type)
 {
     NETMGR_EXT_LOG_I("NetworkShare StopSharing type= %{public}d", type);
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("StopSharing proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     return proxy->StopNetworkSharing(static_cast<int32_t>(type));
 }
 
 int32_t NetworkShareClient::IsSharingSupported(int32_t &supported)
 {
     NETMGR_EXT_LOG_I("NetworkShare IsSharingSupported.");
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(true);
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("IsSharingSupported proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
@@ -115,81 +125,85 @@ int32_t NetworkShareClient::IsSharingSupported(int32_t &supported)
 int32_t NetworkShareClient::IsSharing(int32_t &sharingStatus)
 {
     NETMGR_EXT_LOG_I("NetworkShare IsSharing.");
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("IsSharing proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        sharingStatus = NETWORKSHARE_IS_UNSHARING;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     return proxy->IsSharing(sharingStatus);
 }
 
 int32_t NetworkShareClient::RegisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     NETMGR_EXT_LOG_I("NetworkShare RegisterSharingEvent.");
-    // LCOV_EXCL_START
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("callback is null");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    // LCOV_EXCL_STOP
-    sptr<INetworkShareService> proxy = GetProxy();
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+    for (auto &cb : callbacks_) {
+        if (callback->AsObject().GetRefPtr() == cb->AsObject().GetRefPtr()) {
+            NETMGR_EXT_LOG_I("RegisterSharingEvent find same callback");
+            return NETMANAGER_EXT_SUCCESS;
+        }
+    }
+    callbacks_.push_back(callback);
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("RegisterSharingEvent proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        return NETMANAGER_EXT_SUCCESS;
     }
-    int32_t ret = proxy->RegisterSharingEvent(callback);
-    if (ret == NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_D("RegisterSharingEvent success, save callback.");
-        std::lock_guard lock(mutex_);
-        callback_ = callback;
-    }
-
-    return ret;
+    // LCOV_EXCL_STOP
+    return proxy->RegisterSharingEvent(callback);
 }
 
 int32_t NetworkShareClient::UnregisterSharingEvent(sptr<ISharingEventCallback> callback)
 {
     NETMGR_EXT_LOG_I("NetworkShare UnregisterSharingEvent.");
-    // LCOV_EXCL_START
     if (callback == nullptr) {
         NETMGR_EXT_LOG_E("callback is null");
         return NETMANAGER_EXT_ERR_LOCAL_PTR_NULL;
     }
-    // LCOV_EXCL_STOP
-    sptr<INetworkShareService> proxy = GetProxy();
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+    for (auto iter = callbacks_.begin(); iter != callbacks_.end(); ++iter) {
+        if (callback->AsObject().GetRefPtr() == (*iter)->AsObject().GetRefPtr()) {
+            callbacks_.erase(iter);
+            break;
+        }
+    }
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("UnregisterSharingEvent proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        return NETMANAGER_EXT_SUCCESS;
     }
-    int32_t ret = proxy->UnregisterSharingEvent(callback);
-    if (ret == NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_D("UnRegisterSharingEvent success, delete callback.");
-        std::lock_guard lock(mutex_);
-        callback_ = nullptr;
-    }
-
-    return ret;
+    // LCOV_EXCL_STOP
+    return proxy->UnregisterSharingEvent(callback);
 }
 
 int32_t NetworkShareClient::GetSharableRegexs(const SharingIfaceType &type, std::vector<std::string> &ifaceRegexs)
 {
     NETMGR_EXT_LOG_I("NetworkShare GetSharableRegexs type= %{public}d.", type);
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetSharableRegexs proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     return proxy->GetSharableRegexs(static_cast<int32_t>(type), ifaceRegexs);
 }
 
 int32_t NetworkShareClient::GetSharingState(const SharingIfaceType &type, SharingIfaceState &state)
 {
     NETMGR_EXT_LOG_I("NetworkShare GetSharingState type= %{public}d.", type);
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetSharingState proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     int32_t stateInt = static_cast<int32_t>(state);
     int32_t ret = proxy->GetSharingState(static_cast<int32_t>(type), stateInt);
     state = SharingIfaceState(stateInt);
@@ -199,51 +213,58 @@ int32_t NetworkShareClient::GetSharingState(const SharingIfaceType &type, Sharin
 int32_t NetworkShareClient::GetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces)
 {
     NETMGR_EXT_LOG_I("NetworkShare GetSharingIfaces type= %{public}d.", state);
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetSharingIfaces proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     return proxy->GetNetSharingIfaces(static_cast<int32_t>(state), ifaces);
 }
 
 int32_t NetworkShareClient::GetStatsRxBytes(int32_t &bytes)
 {
     NETMGR_EXT_LOG_I("NetworkShare GetStatsRxBytes.");
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetStatsRxBytes proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        bytes = 0;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     return proxy->GetStatsRxBytes(bytes);
 }
 
 int32_t NetworkShareClient::GetStatsTxBytes(int32_t &bytes)
 {
     NETMGR_EXT_LOG_I("NetworkShare GetStatsTxBytes.");
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetStatsTxBytes proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        bytes = 0;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     return proxy->GetStatsTxBytes(bytes);
 }
 
 int32_t NetworkShareClient::GetStatsTotalBytes(int32_t &bytes)
 {
     NETMGR_EXT_LOG_I("NetworkShare GetStatsTotalBytes.");
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
     if (proxy == nullptr) {
-        NETMGR_EXT_LOG_E("GetStatsTotalBytes proxy is nullptr");
-        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+        bytes = 0;
+        return NETMANAGER_EXT_SUCCESS;
     }
+    // LCOV_EXCL_STOP
     return proxy->GetStatsTotalBytes(bytes);
 }
 
 int32_t NetworkShareClient::SetConfigureForShare(bool enabled)
 {
     NETMGR_EXT_LOG_I("SetConfigureForShare NetworkShare.");
-    sptr<INetworkShareService> proxy = GetProxy();
+    sptr<INetworkShareService> proxy = GetProxy(true);
     if (proxy == nullptr) {
         NETMGR_EXT_LOG_E("SetConfigureForShare proxy is nullptr");
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
@@ -251,7 +272,7 @@ int32_t NetworkShareClient::SetConfigureForShare(bool enabled)
     return proxy->SetConfigureForShare(enabled);
 }
 
-sptr<INetworkShareService> NetworkShareClient::GetProxy()
+sptr<INetworkShareService> NetworkShareClient::GetProxy(bool triggerLoad)
 {
     std::lock_guard locker(mutex_);
     if (networkShareService_ != nullptr) {
@@ -262,7 +283,9 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
         NETMGR_EXT_LOG_E("get SystemAbilityManager failed");
         return nullptr;
     }
-    sptr<IRemoteObject> remote = sam->GetSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID);
+    sptr<IRemoteObject> remote = triggerLoad
+        ? sam->GetSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID)
+        : sam->CheckSystemAbility(COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID);
     if (remote == nullptr) {
         NETMGR_EXT_LOG_E("get Remote service failed");
         return nullptr;
@@ -292,26 +315,25 @@ sptr<INetworkShareService> NetworkShareClient::GetProxy()
 void NetworkShareClient::RecoverCallback()
 {
     uint32_t count = 0;
-    while (GetProxy() == nullptr && count < MAX_GET_SERVICE_COUNT) {
+    while (GetProxy(false) == nullptr && count < MAX_GET_SERVICE_COUNT) {
+        // LCOV_EXCL_START
         if (isDestroyed_) {
             return;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_SERVICE_TIME_MS));
         count++;
+        // LCOV_EXCL_STOP
     }
     if (isDestroyed_) {
         return;
     }
-    auto proxy = GetProxy();
+    auto proxy = GetProxy(false);
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
-    sptr<ISharingEventCallback> localCallback;
-    {
-        std::lock_guard lock(mutex_);
-        localCallback = callback_;
-    }
-    if (proxy != nullptr && localCallback != nullptr) {
-        int32_t ret = proxy->RegisterSharingEvent(localCallback);
-        NETMGR_EXT_LOG_D("Register result %{public}d", ret);
+    if (proxy != nullptr) {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        for (auto &callback : callbacks_) {
+            proxy->RegisterSharingEvent(callback);
+        }
     }
 }
 
@@ -322,26 +344,24 @@ void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
         NETMGR_EXT_LOG_E("remote object is nullptr");
         return;
     }
-    sptr<ISharingEventCallback> localCallback;
+    sptr<IRemoteObject> local = nullptr;
     {
         std::lock_guard lock(mutex_);
         if (networkShareService_ == nullptr) {
             NETMGR_EXT_LOG_E("networkShareService_ is nullptr");
             return;
         }
-        sptr<IRemoteObject> local = networkShareService_->AsObject();
+        local = networkShareService_->AsObject();
         if (local != remote.promote()) {
             NETMGR_EXT_LOG_E("proxy and stub is not same remote object");
             return;
         }
         local->RemoveDeathRecipient(deathRecipient_);
         networkShareService_ = nullptr;
-        localCallback = callback_;
     }
 
-    std::thread([this]() { this->RestartNetTetheringManagerSysAbility(); }).detach();
-
-    if (localCallback != nullptr) {
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+    if (!callbacks_.empty()) {
         NETMGR_EXT_LOG_D("on remote died recover callback");
         std::thread t([this]() {
             RecoverCallback();
@@ -352,21 +372,41 @@ void NetworkShareClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 }
 
-void NetworkShareClient::RestartNetTetheringManagerSysAbility()
+void NetworkShareClient::NetworkShareSaListener::OnAddSystemAbility(
+    int32_t systemAbilityId, const std::string &deviceId)
 {
-    for (uint32_t i = 0; i < MAX_GET_SERVICE_COUNT; ++i) {
-        std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_SERVICE_TIME_S));
-        if (isDestroyed_) {
-            NETMGR_EXT_LOG_E("Restart NetTetheringManager destroyed.");
-            return;
-        }
-        sptr<INetworkShareService> proxy = GetProxy();
-        if (proxy) {
-            NETMGR_EXT_LOG_I("Restart NetTetheringManager success.");
-            return;
-        }
+    NETMGR_EXT_LOG_I("NetworkShareSaListener::OnAddSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    if (systemAbilityId != COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID) {
+        return;
     }
-    NETMGR_EXT_LOG_E("Restart NetTetheringManager failed.");
+    sptr<INetworkShareService> proxy = client_.GetProxy(false);
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("NetworkShareSaListener::OnAddSystemAbility get proxy failed");
+        return;
+    }
+    // LCOV_EXCL_STOP
+    std::lock_guard<std::mutex> lock(client_.callbackMutex_);
+    for (auto &callback : client_.callbacks_) {
+        proxy->RegisterSharingEvent(callback);
+    }
+}
+
+void NetworkShareClient::NetworkShareSaListener::OnRemoveSystemAbility(
+    int32_t systemAbilityId, const std::string &deviceId)
+{
+    NETMGR_EXT_LOG_I("NetworkShareSaListener::OnRemoveSystemAbility systemAbilityId[%{public}d]", systemAbilityId);
+    if (systemAbilityId != COMM_NET_TETHERING_MANAGER_SYS_ABILITY_ID) {
+        return;
+    }
+    std::lock_guard locker(client_.mutex_);
+    if (client_.networkShareService_ != nullptr) {
+        auto remote = client_.networkShareService_->AsObject();
+        if (remote != nullptr && client_.deathRecipient_ != nullptr) {
+            remote->RemoveDeathRecipient(client_.deathRecipient_);
+        }
+        client_.networkShareService_ = nullptr;
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS
