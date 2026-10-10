@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "vpn_interface.h"
+#include "vpn_fd_channel.h"
 
 #include <cerrno>
 #include <fcntl.h>
@@ -31,7 +31,6 @@ namespace NetManagerStandard {
 
 namespace {
 constexpr int32_t CONNECT_TIMEOUT = 1;
-constexpr int32_t INVALID_FD = -1;
 int32_t FdReadyHandle(int32_t &sockfd, fd_set &rset, fd_set &wset, uint32_t flags)
 {
     int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
@@ -57,7 +56,7 @@ int32_t FdReadyHandle(int32_t &sockfd, fd_set &rset, fd_set &wset, uint32_t flag
 }
 } // namespace
 
-int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
+int32_t VpnFdChannel::ConnectControl(int32_t sockfd, int32_t nsec)
 {
     uint32_t flags = static_cast<uint32_t>(fcntl(sockfd, F_GETFL, 0));
     fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
@@ -100,7 +99,7 @@ int32_t VpnInterface::ConnectControl(int32_t sockfd, int32_t nsec)
     }
 }
 
-int32_t VpnInterface::RecvMsgFromUnixServer(int32_t sockfd)
+int32_t VpnFdChannel::RecvMsgFromUnixServer(int32_t sockfd)
 {
     char buf[1] = {0};
     iovec iov = {
@@ -148,24 +147,44 @@ int32_t VpnInterface::RecvMsgFromUnixServer(int32_t sockfd)
     return NETMANAGER_EXT_SUCCESS;
 }
 
-int32_t VpnInterface::GetVpnInterfaceFd()
+int32_t VpnFdChannel::GetVpnInterfaceFd(const std::string &ifName)
 {
     CloseVpnInterfaceFd();
     int32_t sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd < 0) {
         NETMGR_EXT_LOG_E("create unix SOCK_STREAM socket error: %{public}d", errno);
-        return INVALID_FD;
+        return INVALID_TUN_FD;
     }
+
+    timeval rcvTimeout = {1, 0};
+    // LCOV_EXCL_START
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &rcvTimeout, sizeof(rcvTimeout)) < 0) {
+        NETMGR_EXT_LOG_E("set SO_RCVTIMEO error: %{public}d", errno);
+        close(sockfd);
+        return INVALID_TUN_FD;
+    }
+    // LCOV_EXCL_STOP
 
     if (ConnectControl(sockfd, CONNECT_TIMEOUT) != NETMANAGER_EXT_SUCCESS) {
         close(sockfd);
         NETMGR_EXT_LOG_E("connect error: %{public}d", errno);
-        return INVALID_FD;
+        return INVALID_TUN_FD;
     }
+
+#ifdef SUPPORT_SYSVPN
+    if (isSupportMultiVpn_ && !ifName.empty() &&
+        send(sockfd, ifName.c_str(), ifName.length(), 0) < 0) {
+        NETMGR_EXT_LOG_E("send ifName error: %{public}d", errno);
+        close(sockfd);
+        return INVALID_TUN_FD;
+    }
+#else
+    (void)ifName;
+#endif // SUPPORT_SYSVPN
 
     if (RecvMsgFromUnixServer(sockfd) != NETMANAGER_EXT_SUCCESS) {
         close(sockfd);
-        return INVALID_FD;
+        return INVALID_TUN_FD;
     }
 
     close(sockfd);
@@ -173,17 +192,17 @@ int32_t VpnInterface::GetVpnInterfaceFd()
     return tunFd_;
 }
 
-void VpnInterface::CloseVpnInterfaceFd()
+void VpnFdChannel::CloseVpnInterfaceFd()
 {
-    if (tunFd_ > 0) {
+    if (tunFd_ >= 0) {
         NETMGR_EXT_LOG_I("close tunfd[%{public}d] of vpn interface", tunFd_.load());
         close(tunFd_);
-        tunFd_ = 0;
+        tunFd_ = INVALID_TUN_FD;
     }
 }
 
 #ifdef SUPPORT_SYSVPN
-void VpnInterface::SetSupportMultiVpn(bool isSupportMultiVpn)
+void VpnFdChannel::SetSupportMultiVpn(bool isSupportMultiVpn)
 {
     isSupportMultiVpn_ = isSupportMultiVpn;
 }

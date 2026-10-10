@@ -13,23 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef NET_VPN_INTERFACE_H
-#define NET_VPN_INTERFACE_H
+#ifndef NET_VPN_FD_CHANNEL_H
+#define NET_VPN_FD_CHANNEL_H
 
 #include <atomic>
 #include <cstdint>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "net_manager_ext_constants.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
-class VpnInterface {
+class VpnFdChannel {
 public:
-    VpnInterface() = default;
-    ~VpnInterface() = default;
+    VpnFdChannel() = default;
+    ~VpnFdChannel() = default;
 
 public:
-    int32_t GetVpnInterfaceFd();
+    int32_t GetVpnInterfaceFd(const std::string &ifName = "");
     void CloseVpnInterfaceFd();
 #ifdef SUPPORT_SYSVPN
     void SetSupportMultiVpn(bool isMultiTunVpn);
@@ -39,7 +42,7 @@ private:
     int32_t RecvMsgFromUnixServer(int32_t sockfd);
 
 private:
-    std::atomic_int tunFd_{0};
+    std::atomic_int tunFd_{INVALID_TUN_FD};
 #ifdef SUPPORT_SYSVPN
     bool isSupportMultiVpn_ = false;
 #endif // SUPPORT_SYSVPN

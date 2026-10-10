@@ -23,6 +23,7 @@
 #include "fwmark_client.h"
 #include "iservice_registry.h"
 #include "net_manager_constants.h"
+#include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "system_ability_definition.h"
 #include "network_vpn_service_proxy.h"
@@ -228,6 +229,15 @@ int32_t NetworkVpnClient::Protect(int32_t socketFd, bool isVpnExtCall)
     return protectResult;
 }
 
+void NetworkVpnClient::CloseTunFd()
+{
+    if (tunFd_ >= 0) {
+        NETMGR_EXT_LOG_I("close tunfd[%{public}d] of vpn interface", tunFd_.load());
+        close(tunFd_);
+        tunFd_ = INVALID_TUN_FD;
+    }
+}
+
 int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
     int32_t &tunFd, bool isVpnExtCall, bool isInternalChannel)
 {
@@ -247,9 +257,9 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
         NETMGR_EXT_LOG_E("SetUpVpn SerializeFromVpnConfig fail");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
-    int32_t result = proxy->SetUpVpn(rawdata, isVpnExtCall, isInternalChannel);
+    int32_t result = proxy->SetUpVpn(rawdata, isVpnExtCall, isInternalChannel, tunFd);
     if (result != NETMANAGER_EXT_SUCCESS) {
-        tunFd = 0;
+        tunFd = INVALID_TUN_FD;
         return result;
     }
     std::unique_lock<std::shared_mutex> lock(clientVpnConfigmutex_);
@@ -257,11 +267,9 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
     clientVpnConfig_.isVpnExtCall = isVpnExtCall;
     clientVpnConfig_.isInternalChannel = isInternalChannel;
     lock.unlock();
-#ifdef SUPPORT_SYSVPN
-    vpnInterface_.SetSupportMultiVpn(!config->vpnId_.empty());
-#endif // SUPPORT_SYSVPN
-    tunFd = vpnInterface_.GetVpnInterfaceFd();
-    if (tunFd <= 0) {
+    CloseTunFd();
+    tunFd_ = tunFd;
+    if (tunFd < 0) {
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 #ifdef SUPPORT_SYSVPN
@@ -278,7 +286,7 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
 int32_t NetworkVpnClient::DestroyVpn(bool isVpnExtCall)
 {
     isVpnSetUp_ = false;
-    vpnInterface_.CloseVpnInterfaceFd();
+    CloseTunFd();
     if (vpnEventCallback_ != nullptr) {
         UnregisterVpnEvent(vpnEventCallback_);
     }
@@ -313,7 +321,7 @@ int32_t NetworkVpnClient::DestroyVpn(const std::string &vpnId)
         return NETMANAGER_ERR_PARAMETER_INVALID;
     }
     isVpnSetUp_ = false;
-    vpnInterface_.CloseVpnInterfaceFd();
+    CloseTunFd();
     if (vpnEventCallback_ != nullptr) {
         UnregisterVpnEvent(vpnEventCallback_);
     }
@@ -643,8 +651,13 @@ void NetworkVpnClient::RecoverCallback()
             NETMGR_EXT_LOG_E("SetUpVpn SerializeFromVpnConfig fail");
             return;
         }
-        proxy->SetUpVpn(rawdata,
-            clientVpnConfig_.isVpnExtCall,  clientVpnConfig_.isInternalChannel);
+        int32_t tunFd = INVALID_TUN_FD;
+        int32_t result = proxy->SetUpVpn(rawdata,
+            clientVpnConfig_.isVpnExtCall,  clientVpnConfig_.isInternalChannel, tunFd);
+        if (result == NETMANAGER_EXT_SUCCESS && tunFd >= 0) {
+            CloseTunFd();
+            tunFd_ = tunFd;
+        }
     }
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
 }
@@ -684,7 +697,7 @@ void NetworkVpnClient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 void NetworkVpnClient::multiUserSetUpEvent()
 {
     isVpnSetUp_ = false;
-    vpnInterface_.CloseVpnInterfaceFd();
+    CloseTunFd();
     if (vpnEventCallback_ != nullptr) {
         UnregisterVpnEvent(vpnEventCallback_);
     }

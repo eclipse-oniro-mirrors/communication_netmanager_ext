@@ -26,8 +26,8 @@ class MockINetworkVpnService : public INetworkVpnService {
 public:
     MOCK_METHOD(sptr<IRemoteObject>, AsObject, ());
     MOCK_METHOD(int32_t, Prepare, (bool &isExistVpn, bool &isRun, std::string &pkg), (override));
-    MOCK_METHOD(int32_t, SetUpVpn, (const VpnConfigRawData &configData, bool isVpnExtCall, bool isInternalChannel),
-                (override));
+    MOCK_METHOD(int32_t, SetUpVpn, (const VpnConfigRawData &configData, bool isVpnExtCall, bool isInternalChannel,
+                int &tunFd), (override));
     MOCK_METHOD(int32_t, Protect, (bool isVpnExtCall), (override));
     MOCK_METHOD(int32_t, DestroyVpn, (bool isVpnExtCall), (override));
     MOCK_METHOD(int32_t, RegisterVpnEvent, (const sptr<IVpnEventCallback> &callback), (override));
@@ -55,6 +55,7 @@ public:
     MOCK_METHOD(int32_t, DestroyVpn, (const std::string &vpnId), (override));
     MOCK_METHOD(int32_t, RegisterMultiVpnEvent, (const sptr<IVpnEventCallback> &callback), (override));
     MOCK_METHOD(int32_t, UnregisterMultiVpnEvent, (const sptr<IVpnEventCallback> &callback), (override));
+    MOCK_METHOD(int32_t, GetVpnConfigToAnco, (std::vector<std::string> &dnsAddresses), (override));
 #endif // SUPPORT_SYSVPN
 };
 

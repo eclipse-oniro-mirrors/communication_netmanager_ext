@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "accesstoken_kit.h"
 #include "extended_vpn_ctl.h"
@@ -30,6 +32,7 @@
 #include "net_manager_constants.h"
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
+#include "vpn_fd_channel.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -135,11 +138,12 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
     VpnConfigRawData rawdata;
     EXPECT_EQ(true, rawdata.SerializeFromVpnConfig(*config));
-    EXPECT_EQ(instance_->SetUpVpn(rawdata), NETMANAGER_ERR_PERMISSION_DENIED);
+    int32_t tunFd = INVALID_TUN_FD;
+    EXPECT_EQ(instance_->SetUpVpn(rawdata, false, false, tunFd), NETMANAGER_ERR_PERMISSION_DENIED);
 
     userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
-    EXPECT_EQ(instance_->SetUpVpn(rawdata), NETMANAGER_ERR_PERMISSION_DENIED);
+    EXPECT_EQ(instance_->SetUpVpn(rawdata, false, false, tunFd), NETMANAGER_ERR_PERMISSION_DENIED);
 }
 
 HWTEST_F(NetworkVpnServiceTest, SetUpVpn002, TestSize.Level1)
@@ -148,9 +152,10 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn002, TestSize.Level1)
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
     VpnConfigRawData rawdata;
     EXPECT_EQ(true, rawdata.SerializeFromVpnConfig(*config));
-    int32_t ret = instance_->SetUpVpn(rawdata, true);
+    int32_t tunFd = INVALID_TUN_FD;
+    int32_t ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
-    ret = instance_->SetUpVpn(rawdata, false);
+    ret = instance_->SetUpVpn(rawdata, false, false, tunFd);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
     system::SetParameter("persist.edm.vpn_disable", "false");
 }
@@ -887,6 +892,69 @@ HWTEST_F(NetworkVpnServiceTest, CheckVpnExtPermission002, TestSize.Level1)
     auto vpnService = std::make_shared<NetworkVpnService>();
     auto ret = vpnService->CheckVpnExtPermission(1099, "test");
     EXPECT_FALSE(ret);
+}
+
+HWTEST_F(NetworkVpnServiceTest, VpnFdChannelConnectControl001, TestSize.Level1)
+{
+    VpnFdChannel vpnFdChannel;
+    int32_t fd = -1;
+    int32_t nsec = 1;
+    int32_t ret = vpnFdChannel.ConnectControl(fd, nsec);
+    EXPECT_EQ(NETMANAGER_EXT_ERR_INTERNAL, ret);
+
+    fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_GE(fd, 0);
+    ret = vpnFdChannel.ConnectControl(fd, nsec);
+    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
+    close(fd);
+}
+
+HWTEST_F(NetworkVpnServiceTest, VpnFdChannelRecvMsgFromUnixServer001, TestSize.Level1)
+{
+    VpnFdChannel vpnFdChannel;
+    int32_t fd = -1;
+    int32_t ret = vpnFdChannel.RecvMsgFromUnixServer(fd);
+    EXPECT_EQ(NETMANAGER_EXT_ERR_INTERNAL, ret);
+}
+
+HWTEST_F(NetworkVpnServiceTest, VpnFdChannelGetVpnInterfaceFd001, TestSize.Level1)
+{
+    VpnFdChannel vpnFdChannel;
+    int32_t fd = vpnFdChannel.GetVpnInterfaceFd();
+    EXPECT_GE(fd, -1);
+}
+
+HWTEST_F(NetworkVpnServiceTest, FetchVpnInterfaceFdTest001, TestSize.Level1)
+{
+    NetworkVpnService service;
+    EXPECT_GE(service.FetchVpnInterfaceFd("test-vpn-id", "multitun-vpn0"), INVALID_TUN_FD);
+    EXPECT_GE(service.FetchVpnInterfaceFd("", ""), INVALID_TUN_FD);
+}
+
+HWTEST_F(NetworkVpnServiceTest, HeldVpnFdTest001, TestSize.Level1)
+{
+    NetworkVpnService service;
+    int fds1[2] = {-1, -1};
+    int fds2[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds1), 0);
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds2), 0);
+    const std::string vpnId = "held-vpn-test";
+
+    service.StoreHeldVpnFd(vpnId, fds1[0]);
+    service.StoreHeldVpnFd(vpnId, fds2[0]);
+    EXPECT_EQ(service.heldVpnFdMap_.size(), static_cast<size_t>(1));
+    EXPECT_EQ(service.heldVpnFdMap_[vpnId], fds2[0]);
+    service.CloseHeldVpnFd(vpnId);
+    EXPECT_TRUE(service.heldVpnFdMap_.empty());
+    service.CloseHeldVpnFd(vpnId);
+    EXPECT_TRUE(service.heldVpnFdMap_.empty());
+
+    service.StoreHeldVpnFd(vpnId, INVALID_TUN_FD);
+    service.CloseHeldVpnFd(vpnId);
+    EXPECT_TRUE(service.heldVpnFdMap_.empty());
+
+    close(fds1[1]);
+    close(fds2[1]);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

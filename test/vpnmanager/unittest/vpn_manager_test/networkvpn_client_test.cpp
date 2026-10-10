@@ -105,7 +105,7 @@ HWTEST_F(NetworkVpnClientTest, Protect002, TestSize.Level1)
 HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
 {
     sptr<VpnConfig> config = nullptr;
-    int32_t tunFd = 0;
+    int32_t tunFd = INVALID_TUN_FD;
     EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     config = new (std::nothrow) VpnConfig();
     EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_ERR_PERMISSION_DENIED);
@@ -114,7 +114,7 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
 HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
-    int32_t tunFd = 0;
+    int32_t tunFd = INVALID_TUN_FD;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
     EXPECT_GE(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
     EXPECT_GE(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
@@ -124,7 +124,7 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
 HWTEST_F(NetworkVpnClientTest, SetUpVpn003, TestSize.Level1)
 {
     NetManagerExtAccessToken access;
-    int32_t tunFd = 0;
+    int32_t tunFd = INVALID_TUN_FD;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
     EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
@@ -135,6 +135,40 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn003, TestSize.Level1)
     EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
 }
 #endif
+
+HWTEST_F(NetworkVpnClientTest, SetUpVpnWithMockProxy001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    NetworkVpnClient client;
+    client.networkVpnService_ = mock;
+
+    int32_t tunFd = INVALID_TUN_FD;
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(fds[0]), Return(NETMANAGER_EXT_SUCCESS)));
+    EXPECT_EQ(client.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(tunFd, fds[0]);
+    EXPECT_EQ(client.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(INVALID_TUN_FD), Return(NETMANAGER_EXT_ERR_INTERNAL)));
+    EXPECT_EQ(client.SetUpVpn(config, tunFd), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(tunFd, INVALID_TUN_FD);
+
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(INVALID_TUN_FD), Return(NETMANAGER_EXT_SUCCESS)));
+    EXPECT_EQ(client.SetUpVpn(config, tunFd), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(tunFd, INVALID_TUN_FD);
+    EXPECT_EQ(client.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+
+    client.networkVpnService_ = nullptr;
+    close(fds[1]);
+}
 
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
 {
@@ -279,35 +313,6 @@ HWTEST_F(NetworkVpnClientTest, NetworkVpnClientBranch001, TestSize.Level1)
 
     auto ret = networkVpnClient_.CreateVpnConnection();
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnClientTest, ConnectControl, TestSize.Level1)
-{
-    VpnInterface vpnInterface;
-    int32_t fd = -1;
-    int32_t nsec = 1;
-    int32_t ret = vpnInterface.ConnectControl(fd, nsec);
-    EXPECT_EQ(NETMANAGER_EXT_ERR_INTERNAL, ret);
-
-    fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    ASSERT_GE(fd, 0);
-    ret = vpnInterface.ConnectControl(fd, nsec);
-    EXPECT_GE(ret, NETMANAGER_EXT_SUCCESS);
-}
-
-HWTEST_F(NetworkVpnClientTest, RecvMsgFromUnixServer, TestSize.Level1)
-{
-    VpnInterface vpnInterface;
-    int32_t fd = -1;
-    int32_t ret = vpnInterface.RecvMsgFromUnixServer(fd);
-    EXPECT_EQ(NETMANAGER_EXT_ERR_INTERNAL, ret);
-}
-
-HWTEST_F(NetworkVpnClientTest, GetVpnInterfaceFd, TestSize.Level1)
-{
-    VpnInterface vpnInterface;
-    int32_t fd = vpnInterface.GetVpnInterfaceFd();
-    EXPECT_GE(fd, -1);
 }
 
 HWTEST_F(NetworkVpnClientTest, VpnEventCallback, TestSize.Level1)

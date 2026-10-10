@@ -19,7 +19,8 @@ sequenceable Want..OHOS.AAFwk.Want;
 rawdata OHOS.NetManagerStandard.VpnConfigRawData;
 interface OHOS.NetManagerStandard.INetworkVpnService {
     void Prepare([out] boolean isExistVpn, [out] boolean isRun, [out] String pkg);
-    void SetUpVpn([in] VpnConfigRawData configData, [in] boolean isVpnExtCall, [in] boolean isInternalChannel);
+    void SetUpVpn([in] VpnConfigRawData configData, [in] boolean isVpnExtCall, [in] boolean isInternalChannel,
+        [out] FileDescriptor tunFd);
     void Protect([in] boolean isVpnExtCall);
     void DestroyVpn([in] boolean isVpnExtCall);
     void RegisterVpnEvent([in] IVpnEventCallback callbackparam);

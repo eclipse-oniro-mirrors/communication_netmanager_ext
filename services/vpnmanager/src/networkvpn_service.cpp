@@ -46,6 +46,7 @@
 #include "netsys_controller.h"
 #include "networkvpn_hisysevent.h"
 #include "net_datashare_utils_iface.h"
+#include "vpn_fd_channel.h"
 #ifdef SUPPORT_SYSVPN
 #include "ipsec_vpn_ctl.h"
 #include "l2tp_vpn_ctl.h"
@@ -573,7 +574,7 @@ void NetworkVpnService::RecoverVpnConfig()
         return;
     }
     // LCOV_EXCL_STOP
-    SetUpVpn(rawdata);
+    SetUpVpnInternal(rawdata, false, false, nullptr);
 }
 
 void NetworkVpnService::ConvertNetAddrToJson(const INetAddr& netAddr, cJSON* jInetAddr)
@@ -877,7 +878,15 @@ VpnTrace NetworkVpnService::CreateVpnTrace(std::string &bundleName,
 }
 
 // LCOV_EXCL_START
-int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isVpnExtCall, bool isInternalChannel)
+int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isVpnExtCall, bool isInternalChannel,
+    int &tunFd)
+{
+    tunFd = INVALID_TUN_FD;
+    return SetUpVpnInternal(configData, isVpnExtCall, isInternalChannel, &tunFd);
+}
+
+int32_t NetworkVpnService::SetUpVpnInternal(const VpnConfigRawData& configData, bool isVpnExtCall,
+    bool isInternalChannel, int *tunFd)
 {
     NETMGR_EXT_LOG_I("SetUpVpn in");
     std::string vpnBundleName;
@@ -914,11 +923,22 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isV
 #endif // SUPPORT_SYSVPN
     ret = vpnObj->SetUp(isInternalChannel);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        vpnTraceList.push_back(
-            CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_ABNORMAL, ret, config));
+        vpnTraceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_ABNORMAL, ret, config));
         ReportVpnTrace(vpnTraceList);
         NETMGR_EXT_LOG_E("SetUp failed");
         return ret;
+    }
+    if (tunFd != nullptr) {
+        int32_t fd = FetchVpnInterfaceFd(config.vpnId_, vpnObj->GetInterfaceName());
+        if (fd < 0) {
+            vpnTraceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_ABNORMAL,
+                NETMANAGER_EXT_ERR_INTERNAL, config));
+            ReportVpnTrace(vpnTraceList);
+            NETMGR_EXT_LOG_E("SetUpVpn fetch vpn interface fd failed");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        StoreHeldVpnFd(config.vpnId_, fd);
+        *tunFd = fd;
     }
     vpnTraceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_SUCCESS,
         VPN_CONNECT_CODE_SUCCESS, config));
@@ -926,7 +946,9 @@ int32_t NetworkVpnService::SetUpVpn(const VpnConfigRawData& configData, bool isV
     SetUpVpnExt(vpnBundleName, vpnObj, config);
     return ret;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void NetworkVpnService::SetUpVpnExt(std::string &vpnBundleName,
     std::shared_ptr<NetVpnImpl> &vpnObj, VpnConfig &config)
 {
@@ -949,6 +971,45 @@ void NetworkVpnService::SetUpVpnExt(std::string &vpnBundleName,
     vpnObj_ = vpnObj;
 }
 // LCOV_EXCL_STOP
+
+int32_t NetworkVpnService::FetchVpnInterfaceFd(const std::string &vpnId, const std::string &ifName)
+{
+    VpnFdChannel vpnFdChannel;
+#ifdef SUPPORT_SYSVPN
+    vpnFdChannel.SetSupportMultiVpn(!vpnId.empty());
+    return vpnFdChannel.GetVpnInterfaceFd(ifName);
+#else
+    (void)vpnId;
+    (void)ifName;
+    return vpnFdChannel.GetVpnInterfaceFd();
+#endif // SUPPORT_SYSVPN
+}
+
+void NetworkVpnService::StoreHeldVpnFd(const std::string &vpnId, int32_t fd)
+{
+    std::lock_guard<std::mutex> lock(heldVpnFdMutex_);
+    auto it = heldVpnFdMap_.find(vpnId);
+    if (it != heldVpnFdMap_.end()) {
+        if (it->second >= 0) {
+            close(it->second);
+        }
+        heldVpnFdMap_.erase(it);
+    }
+    heldVpnFdMap_[vpnId] = fd;
+}
+
+void NetworkVpnService::CloseHeldVpnFd(const std::string &vpnId)
+{
+    std::lock_guard<std::mutex> lock(heldVpnFdMutex_);
+    auto it = heldVpnFdMap_.find(vpnId);
+    if (it == heldVpnFdMap_.end()) {
+        return;
+    }
+    if (it->second >= 0) {
+        close(it->second);
+    }
+    heldVpnFdMap_.erase(it);
+}
 
 int32_t NetworkVpnService::Protect(bool isVpnExtCall)
 {
@@ -1102,6 +1163,7 @@ int32_t NetworkVpnService::DestroyVpn(bool isVpnExtCall)
 
 int32_t NetworkVpnService::DestroyVpnExt()
 {
+    CloseHeldVpnFd("");
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     int32_t ret = CheckCurrentAccountType(userId, activeUserIds);
@@ -1287,6 +1349,7 @@ int32_t NetworkVpnService::DestroyMultiVpn(const std::shared_ptr<NetVpnImpl> &vp
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     NETMGR_EXT_LOG_I("DestroyMultiVpn:%{public}s", multiVpnInterface->vpnId.c_str());
+    CloseHeldVpnFd(multiVpnInterface->vpnId);
     if (MultiVpnHelper::GetInstance().DelMultiVpnInfo(multiVpnInterface)
         != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("DestroyMultiVpn DelMultiVpnInfo failed");

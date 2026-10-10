@@ -16,6 +16,7 @@
 #ifndef NETMANAGER_EXT_CONSTANTS_H
 #define NETMANAGER_EXT_CONSTANTS_H
 
+#include <cstdint>
 #include <errors.h>
 
 namespace OHOS {
@@ -27,6 +28,9 @@ enum {
     NETMANAGER_ETHERNET_MANAGER = 0x02,
     NETMANAGER_MDNS_MANAGER = 0x03,
 };
+
+// Invalid sentinel for vpn tun fd handover. fd 0 is a valid descriptor, only -1 means invalid.
+constexpr int32_t INVALID_TUN_FD = -1;
 
 // for network sharing
 enum class SharingIfaceType {
