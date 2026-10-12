@@ -29,8 +29,8 @@
 
 #include "inetwork_vpn_service.h"
 #include "ivpn_event_callback.h"
+#include "net_manager_ext_constants.h"
 #include "vpn_event_callback_stub.h"
-#include "vpn_interface.h"
 #include "vpn_state.h"
 
 namespace OHOS {
@@ -322,6 +322,7 @@ private:
     void RegisterVpnEventCbCollection();
     int32_t RegisterVpnEventCbInner(bool isMultivpn);
     void UnregisterVpnEventCbCollection();
+    void CloseTunFd();
 #ifdef SUPPORT_SYSVPN
     void RegisterMultiVpnEventCbCollection();
     void UnregisterMultiVpnEventCbCollection();
@@ -329,7 +330,7 @@ private:
 
 private:
     std::mutex mutex_;
-    VpnInterface vpnInterface_;
+    std::atomic_int tunFd_{INVALID_TUN_FD};
     sptr<SystemAbilityListener> saStatusChangeListener_;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;
     sptr<IVpnEventCallback> innerChlEventCallback_ = nullptr;

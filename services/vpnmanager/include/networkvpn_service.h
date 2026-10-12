@@ -18,7 +18,9 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <map>
 #include "event_handler.h"
 #include "i_vpn_conn_state_cb.h"
 #include "net_vpn_impl.h"
@@ -153,7 +155,7 @@ public:
      * This function is called when the three-party vpn application negotiation ends
      */
     int32_t SetUpVpn(const VpnConfigRawData &configData,
-        bool isVpnExtCall = false, bool isInternalChannel = false) override;
+        bool isVpnExtCall, bool isInternalChannel, int &tunFd) override;
 
     /**
      * protect vpn tunnel
@@ -336,6 +338,11 @@ private:
     void PublishVpnConnectionStateEvent(const VpnConnectState &state, int32_t vpnType = 0) const;
     bool IsNeedNotify(const VpnConnectState &state, const std::string &vpnId);
     void SetUpVpnExt(std::string &vpnBundleName, std::shared_ptr<NetVpnImpl> &vpnObj, VpnConfig &config);
+    int32_t SetUpVpnInternal(const VpnConfigRawData &configData, bool isVpnExtCall, bool isInternalChannel,
+        int *tunFd);
+    int32_t FetchVpnInterfaceFd(const std::string &vpnId, const std::string &ifName);
+    void StoreHeldVpnFd(const std::string &vpnId, int32_t fd);
+    void CloseHeldVpnFd(const std::string &vpnId);
     int32_t DestroyVpnExt();
     int32_t DestroyVpnIdExt(std::string vpnId);
     int64_t GetCurTimestamp();
@@ -399,6 +406,8 @@ private:
     std::shared_ptr<IVpnConnStateCb> vpnConnCallback_;
     ffrt::shared_mutex netVpnMutex_;
     std::shared_ptr<NetVpnImpl> vpnObj_;
+    std::mutex heldVpnFdMutex_;
+    std::map<std::string, int32_t> heldVpnFdMap_;
 #ifdef SUPPORT_SYSVPN
     std::shared_ptr<NetVpnImpl> connectingObj_;
     std::map<std::string, std::shared_ptr<NetVpnImpl>> vpnObjMap_;

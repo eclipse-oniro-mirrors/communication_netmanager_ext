@@ -141,7 +141,6 @@ ohos_shared_library("net_vpn_manager_if") {
 
   sources = [
     "$VPN_INNERKITS_SOURCE_DIR/src/networkvpn_client.cpp",
-    "$VPN_INNERKITS_SOURCE_DIR/src/vpn_interface.cpp",
   ]
 
   output_values = get_target_outputs(":networkvpn_interface")

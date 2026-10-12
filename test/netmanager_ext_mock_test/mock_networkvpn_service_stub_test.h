@@ -28,9 +28,16 @@ public:
         return 0;
     }
 
-    int32_t SetUpVpn(const VpnConfigRawData &configData,
-        bool isVpnExtCall = false, bool isInternalChannel = false) override
+    static int &StubTunFd()
     {
+        static int tunFd = -1;
+        return tunFd;
+    }
+
+    int32_t SetUpVpn(const VpnConfigRawData &configData,
+        bool isVpnExtCall = false, bool isInternalChannel = false, int &tunFd = StubTunFd()) override
+    {
+        tunFd = -1;
         return 0;
     }
 

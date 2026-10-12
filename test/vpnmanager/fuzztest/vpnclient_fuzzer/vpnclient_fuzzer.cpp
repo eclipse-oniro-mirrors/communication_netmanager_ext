@@ -17,9 +17,12 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
+
 #include <securec.h>
 
 #include "ivpn_event_callback.h"
+#include "net_manager_ext_constants.h"
 #include "netmanager_ext_test_security.h"
 #include "networkvpn_service.h"
 #include "refbase.h"
@@ -158,7 +161,7 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
     if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
         return;
     }
-    VpnConfig* config = new (std::nothrow) VpnConfig();
+    std::unique_ptr<VpnConfig> config = std::make_unique<VpnConfig>();
     config->addresses_.emplace_back(GetAddressData());
     config->routes_.emplace_back(GetRouteData());
     config->mtu_ = GetData<int32_t>();
@@ -175,7 +178,14 @@ void SetUpVpnFuzzTest(const uint8_t *data, size_t size)
     if (!rawdata.SerializeFromVpnConfig(*config)) {
         return;
     }
-    if (!rawdata.Marshalling(dataParcel)) {
+    // 对齐生成 proxy 的真实序列化布局：size + rawdata + 两个开关
+    if (!dataParcel.WriteUint32(rawdata.size) || !dataParcel.WriteRawData(rawdata.data, rawdata.size)) {
+        return;
+    }
+    if (!dataParcel.WriteInt32(GetData<bool>() ? 1 : 0)) {
+        return;
+    }
+    if (!dataParcel.WriteInt32(GetData<bool>() ? 1 : 0)) {
         return;
     }
     OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_SET_UP_VPN, dataParcel);

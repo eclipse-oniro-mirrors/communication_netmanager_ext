@@ -22,6 +22,7 @@
 #include "l2tpvpn_config.h"
 #include "nativetoken_kit.h"
 #include "net_manager_constants.h"
+#include "net_manager_ext_constants.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 #include "parameters.h"
@@ -305,7 +306,8 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     config->vpnId_ = "123";
     VpnConfigRawData rawdata;
     EXPECT_EQ(true, rawdata.SerializeFromVpnConfig(*config));
-    int32_t ret = instance_->SetUpVpn(rawdata, true);
+    int32_t tunFd = INVALID_TUN_FD;
+    int32_t ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     NetManagerExtAccessToken accToken;
@@ -314,14 +316,14 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     std::vector<int32_t> activeUserIds;
     instance_->CheckCurrentAccountType(userId, activeUserIds);
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
-    ret = instance_->SetUpVpn(rawdata, true);
+    ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     instance_->vpnObj_ = nullptr;
-    ret = instance_->SetUpVpn(rawdata, true);
+    ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
-    ret = instance_->SetUpVpn(rawdata, true);
+    ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
