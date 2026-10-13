@@ -15,6 +15,7 @@
 #include "allowednssaiconfig.h"
 #include "networksliceutil.h"
 #include "state_utils.h"
+#include <charconv>
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -25,6 +26,17 @@ constexpr int SNSSAI_LEN_4_SST_SD = 4;
 constexpr int SNSSAI_LEN_5_SST_SD_MAPPED_SST = 5;
 constexpr int SNSSAI_LEN_8_SST_SD_MAPPED_SST_MAPPED_SD = 8;
 constexpr int RADIX = 16;
+
+static bool ParseHexStringToInt(const std::string &str, int32_t &value)
+{
+    if (str.empty()) {
+        return false;
+    }
+    const char *begin = str.data();
+    const char *end = str.data() + str.size();
+    auto [ptr, ec] = std::from_chars(begin, end, value, RADIX);
+    return ec == std::errc{} && ptr == end;
+}
 
 std::shared_ptr<AllowedNssaiConfig> sAllowedNssaiConfig_ =
     std::make_shared<AllowedNssaiConfig>(AllowedNssaiConfig::GetInstance());
@@ -55,13 +67,25 @@ bool AllowedNssaiConfig::ParseSnssai(Snssai& snssai)
     for (size_t i = 0; i < snssaiValues.size(); ++i) {
         NETMGR_EXT_LOG_I("snssaiValues[%{public}s]", snssaiValues[i].c_str());
     }
+    int32_t sstValue = 0;
+    int32_t sdValue = 0;
     if (snssaiValues.size() == 1) {
-        snssai.setSst(ConvertInt2UnsignedByte((std::stoi(snssaiValues[0], nullptr, RADIX))));
+        if (!ParseHexStringToInt(snssaiValues[0], sstValue)) {
+            NETMGR_EXT_LOG_E("invalid sst string: [%{public}s]", snssaiValues[0].c_str());
+            return false;
+        }
+        snssai.setSst(ConvertInt2UnsignedByte(sstValue));
         NETMGR_EXT_LOG_I("size = 1, Sst = %{public}d", snssai.getSst());
         snssai.setSnssaiLen(1);
     } else if (snssaiValues.size() == NetworkSliceCommConfig::LEN_SHORT) {
-        snssai.setSst(ConvertInt2UnsignedByte((std::stoi(snssaiValues[0], nullptr, RADIX))));
-        snssai.setSd(std::stoi(snssaiValues[1], nullptr, RADIX));
+        if (!ParseHexStringToInt(snssaiValues[0], sstValue) ||
+            !ParseHexStringToInt(snssaiValues[1], sdValue)) {
+            NETMGR_EXT_LOG_E("invalid sst/sd string: [%{public}s]:[%{public}s]",
+                snssaiValues[0].c_str(), snssaiValues[1].c_str());
+            return false;
+        }
+        snssai.setSst(ConvertInt2UnsignedByte(sstValue));
+        snssai.setSd(sdValue);
         NETMGR_EXT_LOG_I("size = 2, Sst = %{public}d, Sd = %{public}d", snssai.getSst(), snssai.getSd());
         snssai.setSnssaiLen(NetworkSliceCommConfig::LEN_INT);
     } else {
@@ -73,11 +97,21 @@ bool AllowedNssaiConfig::ParseSnssai(Snssai& snssai)
     if (values.size() == NetworkSliceCommConfig::LEN_SHORT) {
         snssaiValues = Split(values[1], SST_AND_SD_SEPARATOR);
         if (snssaiValues.size() == 1) {
-            snssai.setMappedSst(ConvertInt2UnsignedByte((std::stoi(snssaiValues[0], nullptr, RADIX))));
+            if (!ParseHexStringToInt(snssaiValues[0], sstValue)) {
+                NETMGR_EXT_LOG_E("invalid mapped sst string: [%{public}s]", snssaiValues[0].c_str());
+                return false;
+            }
+            snssai.setMappedSst(ConvertInt2UnsignedByte(sstValue));
             snssai.setSnssaiLen(snssai.getSnssaiLen() + 1);
         } else if (snssaiValues.size() == NetworkSliceCommConfig::LEN_SHORT) {
-            snssai.setMappedSst(ConvertInt2UnsignedByte((std::stoi(snssaiValues[0], nullptr, RADIX))));
-            snssai.setMappedSd(std::stoi(snssaiValues[1], nullptr, RADIX));
+            if (!ParseHexStringToInt(snssaiValues[0], sstValue) ||
+                !ParseHexStringToInt(snssaiValues[1], sdValue)) {
+                NETMGR_EXT_LOG_E("invalid mapped sst/sd string: [%{public}s]:[%{public}s]",
+                    snssaiValues[0].c_str(), snssaiValues[1].c_str());
+                return false;
+            }
+            snssai.setMappedSst(ConvertInt2UnsignedByte(sstValue));
+            snssai.setMappedSd(sdValue);
             snssai.setSnssaiLen(snssai.getSnssaiLen() + NetworkSliceCommConfig::LEN_INT);
         } else {
             NETMGR_EXT_LOG_E("values[1].snssaiValues.length invalid, snssaiValues.length = [%{public}d]",

@@ -657,6 +657,25 @@ HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareIpv6002, TestSize.Level1
     auto upstreamLinkInfo = new NetLinkInfo(netlinkinfo);
     networkShareSubStateMachine->ConfigureShareIpv6(upstreamLinkInfo);
 }
+
+HWTEST_F(NetworkShareSubStateMachineTest, ConfigureShareIpv6003, TestSize.Level1)
+{
+    auto configuration = std::make_shared<NetworkShareConfiguration>();
+    auto networkShareSubStateMachine = new (std::nothrow)
+        NetworkShareSubStateMachine(BLUETOOTH_DEFAULT_IFACE_NAME, SharingIfaceType::SHARING_WIFI, configuration);
+    networkShareSubStateMachine->raDaemon_ = std::make_shared<RouterAdvertisementDaemon>();
+    NetLinkInfo netlinkinfo;
+    constexpr int32_t ADDR_COUNT = 30;
+    for (int32_t i = 0; i < ADDR_COUNT; ++i) {
+        INetAddr inetaddr;
+        inetaddr.family_ = 2;
+        inetaddr.address_ = "2001:db8::1";
+        netlinkinfo.netAddrList_.push_back(inetaddr);
+    }
+    auto upstreamLinkInfo = new NetLinkInfo(netlinkinfo);
+    networkShareSubStateMachine->ConfigureShareIpv6(upstreamLinkInfo);
+    EXPECT_EQ(networkShareSubStateMachine->lastRaParams_.prefixes_.size(), RA_MAX_PREFIX_COUNT);
+}
  
 HWTEST_F(NetworkShareSubStateMachineTest, AddIpv6AddrToLocalNetwork001, TestSize.Level1)
 {

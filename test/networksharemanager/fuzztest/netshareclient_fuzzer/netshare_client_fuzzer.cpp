@@ -780,6 +780,19 @@ void GetUsbDestinationAddrFuzzTest(const uint8_t *data, size_t size)
     std::shared_ptr<INetAddr> netAddr = nullptr;
     networkShareSubStateMachine->StartDhcp(netAddr);
 }
+
+/* drain pending tasks of the tracker ffrt queue so that no submitted task holding the raw
+ * tracker pointer survives into process teardown (avoids use-after-free at exit) */
+static void DrainNetworkShareTrackerQueue()
+{
+    auto &tracker = NetworkShareTracker::GetInstance();
+    if (tracker.networkShareTrackerFfrtQueue_ == nullptr) {
+        return;
+    }
+    /* the queue is serial: once the barrier task completes, all previously submitted tasks are done */
+    auto barrier = tracker.networkShareTrackerFfrtQueue_->submit_h([]() {});
+    tracker.networkShareTrackerFfrtQueue_->wait(barrier);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -810,5 +823,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::ConfigureShareIpv4FuzzTest(data, size);
     OHOS::NetManagerStandard::ConfigureShareIpv6FuzzTest(data, size);
     OHOS::NetManagerStandard::GetUsbDestinationAddrFuzzTest(data, size);
+    OHOS::NetManagerStandard::DrainNetworkShareTrackerQueue();
     return 0;
 }

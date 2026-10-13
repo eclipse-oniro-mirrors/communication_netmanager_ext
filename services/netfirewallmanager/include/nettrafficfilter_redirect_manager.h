@@ -80,7 +80,10 @@ private:
     };
 
     void HandleTrafficFilterObserverRegistration(const std::string& bundleName, int32_t uid, int32_t pid);
+    /* unregister the observer of the uid from appmgr;
+     * observer == nullptr matches any registered observer (caller only knows the uid) */
     void UnregisterTrafficFilterObserver(int32_t uid, const sptr<TrafficFilterHapObserver>& observer);
+    int32_t DestroyRedirectorInternal(const std::string& redirectorId, bool checkCaller);
     int32_t CleanupRedirectorsByUid(int32_t uid, int32_t pid);
     int32_t CleanupRedirectorsByBundleName(const std::string& bundleName, int32_t uid, int32_t pid);
     std::string GenerateRedirectorId();

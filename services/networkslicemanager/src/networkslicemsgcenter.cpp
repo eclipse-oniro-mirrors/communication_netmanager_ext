@@ -58,7 +58,7 @@ void NetworkSliceMsgCenter::unRegistHandler(NetworkSliceSubModule moduleId,
     if (itHandlerList == moduleIdHandlerListMap_.end() || itHandlerList->second.empty()) {
         for (auto it = eventHandlerMap_.begin(); it != eventHandlerMap_.end(); it++) {
             it->second &= ~(1 << moduleId);
-            uint64_t key = (static_cast<uint64_t>(it->first) << 32) &  static_cast<uint64_t>(moduleId);
+            uint64_t key = (static_cast<uint64_t>(it->first) << 32) | static_cast<uint64_t>(moduleId);
             eventSubscribeMap_.erase(key);
         }
         moduleIdHandlerListMap_.erase(moduleId);
@@ -75,13 +75,14 @@ void NetworkSliceMsgCenter::Subscribe(NetworkSliceEvent event, NetworkSliceSubMo
     } else {
         eventHandlerMap_.insert(std::make_pair(event, 1 << moduleId));
     }
-    uint64_t key = (static_cast<uint64_t>(event) << 32) &  static_cast<uint64_t>(moduleId);
+    uint64_t key = (static_cast<uint64_t>(event) << 32) | static_cast<uint64_t>(moduleId);
     eventSubscribeMap_[key]++;
 }
 
 void NetworkSliceMsgCenter::UnSubscribe(NetworkSliceEvent event, NetworkSliceSubModule moduleId)
 {
-    uint64_t key = (static_cast<uint64_t>(event) << 32) &  static_cast<uint64_t>(moduleId);
+    std::unique_lock<std::shared_timed_mutex> lock(mutex_);
+    uint64_t key = (static_cast<uint64_t>(event) << 32) | static_cast<uint64_t>(moduleId);
     auto it = eventSubscribeMap_.find(key);
     if (it == eventSubscribeMap_.end() || it->second <= 1) {
         auto it = eventHandlerMap_.find(event);

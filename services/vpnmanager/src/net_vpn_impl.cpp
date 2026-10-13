@@ -531,7 +531,9 @@ void NetVpnImpl::AdjustRouteInfo(Route &route)
     } else {
         route.destination_.prefixlen_ = route.destination_.prefixlen_ < IPV4_NET_MASK_MAX_LENGTH ?
                                         route.destination_.prefixlen_ : IPV4_NET_MASK_MAX_LENGTH;
-        uint32_t maskUint = (0xFFFFFFFF << (IPV4_NET_MASK_MAX_LENGTH - route.destination_.prefixlen_));
+        /* prefixlen_ == 0 means a default route (0.0.0.0/0); shifting by 32 would be undefined behavior */
+        uint32_t maskUint = (route.destination_.prefixlen_ == 0) ? 0
+            : (0xFFFFFFFF << (IPV4_NET_MASK_MAX_LENGTH - route.destination_.prefixlen_));
         uint32_t ipAddrUint = CommonUtils::ConvertIpv4Address(route.destination_.address_);
         uint32_t subNetAddress = ipAddrUint & maskUint;
         route.destination_.address_ = ConvertVpnIpv4Address(subNetAddress);

@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <mutex>
 
 #include "mdns_base_context.h"
 #include "mdns_callback_observer.h"
@@ -26,6 +27,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+
 class MDnsAddLocalServiceContext final : public MDnsBaseContext {
 public:
     DISALLOW_COPY_AND_MOVE(MDnsAddLocalServiceContext);
@@ -36,6 +38,8 @@ public:
     sptr<IRegistrationCallback> GetObserver() const;
 
     static std::map<std::string, sptr<IRegistrationCallback>> registerCallbackMap_;
+    /* single mutex protecting registerCallbackMap_ shared by add/remove paths */
+    static std::mutex registerCallbackMutex_;
 
 private:
     bool CheckParamsType(napi_value *params, size_t paramsCount);

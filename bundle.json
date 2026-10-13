@@ -92,6 +92,7 @@
                 "data_share",
                 "core_service",
                 "cellular_data",
+                "telephony_data",
                 "hdf_core",
                 "drivers_interface_ethernet",
                 "libxml2",

@@ -69,7 +69,7 @@ napi_status napi_get_value_string_utf8(napi_env env, napi_value value,
     }
     if (buf && bufsize > 0) {
         size_t copyLen = (len < bufsize - 1) ? len : (bufsize - 1);
-        std::memcpy_s(buf, bufsize, g_mockStringResult.c_str(), copyLen);
+        std::memcpy(buf, g_mockStringResult.c_str(), copyLen);
         buf[copyLen] = '\0';
     }
     return napi_ok;

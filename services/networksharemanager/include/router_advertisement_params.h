@@ -30,6 +30,8 @@ namespace OHOS {
 namespace NetManagerStandard {
 static constexpr int32_t IPV6_MIN_MTU = 1400;
 static constexpr uint8_t DEFAULT_HOPLIMIT = 254;
+/* max prefixes that fit in one RA packet: fixed part(16+8+8) + N*(PIO 32 + RDNSS 16) <= IPV6_MIN_MTU */
+static constexpr size_t RA_MAX_PREFIX_COUNT = 28;
 
 struct IpPrefix {
     in6_addr address = {};

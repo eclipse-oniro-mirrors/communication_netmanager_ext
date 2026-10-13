@@ -126,7 +126,7 @@ int32_t NetworkSliceStub::OnGetRouteSelectionDescriptorByDNN(MessageParcel &data
     NETMGR_EXT_LOG_I("NetworkSliceStub::OnGetRouteSelectionDescriptorByDNN");
     std::string dnn = data.ReadString();
     std::string snssai;
-    uint8_t sscmode;
+    uint8_t sscmode = 0;
     int32_t ret = NetworkSliceService::GetInstance().GetRouteSelectionDescriptorByDNN(dnn, snssai, sscmode);
     reply.WriteString(snssai);
     reply.WriteUint8(sscmode);

@@ -436,6 +436,42 @@ HWTEST_F(RouterAdvertisementDaemonTest, AssembleRaLockedTest002, TestSize.Level1
 }
 
 /**
+ * @tc.name: AssembleRaLockedTest003
+ * @tc.desc: Test AssembleRaLocked with prefixes_ reaching RA_MAX_PREFIX_COUNT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, AssembleRaLockedTest003, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    struct IpPrefix ipp;
+    ipp.prefix = IN6ADDR_LOOPBACK_INIT;
+    ipp.prefixesLength = 64;
+    for (size_t i = 0; i < RA_MAX_PREFIX_COUNT; ++i) {
+        routerAdvertiseDaemon->raParams_->prefixes_.push_back(ipp);
+    }
+    bool ret = routerAdvertiseDaemon->AssembleRaLocked();
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: AssembleRaLockedTest004
+ * @tc.desc: Test AssembleRaLocked with prefixes_ exceeding RA_MAX_PREFIX_COUNT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RouterAdvertisementDaemonTest, AssembleRaLockedTest004, TestSize.Level1)
+{
+    auto routerAdvertiseDaemon = std::make_shared<RouterAdvertisementDaemon>();
+    struct IpPrefix ipp;
+    ipp.prefix = IN6ADDR_LOOPBACK_INIT;
+    ipp.prefixesLength = 64;
+    for (size_t i = 0; i <= RA_MAX_PREFIX_COUNT; ++i) {
+        routerAdvertiseDaemon->raParams_->prefixes_.push_back(ipp);
+    }
+    bool ret = routerAdvertiseDaemon->AssembleRaLocked();
+    EXPECT_EQ(ret, false);
+}
+
+/**
  * @tc.name: ProcessSendRaPacketTest001
  * @tc.desc: Test RouterAdvertisementDaemon ProcessSendRaPacketTest.
  * @tc.type: FUNC

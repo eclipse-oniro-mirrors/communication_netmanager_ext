@@ -272,7 +272,22 @@ static bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &
         return false;
     }
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
-    GetUint8FromJsOptionItem(env, destination, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
+    // LCOV_EXCL_START
+    if (NapiUtils::HasNamedProperty(env, destination, NET_PREFIXLENGTH)) {
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, destination, NET_PREFIXLENGTH)) !=
+            napi_number) {
+            NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", NET_PREFIXLENGTH);
+            return false;
+        }
+        uint32_t prefix = NapiUtils::GetUint32Property(env, destination, NET_PREFIXLENGTH);
+        bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
+        if (prefix > static_cast<uint32_t>(isIpv6 ? IPV6_NET_PREFIX_MAX_LENGTH : NET_MASK_MAX_LENGTH)) {
+            NETMGR_EXT_LOG_E("prefix: %{public}u error", prefix);
+            return false;
+        }
+        iNetAddr.prefixlen_ = static_cast<uint8_t>(prefix);
+    }
+    // LCOV_EXCL_STOP
     return true;
 }
 
@@ -321,6 +336,12 @@ bool SetUpContext::ParseAddrRouteParams(napi_value config)
             return false;
         }
         uint32_t addrLength = NapiUtils::GetArrayLength(GetEnv(), addrArray);
+        // LCOV_EXCL_START
+        if (addrLength > 0) {
+            vpnConfig_->isAcceptIPv4_ = false;
+            vpnConfig_->isAcceptIPv6_ = false;
+        }
+        // LCOV_EXCL_STOP
         for (uint32_t i = 0; i < addrLength; ++i) { // set length limit.
             INetAddr iNetAddr;
             if (!ParseAddress(GetEnv(), NapiUtils::GetArrayElement(GetEnv(), addrArray, i), iNetAddr)) {
@@ -329,8 +350,8 @@ bool SetUpContext::ParseAddrRouteParams(napi_value config)
             }
             vpnConfig_->addresses_.emplace_back(iNetAddr);
             bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
-            vpnConfig_->isAcceptIPv4_ = !isIpv6;
-            vpnConfig_->isAcceptIPv6_ = isIpv6;
+            vpnConfig_->isAcceptIPv4_ = vpnConfig_->isAcceptIPv4_ || !isIpv6;
+            vpnConfig_->isAcceptIPv6_ = vpnConfig_->isAcceptIPv6_ || isIpv6;
         }
     }
 

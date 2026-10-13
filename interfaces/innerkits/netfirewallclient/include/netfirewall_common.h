@@ -75,6 +75,9 @@ const std::string NET_FIREWALL_PAGE_DATA = "data";
 constexpr uint8_t NETTRAFFICFILTER_IP_ADDRLEN = 16;
 constexpr uint8_t NETTRAFFICFILTER_MAX_MULTI_IP_COUNT = 16;
 constexpr uint8_t NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT = 64;
+/* iptables multiport match allows at most 15 ports in a single command,
+ * far below NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT which is the array capacity of the sdk structure */
+constexpr uint32_t NETTRAFFICFILTER_MAX_IPTABLES_MULTIPORT_COUNT = 15;
 constexpr uint32_t NETTRAFFICFILTER_MAX_PACKET_COPY_LEN = 65535;
 constexpr uint32_t NETTRAFFICFILTER_MAX_NFQUEUE_LEN = 65535;
 constexpr uint8_t NETTRAFFICFILTER_IFNAMSIZ = 32;

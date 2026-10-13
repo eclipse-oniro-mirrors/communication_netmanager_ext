@@ -365,6 +365,8 @@ int32_t NetTrafficFilterPacketRuleManager::ApplyRulesForHookPointBothFamilies(
 
 bool NetTrafficFilterPacketRuleManager::ValidateRuleParam(const sptr<TrafficFilterPacketRule>& rule)
 {
+    constexpr uint8_t VALID_CONNTRACK_STATE_MASK = 0x1F;   // NEW|ESTABLISHED|RELATED|INVALID|UNTRACKED
+    constexpr uint8_t VALID_TCP_FLAG_MASK = 0x3F;         // SYN|ACK|FIN|RST|PSH|URG
     if (rule == nullptr) {
         NETMGR_EXT_LOG_E("rule is null");
         return false;
@@ -380,6 +382,18 @@ bool NetTrafficFilterPacketRuleManager::ValidateRuleParam(const sptr<TrafficFilt
     if (!rule->srcIp_.IsValidType() || !rule->dstIp_.IsValidType() ||
         !rule->srcPort_.IsValidType() || !rule->dstPort_.IsValidType()) {
         NETMGR_EXT_LOG_E("invalid ip or port type");
+        return false;
+    }
+    if (rule->conntrackMatch_.enable_ &&
+        (rule->conntrackMatch_.stateMask_ & ~VALID_CONNTRACK_STATE_MASK) != 0) {
+        NETMGR_EXT_LOG_E("invalid conntrack stateMask=%{public}u", rule->conntrackMatch_.stateMask_);
+        return false;
+    }
+    if (rule->tcpFlagsMatch_.enable_ &&
+        ((rule->tcpFlagsMatch_.flagMask_ & ~VALID_TCP_FLAG_MASK) != 0 ||
+         (rule->tcpFlagsMatch_.flagComp_ & ~VALID_TCP_FLAG_MASK) != 0)) {
+        NETMGR_EXT_LOG_E("invalid tcp flagMask=%{public}u, flagComp=%{public}u",
+            rule->tcpFlagsMatch_.flagMask_, rule->tcpFlagsMatch_.flagComp_);
         return false;
     }
     switch (static_cast<TrafficFilterHookPoint>(rule->hookPoint_)) {

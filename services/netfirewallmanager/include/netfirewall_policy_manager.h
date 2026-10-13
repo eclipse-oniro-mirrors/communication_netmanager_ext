@@ -98,7 +98,7 @@ public:
     void LoadPolicyFormPreference(const int32_t userId, sptr<NetFirewallPolicy> &policy);
 
 private:
-    void GetAllUserId(std::vector<int32_t> &accountIds);
+    bool GetAllUserId(std::vector<int32_t> &accountIds);
     std::string FirewallPreferencePathOfUser(int32_t userId);
 private:
     ffrt::shared_mutex setPolicyMutex_;

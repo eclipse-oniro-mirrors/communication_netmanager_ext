@@ -522,6 +522,26 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, ValidatePortMatch003, TestSize.Lev
     EXPECT_FALSE(isValid);
 }
 
+HWTEST_F(NetTrafficFilterRedirectManagerTest, ValidatePortMatch004, TestSize.Level1)
+{
+    TrafficFilterPortMatch portMatch;
+    portMatch.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI);
+    portMatch.multi_.portCount_ = 15; // iptables multiport upper limit
+
+    bool isValid = instance_->ValidatePortMatch(portMatch);
+    EXPECT_TRUE(isValid);
+}
+
+HWTEST_F(NetTrafficFilterRedirectManagerTest, ValidatePortMatch005, TestSize.Level1)
+{
+    TrafficFilterPortMatch portMatch;
+    portMatch.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI);
+    portMatch.multi_.portCount_ = 16; // Exceeds iptables multiport limit
+
+    bool isValid = instance_->ValidatePortMatch(portMatch);
+    EXPECT_FALSE(isValid);
+}
+
 HWTEST_F(NetTrafficFilterRedirectManagerTest, ValidateInterfaceMatch001, TestSize.Level1)
 {
     TrafficFilterInterfaceMatch interfaceMatch;
@@ -1428,7 +1448,7 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, UnregisterTrafficFilterObserver005
 
 HWTEST_F(NetTrafficFilterRedirectManagerTest, UnregisterTrafficFilterObserver006, TestSize.Level1)
 {
-    // uid found, pass null observer pointer - should not match, no unregister
+    // uid found, pass null observer pointer - nullptr matches any registered observer for the uid
     int32_t uid = 10006;
     std::string bundleName = "com.example.observer006";
     sptr<NetTrafficFilterRedirectManager::TrafficFilterHapObserver> observer =
@@ -1438,11 +1458,7 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, UnregisterTrafficFilterObserver006
 
     instance_->UnregisterTrafficFilterObserver(uid, nullptr);
 
-    auto it = instance_->uidToObserverMap_.find(uid);
-    EXPECT_NE(it, instance_->uidToObserverMap_.end());
-    EXPECT_EQ(it->second.GetRefPtr(), observer.GetRefPtr());
-
-    instance_->uidToObserverMap_.erase(uid);
+    EXPECT_EQ(instance_->uidToObserverMap_.find(uid), instance_->uidToObserverMap_.end());
 }
 
 HWTEST_F(NetTrafficFilterRedirectManagerTest, DestroyRedirector002, TestSize.Level1)
@@ -1695,6 +1711,44 @@ HWTEST_F(NetTrafficFilterRedirectManagerTest, DestroyRedirector010, TestSize.Lev
 
     instance_->DestroyRedirector(redirectorId2);
     instance_->uidToObserverMap_.erase(testUid);
+}
+
+HWTEST_F(NetTrafficFilterRedirectManagerTest, DestroyRedirectorInternal001, TestSize.Level1)
+{
+    // redirector with default callingUid (-1): checkCaller=true is denied by the caller check,
+    // checkCaller=false bypasses it for internal cleanup paths
+    std::string redirectorId = "test_destroy_internal_001";
+    std::string bundleName = "com.example.destroyinternal001";
+    auto redirector = std::make_shared<NetTrafficFilterRedirectorContext>(
+        redirectorId, bundleName, TEST_GROUP_ID, TEST_PRIORITY);
+    instance_->redirectors_[redirectorId] = redirector;
+    instance_->bundleNameToRedirectorsMap_[bundleName].push_back(redirectorId);
+    instance_->redirectorIdList_.push_back(redirectorId);
+
+    int32_t ret = instance_->DestroyRedirectorInternal(redirectorId, true);
+    EXPECT_EQ(ret, TRAFFICFILTER_ERROR_PERMISSION_DENIED);
+    EXPECT_NE(instance_->redirectors_.find(redirectorId), instance_->redirectors_.end());
+
+    ret = instance_->DestroyRedirectorInternal(redirectorId, false);
+    EXPECT_NE(ret, TRAFFICFILTER_ERROR_PERMISSION_DENIED);
+    if (ret == TRAFFICFILTER_OK) {
+        EXPECT_EQ(instance_->redirectors_.find(redirectorId), instance_->redirectors_.end());
+        EXPECT_EQ(instance_->bundleNameToRedirectorsMap_.find(bundleName),
+            instance_->bundleNameToRedirectorsMap_.end());
+        auto listIt = std::find(instance_->redirectorIdList_.begin(),
+            instance_->redirectorIdList_.end(), redirectorId);
+        EXPECT_EQ(listIt, instance_->redirectorIdList_.end());
+    } else {
+        // iptables cleanup unavailable in test env: record must be kept for a later retry
+        EXPECT_NE(instance_->redirectors_.find(redirectorId), instance_->redirectors_.end());
+        instance_->redirectors_.erase(redirectorId);
+        instance_->bundleNameToRedirectorsMap_.erase(bundleName);
+        auto listIt = std::find(instance_->redirectorIdList_.begin(),
+            instance_->redirectorIdList_.end(), redirectorId);
+        if (listIt != instance_->redirectorIdList_.end()) {
+            instance_->redirectorIdList_.erase(listIt);
+        }
+    }
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

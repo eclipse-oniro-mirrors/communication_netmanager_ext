@@ -16,6 +16,9 @@
 #ifndef ETHERNET_LAN_MANAGEMENT_H
 #define ETHERNET_LAN_MANAGEMENT_H
 
+#include <map>
+#include <string>
+
 #include "dev_interface_state.h"
 #include "ffrt.h"
 #include "interface_configuration.h"
@@ -32,13 +35,14 @@ public:
     void GetOldLinkInfo(sptr<DevInterfaceState> &devState);
 
 private:
-    int32_t SetIp(const NetLinkInfo &newNetLinkInfo);
-    int32_t DelIp(const NetLinkInfo &newNetLinkInfo);
-    int32_t SetRoute(const NetLinkInfo &newNetLinkInfo);
-    int32_t DelRoute(const NetLinkInfo &newNetLinkInfo);
+    int32_t SetIp(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo);
+    int32_t DelIp(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo);
+    int32_t SetRoute(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo);
+    int32_t DelRoute(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo);
 
     ffrt::mutex netLinkInfoMutex_;
-    NetLinkInfo netLinkInfo_;
+    /* last applied link info of each LAN interface, keyed by interface name */
+    std::map<std::string, NetLinkInfo> lanLinkInfoMap_;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
