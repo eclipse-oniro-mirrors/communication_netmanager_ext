@@ -1258,7 +1258,7 @@ void NetTrafficFilterRedirectManager::UnregisterTrafficFilterObserver(
         }
     }
     if (observerToUnregister == nullptr) {
-         return;
+        return;
     }
     /* do the binder ipc outside observerMutex_ so it does not block other observer operations;
      * unregister the copied instance, never re-look up by uid, a new observer may have been
