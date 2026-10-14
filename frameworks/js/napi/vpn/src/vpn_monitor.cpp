@@ -53,6 +53,19 @@ void EventConnectCallback(uv_work_t *work, int status)
         NETMANAGER_EXT_LOGE("work is nullptr");
         return;
     }
+    // LCOV_EXCL_START
+    if (status == UV_ECANCELED) {
+        /* the loop is closing, env and manager may already be destroyed, only clean up here */
+        NETMGR_EXT_LOG_I("work is canceled, status: %{public}d", status);
+        auto canceledWrapper = reinterpret_cast<UvWorkWrapper *>(work->data);
+        if (canceledWrapper != nullptr) {
+            delete reinterpret_cast<bool *>(canceledWrapper->data);
+            delete canceledWrapper;
+        }
+        delete work;
+        return;
+    }
+    // LCOV_EXCL_STOP
     auto workWrapper = reinterpret_cast<UvWorkWrapper *>(work->data);
     if (workWrapper == nullptr) {
         NETMANAGER_EXT_LOGE("workWrapper is nullptr");
@@ -86,6 +99,19 @@ void EventConnectMultiCallback(uv_work_t *work, int status)
         NETMANAGER_EXT_LOGE("work is nullptr");
         return;
     }
+    // LCOV_EXCL_START
+    if (status == UV_ECANCELED) {
+        /* the loop is closing, env and manager may already be destroyed, only clean up here */
+        NETMGR_EXT_LOG_I("work is canceled, status: %{public}d", status);
+        auto canceledWrapper = reinterpret_cast<UvWorkWrapper *>(work->data);
+        if (canceledWrapper != nullptr) {
+            delete reinterpret_cast<MultiVpnData *>(canceledWrapper->data);
+            delete canceledWrapper;
+        }
+        delete work;
+        return;
+    }
+    // LCOV_EXCL_STOP
     auto workWrapper = reinterpret_cast<UvWorkWrapper *>(work->data);
     if (workWrapper == nullptr) {
         NETMANAGER_EXT_LOGE("workWrapper is nullptr");

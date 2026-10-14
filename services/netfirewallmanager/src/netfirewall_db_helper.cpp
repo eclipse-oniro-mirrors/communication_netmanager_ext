@@ -753,11 +753,15 @@ int32_t NetFirewallDbHelper::QuerySql(const std::string &sql)
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
     int32_t rowCount = 0;
+    // LCOV_EXCL_START
     if (resultSet->GetRowCount(rowCount) != E_OK || resultSet->GoToRow(0) != E_OK) {
+        resultSet->Close();
         return FIREWALL_RDB_EXECUTE_FAILTURE;
     }
+    // LCOV_EXCL_STOP
     int32_t value = -1;
     resultSet->GetInt(0, value);
+    resultSet->Close();
     return value;
 }
 

@@ -311,6 +311,11 @@ bool RouterAdvertisementDaemon::AssembleRaLocked()
         NETMGR_EXT_LOG_E("Generate Ra package fail due to raParams_ is nullptr");
         return false;
     }
+    if (raParams_->prefixes_.size() > RA_MAX_PREFIX_COUNT) {
+        NETMGR_EXT_LOG_E("Generate Ra package fail, prefixes_ size %{public}zu exceed %{public}zu",
+            raParams_->prefixes_.size(), RA_MAX_PREFIX_COUNT);
+        return false;
+    }
     uint8_t raBuf[IPV6_MIN_MTU] = {};
     uint8_t *ptr = raBuf;
     uint16_t raHeadLen = PutRaHeader(ptr);

@@ -108,6 +108,13 @@ void NetworkShareTrackerTest::SetUp()
 void NetworkShareTrackerTest::TearDown()
 {
     NetworkShareTracker::GetInstance().Uninit();
+    /* drain pending tasks so no submitted task holding the raw tracker pointer survives
+     * into process teardown (avoids use-after-free at exit) */
+    auto &tracker = NetworkShareTracker::GetInstance();
+    if (tracker.networkShareTrackerFfrtQueue_ != nullptr) {
+        auto barrier = tracker.networkShareTrackerFfrtQueue_->submit_h([]() {});
+        tracker.networkShareTrackerFfrtQueue_->wait(barrier);
+    }
 }
 
 HWTEST_F(NetworkShareTrackerTest, IsNetworkSharingSupported00, TestSize.Level1)

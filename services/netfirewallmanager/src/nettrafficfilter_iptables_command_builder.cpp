@@ -82,10 +82,15 @@ static std::string FormatBitMask(uint8_t mask, const char* (*getBitName)(uint8_t
     std::string result;
     for (uint8_t bit = BIT_FLAG_START; bit != 0; bit <<= BIT_SHIFT_STEP) {
         if (mask & bit) {
+            const char* bitName = getBitName(bit);
+            if (bitName == nullptr || bitName[0] == '\0') {
+                NETMGR_EXT_LOG_W("FormatBitMask: unknown bit %{public}u ignored", bit);
+                continue;
+            }
             if (!result.empty()) {
                 result += ",";
             }
-            result += getBitName(bit);
+            result += bitName;
         }
     }
     return result;
@@ -746,7 +751,7 @@ static TrafficFilterIPMatch GetDefaultIPMatch(const TrafficFilterIPMatch& ipMatc
 std::vector<std::string> NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommands(
     const TrafficFilterPacketRule& rule, const std::string& chainName, int32_t queueNum)
 {
-    constexpr uint32_t MAX_MULTIPORT = 15;
+    constexpr uint32_t MAX_MULTIPORT = NETTRAFFICFILTER_MAX_IPTABLES_MULTIPORT_COUNT;
     std::vector<std::string> commands;
     auto srcPortSplits = SplitPortMatch(rule.srcPort_, MAX_MULTIPORT);
     auto dstPortSplits = SplitPortMatch(rule.dstPort_, MAX_MULTIPORT);

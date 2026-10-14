@@ -21,7 +21,6 @@
 #include "mdns_removelocalservice_context.h"
 
 namespace OHOS::NetManagerStandard {
-std::mutex g_mDNSUnregisterMutex;
 MDnsRemoveLocalServiceContext::MDnsRemoveLocalServiceContext(napi_env env, std::shared_ptr<EventManager>& manager)
     : MDnsBaseContext(env, manager)
 {
@@ -36,12 +35,20 @@ void MDnsRemoveLocalServiceContext::ParseParams(napi_value *params, size_t param
     }
 
     std::string bundleName = GetContextIdString(GetEnv(), params[ARG_NUM_0]);
+    // LCOV_EXCL_START
+    if (bundleName.empty()) {
+        NETMANAGER_EXT_LOGE("bundle name in context is empty");
+        SetNeedThrowException(true);
+        SetErrorCode(NET_MDNS_ERR_ILLEGAL_ARGUMENT);
+        return;
+    }
+    // LCOV_EXCL_STOP
     ParseServiceInfo(GetEnv(), params[ARG_NUM_1]);
     std::string key = bundleName + MDNS_HOSTPORT_SPLITER_STR + GetServiceInfo().name + MDNS_DOMAIN_SPLITER_STR +
                       GetServiceInfo().type;
 
     {
-        std::lock_guard<std::mutex> lock(g_mDNSUnregisterMutex);
+        std::lock_guard<std::mutex> lock(MDnsAddLocalServiceContext::registerCallbackMutex_);
         regObserver_ = MDnsAddLocalServiceContext::registerCallbackMap_[key];
         MDnsAddLocalServiceContext::registerCallbackMap_.erase(key);
     }

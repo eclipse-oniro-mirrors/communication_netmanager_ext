@@ -324,7 +324,11 @@ bool NetTrafficFilterRedirectManager::ValidatePortMatch(const TrafficFilterPortM
         }
     }
     if (portMatch.type_ == static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_MULTI)) {
-        if (portMatch.multi_.portCount_ > NETTRAFFICFILTER_MAX_MULTI_PORT_COUNT) {
+        /* iptables multiport supports at most 15 ports per rule; a rule with more ports would be
+         * accepted here but always rejected by iptables, so reject it up front. */
+        if (portMatch.multi_.portCount_ > NETTRAFFICFILTER_MAX_IPTABLES_MULTIPORT_COUNT) {
+            NETMGR_EXT_LOG_E("multi port count %{public}u exceeds iptables limit %{public}u",
+                portMatch.multi_.portCount_, NETTRAFFICFILTER_MAX_IPTABLES_MULTIPORT_COUNT);
             return false;
         }
         if (portMatch.multi_.portCount_ == 0) {
@@ -526,15 +530,19 @@ int32_t NetTrafficFilterRedirectManager::CleanupRedirectorIptablesResources(cons
     }
 
     std::string clearChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildFlushChainCommand(chainName);
-    if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
-        clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+    int32_t flushRet = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+        clearChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+    if (flushRet != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("Failed to flush chain");
+        return flushRet;
     }
 
     std::string deleteChainCmd = NetTrafficFilterIptablesCommandBuilder::BuildDeleteChainCommand(chainName);
-    if (NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
-        deleteChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6) != TRAFFICFILTER_OK) {
+    int32_t deleteRet = NetTrafficFilterIptablesCommandBuilder::ExecuteIptablesCommand(
+        deleteChainCmd, TrafficFilterIPFamily::IP_FAMILY_V4V6);
+    if (deleteRet != TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_W("Failed to delete chain");
+        return deleteRet;
     }
 
     NETMGR_EXT_LOG_I("CleanupRedirectorIptablesResources completed");
@@ -641,6 +649,13 @@ bool NetTrafficFilterRedirectManager::HasOtherRedirectorsForUid(int32_t callingU
 int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& redirectorId)
 {
     NETMGR_EXT_LOG_I("DestroyRedirector called: redirectorId=%{public}s", redirectorId.c_str());
+    return DestroyRedirectorInternal(redirectorId, true);
+}
+
+int32_t NetTrafficFilterRedirectManager::DestroyRedirectorInternal(const std::string& redirectorId, bool checkCaller)
+{
+    NETMGR_EXT_LOG_I("DestroyRedirectorInternal called: redirectorId=%{public}s, checkCaller=%{public}d",
+        redirectorId.c_str(), static_cast<int32_t>(checkCaller));
 
     int32_t callingUid = -1;
     std::string bundleName;
@@ -663,7 +678,7 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
         bundleName = redirector->GetBundleName();
         callingUid = redirector->GetCallingUid();
         int32_t callerUid = IPCSkeleton::GetCallingUid();
-        if (callerUid != callingUid) {
+        if (checkCaller && callerUid != callingUid) {
             NETMGR_EXT_LOG_E("permission denied");
             return TRAFFICFILTER_ERROR_PERMISSION_DENIED;
         }
@@ -675,7 +690,13 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
             usedHookPoints.insert(static_cast<TrafficFilterHookPoint>(rule.hookPoint_));
         }
 
-        CleanupRedirectorIptablesResources(chainName, usedHookPoints);
+        int32_t cleanupRet = CleanupRedirectorIptablesResources(chainName, usedHookPoints);
+        if (cleanupRet != TRAFFICFILTER_OK) {
+            /* keep the in-memory redirector record so a later retry can find and clean it up again */
+            NETMGR_EXT_LOG_E("Failed to clean up iptables resources, keep redirector %{public}s",
+                redirectorId.c_str());
+            return cleanupRet;
+        }
 
         RemoveRedirectorFromDataStructures(redirectorId, bundleName);
 
@@ -683,8 +704,9 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirector(const std::string& re
     }
 
         if (callingUid != -1 && !HasOtherRedirectorsForUid(callingUid)) {
-            std::lock_guard<std::mutex> obsLock(observerMutex_);
-            uidToObserverMap_.erase(callingUid);
+            /* unregister the observer registered for this uid (match any);
+             * the helper does the appmgr ipc outside observerMutex_ */
+            UnregisterTrafficFilterObserver(callingUid, nullptr);
             NETMGR_EXT_LOG_I("Cleaned up observer for uid=%{public}d (last redirector destroyed)", callingUid);
         }
 
@@ -708,7 +730,7 @@ int32_t NetTrafficFilterRedirectManager::DestroyRedirectorsByBundleName(const st
     }
     int32_t failCount = 0;
     for (const auto& redirectorId : redirectorsToDestroy) {
-        int32_t ret = DestroyRedirector(redirectorId);
+        int32_t ret = DestroyRedirectorInternal(redirectorId, false);
         if (ret != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to destroy redirector %{public}s for bundle %{public}s",
                 redirectorId.c_str(), bundleName.c_str());
@@ -1222,13 +1244,27 @@ void NetTrafficFilterRedirectManager::HandleTrafficFilterObserverRegistration(
 void NetTrafficFilterRedirectManager::UnregisterTrafficFilterObserver(
     int32_t uid, const sptr<TrafficFilterHapObserver>& observer)
 {
-    std::lock_guard<std::mutex> lock(observerMutex_);
-    auto it = uidToObserverMap_.find(uid);
-    if (it != uidToObserverMap_.end() && it->second == observer) {
-        Singleton<AppExecFwk::AppMgrClient>::GetInstance().UnregisterApplicationStateObserver(it->second);
-        uidToObserverMap_.erase(it);
-        NETMGR_EXT_LOG_I("TrafficFilter observer unregistered: uid=%{public}d", uid);
+    sptr<TrafficFilterHapObserver> observerToUnregister = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(observerMutex_);
+        auto it = uidToObserverMap_.find(uid);
+        if (it == uidToObserverMap_.end()) {
+            return;
+        }
+        /* observer == nullptr matches any registered observer, used when the caller only knows the uid */
+        if (observer == nullptr || it->second.GetRefPtr() == observer) {
+            observerToUnregister = it->second;
+            uidToObserverMap_.erase(it);
+        }
     }
+    if (observerToUnregister == nullptr) {
+        return;
+    }
+    /* do the binder ipc outside observerMutex_ so it does not block other observer operations;
+     * unregister the copied instance, never re-look up by uid, a new observer may have been
+     * registered for the same uid after the map entry was erased */
+    Singleton<AppExecFwk::AppMgrClient>::GetInstance().UnregisterApplicationStateObserver(observerToUnregister);
+    NETMGR_EXT_LOG_I("TrafficFilter observer unregistered: uid=%{public}d", uid);
 }
 
 int32_t NetTrafficFilterRedirectManager::CleanupRedirectorsByUid(int32_t uid, int32_t pid)
@@ -1249,7 +1285,7 @@ int32_t NetTrafficFilterRedirectManager::CleanupRedirectorsByUid(int32_t uid, in
     }
     for (const auto& redirectorId : toRemove) {
         NETMGR_EXT_LOG_I("Cleaning up orphaned redirector: %{public}s", redirectorId.c_str());
-        int32_t ret = DestroyRedirector(redirectorId);
+        int32_t ret = DestroyRedirectorInternal(redirectorId, false);
         if (ret != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to cleanup redirector %{public}s, ret=%{public}d",
                 redirectorId.c_str(), ret);
@@ -1290,7 +1326,7 @@ int32_t NetTrafficFilterRedirectManager::CleanupRedirectorsByBundleName(
     }
     for (const auto& redirectorId : toRemove) {
         NETMGR_EXT_LOG_I("Cleaning up orphaned redirector by bundle: %{public}s", redirectorId.c_str());
-        int32_t ret = DestroyRedirector(redirectorId);
+        int32_t ret = DestroyRedirectorInternal(redirectorId, false);
         if (ret != TRAFFICFILTER_OK) {
             NETMGR_EXT_LOG_E("Failed to cleanup redirector %{public}s, ret=%{public}d",
                 redirectorId.c_str(), ret);

@@ -67,7 +67,13 @@ bool NetFirewallPolicyManager::IsFirewallOpen()
 {
     std::unique_lock<ffrt::shared_mutex> locker(setPolicyMutex_);
     std::vector<int32_t> accountIds;
-    GetAllUserId(accountIds);
+    // LCOV_EXCL_START
+    if (!GetAllUserId(accountIds)) {
+        /* fail-safe: treat the firewall as open so callers will not clear protection rules by mistake */
+        NETMGR_EXT_LOG_W("IsFirewallOpen: get user ids failed, treat firewall as open");
+        return true;
+    }
+    // LCOV_EXCL_STOP
     for (auto &accountId : accountIds) {
         if (IsNetFirewallOpen(accountId)) {
             return true;
@@ -76,16 +82,20 @@ bool NetFirewallPolicyManager::IsFirewallOpen()
     return false;
 }
 
-void NetFirewallPolicyManager::GetAllUserId(std::vector<int32_t> &accountIds)
+bool NetFirewallPolicyManager::GetAllUserId(std::vector<int32_t> &accountIds)
 {
     std::vector<AccountSA::OsAccountInfo> osAccountInfos;
     int32_t ret = AccountSA::OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
+    // LCOV_EXCL_START
     if (ret != ERR_OK || osAccountInfos.empty()) {
         NETMGR_EXT_LOG_W("query user failed errCode=%{public}d", ret);
+        return false;
     }
+    // LCOV_EXCL_STOP
     for (const auto &info : osAccountInfos) {
         accountIds.push_back(info.GetLocalId());
     }
+    return true;
 }
 
 std::string NetFirewallPolicyManager::FirewallPreferencePathOfUser(int32_t userId)
@@ -97,7 +107,12 @@ int32_t NetFirewallPolicyManager::InitNetfirewallPolicy()
 {
     std::unique_lock<ffrt::shared_mutex> locker(setPolicyMutex_);
     std::vector<int32_t> accountIds;
-    GetAllUserId(accountIds);
+    // LCOV_EXCL_START
+    if (!GetAllUserId(accountIds)) {
+        NETMGR_EXT_LOG_E("InitNetfirewallPolicy: get user ids failed");
+        return FIREWALL_ERR_INTERNAL;
+    }
+    // LCOV_EXCL_STOP
     NETMGR_EXT_LOG_I("InitNetfirewallPolicy accountIds size =%{public}zu", accountIds.size());
     sptr<NetFirewallPolicy> netfirewallPolicy = new (std::nothrow) NetFirewallPolicy();
     if (netfirewallPolicy == nullptr) {

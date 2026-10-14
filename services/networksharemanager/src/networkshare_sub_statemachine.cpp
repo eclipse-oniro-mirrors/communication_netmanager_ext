@@ -550,6 +550,11 @@ void NetworkShareSubStateMachine::ConfigureShareIpv6(const sptr<NetLinkInfo> &up
 {
     lastRaParams_.Clear();
     for (const auto &inetAddr : upstreamLinkInfo->netAddrList_) {
+        if (lastRaParams_.prefixes_.size() >= RA_MAX_PREFIX_COUNT) {
+            NETMGR_EXT_LOG_W("ipv6 prefix count reach max %{public}zu, ignore remaining addresses",
+                RA_MAX_PREFIX_COUNT);
+            break;
+        }
         auto family = inetAddr.family_;
         if (family != NET_FAMILY_IPV6) {
             continue;

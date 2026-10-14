@@ -350,5 +350,53 @@ HWTEST_F(NetVpnImplTest, NotifyConnectState001, TestSize.Level1)
     netVpnImplPtr->NotifyConnectState(state);
     EXPECT_FALSE(netVpnImplPtr->isInternalChannel_);
 }
+HWTEST_F(NetVpnImplTest, AdjustRouteInfo001, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    Route route;
+    route.iface_ = "tun0";
+    route.destination_.address_ = "192.168.1.100";
+    route.destination_.prefixlen_ = 24;
+    netVpnImpl_->AdjustRouteInfo(route);
+    EXPECT_EQ(route.iface_, "tun0");
+    EXPECT_EQ(route.destination_.address_, "192.168.1.0");
+    EXPECT_EQ(route.destination_.prefixlen_, 24);
+}
+
+HWTEST_F(NetVpnImplTest, AdjustRouteInfo002, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    Route route;
+    route.iface_ = "tun0";
+    route.destination_.address_ = "192.168.1.100";
+    route.destination_.prefixlen_ = 0;
+    netVpnImpl_->AdjustRouteInfo(route);
+    EXPECT_EQ(route.destination_.address_, "0.0.0.0");
+    EXPECT_EQ(route.destination_.prefixlen_, 0);
+}
+
+HWTEST_F(NetVpnImplTest, AdjustRouteInfo003, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    Route route;
+    route.iface_ = "tun0";
+    route.destination_.address_ = "192.168.1.100";
+    route.destination_.prefixlen_ = 32;
+    netVpnImpl_->AdjustRouteInfo(route);
+    EXPECT_EQ(route.destination_.address_, "192.168.1.100");
+    EXPECT_EQ(route.destination_.prefixlen_, 32);
+}
+
+HWTEST_F(NetVpnImplTest, AdjustRouteInfo004, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    Route route;
+    route.iface_ = "tun0";
+    route.destination_.address_ = "192.168.1.100";
+    route.destination_.prefixlen_ = 33;
+    netVpnImpl_->AdjustRouteInfo(route);
+    EXPECT_EQ(route.destination_.address_, "192.168.1.100");
+    EXPECT_EQ(route.destination_.prefixlen_, 32);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

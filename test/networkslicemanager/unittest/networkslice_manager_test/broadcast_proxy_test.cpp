@@ -353,10 +353,38 @@ HWTEST_F(VpnEventObserverTest, VpnEventObserverTest_001, TestSize.Level1)
 {
     bool isConnected = true;
     broadcast_proxy::VpnEventObserver observer;
-    VpnState vpnState;
+    sptr<VpnState> vpnState;
     observer.OnVpnStateChanged(isConnected, vpnState);
     broadcast_proxy proxy_instance;
     EXPECT_TRUE(proxy_instance.subscriber_ == nullptr);
+}
+
+/**
+* @tc.name  : NetworkSliceMsgCenterSubscribeKeyTest_001
+* @tc.desc  : Subscribe/UnSubscribe must account per (event, module) key and clean up on last unsubscribe
+* @tc.type: FUNC
+* @tc.require: issue
+*/
+HWTEST_F(BroadcastProxyTest, NetworkSliceMsgCenterSubscribeKeyTest_001, TestSize.Level1)
+{
+    auto &msgCenter = Singleton<NetworkSliceMsgCenter>::GetInstance();
+    NetworkSliceEvent event = EVENT_SCREEN_ON;
+    uint64_t key = (static_cast<uint64_t>(event) << 32) | static_cast<uint64_t>(MODULE_NETWORKSLICE);
+    {
+        std::unique_lock<std::shared_timed_mutex> lock(msgCenter.mutex_);
+        msgCenter.eventSubscribeMap_.erase(key);
+    }
+
+    msgCenter.Subscribe(event, MODULE_NETWORKSLICE);
+    msgCenter.Subscribe(event, MODULE_NETWORKSLICE);
+    EXPECT_EQ(msgCenter.eventSubscribeMap_[key], 2);
+
+    msgCenter.UnSubscribe(event, MODULE_NETWORKSLICE);
+    EXPECT_EQ(msgCenter.eventSubscribeMap_[key], 1);
+
+    msgCenter.UnSubscribe(event, MODULE_NETWORKSLICE);
+    EXPECT_EQ(msgCenter.eventSubscribeMap_.find(key), msgCenter.eventSubscribeMap_.end());
+    EXPECT_EQ(msgCenter.eventHandlerMap_[event], 0);
 }
 
 }

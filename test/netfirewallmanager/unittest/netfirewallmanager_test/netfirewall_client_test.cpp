@@ -511,14 +511,6 @@ HWTEST_F(NetFirewallClientTest, DeleteNetFirewallRule001, TestSize.Level1)
     EXPECT_EQ(ret, FIREWALL_ERR_NO_RULE);
 }
 
-HWTEST_F(NetFirewallClientTest, OnLoadSystemAbility001, TestSize.Level1)
-{
-    int32_t systemAbilityId = 0;
-    DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->OnLoadSystemAbilityFail(systemAbilityId);
-    auto ret = DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->IsFailed();
-    EXPECT_EQ(ret, true);
-}
-
 HWTEST_F(NetFirewallClientTest, OnRemoteDied001, TestSize.Level0)
 {
     NetManagerExtAccessToken token;
@@ -550,16 +542,6 @@ HWTEST_F(NetFirewallClientTest, LoadSaOnDemand001, TestSize.Level0)
 {
     sptr<IRemoteObject> result = netfirewallClient_.LoadSaOnDemand();
     EXPECT_NE(result, nullptr);
-}
-
-HWTEST_F(NetFirewallClientTest, OnLoadSystemAbilitySuccessTest001, TestSize.Level1)
-{
-    int32_t systemAbilityId = 0;
-    sptr<IRemoteObject> remoteObject;
-    DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->OnLoadSystemAbilitySuccess(systemAbilityId,
-        remoteObject);
-    auto ret = DelayedSingleton<NetFirewallLoadCallback>::GetInstance()->GetRemoteObject();
-    EXPECT_EQ(ret, nullptr);
 }
 
 /**

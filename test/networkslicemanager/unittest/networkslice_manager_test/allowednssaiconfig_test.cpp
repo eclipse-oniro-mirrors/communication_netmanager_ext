@@ -223,6 +223,30 @@ HWTEST_F(AllowedNssaiConfigTest, isSnssaiInAllowedNssai003, testing::ext::TestSi
     Snssai snssai = {0x01, 0x03};
     EXPECT_EQ(AllowedNssaiConfig::GetInstance().isSnssaiInAllowedNssai(snssai), "");
 }
- 
+
+HWTEST_F(AllowedNssaiConfigTest, ParseSnssai008, testing::ext::TestSize.Level1) // invalid hex sst
+{
+    NETMGR_EXT_LOG_I("ParseSnssai008");
+    Snssai snssai;
+    snssai.setSnssai("G;B");
+    EXPECT_EQ(AllowedNssaiConfig::GetInstance().ParseSnssai(snssai), false);
+}
+
+HWTEST_F(AllowedNssaiConfigTest, ParseSnssai009, testing::ext::TestSize.Level1) // invalid hex sd
+{
+    NETMGR_EXT_LOG_I("ParseSnssai009");
+    Snssai snssai;
+    snssai.setSnssai("A;G");
+    EXPECT_EQ(AllowedNssaiConfig::GetInstance().ParseSnssai(snssai), false);
+}
+
+HWTEST_F(AllowedNssaiConfigTest, ParseSnssai010, testing::ext::TestSize.Level1) // invalid hex mapped sd
+{
+    NETMGR_EXT_LOG_I("ParseSnssai010");
+    Snssai snssai;
+    snssai.setSnssai("A;B.G");
+    EXPECT_EQ(AllowedNssaiConfig::GetInstance().ParseSnssai(snssai), false);
+}
+
 }
 }

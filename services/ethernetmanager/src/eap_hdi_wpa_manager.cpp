@@ -368,7 +368,7 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
     // LCOV_EXCL_STOP
     bool res = true;
     res &= ConvertStrToInt(vecEapDatas[IDX_0], notifyEapData->msgId);
-    int32_t eapValue;
+    int32_t eapValue = 0;
     res &= ConvertStrToInt(vecEapDatas[IDX_1], eapValue);
     notifyEapData->eapCode = static_cast<uint32_t>(eapValue);
     res &= ConvertStrToInt(vecEapDatas[IDX_2], eapValue);

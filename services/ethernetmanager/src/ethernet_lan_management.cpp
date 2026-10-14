@@ -38,11 +38,14 @@ void EthernetLanManagement::GetOldLinkInfo(sptr<DevInterfaceState> &devState)
         return;
     }
     std::lock_guard<ffrt::mutex> locker(netLinkInfoMutex_);
-    if (!devState->GetLinkInfo(netLinkInfo_)) {
+    NetLinkInfo oldLinkInfo;
+    if (!devState->GetLinkInfo(oldLinkInfo)) {
         NETMGR_EXT_LOG_W("EthernetLanManagement:GetOldLinkInfo fail due to linkInfo is NULL");
-        netLinkInfo_.Initialize();
+        oldLinkInfo.Initialize();
+        lanLinkInfoMap_[devState->GetDevName()] = oldLinkInfo;
         return;
     }
+    lanLinkInfoMap_[devState->GetDevName()] = oldLinkInfo;
 }
 
 int32_t EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devState)
@@ -61,11 +64,24 @@ int32_t EthernetLanManagement::UpdateLanLinkInfo(sptr<DevInterfaceState> &devSta
         NETMGR_EXT_LOG_E("EthernetLanManagement:UpdateLanLinkInfo fail due to newNetLinkInfo is NULL");
         return NETMANAGER_ERR_INTERNAL;
     }
+    NetLinkInfo oldNetLinkInfo;
+    auto it = lanLinkInfoMap_.find(newNetLinkInfo.ifaceName_);
+    if (it != lanLinkInfoMap_.end()) {
+        oldNetLinkInfo = it->second;
+    }
     int32_t ret = NETMANAGER_SUCCESS;
-    ret += DelIp(newNetLinkInfo);
-    ret += SetIp(newNetLinkInfo);
-    ret += DelRoute(newNetLinkInfo);
-    ret += SetRoute(newNetLinkInfo);
+    ret += DelIp(oldNetLinkInfo, newNetLinkInfo);
+    ret += SetIp(oldNetLinkInfo, newNetLinkInfo);
+    ret += DelRoute(oldNetLinkInfo, newNetLinkInfo);
+    ret += SetRoute(oldNetLinkInfo, newNetLinkInfo);
+    if (ret == NETMANAGER_SUCCESS) {
+        lanLinkInfoMap_[newNetLinkInfo.ifaceName_] = newNetLinkInfo;
+    } else {
+        /* keep the previous cached state so the next update retries the failed diff
+         * (delete operations are idempotent, redoing them is harmless) */
+        NETMGR_EXT_LOG_E("update lan[%{public}s] linkinfo partially failed, keep cached state for retry",
+                         newNetLinkInfo.ifaceName_.c_str());
+    }
     return ret;
 }
 
@@ -103,14 +119,19 @@ int32_t EthernetLanManagement::ReleaseLanNetLink(sptr<DevInterfaceState> &devSta
                              route.iface_.c_str(), destAddress.c_str(), route.gateway_.address_.c_str());
         }
     }
+    /* addresses and routes of this interface have been removed from kernel, drop cached state */
+    {
+        std::lock_guard<ffrt::mutex> locker(netLinkInfoMutex_);
+        lanLinkInfoMap_.erase(newNetLinkInfo.ifaceName_);
+    }
     return ret;
 }
 
-int32_t EthernetLanManagement::SetIp(const NetLinkInfo &newNetLinkInfo)
+int32_t EthernetLanManagement::SetIp(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo)
 {
     NETMGR_EXT_LOG_D("EthernetLanManagement:SetIp...");
     for (const auto &inetAddr : newNetLinkInfo.netAddrList_) {
-        if (netLinkInfo_.HasNetAddr(inetAddr)) {
+        if (oldNetLinkInfo.HasNetAddr(inetAddr)) {
             NETMGR_EXT_LOG_W("Same ip address:[%{public}s], there is no need to add it again",
                              CommonUtils::ToAnonymousIp(inetAddr.address_).c_str());
             continue;
@@ -129,10 +150,10 @@ int32_t EthernetLanManagement::SetIp(const NetLinkInfo &newNetLinkInfo)
     return NETMANAGER_SUCCESS;
 }
 
-int32_t EthernetLanManagement::DelIp(const NetLinkInfo &newNetLinkInfo)
+int32_t EthernetLanManagement::DelIp(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo)
 {
     NETMGR_EXT_LOG_D("EthernetLanManagement:DelIp...");
-    for (const auto &inetAddr : netLinkInfo_.netAddrList_) {
+    for (const auto &inetAddr : oldNetLinkInfo.netAddrList_) {
         if (newNetLinkInfo.HasNetAddr(inetAddr)) {
             NETMGR_EXT_LOG_W("Same ip address:[%{public}s], there is not need to be deleted",
                              CommonUtils::ToAnonymousIp(inetAddr.address_).c_str());
@@ -142,7 +163,7 @@ int32_t EthernetLanManagement::DelIp(const NetLinkInfo &newNetLinkInfo)
         auto prefixLen = inetAddr.prefixlen_ ? static_cast<int32_t>(inetAddr.prefixlen_)
                                              : ((family == AF_INET6) ? CommonUtils::Ipv6PrefixLen(inetAddr.netMask_)
                                                                      : CommonUtils::Ipv4PrefixLen(inetAddr.netMask_));
-        auto ret = NetConnClient::GetInstance().DelInterfaceAddress(netLinkInfo_.ifaceName_,
+        auto ret = NetConnClient::GetInstance().DelInterfaceAddress(oldNetLinkInfo.ifaceName_,
                                                                     inetAddr.address_, prefixLen);
         if (ret != NETMANAGER_SUCCESS) {
             NETMGR_EXT_LOG_E("del lan interface address failed");
@@ -152,10 +173,10 @@ int32_t EthernetLanManagement::DelIp(const NetLinkInfo &newNetLinkInfo)
     return NETMANAGER_SUCCESS;
 }
 
-int32_t EthernetLanManagement::SetRoute(const NetLinkInfo &newNetLinkInfo)
+int32_t EthernetLanManagement::SetRoute(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo)
 {
     for (const auto &route : newNetLinkInfo.routeList_) {
-        if (netLinkInfo_.HasRoute(route)) {
+        if (oldNetLinkInfo.HasRoute(route)) {
             NETMGR_EXT_LOG_W("Same route:[%{public}s]  ifo, there is no need to add it again",
                              CommonUtils::ToAnonymousIp(route.destination_.address_).c_str());
             continue;
@@ -171,9 +192,9 @@ int32_t EthernetLanManagement::SetRoute(const NetLinkInfo &newNetLinkInfo)
     return NETMANAGER_SUCCESS;
 }
 
-int32_t EthernetLanManagement::DelRoute(const NetLinkInfo &newNetLinkInfo)
+int32_t EthernetLanManagement::DelRoute(const NetLinkInfo &oldNetLinkInfo, const NetLinkInfo &newNetLinkInfo)
 {
-    for (const auto &route : netLinkInfo_.routeList_) {
+    for (const auto &route : oldNetLinkInfo.routeList_) {
         if (newNetLinkInfo.HasRoute(route)) {
             NETMGR_EXT_LOG_W("Same route:[%{public}s]  ifo, there is not need to be deleted",
                              CommonUtils::ToAnonymousIp(route.destination_.address_).c_str());
@@ -192,4 +213,3 @@ int32_t EthernetLanManagement::DelRoute(const NetLinkInfo &newNetLinkInfo)
 
 } // namespace NetManagerStandard
 } // namespace OHOS
-

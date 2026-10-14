@@ -432,7 +432,22 @@ bool ParseDestination(napi_env env, napi_value jsRoute, struct INetAddr &iNetAdd
 
     GetUint8FromJsOptionItem(env, netAddress, NET_FAMILY, iNetAddr.family_);
     GetUint8FromJsOptionItem(env, netAddress, NET_PORT, iNetAddr.port_);
-    GetUint8FromJsOptionItem(env, destination, NET_PREFIXLENGTH, iNetAddr.prefixlen_);
+    // LCOV_EXCL_START
+    if (NapiUtils::HasNamedProperty(env, destination, NET_PREFIXLENGTH)) {
+        if (NapiUtils::GetValueType(env, NapiUtils::GetNamedProperty(env, destination, NET_PREFIXLENGTH)) !=
+            napi_number) {
+            NETMGR_EXT_LOG_E("param [%{public}s] type is mismatch", NET_PREFIXLENGTH);
+            return false;
+        }
+        uint32_t prefix = NapiUtils::GetUint32Property(env, destination, NET_PREFIXLENGTH);
+        bool isIpv6 = CommonUtils::IsValidIPV6(iNetAddr.address_);
+        if (prefix > static_cast<uint32_t>(isIpv6 ? IPV6_NET_PREFIX_MAX_LENGTH : NET_MASK_MAX_LENGTH)) {
+            NETMGR_EXT_LOG_E("prefix: %{public}u error", prefix);
+            return false;
+        }
+        iNetAddr.prefixlen_ = static_cast<uint8_t>(prefix);
+    }
+    // LCOV_EXCL_STOP
     return true;
 }
 

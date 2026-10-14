@@ -1048,6 +1048,74 @@ HWTEST_F(NetTrafficFilterIptablesCommandBuilderTest, BuildPacketFilterCommandWit
     EXPECT_TRUE(result.find("--tcp-flags SYN,ACK,FIN,RST,PSH,URG") != std::string::npos);
 }
 
+HWTEST_F(NetTrafficFilterIptablesCommandBuilderTest, BuildPacketFilterCommandWithTCPFlagsUnknownBitsOnly, TestSize.Level1)
+{
+    TrafficFilterPacketRule rule;
+    rule.hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_OUTPUT);
+    rule.protocol_ = NETTRAFFICFILTER_PROTO_TCP;
+    rule.srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule.srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule.dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule.dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule.uidStart_ = UID_UNSPEC;
+    rule.uidEnd_ = UID_UNSPEC;
+    rule.inInterface_.enabled_ = false;
+    rule.outInterface_.enabled_ = false;
+    rule.tcpFlagsMatch_.enable_ = true;
+    rule.tcpFlagsMatch_.flagMask_ = 0xC0;
+    rule.tcpFlagsMatch_.flagComp_ = 0xC0;
+
+    std::string chainName = "PF_chain";
+    int32_t queueNum = 5;
+    std::string result = NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(rule, chainName, queueNum);
+    EXPECT_TRUE(result.find("--tcp-flags  NONE") != std::string::npos);
+}
+
+HWTEST_F(NetTrafficFilterIptablesCommandBuilderTest, BuildPacketFilterCommandWithTCPFlagsMaskAllBits, TestSize.Level1)
+{
+    TrafficFilterPacketRule rule;
+    rule.hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_OUTPUT);
+    rule.protocol_ = NETTRAFFICFILTER_PROTO_TCP;
+    rule.srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule.srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule.dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule.dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule.uidStart_ = UID_UNSPEC;
+    rule.uidEnd_ = UID_UNSPEC;
+    rule.inInterface_.enabled_ = false;
+    rule.outInterface_.enabled_ = false;
+    rule.tcpFlagsMatch_.enable_ = true;
+    rule.tcpFlagsMatch_.flagMask_ = 0xFF;
+    rule.tcpFlagsMatch_.flagComp_ = 0xFF;
+
+    std::string chainName = "PF_chain";
+    int32_t queueNum = 5;
+    std::string result = NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(rule, chainName, queueNum);
+    EXPECT_TRUE(result.find("--tcp-flags SYN,ACK,FIN,RST,PSH,URG SYN,ACK,FIN,RST,PSH,URG") != std::string::npos);
+}
+
+HWTEST_F(NetTrafficFilterIptablesCommandBuilderTest, BuildPacketFilterCommandWithConntrackUnknownBits, TestSize.Level1)
+{
+    TrafficFilterPacketRule rule;
+    rule.hookPoint_ = static_cast<int32_t>(TrafficFilterHookPoint::HOOK_OUTPUT);
+    rule.protocol_ = NETTRAFFICFILTER_PROTO_TCP;
+    rule.srcIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule.srcPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule.dstIp_.type_ = static_cast<int32_t>(TrafficFilterIPMatchType::IP_MATCH_ANY);
+    rule.dstPort_.type_ = static_cast<int32_t>(TrafficFilterPortMatchType::PORT_MATCH_ANY);
+    rule.uidStart_ = UID_UNSPEC;
+    rule.uidEnd_ = UID_UNSPEC;
+    rule.inInterface_.enabled_ = false;
+    rule.outInterface_.enabled_ = false;
+    rule.conntrackMatch_.enable_ = true;
+    rule.conntrackMatch_.stateMask_ = 0xE0;
+
+    std::string chainName = "PF_chain";
+    int32_t queueNum = 5;
+    std::string result = NetTrafficFilterIptablesCommandBuilder::BuildPacketFilterCommand(rule, chainName, queueNum);
+    EXPECT_TRUE(result.find("--ctstate") == std::string::npos);
+}
+
 HWTEST_F(NetTrafficFilterIptablesCommandBuilderTest, BuildPacketFilterCommandWithConntrack, TestSize.Level1)
 {
     TrafficFilterPacketRule rule;
