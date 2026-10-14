@@ -53,7 +53,6 @@ static constexpr uint8_t PORT_BYTE_SHIFT = 8;
 
 static constexpr int32_t NFNL_SUBSYS_QUEUE = 3;
 static constexpr int32_t NFQ_MSG_PACKET = 0;
-static constexpr int32_t NFQ_MSG_VERDICT = 1;
 static constexpr int32_t NUMBER_TWO = 2;
 static constexpr uint8_t NUMBER_EIGHT = 8;
 
@@ -63,7 +62,6 @@ static constexpr uint8_t TCP_DATA_OFFSET_MASK = 0xF0;
 static constexpr uint8_t TCP_DATA_OFFSET_SHIFT = 4;
 static constexpr uint8_t TCP_DATA_OFFSET_UNIT = 4;
 static constexpr uint16_t MAX_PACKET_HEADER_SIZE = 256;
-static constexpr int32_t BUFFER_SIZE = 256;
 
 static inline uint16_t NfqNlType(uint8_t subsys, uint8_t msg)
 {
@@ -1668,7 +1666,7 @@ static int32_t SendDefaultVerdict(OH_TrafficFilter_PacketController *controller,
 {
     int32_t verdict = (controller->nfqueueFlags == OH_TRAFFICFILTER_NFQUEUE_FLAG_FAIL_OPEN) ? 1 : 0;
     int32_t ret = PacketControllerAdapterManager::GetInstance().SendVerdict(
-        controller->fd, queueNum, packetId, verdict, 0);
+        queueNum, packetId, verdict, 0);
     if (ret != OH_TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("SendDefaultVerdict failed, packetId=%{public}u, ret=%{public}d",
             packetId, ret);
@@ -1740,7 +1738,7 @@ static int32_t HandlePacketMessage(OH_TrafficFilter_PacketController *controller
     int verdict = controller->callback(&packet, controller->userData) == OH_TRAFFICFILTER_DECISION_ACCEPT ? 1 : 0;
     FreePacketHeader(headerBuffer);
     int32_t ret = PacketControllerAdapterManager::GetInstance().SendVerdict(
-        controller->fd, queueNum, packetId, verdict, 0);
+        queueNum, packetId, verdict, 0);
     if (ret != OH_TRAFFICFILTER_OK) {
         NETMGR_EXT_LOG_E("SendVerdict failed, packetId=%{public}u, ret=%{public}d", packetId, ret);
     }
@@ -1805,85 +1803,11 @@ static void *PacketWorkerThread(void *arg)
     return nullptr;
 }
 
-static int32_t SendToKernel(int fd, struct nlmsghdr *nlh)
-{
-    struct sockaddr_nl addr = { .nl_family = AF_NETLINK };
-    struct iovec iov = { .iov_base = nlh, .iov_len = nlh->nlmsg_len };
-    struct msghdr msg = {
-        .msg_name = &addr, .msg_namelen = sizeof(addr),
-        .msg_iov = &iov, .msg_iovlen = 1,
-    };
-    return sendmsg(fd, &msg, 0) >= 0 ? 0 : -1;
-}
-
-static int32_t NlaAppend(struct nlmsghdr *nlh, size_t buflen, uint16_t type,
-    const void *data, size_t dataLen)
-{
-    size_t need = NLA_HDRLEN + dataLen;
-    size_t alignedLen = NLMSG_ALIGN(nlh->nlmsg_len) + NLA_ALIGN(need);
-    if (alignedLen > buflen) {
-        return -1;
-    }
-    struct nlattr *nla = reinterpret_cast<struct nlattr *>(
-        reinterpret_cast<char *>(nlh) + NLMSG_ALIGN(nlh->nlmsg_len));
-    nla->nla_len = NLA_HDRLEN + dataLen;
-    nla->nla_type = type;
-    if (data != nullptr && dataLen > 0) {
-        if (memcpy_s(reinterpret_cast<char *>(nla) + NLA_HDRLEN,
-            buflen - NLMSG_ALIGN(nlh->nlmsg_len) - NLA_HDRLEN, data, dataLen) != 0) {
-            return -1;
-        }
-    }
-    nlh->nlmsg_len = alignedLen;
-    return 0;
-}
-
-static int32_t BuildVerdict(struct nlmsghdr *nlh, size_t cap, const struct NfqVerdictParams *params)
-{
-    errno_t ret = memset_s(nlh, cap, 0, NLMSG_LENGTH(sizeof(struct NfqNfg)));
-    if (ret != 0) {
-        return -1;
-    }
-    nlh->nlmsg_len = NLMSG_LENGTH(sizeof(struct NfqNfg));
-    nlh->nlmsg_type = NfqNlType(NFNL_SUBSYS_QUEUE, NFQ_MSG_VERDICT);
-    nlh->nlmsg_flags = NLM_F_REQUEST;
-    nlh->nlmsg_seq = 0;
-
-    struct NfqNfg *nfg = reinterpret_cast<struct NfqNfg *>(NLMSG_DATA(nlh));
-    nfg->family = AF_UNSPEC;
-    nfg->version = 0;
-    nfg->resId = htons(params->qnum);
-
-    struct NfqVhdr vh = { .verdict = htonl(params->verdict), .id = htonl(params->pktId) };
-    if (NlaAppend(nlh, cap, NFQA_VERDICT_HDR, &vh, sizeof(vh)) < 0) {
-        return -1;
-    }
-
-    if (params->mark != 0) {
-        uint32_t beMark = htonl(params->mark);
-        if (NlaAppend(nlh, cap, NFQA_MARK, &beMark, sizeof(beMark)) < 0) {
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
-int32_t PacketControllerAdapterManager::SendVerdict(int32_t fd, int32_t queueNum,
-    uint32_t packetId, int32_t verdict, int32_t mark)
+int32_t PacketControllerAdapterManager::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
 {
     NETMGR_EXT_LOG_D("PacketControllerAdapterManager::SendVerdict");
-    char buf[BUFFER_SIZE];
-    struct nlmsghdr *nlh = reinterpret_cast<struct nlmsghdr *>(buf);
-    struct NfqVerdictParams params;
-    params.qnum = queueNum;
-    params.pktId = packetId;
-    params.verdict = verdict;
-    params.mark = mark;
-    if (BuildVerdict(nlh, sizeof(buf), &params) < 0) {
-        return -1;
-    }
-    return SendToKernel(fd, nlh);
+    int32_t ret = NetFirewallClient::GetInstance().SendVerdict(queueNum, packetId, verdict, mark);
+    return ret;
 }
 
 int32_t PacketControllerAdapterManager::RegisterPacketCallback(OH_TrafficFilter_PacketController* controller,

@@ -2054,5 +2054,34 @@ HWTEST_F(NetFirewallServiceTest, DestroyPacketController001, TestSize.Level1)
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
 }
 
+/**
+ * @tc.name: SendVerdict001
+ * @tc.desc: Test NetFirewallService SendVerdict with invalid queueNum.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, SendVerdict001, TestSize.Level1)
+{
+    int32_t queueNum = 9999;
+    uint32_t packetId = 100;
+    int32_t verdict = 1;
+    int32_t mark = 0;
+    int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
+
+/**
+ * @tc.name: SendVerdict002
+ * @tc.desc: Test NetFirewallService SendVerdict with zero queueNum.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetFirewallServiceTest, SendVerdict002, TestSize.Level1)
+{
+    int32_t queueNum = 0;
+    uint32_t packetId = 0;
+    int32_t verdict = 0;
+    int32_t mark = 0;
+    int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
+    EXPECT_NE(ret, FIREWALL_SUCCESS);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
