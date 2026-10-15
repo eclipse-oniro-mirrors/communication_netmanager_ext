@@ -333,6 +333,34 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+HWTEST_F(NetworkShareServiceTest, GetSharingAddressTest001, TestSize.Level1)
+{
+    sptr<NetworkShareAddressParcel> addressParcel = nullptr;
+    int32_t ret = instance_->GetSharingAddress(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI), addressParcel);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareServiceTest, GetSharingAddressTest002, TestSize.Level1)
+{
+    sptr<NetworkShareAddressParcel> addressParcel = nullptr;
+    int32_t ret = instance_->GetSharingAddress(static_cast<int32_t>(SharingIfaceType::SHARING_NONE), addressParcel);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    ret = instance_->GetSharingAddress(static_cast<int32_t>(SharingIfaceType::SHARING_BLUETOOTH) + 1, addressParcel);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+}
+
+HWTEST_F(NetworkShareServiceTest, GetSharingAddressTest003, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    sptr<NetworkShareAddressParcel> addressParcel = nullptr;
+    int32_t ret = instance_->GetSharingAddress(static_cast<int32_t>(SharingIfaceType::SHARING_USB), addressParcel);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        EXPECT_NE(addressParcel, nullptr);
+    } else {
+        EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    }
+}
+
 HWTEST_F(NetworkShareServiceTest, OnAddSystemAbility001, TestSize.Level1)
 {
     std::string deviceId = "dev1";

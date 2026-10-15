@@ -44,6 +44,14 @@ pub struct InterfaceSharingStateInfo {
     pub state: SharingIfaceState,
 }
 
+#[ani_rs::ani(path = "@ohos.net.connection.connection.NetAddressInner")]
+#[derive(Clone)]
+pub struct NetAddress {
+    pub address: String,
+    pub family: Option<i32>,
+    pub port: Option<i32>,
+}
+
 #[ani_rs::ani(path = "@ohos.net.connection.connection.NetHandleInner")]
 #[derive(Clone)]
 pub struct NetHandle {

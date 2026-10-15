@@ -24,6 +24,7 @@
 #include <napi/native_api.h>
 
 #include "base_context.h"
+#include "inet_addr.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -49,6 +50,23 @@ private:
 
 private:
     bool CheckParamsType(napi_value *params, size_t paramsCount);
+};
+
+class GetSharingAddressContext final : public BaseContext {
+public:
+    DISALLOW_COPY_AND_MOVE(GetSharingAddressContext);
+
+    GetSharingAddressContext() = delete;
+    explicit GetSharingAddressContext(napi_env env, std::shared_ptr<EventManager>& manager);
+
+    void ParseParams(napi_value *params, size_t paramsCount);
+    int32_t GetParam() const;
+    const std::vector<INetAddr> &GetAddresses() const;
+    void SetAddresses(const std::vector<INetAddr> &addresses);
+
+private:
+    int32_t param_ = 0;
+    std::vector<INetAddr> addresses_;
 };
 
 using StopSharingContext = NetShareStartSharingContext;

@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "inet_addr.h"
 #include "inetwork_share_service.h"
 #include "isharing_event_callback.h"
 #include "parcel.h"
@@ -125,6 +126,16 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t GetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces);
+
+    /**
+     * get the address of the serving interface by sharing type, link-local ipv6 address is excluded
+     *
+     * @param type the network sharing type, includes wifi, usb, bluetooth
+     * @param addresses ipv4 and ipv6 address vector of the interfaces
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @permission ohos.permission.GET_NETWORK_INFO
+     */
+    int32_t GetSharingAddress(const SharingIfaceType &type, std::vector<INetAddr> &addresses);
 
     /**
      * Obtains the number of downlink data bytes of the sharing network interfaces.

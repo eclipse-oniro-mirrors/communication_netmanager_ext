@@ -37,6 +37,7 @@ public:
     static void ExecGetSharingIfaces(napi_env env, void *data);
     static void ExecGetSharingState(napi_env env, void *data);
     static void ExecGetSharableRegexes(napi_env env, void *data);
+    static void ExecGetSharingAddress(napi_env env, void *data);
     static void ExecGetStatsRxBytes(napi_env env, void *data);
     static void ExecGetStatsTxBytes(napi_env env, void *data);
     static void ExecGetStatsTotalBytes(napi_env env, void *data);
@@ -48,6 +49,7 @@ public:
     static void GetSharingIfacesCallback(napi_env env, napi_status status, void *data);
     static void GetSharingStateCallback(napi_env env, napi_status status, void *data);
     static void GetSharableRegexesCallback(napi_env env, napi_status status, void *data);
+    static void GetSharingAddressCallback(napi_env env, napi_status status, void *data);
     static void GetStatsRxBytesCallback(napi_env env, napi_status status, void *data);
     static void GetStatsTxBytesCallback(napi_env env, napi_status status, void *data);
     static void GetStatsTotalBytesCallback(napi_env env, napi_status status, void *data);

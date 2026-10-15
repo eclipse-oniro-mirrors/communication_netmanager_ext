@@ -21,6 +21,7 @@
       "OHOS::NetManagerStandard::NetworkShareClient::StartSharing(OHOS::NetManagerStandard::SharingIfaceType const&)";
       "OHOS::NetManagerStandard::NetworkShareClient::StopSharing(OHOS::NetManagerStandard::SharingIfaceType const&)";
       "OHOS::NetManagerStandard::NetworkShareClient::GetSharingIfaces(OHOS::NetManagerStandard::SharingIfaceState const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
+      "OHOS::NetManagerStandard::NetworkShareClient::GetSharingAddress(OHOS::NetManagerStandard::SharingIfaceType const&, std::__h::vector<OHOS::NetManagerStandard::INetAddr, std::__h::allocator<OHOS::NetManagerStandard::INetAddr>>&)";
       "OHOS::NetManagerStandard::NetworkShareClient::GetSharingState(OHOS::NetManagerStandard::SharingIfaceType const&, OHOS::NetManagerStandard::SharingIfaceState&)";
       "OHOS::NetManagerStandard::NetworkShareClient::GetSharableRegexs(OHOS::NetManagerStandard::SharingIfaceType const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
       "OHOS::NetManagerStandard::NetworkShareClient::GetStatsRxBytes(int&)";
