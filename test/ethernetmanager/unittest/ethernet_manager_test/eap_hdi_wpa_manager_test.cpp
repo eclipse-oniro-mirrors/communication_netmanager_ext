@@ -14,22 +14,100 @@
  */
  
 #include <gtest/gtest.h>
+#include <atomic>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
 #include <fstream>
- 
+#include <filesystem>
+#include <thread>
+#include <unistd.h>
+
 #include "eth_eap_profile.h"
 #include "eap_hdi_wpa_manager.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "net_manager_constants.h"
- 
+
 #ifdef GTEST_API_
 #define private public
 #define protected public
 #endif
- 
+
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
 using namespace testing::ext;
+
+constexpr int32_t ETH_EAP_FAKE_BLOCK_MAX_MS = 30000;
+constexpr int32_t ETH_EAP_FAKE_BLOCK_POLL_MS = 10;
+
+// HDI 假桩：struct IEthernet 是函数指针表；IEthernetReleaseInstance 按 EthernetProxy
+// 布局取 {impl, remote} 前缀，remote 置空时回收为空操作，堆分配可用 free 安全释放
+struct EthernetHdiFake {
+    struct IEthernet impl;
+    struct HdfRemoteService *remote;
+};
+
+std::atomic<int32_t> g_fakeUnregisterRet = HDF_SUCCESS;
+std::atomic<int32_t> g_fakeStopRet = HDF_SUCCESS;
+std::atomic<int> g_fakeUnregisterCalls = 0;
+std::atomic<int> g_fakeStopCalls = 0;
+std::atomic<int> g_fakeStopReturned = 0;
+std::atomic<bool> g_fakeStopBlock = false;
+
+int32_t FakeUnregisterEapEventCallback(struct IEthernet *self, struct IEthernetCallback *cbFunc,
+                                       const char *ifName)
+{
+    g_fakeUnregisterCalls.fetch_add(1);
+    return g_fakeUnregisterRet.load();
+}
+
+int32_t FakeStopEap(struct IEthernet *self, const char *ifName)
+{
+    g_fakeStopCalls.fetch_add(1);
+    // 模拟 ethernet_host 卡死时 hdicall 挂起；上限 30s 防止用例异常时线程悬挂
+    for (int32_t waited = 0; g_fakeStopBlock.load() && waited < ETH_EAP_FAKE_BLOCK_MAX_MS;
+         waited += ETH_EAP_FAKE_BLOCK_POLL_MS) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(ETH_EAP_FAKE_BLOCK_POLL_MS));
+    }
+    g_fakeStopReturned.fetch_add(1);
+    return g_fakeStopRet.load();
+}
+
+EthernetHdiFake *CreateEthernetHdiFake()
+{
+    auto *fake = static_cast<EthernetHdiFake *>(malloc(sizeof(EthernetHdiFake)));
+    if (fake == nullptr) {
+        return nullptr;
+    }
+    memset(&fake->impl, 0, sizeof(fake->impl));
+    fake->impl.UnregisterEapEventCallback = FakeUnregisterEapEventCallback;
+    fake->impl.StopEap = FakeStopEap;
+    fake->remote = nullptr;
+    return fake;
+}
+
+void ResetEthernetHdiFake()
+{
+    g_fakeUnregisterRet = HDF_SUCCESS;
+    g_fakeStopRet = HDF_SUCCESS;
+    g_fakeUnregisterCalls = 0;
+    g_fakeStopCalls = 0;
+    g_fakeStopReturned = 0;
+    g_fakeStopBlock = false;
+}
+
+bool WaitFakeStopReturned(int32_t timeoutMs)
+{
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (g_fakeStopReturned.load() >= 1) {
+            return true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    return g_fakeStopReturned.load() >= 1;
+}
 }
  
 static constexpr const char* CONFIG_PATH = "/data/service/el1/public/eth/";
@@ -83,6 +161,116 @@ HWTEST_F(EapHdiWpaManagerTest, StopEapTest001, TestSize.Level1)
     EXPECT_NE(manager_->StopEap(ifName), NETMANAGER_EXT_SUCCESS);
     manager_->iEthernet_ = nullptr;
     EXPECT_NE(manager_->StopEap(ifName), NETMANAGER_EXT_SUCCESS);
+}
+
+/**
+ * @tc.name: StopEapHdiCallSuccessTest002
+ * @tc.desc: hdicall 正常成功路径：假桩立即返回成功，限时守卫不影响正常登出时序
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, StopEapHdiCallSuccessTest002, TestSize.Level1)
+{
+    ResetEthernetHdiFake();
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthernetHdiFake *fake = CreateEthernetHdiFake();
+    ASSERT_NE(fake, nullptr);
+    manager_->devMgr_ = nullptr;
+    manager_->iEthernet_ = &fake->impl;
+
+    auto begin = std::chrono::steady_clock::now();
+    EXPECT_EQ(manager_->StopEap(ETH_NAME), EAP_ERRCODE_SUCCESS);
+    int64_t elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - begin).count();
+    EXPECT_LT(elapsedMs, 1000); // 正常路径不应触发限时守卫
+    EXPECT_EQ(g_fakeUnregisterCalls.load(), 1);
+    EXPECT_EQ(g_fakeStopCalls.load(), 1);
+    EXPECT_EQ(manager_->iEthernet_, nullptr); // 成功后释放实例
+}
+
+/**
+ * @tc.name: StopEapHdiCallFailTest003
+ * @tc.desc: hdicall 立即失败路径：返回 LOGOFF_FAIL 并释放实例
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, StopEapHdiCallFailTest003, TestSize.Level1)
+{
+    ResetEthernetHdiFake();
+    g_fakeStopRet = HDF_FAILURE;
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthernetHdiFake *fake = CreateEthernetHdiFake();
+    ASSERT_NE(fake, nullptr);
+    manager_->devMgr_ = nullptr;
+    manager_->iEthernet_ = &fake->impl;
+
+    EXPECT_EQ(manager_->StopEap(ETH_NAME), EAP_ERRCODE_LOGOFF_FAIL);
+    EXPECT_EQ(g_fakeStopCalls.load(), 1);
+    EXPECT_EQ(manager_->iEthernet_, nullptr);
+}
+
+/**
+ * @tc.name: StopEapHdiCallTimeoutRecoverTest004
+ * @tc.desc: hdicall 挂起触发限时守卫强杀后，在第二个等待周期内恢复：返回 LOGOFF_FAIL 并释放实例
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, StopEapHdiCallTimeoutRecoverTest004, TestSize.Level1)
+{
+    ResetEthernetHdiFake();
+    g_fakeStopRet = HDF_FAILURE;
+    g_fakeStopBlock = true;
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthernetHdiFake *fake = CreateEthernetHdiFake();
+    ASSERT_NE(fake, nullptr);
+    manager_->devMgr_ = nullptr;
+    manager_->iEthernet_ = &fake->impl;
+    // 3.5s 后解除挂起：覆盖超时强杀分支与恢复收尾
+    std::thread releaser([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(3500));
+        g_fakeStopBlock = false;
+    });
+
+    auto begin = std::chrono::steady_clock::now();
+    EXPECT_EQ(manager_->StopEap(ETH_NAME), EAP_ERRCODE_LOGOFF_FAIL);
+    int64_t elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - begin).count();
+    EXPECT_GE(elapsedMs, 3000); // 必然经过限时守卫超时
+    releaser.join();
+    EXPECT_TRUE(WaitFakeStopReturned(2000));
+    EXPECT_EQ(manager_->iEthernet_, nullptr);
+}
+
+/**
+ * @tc.name: StopEapHdiCallGiveUpTest005
+ * @tc.desc: hdicall 挂起超过总等待上限：放弃等待返回 LOGOFF_FAIL，成员实例立即置空，
+ *           释放职责原子移交给 hdicall 线程（返回后自行释放，不泄漏、不使用中释放）
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, StopEapHdiCallGiveUpTest005, TestSize.Level1)
+{
+    ResetEthernetHdiFake();
+    g_fakeStopRet = HDF_FAILURE;
+    g_fakeStopBlock = true;
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthernetHdiFake *fake = CreateEthernetHdiFake();
+    ASSERT_NE(fake, nullptr);
+    manager_->devMgr_ = nullptr;
+    manager_->iEthernet_ = &fake->impl;
+    // 9s 后才解除挂起：远超总等待上限，StopEap 必须先行放弃等待并返回
+    std::thread releaser([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(9000));
+        g_fakeStopBlock = false;
+    });
+
+    auto begin = std::chrono::steady_clock::now();
+    EXPECT_EQ(manager_->StopEap(ETH_NAME), EAP_ERRCODE_LOGOFF_FAIL);
+    int64_t elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - begin).count();
+    EXPECT_GE(elapsedMs, 5900);
+    EXPECT_LT(elapsedMs, 8500);
+    // 放弃路径特征：成员指针立即置空，不留死 proxy 供下次 LoadEthernetHdiService 覆盖泄漏
+    EXPECT_EQ(manager_->iEthernet_, nullptr);
+    releaser.join();
+    ASSERT_TRUE(WaitFakeStopReturned(2000));
+    // 实例由 hdicall 线程在返回后自行释放，无需手动回收
 }
  
 HWTEST_F(EapHdiWpaManagerTest, SetEapConfigTest001, TestSize.Level1)

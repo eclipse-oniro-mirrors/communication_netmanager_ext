@@ -211,9 +211,25 @@ void EthEapAutoAuthController::OnAuthFailed(const std::string &reason)
     int32_t currentRetry = EthEapStateManager::GetInstance().GetRetryCount();
     if (currentRetry >= MAX_RETRY_COUNT) {
         NETMGR_EXT_LOG_I("OnAuthFailed: max retry reached (%{public}d), state=Failed", currentRetry);
-        NetEapHandler::GetInstance().LogOffEthEap(DEFAULT_ETH_EAP_NETID);
         manualRound_.store(false);
         EthEapStateManager::GetInstance().SetState(EthEapState::STATE_FAILED, reason);
+        // LogOff 异步化：OnAuthFailed 可能运行在 HDI 事件回调线程（OnEapEventReport）
+        // 上下文中，同步反调 HDI（Unregister/StopEap）会与 ethernet_host 的 wpa 线程
+        // 构成同线程重入互锁；与 ScheduleRetry 的既有做法一致，登出动作在独立线程执行。
+        // 竞态防护：记录发起时的认证代数，执行前若有新一轮认证启动（代数变化或
+        // 正在认证中），迟到 LogOff 会误杀新会话，直接跳过
+        uint32_t logoffGeneration = authGeneration_.load();
+        std::thread([this, logoffGeneration]() {
+            if (authGeneration_.load() != logoffGeneration) {
+                NETMGR_EXT_LOG_I("AsyncLogOff: new auth round started (generation changed), skip");
+                return;
+            }
+            if (authenticating_.load()) {
+                NETMGR_EXT_LOG_I("AsyncLogOff: authentication in progress, skip");
+                return;
+            }
+            NetEapHandler::GetInstance().LogOffEthEap(DEFAULT_ETH_EAP_NETID);
+        }).detach();
         return;
     }
     int32_t newRetry = currentRetry + 1;
