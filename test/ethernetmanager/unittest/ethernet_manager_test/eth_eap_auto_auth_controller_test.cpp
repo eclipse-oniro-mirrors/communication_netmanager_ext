@@ -20,13 +20,19 @@
 #define protected public
 #endif
 
+#include <atomic>
 #include <chrono>
+#include <cstdlib>
+#include <cstring>
 #include <thread>
 
 #include "eth_eap_auto_auth_controller.h"
 #include "eth_eap_config_store.h"
 #include "eth_eap_state_manager.h"
 #include "net_manager_constants.h"
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#include "net_eap_handler.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -36,6 +42,47 @@ namespace NetManagerStandard {
 namespace {
 constexpr int32_t CONTROLLER_TEST_MAX_RETRY = 3;
 } // namespace
+
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+namespace {
+// HDI 假桩：布局与生成代码 EthernetProxy 前缀 {impl, remote} 一致，
+// remote 置空时 IEthernetReleaseInstance 回收为空操作，可用 free 安全释放
+struct ControllerEthernetHdiFake {
+    struct IEthernet impl;
+    struct HdfRemoteService *remote;
+};
+
+std::atomic<bool> g_ctrlFakeStopBlock = false;
+
+int32_t CtrlFakeUnregisterEapEventCallback(struct IEthernet *self, struct IEthernetCallback *cbFunc,
+                                           const char *ifName)
+{
+    return HDF_SUCCESS;
+}
+
+int32_t CtrlFakeStopEap(struct IEthernet *self, const char *ifName)
+{
+    // 模拟 ethernet_host 卡死时 hdicall 挂起；上限 30s 防止用例异常时线程悬挂
+    for (int32_t waited = 0; g_ctrlFakeStopBlock.load() && waited < 30000; waited += 10) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    return HDF_FAILURE;
+}
+
+ControllerEthernetHdiFake *CreateCtrlEthernetHdiFake()
+{
+    auto *fake = static_cast<ControllerEthernetHdiFake *>(malloc(sizeof(ControllerEthernetHdiFake)));
+    if (fake == nullptr) {
+        return nullptr;
+    }
+    memset(&fake->impl, 0, sizeof(fake->impl));
+    fake->impl.UnregisterEapEventCallback = CtrlFakeUnregisterEapEventCallback;
+    fake->impl.StopEap = CtrlFakeStopEap;
+    fake->remote = nullptr;
+    return fake;
+}
+} // namespace
+#endif // NET_EXTENSIBLE_AUTHENTICATION
 
 using namespace testing::ext;
 
@@ -438,6 +485,54 @@ HWTEST_F(EthEapAutoAuthControllerTest, EnterpriseReleaseTriggersAutoAuthTest020,
     EXPECT_FALSE(controller.IsEnterpriseOccupied());
     EXPECT_TRUE(WaitForStateLeave(EthEapState::STATE_IDLE, 8000));
 }
+
+#ifdef NET_EXTENSIBLE_AUTHENTICATION
+/**
+ * @tc.name  : OnAuthFailedMaxRetryAsyncLogoffTest021
+ * @tc.number: EthEapAutoAuthControllerTest_021
+ * @tc.desc  : 最大重试失败时终态同步置位，LogOff 异步执行不阻塞 OnAuthFailed 返回
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, OnAuthFailedMaxRetryAsyncLogoffTest021, TestSize.Level1)
+{
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    auto &handler = NetEapHandler::GetInstance();
+    std::shared_ptr<EapHdiWpaManager> manager = handler.eapHdiWpaManager_;
+    ASSERT_NE(manager, nullptr);
+    ControllerEthernetHdiFake *fake = CreateCtrlEthernetHdiFake();
+    ASSERT_NE(fake, nullptr);
+    manager->devMgr_ = nullptr;
+    manager->iEthernet_ = &fake->impl;
+    g_ctrlFakeStopBlock = true; // 模拟 hdicall 挂死
+    controller.authenticating_.store(true);
+    EthEapStateManager::GetInstance().SetRetryCount(CONTROLLER_TEST_MAX_RETRY);
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATING, "");
+
+    auto begin = std::chrono::steady_clock::now();
+    controller.OnAuthFailed("HUNG_LOGOFF");
+    int64_t elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - begin).count();
+    // 终态在 OnAuthFailed 返回前同步生效
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetState(), EthEapState::STATE_FAILED);
+    EXPECT_FALSE(controller.authenticating_.load());
+    EXPECT_FALSE(controller.manualRound_.load());
+    // LogOff 已异步化：挂死的 hdicall 不得阻塞本线程（同步实现将卡至限时守卫超时）
+    EXPECT_LT(elapsedMs, 1000);
+
+    // 解除挂起并等待异步 LogOff 收尾（实例释放即完成标志）
+    g_ctrlFakeStopBlock = false;
+    bool finished = false;
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(8000);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (manager->iEthernet_ == nullptr) {
+            finished = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    EXPECT_TRUE(finished);
+    manager->iEthernet_ = nullptr; // 保险复位，不影响后续用例
+}
+#endif // NET_EXTENSIBLE_AUTHENTICATION
 
 #endif // NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
 
