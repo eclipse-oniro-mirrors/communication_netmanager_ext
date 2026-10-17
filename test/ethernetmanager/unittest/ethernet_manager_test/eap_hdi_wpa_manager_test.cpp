@@ -356,6 +356,26 @@ HWTEST_F(EapHdiWpaManagerTest, OnEapEventReport001, TestSize.Level1)
     EXPECT_NE(manager_->OnEapEventReport(nullptr, ifName, value), NETMANAGER_EXT_SUCCESS);
 }
  
+HWTEST_F(EapHdiWpaManagerTest, OnEapEventReport002, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    const char *ifName = "eth0";
+    const char *authValue = "802.1 Authentication Complete";  // AUTHENTICATION_RES ctrl 事件
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    // PC 形态：ctrl 事件被 HandleEthCtrlEventOnEth0 拦截，直接返回成功
+    EXPECT_EQ(manager_->OnEapEventReport(nullptr, ifName, authValue), NETMANAGER_SUCCESS);
+#else
+    // phone 形态：ctrl 事件拦截未编译，按普通报文解析因段数不符返回内部错误
+    EXPECT_EQ(manager_->OnEapEventReport(nullptr, ifName, authValue), EAP_ERRCODE_INTERNAL_ERROR);
+#endif
+}
+
+HWTEST_F(EapHdiWpaManagerTest, OnEapEventReport003, TestSize.Level1)
+{
+    // Supplemental regression: malformed ctrl events must not report authentication success.
+    EXPECT_EQ(EapHdiWpaManager::OnEapEventReport(nullptr, "eth0", "invalid"), EAP_ERRCODE_INTERNAL_ERROR);
+}
+
 HWTEST_F(EapHdiWpaManagerTest, ConvertStrToInt001, TestSize.Level1)
 {
     std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
@@ -396,5 +416,86 @@ HWTEST_F(EapHdiWpaManagerTest, ReplyCustomEapDataTest001, TestSize.Level1)
     EXPECT_NE(manager_->ReplyCustomEapData(ifName, result, eapData), NETMANAGER_EXT_SUCCESS);
 }
  
+/**
+ * @tc.name: AppendCommonTlsParamsTest002
+ * @tc.desc: Test AppendCommonTlsParams keyUri skip branch (empty caPath + "oh:" prefix alias).
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, AppendCommonTlsParamsTest002, TestSize.Level1)
+{
+    std::shared_ptr<EapHdiWpaManager> manager_ = std::make_shared<EapHdiWpaManager>();
+    EthEapProfile profile;
+    // caPath 为空且证书别名为 keyUri（oh: 前缀）：跳过 ca_cert 写入
+    profile.caCertAliases = "oh:ak=TestKeyUri";
+    manager_->AppendCommonTlsParams(profile);
+    EXPECT_TRUE(manager_->setNetCmd_.empty());
+    profile.altSubjectMatch = "altSubjectMatch";
+    manager_->AppendCommonTlsParams(profile);
+    EXPECT_FALSE(manager_->setNetCmd_.empty());
+}
+
+/**
+ * @tc.name: ParseEapEventDataTest001
+ * @tc.desc: Test ParseEapEventData with non-numeric msgId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, ParseEapEventDataTest001, TestSize.Level1)
+{
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    // msgId 非数字：字符串转整数失败
+    std::vector<std::string> vec = {"1", "abc", "1", "1", "1", "AAAA"};
+    EXPECT_EQ(EapHdiWpaManager::ParseEapEventData(vec, eapData), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: ParseEapEventDataTest002
+ * @tc.desc: Test ParseEapEventData with bufferLen exceeding the upper limit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, ParseEapEventDataTest002, TestSize.Level1)
+{
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    // bufferLen 超上限
+    std::vector<std::string> vec = {"1", "1", "1", "1", "99999", "AAAA"};
+    EXPECT_EQ(EapHdiWpaManager::ParseEapEventData(vec, eapData), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: ParseEapEventDataTest003
+ * @tc.desc: Test ParseEapEventData with bufferLen mismatching the decoded buffer size.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, ParseEapEventDataTest003, TestSize.Level1)
+{
+    sptr<EapData> eapData = new (std::nothrow) EapData();
+    // bufferLen 与 Base64 解码后长度不一致：AAAA 解码为 3 字节
+    std::vector<std::string> vec = {"1", "1", "1", "1", "1", "AAAA"};
+    EXPECT_EQ(EapHdiWpaManager::ParseEapEventData(vec, eapData), NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: OnEapEventReportTest005
+ * @tc.desc: Test OnEapEventReport with valid field count but parse failure.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, OnEapEventReportTest005, TestSize.Level1)
+{
+    // 6 段格式合法但 bufferLen 不匹配：ParseEapEventData 失败后向上返回
+    int32_t ret = EapHdiWpaManager::OnEapEventReport(nullptr, "wlan0", "1:1:1:1:1:AAAA");
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+/**
+ * @tc.name: OnEapEventReportTest006
+ * @tc.desc: Test OnEapEventReport with fully valid message, parse success and notify path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EapHdiWpaManagerTest, OnEapEventReportTest006, TestSize.Level1)
+{
+    // 完整合法报文：bufferLen 与 Base64 解码字节数一致，解析成功后走通知链路
+    int32_t ret = EapHdiWpaManager::OnEapEventReport(nullptr, "wlan0", "0:1:4:258:3:QUJD");
+    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+}
+
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "eap_module.h"
 
 #include "eth_eap_profile.h"
 #include "netmanager_ext_log.h"
- 
+
 static constexpr const char *EAP_MODULE_NAME = "net.eap";
 static constexpr const char *INTERFACE_ETH_METHOD = "EapMethod";
 static constexpr const char *INTERFACE_PHASE_2_METHOD = "Phase2Method";
@@ -25,7 +25,7 @@ static constexpr const char *FUNCTION_START_ETH_EAP = "startEthEap";
 static constexpr const char *FUNCTION_LOGOFF_ETH_EAP = "logOffEthEap";
 
 namespace OHOS::NetManagerStandard {
- 
+
 static void AddCleanupHook(napi_env env)
 {
     NapiUtils::SetEnvValid(env);
@@ -63,7 +63,7 @@ void EapModule::DeclareEapMethod(napi_env env, napi_value exports)
     });
     NapiUtils::SetNamedProperty(env, exports, INTERFACE_ETH_METHOD, result);
 }
- 
+
 void EapModule::DeclarePhase2Method(napi_env env, napi_value exports)
 {
     napi_value result = NapiUtils::CreateObject(env);
@@ -87,7 +87,7 @@ void EapModule::DeclarePhase2Method(napi_env env, napi_value exports)
     });
     NapiUtils::SetNamedProperty(env, exports, INTERFACE_PHASE_2_METHOD, result);
 }
- 
+
 napi_value EapModule::InitEapModule(napi_env env, napi_value exports)
 {
     std::initializer_list<napi_property_descriptor> functions = {
@@ -96,15 +96,60 @@ napi_value EapModule::InitEapModule(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION(functionReplyCustomEapData, ReplyCustomEapData),
         DECLARE_NAPI_FUNCTION(FUNCTION_START_ETH_EAP, StartEthEap),
         DECLARE_NAPI_FUNCTION(FUNCTION_LOGOFF_ETH_EAP, LogOffEthEap),
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+        DECLARE_NAPI_FUNCTION(functionSetEthEapConfig, SetEthEapConfig),
+        DECLARE_NAPI_FUNCTION(functionGetEthEapConfig, GetEthEapConfig),
+        DECLARE_NAPI_FUNCTION(functionDeleteEthEapConfig, DeleteEthEapConfig),
+        DECLARE_NAPI_FUNCTION(functionGetEthEapStateInfo, GetEthEapStateInfo),
+        DECLARE_NAPI_FUNCTION(functionOnStateChange, OnStateChange),
+        DECLARE_NAPI_FUNCTION(functionOffStateChange, OffStateChange),
+        DECLARE_NAPI_FUNCTION(functionConnectEthEap, Connect),
+#endif
     };
     NapiUtils::DefineProperties(env, exports, functions);
     InitProperties(env, exports);
     DeclareEapMethod(env, exports);
     DeclarePhase2Method(env, exports);
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    DeclareEthEapState(env, exports);
+    DeclareEthEapConnectAction(env, exports);
+#endif
     AddCleanupHook(env);
     return exports;
 }
- 
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+void EapModule::DeclareEthEapState(napi_env env, napi_value exports)
+{
+    napi_value result = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, result, {
+        DECLARE_NAPI_STATIC_PROPERTY("STATE_IDLE",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EthEapState::STATE_IDLE))),
+        DECLARE_NAPI_STATIC_PROPERTY("STATE_AUTHENTICATING",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EthEapState::STATE_AUTHENTICATING))),
+        DECLARE_NAPI_STATIC_PROPERTY("STATE_AUTHENTICATED",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EthEapState::STATE_AUTHENTICATED))),
+        DECLARE_NAPI_STATIC_PROPERTY("STATE_FAILED",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EthEapState::STATE_FAILED))),
+        DECLARE_NAPI_STATIC_PROPERTY("STATE_RETRYING",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(EthEapState::STATE_RETRYING))),
+    });
+    NapiUtils::SetNamedProperty(env, exports, interfaceEthEapState, result);
+}
+
+void EapModule::DeclareEthEapConnectAction(napi_env env, napi_value exports)
+{
+    napi_value result = NapiUtils::CreateObject(env);
+    NapiUtils::DefineProperties(env, result, {
+        DECLARE_NAPI_STATIC_PROPERTY("ACTION_CONNECT",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(0))),
+        DECLARE_NAPI_STATIC_PROPERTY("ACTION_DISCONNECT",
+            NapiUtils::CreateInt32(env, static_cast<int32_t>(1))),
+    });
+    NapiUtils::SetNamedProperty(env, exports, interfaceEthEapConnectAction, result);
+}
+#endif // NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+
 void EapModule::InitProperties(napi_env env, napi_value exports)
 {
     std::initializer_list<napi_property_descriptor> results = {
@@ -119,7 +164,7 @@ void EapModule::InitProperties(napi_env env, napi_value exports)
     NapiUtils::DefineProperties(env, customResult, results);
     NapiUtils::SetNamedProperty(env, exports, interfaceNetEapCustomResult, customResult);
 }
- 
+
 static napi_module g_eapModule = {
     .nm_version = 1,
     .nm_flags = 0,
@@ -129,7 +174,7 @@ static napi_module g_eapModule = {
     .nm_priv = nullptr,
     .reserved = {nullptr},
 };
- 
+
 extern "C" __attribute__((constructor)) void RegisterEapModule(void)
 {
     NETMANAGER_EXT_LOGI("RegisterEapModule success!");

@@ -27,14 +27,18 @@
 #include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
 #include "netmgr_ext_log_wrapper.h"
-#include "netsys_controller.h"
-#include "parameters.h"
-#include "securec.h"
 #ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
 #include "cJSON.h"
 #include "event_info.h"
 #include "ipc_skeleton.h"
 #include "sg_collect_client.h"
+#endif
+#include "netsys_controller.h"
+#include "parameters.h"
+#include "securec.h"
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "eth_eap_auto_auth_controller.h"
+#include "net_eap_handler.h"
 #endif
 
 namespace OHOS {
@@ -230,8 +234,31 @@ void EthernetManagement::UpdateInterfaceState(const std::string &dev, bool up)
         netLinkConfigs_.erase(dev);
         configsV4_.erase(dev);
         configsV6_.erase(dev);
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+        devState->SetIpConnectFlag(false);
+#endif
     }
 }
+
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+void EthernetManagement::ForceRestartDhcp(const std::string &dev)
+{
+    if (dev.empty()) {
+        return;
+    }
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    auto it = devs_.find(dev);
+    if (it == devs_.end() || it->second == nullptr) {
+        return;
+    }
+    auto state = it->second;
+    lock.unlock();
+    StopDhcpClient(dev, state);
+    StartDhcpClient(dev, state);
+
+    return;
+}
+#endif // defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
 
 int32_t EthernetManagement::GetMacAddress(std::vector<MacAddressInfo> &macAddrList)
 {
@@ -271,7 +298,7 @@ std::string EthernetManagement::GetMacAddr(const std::string &iface)
     std::string macAddr;
     struct ifreq ifr = {};
     strncpy_s(ifr.ifr_name, IFNAMSIZ, iface.c_str(), iface.length());
-    
+
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) != -1) {
         macAddr = HwAddrToStr(ifr.ifr_hwaddr.sa_data);
     }
@@ -451,6 +478,10 @@ int32_t EthernetManagement::UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::Dhc
         fit->second->UpdateLinkInfo(config);
         fit->second->RemoteUpdateNetLinkInfo();
     }
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+    NETMGR_EXT_LOG_D("ipConnectFlag is set true.");
+    fit->second->SetIpConnectFlag(true);
+#endif
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -691,6 +722,12 @@ void EthernetManagement::StartSetDevUpThd()
     for (auto &dev : tempDevMap) {
         std::string devName = dev.first;
         if (IsIfaceLinkUp(devName)) {
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+            // 开机兜底：服务启动前网线已插入，链路已 up，SetInterfaceUp 被跳过，
+            // 不会产生 netsys link up 事件——在此补记录网口名并触发自动认证
+            NetEapHandler::GetInstance().SetEthEapIfName(devName);
+            EthEapAutoAuthController::GetInstance().OnBootCompleted();
+#endif
             continue;
         }
         while (true) {
@@ -749,12 +786,6 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
     ethConfiguration_->ReadSystemConfiguration(devCaps_, devCfgs_);
     devs_.insert(std::make_pair(devName, devState));
     devState->SetDevName(devName);
-
-    auto fitCap = devCaps_.find(devName);
-    if (fitCap != devCaps_.end()) {
-        devState->SetNetCaps(fitCap->second);
-    }
-
     auto fitCfg = devCfgs_.find(devName);
     if (fitCfg != devCfgs_.end()) {
         if (fitCfg->second->mode_ == LAN_STATIC || fitCfg->second->mode_ == LAN_DHCP) {
@@ -771,6 +802,10 @@ void EthernetManagement::DevInterfaceAdd(const std::string &devName)
         ifCfg->mode_ = DHCP;
         devState->RemoteRegisterNetSupplier();
         devState->SetIfcfg(ifCfg);
+    }
+    auto fitCap = devCaps_.find(devName);
+    if (fitCap != devCaps_.end()) {
+        devState->SetNetCaps(fitCap->second);
     }
 }
 
@@ -839,7 +874,7 @@ bool EthernetManagement::GetSysNodeValue(const std::string &nodePath, std::strin
     infile.close();
     return true;
 }
- 
+
 void EthernetManagement::GetUsbEthDeviceInfo(const std::string &iface, std::string &nodePath,
     std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
@@ -949,7 +984,7 @@ void EthernetManagement::GetPciEthDeviceInfo(const std::string &iface, std::stri
     }
     deviceInfoList.push_back(tempDeviceInfo);
 }
- 
+
 void EthernetManagement::GetPciEthDeviceInfoExt(const std::string &iface, const std::string &nodePath,
     std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
@@ -985,7 +1020,7 @@ void EthernetManagement::GetPciEthDeviceInfoExt(const std::string &iface, const 
         deviceInfoList.push_back(tempDeviceInfo);
     }
 }
- 
+
 int32_t EthernetManagement::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
     deviceInfoList.clear();
@@ -1083,15 +1118,9 @@ bool EthernetManagement::IsEthernetEnabled()
 void EthernetManagement::EnableAllInterfaces()
 {
     NETMGR_EXT_LOG_I("EnableAllInterfaces start");
-    std::vector<std::string> devNames;
-    {
-        std::shared_lock<std::shared_mutex> lock(mutex_);
-        for (auto &[devName, devState] : devs_) {
-            (void)devState;
-            devNames.push_back(devName);
-        }
-    }
-    for (const auto &devName : devNames) {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    for (auto &[devName, devState] : devs_) {
+        (void)devState;
         if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Failed to set interface up: %{public}s", devName.c_str());
         }
@@ -1101,15 +1130,9 @@ void EthernetManagement::EnableAllInterfaces()
 void EthernetManagement::DisableAllInterfaces()
 {
     NETMGR_EXT_LOG_I("DisableAllInterfaces start");
-    std::vector<std::string> devNames;
-    {
-        std::shared_lock<std::shared_mutex> lock(mutex_);
-        for (auto &[devName, devState] : devs_) {
-            (void)devState;
-            devNames.push_back(devName);
-        }
-    }
-    for (const auto &devName : devNames) {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    for (auto &[devName, devState] : devs_) {
+        (void)devState;
         if (NetsysController::GetInstance().SetInterfaceDown(devName) != ERR_NONE) {
             NETMGR_EXT_LOG_E("Failed to set interface down: %{public}s", devName.c_str());
         }
