@@ -69,6 +69,10 @@ public:
 #endif // FEATURE_GET_IFACE_SUPPLIER_ID
 
     void GetDumpInfo(std::string &info);
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+    bool GetIpConnectFlag();
+    void SetIpConnectFlag(bool state);
+#endif
 
 private:
     enum ConnLinkState { REGISTERED, UNREGISTERED, LINK_AVAILABLE, LINK_UNAVAILABLE };
@@ -98,6 +102,9 @@ private:
     std::set<NetCap> netCaps_;
     NetBearType bearerType_ = BEARER_ETHERNET;
     mutable std::shared_mutex ifCfgMutex_;
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+    bool ipConnectFlag_ = false;
+#endif
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

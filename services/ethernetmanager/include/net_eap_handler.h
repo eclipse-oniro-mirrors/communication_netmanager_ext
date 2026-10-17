@@ -12,27 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef NET_EAP_HANDLER_H
 #define NET_EAP_HANDLER_H
- 
+
 #include <shared_mutex>
 #include <map>
 #include "eap_data.h"
 #include "inet_register_eap_callback.h"
 #include "inet_eap_postback_callback.h"
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
 #include "eth_eap_profile.h"
 #include "eap_hdi_wpa_manager.h"
 #endif
- 
+
 namespace OHOS {
 namespace NetManagerStandard {
 class NetEapHandler : public std::enable_shared_from_this<NetEapHandler> {
 public:
     NetEapHandler();
     ~NetEapHandler();
- 
+
     static NetEapHandler &GetInstance();
     int32_t RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);
     int32_t UnRegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);
@@ -40,7 +40,7 @@ public:
     int32_t RegCustomEapHandler(NetType netType, const std::string &regCmd,
         const sptr<INetEapPostbackCallback> &postBackCb);
     int32_t ReplyCustomEapData(int result, const sptr<EapData> &eapData);
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
     void SetEthEapIfName(const std::string &ifName);
     int32_t StartEthEap(int32_t netId, const EthEapProfile& profile);
     int32_t LogOffEthEap(int32_t netId);
@@ -49,7 +49,7 @@ public:
 private:
     void SetPostbackCallback(const sptr<INetEapPostbackCallback> &postbackCallback);
     sptr<INetEapPostbackCallback> GetPostbackCallback();
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
     void GetIfaceNameFromNetId(int32_t netId);
 #endif
 private:
@@ -60,7 +60,7 @@ private:
     std::mutex mutex_;
     std::shared_mutex postbackCallbackMutex_;
     std::mutex msgIdMutex_;
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
     std::shared_ptr<EapHdiWpaManager> eapHdiWpaManager_;
     std::vector<std::string> ethEapRegCmdVec_;
     std::string ethEapIfName_;

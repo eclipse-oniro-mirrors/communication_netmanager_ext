@@ -29,7 +29,14 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "netmanager_base_common_utils.h"
 #include "net_manager_constants.h"
-
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+#include "ethernet_management.h"
+#include "ethernet_service.h"
+#endif
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "eth_eap_state_manager.h"
+#include "eth_eap_auto_auth_controller.h"
+#endif
 namespace OHOS {
 namespace NetManagerStandard {
 
@@ -56,6 +63,9 @@ static constexpr const char* ITEM_ANONYMOUS_IDENTITY = "anonymous_identity=";
 static constexpr const char* ITEM_ALT_SUBJECT_MATCH = "altsubject_match=";
 static constexpr const char* ITEM_DOMAIN_SUFFIX_MATCH = "domain_suffix_match=";
 static constexpr const char* ITEM_REALM = "realm=";
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+static constexpr const char* AUTHENTICATION_RES =  "802.1 Authentication Complete";
+#endif
 static const std::string ITEM_QUOTE = "\"";
 static constexpr const char* SET_NETWORK_CMD = "SET_NETWORK ";
 static constexpr const char* REAUTHENTICATE_CMD = "REAUTHENTICATE";
@@ -68,6 +78,9 @@ static constexpr int8_t IDX_4 = 5;
 static constexpr int8_t BASE_10 = 10;
 static constexpr int8_t WPA_EVENT_REPORT_PARAM_CNT = 6;
 static constexpr int32_t MAX_EAP_DATA_LENGTH = 4096;
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+static constexpr int32_t ETH_EAP_CODE_FAILURE = 4;
+#endif
 
 static std::map<Phase2Method, std::string> PHASE2_METHOD_STR_MAP = {
     { Phase2Method::PHASE2_NONE, "NONE" },
@@ -111,6 +124,7 @@ EapHdiWpaManager::EapHdiWpaManager()
 
 int32_t EapHdiWpaManager::LoadEthernetHdiService()
 {
+    NETMGR_EXT_LOG_I("LoadEthernetHdiService enter");
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ != nullptr && devMgr_ != nullptr) {
         NETMGR_EXT_LOG_I("EthService already load");
@@ -140,6 +154,7 @@ int32_t EapHdiWpaManager::LoadEthernetHdiService()
 
 int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfile& profile)
 {
+    NETMGR_EXT_LOG_I("StartEap enter ifName=%{public}s", ifName.c_str());
     std::lock_guard<std::mutex> lock(wpaMutex_);
     if (iEthernet_ == nullptr) {
         NETMGR_EXT_LOG_E("StartEap iEthernet_ null");
@@ -149,23 +164,20 @@ int32_t EapHdiWpaManager::StartEap(const std::string& ifName, const EthEapProfil
     if (SetEapConfig(profile) != EAP_ERRCODE_SUCCESS) {
         setNetCmd_.assign(setNetCmd_.size(), '\0');
         setNetCmd_.clear();
-        IEthernetReleaseInstance(ETHERNET_SERVICE_NAME, iEthernet_, false);
-        iEthernet_ = nullptr;
-        UnloadDeviceManager();
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     if (RegisterEapEventCallback(ifName) != EAP_ERRCODE_SUCCESS) {
         setNetCmd_.assign(setNetCmd_.size(), '\0');
         setNetCmd_.clear();
-        IEthernetReleaseInstance(ETHERNET_SERVICE_NAME, iEthernet_, false);
-        iEthernet_ = nullptr;
-        UnloadDeviceManager();
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     int32_t ret = iEthernet_->StartEap(iEthernet_, ifName.c_str());
-    ret |= iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), setNetCmd_.c_str());
-    ret |= iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), REAUTHENTICATE_CMD);
-    if (ret != HDF_SUCCESS) {
+    int32_t ret2 = iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), setNetCmd_.c_str());
+    int32_t ret3 = iEthernet_->EapShellCmd(iEthernet_, ifName.c_str(), REAUTHENTICATE_CMD);
+    NETMGR_EXT_LOG_I("StartEap hdicall ret=%{public}d setNetwork=%{public}d reauth=%{public}d", ret, ret2, ret3);
+    setNetCmd_.assign(setNetCmd_.size(), '\0');
+    setNetCmd_.clear();
+    if (ret != HDF_SUCCESS || ret2 != HDF_SUCCESS || ret3 != HDF_SUCCESS) {
         NETMGR_EXT_LOG_E("StartEap fail %{public}d", ret);
         IEthernetReleaseInstance(ETHERNET_SERVICE_NAME, iEthernet_, false);
         iEthernet_ = nullptr;
@@ -226,13 +238,18 @@ void EapHdiWpaManager::AppendIfNotEmpty(const std::string& key, const std::strin
         setNetCmd_.append(key + ITEM_QUOTE + EscapeWpaValue(value) + ITEM_QUOTE + ITEM_LINE);
     }
 }
- 
+
 void EapHdiWpaManager::AppendCommonTlsParams(const EthEapProfile& config)
 {
-    if (!config.caCertAliases.empty()) {
-        AppendIfNotEmpty(ITEM_CA_CERT, config.caCertAliases);
-    } else {
+    // caPath 优先：系统证书目录 / 企业 API 直传路径 / 服务端解析 keyUri 落盘的 ca.pem。
+    // wpa 的 ca_cert 不支持证书管理器 keyUri（仅 client 侧支持 oh: 解析）：caPath 为空
+    // 且 caCertAliases 为 keyUri 时跳过 ca_cert 降级，直接透传会因按路径加载失败。
+    if (!config.caPath.empty()) {
         AppendIfNotEmpty(ITEM_CA_CERT, config.caPath);
+    } else if (config.caCertAliases.rfind("oh:", 0) == 0) {
+        NETMGR_EXT_LOG_W("AppendCommonTlsParams: caCertAliases is keyUri and caPath is empty, skip ca_cert");
+    } else {
+        AppendIfNotEmpty(ITEM_CA_CERT, config.caCertAliases);
     }
     AppendIfNotEmpty(ITEM_ALT_SUBJECT_MATCH, config.altSubjectMatch);
     AppendIfNotEmpty(ITEM_DOMAIN_SUFFIX_MATCH, config.domainSuffixMatch);
@@ -305,7 +322,9 @@ int32_t EapHdiWpaManager::RegisterEapEventCallback(const std::string& ifName)
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     ethCallback_.OnEapEventNotify = OnEapEventReport;
-    return iEthernet_->RegisterEapEventCallback(iEthernet_, &ethCallback_, ifName.c_str());
+    int32_t regRet = iEthernet_->RegisterEapEventCallback(iEthernet_, &ethCallback_, ifName.c_str());
+    NETMGR_EXT_LOG_I("RegisterEapEventCallback ifName=%{public}s ret=%{public}d", ifName.c_str(), regRet);
+    return regRet;
 }
 
 int32_t EapHdiWpaManager::UnregisterEapEventCallback(const std::string& ifName)
@@ -348,6 +367,58 @@ bool EapHdiWpaManager::WriteEapConfigToFile(const std::string &fileContext)
     return true;
 }
 
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+/** 处理 eth0 上认证结果类 ctrl 事件（成功/失败/重传）；false 表示继续走通用 EAP 数据上报流程 */
+static bool HandleEthCtrlEventOnEth0(const char *ifName, const char *value)
+{
+    if (std::strcmp(ifName, "eth0") != 0) {
+        return false;
+    }
+    if (std::strcmp(value, AUTHENTICATION_RES) == 0) {
+        NETMGR_EXT_LOG_I("EAP authentication success detected on eth0, triggering DHCP restart");
+        EthEapAutoAuthController::GetInstance().OnAuthSuccess();
+        DelayedSingleton<EthernetService>::GetInstance()->ForceRestartDhcp(ifName);
+        return true;
+    }
+    if (std::strncmp(value, "CTRL-EVENT-EAP-FAILURE", sizeof("CTRL-EVENT-EAP-FAILURE") - 1) == 0) {
+        NETMGR_EXT_LOG_I("EAP authentication failure detected on eth0");
+        EthEapAutoAuthController::GetInstance().OnAuthFailed("AUTH_FAILURE");
+        return true;
+    }
+    if (std::strncmp(value, "CTRL-EVENT-EAP-RETRANSMIT", sizeof("CTRL-EVENT-EAP-RETRANSMIT") - 1) == 0) {
+        NETMGR_EXT_LOG_I("EAP authentication retry detected on eth0");
+        return true;
+    }
+    return false;
+}
+#endif
+
+/** 解析 EAP 上报数据的数值与 Base64 缓冲字段并填充 EapData */
+int32_t EapHdiWpaManager::ParseEapEventData(const std::vector<std::string> &vecEapDatas,
+    const sptr<EapData> &notifyEapData)
+{
+    bool res = true;
+    res &= ConvertStrToInt(vecEapDatas[IDX_0], notifyEapData->msgId);
+    int32_t eapValue;
+    res &= ConvertStrToInt(vecEapDatas[IDX_1], eapValue);
+    notifyEapData->eapCode = static_cast<uint32_t>(eapValue);
+    res &= ConvertStrToInt(vecEapDatas[IDX_2], eapValue);
+    notifyEapData->eapType = static_cast<uint32_t>(eapValue);
+    res &= ConvertStrToInt(vecEapDatas[IDX_3], notifyEapData->bufferLen);
+    if (!res) {
+        NETMGR_EXT_LOG_E("ParseEapEventData convert err");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    std::string decodeEapBuf = Base64::Decode(vecEapDatas[IDX_4]);
+    notifyEapData->eapBuffer.assign(decodeEapBuf.begin(), decodeEapBuf.end());
+    if (notifyEapData->bufferLen > MAX_EAP_DATA_LENGTH
+        || static_cast<size_t>(notifyEapData->bufferLen) != notifyEapData->eapBuffer.size()) {
+        NETMGR_EXT_LOG_E("ParseEapEventData bufferLen err");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    return NETMANAGER_SUCCESS;
+}
+
 int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *ifName, const char *value)
 {
     /* @param value -> msgType:msgId:eapCode:eapType:bufferLen:eapBuffer */
@@ -355,6 +426,11 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     NETMGR_EXT_LOG_I("OnEapEventReport ifName = %{public}s", ifName);
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    if (HandleEthCtrlEventOnEth0(ifName, value)) {
+        return NETMANAGER_SUCCESS;
+    }
+#endif
     std::vector<std::string> vecEapDatas = CommonUtils::Split(value, ":");
     if (vecEapDatas.size() != WPA_EVENT_REPORT_PARAM_CNT) {
         NETMGR_EXT_LOG_E("OnEapEventReport value size err %{public}d", static_cast<int32_t>(vecEapDatas.size()));
@@ -366,25 +442,17 @@ int32_t EapHdiWpaManager::OnEapEventReport(IEthernetCallback *self, const char *
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     // LCOV_EXCL_STOP
-    bool res = true;
-    res &= ConvertStrToInt(vecEapDatas[IDX_0], notifyEapData->msgId);
-    int32_t eapValue = 0;
-    res &= ConvertStrToInt(vecEapDatas[IDX_1], eapValue);
-    notifyEapData->eapCode = static_cast<uint32_t>(eapValue);
-    res &= ConvertStrToInt(vecEapDatas[IDX_2], eapValue);
-    notifyEapData->eapType = static_cast<uint32_t>(eapValue);
-    res &= ConvertStrToInt(vecEapDatas[IDX_3], notifyEapData->bufferLen);
-    if (!res) {
-        NETMGR_EXT_LOG_E("OnEapEventReport convert err");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+    int32_t ret = ParseEapEventData(vecEapDatas, notifyEapData);
+    if (ret != NETMANAGER_SUCCESS) {
+        return ret;
     }
-    std::string decodeEapBuf = Base64::Decode(vecEapDatas[IDX_4]);
-    notifyEapData->eapBuffer.assign(decodeEapBuf.begin(), decodeEapBuf.end());
-    if (notifyEapData->bufferLen > MAX_EAP_DATA_LENGTH
-        || static_cast<size_t>(notifyEapData->bufferLen) != notifyEapData->eapBuffer.size()) {
-        NETMGR_EXT_LOG_E("OnEapEventReport bufferLen err");
-        return NETMANAGER_EXT_ERR_INTERNAL;
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    if (std::strcmp(ifName, "eth0") == 0 && notifyEapData->eapCode == ETH_EAP_CODE_FAILURE) {
+        NETMGR_EXT_LOG_I("OnEapEventReport eap failure result on eth0, msgId=%{public}d eapCode=%{public}u",
+            notifyEapData->msgId, notifyEapData->eapCode);
+        EthEapAutoAuthController::GetInstance().OnAuthFailed("AUTH_FAILURE");
     }
+#endif
     return NetEapHandler::GetInstance().NotifyWpaEapInterceptInfo(NetType::ETH0, notifyEapData);
 }
 

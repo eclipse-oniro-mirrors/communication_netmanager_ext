@@ -145,13 +145,32 @@ PermissionStateFull setNetFirewallState = {
     .grantFlags = { 2 },
 };
 
+PermissionDef enterpriseManageEapPermDef = {
+    .permissionName = "ohos.permission.ENTERPRISE_MANAGE_EAP",
+    .bundleName = "netmanager_ext_test",
+    .grantMode = 1,
+    .availableLevel = OHOS::Security::AccessToken::ATokenAplEnum::APL_SYSTEM_BASIC,
+    .label = "label",
+    .labelId = 1,
+    .description = "Test enterprise manage ethernet eap",
+    .descriptionId = 1,
+};
+
+PermissionStateFull enterpriseManageEapState = {
+    .permissionName = "ohos.permission.ENTERPRISE_MANAGE_EAP",
+    .isGeneral = true,
+    .resDeviceID = { "local" },
+    .grantStatus = { PermissionState::PERMISSION_GRANTED },
+    .grantFlags = { 2 },
+};
+
 HapPolicyParams netManagerExtPolicy = {
     .apl = APL_SYSTEM_BASIC,
     .domain = "test.domain",
     .permList = {getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef, getNetFirewallPermDef,
-                 setNetFirewallPermDef},
+                 setNetFirewallPermDef, enterpriseManageEapPermDef},
     .permStateList = {getNetworkInfoState, connectivityInternalState, manageVpnState, getNetFirewallState,
-                      setNetFirewallState},
+                      setNetFirewallState, enterpriseManageEapState},
 };
 
 PermissionDef testNoPermissionDef = {

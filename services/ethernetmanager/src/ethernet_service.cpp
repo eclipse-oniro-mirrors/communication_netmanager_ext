@@ -29,6 +29,12 @@
 #include "netmgr_ext_log_wrapper.h"
 #include "netsys_controller.h"
 #include "system_ability_definition.h"
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "eth_eap_auto_auth_controller.h"
+#include "eth_eap_cert_store.h"
+#include "eth_eap_config_store.h"
+#include "eth_eap_state_manager.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -38,6 +44,7 @@ constexpr uint16_t DEPENDENT_SERVICE_COMMON_EVENT = 0x0002;
 constexpr uint16_t DEPENDENT_SERVICE_All = 0x0003;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "POLICY_CALLBACK_WORK_THREAD";
 constexpr const char *ETH_PREFIX = "eth";
+constexpr const char *ENTERPRISE_MANAGE_EAP = "ohos.permission.ENTERPRISE_MANAGE_EAP";
 const bool REGISTER_LOCAL_RESULT_ETH =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<EthernetService>::GetInstance().get());
 } // namespace
@@ -71,18 +78,7 @@ void EthernetService::OnStop()
 {
     state_ = STATE_STOPPED;
     registerToService_ = false;
-    {
-        std::unique_lock<std::shared_mutex> lock(ifaceCallbacksMutex_);
-        if (ifaceCallbackDeathRecipient_ != nullptr) {
-            for (auto &callback : monitorIfaceCallbacks_) {
-                if (callback != nullptr && callback->AsObject() != nullptr) {
-                    callback->AsObject()->RemoveDeathRecipient(ifaceCallbackDeathRecipient_);
-                }
-            }
-        }
-        monitorIfaceCallbacks_.clear();
-        ifaceCallbackDeathRecipient_ = nullptr;
-    }
+    ethernetServiceFfrtQueue_.reset();
 }
 
 int32_t EthernetService::Dump(int32_t fd, const std::vector<std::u16string> &args)
@@ -141,6 +137,7 @@ bool EthernetService::Init()
     AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
     NetsysController::GetInstance().RegisterCallback(interfaceStateCallback_);
     NetManagerCenter::GetInstance().RegisterEthernetService(serviceComm_);
+    ethernetServiceFfrtQueue_ = std::make_shared<ffrt::queue>("EthernetService");
     return true;
 }
 
@@ -167,7 +164,7 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAddressRemoved
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAdded(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, added", iface.c_str());
-    ethernetService_.NotifyMonitorIfaceCallback(
+    ethernetService_.NotifyMonitorIfaceCallbackAsync(
         [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceAdded(iface); });
     return 0;
 }
@@ -175,7 +172,7 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceAdded(const st
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceRemoved(const std::string &iface)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, removed", iface.c_str());
-    ethernetService_.NotifyMonitorIfaceCallback(
+    ethernetService_.NotifyMonitorIfaceCallbackAsync(
         [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceRemoved(iface); });
     return 0;
 }
@@ -188,13 +185,19 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceChanged(const 
 int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceLinkStateChanged(const std::string &ifName, bool up)
 {
     NETMGR_EXT_LOG_D("iface: %{public}s, up: %{public}d", ifName.c_str(), up);
-    ethernetService_.NotifyMonitorIfaceCallback(
+    ethernetService_.NotifyMonitorIfaceCallbackAsync(
         [=](const sptr<InterfaceStateCallback> &callback) { callback->OnInterfaceChanged(ifName, up); });
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
     if (up && (ifName.find(ETH_PREFIX) != std::string::npos)) {
         NetEapHandler::GetInstance().SetEthEapIfName(ifName);
     }
-#endif // NET_EXTENSIBLE_AUTHENTICATION
+#endif
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    if (up && (ifName.find(ETH_PREFIX) != std::string::npos)) {
+        NETMGR_EXT_LOG_I("eth link up %{public}s, trigger auto auth", ifName.c_str());
+        EthEapAutoAuthController::GetInstance().OnLinkUp(ifName);
+    }
+#endif // NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
     return 0;
 }
 
@@ -329,7 +332,7 @@ int32_t EthernetService::RegisterIfacesStateChanged(const sptr<InterfaceStateCal
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return RegisterMonitorIfaceCallback(callback);
+    return RegisterMonitorIfaceCallbackAsync(callback);
 }
 
 int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateCallback> &callback)
@@ -346,7 +349,7 @@ int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateC
         NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    return UnregisterMonitorIfaceCallback(callback);
+    return UnregisterMonitorIfaceCallbackAsync(callback);
 }
 
 int32_t EthernetService::SetInterfaceUp(const std::string &iface)
@@ -412,81 +415,76 @@ int32_t EthernetService::SetInterfaceConfig(const std::string &iface, const Conf
     return NetsysController::GetInstance().SetInterfaceConfig(config);
 }
 
-int32_t EthernetService::RegisterMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback)
+int32_t EthernetService::RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback)
 {
-    if (callback == nullptr || callback->AsObject() == nullptr) {
-        NETMGR_EXT_LOG_E("Register interface callback is invalid");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    if (!ethernetServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Init Fail");
+        return ret;
     }
-    std::unique_lock<std::shared_mutex> lock(ifaceCallbacksMutex_);
-    for (const auto &item : monitorIfaceCallbacks_) {
-        if (item != nullptr && item->AsObject() != nullptr &&
-            item->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
-            NETMGR_EXT_LOG_D("Register interface callback failed, callback already exists");
-            return NETMANAGER_EXT_ERR_OPERATION_FAILED;
-        }
-    }
-    if (ifaceCallbackDeathRecipient_ == nullptr) {
-        ifaceCallbackDeathRecipient_ = new (std::nothrow) IfaceCallbackDeathRecipient(shared_from_this());
-    }
-    if (ifaceCallbackDeathRecipient_ == nullptr ||
-        !callback->AsObject()->AddDeathRecipient(ifaceCallbackDeathRecipient_)) {
-        NETMGR_EXT_LOG_E("AddIfaceCallbackDeathRecipient failed");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    }
-    monitorIfaceCallbacks_.push_back(callback);
-    NETMGR_EXT_LOG_D("Register interface callback success");
-    return NETMANAGER_EXT_SUCCESS;
-}
-
-int32_t EthernetService::UnregisterMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback)
-{
-    if (callback == nullptr || callback->AsObject() == nullptr) {
-        NETMGR_EXT_LOG_E("Unregister interface callback is invalid");
-        return NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    }
-    std::unique_lock<std::shared_mutex> lock(ifaceCallbacksMutex_);
-    for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); ++iterCb) {
-        if (*iterCb != nullptr && (*iterCb)->AsObject() != nullptr &&
-            (*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
-            if (ifaceCallbackDeathRecipient_ != nullptr) {
-                callback->AsObject()->RemoveDeathRecipient(ifaceCallbackDeathRecipient_);
+    ffrt::task_handle RegisterMonitorIfaceTask = ethernetServiceFfrtQueue_->submit_h([this, &callback, &ret]() {
+        for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+            if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+                NETMGR_EXT_LOG_D("Register interface callback failed, callback already exists");
+                ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
+                return;
             }
-            monitorIfaceCallbacks_.erase(iterCb);
-            NETMGR_EXT_LOG_D("Unregister interface callback success.");
-            return NETMANAGER_EXT_SUCCESS;
         }
-    }
-    NETMGR_EXT_LOG_E("Unregister interface callback does not exist.");
-    return NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        monitorIfaceCallbacks_.push_back(callback);
+        NETMGR_EXT_LOG_D("Register interface callback success");
+        ret = NETMANAGER_EXT_SUCCESS;
+    }, ffrt::task_attr().name("RegisterMonitorIfaceCallbackAsync"));
+    ethernetServiceFfrtQueue_->wait(RegisterMonitorIfaceTask);
+    return ret;
 }
 
-void EthernetService::NotifyMonitorIfaceCallback(OnFunctionT onFunction)
+int32_t EthernetService::UnregisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback)
 {
-    std::vector<sptr<InterfaceStateCallback>> callbacks;
-    {
-        std::shared_lock<std::shared_mutex> lock(ifaceCallbacksMutex_);
-        callbacks = monitorIfaceCallbacks_;
+    int32_t ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    if (!ethernetServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Init Fail");
+        return ret;
     }
-    for (const auto &callback : callbacks) {
-        if (callback == nullptr || callback->AsObject() == nullptr) {
-            continue;
+    ffrt::task_handle UnregisterMonitorIfaceTask = ethernetServiceFfrtQueue_->submit_h([this, &callback, &ret]() {
+        for (auto iterCb = monitorIfaceCallbacks_.begin(); iterCb != monitorIfaceCallbacks_.end(); iterCb++) {
+            if ((*iterCb)->AsObject().GetRefPtr() == callback->AsObject().GetRefPtr()) {
+                monitorIfaceCallbacks_.erase(iterCb);
+                NETMGR_EXT_LOG_D("Unregister interface callback success.");
+                ret = NETMANAGER_EXT_SUCCESS;
+                return;
+            }
         }
-        onFunction(callback);
+            NETMGR_EXT_LOG_E("Unregister interface callback is doesnot exist.");
+            ret = NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }, ffrt::task_attr().name("UnregisterMonitorIfaceCallbackAsync"));
+    ethernetServiceFfrtQueue_->wait(UnregisterMonitorIfaceTask);
+    return ret;
+}
+
+void EthernetService::NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction)
+{
+    if (!ethernetServiceFfrtQueue_) {
+        NETMGR_EXT_LOG_E("FFRT Init Fail");
+        return;
     }
+    ffrt::task_handle NotifyMonitorIfaceTask_ = ethernetServiceFfrtQueue_->submit_h([this, &onFunction]() {
+        std::for_each(monitorIfaceCallbacks_.begin(), monitorIfaceCallbacks_.end(), onFunction);
+    }, ffrt::task_attr().name("NotifyMonitorIfaceCallbackAsync"));
+    ethernetServiceFfrtQueue_->wait(NotifyMonitorIfaceTask_);
 }
 
 int32_t EthernetService::RegCustomEapHandler(int netType, const std::string &regCmd,
     const sptr<INetEapPostbackCallback> &callback)
 {
     NETMGR_EXT_LOG_D("Enter RegCustomEapHandler");
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION) &&
+        !NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return EAP_ERRCODE_PERMISSION_DENIED;
     }
     return NetEapHandler::GetInstance().RegCustomEapHandler(static_cast<NetType>(netType), regCmd, callback);
 }
- 
+
 int32_t EthernetService::ReplyCustomEapData(int eapResult, const sptr<EapData> &eapData)
 {
     NETMGR_EXT_LOG_D("Enter ReplyCustomEapData");
@@ -494,13 +492,14 @@ int32_t EthernetService::ReplyCustomEapData(int eapResult, const sptr<EapData> &
         NETMGR_EXT_LOG_E("ReplyCustomEapData eapData nullptr");
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION) &&
+        !NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return EAP_ERRCODE_PERMISSION_DENIED;
     }
     return NetEapHandler::GetInstance().ReplyCustomEapData(eapResult, eapData);
 }
- 
+
 int32_t EthernetService::RegisterCustomEapCallback(int netType, const sptr<INetRegisterEapCallback> &callback)
 {
     NETMGR_EXT_LOG_D("Enter RegisterCustomEapCallback");
@@ -510,7 +509,7 @@ int32_t EthernetService::RegisterCustomEapCallback(int netType, const sptr<INetR
     }
     return NetEapHandler::GetInstance().RegisterCustomEapCallback(static_cast<NetType>(netType), callback);
 }
- 
+
 int32_t EthernetService::UnRegisterCustomEapCallback(int netType,
     const sptr<INetRegisterEapCallback> &callback)
 {
@@ -521,7 +520,7 @@ int32_t EthernetService::UnRegisterCustomEapCallback(int netType,
     }
     return NetEapHandler::GetInstance().UnRegisterCustomEapCallback(static_cast<NetType>(netType), callback);
 }
- 
+
 int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapData> &eapData)
 {
     NETMGR_EXT_LOG_D("Enter NotifyWpaEapInterceptInfo");
@@ -535,7 +534,7 @@ int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapDa
     }
     return NetEapHandler::GetInstance().NotifyWpaEapInterceptInfo(static_cast<NetType>(netType), eapData);
 }
- 
+
 int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
     if (!NetManagerPermission::IsSystemCaller()) {
@@ -551,27 +550,226 @@ int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &d
 
 int32_t EthernetService::StartEthEap(int32_t netId, const EthEapProfile& profile)
 {
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
+    NETMGR_EXT_LOG_I("EthernetService::StartEthEap netId=%{public}d", netId);
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION) &&
+        !NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
-    return NetEapHandler::GetInstance().StartEthEap(netId, profile);
+#if defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+    EthEapAutoAuthController::GetInstance().OnEnterpriseAppOccupied();
+#endif
+    int32_t ret = NetEapHandler::GetInstance().StartEthEap(netId, profile);
+    NETMGR_EXT_LOG_I("EthernetService::StartEthEap done ret=%{public}d", ret);
+    return ret;
 #endif
     return NETMANAGER_SUCCESS;
 }
- 
+
 int32_t EthernetService::LogOffEthEap(int32_t netId)
 {
-    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
+    NETMGR_EXT_LOG_I("EthernetService::LogOffEthEap netId=%{public}d", netId);
+    if (!NetManagerPermission::CheckPermission(Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION) &&
+        !NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
         NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
-    return NetEapHandler::GetInstance().LogOffEthEap(netId);
+    int32_t ret = NetEapHandler::GetInstance().LogOffEthEap(netId);
+#if defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+    EthEapAutoAuthController::GetInstance().OnEnterpriseAppReleased();
+#endif
+    return ret;
 #endif
     return NETMANAGER_SUCCESS;
 }
+
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+void EthernetService::ForceRestartDhcp(const std::string &dev)
+{
+    ethManagement_->ForceRestartDhcp(dev);
+}
+#endif
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+int32_t EthernetService::SetEthEapConfig(const EthEapConfig &config)
+{
+    NETMGR_EXT_LOG_I("SetEthEapConfig");
+    if (!NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return EAP_ERRCODE_PERMISSION_DENIED;
+    }
+    // 企业占用期间不再整体拒绝：配置仅落盘不触发认证，企业应用保持认证控制权（对齐 d.ts）
+    EthEapConfig existingConfig;
+    bool hasExisting = (EthEapConfigStore::GetInstance().LoadConfig(existingConfig) == NETMANAGER_EXT_SUCCESS);
+    if (hasExisting && existingConfig.locked) {
+        if (!config.locked) {
+            NETMGR_EXT_LOG_I("SetEthEapConfig: unlock request from enterprise app, allowed");
+        } else {
+            NETMGR_EXT_LOG_E("SetEthEapConfig: config is locked, modification denied");
+            return EAP_ERRCODE_CONFIG_LOCKED;
+        }
+    }
+    EthEapConfig configToSave = config;
+    if (hasExisting) {
+        // 敏感字段继承：入参为空时沿用已存凭据（IPC 回读时凭据不回传）
+        if (config.profile.password.empty()) {
+            configToSave.profile.password = existingConfig.profile.password;
+        }
+        if (config.profile.certPassword.empty()) {
+            configToSave.profile.certPassword = existingConfig.profile.certPassword;
+        }
+        if (configToSave.profile.certEntry.empty()) {
+            configToSave.profile.certEntry = existingConfig.profile.certEntry;
+        }
+    }
+    // 证书字段：客户端 keyUri 透传 wpa；certEntry 校验落盘回填路径；CA keyUri 尽力解析落盘 ca.pem（失败降级不报错）
+    int32_t certRet = EthEapCertStore::GetInstance().ProcessCertFields(configToSave.profile);
+    if (certRet != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetEthEapConfig: process cert fields failed: %{public}d", certRet);
+        return certRet;
+    }
+    int32_t ret = EthEapConfigStore::GetInstance().SaveConfig(configToSave);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("SetEthEapConfig: save failed: %{public}d", ret);
+        return ret;
+    }
+    // 新配置关闭功能或自动认证时停止自动认证；否则触发一次自动认证周期
+    // （占用/断连/认证中由 TryStartAuth 内部跳过，对齐 d.ts）
+    if (!configToSave.enabled || !configToSave.autoAuth) {
+        NETMGR_EXT_LOG_I("SetEthEapConfig: auth disabled by new config, stop auto auth");
+        EthEapAutoAuthController::GetInstance().StopAutoAuth();
+    } else {
+        EthEapAutoAuthController::GetInstance().OnTriggerAutoAuth();
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetService::GetEthEapConfig(EthEapConfig &config)
+{
+    NETMGR_EXT_LOG_D("GetEthEapConfig");
+    if (!NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return EAP_ERRCODE_PERMISSION_DENIED;
+    }
+    int32_t ret = EthEapConfigStore::GetInstance().LoadConfig(config);
+    if (ret == NETMANAGER_EXT_ERR_FILE_NOT_FOUND) {
+        NETMGR_EXT_LOG_D("GetEthEapConfig: no config stored");
+        return NETMANAGER_EXT_ERR_FILE_NOT_FOUND;
+    }
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        config.profile.password.clear();
+        config.profile.certPassword.clear();
+        config.profile.certEntry.clear();
+    }
+    return ret;
+}
+
+int32_t EthernetService::DeleteEthEapConfig()
+{
+    NETMGR_EXT_LOG_I("DeleteEthEapConfig");
+    if (!NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return EAP_ERRCODE_PERMISSION_DENIED;
+    }
+    // locked 配置保护：企业应用锁定期间禁止删除（对齐 SetEthEapConfig 的锁定语义）
+    EthEapConfig existingConfig;
+    if (EthEapConfigStore::GetInstance().LoadConfig(existingConfig) == NETMANAGER_EXT_SUCCESS &&
+        existingConfig.locked) {
+        NETMGR_EXT_LOG_E("DeleteEthEapConfig: config is locked, delete denied");
+        return EAP_ERRCODE_CONFIG_LOCKED;
+    }
+    EthEapAutoAuthController::GetInstance().StopAutoAuth();
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_IDLE);
+    int32_t ret = EthEapConfigStore::GetInstance().DeleteConfig();
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        EthEapCertStore::GetInstance().Clear();
+    }
+    return ret;
+}
+
+int32_t EthernetService::GetEthEapStateInfo(EthEapStateInfo &stateInfo)
+{
+    if (!NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return EAP_ERRCODE_PERMISSION_DENIED;
+    }
+    // 锁内一次性读取状态/重试计数/最近消息，保证一致性快照
+    EthEapStateManager::GetInstance().GetStateInfo(stateInfo);
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t EthernetService::RegisterEthEapStateCallback(const sptr<IEthEapStateCallback> &callback)
+{
+    if (callback == nullptr) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    if (!NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return EAP_ERRCODE_PERMISSION_DENIED;
+    }
+    return EthEapStateManager::GetInstance().RegisterCallback(callback);
+}
+
+int32_t EthernetService::UnregisterEthEapStateCallback(const sptr<IEthEapStateCallback> &callback)
+{
+    if (callback == nullptr) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    if (!NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return EAP_ERRCODE_PERMISSION_DENIED;
+    }
+    return EthEapStateManager::GetInstance().UnregisterCallback(callback);
+}
+
+/**
+ * @brief 认证后断连或再次连接。
+ * connect=true：手动按已保存配置发起认证（不受 autoAuth 约束，无配置时失败，
+ *               企业占用期间不中断其认证）；false：停止自动认证并登出底层认证，状态复位 IDLE。
+ */
+int32_t EthernetService::ConnectEthEap(bool connect)
+{
+    NETMGR_EXT_LOG_I("ConnectEthEap, connect=%{public}d", static_cast<int32_t>(connect));
+    if (!NetManagerPermission::CheckPermission(ENTERPRISE_MANAGE_EAP)) {
+        NETMGR_EXT_LOG_E("%{public}s no permission.", __func__);
+        return EAP_ERRCODE_PERMISSION_DENIED;
+    }
+    if (connect) {
+        // 手动连接前置校验：无已保存配置时直接失败
+        // （对齐 d.ts："fails if no configuration has been stored"）
+        EthEapConfig storedConfig;
+        int32_t loadRet = EthEapConfigStore::GetInstance().LoadConfig(storedConfig);
+        if (loadRet == NETMANAGER_EXT_ERR_FILE_NOT_FOUND) {
+            NETMGR_EXT_LOG_E("ConnectEthEap: no stored config, reject");
+            return EAP_ERRCODE_INVALID_PROFILE;
+        }
+        if (loadRet != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("ConnectEthEap: load config failed: %{public}d", loadRet);
+            return loadRet;
+        }
+        // 手动连接：不受 autoAuth（自动连接）开关限制，按已保存配置直接发起认证；
+        // 企业应用占用期间不中断其认证（TryStartAuth 内部跳过触发），本次调用
+        // 仍返回成功，认证结果经状态回调上报
+        EthEapAutoAuthController::GetInstance().OnUserResumed();
+        EthEapAutoAuthController::GetInstance().OnManualConnect();
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    // 断连：置位"用户已断连"标志（阻止挂起重试/link 抖动/企业释放后自动重连），
+    // 再停止自动认证与重试，最后登出底层认证
+    EthEapAutoAuthController::GetInstance().OnUserPaused();
+    EthEapAutoAuthController::GetInstance().StopAutoAuth();
+    int32_t ret = NetEapHandler::GetInstance().LogOffEthEap(-1);
+    // 认证状态复位为空闲
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_IDLE);
+    if (ret != EAP_ERRCODE_SUCCESS) {
+        NETMGR_EXT_LOG_E("ConnectEthEap: LogOffEthEap failed: %{public}d", ret);
+        return ret;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+#endif
 
 #ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
 int32_t EthernetService::EnableEthernetInterface()
@@ -617,36 +815,6 @@ int32_t EthernetService::IsEthernetEnabled(int32_t &enabled)
     return NETMANAGER_EXT_SUCCESS;
 }
 #endif
-
-void EthernetService::IfaceCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
-{
-    auto service = service_.lock();
-    if (service == nullptr || remote == nullptr) {
-        return;
-    }
-    service->OnIfaceCallbackRemoteDied(remote);
-}
-
-void EthernetService::OnIfaceCallbackRemoteDied(const wptr<IRemoteObject> &remote)
-{
-    NETMGR_EXT_LOG_I("OnIfaceCallbackRemoteDied");
-    if (remote == nullptr) {
-        return;
-    }
-    sptr<IRemoteObject> remoteObj = remote.promote();
-    if (remoteObj == nullptr) {
-        return;
-    }
-    std::unique_lock<std::shared_mutex> lock(ifaceCallbacksMutex_);
-    for (auto iter = monitorIfaceCallbacks_.begin(); iter != monitorIfaceCallbacks_.end();) {
-        if (*iter != nullptr && (*iter)->AsObject() == remoteObj) {
-            iter = monitorIfaceCallbacks_.erase(iter);
-            NETMGR_EXT_LOG_I("Remove dead iface callback");
-        } else {
-            ++iter;
-        }
-    }
-}
 
 } // namespace NetManagerStandard
 } // namespace OHOS

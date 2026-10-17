@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef OHOS_EAP_HDI_WPA_MANAGER_H
 #define OHOS_EAP_HDI_WPA_MANAGER_H
- 
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
- 
+
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+
 #include <vector>
 #include <mutex>
 #include <pthread.h>
- 
+
 #include "eap_data.h"
 #include "eth_eap_profile.h"
 #include "devmgr_hdi.h"
@@ -29,21 +29,21 @@
 #include "servmgr_hdi.h"
 #include "v1_0/iethernet.h"
 #include "v1_0/iethernet_callback.h"
- 
+
 namespace OHOS {
 namespace NetManagerStandard {
- 
+
 class EapHdiWpaManager : public std::enable_shared_from_this<EapHdiWpaManager> {
 public:
     EapHdiWpaManager();
     ~EapHdiWpaManager() = default;
- 
+
     int32_t LoadEthernetHdiService();
     int32_t StartEap(const std::string& ifName, const EthEapProfile& profile);
     int32_t StopEap(const std::string& ifName);
     int32_t RegisterCustomEapCallback(const std::string &ifName, const std::string &regCmd);
     int32_t ReplyCustomEapData(const std::string &ifName, int32_t result, const sptr<EapData> &eapData);
- 
+
 private:
     int32_t SetEapConfig(const EthEapProfile& config);
     void AppendCommonTlsParams(const EthEapProfile& config);
@@ -52,13 +52,14 @@ private:
     int32_t RegisterEapEventCallback(const std::string& ifName);
     int32_t UnregisterEapEventCallback(const std::string& ifName);
     static int32_t OnEapEventReport(IEthernetCallback *self, const char *ifName, const char *value);
-    
+    static int32_t ParseEapEventData(const std::vector<std::string> &vecEapDatas, const sptr<EapData> &notifyEapData);
+
     bool WriteEapConfigToFile(const std::string &fileContext);
     std::string Phase2MethodToStr(EapMethod eap, Phase2Method method);
     void RemoveHistoryCtrl();
     void UnloadDeviceManager();
     static bool ConvertStrToInt(const std::string &str, int32_t &value);
- 
+
 private:
     struct IEthernet *iEthernet_ = nullptr;
     struct HDIDeviceManager *devMgr_ = nullptr;
@@ -68,5 +69,5 @@ private:
 };
 }  // namespace NetManagerStandard
 }  // namespace OHOS
-#endif // NET_EXTENSIBLE_AUTHENTICATION
+#endif // defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
 #endif // OHOS_EAP_HDI_WPA_CALLBACK_H
