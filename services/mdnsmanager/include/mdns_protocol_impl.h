@@ -131,6 +131,9 @@ private:
     };
     void SubscribeCes();
     void handleOfflineService(const std::string &key, std::vector<Result> &res);
+    bool IsServiceLost(const Result &result);
+    bool ShouldKeepService(const std::string &fullName, uint32_t &checkCount);
+    void NotifyServiceLost(const std::string &key, const Result &result);
     void KillBrowseCache(const std::string &key, std::vector<Result>::iterator &it);
 
     int32_t ConnectControl(int32_t sockfd, sockaddr* serverAddr);
