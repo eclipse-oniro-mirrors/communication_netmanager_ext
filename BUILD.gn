@@ -105,7 +105,6 @@ group("vpn_ext_packages") {
       "$NETMANAGER_EXT_ROOT/frameworks/ets/ani/vpnextension:vpnextension_etc",
       "$NETMANAGER_EXT_ROOT/frameworks/ets/ani/vpnextensionability:vpnextensionability_etc",
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensionability:vpnextensionability",
-      "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensionability:vpnextensionability_napi",
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/extensioncontext:vpnextensioncontext_napi",
       "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpnext:vpnextension",
       "$NETMANAGER_EXT_ROOT/interfaces/innerkits/vpnextension:vpn_extension",
