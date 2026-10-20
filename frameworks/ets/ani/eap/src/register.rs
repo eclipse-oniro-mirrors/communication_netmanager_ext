@@ -12,52 +12,44 @@
 // limitations under the License.
 
 use std::{
-    ffi::CString,
-    ops::Deref,
-    os::raw::c_char,
-    sync::{Mutex, OnceLock},
+    collections::HashMap,
+    sync::{OnceLock, RwLock},
 };
 
 use ani_rs::{
     business_error::BusinessError,
     objects::{AniFnObject, GlobalRefCallback},
+    typed_array::Uint8Array,
     AniEnv,
 };
 
 use crate::{
     bridge,
-    wrapper::{convert_to_business_error, ffi::EapAniData, NetConnClient},
+    wrapper::{
+        convert_to_business_error,
+        ffi::{EapCodeTypeAni, EapDataAni},
+        NetConnClient,
+    },
 };
 
-/// Composite entry that pairs registration parameters (net_type, eap_code,
-/// eap_type) with the callback, ensuring comparison and removal are based on
-/// the full registration info rather than just the callback reference.
-struct EapCallbackEntry {
-    net_type: i32,
-    eap_code: i32,
-    eap_type: i32,
-    callback: CallbackFlavor,
+enum RegTriggerMode {
+    SaLaunch = 0,
+    UserRegister = 1,
+    Unregister = 2,
 }
 
-impl PartialEq for EapCallbackEntry {
-    fn eq(&self, other: &Self) -> bool {
-        self.net_type == other.net_type
-            && self.eap_code == other.eap_code
-            && self.eap_type == other.eap_type
-            && self.callback == other.callback
-    }
-}
-
-impl Eq for EapCallbackEntry {}
+const REGISTERINFO_MAX_NUM: usize = 16;
+const EAP_ERRCODE_INTERNAL_ERROR: i32 = 33200099;
 
 struct Register {
-    inner: Mutex<Vec<EapCallbackEntry>>,
+    inner: RwLock<HashMap<i32, HashMap<(i32, i32), Vec<GlobalRefCallback<(bridge::EapData,)>>>>>,
 }
 
 impl Register {
     fn new() -> Self {
+        NetConnClient::init_sa_listener();
         Self {
-            inner: Mutex::new(Vec::new()),
+            inner: RwLock::new(HashMap::new()),
         }
     }
 
@@ -66,75 +58,148 @@ impl Register {
         INSTANCE.get_or_init(Register::new)
     }
 
-    /// Register a callback for the given (net_type, eap_code, eap_type).
-    /// Design: each (net_type, eap_code, eap_type) combination supports only one callback;
-    /// re-registering with the same parameters replaces the previous callback.
-    pub fn register(&self, net_type: i32, eap_code: i32, eap_type: i32, callback: CallbackFlavor) -> Result<(), i32> {
-        // Recover from poison: panicking would crash the service, and re-initializing
-        // would lose all registered callbacks. Logging + into_inner() preserves data
-        // while making the issue observable for debugging.
-        let mut inner = self.inner.lock().unwrap_or_else(|e| {
-            crate::eap_error!("Mutex poisoned in eap register, recovering data");
-            e.into_inner()
-        });
-        NetConnClient::reg_custom_eap_handler(net_type, eap_code, eap_type)?;
+    pub fn register(
+        &self,
+        net_type: i32,
+        eap_code: i32,
+        eap_type: i32,
+        callback: GlobalRefCallback<(bridge::EapData,)>,
+    ) -> Result<(), i32> {
+        NetConnClient::validate_eap_params(net_type, eap_code, eap_type)?;
 
-        // Remove existing entry with same (net_type, eap_code, eap_type) — single-callback-per-key design
-        inner.retain(|e| e.net_type != net_type || e.eap_code != eap_code || e.eap_type != eap_type);
-        inner.push(EapCallbackEntry { net_type, eap_code, eap_type, callback });
+        let key = (eap_code, eap_type);
+        let reg_items = {
+            let mut inner = self.inner.write().unwrap_or_else(|e| {
+                crate::eap_error!("RwLock poisoned in eap register, recovering data");
+                e.into_inner()
+            });
+
+            let net_type_map = inner.entry(net_type).or_insert_with(HashMap::new);
+            if let Some(callback_vec) = net_type_map.get(&key) {
+                if callback_vec.iter().any(|c| *c == callback) {
+                    crate::eap_error!("eapCode {}, eapType {} callback is registered!", eap_code, eap_type);
+                    return Ok(());
+                }
+            } else if net_type_map.len() > REGISTERINFO_MAX_NUM {
+                crate::eap_error!("RegisterInfo Exceeding the maximum value!");
+                return Err(EAP_ERRCODE_INTERNAL_ERROR);
+            }
+            net_type_map.entry(key).or_default().push(callback);
+
+            let mut reg_items = Vec::with_capacity(net_type_map.len());
+            for &(code, typ) in net_type_map.keys() {
+                reg_items.push(EapCodeTypeAni { eap_code: code, eap_type: typ });
+            }
+            reg_items
+        };
+
+        NetConnClient::reg_custom_eap_handler(
+            RegTriggerMode::UserRegister as i32, net_type, &reg_items)
+    }
+
+    pub fn unregister(
+        &self,
+        net_type: i32,
+        eap_code: i32,
+        eap_type: i32,
+        callback: &GlobalRefCallback<(bridge::EapData,)>,
+    ) -> Result<(), i32> {
+        NetConnClient::validate_eap_params(net_type, eap_code, eap_type)?;
+
+        let key = (eap_code, eap_type);
+        let reg_items = {
+            let mut inner = self.inner.write().unwrap_or_else(|e| {
+                crate::eap_error!("RwLock poisoned in eap unregister, recovering data");
+                e.into_inner()
+            });
+
+            let net_type_map = match inner.get_mut(&net_type) {
+                Some(map) => map,
+                None => {
+                    crate::eap_error!("not find netType {} handler", net_type);
+                    return Err(EAP_ERRCODE_INTERNAL_ERROR);
+                }
+            };
+            let callback_vec = match net_type_map.get_mut(&key) {
+                Some(vec) => vec,
+                None => {
+                    crate::eap_error!("not find (eapCode {}, eapType {}) handler", eap_code, eap_type);
+                    return Err(EAP_ERRCODE_INTERNAL_ERROR);
+                }
+            };
+
+            let before_len = callback_vec.len();
+            callback_vec.retain(|c| *c != *callback);
+            if callback_vec.len() == before_len {
+                return Ok(());
+            }
+
+            if callback_vec.is_empty() {
+                net_type_map.remove(&key);
+                let mut reg_items = Vec::with_capacity(net_type_map.len());
+                for &(code, typ) in net_type_map.keys() {
+                    reg_items.push(EapCodeTypeAni { eap_code: code, eap_type: typ });
+                }
+                Some(reg_items)
+            } else {
+                None
+            }
+        };
+
+        if let Some(reg_items) = reg_items {
+            NetConnClient::reg_custom_eap_handler(
+                RegTriggerMode::Unregister as i32, net_type, &reg_items)?;
+        }
         Ok(())
     }
 
-    pub fn unregister(&self, net_type: i32, eap_code: i32, eap_type: i32, callback_ref: Option<CallbackFlavor>) -> Result<(), i32> {
-        // Recover from poison: panicking would crash the service, and re-initializing
-        // would lose all registered callbacks. Logging + into_inner() preserves data
-        // while making the issue observable for debugging.
-        let mut inner = self.inner.lock().unwrap_or_else(|e| {
-            crate::eap_error!("Mutex poisoned in eap unregister, recovering data");
+    pub fn on_eap_data(&self, net_type: i32, eap_code: i32, eap_type: i32, data: bridge::EapData) {
+        let key = (eap_code, eap_type);
+        let inner = self.inner.read().unwrap_or_else(|e| {
+            crate::eap_error!("RwLock poisoned in on_eap_data, recovering data");
             e.into_inner()
         });
-        // When callback_ref is provided, remove only entries that match both the
-        // (net_type, eap_code, eap_type) key AND the specific callback reference,
-        // preventing accidental removal of a correctly-registered callback when
-        // the caller supplies a mismatched callback_ref.
-        if let Some(ref callback) = callback_ref {
-            inner.retain(|e| e.net_type != net_type || e.eap_code != eap_code
-                || e.eap_type != eap_type || e.callback != *callback);
-        } else {
-            // Without a callback_ref, remove all entries matching the key only
-            inner.retain(|e| e.net_type != net_type || e.eap_code != eap_code || e.eap_type != eap_type);
-        }
 
-        if inner.is_empty() {
-            NetConnClient::unreg_custom_eap_handler(net_type, eap_code, eap_type)?;
-        }
-
-        Ok(())
-    }
-
-    pub fn on_eap_data(&self, data: bridge::EapData) {
-        // Recover from poison: panicking would crash the service, and re-initializing
-        // would lose all registered callbacks. Logging + into_inner() preserves data
-        // while making the issue observable for debugging.
-        let inner = self.inner.lock().unwrap_or_else(|e| {
-            crate::eap_error!("Mutex poisoned in on_eap_data, recovering data");
-            e.into_inner()
-        });
-        for entry in inner.deref() {
-            if let CallbackFlavor::CustomEapHandler(callback) = &entry.callback {
+        if let Some(callback_vec) = inner.get(&net_type).and_then(|map| map.get(&key)) {
+            for callback in callback_vec {
                 callback.execute((data.clone(),));
             }
         }
     }
+
+    pub fn reg_on_sa_launch(&self, net_type: i32) -> Result<(), i32> {
+        let inner = self.inner.read().unwrap_or_else(|e| {
+            crate::eap_error!("RwLock poisoned in reg_on_sa_launch, recovering data");
+            e.into_inner()
+        });
+
+        let net_type_map = match inner.get(&net_type) {
+            Some(map) => map,
+            None => return Ok(()),
+        };
+
+        let mut reg_items = Vec::with_capacity(net_type_map.len());
+        for &(code, typ) in net_type_map.keys() {
+            reg_items.push(EapCodeTypeAni { eap_code: code, eap_type: typ });
+        }
+        drop(inner);
+
+        NetConnClient::reg_custom_eap_handler(
+            RegTriggerMode::SaLaunch as i32, net_type, &reg_items)
+    }
 }
 
-pub fn execute_eap_data(data: EapAniData) {
+pub fn execute_eap_data(data: EapDataAni) {
     let bridge_data = bridge::EapData {
         msg_id: data.msg_id,
-        eap_buffer: ani_rs::typed_array::ArrayBuffer::new_with_vec(data.eap_buffer),
+        eap_buffer: Uint8Array::new_with_vec(data.eap_buffer),
         buffer_len: data.buffer_len,
     };
-    Register::get_instance().on_eap_data(bridge_data);
+    Register::get_instance().on_eap_data(data.net_type, data.eap_code, data.eap_type, bridge_data);
+}
+
+pub fn on_sa_status_change(net_type: i32) {
+    let _ = Register::get_instance().reg_on_sa_launch(net_type);
 }
 
 #[ani_rs::native]
@@ -145,10 +210,14 @@ pub(crate) fn reg_custom_eap_handler(
     eap_type: i32,
     callback: AniFnObject,
 ) -> Result<(), BusinessError> {
-    let callback = callback.into_global_callback(env).map_err(|e| BusinessError::from(e))?;
-    let flavor = CallbackFlavor::CustomEapHandler(callback);
+    if !NetConnClient::is_eap_feature_enabled() {
+        return Ok(());
+    }
+    let callback = callback
+        .into_global_callback(env)
+        .map_err(BusinessError::from)?;
     Register::get_instance()
-        .register(net_type, eap_code, eap_type, flavor)
+        .register(net_type, eap_code, eap_type, callback)
         .map_err(convert_to_business_error)
 }
 
@@ -160,19 +229,13 @@ pub(crate) fn unreg_custom_eap_handler(
     eap_type: i32,
     callback: AniFnObject,
 ) -> Result<(), BusinessError> {
-    let callback_flavor = if env.is_undefined(&callback).map_err(|e| BusinessError::from(e))? {
-        None
-    } else {
-        let callback_global = callback.into_global_callback(env).map_err(|e| BusinessError::from(e))?;
-        Some(CallbackFlavor::CustomEapHandler(callback_global))
-    };
-
+    if !NetConnClient::is_eap_feature_enabled() {
+        return Ok(());
+    }
+    let callback = callback
+        .into_global_callback(env)
+        .map_err(BusinessError::from)?;
     Register::get_instance()
-        .unregister(net_type, eap_code, eap_type, callback_flavor)
+        .unregister(net_type, eap_code, eap_type, &callback)
         .map_err(convert_to_business_error)
-}
-
-#[derive(PartialEq, Eq)]
-pub enum CallbackFlavor {
-    CustomEapHandler(GlobalRefCallback<(bridge::EapData,)>),
 }

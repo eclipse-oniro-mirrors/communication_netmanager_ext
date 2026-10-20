@@ -21,6 +21,8 @@
 #include "runtime.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "ets_runtime.h"
+#include "ets_vpn_extension.h"
 #include "vpn_extension_context.h"
 #include "netmgr_ext_log_wrapper.h"
 
@@ -50,6 +52,8 @@ VpnExtension* VpnExtension::Create(const std::unique_ptr<OHOS::AbilityRuntime::R
     switch (runtime->GetLanguage()) {
         case OHOS::AbilityRuntime::Runtime::Language::JS:
             return JsVpnExtension::Create(runtime);
+        case OHOS::AbilityRuntime::Runtime::Language::ETS:
+            return EtsVpnExtension::Create(runtime);
 
         default:
             return new VpnExtension();

@@ -11,19 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
-    log_type: hilog_rust::LogType::LogCore,
-    domain: 0xD0015B0,
-    tag: "NetMgrSubSystem",
-};
-
-/// Logs an error message via hilog.
-/// WARNING: Do not pass sensitive data (passwords, tokens, etc.) as arguments.
 #[macro_export]
 macro_rules! ethernet_error {
     ($fmt: literal $(, $args:expr)* $(,)?) => {{
         use hilog_rust::hilog;
-        use crate::log::LOG_LABEL;
+        use std::ffi::{c_char, CString};
+        use crate::LOG_LABEL;
         hilog_rust::error!(LOG_LABEL, $fmt $(, @public($args))*);
     }}
 }

@@ -19,20 +19,27 @@ import type Context from 'application.Context';
 import { BusinessError } from '@ohos.base';
 
 export default namespace mdns {
-  type NetAddress = connection.NetAddress;
-
   loadLibrary("mdns_ani");
 
-  function toBusinessError(err: Error): BusinessError {
-    let businessErr = new BusinessError();
-    businessErr.code = err.code ?? 0;
-    businessErr.message = err.message ?? '';
-    businessErr.stack = err.stack ?? '';
-    businessErr.cause = err;
-    return businessErr;
+  export class Cleaner {
+    private ptr: long = 0
+    constructor(ptr: long) {
+        this.ptr = ptr
+    }
+    native clean(): void
   }
 
+  let destroyRegister: FinalizationRegistry<Cleaner> = new FinalizationRegistry<Cleaner>((cleaner: Cleaner) => {cleaner.clean()})
+  let unregisterToken: object = new object()
+
+  type NetAddress = connection.NetAddress;
+
   export interface ServiceAttribute {
+    key: string;
+    value: Array<int>;
+  }
+
+  class ServiceAttributeInner implements ServiceAttribute {
     key: string;
     value: Array<int>;
   }
@@ -45,9 +52,12 @@ export default namespace mdns {
     serviceAttribute?: Array<ServiceAttribute>;
   }
 
-  export interface DiscoveryEventInfo {
-    serviceInfo: LocalServiceInfo;
-    errorCode?: MdnsError;
+  class LocalServiceInfoInner implements LocalServiceInfo {
+    serviceType: string;
+    serviceName: string;
+    port?: int;
+    host?: NetAddress;
+    serviceAttribute?: Array<ServiceAttribute>;
   }
 
   export enum MdnsError {
@@ -56,17 +66,27 @@ export default namespace mdns {
     MAX_LIMIT = 2,
   }
 
-  // ---------- addLocalService ----------
+  export interface DiscoveryEventInfo {
+    serviceInfo: LocalServiceInfo;
+    errorCode?: MdnsError;
+  }
+
+  class DiscoveryEventInfoInner implements DiscoveryEventInfo {
+    serviceInfo: LocalServiceInfo = new LocalServiceInfoInner();
+    errorCode?: MdnsError;
+  }
+
   export native function addLocalServiceSync(context: Context, serviceInfo: LocalServiceInfo): LocalServiceInfo;
 
   export function addLocalService(context: Context, serviceInfo: LocalServiceInfo,
     callback: AsyncCallback<LocalServiceInfo>): void {
-    taskpool.execute(() => {
+    let p1 = taskpool.execute((): LocalServiceInfo => {
       return addLocalServiceSync(context, serviceInfo);
-    }).then((content: Any) => {
-      callback(null, content as LocalServiceInfo);
+    })
+    p1.then((content: Any) => {
+      callback(new BusinessError(), content as LocalServiceInfo);
     }, (err: Error): void => {
-      callback(toBusinessError(err), null!);
+      callback(err as BusinessError, new LocalServiceInfoInner());
     });
   }
 
@@ -77,22 +97,22 @@ export default namespace mdns {
         }).then((content: Any) => {
             resolve(content as LocalServiceInfo);
         }, (err: Error): void => {
-            reject(toBusinessError(err));
+            reject(err as BusinessError);
         });
     });
   }
 
-  // ---------- removeLocalService ----------
   export native function removeLocalServiceSync(context: Context, serviceInfo: LocalServiceInfo): LocalServiceInfo;
 
   export function removeLocalService(context: Context, serviceInfo: LocalServiceInfo,
     callback: AsyncCallback<LocalServiceInfo>): void {
-    taskpool.execute(() => {
+    let p1 = taskpool.execute((): LocalServiceInfo => {
       return removeLocalServiceSync(context, serviceInfo);
-    }).then((content: Any) => {
-      callback(null, content as LocalServiceInfo);
+    })
+    p1.then((content: Any) => {
+      callback(new BusinessError(), content as LocalServiceInfo);
     }, (err: Error): void => {
-      callback(toBusinessError(err), null!);
+      callback(err as BusinessError, new LocalServiceInfoInner());
     });
   }
 
@@ -103,22 +123,28 @@ export default namespace mdns {
         }).then((content: Any) => {
             resolve(content as LocalServiceInfo);
         }, (err: Error): void => {
-            reject(toBusinessError(err));
+            reject(err as BusinessError);
         });
     });
   }
 
-  // ---------- resolveLocalService ----------
+  export native function createDiscoveryServiceSync(context: Context, serviceType: string): DiscoveryService;
+
+  export function createDiscoveryService(context: Context, serviceType: string): DiscoveryService {
+    return createDiscoveryServiceSync(context, serviceType);
+  }
+
   export native function resolveLocalServiceSync(context: Context, serviceInfo: LocalServiceInfo): LocalServiceInfo;
 
   export function resolveLocalService(context: Context, serviceInfo: LocalServiceInfo,
     callback: AsyncCallback<LocalServiceInfo>): void {
-    taskpool.execute(() => {
+    let p1 = taskpool.execute((): LocalServiceInfo => {
       return resolveLocalServiceSync(context, serviceInfo);
-    }).then((content: Any) => {
-      callback(null, content as LocalServiceInfo);
+    })
+    p1.then((content: Any) => {
+      callback(new BusinessError(), content as LocalServiceInfo);
     }, (err: Error): void => {
-      callback(toBusinessError(err), null!);
+      callback(err as BusinessError, new LocalServiceInfoInner());
     });
   }
 
@@ -129,78 +155,109 @@ export default namespace mdns {
         }).then((content: Any) => {
             resolve(content as LocalServiceInfo);
         }, (err: Error): void => {
-            reject(toBusinessError(err));
+            reject(err as BusinessError);
         });
     });
   }
 
-  // ---------- DiscoveryService ----------
-  export class DiscoveryService {
-    private serviceType: string;
+  export interface DiscoveryService {
+    onDiscoveryStart(callback: Callback<DiscoveryEventInfo>): void;
+    offDiscoveryStart(callback?: Callback<DiscoveryEventInfo>): void;
+    onDiscoveryStop(callback: Callback<DiscoveryEventInfo>): void;
+    offDiscoveryStop(callback?: Callback<DiscoveryEventInfo>): void;
+    onServiceFound(callback: Callback<LocalServiceInfo>): void;
+    offServiceFound(callback?: Callback<LocalServiceInfo>): void;
+    onServiceLost(callback: Callback<LocalServiceInfo>): void;
+    offServiceLost(callback?: Callback<LocalServiceInfo>): void;
+    startSearchingMDNS(): void;
+    stopSearchingMDNS(): void;
+  }
 
-    constructor(serviceType: string) {
-      this.serviceType = serviceType;
+  export class DiscoveryServiceInner implements DiscoveryService {
+    private nativePtr: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    constructor(context: long) {
+        if (this.nativePtr == 0) {
+            this.nativePtr = context;
+        }
+        this.registerCleaner(this.nativePtr);
     }
 
-    // The on/off type parameter acts as a discriminated union; the if-else chain ensures
-    // each branch dispatches to the correctly-typed native function.
-    on(type: 'discoveryStart' | 'discoveryStop' | 'serviceFound' | 'serviceLost', callback: Callback<Any>): void {
-      if (type == 'discoveryStart') {
-        onDiscoveryStart(callback as Callback<DiscoveryEventInfo>);
-      } else if (type == 'discoveryStop') {
-        onDiscoveryStop(callback as Callback<DiscoveryEventInfo>);
-      } else if (type == 'serviceFound') {
-        onServiceFound(callback as Callback<LocalServiceInfo>);
-      } else if (type == 'serviceLost') {
-        onServiceLost(callback as Callback<LocalServiceInfo>);
+    registerCleaner(ptr: long): void {
+        this.cleaner = new Cleaner(ptr);
+        destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+    unregisterCleaner(): void {
+        destroyRegister.unregister(unregisterToken);
+    }
+
+    native onDiscoveryStartSync(callback: Callback<DiscoveryEventInfo>): void;
+    native offDiscoveryStartSync(callback?: Callback<DiscoveryEventInfo>): void;
+    native onDiscoveryStopSync(callback: Callback<DiscoveryEventInfo>): void;
+    native offDiscoveryStopSync(callback?: Callback<DiscoveryEventInfo>): void;
+    native onServiceFoundSync(callback: Callback<LocalServiceInfo>): void;
+    native offServiceFoundSync(callback?: Callback<LocalServiceInfo>): void;
+    native onServiceLostSync(callback: Callback<LocalServiceInfo>): void;
+    native offServiceLostSync(callback?: Callback<LocalServiceInfo>): void;
+    native startSearchingMDNSSync(): void;
+    native stopSearchingMDNSSync(): void;
+
+    onDiscoveryStart(callback: Callback<DiscoveryEventInfo>): void {
+      this.onDiscoveryStartSync(callback);
+    }
+
+    offDiscoveryStart(callback?: Callback<DiscoveryEventInfo>): void {
+      if (callback == undefined) {
+        this.offDiscoveryStartSync();
+      } else {
+        this.offDiscoveryStartSync(callback);
       }
     }
 
-    off(type: 'discoveryStart' | 'discoveryStop' | 'serviceFound' | 'serviceLost', callback?: Callback<Any>): void {
-      if (type == 'discoveryStart') {
-        offDiscoveryStart(callback as Callback<DiscoveryEventInfo>);
-      } else if (type == 'discoveryStop') {
-        offDiscoveryStop(callback as Callback<DiscoveryEventInfo>);
-      } else if (type == 'serviceFound') {
-        offServiceFound(callback as Callback<LocalServiceInfo>);
-      } else if (type == 'serviceLost') {
-        offServiceLost(callback as Callback<LocalServiceInfo>);
+    onDiscoveryStop(callback: Callback<DiscoveryEventInfo>): void {
+      this.onDiscoveryStopSync(callback);
+    }
+
+    offDiscoveryStop(callback?: Callback<DiscoveryEventInfo>): void {
+      if (callback == undefined) {
+        this.offDiscoveryStopSync();
+      } else {
+        this.offDiscoveryStopSync(callback);
+      }
+    }
+
+    onServiceFound(callback: Callback<LocalServiceInfo>): void {
+      this.onServiceFoundSync(callback);
+    }
+
+    offServiceFound(callback?: Callback<LocalServiceInfo>): void {
+      if (callback == undefined) {
+        this.offServiceFoundSync();
+      } else {
+        this.offServiceFoundSync(callback);
+      }
+    }
+
+    onServiceLost(callback: Callback<LocalServiceInfo>): void {
+      this.onServiceLostSync(callback);
+    }
+
+    offServiceLost(callback?: Callback<LocalServiceInfo>): void {
+      if (callback == undefined) {
+        this.offServiceLostSync();
+      } else {
+        this.offServiceLostSync(callback);
       }
     }
 
     startSearchingMDNS(): void {
-      try {
-        startSearchingMDNSSync(this.serviceType);
-      } catch (err) {
-        throw toBusinessError(err);
-      }
+      return this.startSearchingMDNSSync();
     }
 
     stopSearchingMDNS(): void {
-      try {
-        stopSearchingMDNSSync(this.serviceType);
-      } catch (err) {
-        throw toBusinessError(err);
-      }
+      return this.stopSearchingMDNSSync();
     }
   }
 
-  // ---------- createDiscoveryService ----------
-  export function createDiscoveryService(context: Context, serviceType: string): DiscoveryService {
-    let result = new DiscoveryService(serviceType);
-    return result;
-  }
-
-  // ---------- DiscoveryService native helpers ----------
-  export native function startSearchingMDNSSync(serviceType: string): void;
-  export native function stopSearchingMDNSSync(serviceType: string): void;
-
-  export native function onDiscoveryStart(callback: Callback<DiscoveryEventInfo>): void;
-  export native function offDiscoveryStart(callback?: Callback<DiscoveryEventInfo>): void;
-  export native function onDiscoveryStop(callback: Callback<DiscoveryEventInfo>): void;
-  export native function offDiscoveryStop(callback?: Callback<DiscoveryEventInfo>): void;
-  export native function onServiceFound(callback: Callback<LocalServiceInfo>): void;
-  export native function offServiceFound(callback?: Callback<LocalServiceInfo>): void;
-  export native function onServiceLost(callback: Callback<LocalServiceInfo>): void;
-  export native function offServiceLost(callback?: Callback<LocalServiceInfo>): void;
 }

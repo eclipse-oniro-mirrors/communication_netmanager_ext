@@ -27,84 +27,38 @@
 
 #include "ability_manager_client.h"
 #include "ability_connect_callback_stub.h"
-#include "cxx.h"
-#include "errorcode_convertor.h"
+#include "ani_base_context.h"
+#include "ani_common_want.h"
 #include "extension_ability_info.h"
-#include "ipc_skeleton.h"
 #include "net_conn_client.h"
 #include "net_datashare_utils_iface.h"
-#include "net_manager_ext_constants.h"
 #include "net_manager_constants.h"
+#include "netmanager_ext_log.h"
+#include "errorcode_convertor.h"
 #include "parameters.h"
 #include "want.h"
 #include "want_params.h"
 
 #ifdef SUPPORT_SYSVPN
 #include "os_account_manager.h"
+#include "ipc_skeleton.h"
+#include "uuid.h"
 #endif // SUPPORT_SYSVPN
 
 namespace OHOS {
 namespace NetManagerAni {
 
-// ============================================================================
-// Constants (mirrored from NAPI vpnext module)
-// ============================================================================
 namespace {
 constexpr const char *VPNEXT_MODE_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
-constexpr const char *VPNEXT_ALWAYSON_URI =
-    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_alwayson";
+constexpr const char *ALWAYS_ON_VPN_URI =
+    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnalwayson_mode";
+constexpr const char *KEY_ALWAYS_ON_VPN = "settings.alwayson.vpn";
 constexpr const char *VPN_DIALOG_POSTFIX = "**vpndialog**";
 constexpr const char *VPN_DIALOG_BUNDLENAME = "com.ohos.vpndialog";
 constexpr const char *EDM_VPN_DISABLE_KEY = "persist.edm.vpn_disable";
 constexpr int32_t MAX_BUNDLE_NAME_LENGTH = 256;
-constexpr int32_t UUID128_BYTES_LEN = 16;
-constexpr int32_t HEX_CHARS_PER_BYTE = 2;
 
-// 16-byte UUID indices (access by name, not magic number)
-constexpr int32_t UUID_BYTE_0  = 0;
-constexpr int32_t UUID_BYTE_1  = 1;
-constexpr int32_t UUID_BYTE_2  = 2;
-constexpr int32_t UUID_BYTE_3  = 3;
-constexpr int32_t UUID_BYTE_4  = 4;
-constexpr int32_t UUID_BYTE_5  = 5;
-constexpr int32_t UUID_BYTE_6  = 6;
-constexpr int32_t UUID_BYTE_7  = 7;
-constexpr int32_t UUID_BYTE_8  = 8;
-constexpr int32_t UUID_BYTE_9  = 9;
-constexpr int32_t UUID_BYTE_10 = 10;
-constexpr int32_t UUID_BYTE_11 = 11;
-constexpr int32_t UUID_BYTE_12 = 12;
-constexpr int32_t UUID_BYTE_13 = 13;
-constexpr int32_t UUID_BYTE_14 = 14;
-constexpr int32_t UUID_BYTE_15 = 15;
-
-// Byte-level bit shift amounts (1 byte = 8 bits)
-constexpr int32_t SHIFT_HALF_BYTE = 4;
-constexpr int32_t SHIFT_1_BYTE = 8;
-constexpr int32_t SHIFT_2_BYTES = 16;
-constexpr int32_t SHIFT_3_BYTES = 24;
-constexpr int32_t SHIFT_4_BYTES = 32;
-
-// Nibble mask (low 4 bits)
-constexpr uint8_t NIBBLE_MASK = 0xF;
-
-// UUID format section positions (RFC 4122 layout)
-constexpr size_t UUID_TIME_LOW_START = 0;
-constexpr size_t UUID_TIME_LOW_LEN = 8;
-constexpr size_t UUID_TIME_MID_START = 8;
-constexpr size_t UUID_TIME_MID_LEN = 4;
-constexpr size_t UUID_TIME_HIGH_START = 12;
-constexpr size_t UUID_TIME_HIGH_LEN = 4;
-constexpr size_t UUID_CLOCK_SEQ_START = 16;
-constexpr size_t UUID_CLOCK_SEQ_LEN = 4;
-constexpr size_t UUID_NODE_START = 20;
-
-// Permission check result codes (ProcessPermissionRequests)
-constexpr int32_t PERM_RESULT_AUTHORIZED = 0;
-
-// Helper: Validate bundle name contains only safe characters for URI construction
-// BundleName should only contain alphanumeric, dot, and underscore characters
 static bool IsValidBundleName(const std::string &bundleName)
 {
     if (bundleName.empty() || bundleName.length() > MAX_BUNDLE_NAME_LENGTH) {
@@ -121,84 +75,22 @@ static bool IsValidBundleName(const std::string &bundleName)
 constexpr int32_t PERM_RESULT_AUTHORIZED_AFTER_DIALOG = 1;
 constexpr int32_t PERM_RESULT_DENIED_AFTER_DIALOG = 2;
 constexpr int32_t PERM_RESULT_FAILED = -1;
-
-// Dialog timeout
+constexpr int32_t PERM_RESULT_AUTHORIZED = 0;
 constexpr int32_t VPN_DIALOG_TIMEOUT_SEC = 30;
 } // anonymous namespace
 
-// ============================================================================
-// UUID Generation (equivalent to vpnext NAPI UUID class)
-// ============================================================================
-class UuidGenerator {
-public:
-    static std::string Generate()
-    {
-        std::array<uint8_t, UUID128_BYTES_LEN> uuid = {0x00};
-        struct timeval tv {};
-        struct timezone tz {};
-        struct tm randomTime {};
-        unsigned int randNum = 0;
-
-        rand_r(&randNum);
-        gettimeofday(&tv, &tz);
-        if (localtime_r(&tv.tv_sec, &randomTime) == nullptr) {
-            return "";
-        }
-
-        uuid[UUID_BYTE_15] = static_cast<uint8_t>(tv.tv_usec & 0xFF);
-        uuid[UUID_BYTE_14] = static_cast<uint8_t>((tv.tv_usec & 0xFF00) >> SHIFT_1_BYTE);
-        uuid[UUID_BYTE_13] = static_cast<uint8_t>((tv.tv_usec & 0xFF0000) >> SHIFT_2_BYTES);
-        uuid[UUID_BYTE_12] = static_cast<uint8_t>((tv.tv_usec & 0xFF000000) >> SHIFT_3_BYTES);
-        uuid[UUID_BYTE_11] = static_cast<uint8_t>(tv.tv_sec & 0xFF);
-        uuid[UUID_BYTE_10] = static_cast<uint8_t>((tv.tv_sec & 0xFF00) >> SHIFT_1_BYTE);
-        uuid[UUID_BYTE_9]  = static_cast<uint8_t>((tv.tv_sec & 0xFF0000) >> SHIFT_2_BYTES);
-        uuid[UUID_BYTE_8]  = static_cast<uint8_t>((tv.tv_sec & 0xFF000000) >> SHIFT_3_BYTES);
-        uuid[UUID_BYTE_7]  = static_cast<uint8_t>((tv.tv_sec & 0xFF00000000) >> SHIFT_4_BYTES);
-        uuid[UUID_BYTE_6]  = static_cast<uint8_t>((randomTime.tm_sec + static_cast<int>(randNum)) & 0xFF);
-        uuid[UUID_BYTE_5]  = static_cast<uint8_t>((randomTime.tm_min + (randNum >> SHIFT_1_BYTE)) & 0xFF);
-        uuid[UUID_BYTE_4]  = static_cast<uint8_t>((randomTime.tm_hour + (randNum >> SHIFT_2_BYTES)) & 0xFF);
-        uuid[UUID_BYTE_3]  = static_cast<uint8_t>((randomTime.tm_mday + (randNum >> SHIFT_3_BYTES)) & 0xFF);
-        uuid[UUID_BYTE_2]  = static_cast<uint8_t>(randomTime.tm_mon & 0xFF);
-        uuid[UUID_BYTE_1]  = static_cast<uint8_t>(randomTime.tm_year & 0xFF);
-        uuid[UUID_BYTE_0]  = static_cast<uint8_t>((randomTime.tm_year & 0xFF00) >> SHIFT_1_BYTE);
-
-        return FormatUuid(uuid);
-    }
-
-private:
-    static std::string FormatUuid(const std::array<uint8_t, UUID128_BYTES_LEN> &uuid)
-    {
-        static const char *hex = "0123456789ABCDEF";
-        std::string tmp;
-        tmp.reserve(UUID128_BYTES_LEN * HEX_CHARS_PER_BYTE);
-        for (auto byte : uuid) {
-            tmp.push_back(hex[(byte >> SHIFT_HALF_BYTE) & NIBBLE_MASK]);
-            tmp.push_back(hex[byte & NIBBLE_MASK]);
-        }
-        return tmp.substr(UUID_TIME_LOW_START, UUID_TIME_LOW_LEN) + "-" +
-               tmp.substr(UUID_TIME_MID_START, UUID_TIME_MID_LEN) + "-" +
-               tmp.substr(UUID_TIME_HIGH_START, UUID_TIME_HIGH_LEN) + "-" +
-               tmp.substr(UUID_CLOCK_SEQ_START, UUID_CLOCK_SEQ_LEN) + "-" +
-               tmp.substr(UUID_NODE_START);
-    }
-};
-
-// ============================================================================
-// VpnAbilityConn - connection callback for VPN dialog (mirrors NAPI VpnMonitor::VpnAbilityConn)
-// ============================================================================
 class VpnAbilityConn : public AAFwk::AbilityConnectionStub {
     void OnAbilityConnectDone(const AppExecFwk::ElementName &element,
         const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override
     {
+        NETMANAGER_EXT_LOGI("connect done");
     }
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override
     {
+        NETMANAGER_EXT_LOGI("disconnect done");
     }
 };
 
-// ============================================================================
-// VpnMonitor replacement (no NAPI dependencies)
-// ============================================================================
 class AniVpnMonitor {
 public:
     static AniVpnMonitor &GetInstance()
@@ -211,12 +103,14 @@ public:
     {
         std::lock_guard<std::mutex> lock(wantMutex_);
         cachedWant_ = want;
+        NETMANAGER_EXT_LOGI("CacheCurrentWant: cached want %{public}s", want.GetElement().GetBundleName().c_str());
     }
 
     AAFwk::Want GetCachedWant()
     {
         std::lock_guard<std::mutex> lock(wantMutex_);
         if (!cachedWant_.GetElement().GetBundleName().empty()) {
+            NETMANAGER_EXT_LOGI("GetCachedWant: get cachedwant success");
             return cachedWant_;
         }
         return AAFwk::Want();
@@ -227,13 +121,11 @@ public:
     {
         auto abmc = AAFwk::AbilityManagerClient::GetInstance();
         if (abmc == nullptr) {
+            NETMANAGER_EXT_LOGE("GetInstance failed");
             return false;
         }
 
         AAFwk::Want cachedwant = GetCachedWant();
-        if (cachedwant.GetElement().GetBundleName().empty()) {
-            return false;
-        }
         AAFwk::WantParams cachedParams = cachedwant.GetParams();
         AAFwk::Want want;
         AAFwk::WantParams wantParams = want.GetParams();
@@ -241,19 +133,16 @@ public:
         want.SetParams(wantParams);
         want.SetElementName(VPN_DIALOG_BUNDLENAME, "VpnServiceExtAbility");
         want.SetParam("bundleName", bundleName);
-        std::string finalAbilityName = abilityName;
-        if (abilityName.length() < std::strlen(VPN_DIALOG_POSTFIX) ||
-            abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
-            finalAbilityName = abilityName + VPN_DIALOG_POSTFIX;
-        }
-        want.SetParam("abilityName", finalAbilityName);
+        want.SetParam("abilityName", abilityName + VPN_DIALOG_POSTFIX);
         want.SetParam("appName", appName);
 
         sptr<VpnAbilityConn> vpnAbilityConn = sptr<VpnAbilityConn>::MakeSptr();
         auto ret = abmc->ConnectAbility(want, vpnAbilityConn, -1);
         if (ret != 0) {
+            NETMANAGER_EXT_LOGE("connectAbility failed %{public}d", ret);
             return false;
         }
+        NETMANAGER_EXT_LOGI("click done");
         return true;
     }
 
@@ -267,47 +156,15 @@ private:
     std::mutex wantMutex_;
 };
 
-// ============================================================================
-// VPnExtensionObserver - IPC callback stub for VPN events
-// Bridges state changes to Rust register layer for onAuthorizationResult
-// ============================================================================
-class VpnExtObserverCallback : public IRemoteStub<NetManagerStandard::IVpnEventCallback> {
-public:
-    int32_t OnVpnStateChanged(bool isConnected, const sptr<NetManagerStandard::VpnState> &vpnState) override
-    {
-        execute_vpn_ext_authorization_result(isConnected);
-        return 0;
-    }
-    int32_t OnMultiVpnStateChanged(bool isConnected, const std::string &bundleName,
-        const std::string &vpnId) override
-    {
-        return 0;
-    }
-    int32_t OnVpnMultiUserSetUp() override
-    {
-        return 0;
-    }
-};
-
-// ============================================================================
-// Global observer pointer
-// ============================================================================
-static sptr<VpnExtObserverCallback> g_vpnExtObserver = nullptr;
-static std::mutex g_vpnExtObserverMutex;
-
-// ============================================================================
-// Helper: Remove VPN_DIALOG_POSTFIX from ability name
-// ============================================================================
-static std::string RemoveVpnDialogPostfix(const std::string &s)
+static std::string Replace(std::string s)
 {
-    constexpr std::string_view postfix = VPN_DIALOG_POSTFIX;
-    auto pos = s.rfind(postfix);
-    if (pos == std::string::npos || pos + postfix.length() != s.length()) {
+    std::string tmp = VPN_DIALOG_POSTFIX;
+    auto pos = s.find(tmp);
+    if (pos == std::string::npos) {
         return s;
     }
-    std::string result = s;
-    result.erase(pos);
-    return result;
+    s.replace(pos, tmp.length(), "");
+    return s;
 }
 
 #ifdef SUPPORT_SYSVPN
@@ -316,20 +173,20 @@ static int32_t CheckVpnPermission(const std::string &bundleName, std::string &vp
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     int32_t uid = IPCSkeleton::GetCallingUid();
     if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
+        NETMANAGER_EXT_LOGE("checkVpnPermission::GetOsAccountLocalIdFromUid error, uid: %{public}d.", uid);
         return -1;
     }
+    NETMANAGER_EXT_LOGI("checkVpnPermission uid: %{public}d, userid: %{public}d", uid, userId);
 
-    // First, check user-specific configuration (takes priority)
     std::string userKey = bundleName + "_" + std::to_string(userId);
     int32_t ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, userKey, vpnExtMode);
     if (ret == 0 && vpnExtMode == "1") {
-        // User-specific config exists and is authorized
         return 0;
     }
 
-    // User-specific config not found or not authorized, fall back to global config
     ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
     if (ret != 0 || vpnExtMode != "1") {
+        NETMANAGER_EXT_LOGE("checkVpnPermission::dataShareHelperUtils Query error, err = %{public}d", ret);
         return -1;
     }
 
@@ -337,9 +194,6 @@ static int32_t CheckVpnPermission(const std::string &bundleName, std::string &vp
 }
 #endif // SUPPORT_SYSVPN
 
-// ============================================================================
-// ProcessPermissionRequests - Check VPN authorization via DataShare
-// Uses PERM_RESULT_* constants defined above
 static std::string BuildVpnDialogKey(const std::string &bundleName)
 {
     std::string key = bundleName;
@@ -355,11 +209,12 @@ static std::string BuildVpnDialogKey(const std::string &bundleName)
 }
 
 static int32_t WaitForObserverResult(std::shared_ptr<int32_t> callbackId,
-    std::mutex &waitMutex, std::condition_variable &waitCv, std::atomic<bool> &observerFired)
+    std::mutex &waitMutex, std::condition_variable &waitCv,
+    std::atomic<bool> &hasFired, std::atomic<bool> &isAuthorized)
 {
     std::unique_lock<std::mutex> lock(waitMutex);
-    bool waitResult = waitCv.wait_for(lock, std::chrono::seconds(VPN_DIALOG_TIMEOUT_SEC), [&observerFired]() {
-        return observerFired.load();
+    bool waitResult = waitCv.wait_for(lock, std::chrono::seconds(VPN_DIALOG_TIMEOUT_SEC), [&hasFired]() {
+        return hasFired.load();
     });
     if (!waitResult) {
         if (callbackId) {
@@ -367,7 +222,7 @@ static int32_t WaitForObserverResult(std::shared_ptr<int32_t> callbackId,
         }
         return PERM_RESULT_FAILED;
     }
-    return observerFired.load() ? PERM_RESULT_AUTHORIZED_AFTER_DIALOG : PERM_RESULT_DENIED_AFTER_DIALOG;
+    return isAuthorized.load() ? PERM_RESULT_AUTHORIZED_AFTER_DIALOG : PERM_RESULT_DENIED_AFTER_DIALOG;
 }
 
 // Show VPN authorization dialog, register DataShare observer, and block until user responds.
@@ -381,49 +236,55 @@ static int32_t WaitForVpnDialogAuthorization(const std::string &bundleName,
 
     std::string key = BuildVpnDialogKey(bundleName);
     if (key.empty()) {
+        NETMANAGER_EXT_LOGE("WaitForVpnDialogAuthorization::BuildVpnDialogKey failed, bundleName: %{public}s",
+                            bundleName.c_str());
         return PERM_RESULT_FAILED;
     }
-
     std::mutex waitMutex;
     std::condition_variable waitCv;
-    std::atomic<bool> observerFired{false};
+    std::atomic<bool> hasFired{false};
+    std::atomic<bool> isAuthorized{false};
     auto once = std::make_shared<std::once_flag>();
     auto callbackId = std::make_shared<int32_t>();
 
-    auto onChange = [once, &waitMutex, &waitCv, &observerFired, callbackId, key]() {
-        std::call_once(*once, [&waitMutex, &waitCv, &observerFired, callbackId, key]() {
+    auto onChange = [once, &waitMutex, &waitCv, &hasFired, &isAuthorized, callbackId, key]() {
+        std::call_once(*once, [&waitMutex, &waitCv, &hasFired, &isAuthorized, callbackId, key]() {
             std::string vpnExtModeAfter = "0";
-            NetManagerStandard::NetDataShareHelperUtilsIface::Query(
+            int32_t ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(
                 VPNEXT_MODE_URI, key, vpnExtModeAfter);
+            NETMANAGER_EXT_LOGI("query vpn state after dialog: %{public}d %{public}s", ret, vpnExtModeAfter.c_str());
             if (callbackId) {
                 NetManagerStandard::NetDataShareHelperUtilsIface::UnregisterObserver(VPNEXT_MODE_URI, *callbackId);
             }
             {
                 std::lock_guard<std::mutex> lock(waitMutex);
-                observerFired.store(vpnExtModeAfter == "1");
+                isAuthorized.store(vpnExtModeAfter == "1");
+                hasFired.store(true);
             }
             waitCv.notify_all();
         });
     };
 
     *callbackId = NetManagerStandard::NetDataShareHelperUtilsIface::RegisterObserver(VPNEXT_MODE_URI, onChange);
-    return WaitForObserverResult(callbackId, waitMutex, waitCv, observerFired);
+    return WaitForObserverResult(callbackId, waitMutex, waitCv, hasFired, isAuthorized);
 }
 
-// Check VPN authorization via DataShare. If not authorized, show dialog and wait for user decision.
-// Uses PERM_RESULT_* constants defined above.
 static int32_t ProcessPermissionRequests(const std::string &bundleName, const std::string &abilityName,
     std::string &selfAppName)
 {
     std::string selfBundleName;
-    NetManagerStandard::NetworkVpnClient::GetInstance()
+    auto getAppNameRes = NetManagerStandard::NetworkVpnClient::GetInstance()
         .GetSelfAppName(selfAppName, selfBundleName);
+    NETMANAGER_EXT_LOGI("StartVpnExtensionAbility SelfAppName = %{public}s %{public}d",
+                        selfAppName.c_str(), getAppNameRes);
 
     if (bundleName != selfBundleName) {
+        NETMANAGER_EXT_LOGE("Not allowed to start other bundleName vpn!");
         return PERM_RESULT_FAILED;
     }
 
-    std::string vpnExtMode = "0";
+    bool vpnDialogSelect = false;
+    std::string vpnExtMode = std::to_string(vpnDialogSelect);
     int32_t ret;
 #ifdef SUPPORT_SYSVPN
     ret = CheckVpnPermission(bundleName, vpnExtMode);
@@ -431,14 +292,12 @@ static int32_t ProcessPermissionRequests(const std::string &bundleName, const st
     ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
 #endif // SUPPORT_SYSVPN
     if (ret != 0 || vpnExtMode != "1") {
+        NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         return WaitForVpnDialogAuthorization(bundleName, abilityName, selfAppName);
     }
     return PERM_RESULT_AUTHORIZED;
 }
 
-// ============================================================================
-// Static data conversion helpers
-// ============================================================================
 static NetManagerStandard::INetAddr ConvertFromNetAddressData(const NetAddressData &data)
 {
     NetManagerStandard::INetAddr addr;
@@ -499,230 +358,257 @@ sptr<NetManagerStandard::VpnConfig> ConvertToVpnConfig(const VpnConfigData &data
     return config;
 }
 
-// ============================================================================
-// Public API implementations
-// ============================================================================
-
-int32_t StartVpnExtensionAbility(const rust::String &bundleName,
-    const rust::String &abilityName, int32_t &ret)
+int32_t CreateVpnConnection(AniEnv **env, AniObject *contextObj, int64_t &ptr)
 {
-    std::string bn = std::string(bundleName);
-    std::string an = std::string(abilityName);
-
-    AAFwk::Want want;
-    want.SetElementName(bn, an);
-
-    // 1. Cache the want (for VpnMonitor / dialog use)
-    AniVpnMonitor::GetInstance().CacheCurrentWant(want);
-
-    // 2. Get self app name for permission checks
-    std::string selfAppName;
-    std::string selfBundleName;
-    auto getAppNameRes = NetManagerStandard::NetworkVpnClient::GetInstance()
-        .GetSelfAppName(selfAppName, selfBundleName);
-    if (getAppNameRes != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
-        return ret;
+    if (env == nullptr || *env == nullptr || contextObj == nullptr) {
+        NETMANAGER_EXT_LOGE("CreateVpnConnection function parameter error");
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
 
-    // 3. Process permission requests (non-VPN-dialog apps)
-    if (selfBundleName != VPN_DIALOG_BUNDLENAME || an.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
-        int32_t permResult = ProcessPermissionRequests(bn, an, selfAppName);
-        if (permResult == PERM_RESULT_FAILED) {
-            ret = NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-            return ret;
-        }
-        if (permResult == PERM_RESULT_DENIED_AFTER_DIALOG) {
-            ret = NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-            return ret;
-        }
-        // PERM_RESULT_AUTHORIZED: already authorized, PERM_RESULT_AUTHORIZED_AFTER_DIALOG: authorized after dialog
+    auto aniEnv = reinterpret_cast<ani_env *>(*env);
+    auto obj = *reinterpret_cast<ani_object *>(contextObj);
+    auto context = AbilityRuntime::GetStageModeContext(aniEnv, obj);
+    if (context == nullptr) {
+        NETMANAGER_EXT_LOGE("context is nullptr");
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
 
-    // 4. Remove VPN_DIALOG_POSTFIX suffix from ability name
-    auto elem = want.GetElement();
-    elem.SetAbilityName(RemoveVpnDialogPostfix(an));
-    want.SetElement(elem);
-
-    // 5. EDM policy check
-    if (OHOS::system::GetBoolParameter(EDM_VPN_DISABLE_KEY, false)) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-        return ret;
+    auto errCode = NetManagerStandard::NetworkVpnClient::GetInstance().CreateVpnConnection(true);
+    if (errCode == NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        ptr = reinterpret_cast<int64_t>(&NetManagerStandard::NetworkVpnClient::GetInstance());
     }
 
-    // 6. Call NetworkVpnClient
-    ret = NetManagerStandard::NetworkVpnClient::GetInstance().StartVpnExtensionAbility(want);
-    return ret;
+    return errCode;
 }
 
-int32_t StopVpnExtensionAbility(const rust::String &bundleName,
-    const rust::String &abilityName, int32_t &ret)
+int32_t DestroyVpnConnection(int64_t ptr)
 {
-    std::string bn = std::string(bundleName);
-    std::string an = std::string(abilityName);
+    (void)ptr;
+    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t CreateVpnObserver(int64_t &ptr)
+{
+    static std::atomic<int64_t> gVpnObserverId = 0;
+    ptr = ++gVpnObserverId;
+    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t DestroyVpnObserver(const int64_t ptr)
+{
+    (void)ptr;
+    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t StartVpnExtensionAbility(AniEnv **env, AniObject *wantObj)
+{
+    if (env == nullptr || *env == nullptr || wantObj == nullptr) {
+        NETMANAGER_EXT_LOGE("funciton prameter error");
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
 
     AAFwk::Want want;
-    want.SetElementName(bn, an);
+    if (!AppExecFwk::UnwrapWant(reinterpret_cast<ani_env *>(*env), *reinterpret_cast<ani_object *>(wantObj), want)) {
+        NETMANAGER_EXT_LOGE("Failed to parse want");
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
 
-    // 1. Verify bundleName matches self
+    AniVpnMonitor::GetInstance().CacheCurrentWant(want);
+    std::string bundleName = want.GetElement().GetBundleName();
+    std::string abilityName = want.GetElement().GetAbilityName();
     std::string selfAppName;
     std::string selfBundleName;
-    NetManagerStandard::NetworkVpnClient::GetInstance()
-        .GetSelfAppName(selfAppName, selfBundleName);
-
-    if (bn != selfBundleName) {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-        return ret;
+    NetManagerStandard::NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName, selfBundleName);
+    if (selfBundleName != VPN_DIALOG_BUNDLENAME || abilityName.find(VPN_DIALOG_POSTFIX) == std::string::npos) {
+        int32_t permResult = ProcessPermissionRequests(bundleName, abilityName, selfAppName);
+        if (permResult == PERM_RESULT_AUTHORIZED_AFTER_DIALOG) {
+            execute_vpn_ext_authorization_result(true);
+            return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+        } else if (permResult == PERM_RESULT_DENIED_AFTER_DIALOG) {
+            execute_vpn_ext_authorization_result(false);
+            return NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+        } else if (permResult == PERM_RESULT_FAILED) {
+            return NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+        }
     }
 
-    // 2. Check VPN authorization via DataShare
-    std::string vpnExtMode = "0";
-    int32_t queryRet;
+    auto elem = want.GetElement();
+    elem.SetAbilityName(Replace(abilityName));
+    want.SetElement(elem);
+    if (OHOS::system::GetBoolParameter(EDM_VPN_DISABLE_KEY, false)) {
+        NETMANAGER_EXT_LOGE("persist.edm.vpn_disable disallowed setting up vpn");
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
+    auto err = NetManagerStandard::NetworkVpnClient::GetInstance().StartVpnExtensionAbility(want);
+    NETMANAGER_EXT_LOGI("execute StartVpnExtensionAbility result: %{public}d", err);
+    return err;
+}
+
+int32_t StopVpnExtensionAbility(AniEnv **env, AniObject *wantObj)
+{
+    if (env == nullptr || *env == nullptr || wantObj == nullptr) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(reinterpret_cast<ani_env *>(*env), *reinterpret_cast<ani_object *>(wantObj), want)) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+
+    std::string bundleName = want.GetElement().GetBundleName();
+    std::string selfAppName;
+    std::string selfBundleName;
+    NetManagerStandard::NetworkVpnClient::GetInstance().GetSelfAppName(selfAppName, selfBundleName);
+    if (bundleName != selfBundleName) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
+    bool vpnDialogSelect = false;
+    std::string vpnExtMode = std::to_string(vpnDialogSelect);
+    int32_t ret = 0;
 #ifdef SUPPORT_SYSVPN
-    queryRet = CheckVpnPermission(bn, vpnExtMode);
+    ret = CheckVpnPermission(bundleName, vpnExtMode);
 #else
-    queryRet = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bn, vpnExtMode);
+    ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
 #endif // SUPPORT_SYSVPN
-    if (queryRet != 0 || vpnExtMode != "1") {
-        ret = NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
-        return ret;
+    if (ret != 0 || vpnExtMode != "1") {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    // 3. Call NetworkVpnClient
-    ret = NetManagerStandard::NetworkVpnClient::GetInstance().StopVpnExtensionAbility(want);
-    return ret;
+    return NetManagerStandard::NetworkVpnClient::GetInstance().StopVpnExtensionAbility(want);
 }
 
 int32_t SetAlwaysOnVpnEnabled(bool enable, const rust::String &bundleName)
 {
     std::string bn = std::string(bundleName);
-    std::string value = enable ? "1" : "0";
-    int32_t ret = NetManagerStandard::NetDataShareHelperUtilsIface::Update(VPNEXT_ALWAYSON_URI, bn, value);
-    return (ret == 0) ? NetManagerStandard::NETMANAGER_EXT_SUCCESS
-                      : NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    if (!IsValidBundleName(bn)) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    auto ret = NetManagerStandard::NetDataShareHelperUtilsIface::Update(ALWAYS_ON_VPN_URI,
+        KEY_ALWAYS_ON_VPN, (enable ? bn : ""));
+    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
+
+    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
 }
 
-bool IsAlwaysOnVpnEnabled(const rust::String &bundleName, int32_t &ret)
-{
-    std::string bn = std::string(bundleName);
-    std::string value = "0";
-    int32_t queryRet = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_ALWAYSON_URI, bn, value);
-    ret = (queryRet == 0) ? NetManagerStandard::NETMANAGER_EXT_SUCCESS
-                          : NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    return (value == "1");
-}
-
-bool UpdateVpnAuthorizedState(const rust::String &bundleName)
+int32_t IsAlwaysOnVpnEnabled(const rust::String &bundleName, bool &isEnabled)
 {
     std::string bn = std::string(bundleName);
     if (!IsValidBundleName(bn)) {
-        return false;
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
-    bool authorized = true;
-    if (bn.find(VPN_DIALOG_POSTFIX) != std::string::npos) {
-        authorized = false;
-        bn = RemoveVpnDialogPostfix(bn);
+    bool vpnDialogSelect = false;
+    std::string vpnExtMode = std::to_string(vpnDialogSelect);
+    int32_t ret = 0;
+#ifdef SUPPORT_SYSVPN
+    ret = CheckVpnPermission(bn, vpnExtMode);
+#else
+    ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bn, vpnExtMode);
+#endif // SUPPORT_SYSVPN
+    if (ret != 0 || vpnExtMode != "1") {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
-    std::string vpnExtMode = std::to_string(authorized);
+    std::string value = "";
+    ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(ALWAYS_ON_VPN_URI, KEY_ALWAYS_ON_VPN, value);
+    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
+    }
 
-    int32_t ret;
+    isEnabled = (value == bn);
+    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t UpdateVpnAuthorizedState(const rust::String &bundleName, bool &state)
+{
+    std::string bn = std::string(bundleName);
+    if (!IsValidBundleName(bn)) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    bool vpnDialogSelect = true;
+    if (bn.find(VPN_DIALOG_POSTFIX) != std::string::npos) {
+        vpnDialogSelect = false;
+        bn = Replace(bn);
+    }
+    std::string vpnExtMode = std::to_string(vpnDialogSelect);
+
+    int32_t ret = 0;
 #ifdef SUPPORT_SYSVPN
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     int32_t uid = IPCSkeleton::GetCallingUid();
     if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
-        return false;
+        return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
     }
     std::string key = bn + "_" + std::to_string(userId);
     ret = NetManagerStandard::NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, key, vpnExtMode);
 #else
     ret = NetManagerStandard::NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bn, vpnExtMode);
 #endif // SUPPORT_SYSVPN
-
-    return (ret == 0);
+    if (ret == NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        state = true;
+    }
+    return ret;
 }
 
-bool CreateVpnConnection(int32_t &ret)
+int32_t Create(const int64_t ptr, const VpnConfigData &config, int32_t &fd)
 {
-    ret = NetManagerStandard::NetworkVpnClient::GetInstance().CreateVpnConnection(true);
-    return ret == NetManagerStandard::NETMANAGER_EXT_SUCCESS;
-}
-
-int32_t Create(const VpnConfigData &config, int32_t &fd)
-{
+    if (ptr == 0) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     auto vpnConfig = ConvertToVpnConfig(config);
     if (vpnConfig == nullptr) {
-        return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     return NetManagerStandard::NetworkVpnClient::GetInstance().SetUpVpn(vpnConfig, fd, true);
 }
 
-int32_t Protect(int32_t socketFd)
+int32_t Protect(const int64_t ptr, const int32_t socketFd)
 {
+    if (ptr == 0) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
     return NetManagerStandard::NetworkVpnClient::GetInstance().Protect(socketFd, true);
 }
 
-int32_t Destroy()
+int32_t DestroyVpn(const int64_t ptr, const rust::String &vpnId)
 {
-    return NetManagerStandard::NetworkVpnClient::GetInstance().DestroyVpn(true);
-}
-
-int32_t DestroyVpn(const rust::String &vpnId)
-{
-#ifdef SUPPORT_SYSVPN
-    return NetManagerStandard::NetworkVpnClient::GetInstance().DestroyVpn(std::string(vpnId));
-#else
-    return NetManagerStandard::NetworkVpnClient::GetInstance().DestroyVpn(true);
-#endif
-}
-
-int32_t ProtectProcessNet()
-{
-    int32_t result = NetManagerStandard::NetConnClient::GetInstance().ProtectProcessNet();
-    if (result != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+    if (ptr == 0) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
+    int32_t result = NetManagerStandard::NETMANAGER_EXT_SUCCESS;
+#ifdef SUPPORT_SYSVPN
+    if (!vpnId.empty()) {
+        result = NetManagerStandard::NetworkVpnClient::GetInstance().DestroyVpn(std::string(vpnId));
+    } else {
+        result = NetManagerStandard::NetworkVpnClient::GetInstance().DestroyVpn(true);
+    }
+#else
+    result = NetManagerStandard::NetworkVpnClient::GetInstance().DestroyVpn(true);
+#endif // SUPPORT_SYSVPN
     return result;
 }
 
-rust::String GenerateVpnId(int32_t &ret)
+int32_t ProtectProcessNet(const int64_t ptr)
 {
+    if (ptr == 0) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    return NetManagerStandard::NetConnClient::GetInstance().ProtectProcessNet();
+}
+
+int32_t GenerateVpnId(const int64_t ptr, rust::String &vpnId)
+{
+    if (ptr == 0) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
 #ifdef SUPPORT_SYSVPN
-    std::string vpnId = UuidGenerator::Generate();
-    ret = NetManagerStandard::NETMANAGER_EXT_SUCCESS;
-    return rust::String(vpnId);
+    vpnId = rust::String(NetManagerStandard::UUID::RandomUUID().ToString());
+    return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
 #else
-    ret = NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    return rust::String("");
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
 #endif
-}
-
-int32_t VpnExtObserverRegister()
-{
-    std::lock_guard<std::mutex> lock(g_vpnExtObserverMutex);
-    if (g_vpnExtObserver != nullptr) {
-        return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
-    }
-    g_vpnExtObserver = sptr<VpnExtObserverCallback>::MakeSptr();
-    if (g_vpnExtObserver == nullptr) {
-        return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
-    }
-    int32_t ret = NetManagerStandard::NetworkVpnClient::GetInstance()
-        .RegisterVpnEvent(g_vpnExtObserver);
-    if (ret != 0) {
-        g_vpnExtObserver = nullptr;
-    }
-    return ret;
-}
-
-int32_t VpnExtObserverUnRegister()
-{
-    std::lock_guard<std::mutex> lock(g_vpnExtObserverMutex);
-    if (g_vpnExtObserver == nullptr) {
-        return NetManagerStandard::NETMANAGER_EXT_SUCCESS;
-    }
-    int32_t ret = NetManagerStandard::NetworkVpnClient::GetInstance()
-        .UnregisterVpnEvent(g_vpnExtObserver);
-    g_vpnExtObserver = nullptr;
-    return ret;
 }
 
 rust::String GetErrorCodeAndMessage(int32_t &errorCode)

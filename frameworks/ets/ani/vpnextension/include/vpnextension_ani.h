@@ -32,23 +32,22 @@ namespace NetManagerAni {
 
 sptr<NetManagerStandard::VpnConfig> ConvertToVpnConfig(const VpnConfigData &data);
 
-int32_t StartVpnExtensionAbility(const rust::String &bundleName,
-    const rust::String &abilityName, int32_t &ret);
-int32_t StopVpnExtensionAbility(const rust::String &bundleName,
-    const rust::String &abilityName, int32_t &ret);
+int32_t StartVpnExtensionAbility(AniEnv **env, AniObject *wantObj);
+int32_t StopVpnExtensionAbility(AniEnv **env, AniObject *wantObj);
 int32_t SetAlwaysOnVpnEnabled(bool enable, const rust::String &bundleName);
-bool IsAlwaysOnVpnEnabled(const rust::String &bundleName, int32_t &ret);
-bool UpdateVpnAuthorizedState(const rust::String &bundleName);
-bool CreateVpnConnection(int32_t &ret);
-int32_t Create(const VpnConfigData &config, int32_t &fd);
-int32_t Protect(int32_t socketFd);
-int32_t Destroy();
-int32_t DestroyVpn(const rust::String &vpnId);
-int32_t ProtectProcessNet();
-rust::String GenerateVpnId(int32_t &ret);
+int32_t IsAlwaysOnVpnEnabled(const rust::String &bundleName, bool &isEnabled);
+int32_t UpdateVpnAuthorizedState(const rust::String &bundleName, bool &state);
+int32_t CreateVpnConnection(AniEnv **env, AniObject *contextObj, int64_t &ptr);
+int32_t DestroyVpnConnection(const int64_t ptr);
+int32_t Create(const int64_t ptr, const VpnConfigData &config, int32_t &fd);
+int32_t Protect(const int64_t ptr, const int32_t socketFd);
+int32_t DestroyVpn(const int64_t ptr, const rust::String &vpnId);
+int32_t ProtectProcessNet(const int64_t ptr);
+int32_t GenerateVpnId(const int64_t ptr, rust::String &vpnId);
 
-int32_t VpnExtObserverRegister();
-int32_t VpnExtObserverUnRegister();
+int32_t CreateVpnObserver(int64_t &ptr);
+int32_t DestroyVpnObserver(int64_t ptr);
+
 rust::String GetErrorCodeAndMessage(int32_t &errorCode);
 
 } // namespace NetManagerAni

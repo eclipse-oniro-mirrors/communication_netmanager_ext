@@ -12,51 +12,34 @@
 // limitations under the License.
 
 use crate::bridge;
-use crate::register::execute_eap_data;
+use crate::register::{execute_eap_data, on_sa_status_change};
 use ani_rs::business_error::BusinessError;
-use ani_rs::typed_array::ArrayBuffer;
 
 pub(crate) fn convert_to_business_error(err: i32) -> BusinessError {
     BusinessError::new(err, String::new())
 }
 
-/// Securely zeroize a String's buffer in memory before clearing.
-/// Overwrites all bytes with zeros then clears and shrinks, ensuring
-/// plaintext does not linger in freed memory.
-fn zeroize_string(s: &mut String) {
-    if !s.is_empty() {
-        unsafe {
-            std::ptr::write_bytes(s.as_mut_ptr(), 0u8, s.len());
-        }
-    }
-    s.clear();
-    s.shrink_to_fit();
-}
-
-/// Securely zeroize a Vec's buffer in memory before clearing.
-fn zeroize_vec<T>(v: &mut Vec<T>) {
-    if !v.is_empty() {
-        unsafe {
-            std::ptr::write_bytes(v.as_mut_ptr(), 0u8, v.len() * std::mem::size_of::<T>());
-        }
-    }
-    v.clear();
-    v.shrink_to_fit();
-}
-
 pub(crate) struct NetConnClient;
 
 impl NetConnClient {
-    pub(crate) fn reg_custom_eap_handler(net_type: i32, eap_code: i32, eap_type: i32) -> Result<(), i32> {
-        let ret = unsafe { ffi::RegCustomEapHandler(net_type, eap_code, eap_type) };
+    pub(crate) fn is_eap_feature_enabled() -> bool {
+        unsafe { ffi::IsEapExtensibleAuthenticationEnabled() }
+    }
+
+    pub(crate) fn validate_eap_params(net_type: i32, eap_code: i32, eap_type: i32) -> Result<(), i32> {
+        let ret = unsafe { ffi::ValidateEapParams(net_type, eap_code, eap_type) };
         if ret != 0 {
             return Err(ret);
         }
         Ok(())
     }
 
-    pub(crate) fn unreg_custom_eap_handler(net_type: i32, eap_code: i32, eap_type: i32) -> Result<(), i32> {
-        let ret = unsafe { ffi::UnregCustomEapHandler(net_type, eap_code, eap_type) };
+    pub(crate) fn reg_custom_eap_handler(
+        trigger_mode: i32,
+        net_type: i32,
+        reg_items: &Vec<ffi::EapCodeTypeAni>,
+    ) -> Result<(), i32> {
+        let ret = unsafe { ffi::RegCustomEapHandler(trigger_mode, net_type, reg_items) };
         if ret != 0 {
             return Err(ret);
         }
@@ -67,50 +50,26 @@ impl NetConnClient {
         result: bridge::CustomResult,
         msg_id: i32,
         buffer_len: i32,
-        eap_buffer: ArrayBuffer,
+        eap_buffer: Vec<u8>,
     ) -> Result<(), i32> {
-        let eap_buffer_vec: Vec<u8> = eap_buffer.to_vec();
-        if buffer_len < 0 || buffer_len as usize != eap_buffer_vec.len() {
-            return Err(-1);
-        }
-        let ret = unsafe { ffi::ReplyCustomEapData(result as i32, msg_id, buffer_len, &eap_buffer_vec) };
+        let ret = unsafe { ffi::ReplyCustomEapData(result as i32, msg_id, buffer_len, &eap_buffer) };
         if ret != 0 {
             return Err(ret);
         }
         Ok(())
     }
 
-    pub(crate) fn start_eth_eap(net_id: i32, mut profile: bridge::EthEapProfile) -> Result<(), i32> {
-        // Sensitive fields (password, cert_password) are cloned into the FFI config;
-        // C++ side zeros them after use with memset_s. After the FFI call, we also
-        // zeroize the Rust-side originals to prevent plaintext lingering in memory.
-        let config = ffi::EthEapConfig {
-            eap_method: profile.eap_method as i32,
-            phase2_method: profile.phase2_method as i32,
-            identity: profile.identity,
-            anonymous_identity: profile.anonymous_identity,
-            password: profile.password.clone(),
-            ca_cert_aliases: profile.ca_cert_aliases,
-            ca_path: profile.ca_path,
-            client_cert_aliases: profile.client_cert_aliases,
-            cert_entry: profile.cert_entry.to_vec(),
-            cert_password: profile.cert_password.clone(),
-            alt_subject_match: profile.alt_subject_match,
-            domain_suffix_match: profile.domain_suffix_match,
-            realm: profile.realm,
-            plmn: profile.plmn,
-            eap_sub_id: profile.eap_sub_id,
-        };
-        let ret = unsafe { ffi::StartEthEap(net_id, config) };
-
-        // Zeroize sensitive fields on the Rust side after FFI transfer completes
-        zeroize_string(&mut profile.password);
-        zeroize_string(&mut profile.cert_password);
-
+    pub(crate) fn start_eth_eap(net_id: i32, profile: bridge::EthEapProfile) -> Result<(), i32> {
+        let profile_ani = ffi::EthEapProfileAni::from(profile);
+        let ret = unsafe { ffi::StartEthEap(net_id, profile_ani) };
         if ret != 0 {
             return Err(ret);
         }
         Ok(())
+    }
+
+    pub(crate) fn init_sa_listener() {
+        unsafe { ffi::InitEapAniSaListener() };
     }
 
     pub(crate) fn log_off_eth_eap(net_id: i32) -> Result<(), i32> {
@@ -122,9 +81,30 @@ impl NetConnClient {
     }
 }
 
+impl From<bridge::EthEapProfile> for ffi::EthEapProfileAni {
+    fn from(mut value: bridge::EthEapProfile) -> Self {
+        Self {
+            eap_method: value.eap_method as i32,
+            phase2_method: value.phase2_method as i32,
+            identity: value.identity,
+            anonymous_identity: value.anonymous_identity,
+            password: value.password.clone(),
+            ca_cert_aliases: value.ca_cert_aliases,
+            ca_path: value.ca_path,
+            client_cert_aliases: value.client_cert_aliases,
+            cert_entry: value.cert_entry.to_vec(),
+            cert_password: value.cert_password.clone(),
+            alt_subject_match: value.alt_subject_match,
+            domain_suffix_match: value.domain_suffix_match,
+            realm: value.realm,
+            plmn: value.plmn,
+            eap_sub_id: value.eap_sub_id,
+        }
+    }
+}
 #[cxx::bridge(namespace = "OHOS::NetManagerAni")]
 pub(crate) mod ffi {
-    struct EthEapConfig {
+    struct EthEapProfileAni {
         eap_method: i32,
         phase2_method: i32,
         identity: String,
@@ -142,23 +122,38 @@ pub(crate) mod ffi {
         eap_sub_id: i32,
     }
 
-    pub struct EapAniData {
+    pub struct EapDataAni {
+        pub net_type: i32,
+        pub eap_code: i32,
+        pub eap_type: i32,
         pub msg_id: i32,
         pub buffer_len: i32,
         pub eap_buffer: Vec<u8>,
     }
 
+    pub struct EapCodeTypeAni {
+        pub eap_code: i32,
+        pub eap_type: i32,
+    }
+
     extern "Rust" {
-        fn execute_eap_data(data: EapAniData);
+        fn execute_eap_data(data: EapDataAni);
+        fn on_sa_status_change(net_type: i32);
     }
 
     unsafe extern "C++" {
         include!("eap_ani.h");
 
-        fn RegCustomEapHandler(net_type: i32, eap_code: i32, eap_type: i32) -> i32;
-        fn UnregCustomEapHandler(net_type: i32, eap_code: i32, eap_type: i32) -> i32;
+        fn IsEapExtensibleAuthenticationEnabled() -> bool;
+        fn ValidateEapParams(net_type: i32, eap_code: i32, eap_type: i32) -> i32;
+        fn RegCustomEapHandler(
+            trigger_mode: i32,
+            net_type: i32,
+            reg_items: &Vec<EapCodeTypeAni>,
+        ) -> i32;
         fn ReplyCustomEapData(result: i32, msg_id: i32, buffer_len: i32, eap_buffer: &Vec<u8>) -> i32;
-        fn StartEthEap(net_id: i32, config: EthEapConfig) -> i32;
+        fn StartEthEap(net_id: i32, config: EthEapProfileAni) -> i32;
         fn LogOffEthEap(net_id: i32) -> i32;
+        fn InitEapAniSaListener();
     }
 }

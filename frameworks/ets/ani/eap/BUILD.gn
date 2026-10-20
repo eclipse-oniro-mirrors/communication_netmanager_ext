@@ -44,6 +44,10 @@ ohos_static_library("eap_ani_static") {
   sources = [ "src/cxx/eap_ani.cpp" ]
   sources += get_target_outputs(":eap_ani_cxx")
 
+  if (netmanager_ext_extensible_authentication) {
+    defines = [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+  }
+
   deps = [
     ":eap_ani_cxx",
     "../../../../interfaces/innerkits/ethernetclient:ethernet_manager_if",
@@ -77,7 +81,7 @@ ohos_rust_shared_library("eap_ani") {
   ]
 
   rustflags = [
-    "-C", "opt-level=3",
+    "-C", "opt-level=z",
     "-C", "debuginfo=0",
     "-C", "link-arg=-ffunction-sections",
     "-C", "link-arg=-fdata-sections",
@@ -86,6 +90,11 @@ ohos_rust_shared_library("eap_ani") {
     "-Z", "dylib-lto",
     "-Z", "stack-protector=all",
     "-C", "codegen-units=1",
+    "-C", "link-arg=-flto",
+    "-C", "overflow-checks=no",
+    "-C", "code-model=small",
+    "-Z", "location-detail=none",
+    "-Z", "dump-mir=deadcode",
   ]
 
   sources = [ "src/lib.rs" ]
@@ -93,6 +102,7 @@ ohos_rust_shared_library("eap_ani") {
   external_deps = [
     "runtime_core:ani",
     "hilog:hilog_rust",
+    "hilog:libhilog",
     "netmanager_base:ani_rs",
     "rust_cxx:lib"
   ]

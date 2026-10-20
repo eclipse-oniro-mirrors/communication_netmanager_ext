@@ -18,8 +18,6 @@ import type { Callback } from '@ohos.base';
 export default namespace eap {
   loadLibrary("eap_ani");
 
-  // ===== regCustomEapHandler =====
-  // 注册监听回调，用于接收后续的 EapData 数据
   native function regCustomEapHandlerSync(netType: int, eapCode: int, eapType: int,
                                            callback: Callback<EapData>): void;
 
@@ -28,7 +26,6 @@ export default namespace eap {
     regCustomEapHandlerSync(netType, eapCode, eapType, callback);
   }
 
-  // ===== unregCustomEapHandler =====
   native function unregCustomEapHandlerSync(netType: int, eapCode: int, eapType: int,
                                              callback: Callback<EapData>): void;
 
@@ -37,28 +34,23 @@ export default namespace eap {
     unregCustomEapHandlerSync(netType, eapCode, eapType, callback);
   }
 
-  // ===== replyCustomEapData =====
   native function replyCustomEapDataSync(result: CustomResult, data: EapData): void;
 
   export function replyCustomEapData(result: CustomResult, data: EapData): void {
     replyCustomEapDataSync(result, data);
   }
 
-  // ===== startEthEap =====
   native function startEthEapSync(netId: int, profile: EthEapProfile): void;
 
   export function startEthEap(netId: int, profile: EthEapProfile): void {
     startEthEapSync(netId, profile);
   }
 
-  // ===== logOffEthEap =====
   native function logOffEthEapSync(netId: int): void;
 
   export function logOffEthEap(netId: int): void {
     logOffEthEapSync(netId);
   }
-
-  // ===== Enums =====
 
   export enum EapMethod {
     EAP_NONE = 0,
@@ -89,8 +81,6 @@ export default namespace eap {
     RESULT_FINISH = 2
   }
 
-  // ===== Interfaces =====
-
   export interface EapData {
     msgId: int;
     eapBuffer: Uint8Array;
@@ -98,9 +88,9 @@ export default namespace eap {
   }
 
   export class EapDataInner implements EapData {
-    msgId: int = -1;
-    eapBuffer: Uint8Array = new Uint8Array(0);
-    bufferLen: int = 0;
+    msgId: int;
+    eapBuffer: Uint8Array;
+    bufferLen: int;
   }
 
   export interface EthEapProfile {
@@ -122,20 +112,20 @@ export default namespace eap {
   }
 
   export class EthEapProfileInner implements EthEapProfile {
-    eapMethod: EapMethod = EapMethod.EAP_NONE;
-    phase2Method: Phase2Method = Phase2Method.PHASE2_NONE;
-    identity: string = "";
-    anonymousIdentity: string = "";
-    password: string = "";
-    caCertAliases: string = "";
-    caPath: string = "";
-    clientCertAliases: string = "";
-    certEntry: Uint8Array = new Uint8Array(0);
-    certPassword: string = "";
-    altSubjectMatch: string = "";
-    domainSuffixMatch: string = "";
-    realm: string = "";
-    plmn: string = "";
-    eapSubId: int = 0;
+    eapMethod: EapMethod;
+    phase2Method: Phase2Method;
+    identity: string;
+    anonymousIdentity: string;
+    password: string;
+    caCertAliases: string;
+    caPath: string;
+    clientCertAliases: string;
+    certEntry: Uint8Array;
+    certPassword: string;
+    altSubjectMatch: string;
+    domainSuffixMatch: string;
+    realm: string;
+    plmn: string;
+    eapSubId: int;
   }
 }

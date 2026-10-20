@@ -35,20 +35,20 @@
 namespace OHOS {
 namespace NetManagerAni {
 
-sptr<NetManagerStandard::VpnConfig> ConvertToVpnConfig(const VpnConfigData &data);
-sptr<NetManagerStandard::SysVpnConfig> ConvertToSysVpnConfig(const SysVpnConfigData &data);
-SysVpnConfigData ConvertFromSysVpnConfig(const NetManagerStandard::SysVpnConfig &config);
+sptr<NetManagerStandard::VpnConfig> ConvertToVpnConfig(const VpnConfigAni &data);
+sptr<NetManagerStandard::SysVpnConfig> ConvertToSysVpnConfig(const SysVpnConfigFullAni &data);
+SysVpnConfigFullAni ConvertFromSysVpnConfigFull(const NetManagerStandard::SysVpnConfig &config);
 
-bool CreateVpnConnection(int32_t &ret);
-int32_t SetUp(const VpnConfigData &config, int32_t &fd);
-int32_t Protect(int32_t socketFd);
-int32_t Destroy();
-int32_t AddSysVpnConfig(const SysVpnConfigData &config);
+int32_t CreateVpnConnection(int64_t &ptr);
+int32_t SetUp(int64_t nativePtr, const SysVpnConfigFullAni &config, int32_t &fd);
+int32_t Protect(int64_t nativePtr, int32_t socketFd);
+int32_t Destroy(int64_t nativePtr);
+int32_t AddSysVpnConfig(const SysVpnConfigFullAni &config);
 int32_t DeleteSysVpnConfig(const rust::String &vpnId);
-rust::Vec<SysVpnConfigData> GetSysVpnConfigList(int32_t &ret);
-SysVpnConfigData GetSysVpnConfig(const rust::String &vpnId, int32_t &ret);
-SysVpnConfigData GetConnectedSysVpnConfig(int32_t &ret);
-rust::Vec<rust::String> GetConnectedVpnAppInfo(int32_t &ret);
+int32_t g_getSysVpnConfigList(rust::Vec<SysVpnConfigFullAni> &SysVpnConfigFullAniVec);
+int32_t GetSysVpnConfig(const rust::String &vpnId, SysVpnConfigFullAni &sysVpnConfigFull);
+int32_t GetConnectedSysVpnConfig(int32_t &ret, SysVpnConfigFullAni &connectedSysVpnConfigFull);
+int32_t GetConnectedVpnAppInfo(rust::Vec<rust::String> &appInfo);
 
 class VpnEventCallbackObserverAni : public NetManagerStandard::VpnEventCallbackStub {
 public:

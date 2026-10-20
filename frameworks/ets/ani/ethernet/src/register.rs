@@ -46,17 +46,18 @@ impl Register {
     }
 
     pub fn register(&self, callback: CallbackFlavor) -> Result<(), i32> {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| {
-            crate::ethernet_error!("Mutex poisoned in ethernet register, recovering data");
-            e.into_inner()
-        });
-        let was_empty = inner.is_empty();
+        let should_init = {
+            let mut inner = self.inner.lock().unwrap_or_else(|e| {
+                crate::ethernet_error!("Mutex poisoned in ethernet register, recovering data");
+                e.into_inner()
+            });
+            inner.retain(|c| std::mem::discriminant(c) != std::mem::discriminant(&callback));
+            let should_init = inner.is_empty();
+            inner.push(callback);
+            should_init
+        };
 
-        inner.retain(|c| *c != callback);
-        inner.push(callback);
-
-        // Only call on when transitioning from empty to non-empty
-        if was_empty {
+        if should_init  {
             EthernetClient::on_interface_state_change()?;
         }
 
@@ -74,7 +75,6 @@ impl Register {
             inner.clear();
         }
 
-        // Only call off when all callbacks are removed
         if inner.is_empty() {
             EthernetClient::off_interface_state_change()?;
         }
@@ -114,7 +114,7 @@ impl Register {
         }
     }
 
-    pub fn on_interface_changed(&self, info: ffi::InterfaceStateInfo) {
+    pub fn on_interface_changed(&self, info: ffi::InterfaceStateInfoAni) {
         let inner = self.inner.lock().unwrap_or_else(|e| {
             crate::ethernet_error!("Mutex poisoned in on_interface_changed, recovering data");
             e.into_inner()
@@ -139,7 +139,7 @@ pub fn execute_interface_removed(iface: String) {
     Register::get_instance().on_interface_removed(iface);
 }
 
-pub fn execute_interface_changed(info: ffi::InterfaceStateInfo) {
+pub fn execute_interface_changed(info: ffi::InterfaceStateInfoAni) {
     Register::get_instance().on_interface_changed(info);
 }
 

@@ -16,23 +16,33 @@ mod log;
 mod mdns;
 mod register;
 mod wrapper;
+mod context;
 
 ani_rs::ani_constructor! {
     namespace "@ohos.net.mdns.mdns"
     [
         "addLocalServiceSync": mdns::add_local_service,
         "removeLocalServiceSync": mdns::remove_local_service,
+        "createDiscoveryServiceSync": mdns::create_discovery_service,
         "resolveLocalServiceSync": mdns::resolve_local_service,
+
+    ]
+    class "@ohos.net.mdns.mdns.DiscoveryServiceInner"
+    [
+        "onDiscoveryStartSync": register::on_discovery_start,
+        "offDiscoveryStartSync": register::off_discovery_start,
+        "onDiscoveryStopSync": register::on_discovery_stop,
+        "offDiscoveryStopSync": register::off_discovery_stop,
+        "onServiceFoundSync": register::on_service_found,
+        "offServiceFoundSync": register::off_service_found,
+        "onServiceLostSync": register::on_service_lost,
+        "offServiceLostSync": register::off_service_lost,
         "startSearchingMDNSSync": mdns::start_searching_mdns,
         "stopSearchingMDNSSync": mdns::stop_searching_mdns,
-        "onDiscoveryStart": register::on_discovery_start,
-        "onDiscoveryStop": register::on_discovery_stop,
-        "onServiceFound": register::on_service_found,
-        "onServiceLost": register::on_service_lost,
-        "offDiscoveryStart": register::off_discovery_start,
-        "offDiscoveryStop": register::off_discovery_stop,
-        "offServiceFound": register::off_service_found,
-        "offServiceLost": register::off_service_lost,
+    ]
+    class "@ohos.net.mdns.mdns.Cleaner"
+    [
+        "clean" : mdns::destroy_discovery_service,
     ]
 }
 

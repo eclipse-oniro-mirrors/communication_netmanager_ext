@@ -13,21 +13,37 @@
 
 mod bridge;
 mod log;
-mod netFirewall;
+mod net_firewall;
 mod wrapper;
-
-pub(crate) use log::LOG_LABEL;
 
 ani_rs::ani_constructor! {
     namespace "@ohos.net.netFirewall.netFirewall"
     [
-        "setNetFirewallPolicySync": netFirewall::set_net_firewall_policy,
-        "getNetFirewallPolicySync": netFirewall::get_net_firewall_policy,
-        "addNetFirewallRuleSync": netFirewall::add_net_firewall_rule,
-        "updateNetFirewallRuleSync": netFirewall::update_net_firewall_rule,
-        "removeNetFirewallRuleSync": netFirewall::remove_net_firewall_rule,
-        "getNetFirewallRulesSync": netFirewall::get_net_firewall_rules,
-        "getNetFirewallRuleSync": netFirewall::get_net_firewall_rule,
-        "getInterceptedRecordsSync": netFirewall::get_intercepted_records,
+        "setNetFirewallPolicySync": net_firewall::set_net_firewall_policy,
+        "getNetFirewallPolicySync": net_firewall::get_net_firewall_policy,
+        "addNetFirewallRuleSync": net_firewall::add_net_firewall_rule,
+        "updateNetFirewallRuleSync": net_firewall::update_net_firewall_rule,
+        "removeNetFirewallRuleSync": net_firewall::remove_net_firewall_rule,
+        "getNetFirewallRulesSync": net_firewall::get_net_firewall_rules,
+        "getNetFirewallRuleSync": net_firewall::get_net_firewall_rule,
+        "getInterceptedRecordsSync": net_firewall::get_intercepted_records,
     ]
 }
+
+const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
+    log_type: hilog_rust::LogType::LogCore,
+    domain: 0xD0015B0,
+    tag: "NETMANAGER_EXT",
+};
+
+#[used]
+#[link_section = ".init_array"]
+static G_NETFIREWALL_PANIC_HOOK: extern "C" fn() = {
+    #[link_section = ".text.startup"]
+    extern "C" fn init() {
+        std::panic::set_hook(Box::new(|info| {
+            netfw_error!("Panic occurred: {:?}", info);
+        }));
+    }
+    init
+};

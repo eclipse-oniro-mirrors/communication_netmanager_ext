@@ -1,0 +1,77 @@
+// Copyright (c) 2026 Huawei Device Co., Ltd.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//! Application context utilities and wrapper.
+//!
+//! This module provides utilities for accessing application context information
+//! and file system paths. It wraps the underlying native context implementation
+//! and provides a safe Rust API.
+
+use ani_rs::objects::AniObject;
+use ani_rs::AniEnv;
+use cxx::SharedPtr;
+
+use crate::wrapper;
+
+/// Determines whether the provided environment and object represent a stage context.
+///
+/// # Arguments
+///
+/// * `env` - The animation environment
+/// * `ani_object` - The animation object
+///
+/// # Safety
+///
+/// This function performs pointer casting and calls an unsafe C function.
+/// The caller must ensure that the provided environment and object are valid
+/// and properly initialized.
+#[inline]
+pub fn is_stage_context(env: &AniEnv, ani_object: &AniObject) -> bool {
+    // Cast to the appropriate types required by the C++ function
+    let env = env as *const AniEnv as *mut AniEnv as *mut wrapper::AniEnv;
+    let ani_object = ani_object as *const AniObject as *mut AniObject as *mut wrapper::AniObject;
+    unsafe { wrapper::ffi::IsStageContext(env, ani_object) }
+}
+
+pub struct Context {
+    /// Inner C++ context shared pointer
+    pub inner: SharedPtr<wrapper::ffi::Context>,
+}
+
+impl Context {
+    /// Creates a new Context from animation environment and object.
+    ///
+    /// # Arguments
+    ///
+    /// * `env` - The animation environment
+    /// * `ani_object` - The animation object
+    ///
+    /// # Safety
+    ///
+    /// This function performs pointer casting and calls an unsafe C function.
+    /// The caller must ensure that the provided environment and object are valid
+    /// and properly initialized.
+    pub fn new(env: &AniEnv, ani_object: &AniObject) -> Self {
+        // Cast to the appropriate types required by the C++ function
+        let env = env as *const AniEnv as *mut AniEnv as *mut *mut wrapper::AniEnv;
+        let ani_object =
+            ani_object as *const AniObject as *mut AniObject as *mut wrapper::AniObject;
+        let inner = unsafe { wrapper::ffi::GetStageModeContext(env, ani_object) };
+        Self { inner }
+    }
+
+    /// Retrieves the bundle name associated with this context.
+    pub fn get_bundle_name(&self) -> String {
+        wrapper::ffi::GetBundleName(self.inner.clone())
+    }
+}

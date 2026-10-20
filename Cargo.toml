@@ -17,4 +17,8 @@ members = [
     "frameworks/ets/ani/sharing",
     "frameworks/ets/ani/eap",
     "frameworks/ets/ani/ethernet",
+    "frameworks/ets/ani/mdns",
+    "frameworks/ets/ani/netFirewall",
+    "frameworks/ets/ani/vpn",
+    "frameworks/ets/ani/vpnextension",
 ]

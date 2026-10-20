@@ -14,13 +14,10 @@
  */
 
 import type Want from '@ohos.app.ability.Want';
-import type ExtensionContext from 'application.ExtensionContext';
-
-export class VpnExtensionContext extends ExtensionContext {
-}
+import type VpnExtensionContext from 'application.VpnExtensionContext';
 
 export default class VpnExtensionAbility {
-  public context!: VpnExtensionContext;
+  public context: VpnExtensionContext = {};
 
   onCreate(want: Want): void {
     console.info('VpnExtensionAbility onCreate, want:' + want.abilityName);

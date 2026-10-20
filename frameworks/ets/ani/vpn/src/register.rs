@@ -12,7 +12,6 @@
 // limitations under the License.
 
 use std::{
-    mem,
     ops::Deref,
     sync::{Mutex, OnceLock},
 };
@@ -27,7 +26,6 @@ use crate::{
     bridge,
     wrapper::{convert_to_business_error, ffi},
 };
-use crate::vpn_error;
 
 struct Register {
     inner: Mutex<Vec<CallbackFlavor>>,
@@ -46,14 +44,12 @@ impl Register {
     }
 
     pub fn register(&self, callback: CallbackFlavor) -> Result<(), i32> {
-        let mut inner = self.inner.lock().map_err(|_| {
-            vpn_error!("Mutex lock poisoned in register");
-            1
-        })?;
         let ret = ffi::VpnObserverRegister();
         if ret != 0 {
             return Err(ret);
         }
+        let mut inner = self.inner.lock().unwrap();
+        inner.retain(|c| std::mem::discriminant(c) != std::mem::discriminant(&callback));
         inner.push(callback);
         Ok(())
     }
@@ -63,29 +59,11 @@ impl Register {
         callback_ref: Option<CallbackFlavor>,
         event: VpnEventType,
     ) -> Result<(), i32> {
-        let mut inner = self.inner.lock().map_err(|_| {
-            vpn_error!("Mutex lock poisoned in unregister");
-            1
-        })?;
+        let mut inner = self.inner.lock().unwrap();
         if let Some(callback) = callback_ref {
-            inner.retain(|c| *c != callback)
+            inner.retain(|c| *c != callback);
         } else {
-            inner.retain(|c| match event {
-                VpnEventType::EventConnect => {
-                    if let CallbackFlavor::Connect(_) = c {
-                        false
-                    } else {
-                        true
-                    }
-                }
-                VpnEventType::EventConnectMulti => {
-                    if let CallbackFlavor::ConnectMulti(_) = c {
-                        false
-                    } else {
-                        true
-                    }
-                }
-            })
+            inner.retain(|c| !event.matches(c));
         }
 
         if inner.is_empty() {
@@ -99,29 +77,17 @@ impl Register {
     }
 
     pub fn on_vpn_state_changed(&self, info: ffi::VpnStateInfo) {
-        let inner = match self.inner.lock() {
-            Ok(guard) => guard,
-            Err(_) => {
-                vpn_error!("Mutex lock poisoned in on_vpn_state_changed, skip callback");
-                return;
-            }
-        };
+        let inner = self.inner.lock().unwrap();
+        let state = bridge::VpnConnectState::from_ffi(&info);
         for listen in inner.deref() {
             if let CallbackFlavor::Connect(callback) = listen {
-                let state = bridge::VpnConnectState::from_ffi(&info);
-                callback.execute((state,));
+                callback.execute((state.clone(),));
             }
         }
     }
 
     pub fn on_multi_vpn_state_changed(&self, info: ffi::VpnStateInfo) {
-        let inner = match self.inner.lock() {
-            Ok(guard) => guard,
-            Err(_) => {
-                vpn_error!("Mutex lock poisoned in on_multi_vpn_state_changed, skip callback");
-                return;
-            }
-        };
+        let inner = self.inner.lock().unwrap();
         let state = bridge::MultiVpnConnectState {
             is_connected: info.is_connected,
             bundle_name: info.bundle_name.clone(),
@@ -145,10 +111,7 @@ pub fn execute_multi_vpn_state_changed(info: ffi::VpnStateInfo) {
 
 #[ani_rs::native]
 pub fn on_connect(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback = callback.into_global_callback(env).map_err(|e| {
-        vpn_error!("into_global_callback failed: {:?}", e);
-        convert_to_business_error(0)
-    })?;
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::Connect(callback);
     Register::get_instance()
         .register(flavor)
@@ -157,10 +120,7 @@ pub fn on_connect(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessErr
 
 #[ani_rs::native]
 pub fn on_connect_multi(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback = callback.into_global_callback(env).map_err(|e| {
-        vpn_error!("into_global_callback failed: {:?}", e);
-        convert_to_business_error(0)
-    })?;
+    let callback = callback.into_global_callback(env).unwrap();
     let flavor = CallbackFlavor::ConnectMulti(callback);
     Register::get_instance()
         .register(flavor)
@@ -169,16 +129,10 @@ pub fn on_connect_multi(env: &AniEnv, callback: AniFnObject) -> Result<(), Busin
 
 #[ani_rs::native]
 pub fn off_connect(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback_flavor = if env.is_undefined(&callback).map_err(|e| {
-        vpn_error!("is_undefined check failed: {:?}", e);
-        convert_to_business_error(0)
-    })? {
+    let callback_flavor = if env.is_undefined(&callback).unwrap() {
         None
     } else {
-        let callback_global = callback.into_global_callback(env).map_err(|e| {
-            vpn_error!("into_global_callback failed: {:?}", e);
-            convert_to_business_error(0)
-        })?;
+        let callback_global = callback.into_global_callback(env).unwrap();
         Some(CallbackFlavor::Connect(callback_global))
     };
 
@@ -189,16 +143,10 @@ pub fn off_connect(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessEr
 
 #[ani_rs::native]
 pub fn off_connect_multi(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
-    let callback_flavor = if env.is_undefined(&callback).map_err(|e| {
-        vpn_error!("is_undefined check failed: {:?}", e);
-        convert_to_business_error(0)
-    })? {
+    let callback_flavor = if env.is_undefined(&callback).unwrap() {
         None
     } else {
-        let callback_global = callback.into_global_callback(env).map_err(|e| {
-            vpn_error!("into_global_callback failed: {:?}", e);
-            convert_to_business_error(0)
-        })?;
+        let callback_global = callback.into_global_callback(env).unwrap();
         Some(CallbackFlavor::ConnectMulti(callback_global))
     };
 
@@ -216,4 +164,17 @@ pub enum CallbackFlavor {
 pub enum VpnEventType {
     EventConnect,
     EventConnectMulti,
+}
+
+impl VpnEventType {
+    fn matches(&self, flavor: &CallbackFlavor) -> bool {
+        match self {
+            VpnEventType::EventConnect => {
+                matches!(flavor, CallbackFlavor::Connect(_))
+            }
+            VpnEventType::EventConnectMulti => {
+                matches!(flavor, CallbackFlavor::ConnectMulti(_))
+            }
+        }
+    }
 }

@@ -11,9 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ==================== Enums ====================
-
-/// NetFirewallRuleDirection
 #[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallRuleDirection")]
 #[derive(Clone, Copy)]
 pub enum NetFirewallRuleDirection {
@@ -21,7 +18,6 @@ pub enum NetFirewallRuleDirection {
     RuleOut = 2,
 }
 
-/// FirewallRuleAction
 #[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.FirewallRuleAction")]
 #[derive(Clone, Copy)]
 pub enum FirewallRuleAction {
@@ -29,7 +25,6 @@ pub enum FirewallRuleAction {
     RuleDeny = 1,
 }
 
-/// NetFirewallRuleType
 #[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallRuleType")]
 #[derive(Clone, Copy)]
 pub enum NetFirewallRuleType {
@@ -38,7 +33,6 @@ pub enum NetFirewallRuleType {
     RuleDns = 3,
 }
 
-/// NetFirewallOrderField
 #[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallOrderField")]
 #[derive(Clone, Copy)]
 pub enum NetFirewallOrderField {
@@ -46,7 +40,6 @@ pub enum NetFirewallOrderField {
     OrderByRecordTime = 100,
 }
 
-/// NetFirewallOrderType
 #[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallOrderType")]
 #[derive(Clone, Copy)]
 pub enum NetFirewallOrderType {
@@ -54,25 +47,15 @@ pub enum NetFirewallOrderType {
     OrderDesc = 100,
 }
 
-// ==================== Param Interfaces ====================
-
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.RequestParam")]
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallPolicyInner")]
 #[derive(Clone)]
-pub struct RequestParam {
-    pub page: i32,
-    pub page_size: i32,
-    pub order_field: NetFirewallOrderField,
-    pub order_type: NetFirewallOrderType,
+pub struct NetFirewallPolicy {
+    pub is_open: bool,
+    pub in_action: FirewallRuleAction,
+    pub out_action: FirewallRuleAction,
 }
 
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallDnsParams")]
-#[derive(Clone)]
-pub struct NetFirewallDnsParams {
-    pub primary_dns: String,
-    pub standby_dns: Option<String>,
-}
-
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallIpParams")]
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallIpParamsInner")]
 #[derive(Clone)]
 pub struct NetFirewallIpParams {
     pub type_: i32,
@@ -83,23 +66,27 @@ pub struct NetFirewallIpParams {
     pub end_ip: Option<String>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallDomainParams")]
-#[derive(Clone)]
-pub struct NetFirewallDomainParams {
-    pub is_wildcard: bool,
-    pub domain: String,
-}
-
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallPortParams")]
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallPortParamsInner")]
 #[derive(Clone)]
 pub struct NetFirewallPortParams {
     pub start_port: i32,
     pub end_port: i32,
 }
 
-// ==================== Main Data Interfaces ====================
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallDomainParamsInner")]
+#[derive(Clone)]
+pub struct NetFirewallDomainParams {
+    pub is_wildcard: bool,
+    pub domain: String,
+}
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallDnsParamsInner")]
+#[derive(Clone)]
+pub struct NetFirewallDnsParams {
+    pub primary_dns: String,
+    pub standby_dns: Option<String>,
+}
 
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallRule")]
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallRuleInner")]
 #[derive(Clone)]
 pub struct NetFirewallRule {
     pub user_id: i32,
@@ -118,20 +105,13 @@ pub struct NetFirewallRule {
     pub remote_ports: Option<Vec<NetFirewallPortParams>>,
     pub domains: Option<Vec<NetFirewallDomainParams>>,
     pub dns: Option<NetFirewallDnsParams>,
+    pub iface: Option<String>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.NetFirewallPolicy")]
-#[derive(Clone)]
-pub struct NetFirewallPolicy {
-    pub is_open: bool,
-    pub in_action: FirewallRuleAction,
-    pub out_action: FirewallRuleAction,
-}
-
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.InterceptedRecord")]
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.InterceptedRecordInner")]
 #[derive(Clone)]
 pub struct InterceptedRecord {
-    pub time: i64,
+    pub time: u64,
     pub local_ip: Option<String>,
     pub remote_ip: Option<String>,
     pub local_port: Option<i32>,
@@ -141,7 +121,16 @@ pub struct InterceptedRecord {
     pub domain: Option<String>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.FirewallRulePage")]
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.RequestParamInner")]
+#[derive(Clone)]
+pub struct RequestParam {
+    pub page: i32,
+    pub page_size: i32,
+    pub order_field: NetFirewallOrderField,
+    pub order_type: NetFirewallOrderType,
+}
+
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.FirewallRulePageInner")]
 #[derive(Clone)]
 pub struct FirewallRulePage {
     pub page: i32,
@@ -150,7 +139,7 @@ pub struct FirewallRulePage {
     pub data: Vec<NetFirewallRule>,
 }
 
-#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.InterceptedRecordPage")]
+#[ani_rs::ani(path = "@ohos.net.netFirewall.netFirewall.InterceptedRecordPageInner")]
 #[derive(Clone)]
 pub struct InterceptedRecordPage {
     pub page: i32,

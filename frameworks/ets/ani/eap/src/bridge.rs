@@ -11,48 +11,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ani_rs::typed_array::ArrayBuffer;
+use ani_rs::typed_array::Uint8Array;
 
 #[ani_rs::ani(path = "@ohos.net.eap.eap.EapMethod")]
 #[derive(Debug, Clone, Copy)]
 pub enum EapMethod {
-    EAP_NONE = 0,
-    EAP_PEAP = 1,
-    EAP_TLS = 2,
-    EAP_TTLS = 3,
-    EAP_PWD = 4,
-    EAP_SIM = 5,
-    EAP_AKA = 6,
-    EAP_AKA_PRIME = 7,
-    EAP_UNAUTH_TLS = 8,
+    EapNone = 0,
+    EapPeap = 1,
+    EapTls = 2,
+    EapTtls = 3,
+    EapPwd = 4,
+    EapSim = 5,
+    EapAka = 6,
+    EapAkaPrime = 7,
+    EapUnauthTls = 8,
 }
 
 #[ani_rs::ani(path = "@ohos.net.eap.eap.Phase2Method")]
 #[derive(Debug, Clone, Copy)]
 pub enum Phase2Method {
-    PHASE2_NONE = 0,
-    PHASE2_PAP = 1,
-    PHASE2_MSCHAP = 2,
-    PHASE2_MSCHAPV2 = 3,
-    PHASE2_GTC = 4,
-    PHASE2_SIM = 5,
-    PHASE2_AKA = 6,
-    PHASE2_AKA_PRIME = 7,
+    Phase2None = 0,
+    Phase2Pap = 1,
+    Phase2Mschap = 2,
+    Phase2Mschapv2 = 3,
+    Phase2Gtc = 4,
+    Phase2Sim = 5,
+    Phase2Aka = 6,
+    Phase2AkaPrime = 7,
 }
 
 #[ani_rs::ani(path = "@ohos.net.eap.eap.CustomResult")]
 #[derive(Debug, Clone, Copy)]
 pub enum CustomResult {
-    RESULT_FAIL = 0,
-    RESULT_NEXT = 1,
-    RESULT_FINISH = 2,
+    ResultFail = 0,
+    ResultNext = 1,
+    ResultFinish = 2,
 }
 
 #[ani_rs::ani(path = "@ohos.net.eap.eap.EapDataInner")]
 #[derive(Clone)]
 pub struct EapData {
     pub msg_id: i32,
-    pub eap_buffer: ArrayBuffer,
+    pub eap_buffer: Uint8Array,
     pub buffer_len: i32,
 }
 
@@ -63,13 +63,11 @@ pub struct EthEapProfile {
     pub phase2_method: Phase2Method,
     pub identity: String,
     pub anonymous_identity: String,
-    /// Sensitive: zeroized after FFI call in wrapper, do not log or expose
     pub password: String,
     pub ca_cert_aliases: String,
     pub ca_path: String,
     pub client_cert_aliases: String,
-    pub cert_entry: ArrayBuffer,
-    /// Sensitive: zeroized after FFI call in wrapper, do not log or expose
+    pub cert_entry: Uint8Array,
     pub cert_password: String,
     pub alt_subject_match: String,
     pub domain_suffix_match: String,

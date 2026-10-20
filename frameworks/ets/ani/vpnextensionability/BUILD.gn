@@ -14,20 +14,30 @@
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
 
-generate_static_abc("vpnextensionability_ani_abc") {
+generate_static_abc("vpn_extension_context_ets") {
   base_url = "./ets"
-  files = [ "ets/@ohos.app.ability.VpnExtensionAbility.ets" ]
-  dst_file = "$target_out_dir/vpnextensionability.abc"
-  out_puts = [ "$target_out_dir/vpnextensionability.abc" ]
-
+  files = [ "ets/application/VpnExtensionContext.ets" ]
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/vpnextensionability.abc"
+  device_dst_file = "/system/framework/vpn_extension_context_ets.abc"
 }
-
-ohos_prebuilt_etc("vpnextensionability_etc") {
-  source = "$target_out_dir/vpnextensionability.abc"
+ohos_prebuilt_etc("vpn_extension_context_etc") {
+  source = "$target_out_dir/vpn_extension_context_ets.abc"
   module_install_dir = "framework"
   part_name = "netmanager_ext"
   subsystem_name = "communication"
-  deps = [ ":vpnextensionability_ani_abc" ]
+  deps = [ ":vpn_extension_context_ets" ]
+}
+
+generate_static_abc("vpn_extension_ability_ets") {
+  base_url = "./ets"
+  files = [ "ets/@ohos.app.ability.VpnExtensionAbility.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/vpn_extension_ability_ets.abc"
+}
+ohos_prebuilt_etc("vpn_extension_ability_etc") {
+  source = "$target_out_dir/vpn_extension_ability_ets.abc"
+  module_install_dir = "framework"
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+  deps = [ ":vpn_extension_ability_ets" ]
 }

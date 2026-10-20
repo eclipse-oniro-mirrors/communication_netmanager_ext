@@ -21,21 +21,34 @@ ani_rs::ani_constructor! {
     namespace "@ohos.net.vpn.vpn"
     [
         "createVpnConnectionSync": vpn::create_vpn_connection,
-        "setUpSync": vpn::set_up,
-        "protectSync": vpn::protect,
-        "destroySync": vpn::destroy,
+        "onConnectSync": register::on_connect,
+        "onConnectMultiSync": register::on_connect_multi,
+        "offConnectSync": register::off_connect,
+        "offConnectMultiSync": register::off_connect_multi,
         "addSysVpnConfigSync": vpn::add_sys_vpn_config,
         "deleteSysVpnConfigSync": vpn::delete_sys_vpn_config,
         "getSysVpnConfigListSync": vpn::get_sys_vpn_config_list,
         "getSysVpnConfigSync": vpn::get_sys_vpn_config,
         "getConnectedSysVpnConfigSync": vpn::get_connected_sys_vpn_config,
         "getConnectedVpnAppInfoSync": vpn::get_connected_vpn_app_info,
-        "onConnect": register::on_connect,
-        "onConnectMulti": register::on_connect_multi,
-        "offConnect": register::off_connect,
-        "offConnectMulti": register::off_connect_multi,
+    ]
+    class "@ohos.net.vpn.vpn.VpnConnectionInner"
+    [
+        "setUpSync": vpn::set_up,
+        "protectSync": vpn::protect,
+        "destroySync": vpn::destroy,
+    ]
+    class "@ohos.net.vpn.vpn.Cleaner"
+    [
+        "clean": vpn::destroy_vpn_connection,
     ]
 }
+
+const LOG_LABEL: hilog_rust::HiLogLabel = hilog_rust::HiLogLabel {
+    log_type: hilog_rust::LogType::LogCore,
+    domain: 0xD0015B0,
+    tag: "NETMANAGER_EXT",
+};
 
 #[used]
 #[link_section = ".init_array"]

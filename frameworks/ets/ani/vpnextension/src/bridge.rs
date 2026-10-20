@@ -30,7 +30,7 @@ pub struct NetAddress {
 #[derive(Clone)]
 pub struct LinkAddress {
     pub address: NetAddress,
-    pub prefixLength: i32,
+    pub prefix_length: i32,
 }
 
 #[ani_rs::ani(path = "@ohos.net.connection.connection.RouteInfoInner")]
@@ -39,23 +39,23 @@ pub struct RouteInfo {
     pub iface: String,
     pub destination: LinkAddress,
     pub gateway: NetAddress,
-    pub hasGateway: bool,
-    pub isDefaultRoute: bool,
+    pub has_gateway: bool,
+    pub is_default_route: bool,
 }
 
 #[ani_rs::ani(path = "@ohos.net.vpnExtension.vpnExtension.VpnConfigInner")]
 #[derive(Clone)]
 pub struct VpnConfig {
-    pub vpnId: Option<String>,
+    pub vpn_id: Option<String>,
     pub addresses: Vec<LinkAddress>,
     pub routes: Option<Vec<RouteInfo>>,
-    pub dnsAddresses: Option<Vec<String>>,
-    pub searchDomains: Option<Vec<String>>,
+    pub dns_addresses: Option<Vec<String>>,
+    pub search_domains: Option<Vec<String>>,
     pub mtu: Option<i32>,
-    pub isIPv4Accepted: Option<bool>,
-    pub isIPv6Accepted: Option<bool>,
-    pub isInternal: Option<bool>,
-    pub isBlocking: Option<bool>,
-    pub trustedApplications: Option<Vec<String>>,
-    pub blockedApplications: Option<Vec<String>>,
+    pub is_i_pv4_accepted: Option<bool>,
+    pub is_i_pv6_accepted: Option<bool>,
+    pub is_internal: Option<bool>,
+    pub is_blocking: Option<bool>,
+    pub trusted_applications: Option<Vec<String>>,
+    pub blocked_applications: Option<Vec<String>>,
 }
