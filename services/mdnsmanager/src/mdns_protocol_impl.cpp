@@ -265,6 +265,34 @@ bool MDnsProtocolImpl::IsConnectivity(const std::string &ip, int32_t port)
     return true;
 }
 
+bool MDnsProtocolImpl::IsServiceLost(const Result &result)
+{
+    return lastRunTime - result.refrehTime > DEFAULT_LOST_MS && result.state == State::LIVE;
+}
+
+bool MDnsProtocolImpl::ShouldKeepService(const std::string &fullName, uint32_t &checkCount)
+{
+    auto iter = cacheMap_.find(fullName);
+    if (iter == cacheMap_.end()) {
+        return false;
+    }
+    if (checkCount >= MAX_CONNECTIVITY_CHECK_PER_ROUND) {
+        return true;
+    }
+    checkCount++;
+    return IsConnectivity(iter->second.addr, iter->second.port);
+}
+
+void MDnsProtocolImpl::NotifyServiceLost(const std::string &key, const Result &result)
+{
+    auto iter = nameCbMap_.find(key);
+    if (iter == nameCbMap_.end() || iter->second == nullptr) {
+        return;
+    }
+    NETMGR_EXT_LOG_W("mdns_log HandleServiceLost");
+    iter->second->HandleServiceLost(ConvertResultToInfo(result), NETMANAGER_EXT_SUCCESS);
+}
+
 void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<Result> &res)
 {
     NETMGR_EXT_LOG_D("mdns_log handleOfflineService key:[%{public}s]", key.c_str());
@@ -276,30 +304,19 @@ void MDnsProtocolImpl::handleOfflineService(const std::string &key, std::vector<
             cacheMap_.erase(fullName);
             continue;
         }
-        if (lastRunTime - it->refrehTime > DEFAULT_LOST_MS && it->state == State::LIVE) {
-            std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
-            if (cacheMap_.find(fullName) != cacheMap_.end()) {
-                if (checkCount >= MAX_CONNECTIVITY_CHECK_PER_ROUND) {
-                    it++;
-                    continue;
-                }
-                checkCount++;
-                if (IsConnectivity(cacheMap_[fullName].addr, cacheMap_[fullName].port)) {
-                    it++;
-                    continue;
-                }
-            }
-
-            it->state = State::DEAD;
-            if (nameCbMap_.find(key) != nameCbMap_.end() && nameCbMap_[key] != nullptr) {
-                NETMGR_EXT_LOG_W("mdns_log HandleServiceLost");
-                nameCbMap_[key]->HandleServiceLost(ConvertResultToInfo(*it), NETMANAGER_EXT_SUCCESS);
-            }
-            it = res.erase(it);
-            cacheMap_.erase(fullName);
-        } else {
+        if (!IsServiceLost(*it)) {
             it++;
+            continue;
         }
+        std::string fullName = Decorated(it->serviceName + MDNS_DOMAIN_SPLITER_STR + it->serviceType);
+        if (ShouldKeepService(fullName, checkCount)) {
+            it++;
+            continue;
+        }
+        it->state = State::DEAD;
+        NotifyServiceLost(key, *it);
+        it = res.erase(it);
+        cacheMap_.erase(fullName);
     }
 }
 
