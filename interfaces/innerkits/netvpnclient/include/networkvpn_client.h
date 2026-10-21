@@ -258,6 +258,10 @@ public:
     int32_t GetVpnConfigToAnco(std::vector<std::string>& dnsAddresses);
 
 #endif // SUPPORT_SYSVPN
+#ifdef ENABLE_VPN_FOR_USER0
+    int32_t UpdateVpnPermission(const std::string &key, const std::string &value);
+
+#endif
 
     /**
      * register the vpn state callback

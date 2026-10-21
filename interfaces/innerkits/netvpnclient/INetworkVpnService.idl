@@ -31,6 +31,7 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     void StartVpnExtensionAbility([in] Want want);
     void StopVpnExtensionAbility([in] Want want);
     void RequestVpnPermission([in] int uid, [in] String bundleName, [in] String abilityName, [out] boolean isAuthorized);
+    void UpdateVpnPermission([in] String key, [in] String value);
     [macrodef SUPPORT_SYSVPN] void GetVpnCertData([in] int certType, [out] byte[] certData);
     [macrodef SUPPORT_SYSVPN] void SetUpSysVpn([in] sptr<SysVpnConfig> config, [in] boolean isVpnExtCall);
     [macrodef SUPPORT_SYSVPN] void AddSysVpnConfig([in] sptr<SysVpnConfig> config);

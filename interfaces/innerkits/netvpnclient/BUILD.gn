@@ -176,6 +176,10 @@ ohos_shared_library("net_vpn_manager_if") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
+  if (netmanager_ext_feature_vpn_for_user0) {
+    defines += [ "ENABLE_VPN_FOR_USER0" ]
+  }
+
   part_name = "netmanager_ext"
   subsystem_name = "communication"
 }

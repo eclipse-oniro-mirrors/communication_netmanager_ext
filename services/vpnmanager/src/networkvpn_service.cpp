@@ -2989,6 +2989,27 @@ int32_t NetworkVpnService::GetVpnConfigToAnco(std::vector<std::string>& dnsAddre
 }
 #endif
 
+int32_t NetworkVpnService::UpdateVpnPermission(const std::string &key, const std::string &value)
+{
+#ifdef ENABLE_VPN_FOR_USER0
+    if (key.empty()) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission key is empty");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    int32_t ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, key, value);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
+            key.c_str(), ret);
+    } else {
+        NETMANAGER_EXT_LOGI("Update ENTERPRISE_VPN permission success, key=%{public}s", key.c_str());
+    }
+
+    return ret;
+#endif
+    return 0;
+}
+
 void NetworkVpnService::VpnAbilityConnect::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
     int32_t resultCode)
 {

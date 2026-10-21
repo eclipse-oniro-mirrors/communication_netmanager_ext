@@ -514,6 +514,19 @@ int32_t NetworkVpnClient::GetVpnConfigToAnco(std::vector<std::string> &dnsAddres
     return proxy->GetVpnConfigToAnco(dnsAddresses);
 }
 #endif // SUPPORT_SYSVPN
+#ifdef ENABLE_VPN_FOR_USER0
+int32_t NetworkVpnClient::UpdateVpnPermission(const std::string &key, const std::string &value)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    return proxy->UpdateVpnPermission(key, value);
+}
+#endif
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
 {
