@@ -173,7 +173,6 @@ public:
     {
         return 0;
     }
-    
 };
 } // namespace NetManagerStandard
 } // namespace OHOS
