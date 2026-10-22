@@ -409,5 +409,23 @@ HWTEST_F(NetworkVpnClientTest, GetVpnConfigToAnco002, TestSize.Level1)
     auto ret = networkVpnClient_.GetVpnConfigToAnco(dnsAddresses);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionTest001, TestSize.Level1)
+{
+    std::string key = "com.test.bundle";
+    std::string value = "1";
+    int32_t ret = NetworkVpnClient_.UpdateVpnPermission(key, value);
+
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionTest002, TestSize.Level1)
+{
+    std::string key = "";
+    std::string value = "1";
+    int32_t ret = NetworkVpnClient_.UpdateVpnPermission(key, value);
+
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

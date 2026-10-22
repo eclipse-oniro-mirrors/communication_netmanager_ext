@@ -956,5 +956,23 @@ HWTEST_F(NetworkVpnServiceTest, HeldVpnFdTest001, TestSize.Level1)
     close(fds1[1]);
     close(fds2[1]);
 }
+
+HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest001, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::string key = "com.test.bundle";
+    std::string value = "1";
+    int32_t ret = vpnService->UpdateVpnPermission(key, value);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest002, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::string key = "";
+    std::string value = "1";
+    int32_t ret = vpnService->UpdateVpnPermission(key, value);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
