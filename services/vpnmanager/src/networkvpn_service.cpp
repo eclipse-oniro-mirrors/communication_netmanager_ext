@@ -3006,8 +3006,9 @@ int32_t NetworkVpnService::UpdateVpnPermission(const std::string &key, const std
     }
 
     return ret;
-#endif
+#else
     return 0;
+#endif
 }
 
 void NetworkVpnService::VpnAbilityConnect::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
