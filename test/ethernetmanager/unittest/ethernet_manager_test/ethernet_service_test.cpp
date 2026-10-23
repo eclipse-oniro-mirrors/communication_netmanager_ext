@@ -402,7 +402,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
     auto result = ethernetService.RegisterIfacesStateChanged(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
 
-    result = ethernetService.UnregisterMonitorIfaceCallback(callback);
+    result = ethernetService.UnregisterMonitorIfaceCallbackAsync(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 
     ConfigurationParcelIpc config;
@@ -506,10 +506,10 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest004, TestSize.Level1)
     result = ethernetService.UnregisterIfacesStateChanged(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
 
-    result = ethernetService.RegisterMonitorIfaceCallback(callback);
+    result = ethernetService.RegisterMonitorIfaceCallbackAsync(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 
-    result = ethernetService.UnregisterMonitorIfaceCallback(callback);
+    result = ethernetService.UnregisterMonitorIfaceCallbackAsync(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
 }
 
