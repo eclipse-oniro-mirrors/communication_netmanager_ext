@@ -372,7 +372,7 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 
     result = ethernetService.GetIfaceConfig(iface, ic);
-    EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    EXPECT_EQ(result, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
 
     int32_t activeStatus = 0;
     result = ethernetService.IsIfaceActive(iface, activeStatus);
