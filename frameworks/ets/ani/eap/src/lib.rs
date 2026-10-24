@@ -45,5 +45,12 @@ ani_rs::ani_constructor! {
         "replyCustomEapDataSync": eap::reply_custom_eap_data,
         "startEthEapSync": eap::start_eth_eap,
         "logOffEthEapSync": eap::log_off_eth_eap,
+        "setEthEapConfigSync": eap::set_eth_eap_config,
+        "getEthEapConfigSync": eap::get_eth_eap_config,
+        "deleteEthEapConfigSync": eap::delete_eth_eap_config,
+        "getEthEapStateInfoSync": eap::get_eth_eap_state_info,
+        "onStateChangeSync": register::on_state_change,
+        "offStateChangeSync": register::off_state_change,
+        "connectSync": eap::connect_eth_eap,
     ]
 }

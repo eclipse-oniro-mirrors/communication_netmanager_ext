@@ -26,7 +26,11 @@ use ani_rs::{
 
 use crate::{
     bridge,
-    wrapper::{convert_to_business_error, ffi::EapAniData, NetConnClient},
+    wrapper::{
+        convert_to_business_error,
+        ffi::{EapAniData, EthEapStateInfoAni},
+        NetConnClient,
+    },
 };
 
 /// Composite entry that pairs registration parameters (net_type, eap_code,
@@ -111,7 +115,70 @@ impl Register {
 
         Ok(())
     }
+}
 
+struct StateCallbackRegister {
+    inner: Mutex<Vec<GlobalRefCallback<(bridge::EthEapStateInfo,)>>>,
+}
+
+impl StateCallbackRegister {
+    fn get_instance() -> &'static Self {
+        static INSTANCE: OnceLock<StateCallbackRegister> = OnceLock::new();
+        INSTANCE.get_or_init(|| StateCallbackRegister {
+            inner: Mutex::new(Vec::new()),
+        })
+    }
+
+    fn register(&self, callback: GlobalRefCallback<(bridge::EthEapStateInfo,)>) -> Result<(), i32> {
+        let mut inner = self.inner.lock().unwrap_or_else(|e| {
+            crate::eap_error!("Mutex poisoned in state callback register, recovering data");
+            e.into_inner()
+        });
+        if inner.iter().any(|current| current == &callback) {
+            return Ok(());
+        }
+        if inner.is_empty() {
+            // Subscribe before publishing the callback; a failed IPC must not leave a local entry.
+            NetConnClient::register_eth_eap_state_callback()?;
+        }
+        inner.push(callback);
+        Ok(())
+    }
+
+    fn unregister(&self, callback: Option<GlobalRefCallback<(bridge::EthEapStateInfo,)>>) -> Result<(), i32> {
+        let mut inner = self.inner.lock().unwrap_or_else(|e| {
+            crate::eap_error!("Mutex poisoned in state callback unregister, recovering data");
+            e.into_inner()
+        });
+        let keep = |current: &GlobalRefCallback<(bridge::EthEapStateInfo,)>| match callback.as_ref() {
+            Some(requested) => current != requested,
+            None => false,
+        };
+        let remove_last = !inner.is_empty() && !inner.iter().any(&keep);
+        if remove_last {
+            // Preserve local subscriptions if the backend refuses to unregister.
+            NetConnClient::unregister_eth_eap_state_callback()?;
+        }
+        inner.retain(keep);
+        Ok(())
+    }
+
+    fn dispatch(&self, state_info: bridge::EthEapStateInfo) {
+        // Execute from a snapshot after dropping the registry lock, allowing callbacks to call off().
+        let callbacks = {
+            let inner = self.inner.lock().unwrap_or_else(|e| {
+                crate::eap_error!("Mutex poisoned in state callback dispatch, recovering data");
+                e.into_inner()
+            });
+            inner.iter().cloned().collect::<Vec<_>>()
+        };
+        for callback in callbacks {
+            callback.execute((state_info.clone(),));
+        }
+    }
+}
+
+impl Register {
     pub fn on_eap_data(&self, data: bridge::EapData) {
         // Recover from poison: panicking would crash the service, and re-initializing
         // would lose all registered callbacks. Logging + into_inner() preserves data
@@ -169,6 +236,30 @@ pub(crate) fn unreg_custom_eap_handler(
 
     Register::get_instance()
         .unregister(net_type, eap_code, eap_type, callback_flavor)
+        .map_err(convert_to_business_error)
+}
+
+pub fn execute_eth_eap_state_changed(state_info: EthEapStateInfoAni) {
+    StateCallbackRegister::get_instance().dispatch(state_info.into());
+}
+
+#[ani_rs::native]
+pub(crate) fn on_state_change(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+    let callback = callback.into_global_callback(env).map_err(|e| BusinessError::from(e))?;
+    StateCallbackRegister::get_instance()
+        .register(callback)
+        .map_err(convert_to_business_error)
+}
+
+#[ani_rs::native]
+pub(crate) fn off_state_change(env: &AniEnv, callback: AniFnObject) -> Result<(), BusinessError> {
+    let callback = if env.is_undefined(&callback).map_err(|e| BusinessError::from(e))? {
+        None
+    } else {
+        Some(callback.into_global_callback(env).map_err(|e| BusinessError::from(e))?)
+    };
+    StateCallbackRegister::get_instance()
+        .unregister(callback)
         .map_err(convert_to_business_error)
 }
 

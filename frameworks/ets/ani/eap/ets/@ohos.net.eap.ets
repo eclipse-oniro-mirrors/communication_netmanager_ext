@@ -14,6 +14,7 @@
  */
 
 import type { Callback } from '@ohos.base';
+import { BusinessError } from '@ohos.base';
 
 export default namespace eap {
   loadLibrary("eap_ani");
@@ -58,6 +59,76 @@ export default namespace eap {
     logOffEthEapSync(netId);
   }
 
+  native function setEthEapConfigSync(config: EthEapConfig): void;
+
+  export function setEthEapConfig(config: EthEapConfig): void {
+    setEthEapConfigSync(config);
+  }
+
+  native function getEthEapConfigSync(): EthEapConfig;
+
+  export function getEthEapConfig(): Promise<EthEapConfig> {
+    return new Promise<EthEapConfig>((resolve, reject) => {
+      taskpool.execute((): EthEapConfig => {
+        return getEthEapConfigSync();
+      }).then((content: Any) => {
+        resolve(content as EthEapConfig);
+      }).catch((err: Error) => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
+  native function deleteEthEapConfigSync(): void;
+
+  export function deleteEthEapConfig(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      taskpool.execute((): void => {
+        return deleteEthEapConfigSync();
+      }).then(() => {
+        resolve(undefined);
+      }).catch((err: Error) => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
+  native function getEthEapStateInfoSync(): EthEapStateInfo;
+
+  export function getEthEapStateInfo(): EthEapStateInfo {
+    return getEthEapStateInfoSync();
+  }
+
+  native function onStateChangeSync(callback: Callback<EthEapStateInfo>): void;
+
+  export function onStateChange(callback: Callback<EthEapStateInfo>): void {
+    onStateChangeSync(callback);
+  }
+
+  native function offStateChangeSync(callback?: Callback<EthEapStateInfo>): void;
+
+  export function offStateChange(callback?: Callback<EthEapStateInfo>): void {
+    if (callback == undefined) {
+      offStateChangeSync();
+    } else {
+      offStateChangeSync(callback);
+    }
+  }
+
+  native function connectSync(action: EthEapConnectAction): void;
+
+  export function connect(action: EthEapConnectAction): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      taskpool.execute((): void => {
+        return connectSync(action);
+      }).then(() => {
+        resolve(undefined);
+      }).catch((err: Error) => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
   // ===== Enums =====
 
   export enum EapMethod {
@@ -87,6 +158,19 @@ export default namespace eap {
     RESULT_FAIL = 0,
     RESULT_NEXT = 1,
     RESULT_FINISH = 2
+  }
+
+  export enum EthEapState {
+    STATE_IDLE = 0,
+    STATE_AUTHENTICATING = 1,
+    STATE_AUTHENTICATED = 2,
+    STATE_FAILED = 3,
+    STATE_RETRYING = 4
+  }
+
+  export enum EthEapConnectAction {
+    ACTION_CONNECT = 0,
+    ACTION_DISCONNECT = 1
   }
 
   // ===== Interfaces =====
@@ -137,5 +221,31 @@ export default namespace eap {
     realm: string = "";
     plmn: string = "";
     eapSubId: int = 0;
+  }
+
+  export interface EthEapStateInfo {
+    state: EthEapState;
+    retryCount: int;
+    message: string;
+  }
+
+  export class EthEapStateInfoInner implements EthEapStateInfo {
+    state: EthEapState = EthEapState.STATE_IDLE;
+    retryCount: int = 0;
+    message: string = "";
+  }
+
+  export interface EthEapConfig {
+    profile: EthEapProfile;
+    enabled: boolean;
+    autoAuth: boolean;
+    locked: boolean;
+  }
+
+  export class EthEapConfigInner implements EthEapConfig {
+    profile: EthEapProfile = new EthEapProfileInner();
+    enabled: boolean = false;
+    autoAuth: boolean = false;
+    locked: boolean = false;
   }
 }

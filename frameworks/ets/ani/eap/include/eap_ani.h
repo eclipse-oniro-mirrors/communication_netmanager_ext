@@ -22,6 +22,9 @@
 
 #include "cxx.h"
 #include "net_eap_callback_stub.h"
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "eth_eap_state_callback_stub.h"
+#endif
 
 namespace OHOS {
 namespace NetManagerAni {
@@ -33,7 +36,24 @@ struct EthEapConfig;
 int32_t StartEthEap(int32_t net_id, EthEapConfig config);
 int32_t LogOffEthEap(int32_t net_id);
 
+struct EthEapConfigAni;
+struct EthEapStateInfoAni;
+int32_t SetEthEapConfig(EthEapConfigAni config);
+int32_t GetEthEapConfig(EthEapConfigAni &config);
+int32_t DeleteEthEapConfig();
+int32_t GetEthEapStateInfo(EthEapStateInfoAni &state_info);
+int32_t RegisterEthEapStateCallback();
+int32_t UnregisterEthEapStateCallback();
+int32_t ConnectEthEap(bool connect);
+
 struct EapAniData;
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+class EthEapStateCallbackAni : public NetManagerStandard::EthEapStateCallbackStub {
+public:
+    int32_t OnEthEapStateChanged(const NetManagerStandard::EthEapStateInfo &stateInfo) override;
+};
+#endif
 
 class EapCallbackObserverAni : public NetManagerStandard::NetEapPostbackCallbackStub {
 public:

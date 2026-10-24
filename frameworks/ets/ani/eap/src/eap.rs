@@ -36,3 +36,28 @@ pub(crate) fn start_eth_eap(net_id: i32, profile: bridge::EthEapProfile) -> Resu
 pub(crate) fn log_off_eth_eap(net_id: i32) -> Result<(), BusinessError> {
     NetConnClient::log_off_eth_eap(net_id).map_err(convert_to_business_error)
 }
+
+#[ani_rs::native]
+pub(crate) fn set_eth_eap_config(config: bridge::EthEapConfig) -> Result<(), BusinessError> {
+    NetConnClient::set_eth_eap_config(config).map_err(convert_to_business_error)
+}
+
+#[ani_rs::native]
+pub(crate) fn get_eth_eap_config() -> Result<bridge::EthEapConfig, BusinessError> {
+    NetConnClient::get_eth_eap_config().map_err(convert_to_business_error)
+}
+
+#[ani_rs::native]
+pub(crate) fn delete_eth_eap_config() -> Result<(), BusinessError> {
+    NetConnClient::delete_eth_eap_config().map_err(convert_to_business_error)
+}
+
+#[ani_rs::native]
+pub(crate) fn get_eth_eap_state_info() -> Result<bridge::EthEapStateInfo, BusinessError> {
+    NetConnClient::get_eth_eap_state_info().map_err(convert_to_business_error)
+}
+
+#[ani_rs::native]
+pub(crate) fn connect_eth_eap(action: bridge::EthEapConnectAction) -> Result<(), BusinessError> {
+    NetConnClient::connect_eth_eap(action).map_err(convert_to_business_error)
+}

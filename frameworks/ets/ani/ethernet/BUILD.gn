@@ -44,7 +44,7 @@ ohos_static_library("ethernet_ani_static") {
   sources = [ "src/cxx/ethernet_ani.cpp" ]
   sources += get_target_outputs(":ethernet_ani_cxx")
 
-  if (netmanager_ext_feature_net_firewall) {
+  if (netmanager_ext_ethernet_enable_disable) {
     defines = [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
   }
   
