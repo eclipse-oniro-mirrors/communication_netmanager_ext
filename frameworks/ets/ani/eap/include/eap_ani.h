@@ -36,10 +36,10 @@ struct EapDataAni;
 struct EapCodeTypeAni;
 
 bool IsEapExtensibleAuthenticationEnabled();
-int32_t ValidateEapParams(int32_t net_type, int32_t eap_code, int32_t eap_type);
-int32_t RegCustomEapHandler(int32_t triggerMode, int32_t net_type,
+int32_t ValidateEapParams(int32_t netType, int32_t eapCode, int32_t eapType);
+int32_t RegCustomEapHandler(int32_t triggerMode, int32_t netType,
     const rust::Vec<EapCodeTypeAni> &regItems);
-int32_t ReplyCustomEapData(int32_t result, int32_t msg_id, int32_t buffer_len, const rust::Vec<uint8_t> &eap_buffer);
+int32_t ReplyCustomEapData(int32_t result, int32_t msgId, int32_t bufferLen, const rust::Vec<uint8_t> &eapBuffer);
 int32_t StartEthEap(int32_t netId, EthEapProfileAni profileAni);
 int32_t LogOffEthEap(int32_t netId);
 
@@ -50,7 +50,7 @@ struct EthEapStateInfoAni;
 int32_t SetEthEapConfig(EthEapConfigAni config);
 int32_t GetEthEapConfig(EthEapConfigAni &config);
 int32_t DeleteEthEapConfig();
-int32_t GetEthEapStateInfo(EthEapStateInfoAni &state_info);
+int32_t GetEthEapStateInfo(EthEapStateInfoAni &stateInfo);
 int32_t RegisterEthEapStateCallback();
 int32_t UnregisterEthEapStateCallback();
 int32_t ConnectEthEap(bool connect);

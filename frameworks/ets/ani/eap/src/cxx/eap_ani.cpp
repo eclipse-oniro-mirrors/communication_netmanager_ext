@@ -146,31 +146,31 @@ bool IsEapExtensibleAuthenticationEnabled()
 }
 
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
-static uint32_t ComposeParam(int32_t eap_code, int32_t eap_type)
+static uint32_t ComposeParam(int32_t eapCode, int32_t eapType)
 {
-    uint32_t composeParam = static_cast<uint32_t>(eap_code) << OFFSET_EAPCODE;
-    if (eap_code != EAP_CODE_SUCCESS && eap_code != EAP_CODE_FAILURE) {
-        composeParam |= static_cast<uint32_t>(eap_type);
+    uint32_t composeParam = static_cast<uint32_t>(eapCode) << OFFSET_EAPCODE;
+    if (eapCode != EAP_CODE_SUCCESS && eapCode != EAP_CODE_FAILURE) {
+        composeParam |= static_cast<uint32_t>(eapType);
     }
     return composeParam;
 }
 #endif
 
-int32_t ValidateEapParams(int32_t net_type, int32_t eap_code, int32_t eap_type)
+int32_t ValidateEapParams(int32_t netType, int32_t eapCode, int32_t eapType)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     if (!NetManagerStandard::NetManagerPermission::CheckPermission(
         NetManagerStandard::Permission::MANAGE_ENTERPRISE_WIFI_CONNECTION)) {
         return NetManagerStandard::EAP_ERRCODE_PERMISSION_DENIED;
     }
-    if (net_type < static_cast<int32_t>(NetManagerStandard::NetType::WLAN0) ||
-        net_type >= static_cast<int32_t>(NetManagerStandard::NetType::INVALID)) {
+    if (netType < static_cast<int32_t>(NetManagerStandard::NetType::WLAN0) ||
+        netType >= static_cast<int32_t>(NetManagerStandard::NetType::INVALID)) {
         return NetManagerStandard::EAP_ERRCODE_INVALID_NET_TYPE;
     }
-    if (eap_code < EAP_CODE_MIN || eap_code > EAP_CODE_MAX) {
+    if (eapCode < EAP_CODE_MIN || eapCode > EAP_CODE_MAX) {
         return NetManagerStandard::EAP_ERRCODE_INVALID_EAP_CODE;
     }
-    if (eap_type < EAP_TYPE_MIN || eap_type > EAP_TYPE_MAX) {
+    if (eapType < EAP_TYPE_MIN || eapType > EAP_TYPE_MAX) {
         return NetManagerStandard::EAP_ERRCODE_INVALID_EAP_TYPE;
     }
     return NetManagerStandard::EAP_ERRCODE_SUCCESS;
@@ -179,26 +179,26 @@ int32_t ValidateEapParams(int32_t net_type, int32_t eap_code, int32_t eap_type)
 #endif
 }
 
-int32_t RegCustomEapHandler(int32_t triggerMode, int32_t net_type,
+int32_t RegCustomEapHandler(int32_t triggerMode, int32_t netType,
     const rust::Vec<EapCodeTypeAni> &regItems)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
-    if (net_type < static_cast<int32_t>(NetManagerStandard::NetType::WLAN0) ||
-        net_type >= static_cast<int32_t>(NetManagerStandard::NetType::INVALID)) {
+    if (netType < static_cast<int32_t>(NetManagerStandard::NetType::WLAN0) ||
+        netType >= static_cast<int32_t>(NetManagerStandard::NetType::INVALID)) {
         return NetManagerStandard::EAP_ERRCODE_INVALID_NET_TYPE;
     }
-    std::string regCmd = std::to_string(net_type) + ":" + std::to_string(regItems.size());
+    std::string regCmd = std::to_string(netType) + ":" + std::to_string(regItems.size());
     for (const auto &item : regItems) {
         uint32_t composeParam = ComposeParam(item.eap_code, item.eap_type);
         regCmd += ":" + std::to_string(composeParam);
     }
     NETMANAGER_EXT_LOGI("RegCustomEapHandler enter, triggerMode:%{public}d, netType:%{public}d, regCmd:%{public}s",
-        static_cast<int32_t>(triggerMode), net_type, regCmd.c_str());
+        static_cast<int32_t>(triggerMode), netType, regCmd.c_str());
 
     if (g_NetEapPostBackCallbackAni == nullptr) {
         return NetManagerStandard::EAP_ERRCODE_INTERNAL_ERROR;
     }
-    auto type = static_cast<NetManagerStandard::NetType>(net_type);
+    auto type = static_cast<NetManagerStandard::NetType>(netType);
     return DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->RegCustomEapHandler(
         type, regCmd, g_NetEapPostBackCallbackAni);
 #else
@@ -206,8 +206,8 @@ int32_t RegCustomEapHandler(int32_t triggerMode, int32_t net_type,
 #endif
 }
 
-int32_t ReplyCustomEapData(int32_t result, int32_t msg_id, int32_t buffer_len,
-                           const rust::Vec<uint8_t> &eap_buffer)
+int32_t ReplyCustomEapData(int32_t result, int32_t msgId, int32_t bufferLen,
+                           const rust::Vec<uint8_t> &eapBuffer)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
     if (result < static_cast<int32_t>(NetManagerStandard::CustomResult::RESULT_FAIL) ||
@@ -217,9 +217,9 @@ int32_t ReplyCustomEapData(int32_t result, int32_t msg_id, int32_t buffer_len,
 
     std::unique_lock<std::mutex> lock(g_mutex);
     sptr<NetManagerStandard::EapData> eapData = sptr<NetManagerStandard::EapData>::MakeSptr();
-    eapData->msgId = msg_id;
-    eapData->bufferLen = buffer_len;
-    eapData->eapBuffer = std::vector<uint8_t>(eap_buffer.begin(), eap_buffer.end());
+    eapData->msgId = msgId;
+    eapData->bufferLen = bufferLen;
+    eapData->eapBuffer = std::vector<uint8_t>(eapBuffer.begin(), eapBuffer.end());
     if (eapData->bufferLen > MAX_EAP_DATA_LENGTH) {
         return NetManagerStandard::EAP_ERRCODE_INVALID_SIZE_OF_EAPDATA;
     }
@@ -361,13 +361,13 @@ int32_t DeleteEthEapConfig()
 #endif
 }
 
-int32_t GetEthEapStateInfo(EthEapStateInfoAni &state_info)
+int32_t GetEthEapStateInfo(EthEapStateInfoAni &stateInfo)
 {
 #ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
     NetManagerStandard::EthEapStateInfo nativeInfo;
     int32_t ret = DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->GetEthEapStateInfo(nativeInfo);
     if (ret == 0) {
-        state_info = ConvertEthEapStateInfoToAni(nativeInfo);
+        stateInfo = ConvertEthEapStateInfoToAni(nativeInfo);
     }
     return ret;
 #else
