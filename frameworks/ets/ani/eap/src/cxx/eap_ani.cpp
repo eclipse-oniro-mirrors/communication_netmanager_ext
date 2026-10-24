@@ -15,12 +15,21 @@
 
 #include "eap_ani.h"
 
+#include <utility>
+
 #include "ethernet_client.h"
 #include "eth_eap_profile.h"
 #include "eap_data.h"
 #include "net_eap_callback_stub.h"
 #include "netmanager_ext_log.h"
 #include "netmanager_base_permission.h"
+#include "net_manager_ext_constants.h"
+#include "securec.h"
+#include <mutex>
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+#include "eth_eap_config.h"
+#include "eth_eap_state_info.h"
+#endif
 
 #include "wrapper.rs.h"
 
@@ -39,6 +48,91 @@ static constexpr const int MAX_EAP_DATA_LENGTH = 4096;
 constexpr int32_t EAP_CODE_SUCCESS = 3;
 constexpr int32_t EAP_CODE_FAILURE = 4;
 constexpr int32_t OFFSET_EAPCODE = 8;
+#endif
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+sptr<EthEapStateCallbackAni> g_ethEapStateCallbackAni;
+[[maybe_unused]] bool g_isEthEapStateCallbackRegistered = false;
+std::mutex g_ethEapStateCallbackMutex;
+#endif
+
+// CXX owns these buffers after transfer from Rust. Wipe even on validation
+// failures and feature-disabled paths before their storage is released.
+class ScopedEthEapProfileWipe final {
+public:
+    explicit ScopedEthEapProfileWipe(EthEapProfileAni &profile) : profile_(profile) {}
+    ~ScopedEthEapProfileWipe()
+    {
+        if (!profile_.password.empty()) {
+            (void)memset_s(profile_.password.begin(), profile_.password.size(),
+                0, profile_.password.size());
+        }
+        if (!profile_.cert_password.empty()) {
+            (void)memset_s(profile_.cert_password.begin(), profile_.cert_password.size(),
+                0, profile_.cert_password.size());
+        }
+        if (!profile_.cert_entry.empty()) {
+            (void)memset_s(profile_.cert_entry.data(), profile_.cert_entry.size(), 0, profile_.cert_entry.size());
+        }
+    }
+
+private:
+    EthEapProfileAni &profile_;
+};
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+bool ConvertEthEapProfile(const EthEapProfileAni &config, NetManagerStandard::EthEapProfile &profile)
+{
+    static_assert(NetManagerStandard::EapMethod::EAP_UNAUTH_TLS == 8,
+        "EAP_UNAUTH_TLS must be the maximum EapMethod value");
+    static_assert(NetManagerStandard::Phase2Method::PHASE2_AKA_PRIME == 7,
+        "PHASE2_AKA_PRIME must be the maximum Phase2Method value");
+    if (config.eap_method < 0 || config.eap_method > NetManagerStandard::EapMethod::EAP_UNAUTH_TLS ||
+        config.phase2_method < 0 || config.phase2_method > NetManagerStandard::Phase2Method::PHASE2_AKA_PRIME) {
+        return false;
+    }
+    profile.eapMethod = static_cast<NetManagerStandard::EapMethod>(config.eap_method);
+    profile.phase2Method = static_cast<NetManagerStandard::Phase2Method>(config.phase2_method);
+    profile.identity = std::string(config.identity);
+    profile.anonymousIdentity = std::string(config.anonymous_identity);
+    profile.password.append(config.password.data(), config.password.size());
+    profile.caCertAliases = std::string(config.ca_cert_aliases);
+    profile.caPath = std::string(config.ca_path);
+    profile.clientCertAliases = std::string(config.client_cert_aliases);
+    profile.certEntry = std::vector<uint8_t>(config.cert_entry.begin(), config.cert_entry.end());
+    profile.certPassword.append(config.cert_password.data(), config.cert_password.size());
+    profile.altSubjectMatch = std::string(config.alt_subject_match);
+    profile.domainSuffixMatch = std::string(config.domain_suffix_match);
+    profile.realm = std::string(config.realm);
+    profile.plmn = std::string(config.plmn);
+    profile.eapSubId = config.eap_sub_id;
+    return true;
+}
+
+void ConvertEthEapProfileToAni(const NetManagerStandard::EthEapProfile &profile, EthEapProfileAni &config)
+{
+    config.eap_method = static_cast<int32_t>(profile.eapMethod);
+    config.phase2_method = static_cast<int32_t>(profile.phase2Method);
+    config.identity = rust::String(profile.identity);
+    config.anonymous_identity = rust::String(profile.anonymousIdentity);
+    config.ca_cert_aliases = rust::String(profile.caCertAliases);
+    config.ca_path = rust::String(profile.caPath);
+    config.client_cert_aliases = rust::String(profile.clientCertAliases);
+    config.alt_subject_match = rust::String(profile.altSubjectMatch);
+    config.domain_suffix_match = rust::String(profile.domainSuffixMatch);
+    config.realm = rust::String(profile.realm);
+    config.plmn = rust::String(profile.plmn);
+    config.eap_sub_id = profile.eapSubId;
+    // Passwords and certificate contents are never returned over the ANI bridge.
+}
+
+EthEapStateInfoAni ConvertEthEapStateInfoToAni(const NetManagerStandard::EthEapStateInfo &stateInfo)
+{
+    EthEapStateInfoAni info{};
+    info.state = static_cast<int32_t>(stateInfo.state);
+    info.retry_count = stateInfo.retryCount;
+    info.message = rust::String(stateInfo.message);
+    return info;
+}
 #endif
 } // namespace
 
@@ -209,6 +303,136 @@ void InitEapAniSaListener()
     samgrProxy->SubscribeSystemAbility(WIFI_DEVICE_SA_ID, listener);
     samgrProxy->SubscribeSystemAbility(COMM_ETHERNET_MANAGER_SYS_ABILITY_ID, listener);
 }
+
+int32_t SetEthEapConfig(EthEapConfigAni config)
+{
+    ScopedEthEapProfileWipe wipe(config.profile);
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    NetManagerStandard::EthEapConfig nativeConfig;
+    if (!ConvertEthEapProfile(config.profile, nativeConfig.profile)) {
+        return -1;
+    }
+    nativeConfig.enabled = config.enabled;
+    nativeConfig.autoAuth = config.auto_auth;
+    nativeConfig.locked = config.locked;
+    int32_t ret = DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->SetEthEapConfig(nativeConfig);
+    nativeConfig.profile.password.clear();
+    nativeConfig.profile.certPassword.clear();
+    if (!nativeConfig.profile.certEntry.empty()) {
+        (void)memset_s(nativeConfig.profile.certEntry.data(), nativeConfig.profile.certEntry.size(),
+            0, nativeConfig.profile.certEntry.size());
+        nativeConfig.profile.certEntry.clear();
+    }
+    return ret;
+#else
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+#endif
+}
+
+int32_t GetEthEapConfig(EthEapConfigAni &config)
+{
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    NetManagerStandard::EthEapConfig nativeConfig;
+    int32_t ret = DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->GetEthEapConfig(nativeConfig);
+    if (ret != 0) {
+        return ret;
+    }
+    EthEapConfigAni result{};
+    ConvertEthEapProfileToAni(nativeConfig.profile, result.profile);
+    result.enabled = nativeConfig.enabled;
+    result.auto_auth = nativeConfig.autoAuth;
+    result.locked = nativeConfig.locked;
+    {
+        ScopedEthEapProfileWipe wipe(config.profile);
+    }
+    config = std::move(result);
+    return ret;
+#else
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+#endif
+}
+
+int32_t DeleteEthEapConfig()
+{
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    return DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->DeleteEthEapConfig();
+#else
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+#endif
+}
+
+int32_t GetEthEapStateInfo(EthEapStateInfoAni &state_info)
+{
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    NetManagerStandard::EthEapStateInfo nativeInfo;
+    int32_t ret = DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->GetEthEapStateInfo(nativeInfo);
+    if (ret == 0) {
+        state_info = ConvertEthEapStateInfoToAni(nativeInfo);
+    }
+    return ret;
+#else
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+#endif
+}
+
+int32_t RegisterEthEapStateCallback()
+{
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    std::lock_guard<std::mutex> lock(g_ethEapStateCallbackMutex);
+    if (g_isEthEapStateCallbackRegistered) {
+        return 0;
+    }
+    if (g_ethEapStateCallbackAni == nullptr) {
+        g_ethEapStateCallbackAni = new (std::nothrow) EthEapStateCallbackAni();
+    }
+    if (g_ethEapStateCallbackAni == nullptr) {
+        return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+    }
+    int32_t ret = DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->RegisterEthEapStateCallback(
+        g_ethEapStateCallbackAni);
+    if (ret == 0) {
+        g_isEthEapStateCallbackRegistered = true;
+    }
+    return ret;
+#else
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+#endif
+}
+
+int32_t UnregisterEthEapStateCallback()
+{
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    std::lock_guard<std::mutex> lock(g_ethEapStateCallbackMutex);
+    if (!g_isEthEapStateCallbackRegistered || g_ethEapStateCallbackAni == nullptr) {
+        return 0;
+    }
+    int32_t ret = DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->UnregisterEthEapStateCallback(
+        g_ethEapStateCallbackAni);
+    if (ret == 0) {
+        g_isEthEapStateCallbackRegistered = false;
+    }
+    return ret;
+#else
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+#endif
+}
+
+int32_t ConnectEthEap(bool connect)
+{
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    return DelayedSingleton<NetManagerStandard::EthernetClient>::GetInstance()->ConnectEthEap(connect);
+#else
+    return NetManagerStandard::NETMANAGER_EXT_ERR_OPERATION_FAILED;
+#endif
+}
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+int32_t EthEapStateCallbackAni::OnEthEapStateChanged(const NetManagerStandard::EthEapStateInfo &stateInfo)
+{
+    execute_eth_eap_state_changed(ConvertEthEapStateInfoToAni(stateInfo));
+    return 0;
+}
+#endif
 
 int32_t NetEapPostBackCallbackAni::OnEapSupplicantPostback(NetManagerStandard::NetType netType,
     const sptr<NetManagerStandard::EapData> &eapData)

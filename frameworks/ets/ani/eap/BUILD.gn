@@ -44,8 +44,12 @@ ohos_static_library("eap_ani_static") {
   sources = [ "src/cxx/eap_ani.cpp" ]
   sources += get_target_outputs(":eap_ani_cxx")
 
+  defines = []
   if (netmanager_ext_extensible_authentication) {
-    defines = [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+    defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+  }
+  if (netmanager_ext_ethernet_enable_disable) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
   }
 
   deps = [
@@ -54,6 +58,7 @@ ohos_static_library("eap_ani_static") {
     "../../../../interfaces/innerkits/ethernetclient:ethernet_parcel",
   ]
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
