@@ -12,33 +12,84 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "net_eap_handler.h"
+#include <set>
+#include <string>
 #include <utility>
 #include <map>
- 
+
 #include "netmgr_ext_log_wrapper.h"
 #include "net_manager_constants.h"
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
 #include "net_manager_center.h"
 #endif
- 
+
 namespace OHOS {
 namespace NetManagerStandard {
 
 static constexpr const char* ETH_PREFIX = "eth";
 static constexpr const int32_t DEFAULT_ETH_EAP_NETID = -1;
+static constexpr int32_t ETH_EAP_REG_COMPOSE_SUCCESS = 768;
+static constexpr int32_t ETH_EAP_REG_COMPOSE_FAILURE = 1024;
+
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+static bool IsValidNumericPart(const std::string &part)
+{
+    // regCmd 来自企业应用的任意字符串参数：必须先校验为纯数字（并限制长度防溢出）
+    // 再转换，避免 std::stoi 抛出未捕获的 invalid_argument/out_of_range 导致
+    // netmanager 进程崩溃
+    return part.size() <= 9 && part.find_first_not_of("0123456789") == std::string::npos;
+}
+
+static void ParseRegCmdNumericParts(const std::string &cmd, std::set<int32_t> &composeParams)
+{
+    size_t pos = 0;
+    int32_t idx = 0;
+    while (pos <= cmd.size()) {
+        size_t next = cmd.find(':', pos);
+        size_t end = (next == std::string::npos) ? cmd.size() : next;
+        std::string part = cmd.substr(pos, end - pos);
+        if (idx >= 2 && !part.empty()) {
+            if (IsValidNumericPart(part)) {
+                composeParams.insert(std::stoi(part));
+            } else {
+                NETMGR_EXT_LOG_E("ParseRegCmdNumericParts: skip non-numeric part: %{public}s", part.c_str());
+            }
+        }
+        if (next == std::string::npos) {
+            break;
+        }
+        pos = next + 1;
+        ++idx;
+    }
+}
+
+static std::string BuildEthEapRegCmd(const std::vector<std::string> &regCmdVec)
+{
+    std::set<int32_t> composeParams = {ETH_EAP_REG_COMPOSE_SUCCESS, ETH_EAP_REG_COMPOSE_FAILURE};
+    for (const std::string &cmd : regCmdVec) {
+        ParseRegCmdNumericParts(cmd, composeParams);
+    }
+    std::string mergedCmd = std::to_string(static_cast<int>(NetType::ETH0)) + ":" +
+        std::to_string(composeParams.size());
+    for (int32_t param : composeParams) {
+        mergedCmd += ":" + std::to_string(param);
+    }
+    return mergedCmd;
+}
+#endif // defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
 
 NetEapHandler::NetEapHandler()
 {
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
     eapHdiWpaManager_ = std::make_shared<EapHdiWpaManager>();
 #endif
 }
 
 NetEapHandler::~NetEapHandler()
 {
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
     if (eapHdiWpaManager_ != nullptr) {
         eapHdiWpaManager_->StopEap(ethEapIfName_);
     }
@@ -50,7 +101,7 @@ NetEapHandler &NetEapHandler::GetInstance()
     static NetEapHandler gNetEap;
     return gNetEap;
 }
- 
+
 int32_t NetEapHandler::RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
@@ -65,12 +116,12 @@ int32_t NetEapHandler::RegisterCustomEapCallback(const NetType netType, const sp
     std::unique_lock<std::mutex> lock(mutex_);
     regEapCallBack_[netType] = callback;
     lock.unlock();
- 
+
     NETMGR_EXT_LOG_E("RegisterCustomEapCallback success, netType:%{public}d", static_cast<int>(netType));
 #endif
     return NETMANAGER_SUCCESS;
 }
- 
+
 int32_t NetEapHandler::UnRegisterCustomEapCallback(NetType netType, const sptr<INetRegisterEapCallback> &callback)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
@@ -91,7 +142,7 @@ int32_t NetEapHandler::UnRegisterCustomEapCallback(NetType netType, const sptr<I
 #endif
     return NETMANAGER_SUCCESS;
 }
- 
+
 int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &regCmd,
     const sptr<INetEapPostbackCallback> &postBackCb)
 {
@@ -107,6 +158,7 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
     }
     if (netType == NetType::ETH0) {
         NETMGR_EXT_LOG_I("RegEapHandler eth0 %{public}s", regCmd.c_str());
+        std::lock_guard<std::mutex> lock(mutex_);
         ethEapRegCmdVec_.emplace_back(regCmd);
         return EAP_ERRCODE_SUCCESS;
     }
@@ -116,7 +168,7 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
         NETMGR_EXT_LOG_E("RegCustomEapHandler not have callback, netType:%{public}d", static_cast<int>(netType));
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
-    
+
     if (iter->second == nullptr) {
         NETMGR_EXT_LOG_E("regEapCallBack ptr is nullptr, netType:%{public}d", static_cast<int>(netType));
         return EAP_ERRCODE_INTERNAL_ERROR;
@@ -126,10 +178,11 @@ int32_t NetEapHandler::RegCustomEapHandler(NetType netType, const std::string &r
 #endif
     return NETMANAGER_SUCCESS;
 }
- 
+
 int32_t NetEapHandler::NotifyWpaEapInterceptInfo(const NetType netType, const sptr<EapData> &eapData)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
+    NETMGR_EXT_LOG_I("NotifyWpaEapInterceptInfo netType=%{public}d", static_cast<int>(netType));
     if (eapData == nullptr) {
         NETMGR_EXT_LOG_E("%{public}s eapData is nullptr", __func__);
         return NETMANAGER_ERR_LOCAL_PTR_NULL;
@@ -148,7 +201,7 @@ int32_t NetEapHandler::NotifyWpaEapInterceptInfo(const NetType netType, const sp
 #endif
     return NETMANAGER_SUCCESS;
 }
- 
+
 int32_t NetEapHandler::ReplyCustomEapData(int result, const sptr<EapData> &eapData)
 {
 #ifdef NET_EXTENSIBLE_AUTHENTICATION
@@ -179,20 +232,20 @@ int32_t NetEapHandler::ReplyCustomEapData(int result, const sptr<EapData> &eapDa
 #endif
     return NETMANAGER_SUCCESS;
 }
- 
+
 void NetEapHandler::SetPostbackCallback(const sptr<INetEapPostbackCallback> &postbackCallback)
 {
     std::unique_lock<std::shared_mutex> lock(postbackCallbackMutex_);
     postbackCallback_ = postbackCallback;
 }
- 
+
 sptr<INetEapPostbackCallback> NetEapHandler::GetPostbackCallback()
 {
     std::shared_lock<std::shared_mutex> lock(postbackCallbackMutex_);
     return postbackCallback_;
 }
 
-#ifdef NET_EXTENSIBLE_AUTHENTICATION
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
 void NetEapHandler::SetEthEapIfName(const std::string &ifName)
 {
     NETMGR_EXT_LOG_I("SetEthEapIfName %{public}s", ifName.c_str());
@@ -201,7 +254,9 @@ void NetEapHandler::SetEthEapIfName(const std::string &ifName)
 
 int32_t NetEapHandler::StartEthEap(int32_t netId, const EthEapProfile& profile)
 {
+    NETMGR_EXT_LOG_I("StartEthEap enter netId=%{public}d", netId);
     if (eapHdiWpaManager_ == nullptr) {
+        NETMGR_EXT_LOG_E("StartEthEap eapHdiWpaManager_ null");
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
     if (netId != DEFAULT_ETH_EAP_NETID) {
@@ -213,17 +268,26 @@ int32_t NetEapHandler::StartEthEap(int32_t netId, const EthEapProfile& profile)
     }
     int32_t ret = eapHdiWpaManager_->LoadEthernetHdiService();
     if (ret != EAP_ERRCODE_SUCCESS) {
+        NETMGR_EXT_LOG_E("StartEthEap LoadEthernetHdiService ret=%{public}d", ret);
         return ret;
     }
     ret = eapHdiWpaManager_->StartEap(ethEapIfName_, profile);
-    for (const std::string &cmd : ethEapRegCmdVec_) {
-        eapHdiWpaManager_->RegisterCustomEapCallback(ethEapIfName_, cmd);
+    NETMGR_EXT_LOG_I("StartEthEap StartEap ret=%{public}d ifName=%{public}s", ret, ethEapIfName_.c_str());
+    if (ret == EAP_ERRCODE_SUCCESS) {
+        std::string mergedRegCmd;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            mergedRegCmd = BuildEthEapRegCmd(ethEapRegCmdVec_);
+        }
+        NETMGR_EXT_LOG_I("StartEthEap merged EXT_AUTH_REG cmd: %{public}s", mergedRegCmd.c_str());
+        eapHdiWpaManager_->RegisterCustomEapCallback(ethEapIfName_, mergedRegCmd);
     }
     return ret;
 }
- 
+
 int32_t NetEapHandler::LogOffEthEap(int32_t netId)
 {
+    NETMGR_EXT_LOG_I("LogOffEthEap enter netId=%{public}d", netId);
     if (eapHdiWpaManager_ == nullptr) {
         return EAP_ERRCODE_INTERNAL_ERROR;
     }
@@ -236,7 +300,7 @@ int32_t NetEapHandler::LogOffEthEap(int32_t netId)
     }
     return eapHdiWpaManager_->StopEap(ethEapIfName_);
 }
- 
+
 void NetEapHandler::GetIfaceNameFromNetId(int32_t netId)
 {
     NetLinkInfo info;
@@ -244,7 +308,7 @@ void NetEapHandler::GetIfaceNameFromNetId(int32_t netId)
     ethEapIfName_ = info.ifaceName_;
 }
 
-#endif // NET_EXTENSIBLE_AUTHENTICATION
- 
+#endif // defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+
 } // namespace NetManagerStandard
 } // namespace OHOS

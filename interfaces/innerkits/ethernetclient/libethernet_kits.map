@@ -87,6 +87,18 @@
       "OHOS::NetManagerStandard::EthernetClient::IsEthernetEnabled(int&)";
       VTT?for?OHOS::NetManagerStandard::EthEapProfile;
       vtable?for?OHOS::NetManagerStandard::EthEapProfile;
+      "OHOS::NetManagerStandard::EthernetClient::SetEthEapConfig(OHOS::NetManagerStandard::EthEapConfig const&)";
+      "OHOS::NetManagerStandard::EthernetClient::GetEthEapConfig(OHOS::NetManagerStandard::EthEapConfig&)";
+      "OHOS::NetManagerStandard::EthernetClient::DeleteEthEapConfig()";
+      "OHOS::NetManagerStandard::EthernetClient::GetEthEapStateInfo(OHOS::NetManagerStandard::EthEapStateInfo&)";
+      "OHOS::NetManagerStandard::EthernetClient::RegisterEthEapStateCallback(OHOS::sptr<OHOS::NetManagerStandard::IEthEapStateCallback> const&)";
+      "OHOS::NetManagerStandard::EthernetClient::UnregisterEthEapStateCallback(OHOS::sptr<OHOS::NetManagerStandard::IEthEapStateCallback> const&)";
+      "OHOS::NetManagerStandard::EthernetClient::ConnectEthEap(bool)";
+      "OHOS::NetManagerStandard::EthEapProfile::Marshalling(OHOS::Parcel&) const";
+      "OHOS::NetManagerStandard::EthEapStateCallbackStub::EthEapStateCallbackStub()";
+      "OHOS::NetManagerStandard::EthEapStateCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+      VTT?for?OHOS::NetManagerStandard::EthEapStateCallbackStub;
+      vtable?for?OHOS::NetManagerStandard::EthEapStateCallbackStub;
     };
   local:
    *;
