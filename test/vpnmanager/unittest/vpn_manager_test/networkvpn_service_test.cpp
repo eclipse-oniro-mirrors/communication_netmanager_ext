@@ -15,8 +15,13 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <cerrno>
+#include <fcntl.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#include <securec.h>
 
 #include "accesstoken_kit.h"
 #include "extended_vpn_ctl.h"
@@ -159,6 +164,190 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
     system::SetParameter("persist.edm.vpn_disable", "false");
 }
+
+// Regression of the FDSAN abort in CloseHeldVpnFd: the generated stub writes the [out]
+// FileDescriptor to the reply parcel (WriteFileDescriptor dups the fd) and then closes
+// the out fd, so the fd returned to IPC is owned by the stub. heldVpnFdMap_ must hold an
+// independent dup; sharing one fd number left a stale entry and CloseHeldVpnFd closed an
+// fd number already reused by another FILE*.
+HWTEST_F(NetworkVpnServiceTest, HoldVpnInterfaceFdOwnership001, TestSize.Level1)
+{
+    instance_->CloseHeldVpnFd("");
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+
+    int32_t ipcFd = INVALID_TUN_FD;
+    EXPECT_EQ(instance_->HoldVpnInterfaceFd("", -1, ipcFd), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    EXPECT_EQ(ipcFd, INVALID_TUN_FD);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd("", fds[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ipcFd, fds[0]);
+    int32_t heldFd = instance_->heldVpnFdMap_[""];
+    EXPECT_GE(heldFd, 0);
+    EXPECT_NE(heldFd, ipcFd);
+
+    close(ipcFd); // simulate the stub closing the out fd after the reply is written
+    EXPECT_NE(fcntl(heldFd, F_GETFD), -1); // the held dup must stay valid
+
+    instance_->CloseHeldVpnFd(""); // destroy path closes the held dup exactly once
+    EXPECT_EQ(fcntl(heldFd, F_GETFD), -1);
+    instance_->CloseHeldVpnFd(""); // idempotent
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+
+    // re-setup of the same vpnId replaces the held fd and closes the previous one
+    int fds2[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds2), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd("", fds2[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    int32_t heldFd2 = instance_->heldVpnFdMap_[""];
+    EXPECT_NE(heldFd2, heldFd);
+    EXPECT_NE(fcntl(heldFd2, F_GETFD), -1);
+    instance_->CloseHeldVpnFd("");
+    close(ipcFd);
+    close(fds[1]);
+    close(fds2[1]);
+}
+
+// HoldVpnInterfaceFd dup 失败分支：dup 仅在进程 fd 耗尽（EMFILE）时失败，
+// 压低 RLIMIT_NOFILE 模拟，验证失败路径接管并关闭入参 fd（不泄漏）且不写脏 map
+HWTEST_F(NetworkVpnServiceTest, HoldVpnInterfaceFdDupFail001, TestSize.Level1)
+{
+    instance_->CloseHeldVpnFd("");
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    struct rlimit origin = {};
+    ASSERT_EQ(getrlimit(RLIMIT_NOFILE, &origin), 0);
+    struct rlimit zero = {0, origin.rlim_max};
+    ASSERT_EQ(setrlimit(RLIMIT_NOFILE, &zero), 0);
+    int32_t ipcFd = INVALID_TUN_FD;
+    EXPECT_EQ(instance_->HoldVpnInterfaceFd("", fds[0], ipcFd), NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(ipcFd, INVALID_TUN_FD);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+    ASSERT_EQ(setrlimit(RLIMIT_NOFILE, &origin), 0);
+    EXPECT_EQ(fcntl(fds[0], F_GETFD), -1);
+    close(fds[1]);
+}
+
+// CloseHeldVpnFdOfVpn 取 key 行为：vpnObj 为空 / config 为空按单 VPN key，正常按 config.vpnId_
+HWTEST_F(NetworkVpnServiceTest, CloseHeldVpnFdOfVpn001, TestSize.Level1)
+{
+    instance_->CloseHeldVpnFd("");
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    std::vector<int32_t> activeUserIds;
+    int32_t ipcFd = INVALID_TUN_FD;
+
+    int chan[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, chan), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd("", chan[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    int32_t heldFd = instance_->heldVpnFdMap_[""];
+    close(ipcFd);
+    instance_->CloseHeldVpnFdOfVpn(nullptr);
+    EXPECT_EQ(fcntl(heldFd, F_GETFD), -1);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+    close(chan[1]);
+
+    sptr<VpnConfig> nullConfig = nullptr;
+    std::shared_ptr<NetVpnImpl> nullConfigVpn =
+        std::make_shared<ExtendedVpnCtl>(nullConfig, "", userId, activeUserIds);
+    int chan2[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, chan2), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd("", chan2[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    heldFd = instance_->heldVpnFdMap_[""];
+    close(ipcFd);
+    instance_->CloseHeldVpnFdOfVpn(nullConfigVpn);
+    EXPECT_EQ(fcntl(heldFd, F_GETFD), -1);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+    close(chan2[1]);
+
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    config->vpnId_ = "holdfdvpn001";
+    std::shared_ptr<NetVpnImpl> vpnObj = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    int chan3[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, chan3), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd(config->vpnId_, chan3[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    heldFd = instance_->heldVpnFdMap_[config->vpnId_];
+    close(ipcFd);
+    instance_->CloseHeldVpnFdOfVpn(vpnObj);
+    EXPECT_EQ(fcntl(heldFd, F_GETFD), -1);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+    close(chan3[1]);
+}
+
+// OnProcessDied 单 VPN 销毁分支：currSetUpVpnPid_ 命中时同步关闭钉持 fd（对齐 4f6fff0 清理路径）
+HWTEST_F(NetworkVpnServiceTest, OnProcessDiedHeldVpnFd001, TestSize.Level1)
+{
+    instance_->CloseHeldVpnFd("");
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    int32_t ipcFd = INVALID_TUN_FD;
+    int chan[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, chan), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd("", chan[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    int32_t heldFd = instance_->heldVpnFdMap_[""];
+    close(ipcFd);
+    AppExecFwk::ProcessData data;
+    data.pid = 123456;
+    data.uid = userId;
+    sptr<NetworkVpnService::VpnHapObserver> vpnHapObserver = new NetworkVpnService::VpnHapObserver(
+        *instance_, "testBundleName", "testAbility");
+    instance_->setVpnPidMap_.emplace(userId, 123456);
+    instance_->currSetUpVpnPid_ = 123456;
+    vpnHapObserver->OnProcessDied(data);
+    EXPECT_EQ(fcntl(heldFd, F_GETFD), -1);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+    close(chan[1]);
+}
+
+// OnRemoteDied 单 VPN 销毁分支：远端事件回调宿主死亡注销成功时同步关闭钉持 fd
+HWTEST_F(NetworkVpnServiceTest, OnRemoteDiedHeldVpnFd001, TestSize.Level1)
+{
+    instance_->CloseHeldVpnFd("");
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    int32_t ipcFd = INVALID_TUN_FD;
+    int chan[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, chan), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd("", chan[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    int32_t heldFd = instance_->heldVpnFdMap_[""];
+    close(ipcFd);
+    instance_->vpnEventCallbacks_.push_back(eventCallback_);
+    wptr<IRemoteObject> remote = eventCallback_->AsObject().GetRefPtr();
+    instance_->OnRemoteDied(remote);
+    EXPECT_EQ(fcntl(heldFd, F_GETFD), -1);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+    close(chan[1]);
+}
+
+// NotifyConnectStage DISCONNECT 单 VPN 分支：配置本地地址且销毁成功时同步关闭钉持 fd
+#ifdef SUPPORT_SYSVPN
+HWTEST_F(NetworkVpnServiceTest, NotifyConnectStageHeldVpnFd001, TestSize.Level1)
+{
+    instance_->CloseHeldVpnFd("");
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    INetAddr addr;
+    addr.address_ = "10.10.10.1";
+    config->addresses_.push_back(addr);
+    config->addresses_.push_back(addr); // CheckVpnHasLocalAddr 要求 addresses_.size() > VPN_LOCAL_IP_INDEX(1)
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    int32_t ipcFd = INVALID_TUN_FD;
+    int chan[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, chan), 0);
+    ASSERT_EQ(instance_->HoldVpnInterfaceFd("", chan[0], ipcFd), NETMANAGER_EXT_SUCCESS);
+    int32_t heldFd = instance_->heldVpnFdMap_[""];
+    close(ipcFd);
+    EXPECT_EQ(instance_->NotifyConnectStage("disconnect", 0), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(fcntl(heldFd, F_GETFD), -1);
+    EXPECT_TRUE(instance_->heldVpnFdMap_.empty());
+    close(chan[1]);
+}
+#endif // SUPPORT_SYSVPN
 
 HWTEST_F(NetworkVpnServiceTest, ProcessVpnConfigTest001, TestSize.Level1)
 {
@@ -922,6 +1111,63 @@ HWTEST_F(NetworkVpnServiceTest, VpnFdChannelGetVpnInterfaceFd001, TestSize.Level
     VpnFdChannel vpnFdChannel;
     int32_t fd = vpnFdChannel.GetVpnInterfaceFd();
     EXPECT_GE(fd, -1);
+}
+
+HWTEST_F(NetworkVpnServiceTest, VpnFdChannelRecvMsgFromUnixServer002, TestSize.Level1)
+{
+    VpnFdChannel vpnFdChannel;
+    int chan[2] = {-1, -1};
+    int payload[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, chan), 0);
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, payload), 0);
+
+    // 正确的 SCM_RIGHTS 单 fd 递交：成功且 tunFd_ 被赋值
+    char data = 'x';
+    iovec iov = {&data, sizeof(data)};
+    union {
+        cmsghdr align;
+        char buf[CMSG_SPACE(sizeof(int32_t))];
+    } cmsgu = {};
+    msghdr msg = {};
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = cmsgu.buf;
+    msg.msg_controllen = sizeof(cmsgu.buf);
+    cmsghdr *cmsgh = CMSG_FIRSTHDR(&msg);
+    ASSERT_NE(cmsgh, nullptr);
+    cmsgh->cmsg_level = SOL_SOCKET;
+    cmsgh->cmsg_type = SCM_RIGHTS;
+    cmsgh->cmsg_len = CMSG_LEN(sizeof(int32_t));
+    ASSERT_EQ(memcpy_s(CMSG_DATA(cmsgh), sizeof(int32_t), &payload[0], sizeof(int32_t)), EOK);
+    ASSERT_EQ(sendmsg(chan[0], &msg, 0), static_cast<ssize_t>(1));
+    EXPECT_EQ(vpnFdChannel.RecvMsgFromUnixServer(chan[1]), NETMANAGER_EXT_SUCCESS);
+    // SCM_RIGHTS 接收侧由内核生成新的 fd 号，不可能等于发送侧仍打开的 payload[0]
+    EXPECT_GE(vpnFdChannel.tunFd_.load(), 0);
+
+    // 无辅助数据：CMSG_FIRSTHDR 为空分支
+    msghdr plainMsg = {};
+    plainMsg.msg_iov = &iov;
+    plainMsg.msg_iovlen = 1;
+    ASSERT_EQ(sendmsg(chan[0], &plainMsg, 0), static_cast<ssize_t>(1));
+    EXPECT_EQ(vpnFdChannel.RecvMsgFromUnixServer(chan[1]), NETMANAGER_EXT_ERR_INTERNAL);
+
+    close(chan[0]);
+    close(chan[1]);
+    close(payload[1]);
+    vpnFdChannel.CloseVpnInterfaceFd();
+}
+
+HWTEST_F(NetworkVpnServiceTest, VpnFdChannelCloseVpnInterfaceFd001, TestSize.Level1)
+{
+    VpnFdChannel vpnFdChannel;
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    vpnFdChannel.tunFd_ = fds[0];
+    vpnFdChannel.CloseVpnInterfaceFd();
+    EXPECT_EQ(vpnFdChannel.tunFd_.load(), INVALID_TUN_FD);
+    EXPECT_EQ(write(fds[0], "x", 1), static_cast<ssize_t>(-1));
+    EXPECT_EQ(errno, EBADF);
+    close(fds[1]);
 }
 
 HWTEST_F(NetworkVpnServiceTest, FetchVpnInterfaceFdTest001, TestSize.Level1)

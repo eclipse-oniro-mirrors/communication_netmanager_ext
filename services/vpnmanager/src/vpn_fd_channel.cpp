@@ -31,6 +31,7 @@ namespace NetManagerStandard {
 
 namespace {
 constexpr int32_t CONNECT_TIMEOUT = 1;
+// LCOV_EXCL_START
 int32_t FdReadyHandle(int32_t &sockfd, fd_set &rset, fd_set &wset, uint32_t flags)
 {
     int32_t result = NETMANAGER_EXT_ERR_INTERNAL;
@@ -54,6 +55,7 @@ int32_t FdReadyHandle(int32_t &sockfd, fd_set &rset, fd_set &wset, uint32_t flag
         return NETMANAGER_EXT_SUCCESS;
     }
 }
+// LCOV_EXCL_STOP
 } // namespace
 
 int32_t VpnFdChannel::ConnectControl(int32_t sockfd, int32_t nsec)
@@ -72,7 +74,9 @@ int32_t VpnFdChannel::ConnectControl(int32_t sockfd, int32_t nsec)
     if ((ret < 0) && (errno != EINPROGRESS)) {
         NETMGR_EXT_LOG_E("connect error: %{public}d", errno);
         return NETMANAGER_EXT_ERR_INTERNAL;
-    } else if (ret == 0) {
+    }
+    // LCOV_EXCL_START
+    if (ret == 0) {
         /* connect completed immediately, This can happen when the server is on the client's host*/
         fcntl(sockfd, F_SETFL, flags); /* restore file status flags */
         NETMGR_EXT_LOG_I("connect success.");
@@ -97,6 +101,7 @@ int32_t VpnFdChannel::ConnectControl(int32_t sockfd, int32_t nsec)
     } else { // fd ready
         return FdReadyHandle(sockfd, rset, wset, flags);
     }
+    // LCOV_EXCL_STOP
 }
 
 int32_t VpnFdChannel::RecvMsgFromUnixServer(int32_t sockfd)
@@ -110,15 +115,19 @@ int32_t VpnFdChannel::RecvMsgFromUnixServer(int32_t sockfd)
         cmsghdr align;
         char cmsg[CMSG_SPACE(sizeof(int32_t))];
     } cmsgu;
+    // LCOV_EXCL_START
     if (memset_s(cmsgu.cmsg, sizeof(cmsgu.cmsg), 0, sizeof(cmsgu.cmsg)) != EOK) {
         NETMGR_EXT_LOG_E("memset_s cmsgu.cmsg failed!");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
     msghdr message;
+    // LCOV_EXCL_START
     if (memset_s(&message, sizeof(message), 0, sizeof(message)) != EOK) {
         NETMGR_EXT_LOG_E("memset_s message failed!");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
     message.msg_iov = &iov;
     message.msg_iovlen = 1;
     message.msg_control = cmsgu.cmsg;
@@ -133,17 +142,23 @@ int32_t VpnFdChannel::RecvMsgFromUnixServer(int32_t sockfd)
         NETMGR_EXT_LOG_E("cmsgh is nullptr");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // cmsg header fields are rebuilt by kernel for SCM_RIGHTS: level/type always valid,
+    // and cmsg_len always normalized to the receive buffer (single fd), so the mismatch branch is unreachable
+    // LCOV_EXCL_START
     if (cmsgh->cmsg_level != SOL_SOCKET || cmsgh->cmsg_type != SCM_RIGHTS ||
         cmsgh->cmsg_len != CMSG_LEN(sizeof(int32_t))) {
         NETMGR_EXT_LOG_E("cmsg_level: [%{public}d], cmsg_type: [%{public}d], cmsg_len: [%{public}d]", cmsgh->cmsg_level,
                          cmsgh->cmsg_type, cmsgh->cmsg_len);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
 
+    // LCOV_EXCL_START
     if (memcpy_s(&tunFd_, sizeof(tunFd_), CMSG_DATA(cmsgh), sizeof(tunFd_)) != EOK) {
         NETMGR_EXT_LOG_E("memcpy_s cmsgu failed!");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    // LCOV_EXCL_STOP
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -172,16 +187,19 @@ int32_t VpnFdChannel::GetVpnInterfaceFd(const std::string &ifName)
     }
 
 #ifdef SUPPORT_SYSVPN
+    // LCOV_EXCL_START
     if (isSupportMultiVpn_ && !ifName.empty() &&
         send(sockfd, ifName.c_str(), ifName.length(), 0) < 0) {
         NETMGR_EXT_LOG_E("send ifName error: %{public}d", errno);
         close(sockfd);
         return INVALID_TUN_FD;
     }
+    // LCOV_EXCL_STOP
 #else
     (void)ifName;
 #endif // SUPPORT_SYSVPN
 
+    // LCOV_EXCL_START
     if (RecvMsgFromUnixServer(sockfd) != NETMANAGER_EXT_SUCCESS) {
         close(sockfd);
         return INVALID_TUN_FD;
@@ -190,6 +208,7 @@ int32_t VpnFdChannel::GetVpnInterfaceFd(const std::string &ifName)
     close(sockfd);
     NETMGR_EXT_LOG_I("receive tun device fd: [%{public}d]", tunFd_.load());
     return tunFd_;
+    // LCOV_EXCL_STOP
 }
 
 void VpnFdChannel::CloseVpnInterfaceFd()

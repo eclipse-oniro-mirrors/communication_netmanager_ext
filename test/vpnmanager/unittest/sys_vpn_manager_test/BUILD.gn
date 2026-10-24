@@ -106,6 +106,12 @@ ohos_unittest("sys_vpn_manager_test") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
+  if (netmanager_ext_feature_sysvpn) {
+    cflags = sysvpn_flags
+    cflags_cc = sysvpn_flags
+    defines += [ "SUPPORT_SYSVPN" ]
+  }
+
   subsystem_name = "communication"
   part_name = "netmanager_ext"
   module_out_path = "netmanager_ext/netmanager_ext/sys_vpn_manager_test"

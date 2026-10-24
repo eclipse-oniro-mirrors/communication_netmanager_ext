@@ -341,8 +341,10 @@ private:
     int32_t SetUpVpnInternal(const VpnConfigRawData &configData, bool isVpnExtCall, bool isInternalChannel,
         int *tunFd);
     int32_t FetchVpnInterfaceFd(const std::string &vpnId, const std::string &ifName);
+    int32_t HoldVpnInterfaceFd(const std::string &vpnId, int32_t fd, int32_t &ipcFd);
     void StoreHeldVpnFd(const std::string &vpnId, int32_t fd);
     void CloseHeldVpnFd(const std::string &vpnId);
+    void CloseHeldVpnFdOfVpn(const std::shared_ptr<NetVpnImpl> &vpnObj);
     int32_t DestroyVpnExt();
     int32_t DestroyVpnIdExt(std::string vpnId);
     int64_t GetCurTimestamp();
