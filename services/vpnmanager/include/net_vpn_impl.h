@@ -123,6 +123,7 @@ protected:
 private:
     void DelNetLinkInfo(NetConnClient &netConnClientIns);
     void AdjustRouteInfo(Route &route);
+    void UpdateDnsFamilyCapability(const sptr<NetLinkInfo> &linkInfo);
     void SetIpv4DefaultRoute(Route &ipv4DefaultRoute);
     void SetIpv6DefaultRoute(Route &ipv6DefaultRoute);
 
@@ -159,6 +160,8 @@ private:
     uint32_t priorityId_ = 0;
     int32_t uid_ = -1;
     int32_t pid_ = -1;
+    bool dnsIpv4Enable_ = true;
+    bool dnsIpv6Enable_ = false;
     void SetAllUidRanges();
 };
 } // namespace NetManagerStandard

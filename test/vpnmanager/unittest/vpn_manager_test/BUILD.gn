@@ -33,6 +33,7 @@ ohos_unittest("vpn_manager_test") {
     "$EXT_SECURITY_PATH/datashare/net_datashare_utils_iface_mock.cpp",
     "extended_vpn_ctl_test.cpp",
     "net_vpn_impl_test.cpp",
+    "net_vpn_dns_family_test.cpp",
     "networkvpn_client_test.cpp",
     "networkvpn_service_stub_test.cpp",
     "networkvpn_service_test.cpp",
@@ -49,6 +50,13 @@ ohos_unittest("vpn_manager_test") {
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
     "$NETMANAGER_EXT_ROOT/utils/event_report/include",
+  ]
+
+  # Inject only the two netsys calls made by SetUp. Other tests call the real
+  # functions when the scoped mock in net_vpn_dns_family_test.cpp is inactive.
+  ldflags = [
+    "-Wl,--wrap=_ZN4OHOS18NetManagerStandard16NetsysController29SetNetworkDnsFamilyCapabilityEtbb",
+    "-Wl,--wrap=_ZN4OHOS18NetManagerStandard16NetsysController14NetworkAddUidsEiRKNSt3__h6vectorIiNS2_9allocatorIiEEEES8_j",
   ]
 
   deps = [
