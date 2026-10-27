@@ -14,6 +14,7 @@
  */
 
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <gtest/gtest.h>
 #include <linux/if_tun.h>
 #include <net/if.h>
@@ -28,6 +29,7 @@
 #include "iservice_registry.h"
 #include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "securec.h"
 #include "system_ability_definition.h"
 
 #ifdef GTEST_API_
@@ -72,6 +74,35 @@ void NetworkVpnClientTest::TearDownTestCase() {}
 void NetworkVpnClientTest::SetUp() {}
 
 void NetworkVpnClientTest::TearDown() {}
+
+namespace {
+int32_t OpenTestTunFd(const char *ifName)
+{
+    int32_t fd = open("/dev/tun", O_RDWR | O_NONBLOCK | O_CLOEXEC);
+    if (fd < 0) {
+        fd = open("/dev/net/tun", O_RDWR | O_NONBLOCK | O_CLOEXEC);
+    }
+    if (fd < 0) {
+        return -1;
+    }
+    struct ifreq ifr = {};
+    if (strcpy_s(ifr.ifr_name, IFNAMSIZ, ifName) != EOK) {
+        close(fd);
+        return -1;
+    }
+    ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+    if (ioctl(fd, TUNSETIFF, &ifr) < 0) {
+        close(fd);
+        return -1;
+    }
+    return fd;
+}
+
+bool IsFdAlive(int32_t fd)
+{
+    return fcntl(fd, F_GETFD) != -1;
+}
+} // namespace
 
 HWTEST_F(NetworkVpnClientTest, Prepare001, TestSize.Level1)
 {
@@ -168,6 +199,197 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpnWithMockProxy001, TestSize.Level1)
 
     client.networkVpnService_ = nullptr;
     close(fds[1]);
+}
+
+HWTEST_F(NetworkVpnClientTest, GetTunIfName001, TestSize.Level1)
+{
+    char ifName[IFNAMSIZ] = {0};
+    EXPECT_FALSE(NetworkVpnClient::GetTunIfName(-1, ifName, IFNAMSIZ));
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    // a non-tun fd must be rejected, so a reused fd number can never be misjudged as a live tun fd
+    EXPECT_FALSE(NetworkVpnClient::GetTunIfName(fds[0], ifName, IFNAMSIZ));
+    EXPECT_FALSE(NetworkVpnClient::GetTunIfName(fds[0], nullptr, IFNAMSIZ));
+    EXPECT_FALSE(NetworkVpnClient::GetTunIfName(fds[0], ifName, IFNAMSIZ - 1));
+    close(fds[0]);
+    close(fds[1]);
+}
+
+HWTEST_F(NetworkVpnClientTest, RecoverCallbackKeepAliveTunFd001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    // two fds attached to the same tun device: the old one is still held by the app-side tunnel,
+    // the new one is returned by the recovered service (netsysnative reuses the same vpn-tun)
+    int32_t oldFd = OpenTestTunFd("vpntestka0");
+    int32_t newFd = OpenTestTunFd("vpntestka0");
+    if (oldFd < 0 || newFd < 0) {
+        if (oldFd >= 0) {
+            close(oldFd);
+        }
+        if (newFd >= 0) {
+            close(newFd);
+        }
+        return; // tun device unavailable in this environment
+    }
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    NetworkVpnClient client;
+    client.networkVpnService_ = mock;
+    client.clientVpnConfig_.config = config;
+    client.tunFd_ = oldFd;
+
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(newFd), Return(NETMANAGER_EXT_SUCCESS)));
+    client.RecoverCallback();
+
+    // the working old fd must be kept; the extra new dup must be dropped
+    EXPECT_EQ(client.tunFd_.load(), oldFd);
+    EXPECT_TRUE(IsFdAlive(oldFd));
+    EXPECT_FALSE(IsFdAlive(newFd));
+
+    client.clientVpnConfig_.config = nullptr;
+    client.networkVpnService_ = nullptr;
+    client.CloseTunFd(); // closes oldFd
+}
+
+HWTEST_F(NetworkVpnClientTest, RecoverCallbackKeepAliveTunFdDifferentIfName001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    // old and new fds point to different tun devices, but the old fd is still working:
+    // the recovery path must keep it as well and never close a working fd
+    int32_t oldFd = OpenTestTunFd("vpntestdn0");
+    int32_t newFd = OpenTestTunFd("vpntestdn1");
+    if (oldFd < 0 || newFd < 0) {
+        if (oldFd >= 0) {
+            close(oldFd);
+        }
+        if (newFd >= 0) {
+            close(newFd);
+        }
+        return; // tun device unavailable in this environment
+    }
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    NetworkVpnClient client;
+    client.networkVpnService_ = mock;
+    client.clientVpnConfig_.config = config;
+    client.tunFd_ = oldFd;
+
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(newFd), Return(NETMANAGER_EXT_SUCCESS)));
+    client.RecoverCallback();
+
+    EXPECT_EQ(client.tunFd_.load(), oldFd);
+    EXPECT_TRUE(IsFdAlive(oldFd));
+    EXPECT_FALSE(IsFdAlive(newFd));
+
+    client.clientVpnConfig_.config = nullptr;
+    client.networkVpnService_ = nullptr;
+    client.CloseTunFd(); // closes oldFd
+}
+
+HWTEST_F(NetworkVpnClientTest, RecoverCallbackAdoptNewTunFd001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    NetworkVpnClient client;
+    client.networkVpnService_ = mock;
+    client.clientVpnConfig_.config = config;
+    // the old fd is not a valid tun fd (tun destroyed or the number reused by another open):
+    // adopt the new fd, and do not close the stale old number to avoid closing a reused fd
+    client.tunFd_ = fds[0];
+
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(fds[1]), Return(NETMANAGER_EXT_SUCCESS)));
+    client.RecoverCallback();
+
+    EXPECT_EQ(client.tunFd_.load(), fds[1]);
+    EXPECT_TRUE(IsFdAlive(fds[1]));
+    EXPECT_TRUE(IsFdAlive(fds[0])); // stale old number is not closed
+
+    client.clientVpnConfig_.config = nullptr;
+    client.networkVpnService_ = nullptr;
+    client.CloseTunFd(); // closes fds[1]
+    close(fds[0]);
+}
+
+HWTEST_F(NetworkVpnClientTest, RecoverCallbackNoOldTunFd001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    NetworkVpnClient client;
+    client.networkVpnService_ = mock;
+    client.clientVpnConfig_.config = config;
+    client.tunFd_ = INVALID_TUN_FD;
+
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(fds[0]), Return(NETMANAGER_EXT_SUCCESS)));
+    client.RecoverCallback();
+
+    EXPECT_EQ(client.tunFd_.load(), fds[0]);
+    EXPECT_TRUE(IsFdAlive(fds[0]));
+
+    client.clientVpnConfig_.config = nullptr;
+    client.networkVpnService_ = nullptr;
+    client.CloseTunFd(); // closes fds[0]
+    close(fds[1]);
+}
+
+HWTEST_F(NetworkVpnClientTest, RecoverCallbackConcurrentWithSetUpVpn001, TestSize.Level1)
+{
+    NetManagerExtAccessToken access;
+    int32_t probe = OpenTestTunFd("vpntestcc0");
+    if (probe < 0) {
+        return; // tun device unavailable in this environment
+    }
+    int32_t sentinel = open("/dev/null", O_RDONLY);
+    ASSERT_GE(sentinel, 0);
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    NetworkVpnClient client;
+    client.networkVpnService_ = mock;
+    client.clientVpnConfig_.config = config;
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(Invoke([](const VpnConfigRawData &, bool, bool, int &tunFd) {
+            tunFd = OpenTestTunFd("vpntestcc0");
+            return NETMANAGER_EXT_SUCCESS;
+        }));
+
+    // the recovery thread and a re-setup loop race on the tun fd critical section:
+    // no double close, no mis-close of innocent fds, no crash
+    std::thread recoverThread([&client]() {
+        for (int i = 0; i < 50; ++i) {
+            client.RecoverCallback();
+        }
+    });
+    for (int i = 0; i < 50; ++i) {
+        int32_t tunFd = INVALID_TUN_FD;
+        client.SetUpVpn(config, tunFd);
+    }
+    recoverThread.join();
+
+    EXPECT_TRUE(IsFdAlive(sentinel));
+    client.clientVpnConfig_.config = nullptr;
+    client.networkVpnService_ = nullptr;
+    client.CloseTunFd();
+    close(sentinel);
+    close(probe);
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterVpnEvent001, TestSize.Level1)
