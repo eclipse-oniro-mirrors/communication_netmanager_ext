@@ -15,6 +15,10 @@
 
 #include "networkvpn_client.h"
 #include "ffrt.h"
+#include <errno.h>
+#include <net/if.h>
+#include <linux/if_tun.h>
+#include <sys/ioctl.h>
 #include <thread>
 #ifdef SUPPORT_SYSVPN
 #include <vector>
@@ -25,6 +29,7 @@
 #include "net_manager_constants.h"
 #include "net_manager_ext_constants.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "securec.h"
 #include "system_ability_definition.h"
 #include "network_vpn_service_proxy.h"
 #include "system_ability_status_change_stub.h"
@@ -229,7 +234,30 @@ int32_t NetworkVpnClient::Protect(int32_t socketFd, bool isVpnExtCall)
     return protectResult;
 }
 
+bool NetworkVpnClient::GetTunIfName(int32_t fd, char *ifName, uint32_t ifNameLen)
+{
+    if (fd < 0 || ifName == nullptr || ifNameLen < IFNAMSIZ) {
+        return false;
+    }
+    struct ifreq ifr = {};
+    if (ioctl(fd, TUNGETIFF, &ifr) < 0) {
+        NETMGR_EXT_LOG_E("TUNGETIFF tunfd[%{public}d] failed, errno: %{public}d", fd, errno);
+        return false;
+    }
+    if (strcpy_s(ifName, ifNameLen, ifr.ifr_name) != EOK) {
+        NETMGR_EXT_LOG_E("copy tun ifname failed");
+        return false;
+    }
+    return true;
+}
+
 void NetworkVpnClient::CloseTunFd()
+{
+    std::lock_guard lock(tunFdMutex_);
+    CloseTunFdLocked();
+}
+
+void NetworkVpnClient::CloseTunFdLocked()
 {
     if (tunFd_ >= 0) {
         NETMGR_EXT_LOG_I("close tunfd[%{public}d] of vpn interface", tunFd_.load());
@@ -267,8 +295,11 @@ int32_t NetworkVpnClient::SetUpVpn(sptr<VpnConfig> config,
     clientVpnConfig_.isVpnExtCall = isVpnExtCall;
     clientVpnConfig_.isInternalChannel = isInternalChannel;
     lock.unlock();
-    CloseTunFd();
-    tunFd_ = tunFd;
+    {
+        std::lock_guard tunFdLock(tunFdMutex_);
+        CloseTunFdLocked();
+        tunFd_ = tunFd;
+    }
     if (tunFd < 0) {
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
@@ -655,8 +686,24 @@ void NetworkVpnClient::RecoverCallback()
         int32_t result = proxy->SetUpVpn(rawdata,
             clientVpnConfig_.isVpnExtCall,  clientVpnConfig_.isInternalChannel, tunFd);
         if (result == NETMANAGER_EXT_SUCCESS && tunFd >= 0) {
-            CloseTunFd();
-            tunFd_ = tunFd;
+            std::lock_guard tunFdLock(tunFdMutex_);
+            char oldIfName[IFNAMSIZ] = {0};
+            if (GetTunIfName(tunFd_.load(), oldIfName, IFNAMSIZ)) {
+                // The old tun fd is still alive (e.g. netmanager restarted while netsysnative kept
+                // the same vpn-tun device): the app-side tunnel is still working on it. Keep the old
+                // fd and only drop the extra dup received in this recovery. Never close a working
+                // fd in the recovery path, otherwise the data plane turns into a black hole.
+                NETMGR_EXT_LOG_I("recover keep alive tunfd[%{public}d] ifname[%{public}s], drop tunfd[%{public}d]",
+                    tunFd_.load(), oldIfName, tunFd);
+                close(tunFd);
+            } else {
+                // The old tun fd is invalid (tun destroyed, or the fd number was closed and reused
+                // by another open): adopt the new fd. Do not close the stale old number, otherwise
+                // a reused fd owned by others may be closed by mistake.
+                NETMGR_EXT_LOG_I("recover adopt new tunfd[%{public}d], stale tunfd[%{public}d]",
+                    tunFd, tunFd_.load());
+                tunFd_ = tunFd;
+            }
         }
     }
     NETMGR_EXT_LOG_D("Get proxy %{public}s, count: %{public}u", proxy == nullptr ? "failed" : "success", count);
