@@ -457,6 +457,7 @@ bool NetVpnImpl::UpdateNetLinkInfo()
         return false;
     }
     linkInfo->ifaceName_ = GetInterfaceName();
+    linkInfo->isLocalNetworkRouted_ = vpnConfig_->isLocalNetworkRouted_;
     UpdateAddress(linkInfo);
     if (vpnConfig_->routes_.empty()) {
         if (vpnConfig_->isAcceptIPv4_ == true) {

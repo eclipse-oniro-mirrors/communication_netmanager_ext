@@ -546,6 +546,8 @@ void NetworkVpnService::ParseJsonToConfig(sptr<VpnConfig> &vpnCfg, const std::st
         vpnCfg->isBlocking_ = cJSON_IsTrue(isBlocking);
         NETMGR_EXT_LOG_D("isBlocking = %{public}d", vpnCfg->isBlocking_);
     }
+    cJSON *isLocalNetworkRouted = cJSON_GetObjectItem(doc, "isLocalNetworkRouted");
+    vpnCfg->isLocalNetworkRouted_ = cJSON_IsTrue(isLocalNetworkRouted);
 
     ConvertStringToConfig(vpnCfg, doc);
 
@@ -629,6 +631,7 @@ void NetworkVpnService::ParseConfigToJson(const sptr<VpnConfig> &vpnCfg, std::st
     cJSON_AddItemToObject(root, "isLegacy", cJSON_CreateBool(vpnCfg->isLegacy_));
     cJSON_AddItemToObject(root, "isMetered", cJSON_CreateBool(vpnCfg->isMetered_));
     cJSON_AddItemToObject(root, "isBlocking", cJSON_CreateBool(vpnCfg->isBlocking_));
+    cJSON_AddItemToObject(root, "isLocalNetworkRouted", cJSON_CreateBool(vpnCfg->isLocalNetworkRouted_));
 
     cJSON *jVecDnsAddrs = cJSON_CreateArray();
     for (const auto& mem : vpnCfg->dnsAddresses_) {
@@ -1108,6 +1111,7 @@ std::string NetworkVpnService::SerializeVpnConfig(const VpnConfig& config)
     ss << "\"isLegacy\":" << bool_str(config.isLegacy_) << ",";
     ss << "\"isMetered\":" << bool_str(config.isMetered_) << ",";
     ss << "\"isBlocking\":" << bool_str(config.isBlocking_) << ",";
+    ss << "\"isLocalNetworkRouted\":" << bool_str(config.isLocalNetworkRouted_) << ",";
     ss << "\"dnsAddresses\":" << CommonUtils::SerializeStringVector(config.dnsAddresses_) << ",";
     ss << "\"searchDomains\":" << CommonUtils::SerializeStringVector(config.searchDomains_) << ",";
     ss << "\"acceptedApplications\":" << CommonUtils::SerializeStringVector(config.acceptedApplications_) << ",";

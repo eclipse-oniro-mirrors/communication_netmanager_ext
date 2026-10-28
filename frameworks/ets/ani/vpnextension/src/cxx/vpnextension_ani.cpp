@@ -349,6 +349,7 @@ sptr<NetManagerStandard::VpnConfig> ConvertToVpnConfig(const VpnConfigData &data
     config->isAcceptIPv6_ = data.is_ipv6_accepted;
     config->isLegacy_ = data.is_internal;
     config->isBlocking_ = data.is_blocking;
+    config->isLocalNetworkRouted_ = data.is_local_network_routed;
     for (auto &app : data.trusted_applications) {
         config->acceptedApplications_.push_back(std::string(app));
     }
