@@ -31,6 +31,7 @@ ohos_unittest("vpn_manager_test") {
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
     "$EXT_SECURITY_PATH/datashare/net_datashare_utils_iface_mock.cpp",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/src/context/protect_context.cpp",
     "extended_vpn_ctl_test.cpp",
     "net_vpn_impl_test.cpp",
     "networkvpn_client_test.cpp",
@@ -47,6 +48,7 @@ ohos_unittest("vpn_manager_test") {
     "$EXT_SECURITY_PATH/security",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include",
     "$NETMANAGER_EXT_ROOT/services/vpnmanager/include/ipc",
+    "$NETMANAGER_EXT_ROOT/frameworks/js/napi/vpn/include/context",
     "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
     "$NETMANAGER_EXT_ROOT/utils/event_report/include",
   ]
@@ -83,6 +85,9 @@ ohos_unittest("vpn_manager_test") {
     "netmanager_base:net_manager_common",
     "netmanager_base:net_service_common",
     "netmanager_base:netsys_controller",
+    "netmanager_base:napi_utils",
+    "napi:ace_napi",
+    "node:node_header_notice",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
