@@ -32,6 +32,7 @@
 #include "net_manager_ext_constants.h"
 #include "vpn_event_callback_stub.h"
 #include "vpn_state.h"
+#include "vpn_config.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -260,6 +261,20 @@ public:
 #endif // SUPPORT_SYSVPN
 
     /**
+     * get the connected vpn config list of the given user, including the global vpn when it
+     * belongs to the user and the user's multi-instance vpns; a vpn is reported only after
+     * its connected state has been recorded by the vpn service, so re-issue the query when
+     * vpn state events arrive
+     *
+     * @param userId the user whose connected vpns are queried, must be non-negative
+     * @param vpnConfigList the connected vpn config list (out param), an empty list means no vpn is connected
+     * @return NETMANAGER_EXT_SUCCESS(0) if process normal, others is error
+     * @permission ohos.permission.MANAGE_VPN
+     * @systemapi Hide this for inner system use.
+     */
+    int32_t GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList);
+
+    /**
      * register the vpn state callback
      *
      * @param callback if this fuction return NETMANAGER_EXT_SUCCESS(0), this callback will be called by service
@@ -343,7 +358,7 @@ private:
     sptr<VpnEventCallbackCollection> multiVpnEventCbCollection_ = sptr<VpnEventCallbackCollection>::MakeSptr();
     std::shared_mutex clientVpnConfigmutex_;
     RecoverCallbackPara clientVpnConfig_;
-    bool saStart_ = false;
+    std::atomic<bool> saStart_ = false;
     std::atomic<bool> isVpnSetUp_ = false;
 };
 } // namespace NetManagerStandard

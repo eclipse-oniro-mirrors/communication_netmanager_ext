@@ -3033,6 +3033,54 @@ int32_t NetworkVpnService::GetVpnConfigToAnco(std::vector<std::string>& dnsAddre
 }
 #endif
 
+int32_t NetworkVpnService::GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList)
+{
+    int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
+    if (checkPermission != NETMANAGER_SUCCESS) {
+        return checkPermission;
+    }
+    if (userId < 0) {
+        NETMGR_EXT_LOG_E("GetConnectedVpnConfigList userId invalid: %{public}d", userId);
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    std::shared_lock<ffrt::shared_mutex> lock(netVpnMutex_);
+    vpnConfigList.clear();
+    if (vpnObj_ != nullptr) {
+        sptr<VpnConfig> config = vpnObj_->GetVpnConfig();
+        // IsVpnConnecting() gates the legacy branch the same way vpnConnectState gates the
+        // multi-instance branch below: both are set in NetVpnImpl::SetUp() when the connected
+        // notification fires, before the vpn object is published under netVpnMutex_.
+        if (config != nullptr && vpnObj_->GetUserId() == userId && vpnObj_->IsVpnConnecting()) {
+            vpnConfigList.push_back(config);
+        }
+    }
+#ifdef SUPPORT_SYSVPN
+    for (const auto &entry : vpnObjMap_) {
+        std::shared_ptr<NetVpnImpl> vpnObj = entry.second;
+        if (vpnObj == nullptr || vpnObj->multiVpnInfo_ == nullptr) {
+            NETMGR_EXT_LOG_D("GetConnectedVpnConfigList skip vpnId:%{public}s, vpnObj invalid", entry.first.c_str());
+            continue;
+        }
+        if (vpnObj->multiVpnInfo_->vpnConnectState != VpnConnectState::VPN_CONNECTED) {
+            NETMGR_EXT_LOG_D("GetConnectedVpnConfigList skip vpnId:%{public}s state:%{public}d not connected",
+                entry.first.c_str(), static_cast<int32_t>(vpnObj->multiVpnInfo_->vpnConnectState));
+            continue;
+        }
+        if (vpnObj->multiVpnInfo_->userId != userId) {
+            continue;
+        }
+        sptr<VpnConfig> config = vpnObj->GetVpnConfig();
+        if (config == nullptr) {
+            NETMGR_EXT_LOG_E("GetConnectedVpnConfigList failed, config invalid");
+            continue;
+        }
+        vpnConfigList.push_back(config);
+    }
+#endif // SUPPORT_SYSVPN
+    NETMGR_EXT_LOG_I("GetConnectedVpnConfigList userId:%{public}d size:%{public}zu", userId, vpnConfigList.size());
+    return NETMANAGER_EXT_SUCCESS;
+}
+
 void NetworkVpnService::VpnAbilityConnect::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
     int32_t resultCode)
 {

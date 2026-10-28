@@ -24,15 +24,14 @@
 #include <securec.h>
 
 #include "accesstoken_kit.h"
-#include "extended_vpn_ctl.h"
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
-#include "parameters.h"
-
 #ifdef GTEST_API_
 #define private public
 #define protected public
 #endif
+#include "extended_vpn_ctl.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+#include "parameters.h"
 
 #include "net_manager_constants.h"
 #include "networkvpn_service.h"
@@ -1252,6 +1251,236 @@ HWTEST_F(NetworkVpnServiceTest, HeldVpnFdTest001, TestSize.Level1)
 
     close(fds1[1]);
     close(fds2[1]);
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnConfigList001, TestSize.Level1)
+{
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    instance_->vpnObj_ = nullptr;
+    std::vector<sptr<VpnConfig>> vpnConfigList;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(0, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(vpnConfigList.empty());
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(-1, vpnConfigList), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    EXPECT_TRUE(vpnConfigList.empty());
+
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnConfigList002, TestSize.Level1)
+{
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    std::vector<int32_t> activeUserIds;
+    instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    std::vector<sptr<VpnConfig>> vpnConfigList;
+    // the connected state is recorded in NetVpnImpl::SetUp(): before it the vpn is not reported
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(vpnConfigList.empty());
+    instance_->vpnObj_->isVpnConnecting_ = true;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], config);
+    // reusing the out vector must replace the previous result, not append to it
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], config);
+
+    // a different user must not see this vpn
+    std::vector<sptr<VpnConfig>> otherUserList;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId + 1, otherUserList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(otherUserList.empty());
+
+    // a global vpn without a valid config must be skipped even when connected
+    auto nullConfigObj = std::make_shared<ExtendedVpnCtl>(nullptr, "", userId, activeUserIds);
+    nullConfigObj->isVpnConnecting_ = true;
+    instance_->vpnObj_ = nullConfigObj;
+    std::vector<sptr<VpnConfig>> nullConfigList;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, nullConfigList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(nullConfigList.empty());
+    instance_->vpnObj_ = nullptr;
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
+#ifdef SUPPORT_SYSVPN
+HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnConfigList003, TestSize.Level1)
+{
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> vpnObj = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+
+    // a nullptr entry must be skipped
+    instance_->vpnObjMap_.insert({"GetConnectedVpnConfigList003", nullptr});
+    std::vector<sptr<VpnConfig>> vpnConfigList;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(vpnConfigList.empty());
+    instance_->vpnObjMap_.erase("GetConnectedVpnConfigList003");
+
+    // an entry without multiVpnInfo_ must be skipped
+    instance_->vpnObjMap_.insert({"GetConnectedVpnConfigList003", vpnObj});
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(vpnConfigList.empty());
+
+    // a disconnected entry must be skipped
+    sptr<MultiVpnInfo> multiVpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(multiVpnInfo, nullptr);
+    multiVpnInfo->vpnId = "GetConnectedVpnConfigList003";
+    multiVpnInfo->userId = userId;
+    vpnObj->multiVpnInfo_ = multiVpnInfo;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(vpnConfigList.empty());
+
+    // a connected entry of another user must be skipped
+    multiVpnInfo->vpnConnectState = VpnConnectState::VPN_CONNECTED;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId + 1, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(vpnConfigList.empty());
+
+    // a connected entry of the requested user is returned
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    instance_->vpnObjMap_.erase("GetConnectedVpnConfigList003");
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], config);
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
+HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnConfigList004, TestSize.Level1)
+{
+    const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    int32_t userId = AppExecFwk::Constants::DEFAULT_USERID;
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    std::vector<int32_t> activeUserIds;
+    std::shared_ptr<NetVpnImpl> vpnObj = std::make_shared<ExtendedVpnCtl>(config, "", userId, activeUserIds);
+    sptr<MultiVpnInfo> multiVpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(multiVpnInfo, nullptr);
+    multiVpnInfo->vpnId = "GetConnectedVpnConfigList004";
+    multiVpnInfo->userId = userId;
+    multiVpnInfo->vpnConnectState = VpnConnectState::VPN_CONNECTED;
+    vpnObj->multiVpnInfo_ = multiVpnInfo;
+    instance_->vpnObjMap_.insert({"GetConnectedVpnConfigList004", vpnObj});
+
+    // a connected entry whose config is invalid must be skipped: only the valid one is returned
+    std::shared_ptr<NetVpnImpl> invalidObj = std::make_shared<ExtendedVpnCtl>(nullptr, "", userId, activeUserIds);
+    sptr<MultiVpnInfo> invalidVpnInfo = new (std::nothrow) MultiVpnInfo();
+    ASSERT_NE(invalidVpnInfo, nullptr);
+    invalidVpnInfo->vpnId = "GetConnectedVpnConfigList004Invalid";
+    invalidVpnInfo->userId = userId;
+    invalidVpnInfo->vpnConnectState = VpnConnectState::VPN_CONNECTED;
+    invalidObj->multiVpnInfo_ = invalidVpnInfo;
+    instance_->vpnObjMap_.insert({"GetConnectedVpnConfigList004Invalid", invalidObj});
+    std::vector<sptr<VpnConfig>> vpnConfigList;
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(userId, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    instance_->vpnObjMap_.erase("GetConnectedVpnConfigList004");
+    instance_->vpnObjMap_.erase("GetConnectedVpnConfigList004Invalid");
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], config);
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+#endif // SUPPORT_SYSVPN
+
+HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnConfigList005, TestSize.Level1)
+{
+    // a system caller without the MANAGE_VPN permission must be rejected by the permission gate
+    const char* permissions[] = { "ohos.permission.GET_NETWORK_INFO" };
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = permissions,
+        .acls = nullptr,
+        .aplStr = "system_basic",
+    };
+
+    infoInstance.processName = "vpn_manager_test";
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    uint64_t tokenIdBak = GetSelfTokenID();
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+
+    std::vector<sptr<VpnConfig>> vpnConfigList;
+    sptr<VpnConfig> stale = new (std::nothrow) VpnConfig();
+    ASSERT_NE(stale, nullptr);
+    vpnConfigList.push_back(stale);
+    // the permission gate must not touch the caller's out param
+    EXPECT_EQ(instance_->GetConnectedVpnConfigList(0, vpnConfigList), NETMANAGER_ERR_PERMISSION_DENIED);
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], stale);
+
+    SetSelfTokenID(tokenIdBak);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

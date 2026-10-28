@@ -504,6 +504,52 @@ HWTEST_F(NetworkVpnClientTest, UnregisterMultiVpnEvent002, TestSize.Level1)
 }
 #endif
 
+HWTEST_F(NetworkVpnClientTest, GetConnectedVpnConfigList001, TestSize.Level1)
+{
+    bool saStartBak = networkVpnClient_.saStart_;
+    networkVpnClient_.saStart_ = false;
+    std::vector<sptr<VpnConfig>> vpnConfigList;
+    sptr<VpnConfig> stale = new (std::nothrow) VpnConfig();
+    ASSERT_NE(stale, nullptr);
+    vpnConfigList.push_back(stale);
+    // early error paths must not clear the caller's vector
+    EXPECT_EQ(networkVpnClient_.GetConnectedVpnConfigList(0, vpnConfigList), NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], stale);
+    EXPECT_EQ(networkVpnClient_.GetConnectedVpnConfigList(-1, vpnConfigList), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    EXPECT_EQ(vpnConfigList.size(), 1u);
+    networkVpnClient_.saStart_ = saStartBak;
+}
+
+HWTEST_F(NetworkVpnClientTest, GetConnectedVpnConfigList002, TestSize.Level1)
+{
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    NetworkVpnClient client;
+    client.networkVpnService_ = mock;
+    client.saStart_ = true;
+    std::vector<sptr<VpnConfig>> invalidList;
+    EXPECT_EQ(client.GetConnectedVpnConfigList(-1, invalidList), NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    EXPECT_TRUE(invalidList.empty());
+    sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
+    ASSERT_NE(config, nullptr);
+    std::vector<sptr<VpnConfig>> mockList = { config };
+    ON_CALL(*mock, GetConnectedVpnConfigList(_, _))
+        .WillByDefault(DoAll(SetArgReferee<1>(mockList), Return(NETMANAGER_EXT_SUCCESS)));
+    std::vector<sptr<VpnConfig>> vpnConfigList;
+    EXPECT_EQ(client.GetConnectedVpnConfigList(0, vpnConfigList), NETMANAGER_EXT_SUCCESS);
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], config);
+
+    ON_CALL(*mock, GetConnectedVpnConfigList(_, _))
+        .WillByDefault(Return(NETMANAGER_EXT_ERR_INTERNAL));
+    EXPECT_EQ(client.GetConnectedVpnConfigList(0, vpnConfigList), NETMANAGER_EXT_ERR_INTERNAL);
+    // a failed proxy call must not touch the caller's vector either
+    ASSERT_EQ(vpnConfigList.size(), 1u);
+    EXPECT_EQ(vpnConfigList[0], config);
+    client.networkVpnService_ = nullptr;
+}
+
 HWTEST_F(NetworkVpnClientTest, GetProxy, TestSize.Level1)
 {
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();

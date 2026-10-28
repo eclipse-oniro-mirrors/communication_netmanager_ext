@@ -20,6 +20,7 @@
 #include <linux/if_tun.h>
 #include <sys/ioctl.h>
 #include <thread>
+#include <utility>
 #ifdef SUPPORT_SYSVPN
 #include <vector>
 #endif // SUPPORT_SYSVPN
@@ -545,6 +546,37 @@ int32_t NetworkVpnClient::GetVpnConfigToAnco(std::vector<std::string> &dnsAddres
     return proxy->GetVpnConfigToAnco(dnsAddresses);
 }
 #endif // SUPPORT_SYSVPN
+
+int32_t NetworkVpnClient::GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList)
+{
+    if (userId < 0) {
+        NETMGR_EXT_LOG_E("GetConnectedVpnConfigList userId invalid: %{public}d", userId);
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    if (!saStart_) {
+        // Service unavailable is not "no vpn": report an error so the caller
+        // keeps its previous snapshot instead of caching an empty list. The
+        // out param is deliberately left untouched on all error paths.
+        NETMGR_EXT_LOG_D("GetConnectedVpnConfigList sa not started, return proxy fail");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    sptr<INetworkVpnService> proxy = GetProxy();
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("GetConnectedVpnConfigList proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    // The generated proxy appends to whatever vector it receives: pass a fresh
+    // scratch vector and adopt it only on success, so the caller's out param is
+    // either fully replaced by this call's result or left untouched on error.
+    std::vector<sptr<VpnConfig>> result;
+    int32_t ret = proxy->GetConnectedVpnConfigList(userId, result);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        vpnConfigList = std::move(result);
+    }
+    return ret;
+}
 
 int32_t NetworkVpnClient::RegisterVpnEvent(sptr<IVpnEventCallback> callback)
 {

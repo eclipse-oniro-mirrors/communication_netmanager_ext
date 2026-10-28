@@ -123,6 +123,11 @@ public:
     }
 #endif // SUPPORT_SYSVPN
 
+    int32_t GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList) override
+    {
+        return 0;
+    }
+
     int32_t RegisterVpnEvent(const sptr<IVpnEventCallback>& callback) override
     {
         return 0;

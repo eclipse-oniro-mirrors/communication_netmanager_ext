@@ -40,6 +40,8 @@ public:
     MOCK_METHOD(int32_t, RequestVpnPermission,
                 (int32_t uid, const std::string &bundleName, const std::string &abilityName, bool &isAuthorized),
                 (override));
+    MOCK_METHOD(int32_t, GetConnectedVpnConfigList,
+                (int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList), (override));
 
 #ifdef SUPPORT_SYSVPN
     MOCK_METHOD(int32_t, GetVpnCertData, (const int32_t certType, std::vector<int8_t> &certData), (override));
