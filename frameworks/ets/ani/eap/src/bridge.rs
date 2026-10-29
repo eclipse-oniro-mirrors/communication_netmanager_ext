@@ -56,6 +56,40 @@ pub struct EapData {
     pub buffer_len: i32,
 }
 
+#[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapState")]
+#[derive(Debug, Clone, Copy)]
+pub enum EthEapState {
+    STATE_IDLE = 0,
+    STATE_AUTHENTICATING = 1,
+    STATE_AUTHENTICATED = 2,
+    STATE_FAILED = 3,
+    STATE_RETRYING = 4,
+}
+
+#[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapConnectAction")]
+#[derive(Debug, Clone, Copy)]
+pub enum EthEapConnectAction {
+    ACTION_CONNECT = 0,
+    ACTION_DISCONNECT = 1,
+}
+
+#[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapStateInfoInner")]
+#[derive(Clone)]
+pub struct EthEapStateInfo {
+    pub state: EthEapState,
+    pub retry_count: i32,
+    pub message: String,
+}
+
+#[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapConfigInner")]
+#[derive(Clone)]
+pub struct EthEapConfig {
+    pub profile: EthEapProfile,
+    pub enabled: bool,
+    pub auto_auth: bool,
+    pub locked: bool,
+}
+
 #[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapProfileInner")]
 #[derive(Clone)]
 pub struct EthEapProfile {

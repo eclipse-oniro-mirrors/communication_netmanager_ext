@@ -49,6 +49,9 @@ public:
     void Init();
     int32_t UpdateDevInterfaceLinkInfo(EthernetDhcpCallback::DhcpResult &dhcpResult);
     void UpdateInterfaceState(const std::string &dev, bool up);
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+    void ForceRestartDhcp(const std::string &dev);
+#endif
     int32_t GetMacAddress(std::vector<MacAddressInfo> &macAddrList);
     int32_t UpdateDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> cfg);
     int32_t GetDevInterfaceCfg(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig);

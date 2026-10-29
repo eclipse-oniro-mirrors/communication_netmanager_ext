@@ -19,8 +19,6 @@
 #include <cstdint>
 #include <iosfwd>
 #include <memory>
-#include <mutex>
-#include <shared_mutex>
 #include <string>
 #include <vector>
 
@@ -28,13 +26,15 @@
 #include "ethernet_management.h"
 #include "ethernet_service_common.h"
 #include "ethernet_service_stub.h"
+#include "eth_eap_config.h"
+#include "ieth_eap_state_callback.h"
 #include "event_handler.h"
-#include "iremote_object.h"
 #include "netsys_controller_callback.h"
 #include "net_eap_handler.h"
 #include "refbase.h"
 #include "singleton.h"
 #include "system_ability.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -94,6 +94,23 @@ public:
     int32_t GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList) override;
     int32_t StartEthEap(int32_t netId, const EthEapProfile& profile) override;
     int32_t LogOffEthEap(int32_t netId) override;
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    int32_t SetEthEapConfig(const EthEapConfig &config) override;
+    int32_t GetEthEapConfig(EthEapConfig &config) override;
+    int32_t DeleteEthEapConfig() override;
+    /** 查询当前认证状态信息（状态、重试计数、补充消息） */
+    int32_t GetEthEapStateInfo(EthEapStateInfo &stateInfo) override;
+    int32_t RegisterEthEapStateCallback(const sptr<IEthEapStateCallback> &callback) override;
+    int32_t UnregisterEthEapStateCallback(const sptr<IEthEapStateCallback> &callback) override;
+    /** 认证后断连（false：停止认证并登出）或再次连接（true：重新发起自动认证） */
+    int32_t ConnectEthEap(bool connect) override;
+#endif
+
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+    void ForceRestartDhcp(const std::string &dev);
+#endif
+
 #ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
     int32_t EnableEthernetInterface() override;
     int32_t DisableEthernetInterface() override;
@@ -111,22 +128,12 @@ private:
 
     using OnFunctionT = std::function<void(const sptr<InterfaceStateCallback> &callback)>;
 
-    class IfaceCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
-    public:
-        explicit IfaceCallbackDeathRecipient(std::weak_ptr<EthernetService> service) : service_(service) {}
-        ~IfaceCallbackDeathRecipient() override = default;
-        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
-    private:
-        std::weak_ptr<EthernetService> service_;
-    };
-
     bool Init();
     void InitManagement();
 
-    int32_t RegisterMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback);
-    int32_t UnregisterMonitorIfaceCallback(const sptr<InterfaceStateCallback> &callback);
-    void NotifyMonitorIfaceCallback(OnFunctionT onFunction);
-    void OnIfaceCallbackRemoteDied(const wptr<IRemoteObject> &remote);
+    int32_t RegisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
+    int32_t UnregisterMonitorIfaceCallbackAsync(const sptr<InterfaceStateCallback> &callback);
+    void NotifyMonitorIfaceCallbackAsync(OnFunctionT onFunction);
 
 private:
     ServiceRunningState state_ = ServiceRunningState::STATE_STOPPED;
@@ -136,8 +143,7 @@ private:
     sptr<EthernetServiceCommon> serviceComm_ = nullptr;
     sptr<NetsysControllerCallback> interfaceStateCallback_ = nullptr;
     std::vector<sptr<InterfaceStateCallback>> monitorIfaceCallbacks_;
-    sptr<IRemoteObject::DeathRecipient> ifaceCallbackDeathRecipient_ = nullptr;
-    std::shared_mutex ifaceCallbacksMutex_;
+    std::shared_ptr<ffrt::queue> ethernetServiceFfrtQueue_ = nullptr;
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -108,6 +108,17 @@ impl SharingClient {
         Ok(iface_regexs)
     }
 
+    pub fn get_sharing_address(
+        share_type: bridge::SharingIfaceType,
+    ) -> Result<Vec<bridge::NetAddress>, i32> {
+        let mut addresses = Vec::new();
+        let ret = ffi::GetSharingAddress(&share_type.into(), &mut addresses);
+        if ret != 0 {
+            return Err(ret);
+        }
+        Ok(addresses.into_iter().map(Into::into).collect())
+    }
+
     pub fn register_sharing_observer() -> Result<(), i32> {
         let res = ffi::NetShareObserverRegister();
         if res != 0 {
@@ -185,6 +196,16 @@ impl From<ffi::InterfaceSharingStateInfo> for bridge::InterfaceSharingStateInfo 
     }
 }
 
+impl From<ffi::NetAddressData> for bridge::NetAddress {
+    fn from(data: ffi::NetAddressData) -> Self {
+        bridge::NetAddress {
+            address: data.address,
+            family: Some(data.family),
+            port: Some(data.port),
+        }
+    }
+}
+
 impl From<ffi::NetHandle> for bridge::NetHandle {
     fn from(handle: ffi::NetHandle) -> Self {
         bridge::NetHandle {
@@ -228,6 +249,12 @@ pub(crate) mod ffi {
         pub net_id: i32,
     }
 
+    pub struct NetAddressData {
+        pub address: String,
+        pub family: i32,
+        pub port: i32,
+    }
+
     extern "Rust" {
         fn execute_sharing_state_changed(is_running: bool);
         fn execute_interface_sharing_state_change(info: InterfaceSharingStateInfo);
@@ -252,6 +279,10 @@ pub(crate) mod ffi {
         fn GetSharingIfaces(state: &SharingIfaceState, ifaces: &mut Vec<String>) -> i32;
         fn GetSharingState(share_type: &SharingIfaceType, state: &mut SharingIfaceState) -> i32;
         fn GetSharableRegexs(share_type: &SharingIfaceType, ifaceRegexs: &mut Vec<String>) -> i32;
+        fn GetSharingAddress(
+            share_type: &SharingIfaceType,
+            addresses: &mut Vec<NetAddressData>,
+        ) -> i32;
         fn NetShareObserverRegister() -> i32;
         fn NetShareObserverUnRegister() -> i32;
         fn GetErrorCodeAndMessage(error_code: &mut i32) -> String;

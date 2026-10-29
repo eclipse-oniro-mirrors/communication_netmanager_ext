@@ -88,7 +88,7 @@ ohos_static_library("ethernet_parcel") {
 idl_gen_interface("ethernet_service_interface") {
   sources = [ "IEthernetService.idl" ]
 }
- 
+
 config("ethernet_service_interface_stub_config") {
   include_dirs = [
     "${target_gen_dir}",
@@ -100,11 +100,11 @@ config("ethernet_service_interface_stub_config") {
   if (netmanager_ext_feature_iface_supplier_id) {
     defines += [ "FEATURE_GET_IFACE_SUPPLIER_ID" ]
   }
-  if (netmanager_ext_feature_net_firewall) {
+  if (netmanager_ext_ethernet_enable_disable) {
     defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
   }
 }
- 
+
 ohos_static_library("ethernet_service_interface_stub") {
   sanitize = {
     cfi = true
@@ -144,6 +144,7 @@ ohos_shared_library("ethernet_manager_if") {
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/ethernet_client.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/net_eap_callback_stub.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_stub.cpp",
+    "$EXT_INNERKITS_ROOT/ethernetclient/src/eth_eap_state_callback_stub.cpp",
   ]
 
   output_values = get_target_outputs(":ethernet_service_interface")
@@ -182,14 +183,14 @@ ohos_shared_library("ethernet_manager_if") {
   }
 
   # Enable ethernet enable/disable feature conditionally
-  if (netmanager_ext_feature_net_firewall) {
+  if (netmanager_ext_ethernet_enable_disable) {
     defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
   }
 
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
   }
- 
+
   external_deps += [ "hilog:libhilog" ]
 
   innerapi_tags = [ "platformsdk" ]

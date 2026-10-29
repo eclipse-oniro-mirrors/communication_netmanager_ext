@@ -15,7 +15,11 @@
 
 #include "networkshare_tracker.h"
 
+#include <algorithm>
+#include <arpa/inet.h>
+#include <cerrno>
 #include <cinttypes>
+#include <ifaddrs.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <regex>
@@ -641,6 +645,89 @@ int32_t NetworkShareTracker::GetNetSharingIfaces(const SharingIfaceState &state,
     });
     NETMGR_EXT_LOG_I("GetNetSharingIfaces ifaces.size is %{public}zu", ifaces.size());
     return NETMANAGER_EXT_SUCCESS;
+}
+
+int32_t NetworkShareTracker::GetSharingAddress(const SharingIfaceType &type, std::vector<INetAddr> &addresses)
+{
+    addresses.clear();
+    std::vector<std::string> ifaces;
+    GetServingIfacesByType(type, ifaces);
+    if (ifaces.empty()) {
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    ifaddrs *ifaddr = nullptr;
+    // LCOV_EXCL_START
+    if (getifaddrs(&ifaddr) != 0) {
+        NETMGR_EXT_LOG_E("GetSharingAddress getifaddrs failed, errno[%{public}d].", errno);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    // LCOV_EXCL_STOP
+    CollectSharingAddress(ifaddr, ifaces, addresses);
+    freeifaddrs(ifaddr);
+    NETMGR_EXT_LOG_I("GetSharingAddress ifaces.size is %{public}zu, addresses.size is %{public}zu", ifaces.size(),
+                     addresses.size());
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+void NetworkShareTracker::GetServingIfacesByType(const SharingIfaceType &type, std::vector<std::string> &ifaces)
+{
+    std::shared_lock<ffrt::shared_mutex> lock(mutex_);
+    for (const auto &iter : subStateMachineMap_) {
+        std::shared_ptr<NetSharingSubSmState> subsmState = iter.second;
+        if (subsmState == nullptr || subsmState->subStateMachine_ == nullptr) {
+            NETMGR_EXT_LOG_W("iface=%{public}s subsmState is null.", iter.first.c_str());
+            continue;
+        }
+        if (subsmState->subStateMachine_->GetNetShareType() == type && subsmState->lastState_ == SUB_SM_STATE_SHARED) {
+            ifaces.push_back(iter.first);
+        }
+    }
+}
+
+void NetworkShareTracker::CollectSharingAddress(const ifaddrs *ifaddr, const std::vector<std::string> &ifaces,
+                                                std::vector<INetAddr> &addresses)
+{
+    for (const ifaddrs *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == nullptr || ifa->ifa_name == nullptr || (ifa->ifa_flags & IFF_UP) == 0 ||
+            std::find(ifaces.begin(), ifaces.end(), ifa->ifa_name) == ifaces.end()) {
+            continue;
+        }
+        INetAddr netAddr;
+        if (ConvertToSharingAddress(ifa->ifa_addr, netAddr)) {
+            addresses.push_back(netAddr);
+        }
+    }
+}
+
+bool NetworkShareTracker::ConvertToSharingAddress(const sockaddr *addr, INetAddr &netAddr)
+{
+    char ip[INET6_ADDRSTRLEN] = {0};
+    if (addr->sa_family == AF_INET) {
+        auto ipv4 = reinterpret_cast<const sockaddr_in *>(addr);
+        // LCOV_EXCL_START
+        if (inet_ntop(AF_INET, &(ipv4->sin_addr), ip, sizeof(ip)) == nullptr) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
+        netAddr.type_ = INetAddr::IPV4;
+        netAddr.family_ = INetAddr::IPV4;
+    } else if (addr->sa_family == AF_INET6) {
+        auto ipv6 = reinterpret_cast<const sockaddr_in6 *>(addr);
+        if (IN6_IS_ADDR_UNSPECIFIED(&ipv6->sin6_addr) || IN6_IS_ADDR_LINKLOCAL(&ipv6->sin6_addr)) {
+            return false;
+        }
+        // LCOV_EXCL_START
+        if (inet_ntop(AF_INET6, &(ipv6->sin6_addr), ip, sizeof(ip)) == nullptr) {
+            return false;
+        }
+        // LCOV_EXCL_STOP
+        netAddr.type_ = INetAddr::IPV6;
+        netAddr.family_ = INetAddr::IPV6;
+    } else {
+        return false;
+    }
+    netAddr.address_ = ip;
+    return true;
 }
 
 int32_t NetworkShareTracker::RegisterSharingEvent(sptr<ISharingEventCallback> callback)

@@ -937,8 +937,19 @@ int32_t NetworkVpnService::SetUpVpnInternal(const VpnConfigRawData& configData, 
             NETMGR_EXT_LOG_E("SetUpVpn fetch vpn interface fd failed");
             return NETMANAGER_EXT_ERR_INTERNAL;
         }
-        StoreHeldVpnFd(config.vpnId_, fd);
-        *tunFd = fd;
+        int32_t ipcFd = INVALID_TUN_FD;
+        // dup 仅在进程 fd 耗尽（EMFILE）时失败，无法在用例中经 SetUpVpn 注入；
+        // 所有权拆分与失败路径由 HoldVpnInterfaceFdOwnership/DupFail 用例直接覆盖
+        // LCOV_EXCL_START
+        if (HoldVpnInterfaceFd(config.vpnId_, fd, ipcFd) != NETMANAGER_EXT_SUCCESS) {
+            vpnTraceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_ABNORMAL,
+                NETMANAGER_EXT_ERR_INTERNAL, config));
+            ReportVpnTrace(vpnTraceList);
+            NETMGR_EXT_LOG_E("SetUpVpn hold vpn interface fd failed");
+            return NETMANAGER_EXT_ERR_INTERNAL;
+        }
+        // LCOV_EXCL_STOP
+        *tunFd = ipcFd;
     }
     vpnTraceList.push_back(CreateVpnTrace(vpnBundleName, OPERATOR_SETUP_VPN_SUCCESS,
         VPN_CONNECT_CODE_SUCCESS, config));
@@ -1009,6 +1020,36 @@ void NetworkVpnService::CloseHeldVpnFd(const std::string &vpnId)
         close(it->second);
     }
     heldVpnFdMap_.erase(it);
+}
+
+int32_t NetworkVpnService::HoldVpnInterfaceFd(const std::string &vpnId, int32_t fd, int32_t &ipcFd)
+{
+    ipcFd = INVALID_TUN_FD;
+    if (fd < 0) {
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+    // The IPC stub closes the out fd after writing it to the reply parcel (WriteFileDescriptor
+    // dups the fd and does not transfer ownership), so the fd handed to IPC must not be the one
+    // kept in heldVpnFdMap_. Store an independent dup, otherwise the held entry goes stale and
+    // CloseHeldVpnFd may close an fd number reused by others.
+    int32_t heldFd = dup(fd);
+    if (heldFd < 0) {
+        NETMGR_EXT_LOG_E("dup vpn interface fd failed, errno: %{public}d", errno);
+        close(fd);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    StoreHeldVpnFd(vpnId, heldFd);
+    ipcFd = fd;
+    return NETMANAGER_EXT_SUCCESS;
+}
+
+void NetworkVpnService::CloseHeldVpnFdOfVpn(const std::shared_ptr<NetVpnImpl> &vpnObj)
+{
+    std::string vpnId;
+    if (vpnObj != nullptr && vpnObj->GetVpnConfig() != nullptr) {
+        vpnId = vpnObj->GetVpnConfig()->vpnId_;
+    }
+    CloseHeldVpnFd(vpnId);
 }
 
 int32_t NetworkVpnService::Protect(bool isVpnExtCall)
@@ -1820,6 +1861,7 @@ int32_t NetworkVpnService::NotifyConnectStage(const std::string &stage, const in
     if (stage.find(DISCONNECT_TAG) != std::string::npos) {
         NETMGR_EXT_LOG_I("service disconnect");
         if (vpnObj_ != nullptr && CheckVpnHasLocalAddr(vpnObj_) && vpnObj_->Destroy() == NETMANAGER_EXT_SUCCESS) {
+            CloseHeldVpnFdOfVpn(vpnObj_);
             vpnObj_ = nullptr;
             NETMGR_EXT_LOG_I("destroy vpn is ok");
             return NETMANAGER_EXT_SUCCESS;
@@ -2730,6 +2772,7 @@ void NetworkVpnService::VpnHapObserver::OnProcessDied(const AppExecFwk::ProcessD
     vpnTraceList.push_back(vpnService_.CreateVpnTrace(extensionBundleName,
         OPERATOR_DESTORY_VPN_START, VPN_CONNECT_CODE_SUCCESS));
     if (processData.pid == vpnService_.currSetUpVpnPid_ || processData.uid == vpnService_.hasOpenedVpnUid_) {
+        vpnService_.CloseHeldVpnFdOfVpn(vpnService_.vpnObj_);
         if ((vpnService_.vpnObj_ != nullptr) && (vpnService_.vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS)) {
             NETMGR_EXT_LOG_E("destroy vpn failed");
         }
@@ -2796,6 +2839,7 @@ void NetworkVpnService::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
     if (ret == NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_I("destroy vpn is VpnEvent");
         std::unique_lock<ffrt::shared_mutex> lock(netVpnMutex_);
+        CloseHeldVpnFdOfVpn(vpnObj_);
         if (vpnObj_ != nullptr && vpnObj_->Destroy() != NETMANAGER_EXT_SUCCESS) {
             NETMGR_EXT_LOG_E("destroy vpn is failed");
             return;

@@ -92,14 +92,15 @@ ohos_shared_library("ethernet_manager") {
 
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+  }
+
+  if (netmanager_ext_extensible_authentication || netmanager_ext_ethernet_enable_disable) {
     external_deps += [
       "drivers_interface_ethernet:libethernet_proxy_1.0",
       "hdf_core:libhdf_ipc_adapter",
       "hdf_core:libhdi",
     ]
-    sources += [
-      "src/eap_hdi_wpa_manager.cpp"
-    ]
+    sources += [ "src/eap_hdi_wpa_manager.cpp" ]
   }
 
   if (enable_netmgr_ext_debug) {
@@ -107,15 +108,28 @@ ohos_shared_library("ethernet_manager") {
   }
 
   # Enable ethernet enable/disable feature conditionally
-  if (netmanager_ext_feature_net_firewall) {
+  if (netmanager_ext_ethernet_enable_disable) {
     defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
     external_deps += [
       "ability_base:want",
+      "certificate_manager:cert_manager_sdk",
       "data_share:datashare_common",
       "data_share:datashare_consumer",
+      "huks:libhukssdk",
       "netmanager_base:net_data_share",
-      "security_guard:libsg_collect_sdk",
+      "openssl:libcrypto_shared",
     ]
+    sources += [
+      "src/eth_eap_auto_auth_controller.cpp",
+      "src/eth_eap_cert_store.cpp",
+      "src/eth_eap_config_store.cpp",
+      "src/eth_eap_state_callback_proxy.cpp",
+      "src/eth_eap_state_manager.cpp",
+    ]
+  }
+
+  if (netmanager_ext_ethernet_enable_disable) {
+    external_deps += [ "security_guard:libsg_collect_sdk" ]
   }
 
   external_deps += [ "hilog:libhilog" ]
@@ -198,14 +212,15 @@ ohos_static_library("ethernet_manager_static") {
 
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
+  }
+
+  if (netmanager_ext_extensible_authentication || netmanager_ext_ethernet_enable_disable) {
     external_deps += [
       "drivers_interface_ethernet:libethernet_proxy_1.0",
       "hdf_core:libhdf_ipc_adapter",
       "hdf_core:libhdi",
     ]
-    sources += [
-      "src/eap_hdi_wpa_manager.cpp"
-    ]
+    sources += [ "src/eap_hdi_wpa_manager.cpp" ]
   }
 
   if (enable_netmgr_ext_debug) {
@@ -213,15 +228,28 @@ ohos_static_library("ethernet_manager_static") {
   }
 
   # Enable ethernet enable/disable feature conditionally
-  if (netmanager_ext_feature_net_firewall) {
+  if (netmanager_ext_ethernet_enable_disable) {
     defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
     external_deps += [
       "ability_base:want",
+      "certificate_manager:cert_manager_sdk",
       "data_share:datashare_common",
       "data_share:datashare_consumer",
-      "security_guard:libsg_collect_sdk",
-      "netmanager_base:net_data_share"
+      "huks:libhukssdk",
+      "netmanager_base:net_data_share",
+      "openssl:libcrypto_shared",
     ]
+    sources += [
+      "src/eth_eap_auto_auth_controller.cpp",
+      "src/eth_eap_cert_store.cpp",
+      "src/eth_eap_config_store.cpp",
+      "src/eth_eap_state_callback_proxy.cpp",
+      "src/eth_eap_state_manager.cpp",
+    ]
+  }
+
+  if (netmanager_ext_ethernet_enable_disable) {
+    external_deps += [ "security_guard:libsg_collect_sdk" ]
   }
 
   external_deps += [ "hilog:libhilog" ]

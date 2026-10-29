@@ -20,6 +20,7 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "net_manager_constants.h"
+#include "netmanager_base_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "network_share_service_proxy.h"
 #include "networkshare_constants.h"
@@ -220,6 +221,39 @@ int32_t NetworkShareClient::GetSharingIfaces(const SharingIfaceState &state, std
     }
     // LCOV_EXCL_STOP
     return proxy->GetNetSharingIfaces(static_cast<int32_t>(state), ifaces);
+}
+
+int32_t NetworkShareClient::GetSharingAddress(const SharingIfaceType &type, std::vector<INetAddr> &addresses)
+{
+    addresses.clear();
+    NETMGR_EXT_LOG_I("NetworkShare GetSharingAddress type= %{public}d.", static_cast<int32_t>(type));
+    if (type != SharingIfaceType::SHARING_WIFI && type != SharingIfaceType::SHARING_USB &&
+        type != SharingIfaceType::SHARING_BLUETOOTH) {
+        NETMGR_EXT_LOG_E("GetSharingAddress invalid type.");
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    sptr<INetworkShareService> proxy = GetProxy(false);
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+            NETMGR_EXT_LOG_E("GetSharingAddress permission denied.");
+            return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+        }
+        return NETMANAGER_EXT_SUCCESS;
+    }
+    // LCOV_EXCL_STOP
+    sptr<NetworkShareAddressParcel> addressParcel = nullptr;
+    int32_t ret = proxy->GetSharingAddress(static_cast<int32_t>(type), addressParcel);
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("GetSharingAddress failed, ret[%{public}d].", ret);
+        return ret;
+    }
+    if (addressParcel == nullptr) {
+        NETMGR_EXT_LOG_E("GetSharingAddress addressParcel is nullptr");
+        return NETMANAGER_EXT_ERR_READ_REPLY_FAIL;
+    }
+    addresses = addressParcel->addresses_;
+    return NETMANAGER_EXT_SUCCESS;
 }
 
 int32_t NetworkShareClient::GetStatsRxBytes(int32_t &bytes)

@@ -83,6 +83,12 @@ ohos_fuzztest("VpnClientRequestVpnPermissionFuzzTest") {
     "NETMGR_LOG_TAG = \"NetVpnManager\"",
     "LOG_DOMAIN = 0xD0015B0",
   ]
+
+  if (netmanager_ext_feature_sysvpn) {
+    cflags += sysvpn_flags
+    cflags_cc = sysvpn_flags
+    defines += [ "SUPPORT_SYSVPN" ]
+  }
 }
 
 group("fuzztest") {

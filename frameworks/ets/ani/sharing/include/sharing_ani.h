@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace NetManagerAni {
 struct SharingCallback;
+struct NetAddressData;
 
 inline bool IsSharingSupported(int32_t &ret)
 {
@@ -93,6 +94,8 @@ inline int32_t GetSharableRegexs(NetManagerStandard::SharingIfaceType const &typ
     }
     return ret;
 }
+
+int32_t GetSharingAddress(NetManagerStandard::SharingIfaceType const &type, rust::Vec<NetAddressData> &addresses);
 
 class NetShareCallbackObserverAni : public NetManagerStandard::SharingEventCallbackStub {
 public:

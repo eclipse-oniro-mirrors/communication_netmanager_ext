@@ -20,9 +20,11 @@
 #include <string>
 
 #include "eth_eap_profile.h"
+#include "eth_eap_config.h"
 #include "iethernet_service.h"
 #include "interface_state_callback.h"
 #include "net_eap_callback_stub.h"
+#include "eth_eap_state_callback_stub.h"
 #include "parcel.h"
 #include "singleton.h"
 
@@ -180,7 +182,7 @@ public:
      */
     int32_t RegCustomEapHandler(NetType netType, const std::string &regCmd,
         const sptr<INetEapPostbackCallback> &callback);
- 
+
     /**
      * Reply custom eap data of app
      *
@@ -191,7 +193,7 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t ReplyCustomEapData(int result, const sptr<EapData> &eapData);
- 
+
     /**
      * Register module callback, such as wifi or eth
      *
@@ -201,7 +203,7 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t RegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);
- 
+
     /**
      * unRegister custom eap callback
      *
@@ -211,7 +213,7 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t UnRegisterCustomEapCallback(const NetType netType, const sptr<INetRegisterEapCallback> &callback);
- 
+
     /**
      * Notify Wap Eap Intercept Info
      *
@@ -221,7 +223,7 @@ public:
      * @systemapi Hide this for inner system use.
      */
     int32_t NotifyWpaEapInterceptInfo(const NetType netType, const sptr<EapData> &eapData);
- 
+
     /**
      * Get the ethernet device infomation
      *
@@ -241,7 +243,7 @@ public:
      * @syscap SystemCapability.Communication.NetManager.Eap
      */
     int32_t StartEthEap(int32_t netId, const EthEapProfile& profile);
- 
+
     /**
      * Log off EAP authentication on specified network interface.
      *
@@ -250,6 +252,30 @@ public:
      * @syscap SystemCapability.Communication.NetManager.Eap
      */
     int32_t LogOffEthEap(int32_t netId);
+
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+    int32_t SetEthEapConfig(const EthEapConfig &config);
+    int32_t GetEthEapConfig(EthEapConfig &config);
+    int32_t DeleteEthEapConfig();
+    /**
+     * Queries the current 802.1X EAP authentication state info.
+     *
+     * @param stateInfo Indicates the state, retry count and supplementary message.
+     * @return Return NETMANAGER_EXT_SUCCESS if process normal, others is error
+     * @syscap SystemCapability.Communication.NetManager.Eap
+     */
+    int32_t GetEthEapStateInfo(EthEapStateInfo &stateInfo);
+    int32_t RegisterEthEapStateCallback(const sptr<IEthEapStateCallback> &callback);
+    int32_t UnregisterEthEapStateCallback(const sptr<IEthEapStateCallback> &callback);
+
+    /**
+     * 认证后断连（connect=false：停止自动认证并登出底层认证）
+     * 或再次连接（connect=true：按已保存配置重新发起认证）
+     * @param connect true 重新连接（触发自动认证），false 断连（停止认证）
+     * @return NETMANAGER_EXT_SUCCESS 表示成功，其他值表示失败
+     */
+    int32_t ConnectEthEap(bool connect);
+#endif
 
 #ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
     /**

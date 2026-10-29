@@ -35,6 +35,7 @@
 #include "net_manager_ext_constants.h"
 #include "netmanager_ext_test_security.h"
 #include "netmgr_ext_log_wrapper.h"
+#include "network_share_address_parcel.h"
 #define private public
 #include "networkshare_service.h"
 
@@ -138,6 +139,19 @@ void Init()
 }
 
 __attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(TetheringInterfaceCode code, MessageParcel &data)
+{
+    if (!g_isInited) {
+        Init();
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+
+    return DelayedSingleton<NetworkShareService>::GetInstance()->OnRemoteRequest(static_cast<uint32_t>(code), data,
+                                                                                 reply, option);
+}
+
+__attribute__((no_sanitize("cfi"))) int32_t OnRemoteRequest(INetworkShareServiceIpcCode code, MessageParcel &data)
 {
     if (!g_isInited) {
         Init();
@@ -266,6 +280,41 @@ void GetNetSharingIfacesFuzzTest(const uint8_t *data, size_t size)
     uint32_t state = GetData<int32_t>() % CREATE_SHARE_IFACE_STATE_VALUE + ENUM_TYPE_BEGIN;
     dataParcel.WriteInt32(state);
     OnRemoteRequest(TetheringInterfaceCode::CMD_GET_SHARING_IFACES, dataParcel);
+}
+
+void GetSharingAddressFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("GetSharingAddressFuzzTest enter");
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+
+    NetManagerExtAccessToken token;
+
+    MessageParcel dataParcel;
+    if (!WriteInterfaceToken(dataParcel)) {
+        return;
+    }
+    // 不限制取值范围，同时覆盖合法与非法的 type
+    dataParcel.WriteInt32(GetData<int32_t>());
+    OnRemoteRequest(INetworkShareServiceIpcCode::COMMAND_GET_SHARING_ADDRESS, dataParcel);
+}
+
+void NetworkShareAddressParcelFuzzTest(const uint8_t *data, size_t size)
+{
+    NETMGR_EXT_LOG_D("NetworkShareAddressParcelFuzzTest enter");
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    Parcel parcel;
+    if (!parcel.WriteBuffer(data, size)) {
+        return;
+    }
+    std::unique_ptr<NetworkShareAddressParcel> result(NetworkShareAddressParcel::Unmarshalling(parcel));
+    if (result != nullptr) {
+        Parcel out;
+        result->Marshalling(out);
+    }
 }
 
 void RegisterSharingEventFuzzTest(const uint8_t *data, size_t size)
@@ -807,6 +856,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::GetSharableRegexsFuzzTest(data, size);
     OHOS::NetManagerStandard::GetSharingStateFuzzTest(data, size);
     OHOS::NetManagerStandard::GetNetSharingIfacesFuzzTest(data, size);
+    OHOS::NetManagerStandard::GetSharingAddressFuzzTest(data, size);
+    OHOS::NetManagerStandard::NetworkShareAddressParcelFuzzTest(data, size);
     OHOS::NetManagerStandard::RegisterSharingEventFuzzTest(data, size);
     OHOS::NetManagerStandard::UnregisterSharingEventFuzzTest(data, size);
     OHOS::NetManagerStandard::NetworkShareConfigurationFuzzTest(data, size);

@@ -325,6 +325,8 @@ private:
     int32_t RegisterVpnEventCbInner(bool isMultivpn);
     void UnregisterVpnEventCbCollection();
     void CloseTunFd();
+    void CloseTunFdLocked();
+    static bool GetTunIfName(int32_t fd, char *ifName, uint32_t ifNameLen);
 #ifdef SUPPORT_SYSVPN
     void RegisterMultiVpnEventCbCollection();
     void UnregisterMultiVpnEventCbCollection();
@@ -332,6 +334,7 @@ private:
 
 private:
     std::mutex mutex_;
+    std::mutex tunFdMutex_;
     std::atomic_int tunFd_{INVALID_TUN_FD};
     sptr<SystemAbilityListener> saStatusChangeListener_;
     sptr<IVpnEventCallback> vpnEventCallback_ = nullptr;

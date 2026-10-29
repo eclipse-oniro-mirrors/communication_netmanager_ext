@@ -154,6 +154,41 @@ public:
         return 0;
     }
 
+    int32_t SetEthEapConfig(const EthEapConfig &config) override
+    {
+        return 0;
+    }
+
+    int32_t GetEthEapConfig(EthEapConfig &config) override
+    {
+        return 0;
+    }
+
+    int32_t DeleteEthEapConfig() override
+    {
+        return 0;
+    }
+
+    int32_t GetEthEapStateInfo(EthEapStateInfo &stateInfo) override
+    {
+        return 0;
+    }
+
+    int32_t RegisterEthEapStateCallback(const sptr<IEthEapStateCallback> &cb) override
+    {
+        return 0;
+    }
+
+    int32_t UnregisterEthEapStateCallback(const sptr<IEthEapStateCallback> &cb) override
+    {
+        return 0;
+    }
+
+    int32_t ConnectEthEap(bool connect) override
+    {
+        return 0;
+    }
+
     int32_t IsEthernetEnabled(int32_t &enabled) override
     {
         return 0;

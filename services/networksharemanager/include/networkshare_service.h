@@ -137,6 +137,11 @@ public:
      */
     int32_t SetConfigureForShare(bool enabled) override;
 
+    /**
+     * get sharing ifaces address
+     */
+    int32_t GetSharingAddress(int32_t type, sptr<NetworkShareAddressParcel> &addressParcel) override;
+
     int32_t GetBundleNameByUid(const int uid, std::string &bundleName);
 
 protected:

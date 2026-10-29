@@ -342,6 +342,21 @@ int32_t NetworkShareService::GetNetSharingIfaces(int32_t stateInt, std::vector<s
     return NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
 }
 
+int32_t NetworkShareService::GetSharingAddress(int32_t typeInt, sptr<NetworkShareAddressParcel> &addressParcel)
+{
+    SharingIfaceType type = SharingIfaceType(typeInt);
+    if (type != SharingIfaceType::SHARING_WIFI && type != SharingIfaceType::SHARING_USB &&
+        type != SharingIfaceType::SHARING_BLUETOOTH) {
+        NETMGR_EXT_LOG_E("GetSharingAddress invalid type[%{public}d].", typeInt);
+        return NETMANAGER_EXT_ERR_INVALID_PARAMETER;
+    }
+    if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+    addressParcel = sptr<NetworkShareAddressParcel>::MakeSptr();
+    return NetworkShareTracker::GetInstance().GetSharingAddress(type, addressParcel->addresses_);
+}
+
 int32_t NetworkShareService::GetStatsRxBytes(int32_t &bytes)
 {
     if (!NetManagerPermission::IsSystemCaller()) {

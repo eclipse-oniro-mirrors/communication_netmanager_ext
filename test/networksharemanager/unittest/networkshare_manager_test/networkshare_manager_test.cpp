@@ -29,6 +29,7 @@
 #undef private
 #include "networkshare_constants.h"
 #include "sharing_event_callback_stub.h"
+#include "networkshare_service_stub_test.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -48,6 +49,29 @@ public:
 };
 
 sptr<TestSharingEventCallback> g_sharingEventCb = new (std::nothrow) TestSharingEventCallback();
+
+class SharingAddressMockService : public MockNetworkShareServiceStub {
+public:
+    int32_t GetSharingAddress(int32_t type, sptr<NetworkShareAddressParcel> &addressParcel) override
+    {
+        addressParcel = addressParcel_;
+        return ret_;
+    }
+
+    int32_t ret_ = NETMANAGER_EXT_SUCCESS;
+    sptr<NetworkShareAddressParcel> addressParcel_ = nullptr;
+};
+
+int32_t GetSharingAddressByMock(const sptr<SharingAddressMockService> &mock, SharingIfaceType type,
+                                std::vector<INetAddr> &addresses)
+{
+    auto client = DelayedSingleton<NetworkShareClient>::GetInstance();
+    sptr<INetworkShareService> before = client->networkShareService_;
+    client->networkShareService_ = mock;
+    int32_t result = client->GetSharingAddress(type, addresses);
+    client->networkShareService_ = before;
+    return result;
+}
 } // namespace
 
 class NetworkShareManagerTest : public testing::Test {
@@ -201,6 +225,70 @@ HWTEST_F(NetworkShareManagerTest, GetSharingIfaces02, TestSize.Level1)
     std::vector<std::string> ifaces;
     int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingIfaces(state, ifaces);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetSharingAddress01, TestSize.Level1)
+{
+    std::vector<INetAddr> addresses(1);
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingAddress(
+        SharingIfaceType::SHARING_NONE, addresses);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    EXPECT_TRUE(addresses.empty());
+    constexpr int32_t invalidType = static_cast<int32_t>(SharingIfaceType::SHARING_BLUETOOTH) + 1;
+    SharingIfaceType type = static_cast<SharingIfaceType>(invalidType);
+    addresses.resize(1);
+    result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingAddress(type, addresses);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+    EXPECT_TRUE(addresses.empty());
+}
+
+HWTEST_F(NetworkShareManagerTest, GetSharingAddress02, TestSize.Level1)
+{
+    NetManagerExtAccessToken token;
+    SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
+    std::vector<INetAddr> addresses;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingAddress(type, addresses);
+    EXPECT_TRUE(result == NETMANAGER_EXT_SUCCESS || result == NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(NetworkShareManagerTest, GetSharingAddress03, TestSize.Level1)
+{
+    sptr<SharingAddressMockService> mock = sptr<SharingAddressMockService>::MakeSptr();
+    mock->ret_ = NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    std::vector<INetAddr> addresses(1);
+    int32_t result = GetSharingAddressByMock(mock, SharingIfaceType::SHARING_USB, addresses);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EXPECT_TRUE(addresses.empty());
+}
+
+HWTEST_F(NetworkShareManagerTest, GetSharingAddress04, TestSize.Level1)
+{
+    sptr<SharingAddressMockService> mock = sptr<SharingAddressMockService>::MakeSptr();
+    std::vector<INetAddr> addresses(1);
+    int32_t result = GetSharingAddressByMock(mock, SharingIfaceType::SHARING_BLUETOOTH, addresses);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_READ_REPLY_FAIL);
+    EXPECT_TRUE(addresses.empty());
+}
+
+HWTEST_F(NetworkShareManagerTest, GetSharingAddress05, TestSize.Level1)
+{
+    sptr<SharingAddressMockService> mock = sptr<SharingAddressMockService>::MakeSptr();
+    mock->addressParcel_ = sptr<NetworkShareAddressParcel>::MakeSptr();
+    INetAddr netAddr;
+    netAddr.family_ = INetAddr::IPV4;
+    netAddr.address_ = "192.168.43.1";
+    mock->addressParcel_->addresses_.push_back(netAddr);
+    std::vector<INetAddr> addresses(1);
+    int32_t result = GetSharingAddressByMock(mock, SharingIfaceType::SHARING_WIFI, addresses);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    ASSERT_EQ(addresses.size(), 1U);
+    EXPECT_EQ(addresses[0].address_, netAddr.address_);
+    EXPECT_EQ(addresses[0].family_, INetAddr::IPV4);
+
+    mock->addressParcel_->addresses_.clear();
+    result = GetSharingAddressByMock(mock, SharingIfaceType::SHARING_WIFI, addresses);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(addresses.empty());
 }
 
 HWTEST_F(NetworkShareManagerTest, GetStatsRxBytes01, TestSize.Level1)

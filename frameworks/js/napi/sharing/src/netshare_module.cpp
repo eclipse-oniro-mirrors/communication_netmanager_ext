@@ -45,6 +45,7 @@ constexpr const char *FUNCTION_STOP_SHARING = "stopSharing";
 constexpr const char *FUNCTION_GET_SHARING_IFACES = "getSharingIfaces";
 constexpr const char *FUNCTION_GET_SHARING_STATE = "getSharingState";
 constexpr const char *FUNCTION_GET_SHARABLE_REGEXES = "getSharableRegexes";
+constexpr const char *FUNCTION_GET_SHARING_ADDRESS = "getSharingAddress";
 constexpr const char *FUNCTION_GET_STATS_RX_BYTES = "getStatsRxBytes";
 constexpr const char *FUNCTION_GET_STATS_TX_BYTES = "getStatsTxBytes";
 constexpr const char *FUNCTION_GET_STATS_TOTAL_BYTES = "getStatsTotalBytes";
@@ -111,6 +112,13 @@ napi_value GetSharableRegexes(napi_env env, napi_callback_info info)
     return ModuleTemplate::Interface<GetSharableRegexesContext>(env, info, FUNCTION_GET_SHARABLE_REGEXES, nullptr,
                                                                 NetShareAsyncWork::ExecGetSharableRegexes,
                                                                 NetShareAsyncWork::GetSharableRegexesCallback);
+}
+
+napi_value GetSharingAddress(napi_env env, napi_callback_info info)
+{
+    return ModuleTemplate::Interface<GetSharingAddressContext>(env, info, FUNCTION_GET_SHARING_ADDRESS, nullptr,
+                                                               NetShareAsyncWork::ExecGetSharingAddress,
+                                                               NetShareAsyncWork::GetSharingAddressCallback);
 }
 
 napi_value GetStatsRxBytes(napi_env env, napi_callback_info info)
@@ -192,6 +200,7 @@ napi_value InitNetShareModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_IFACES, GetSharingIfaces),
                                     DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_STATE, GetSharingState),
                                     DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARABLE_REGEXES, GetSharableRegexes),
+                                    DECLARE_NAPI_FUNCTION(FUNCTION_GET_SHARING_ADDRESS, GetSharingAddress),
                                     DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_RX_BYTES, GetStatsRxBytes),
                                     DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TX_BYTES, GetStatsTxBytes),
                                     DECLARE_NAPI_FUNCTION(FUNCTION_GET_STATS_TOTAL_BYTES, GetStatsTotalBytes),

@@ -568,5 +568,16 @@ void DevInterfaceState::CreateDefaultRoute(
         linkInfo_->routeList_.push_back(route);
     }
 }
+#if defined(NET_EXTENSIBLE_AUTHENTICATION) || defined(NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE)
+bool DevInterfaceState::GetIpConnectFlag()
+{
+    return ipConnectFlag_;
+}
+
+void DevInterfaceState::SetIpConnectFlag(bool state)
+{
+    ipConnectFlag_ = state;
+}
+#endif
 } // namespace NetManagerStandard
 } // namespace OHOS

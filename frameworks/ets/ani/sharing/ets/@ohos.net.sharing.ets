@@ -20,6 +20,7 @@ import { BusinessError }  from '@ohos.base';
 
 export default namespace sharing {
   type NetHandle = connection.NetHandle;
+  type NetAddress = connection.NetAddress;
 
   loadLibrary("sharing_ani")
 
@@ -267,6 +268,20 @@ export default namespace sharing {
           return getSharableRegexesSync(type);
       }).then((content: Any) => {
           resolve(content as Array<string>);
+      }, (err: Error): void => {
+          reject(err as BusinessError);
+      });
+    });
+  }
+
+  export native function getSharingAddressSync(type: SharingIfaceType): Array<NetAddress>;
+
+  export function getSharingAddress(type: SharingIfaceType): Promise<Array<NetAddress>> {
+    return new Promise<Array<NetAddress>>((resolve, reject) => {
+      taskpool.execute((): Array<NetAddress> => {
+          return getSharingAddressSync(type);
+      }).then((content: Any) => {
+          resolve(content as Array<NetAddress>);
       }, (err: Error): void => {
           reject(err as BusinessError);
       });

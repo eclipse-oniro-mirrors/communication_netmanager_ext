@@ -71,3 +71,10 @@ pub fn get_sharable_regexs(
 ) -> Result<Vec<String>, BusinessError> {
     SharingClient::get_sharable_regexs(share_type).map_err(convert_to_business_error)
 }
+
+#[ani_rs::native]
+pub fn get_sharing_address(
+    share_type: bridge::SharingIfaceType,
+) -> Result<Vec<bridge::NetAddress>, BusinessError> {
+    SharingClient::get_sharing_address(share_type).map_err(convert_to_business_error)
+}

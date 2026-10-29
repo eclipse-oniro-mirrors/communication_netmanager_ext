@@ -24,6 +24,7 @@ import connection from "./@ohos.net.connection";
  */
 declare namespace sharing {
   type NetHandle = connection.NetHandle;
+  type NetAddress = connection.NetAddress;
   /**
    * Checks whether this device allows for network sharing.
    * @permission ohos.permission.CONNECTIVITY_INTERNAL
@@ -295,6 +296,22 @@ declare namespace sharing {
    * @since 9
    */
   function getSharingIfaces(state: SharingIfaceState): Promise<Array<string>>;
+
+  /**
+   * Obtains the IP addresses of the sharing interface for the given sharing type.
+   *
+   * @permission ohos.permission.GET_NETWORK_INFO
+   * @param { SharingIfaceType } type - The network sharing type.
+   * @returns { Promise<Array<NetAddress>> } Promise used to return all IP addresses.
+   * @throws { BusinessError } 201 - Permission denied.
+   * @throws { BusinessError } 2200001 - Invalid parameter value.
+   * @throws { BusinessError } 2200002 - Failed to connect to the service.
+   * @throws { BusinessError } 2200003 - System internal error.
+   * @syscap SystemCapability.Communication.NetManager.NetSharing
+   * @stagemodelonly
+   * @since 26.2.0 dynamic&static
+   */
+  function getSharingAddress(type: SharingIfaceType): Promise<Array<NetAddress>>;
 
   /**
    * Obtains the network sharing state for given type.

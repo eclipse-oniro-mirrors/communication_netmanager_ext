@@ -10,10 +10,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 import("//build/ohos.gni")
 import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
- 
+
 ohos_shared_library("eap") {
   sanitize = {
     cfi = true
@@ -22,32 +22,33 @@ ohos_shared_library("eap") {
     ubsan = true
     debug = false
   }
- 
+
   branch_protector_ret = "pac_ret"
- 
+
   include_dirs = [
     "$NETMANAGER_EXT_ROOT/utils/log/include",
   ]
- 
+
   sources = [
     "eap_event_mgr.cpp",
     "eap_module.cpp",
     "eap_napi_event.cpp",
+    "eap_napi_config.cpp",
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/eap_data.cpp",
   ]
- 
+
   cflags = [
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]
- 
+
   cflags_cc = [
     "-D_FORTIFY_SOURCE=2",
     "-O2",
   ]
- 
+
   deps = [ "$EXT_INNERKITS_ROOT/ethernetclient:ethernet_manager_if" ]
- 
+
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -64,7 +65,10 @@ ohos_shared_library("eap") {
   if (netmanager_ext_extensible_authentication) {
     defines += [ "NET_EXTENSIBLE_AUTHENTICATION" ]
   }
- 
+  if (netmanager_ext_ethernet_enable_disable) {
+    defines += [ "NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE" ]
+  }
+
   relative_install_dir = "module/net"
   part_name = "netmanager_ext"
   subsystem_name = "communication"

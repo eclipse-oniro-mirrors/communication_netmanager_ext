@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+sequenceable OHOS.NetManagerStandard.NetworkShareAddressParcel;
 interface OHOS.NetManagerStandard.ISharingEventCallback;
 interface OHOS.NetManagerStandard.INetworkShareService {
     void IsNetworkSharingSupported([out] int supported);
@@ -28,4 +29,5 @@ interface OHOS.NetManagerStandard.INetworkShareService {
     void GetStatsTxBytes([out] int bytes);
     void GetStatsTotalBytes([out] int bytes);
     void SetConfigureForShare([in] boolean enabled);
+    void GetSharingAddress([in] int type, [out] sptr<NetworkShareAddressParcel> addressParcel);
 }

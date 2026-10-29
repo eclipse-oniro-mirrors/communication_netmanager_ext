@@ -37,6 +37,25 @@ rust::String GetErrorCodeAndMessage(int32_t &errorCode)
     return rust::string(convertor.ConvertErrorCode(errorCode));
 }
 
+int32_t GetSharingAddress(NetManagerStandard::SharingIfaceType const &type, rust::Vec<NetAddressData> &addresses)
+{
+    std::vector<NetManagerStandard::INetAddr> netAddrs;
+    int32_t ret =
+        DelayedSingleton<NetManagerStandard::NetworkShareClient>::GetInstance()->GetSharingAddress(type, netAddrs);
+    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        return ret;
+    }
+    for (const auto &netAddr : netAddrs) {
+        NetAddressData data{
+            .address = rust::String(netAddr.address_),
+            .family = netAddr.family_,
+            .port = netAddr.port_,
+        };
+        addresses.push_back(data);
+    }
+    return ret;
+}
+
 void NetShareCallbackObserverAni::OnSharingStateChanged(const bool &isRunning)
 {
     execute_sharing_state_changed(isRunning);
