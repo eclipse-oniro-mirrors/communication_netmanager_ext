@@ -92,11 +92,14 @@ ohos_unittest("vpn_manager_test") {
   defines = [
     "NETMGR_LOG_TAG = \"NetworkVpnManager\"",
     "LOG_DOMAIN = 0xD0015B0",
-    "ENABLE_VPN_FOR_USER0",
   ]
 
   if (enable_netmgr_ext_debug) {
     defines += [ "NETMGR_DEBUG" ]
+  }
+
+  if (netmanager_ext_feature_vpn_for_user0) {
+    defines += [ "ENABLE_VPN_FOR_USER0" ]
   }
 
   if (netmanager_ext_feature_sysvpn) {
