@@ -26,7 +26,11 @@ declare namespace eap {
    * @permission ohos.permission.MANAGE_ENTERPRISE_WIFI_CONNECTION
    * @param { number } netType Indicates net type need to customize.
    * @param { number } eapCode Indicates eap code need to customize.
-   * @param { number } eapType Indicates eap type need to customize.
+   * Supported values are 1, 2, 3, 4 and 99. Codes 5 and 6 are reserved; codes 7 to 255
+   * cannot be subscribed individually.
+   * The value 99 subscribes to all non-standard eap codes (greater than 6).
+   * @param { number } eapType Indicates eap type need to customize, in the range of 0 to 255.
+   * It is ignored when eapCode is 99.
    * @param { Callback<EapData> } callback - the callback of eap packet customization.
    * @throws { BusinessError } 201 - Permission denied.
    * @throws { BusinessError } 33200006 - Invalid net type
@@ -44,7 +48,13 @@ declare namespace eap {
    * @permission ohos.permission.MANAGE_ENTERPRISE_WIFI_CONNECTION
    * @param { number } netType Indicates net type need to customize.
    * @param { number } eapCode Indicates eap code need to customize.
-   * @param { number } eapType Indicates eap type need to customize.
+   * Supported values are 1, 2, 3, 4 and 99; other values are rejected with 33200007.
+   * The value 99 unsubscribes from all non-standard eap codes (greater than 6).
+   * The callback is matched by (netType, eapCode, eapType); eapType is ignored when eapCode
+   * is 99, so unregistering with 99 removes the caller's non-standard subscriptions for the
+   * given netType.
+   * @param { number } eapType Indicates eap type need to customize, in the range of 0 to 255.
+   * It is ignored when eapCode is 99.
    * @param { Callback<EapData> } callback - the callback of eap packet customization.
    * @throws { BusinessError } 201 - Permission denied.
    * @throws { BusinessError } 33200006 - Invalid net type
