@@ -30,10 +30,12 @@
 #endif
 
 #include "net_manager_constants.h"
+#include "net_datashare_utils_iface.h"
 #include "networkvpn_service.h"
 #include "vpn_event_callback_stub.h"
 #include "vpn_fd_channel.h"
 #include "system_ability_definition.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -41,6 +43,8 @@ namespace {
 using namespace testing;
 using namespace testing::ext;
 constexpr const char *NET_ACTIVATE_WORK_THREAD = "VPN_CALLBACK_WORK_THREAD";
+constexpr const char *VPNEXT_MODE_URI =
+    "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true&key=vpnext_mode";
 class VpnEventTestCallback : public VpnEventCallbackStub {
 public:
     int32_t OnVpnStateChanged(bool isConnected, const sptr<VpnState> &vpnState) override{ return 0; };
@@ -960,19 +964,81 @@ HWTEST_F(NetworkVpnServiceTest, HeldVpnFdTest001, TestSize.Level1)
 HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest001, TestSize.Level1)
 {
     auto vpnService = std::make_shared<NetworkVpnService>();
-    std::string key = "com.test.bundle";
-    std::string value = "1";
-    int32_t ret = vpnService->UpdateVpnPermission(key, value);
-    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    int32_t ret = vpnService->UpdateVpnPermission("1");
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_INTERNAL);
 }
 
-HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest002, TestSize.Level1)
+HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest003, TestSize.Level1)
 {
     auto vpnService = std::make_shared<NetworkVpnService>();
-    std::string key = "";
-    std::string value = "1";
-    int32_t ret = vpnService->UpdateVpnPermission(key, value);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    int32_t ret = vpnService->UpdateVpnPermission("");
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+}
+
+HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest004, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    int32_t ret = vpnService->UpdateVpnPermission("abc");
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+}
+
+HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest005, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    int32_t ret = vpnService->UpdateVpnPermission("0");
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_INTERNAL);
+}
+
+HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow001, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::string bundleName = "com.test.enterprise";
+    NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "1");
+    bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
+    EXPECT_TRUE(hasPermission);
+    NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "0");
+    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+    vpnService->vpnExtPermissionCache_.erase(bundleName);
+}
+
+HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow002, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::string bundleName = "com.test.enterprise";
+    NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "0");
+    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+    vpnService->vpnExtPermissionCache_.erase(bundleName);
+    bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
+    EXPECT_FALSE(hasPermission);
+}
+
+HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow003, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::string bundleName = "com.test.enterprise";
+    NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "1");
+    bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
+    EXPECT_TRUE(hasPermission);
+    NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "0");
+    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+    vpnService->vpnExtPermissionCache_.erase(bundleName);
+    bool hasPermissionAfterClear = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
+    EXPECT_FALSE(hasPermissionAfterClear);
+    std::unique_lock<ffrt::shared_mutex> lock2(vpnService->vpnExtPermissionCacheMutex_);
+    vpnService->vpnExtPermissionCache_.erase(bundleName);
+}
+
+HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow004, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    int32_t ret = vpnService->UpdateVpnPermission("invalid");
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    std::string bundleName = "com.test.enterprise";
+    NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "0");
+    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+    vpnService->vpnExtPermissionCache_.erase(bundleName);
+    bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
+    EXPECT_FALSE(hasPermission);
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -56,9 +56,6 @@ constexpr const char *L2TP_IPSEC_PSK_TYPE = "L2TP_IPSEC_PSK";
 constexpr const char *L2TP_IPSEC_RSA_TYPE = "L2TP_IPSEC_RSA";
 constexpr const char *L2TP_TYPE = "L2TP";
 #endif // SUPPORT_SYSVPN
-#ifdef ENABLE_VPN_FOR_USER0
-constexpr const char* const PERMISSION_ENTERPRISE_VPN = "ohos.permission.ENTERPRISE_VPN";
-#endif
 
 static napi_value CreateResolvedPromise(napi_env env)
 {
@@ -286,17 +283,13 @@ int32_t CheckVpnPermission(const std::string &bundleName, std::string &vpnExtMod
 #ifdef ENABLE_VPN_FOR_USER0
 static void HandleEnterpriseVpnPermission(const std::string &bundleName)
 {
-    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) == ERR_OK) {
-        std::string key = bundleName + "_" + std::to_string(userId);
-        int32_t ret = NetworkVpnClient::GetInstance().UpdateVpnPermission(key, std::to_string(true));
-        if (ret != NETMANAGER_EXT_SUCCESS) {
-            NETMANAGER_EXT_LOGE("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
-                key.c_str(), ret);
-        } else {
-            NETMANAGER_EXT_LOGI("Update ENTERPRISE_VPN permission success, key=%{public}s", key.c_str());
-        }
+    int32_t ret = NetworkVpnClient::GetInstance().UpdateVpnPermission(std::to_string(true));
+    if (ret != NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("Update ENTERPRISE_VPN permission failed, bundleName=%{public}s, ret=%{public}d",
+            bundleName.c_str(), ret);
+    } else {
+        NETMANAGER_EXT_LOGI("Update ENTERPRISE_VPN permission success, bundleName=%{public}s",
+            bundleName.c_str());
     }
 }
 #endif
@@ -323,7 +316,7 @@ napi_value ProcessPermissionRequests(napi_env env, const std::string &bundleName
 #endif // SUPPORT_SYSVPN
     if (ret != 0 || vpnExtMode != "1") {
 #ifdef ENABLE_VPN_FOR_USER0
-        if (NetManagerPermission::CheckPermission(PERMISSION_ENTERPRISE_VPN)) {
+        if (NetManagerPermission::CheckPermission(Permission::ENTERPRISE_VPN)) {
             NETMANAGER_EXT_LOGI("StartVpnExtensionAbility has ENTERPRISE_VPN permission, bundleName: %{public}s",
                 bundleName.c_str());
             HandleEnterpriseVpnPermission(bundleName);

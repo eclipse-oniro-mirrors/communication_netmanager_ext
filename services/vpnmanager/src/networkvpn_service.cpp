@@ -2989,20 +2989,45 @@ int32_t NetworkVpnService::GetVpnConfigToAnco(std::vector<std::string>& dnsAddre
 }
 #endif
 
-int32_t NetworkVpnService::UpdateVpnPermission(const std::string &key, const std::string &value)
+int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
 {
 #ifdef ENABLE_VPN_FOR_USER0
-    if (key.empty()) {
-        NETMGR_EXT_LOG_E("UpdateVpnPermission key is empty");
+    if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_VPN)) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission permission denied");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
+    if (value != "0" && value != "1") {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission invalid value: %{public}s", value.c_str());
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    std::string actualBundleName;
+    std::string appName;
+    if (GetAppNameByUid(uid, appName, actualBundleName) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission: GetAppNameByUid failed for uid=%{public}d", uid);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (actualBundleName.empty()) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission: actualBundleName is empty");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
-    int32_t ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, key, value);
+    std::string serverKey = actualBundleName;
+#ifdef SUPPORT_SYSVPN
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) == ERR_OK) {
+        serverKey = actualBundleName + "_" + std::to_string(userId);
+    }
+#endif
+
+    int32_t ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, serverKey, value);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMANAGER_EXT_LOGE("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
-            key.c_str(), ret);
+        NETMGR_EXT_LOGE("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
+            serverKey.c_str(), ret);
     } else {
-        NETMANAGER_EXT_LOGI("Update ENTERPRISE_VPN permission success, key=%{public}s", key.c_str());
+        NETMGR_EXT_LOGI("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
     }
 
     return ret;

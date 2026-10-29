@@ -35,6 +35,7 @@
 #endif
 #include "net_manager_constants.h"
 #include "netmanager_base_common_utils.h"
+#include "net_datashare_utils_iface.h"
 #include "networkvpn_client.h"
 #include "vpn_event_callback_stub.h"
 #include "mock_i_network_vpn_service.h"
@@ -339,6 +340,53 @@ HWTEST_F(NetworkVpnClientTest, RequestVpnPermission0002, TestSize.Level1)
     bool isAuthorized = false;
     auto ret = RequestVpnPermission(1099, "test", "", isAuthorized);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+}
+
+HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionWithProxy001, TestSize.Level1)
+{
+    auto mockService = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mockService, nullptr);
+    EXPECT_CALL(*mockService, UpdateVpnPermission(testing::_))
+        .WillOnce(testing::Return(NETMANAGER_EXT_SUCCESS));
+    networkVpnClient_.networkVpnService_ = mockService;
+    std::string value = "1";
+    int32_t ret = networkVpnClient_.UpdateVpnPermission(value);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    networkVpnClient_.networkVpnService_ = nullptr;
+}
+
+HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionWithProxy002, TestSize.Level1)
+{
+    auto mockService = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mockService, nullptr);
+    EXPECT_CALL(*mockService, UpdateVpnPermission(testing::_))
+        .WillOnce(testing::Return(NETMANAGER_EXT_ERR_INTERNAL));
+    networkVpnClient_.networkVpnService_ = mockService;
+    std::string value = "1";
+    int32_t ret = networkVpnClient_.UpdateVpnPermission(value);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    networkVpnClient_.networkVpnService_ = nullptr;
+}
+
+HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionProxyNull001, TestSize.Level1)
+{
+    networkVpnClient_.networkVpnService_ = nullptr;
+    std::string value = "1";
+    int32_t ret = networkVpnClient_.UpdateVpnPermission(value);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
+}
+
+HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionInvalidValue001, TestSize.Level1)
+{
+    auto mockService = sptr<MockINetworkVpnService>::MakeSptr();
+    ASSERT_NE(mockService, nullptr);
+    EXPECT_CALL(*mockService, UpdateVpnPermission(testing::_))
+        .WillOnce(testing::Return(NETMANAGER_EXT_ERR_PARAMETER_ERROR));
+    networkVpnClient_.networkVpnService_ = mockService;
+    std::string value = "invalid";
+    int32_t ret = networkVpnClient_.UpdateVpnPermission(value);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 } // namespace NetManagerStandard
 } // namespace OHOS

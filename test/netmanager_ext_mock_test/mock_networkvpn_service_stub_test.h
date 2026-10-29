@@ -169,7 +169,7 @@ public:
         return 0;
     }
 
-    int32_t UpdateVpnPermission(const std::string &key, const std::string &value) override
+    int32_t UpdateVpnPermission(const std::string &value) override
     {
         return 0;
     }

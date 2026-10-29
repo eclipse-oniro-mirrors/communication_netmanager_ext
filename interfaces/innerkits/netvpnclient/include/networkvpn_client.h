@@ -259,7 +259,7 @@ public:
 
 #endif // SUPPORT_SYSVPN
 
-    int32_t UpdateVpnPermission(const std::string &key, const std::string &value);
+    int32_t UpdateVpnPermission(const std::string &value);
 
     /**
      * register the vpn state callback
