@@ -82,5 +82,38 @@ void NetShareStartSharingContext::SetBytes32(int32_t bytes32)
 {
     bytes32_ = bytes32;
 }
+
+GetSharingAddressContext::GetSharingAddressContext(napi_env env, std::shared_ptr<EventManager>& manager)
+    : BaseContext(env, manager)
+{
+}
+
+void GetSharingAddressContext::ParseParams(napi_value *params, size_t paramsCount)
+{
+    if (params == nullptr || paramsCount != PARAM_JUST_OPTIONS ||
+        NapiUtils::GetValueType(GetEnv(), params[ARG_INDEX_0]) != napi_number) {
+        NETMANAGER_EXT_LOGE("GetSharingAddress check params type failed");
+        SetErrorCode(NETMANAGER_EXT_ERR_INVALID_PARAMETER);
+        SetParseOK(false);
+        return;
+    }
+    param_ = NapiUtils::GetInt32FromValue(GetEnv(), params[ARG_INDEX_0]);
+    SetParseOK(true);
+}
+
+int32_t GetSharingAddressContext::GetParam() const
+{
+    return param_;
+}
+
+const std::vector<INetAddr> &GetSharingAddressContext::GetAddresses() const
+{
+    return addresses_;
+}
+
+void GetSharingAddressContext::SetAddresses(const std::vector<INetAddr> &addresses)
+{
+    addresses_ = addresses;
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

@@ -25,6 +25,12 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+constexpr const char *KEY_ADDRESS = "address";
+constexpr const char *KEY_FAMILY = "family";
+constexpr const char *KEY_PORT = "port";
+} // namespace
+
 bool NetShareExec::ExecIsSharingSupported(IsSharingSupportedContext *context)
 {
     int32_t supported = NETWORKSHARE_IS_UNSUPPORTED;
@@ -163,6 +169,38 @@ napi_value NetShareExec::GetSharableRegexesCallback(GetSharableRegexesContext *c
         NapiUtils::SetArrayElement(context->GetEnv(), ifacesArray, index++, item);
     }
     return ifacesArray;
+}
+
+bool NetShareExec::ExecGetSharingAddress(GetSharingAddressContext *context)
+{
+    if (!context->IsParseOK()) {
+        NETMANAGER_EXT_LOGE("ExecGetSharingAddress parse params failed");
+        return false;
+    }
+    SharingIfaceType ifaceType = static_cast<SharingIfaceType>(context->GetParam());
+    std::vector<INetAddr> addresses;
+    int32_t result = DelayedSingleton<NetworkShareClient>::GetInstance()->GetSharingAddress(ifaceType, addresses);
+    if (result != NETMANAGER_EXT_SUCCESS) {
+        context->SetErrorCode(result);
+        NETMANAGER_EXT_LOGE("ExecGetSharingAddress error, errorCode: %{public}d", result);
+        return false;
+    }
+    context->SetAddresses(addresses);
+    return true;
+}
+
+napi_value NetShareExec::GetSharingAddressCallback(GetSharingAddressContext *context)
+{
+    const std::vector<INetAddr> &addresses = context->GetAddresses();
+    napi_value addressArray = NapiUtils::CreateArray(context->GetEnv(), addresses.size());
+    for (uint32_t index = 0; index < addresses.size(); ++index) {
+        napi_value netAddress = NapiUtils::CreateObject(context->GetEnv());
+        NapiUtils::SetStringPropertyUtf8(context->GetEnv(), netAddress, KEY_ADDRESS, addresses[index].address_);
+        NapiUtils::SetUint32Property(context->GetEnv(), netAddress, KEY_FAMILY, addresses[index].family_);
+        NapiUtils::SetUint32Property(context->GetEnv(), netAddress, KEY_PORT, addresses[index].port_);
+        NapiUtils::SetArrayElement(context->GetEnv(), addressArray, index, netAddress);
+    }
+    return addressArray;
 }
 
 bool NetShareExec::ExecGetStatsRxBytes(GetStatsRxBytesContext *context)

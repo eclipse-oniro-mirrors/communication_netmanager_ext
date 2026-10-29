@@ -55,6 +55,11 @@ void NetShareAsyncWork::ExecGetSharableRegexes(napi_env env, void *data)
     BaseAsyncWork::ExecAsyncWork<GetSharableRegexesContext, NetShareExec::ExecGetSharableRegexes>(env, data);
 }
 
+void NetShareAsyncWork::ExecGetSharingAddress(napi_env env, void *data)
+{
+    BaseAsyncWork::ExecAsyncWork<GetSharingAddressContext, NetShareExec::ExecGetSharingAddress>(env, data);
+}
+
 void NetShareAsyncWork::ExecGetStatsRxBytes(napi_env env, void *data)
 {
     BaseAsyncWork::ExecAsyncWork<GetStatsRxBytesContext, NetShareExec::ExecGetStatsRxBytes>(env, data);
@@ -107,6 +112,12 @@ void NetShareAsyncWork::GetSharableRegexesCallback(napi_env env, napi_status sta
 {
     BaseAsyncWork::AsyncWorkCallback<GetSharableRegexesContext, NetShareExec::GetSharableRegexesCallback>(env, status,
                                                                                                           data);
+}
+
+void NetShareAsyncWork::GetSharingAddressCallback(napi_env env, napi_status status, void *data)
+{
+    BaseAsyncWork::AsyncWorkCallback<GetSharingAddressContext, NetShareExec::GetSharingAddressCallback>(env, status,
+                                                                                                        data);
 }
 
 void NetShareAsyncWork::GetStatsRxBytesCallback(napi_env env, napi_status status, void *data)

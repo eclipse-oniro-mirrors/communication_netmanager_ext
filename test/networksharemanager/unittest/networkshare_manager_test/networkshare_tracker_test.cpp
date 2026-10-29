@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 
+#include <arpa/inet.h>
 #include <gtest/gtest.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #ifdef GTEST_API_
 #define private public
 #define protected public
@@ -387,6 +391,208 @@ HWTEST_F(NetworkShareTrackerTest, GetNetSharingIfaces02, TestSize.Level1)
     std::vector<std::string> ifaces;
     int32_t ret = NetworkShareTracker::GetInstance().GetNetSharingIfaces(state, ifaces);
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_UNKNOWN_TYPE);
+}
+
+class NetworkShareAddressTest : public testing::Test {
+protected:
+    NetworkShareTracker tracker_;
+};
+
+/**
+ * @tc.name: GetSharingAddress02
+ * @tc.desc: Test NetworkShareTracker GetSharingAddress without sharing iface.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareAddressTest, GetSharingAddress02, TestSize.Level1)
+{
+    std::vector<INetAddr> addresses(1);
+    int32_t ret = tracker_.GetSharingAddress(SharingIfaceType::SHARING_WIFI, addresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(addresses.empty());
+}
+
+/**
+ * @tc.name: GetSharingAddress03
+ * @tc.desc: Test NetworkShareTracker GetSharingAddress returns the real address of iface.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareAddressTest, GetSharingAddress03, TestSize.Level1)
+{
+    const std::string loIface = "lo";
+    ifaddrs *ifaddr = nullptr;
+    ASSERT_EQ(getifaddrs(&ifaddr), 0);
+    bool hasLoopbackAddress = false;
+    for (const ifaddrs *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (ifa->ifa_name == nullptr || ifa->ifa_addr == nullptr || loIface != ifa->ifa_name ||
+            (ifa->ifa_flags & IFF_UP) == 0 || ifa->ifa_addr->sa_family != AF_INET) {
+            continue;
+        }
+        auto ipv4 = reinterpret_cast<const sockaddr_in *>(ifa->ifa_addr);
+        hasLoopbackAddress = hasLoopbackAddress || ntohl(ipv4->sin_addr.s_addr) == INADDR_LOOPBACK;
+    }
+    freeifaddrs(ifaddr);
+    if (!hasLoopbackAddress) {
+        GTEST_SKIP() << "Requires lo to be UP with IPv4 address 127.0.0.1";
+    }
+    std::vector<INetAddr> addresses;
+    tracker_.CreateSubStateMachine(loIface, SharingIfaceType::SHARING_WIFI, false);
+    auto itfind = tracker_.subStateMachineMap_.find(loIface);
+    ASSERT_NE(itfind, tracker_.subStateMachineMap_.end());
+    itfind->second->lastState_ = SUB_SM_STATE_SHARED;
+    int32_t ret = tracker_.GetSharingAddress(SharingIfaceType::SHARING_WIFI, addresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    auto ipv4Iter = std::find_if(addresses.begin(), addresses.end(),
+        [](const INetAddr &addr) { return addr.address_ == "127.0.0.1"; });
+    ASSERT_NE(ipv4Iter, addresses.end());
+    EXPECT_EQ(ipv4Iter->family_, INetAddr::IPV4);
+    for (const auto &addr : addresses) {
+        if (addr.address_.find(':') != std::string::npos) {
+            EXPECT_EQ(addr.family_, INetAddr::IPV6);
+            in6_addr ipv6 = {};
+            ASSERT_EQ(inet_pton(AF_INET6, addr.address_.c_str(), &ipv6), 1);
+            EXPECT_FALSE(IN6_IS_ADDR_LINKLOCAL(&ipv6));
+        }
+    }
+}
+
+/**
+ * @tc.name: GetSharingAddress06
+ * @tc.desc: Test NetworkShareTracker GetSharingAddress ignores iface of other type or not in shared state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareAddressTest, GetSharingAddress06, TestSize.Level1)
+{
+    const std::string loIface = "lo";
+    std::vector<INetAddr> addresses;
+    tracker_.CreateSubStateMachine(loIface, SharingIfaceType::SHARING_WIFI, false);
+    auto itfind = tracker_.subStateMachineMap_.find(loIface);
+    ASSERT_NE(itfind, tracker_.subStateMachineMap_.end());
+    itfind->second->lastState_ = SUB_SM_STATE_SHARED;
+    int32_t ret = tracker_.GetSharingAddress(SharingIfaceType::SHARING_USB, addresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(addresses.empty());
+    itfind->second->lastState_ = SUB_SM_STATE_AVAILABLE;
+    ret = tracker_.GetSharingAddress(SharingIfaceType::SHARING_WIFI, addresses);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(addresses.empty());
+}
+
+namespace {
+sockaddr_in MakeIpv4Addr(const char *ip)
+{
+    sockaddr_in addr = {};
+    addr.sin_family = AF_INET;
+    inet_pton(AF_INET, ip, &addr.sin_addr);
+    return addr;
+}
+
+sockaddr_in6 MakeIpv6Addr(const char *ip)
+{
+    sockaddr_in6 addr = {};
+    addr.sin6_family = AF_INET6;
+    inet_pton(AF_INET6, ip, &addr.sin6_addr);
+    return addr;
+}
+
+template<typename T = sockaddr>
+ifaddrs MakeIfAddr(char *iface, T *addr, unsigned int flags = IFF_UP | IFF_RUNNING)
+{
+    ifaddrs node = {};
+    node.ifa_name = iface;
+    node.ifa_addr = reinterpret_cast<sockaddr *>(addr);
+    node.ifa_flags = flags;
+    return node;
+}
+} // namespace
+
+/**
+ * @tc.name: GetSharingAddress04
+ * @tc.desc: Test iface/address filtering while retaining IPv4 link-local and addresses without IFF_RUNNING.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareAddressTest, GetSharingAddress04, TestSize.Level1)
+{
+    char shareIface[] = "share0";
+    char otherIface[] = "other0";
+    sockaddr_in ipv4 = MakeIpv4Addr("192.168.43.1");
+    sockaddr_in otherIpv4 = MakeIpv4Addr("10.0.0.1");
+    sockaddr_in downIpv4 = MakeIpv4Addr("192.168.43.2");
+    sockaddr_in noCarrierIpv4 = MakeIpv4Addr("192.168.43.3");
+    sockaddr_in linkLocalIpv4 = MakeIpv4Addr("169.254.1.1");
+    sockaddr_in6 linkLocal = MakeIpv6Addr("fe80::1");
+    sockaddr_in6 linkLocalUpper = MakeIpv6Addr("febf::1");
+    sockaddr_in6 unspecified = MakeIpv6Addr("::");
+    sockaddr_in6 global = MakeIpv6Addr("2001:db8::1");
+    sockaddr packet = {};
+    packet.sa_family = AF_PACKET;
+
+    constexpr size_t nodeCount = 12;
+    ifaddrs nodes[nodeCount] = {
+        MakeIfAddr(nullptr, &ipv4),
+        MakeIfAddr<sockaddr>(shareIface, nullptr),
+        MakeIfAddr(otherIface, &otherIpv4),
+        MakeIfAddr(shareIface, &ipv4),
+        MakeIfAddr(shareIface, &linkLocal),
+        MakeIfAddr(shareIface, &unspecified),
+        MakeIfAddr(shareIface, &global),
+        MakeIfAddr(shareIface, &packet),
+        MakeIfAddr(shareIface, &linkLocalUpper),
+        MakeIfAddr(shareIface, &downIpv4, IFF_RUNNING),
+        MakeIfAddr(shareIface, &noCarrierIpv4, IFF_UP),
+        MakeIfAddr(shareIface, &linkLocalIpv4),
+    };
+    for (size_t i = 0; i + 1 < nodeCount; ++i) {
+        nodes[i].ifa_next = &nodes[i + 1];
+    }
+
+    std::vector<std::string> ifaces = { shareIface };
+    std::vector<INetAddr> addresses;
+    NetworkShareTracker::CollectSharingAddress(nodes, ifaces, addresses);
+    ASSERT_EQ(addresses.size(), 4U);
+    EXPECT_EQ(addresses[0].address_, "192.168.43.1");
+    EXPECT_EQ(addresses[0].family_, INetAddr::IPV4);
+    EXPECT_EQ(addresses[1].address_, "2001:db8::1");
+    EXPECT_EQ(addresses[1].family_, INetAddr::IPV6);
+    EXPECT_EQ(addresses[2].address_, "192.168.43.3");
+    EXPECT_EQ(addresses[2].family_, INetAddr::IPV4);
+    EXPECT_EQ(addresses[3].address_, "169.254.1.1");
+    EXPECT_EQ(addresses[3].family_, INetAddr::IPV4);
+}
+
+/**
+ * @tc.name: GetSharingAddress05
+ * @tc.desc: Test NetworkShareTracker ConvertToSharingAddress with each address family.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkShareAddressTest, GetSharingAddress05, TestSize.Level1)
+{
+    INetAddr netAddr;
+    sockaddr_in ipv4 = MakeIpv4Addr("192.168.43.1");
+    EXPECT_TRUE(NetworkShareTracker::ConvertToSharingAddress(reinterpret_cast<sockaddr *>(&ipv4), netAddr));
+    EXPECT_EQ(netAddr.address_, "192.168.43.1");
+    EXPECT_EQ(netAddr.type_, INetAddr::IPV4);
+
+    for (const char *ip : { "192.168.11.1", "169.254.1.1" }) {
+        sockaddr_in otherIpv4 = MakeIpv4Addr(ip);
+        EXPECT_TRUE(NetworkShareTracker::ConvertToSharingAddress(reinterpret_cast<sockaddr *>(&otherIpv4), netAddr));
+        EXPECT_EQ(netAddr.address_, ip);
+        EXPECT_EQ(netAddr.family_, INetAddr::IPV4);
+    }
+
+    sockaddr_in6 global = MakeIpv6Addr("2001:db8::1");
+    EXPECT_TRUE(NetworkShareTracker::ConvertToSharingAddress(reinterpret_cast<sockaddr *>(&global), netAddr));
+    EXPECT_EQ(netAddr.address_, "2001:db8::1");
+    EXPECT_EQ(netAddr.type_, INetAddr::IPV6);
+
+    sockaddr_in6 linkLocal = MakeIpv6Addr("fe80::1");
+    EXPECT_FALSE(NetworkShareTracker::ConvertToSharingAddress(reinterpret_cast<sockaddr *>(&linkLocal), netAddr));
+    sockaddr_in6 linkLocalUpper = MakeIpv6Addr("febf::1");
+    EXPECT_FALSE(NetworkShareTracker::ConvertToSharingAddress(reinterpret_cast<sockaddr *>(&linkLocalUpper), netAddr));
+    sockaddr_in6 unspecified = MakeIpv6Addr("::");
+    EXPECT_FALSE(NetworkShareTracker::ConvertToSharingAddress(reinterpret_cast<sockaddr *>(&unspecified), netAddr));
+    sockaddr packet = {};
+    packet.sa_family = AF_PACKET;
+    EXPECT_FALSE(NetworkShareTracker::ConvertToSharingAddress(&packet, netAddr));
 }
 
 /**

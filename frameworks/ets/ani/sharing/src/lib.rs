@@ -30,6 +30,7 @@ ani_rs::ani_constructor! {
         "getSharingIfacesSync": sharing::get_sharing_ifaces,
         "getSharingStateSync": sharing::get_sharing_state,
         "getSharableRegexesSync": sharing::get_sharable_regexs,
+        "getSharingAddressSync": sharing::get_sharing_address,
         "onSharingStateChange": register::on_sharing_state_change,
         "onInterfaceSharingStateChange": register::on_interface_sharing_state_change,
         "onSharingUpstreamChange": register::on_sharing_upstream_change,

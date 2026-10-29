@@ -18,6 +18,7 @@
 
 #include <any>
 #include <atomic>
+#include <ifaddrs.h>
 #include <map>
 
 #ifdef BLUETOOTH_MODOULE
@@ -30,6 +31,7 @@
 #include "i_wifi_hotspot_callback.h"
 #endif
 #include "ffrt.h"
+#include "inet_addr.h"
 #include "net_manager_ext_constants.h"
 #include "netsys_controller_callback.h"
 #include "networkshare_configuration.h"
@@ -173,6 +175,11 @@ public:
     int32_t GetNetSharingIfaces(const SharingIfaceState &state, std::vector<std::string> &ifaces);
 
     /**
+     * get the address of the serving ifaces by sharing type
+     */
+    int32_t GetSharingAddress(const SharingIfaceType &type, std::vector<INetAddr> &addresses);
+
+    /**
      * register callback
      */
     int32_t RegisterSharingEvent(sptr<ISharingEventCallback> callback);
@@ -287,6 +294,10 @@ private:
     std::string GetV6IfaceFromClat(const std::string &clatIface);
     void HandleClatInterfaceAdded(const std::string &clatIface);
     void HandleClatInterfaceRemoved(const std::string &clatIface);
+    void GetServingIfacesByType(const SharingIfaceType &type, std::vector<std::string> &ifaces);
+    static void CollectSharingAddress(const ifaddrs *ifaddr, const std::vector<std::string> &ifaces,
+                                      std::vector<INetAddr> &addresses);
+    static bool ConvertToSharingAddress(const sockaddr *addr, INetAddr &netAddr);
 
 private:
     ffrt::shared_mutex mutex_;

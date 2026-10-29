@@ -52,7 +52,10 @@ ohos_static_library("networkshare_parcel") {
 
   branch_protector_ret = "pac_ret"
 
-  sources = [ "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/network_share_request_parcel.cpp" ]
+  sources = [
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/network_share_address_parcel.cpp",
+    "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/network_share_request_parcel.cpp",
+  ]
 
   include_dirs = [
     "$EXT_INNERKITS_ROOT/include",
@@ -97,10 +100,14 @@ ohos_static_library("netshare_service_interface_stub") {
   sources = []
   sources += filter_include(output_values, [ "*ice_stub.cpp" ])
   sources += filter_include(output_values, [ "*ack_proxy.cpp" ])
-  deps = [ ":netshare_service_interface" ]
+  deps = [
+    ":netshare_service_interface",
+    ":networkshare_parcel",
+  ]
   external_deps = [
     "hilog:libhilog",
     "ipc:ipc_single",
+    "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
     "samgr:samgr_proxy",
     "c_utils:utils",
