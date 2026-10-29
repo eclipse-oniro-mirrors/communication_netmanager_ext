@@ -14,6 +14,7 @@
  */
 
 #include "net_eap_handler.h"
+#include <charconv>
 #include <set>
 #include <string>
 #include <utility>
@@ -37,8 +38,8 @@ static constexpr int32_t ETH_EAP_REG_COMPOSE_FAILURE = 1024;
 static bool IsValidNumericPart(const std::string &part)
 {
     // regCmd 来自企业应用的任意字符串参数：必须先校验为纯数字（并限制长度防溢出）
-    // 再转换，避免 std::stoi 抛出未捕获的 invalid_argument/out_of_range 导致
-    // netmanager 进程崩溃
+    // 再转换；转换用不抛异常的 std::from_chars（本部件按 -fno-exceptions 编译，
+    // 无法用 try-catch 捕获 std::stoi 抛出的 invalid_argument/out_of_range）
     return part.size() <= 9 && part.find_first_not_of("0123456789") == std::string::npos;
 }
 
@@ -51,8 +52,10 @@ static void ParseRegCmdNumericParts(const std::string &cmd, std::set<int32_t> &c
         size_t end = (next == std::string::npos) ? cmd.size() : next;
         std::string part = cmd.substr(pos, end - pos);
         if (idx >= 2 && !part.empty()) {
-            if (IsValidNumericPart(part)) {
-                composeParams.insert(std::stoi(part));
+            int32_t value = 0;
+            auto [ptr, ec] = std::from_chars(part.data(), part.data() + part.size(), value);
+            if (IsValidNumericPart(part) && ec == std::errc{} && ptr == part.data() + part.size()) {
+                composeParams.insert(value);
             } else {
                 NETMGR_EXT_LOG_E("ParseRegCmdNumericParts: skip non-numeric part: %{public}s", part.c_str());
             }
