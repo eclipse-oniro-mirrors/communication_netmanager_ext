@@ -53,9 +53,9 @@ public:
         if (proxy == nullptr) {
             return nullptr;
         }
-        // LCOV_EXCL_STOP
         networkVpnService_ = proxy;
         return networkVpnService_;
+        // LCOV_EXCL_STOP
     }
 
     std::mutex mutex_;
@@ -81,13 +81,15 @@ int32_t NetworkVpnPermissionClient::RequestVpnPermission(int32_t uid, const std:
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
 
-    auto proxy = impl_->GetProxy();
     // LCOV_EXCL_START
+    // the success path needs the real vpn service via samgr; without real IPC it cannot
+    // be covered by hermetic unit tests
+    auto proxy = impl_->GetProxy();
     if (proxy == nullptr) {
         return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
     }
-    // LCOV_EXCL_STOP
     return proxy->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    // LCOV_EXCL_STOP
 }
 
 } // namespace NetManagerStandard

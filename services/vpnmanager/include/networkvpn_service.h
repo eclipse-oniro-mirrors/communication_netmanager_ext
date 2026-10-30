@@ -332,6 +332,15 @@ private:
     bool CheckVpnExtPermission(int32_t uid, const std::string &bundleName);
     virtual bool ShowVpnDialog(const std::string &bundleName, const std::string &abilityName,
         const std::string &appName, int32_t uid);
+    /**
+     * Inner (testable) part of RequestVpnPermission: the caller identity check
+     * (IsSystemCaller), the BMS name lookup (GetAppNameByUid) and the VPN ext permission
+     * query (CheckVpnExtPermission) stay in the public entry; everything below them is
+     * deterministic logic driven by the given parameters.
+     */
+    int32_t ProcessVpnPermissionRequest(int32_t uid, const std::string &bundleName,
+        const std::string &abilityName, const std::string &appName, const std::string &actualBundleName,
+        bool isPermissionAuthorized, bool &isAuthorized);
     void HandleVpnHapObserverRegistration(const std::string& bundleName);
     bool PublishEvent(const OHOS::AAFwk::Want &want, int eventCode,
          bool isOrdered, bool isSticky, const std::vector<std::string> &permissions) const;

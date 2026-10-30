@@ -32,6 +32,10 @@ ohos_unittest("ethernet_manager_test") {
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    # link-level permission mock: replaces NetManagerPermission inside this test binary so
+    # that the in-process EthernetService gate checks (IsSystemCaller/CheckPermission) are
+    # deterministic and independent of the device AccessToken environment
+    "$EXT_SECURITY_PATH/security/common_mock_netmanager_permission.cpp",
     "$NETMANAGER_EXT_ROOT/frameworks/js/napi/ethernet/ethernet_exec.cpp",
     "$EXT_SECURITY_PATH/datashare/net_datashare_utils_iface_mock.cpp",
     "dev_interface_state_test.cpp",
@@ -58,6 +62,7 @@ ohos_unittest("ethernet_manager_test") {
     "$EXT_INNERKITS_ROOT/ethernetclient/include",
     "$EXT_INNERKITS_ROOT/ethernetclient/include/proxy",
     "$EXT_SECURITY_PATH/security",
+    "$NETMANAGER_EXT_ROOT/test/netmanager_ext_mock_test",
     "$ETHERNETMANAGER_SOURCE_DIR/include",
     "$ETHERNETMANAGER_SOURCE_DIR/include/stub",
     "$NETMANAGER_EXT_ROOT/frameworks/js/napi/ethernet",

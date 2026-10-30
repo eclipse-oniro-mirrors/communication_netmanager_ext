@@ -23,6 +23,7 @@
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
 #include "netmanager_ext_test_security.h"
+#include "common_mock_netmanager_permission.h"
 #include "networkshare_constants.h"
 #include "networkshare_service.h"
 #include "sharing_event_callback_stub.h"
@@ -73,7 +74,15 @@ void NetworkShareServiceTest::TearDownTestCase()
     instance_->OnStop();
 }
 
-void NetworkShareServiceTest::SetUp() {}
+void NetworkShareServiceTest::SetUp()
+{
+    // Device-realistic baseline for the in-process permission mock: the test process is a
+    // native (non-HAP) caller, so IsSystemCaller passes while permission checks fail.
+    // Every case starts from this state (no cross-case influence) and overrides it locally
+    // when a granted-permission path is under test.
+    SetMockIsSystemCallerResult(true);
+    SetMockCheckPermissionResult(false);
+}
 
 void NetworkShareServiceTest::TearDown() {}
 
@@ -136,7 +145,9 @@ HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, StopNetworkSharingTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    // granted permissions (deterministic via the permission mock): the service gates are
+    // open so the tracker layer below them is reachable
+    SetMockCheckPermissionResult(true);
     auto ret = instance_->StopNetworkSharing(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI));
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_WIFI_SHARING);
 }
@@ -155,7 +166,7 @@ HWTEST_F(NetworkShareServiceTest, RegisterSharingEventTest001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, RegisterSharingEventTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     auto ret = instance_->RegisterSharingEvent(eventCallback_);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -168,7 +179,7 @@ HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest001, TestSize.Level1
 
 HWTEST_F(NetworkShareServiceTest, UnregisterSharingEventTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     auto ret = instance_->UnregisterSharingEvent(eventCallback_);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
@@ -197,7 +208,7 @@ HWTEST_F(NetworkShareServiceTest, GetSharingStateTest001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, GetSharingStateTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     int32_t state;
     auto ret = instance_->GetSharingState(static_cast<int32_t>(SharingIfaceType::SHARING_WIFI), state);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -229,7 +240,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsRxBytesTest001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, GetStatsRxBytesTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     int32_t bytes;
     auto ret = instance_->GetStatsRxBytes(bytes);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -244,7 +255,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, GetStatsTxBytesTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     int32_t bytes;
     auto ret = instance_->GetStatsTxBytes(bytes);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -259,7 +270,7 @@ HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, GetStatsTotalBytesTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     int32_t bytes;
     auto ret = instance_->GetStatsTotalBytes(bytes);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
@@ -274,7 +285,7 @@ HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     bool enabled = true;
     auto ret = instance_->SetConfigureForShare(enabled);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_MEMCPY_FAIL);
@@ -282,7 +293,7 @@ HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest002, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, SetConfigureForShareTest003, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     bool enabled = false;
     auto ret = instance_->SetConfigureForShare(enabled);
     EXPECT_NE(ret, NETMANAGER_EXT_ERR_MEMCPY_FAIL);
@@ -326,7 +337,7 @@ HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch001, TestSize.Level1)
 
 HWTEST_F(NetworkShareServiceTest, NetworkShareServiceBranch002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    SetMockCheckPermissionResult(true);
     SharingIfaceState state = SharingIfaceState::SHARING_NIC_CAN_SERVER;
     std::vector<std::string> ifaces;
     int32_t ret = instance_->GetNetSharingIfaces(static_cast<int32_t>(state), ifaces);

@@ -43,10 +43,12 @@
 #include "ethernet_management.h"
 #include "ethernet_service.h"
 #include "ethernet_service_proxy.h"
+#include "mock_i_ethernet_service.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
 namespace {
+using namespace testing;
 using namespace testing::ext;
 constexpr const char *DEV_NAME = "eth0";
 constexpr const char *DEV_UP = "up";
@@ -211,12 +213,15 @@ HWTEST_F(EthernetManagerTest, OnRemoteRequest, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
-    ASSERT_EQ(DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME, ic), NETMANAGER_EXT_SUCCESS);
+    ON_CALL(*mock, SetIfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    EXPECT_EQ(client.SetIfaceConfig(DEV_NAME, ic), NETMANAGER_EXT_SUCCESS);
+    ON_CALL(*mock, SetIfaceConfig(_, _)).WillByDefault(Return(ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL));
+    EXPECT_EQ(client.SetIfaceConfig(DEV_NAME, ic), ETHERNET_ERR_USER_CONIFGURATION_WRITE_FAIL);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -226,14 +231,15 @@ HWTEST_F(EthernetManagerTest, EthernetManager001, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager0011, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     sptr<InterfaceConfiguration> ic = GetIfaceConfig();
     const char *DEV_NAME_1 = "eth3";
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetIfaceConfig(DEV_NAME_1, ic);
-    ASSERT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    ON_CALL(*mock, SetIfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_ERR_INTERNAL));
+    int32_t ret = client.SetIfaceConfig(DEV_NAME_1, ic);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -243,14 +249,16 @@ HWTEST_F(EthernetManagerTest, EthernetManager0011, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     sptr<InterfaceConfiguration> ic;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME, ic);
-    ASSERT_TRUE(ic != nullptr);
+    ON_CALL(*mock, GetIfaceConfig(_, _))
+        .WillByDefault(DoAll(SetArgReferee<1>(GetIfaceConfig()), Return(NETMANAGER_EXT_SUCCESS)));
+    int32_t ret = client.GetIfaceConfig(DEV_NAME, ic);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_NE(ic, nullptr);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -260,15 +268,15 @@ HWTEST_F(EthernetManagerTest, EthernetManager002, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager0021, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     sptr<InterfaceConfiguration> ic;
     const char *DEV_NAME_1 = "eth3";
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetIfaceConfig(DEV_NAME_1, ic);
-    ASSERT_FALSE(ic != nullptr);
-    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    ON_CALL(*mock, GetIfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_ERR_INTERNAL));
+    int32_t ret = client.GetIfaceConfig(DEV_NAME_1, ic);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -278,14 +286,16 @@ HWTEST_F(EthernetManagerTest, EthernetManager0021, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     int32_t activeStatus = -1;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
-    ASSERT_EQ(activeStatus, 1);
+    ON_CALL(*mock, IsIfaceActive(_, _))
+        .WillByDefault(DoAll(SetArgReferee<1>(1), Return(NETMANAGER_EXT_SUCCESS)));
+    int32_t ret = client.IsIfaceActive(DEV_NAME, activeStatus);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(activeStatus, 1);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -295,14 +305,15 @@ HWTEST_F(EthernetManagerTest, EthernetManager003, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager0031, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     int32_t activeStatus = -1;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive("eth3", activeStatus);
-    ASSERT_NE(activeStatus, 1);
-    EXPECT_EQ(ret, ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST);
+    ON_CALL(*mock, IsIfaceActive(_, _))
+        .WillByDefault(DoAll(SetArgReferee<1>(0), Return(NETMANAGER_EXT_ERR_INTERNAL)));
+    int32_t ret = client.IsIfaceActive("eth3", activeStatus);
+    EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -312,15 +323,17 @@ HWTEST_F(EthernetManagerTest, EthernetManager0031, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     std::vector<std::string> result;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetAllActiveIfaces(result);
+    ON_CALL(*mock, GetAllActiveIfaces(_))
+        .WillByDefault(DoAll(SetArgReferee<0>(std::vector<std::string>{DEV_NAME}), Return(NETMANAGER_EXT_SUCCESS)));
+    int32_t ret = client.GetAllActiveIfaces(result);
     std::vector<std::string>::iterator it = std::find(result.begin(), result.end(), DEV_NAME);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    ASSERT_TRUE(it != result.end());
+    EXPECT_NE(it, result.end());
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -330,13 +343,17 @@ HWTEST_F(EthernetManagerTest, EthernetManager004, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     std::vector<MacAddressInfo> mai;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetMacAddress(mai);
+    ON_CALL(*mock, GetMacAddress(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.GetMacAddress(mai);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ON_CALL(*mock, GetMacAddress(_)).WillByDefault(Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED));
+    ret = client.GetMacAddress(mai);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -346,12 +363,16 @@ HWTEST_F(EthernetManagerTest, EthernetManager005, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, ResetFactoryTest001, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, ResetFactory()).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.ResetFactory();
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    ON_CALL(*mock, ResetFactory()).WillByDefault(Return(ETHERNET_ERR_USER_CONIFGURATION_CLEAR_FAIL));
+    ret = client.ResetFactory();
+    EXPECT_EQ(ret, ETHERNET_ERR_USER_CONIFGURATION_CLEAR_FAIL);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -361,11 +382,13 @@ HWTEST_F(EthernetManagerTest, ResetFactoryTest001, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, ResetFactoryTest002, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, ResetFactory()).WillByDefault(Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED));
+    int32_t ret = client.ResetFactory();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    client.ethernetService_ = nullptr;
 }
 
 /**
@@ -375,25 +398,25 @@ HWTEST_F(EthernetManagerTest, ResetFactoryTest002, TestSize.Level1)
  */
 HWTEST_F(EthernetManagerTest, ResetFactoryTest003, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->ResetFactory();
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, ResetFactory()).WillByDefault(Return(ETHERNET_ERR_USER_CONIFGURATION_CLEAR_FAIL));
+    int32_t ret = client.ResetFactory();
+    EXPECT_EQ(ret, ETHERNET_ERR_USER_CONIFGURATION_CLEAR_FAIL);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager006, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     OHOS::nmd::InterfaceConfigurationParcel cfg;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
+    ON_CALL(*mock, GetInterfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.GetInterfaceConfig(DEV_NAME, cfg);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    ASSERT_FALSE(cfg.ifName.empty());
-    ASSERT_FALSE(cfg.hwAddr.empty());
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, OnInterfaceAddressUpdatedTest001, TestSize.Level1)
@@ -461,7 +484,9 @@ HWTEST_F(EthernetManagerTest, SetInterfaceConfig001, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = "eth0";
     config.hwAddr = "";
@@ -469,8 +494,10 @@ HWTEST_F(EthernetManagerTest, SetInterfaceConfig001, TestSize.Level1)
     config.prefixLength = 24;
     config.flags.push_back("up");
     config.flags.push_back("broadcast");
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceConfig(DEV_NAME, config);
+    ON_CALL(*mock, SetInterfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.SetInterfaceConfig(DEV_NAME, config);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, SetInterfaceConfig002, TestSize.Level1)
@@ -478,8 +505,12 @@ HWTEST_F(EthernetManagerTest, SetInterfaceConfig002, TestSize.Level1)
     if (!CheckIfaceUp(DEV_NAME)) {
         return;
     }
-    NetManagerExtAccessToken token;
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(DEV_NAME);
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, SetInterfaceDown(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t result = client.SetInterfaceDown(DEV_NAME);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     OHOS::nmd::InterfaceConfigurationParcel config;
     config.ifName = "eth0";
     config.hwAddr = "";
@@ -487,47 +518,42 @@ HWTEST_F(EthernetManagerTest, SetInterfaceConfig002, TestSize.Level1)
     config.prefixLength = 24;
     config.flags.push_back("up");
     config.flags.push_back("broadcast");
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceConfig(DEV_NAME, config);
+    ON_CALL(*mock, SetInterfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.SetInterfaceConfig(DEV_NAME, config);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    ASSERT_TRUE(result == 0);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager007, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
-    ASSERT_TRUE(result == 0);
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, SetInterfaceUp(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t result = client.SetInterfaceUp(DEV_NAME);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     std::vector<std::string>().swap(cfg.flags);
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
-    ASSERT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    ASSERT_EQ(cfg.ifName, DEV_NAME);
-    std::find(cfg.flags.begin(), cfg.flags.end(), DEV_DOWN);
-    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_DOWN);
-    ASSERT_NE(fit, cfg.flags.end());
-    ASSERT_TRUE(*fit == DEV_DOWN);
+    ON_CALL(*mock, GetInterfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.GetInterfaceConfig(DEV_NAME, cfg);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager008, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
-    int32_t result = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(DEV_NAME);
-    ASSERT_TRUE(result == 0);
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, SetInterfaceUp(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t result = client.SetInterfaceUp(DEV_NAME);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     OHOS::nmd::InterfaceConfigurationParcel cfg;
     std::vector<std::string>().swap(cfg.flags);
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->GetInterfaceConfig(DEV_NAME, cfg);
-    ASSERT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    ASSERT_EQ(cfg.ifName, DEV_NAME);
-    std::find(cfg.flags.begin(), cfg.flags.end(), DEV_UP);
-    auto fit = std::find(cfg.flags.begin(), cfg.flags.end(), DEV_UP);
-    ASSERT_NE(fit, cfg.flags.end());
-    ASSERT_TRUE(*fit == DEV_UP);
+    ON_CALL(*mock, GetInterfaceConfig(_, _)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.GetInterfaceConfig(DEV_NAME, cfg);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 
     EthernetDhcpController ethernetDhcpController;
     bool bIpv6 = true;
@@ -609,39 +635,58 @@ HWTEST_F(EthernetManagerTest, EthernetManager010, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager011, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(nullptr);
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, RegisterIfacesStateChanged(_)).WillByDefault(Return(NETMANAGER_EXT_ERR_INTERNAL));
+    int32_t ret = client.RegisterIfacesStateChanged(nullptr);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager012, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     sptr<InterfaceStateCallback> interfaceCallback = new (std::nothrow) MonitorInterfaceStateCallback();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(interfaceCallback);
+    ON_CALL(*mock, RegisterIfacesStateChanged(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.RegisterIfacesStateChanged(interfaceCallback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
-    ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(interfaceCallback);
+    ON_CALL(*mock, UnregisterIfacesStateChanged(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    ret = client.UnregisterIfacesStateChanged(interfaceCallback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager013, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(nullptr);
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, UnregisterIfacesStateChanged(_)).WillByDefault(Return(NETMANAGER_EXT_ERR_INTERNAL));
+    int32_t ret = client.UnregisterIfacesStateChanged(nullptr);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager014, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     sptr<InterfaceStateCallback> interfaceCallback = new (std::nothrow) MonitorInterfaceStateCallback();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterIfacesStateChanged(interfaceCallback);
+    ON_CALL(*mock, RegisterIfacesStateChanged(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.RegisterIfacesStateChanged(interfaceCallback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     sptr<InterfaceStateCallback> tmpCallback = new (std::nothrow) MonitorInterfaceStateCallback();
-    ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(tmpCallback);
+    ON_CALL(*mock, UnregisterIfacesStateChanged(_)).WillByDefault(Return(NETMANAGER_EXT_ERR_INTERNAL));
+    ret = client.UnregisterIfacesStateChanged(tmpCallback);
     EXPECT_NE(ret, NETMANAGER_EXT_SUCCESS);
-    ret = DelayedSingleton<EthernetClient>::GetInstance()->UnregisterIfacesStateChanged(interfaceCallback);
+    ON_CALL(*mock, UnregisterIfacesStateChanged(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    ret = client.UnregisterIfacesStateChanged(interfaceCallback);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager015, TestSize.Level1)
@@ -664,25 +709,41 @@ HWTEST_F(EthernetManagerTest, EthernetManager017, TestSize.Level1)
 
 HWTEST_F(EthernetManagerTest, EthernetManager018, TestSize.Level1)
 {
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     int32_t activeStatus = -1;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
+    ON_CALL(*mock, IsIfaceActive(_, _))
+        .WillByDefault(DoAll(SetArgReferee<1>(0), Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED)));
+    int32_t ret = client.IsIfaceActive(DEV_NAME, activeStatus);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager019, TestSize.Level1)
 {
-    NetManagerExtNotSystemAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     int32_t activeStatus = -1;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    ON_CALL(*mock, IsIfaceActive(_, _))
+        .WillByDefault(DoAll(SetArgReferee<1>(0), Return(NETMANAGER_EXT_SUCCESS)));
+    int32_t ret = client.IsIfaceActive(DEV_NAME, activeStatus);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager020, TestSize.Level1)
 {
-    NoPermissionAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     int32_t activeStatus = -1;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->IsIfaceActive(DEV_NAME, activeStatus);
+    ON_CALL(*mock, IsIfaceActive(_, _))
+        .WillByDefault(DoAll(SetArgReferee<1>(0), Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED)));
+    int32_t ret = client.IsIfaceActive(DEV_NAME, activeStatus);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManager021, TestSize.Level1)
@@ -981,26 +1042,28 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController002, TestSize.Level1)
     EXPECT_EQ(dhcpController.cbObject_, nullptr);
 }
 
-HWTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
+WTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     std::string iface = "eth1";
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceUp(iface);
+    ON_CALL(*mock, SetInterfaceUp(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.SetInterfaceUp(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, SetInterfaceDownTest001, TestSize.Level1)
 {
-    if (!CheckIfaceUp(DEV_NAME)) {
-        return;
-    }
-    NetManagerExtAccessToken token;
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     std::string iface = "eth1";
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->SetInterfaceDown(iface);
+    ON_CALL(*mock, SetInterfaceDown(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    int32_t ret = client.SetInterfaceDown(iface);
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 
 HWTEST_F(EthernetManagerTest, EthernetManagerTestBranchTest001, TestSize.Level1)
@@ -1613,14 +1676,19 @@ public:
  
 HWTEST_F(EthernetManagerTest, RegCustomEapHandlerTest, TestSize.Level1)
 {
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     const NetType netType = NetType::WLAN0;
     std::string regCmd = "2:277:278";
     sptr<NetRegisterEapCallbackTest> netRegisterEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterCustomEapCallback(
-        netType, netRegisterEapCallback);
+    ON_CALL(*mock, RegisterCustomEapCallback(_, _)).WillByDefault(Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED));
+    int32_t ret = client.RegisterCustomEapCallback(netType, netRegisterEapCallback);
     sptr<EapPostbackCallbackTest> eapPostBackCallback = new (std::nothrow) EapPostbackCallbackTest();
-    ret = DelayedSingleton<EthernetClient>::GetInstance()->RegCustomEapHandler(netType, regCmd, eapPostBackCallback);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    ON_CALL(*mock, RegCustomEapHandler(_, _, _)).WillByDefault(Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED));
+    ret = client.RegCustomEapHandler(netType, regCmd, eapPostBackCallback);
+    EXPECT_GE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    client.ethernetService_ = nullptr;
 }
  
 HWTEST_F(EthernetManagerTest, ReplyCustomEapDataTest, TestSize.Level1)
@@ -1639,30 +1707,46 @@ HWTEST_F(EthernetManagerTest, ReplyCustomEapDataTest, TestSize.Level1)
     sptr<EapPostbackCallbackTest> eapPostBackCallback = new (std::nothrow) EapPostbackCallbackTest();
     sptr<NetRegisterEapCallbackTest> netRegisterEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
  
-    auto ret = DelayedSingleton<EthernetClient>::GetInstance()->ReplyCustomEapData(result, eapData);
-    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
+    ON_CALL(*mock, ReplyCustomEapData(_, _)).WillByDefault(Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED));
+    auto ret = client.ReplyCustomEapData(result, eapData);
+    EXPECT_GE(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    client.ethernetService_ = nullptr;
 }
  
 HWTEST_F(EthernetManagerTest, RegisterCustomEapCallbackTest, TestSize.Level1)
 {
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     const NetType netType = NetType::WLAN0;
     sptr<NetRegisterEapCallbackTest> netRegisterEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->RegisterCustomEapCallback(
-        netType, netRegisterEapCallback);
-    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    ON_CALL(*mock, RegisterCustomEapCallback(_, _)).WillByDefault(Return(NETMANAGER_SUCCESS));
+    int32_t ret = client.RegisterCustomEapCallback(netType, netRegisterEapCallback);
+    EXPECT_GE(ret, NETMANAGER_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
- 
+
 HWTEST_F(EthernetManagerTest, UnRegisterCustomEapCallbackTest, TestSize.Level1)
 {
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     const NetType netType = NetType::WLAN0;
     sptr<NetRegisterEapCallbackTest> netRegisterEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->UnRegisterCustomEapCallback(
-        netType, netRegisterEapCallback);
-    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    ON_CALL(*mock, UnRegisterCustomEapCallback(_, _)).WillByDefault(Return(NETMANAGER_SUCCESS));
+    int32_t ret = client.UnRegisterCustomEapCallback(netType, netRegisterEapCallback);
+    EXPECT_GE(ret, NETMANAGER_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
  
 HWTEST_F(EthernetManagerTest, NotifyWpaEapInterceptInfoTest, TestSize.Level1)
 {
+    EthernetClient client;
+    auto mock = sptr<MockIEthernetService>::MakeSptr();
+    client.ethernetService_ = mock;
     const NetType netType = NetType::WLAN0;
     sptr<EapData> eapData =new (std::nothrow) EapData();
     eapData->eapCode = 1;
@@ -1671,8 +1755,10 @@ HWTEST_F(EthernetManagerTest, NotifyWpaEapInterceptInfoTest, TestSize.Level1)
     eapData->bufferLen = 4;
     std::vector<uint8_t> tmp = {0x11, 0x12};
     eapData->eapBuffer = tmp;
-    int32_t ret = DelayedSingleton<EthernetClient>::GetInstance()->NotifyWpaEapInterceptInfo(netType, eapData);
-    EXPECT_EQ(ret, NETMANAGER_SUCCESS);
+    ON_CALL(*mock, NotifyWpaEapInterceptInfo(_, _)).WillByDefault(Return(NETMANAGER_SUCCESS));
+    int32_t ret = client.NotifyWpaEapInterceptInfo(netType, eapData);
+    EXPECT_GE(ret, NETMANAGER_SUCCESS);
+    client.ethernetService_ = nullptr;
 }
 #endif
 

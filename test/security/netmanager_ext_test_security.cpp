@@ -168,9 +168,9 @@ HapPolicyParams netManagerExtPolicy = {
     .apl = APL_SYSTEM_BASIC,
     .domain = "test.domain",
     .permList = {getNetworkInfoPermDef, connectivityInternalPermDef, manageVpnPermDef, getNetFirewallPermDef,
-                 setNetFirewallPermDef, enterpriseManageEapPermDef},
+                 setNetFirewallPermDef, enterpriseManageEapPermDef, getMacAddressInfoPermDef},
     .permStateList = {getNetworkInfoState, connectivityInternalState, manageVpnState, getNetFirewallState,
-                      setNetFirewallState, enterpriseManageEapState},
+                      setNetFirewallState, enterpriseManageEapState, getMacAddressInfoState},
 };
 
 PermissionDef testNoPermissionDef = {

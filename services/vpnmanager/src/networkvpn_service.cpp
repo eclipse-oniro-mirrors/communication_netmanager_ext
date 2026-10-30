@@ -2932,17 +2932,30 @@ int32_t NetworkVpnService::RequestVpnPermission(int32_t uid, const std::string& 
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     // LCOV_EXCL_STOP
+    bool isPermissionAuthorized = false;
+    if (bundleName == actualBundleName) {
+        // LCOV_EXCL_START
+        isPermissionAuthorized = CheckVpnExtPermission(uid, bundleName);
+        // LCOV_EXCL_STOP
+    }
+    return ProcessVpnPermissionRequest(uid, bundleName, abilityName, appName, actualBundleName,
+                                       isPermissionAuthorized, isAuthorized);
+}
+
+int32_t NetworkVpnService::ProcessVpnPermissionRequest(int32_t uid, const std::string& bundleName,
+    const std::string& abilityName, const std::string& appName, const std::string& actualBundleName,
+    bool isPermissionAuthorized, bool &isAuthorized)
+{
+    isAuthorized = false;
     if (bundleName != actualBundleName) {
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
 
-    // LCOV_EXCL_START
-    if (CheckVpnExtPermission(uid, bundleName)) {
+    if (isPermissionAuthorized) {
         NETMGR_EXT_LOG_D("VPN permission already authorized for bundleName: %{public}s", bundleName.c_str());
         isAuthorized = true;
         return NETMANAGER_EXT_SUCCESS;
     }
-    // LCOV_EXCL_STOP
     NETMGR_EXT_LOG_I("VPN permission not authorized, show VPN dialog for bundleName: %{public}s", bundleName.c_str());
     bool isPermissionCheckDefaultOpen =
         (system::GetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true") == "true");

@@ -31,6 +31,7 @@
 #include "ethernet_service.h"
 #include "netmanager_ext_test_security.h"
 #include "net_manager_constants.h"
+#include "common_mock_netmanager_permission.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -62,6 +63,11 @@ public:
 
     void SetUp() override
     {
+        // Device-realistic baseline for the in-process permission mock (system caller
+        // passes, permission checks fail), so the EAP service permission rejections are
+        // deterministic instead of depending on the device AccessToken environment.
+        SetMockIsSystemCallerResult(true);
+        SetMockCheckPermissionResult(false);
         ResetEnvironment();
     }
     void TearDown() override

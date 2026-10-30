@@ -16,9 +16,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <cerrno>
+#include <chrono>
 #include <fcntl.h>
+#include <future>
 #include <sys/resource.h>
 #include <sys/socket.h>
+#include <thread>
 #include <unistd.h>
 
 #include <securec.h>
@@ -983,54 +986,118 @@ HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest002, TestSize.Level1)
 
 HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest001, TestSize.Level1)
 {
+    // Inner function, mismatch branch: bundleName differs from the actual bundle name of
+    // the uid -> permission denied. The outer entry (IsSystemCaller/GetAppNameByUid/
+    // CheckVpnExtPermission) is environment dependent and covered by device tests.
     auto vpnService = std::make_shared<NetworkVpnService>();
     int32_t uid = 1000;
     std::string bundleName = "com.test.bundle";
     std::string abilityName = "VpnServiceExtAbility";
+    std::string appName = "TestApp";
+    std::string actualBundleName = "com.other.bundle";
     bool isAuthorized = true;
-    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    int32_t result = vpnService->ProcessVpnPermissionRequest(uid, bundleName, abilityName, appName,
+                                                             actualBundleName, false, isAuthorized);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
     EXPECT_FALSE(isAuthorized);
 }
 
 HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest002, TestSize.Level1)
 {
+    // Inner function: bundle not in the allow-start-without-check set.
     auto vpnService = std::make_shared<NetworkVpnService>();
     int32_t uid = 1099;
-    std::string bundleName = "";
+    std::string bundleName = "com.test.bundle";
     std::string abilityName = "VpnServiceExtAbility";
+    std::string appName = "TestApp";
     bool isAuthorized = true;
-    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+
+    // already authorized -> success, authorized, no dialog flow
+    int32_t result = vpnService->ProcessVpnPermissionRequest(uid, bundleName, abilityName, appName, bundleName,
+                                                             true, isAuthorized);
+    EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(isAuthorized);
+
+    // not authorized + default check open -> success but not authorized
+    isAuthorized = true;
+    OHOS::system::SetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true");
+    result = vpnService->ProcessVpnPermissionRequest(uid, bundleName, abilityName, appName, bundleName, false,
+                                                     isAuthorized);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     EXPECT_FALSE(isAuthorized);
+
+    // not authorized + default check closed -> success and authorized
+    OHOS::system::SetParameter("persist.vpn.isPermissionCheckDefaultOpen", "false");
+    std::string current = OHOS::system::GetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true");
+    if (current == "false") {
+        // the local parameter backend is available (device); on hosts without it the
+        // parameter keeps its default and this sub-branch is covered by device runs only
+        isAuthorized = false;
+        result = vpnService->ProcessVpnPermissionRequest(uid, bundleName, abilityName, appName, bundleName, false,
+                                                         isAuthorized);
+        EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
+        EXPECT_TRUE(isAuthorized);
+    }
+    OHOS::system::SetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true");
 }
 
 HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest003, TestSize.Level1)
 {
+    // Inner function: bundle in the allow-start-without-check set -> dialog flow, dialog fails.
     auto vpnService = std::make_shared<MockNetworkVpnService>();
-    EXPECT_CALL(*vpnService, ShowVpnDialog(_, _, _, _)).WillRepeatedly(Return(false));
+    std::promise<void> dialogDone;
+    auto dialogDoneFuture = dialogDone.get_future();
+    EXPECT_CALL(*vpnService, ShowVpnDialog(_, _, _, _))
+        .WillOnce(InvokeWithoutArgs([&dialogDone]() {
+            dialogDone.set_value();
+            return false;
+        }));
     int32_t uid = 1099;
-    std::string bundleName = "";
+    std::string bundleName = "com.test.bundle";
     std::string abilityName = "VpnServiceExtAbility";
+    std::string appName = "TestApp";
     bool isAuthorized = false;
-    vpnService->allowVpnStartWithoutCheckPermissions_.emplace("");
-    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    OHOS::system::SetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true");
+    vpnService->allowVpnStartWithoutCheckPermissions_.emplace(bundleName);
+    int32_t result = vpnService->ProcessVpnPermissionRequest(uid, bundleName, abilityName, appName, bundleName,
+                                                             false, isAuthorized);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     EXPECT_TRUE(isAuthorized);
+    // wait for the async dialog task to reach the mock before the test (and the mock
+    // service) is destroyed, otherwise the ffrt task may run into a destroyed mock
+    EXPECT_EQ(dialogDoneFuture.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    // let the trailing StopVpnExtensionAbility call finish as well before teardown
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    OHOS::system::SetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true");
 }
 
 HWTEST_F(NetworkVpnServiceTest, RequestVpnPermissionTest004, TestSize.Level1)
 {
+    // Inner function: bundle in the allow-start-without-check set -> dialog flow, dialog succeeds.
     auto vpnService = std::make_shared<MockNetworkVpnService>();
-    EXPECT_CALL(*vpnService, ShowVpnDialog(_, _, _, _)).WillRepeatedly(Return(true));
+    std::promise<void> dialogDone;
+    auto dialogDoneFuture = dialogDone.get_future();
+    EXPECT_CALL(*vpnService, ShowVpnDialog(_, _, _, _))
+        .WillOnce(InvokeWithoutArgs([&dialogDone]() {
+            dialogDone.set_value();
+            return true;
+        }));
     int32_t uid = 1099;
-    std::string bundleName = "";
+    std::string bundleName = "com.test.bundle";
     std::string abilityName = "VpnServiceExtAbility";
+    std::string appName = "TestApp";
     bool isAuthorized = false;
-    vpnService->allowVpnStartWithoutCheckPermissions_.emplace("");
-    int32_t result = vpnService->RequestVpnPermission(uid, bundleName, abilityName, isAuthorized);
+    OHOS::system::SetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true");
+    vpnService->allowVpnStartWithoutCheckPermissions_.emplace(bundleName);
+    int32_t result = vpnService->ProcessVpnPermissionRequest(uid, bundleName, abilityName, appName, bundleName,
+                                                             false, isAuthorized);
     EXPECT_EQ(result, NETMANAGER_EXT_SUCCESS);
     EXPECT_TRUE(isAuthorized);
+    // wait for the async dialog task to reach the mock before the test (and the mock
+    // service) is destroyed, otherwise the ffrt task may run into a destroyed mock
+    EXPECT_EQ(dialogDoneFuture.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    OHOS::system::SetParameter("persist.vpn.isPermissionCheckDefaultOpen", "true");
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnAbilityDisconnectDone001, TestSize.Level1)

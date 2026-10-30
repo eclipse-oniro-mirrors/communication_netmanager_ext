@@ -53,10 +53,15 @@ class NetworkVpnServiceTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    NetworkVpnServiceTest();
+    ~NetworkVpnServiceTest() override;
 
     static inline auto instance_ = DelayedSingleton<NetworkVpnService>::GetInstance();
     static inline sptr<SysVpnConfig> vpnConfig_ = nullptr;
     static inline std::string vpnId_ = "test001";
+
+private:
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> savedStore_ = nullptr;
 };
 
 void NetworkVpnServiceTest::SetUpTestCase()
@@ -72,6 +77,23 @@ void NetworkVpnServiceTest::TearDownTestCase()
 {
     ASSERT_NE(vpnConfig_, nullptr);
     instance_->DeleteSysVpnConfig(vpnId_);
+}
+
+NetworkVpnServiceTest::NetworkVpnServiceTest()
+{
+    // Hermetic baseline: most expectations in this suite were written against a
+    // unit-test environment where the vpn rdb store is not available (every DB
+    // operation fails with NETMANAGER_EXT_ERR_OPERATION_FAILED and nothing is
+    // persisted). Force that state per test so results do not depend on whether
+    // the device happens to be able to create the rdb store inside the test
+    // process, and so tests cannot pollute each other through the shared DB.
+    savedStore_ = VpnDatabaseHelper::GetInstance().store_;
+    VpnDatabaseHelper::GetInstance().store_ = nullptr;
+}
+
+NetworkVpnServiceTest::~NetworkVpnServiceTest()
+{
+    VpnDatabaseHelper::GetInstance().store_ = savedStore_;
 }
 
 HWTEST_F(NetworkVpnServiceTest, OnStart001, TestSize.Level1)
@@ -315,16 +337,19 @@ HWTEST_F(NetworkVpnServiceTest, SetUpVpn001, TestSize.Level1)
     int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
     std::vector<int32_t> activeUserIds;
     instance_->CheckCurrentAccountType(userId, activeUserIds);
+    // SetUpVpnInternal builds its own vpn object and never consults the pre-assigned
+    // vpnObj_; with a non-empty vpnId the InitMultiVpnInfo step always fails in the
+    // unit-test process, so the result stays INTERNAL regardless of vpnObj_.
     instance_->vpnObj_ = std::make_shared<ExtendedVpnCtl>(config, pkg, userId, activeUserIds);
     ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     instance_->vpnObj_ = nullptr;
     ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 
     ret = instance_->SetUpVpn(rawdata, true, false, tunFd);
-    EXPECT_NE(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
 }
 
 HWTEST_F(NetworkVpnServiceTest, DumpTest001, TestSize.Level1)

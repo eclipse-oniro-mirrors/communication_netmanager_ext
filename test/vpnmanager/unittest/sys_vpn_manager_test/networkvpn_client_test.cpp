@@ -77,12 +77,18 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
     config->vpnId_ = "123";
     config->vpnName_ = "testSetUpVpn";
     config->vpnType_ = 1;
+    // The SysVpnConfig SetUpVpn path is a verbatim passthrough to the service proxy; the
+    // real permission check happens in the (device image) service process via real IPC
+    // and is environment dependent, so a mock service proxy is injected instead.
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    networkVpnClient_.networkVpnService_ = mock;
+    ON_CALL(*mock, SetUpSysVpn(_, _)).WillByDefault(Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED));
     ret = networkVpnClient_.SetUpVpn(config, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
-
-    NetManagerExtAccessToken access;
+    ON_CALL(*mock, SetUpSysVpn(_, _)).WillByDefault(Return(NETMANAGER_EXT_ERR_INTERNAL));
     ret = networkVpnClient_.SetUpVpn(config, false);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_INTERNAL);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
@@ -102,23 +108,30 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig001, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
     std::string id = "1234";
     sptr<SysVpnConfig> config = nullptr;
     int32_t ret = networkVpnClient_.AddSysVpnConfig(config);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+    // Client-side passthrough coverage via an injected mock service proxy: no real IPC,
+    // no dependence on the device image permission behavior.
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    networkVpnClient_.networkVpnService_ = mock;
     config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
+    ON_CALL(*mock, AddSysVpnConfig(_)).WillByDefault(Return(NETMANAGER_EXT_ERR_READ_DATA_FAIL));
     ret = networkVpnClient_.AddSysVpnConfig(config);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_READ_DATA_FAIL || ret == 5);
+    EXPECT_EQ(ret, NETMANAGER_EXT_ERR_READ_DATA_FAIL);
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
+    ON_CALL(*mock, AddSysVpnConfig(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
     ret = networkVpnClient_.AddSysVpnConfig(config);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     // delete test config
+    ON_CALL(*mock, DeleteSysVpnConfig(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
     auto ret2 = networkVpnClient_.DeleteSysVpnConfig(id);
-    EXPECT_TRUE(ret2 == NETMANAGER_EXT_SUCCESS || ret2 == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(ret2, NETMANAGER_EXT_SUCCESS);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig002, TestSize.Level1)
@@ -157,21 +170,27 @@ HWTEST_F(NetworkVpnClientTest, AddSysVpnConfig004, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig001, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
     std::string id = "1234";
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     config->vpnId_ = id;
     config->vpnName_ = "test";
     config->vpnType_ = 1;
+    // Mock service proxy: the add/delete passthrough is deterministic and no real IPC
+    // permission behavior of the device image is involved.
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    networkVpnClient_.networkVpnService_ = mock;
+    ON_CALL(*mock, AddSysVpnConfig(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    ON_CALL(*mock, DeleteSysVpnConfig(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
     auto ret = networkVpnClient_.AddSysVpnConfig(config);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     // delete test config
     std::string emptyStr;
     int32_t ret2 = networkVpnClient_.DeleteSysVpnConfig(emptyStr);
     EXPECT_EQ(ret2, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     auto ret3 = networkVpnClient_.DeleteSysVpnConfig(id);
-    EXPECT_TRUE(ret3 == NETMANAGER_EXT_SUCCESS || ret3 == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(ret3, NETMANAGER_EXT_SUCCESS);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig002, TestSize.Level1)
@@ -183,25 +202,38 @@ HWTEST_F(NetworkVpnClientTest, DeleteSysVpnConfig002, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList001, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
     std::vector<sptr<SysVpnConfig>> list;
+    // Mock service proxy: deterministic passthrough result, no real IPC.
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    networkVpnClient_.networkVpnService_ = mock;
+    ON_CALL(*mock, GetSysVpnConfigList(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
     auto ret = networkVpnClient_.GetSysVpnConfigList(list);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_ERR_OPERATION_FAILED || ret == NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, GetSysVpnConfigList002, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
     std::vector<sptr<SysVpnConfig>> list;
     sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
     ASSERT_NE(config, nullptr);
     config->vpnId_ = "testGetList";
     config->vpnName_ = "testList";
     config->vpnType_ = 1;
+    // Mock service proxy: add then list, with the list content fed back through the
+    // out parameter; deterministic, no real IPC.
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    networkVpnClient_.networkVpnService_ = mock;
+    ON_CALL(*mock, AddSysVpnConfig(_)).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    std::vector<sptr<SysVpnConfig>> mockList = {config};
+    ON_CALL(*mock, GetSysVpnConfigList(_))
+        .WillByDefault(DoAll(SetArgReferee<0>(mockList), Return(NETMANAGER_EXT_SUCCESS)));
     auto ret = networkVpnClient_.AddSysVpnConfig(config);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_OPERATION_FAILED);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
     auto ret2 = networkVpnClient_.GetSysVpnConfigList(list);
-    EXPECT_TRUE(ret2 == NETMANAGER_EXT_ERR_OPERATION_FAILED || ret2 == NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(ret2, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(list.size(), 1UL);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig001, TestSize.Level1)
@@ -223,10 +255,18 @@ HWTEST_F(NetworkVpnClientTest, GetSysVpnConfig002, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, GetConnectedSysVpnConfig001, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
     sptr<SysVpnConfig> resConfig = nullptr;
+    sptr<SysVpnConfig> config = new (std::nothrow) IpsecVpnConfig();
+    ASSERT_NE(config, nullptr);
+    // Mock service proxy: deterministic result and out-param passthrough, no real IPC.
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    networkVpnClient_.networkVpnService_ = mock;
+    ON_CALL(*mock, GetConnectedSysVpnConfig(_))
+        .WillByDefault(DoAll(SetArgReferee<0>(config), Return(NETMANAGER_EXT_SUCCESS)));
     auto ret = networkVpnClient_.GetConnectedSysVpnConfig(resConfig);
-    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == 5);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(resConfig, config);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, NotifyConnectStage001, TestSize.Level1)
@@ -575,9 +615,18 @@ HWTEST_F(NetworkVpnClientTest, GetSelfAppNameTest_01, TestSize.Level1)
 HWTEST_F(NetworkVpnClientTest, GetConnectedVpnAppInfo_01, TestSize.Level1)
 {
     std::vector<std::string> bundleNameList;
+    // Mock service proxy: the denied/allowed results are fed through the mock so the
+    // case does not depend on the device image permission behavior.
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    networkVpnClient_.networkVpnService_ = mock;
+    ON_CALL(*mock, GetConnectedVpnAppInfo(_)).WillByDefault(Return(NETMANAGER_EXT_ERR_PERMISSION_DENIED));
     EXPECT_EQ(networkVpnClient_.GetConnectedVpnAppInfo(bundleNameList), NETMANAGER_EXT_ERR_PERMISSION_DENIED);
-    NetManagerExtAccessToken access;
+    std::vector<std::string> mockList = {"com.example.vpn"};
+    ON_CALL(*mock, GetConnectedVpnAppInfo(_))
+        .WillByDefault(DoAll(SetArgReferee<0>(mockList), Return(NETMANAGER_EXT_SUCCESS)));
     EXPECT_EQ(networkVpnClient_.GetConnectedVpnAppInfo(bundleNameList), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(bundleNameList.size(), 1UL);
+    networkVpnClient_.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, RegisterMultiVpnEvent_01, TestSize.Level1)
