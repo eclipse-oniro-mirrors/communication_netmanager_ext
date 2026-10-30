@@ -205,6 +205,7 @@ napi_value RegisterVpnModule(napi_env env, napi_value exports)
                                 {
                                     DECLARE_NAPI_FUNCTION(SET_UP, VpnConnection::SetUp),
                                     DECLARE_NAPI_FUNCTION(PROTECT, VpnConnection::Protect),
+                                    DECLARE_NAPI_FUNCTION(PROTECT_SYNC, VpnConnection::ProtectSync),
                                     DECLARE_NAPI_FUNCTION(DESTROY, VpnConnection::Destroy),
                                 },
                                 VPN_CONNECTION);

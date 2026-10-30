@@ -36,6 +36,7 @@
 
 #include "net_manager_constants.h"
 #include "networkvpn_service.h"
+#include "protect_context.h"
 #include "vpn_event_callback_stub.h"
 #include "vpn_fd_channel.h"
 #include "system_ability_definition.h"
@@ -950,6 +951,56 @@ HWTEST_F(NetworkVpnServiceTest, VpnExtensionAbilityTest001, TestSize.Level1)
     OHOS::AAFwk::Want want;
     EXPECT_NE(instance_->StartVpnExtensionAbility(want), ERR_OK);
     EXPECT_NE(instance_->StopVpnExtensionAbility(want), ERR_OK);
+}
+
+/**
+ * @tc.name: ProtectSyncContextParseParams001
+ * @tc.desc: Verify protectSync rejects a call without a socket fd.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkVpnServiceTest, ProtectSyncContextParseParams001, TestSize.Level1)
+{
+    std::shared_ptr<EventManager> manager;
+    ProtectSyncContext context(nullptr, manager);
+
+    context.ParseParams(nullptr, 0);
+
+    EXPECT_FALSE(context.IsParseOK());
+    EXPECT_EQ(context.socketFd_, -1);
+}
+
+/**
+ * @tc.name: ProtectSyncContextParseParams002
+ * @tc.desc: Verify protectSync rejects the asynchronous callback overload.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkVpnServiceTest, ProtectSyncContextParseParams002, TestSize.Level1)
+{
+    std::shared_ptr<EventManager> manager;
+    ProtectSyncContext context(nullptr, manager);
+    napi_value params[] = { nullptr, nullptr };
+
+    context.ParseParams(params, 2);
+
+    EXPECT_FALSE(context.IsParseOK());
+    EXPECT_EQ(context.socketFd_, -1);
+}
+
+/**
+ * @tc.name: ProtectSyncContextParseParams003
+ * @tc.desc: Verify protectSync delegates single-argument type validation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkVpnServiceTest, ProtectSyncContextParseParams003, TestSize.Level1)
+{
+    std::shared_ptr<EventManager> manager;
+    ProtectSyncContext context(nullptr, manager);
+    napi_value params[] = { nullptr };
+
+    context.ParseParams(params, 1);
+
+    EXPECT_FALSE(context.IsParseOK());
+    EXPECT_EQ(context.socketFd_, -1);
 }
 
 HWTEST_F(NetworkVpnServiceTest, IsNeedNotifyTest001, TestSize.Level1)
