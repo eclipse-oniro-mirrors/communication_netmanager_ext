@@ -3068,10 +3068,10 @@ int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
 
     int32_t ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, serverKey, value);
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOGE("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
+        NETMGR_EXT_LOG_E("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
             serverKey.c_str(), ret);
     } else {
-        NETMGR_EXT_LOGI("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
+        NETMGR_EXT_LOG_I("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
     }
 
     return ret;
