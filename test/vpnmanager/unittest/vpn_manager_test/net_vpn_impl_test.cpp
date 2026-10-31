@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <iterator>
 #include <memory>
 
 #include "route.h"
@@ -97,6 +98,132 @@ HWTEST_F(NetVpnImplTest, Destroy, TestSize.Level1)
 HWTEST_F(NetVpnImplTest, IsVpnConnecting, TestSize.Level1)
 {
     EXPECT_EQ(netVpnImpl_->IsVpnConnecting(), false);
+}
+
+HWTEST_F(NetVpnImplTest, UpdateDnsFamilyCapability001, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    netVpnImpl_->vpnConfig_->isAcceptIPv4_ = true;
+    netVpnImpl_->vpnConfig_->isAcceptIPv6_ = true;
+    sptr<NetLinkInfo> linkInfo = new (std::nothrow) NetLinkInfo();
+    ASSERT_NE(linkInfo, nullptr);
+
+    INetAddr ipv4Address;
+    ipv4Address.address_ = "10.0.0.2";
+    INetAddr ipv6Address;
+    ipv6Address.address_ = "2001:db8::2";
+    linkInfo->netAddrList_ = {ipv4Address, ipv6Address};
+    Route ipv4Route;
+    ipv4Route.destination_.address_ = "0.0.0.0";
+    Route ipv6Route;
+    ipv6Route.destination_.address_ = "::";
+    linkInfo->routeList_ = {ipv4Route, ipv6Route};
+
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv6Enable_);
+
+    auto ipv6RouteIt = std::next(linkInfo->routeList_.begin());
+    ipv6RouteIt->isExcludedRoute_ = true;
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv6Enable_);
+
+    ipv6RouteIt->isExcludedRoute_ = false;
+    linkInfo->netAddrList_.erase(linkInfo->netAddrList_.begin());
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv6Enable_);
+
+    netVpnImpl_->vpnConfig_->isAcceptIPv6_ = false;
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv6Enable_);
+}
+
+HWTEST_F(NetVpnImplTest, UpdateDnsFamilyCapabilityMissingInputs, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    netVpnImpl_->dnsIpv4Enable_ = true;
+    netVpnImpl_->dnsIpv6Enable_ = true;
+    netVpnImpl_->UpdateDnsFamilyCapability(nullptr);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv6Enable_);
+
+    sptr<NetLinkInfo> linkInfo = new (std::nothrow) NetLinkInfo();
+    ASSERT_NE(linkInfo, nullptr);
+    netVpnImpl_->vpnConfig_ = nullptr;
+    netVpnImpl_->dnsIpv4Enable_ = true;
+    netVpnImpl_->dnsIpv6Enable_ = true;
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv6Enable_);
+}
+
+HWTEST_F(NetVpnImplTest, UpdateDnsFamilyCapabilityRouteAndAcceptance, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    netVpnImpl_->vpnConfig_->isAcceptIPv4_ = true;
+    netVpnImpl_->vpnConfig_->isAcceptIPv6_ = true;
+    sptr<NetLinkInfo> linkInfo = new (std::nothrow) NetLinkInfo();
+    ASSERT_NE(linkInfo, nullptr);
+    INetAddr ipv4Address;
+    ipv4Address.address_ = "10.0.0.2";
+    INetAddr ipv6Address;
+    ipv6Address.address_ = "2001:db8::2";
+    linkInfo->netAddrList_ = {ipv4Address, ipv6Address};
+
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv6Enable_);
+
+    Route ipv4Route;
+    ipv4Route.destination_.address_ = "0.0.0.0";
+    linkInfo->routeList_ = {ipv4Route};
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv6Enable_);
+
+    linkInfo->routeList_.front().isExcludedRoute_ = true;
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+    linkInfo->routeList_.front().isExcludedRoute_ = false;
+    linkInfo->routeList_.front().rtnType_ = RTN_UNREACHABLE;
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+    linkInfo->routeList_.front().rtnType_ = RTN_UNICAST;
+    linkInfo->routeList_.front().destination_.address_ = "not-an-ip";
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+
+    linkInfo->routeList_.front().destination_.address_ = "0.0.0.0";
+    netVpnImpl_->vpnConfig_->isAcceptIPv4_ = false;
+    netVpnImpl_->UpdateDnsFamilyCapability(linkInfo);
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+}
+
+HWTEST_F(NetVpnImplTest, UpdateNetLinkInfoDnsFamilyCapability, TestSize.Level1)
+{
+    netVpnImpl_->vpnConfig_ = new (std::nothrow) VpnConfig();
+    ASSERT_NE(netVpnImpl_->vpnConfig_, nullptr);
+    netVpnImpl_->vpnConfig_->isAcceptIPv4_ = true;
+    netVpnImpl_->vpnConfig_->isAcceptIPv6_ = true;
+    INetAddr ipv4Address;
+    ipv4Address.address_ = "10.0.0.2";
+    INetAddr ipv6Address;
+    ipv6Address.address_ = "2001:db8::2";
+    netVpnImpl_->vpnConfig_->addresses_ = {ipv4Address, ipv6Address};
+
+    ASSERT_TRUE(netVpnImpl_->UpdateNetLinkInfo());
+    EXPECT_TRUE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv6Enable_);
+
+    netVpnImpl_->vpnConfig_->addresses_.erase(netVpnImpl_->vpnConfig_->addresses_.begin());
+    ASSERT_TRUE(netVpnImpl_->UpdateNetLinkInfo());
+    EXPECT_FALSE(netVpnImpl_->dnsIpv4Enable_);
+    EXPECT_TRUE(netVpnImpl_->dnsIpv6Enable_);
 }
 
 HWTEST_F(NetVpnImplTest, RegisterConnectStateChangedCb001, TestSize.Level1)

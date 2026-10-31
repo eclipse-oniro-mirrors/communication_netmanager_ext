@@ -168,6 +168,7 @@ export default namespace vpn {
     setUp(config: VpnConfig): Promise<int>;
     protect(socketFd: int, callback: AsyncCallback<void>): void;
     protect(socketFd: int): Promise<void>;
+    protectSync(socketFd: int): void;
     destroy(callback: AsyncCallback<void>): void;
     destroy(): Promise<void>;
   }

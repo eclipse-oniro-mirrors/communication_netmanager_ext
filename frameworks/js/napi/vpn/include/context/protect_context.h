@@ -35,6 +35,13 @@ public:
 public:
     int32_t socketFd_ = -1;
 };
+
+class ProtectSyncContext final : public ProtectContext {
+public:
+    using ProtectContext::ProtectContext;
+
+    void ParseParams(napi_value *params, size_t paramsCount);
+};
 } // namespace NetManagerStandard
 } // namespace OHOS
 #endif // VPN_PROTECT_CONTEXT_H

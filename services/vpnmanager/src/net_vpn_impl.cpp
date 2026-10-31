@@ -15,6 +15,7 @@
 
 #include "net_vpn_impl.h"
 
+#include <algorithm>
 #include <list>
 
 #include "bundle_mgr_client.h"
@@ -248,6 +249,11 @@ int32_t NetVpnImpl::SetUp(bool isInternalChannel)
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
+    if (NetsysController::GetInstance().SetNetworkDnsFamilyCapability(
+        static_cast<uint16_t>(netId_), dnsIpv4Enable_, dnsIpv6Enable_) != NETMANAGER_SUCCESS) {
+        NETMGR_EXT_LOG_E("vpn set DNS family capability failed, continue VPN setup");
+    }
+
     isInternalChannel_ = isInternalChannel;
     priorityId_ = GetVpnInterffaceToId(GetInterfaceName());
 
@@ -469,6 +475,7 @@ bool NetVpnImpl::UpdateNetLinkInfo()
             AdjustRouteInfo(route);
         }
     }
+    UpdateDnsFamilyCapability(linkInfo);
 
     for (auto dnsServer : vpnConfig_->dnsAddresses_) {
         INetAddr dns;
@@ -490,6 +497,35 @@ bool NetVpnImpl::UpdateNetLinkInfo()
     linkInfo->mtu_ = vpnConfig_->mtu_;
     NetManagerCenter::GetInstance().UpdateNetLinkInfo(netSupplierId_, linkInfo);
     return true;
+}
+
+void NetVpnImpl::UpdateDnsFamilyCapability(const sptr<NetLinkInfo> &linkInfo)
+{
+    if (linkInfo == nullptr || vpnConfig_ == nullptr) {
+        dnsIpv4Enable_ = false;
+        dnsIpv6Enable_ = false;
+        return;
+    }
+    bool hasIpv4Address = std::any_of(linkInfo->netAddrList_.begin(), linkInfo->netAddrList_.end(),
+        [](const INetAddr &address) { return CommonUtils::IsValidIPV4(address.address_); });
+    bool hasIpv6Address = std::any_of(linkInfo->netAddrList_.begin(), linkInfo->netAddrList_.end(),
+        [](const INetAddr &address) { return CommonUtils::IsValidIPV6(address.address_); });
+    bool hasIpv4Route = linkInfo->routeList_.empty() ||
+        std::any_of(linkInfo->routeList_.begin(), linkInfo->routeList_.end(),
+            [](const Route &route) {
+                return !route.isExcludedRoute_ && route.rtnType_ == RTN_UNICAST &&
+                    CommonUtils::IsValidIPV4(route.destination_.address_);
+            });
+    bool hasIpv6Route = linkInfo->routeList_.empty() ||
+        std::any_of(linkInfo->routeList_.begin(), linkInfo->routeList_.end(),
+            [](const Route &route) {
+                return !route.isExcludedRoute_ && route.rtnType_ == RTN_UNICAST &&
+                    CommonUtils::IsValidIPV6(route.destination_.address_);
+            });
+    dnsIpv4Enable_ = vpnConfig_->isAcceptIPv4_ && hasIpv4Address && hasIpv4Route;
+    dnsIpv6Enable_ = vpnConfig_->isAcceptIPv6_ && hasIpv6Address && hasIpv6Route;
+    NETMGR_EXT_LOG_I("VPN DNS family capability: ipv4[%{public}d], ipv6[%{public}d]",
+        dnsIpv4Enable_, dnsIpv6Enable_);
 }
 
 void NetVpnImpl::SetIpv4DefaultRoute(Route &ipv4DefaultRoute)

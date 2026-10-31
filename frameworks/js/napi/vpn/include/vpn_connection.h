@@ -27,6 +27,7 @@ constexpr const char *VPN_CONNECTION = "VpnConnection";
 constexpr const char *PREPARE = "prepare";
 constexpr const char *SET_UP = "setUp";
 constexpr const char *PROTECT = "protect";
+constexpr const char *PROTECT_SYNC = "protectSync";
 constexpr const char *DESTROY = "destroy";
 } // namespace
 
@@ -34,6 +35,7 @@ namespace VpnConnection {
 napi_value Prepare(napi_env env, napi_callback_info info);
 napi_value SetUp(napi_env env, napi_callback_info info);
 napi_value Protect(napi_env env, napi_callback_info info);
+napi_value ProtectSync(napi_env env, napi_callback_info info);
 napi_value Destroy(napi_env env, napi_callback_info info);
 } // namespace VpnConnection
 } // namespace NetManagerStandard

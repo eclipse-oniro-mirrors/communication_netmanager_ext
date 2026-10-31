@@ -57,5 +57,16 @@ void ProtectContext::ParseParams(napi_value *params, size_t paramsCount)
     }
     SetParseOK(true);
 }
+
+void ProtectSyncContext::ParseParams(napi_value *params, size_t paramsCount)
+{
+    if (paramsCount != PARAM_JUST_OPTIONS) {
+        NETMANAGER_EXT_LOGE("protectSync requires one argument");
+        SetErrorCode(NETMANAGER_EXT_ERR_PARAMETER_ERROR);
+        SetNeedThrowException(true);
+        return;
+    }
+    ProtectContext::ParseParams(params, paramsCount);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
