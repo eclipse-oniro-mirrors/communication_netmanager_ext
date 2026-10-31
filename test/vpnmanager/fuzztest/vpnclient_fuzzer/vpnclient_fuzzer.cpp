@@ -285,6 +285,22 @@ void StopVpnExtensionAbilityFuzzTest(const uint8_t *data, size_t size)
     }
     OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_STOP_VPN_EXTENSION_ABILITY, dataParcel);
 }
+
+void GetConnectedVpnConfigListFuzzTest(const uint8_t *data, size_t size)
+{
+    if (!InitGlobalData(data, size)) {
+        return;
+    }
+    NetManagerExtAccessToken token;
+    MessageParcel dataParcel;
+    if (!dataParcel.WriteInterfaceToken(NetworkVpnServiceStub::GetDescriptor())) {
+        return;
+    }
+    if (!dataParcel.WriteInt32(GetData<int32_t>())) {
+        return;
+    }
+    OnRemoteRequest(INetworkVpnServiceIpcCode::COMMAND_GET_CONNECTED_VPN_CONFIG_LIST, dataParcel);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS
 
@@ -300,5 +316,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::NetManagerStandard::UnregisterVpnEventFuzzTest(data, size);
     OHOS::NetManagerStandard::StartVpnExtensionAbilityFuzzTest(data, size);
     OHOS::NetManagerStandard::StopVpnExtensionAbilityFuzzTest(data, size);
+    OHOS::NetManagerStandard::GetConnectedVpnConfigListFuzzTest(data, size);
     return 0;
 }
