@@ -3035,7 +3035,6 @@ int32_t NetworkVpnService::GetVpnConfigToAnco(std::vector<std::string>& dnsAddre
 
 int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
 {
-#ifdef ENABLE_VPN_FOR_USER0
     if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_VPN)) {
         NETMGR_EXT_LOG_E("UpdateVpnPermission permission denied");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -3049,12 +3048,8 @@ int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
     int32_t uid = IPCSkeleton::GetCallingUid();
     std::string actualBundleName;
     std::string appName;
-    if (GetAppNameByUid(uid, appName, actualBundleName) != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("UpdateVpnPermission: GetAppNameByUid failed for uid=%{public}d", uid);
-        return NETMANAGER_EXT_ERR_INTERNAL;
-    }
-    if (actualBundleName.empty()) {
-        NETMGR_EXT_LOG_E("UpdateVpnPermission: actualBundleName is empty");
+    if (GetAppNameByUid(uid, appName, actualBundleName) != NETMANAGER_EXT_SUCCESS || actualBundleName.empty()) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission: GetAppNameByUid failed or empty bundleName for uid=%{public}d", uid);
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
 
@@ -3066,18 +3061,32 @@ int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
     }
 #endif
 
-    int32_t ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, serverKey, value);
-    if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMGR_EXT_LOG_E("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
-            serverKey.c_str(), ret);
+    int32_t ret = NETMANAGER_EXT_SUCCESS;
+    std::string currentValue;
+    if (NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, serverKey, currentValue) == NETMANAGER_EXT_SUCCESS
+        && currentValue == value) {
+        NETMGR_EXT_LOGI("UpdateVpnPermission value unchanged, skip write, key=%{public}s", serverKey.c_str());
     } else {
-        NETMGR_EXT_LOG_I("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
+        ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, serverKey, value);
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOGE("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
+                serverKey.c_str(), ret);
+            return ret;
+        }
+        NETMGR_EXT_LOGI("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
+    }
+    {
+        std::unique_lock<ffrt::shared_mutex> lock(vpnExtPermissionCacheMutex_);
+        if (value == "1") {
+            vpnExtPermissionCache_[serverKey] = true;
+            vpnExtPermissionCache_[actualBundleName] = true;
+        } else {
+            vpnExtPermissionCache_.erase(serverKey);
+            vpnExtPermissionCache_.erase(actualBundleName);
+        }
     }
 
     return ret;
-#else
-    return 0;
-#endif
 }
 
 int32_t NetworkVpnService::GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList)
