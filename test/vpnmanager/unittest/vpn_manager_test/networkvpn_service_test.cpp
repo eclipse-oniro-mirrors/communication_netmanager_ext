@@ -1337,6 +1337,23 @@ HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow004, TestSize.Level1)
     EXPECT_FALSE(hasPermission);
 }
 
+HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow005, TestSize.Level1)
+{
+    auto vpnService = std::make_shared<NetworkVpnService>();
+    std::string bundleName = "com.test.enterprise";
+    NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "1");
+    bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
+    EXPECT_TRUE(hasPermission);
+    int32_t ret = vpnService->UpdateVpnPermission("0");
+    EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_INTERNAL);
+    if (ret == NETMANAGER_EXT_SUCCESS) {
+        bool hasPermissionAfter = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
+        EXPECT_FALSE(hasPermissionAfter);
+    }
+    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+    vpnService->vpnExtPermissionCache_.erase(bundleName);
+}
+
 HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnConfigList001, TestSize.Level1)
 {
     const char* permissions[] = { "ohos.permission.MANAGE_VPN" };
