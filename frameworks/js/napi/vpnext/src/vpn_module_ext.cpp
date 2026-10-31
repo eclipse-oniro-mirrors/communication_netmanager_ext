@@ -283,10 +283,10 @@ int32_t CheckVpnPermission(const std::string &bundleName, std::string &vpnExtMod
 #ifdef ENABLE_VPN_FOR_USER0
 static void HandleEnterpriseVpnPermission(const std::string &bundleName)
 {
-    int32_t ret = NetworkVpnClient::GetInstance().UpdateVpnPermission(std::to_string(true));
+    int32_t ret = NetworkVpnClient::GetInstance().UpdateVpnPermission("1");
     if (ret != NETMANAGER_EXT_SUCCESS) {
-        NETMANAGER_EXT_LOGE("Update ENTERPRISE_VPN permission failed, bundleName=%{public}s, ret=%{public}d",
-            bundleName.c_str(), ret);
+        NETMANAGER_EXT_LOGE("HandleEnterpriseVpnPermission failed, will retry on next start, bundleName=%{public}s, "
+            "ret=%{public}d", bundleName.c_str(), ret);
     } else {
         NETMANAGER_EXT_LOGI("Update ENTERPRISE_VPN permission success, bundleName=%{public}s",
             bundleName.c_str());
