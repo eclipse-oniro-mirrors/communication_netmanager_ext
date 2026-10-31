@@ -32,17 +32,17 @@ declare namespace ethernet {
    * @param { string } iface Indicates the network interface name.
    * @param { AsyncCallback<InterfaceConfiguration> } callback - the callback of getIfaceConfig.
    * @throws { BusinessError } 201 - Permission denied.
-   * @throws { BusinessError } 202 - Non-system applications use system APIs.[since 9 - 26.1.0]
+   * @throws { BusinessError } 202 - Non-system applications use system APIs.[since 9 - 26.0.1]
    * @throws { BusinessError } 401 - Parameter error.
    * @throws { BusinessError } 2200001 - Invalid parameter value.
    * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
    * @throws { BusinessError } 2200003 - System internal error.
    * @throws { BusinessError } 2201005 - Device information does not exist.
    * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi [since 9 - 26.1.0]
-   * @publicapi [since 26.2.0]
-   * @since 9
-   * @since 26.1.0 static
+   * @systemapi [since 9 - 26.0.1]
+   * @publicapi [since 26.1.0]
+   * @since 9 dynamic
+   * @since 26.0.1 static
    */
   function getIfaceConfig(iface: string, callback: AsyncCallback<InterfaceConfiguration>): void;
 
@@ -52,17 +52,17 @@ declare namespace ethernet {
    * @param { string } iface Indicates the network interface name.
    * @returns { Promise<InterfaceConfiguration> } the promise returned by the function.
    * @throws { BusinessError } 201 - Permission denied.
-   * @throws { BusinessError } 202 - Non-system applications use system APIs.[since 9 - 26.1.0]
+   * @throws { BusinessError } 202 - Non-system applications use system APIs.[since 9 - 26.0.1]
    * @throws { BusinessError } 401 - Parameter error.
    * @throws { BusinessError } 2200001 - Invalid parameter value.
    * @throws { BusinessError } 2200002 - Operation failed. Cannot connect to service.
    * @throws { BusinessError } 2200003 - System internal error.
    * @throws { BusinessError } 2201005 - Device information does not exist.
    * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi [since 9 - 26.1.0]
-   * @publicapi [since 26.2.0]
-   * @since 9
-   * @since 26.1.0 static
+   * @systemapi [since 9 - 26.0.1]
+   * @publicapi [since 26.1.0]
+   * @since 9 dynamic
+   * @since 26.0.1 static
    */
   function getIfaceConfig(iface: string): Promise<InterfaceConfiguration>;
 
@@ -233,20 +233,20 @@ declare namespace ethernet {
    * Defines the network configuration for the Ethernet connection.
    * @interface InterfaceConfiguration
    * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi [since 9 - 26.1.0]
-   * @publicapi [since 26.2.0]
-   * @since 9
-   * @since 26.1.0 static
+   * @systemapi [since 9 - 26.0.1]
+   * @publicapi [since 26.1.0]
+   * @since 9 dynamic
+   * @since 26.0.1 static
    */
   export interface InterfaceConfiguration {
     /**
      * @type {IPSetMode}
      * See {@link IPSetMode}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     mode: IPSetMode;
     /**
@@ -255,10 +255,10 @@ declare namespace ethernet {
      * (DHCP mode does not need to be configured)
      * @type {string}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     ipAddr: string;
 
@@ -268,10 +268,10 @@ declare namespace ethernet {
      * (DHCP mode does not need to be configured)
      * @type {string}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     route: string;
 
@@ -281,10 +281,10 @@ declare namespace ethernet {
      * (DHCP mode does not need to be configured)
      * @type {string}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     gateway: string;
 
@@ -294,10 +294,10 @@ declare namespace ethernet {
      * (DHCP mode does not need to be configured)
      * @type {string}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     netMask: string;
 
@@ -307,10 +307,10 @@ declare namespace ethernet {
      * (DHCP mode does not need to be configured, Multiple addresses are separated by ",")
      * @type {string}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     dnsServers: string;
 
@@ -318,10 +318,10 @@ declare namespace ethernet {
      * Indicates the HttpProxy settings, Default does not use HttpProxy.
      * @type {?HttpProxy}
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 10 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 10
-     * @since 26.1.0 static
+     * @systemapi [since 10 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 10 dynamic
+     * @since 26.0.1 static
      */
     httpProxy?: HttpProxy;
   }
@@ -330,29 +330,29 @@ declare namespace ethernet {
    * Defines the configuration mode of the Ethernet connection.
    * @enum {number}
    * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi [since 9 - 26.1.0]
-   * @publicapi [since 26.2.0]
-   * @since 9
-   * @since 26.1.0 static
+   * @systemapi [since 9 - 26.0.1]
+   * @publicapi [since 26.1.0]
+   * @since 9 dynamic
+   * @since 26.0.1 static
    */
   export enum IPSetMode {
     /**
      * Static configuration.
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     STATIC = 0,
 
     /**
      * Dynamic configuration.
      * @syscap SystemCapability.Communication.NetManager.Ethernet
-     * @systemapi [since 9 - 26.1.0]
-     * @publicapi [since 26.2.0]
-     * @since 9
-     * @since 26.1.0 static
+     * @systemapi [since 9 - 26.0.1]
+     * @publicapi [since 26.1.0]
+     * @since 9 dynamic
+     * @since 26.0.1 static
      */
     DHCP = 1
   }
