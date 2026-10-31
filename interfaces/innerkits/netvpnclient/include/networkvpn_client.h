@@ -260,7 +260,9 @@ public:
 
 #endif // SUPPORT_SYSVPN
 
+#ifdef ENABLE_VPN_FOR_USER0
     int32_t UpdateVpnPermission(const std::string &value);
+#endif
 
     /**
      * get the connected vpn config list of the given user, including the global vpn when it
