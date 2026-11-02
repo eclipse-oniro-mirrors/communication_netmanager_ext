@@ -610,7 +610,6 @@ HWTEST_F(NetworkVpnClientTest, RequestVpnPermission0002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
-#ifdef ENABLE_VPN_FOR_USER0
 HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionWithProxy001, TestSize.Level1)
 {
     auto mockService = sptr<MockINetworkVpnService>::MakeSptr();
@@ -657,6 +656,5 @@ HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionInvalidValue001, TestSize.Leve
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     networkVpnClient_.networkVpnService_ = nullptr;
 }
-#endif
 } // namespace NetManagerStandard
 } // namespace OHOS
