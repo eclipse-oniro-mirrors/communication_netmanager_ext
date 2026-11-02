@@ -1257,7 +1257,6 @@ HWTEST_F(NetworkVpnServiceTest, HeldVpnFdTest001, TestSize.Level1)
     close(fds2[1]);
 }
 
-#ifdef ENABLE_VPN_FOR_USER0
 HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest001, TestSize.Level1)
 {
     auto vpnService = std::make_shared<NetworkVpnService>();
@@ -1285,7 +1284,6 @@ HWTEST_F(NetworkVpnServiceTest, UpdateVpnPermissionTest004, TestSize.Level1)
     int32_t ret = vpnService->UpdateVpnPermission("0");
     EXPECT_TRUE(ret == NETMANAGER_EXT_SUCCESS || ret == NETMANAGER_EXT_ERR_INTERNAL);
 }
-#endif
 
 HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow001, TestSize.Level1)
 {
@@ -1326,7 +1324,6 @@ HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow003, TestSize.Level1)
     vpnService->vpnExtPermissionCache_.erase(bundleName);
 }
 
-#ifdef ENABLE_VPN_FOR_USER0
 HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow004, TestSize.Level1)
 {
     auto vpnService = std::make_shared<NetworkVpnService>();
@@ -1356,7 +1353,6 @@ HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow005, TestSize.Level1)
     std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
     vpnService->vpnExtPermissionCache_.erase(bundleName);
 }
-#endif
 
 HWTEST_F(NetworkVpnServiceTest, GetConnectedVpnConfigList001, TestSize.Level1)
 {
