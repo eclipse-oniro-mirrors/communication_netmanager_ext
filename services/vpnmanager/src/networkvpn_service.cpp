@@ -3033,6 +3033,7 @@ int32_t NetworkVpnService::GetVpnConfigToAnco(std::vector<std::string>& dnsAddre
 }
 #endif
 
+#ifdef ENABLE_VPN_FOR_USER0
 int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
 {
     if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_VPN)) {
@@ -3088,6 +3089,7 @@ int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
 
     return ret;
 }
+#endif
 
 int32_t NetworkVpnService::GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList)
 {
