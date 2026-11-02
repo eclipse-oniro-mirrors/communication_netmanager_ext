@@ -88,6 +88,38 @@ void NetworkVpnServiceTest::SetUp() {}
 
 void NetworkVpnServiceTest::TearDown() {}
 
+HWTEST_F(NetworkVpnServiceTest, LocalNetworkRoutedConfigParcel, TestSize.Level1)
+{
+    for (bool enabled : {false, true}) {
+        VpnConfig config;
+        EXPECT_FALSE(config.isLocalNetworkRouted_);
+        config.isLocalNetworkRouted_ = enabled;
+        Parcel parcel;
+        ASSERT_TRUE(config.Marshalling(parcel));
+        std::unique_ptr<VpnConfig> decoded(VpnConfig::Unmarshalling(parcel));
+        ASSERT_NE(decoded, nullptr);
+        EXPECT_EQ(decoded->isLocalNetworkRouted_, enabled);
+    }
+}
+
+HWTEST_F(NetworkVpnServiceTest, LocalNetworkRoutedConfigJson, TestSize.Level1)
+{
+    for (bool enabled : {false, true}) {
+        sptr<VpnConfig> config = new VpnConfig();
+        config->isLocalNetworkRouted_ = enabled;
+        std::string json;
+        instance_->ParseConfigToJson(config, json);
+        sptr<VpnConfig> decoded = new VpnConfig();
+        decoded->isLocalNetworkRouted_ = !enabled;
+        instance_->ParseJsonToConfig(decoded, json);
+        EXPECT_EQ(decoded->isLocalNetworkRouted_, enabled);
+    }
+    sptr<VpnConfig> legacy = new VpnConfig();
+    legacy->isLocalNetworkRouted_ = true;
+    instance_->ParseJsonToConfig(legacy, "{}");
+    EXPECT_FALSE(legacy->isLocalNetworkRouted_);
+}
+
 HWTEST_F(NetworkVpnServiceTest, OnStart, TestSize.Level1)
 {
     instance_->state_ = NetworkVpnService::STATE_RUNNING;

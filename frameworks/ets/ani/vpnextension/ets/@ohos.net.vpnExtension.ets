@@ -286,6 +286,7 @@ export default namespace vpnExtension {
     isIPv6Accepted?: boolean;
     isInternal?: boolean;
     isBlocking?: boolean;
+    isLocalNetworkRouted?: boolean;
     trustedApplications?: Array<string>;
     blockedApplications?: Array<string>;
   }
@@ -301,6 +302,7 @@ export default namespace vpnExtension {
     isIPv6Accepted?: boolean;
     isInternal?: boolean;
     isBlocking?: boolean;
+    isLocalNetworkRouted?: boolean;
     trustedApplications?: Array<string>;
     blockedApplications?: Array<string>;
   }
