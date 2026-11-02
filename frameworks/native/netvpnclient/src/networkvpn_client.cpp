@@ -547,6 +547,7 @@ int32_t NetworkVpnClient::GetVpnConfigToAnco(std::vector<std::string> &dnsAddres
 }
 #endif // SUPPORT_SYSVPN
 
+#ifdef ENABLE_VPN_FOR_USER0
 int32_t NetworkVpnClient::UpdateVpnPermission(const std::string &value)
 {
     sptr<INetworkVpnService> proxy = GetProxy();
@@ -558,6 +559,7 @@ int32_t NetworkVpnClient::UpdateVpnPermission(const std::string &value)
     // LCOV_EXCL_STOP
     return proxy->UpdateVpnPermission(value);
 }
+#endif
 
 int32_t NetworkVpnClient::GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList)
 {
