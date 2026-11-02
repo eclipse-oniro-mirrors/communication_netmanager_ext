@@ -634,6 +634,7 @@ HWTEST_F(NetworkVpnClientTest, GetVpnConfigToAnco002, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
+#ifdef ENABLE_VPN_FOR_USER0
 HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionTest001, TestSize.Level1)
 {
     std::string value = "1";
@@ -647,5 +648,6 @@ HWTEST_F(NetworkVpnClientTest, UpdateVpnPermissionTest003, TestSize.Level1)
     int32_t ret = networkVpnClient_.UpdateVpnPermission(value);
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_GET_PROXY_FAIL);
 }
+#endif
 } // namespace NetManagerStandard
 } // namespace OHOS
