@@ -91,9 +91,6 @@ idl_gen_interface("networkvpn_interface") {
   sources = [ "INetworkVpnService.idl" ]
   sources_callback = [ "IVpnEventCallback.idl" ]
   inputs = ["IVpnEventCallback.idl"]
-  if (netmanager_ext_feature_vpn_for_user0) {
-    defines = [ "ENABLE_VPN_FOR_USER0" ]
-  }
 }
 
 config("networkvpn_interface_stub_config") {
