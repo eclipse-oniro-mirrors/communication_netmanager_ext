@@ -13,6 +13,7 @@
 
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
+import("//foundation/communication/netmanager_ext/netmanager_ext_config.gni")
 
 rust_cxx("vpnextension_ani_cxx") {
   sources = [ "src/wrapper.rs" ]
@@ -82,6 +83,11 @@ ohos_static_library("vpn_extension_ani_static") {
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"
+
+  defines = []
+  if (netmanager_ext_feature_vpn_for_user0) {
+    defines += [ "ENABLE_VPN_FOR_USER0" ]
+  }
 }
 
 ohos_rust_shared_library("vpn_extension_ani") {
