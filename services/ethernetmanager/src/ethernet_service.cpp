@@ -537,10 +537,6 @@ int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapDa
 
 int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("GetDeviceInformation Caller no sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("GetDeviceInformation no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
