@@ -1042,7 +1042,7 @@ HWTEST_F(EthernetManagerTest, EthernetDhcpController002, TestSize.Level1)
     EXPECT_EQ(dhcpController.cbObject_, nullptr);
 }
 
-WTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
+HWTEST_F(EthernetManagerTest, SetInterfaceUpTest001, TestSize.Level1)
 {
     EthernetClient client;
     auto mock = sptr<MockIEthernetService>::MakeSptr();
