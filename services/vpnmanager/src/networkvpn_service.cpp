@@ -3066,15 +3066,15 @@ int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
     std::string currentValue;
     if (NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, serverKey, currentValue) == NETMANAGER_EXT_SUCCESS
         && currentValue == value) {
-        NETMGR_EXT_LOGI("UpdateVpnPermission value unchanged, skip write, key=%{public}s", serverKey.c_str());
+        NETMGR_EXT_LOG_I("UpdateVpnPermission value unchanged, skip write, key=%{public}s", serverKey.c_str());
     } else {
         ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, serverKey, value);
         if (ret != NETMANAGER_EXT_SUCCESS) {
-            NETMGR_EXT_LOGE("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
+            NETMGR_EXT_LOG_E("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
                 serverKey.c_str(), ret);
             return ret;
         }
-        NETMGR_EXT_LOGI("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
+        NETMGR_EXT_LOG_I("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
     }
     {
         std::unique_lock<ffrt::shared_mutex> lock(vpnExtPermissionCacheMutex_);
