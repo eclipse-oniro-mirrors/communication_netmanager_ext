@@ -31,10 +31,11 @@ public:
     void OnTriggerAutoAuth();
     void OnManualConnect();
     void OnLinkUp(const std::string &ifName);
+    void OnLinkDown(const std::string &ifName);
     void OnBootCompleted();
     void OnEnterpriseAppOccupied();
     void OnEnterpriseAppReleased();
-    void OnAuthSuccess();
+    bool OnAuthSuccess();
     void OnAuthFailed(const std::string &reason);
 
     bool IsEnterpriseOccupied() const;
@@ -42,6 +43,7 @@ public:
     void OnUserPaused();
     void OnUserResumed();
     bool IsUserPaused() const;
+    bool IsLinkUp() const;
 
 private:
     EthEapAutoAuthController() = default;
@@ -50,6 +52,7 @@ private:
     void ScheduleRetry(const std::string &reason);
     void DoAuthenticate(bool manual);
     void ScheduleAuthTimeoutCheck(uint32_t generation);
+    void OnAuthTimeout();
 
     std::mutex mutex_;
     std::atomic<bool> enterpriseOccupied_{false};
@@ -57,6 +60,8 @@ private:
     std::atomic<bool> authenticating_{false};
     std::atomic<bool> manualRound_{false};
     std::atomic<uint32_t> authGeneration_{0};
+    std::atomic<bool> linkUp_{true};
+    std::mutex hdiSessionMutex_;
     std::string ifName_;
 };
 
