@@ -443,8 +443,11 @@ static bool HandleEthCtrlEventOnEth0(const char *ifName, const char *value)
         return false;
     }
     if (std::strcmp(value, AUTHENTICATION_RES) == 0) {
+        if (!EthEapAutoAuthController::GetInstance().OnAuthSuccess()) {
+            NETMGR_EXT_LOG_I("EAP success event is stale, skip DHCP restart");
+            return true;
+        }
         NETMGR_EXT_LOG_I("EAP authentication success detected on eth0, triggering DHCP restart");
-        EthEapAutoAuthController::GetInstance().OnAuthSuccess();
         DelayedSingleton<EthernetService>::GetInstance()->ForceRestartDhcp(ifName);
         return true;
     }

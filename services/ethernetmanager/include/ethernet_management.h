@@ -69,6 +69,7 @@ public:
     int32_t EnableEthernet();
     int32_t DisableEthernet();
     bool IsEthernetEnabled();
+    int32_t GetEthLinkState(bool &linkUp);
 #endif
 
 private:
