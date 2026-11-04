@@ -310,7 +310,7 @@ static int32_t ProcessPermissionRequests(const std::string &bundleName, const st
 #endif // SUPPORT_SYSVPN
     if (ret != 0 || vpnExtMode != "1") {
 #ifdef ENABLE_VPN_FOR_USER0
-        if (NetManagerPermission::CheckPermission(Permission::ENTERPRISE_VPN)) {
+        if (NetManagerStandard::NetManagerPermission::CheckPermission(NetManagerStandard::Permission::ENTERPRISE_VPN)) {
             NETMANAGER_EXT_LOGI("StartVpnExtensionAbility has ENTERPRISE_VPN permission, bundleName: %{public}s",
                 bundleName.c_str());
             HandleEnterpriseVpnPermission(bundleName);
