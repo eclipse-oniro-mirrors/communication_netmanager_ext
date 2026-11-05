@@ -22,6 +22,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <new>
 #include <thread>
 
 #include "eth_eap_auto_auth_controller.h"
@@ -75,6 +76,7 @@ public:
         controller.OnEnterpriseAppReleased();
         controller.OnUserResumed();
         controller.StopAutoAuth();
+        controller.linkUp_.store(true);
         EthEapConfigStore::GetInstance().DeleteConfig();
         auto &mgr = EthEapStateManager::GetInstance();
         mgr.SetRetryCount(0);
@@ -431,6 +433,34 @@ HWTEST_F(EthernetServiceEapTest, DeleteEthEapConfigLockedTest015, TestSize.Level
     ASSERT_EQ(ethernetservice.SetEthEapConfig(unlock), NETMANAGER_EXT_SUCCESS);
     EXPECT_EQ(ethernetservice.DeleteEthEapConfig(), NETMANAGER_EXT_SUCCESS);
     EXPECT_FALSE(EthEapConfigStore::GetInstance().HasConfig());
+}
+
+/**
+ * @tc.name  : ConnectEthEapLinkDownTest016
+ * @tc.number: EthernetServiceEapTest_016
+ * @tc.desc  : 以太网链路 down 时手动连接立即失败（33200010），链路 up 后受理成功
+ */
+HWTEST_F(EthernetServiceEapTest, ConnectEthEapLinkDownTest016, TestSize.Level1)
+{
+    NetManagerExtAccessToken accessToken;
+    EthernetService ethernetservice;
+    EthEapConfig in = MakeServiceConfig();
+    ASSERT_EQ(ethernetservice.SetEthEapConfig(in), NETMANAGER_EXT_SUCCESS);
+    EthEapAutoAuthController::GetInstance().StopAutoAuth();
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_IDLE, "");
+
+    sptr<DevInterfaceState> devState = new (std::nothrow) DevInterfaceState();
+    ASSERT_NE(devState, nullptr);
+    devState->SetLinkUp(false);
+    ethernetservice.ethManagement_->devs_["eth0"] = devState;
+
+    EXPECT_EQ(ethernetservice.ConnectEthEap(true), EAP_ERRCODE_INVALID_ETH_STATE);
+
+    devState->SetLinkUp(true);
+    EXPECT_EQ(ethernetservice.ConnectEthEap(true), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(WaitForStateLeave(EthEapState::STATE_IDLE, 8000));
+
+    ethernetservice.ethManagement_->devs_.erase("eth0");
 }
 
 #endif // NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
