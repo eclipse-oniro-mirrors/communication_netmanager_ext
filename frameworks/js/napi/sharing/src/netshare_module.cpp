@@ -14,6 +14,7 @@
  */
 
 #include <cstdint>
+#include <new>
 #include <string_view>
 
 #include <napi/native_api.h>
@@ -187,6 +188,25 @@ void InitProperties(napi_env env, napi_value &exports)
     NapiUtils::SetNamedProperty(env, exports, INTERFACE_SHARING_IFACE_TYPE, ifaceType);
 }
 
+static void AddCleanupHook(napi_env env)
+{
+    auto envWrapper = new (std::nothrow) napi_env;
+    if (envWrapper == nullptr)
+    {
+        NETMANAGER_EXT_LOGE("EnvWrapper create fail!");
+        return;
+    }
+    *envWrapper = env;
+    napi_status status = napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
+    if (status != napi_ok)
+    {
+        NETMANAGER_EXT_LOGE("napi_add_env_cleanup_hook failed: %{public}d", status);
+        delete envWrapper;
+        return;
+    }
+    NapiUtils::SetEnvValid(env);
+}
+
 napi_value InitNetShareModule(napi_env env, napi_value exports)
 {
     InitProperties(env, exports);
@@ -207,8 +227,7 @@ napi_value InitNetShareModule(napi_env env, napi_value exports)
                                     DECLARE_NAPI_FUNCTION(FUNCTION_ON, On),
                                     DECLARE_NAPI_FUNCTION(FUNCTION_OFF, Off),
                                 });
-    NapiUtils::SetEnvValid(env);
-    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
+    AddCleanupHook(env);
     return exports;
 }
 

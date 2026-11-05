@@ -28,14 +28,21 @@ namespace OHOS::NetManagerStandard {
 
 static void AddCleanupHook(napi_env env)
 {
-    NapiUtils::SetEnvValid(env);
     auto envWrapper = new (std::nothrow) napi_env;
-    if (envWrapper == nullptr) {
+    if (envWrapper == nullptr)
+    {
         NETMANAGER_EXT_LOGE("EnvWrapper create fail!");
         return;
     }
     *envWrapper = env;
-    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
+    napi_status status = napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
+    if (status != napi_ok)
+    {
+        NETMANAGER_EXT_LOGE("napi_add_env_cleanup_hook failed: %{public}d", status);
+        delete envWrapper;
+        return;
+    }
+    NapiUtils::SetEnvValid(env);
 }
 
 void EapModule::DeclareEapMethod(napi_env env, napi_value exports)

@@ -185,6 +185,25 @@ static void InitSysVpnType(napi_env env, napi_value exports)
 }
 #endif // SUPPORT_SYSVPN
 
+static void AddCleanupHook(napi_env env)
+{
+    auto envWrapper = new (std::nothrow) napi_env;
+    if (envWrapper == nullptr)
+    {
+        NETMANAGER_EXT_LOGE("EnvWrapper create fail!");
+        return;
+    }
+    *envWrapper = env;
+    napi_status status = napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
+    if (status != napi_ok)
+    {
+        NETMANAGER_EXT_LOGE("napi_add_env_cleanup_hook failed: %{public}d", status);
+        delete envWrapper;
+        return;
+    }
+    NapiUtils::SetEnvValid(env);
+}
+
 napi_value RegisterVpnModule(napi_env env, napi_value exports)
 {
     NapiUtils::DefineProperties(env, exports,
@@ -212,8 +231,7 @@ napi_value RegisterVpnModule(napi_env env, napi_value exports)
 #ifdef SUPPORT_SYSVPN
     InitSysVpnType(env, exports);
 #endif // SUPPORT_SYSVPN
-    NapiUtils::SetEnvValid(env);
-    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
+    AddCleanupHook(env);
     return exports;
 }
 
