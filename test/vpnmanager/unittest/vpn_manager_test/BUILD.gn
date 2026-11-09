@@ -111,6 +111,10 @@ ohos_unittest("vpn_manager_test") {
     defines += [ "NETMGR_DEBUG" ]
   }
 
+  if (netmanager_ext_feature_vpn_for_user0) {
+    defines += [ "ENABLE_VPN_FOR_USER0" ]
+  }
+
   if (netmanager_ext_feature_sysvpn) {
     cflags = sysvpn_flags
     cflags_cc = sysvpn_flags

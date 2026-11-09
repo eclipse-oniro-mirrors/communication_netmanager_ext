@@ -284,6 +284,9 @@ public:
     int32_t StopVpnExtensionAbility(const AAFwk::Want& want) override;
     int32_t RequestVpnPermission(int32_t uid, const std::string &bundleName, const std::string &abilityName,
         bool &isAuthorized) override;
+#ifdef ENABLE_VPN_FOR_USER0
+    int32_t UpdateVpnPermission(const std::string &value) override;
+#endif
 
     bool IsVpnApplication(int32_t uid);
     bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid);

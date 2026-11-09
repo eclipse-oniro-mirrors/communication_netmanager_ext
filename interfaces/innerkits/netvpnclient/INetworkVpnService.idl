@@ -46,5 +46,6 @@ interface OHOS.NetManagerStandard.INetworkVpnService {
     [macrodef SUPPORT_SYSVPN] void RegisterMultiVpnEvent([in] IVpnEventCallback callbackparam);
     [macrodef SUPPORT_SYSVPN] void UnregisterMultiVpnEvent([in] IVpnEventCallback callbackparam);
     [macrodef SUPPORT_SYSVPN] void GetVpnConfigToAnco([out] List<String> dnsAddresses);
+    [macrodef ENABLE_VPN_FOR_USER0] void UpdateVpnPermission([in] String value);
     void GetConnectedVpnConfigList([in] int userId, [out] List<sptr<VpnConfig>> vpnConfigList);
 }

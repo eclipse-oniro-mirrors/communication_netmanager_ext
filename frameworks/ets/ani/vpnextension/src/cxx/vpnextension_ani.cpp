@@ -38,6 +38,9 @@
 #include "parameters.h"
 #include "want.h"
 #include "want_params.h"
+#ifdef ENABLE_VPN_FOR_USER0
+#include "netmanager_base_permission.h"
+#endif
 
 #ifdef SUPPORT_SYSVPN
 #include "os_account_manager.h"
@@ -194,6 +197,20 @@ static int32_t CheckVpnPermission(const std::string &bundleName, std::string &vp
 }
 #endif // SUPPORT_SYSVPN
 
+#ifdef ENABLE_VPN_FOR_USER0
+static void HandleEnterpriseVpnPermission(const std::string &bundleName)
+{
+    int32_t ret = NetManagerStandard::NetworkVpnClient::GetInstance().UpdateVpnPermission("1");
+    if (ret != NetManagerStandard::NETMANAGER_EXT_SUCCESS) {
+        NETMANAGER_EXT_LOGE("HandleEnterpriseVpnPermission failed, will retry on next start, bundleName=%{public}s, "
+            "ret=%{public}d", bundleName.c_str(), ret);
+    } else {
+        NETMANAGER_EXT_LOGI("Update ENTERPRISE_VPN permission success, bundleName=%{public}s",
+            bundleName.c_str());
+    }
+}
+#endif
+
 static std::string BuildVpnDialogKey(const std::string &bundleName)
 {
     std::string key = bundleName;
@@ -292,6 +309,14 @@ static int32_t ProcessPermissionRequests(const std::string &bundleName, const st
     ret = NetManagerStandard::NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, bundleName, vpnExtMode);
 #endif // SUPPORT_SYSVPN
     if (ret != 0 || vpnExtMode != "1") {
+#ifdef ENABLE_VPN_FOR_USER0
+        if (NetManagerStandard::NetManagerPermission::CheckPermission(NetManagerStandard::Permission::ENTERPRISE_VPN)) {
+            NETMANAGER_EXT_LOGI("StartVpnExtensionAbility has ENTERPRISE_VPN permission, bundleName: %{public}s",
+                bundleName.c_str());
+            HandleEnterpriseVpnPermission(bundleName);
+            return PERM_RESULT_AUTHORIZED;
+        }
+#endif
         NETMANAGER_EXT_LOGE("dataShareHelperUtils Query error, err = %{public}d", ret);
         return WaitForVpnDialogAuthorization(bundleName, abilityName, selfAppName);
     }

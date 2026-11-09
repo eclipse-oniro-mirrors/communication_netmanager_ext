@@ -547,6 +547,20 @@ int32_t NetworkVpnClient::GetVpnConfigToAnco(std::vector<std::string> &dnsAddres
 }
 #endif // SUPPORT_SYSVPN
 
+#ifdef ENABLE_VPN_FOR_USER0
+int32_t NetworkVpnClient::UpdateVpnPermission(const std::string &value)
+{
+    sptr<INetworkVpnService> proxy = GetProxy();
+    // LCOV_EXCL_START
+    if (proxy == nullptr) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission proxy is nullptr");
+        return NETMANAGER_EXT_ERR_GET_PROXY_FAIL;
+    }
+    // LCOV_EXCL_STOP
+    return proxy->UpdateVpnPermission(value);
+}
+#endif
+
 int32_t NetworkVpnClient::GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList)
 {
     if (userId < 0) {

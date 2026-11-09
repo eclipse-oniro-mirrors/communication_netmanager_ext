@@ -173,6 +173,12 @@ public:
     {
         return 0;
     }
+#ifdef ENABLE_VPN_FOR_USER0
+    int32_t UpdateVpnPermission(const std::string &value) override
+    {
+        return 0;
+    }
+#endif
 };
 } // namespace NetManagerStandard
 } // namespace OHOS

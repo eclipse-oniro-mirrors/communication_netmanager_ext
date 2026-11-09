@@ -86,6 +86,11 @@ ohos_shared_library("vpnextension") {
     external_deps += [ "hiappevent:hiappevent_innerapi" ]
   }
 
+  defines = []
+  if (netmanager_ext_feature_vpn_for_user0) {
+    defines += [ "ENABLE_VPN_FOR_USER0" ]
+  }
+
   relative_install_dir = "module/net"
   part_name = "netmanager_ext"
   subsystem_name = "communication"

@@ -3037,6 +3037,64 @@ int32_t NetworkVpnService::GetVpnConfigToAnco(std::vector<std::string>& dnsAddre
 }
 #endif
 
+#ifdef ENABLE_VPN_FOR_USER0
+int32_t NetworkVpnService::UpdateVpnPermission(const std::string &value)
+{
+    if (!NetManagerPermission::CheckPermission(Permission::ENTERPRISE_VPN)) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission permission denied");
+        return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
+    }
+
+    if (value != "0" && value != "1") {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission invalid value: %{public}s", value.c_str());
+        return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
+    }
+
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    std::string actualBundleName;
+    std::string appName;
+    if (GetAppNameByUid(uid, appName, actualBundleName) != NETMANAGER_EXT_SUCCESS || actualBundleName.empty()) {
+        NETMGR_EXT_LOG_E("UpdateVpnPermission: GetAppNameByUid failed or empty bundleName for uid=%{public}d", uid);
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+
+    std::string serverKey = actualBundleName;
+#ifdef SUPPORT_SYSVPN
+    int32_t userId = AppExecFwk::Constants::UNSPECIFIED_USERID;
+    if (AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId) == ERR_OK) {
+        serverKey = actualBundleName + "_" + std::to_string(userId);
+    }
+#endif
+
+    int32_t ret = NETMANAGER_EXT_SUCCESS;
+    std::string currentValue;
+    if (NetDataShareHelperUtilsIface::Query(VPNEXT_MODE_URI, serverKey, currentValue) == NETMANAGER_EXT_SUCCESS
+        && currentValue == value) {
+        NETMGR_EXT_LOG_I("UpdateVpnPermission value unchanged, skip write, key=%{public}s", serverKey.c_str());
+    } else {
+        ret = NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, serverKey, value);
+        if (ret != NETMANAGER_EXT_SUCCESS) {
+            NETMGR_EXT_LOG_E("Update ENTERPRISE_VPN permission failed, key=%{public}s, ret=%{public}d",
+                serverKey.c_str(), ret);
+            return ret;
+        }
+        NETMGR_EXT_LOG_I("Update ENTERPRISE_VPN permission success, key=%{public}s", serverKey.c_str());
+    }
+    {
+        std::unique_lock<ffrt::shared_mutex> lock(vpnExtPermissionCacheMutex_);
+        if (value == "1") {
+            vpnExtPermissionCache_[serverKey] = true;
+            vpnExtPermissionCache_[actualBundleName] = true;
+        } else {
+            vpnExtPermissionCache_.erase(serverKey);
+            vpnExtPermissionCache_.erase(actualBundleName);
+        }
+    }
+
+    return ret;
+}
+#endif
+
 int32_t NetworkVpnService::GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList)
 {
     int32_t checkPermission = CheckIpcPermission(std::string(Permission::MANAGE_VPN));
