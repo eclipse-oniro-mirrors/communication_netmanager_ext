@@ -136,15 +136,13 @@ napi_value MDnsModule::DiscoveryServiceInterface::StopSearchingMDNS(napi_env env
 static void AddCleanupHook(napi_env env)
 {
     auto envWrapper = new (std::nothrow) napi_env;
-    if (envWrapper == nullptr)
-    {
+    if (envWrapper == nullptr) {
         NETMANAGER_EXT_LOGE("EnvWrapper create fail!");
         return;
     }
     *envWrapper = env;
     napi_status status = napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
-    if (status != napi_ok)
-    {
+    if (status != napi_ok) {
         NETMANAGER_EXT_LOGE("napi_add_env_cleanup_hook failed: %{public}d", status);
         delete envWrapper;
         return;
