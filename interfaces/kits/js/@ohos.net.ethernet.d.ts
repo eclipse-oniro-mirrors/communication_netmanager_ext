@@ -176,10 +176,11 @@ declare namespace ethernet {
    * @param { Callback<{ iface: string, active: boolean }> } callback including iface Indicates the ethernet interface,
    * and active Indicates whether the interface is active.
    * @throws { BusinessError } 201 Permission denied.
-   * @throws { BusinessError } 202 - Non-system applications use system APIs.
+   * @throws { BusinessError } 202 - Non-system applications use system APIs.[since 10 - 26.1.0]
    * @throws { BusinessError } 401 Parameter error.
    * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi Hide this for inner system use.
+   * @systemapi [since 10 - 26.1.0] Hide this for inner system use.
+   * @publicapi [since 26.2.0]
    * @since 10
    */
   function on(type: 'interfaceStateChange', callback: Callback<{ iface: string, active: boolean }>): void;
@@ -191,10 +192,11 @@ declare namespace ethernet {
    * @param { Callback<{ iface: string, active: boolean }> } callback including iface Indicates the ethernet interface,
    * and active Indicates whether the interface is active.
    * @throws { BusinessError } 201 Permission denied.
-   * @throws { BusinessError } 202 - Non-system applications use system APIs.
+   * @throws { BusinessError } 202 - Non-system applications use system APIs.[since 10 - 26.1.0]
    * @throws { BusinessError } 401 Parameter error.
    * @syscap SystemCapability.Communication.NetManager.Ethernet
-   * @systemapi Hide this for inner system use.
+   * @systemapi [since 10 - 26.1.0] Hide this for inner system use.
+   * @publicapi [since 26.2.0]
    * @since 10
    */
   function off(type: 'interfaceStateChange', callback?: Callback<{ iface: string, active: boolean }>): void;
