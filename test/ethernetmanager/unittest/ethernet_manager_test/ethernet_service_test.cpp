@@ -22,6 +22,7 @@
 #include "gtest/hwext/gtest-tag.h"
 #include <vector>
 #include "interface_configuration.h"
+#include "interface_state_callback_stub.h"
 #include "interface_type.h"
 #include "mac_address_info.h"
 #include "net_manager_constants.h"
@@ -79,7 +80,7 @@ public:
 static sptr<INetRegisterEapCallback> g_registerEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
 static sptr<INetEapPostbackCallback> g_eapPostbackCallback = new (std::nothrow) EapPostbackCallbackTest();
 
-class InterfaceStateCallbackTest : public InterfaceStateCallback {
+class InterfaceStateCallbackTest : public InterfaceStateCallbackStub {
 public:
     int32_t OnInterfaceAdded(const std::string &ifName) override
     {
