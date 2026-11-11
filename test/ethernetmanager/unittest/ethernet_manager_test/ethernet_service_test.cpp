@@ -78,6 +78,24 @@ public:
  
 static sptr<INetRegisterEapCallback> g_registerEapCallback = new (std::nothrow) NetRegisterEapCallbackTest();
 static sptr<INetEapPostbackCallback> g_eapPostbackCallback = new (std::nothrow) EapPostbackCallbackTest();
+
+class InterfaceStateCallbackTest : public InterfaceStateCallback {
+public:
+    int32_t OnInterfaceAdded(const std::string &ifName) override
+    {
+        return 0;
+    }
+
+    int32_t OnInterfaceRemoved(const std::string &ifName) override
+    {
+        return 0;
+    }
+
+    int32_t OnInterfaceChanged(const std::string &ifName, bool up) override
+    {
+        return 0;
+    }
+};
  
 sptr<InterfaceConfiguration> EtherNetServiceTest::GetIfaceConfig()
 {
@@ -511,6 +529,43 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest004, TestSize.Level1)
 
     result = ethernetService.UnregisterMonitorIfaceCallbackAsync(callback);
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_OPERATION_FAILED);
+
+    sptr<InterfaceStateCallback> validCallback = new (std::nothrow) InterfaceStateCallbackTest();
+    result = ethernetService.RegisterIfacesStateChanged(validCallback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+    result = ethernetService.UnregisterIfacesStateChanged(validCallback);
+    EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+}
+
+HWTEST_F(EtherNetServiceTest, EthernetInterfaceStateChangePublicAppTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    sptr<InterfaceStateCallback> validCallback = new (std::nothrow) InterfaceStateCallbackTest();
+    ASSERT_NE(validCallback, nullptr);
+    {
+        NetManagerExtNotSystemAccessToken token;
+        int32_t result = ethernetService.RegisterIfacesStateChanged(validCallback);
+        EXPECT_NE(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+
+        result = ethernetService.UnregisterIfacesStateChanged(validCallback);
+        EXPECT_NE(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
+    }
+}
+
+HWTEST_F(EtherNetServiceTest, EthernetInterfaceStateChangeNoPermissionTest001, TestSize.Level1)
+{
+    EthernetService ethernetService;
+    sptr<InterfaceStateCallback> validCallback = new (std::nothrow) InterfaceStateCallbackTest();
+    ASSERT_NE(validCallback, nullptr);
+    {
+        NoPermissionAccessToken token;
+        int32_t result = ethernetService.RegisterIfacesStateChanged(validCallback);
+        EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+
+        result = ethernetService.UnregisterIfacesStateChanged(validCallback);
+        EXPECT_EQ(result, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
+    }
 }
 
 HWTEST_F(EtherNetServiceTest, GetDeviceInformationTest001, TestSize.Level1)
