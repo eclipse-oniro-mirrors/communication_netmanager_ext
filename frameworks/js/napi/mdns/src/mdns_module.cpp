@@ -133,6 +133,23 @@ napi_value MDnsModule::DiscoveryServiceInterface::StopSearchingMDNS(napi_env env
         MDnsAsyncWork::MDnsDiscoverInterfaceAsyncWork::StopSearchingMDNSCallback);
 }
 
+static void AddCleanupHook(napi_env env)
+{
+    auto envWrapper = new (std::nothrow) napi_env;
+    if (envWrapper == nullptr) {
+        NETMANAGER_EXT_LOGE("EnvWrapper create fail!");
+        return;
+    }
+    *envWrapper = env;
+    napi_status status = napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, envWrapper);
+    if (status != napi_ok) {
+        NETMANAGER_EXT_LOGE("napi_add_env_cleanup_hook failed: %{public}d", status);
+        delete envWrapper;
+        return;
+    }
+    NapiUtils::SetEnvValid(env);
+}
+
 napi_value MDnsModule::InitMDnsModule(napi_env env, napi_value exports)
 {
     std::initializer_list<napi_property_descriptor> functions = {
@@ -163,8 +180,7 @@ napi_value MDnsModule::InitMDnsModule(napi_env env, napi_value exports)
     napi_value mdnsErrorValue = NapiUtils::CreateObject(env);
     NapiUtils::DefineProperties(env, mdnsErrorValue, mdnsError);
     NapiUtils::SetNamedProperty(env, exports, MDNS_ERR, mdnsErrorValue);
-    NapiUtils::SetEnvValid(env);
-    napi_add_env_cleanup_hook(env, NapiUtils::HookForEnvCleanup, env);
+    AddCleanupHook(env);
     return exports;
 }
 
