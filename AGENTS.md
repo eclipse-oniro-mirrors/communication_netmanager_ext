@@ -33,7 +33,7 @@
 | 状态机/并发/SA 恢复 | [docs/knowledge/expert/state-machine-concurrency.md](docs/knowledge/expert/state-machine-concurrency.md) | 并发域图 + 对称/幂等/恢复序规则 |
 | 权限/uid/EDM 校验 | [docs/knowledge/expert/permission-security-constraints.md](docs/knowledge/expert/permission-security-constraints.md) | 检查点实名清单 |
 | 跨仓/base/HDI/绑定同步 | [docs/knowledge/expert/cross-component-boundaries.md](docs/knowledge/expert/cross-component-boundaries.md) | 内核唯一通道等边界铁律 |
-| 编译目标/测试选择 | [docs/knowledge/verify/build-and-test.md](docs/knowledge/verify/build-and-test.md) | 域组+单测 10+fuzz 6 实名 |
+| 构建目标/测试选择 | [docs/knowledge/verify/build-and-test.md](docs/knowledge/verify/build-and-test.md) | 域组+单测 10+fuzz 6 实名 |
 | 验证顺序/Done/回退 | [docs/knowledge/verify/verification-loop.md](docs/knowledge/verify/verification-loop.md) | 六步循环检查单 |
 
 ## 3. 知识索引（场景路由）
@@ -51,7 +51,7 @@
 | 并发/状态机/恢复约束 | [docs/knowledge/expert/state-machine-concurrency.md](docs/knowledge/expert/state-machine-concurrency.md) |
 | 权限与调用方安全 | [docs/knowledge/expert/permission-security-constraints.md](docs/knowledge/expert/permission-security-constraints.md) |
 | 跨组件边界 | [docs/knowledge/expert/cross-component-boundaries.md](docs/knowledge/expert/cross-component-boundaries.md) |
-| 编译与测试命令 | [docs/knowledge/verify/build-and-test.md](docs/knowledge/verify/build-and-test.md) |
+| 构建与测试命令 | [docs/knowledge/verify/build-and-test.md](docs/knowledge/verify/build-and-test.md) |
 | 验证循环与 Done 定义 | [docs/knowledge/verify/verification-loop.md](docs/knowledge/verify/verification-loop.md) |
 
 ## 4. 词汇触发路由
@@ -125,17 +125,37 @@ Agent 在编辑任何文件前，**必须在回复中显式回答以下三项**�
 
 ## 7. 构建和验证
 
-### 7.1 编译（全部命令见 [build-and-test.md](docs/knowledge/verify/build-and-test.md) §1）
+### 7.1 构建（裸脚本 `build_system.sh` + `CBuild` 分布式构建，不使用 `build.sh`）
+
+极速空间构建机上直接用裸脚本构建，由 `CBuild` 客户端提交分布式构建（`build.sh --product-name rk3568` 那套命令在本环境不可用）：
 
 ```bash
-# 常用域组（gn 组实名）：ethernet_packages / share_packages / mdns_packages / vpn_packages /
-# vpn_ext_packages / netfirewall_packages / wearable_distributed_net_packages / networkslice_packages / common_ext_packages
-./build.sh --product-name rk3568 --build-target share_packages --ccache
-# 测试聚合
-./build.sh --product-name rk3568 --build-target netmanager_ext_test --ccache
+cd /srv/workspace/<基线工作区>/code
+CBuild ./build_system.sh --abi-type generic_generic_arm_64only --device-type general_all_phone_standard \
+  --ccache --build-target netmanager_ext --build-variant root
 ```
 
+- 常用域组（gn 组实名，`--build-target` 可重复传）：`ethernet_packages` / `share_packages` / `mdns_packages` / `vpn_packages` / `vpn_ext_packages` / `netfirewall_packages` / `wearable_distributed_net_packages` / `networkslice_packages` / `common_ext_packages`；测试聚合 `netmanager_ext_test`。
+- 分布式构建排队 + 编译耗时较长（空 out 全量约 45 分钟以上）：**等待/超时时间直接拉长**，后台执行并轮询日志（`nohup ... > /tmp/build.log 2>&1 &`），不要因等待超时中途终止。
+- 完整命令与 target 实名表见 [build-and-test.md](docs/knowledge/verify/build-and-test.md) §1。
+
 ### 7.2 改动 → 必跑测试（全表见 [build-and-test.md](docs/knowledge/verify/build-and-test.md) §3）
+
+**怎么跑（DT 框架 `test/testfwk/developer_test`，参考 dt-test 约定）**
+
+```bash
+# 1) 先编测试产物：§7.1 同一条命令，把 --build-target 换成下表中的测试 target
+# 2) 再跑（框架固定在 <源码根>/test/testfwk/developer_test 下执行）
+cd /srv/workspace/<基线工作区>/code/test/testfwk/developer_test
+./start.sh run -t UT -p system_arm64_default -tp netmanager_ext  # 整部件
+./start.sh run -t UT -p system_arm64_default -tp netmanager_ext -ts mdns_manager_test  # 单套件
+./start.sh run -t FUZZ -p system_arm64_default -tp netmanager_ext -ts MDnsClientFuzzTest  # 模糊
+```
+
+- `-p` 非交互必传 `system_arm64_default`（不传默认 phone 会解析错 out 目录；本工作区经 `out/ohos_config.json` 兜底到 `out/generic_generic_arm_64only/general_all_phone_standard`）；`-t` 取 `UT`/`FUZZ`；`-ts` 多套件在 native 侧用逗号分隔（分号只对 HAP/XTS 生效）。
+- 失败用例从 `reports/<时间戳>/summary_report.xml` 取 `classname`+`name`，用 `-tc Class.case` 重跑（`--retry` 只在交互模式有效，一次性调用必报 No history command exsit）。
+- 结论看 `grep "Summary result" <log>`；设备先 `hdc list targets` 可见再跑（`config/user_config.xml` 未配 ip/port 时用它），看不到设备先查设备/hdc server，不要反复重跑。
+- 整部件 UT / 任何 FUZZ 必须后台：`setsid nohup ./start.sh run ... > /tmp/dt.log 2>&1 < /dev/null &`（不用 setsid 会被工具超时连带杀掉），轮询 `pgrep -f "python3 -m main"`；单次执行超 ~61 分钟会被宿主静默终止，长任务按 ≤6 模块分批（FUZZ 每 fuzzer 默认 300s）。
 
 | 改动区域 | 必跑测试 target |
 |---|---|
@@ -149,7 +169,7 @@ Agent 在编辑任何文件前，**必须在回复中显式回答以下三项**�
 
 ### 7.3 Done 定义
 
-六条全部满足（编译含两态 / 矩阵测试全过 / 红区绑定回归 / API 兼容未破坏四面同步 / 红线零违反 / clang-format）才算完成——逐条见 [verification-loop.md](docs/knowledge/verify/verification-loop.md) §3。
+六条全部满足（构建含两态 / 矩阵测试全过 / 红区绑定回归 / API 兼容未破坏四面同步 / 红线零违反 / clang-format）才算完成——逐条见 [verification-loop.md](docs/knowledge/verify/verification-loop.md) §3。
 
 ### 7.4 回退方案
 
@@ -171,5 +191,5 @@ docs/knowledge/
 - **新失效模式**（新崩溃形态、revert 教训）必须回写 `expert/historical-failures.md`，并在 `routing/task-routing.md` §2 现象表加条目。
 - 新增目录/模块/测试 target/SA：更新对应 `code_map/` 文档、`verify/build-and-test.md` 与本文 §1/§2。
 - 新增术语：更新 `routing/vocabulary-routing.md` 与本文 §4。
-- 修改编译命令/测试 target：同步 `verify/build-and-test.md`、`verification-loop.md` 与本文 §7。
+- 修改构建命令/测试 target：同步 `verify/build-and-test.md`、`verification-loop.md` 与本文 §7。
 - 知识文档只增不删；过期内容标注 `已废弃` 并保留原文（历史教训不可丢弃）。
