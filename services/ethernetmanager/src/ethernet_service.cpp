@@ -250,10 +250,6 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, const sptr<Int
 int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
     NETMGR_EXT_LOG_D("Get iface: %{public}s config", iface.c_str());
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService GetIfaceConfig no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
