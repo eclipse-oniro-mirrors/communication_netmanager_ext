@@ -28,6 +28,18 @@ constexpr uint32_t MAX_ADDR_SIZE = 2;
 constexpr const char *SEPARATOR = ",";
 } // namespace
 
+uint8_t GetIpTypeByAddr(const std::string &address)
+{
+    auto family = CommonUtils::GetAddrFamily(address);
+    if (family == AF_INET) {
+        return INetAddr::IpType::IPV4;
+    }
+    if (family == AF_INET6) {
+        return INetAddr::IpType::IPV6;
+    }
+    return INetAddr::IpType::UNKNOWN;
+}
+
 bool StaticConfiguration::Marshalling(Parcel &parcel) const
 {
     return MarshallingNetAddressList(ipAddrList_, MAX_ADDR_SIZE, parcel) &&
@@ -98,6 +110,7 @@ void StaticConfiguration::ExtractNetAddrBySeparator(const std::string &input, st
     for (const auto &netAddr : CommonUtils::Split(input, SEPARATOR)) {
         INetAddr addr;
         addr.address_ = netAddr;
+        addr.family_ = GetIpTypeByAddr(netAddr);
         netAddrList.push_back(addr);
     }
 }
