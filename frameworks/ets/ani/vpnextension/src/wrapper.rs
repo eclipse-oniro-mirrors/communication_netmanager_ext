@@ -216,6 +216,7 @@ impl From<&bridge::VpnConfig> for ffi::VpnConfigData {
             is_ipv6_accepted: config.is_i_pv6_accepted.unwrap_or(false),
             is_internal: config.is_internal.unwrap_or(false),
             is_blocking: config.is_blocking.unwrap_or(false),
+            is_local_network_routed: config.is_local_network_routed.unwrap_or(false),
             trusted_applications: config.trusted_applications.clone().unwrap_or_default(),
             blocked_applications: config.blocked_applications.clone().unwrap_or_default(),
         }
@@ -261,6 +262,7 @@ pub(crate) mod ffi {
         pub is_ipv6_accepted: bool,
         pub is_internal: bool,
         pub is_blocking: bool,
+        pub is_local_network_routed: bool,
         pub trusted_applications: Vec<String>,
         pub blocked_applications: Vec<String>,
     }

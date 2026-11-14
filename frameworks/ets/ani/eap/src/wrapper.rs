@@ -157,7 +157,7 @@ impl NetConnClient {
     }
 
     pub(crate) fn connect_eth_eap(action: bridge::EthEapConnectAction) -> Result<(), i32> {
-        let connect = matches!(action, bridge::EthEapConnectAction::ACTION_CONNECT);
+        let connect = matches!(action, bridge::EthEapConnectAction::ActionConnect);
         let ret = unsafe { ffi::ConnectEthEap(connect) };
         if ret != 0 {
             return Err(ret);
@@ -211,11 +211,11 @@ fn phase2_method_from_i32(value: i32) -> bridge::Phase2Method {
 
 fn eth_eap_state_from_i32(value: i32) -> bridge::EthEapState {
     match value {
-        1 => bridge::EthEapState::STATE_AUTHENTICATING,
-        2 => bridge::EthEapState::STATE_AUTHENTICATED,
-        3 => bridge::EthEapState::STATE_FAILED,
-        4 => bridge::EthEapState::STATE_RETRYING,
-        _ => bridge::EthEapState::STATE_IDLE,
+        1 => bridge::EthEapState::StateAuthenticating,
+        2 => bridge::EthEapState::StateAuthenticated,
+        3 => bridge::EthEapState::StateFailed,
+        4 => bridge::EthEapState::StateRetrying,
+        _ => bridge::EthEapState::StateIdle,
     }
 }
 

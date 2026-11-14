@@ -59,18 +59,18 @@ pub struct EapData {
 #[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapState")]
 #[derive(Debug, Clone, Copy)]
 pub enum EthEapState {
-    STATE_IDLE = 0,
-    STATE_AUTHENTICATING = 1,
-    STATE_AUTHENTICATED = 2,
-    STATE_FAILED = 3,
-    STATE_RETRYING = 4,
+    StateIdle = 0,
+    StateAuthenticating = 1,
+    StateAuthenticated = 2,
+    StateFailed = 3,
+    StateRetrying = 4,
 }
 
 #[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapConnectAction")]
 #[derive(Debug, Clone, Copy)]
 pub enum EthEapConnectAction {
-    ACTION_CONNECT = 0,
-    ACTION_DISCONNECT = 1,
+    ActionConnect = 0,
+    ActionDisconnect = 1,
 }
 
 #[ani_rs::ani(path = "@ohos.net.eap.eap.EthEapStateInfoInner")]

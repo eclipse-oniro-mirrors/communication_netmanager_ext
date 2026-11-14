@@ -108,6 +108,7 @@ public:
         controller.StopAutoAuth();
         controller.authenticating_.store(false);
         controller.manualRound_.store(false);
+        controller.linkUp_.store(true);
         EthEapConfigStore::GetInstance().DeleteConfig();
         auto &mgr = EthEapStateManager::GetInstance();
         mgr.SetRetryCount(0);
@@ -533,6 +534,158 @@ HWTEST_F(EthEapAutoAuthControllerTest, OnAuthFailedMaxRetryAsyncLogoffTest021, T
     manager->iEthernet_ = nullptr; // 保险复位，不影响后续用例
 }
 #endif // NET_EXTENSIBLE_AUTHENTICATION
+
+/**
+ * @tc.name  : OnLinkDownResetsStateTest022
+ * @tc.number: EthEapAutoAuthControllerTest_022
+ * @tc.desc  : 链路断开后认证轮次作废、状态回落 IDLE、重试计数清零，保证插回必须重新认证
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, OnLinkDownResetsStateTest022, TestSize.Level1)
+{
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.linkUp_.store(true);
+    controller.authenticating_.store(true);
+    controller.manualRound_.store(true);
+    EthEapStateManager::GetInstance().SetRetryCount(2);
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATED, "");
+
+    controller.OnLinkDown("eth0");
+
+    EXPECT_FALSE(controller.IsLinkUp());
+    EXPECT_FALSE(controller.authenticating_.load());
+    EXPECT_FALSE(controller.manualRound_.load());
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetState(), EthEapState::STATE_IDLE);
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetRetryCount(), 0);
+}
+
+/**
+ * @tc.name  : OnLinkDownIgnoresNonEthTest023
+ * @tc.number: EthEapAutoAuthControllerTest_023
+ * @tc.desc  : 非以太网卡名 link down 不影响以太网认证状态
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, OnLinkDownIgnoresNonEthTest023, TestSize.Level1)
+{
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.linkUp_.store(true);
+    controller.authenticating_.store(true);
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATED, "");
+
+    controller.OnLinkDown("wlan0");
+
+    EXPECT_TRUE(controller.IsLinkUp());
+    EXPECT_TRUE(controller.authenticating_.load());
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetState(), EthEapState::STATE_AUTHENTICATED);
+}
+
+/**
+ * @tc.name  : AutoAuthSkipWhenLinkDownTest024
+ * @tc.number: EthEapAutoAuthControllerTest_024
+ * @tc.desc  : 链路断开期间即使 autoAuth 打开且配置完整，也不发起自动认证轮次
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, AutoAuthSkipWhenLinkDownTest024, TestSize.Level1)
+{
+    EthEapConfig config = MakeEnabledConfig(true);
+    ASSERT_EQ(EthEapConfigStore::GetInstance().SaveConfig(config), NETMANAGER_EXT_SUCCESS);
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.linkUp_.store(false);
+
+    controller.OnTriggerAutoAuth();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetState(), EthEapState::STATE_IDLE);
+    EXPECT_FALSE(controller.authenticating_.load());
+}
+
+/**
+ * @tc.name  : OnAuthSuccessReturnValueTest025
+ * @tc.number: EthEapAutoAuthControllerTest_025
+ * @tc.desc  : 有效轮次返回 true（允许刷新网络），过期事件返回 false（禁止重启 DHCP）
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, OnAuthSuccessReturnValueTest025, TestSize.Level1)
+{
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.authenticating_.store(true);
+    EXPECT_TRUE(controller.OnAuthSuccess());
+    EXPECT_FALSE(controller.OnAuthSuccess());
+}
+
+/**
+ * @tc.name  : LinkDownResetsActiveRoundTest030
+ * @tc.number: EthEapAutoAuthControllerTest_030
+ * @tc.desc  : 认证轮次进行中链路断开：取消轮次、清重试计数、状态回落 IDLE
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, LinkDownResetsActiveRoundTest030, TestSize.Level1)
+{
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.authenticating_.store(true);
+    controller.manualRound_.store(true);
+    EthEapStateManager::GetInstance().SetRetryCount(2);
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATING, "");
+
+    controller.OnLinkDown("eth0");
+    EXPECT_FALSE(controller.IsLinkUp());
+    EXPECT_FALSE(controller.authenticating_.load());
+    EXPECT_FALSE(controller.manualRound_.load());
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetRetryCount(), 0);
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetState(), EthEapState::STATE_IDLE);
+}
+
+/**
+ * @tc.name  : LinkUpResumesAutoAuthTest033
+ * @tc.number: EthEapAutoAuthControllerTest_033
+ * @tc.desc  : 链路恢复后自动认证重新触发
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, LinkUpResumesAutoAuthTest033, TestSize.Level1)
+{
+    EthEapConfig config = MakeEnabledConfig(true);
+    ASSERT_EQ(EthEapConfigStore::GetInstance().SaveConfig(config), NETMANAGER_EXT_SUCCESS);
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.OnLinkDown("eth0");
+    EXPECT_FALSE(controller.IsLinkUp());
+
+    controller.OnLinkUp("eth0");
+    EXPECT_TRUE(controller.IsLinkUp());
+    EXPECT_TRUE(WaitForStateLeave(EthEapState::STATE_IDLE, 8000));
+}
+
+/**
+ * @tc.name  : ScheduleRetryCancelByLinkDownTest034
+ * @tc.number: EthEapAutoAuthControllerTest_034
+ * @tc.desc  : 重试等待期间链路断开后取消后续重试
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, ScheduleRetryCancelByLinkDownTest034, TestSize.Level1)
+{
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.authenticating_.store(true);
+    EthEapStateManager::GetInstance().SetRetryCount(0);
+    controller.OnAuthFailed("RETRY_THEN_LINK_DOWN");
+    ASSERT_EQ(EthEapStateManager::GetInstance().GetRetryCount(), 1);
+
+    controller.OnLinkDown("eth0");
+    std::this_thread::sleep_for(std::chrono::milliseconds(3500));
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetRetryCount(), 0);
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetState(), EthEapState::STATE_IDLE);
+}
+
+/**
+ * @tc.name  : AuthTimeoutNoRetryTest035
+ * @tc.number: EthEapAutoAuthControllerTest_035
+ * @tc.desc  : 认证结果超时直接置失败且不再重试
+ */
+HWTEST_F(EthEapAutoAuthControllerTest, AuthTimeoutNoRetryTest035, TestSize.Level1)
+{
+    auto &controller = EthEapAutoAuthController::GetInstance();
+    controller.authenticating_.store(true);
+    controller.manualRound_.store(true);
+    EthEapStateManager::GetInstance().SetRetryCount(1);
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATING, "");
+
+    controller.OnAuthTimeout();
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetState(), EthEapState::STATE_FAILED);
+    EXPECT_EQ(EthEapStateManager::GetInstance().GetRetryCount(), 1);
+    EXPECT_FALSE(controller.authenticating_.load());
+    EXPECT_FALSE(controller.manualRound_.load());
+}
 
 #endif // NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
 

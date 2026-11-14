@@ -595,6 +595,30 @@ int32_t EthernetManagement::GetAllActiveIfaces(std::vector<std::string> &activeI
     return NETMANAGER_EXT_SUCCESS;
 }
 
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+int32_t EthernetManagement::GetEthLinkState(bool &linkUp)
+{
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    linkUp = false;
+    bool hasDevice = false;
+    for (const auto &dev : devs_) {
+        if (dev.second == nullptr) {
+            continue;
+        }
+        hasDevice = true;
+        if (dev.second->GetLinkUp()) {
+            linkUp = true;
+            break;
+        }
+    }
+    if (!hasDevice) {
+        NETMGR_EXT_LOG_E("No ethernet device found when querying link state");
+        return ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST;
+    }
+    return NETMANAGER_EXT_SUCCESS;
+}
+#endif
+
 #ifdef FEATURE_GET_IFACE_SUPPLIER_ID
 int32_t EthernetManagement::GetIfaceSupplierId(const std::string &iface, uint32_t &supplierId)
 {
@@ -730,6 +754,9 @@ void EthernetManagement::StartSetDevUpThd()
 #endif
             continue;
         }
+#ifdef NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
+        EthEapAutoAuthController::GetInstance().OnLinkDown(devName);
+#endif
         while (true) {
             if (NetsysController::GetInstance().SetInterfaceUp(devName) != ERR_NONE) {
                 sleep(SLEEP_TIME_S);

@@ -56,6 +56,7 @@ pub struct VpnConfig {
     pub is_i_pv6_accepted: Option<bool>,
     pub is_internal: Option<bool>,
     pub is_blocking: Option<bool>,
+    pub is_local_network_routed: Option<bool>,
     pub trusted_applications: Option<Vec<String>>,
     pub blocked_applications: Option<Vec<String>>,
 }

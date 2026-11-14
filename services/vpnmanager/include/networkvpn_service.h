@@ -234,6 +234,12 @@ public:
 #endif // SUPPORT_SYSVPN
 
     /**
+     * get the connected vpn config list of the given user, including the global vpn when it belongs
+     * to the user and the user's multi-instance vpns
+     */
+    int32_t GetConnectedVpnConfigList(int32_t userId, std::vector<sptr<VpnConfig>> &vpnConfigList) override;
+
+    /**
      * register callback
      */
     int32_t RegisterVpnEvent(const sptr<IVpnEventCallback> &callback) override;
@@ -278,6 +284,9 @@ public:
     int32_t StopVpnExtensionAbility(const AAFwk::Want& want) override;
     int32_t RequestVpnPermission(int32_t uid, const std::string &bundleName, const std::string &abilityName,
         bool &isAuthorized) override;
+#ifdef ENABLE_VPN_FOR_USER0
+    int32_t UpdateVpnPermission(const std::string &value) override;
+#endif
 
     bool IsVpnApplication(int32_t uid);
     bool IsAppUidInWhiteList(int32_t callingUid, int32_t appUid);

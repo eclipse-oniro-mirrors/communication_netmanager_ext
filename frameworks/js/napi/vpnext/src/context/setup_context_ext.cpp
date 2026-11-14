@@ -55,6 +55,7 @@ constexpr const char *CONFIG_ISIPV6ACCEPTED = "isIPv6Accepted";
 constexpr const char *CONFIG_ISLEGACY = "isLegacy";
 constexpr const char *CONFIG_ISMETERED = "isMetered";
 constexpr const char *CONFIG_ISBLOCKING = "isBlocking";
+constexpr const char *CONFIG_IS_LOCAL_NETWORK_ROUTED = "isLocalNetworkRouted";
 constexpr const char *CONFIG_TRUSTEDAPPLICATIONS = "trustedApplications";
 constexpr const char *CONFIG_BLOCKEDAPPLICATIONS = "blockedApplications";
 bool CheckParamsType(napi_env env, napi_value *params, size_t paramsCount)
@@ -421,6 +422,7 @@ bool SetUpContext::ParseChoiceableParams(napi_value config)
     GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISLEGACY, vpnConfig_->isLegacy_);
     GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISMETERED, vpnConfig_->isMetered_);
     GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_ISBLOCKING, vpnConfig_->isBlocking_);
+    GetBoolFromJsOptionItem(GetEnv(), config, CONFIG_IS_LOCAL_NETWORK_ROUTED, vpnConfig_->isLocalNetworkRouted_);
 
     ParseOptionArrayString(GetEnv(), config, CONFIG_TRUSTEDAPPLICATIONS, vpnConfig_->acceptedApplications_);
     ParseOptionArrayString(GetEnv(), config, CONFIG_BLOCKEDAPPLICATIONS, vpnConfig_->refusedApplications_);

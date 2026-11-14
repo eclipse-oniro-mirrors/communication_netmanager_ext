@@ -196,6 +196,9 @@ int32_t EthernetService::GlobalInterfaceStateCallback::OnInterfaceLinkStateChang
     if (up && (ifName.find(ETH_PREFIX) != std::string::npos)) {
         NETMGR_EXT_LOG_I("eth link up %{public}s, trigger auto auth", ifName.c_str());
         EthEapAutoAuthController::GetInstance().OnLinkUp(ifName);
+    } else if (!up && (ifName.find(ETH_PREFIX) != std::string::npos)) {
+        NETMGR_EXT_LOG_I("eth link down %{public}s, cancel auto auth", ifName.c_str());
+        EthEapAutoAuthController::GetInstance().OnLinkDown(ifName);
     }
 #endif // NETMANAGER_EXT_ETHERNET_ENABLE_DISABLE
     return 0;
@@ -247,10 +250,6 @@ int32_t EthernetService::SetIfaceConfig(const std::string &iface, const sptr<Int
 int32_t EthernetService::GetIfaceConfig(const std::string &iface, sptr<InterfaceConfiguration> &ifaceConfig)
 {
     NETMGR_EXT_LOG_D("Get iface: %{public}s config", iface.c_str());
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("Caller not have sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("EthernetService GetIfaceConfig no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -537,10 +536,6 @@ int32_t EthernetService::NotifyWpaEapInterceptInfo(int netType, const sptr<EapDa
 
 int32_t EthernetService::GetDeviceInformation(std::vector<EthernetDeviceInfo> &deviceInfoList)
 {
-    if (!NetManagerPermission::IsSystemCaller()) {
-        NETMGR_EXT_LOG_E("GetDeviceInformation Caller no sys permission");
-        return NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL;
-    }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
         NETMGR_EXT_LOG_E("GetDeviceInformation no js permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
@@ -748,6 +743,13 @@ int32_t EthernetService::ConnectEthEap(bool connect)
         if (loadRet != NETMANAGER_EXT_SUCCESS) {
             NETMGR_EXT_LOG_E("ConnectEthEap: load config failed: %{public}d", loadRet);
             return loadRet;
+        }
+        bool linkUp = true;
+        int32_t linkRet = ethManagement_ == nullptr ? ETHERNET_ERR_DEVICE_INFORMATION_NOT_EXIST :
+            ethManagement_->GetEthLinkState(linkUp);
+        if (linkRet == NETMANAGER_EXT_SUCCESS && !linkUp) {
+            NETMGR_EXT_LOG_E("ConnectEthEap: eth link is down, reject manual connect");
+            return EAP_ERRCODE_INVALID_ETH_STATE;
         }
         // 手动连接：不受 autoAuth（自动连接）开关限制，按已保存配置直接发起认证；
         // 企业应用占用期间不中断其认证（TryStartAuth 内部跳过触发），本次调用

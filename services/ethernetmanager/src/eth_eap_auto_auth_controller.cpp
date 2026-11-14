@@ -30,7 +30,7 @@ namespace NetManagerStandard {
 
 static constexpr int32_t MAX_RETRY_COUNT = 3;
 static constexpr int32_t RETRY_INTERVAL_MS = 3000;
-static constexpr int32_t AUTH_TIMEOUT_MS = 60000;
+static constexpr int32_t AUTH_TIMEOUT_MS = 30000;
 static constexpr int32_t DEFAULT_ETH_EAP_NETID = -1;
 static constexpr const char *ETH_PREFIX = "eth";
 
@@ -66,8 +66,43 @@ void EthEapAutoAuthController::OnLinkUp(const std::string &ifName)
     }
     std::lock_guard<std::mutex> lock(mutex_);
     ifName_ = ifName;
+    linkUp_.store(true);
     NETMGR_EXT_LOG_I("OnLinkUp: %{public}s", ifName.c_str());
     OnTriggerAutoAuth();
+}
+
+void EthEapAutoAuthController::OnLinkDown(const std::string &ifName)
+{
+    if (ifName.find(ETH_PREFIX) == std::string::npos) {
+        return;
+    }
+    linkUp_.store(false);
+    uint32_t generation = authGeneration_.fetch_add(1) + 1;
+    bool wasAuthenticating = authenticating_.exchange(false);
+    manualRound_.store(false);
+    EthEapStateManager::GetInstance().ResetRetryCount();
+    bool hasSession = wasAuthenticating ||
+        EthEapStateManager::GetInstance().GetState() != EthEapState::STATE_IDLE;
+    NETMGR_EXT_LOG_I("OnLinkDown: %{public}s, cancel auth round, generation=%{public}u",
+        ifName.c_str(), generation);
+    if (EthEapStateManager::GetInstance().GetState() != EthEapState::STATE_IDLE) {
+        EthEapStateManager::GetInstance().SetState(EthEapState::STATE_IDLE);
+    }
+    if (!hasSession) {
+        return;
+    }
+    EthEapConfig config;
+    if (EthEapConfigStore::GetInstance().LoadConfig(config) != NETMANAGER_EXT_SUCCESS || !config.enabled) {
+        return;
+    }
+    std::thread([this, generation]() {
+        std::lock_guard<std::mutex> lock(hdiSessionMutex_);
+        if (authGeneration_.load() != generation || linkUp_.load() || authenticating_.load()) {
+            NETMGR_EXT_LOG_I("AsyncLogOff(link down): new auth round or link up, skip");
+            return;
+        }
+        NetEapHandler::GetInstance().LogOffEthEap(DEFAULT_ETH_EAP_NETID);
+    }).detach();
 }
 
 void EthEapAutoAuthController::OnBootCompleted()
@@ -115,6 +150,11 @@ bool EthEapAutoAuthController::IsUserPaused() const
     return userPaused_.load();
 }
 
+bool EthEapAutoAuthController::IsLinkUp() const
+{
+    return linkUp_.load();
+}
+
 void EthEapAutoAuthController::TryStartAuth(bool manual)
 {
     if (enterpriseOccupied_.load()) {
@@ -123,6 +163,10 @@ void EthEapAutoAuthController::TryStartAuth(bool manual)
     }
     if (userPaused_.load()) {
         NETMGR_EXT_LOG_D("TryStartAuth: user paused (connect(false)), skip");
+        return;
+    }
+    if (!linkUp_.load()) {
+        NETMGR_EXT_LOG_I("TryStartAuth: link down, skip auth");
         return;
     }
     EthEapConfig config;
@@ -173,7 +217,11 @@ void EthEapAutoAuthController::DoAuthenticate(bool manual)
         NETMGR_EXT_LOG_W("DoAuthenticate: ensure cert files failed, continue auth");
     }
     uint32_t generation = authGeneration_.fetch_add(1) + 1;
-    int32_t ret = NetEapHandler::GetInstance().StartEthEap(DEFAULT_ETH_EAP_NETID, config.profile);
+    int32_t ret = EAP_ERRCODE_INTERNAL_ERROR;
+    {
+        std::lock_guard<std::mutex> lock(hdiSessionMutex_);
+        ret = NetEapHandler::GetInstance().StartEthEap(DEFAULT_ETH_EAP_NETID, config.profile);
+    }
     if (ret != EAP_ERRCODE_SUCCESS) {
         NETMGR_EXT_LOG_E("DoAuthenticate: StartEthEap failed: %{public}d", ret);
         OnAuthFailed("INTERNAL_ERROR");
@@ -182,17 +230,18 @@ void EthEapAutoAuthController::DoAuthenticate(bool manual)
     ScheduleAuthTimeoutCheck(generation);
 }
 
-void EthEapAutoAuthController::OnAuthSuccess()
+bool EthEapAutoAuthController::OnAuthSuccess()
 {
     if (!authenticating_.load() || enterpriseOccupied_.load()) {
         NETMGR_EXT_LOG_I("OnAuthSuccess: no active auth round or enterprise occupied, ignore stale event");
-        return;
+        return false;
     }
     NETMGR_EXT_LOG_I("OnAuthSuccess");
     authenticating_.store(false);
     manualRound_.store(false);
     EthEapStateManager::GetInstance().ResetRetryCount();
     EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATED);
+    return true;
 }
 
 void EthEapAutoAuthController::OnAuthFailed(const std::string &reason)
@@ -220,6 +269,7 @@ void EthEapAutoAuthController::OnAuthFailed(const std::string &reason)
         // 正在认证中），迟到 LogOff 会误杀新会话，直接跳过
         uint32_t logoffGeneration = authGeneration_.load();
         std::thread([this, logoffGeneration]() {
+            std::lock_guard<std::mutex> lock(hdiSessionMutex_);
             if (authGeneration_.load() != logoffGeneration) {
                 NETMGR_EXT_LOG_I("AsyncLogOff: new auth round started (generation changed), skip");
                 return;
@@ -242,6 +292,10 @@ void EthEapAutoAuthController::ScheduleRetry(const std::string &reason)
 {
     std::thread([this, reason]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_INTERVAL_MS));
+        if (!linkUp_.load()) {
+            NETMGR_EXT_LOG_I("ScheduleRetry: link down after sleep, cancel retry");
+            return;
+        }
         if (enterpriseOccupied_.load()) {
             NETMGR_EXT_LOG_D("ScheduleRetry: enterprise occupied after sleep, cancel");
             return;
@@ -270,16 +324,42 @@ void EthEapAutoAuthController::ScheduleRetry(const std::string &reason)
         }
         NETMGR_EXT_LOG_I("ScheduleRetry: retrying authentication (attempt %{public}d)",
             EthEapStateManager::GetInstance().GetRetryCount());
-        NetEapHandler::GetInstance().LogOffEthEap(DEFAULT_ETH_EAP_NETID);
-        authenticating_.store(true);
-        EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATING);
-        uint32_t generation = authGeneration_.fetch_add(1) + 1;
-        int32_t ret = NetEapHandler::GetInstance().StartEthEap(DEFAULT_ETH_EAP_NETID, config.profile);
+        uint32_t generation = 0;
+        int32_t ret = EAP_ERRCODE_INTERNAL_ERROR;
+        {
+            std::lock_guard<std::mutex> lock(hdiSessionMutex_);
+            if (!linkUp_.load()) {
+                NETMGR_EXT_LOG_I("ScheduleRetry: link down before restart, cancel retry");
+                return;
+            }
+            NetEapHandler::GetInstance().LogOffEthEap(DEFAULT_ETH_EAP_NETID);
+            authenticating_.store(true);
+            EthEapStateManager::GetInstance().SetState(EthEapState::STATE_AUTHENTICATING);
+            generation = authGeneration_.fetch_add(1) + 1;
+            ret = NetEapHandler::GetInstance().StartEthEap(DEFAULT_ETH_EAP_NETID, config.profile);
+        }
         if (ret != EAP_ERRCODE_SUCCESS) {
             OnAuthFailed(reason);
             return;
         }
         ScheduleAuthTimeoutCheck(generation);
+    }).detach();
+}
+
+void EthEapAutoAuthController::OnAuthTimeout()
+{
+    NETMGR_EXT_LOG_I("OnAuthTimeout: no auth result event, give up retry");
+    authenticating_.store(false);
+    manualRound_.store(false);
+    EthEapStateManager::GetInstance().SetState(EthEapState::STATE_FAILED,
+        linkUp_.load() ? "AUTH_TIMEOUT" : "ETH_LINK_DOWN");
+    uint32_t logoffGeneration = authGeneration_.load();
+    std::thread([this, logoffGeneration]() {
+        std::lock_guard<std::mutex> lock(hdiSessionMutex_);
+        if (authGeneration_.load() != logoffGeneration || authenticating_.load()) {
+            return;
+        }
+        NetEapHandler::GetInstance().LogOffEthEap(DEFAULT_ETH_EAP_NETID);
     }).detach();
 }
 
@@ -291,7 +371,7 @@ void EthEapAutoAuthController::ScheduleAuthTimeoutCheck(uint32_t generation)
             return;
         }
         NETMGR_EXT_LOG_I("AuthTimeout: no auth result event, generation=%{public}u", generation);
-        OnAuthFailed("AUTH_TIMEOUT");
+        OnAuthTimeout();
     }).detach();
 }
 

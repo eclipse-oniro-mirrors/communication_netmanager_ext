@@ -35,6 +35,7 @@ struct VpnConfig : public Parcelable {
     bool isLegacy_ = false;
     bool isMetered_ = false;
     bool isBlocking_ = false;
+    bool isLocalNetworkRouted_ = false;
     std::vector<std::string> dnsAddresses_;
     std::vector<std::string> searchDomains_;
     std::vector<std::string> acceptedApplications_;

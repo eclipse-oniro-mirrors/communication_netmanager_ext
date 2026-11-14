@@ -32,7 +32,8 @@ bool VpnConfig::Marshalling(Parcel &parcel) const
                  parcel.WriteBool(isBlocking_) && MarshallingVectorString(parcel, dnsAddresses_, MAX_SIZE) &&
                  MarshallingVectorString(parcel, searchDomains_, MAX_SIZE) &&
                  MarshallingVectorString(parcel, acceptedApplications_, APP_MAX_SIZE) &&
-                 MarshallingVectorString(parcel, refusedApplications_, APP_MAX_SIZE);
+                 MarshallingVectorString(parcel, refusedApplications_, APP_MAX_SIZE) &&
+                 parcel.WriteBool(isLocalNetworkRouted_);
     return allOK;
 }
 
@@ -103,7 +104,8 @@ bool VpnConfig::UnmarshallingVpnConfig(Parcel &parcel, VpnConfig* ptr)
                  parcel.ReadBool(ptr->isBlocking_) && UnmarshallingVectorString(parcel, ptr->dnsAddresses_, MAX_SIZE) &&
                  UnmarshallingVectorString(parcel, ptr->searchDomains_, MAX_SIZE) &&
                  UnmarshallingVectorString(parcel, ptr->acceptedApplications_, APP_MAX_SIZE) &&
-                 UnmarshallingVectorString(parcel, ptr->refusedApplications_, APP_MAX_SIZE);
+                 UnmarshallingVectorString(parcel, ptr->refusedApplications_, APP_MAX_SIZE) &&
+                 parcel.ReadBool(ptr->isLocalNetworkRouted_);
     return allOK;
 }
 
