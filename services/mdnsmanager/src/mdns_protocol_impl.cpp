@@ -332,6 +332,12 @@ MDnsConfig MDnsProtocolImpl::GetConfig()
     return config_;
 }
 
+size_t MDnsProtocolImpl::GetSrvMapSize()
+{
+    std::lock_guard<std::recursive_mutex> guard(mutex_);
+    return srvMap_.size();
+}
+
 std::string MDnsProtocolImpl::Decorated(const std::string &name)
 {
     std::shared_lock<std::shared_mutex> lock(configMutex_);
