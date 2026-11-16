@@ -42,6 +42,8 @@ public:
     MOCK_METHOD(ErrCode, GetStatsTxBytes, (int32_t & bytes), (override));
     MOCK_METHOD(ErrCode, GetStatsTotalBytes, (int32_t & bytes), (override));
     MOCK_METHOD(ErrCode, SetConfigureForShare, (bool enabled), (override));
+    MOCK_METHOD(ErrCode, GetSharingAddress, (int32_t type, sptr<NetworkShareAddressParcel> & addressParcel),
+        (override));
 };
 
 } // namespace NetManagerStandard
