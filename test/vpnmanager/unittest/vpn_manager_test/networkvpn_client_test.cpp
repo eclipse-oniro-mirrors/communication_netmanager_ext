@@ -115,11 +115,25 @@ HWTEST_F(NetworkVpnClientTest, Prepare001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, Prepare002, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
+    // Client-side Prepare logic only: verbatim proxy-result and out-param passthrough.
+    // The real permission check happens in the (device image) service process via real
+    // IPC and is environment dependent, so an injected mock service proxy is used instead.
+    NetworkVpnClient client;
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    client.networkVpnService_ = mock;
     bool isExistVpn = false;
     bool isRun = false;
     std::string pkg;
-    EXPECT_EQ(networkVpnClient_.Prepare(isExistVpn, isRun, pkg), NETMANAGER_EXT_SUCCESS);
+    ON_CALL(*mock, Prepare(_, _, _))
+        .WillByDefault(DoAll(SetArgReferee<0>(true), SetArgReferee<1>(false), SetArgReferee<2>("com.example.mock"),
+                       Return(NETMANAGER_EXT_SUCCESS)));
+    EXPECT_EQ(client.Prepare(isExistVpn, isRun, pkg), NETMANAGER_EXT_SUCCESS);
+    EXPECT_TRUE(isExistVpn);
+    EXPECT_FALSE(isRun);
+    EXPECT_EQ(pkg, "com.example.mock");
+    ON_CALL(*mock, Prepare(_, _, _)).WillByDefault(Return(NETMANAGER_ERR_PERMISSION_DENIED));
+    EXPECT_EQ(client.Prepare(isExistVpn, isRun, pkg), NETMANAGER_ERR_PERMISSION_DENIED);
+    client.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, Protect001, TestSize.Level1)
@@ -130,8 +144,17 @@ HWTEST_F(NetworkVpnClientTest, Protect001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, Protect002, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
-    EXPECT_EQ(networkVpnClient_.Protect(1), NETMANAGER_EXT_SUCCESS);
+    // Client-side Protect logic only: fd validation and verbatim proxy-result passthrough.
+    // The full path (proxy success + fwmark netsys marking) needs the netsys service and is
+    // covered by device tests, not by client unit tests.
+    NetworkVpnClient client;
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    client.networkVpnService_ = mock;
+    ON_CALL(*mock, Protect(_)).WillByDefault(Return(NETWORKVPN_ERROR_INVALID_FD));
+    EXPECT_EQ(client.Protect(1), NETWORKVPN_ERROR_INVALID_FD);
+    ON_CALL(*mock, Protect(_)).WillByDefault(Return(NETMANAGER_ERR_PERMISSION_DENIED));
+    EXPECT_EQ(client.Protect(1), NETMANAGER_ERR_PERMISSION_DENIED);
+    client.networkVpnService_ = nullptr;
 }
 
 HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
@@ -145,26 +168,48 @@ HWTEST_F(NetworkVpnClientTest, SetUpVpn001, TestSize.Level1)
 
 HWTEST_F(NetworkVpnClientTest, SetUpVpn002, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
+    // Client-side SetUpVpn/DestroyVpn passthrough via an injected mock service proxy:
+    // no real IPC, no dependence on the device image permission behavior.
+    NetworkVpnClient client;
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    client.networkVpnService_ = mock;
     int32_t tunFd = INVALID_TUN_FD;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    EXPECT_GE(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
-    EXPECT_GE(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(10), Return(NETMANAGER_EXT_SUCCESS)));
+    ON_CALL(*mock, DestroyVpn(::testing::An<bool>())).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    EXPECT_EQ(client.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(tunFd, 10);
+    EXPECT_EQ(client.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+    client.networkVpnService_ = nullptr;
 }
 
 #ifdef SUPPORT_SYSVPN
 HWTEST_F(NetworkVpnClientTest, SetUpVpn003, TestSize.Level1)
 {
-    NetManagerExtAccessToken access;
+    // Same mock-proxy pattern as SetUpVpn002, covering the second round with a vpnId set
+    // (which additionally exercises the vpn event callback registration path). A real
+    // (socketpair) fd is fed through the mock because the client validates the returned
+    // tunFd: a negative tunFd makes SetUpVpn return NETMANAGER_EXT_ERR_INTERNAL.
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(socketpair(AF_UNIX, SOCK_STREAM, 0, fds), 0);
+    NetworkVpnClient client;
+    auto mock = sptr<MockINetworkVpnService>::MakeSptr();
+    client.networkVpnService_ = mock;
     int32_t tunFd = INVALID_TUN_FD;
     sptr<VpnConfig> config = new (std::nothrow) VpnConfig();
-    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
-    EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
-	
+    ON_CALL(*mock, SetUpVpn(_, _, _, _))
+        .WillByDefault(DoAll(SetArgReferee<3>(fds[0]), Return(NETMANAGER_EXT_SUCCESS)));
+    ON_CALL(*mock, DestroyVpn(::testing::An<bool>())).WillByDefault(Return(NETMANAGER_EXT_SUCCESS));
+    EXPECT_EQ(client.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(tunFd, fds[0]);
+    EXPECT_EQ(client.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+
     config->vpnId_ = "test";
-    tunFd = 10;
-    EXPECT_EQ(networkVpnClient_.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
-    EXPECT_EQ(networkVpnClient_.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(client.SetUpVpn(config, tunFd), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(client.DestroyVpn(), NETMANAGER_EXT_SUCCESS);
+    client.networkVpnService_ = nullptr;
+    close(fds[1]);
 }
 #endif
 

@@ -45,7 +45,8 @@ public:
     NetworkShareSubStateMachine() = delete;
     NetworkShareSubStateMachine(const std::string &ifaceName, const SharingIfaceType &interfaceType,
                                 const std::shared_ptr<NetworkShareConfiguration> &configuration);
-    ~NetworkShareSubStateMachine();
+    // virtual: the class has virtual test seams, so destruction through shared_ptr needs it
+    virtual ~NetworkShareSubStateMachine();
 
     /**
      * get sub state machine share type
@@ -89,6 +90,18 @@ public:
     void GetUpIfaceName(std::string &upIface);
 
     void HandleConnection();
+
+protected:
+    // Test seams for netsys/tracker dependencies. Default implementations call the real
+    // channel (base NetsysController / NetworkShareTracker singleton). Unit tests may
+    // override them to exercise the state machine logic without real IPC.
+    virtual uint32_t GetTunv4InterfaceIndex(const std::string &ifaceName);
+    virtual int32_t AddInterfaceForward(const std::string &downIface, const std::string &upIface);
+    virtual int32_t RemoveInterfaceForward(const std::string &downIface, const std::string &upIface);
+    virtual int32_t AddInterfaceToNetwork(int32_t netId, const std::string &ifaceName);
+    virtual int32_t RemoveInterfaceFromNetwork(int32_t netId, const std::string &ifaceName);
+    virtual int32_t RemoveRouteToLocalNetwork(int32_t netId, const std::string &ifaceName,
+                                              const std::string &destination, const std::string &nextHop);
 
 private:
     void CreateInitStateTable();

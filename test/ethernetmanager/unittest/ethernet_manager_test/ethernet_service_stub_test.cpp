@@ -24,6 +24,7 @@
 #include "net_eap_callback_stub.h"
 #include "iethernet_service.h"
 #include "net_manager_constants.h"
+#include "common_mock_netmanager_permission.h"
 #include "configuration_parcel_ipc.h"
 
 namespace OHOS {
@@ -234,7 +235,14 @@ void EthernetServiceStubTest::SetUpTestCase() {}
 
 void EthernetServiceStubTest::TearDownTestCase() {}
 
-void EthernetServiceStubTest::SetUp() {}
+void EthernetServiceStubTest::SetUp()
+{
+    // Device-realistic baseline for the in-process permission mock (system caller passes,
+    // permission checks fail): the stub delegates to EthernetService, whose gate results
+    // must be deterministic instead of depending on the device AccessToken environment.
+    SetMockIsSystemCallerResult(true);
+    SetMockCheckPermissionResult(false);
+}
 
 void EthernetServiceStubTest::TearDown() {}
 

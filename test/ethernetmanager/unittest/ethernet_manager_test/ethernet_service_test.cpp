@@ -26,6 +26,7 @@
 #include "mac_address_info.h"
 #include "net_manager_constants.h"
 #include "netmanager_ext_test_security.h"
+#include "common_mock_netmanager_permission.h"
 #include "netmgr_ext_log_wrapper.h"
 #include "refbase.h"
 #include "static_configuration.h"
@@ -134,7 +135,15 @@ void EtherNetServiceTest::SetUpTestCase() {}
 
 void EtherNetServiceTest::TearDownTestCase() {}
 
-void EtherNetServiceTest::SetUp() {}
+void EtherNetServiceTest::SetUp()
+{
+    // Device-realistic baseline for the in-process permission mock: the test process is a
+    // native (non-HAP) caller, so IsSystemCaller passes while permission checks fail.
+    // Every case starts from this state (no cross-case influence) and overrides it locally
+    // when a granted-permission path is under test.
+    SetMockIsSystemCallerResult(true);
+    SetMockCheckPermissionResult(false);
+}
 
 void EtherNetServiceTest::TearDown() {}
 
@@ -346,9 +355,12 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceCommonTest001, TestSize.Level1)
     auto ret = serviceComm_->ResetEthernetFactory();
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PERMISSION_DENIED);
 
-    NetManagerExtAccessToken token;
+    // grant the permission through the mock: the call passes both service gates
+    // (EthernetServiceCommon -> EthernetService::ResetFactory) and reaches the management
+    // layer, which clears the user configuration directory
+    SetMockCheckPermissionResult(true);
     ret = serviceComm_->ResetEthernetFactory();
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
 }
 
 HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
@@ -359,7 +371,9 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
 
     ethernetService.OnStop();
 
-    NetManagerExtNotSystemAccessToken token;
+    // non-system caller (deterministic via the permission mock): every service entry
+    // below must be rejected with NOT_SYSTEM_CALL before any permission lookup
+    SetMockIsSystemCallerResult(false);
     int32_t result = ethernetService.ResetFactory();
     EXPECT_EQ(result, NETMANAGER_EXT_ERR_NOT_SYSTEM_CALL);
 
@@ -394,7 +408,9 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest001, TestSize.Level1)
 
 HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest002, TestSize.Level1)
 {
-    NetManagerExtAccessToken token;
+    // granted permissions (deterministic via the permission mock): the service gates are
+    // open so the case exercises the management/netsys layer below them
+    SetMockCheckPermissionResult(true);
     EthernetService ethernetService;
     ethernetService.InitManagement();
 
@@ -466,7 +482,9 @@ HWTEST_F(EtherNetServiceTest, EthernetServiceBranchTest003, TestSize.Level1)
     ethernetService.OnStart();
     ethernetService.OnStop();
 
-    NetManagerExtAccessToken token;
+    // granted permissions (deterministic via the permission mock): the service gates are
+    // open so the parameter/lookup validation of the management layer is reachable
+    SetMockCheckPermissionResult(true);
     int32_t fd = 1;
     std::vector<std::u16string> args;
     int32_t result = ethernetService.Dump(fd, args);
@@ -581,6 +599,9 @@ HWTEST_F(EtherNetServiceTest, NotifyWpaEapInterceptInfoTest001, TestSize.Level1)
 
 HWTEST_F(EtherNetServiceTest, StartEthEapTest001, TestSize.Level1)
 {
+    // granted permissions (deterministic via the permission mock): the service gate must
+    // not reject the request
+    SetMockCheckPermissionResult(true);
     EthernetService ethernetService;
     int32_t netId = 100;
     EthEapProfile profile;
@@ -590,6 +611,9 @@ HWTEST_F(EtherNetServiceTest, StartEthEapTest001, TestSize.Level1)
  
 HWTEST_F(EtherNetServiceTest, LogOffEthEapTest001, TestSize.Level1)
 {
+    // granted permissions (deterministic via the permission mock): the service gate must
+    // not reject the request
+    SetMockCheckPermissionResult(true);
     EthernetService ethernetService;
     int32_t netId = 100;
     auto ret = ethernetService.LogOffEthEap(netId);

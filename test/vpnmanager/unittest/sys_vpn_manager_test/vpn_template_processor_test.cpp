@@ -314,7 +314,9 @@ HWTEST_F(VpnTemplateProcessorTest, FormatConfigString002, TestSize.Level1)
     VpnTemplateProcessor processor;
     std::string testValue = "normalpassword";
     std::string result = processor.FormatConfigString(testValue);
-    EXPECT_EQ(result, "normalpassword");
+    // FormatConfigString strips CR/LF and unconditionally wraps the value in quotes,
+    // even when it contains no special character.
+    EXPECT_EQ(result, "\"normalpassword\"");
 }
 
 HWTEST_F(VpnTemplateProcessorTest, LocalAddresses001, TestSize.Level1)

@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace NetManagerStandard {
+
 extern "C" int32_t RequestVpnPermission(int32_t uid, const std::string& bundleName, const std::string& abilityName,
     bool &isAuthorized);
 /**

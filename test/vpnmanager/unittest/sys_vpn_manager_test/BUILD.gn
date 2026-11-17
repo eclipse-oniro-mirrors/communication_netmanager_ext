@@ -49,6 +49,11 @@ ohos_unittest("sys_vpn_manager_test") {
     "vpn_ut_config_raw_data_test.cpp",
     "vpn_ut_config_test.cpp",
     "extended_vpn_ctl_test.cpp",
+    # compiled directly so the test binary does not depend on the (device image version
+    # of the) net_vpn_manager_if shared library at runtime: some devices run an older
+    # image whose SO lacks newer NetworkVpnClient symbols (e.g. GetTunIfName), which
+    # makes the whole test process fail to relocate at startup
+    "$NETMANAGER_EXT_ROOT/frameworks/native/netvpnclient/src/networkvpn_client.cpp",
   ]
 
   include_dirs = [
@@ -94,6 +99,7 @@ ohos_unittest("sys_vpn_manager_test") {
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
     "googletest:gmock_main",
   ]
 

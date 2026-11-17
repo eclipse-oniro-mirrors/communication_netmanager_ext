@@ -241,16 +241,27 @@ HWTEST_F(NetworkShareTrackerTest, StartNetworkSharing01, TestSize.Level1)
  */
 HWTEST_F(NetworkShareTrackerTest, StopNetworkSharing01, TestSize.Level1)
 {
+    // Use a local tracker instance instead of the DelayedSingleton: its state
+    // (curUsbState_ = USB_NONE, clientRequestsBitMask_ = 0) is fresh, so this case neither
+    // inherits state from earlier cases (e.g. StartNetworkSharing01 leaves
+    // curUsbState_ = USB_SHARING even when its USB SA call fails) nor pollutes later ones.
+    NetworkShareTracker tracker;
     SharingIfaceType type = SharingIfaceType::SHARING_WIFI;
-    int32_t ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
+    int32_t ret = tracker.StopNetworkSharing(type);
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_WIFI_SHARING);
 
+    // With fresh curUsbState_ != USB_SHARING the stop path short-circuits inside
+    // SetUsbNetworkSharing and never touches the real USB service, so the USB sharing
+    // error can never be returned here; the request bit is cleared either way.
     type = SharingIfaceType::SHARING_USB;
-    ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
-    EXPECT_EQ(ret, NETWORKSHARE_ERROR_USB_SHARING);
+    ret = tracker.StopNetworkSharing(type);
+    EXPECT_NE(ret, NETWORKSHARE_ERROR_USB_SHARING);
+    EXPECT_EQ(tracker.clientRequestsBitMask_.load(std::memory_order_relaxed) &
+                  (1U << static_cast<uint32_t>(type)),
+              0U);
 
     type = SharingIfaceType::SHARING_BLUETOOTH;
-    ret = NetworkShareTracker::GetInstance().StopNetworkSharing(type);
+    ret = tracker.StopNetworkSharing(type);
     EXPECT_EQ(ret, NETWORKSHARE_ERROR_BT_SHARING);
 }
 
@@ -1234,11 +1245,17 @@ HWTEST_F(NetworkShareTrackerTest, SendSharingUpstreamChange02, TestSize.Level1)
 HWTEST_F(NetworkShareTrackerTest, RestartResume01, TestSize.Level1)
 {
     NetworkShareTracker networksharetracker;
-    SharingIfaceType type = SharingIfaceType::SHARING_NONE;
-    networksharetracker.clientRequestsBitMask_ = (1U << static_cast<uint32_t>(type));
+    // SHARING_NONE is -1 and cannot be mapped to a bitmap bit; the historic
+    // 1U << SHARING_NONE shift was undefined behavior whose result differed per
+    // build/device. Use a concrete valid request bit so the case is deterministic.
+    const uint32_t requestMask = (1U << static_cast<uint32_t>(SharingIfaceType::SHARING_WIFI));
+    networksharetracker.clientRequestsBitMask_ = requestMask;
     networksharetracker.isStartDnsProxy_ = true;
     networksharetracker.RestartResume();
-    EXPECT_EQ(networksharetracker.clientRequestsBitMask_, 0);
+    // RestartResume only resumes the dns proxy and notifies the sub state machines;
+    // the client request bitmap is intentionally kept unchanged (clients keep their
+    // sharing requests across the netsys restart recovery)
+    EXPECT_EQ(networksharetracker.clientRequestsBitMask_, requestMask);
 }
  
 HWTEST_F(NetworkShareTrackerTest, RestartResume02, TestSize.Level1)

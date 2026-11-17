@@ -581,13 +581,45 @@ void NetworkShareSubStateMachine::ConfigureShareIpv6(const sptr<NetLinkInfo> &up
         StartIpv6();
     }
 }
+uint32_t NetworkShareSubStateMachine::GetTunv4InterfaceIndex(const std::string &ifaceName)
+{
+    return NetworkShareTracker::GetInstance().GetInterfaceIndexByName(ifaceName);
+}
+
+int32_t NetworkShareSubStateMachine::AddInterfaceForward(const std::string &downIface, const std::string &upIface)
+{
+    return NetsysController::GetInstance().IpfwdAddInterfaceForward(downIface, upIface);
+}
+
+int32_t NetworkShareSubStateMachine::RemoveInterfaceForward(const std::string &downIface, const std::string &upIface)
+{
+    return NetsysController::GetInstance().IpfwdRemoveInterfaceForward(downIface, upIface);
+}
+
+int32_t NetworkShareSubStateMachine::AddInterfaceToNetwork(int32_t netId, const std::string &ifaceName)
+{
+    return NetsysController::GetInstance().NetworkAddInterface(netId, ifaceName);
+}
+
+int32_t NetworkShareSubStateMachine::RemoveInterfaceFromNetwork(int32_t netId, const std::string &ifaceName)
+{
+    return NetsysController::GetInstance().NetworkRemoveInterface(netId, ifaceName);
+}
+
+int32_t NetworkShareSubStateMachine::RemoveRouteToLocalNetwork(int32_t netId, const std::string &ifaceName,
+                                                               const std::string &destination,
+                                                               const std::string &nextHop)
+{
+    return NetsysController::GetInstance().NetworkRemoveRoute(netId, ifaceName, destination, nextHop);
+}
+
 void NetworkShareSubStateMachine::HandleConnection()
 {
     std::lock_guard<ffrt::recursive_mutex> lock(getUsefulMutex());
     tunv4UpstreamIfaceName_ = "tunv4-" + upstreamIfaceName_;
-    uint32_t tunv4IfIndex = NetworkShareTracker::GetInstance().GetInterfaceIndexByName(tunv4UpstreamIfaceName_);
+    uint32_t tunv4IfIndex = GetTunv4InterfaceIndex(tunv4UpstreamIfaceName_);
     int32_t result = NETSYS_SUCCESS;
-    result = NetsysController::GetInstance().IpfwdAddInterfaceForward(ifaceName_, upstreamIfaceName_);
+    result = AddInterfaceForward(ifaceName_, upstreamIfaceName_);
     if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
@@ -596,24 +628,24 @@ void NetworkShareSubStateMachine::HandleConnection()
         NETMGR_EXT_LOG_E(
             "Sub StateMachine[%{public}s] IpfwdAddInterfaceForward newIface[%{public}s] error[%{public}d].",
             ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
-        NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
+        RemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
         tunv4UpstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
         lastError_ = NETWORKSHARE_ERROR_ENABLE_FORWARDING_ERROR;
         SubSmStateSwitch(SUBSTATE_INIT);
         return;
     }
     if (tunv4IfIndex != 0) {
-        result = NetsysController::GetInstance().IpfwdAddInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
+        result = AddInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
         if (result != NETSYS_SUCCESS) {
             NETMGR_EXT_LOG_E(
                 "Sub StateMachine[%{public}s] IpfwdAddInterfaceForward tunv4 newIface[%{public}s] error[%{public}d].",
                 ifaceName_.c_str(), tunv4UpstreamIfaceName_.c_str(), result);
-                NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
+                RemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
                 tunv4UpstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
         }
     }
 
-    result = NetsysController::GetInstance().NetworkAddInterface(LOCAL_NET_ID, ifaceName_);
+    result = AddInterfaceToNetwork(LOCAL_NET_ID, ifaceName_);
     if (result != NETMANAGER_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             netShareType_, NetworkShareEventOperator::OPERATION_CONFIG_FORWARD,
@@ -623,9 +655,9 @@ void NetworkShareSubStateMachine::HandleConnection()
             "Sub StateMachine[%{public}s] SharedState NetworkAddInterface newIface[%{public}s] error[%{public}d].",
             ifaceName_.c_str(), upstreamIfaceName_.c_str(), result);
         if (!tunv4UpstreamIfaceName_.empty()) {
-            NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
+            RemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
         }
-        NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
+        RemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
         tunv4UpstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
         lastError_ = NETWORKSHARE_ERROR_ENABLE_FORWARDING_ERROR;
         SubSmStateSwitch(SUBSTATE_INIT);
@@ -640,8 +672,7 @@ void NetworkShareSubStateMachine::RemoveRoutesToLocalNetwork()
         NETMGR_EXT_LOG_E("Get Destination fail");
         return;
     }
-    int32_t result =
-        NetsysController::GetInstance().NetworkRemoveRoute(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
+    int32_t result = RemoveRouteToLocalNetwork(LOCAL_NET_ID, ifaceName_, destination, NEXT_HOT);
     if (result != NETSYS_SUCCESS) {
         NetworkShareHisysEvent::GetInstance().SendFaultEvent(
             netShareType_, NetworkShareEventOperator::OPERATION_CANCEL_FORWARD,
@@ -1044,12 +1075,12 @@ void NetworkShareSubStateMachine::CleanupUpstreamInterface()
 #ifndef AUTOMOTIVE_DISABLE_STATIC_ROUTE_CONFIG
     RemoveRoutesToLocalNetwork();
 #endif
-    NetsysController::GetInstance().NetworkRemoveInterface(LOCAL_NET_ID, ifaceName_);
+    RemoveInterfaceFromNetwork(LOCAL_NET_ID, ifaceName_);
     if (!tunv4UpstreamIfaceName_.empty()) {
-        NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
+        RemoveInterfaceForward(ifaceName_, tunv4UpstreamIfaceName_);
         tunv4UpstreamIfaceName_ = EMPTY_UPSTREAM_IFACENAME;
     }
-    NetsysController::GetInstance().IpfwdRemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
+    RemoveInterfaceForward(ifaceName_, upstreamIfaceName_);
 }
 
 bool NetworkShareSubStateMachine::HasChangeUpstreamIfaceSet(const std::string &newUpstreamIface)

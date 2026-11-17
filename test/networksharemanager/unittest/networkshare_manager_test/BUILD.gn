@@ -28,6 +28,10 @@ ohos_unittest("networkshare_manager_test") {
 
   sources = [
     "$EXT_SECURITY_PATH/security/netmanager_ext_test_security.cpp",
+    # link-level permission mock: replaces NetManagerPermission inside this test binary so
+    # that the in-process NetworkShareService gate checks (IsSystemCaller/CheckPermission)
+    # are deterministic and independent of the device AccessToken environment
+    "$EXT_SECURITY_PATH/security/common_mock_netmanager_permission.cpp",
     "edm_parameter_utils_test.cpp",
     "interface_configuration_test.cpp",
     "net_event_report_test.cpp",
@@ -95,6 +99,7 @@ ohos_unittest("networkshare_manager_test") {
     "ipc:ipc_core",
     "netmanager_base:net_conn_manager_if",
     "netmanager_base:net_manager_common",
+    "googletest:gmock_main",
     "openssl:libcrypto_shared",
     "openssl:libssl_shared",
     "safwk:system_ability_fwk",

@@ -87,6 +87,12 @@ HWTEST_F(VpnDatabaseHelperTest, IsVpnInfoExists001, TestSize.Level1)
 
 HWTEST_F(VpnDatabaseHelperTest, IsVpnInfoExists002, TestSize.Level1)
 {
+    // The case assumes the insert cannot persist (no usable rdb store in the unit-test
+    // environment), so the id must not exist afterwards; force the no-store state
+    // hermetically (NoStore001 pattern) instead of relying on the device being unable
+    // to create the store.
+    std::shared_ptr<OHOS::NativeRdb::RdbStore> tmp = vpnDataHelper_.store_;
+    vpnDataHelper_.store_ = nullptr;
     std::string vpnId = "1234";
     sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
     ASSERT_NE(vpnBean, nullptr);
@@ -100,6 +106,7 @@ HWTEST_F(VpnDatabaseHelperTest, IsVpnInfoExists002, TestSize.Level1)
     vpnDataHelper_.InsertData(vpnBean);
     auto ret = vpnDataHelper_.IsVpnInfoExists(vpnId);
     EXPECT_NE(ret, true);
+    vpnDataHelper_.store_ = tmp;
 }
 
 HWTEST_F(VpnDatabaseHelperTest, InsertData001, TestSize.Level1)

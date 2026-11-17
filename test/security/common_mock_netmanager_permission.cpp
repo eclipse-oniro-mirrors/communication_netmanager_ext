@@ -16,24 +16,44 @@
 #include "net_mgr_log_wrapper.h"
 #include "netmanager_base_permission.h"
 
+#include "common_mock_netmanager_permission.h"
+
 namespace OHOS {
 namespace NetManagerStandard {
+namespace {
+// Defaults keep the historical all-pass behavior (sys_vpn_manager_test relies on it).
+// Ethernet unit tests set the device-realistic baseline (system caller passes,
+// permission check fails) in their fixture SetUp and override per case as needed.
+bool g_mockCheckPermissionResult = true;
+bool g_mockIsSystemCallerResult = true;
+} // namespace
+
+void SetMockCheckPermissionResult(bool result)
+{
+    g_mockCheckPermissionResult = result;
+}
+
+void SetMockIsSystemCallerResult(bool result)
+{
+    g_mockIsSystemCallerResult = result;
+}
+
 bool NetManagerPermission::CheckPermissionWithCache(const std::string &permissionName)
 {
     NETMGR_LOG_D("permissionName: %{public}s", permissionName.c_str());
-    return true;
+    return g_mockCheckPermissionResult;
 }
 
 bool NetManagerPermission::CheckPermission(const std::string &permissionName)
 {
     NETMGR_LOG_D("permissionName: %{public}s", permissionName.c_str());
-    return true;
+    return g_mockCheckPermissionResult;
 }
 
 bool NetManagerPermission::IsSystemCaller()
 {
     NETMGR_LOG_D("Is conn caller.");
-    return true;
+    return g_mockIsSystemCallerResult;
 }
 
 bool NetManagerPermission::CheckNetSysInternalPermission(const std::string &permissionName)
@@ -43,4 +63,4 @@ bool NetManagerPermission::CheckNetSysInternalPermission(const std::string &perm
 }
 
 } // namespace NetManagerStandard
-} // namespace OHOS
+} // namespace OHOS
