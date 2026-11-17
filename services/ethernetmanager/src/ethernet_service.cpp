@@ -341,7 +341,7 @@ int32_t EthernetService::UnregisterIfacesStateChanged(const sptr<InterfaceStateC
         return NETMANAGER_EXT_ERR_PARAMETER_ERROR;
     }
     if (!NetManagerPermission::CheckPermission(Permission::GET_NETWORK_INFO)) {
-        NETMGR_EXT_LOG_E("RegisterIfacesStateChanged no permission");
+        NETMGR_EXT_LOG_E("UnregisterIfacesStateChanged no permission");
         return NETMANAGER_EXT_ERR_PERMISSION_DENIED;
     }
     return UnregisterMonitorIfaceCallbackAsync(callback);
