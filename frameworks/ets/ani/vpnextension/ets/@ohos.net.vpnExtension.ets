@@ -168,6 +168,7 @@ export default namespace vpnExtension {
     create(config: VpnConfig): Promise<int>;
     generateVpnId(): Promise<string>;
     protect(socketFd: int): Promise<void>;
+    protectSync(socketFd: int): void;
     destroy(): Promise<void>;
     destroy(vpnId: string): Promise<void>;
     protectProcessNet(): Promise<void>;  

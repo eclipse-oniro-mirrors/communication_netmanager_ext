@@ -21,7 +21,6 @@
 #include "protect_context.h"
 #include "setup_context.h"
 #include "vpn_async_work.h"
-#include "vpn_exec.h"
 
 namespace OHOS {
 namespace NetManagerStandard {
@@ -42,14 +41,6 @@ napi_value Protect(napi_env env, napi_callback_info info)
 {
     return ModuleTemplate::Interface<ProtectContext>(env, info, PROTECT, nullptr, VpnAsyncWork::ExecProtect,
                                                      VpnAsyncWork::ProtectCallback);
-}
-
-napi_value ProtectSync(napi_env env, napi_callback_info info)
-{
-    return ModuleTemplate::InterfaceSync<ProtectSyncContext>(
-        env, info, PROTECT_SYNC, nullptr,
-        [](ProtectSyncContext *context) { return VpnExec::ExecProtect(context); },
-        [](ProtectSyncContext *context) { return VpnExec::ProtectCallback(context); });
 }
 
 napi_value Destroy(napi_env env, napi_callback_info info)
