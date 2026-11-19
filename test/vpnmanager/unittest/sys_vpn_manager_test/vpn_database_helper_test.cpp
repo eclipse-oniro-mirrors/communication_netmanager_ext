@@ -274,5 +274,58 @@ HWTEST_F(VpnDatabaseHelperTest, EncryptData001, TestSize.Level1)
     EXPECT_EQ(vpnDataHelper_.EncryptData(vpnBean), NETMANAGER_EXT_ERR_INTERNAL);
     EXPECT_EQ(vpnDataHelper_.DecryptData(vpnBean), NETMANAGER_EXT_SUCCESS);
 }
+
+HWTEST_F(VpnDatabaseHelperTest, EncryptData002, TestSize.Level1)
+{
+    // ovpnConfig_ carries the base64-encoded ovpn profile (which embeds the VPN
+    // credentials inline) and must be inside the encryption scope. Only ovpnConfig_
+    // is set so the encryption attempt reaches the ovpnConfig_ branch specifically.
+    // Without the fix this case returns SUCCESS with the field left unchanged.
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    vpnBean->vpnId_ = "5678";
+    vpnBean->userId_ = 100;
+    std::string ovpnConfig = "Y2xpZW50CmRldiB0dW4KPGF1dGgtdXNlci1wYXNzPgp1c2VyCnB3ZAo8L2F1dGg";
+    vpnBean->ovpnConfig_ = ovpnConfig;
+    auto ret = vpnDataHelper_.EncryptData(vpnBean);
+    if (ret == NETMANAGER_EXT_ERR_INTERNAL) {
+        // HUKS unavailable in the unit-test environment: the branch was still reached
+        // and the field must stay untouched when encryption fails
+        EXPECT_EQ(vpnBean->ovpnConfig_, ovpnConfig);
+    } else {
+        // encryption available: the stored value must no longer be the plain base64
+        EXPECT_EQ(ret, NETMANAGER_EXT_SUCCESS);
+        EXPECT_NE(vpnBean->ovpnConfig_, ovpnConfig);
+        EXPECT_NE(vpnBean->ovpnConfig_.find(","), std::string::npos);
+    }
+}
+
+HWTEST_F(VpnDatabaseHelperTest, DecryptData002, TestSize.Level1)
+{
+    // Legacy rows persisted before the fix store ovpnConfig_ as plain base64 without
+    // the "<cipher>,<iv>" separator: they must be passed through unchanged so that
+    // existing vpn configs keep loading and connecting after the upgrade.
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    vpnBean->vpnId_ = "5678";
+    vpnBean->userId_ = 100;
+    std::string legacyConfig = "Y2xpZW50CmRldiB0dW4K";
+    vpnBean->ovpnConfig_ = legacyConfig;
+    EXPECT_EQ(vpnDataHelper_.DecryptData(vpnBean), NETMANAGER_EXT_SUCCESS);
+    EXPECT_EQ(vpnBean->ovpnConfig_, legacyConfig);
+}
+
+HWTEST_F(VpnDatabaseHelperTest, DecryptData003, TestSize.Level1)
+{
+    // Rows persisted after the fix store "<cipher>,<iv>": the separator must route the
+    // ovpnConfig_ field into HUKS decryption. A fabricated cipher text can never be
+    // decrypted successfully, so the result is deterministic.
+    sptr<VpnDataBean> vpnBean = new (std::nothrow) VpnDataBean();
+    ASSERT_NE(vpnBean, nullptr);
+    vpnBean->vpnId_ = "5678";
+    vpnBean->userId_ = 100;
+    vpnBean->ovpnConfig_ = "aabbccdd,11223344";
+    EXPECT_EQ(vpnDataHelper_.DecryptData(vpnBean), NETMANAGER_EXT_ERR_INTERNAL);
+}
 } // namespace NetManagerStandard
 } // namespace OHOS

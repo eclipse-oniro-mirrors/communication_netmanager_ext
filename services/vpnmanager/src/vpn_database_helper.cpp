@@ -140,6 +140,10 @@ int32_t VpnDatabaseHelper::EncryptData(const sptr<VpnDataBean> &vpnBean)
         NETMGR_EXT_LOG_E("EncryptData ipsecSecrets_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
+    if (VpnEncryptData(vpnEncryptionInfo, vpnBean->ovpnConfig_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("EncryptData ovpnConfig_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
     return NETMANAGER_EXT_SUCCESS;
 }
 
@@ -182,6 +186,10 @@ int32_t VpnDatabaseHelper::DecryptData(const sptr<VpnDataBean> &vpnBean)
     }
     if (VpnDecryptData(vpnEncryptionInfo, vpnBean->ipsecSecrets_) != NETMANAGER_EXT_SUCCESS) {
         NETMGR_EXT_LOG_E("EncryptData ipsecSecrets_ failed");
+        return NETMANAGER_EXT_ERR_INTERNAL;
+    }
+    if (VpnDecryptData(vpnEncryptionInfo, vpnBean->ovpnConfig_) != NETMANAGER_EXT_SUCCESS) {
+        NETMGR_EXT_LOG_E("DecryptData ovpnConfig_ failed");
         return NETMANAGER_EXT_ERR_INTERNAL;
     }
     return NETMANAGER_EXT_SUCCESS;
