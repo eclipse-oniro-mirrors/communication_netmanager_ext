@@ -2063,8 +2063,8 @@ HWTEST_F(NetFirewallServiceTest, SendVerdict001, TestSize.Level1)
 {
     int32_t queueNum = 9999;
     uint32_t packetId = 100;
-    int32_t verdict = 1;
-    int32_t mark = 0;
+    uint32_t verdict = 1;
+    uint32_t mark = 0;
     int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
     EXPECT_NE(ret, FIREWALL_SUCCESS);
 }
@@ -2078,8 +2078,8 @@ HWTEST_F(NetFirewallServiceTest, SendVerdict002, TestSize.Level1)
 {
     int32_t queueNum = 0;
     uint32_t packetId = 0;
-    int32_t verdict = 0;
-    int32_t mark = 0;
+    uint32_t verdict = 0;
+    uint32_t mark = 0;
     int32_t ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
     EXPECT_NE(ret, FIREWALL_SUCCESS);
 }

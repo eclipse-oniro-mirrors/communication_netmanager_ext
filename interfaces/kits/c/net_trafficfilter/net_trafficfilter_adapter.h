@@ -144,7 +144,7 @@ public:
         OH_TrafficFilter_PacketCallback callback, void* userData);
 
     int32_t UnregisterPacketCallback(OH_TrafficFilter_PacketController* controller);
-    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark);
+    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, uint32_t verdict, uint32_t mark);
 
 private:
     PacketControllerAdapterManager() = default;

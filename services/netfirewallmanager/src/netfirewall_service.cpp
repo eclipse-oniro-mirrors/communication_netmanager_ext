@@ -824,7 +824,7 @@ int32_t NetFirewallService::ClearPacketRule(const std::string& controllerId)
     return ret;
 }
 
-int32_t NetFirewallService::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+int32_t NetFirewallService::SendVerdict(int32_t queueNum, uint32_t packetId, uint32_t verdict, uint32_t mark)
 {
     QueueInfo info = NetTrafficFilterNFQueueCore::GetInstance().GetQueueInfo(queueNum);
     if (info.nfqHandle == nullptr || info.qh == nullptr) {

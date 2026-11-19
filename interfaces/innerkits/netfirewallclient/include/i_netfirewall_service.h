@@ -74,7 +74,7 @@ public:
         const sptr<TrafficFilterConfig>& config, std::string& packetControllerId, int32_t& fd) = 0;
 
     virtual int32_t DestroyPacketController(const std::string& packetControllerId) = 0;
-    virtual int32_t SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark) = 0;
+    virtual int32_t SendVerdict(int32_t queueNum, uint32_t packetId, uint32_t verdict, uint32_t mark) = 0;
 
     enum {
         SET_NET_FIREWALL_STATUS,
