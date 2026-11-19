@@ -39,7 +39,7 @@
 #include "net_manager_constants.h"
 #include "net_datashare_utils_iface.h"
 #include "networkvpn_service.h"
-#include "protect_context.h"
+#include "protect_context_ext.h"
 #include "vpn_event_callback_stub.h"
 #include "vpn_fd_channel.h"
 #include "system_ability_definition.h"

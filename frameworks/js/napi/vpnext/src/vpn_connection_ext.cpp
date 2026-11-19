@@ -25,6 +25,7 @@
 #include "protect_process_net_context_ext.h"
 #include "setup_context_ext.h"
 #include "vpn_async_work_ext.h"
+#include "vpn_exec_ext.h"
 #include "vpn_monitor_ext.h"
 #include "netmanager_ext_log.h"
 
@@ -49,6 +50,15 @@ napi_value Protect(napi_env env, napi_callback_info info)
     NETMANAGER_EXT_LOGI("enter VpnConnectionExt Protect");
     return ModuleTemplate::Interface<ProtectContext>(env, info, PROTECT_EXT, nullptr, VpnAsyncWorkExt::ExecProtect,
                                                      VpnAsyncWorkExt::ProtectCallback);
+}
+
+napi_value ProtectSync(napi_env env, napi_callback_info info)
+{
+    NETMANAGER_EXT_LOGI("enter VpnConnectionExt ProtectSync");
+    return ModuleTemplate::InterfaceSync<ProtectSyncContext>(
+        env, info, PROTECT_SYNC_EXT, nullptr,
+        [](ProtectSyncContext *context) { return VpnExecExt::ExecProtect(context); },
+        [](ProtectSyncContext *context) { return VpnExecExt::ProtectCallback(context); });
 }
 
 napi_value Destroy(napi_env env, napi_callback_info info)
