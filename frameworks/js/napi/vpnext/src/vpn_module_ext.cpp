@@ -456,10 +456,13 @@ static napi_value CreateVpnObserver(napi_env env, napi_callback_info info)
     return ModuleTemplate::NewInstance(env, info, VPN_OBSERVER_EXT, MakeVpnObserverExt,
         [](napi_env, void *data, void *) {
         NETMANAGER_EXT_LOGI("finalize VpnObserver");
-        auto *vpnObserverInstance = static_cast<VpnObserverInstance *>(data);
-        if (vpnObserverInstance == nullptr) {
+        auto sharedManager = static_cast<std::shared_ptr<EventManager> *>(data);
+        if (sharedManager == nullptr || *sharedManager == nullptr) {
             return;
         }
+        auto manager = *sharedManager;
+        auto vpnObserverInstance = static_cast<VpnObserverInstance *>(manager->GetData());
+        delete sharedManager;
         VpnObserverInstance::DeleteVpnObserver(vpnObserverInstance);
     });
 }
