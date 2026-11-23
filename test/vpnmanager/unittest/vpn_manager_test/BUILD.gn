@@ -111,6 +111,7 @@ ohos_unittest("vpn_manager_test") {
     "samgr:samgr_proxy",
     "safwk:system_ability_fwk",
     "googletest:gmock_main",
+    "safwk:system_ability_fwk",
   ]
 
   defines = [

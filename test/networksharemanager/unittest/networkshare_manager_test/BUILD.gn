@@ -105,6 +105,7 @@ ohos_unittest("networkshare_manager_test") {
     "safwk:system_ability_fwk",
     "time_service:time_client",
     "usb_manager:usbsrv_client",
+    "samgr:samgr_proxy",
   ]
 
   if (communication_wifi_switch_enable) {
