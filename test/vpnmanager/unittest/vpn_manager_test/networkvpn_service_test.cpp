@@ -1403,8 +1403,10 @@ HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow002, TestSize.Level1)
     auto vpnService = std::make_shared<NetworkVpnService>();
     std::string bundleName = "com.test.enterprise";
     NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "0");
-    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
-    vpnService->vpnExtPermissionCache_.erase(bundleName);
+    {
+        std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+        vpnService->vpnExtPermissionCache_.erase(bundleName);
+    }
     bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
     EXPECT_FALSE(hasPermission);
 }
@@ -1417,12 +1419,16 @@ HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow003, TestSize.Level1)
     bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
     EXPECT_TRUE(hasPermission);
     NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "0");
-    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
-    vpnService->vpnExtPermissionCache_.erase(bundleName);
+    {
+        std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+        vpnService->vpnExtPermissionCache_.erase(bundleName);
+    }
     bool hasPermissionAfterClear = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
     EXPECT_FALSE(hasPermissionAfterClear);
-    std::unique_lock<ffrt::shared_mutex> lock2(vpnService->vpnExtPermissionCacheMutex_);
-    vpnService->vpnExtPermissionCache_.erase(bundleName);
+    {
+        std::unique_lock<ffrt::shared_mutex> lock2(vpnService->vpnExtPermissionCacheMutex_);
+        vpnService->vpnExtPermissionCache_.erase(bundleName);
+    }
 }
 
 #ifdef ENABLE_VPN_FOR_USER0
@@ -1433,8 +1439,10 @@ HWTEST_F(NetworkVpnServiceTest, EnterpriseVpnPermissionFlow004, TestSize.Level1)
     EXPECT_EQ(ret, NETMANAGER_EXT_ERR_PARAMETER_ERROR);
     std::string bundleName = "com.test.enterprise";
     NetDataShareHelperUtilsIface::Update(VPNEXT_MODE_URI, bundleName, "0");
-    std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
-    vpnService->vpnExtPermissionCache_.erase(bundleName);
+    {
+        std::unique_lock<ffrt::shared_mutex> lock(vpnService->vpnExtPermissionCacheMutex_);
+        vpnService->vpnExtPermissionCache_.erase(bundleName);
+    }
     bool hasPermission = vpnService->CheckVpnExtPermission(IPCSkeleton::GetCallingUid(), bundleName);
     EXPECT_FALSE(hasPermission);
 }

@@ -77,6 +77,7 @@ public:
     void SetConfig(const MDnsConfig &config);
     bool Browse();
     MDnsConfig GetConfig();
+    size_t GetSrvMapSize();
 
     int32_t Register(const Result &info);
     int32_t Discovery(const std::string &serviceType, const sptr<IDiscoveryCallback> &cb);

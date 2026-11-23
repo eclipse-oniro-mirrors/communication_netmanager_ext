@@ -208,8 +208,13 @@ void MDnsManager::GetDumpMessage(std::string &message)
     message.append("\tAll Iface: " + std::to_string(config.configAllIface) + "\n");
     message.append("\tTop Domain: " + config.topDomain + "\n");
     message.append("\tHostname: " + config.hostname + "\n");
-    message.append("\tImpl Service Count: " + std::to_string(impl_->srvMap_.size()) + "\n");
-    message.append("\tDiscovery Count: " + std::to_string(discoveryMap_.size()) + "\n");
+    message.append("\tImpl Service Count: " + std::to_string(impl_->GetSrvMapSize()) + "\n");
+    size_t discoveryCount = 0;
+    {
+        std::shared_lock<std::shared_mutex> guard(discoveryMutex_);
+        discoveryCount = discoveryMap_.size();
+    }
+    message.append("\tDiscovery Count: " + std::to_string(discoveryCount) + "\n");
 }
 
 bool MDnsManager::IsAvailableCallback(const sptr<IDiscoveryCallback> &cb)
