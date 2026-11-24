@@ -143,6 +143,8 @@ ohos_shared_library("net_vpn_manager_if") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libnet_vpn_manager_if.map"
+
   sources = [
     "$VPN_INNERKITS_SOURCE_DIR/src/networkvpn_client.cpp",
   ]

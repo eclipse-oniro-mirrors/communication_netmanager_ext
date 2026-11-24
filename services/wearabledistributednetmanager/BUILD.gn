@@ -89,6 +89,8 @@ ohos_shared_library("wearable_distributed_net_manager") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libwearable_distributed_net_manager.map"
+
   configs = [ ":wearable_distributed_net_manager_config" ]
 
   sources = wearable_distributed_net_manager_sources
@@ -104,6 +106,34 @@ ohos_shared_library("wearable_distributed_net_manager") {
   cflags_cc = common_cflags + memory_optimization_cflags_cc
 
   ldflags = memory_optimization_ldflags
+
+  part_name = "netmanager_ext"
+  subsystem_name = "communication"
+}
+
+ohos_static_library("wearable_distributed_net_manager_static") {
+  testonly = true
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  branch_protector_ret = "pac_ret"
+
+  configs = [ ":wearable_distributed_net_manager_config" ]
+
+  sources = wearable_distributed_net_manager_sources
+  deps = wearable_distributed_net_manager_deps
+  external_deps = wearable_distributed_net_manager_external_deps
+
+  if (battery_manager_switch_enable) {
+    external_deps += [ "battery_manager:batterysrv_client" ]
+  }
+
+  cflags = common_cflags + memory_optimization_cflags
+
+  cflags_cc = common_cflags + memory_optimization_cflags_cc
 
   part_name = "netmanager_ext"
   subsystem_name = "communication"

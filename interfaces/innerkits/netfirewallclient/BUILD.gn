@@ -75,6 +75,8 @@ ohos_shared_library("netfirewall_manager_if") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libnetfirewall_manager_if.map"
+
   if (netmanager_ext_feature_net_firewall) {
     sources = [
       "$NETFIREWALL_EXTENSION_SOURCE_DIR/src/netfirewall_client.cpp",

@@ -23,6 +23,8 @@ ohos_shared_library("ethernet_manager") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libethernet_manager.map"
+
   sources = [
     "$ETHERNETMANAGER_INNERKITS_SOURCE_DIR/src/proxy/interface_state_callback_proxy.cpp",
     "src/dev_interface_state.cpp",

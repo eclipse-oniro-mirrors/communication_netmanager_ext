@@ -62,6 +62,8 @@ ohos_rust_shared_library("sharing_ani") {
     debug = false
   }
 
+  version_script = "libsharing_ani.map"
+
   rustflags = [
     "-C", "opt-level=z",
     "-C", "link-arg=-ffunction-sections",
