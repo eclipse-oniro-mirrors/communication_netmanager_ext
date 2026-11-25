@@ -92,6 +92,8 @@ ohos_shared_library("netfirewall_manager") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libnetfirewall_manager.map"
+
   configs = [
     ":netfirewall_manager_config",
     "$NETMANAGER_EXT_ROOT/resource:coverage_flags",

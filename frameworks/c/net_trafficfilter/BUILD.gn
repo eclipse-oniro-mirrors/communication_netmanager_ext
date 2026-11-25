@@ -41,6 +41,7 @@ ohos_shared_library("net_trafficfilter") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  version_script = "libnet_trafficfilter.map"
   output_extension = "so"
 
   include_dirs = [

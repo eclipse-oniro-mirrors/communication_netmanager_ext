@@ -105,6 +105,8 @@ ohos_shared_library("net_vpn_manager") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libnet_vpn_manager.map"
+
   configs = [ ":net_vpn_manager_config" ]
 
   defines = []

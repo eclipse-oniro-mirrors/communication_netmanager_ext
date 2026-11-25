@@ -40,6 +40,8 @@ ohos_shared_library("net_tether_manager") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libnet_tether_manager.map"
+
   sources = [
     "$NETWORKSHAREMANAGER_INNERKITS_SOURCE_DIR/src/proxy/ipccallback/sharing_event_callback_proxy.cpp",
     "src/networkshare_configuration.cpp",

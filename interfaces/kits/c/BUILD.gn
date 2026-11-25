@@ -50,6 +50,8 @@ ohos_shared_library("net_ethernet_ndk") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libnet_ethernet.map"
+
   sources = [ "src/net_ethernet.cpp" ]
 
   public_configs = [ ":net_ethernet_config" ]

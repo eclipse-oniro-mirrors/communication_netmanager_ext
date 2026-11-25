@@ -46,6 +46,8 @@ ohos_shared_library("vpn_extension") {
 
   branch_protector_ret = "pac_ret"
 
+  version_script = "libvpn_extension.map"
+
   sources = [
     "$VPN_EXTENSION_SOURCE_DIR/src/js_vpn_extension.cpp",
     "$VPN_EXTENSION_SOURCE_DIR/src/js_vpn_extension_context.cpp",
@@ -132,6 +134,8 @@ ohos_shared_library("vpn_extension_module") {
   }
 
   branch_protector_ret = "pac_ret"
+
+  version_script = "libvpn_extension_module.map"
 
   include_dirs =
       [ "$VPN_EXTENSION_SOURCE_DIR/interfaces/innerkits/vpnextension" ]

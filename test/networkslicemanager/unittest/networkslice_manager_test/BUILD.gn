@@ -56,7 +56,7 @@ ohos_unittest("networkslice_manager_test") {
         [ "$NETMANAGER_EXT_ROOT/services/networkslicemanager/include" ]
 
     deps += [
-      "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager",
+      "$NETMANAGER_EXT_ROOT/services/networkslicemanager:networkslice_manager_static",
     ]
   }
 
