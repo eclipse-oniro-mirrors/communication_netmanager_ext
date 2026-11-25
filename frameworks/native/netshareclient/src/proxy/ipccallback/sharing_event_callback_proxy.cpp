@@ -39,7 +39,7 @@ void SharingEventCallbackProxy::OnSharingStateChanged(const bool &isRunning)
 
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInterfaceToken(ISharingEventCallback::GetDescriptor());
 
     if (!data.WriteBool(isRunning)) {
@@ -64,7 +64,7 @@ void SharingEventCallbackProxy::OnInterfaceSharingStateChanged(const SharingIfac
 
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInterfaceToken(ISharingEventCallback::GetDescriptor());
 
     if (!data.WriteInt32(static_cast<int32_t>(type))) {
@@ -103,7 +103,7 @@ void SharingEventCallbackProxy::OnSharingUpstreamChanged(const sptr<NetHandle> n
 
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInterfaceToken(ISharingEventCallback::GetDescriptor());
 
     if (!data.WriteInt32(netHandle->GetNetId())) {
