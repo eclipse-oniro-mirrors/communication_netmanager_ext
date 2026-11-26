@@ -147,7 +147,7 @@ public:
         return 0;
     }
 
-    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark) override
+    int32_t SendVerdict(int32_t queueNum, uint32_t packetId, uint32_t verdict, uint32_t mark) override
     {
         return 0;
     }

@@ -386,7 +386,7 @@ int32_t NetFirewallClient::DestroyPacketController(const std::string& packetCont
     return proxy->DestroyPacketController(packetControllerId);
 }
 
-int32_t NetFirewallClient::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+int32_t NetFirewallClient::SendVerdict(int32_t queueNum, uint32_t packetId, uint32_t verdict, uint32_t mark)
 {
     sptr<INetFirewallService> proxy = GetProxy();
     if (proxy == nullptr) {

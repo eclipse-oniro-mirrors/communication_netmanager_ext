@@ -53,7 +53,7 @@ static constexpr uint8_t PORT_BYTE_SHIFT = 8;
 
 static constexpr int32_t NFNL_SUBSYS_QUEUE = 3;
 static constexpr int32_t NFQ_MSG_PACKET = 0;
-static constexpr int32_t NUMBER_TWO = 2;
+static constexpr uint32_t NUMBER_TWO = 2;
 static constexpr uint8_t NUMBER_EIGHT = 8;
 
 static constexpr uint8_t TCP_MIN_HEADER_LEN = 20;
@@ -1389,23 +1389,30 @@ int32_t PacketControllerAdapterManager::ClearPacketRule(OH_TrafficFilter_PacketC
     return OH_TRAFFICFILTER_OK;
 }
 
-static inline const struct nlattr *NlaGetNext(const struct nlattr *nla, int *remaining)
+static inline const struct nlattr *NlaGetNext(const struct nlattr *nla, size_t *remaining)
 {
-    int aligned = NLA_ALIGN(nla->nla_len);
+    size_t aligned = NLA_ALIGN(nla->nla_len);
     *remaining -= aligned;
     return reinterpret_cast<const struct nlattr *>(reinterpret_cast<const char *>(nla) + aligned);
 }
 
-static inline int NlaIsValid(const struct nlattr *nla, int remaining)
+static inline bool NlaIsValid(const struct nlattr *nla, size_t remaining)
 {
-    return remaining >= static_cast<int>(NLA_HDRLEN) &&
-           nla->nla_len >= static_cast<int>(NLA_HDRLEN) &&
-           nla->nla_len <= remaining;
+    constexpr size_t nlaHdrLen = static_cast<size_t>(NLA_HDRLEN);
+    if (remaining < nlaHdrLen) {
+        return false;
+    }
+    const size_t len = static_cast<size_t>(nla->nla_len);
+    if (len < nlaHdrLen) {
+        return false;
+    }
+    return static_cast<size_t>(NLA_ALIGN(len)) <= remaining;
 }
 
-static inline int NlaPayloadLen(const struct nlattr *nla)
+static inline uint16_t NlaPayloadLen(const struct nlattr *nla)
 {
-    return nla->nla_len - NLA_HDRLEN;
+    constexpr uint16_t nlaHdrLen = static_cast<uint16_t>(NLA_HDRLEN);
+    return static_cast<uint16_t>(nla->nla_len - nlaHdrLen);
 }
 
 static inline void *NlaPayload(const struct nlattr *nla)
@@ -1413,9 +1420,9 @@ static inline void *NlaPayload(const struct nlattr *nla)
     return reinterpret_cast<void *>(reinterpret_cast<char *>(nla) + NLA_HDRLEN);
 }
 
-static void NfqParsePacketHdr(NfqPkt *pkt, const void *data, int dlen)
+static void NfqParsePacketHdr(NfqPkt *pkt, const void *data, uint16_t dlen)
 {
-    if (dlen >= static_cast<int>(sizeof(struct NfqPhdr))) {
+    if (dlen >= sizeof(struct NfqPhdr)) {
         const struct NfqPhdr *ph = static_cast<const struct NfqPhdr *>(data);
         pkt->packetId = ntohl(ph->packetId);
         pkt->hwProtocol = ntohs(ph->hwProtocol);
@@ -1423,9 +1430,9 @@ static void NfqParsePacketHdr(NfqPkt *pkt, const void *data, int dlen)
     }
 }
 
-static void NfqParseTimestamp(NfqPkt *pkt, const void *data, int dlen)
+static void NfqParseTimestamp(NfqPkt *pkt, const void *data, uint16_t dlen)
 {
-    if (dlen >= static_cast<int>(NUMBER_TWO * sizeof(uint64_t))) {
+    if (dlen >= NUMBER_TWO * sizeof(uint64_t)) {
         const uint64_t *ts = static_cast<const uint64_t *>(data);
         pkt->ts.tv_sec = static_cast<long>(be64toh(ts[0]));
         pkt->ts.tv_usec = static_cast<long>(be64toh(ts[1]));
@@ -1433,11 +1440,11 @@ static void NfqParseTimestamp(NfqPkt *pkt, const void *data, int dlen)
     }
 }
 
-static void NfqPktParseAttrs(NfqPkt *pkt, const struct nlattr *start, int remaining)
+static void NfqPktParseAttrs(NfqPkt *pkt, const struct nlattr *start, size_t remaining)
 {
     for (const struct nlattr *nla = start; NlaIsValid(nla, remaining); nla = NlaGetNext(nla, &remaining)) {
         const void *data = NlaPayload(nla);
-        int dlen = NlaPayloadLen(nla);
+        uint16_t dlen = NlaPayloadLen(nla);
 
         switch (nla->nla_type) {
             case NFQA_PACKET_HDR:
@@ -1448,22 +1455,22 @@ static void NfqPktParseAttrs(NfqPkt *pkt, const struct nlattr *start, int remain
                 pkt->payloadLen = dlen;
                 break;
             case NFQA_MARK:
-                if (dlen >= static_cast<int>(sizeof(uint32_t))) {
+                if (dlen >= sizeof(uint32_t)) {
                     pkt->mark = ntohl(*reinterpret_cast<const uint32_t *>(data));
                 }
                 break;
             case NFQA_IFINDEX_INDEV:
-                if (dlen >= static_cast<int>(sizeof(uint32_t))) {
+                if (dlen >= sizeof(uint32_t)) {
                     pkt->indev = ntohl(*reinterpret_cast<const uint32_t *>(data));
                 }
                 break;
             case NFQA_IFINDEX_OUTDEV:
-                if (dlen >= static_cast<int>(sizeof(uint32_t))) {
+                if (dlen >= sizeof(uint32_t)) {
                     pkt->outdev = ntohl(*reinterpret_cast<const uint32_t *>(data));
                 }
                 break;
             case NFQA_HWADDR:
-                if (dlen >= static_cast<int>(sizeof(struct NfqHwaddr))) {
+                if (dlen >= sizeof(struct NfqHwaddr)) {
                     const struct NfqHwaddr *hw = static_cast<const struct NfqHwaddr *>(data);
                     pkt->hwAddrlen = ntohs(hw->hwAddrlen);
                     memcpy_s(pkt->hwAddr, sizeof(pkt->hwAddr), hw->hwAddr, NUMBER_EIGHT);
@@ -1664,7 +1671,7 @@ static void FreePacketHeader(uint8_t *headerBuffer)
 static int32_t SendDefaultVerdict(OH_TrafficFilter_PacketController *controller,
     uint16_t queueNum, uint32_t packetId)
 {
-    int32_t verdict = (controller->nfqueueFlags == OH_TRAFFICFILTER_NFQUEUE_FLAG_FAIL_OPEN) ? 1 : 0;
+    uint32_t verdict = (controller->nfqueueFlags == OH_TRAFFICFILTER_NFQUEUE_FLAG_FAIL_OPEN) ? 1 : 0;
     int32_t ret = PacketControllerAdapterManager::GetInstance().SendVerdict(
         queueNum, packetId, verdict, 0);
     if (ret != OH_TRAFFICFILTER_OK) {
@@ -1694,14 +1701,30 @@ static void DetectPacketIdGap(OH_TrafficFilter_PacketController *controller, uin
     }
 }
 
+static int32_t SendVerdictAdp(uint16_t queueNum, uint32_t packetId, uint32_t verdict)
+{
+    int32_t ret = PacketControllerAdapterManager::GetInstance().SendVerdict(
+        queueNum, packetId, verdict, 0);
+    if (ret != OH_TRAFFICFILTER_OK) {
+        NETMGR_EXT_LOG_E("SendVerdict failed, packetId=%{public}u, ret=%{public}d", packetId, ret);
+    }
+    return ret;
+}
+
 static int32_t HandlePacketMessage(OH_TrafficFilter_PacketController *controller, struct nlmsghdr *nlh)
 {
-    struct NfqNfg *nfg = static_cast<struct NfqNfg *>(NLMSG_DATA(nlh));
+    constexpr size_t minNlmsgLen = static_cast<size_t>(NLMSG_LENGTH(sizeof(struct NfqNfg)));
+    size_t msgLen = static_cast<size_t>(nlh->nlmsg_len);
+    if (msgLen < minNlmsgLen) {
+        return -1;
+    }
+
+    NfqNfg *nfg = static_cast<struct NfqNfg *>(NLMSG_DATA(nlh));
     uint16_t queueNum = ntohs(nfg->resId);
     NfqPkt pkt;
-    memset_s(&pkt, sizeof(pkt), 0, sizeof(pkt));
-    int hdrLen = NLMSG_LENGTH(sizeof(struct NfqNfg));
-    int attrRemaining = static_cast<int>(nlh->nlmsg_len) - hdrLen;
+    (void)memset_s(&pkt, sizeof(pkt), 0, sizeof(pkt));
+
+    size_t attrRemaining = msgLen - minNlmsgLen;
     const struct nlattr *attrStart =
         reinterpret_cast<const struct nlattr *>(reinterpret_cast<const char *>(nfg) + sizeof(struct NfqNfg));
     NfqPktParseAttrs(&pkt, attrStart, attrRemaining);
@@ -1735,14 +1758,9 @@ static int32_t HandlePacketMessage(OH_TrafficFilter_PacketController *controller
         return SendDefaultVerdict(controller, queueNum, packetId);
     }
     packet.packetId = packetId;
-    int verdict = controller->callback(&packet, controller->userData) == OH_TRAFFICFILTER_DECISION_ACCEPT ? 1 : 0;
+    uint32_t verdict = controller->callback(&packet, controller->userData) == OH_TRAFFICFILTER_DECISION_ACCEPT ? 1 : 0;
     FreePacketHeader(headerBuffer);
-    int32_t ret = PacketControllerAdapterManager::GetInstance().SendVerdict(
-        queueNum, packetId, verdict, 0);
-    if (ret != OH_TRAFFICFILTER_OK) {
-        NETMGR_EXT_LOG_E("SendVerdict failed, packetId=%{public}u, ret=%{public}d", packetId, ret);
-    }
-    return ret;
+    return SendVerdictAdp(queueNum, packetId, verdict);
 }
 
 static void ProcessNetlinkMessage(OH_TrafficFilter_PacketController *controller, struct nlmsghdr *nlh)
@@ -1771,7 +1789,7 @@ static void *PacketWorkerThread(void *arg)
     }
     int fd = controller->fd;
     static constexpr size_t nfqRecvBufferSize = 131072;
-    alignas(NLMSG_ALIGNTO) char buf[nfqRecvBufferSize];
+    std::vector<char> buf(nfqRecvBufferSize);
     struct pollfd pfd{ fd, POLLIN, 0 };
     while (controller->running.load()) {
         int ret = poll(&pfd, 1, 500);
@@ -1781,20 +1799,25 @@ static void *PacketWorkerThread(void *arg)
             }
             break;
         }
-        if (ret == 0 || !(pfd.revents & POLLIN)) {
+        const uint16_t revents = static_cast<uint16_t>(pfd.revents);
+        if (ret == 0 || ((revents & static_cast<uint16_t>(POLLIN)) == 0)) {
             continue;
         }
-        ssize_t recvLen = recv(fd, buf, sizeof(buf), 0);
+        ssize_t recvLen = recv(fd, buf.data(), buf.size(), 0);
         if (recvLen <= 0) {
             if (recvLen < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
                 continue;
             }
             break;
         }
-        struct nlmsghdr *nlh = reinterpret_cast<struct nlmsghdr *>(buf);
-        int remainingLen = static_cast<int>(recvLen);
+        struct nlmsghdr *nlh = reinterpret_cast<struct nlmsghdr *>(buf.data());
+        uint32_t remainingLen = static_cast<uint32_t>(recvLen);
         while (NLMSG_OK(nlh, remainingLen)) {
+            uint32_t alignLen = NLMSG_ALIGN(nlh->nlmsg_len);
             ProcessNetlinkMessage(controller, nlh);
+            if (alignLen >= remainingLen) {
+                break;
+            }
             nlh = NLMSG_NEXT(nlh, remainingLen);
         }
     }
@@ -1803,7 +1826,8 @@ static void *PacketWorkerThread(void *arg)
     return nullptr;
 }
 
-int32_t PacketControllerAdapterManager::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+int32_t PacketControllerAdapterManager::SendVerdict(int32_t queueNum, uint32_t packetId, uint32_t verdict,
+    uint32_t mark)
 {
     NETMGR_EXT_LOG_D("PacketControllerAdapterManager::SendVerdict");
     int32_t ret = NetFirewallClient::GetInstance().SendVerdict(queueNum, packetId, verdict, mark);

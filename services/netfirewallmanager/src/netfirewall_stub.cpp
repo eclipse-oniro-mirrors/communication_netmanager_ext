@@ -641,13 +641,13 @@ int32_t NetFirewallStub::OnSendVerdict(MessageParcel &data, MessageParcel &reply
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    int32_t verdict;
-    if (!data.ReadInt32(verdict)) {
+    uint32_t verdict;
+    if (!data.ReadUint32(verdict)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
 
-    int32_t mark;
-    if (!data.ReadInt32(mark)) {
+    uint32_t mark;
+    if (!data.ReadUint32(mark)) {
         return NETMANAGER_EXT_ERR_READ_DATA_FAIL;
     }
     int32_t ret = SendVerdict(queueNum, packetId, verdict, mark);

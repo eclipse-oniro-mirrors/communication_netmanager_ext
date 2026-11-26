@@ -802,7 +802,7 @@ int32_t NetFirewallProxy::ClearPacketRule(const std::string& controllerId)
     return ret;
 }
 
-int32_t NetFirewallProxy::SendVerdict(int32_t queueNum, uint32_t packetId, int32_t verdict, int32_t mark)
+int32_t NetFirewallProxy::SendVerdict(int32_t queueNum, uint32_t packetId, uint32_t verdict, uint32_t mark)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -817,12 +817,12 @@ int32_t NetFirewallProxy::SendVerdict(int32_t queueNum, uint32_t packetId, int32
         NETMGR_EXT_LOG_E("WriteUint32 packetId failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
-    if (!data.WriteInt32(verdict)) {
-        NETMGR_EXT_LOG_E("WriteInt32 verdict failed");
+    if (!data.WriteUint32(verdict)) {
+        NETMGR_EXT_LOG_E("WriteUint32 verdict failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
-    if (!data.WriteInt32(mark)) {
-        NETMGR_EXT_LOG_E("WriteInt32 mark failed");
+    if (!data.WriteUint32(mark)) {
+        NETMGR_EXT_LOG_E("WriteUint32 mark failed");
         return NETMANAGER_EXT_ERR_WRITE_DATA_FAIL;
     }
     sptr<IRemoteObject> remote = Remote();

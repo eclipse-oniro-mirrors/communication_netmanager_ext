@@ -535,8 +535,8 @@ HWTEST_F(NetFirewallServiceProxyTest, SendVerdict001, TestSize.Level1)
     NetManagerExtAccessToken token;
     int32_t queueNum = 0;
     uint32_t packetId = 100;
-    int32_t verdict = 1;
-    int32_t mark = 0;
+    uint32_t verdict = 1;
+    uint32_t mark = 0;
     auto ret = instance_->SendVerdict(queueNum, packetId, verdict, mark);
     EXPECT_EQ(ret, FIREWALL_SUCCESS);
 }
