@@ -29,6 +29,11 @@
  
 namespace OHOS {
 namespace NetManagerStandard {
+
+inline constexpr uint32_t EAP_CODE_SUCCESS = 3;
+inline constexpr uint32_t EAP_CODE_FAILURE = 4;
+inline constexpr uint32_t EAP_CODE_EXT_MAX = 6;
+inline constexpr uint32_t EAP_CODE_WILDCARD = 99;
  
 class RegObj {
 public:

@@ -14,6 +14,7 @@
  */
  
 #include "eap_napi_event.h"
+#include "eap_event_mgr.h"
 #include "napi_constant.h"
  
 namespace OHOS {
@@ -122,7 +123,7 @@ napi_value RegCustomEapHandler(napi_env env, napi_callback_info info)
     }
  
     uint32_t eapCode = NapiUtils::GetUint32FromValue(env, argv[ARG_INDEX_1]);
-    if (eapCode < EAP_CODE_MIN || eapCode > EAP_CODE_MAX) {
+    if (eapCode < EAP_CODE_MIN || (eapCode > EAP_CODE_MAX && eapCode != EAP_CODE_WILDCARD)) {
         NETMANAGER_EXT_LOGE("invalid eapCode %{public}d", eapCode);
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_CODE);
     }
@@ -167,7 +168,7 @@ napi_value UnRegCustomEapHandler(napi_env env, napi_callback_info info)
     }
  
     int32_t eapCode = NapiUtils::GetInt32FromValue(env, argv[ARG_INDEX_1]);
-    if (eapCode < EAP_CODE_MIN || eapCode > EAP_CODE_MAX) {
+    if (eapCode < EAP_CODE_MIN || (eapCode > EAP_CODE_MAX && eapCode != EAP_CODE_WILDCARD)) {
         NETMANAGER_EXT_LOGE("invalid eapCode %{public}d", eapCode);
         return EapNapiReturn(env, false, EAP_ERRCODE_INVALID_EAP_CODE);
     }

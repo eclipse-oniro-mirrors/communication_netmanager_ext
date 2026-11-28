@@ -26,19 +26,31 @@ static constexpr uint32_t INVALID_REF_COUNT = 0xff;
 static constexpr const char *EAP_BUFFER = "eapBuffer";
 static constexpr const char *EAP_BUFFERLEN = "bufferLen";
 static constexpr const char *EAP_MSGID = "msgId";
-static constexpr const int32_t EAP_CODE_SUCCESS = 3;
-static constexpr const int32_t EAP_CODE_FAILURE = 4;
 static constexpr const int32_t OFFSET_EAPCODE = 8;
 static std::shared_mutex g_regInfoMutex;
- 
+
+static inline uint32_t GetEapComposeParam(uint32_t eapCode, uint32_t eapType)
+{
+    if (eapCode == EAP_CODE_SUCCESS || eapCode == EAP_CODE_FAILURE || eapCode == EAP_CODE_WILDCARD) {
+        return eapCode << OFFSET_EAPCODE;
+    }
+    return (eapCode << OFFSET_EAPCODE) | eapType;
+}
+
 int32_t NetEapPostBackCallback::OnEapSupplicantPostback(NetType netType, const sptr<EapData> &eapData)
 {
     if (eapData == nullptr) {
         NETMANAGER_EXT_LOGE("%{public}s eapData is nullptr.", __func__);
         return NETMANAGER_ERR_LOCAL_PTR_NULL;
     }
-    if (eapData->eapCode < EAP_CODE_MIN || eapData->eapCode > EAP_CODE_MAX) {
-        NETMANAGER_EXT_LOGE("eapCode %{public}d invalid.", eapData->eapCode);
+    bool isStdCode = eapData->eapCode >= EAP_CODE_MIN && eapData->eapCode <= EAP_CODE_MAX;
+    bool isNonStdCode = eapData->eapCode > EAP_CODE_EXT_MAX && eapData->eapCode <= EAP_TYPE_MAX;
+    if (!isStdCode && !isNonStdCode) {
+        NETMANAGER_EXT_LOGE("eapCode %{public}u invalid.", eapData->eapCode);
+        return NETMANAGER_ERR_PARAMETER_ERROR;
+    }
+    if (eapData->eapCode < EAP_CODE_SUCCESS && eapData->eapType > EAP_TYPE_MAX) {
+        NETMANAGER_EXT_LOGE("eapType %{public}u invalid.", eapData->eapType);
         return NETMANAGER_ERR_PARAMETER_ERROR;
     }
     if (eapData->eapBuffer.size() == 0) {
@@ -47,10 +59,8 @@ int32_t NetEapPostBackCallback::OnEapSupplicantPostback(NetType netType, const s
     }
     NETMANAGER_EXT_LOGI("%{public}s: eapCode:%{public}d, eapType:%{public}d, buffsize:%{public}zu", __func__,
         eapData->eapCode, eapData->eapType, eapData->eapBuffer.size());
-    uint32_t composeParam =  (eapData->eapCode << OFFSET_EAPCODE) | eapData->eapType;
-    if (eapData->eapCode == EAP_CODE_SUCCESS || eapData->eapCode == EAP_CODE_FAILURE) {
-        composeParam = (eapData->eapCode << OFFSET_EAPCODE);
-    }
+    uint32_t dispatchCode = eapData->eapCode > EAP_CODE_EXT_MAX ? EAP_CODE_WILDCARD : eapData->eapCode;
+    uint32_t composeParam = GetEapComposeParam(dispatchCode, eapData->eapType);
     return CheckAndNotifyApp(netType, composeParam, eapData);
 }
  
@@ -219,10 +229,7 @@ int32_t EapEventMgr::RegCustomEapHandler(napi_env env, NetType netType, uint32_t
 {
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
         static_cast<int>(netType), eapCode, eapType);
-    uint32_t composeParam =  (eapCode << OFFSET_EAPCODE) | eapType;
-    if (eapCode == EAP_CODE_SUCCESS || eapCode == EAP_CODE_FAILURE) {
-        composeParam = (eapCode << OFFSET_EAPCODE);
-    }
+    uint32_t composeParam = GetEapComposeParam(eapCode, eapType);
     napi_ref handlerRef = nullptr;
     napi_create_reference(env, handler, 1, &handlerRef);
     RegObj regObj(env, handlerRef);
@@ -293,10 +300,7 @@ int32_t EapEventMgr::UnRegCustomEapHandler(napi_env env, NetType netType, uint32
 {
     NETMANAGER_EXT_LOGI("%{public}s enter, netType:%{public}d, eapCode:%{public}d, eapType:%{public}d", __func__,
         static_cast<int>(netType), eapCode, eapType);
-    uint32_t composeParam =  (eapCode << OFFSET_EAPCODE) | eapType;
-    if (eapCode == EAP_CODE_SUCCESS || eapCode == EAP_CODE_FAILURE) {
-        composeParam = (eapCode << OFFSET_EAPCODE);
-    }
+    uint32_t composeParam = GetEapComposeParam(eapCode, eapType);
     bool needUnregister = false;
     {
         std::unique_lock<std::shared_mutex> guard(g_regInfoMutex);
